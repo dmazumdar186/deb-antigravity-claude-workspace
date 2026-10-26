@@ -115,33 +115,38 @@
     var it = items[Math.max(0, shown)], lv = it ? BREATH_LEVEL[it.getAttribute('data-breath')] : undefined;
     bd.setBreath(onCover && lv !== undefined ? lv : null);
   }
-  function layoutRing() { // ring centred on the film window, radius limited so it clears copy + rail by RING_CLEAR
+  function layoutRing() { // ring centred on the film; one radius for every state (jury r2 item 20), clear of copy + rail by RING_CLEAR, <= 85 % of the width
     var cv = $('[data-breath]'); if (!cv || !film || !stage) return;
-    var f = film.getBoundingClientRect(), s0 = stage.getBoundingClientRect(), cx = f.left + f.width / 2, cy = f.top + f.height / 2;
+    var f = film.getBoundingClientRect(), s0 = stage.getBoundingClientRect(), cx = f.left + f.width / 2, cy = f.top + f.height / 2, H = f.height;
+    var centres = [cy - s0.top];
+    if (filmH) { centres = []; for (var k = 0; k <= LAST; k++) centres.push(topFor(k) + filmH / 2); H = filmH; }
     var obs = copyStates.concat([$('[data-rail]')]).filter(Boolean), d = Infinity;
-    obs.forEach(function (el) { var r = el.getBoundingClientRect(); if (!r.width || !r.height) return; var dx = Math.max(r.left - cx, 0, cx - r.right), dy = Math.max(r.top - cy, 0, cy - r.bottom); d = Math.min(d, Math.sqrt(dx * dx + dy * dy)); });
-    var R0 = Math.min(f.width, f.height) * 0.5, Rfit = (d - RING_CLEAR) / 1.151, faint = Rfit < R0 * 0.45, Rr = faint ? R0 * 0.8 : Math.min(R0, Rfit);
-    cv.classList.toggle('is-faint', faint); // jury item 3: where the ring cannot clear the copy it sits at 6 % behind type
-    var S = Rr / 0.36; stage.style.setProperty('--ring-s', Math.round(S) + 'px');
+    obs.forEach(function (el) { var r = el.getBoundingClientRect(); if (!r.width || !r.height) return; centres.forEach(function (c) { var y = c + s0.top, dx = Math.max(r.left - cx, 0, cx - r.right), dy = Math.max(r.top - y, 0, y - r.bottom); d = Math.min(d, Math.sqrt(dx * dx + dy * dy)); }); });
+    var R0 = Math.min(0.375 * H, 0.425 * s0.width / 1.04), Rfit = (d - RING_CLEAR) / 1.151, faint = Rfit < R0 * 0.45, Rr = faint ? R0 * 0.8 : Math.min(R0, Rfit);
+    cv.classList.toggle('is-faint', faint); // where the ring cannot clear the copy it sits at 6 % behind type
+    stage.style.setProperty('--ring-s', Math.round(Rr / 0.36) + 'px');
     stage.style.setProperty('--fl', Math.round(f.left - s0.left) + 'px'); stage.style.setProperty('--fr', Math.round(s0.right - f.right) + 'px'); stage.style.setProperty('--fc', Math.round(cx - s0.left) + 'px');
-    stage.style.setProperty('--ring-x', Math.round(cx - s0.left) + 'px'); stage.style.setProperty('--ring-y', Math.round(cy - s0.top) + 'px');
+    stage.style.setProperty('--ring-x', Math.round(cx - s0.left) + 'px'); stage.style.setProperty('--ring-y', Math.round((filmH ? topFor(Math.max(0, shown)) + filmH / 2 : cy - s0.top)) + 'px');
   }
   function setPos(x) { pos = clamp(x, 0, LAST); engine.pos = pos; var st = stateOf(pos); engine.state = st; show(st, pos); }
   var filmH = 0, copyTop = 0, railTop = 0, maxCopy = 0;
   function figOf(st) { var f = meta && meta.fig && meta.fig[st]; return f && f.length === 2 ? f : [FIG_TOP, FIG_BOT]; }
-  function placeFilm() { // portrait class: the window glides so the current figure sits centred between copy and rail, never under either
-    if (!filmH || !stage) return; var V = stage.clientHeight || W.innerHeight, on = $('.copy__state.is-on');
-    var C = copyTop + (on ? on.offsetHeight : maxCopy) + 12, f = figOf(Math.max(0, shown)), H = filmH;
+  function topFor(st) { // portrait: the window glides so the figure of state st sits centred between copy and rail, never under either
+    var on = copyStates.filter(function (el) { return Number(el.getAttribute('data-copy-state')) === copyOf(st); })[0];
+    var C = copyTop + (on ? on.offsetHeight : maxCopy) + 12, f = figOf(st), H = filmH;
     var lo = C - f[0] * H, hi = railTop - f[1] * H, T = ((C + railTop) / 2) - ((f[0] + f[1]) / 2) * H;
-    T = hi >= lo ? clamp(T, lo, hi) : lo; stage.style.setProperty('--film-top', Math.round(T) + 'px'); W.setTimeout(layoutRing, 950);
+    return hi >= lo ? clamp(T, lo, hi) : lo;
+  }
+  function placeFilm() {
+    if (!filmH || !stage) return; stage.style.setProperty('--film-top', Math.round(topFor(Math.max(0, shown))) + 'px'); layoutRing();
   }
   function measureCopy() { // portrait class: 3:4 film between the copy (top) and the rail (bottom); paper may pass under both, the figure never
     if (!stage || !W.matchMedia(PORTRAIT_MQ).matches) { filmH = 0; stage.style.removeProperty('--film-top'); stage.style.removeProperty('--film-h'); layoutRing(); return; }
     var h = 0; copyStates.forEach(function (el) { h = Math.max(h, el.offsetHeight); }); maxCopy = h;
     var c = $('[data-copy]'), rail = $('[data-rail]'), V = stage.clientHeight || W.innerHeight, Wd = stage.clientWidth || W.innerWidth;
     copyTop = c ? c.offsetTop : 0; railTop = rail ? rail.offsetTop - 8 : V - 60;
-    filmH = Math.min(Wd * 4 / 3, (railTop - copyTop - h - 12) / (FIG_BOT - FIG_TOP));
-    stage.style.setProperty('--film-h', Math.round(filmH) + 'px'); placeFilm(); layoutRing();
+    filmH = Math.min(Wd * 1.28, (railTop - copyTop - h - 12) / (FIG_BOT - FIG_TOP)); // the 3:4 frame inside the widened film keeps >= 6 % side gutters (r2 item 8)
+    stage.style.setProperty('--film-h', Math.round(filmH) + 'px'); placeFilm();
   }
   var raf = 0;
   function seekTick() {
@@ -227,6 +232,8 @@
     var mid = W.innerHeight * 0.5, on = -1;
     chapters.forEach(function (c, i) { var r = c.getBoundingClientRect(); if (r.top <= mid && r.bottom > mid) on = i; });
     chapters.forEach(function (c, i) { c.classList.toggle('is-on', i === on || staticMode); });
+    chapters.forEach(function (c) { var r = c.getBoundingClientRect(), fg = $('[data-chring]', c); if (!fg) return; // the ring fills as the chapter is read
+      var pr = staticMode ? 1 : clamp((W.innerHeight * 0.85 - r.top) / Math.max(1, r.height), 0, 1); fg.style.strokeDashoffset = (100 - 100 * pr).toFixed(1); });
     root.classList.toggle('in-chapters', on >= 0);
     if (on >= 0 && !reached1) { reached1 = true; armDialog(); }
   }
@@ -282,6 +289,7 @@
         .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { if (!r.ok || !j.ok) throw r.status; }); })
         .then(function () {
           var okEl = form.parentNode.querySelector('[data-ok]'); form.hidden = true; if (okEl) { okEl.hidden = false; var fx = okEl.matches('[tabindex]') ? okEl : $('[tabindex]', okEl); if (fx) fx.focus(); }
+          if (kind === 'reg') { var chs = form.closest('[data-chapter]'); if (chs) W.setTimeout(function () { W.scrollTo({ top: chs.getBoundingClientRect().top + W.pageYOffset, behavior: 'auto' }); }, 30); }
           ev(kind === 'reg' ? 'register_done' : 'newsletter_done');
         })
         .catch(function () {

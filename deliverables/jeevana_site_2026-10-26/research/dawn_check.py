@@ -19,7 +19,7 @@ def lum(c):
     c = np.asarray(c, float) / 255; c = np.where(c > .04045, ((c + .055) / 1.055) ** 2.4, c / 12.92); return float(np.dot(c, [.2126, .7152, .0722]))
 pl = np.asarray(Image.open(m['plate']).convert('RGB')).astype(float); ph = pl.shape[0]
 plate50 = np.median(pl[int(ph * .5) - 2:int(ph * .5) + 3].reshape(-1, 3), axis=0)
-FR = [.02, .05, .08, .11, .89, .92, .95, .98]
+FR = [.02, .05, .08, .11, .25, .5, .75, .89, .92, .95, .98]  # r2 item 17: 25/50/75 % too (the widened film's sides are sky)
 out = {'seam': [], 'step': [], 'stage': [], 'contrast': []}
 for s in m['shots']:
     im = np.asarray(Image.open(s['png']).convert('RGB')).astype(float); H, W, _ = im.shape
@@ -46,7 +46,30 @@ for s in m['shots']:
                 prof = np.array([L(x, y) for y in (range(int(edge - 120), int(edge + rv) + 1) if sign > 0 else range(int(edge - rv), int(edge + 121)))])
                 st = max(abs(prof[i:i + 9].mean() - prof[i - 9:i].mean())  for i in range(9, len(prof) - 9))
                 smax = max(smax, st)
+        redge = max(float(np.linalg.norm(lab(im[int(H * f), W - 1]) - lab(px(W - 10, H * f)))) for f in (.1, .3, .5, .7, .9))  # r2 item 10: sky reaches the last column
+        out.setdefault('rightcol', []).append({'tag': tag, 'dE': round(redge, 2)})
         out['seam'].append({'tag': tag, 'pairs': n, 'dE': round(dmax, 2)}); out['step'].append({'tag': tag, 'step': round(smax, 3)})
+    elif s['kind'] == 'panelstep':
+        l, t, r, b = s['rect']; smax = 0; fe = int(s.get('feather', 160))  # profile: 30 px outside to the end of the feather inside
+        for f in (.2, .4, .6, .8):
+            for edge, axis, sign in ((l, 'x', 1), (r, 'x', -1), (t, 'y', 1), (b, 'y', -1)):
+                if axis == 'x':
+                    y = t + (b - t) * f; xs = range(int(edge - 30 * sign), int(edge + fe * sign), sign); prof = np.array([L(x, y) for x in xs if 0 <= x < W])
+                else:
+                    x = l + (r - l) * f; ys = range(int(edge - 30 * sign), int(edge + fe * sign), sign); prof = np.array([L(x, y) for y in ys if 0 <= y < H])
+                if len(prof) > 20: smax = max(smax, max(abs(prof[i:i + 9].mean() - prof[i - 9:i].mean()) for i in range(9, len(prof) - 9)))
+        out.setdefault('panelstep', []).append({'tag': tag, 'step': round(smax, 3)})
+    elif s['kind'] == 'panelalpha':
+        A, B, C = [np.asarray(Image.open(q).convert('RGB')).astype(float) for q in s['pngs']]; l, t, r, b = s['rect']; res = []
+        for f in (.15, .35, .65, .85):
+            for x, y in ((l + 1, t + (b - t) * f), (r - 2, t + (b - t) * f), (l + (r - l) * f, t + 1), (l + (r - l) * f, b - 2)):
+                x = int(min(W - 1, max(0, x))); y = int(min(H - 1, max(0, y))); d = C[y, x] - B[y, x]; k = int(np.argmax(np.abs(d)))
+                if abs(d[k]) >= 40: res.append(float(max(0, (A[y, x][k] - B[y, x][k]) / d[k])))
+        out.setdefault('panelalpha', []).append({'tag': tag, 'n': len(res), 'max': round(max(res), 3) if res else None})
+    elif s['kind'] == 'figheight':
+        a = np.asarray(Image.open(s['png']).convert('RGB')).astype(float); med = np.median(a, axis=1, keepdims=True)
+        rows = np.where((np.abs(a - med).max(axis=2) > 45).sum(axis=1) > a.shape[1] * 0.01)[0]
+        out['figheight'] = round(float((rows.max() - rows.min()) / a.shape[0]) if len(rows) else 0, 3)
     elif s['kind'] == 'stage':
         l, t, r, b = s['film']; c = px((l + r) / 2, (t + b) / 2)
         out['stage'].append({'tag': tag, 'dE': round(float(np.linalg.norm(lab(c) - lab(plate50))), 2)})

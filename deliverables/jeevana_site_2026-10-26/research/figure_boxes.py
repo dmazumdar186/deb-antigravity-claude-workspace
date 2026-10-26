@@ -11,11 +11,18 @@ from scipy import ndimage
 R = pathlib.Path(__file__).parent
 out = {"source": "research/keyframes/frame-NN.jpg", "units": "fraction of frame", "landscape": [], "portrait": []}
 crop_w = (9 / 16) / (3 / 4)  # hero-m: crop=ih*9/16:ih of the 3:4 film
-for f in sorted(glob.glob(str(R / 'keyframes/frame-*.jpg'))):
+DAWN = R / 'keyframes/dawn/plate.jpg'
+plate = np.asarray(Image.open(DAWN).convert('RGB').filter(ImageFilter.MedianFilter(5))).astype(int) if DAWN.exists() else None
+src = sorted(glob.glob(str(R / ('keyframes/dawn/frame-*.jpg' if plate is not None else 'keyframes/frame-*.jpg'))))
+out["source"] = "research/keyframes/dawn/frame-NN.jpg minus plate.jpg" if plate is not None else out["source"]
+for f in src:
     im = Image.open(f).convert('RGB').filter(ImageFilter.MedianFilter(5)); a = np.asarray(im).astype(int); h, w, _ = a.shape
-    border = np.concatenate([a[:8].reshape(-1, 3), a[-8:].reshape(-1, 3), a[:, :8].reshape(-1, 3), a[:, -8:].reshape(-1, 3)])
-    paper = np.median(border, axis=0)
-    m = np.abs(a - paper).max(axis=2) > 28
+    if plate is not None:  # dawn: figure = pixels that differ from the empty plate
+        paper = np.median(a[:8].reshape(-1, 3), axis=0); m = np.abs(a - plate).max(axis=2) > 40
+    else:
+        border = np.concatenate([a[:8].reshape(-1, 3), a[-8:].reshape(-1, 3), a[:, :8].reshape(-1, 3), a[:, -8:].reshape(-1, 3)])
+        paper = np.median(border, axis=0)
+        m = np.abs(a - paper).max(axis=2) > 28
     lab, n = ndimage.label(m); sizes = ndimage.sum(m, lab, range(1, n + 1))
     keep = np.isin(lab, [i + 1 for i, s in enumerate(sizes) if s > 0.0005 * h * w])
     ys, xs = np.nonzero(keep)

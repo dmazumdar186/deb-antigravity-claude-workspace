@@ -10,7 +10,8 @@ const hf = (p) => createHash('sha256').update(readFileSync(p)).digest('hex').sli
 mkdirSync(join(site, 'assets/film'), { recursive: true });
 const meta = JSON.parse(readFileSync(join(film, 'hero.json'), 'utf8')); meta.v = {};
 // mp4s are re-encoded for scrubbing by research/fit_film.py (3:4 on all devices; hero-m.mp4 is not shipped)
-copyFileSync(join(film, meta.poster), join(site, 'assets/film', meta.poster)); meta.v.poster = hf(join(film, meta.poster));
+meta.v.poster = hf(join(site, 'assets/film', meta.poster)); // widened poster written by fit_film.py
+try { meta.wide = JSON.parse(readFileSync(R + 'film/fit.json', 'utf8')).wide; } catch { /* unwidened */ }
 meta.phone = 'hero-phone.mp4'; delete meta.portrait; meta.plate = film.endsWith('film_dawn/') ? 'dawn' : 'cream';
 for (const k of ['landscape', 'phone']) meta.v[k] = hf(join(site, 'assets/film', meta[k]));
 // figure extents per keyframe (top, bottom as fraction of the 3:4 frame) for the portrait layout

@@ -30,10 +30,10 @@ async function page(opts, { seen = true, lang = 'en', api = 200 } = {}) {
 const scrollP = (p, pp) => p.evaluate((pp) => { document.documentElement.style.scrollBehavior = 'auto'; const c = document.querySelector('[data-cover]'); scrollTo(0, Math.round(c.offsetTop + (c.offsetHeight - innerHeight) * pp)); }, pp);
 const ct = (p) => p.evaluate(() => document.querySelector('[data-film-video]').currentTime);
 // geometry probe: figure box (keyframe k) on screen + visible text rects
-const geo = (p, k) => p.evaluate(([k, boxes]) => {
+const geo = (p, k) => p.evaluate(([k, boxes, wide]) => {
   const v = document.querySelector('[data-film-video]'), r = v.getBoundingClientRect(); const vw = v.videoWidth || 3, vh = v.videoHeight || 4;
   const sc = Math.max(r.width / vw, r.height / vh), cw = vw * sc, chh = vh * sc, ox = r.left + (r.width - cw) / 2, oy = r.top + (r.height - chh) / 2;
-  const set = vw / vh < 0.6 ? boxes.portrait : boxes.landscape; const bx = set[k].box;
+  const b0 = boxes.landscape[k].box; const pf = wide ? wide.pad / wide.width : 0, of = wide ? wide.orig_width / wide.width : 1; const bx = [pf + b0[0] * of, b0[1], pf + b0[2] * of, b0[3]];
   const fig = { l: Math.max(r.left, ox + bx[0] * cw), t: Math.max(r.top, oy + bx[1] * chh), r: Math.min(r.right, ox + bx[2] * cw), b: Math.min(r.bottom, oy + bx[3] * chh) };
   const vis = (el) => { for (let e = el; e && e !== document; e = e.parentElement) { const cs = getComputedStyle(e); if (cs.display === 'none' || cs.visibility === 'hidden' || parseFloat(cs.opacity) < 0.05) return false; } return true; };
   const texts = []; const w = document.createTreeWalker(document.querySelector('[data-stage]'), NodeFilter.SHOW_TEXT);
@@ -43,7 +43,7 @@ const geo = (p, k) => p.evaluate(([k, boxes]) => {
   const iv = texts.concat([fig]).map((q) => [Math.max(0, q.t), Math.min(innerHeight, q.b)]).filter((x) => x[1] > x[0]).sort((a, b) => a[0] - b[0]);
   let gap = 0, end = 0; for (const [a, z] of iv) { gap = Math.max(gap, a - end); end = Math.max(end, z); } gap = Math.max(gap, innerHeight - end);
   return { fig, hit, band: gap / innerHeight };
-}, [k, boxes]);
+}, [k, boxes, hero.wide || null]);
 
 // 1 autoplay
 let p = await page({ viewport: { width: 1440, height: 900 } });
@@ -108,9 +108,10 @@ print(json.dumps({'max':max(res) if res else None,'n':len(res)}))`]).toString();
   await p._ctx.close();
 }
 // 6/7 CTAs at p=1 + empty band, 19 viewports
-const ctaBad = [], bandBad = [], chBad = [], ringClr = [], markBad = []; M.bands = {};
+const ctaBad = [], bandBad = [], chBad = [], ringClr = [], brandBad = [], gutBad = [], ringIn = [], ringConst = [], headBad = []; M.bands = {};
 for (const [name, s] of Object.entries(VP)) {
-  p = await page(spec(s)); await p.goto(base, { waitUntil: 'domcontentloaded' }); await p.waitForTimeout(150); M.bands[name] = {};
+  p = await page(spec(s)); await p.goto(base, { waitUntil: 'domcontentloaded' }); await p.waitForTimeout(150); M.bands[name] = {}; const radii = [];
+  const vw = typeof s === 'string' ? 412 : s[0], vh = typeof s === 'string' ? 915 : s[1];
   for (const [st, pp] of [['s0', 0.05 / 12], ['s7', 7.05 / 12], ['hold', 1]]) {
     await scrollP(p, pp); await p.waitForTimeout(1200); const g = await geo(p, st === 's0' ? 0 : st === 's7' ? 7 : 11); M.bands[name][st] = +g.band.toFixed(3);
     if (g.band > 0.25) bandBad.push(`${name}/${st}=${g.band.toFixed(2)}`);
@@ -120,27 +121,32 @@ for (const [name, s] of Object.entries(VP)) {
         worst = Math.min(worst, Math.max(dn - R, R - df)); } return worst; });
     const faint = await p.evaluate(() => parseFloat(getComputedStyle(document.querySelector('[data-breath]')).opacity) <= 0.06);
     if (!(rc >= 48) && !faint) ringClr.push(`${name}/${st}=${Math.round(rc)}`);
+    const rg = await p.evaluate(() => { const cv = document.querySelector('[data-breath]').getBoundingClientRect(), G = window.JeevanaBackdrop.geom(); return { l: cv.left + G.cx - G.rMax, r: cv.left + G.cx + G.rMax, R: G.rMax, W: innerWidth }; });
+    radii.push(rg.R); if (rg.l < 0 || rg.r > rg.W || 2 * rg.R > 0.85 * rg.W + 1) ringIn.push(`${name}/${st}`);
+    if (st !== 's7') { const nb = await p.evaluate(() => { let n = 0; const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); for (let t; (t = w.nextNode());) { if (!/Jeevana\b/.test(t.textContent) || /@|\./.test(t.textContent)) continue; const el = t.parentElement; let ok = true; for (let e = el; e && e !== document; e = e.parentElement) { const cs = getComputedStyle(e); if (cs.display === 'none' || cs.visibility === 'hidden' || parseFloat(cs.opacity) < 0.05) { ok = false; break; } } const r = el.getBoundingClientRect(); if (ok && r.width && r.bottom > 0 && r.top < innerHeight && !el.closest('dialog,.sr,.skip')) n++; } return n; }); if (nb !== 1) brandBad.push(`${name}/${st}=${nb}`); }
+    if (st === 's7' && (vw < vh || vw <= 1366)) { const fl = await p.evaluate(() => { const f = document.querySelector('[data-film]').getBoundingClientRect(); return [f.left, f.right, parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--feather')) || 80]; });
+      const L = Math.max(0, fl[0]) + (fl[0] >= 0 ? fl[2] : 0), Rr = Math.min(vw, fl[1]) - (fl[1] <= vw ? fl[2] : 0);
+      if (g.fig.l < Math.max(0.06 * vw, L) || g.fig.r > Math.min(0.94 * vw, Rr)) gutBad.push(`${name}: fig ${Math.round(g.fig.l)}–${Math.round(g.fig.r)} of ${vw}`); }
+    const hd = await p.evaluate(() => { const h = document.querySelector('.rail__label'), n = document.querySelector('.rail__list'); if (!h || getComputedStyle(h).display === 'none' || getComputedStyle(n).display === 'none') return false; const a = h.getBoundingClientRect(), b = n.getBoundingClientRect(); return a.bottom > b.top && a.top < b.bottom; }); if (hd) headBad.push(`${name}/${st}`);
   }
+  if (Math.max(...radii) > Math.min(...radii) * 1.02) ringConst.push(`${name}: ${radii.map(Math.round).join('/')}`);
+  if (name === 'desktop-4k') { const fs = await p.evaluate(() => [parseFloat(getComputedStyle(document.querySelector('.rail__no')).fontSize), parseFloat(getComputedStyle(document.querySelector('.hdr__nav > a')).fontSize)]); M.fourK = fs; if (fs[0] < 18 || fs[1] < 22) headBad.push(`4k numerals ${fs[0]} nav ${fs[1]}`); }
   const c = await p.evaluate(() => [...document.querySelectorAll('[data-cover-ctas] a')].map((a) => { const r = a.getBoundingClientRect(); let o = 1; for (let e = a; e; e = e.parentElement) o *= parseFloat(getComputedStyle(e).opacity); return r.top >= 0 && r.bottom <= innerHeight && r.left >= 0 && r.right <= innerWidth && r.height >= 40 && o > 0.95 && getComputedStyle(a).visibility === 'visible'; }));
   await p.waitForTimeout(500); if (c.length !== 2 || !c.every(Boolean) || await p.evaluate(() => document.querySelectorAll('[data-cover] .btn').length)) ctaBad.push(name);
-  const vw = typeof s === 'string' ? 412 : s[0], vh = typeof s === 'string' ? 915 : s[1];
   if (vw >= 1024 && vw > vh) {
-    for (const id of ['practice', 'classes', 'contact', 'sheet']) {
-      if (id === 'sheet') { await p.evaluate(() => document.querySelector('[data-sheet-open]').click()); await p.waitForTimeout(900); } else { await p.evaluate((id) => { document.documentElement.style.scrollBehavior = 'auto'; scrollTo(0, document.getElementById(id).offsetTop + innerHeight * 0.2); }, id); await p.waitForTimeout(900); }
-      const hit = await p.evaluate(() => { const m = document.querySelector('[data-breathmark]'), mr = m.getBoundingClientRect(); if (getComputedStyle(m).visibility !== 'visible') return 'mark hidden';
-        const els = [...document.querySelectorAll('.chapter.is-on .chapter__body *, #register input, #register select, #register textarea, #register button')].filter((e) => { const r = e.getBoundingClientRect(); return r.width && r.height && (e.children.length === 0 || /INPUT|SELECT|TEXTAREA|BUTTON/.test(e.tagName)); });
-        const h = els.find((e) => { const r = e.getBoundingClientRect(); return r.left < mr.right && r.right > mr.left && r.top < mr.bottom && r.bottom > mr.top; }); return h ? h.tagName + ':' + h.textContent.slice(0, 20) : ''; });
-      if (hit) markBad.push(`${name}/${id}: ${hit}`);
-    }
     await p.evaluate(() => { const sh = document.querySelector('[data-sheet]'); sh.hidden = true; sh.closest('[data-chapter]').classList.remove('is-open'); });
-    const f = await p.evaluate(() => [...document.querySelectorAll('.chapter__body')].map((e) => Math.ceil(e.scrollHeight) <= innerHeight && e.getBoundingClientRect().height <= innerHeight)); if (!f.every(Boolean)) chBad.push(name); }
+    const f = await p.evaluate(() => [...document.querySelectorAll('.chapter__pin')].map((e) => { const b = e.querySelector('.chapter__body'); return b.offsetTop + b.scrollHeight <= e.clientHeight + 1; })); if (!f.every(Boolean)) chBad.push(name); }
   if (p.errs.length) chBad.push(name + ' errors: ' + p.errs[0]);
   await p._ctx.close();
 }
 T('ctas_visible_at_p1 (19 viewports)', !ctaBad.length, ctaBad);
 T('no_empty_band_over_25pct (19 viewports × s0/s7/hold)', !bandBad.length, bandBad);
 T('breath_ring_clears_copy_and_rail_by_48px (19 viewports × s0/s7/hold)', !ringClr.length, ringClr);
-T('chapter_breath_mark_clear_of_text_and_form (landscape ≥ 1024, 3 chapters + open sheet)', !markBad.length, markBad);
+T('one_brand_wordmark_on_cover (19 vp × s0/hold)', !brandBad.length, brandBad);
+T('wide_pose_keeps_6pct_gutters_clear_of_feather (s7, portrait + landscape ≤ 1366)', !gutBad.length, gutBad);
+T('ring_inside_viewport_and_le_85pct_width (19 vp × 3 states)', !ringIn.length, ringIn);
+T('ring_size_constant_across_states (±2 %, 19 vp)', !ringConst.length, ringConst);
+T('rail_heading_clear_of_numerals_and_4k_type_scale (numerals ≥ 18 px, nav ≥ 22 px at 3840)', !headBad.length, headBad.concat([M.fourK]));
 T('chapters_fit_one_viewport (landscape viewports ≥ 1024 px)', !chBad.length, chBad);
 // dawn stage (operator 2026-10-26): seam colour, luminance step, stage = plate, type contrast — 19 viewports × p 0/.5/1
 {
@@ -172,7 +178,86 @@ T('chapters_fit_one_viewport (landscape viewports ≥ 1024 px)', !chBad.length, 
   const sb = d.seam.filter((x) => x.pairs < 8 || x.dE >= 4); T('dawn_seam_outside_equals_inside (19 vp × p 0/.5/1, ≥ 8 pairs, ΔE76 < 4)', !sb.length, sb.slice(0, 4).concat([{ worst: Math.max(...d.seam.map((x) => x.dE)) }]));
   const st = d.step.filter((x) => x.step > 0.06); T('dawn_no_luminance_step_over_6pct_at_window_boundary', !st.length, st.slice(0, 4).concat([{ worst: Math.max(...d.step.map((x) => x.step)) }]));
   const sg = d.stage.filter((x) => x.dE >= 4); T('dawn_stage_midline_matches_plate (ΔE76 < 4, 19 vp)', !sg.length, sg.slice(0, 4).concat([{ worst: Math.max(...d.stage.map((x) => x.dE)) }]));
+  const rcb = (d.rightcol || []).filter((x) => x.dE >= 4); T('stage_sky_reaches_last_column (19 vp × 3 p, ΔE76 < 4)', !rcb.length, rcb.slice(0, 4));
   const cb = d.contrast.filter((x) => x.min < 4.5); T('dawn_type_contrast_ge_4.5 (19 vp × s0/hold)', !cb.length, cb.slice(0, 4).concat([{ worst: Math.min(...d.contrast.map((x) => x.min)) }]));
+}
+// jury round 2: chapters, static page, newsletter, success frame, phone scrim
+{
+  const D = { viewport: { width: 1440, height: 900 } }; const shots = []; let k = 0; mkdirSync('/tmp/jvr2', { recursive: true });
+  p = await page(D); await p.goto(base, { waitUntil: 'load' }); await p.waitForTimeout(300);
+  const ringMove = [], ringNear = [], comp = [];
+  for (const id of ['practice', 'classes', 'contact']) {
+    const at = async (f) => { await p.evaluate(([id, f]) => { document.documentElement.style.scrollBehavior = 'auto'; const c = document.getElementById(id); scrollTo(0, c.offsetTop + (c.offsetHeight - innerHeight) * f); }, [id, f]); await p.waitForTimeout(700);
+      return p.evaluate((id) => { const c = document.getElementById(id), fg = c.querySelector('[data-chring]'), ring = c.querySelector('.chring').getBoundingClientRect(), no = c.querySelector('.chapter__no span').getBoundingClientRect(), m = c.querySelector('.chapter__media').getBoundingClientRect(), body = c.querySelector('.chapter__body'), first = body.querySelector('.chapter__no').getBoundingClientRect();
+        return { off: parseFloat(getComputedStyle(fg).strokeDashoffset), gap: Math.max(no.left - ring.right, ring.left - no.right, no.top - ring.bottom, ring.top - no.bottom, 0), media: [m.left, m.top, m.right, m.bottom], textTop: first.top, cw: c.getBoundingClientRect().width }; }, id); };
+    const a = await at(0.05), b = await at(0.6);
+    if (!(Math.abs(a.off - b.off) > 5)) ringMove.push(`${id}: ${a.off}→${b.off}`);
+    if (b.gap > 24) ringNear.push(`${id}: ${Math.round(b.gap)} px`);
+    if (b.media[1] < b.textTop - 8) comp.push(`${id}: panel top ${Math.round(b.media[1])} < text ${Math.round(b.textTop)} − 8`);
+    if (id === 'practice' && !(b.media[0] <= 0 && b.media[2] - b.media[0] >= 0.45 * b.cw)) comp.push('practice: not full-bleed off the left edge');
+    if (id === 'classes' && !(b.media[2] - b.media[0] <= 0.40 * b.cw)) comp.push('classes: hands panel wider than 40 %');
+    const A = `/tmp/jvr2/${k++}.png`, Bp = `/tmp/jvr2/${k++}.png`, C = `/tmp/jvr2/${k++}.png`;
+    await p.screenshot({ path: A, scale: 'css' });
+    await p.evaluate((id) => { document.querySelector('#' + id + ' .chapter__media').style.visibility = 'hidden'; }, id); await p.waitForTimeout(60); await p.screenshot({ path: Bp, scale: 'css' });
+    await p.evaluate((id) => { const m = document.querySelector('#' + id + ' .chapter__media'); m.style.visibility = ''; m.style.maskImage = 'none'; m.style.webkitMaskImage = 'none'; m.querySelector('img').style.filter = 'invert(1)'; }, id); await p.waitForTimeout(60); await p.screenshot({ path: C, scale: 'css' });
+    await p.evaluate((id) => { const m = document.querySelector('#' + id + ' .chapter__media'); m.style.maskImage = ''; m.style.webkitMaskImage = ''; m.querySelector('img').style.filter = ''; }, id);
+    // probe shots A/B/C use an inverted image only in C; alpha ratio needs the same content in A and C → redo A with invert
+    await p.evaluate((id) => { document.querySelector('#' + id + ' .chapter__media img').style.filter = 'invert(1)'; }, id); await p.waitForTimeout(60); const A2 = `/tmp/jvr2/${k++}.png`; await p.screenshot({ path: A2, scale: 'css' }); await p.evaluate((id) => { document.querySelector('#' + id + ' .chapter__media img').style.filter = ''; }, id);
+    const vis = [Math.max(0, b.media[0]), Math.max(0, b.media[1]), Math.min(1440, b.media[2]), Math.min(900, b.media[3])];
+    const fe = await p.evaluate((id) => { const m = document.querySelector('#' + id + ' .chapter__media'), r = m.getBoundingClientRect(); return Math.min(160, 0.3 * Math.min(r.width, r.height)); }, id);
+    shots.push({ kind: 'panelalpha', png: A2, pngs: [A2, Bp, C], rect: vis, tag: id }, { kind: 'panelstep', png: A, rect: vis, feather: fe, tag: id });
+  }
+  const sc = (await p.evaluate(() => document.querySelector('#contact .chapter__media img').currentSrc)).replace(/^https?:\/\/[^/]+\//, SITE);
+  shots.push({ kind: 'figheight', png: sc.split('?')[0], tag: 'still-03' });
+  T('chapter_ring_fills_with_scroll (3 chapters)', !ringMove.length, ringMove);
+  T('chapter_ring_within_24px_of_number', !ringNear.length, ringNear);
+  T('chapter_panels_composition (01 full-bleed off left, 02 ≤ 40 %, panel top ≥ text top − 8)', !comp.length, comp);
+  // newsletter: open dialog; no dark filled buttons anywhere; no 1px dark border around the form
+  await p.evaluate(() => document.querySelector('[data-news-open]').click()); await p.waitForTimeout(400); await p.evaluate(() => document.querySelector('[data-sheet-open]').click());
+  const ui = await p.evaluate(() => { const dark = [...document.querySelectorAll('button')].filter((b) => { const m = getComputedStyle(b).backgroundColor.match(/[\d.]+/g).map(Number); const a = m[3] ?? 1; const L = (0.2126 * m[0] + 0.7152 * m[1] + 0.0722 * m[2]) / 255; return a > 0.5 && L < 0.35 && b.getBoundingClientRect().width; }).map((b) => b.textContent.trim().slice(0, 20));
+    const d = document.querySelector('[data-news]'), f = d.querySelector('form'); const bd = [d, f].filter((e) => { const cs = getComputedStyle(e); return ['Top', 'Right', 'Bottom', 'Left'].some((x) => parseFloat(cs['border' + x + 'Width']) >= 1 && cs['border' + x + 'Style'] !== 'none'); }).length;
+    return { dark, bd, shadow: getComputedStyle(d).boxShadow, sheet: d.getBoundingClientRect().bottom >= innerHeight - 1 }; });
+  T('newsletter_sheet_no_border_no_shadow_no_dark_buttons', !ui.dark.length && !ui.bd && ui.shadow === 'none' && ui.sheet, ui);
+  await p._ctx.close();
+  // success frame
+  p = await page(D); await p.goto(base, { waitUntil: 'load' }); await p.evaluate(() => scrollTo(0, document.querySelector('#classes').offsetTop + 10)); await p.evaluate(() => document.querySelector('[data-sheet-open]').click()); await p.waitForTimeout(800);
+  await p.fill('[data-reg] [name="name"]', 'Test'); await p.fill('[data-reg] [name="email"]', 't@example.com'); await p.check('[data-reg] [name="consent"]'); await p.click('[data-reg] button[type="submit"]'); await p.waitForTimeout(900);
+  const sf = await p.evaluate(() => { const hb = document.querySelector('[data-hdr]').getBoundingClientRect().bottom, h2 = document.querySelector('#ch2-h').getBoundingClientRect(); const els = [...document.querySelectorAll('#classes .chapter__body *, .hdr a, .hdr button, .hdr span')].filter((e) => [...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim()) && e.getBoundingClientRect().width && e.offsetParent !== null);
+    const rs = els.map((e) => { const r = e.getBoundingClientRect(); return [r.left, r.top, r.right, r.bottom, e.textContent.trim().slice(0, 16)]; }); const hits = [];
+    for (let i = 0; i < rs.length; i++) for (let j = i + 1; j < rs.length; j++) { const a = rs[i], b = rs[j]; if (els[i].contains(els[j]) || els[j].contains(els[i])) continue; if (a[0] < b[2] - 1 && a[2] > b[0] + 1 && a[1] < b[3] - 1 && a[3] > b[1] + 1) hits.push(a[4] + '×' + b[4]); }
+    const ok = document.querySelector('#register [data-ok]'); return { headTop: h2.top, hb, hits: hits.slice(0, 3), okBorder: getComputedStyle(ok).borderTopWidth, okIn: ok.getBoundingClientRect().bottom <= innerHeight }; });
+  T('register_success_in_frame (heading below header, no text overlaps, no rule)', sf.headTop >= sf.hb && !sf.hits.length && sf.okBorder === '0px' && sf.okIn, sf);
+  await p._ctx.close();
+  // static page: media loaded, rings drawn, bands ≤ 20 svh
+  const band = async (p, from) => p.evaluate((from) => { const top0 = from ? document.querySelector(from).getBoundingClientRect().top + scrollY : 0; const iv = [];
+    for (const e of document.querySelectorAll('main *, footer *')) { const cs = getComputedStyle(e); if (cs.visibility === 'hidden' || cs.display === 'none') continue; const isText = [...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim()); if (!isText && !/IMG|VIDEO|svg|INPUT|SELECT|TEXTAREA/.test(e.tagName)) continue; const r = e.getBoundingClientRect(); if (!r.width || !r.height) continue; iv.push([r.top + scrollY, r.bottom + scrollY]); }
+    iv.sort((a, b) => a[0] - b[0]); let end = top0, gap = 0, at = 0; for (const [a, z] of iv) { if (z < top0) continue; if (a - end > gap) { gap = a - end; at = end; } end = Math.max(end, z); } return { gap: gap / innerHeight, at: Math.round(at) }; }, from);
+  p = await page(D); await p.goto(base + '?static=1', { waitUntil: 'load' }); await p.waitForTimeout(1500);
+  const st = await p.evaluate(() => ({ imgs: [...document.querySelectorAll('.chapter img, .chapter video')].map((e) => { let o = 1; for (let x = e; x; x = x.parentElement) o *= parseFloat(getComputedStyle(x).opacity); return (e.naturalWidth || e.videoWidth) > 0 && o > 0.99; }), rings: [...document.querySelectorAll('[data-chring]')].map((c) => parseFloat(getComputedStyle(c).strokeDashoffset)) }));
+  const sb = await band(p, null); M.static_band = sb;
+  T('static_page_media_loaded_and_rings_drawn', st.imgs.length >= 3 && st.imgs.every(Boolean) && st.rings.every((x) => x === 0), st);
+  T('static_page_no_band_over_20svh', sb.gap <= 0.2, sb);
+  await p._ctx.close();
+  p = await page({ ...devices['Pixel 7'] }); await p.goto(base, { waitUntil: 'load' }); await p.waitForTimeout(300);
+  const H = await p.evaluate(() => document.documentElement.scrollHeight); for (let y = 0; y < H; y += 700) { await p.evaluate((y) => scrollTo(0, y), y); await p.waitForTimeout(30); }
+  const mb = await band(p, '#practice'); M.mobile_chapters_band = mb; T('mobile_chapters_no_band_over_20svh', mb.gap <= 0.2, mb);
+  await p._ctx.close();
+  // phones: no solid background behind the copy; scrim ≤ 45 % alpha, gone by 35 % height
+  const scr = [];
+  for (const dv of ['Pixel 7', 'iPhone 13', 'iPhone SE']) {
+    p = await page({ ...devices[dv] }); await p.goto(base, { waitUntil: 'domcontentloaded' }); await p.waitForTimeout(150); await scrollP(p, 0.004); await p.waitForTimeout(1200);
+    const r = await p.evaluate(() => { const c = document.querySelector('[data-copy]'), cr = c.getBoundingClientRect(); const solid = [...document.querySelectorAll('body *')].filter((e) => !c.contains(e) && !e.contains(c) && (() => { const r = e.getBoundingClientRect(); return r.left < cr.right && r.right > cr.left && r.top < cr.bottom && r.bottom > cr.top; })() && (() => { const m = getComputedStyle(e).backgroundColor.match(/[\d.]+/g); return m && (m[3] === undefined ? 1 : +m[3]) > 0.01; })()).map((e) => e.className || e.tagName);
+      const pb = getComputedStyle(c, '::before'); const alphas = (pb.backgroundImage.match(/rgba?\([^)]*\)/g) || []).map((x) => { const m = x.match(/[\d.]+/g); return m[3] === undefined ? 1 : +m[3]; }); const pr = parseFloat(pb.height) / innerHeight;
+      return { solid: solid.slice(0, 3), maxA: Math.max(0, ...alphas), h: +pr.toFixed(2) }; });
+    if (r.solid.length || r.maxA > 0.45 || r.h > 0.351) scr.push({ dv, ...r });
+    await p._ctx.close();
+  }
+  T('phone_copy_on_sky (no solid background behind copy; scrim ≤ .45, ends by 35 % height)', !scr.length, scr);
+  writeFileSync('/tmp/jvr2/m.json', JSON.stringify({ plate: R + 'keyframes/dawn/plate.jpg', shots }));
+  const d = JSON.parse(execFileSync('python3', [R + 'dawn_check.py', '/tmp/jvr2/m.json'], { maxBuffer: 1 << 24 }).toString()); M.r2 = d;
+  T('chapter_panels_no_rectangle (edge alpha ≤ .05, 16 points × 3 chapters)', d.panelalpha.every((x) => x.n >= 12 && x.max <= 0.05), d.panelalpha);
+  T('chapter_panels_no_luminance_step_over_6pct', d.panelstep.every((x) => x.step <= 0.06), d.panelstep);
+  T('contact_still_figure_le_35pct_height', d.figheight > 0.1 && d.figheight <= 0.35, d.figheight);
 }
 // 9 console clean on a full walk + dialog + forms (desktop)
 p = await page({ viewport: { width: 1440, height: 900 } }, { seen: false });
