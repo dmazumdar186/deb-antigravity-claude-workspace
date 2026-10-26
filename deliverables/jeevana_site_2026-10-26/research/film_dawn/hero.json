@@ -22,5 +22,8 @@
  "landscape": "hero.mp4",
  "portrait": "hero-m.mp4",
  "poster": "poster.jpg",
- "plate": "dawn"
+ "plate": "dawn",
+ "weak_legs": {
+  "08": "head clips the left edge for ~1 s, hair flicker; best of 3 takes"
+ }
 }

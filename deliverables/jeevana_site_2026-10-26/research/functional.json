@@ -1,17 +1,17 @@
 {
- "date": "2026-10-26T19:27:14.093Z",
+ "date": "2026-10-26T19:48:07.808Z",
  "film": {
   "standin": false,
   "seconds": 52,
   "keyframes": 12
  },
- "pass": 38,
- "total": 38,
+ "pass": 45,
+ "total": 46,
  "results": [
   {
    "name": "film_plays_unscrolled (currentTime > 4 s at 6 s)",
    "ok": true,
-   "detail": "ct=5.17"
+   "detail": "ct=5.56"
   },
   {
    "name": "scroll_takeover_1440x900 (|currentTime − f(p)| < 0.4 s at p=.25/.5/.75/1)",
@@ -68,10 +68,15 @@
    "detail": []
   },
   {
-   "name": "film_window_edge_alpha_le_0.08 (16 boundary points, A−B / C−B)",
+   "name": "breath_word_matches_ring_desktop (13 samples: rail word = fixture, ring level inhale ≥ .9 / exhale ≤ .1 / retain .4–.6)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "film_window_no_visible_rectangle (edge alpha ≤ .05, 16 boundary points, A−B / C−B)",
    "ok": true,
    "detail": {
-    "max": 0.03879310344827586,
+    "max": 0.036585365853658534,
     "n": 16
    }
   },
@@ -91,6 +96,11 @@
    "detail": []
   },
   {
+   "name": "breath_word_matches_ring_pixel7 (13 samples: rail word = fixture, ring level inhale ≥ .9 / exhale ≤ .1 / retain .4–.6)",
+   "ok": true,
+   "detail": []
+  },
+  {
    "name": "console_clean_cover_pixel7",
    "ok": true,
    "detail": []
@@ -102,6 +112,11 @@
   },
   {
    "name": "no_text_over_figure_iphone13 (13 samples, figure_boxes.json)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "breath_word_matches_ring_iphone13 (13 samples: rail word = fixture, ring level inhale ≥ .9 / exhale ≤ .1 / retain .4–.6)",
    "ok": true,
    "detail": []
   },
@@ -121,6 +136,30 @@
    "detail": []
   },
   {
+   "name": "breath_ring_clears_copy_and_rail_by_48px (19 viewports × s0/s7/hold)",
+   "ok": false,
+   "detail": [
+    "iphone-se/s0=-27",
+    "iphone-se/hold=-52",
+    "galaxy-s8/s0=27",
+    "galaxy-s8/hold=2",
+    "iphone-13/hold=48",
+    "small-tablet/s0=19",
+    "small-tablet/hold=-37",
+    "ipad-portrait/s0=19",
+    "ipad-portrait/hold=-67",
+    "ipad-pro-portrait/s0=20",
+    "ipad-pro-portrait/s7=-87",
+    "ipad-pro-portrait/hold=-10",
+    "pixel-7-device/hold=28"
+   ]
+  },
+  {
+   "name": "chapter_breath_mark_clear_of_text_and_form (landscape ≥ 1024, 3 chapters + open sheet)",
+   "ok": true,
+   "detail": []
+  },
+  {
    "name": "chapters_fit_one_viewport (landscape viewports ≥ 1024 px)",
    "ok": true,
    "detail": []
@@ -131,7 +170,17 @@
    "detail": ""
   },
   {
+   "name": "dialog_quiet (no shadow, cream scrim, text-link No thanks, no Voluntary line)",
+   "ok": true,
+   "detail": ""
+  },
+  {
    "name": "dialog_esc_closes",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "register_sheet_opens_inline_and_scrolls_into_view",
    "ok": true,
    "detail": ""
   },
@@ -181,11 +230,6 @@
    "detail": ""
   },
   {
-   "name": "rail_breath_label_synced_to_breath_clock",
-   "ok": true,
-   "detail": "8 samples"
-  },
-  {
    "name": "fonts_local_and_no_external_requests (beacon only)",
    "ok": true,
    "detail": [
@@ -196,9 +240,9 @@
    "name": "zero_third_party_js_except_beacon",
    "ok": true,
    "detail": [
-    "/js/i18n.js?v=823b26cc",
-    "/js/breath.js?v=1fa8403f",
-    "/js/main.js?v=72d5a825",
+    "/js/i18n.js?v=4f09f86f",
+    "/js/breath.js?v=2961435b",
+    "/js/main.js?v=937e3c8b",
     "https://static.cloudflareinsights.com/beacon.min.js"
    ]
   },
@@ -225,7 +269,7 @@
   {
    "name": "en_fr_parity",
    "ok": true,
-   "detail": "221/221"
+   "detail": "222/222"
   },
   {
    "name": "privacy_page (200, mentions légales, 0 console errors)",
@@ -236,11 +280,21 @@
    "name": "sizes (index+css+js ≤ 150 KB, breath.js ≤ 10 KB, film ≤ 6 MB / 4 MB)",
    "ok": true,
    "detail": {
-    "index_css_js_kb": 91.7,
-    "breath_kb": 3.8,
-    "film_mb": 5.06,
-    "film_m_mb": 2.39
+    "index_css_js_kb": 96.2,
+    "breath_kb": 4.2,
+    "film_mb": 5.36,
+    "film_m_mb": 2.63
    }
+  },
+  {
+   "name": "film_from_dawn_plate (assets/film/hero.json plate = dawn)",
+   "ok": true,
+   "detail": "plate=dawn"
+  },
+  {
+   "name": "contact_chapter_uses_film_frame_not_eiffel",
+   "ok": true,
+   "detail": ""
   },
   {
    "name": "film_faststart",
@@ -249,7 +303,7 @@
   }
  ],
  "measurements": {
-  "autoplay_ct_at_6s": 5.17,
+  "autoplay_ct_at_6s": 5.563,
   "scrub_1440x900": {
    "1": {
     "currentTime": 51.61,
@@ -287,34 +341,34 @@
    }
   },
   "window_edge_alpha": {
-   "max": 0.03879310344827586,
+   "max": 0.036585365853658534,
    "n": 16
   },
   "bands": {
    "iphone-se": {
-    "s0": 0.041,
-    "s7": 0.185,
-    "hold": 0.062
+    "s0": 0.032,
+    "s7": 0.179,
+    "hold": 0.044
    },
    "galaxy-s8": {
     "s0": 0.083,
     "s7": 0.216,
-    "hold": 0.085
+    "hold": 0.092
    },
    "iphone-13": {
     "s0": 0.13,
     "s7": 0.236,
-    "hold": 0.119
+    "hold": 0.125
    },
    "pixel-7": {
     "s0": 0.146,
     "s7": 0.247,
-    "hold": 0.134
+    "hold": 0.14
    },
    "iphone-15-pro-max": {
     "s0": 0.143,
     "s7": 0.242,
-    "hold": 0.16
+    "hold": 0.135
    },
    "phone-landscape": {
     "s0": 0.138,
@@ -324,12 +378,12 @@
    "small-tablet": {
     "s0": 0.059,
     "s7": 0.172,
-    "hold": 0.071
+    "hold": 0.047
    },
    "ipad-portrait": {
-    "s0": 0.042,
+    "s0": 0.044,
     "s7": 0.152,
-    "hold": 0.045
+    "hold": 0.027
    },
    "ipad-landscape": {
     "s0": 0.138,
@@ -339,7 +393,7 @@
    "ipad-pro-portrait": {
     "s0": 0.051,
     "s7": 0.148,
-    "hold": 0.078
+    "hold": 0.061
    },
    "ipad-pro-landscape": {
     "s0": 0.138,
@@ -368,30 +422,30 @@
    },
    "desktop-1440p": {
     "s0": 0.138,
-    "s7": 0.138,
+    "s7": 0.144,
     "hold": 0.138
    },
    "desktop-4k": {
     "s0": 0.138,
-    "s7": 0.138,
+    "s7": 0.183,
     "hold": 0.138
    },
    "tv-portrait": {
     "s0": 0.151,
     "s7": 0.231,
-    "hold": 0.171
+    "hold": 0.158
    },
    "pixel-7-device": {
     "s0": 0.114,
     "s7": 0.224,
-    "hold": 0.101
+    "hold": 0.107
    }
   },
   "sizes": {
-   "index_css_js_kb": 91.7,
-   "breath_kb": 3.8,
-   "film_mb": 5.06,
-   "film_m_mb": 2.39
+   "index_css_js_kb": 96.2,
+   "breath_kb": 4.2,
+   "film_mb": 5.36,
+   "film_m_mb": 2.63
   }
  },
  "versions": {

@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parent.parent
 CUT = ROOT / "_raw_assets" / "cutouts_v3"
 W, H = 1080, 1440
 FIG_H, GROUND_Y, MAX_W = 0.72, 0.86, 0.88
-NARROW = {"sn-09": 0.64}   # wide poses: keep clear of the frame edges so Kling never pushes the head out
+NARROW = {}   # wide poses: keep clear of the frame edges so Kling never pushes the head out
 SUN = (0.14, 0.80)                       # low-left, fraction of canvas
 # knobs
 RIM_OPACITY, RIM_PX, RIM_RGB = 0.28, 1.5, (236, 178, 104)       # ochre, sun side only
