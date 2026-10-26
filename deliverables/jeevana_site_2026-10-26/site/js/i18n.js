@@ -96,7 +96,7 @@
     'ch1.i4.h': 'Beginners welcome', 'ch1.i4.p': 'Beginners are welcome. Every posture has an adaptation.',
     'ch2.no': '02', 'ch2.h': 'Classes & registration', 'ch2.offers': 'Offers', 'ch2.tt': 'Timetable',
     'ch3.no': '03', 'ch3.h': 'Contact', 'eiffel.cap': 'Champ-de-Mars, Paris', 'mbar.wa': 'WhatsApp',
-    'alt.film': 'Jeevana moving through Sūrya Namaskāra', 'alt.still': 'Jeevana in the sequence, a still from the film', 'news.close': 'Close'
+    'alt.film': 'Jeevana moving through Sūrya Namaskāra', 'alt.still': 'Jeevana in the sequence, a still from the film', 'news.close': 'Close', 'err.phone': 'Please enter a valid phone number.'
   };
   var fr = {
     'title': 'Jeevana — Yoga à Paris',
@@ -177,7 +177,7 @@
     'ch1.i4.h': 'Débutants bienvenus', 'ch1.i4.p': 'Les débutants sont les bienvenus. Chaque posture a son adaptation.',
     'ch2.no': '02', 'ch2.h': 'Cours et inscription', 'ch2.offers': 'Formules', 'ch2.tt': 'Planning',
     'ch3.no': '03', 'ch3.h': 'Contact', 'eiffel.cap': 'Champ-de-Mars, Paris', 'mbar.wa': 'WhatsApp',
-    'alt.film': 'Jeevana enchaînant Sūrya Namaskāra', 'alt.still': 'Jeevana dans la séquence, une image du film', 'news.close': 'Fermer'
+    'alt.film': 'Jeevana enchaînant Sūrya Namaskāra', 'alt.still': 'Jeevana dans la séquence, une image du film', 'news.close': 'Fermer', 'err.phone': 'Merci d\'indiquer un numéro de téléphone valide.'
   };
   var k;
   for (k in S) { if (Object.prototype.hasOwnProperty.call(S, k)) { en[k] = S[k]; fr[k] = S[k]; } }

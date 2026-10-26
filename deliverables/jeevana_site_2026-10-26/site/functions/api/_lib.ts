@@ -14,7 +14,7 @@ export const RL_WINDOW_SECONDS = 10 * 60; // 10 minutes
 export const RL_MAX = 5;                  // 5 attempts / IP / window
 export const BODY_MAX = 8 * 1024;         // 8 KB request cap
 export const REG_TTL_SECONDS = 60 * 60 * 24 * 730; // registrations kept 24 months (privacy page)
-export const NOTIFY_DEFAULT = 'jeevanagogula.gj22@gmail.com';
+export const NOTIFY_DEFAULT = 'Jeevana.yogawellness@gmail.com';
 
 export function json(body: unknown, status = 200, extra: Record<string, string> = {}): Response {
   return new Response(JSON.stringify(body), {
