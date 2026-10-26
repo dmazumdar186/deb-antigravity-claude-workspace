@@ -164,7 +164,8 @@ def _make_normalized(source, title, company, url, posted_at=None, source_id="1",
 
 
 def test_standard_headers_ends_with_posted_verified():
-    assert sheet_mod.STANDARD_HEADERS[-2:] == ["Posted", "Verified"]
+    # 2026-10-26: "Fit /5" appended after Verified (operator order).
+    assert sheet_mod.STANDARD_HEADERS[-3:] == ["Posted", "Verified", "Fit /5"]
 
 
 def test_verification_stamp_open_shape():

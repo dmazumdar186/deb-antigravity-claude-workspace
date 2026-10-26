@@ -134,6 +134,10 @@ class RankedJob(BaseModel):
     reasoning: str = Field(..., max_length=800)
     rubric_version: str = Field(..., description="Tag the rubric revision that produced the score.")
     ranker_model: str = Field(..., description="e.g. 'claude-fable-5-1' or 'gemini-2.5-flash'.")
+    # 2026-10-26 operator order: human-readable fit on a 1..5 scale
+    # (ranker.score.fit_out_of_5). None when the job was never scored
+    # (rubric_version == "placeholder"); written to the sheet's "Fit /5" column.
+    fit5: int | None = Field(default=None, ge=1, le=5)
     ranked_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 

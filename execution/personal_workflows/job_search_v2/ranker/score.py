@@ -23,6 +23,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 import sys
 import time
 from pathlib import Path
@@ -68,6 +69,61 @@ DIMENSION_WEIGHTS = {
 TIER_THRESHOLDS = (("A", 0.75), ("B", 0.50), ("C", 0.25))
 
 
+# Prompt budget for the two secondary identity sources (2026-10-26). The core
+# profile is injected verbatim (~14k chars); GitHub + prodcraft.fyi evidence is
+# summarised so the system instruction stays within the same order of size.
+_GITHUB_PROMPT_MAX_REPOS = 12
+_SECONDARY_SECTION_MAX_CHARS = 1800
+
+
+def _summarise_github(gh: dict) -> dict:
+    """Compact profile.json["github"] for the prompt: names + one-line
+    descriptions, aggregate languages/topics, 12-month activity."""
+    repos = gh.get("repos") or []
+    return {
+        "login": gh.get("login", ""),
+        "public_repos": gh.get("public_repos", len(repos)),
+        "languages": (gh.get("languages") or [])[:15],
+        "topics": (gh.get("topics") or [])[:20],
+        "commits_last_12_months": gh.get("commits_last_12_months"),
+        "repos": [
+            {"name": r.get("name", ""),
+             "description": (r.get("description") or "")[:90]}
+            for r in repos[:_GITHUB_PROMPT_MAX_REPOS]
+        ],
+    }
+
+
+def _summarise_freelance_site(fs: dict) -> dict:
+    return {
+        "url": fs.get("url", ""),
+        "tagline": (fs.get("tagline") or "")[:160],
+        "service_lines": (fs.get("service_lines") or [])[:10],
+        "skills_keywords": (fs.get("skills_keywords") or [])[:30],
+    }
+
+
+def _render_profile_for_prompt(profile: dict) -> str:
+    """Core profile verbatim + compact GitHub / freelance-site evidence blocks
+    (both optional). Evidence from those two sources counts toward
+    skill_overlap exactly like CV/LinkedIn skills do."""
+    core = {k: v for k, v in profile.items() if k not in ("github", "freelance_site")}
+    text = json.dumps(core, indent=2, ensure_ascii=False)
+    gh = profile.get("github") or {}
+    if gh and gh.get("repos"):
+        block = json.dumps(_summarise_github(gh), ensure_ascii=False)
+        text += ("\n\n<GITHUB_EVIDENCE note=\"public repos of the candidate; "
+                 "languages/topics/repo descriptions count as skill evidence\">\n"
+                 + block[:_SECONDARY_SECTION_MAX_CHARS] + "\n</GITHUB_EVIDENCE>")
+    fs = profile.get("freelance_site") or {}
+    if fs and (fs.get("skills_keywords") or fs.get("service_lines")):
+        block = json.dumps(_summarise_freelance_site(fs), ensure_ascii=False)
+        text += ("\n\n<FREELANCE_SITE_EVIDENCE note=\"candidate's own services site; "
+                 "service lines and keywords count as skill evidence\">\n"
+                 + block[:_SECONDARY_SECTION_MAX_CHARS] + "\n</FREELANCE_SITE_EVIDENCE>")
+    return text
+
+
 def _load_profile_for_prompt() -> str:
     """Read profile.json and serialize it for prompt injection. Returns an
     empty string if the file is missing (caller falls back to legacy behavior)."""
@@ -76,10 +132,31 @@ def _load_profile_for_prompt() -> str:
                        "to legacy prose rubric.", PROFILE_PATH)
         return ""
     try:
-        return PROFILE_PATH.read_text(encoding="utf-8")
+        raw = PROFILE_PATH.read_text(encoding="utf-8")
     except OSError as exc:
         logger.warning("ranker: profile.json read failed (%s) — legacy fallback.", exc)
         return ""
+    try:
+        return _render_profile_for_prompt(json.loads(raw))
+    except (json.JSONDecodeError, TypeError) as exc:
+        logger.warning("ranker: profile.json not valid JSON (%s) — injecting raw text.", exc)
+        return raw
+
+
+def fit_out_of_5(final_score: float | None) -> int | None:
+    """Operator-facing fit on a 1..5 scale (2026-10-26).
+
+    None when the job was never scored (placeholder tier / score missing);
+    otherwise ``max(1, min(5, round(5 * final_score)))``. Python's banker's
+    rounding applies: 0.5 -> round(2.5) == 2, 0.7 -> round(3.5) == 4.
+    """
+    if final_score is None:
+        return None
+    try:
+        value = float(final_score)
+    except (TypeError, ValueError):
+        return None
+    return max(1, min(5, round(5 * value)))
 
 
 def _compute_final_score(dims: dict) -> float:
@@ -170,6 +247,7 @@ def _placeholder_ranked(job: NormalizedJob, reason: str) -> RankedJob:
         reasoning=reason,
         rubric_version="placeholder",
         ranker_model="none",
+        fit5=None,  # never scored -> blank "Fit /5" cell
     )
 
 
@@ -474,6 +552,7 @@ def rank_jobs(
                     reasoning=reasoning,
                     rubric_version=RUBRIC_VERSION,
                     ranker_model=used_model,
+                    fit5=fit_out_of_5(final_score),
                 )
                 stats["scored"] += 1
                 stats["by_tier"][tier.value] += 1
@@ -509,6 +588,7 @@ def rank_jobs(
             reasoning=reasoning,
             rubric_version="heuristic-v2-profile-grounded",
             ranker_model="heuristic-profile",
+            fit5=fit_out_of_5(final_score),
         )
         stats["placeholder"] += 1
         stats["by_tier"][tier.value] += 1
@@ -554,6 +634,25 @@ _FOREIGN_LANG_TELLS = (
     "wir suchen", "een ervaren", "cerchiamo", "buscamos",
     "muttersprache", "moedertaal", "madrelingua",
 )
+
+
+def _secondary_skill_keywords(profile: dict) -> list[str]:
+    """Flat keyword list from profile["github"] (languages + topics) and
+    profile["freelance_site"]["skills_keywords"]. Empty when absent."""
+    out: list[str] = []
+    gh = profile.get("github") or {}
+    out += [str(x) for x in (gh.get("languages") or [])]
+    out += [str(x).replace("-", " ") for x in (gh.get("topics") or [])]
+    fs = profile.get("freelance_site") or {}
+    out += [str(x) for x in (fs.get("skills_keywords") or [])]
+    deduped: list[str] = []
+    seen: set[str] = set()
+    for k in out:
+        kl = k.strip().lower()
+        if kl and kl not in seen:
+            seen.add(kl)
+            deduped.append(k.strip())
+    return deduped
 
 
 def _profile_aware_heuristic(
@@ -657,6 +756,17 @@ def _profile_aware_heuristic(
         if any(b and b in haystack for b in bases):
             matched.append(s["name"])
             weight_sum += _SKILL_LEVEL_WEIGHT.get(s.get("level", "familiar"), 1.0)
+    # 2026-10-26: GitHub languages/topics + prodcraft.fyi keywords count as
+    # 'familiar'-weight evidence when not already a named profile skill.
+    # Word-boundary match (not substring): "API" must not hit "rapid".
+    seen_lower = {m.lower() for m in matched}
+    for extra in _secondary_skill_keywords(profile):
+        if extra.lower() in seen_lower or len(extra) < 3:
+            continue
+        if re.search(r"(?<![a-z0-9])" + re.escape(extra.lower()) + r"(?![a-z0-9])", haystack):
+            matched.append(extra)
+            seen_lower.add(extra.lower())
+            weight_sum += _SKILL_LEVEL_WEIGHT.get("familiar", 1.0)
     skill_overlap = min(1.0, weight_sum / _SKILL_OVERLAP_NORM)
 
     # Contract fit. Floor is 0.2, not 0.0 (2026-09-01 recall hardening):

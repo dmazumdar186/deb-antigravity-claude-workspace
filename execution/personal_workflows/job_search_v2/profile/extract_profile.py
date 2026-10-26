@@ -16,6 +16,13 @@ inputs:
         * execution/personal_workflows/personal_brand/metrics_canonical.md
         * directives/personal_workflows/*.md (project signals — shipped systems)
     - env: GEMINI_API_KEY (free tier; failure mode is hard-fail with clear msg)
+    - 2026-10-26 secondary identity sources (both fail-soft, no key needed):
+        * GitHub public API for user `dmazumdar186` (GITHUB_TOKEN used if set;
+          GITHUB_SEED_REPOS="a,b,c" lists repos to probe when the user-level
+          endpoint is blocked, e.g. in a repo-bound cloud session)
+        * https://prodcraft.fyi homepage (+ /about, /services when they exist)
+      `--sources-only` refreshes just these two sections into an existing
+      profile.json (merge; CV/LinkedIn-derived keys are kept verbatim).
 
 outputs:
     - profile.json with schema:
@@ -55,6 +62,18 @@ outputs:
             {"system": str, "metric": str, "track": "A"|"B"},
           ],
           "raw_source_paths": [str, ...],    # audit trail
+          "github": {                        # 2026-10-26, fail-soft
+            "login", "fetched_at", "source", "public_repos",
+            "languages": [str], "topics": [str],
+            "commits_last_12_months": int|null,
+            "repos": [{"name","description","language","languages","topics",
+                       "pushed_at","commits_last_12_months"}],
+          },
+          "freelance_site": {                # 2026-10-26, fail-soft
+            "url", "fetched_at", "pages": [str], "tagline",
+            "service_lines": [str], "skills_keywords": [str],
+            "visible_text_excerpt": str,
+          },
         }
 
 Notes:
@@ -66,11 +85,16 @@ Notes:
 from __future__ import annotations
 
 import argparse
+import html as html_lib
 import json
 import logging
 import os
+import re
 import sys
-from datetime import datetime, timezone
+import urllib.error
+import urllib.parse
+import urllib.request
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from dotenv import find_dotenv, load_dotenv
@@ -83,6 +107,292 @@ DEFAULT_CV = WORKSPACE_ROOT / "CV MAZUMDAR Debanjan EN.pdf"
 PERSONAL_BRAND_DIR = WORKSPACE_ROOT / "execution" / "personal_workflows" / "personal_brand"
 DIRECTIVES_PW_DIR = WORKSPACE_ROOT / "directives" / "personal_workflows"
 DEFAULT_OUT = Path(__file__).resolve().parent / "profile.json"
+
+GITHUB_LOGIN = "dmazumdar186"
+GITHUB_API = "https://api.github.com"
+FREELANCE_SITE_URL = "https://prodcraft.fyi"
+FREELANCE_SITE_PAGES = ("/", "/about", "/services")
+_HTTP_TIMEOUT = 20
+# Repos to probe one-by-one when `users/{login}/repos` is not reachable (the
+# claude.ai cloud proxy binds a session to its configured repositories and
+# answers 403 on user-level paths). Override with GITHUB_SEED_REPOS.
+_DEFAULT_SEED_REPOS = (
+    "deb-antigravity-claude-workspace", "cv-optimizer-agent",
+    "youtube-video-analyzer", "anneal", "outbound-engine", "job_search_v2",
+    "humanizer", "deb-mobile-template",
+)
+# Skill vocabulary matched against the freelance site's visible text
+# (case-insensitive, word-ish boundaries). Short on purpose: the ranker only
+# needs keywords it can grep for in a job description.
+_SITE_SKILL_VOCAB = (
+    "AI", "GenAI", "LLM", "RAG", "Claude", "Claude Code", "GPT", "Gemini",
+    "agents", "AI agents", "automation", "outbound", "cold email", "SaaS",
+    "mobile", "React Native", "Expo", "Next.js", "Astro", "Python",
+    "TypeScript", "JavaScript", "Supabase", "Postgres", "Modal", "Cloudflare",
+    "Stripe", "Twilio", "voice agent", "video", "YouTube", "SEO",
+    "data pipeline", "scraping", "API", "MVP", "product management",
+    "product strategy", "roadmap", "discovery", "GTM", "go-to-market",
+    "analytics", "A/B testing", "growth", "chatbot", "n8n", "Zapier", "Make",
+    "HubSpot", "Instantly", "Apify", "OpenAI", "Anthropic", "vector",
+    "embeddings", "fine-tuning", "prompt engineering", "evals", "Vapi",
+    "Retell", "Whisper", "SmartLead", "GHL", "Playwright", "Remotion",
+    "Cloudflare Workers", "MCP", "multi-agent", "copilot", "eval harness",
+)
+
+
+def _http_get(url: str, headers: dict[str, str] | None = None,
+              timeout: int = _HTTP_TIMEOUT) -> tuple[int, bytes, dict[str, str]]:
+    """GET with a UA; returns (status, body, headers). HTTP errors return their
+    status instead of raising so callers can branch; network errors raise
+    urllib.error.URLError / OSError."""
+    req = urllib.request.Request(url, headers={
+        "User-Agent": "job-search-v2-profile-extractor",
+        **(headers or {}),
+    })
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 — https only, fixed hosts
+            return resp.status, resp.read(), {k.lower(): v for k, v in resp.headers.items()}
+    except urllib.error.HTTPError as exc:
+        body = exc.read() if exc.fp else b""
+        return exc.code, body, {k.lower(): v for k, v in (exc.headers or {}).items()}
+
+
+def _github_headers() -> dict[str, str]:
+    h = {"Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"}
+    token = os.environ.get("GITHUB_TOKEN", "").strip()
+    if token:
+        h["Authorization"] = f"Bearer {token}"
+    return h
+
+
+def _github_json(path: str) -> tuple[int, object, dict[str, str]]:
+    status, body, headers = _http_get(f"{GITHUB_API}{path}", _github_headers())
+    try:
+        data = json.loads(body.decode("utf-8", errors="replace")) if body else None
+    except json.JSONDecodeError:
+        data = None
+    return status, data, headers
+
+
+def _github_commit_count_12m(owner: str, repo: str, since_iso: str) -> int | None:
+    """Count commits since `since_iso` via per_page=1 + the Link rel="last"
+    page number (one request, no pagination). None when unavailable."""
+    path = (f"/repos/{owner}/{repo}/commits?since={urllib.parse.quote(since_iso)}"
+            "&per_page=1")
+    status, data, headers = _github_json(path)
+    if status != 200 or not isinstance(data, list):
+        return None
+    if not data:
+        return 0
+    link = headers.get("link", "")
+    m = re.search(r'[?&]page=(\d+)>;\s*rel="last"', link)
+    return int(m.group(1)) if m else 1
+
+
+def _github_repo_record(owner: str, repo: dict, since_iso: str) -> dict:
+    name = repo.get("name", "")
+    langs: list[str] = []
+    status, data, _ = _github_json(f"/repos/{owner}/{name}/languages")
+    if status == 200 and isinstance(data, dict):
+        langs = [k for k, _ in sorted(data.items(), key=lambda kv: -kv[1])]
+    return {
+        "name": name,
+        "description": (repo.get("description") or "")[:200],
+        "language": repo.get("language") or "",
+        "languages": langs,
+        "topics": list(repo.get("topics") or []),
+        "pushed_at": repo.get("pushed_at") or "",
+        "fork": bool(repo.get("fork")),
+        "commits_last_12_months": _github_commit_count_12m(owner, name, since_iso),
+    }
+
+
+def fetch_github_profile(login: str = GITHUB_LOGIN, previous: dict | None = None) -> dict | None:
+    """Public GitHub evidence for `login`. Returns the section dict, or
+    `previous` (may be None) on any failure — never raises.
+
+    Path 1: users/{login}/repos (needs no token). Path 2 (when path 1 is
+    blocked/forbidden): probe GITHUB_SEED_REPOS / _DEFAULT_SEED_REPOS with the
+    repo-scoped endpoint and keep the ones that answer 200.
+    """
+    since_dt = datetime.now(timezone.utc) - timedelta(days=365)
+    since_iso = since_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+    try:
+        repos: list[dict] = []
+        source = "users_endpoint"
+        status, data, _ = _github_json(f"/users/{login}/repos?per_page=100&sort=pushed&type=owner")
+        if status == 200 and isinstance(data, list):
+            repos = [r for r in data if isinstance(r, dict)]
+        else:
+            logger.warning("github: users/%s/repos -> HTTP %s; probing seed repos", login, status)
+            source = "seed_repos"
+            seeds_env = os.environ.get("GITHUB_SEED_REPOS", "").strip()
+            seeds = [x.strip() for x in seeds_env.split(",") if x.strip()] or list(_DEFAULT_SEED_REPOS)
+            for name in seeds:
+                st, rd, _ = _github_json(f"/repos/{login}/{name}")
+                if st == 200 and isinstance(rd, dict):
+                    repos.append(rd)
+                else:
+                    logger.info("github: repo %s/%s not reachable (HTTP %s)", login, name, st)
+        if not repos:
+            logger.warning("github: no repos retrievable for %s — keeping previous section", login)
+            return previous
+        repos = [r for r in repos if not r.get("fork")] or repos
+        repos.sort(key=lambda r: r.get("pushed_at") or "", reverse=True)
+        records = [_github_repo_record(login, r, since_iso) for r in repos[:30]]
+        lang_counts: dict[str, int] = {}
+        topics: list[str] = []
+        for rec in records:
+            for i, lang in enumerate(rec["languages"]):
+                lang_counts[lang] = lang_counts.get(lang, 0) + (3 if i == 0 else 1)
+            for t in rec["topics"]:
+                if t not in topics:
+                    topics.append(t)
+        counts = [rec["commits_last_12_months"] for rec in records]
+        known = [c for c in counts if isinstance(c, int)]
+        return {
+            "login": login,
+            "fetched_at": datetime.now(timezone.utc).isoformat(),
+            "source": source,
+            "public_repos": len(records),
+            "languages": [k for k, _ in sorted(lang_counts.items(), key=lambda kv: -kv[1])],
+            "topics": topics,
+            "commits_last_12_months": sum(known) if known else None,
+            "repos": records,
+        }
+    except (urllib.error.URLError, OSError, ValueError, TypeError) as exc:
+        logger.warning("github: fetch failed (%s) — keeping previous section", exc)
+        return previous
+
+
+def _html_to_text(raw: bytes) -> str:
+    txt = raw.decode("utf-8", errors="replace")
+    txt = re.sub(r"<(script|style|noscript|svg)[^>]*>.*?</\1>", " ", txt, flags=re.S | re.I)
+    txt = re.sub(r"<br\s*/?>|</(p|div|li|h[1-6]|section|article|header|footer)>", "\n", txt, flags=re.I)
+    txt = re.sub(r"<[^>]+>", " ", txt)
+    txt = html_lib.unescape(txt)
+    lines = [re.sub(r"[ \t\u00a0]+", " ", ln).strip() for ln in txt.splitlines()]
+    return "\n".join(ln for ln in lines if ln)
+
+
+_SERVICES_HEADING = re.compile(r"(what we build|services|what we do|offer(ing)?s?)\b", re.I)
+_SECTION_END = re.compile(r"^\d{2}\s*[—-]\s|^(the stack|how we work|recommendations|contact)\b", re.I)
+_CTA_OR_NOISE = re.compile(r"(→|↗|^\d+\s|^(book|see|hear|talk|show|scroll|keep)\b|^how it works)", re.I)
+
+
+def _extract_service_lines(text: str, limit: int = 12) -> list[str]:
+    """Service lines = short lines (2-10 words) inside the 'What we build' /
+    'Services' section, up to the next numbered section ('05 — The stack').
+    Falls back to offer-shaped lines anywhere when no such section exists."""
+    lines = text.splitlines()
+    out: list[str] = []
+    seen: set[str] = set()
+
+    def _take(ln: str) -> None:
+        clean = ln.strip(" ·—-")
+        if clean.lower() in seen or not 2 <= len(clean.split()) <= 10:
+            return
+        if _CTA_OR_NOISE.search(clean) or clean.endswith("."):
+            return
+        seen.add(clean.lower())
+        out.append(clean)
+
+    for i, ln in enumerate(lines):
+        if _SERVICES_HEADING.search(ln) and len(ln.split()) <= 6:
+            for nxt in lines[i + 1:]:
+                if _SECTION_END.search(nxt):
+                    break
+                _take(nxt)
+                if len(out) >= limit:
+                    break
+            if out:
+                return out
+    verbs = re.compile(r"\b(build|ship|automate|deploy|integrate|engine|agent|"
+                       r"pipeline|system|copilot|chatbot|workflow|assistant)s?\b", re.I)
+    for ln in lines:
+        if verbs.search(ln):
+            _take(ln)
+        if len(out) >= limit:
+            break
+    return out
+
+
+def _extract_skill_keywords(text: str) -> list[str]:
+    low = text.lower()
+    found: list[str] = []
+    for kw in _SITE_SKILL_VOCAB:
+        pat = r"(?<![a-z0-9])" + re.escape(kw.lower()) + r"(?![a-z0-9])"
+        if re.search(pat, low) and kw not in found:
+            found.append(kw)
+    return found
+
+
+def fetch_freelance_site(base_url: str = FREELANCE_SITE_URL,
+                         previous: dict | None = None) -> dict | None:
+    """Visible text of the freelance site (homepage + /about + /services when
+    they exist) -> service lines + skill keywords. Returns `previous` on any
+    failure — never raises."""
+    pages_text: dict[str, str] = {}
+    try:
+        for path in FREELANCE_SITE_PAGES:
+            url = base_url.rstrip("/") + path
+            try:
+                status, body, _ = _http_get(url)
+            except (urllib.error.URLError, OSError) as exc:
+                logger.warning("freelance_site: %s unreachable (%s)", url, exc)
+                continue
+            if status != 200 or not body:
+                logger.info("freelance_site: %s -> HTTP %s (skipped)", url, status)
+                continue
+            pages_text[path] = _html_to_text(body)
+        if not pages_text:
+            logger.warning("freelance_site: nothing fetched — keeping previous section")
+            return previous
+        full = "\n".join(pages_text.values())
+        home = pages_text.get("/", full)
+        title_m = re.match(r"\s*(.+)", home)
+        tagline = (title_m.group(1) if title_m else "")[:200]
+        return {
+            "url": base_url,
+            "fetched_at": datetime.now(timezone.utc).isoformat(),
+            "pages": sorted(pages_text),
+            "tagline": tagline,
+            "service_lines": _extract_service_lines(full),
+            "skills_keywords": _extract_skill_keywords(full),
+            "visible_text_excerpt": full[:3000],
+        }
+    except (ValueError, TypeError) as exc:
+        logger.warning("freelance_site: parse failed (%s) — keeping previous section", exc)
+        return previous
+
+
+def refresh_secondary_sources(out_path: Path) -> dict:
+    """Merge fresh `github` + `freelance_site` sections into an existing
+    profile.json (all other keys untouched). Missing file -> minimal dict.
+    Each fetcher fails soft and keeps the previous section."""
+    profile: dict = {}
+    if out_path.exists():
+        try:
+            profile = json.loads(out_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            logger.warning("profile.json unreadable (%s) — starting from empty dict", exc)
+            profile = {}
+    gh = fetch_github_profile(previous=profile.get("github"))
+    fs = fetch_freelance_site(previous=profile.get("freelance_site"))
+    if gh is not None:
+        profile["github"] = gh
+    if fs is not None:
+        profile["freelance_site"] = fs
+    srcs = list(profile.get("raw_source_paths") or [])
+    for tag in (f"github:{GITHUB_LOGIN}", FREELANCE_SITE_URL):
+        if tag not in srcs:
+            srcs.append(tag)
+    profile["raw_source_paths"] = srcs
+    out_path.write_text(json.dumps(profile, indent=2, ensure_ascii=False), encoding="utf-8")
+    logger.info("secondary sources merged: github=%s repos, freelance_site=%s keywords",
+                len((profile.get("github") or {}).get("repos", [])),
+                len((profile.get("freelance_site") or {}).get("skills_keywords", [])))
+    return profile
 
 
 PROFILE_SCHEMA = {
@@ -353,7 +663,8 @@ def extract_profile(
     logger.info("profile written: %s (%d skills, %d proof_points)",
                 out_path, len(profile.get("skills", [])),
                 len(profile.get("proof_points", [])))
-    return profile
+    # 2026-10-26: secondary identity sources (fail-soft, merged in place).
+    return refresh_secondary_sources(out_path)
 
 
 def main() -> int:
@@ -366,10 +677,16 @@ def main() -> int:
                         help=f"Output JSON path (default: {DEFAULT_OUT})")
     parser.add_argument("--dry-run", action="store_true",
                         help="Skip the LLM call; write a stub profile.")
+    parser.add_argument("--sources-only", action="store_true",
+                        help="Only refresh github + freelance_site sections into "
+                             "the existing profile.json (no CV / Gemini call).")
     args = parser.parse_args()
 
     try:
-        extract_profile(args.cv, args.out, dry_run=args.dry_run)
+        if args.sources_only:
+            refresh_secondary_sources(args.out)
+        else:
+            extract_profile(args.cv, args.out, dry_run=args.dry_run)
     except (FileNotFoundError, RuntimeError) as exc:
         logger.error("extraction failed: %s", exc)
         return 1

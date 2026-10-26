@@ -66,9 +66,13 @@ LAST_APPEND_STATS: dict[str, int] = {
 # `open · posted YYYY-MM-DD · checked YYYY-MM-DD` the acceptance gate audits.
 # _ensure_headers() appends any missing header at the next free column, so
 # the live sheet self-migrates on the first run.
+# 2026-10-26: "Fit /5" appended LAST (operator order) so existing rows keep
+# their layout; _ensure_headers() extends a shorter header row in place and
+# never touches data cells. Value = RankedJob.fit5 (ranker.score.fit_out_of_5),
+# blank when the job was never scored.
 STANDARD_HEADERS = [
     "Company", "Title", "Country", "Location", "Contract", "Link",
-    "Posted", "Verified",
+    "Posted", "Verified", "Fit /5",
 ]
 
 
@@ -137,7 +141,7 @@ def _defuse_formula(value: str) -> str:
 # Rank (row order already conveys it) / Identity (Title + Company is already in
 # the next two cols) / Why (Sonnet reasoning is in the sheet's role tabs).
 TOP_MATCHES_HEADERS = [
-    "Fit", "Title", "Company", "Location", "Contract", "Source Tab", "Link",
+    "Fit", "Fit /5", "Title", "Company", "Location", "Contract", "Source Tab", "Link",
 ]
 TOP_MATCHES_TAB = "Top Matches"
 SUMMARY_TAB = "Summary"
@@ -181,6 +185,7 @@ def _job_to_dict(job: NormalizedJob, ranked: RankedJob | None, run_now: str, rec
         verified = verification_stamp(record.status, record.posted_at, record.checked_at, record.reason)
     also_seen = ", ".join(s.value for s in job.also_seen_on) if job.also_seen_on else ""
     tier = ranked.tier.value if ranked else ""
+    fit5 = ranked.fit5 if ranked is not None else None
     return {
         "_id": job.content_hash[:16],
         "First Seen": run_now[:10],
@@ -195,6 +200,7 @@ def _job_to_dict(job: NormalizedJob, ranked: RankedJob | None, run_now: str, rec
         "Also Seen On": also_seen,
         "Link": str(job.url),
         "Verified": verified,
+        "Fit /5": "" if fit5 is None else str(fit5),
         "Status": "New",
         "Notes": ranked.reasoning if ranked else "",
         "Tier": tier,
@@ -649,7 +655,7 @@ def refresh_top_matches(
     """Fully refresh the Top Matches tab with the best jobs from this run.
 
     Selection: take the top-n jobs sorted by ranker.score desc (ties broken by tier A>B>C).
-    Skip jobs with tier=SKIP. Writes Rank / Fit / Identity / Title / Company / Location /
+    Skip jobs with tier=SKIP. Writes Rank / Fit / Fit /5 / Identity / Title / Company / Location /
     Contract / Source Tab / Why / Link.
 
     Returns (rows_written, ok).
@@ -692,6 +698,10 @@ def refresh_top_matches(
                 value_input_option="USER_ENTERED",
             )
             header_map = _read_header_map(ws)
+        else:
+            # 2026-10-26: existing tabs predate "Fit /5" — append any missing
+            # header at the next free column (data below is cleared anyway).
+            header_map = _ensure_headers(ws, TOP_MATCHES_HEADERS)
 
         # Clear everything below the header.
         end_col_letter = _col_index_to_letter(max(header_map.values()))
@@ -712,6 +722,7 @@ def refresh_top_matches(
             payload = {
                 "Rank": str(rank),
                 "Fit": ranked.tier.value,
+                "Fit /5": "" if ranked.fit5 is None else str(ranked.fit5),
                 "Identity": f"{job.title} @ {job.company}",
                 "Title": job.title,
                 "Company": job.company,

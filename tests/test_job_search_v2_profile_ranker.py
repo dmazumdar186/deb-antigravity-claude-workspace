@@ -29,6 +29,7 @@ from execution.personal_workflows.job_search_v2.ranker.score import (  # noqa: E
     _compute_final_score,
     _format_reasoning,
     _tier_from_final,
+    fit_out_of_5,
 )
 
 
@@ -179,3 +180,148 @@ def test_profile_json_has_en_and_fr_c2():
     langs = {lang["code"].lower(): lang["level"] for lang in profile["languages"]}
     assert langs.get("en") == "C2", f"EN level: {langs.get('en')}"
     assert langs.get("fr") == "C2", f"FR level: {langs.get('fr')}"
+
+
+# ----- Fit /5 (2026-10-26) -----
+
+
+@pytest.mark.parametrize("final_score, expected", [
+    (0.0, 1),      # floor: a scored job never shows 0
+    (0.1, 1),      # round(0.5) == 0 under banker's rounding -> clamped to 1
+    (0.49, 2),     # round(2.45) == 2
+    (0.5, 2),      # round(2.5) == 2 (banker's rounding) — asserted, not assumed
+    (0.7, 4),      # round(3.5) == 4
+    (0.75, 4),     # tier-A threshold -> 4
+    (0.95, 5),
+    (1.0, 5),
+    (None, None),  # never scored (placeholder)
+])
+def test_fit_out_of_5(final_score, expected):
+    assert fit_out_of_5(final_score) == expected
+
+
+def test_fit_out_of_5_rejects_garbage_as_none():
+    assert fit_out_of_5("n/a") is None  # type: ignore[arg-type]
+
+
+def test_ranked_job_carries_fit5_and_placeholder_is_blank():
+    from execution.personal_workflows.job_search_v2.contracts import RankedJob
+    from execution.personal_workflows.job_search_v2.ranker.score import _placeholder_ranked
+
+    class _J:  # minimal stand-in: _placeholder_ranked only reads content_hash
+        content_hash = "a" * 64
+
+    assert _placeholder_ranked(_J(), "disabled").fit5 is None
+    rj = RankedJob(content_hash="b" * 64, score=0.82, tier=JobTier.A, reasoning="x",
+                   rubric_version="v", ranker_model="m", fit5=fit_out_of_5(0.82))
+    assert rj.fit5 == 4
+
+
+def test_sheet_headers_end_with_fit5_and_top_matches_has_it():
+    from execution.personal_workflows.job_search_v2.notifier import sheet as sheet_mod
+    assert sheet_mod.STANDARD_HEADERS[-1] == "Fit /5"
+    assert sheet_mod.STANDARD_HEADERS[-3:-1] == ["Posted", "Verified"]
+    assert "Fit /5" in sheet_mod.TOP_MATCHES_HEADERS
+    assert sheet_mod.TOP_MATCHES_HEADERS.index("Fit /5") == sheet_mod.TOP_MATCHES_HEADERS.index("Fit") + 1
+
+
+# ----- secondary identity sources (GitHub + prodcraft.fyi) -----
+
+
+def test_profile_json_has_secondary_sources():
+    profile = json.loads(PROFILE_PATH.read_text(encoding="utf-8"))
+    gh = profile.get("github") or {}
+    fs = profile.get("freelance_site") or {}
+    assert gh.get("login") == "dmazumdar186" and gh.get("repos"), "github section missing/empty"
+    assert fs.get("url", "").startswith("https://prodcraft.fyi") and fs.get("skills_keywords"), \
+        "freelance_site section missing/empty"
+
+
+def test_prompt_render_includes_secondary_evidence_and_stays_bounded():
+    from execution.personal_workflows.job_search_v2.ranker.score import (
+        _SECONDARY_SECTION_MAX_CHARS, _render_profile_for_prompt,
+    )
+    profile = {
+        "schema_version": "1.0", "skills": [{"name": "RAG", "level": "expert",
+                                             "evidence": ["CV"], "tracks": ["A"]}],
+        "github": {"login": "x", "repos": [{"name": "r" + str(i), "description": "d" * 500}
+                                           for i in range(40)],
+                   "languages": ["Python"], "topics": ["rag"], "commits_last_12_months": 3},
+        "freelance_site": {"url": "https://prodcraft.fyi", "tagline": "t",
+                           "service_lines": ["Custom AI operations"],
+                           "skills_keywords": ["RAG", "n8n"]},
+    }
+    text = _render_profile_for_prompt(profile)
+    assert "<GITHUB_EVIDENCE" in text and "<FREELANCE_SITE_EVIDENCE" in text
+    assert "Custom AI operations" in text
+    gh_block = text.split("<GITHUB_EVIDENCE")[1].split("</GITHUB_EVIDENCE>")[0]
+    assert len(gh_block) < _SECONDARY_SECTION_MAX_CHARS + 200
+    # core profile keys are verbatim, the raw secondary dicts are not duplicated
+    assert text.count('"github"') == 0
+
+
+def test_heuristic_counts_secondary_keywords_with_word_boundaries():
+    from execution.personal_workflows.job_search_v2.ranker.score import _secondary_skill_keywords
+    profile = {"github": {"languages": ["Python"], "topics": ["cold-email"]},
+               "freelance_site": {"skills_keywords": ["API", "Python"]}}
+    kws = _secondary_skill_keywords(profile)
+    assert kws == ["Python", "cold email", "API"]
+
+
+def test_append_dicts_migrates_short_header_and_writes_fit5():
+    """A live tab whose header predates "Fit /5" (8 columns) must gain the
+    header at the next free column and get fit5 written there; existing data
+    cells are untouched."""
+    from execution.personal_workflows.job_search_v2.notifier import sheet as sheet_mod
+
+    class _Ws:
+        title = "PM"
+        row_count, col_count = 1000, 8
+
+        def __init__(self, header, rows):
+            self.grid = [list(header)] + [list(r) for r in rows]
+
+        def row_values(self, n):
+            return list(self.grid[n - 1]) if len(self.grid) >= n else []
+
+        def col_values(self, idx):
+            return [r[idx - 1] if len(r) >= idx else "" for r in self.grid]
+
+        def get_all_values(self):
+            return [list(r) for r in self.grid]
+
+        def resize(self, *, rows, cols):
+            self.col_count = cols
+
+        def update(self, *, range_name, values, value_input_option="USER_ENTERED"):
+            a1 = range_name.split(":")[0]
+            row0 = int("".join(c for c in a1 if c.isdigit())) - 1
+            col0 = 0
+            for ch in "".join(c for c in a1 if c.isalpha()):
+                col0 = col0 * 26 + ord(ch) - 64
+            col0 -= 1
+            for i, vals in enumerate(values):
+                while len(self.grid) <= row0 + i:
+                    self.grid.append([])
+                row = self.grid[row0 + i]
+                row += [""] * (col0 + len(vals) - len(row))
+                for j, v in enumerate(vals):
+                    row[col0 + j] = v
+
+        def append_rows(self, rows, value_input_option="USER_ENTERED"):
+            self.grid += [list(r) for r in rows]
+
+    old_header = sheet_mod.STANDARD_HEADERS[:-1]
+    existing = ["Acme", "PM", "FR", "Paris", "cdi", "https://a", "2026-10-01", "open"]
+    ws = _Ws(old_header, [existing])
+    header_map = sheet_mod._ensure_headers(ws, sheet_mod.STANDARD_HEADERS)
+    assert ws.grid[0] == sheet_mod.STANDARD_HEADERS
+    assert header_map["Fit /5"] == len(sheet_mod.STANDARD_HEADERS)
+    assert ws.grid[1] == existing  # data row untouched
+    written = sheet_mod._append_dicts(ws, [{
+        "_id": "x", "Company": "Beta", "Title": "Senior PM", "Country": "FR",
+        "Location": "Paris", "Contract": "cdi", "Link": "https://b",
+        "Posted": "2026-10-20", "Verified": "open", "Fit /5": "4",
+    }])
+    assert written == 1
+    assert ws.grid[-1][header_map["Fit /5"] - 1] == "4"

@@ -1109,6 +1109,111 @@
     "directives/personal_workflows/job_tracker_setup.md",
     "directives/personal_workflows/portfolio_site.md",
     "directives/personal_workflows/prodcraft_autopilot.md",
-    "directives/personal_workflows/reddit_pain_mining.md"
-  ]
+    "directives/personal_workflows/reddit_pain_mining.md",
+    "github:dmazumdar186",
+    "https://prodcraft.fyi"
+  ],
+  "github": {
+    "login": "dmazumdar186",
+    "fetched_at": "2026-10-26T08:26:11.332379+00:00",
+    "source": "seed_repos",
+    "public_repos": 1,
+    "languages": [
+      "HTML",
+      "Python",
+      "JavaScript",
+      "TypeScript",
+      "CSS",
+      "Astro",
+      "Shell",
+      "PLpgSQL",
+      "PowerShell"
+    ],
+    "topics": [],
+    "commits_last_12_months": 929,
+    "repos": [
+      {
+        "name": "deb-antigravity-claude-workspace",
+        "description": "My Claude Code projects with Google AntiGravity IDE.",
+        "language": "HTML",
+        "languages": [
+          "HTML",
+          "Python",
+          "JavaScript",
+          "TypeScript",
+          "CSS",
+          "Astro",
+          "Shell",
+          "PLpgSQL",
+          "PowerShell"
+        ],
+        "topics": [],
+        "pushed_at": "2026-10-26T08:23:04Z",
+        "fork": false,
+        "commits_last_12_months": 929
+      }
+    ]
+  },
+  "freelance_site": {
+    "url": "https://prodcraft.fyi",
+    "fetched_at": "2026-10-26T08:26:12.208849+00:00",
+    "pages": [
+      "/"
+    ],
+    "tagline": "ProdCraft — AI builds, shipped. The senior AI engineer your roadmap is missing",
+    "service_lines": [
+      "Cold-email & outbound systems",
+      "Inbox warmup + domain rotation",
+      "AI-personalized first lines",
+      "Reply classification + auto-routing",
+      "Pipeline reporting in your CRM",
+      "24/7 AI sales assistants",
+      "Inbound lead qualification",
+      "Outbound dialing + follow-up",
+      "Sandbox demo on request",
+      "Custom AI operations",
+      "Multi-agent orchestration",
+      "Document Q&A + RAG stacks"
+    ],
+    "skills_keywords": [
+      "AI",
+      "GenAI",
+      "LLM",
+      "RAG",
+      "Claude",
+      "Claude Code",
+      "GPT",
+      "Gemini",
+      "agents",
+      "automation",
+      "outbound",
+      "SaaS",
+      "mobile",
+      "Expo",
+      "Astro",
+      "Supabase",
+      "Modal",
+      "Cloudflare",
+      "Stripe",
+      "video",
+      "YouTube",
+      "API",
+      "roadmap",
+      "GTM",
+      "n8n",
+      "Instantly",
+      "Vapi",
+      "Retell",
+      "Whisper",
+      "SmartLead",
+      "GHL",
+      "Playwright",
+      "Remotion",
+      "Cloudflare Workers",
+      "MCP",
+      "multi-agent",
+      "eval harness"
+    ],
+    "visible_text_excerpt": "ProdCraft — AI builds, shipped. The senior AI engineer your roadmap is missing\nSkip to content\nProdCraft\nProdCraft\n00 Cover\nBook a free build session\nProdCraft · Paris · est. by a 15-year product operator\nAI builds, shipped.\nThe senior AI engineer your roadmap is missing. Without the FTE, the agency timeline, or the slide-deck demos. Built with Claude Code. Live in your stack in weeks.\n01 Qualified pipeline generated\n$1M+\nqualified pipeline generated from 48,000+ cold emails/mo at 4%+ reply, one fully-automated outbound system\n02 Feature adoption\n+45%\nfeature adoption with −55% latency (p95) · enterprise GenAI/RAG in production\n03 Median ship cycle\n<30 days\nmedian ship cycle across 5+ live AI products built end-to-end: SaaS · mobile · video · agents\n04 Walk-away clause\nAll code, all credentials — yours. Day one.\nRepo in your GitHub. Keys in your accounts. Walk away whenever.\nBook a free build session\nSee what we've shipped\nDebanjan Mazumdar · founder · lead engineer\nShipped · SaaS GTM recruiter, London\nShipped · Green-jobs board, 195 pages\nShipped · Private business school, Paris\n00 AI builds, shipped\n01 $1M+ pipeline\n02 +45% adoption\n03 <30 days to ship\n04 Walk-away clause\nScroll for the receipts\n01 — The ledger\nWhat shipped, newest first. Open any of it.\n←\n→\nOutbound · US consultancy\nOutbound engine, US consultancy\n$1M+\n$1M+ pipeline · 48,000+ emails/mo · 4%+ reply · $200K/yr SDR headcount replaced\n“Debanjan caught a silent bug that was killing 83% of our outbound leads before they ever hit an inbox …” Jitendra Kumar, InfoTNT\nStack Cloudflare Workers + KV + Instantly + GHL\nSafety Idempotent sentinel keys, cross-run dedup\nControl Per-campaign kill switch\nReplies Dual-path reply detection\nCost Replaces a 4-SDR team at ~1/10th the cost\nGenAI · enterprise SaaS · US\nEnterprise GenAI adoption driver\n+45%\n+45% feature adoption · −55% p95 latency\n“'Yes, we can do it' — and then he actually ships it.” Ramesh Babar, Zensar Technologies\nScope PM-led from problem framing to shipped feature\nRouting Multi-LLM routing, per-tenant config\nQuality Eval harness\nCost Prompt-cache-aware cost model\nLatency Prompt-cache hits + tenant-aware routing\nConcept, spec work · 2026 · London\nSaaS GTM recruiter, London\nDesktop Page height 17,828 → 1,773 px desktop (10.1×)\nMobile 36,490 → 2,941 px mobile (12.4×)\nWords 4,373 → 5,003 words, nothing dropped\nScripts third-party scripts 3 → 0\nConcept, spec work · 2026 · Ireland & UK\nGreen-jobs board, Ireland & UK\nPages 195 pages\nRoles 165 live roles\nChecks 2,797 checks\nRequests zero third-party requests\nConcept, spec work · 2026 · Paris\nPrivate business school, Paris — prospectus concept + 20-post social set\nDesktop 6,321 px vs 9,011 live desktop\nMobile 5,464 vs 14,528 mobile\nTests functional 29/29\nSocial 20 posts 1080×1350\nConcept, spec work · 2026 · France\nFranchise auto-service brand, France\nWeight 59.6 KB HTML+CSS+JS\nTests 33/33 iPhone 13 assertions\nConsole 0 console errors\nBooking working booking widget\n←\n1 / 6\n→\nKeep scrolling "
+  }
 }

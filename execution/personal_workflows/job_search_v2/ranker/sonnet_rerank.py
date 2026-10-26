@@ -39,6 +39,7 @@ from execution.personal_workflows.job_search_v2.contracts import (  # noqa: E402
     NormalizedJob,
     RankedJob,
 )
+from execution.personal_workflows.job_search_v2.ranker.score import fit_out_of_5  # noqa: E402
 
 load_dotenv(find_dotenv(usecwd=False))
 logger = logging.getLogger("ranker.sonnet_rerank")
@@ -295,6 +296,7 @@ def rerank_shortlist(
                 reasoning=reasoning,
                 rubric_version=RUBRIC_VERSION,
                 ranker_model=model,
+                fit5=fit_out_of_5(score),
             )
             stats["refined"] += 1
             stats["by_tier_after"][tier.value] += 1
