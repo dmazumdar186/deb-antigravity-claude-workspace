@@ -529,12 +529,11 @@ def main() -> int:
                              "ANTHROPIC_API_KEY is in env. Costs ~$0.12 per run when active.")
     parser.add_argument("--sonnet-rerank-top-n", type=int, default=25,
                         help="How many top-of-first-pass jobs to send to Sonnet (default 25).")
-    parser.add_argument("--max-digest-jobs", type=int, default=60,
-                        help="Cap on jobs in the email digest + sheet append (default 60; raised "
-                             "from 25 on 2026-09-01 when the geo scope widened to 6 countries — "
-                             "capped-out jobs are recorded in the dedup DB and NEVER resurface, so "
-                             "a too-low cap silently loses relevant jobs). "
-                             "Sorted by ranker score descending if scored, else posted_at descending.")
+    parser.add_argument("--max-digest-jobs", type=int, default=0,
+                        help="Optional cap on jobs in the email digest + sheet append. Default 0 = "
+                             "unlimited (2026-10-26 operator order: every new job is a table row; "
+                             "capped-out jobs are recorded in the dedup DB and NEVER resurface). "
+                             "Kept for back-compat only.")
     parser.add_argument("--min-hours-between-emails", type=float, default=6.0,
                         help="Skip the email send if a digest was already sent in the last N hours "
                              "(default 22h). Stops the dual-cron-at-07:00+08:00-UTC double-send. "
@@ -699,10 +698,9 @@ def main() -> int:
     else:
         ranked_filtered = filtered_jobs
 
-    # Stage 3.8: sort by best signal + cap to --max-digest-jobs. Without this, a daily
-    # haul of 200+ PM jobs floods the operator's inbox. The cap is digest-grade UX, not
-    # an information-loss event — excess jobs are STILL recorded in the dedup DB so they
-    # don't re-surface tomorrow. To browse them, run with --max-digest-jobs 999.
+    # Stage 3.8: sort by best signal; optional cap via --max-digest-jobs (default
+    # unlimited since 2026-10-26: the email is one table listing EVERY new job).
+    # Excess jobs, if capped, are STILL recorded in the dedup DB so they don't re-surface.
     pre_cap_count = len(ranked_filtered)
 
     def _rank_key(job):
@@ -717,13 +715,14 @@ def main() -> int:
         return (-score, -ts)
 
     ranked_filtered.sort(key=_rank_key)
-    cap = max(1, int(args.max_digest_jobs))
-    ranked_filtered = ranked_filtered[:cap]
+    cap = int(args.max_digest_jobs)
+    if cap > 0:
+        ranked_filtered = ranked_filtered[:cap]
     cap_stats = {
         "pre_cap": pre_cap_count,
         "post_cap": len(ranked_filtered),
-        "cap": cap,
-        "dropped_for_cap": max(0, pre_cap_count - cap),
+        "cap": cap or "unlimited",
+        "dropped_for_cap": max(0, pre_cap_count - len(ranked_filtered)),
     }
     logger.info("run: digest_cap %s", cap_stats)
 
