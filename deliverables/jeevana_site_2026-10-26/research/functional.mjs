@@ -204,7 +204,7 @@ T('chapters_fit_one_viewport (landscape viewports ≥ 1024 px)', !chBad.length, 
     // probe shots A/B/C use an inverted image only in C; alpha ratio needs the same content in A and C → redo A with invert
     await p.evaluate((id) => { document.querySelector('#' + id + ' .chapter__media img').style.filter = 'invert(1)'; }, id); await p.waitForTimeout(60); const A2 = `/tmp/jvr2/${k++}.png`; await p.screenshot({ path: A2, scale: 'css' }); await p.evaluate((id) => { document.querySelector('#' + id + ' .chapter__media img').style.filter = ''; }, id);
     const vis = [Math.max(0, b.media[0]), Math.max(0, b.media[1]), Math.min(1440, b.media[2]), Math.min(900, b.media[3])];
-    const fe = await p.evaluate((id) => { const m = document.querySelector('#' + id + ' .chapter__media'), r = m.getBoundingClientRect(); return Math.min(240, 0.38 * Math.min(r.width, r.height)); }, id);
+    const fe = await p.evaluate((id) => { const m = document.querySelector('#' + id + ' .chapter__media'), r = m.getBoundingClientRect(); return Math.min(300, 0.44 * Math.min(r.width, r.height)); }, id);
     shots.push({ kind: 'panelalpha', png: A2, pngs: [A2, Bp, C], rect: vis, tag: id }, { kind: 'panelstep', png: A, rect: vis, feather: fe, tag: id });
   }
   const sc = (await p.evaluate(() => document.querySelector('#contact .chapter__media img').currentSrc)).replace(/^https?:\/\/[^/]+\//, SITE);

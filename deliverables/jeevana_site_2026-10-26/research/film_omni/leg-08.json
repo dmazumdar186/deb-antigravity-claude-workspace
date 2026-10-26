@@ -1,0 +1,35 @@
+{
+ "leg": 8,
+ "body": {
+  "prompt": "The woman in the reference images, the same face throughout. She moves slowly from Parvat\u0101sana, downward-facing V, hips high into A\u015bva Sa\u00f1c\u0101lan\u0101sana, low lunge with the other leg. One slow continuous yoga movement with the breath, nothing else moves. Fixed camera, eye level, full body always in frame, feet on the same ground line. A soft dawn sky behind her: deep indigo above fading through dusty rose into a warm ochre haze at the ground line, no clouds, no buildings, a quiet glow near the horizon, first light, no props, no text, no other people. Photoreal, her face unchanged, hair tied back the whole time, clothing and body unchanged throughout, hands and feet keep contact with the floor when they are on it. Calm editorial pacing. She faces left the whole time, the head never turns toward or away from the camera; the camera holds her centred and her whole body stays inside the frame; from downward dog the left foot steps forward between the hands into a low lunge and the arms rise forward.",
+  "first_frame_url": "https://jeevana-frames.pages.dev/dawn/frame-08.jpg",
+  "last_frame_url": "https://jeevana-frames.pages.dev/dawn/frame-09.jpg",
+  "mode": "std",
+  "duration": 5,
+  "aspect_ratio": "9:16",
+  "image_urls": [
+   "https://jeevana-frames.pages.dev/ref/ref-01.jpg",
+   "https://jeevana-frames.pages.dev/ref/ref-02.jpg",
+   "https://jeevana-frames.pages.dev/ref/ref-03.jpg",
+   "https://jeevana-frames.pages.dev/ref/ref-04.jpg"
+  ]
+ },
+ "submit": {
+  "status": "queued",
+  "request_id": "5b1cec94-2e91-454e-9df6-acfd6b8cdb44",
+  "status_url": "https://api.higgsfield.ai/requests/5b1cec94-2e91-454e-9df6-acfd6b8cdb44/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/5b1cec94-2e91-454e-9df6-acfd6b8cdb44/cancel",
+  "expires_after": 604800
+ },
+ "model": "kling-video/omni/first-last-frame",
+ "status": {
+  "status": "completed",
+  "request_id": "5b1cec94-2e91-454e-9df6-acfd6b8cdb44",
+  "status_url": "https://api.higgsfield.ai/requests/5b1cec94-2e91-454e-9df6-acfd6b8cdb44/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/5b1cec94-2e91-454e-9df6-acfd6b8cdb44/cancel",
+  "expires_at": "2026-11-02T21:29:59.606806+00:00",
+  "video": {
+   "url": "https://d3u0tzju9qaucj.cloudfront.net/5afe9077-53e3-4696-8d41-03a78237e195/5b1cec94-2e91-454e-9df6-acfd6b8cdb44/7169f513-b763-4fc5-b26b-ea71f559ae3c.mp4"
+  }
+ }
+}

@@ -15,3 +15,4 @@ Hand review 2026-10-26: single global `window.JeevanaBackdrop`, no fetch/eval/co
 - Shipped sha256: 1fa8403f7ab37cad2a3e5a405bcf2859e78c491dcb95f78ba6f407ff14935179
 - Round-1 hand edits (jury item 2/3): `setBreath(v|null)` (state-driven inhale/exhale target, eased 6 %/frame; null = 5.5 s clock),
   `level()` and `geom()` (ring centre/radius probe for the clearance assertion). Still a single global, no network/eval.
+- Round-2 hand edit: ring easing toward the state's breath is time-based (τ 220 ms) instead of 6 %/frame, so it settles at the same speed on slow devices.

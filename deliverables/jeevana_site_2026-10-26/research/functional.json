@@ -1,37 +1,37 @@
 {
- "date": "2026-10-26T21:33:06.952Z",
+ "date": "2026-10-26T21:39:04.767Z",
  "film": {
   "standin": false,
-  "seconds": 52,
-  "keyframes": 12
+  "seconds": 47.71,
+  "keyframes": 11
  },
- "pass": 66,
+ "pass": 65,
  "total": 67,
  "results": [
   {
    "name": "film_plays_unscrolled (currentTime > 4 s at 6 s)",
    "ok": true,
-   "detail": "ct=5.21"
+   "detail": "ct=4.94"
   },
   {
    "name": "scroll_takeover_1440x900 (|currentTime − f(p)| < 0.4 s at p=.25/.5/.75/1)",
    "ok": true,
    "detail": {
     "1": {
-     "currentTime": 51.61,
-     "expected": 51.61
+     "currentTime": 47.71,
+     "expected": 47.71
     },
     "0.25": {
-     "currentTime": 14.08,
-     "expected": 14.08
+     "currentTime": 13.012,
+     "expected": 13.012
     },
     "0.5": {
-     "currentTime": 28.15,
-     "expected": 28.15
+     "currentTime": 26.024,
+     "expected": 26.024
     },
     "0.75": {
-     "currentTime": 42.23,
-     "expected": 42.23
+     "currentTime": 39.035,
+     "expected": 39.035
     }
    }
   },
@@ -40,20 +40,20 @@
    "ok": true,
    "detail": {
     "1": {
-     "currentTime": 51.61,
-     "expected": 51.61
+     "currentTime": 47.71,
+     "expected": 47.71
     },
     "0.25": {
-     "currentTime": 14.08,
-     "expected": 14.08
+     "currentTime": 13.012,
+     "expected": 13.012
     },
     "0.5": {
-     "currentTime": 28.15,
-     "expected": 28.15
+     "currentTime": 26.024,
+     "expected": 26.024
     },
     "0.75": {
-     "currentTime": 42.23,
-     "expected": 42.23
+     "currentTime": 39.035,
+     "expected": 39.035
     }
    }
   },
@@ -69,8 +69,23 @@
   },
   {
    "name": "breath_word_matches_ring_desktop (13 samples: rail word = fixture, ring level inhale ≥ .9 / exhale ≤ .1 / retain .4–.6)",
-   "ok": true,
-   "detail": []
+   "ok": false,
+   "detail": [
+    {
+     "i": 1,
+     "word": "Inhale",
+     "mobile": "Inhale",
+     "lvl": 0.8459785389668466,
+     "want": "Inhale"
+    },
+    {
+     "i": 2,
+     "word": "Exhale",
+     "mobile": "Exhale",
+     "lvl": 0.14360665451138332,
+     "want": "Exhale"
+    }
+   ]
   },
   {
    "name": "film_window_no_visible_rectangle (edge alpha ≤ .05, 16 boundary points, A−B / C−B)",
@@ -180,7 +195,7 @@
    "ok": true,
    "detail": [
     {
-     "worst": 2.65
+     "worst": 2.69
     }
    ]
   },
@@ -189,7 +204,7 @@
    "ok": true,
    "detail": [
     {
-     "worst": 0.028
+     "worst": 0.033
     }
    ]
   },
@@ -296,17 +311,17 @@
     {
      "tag": "practice",
      "n": 16,
-     "max": 0.019
+     "max": 0.014
     },
     {
      "tag": "classes",
      "n": 16,
-     "max": 0.025
+     "max": 0.013
     },
     {
      "tag": "contact",
      "n": 16,
-     "max": 0.027
+     "max": 0.014
     }
    ]
   },
@@ -316,15 +331,15 @@
    "detail": [
     {
      "tag": "practice",
-     "step": 0.084
+     "step": 0.057
     },
     {
      "tag": "classes",
-     "step": 0.082
+     "step": 0.064
     },
     {
      "tag": "contact",
-     "step": 0.084
+     "step": 0.062
     }
    ]
   },
@@ -472,41 +487,41 @@
   }
  ],
  "measurements": {
-  "autoplay_ct_at_6s": 5.214,
+  "autoplay_ct_at_6s": 4.943,
   "scrub_1440x900": {
    "1": {
-    "currentTime": 51.61,
-    "expected": 51.61
+    "currentTime": 47.71,
+    "expected": 47.71
    },
    "0.25": {
-    "currentTime": 14.08,
-    "expected": 14.08
+    "currentTime": 13.012,
+    "expected": 13.012
    },
    "0.5": {
-    "currentTime": 28.15,
-    "expected": 28.15
+    "currentTime": 26.024,
+    "expected": 26.024
    },
    "0.75": {
-    "currentTime": 42.23,
-    "expected": 42.23
+    "currentTime": 39.035,
+    "expected": 39.035
    }
   },
   "scrub_390x844": {
    "1": {
-    "currentTime": 51.61,
-    "expected": 51.61
+    "currentTime": 47.71,
+    "expected": 47.71
    },
    "0.25": {
-    "currentTime": 14.08,
-    "expected": 14.08
+    "currentTime": 13.012,
+    "expected": 13.012
    },
    "0.5": {
-    "currentTime": 28.15,
-    "expected": 28.15
+    "currentTime": 26.024,
+    "expected": 26.024
    },
    "0.75": {
-    "currentTime": 42.23,
-    "expected": 42.23
+    "currentTime": 39.035,
+    "expected": 39.035
    }
   },
   "window_edge_alpha": {
@@ -644,7 +659,7 @@
     {
      "tag": "galaxy-s8@1",
      "pairs": 16,
-     "dE": 0.9
+     "dE": 0.96
     },
     {
      "tag": "iphone-13@0",
@@ -699,7 +714,7 @@
     {
      "tag": "phone-landscape@0.5",
      "pairs": 22,
-     "dE": 1.15
+     "dE": 0.86
     },
     {
      "tag": "phone-landscape@1",
@@ -744,7 +759,7 @@
     {
      "tag": "ipad-landscape@0.5",
      "pairs": 22,
-     "dE": 2.04
+     "dE": 2.11
     },
     {
      "tag": "ipad-landscape@1",
@@ -779,7 +794,7 @@
     {
      "tag": "ipad-pro-landscape@1",
      "pairs": 22,
-     "dE": 2.61
+     "dE": 2.05
     },
     {
      "tag": "laptop-1280@0",
@@ -789,12 +804,12 @@
     {
      "tag": "laptop-1280@0.5",
      "pairs": 22,
-     "dE": 2.59
+     "dE": 2.11
     },
     {
      "tag": "laptop-1280@1",
      "pairs": 22,
-     "dE": 2.11
+     "dE": 2.05
     },
     {
      "tag": "laptop-1440@0",
@@ -804,7 +819,7 @@
     {
      "tag": "laptop-1440@0.5",
      "pairs": 22,
-     "dE": 2.59
+     "dE": 2.69
     },
     {
      "tag": "laptop-1440@1",
@@ -834,7 +849,7 @@
     {
      "tag": "desktop-1080p@0.5",
      "pairs": 22,
-     "dE": 0.86
+     "dE": 0.83
     },
     {
      "tag": "desktop-1080p@1",
@@ -849,7 +864,7 @@
     {
      "tag": "desktop-1440p@0.5",
      "pairs": 22,
-     "dE": 1.31
+     "dE": 1.39
     },
     {
      "tag": "desktop-1440p@1",
@@ -864,12 +879,12 @@
     {
      "tag": "desktop-4k@0.5",
      "pairs": 22,
-     "dE": 1.39
+     "dE": 1.32
     },
     {
      "tag": "desktop-4k@1",
      "pairs": 22,
-     "dE": 1.32
+     "dE": 1.39
     },
     {
      "tag": "tv-portrait@0",
@@ -909,11 +924,11 @@
     },
     {
      "tag": "iphone-se@0.5",
-     "step": 0.027
+     "step": 0.032
     },
     {
      "tag": "iphone-se@1",
-     "step": 0.005
+     "step": 0.004
     },
     {
      "tag": "galaxy-s8@0",
@@ -921,11 +936,11 @@
     },
     {
      "tag": "galaxy-s8@0.5",
-     "step": 0.028
+     "step": 0.031
     },
     {
      "tag": "galaxy-s8@1",
-     "step": 0.028
+     "step": 0.026
     },
     {
      "tag": "iphone-13@0",
@@ -933,11 +948,11 @@
     },
     {
      "tag": "iphone-13@0.5",
-     "step": 0.025
+     "step": 0.032
     },
     {
      "tag": "iphone-13@1",
-     "step": 0.027
+     "step": 0.028
     },
     {
      "tag": "pixel-7@0",
@@ -945,11 +960,11 @@
     },
     {
      "tag": "pixel-7@0.5",
-     "step": 0.025
+     "step": 0.031
     },
     {
      "tag": "pixel-7@1",
-     "step": 0.025
+     "step": 0.028
     },
     {
      "tag": "iphone-15-pro-max@0",
@@ -957,11 +972,11 @@
     },
     {
      "tag": "iphone-15-pro-max@0.5",
-     "step": 0.025
+     "step": 0.033
     },
     {
      "tag": "iphone-15-pro-max@1",
-     "step": 0.025
+     "step": 0.03
     },
     {
      "tag": "phone-landscape@0",
@@ -981,7 +996,7 @@
     },
     {
      "tag": "small-tablet@0.5",
-     "step": 0.024
+     "step": 0.032
     },
     {
      "tag": "small-tablet@1",
@@ -993,11 +1008,11 @@
     },
     {
      "tag": "ipad-portrait@0.5",
-     "step": 0.022
+     "step": 0.025
     },
     {
      "tag": "ipad-portrait@1",
-     "step": 0.005
+     "step": 0.004
     },
     {
      "tag": "ipad-landscape@0",
@@ -1017,7 +1032,7 @@
     },
     {
      "tag": "ipad-pro-portrait@0.5",
-     "step": 0.022
+     "step": 0.021
     },
     {
      "tag": "ipad-pro-portrait@1",
@@ -1113,11 +1128,11 @@
     },
     {
      "tag": "tv-portrait@0.5",
-     "step": 0.023
+     "step": 0.021
     },
     {
      "tag": "tv-portrait@1",
-     "step": 0.02
+     "step": 0.022
     },
     {
      "tag": "pixel-7-device@0",
@@ -1125,11 +1140,11 @@
     },
     {
      "tag": "pixel-7-device@0.5",
-     "step": 0.025
+     "step": 0.03
     },
     {
      "tag": "pixel-7-device@1",
-     "step": 0.025
+     "step": 0.029
     }
    ],
    "stage": [
@@ -1288,7 +1303,7 @@
     },
     {
      "tag": "ipad-portrait@1",
-     "min": 9.84,
+     "min": 9.88,
      "at": "See the classes"
     },
     {
@@ -1363,7 +1378,7 @@
     },
     {
      "tag": "desktop-1440p@0",
-     "min": 6.43,
+     "min": 6.41,
      "at": "12"
     },
     {
@@ -1409,7 +1424,7 @@
     },
     {
      "tag": "iphone-se@0.5",
-     "dE": 1.59
+     "dE": 1.33
     },
     {
      "tag": "iphone-se@1",
@@ -1433,11 +1448,11 @@
     },
     {
      "tag": "iphone-13@0.5",
-     "dE": 0.99
+     "dE": 0.8
     },
     {
      "tag": "iphone-13@1",
-     "dE": 1.89
+     "dE": 0.84
     },
     {
      "tag": "pixel-7@0",
@@ -1445,11 +1460,11 @@
     },
     {
      "tag": "pixel-7@0.5",
-     "dE": 0.87
+     "dE": 2.35
     },
     {
      "tag": "pixel-7@1",
-     "dE": 0.8
+     "dE": 0.89
     },
     {
      "tag": "iphone-15-pro-max@0",
@@ -1457,7 +1472,7 @@
     },
     {
      "tag": "iphone-15-pro-max@0.5",
-     "dE": 0.91
+     "dE": 1.28
     },
     {
      "tag": "iphone-15-pro-max@1",
@@ -1481,11 +1496,11 @@
     },
     {
      "tag": "small-tablet@0.5",
-     "dE": 0.85
+     "dE": 1.06
     },
     {
      "tag": "small-tablet@1",
-     "dE": 0.72
+     "dE": 0.88
     },
     {
      "tag": "ipad-portrait@0",
@@ -1493,11 +1508,11 @@
     },
     {
      "tag": "ipad-portrait@0.5",
-     "dE": 0.55
+     "dE": 0.81
     },
     {
      "tag": "ipad-portrait@1",
-     "dE": 1.24
+     "dE": 1.76
     },
     {
      "tag": "ipad-landscape@0",
@@ -1613,11 +1628,11 @@
     },
     {
      "tag": "tv-portrait@0.5",
-     "dE": 0.64
+     "dE": 0.52
     },
     {
      "tag": "tv-portrait@1",
-     "dE": 0.46
+     "dE": 0.83
     },
     {
      "tag": "pixel-7-device@0",
@@ -1625,11 +1640,11 @@
     },
     {
      "tag": "pixel-7-device@0.5",
-     "dE": 1.55
+     "dE": 2.35
     },
     {
      "tag": "pixel-7-device@1",
-     "dE": 1.11
+     "dE": 0.84
     }
    ]
   },
@@ -1650,31 +1665,31 @@
     {
      "tag": "practice",
      "n": 16,
-     "max": 0.019
+     "max": 0.014
     },
     {
      "tag": "classes",
      "n": 16,
-     "max": 0.025
+     "max": 0.013
     },
     {
      "tag": "contact",
      "n": 16,
-     "max": 0.027
+     "max": 0.014
     }
    ],
    "panelstep": [
     {
      "tag": "practice",
-     "step": 0.084
+     "step": 0.057
     },
     {
      "tag": "classes",
-     "step": 0.082
+     "step": 0.064
     },
     {
      "tag": "contact",
-     "step": 0.084
+     "step": 0.062
     }
    ],
    "figheight": 0.327

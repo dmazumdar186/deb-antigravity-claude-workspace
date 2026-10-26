@@ -168,7 +168,7 @@ html:not(.has-js) .rail__item:first-child .rail__detail, .is-static .rail__item:
 html:not(.has-js) .hint, .is-static .hint, html:not(.has-js) .rail__live, .is-static .rail__live { display: none; }
 
 /* ---------- chapters ---------- */
-.chapter { position: relative; height: 150vh; --mw: 34%; --mh: calc(100svh - var(--hdr) - 12svh); --pf: min(240px, 38%); }
+.chapter { position: relative; height: 150vh; --mw: 34%; --mh: calc(100svh - var(--hdr) - 12svh); --pf: min(300px, 44%); }
 #practice { --mw: 52%; }
 #classes { --mw: 32%; --mh: 62svh; }
 #contact { --mw: 34%; }

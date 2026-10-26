@@ -2,7 +2,7 @@
   'use strict';
   var api = {}, cv = null, ctx = null, raf = 0, paused = false, hidden = false;
   var W = 0, H = 0, dpr = 1, p = 0, seed = 1, reduced = false, pts = [], n = 0;
-  var INK = '243,238,228', ACC = '196,115,26', tgt = null, lvl = 0.5, G = { cx: 0, cy: 0, r: 0, rMax: 0 };
+  var INK = '243,238,228', ACC = '196,115,26', tgt = null, lvl = 0.5, lastT = 0, G = { cx: 0, cy: 0, r: 0, rMax: 0 };
 
   function mul(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 
@@ -32,7 +32,7 @@
 
   function draw(t) {
     if (!ctx) return;
-    if (tgt !== null) lvl += (tgt - lvl) * 0.06; else lvl = api.breath(t);
+    if (tgt !== null) { var dt = Math.min(200, Math.max(0, t - (lastT || t))); lvl += (tgt - lvl) * (1 - Math.exp(-dt / 220)); } else lvl = api.breath(t); lastT = t;
     var b = lvl, cx = W / 2, cy = H * (0.5 - 0.04 * p), R = 0.36 * Math.min(W, H);
     var rot = p * 0.6, s = 1 + 0.04 * b, hb = 1 + 0.3 * b;
     G.cx = cx; G.cy = cy; G.r = R * s; G.rMax = R * 1.04;
