@@ -42,8 +42,9 @@ def save(img: Image.Image, path: pathlib.Path, edge: int) -> tuple[int, int]:
     return im.size
 
 
-def estimate_focus(img: Image.Image) -> str:
-    """Rough subject locator: pixels far from their row's median colour are 'figure'; return 'X% Y%'."""
+def estimate_focus(img: Image.Image) -> tuple[str, list[float]]:
+    """Rough subject locator: pixels far from their row's median colour are 'figure'.
+    Returns ('X% Y%' centroid, [x0, y0, x1, y1] box as fractions, 6th-94th percentile of figure mass)."""
     sm = img.resize((90, 160))
     px = sm.load()
     W, H = sm.size
@@ -57,12 +58,25 @@ def estimate_focus(img: Image.Image) -> str:
             if d > 60:
                 colw[x] += d
                 roww[y] += d
-    tot = sum(colw) or 1.0
-    cx = sum(i * v for i, v in enumerate(colw)) / tot / (W - 1)
-    cy = sum(i * v for i, v in enumerate(roww)) / (sum(roww) or 1.0) / (H - 1)
+
+    def span(v: list[float]) -> tuple[float, float, float]:
+        tot = sum(v) or 1.0
+        acc, lo, hi = 0.0, 0, len(v) - 1
+        for i, x in enumerate(v):
+            if acc < tot * 0.06 <= acc + x:
+                lo = i
+            if acc < tot * 0.94 <= acc + x:
+                hi = i
+            acc += x
+        c = sum(i * x for i, x in enumerate(v)) / tot
+        n = len(v) - 1
+        return lo / n, hi / n, c / n
+
+    x0, x1, cx = span(colw)
+    y0, y1, cy = span(roww)
     cx = min(max(cx, 0.2), 0.8)
     cy = min(max(cy, 0.3), 0.7)
-    return f"{round(cx * 100)}% {round(cy * 100)}%"
+    return f"{round(cx * 100)}% {round(cy * 100)}%", [round(x0, 3), round(y0, 3), round(x1, 3), round(y1, 3)]
 
 
 def main() -> int:
@@ -72,6 +86,7 @@ def main() -> int:
     ap.add_argument("--sequence", default="")
     ap.add_argument("--focus", default="")
     ap.add_argument("--all", action="store_true")
+    ap.add_argument("--zoom", default="", help="name=minZoom,... extra crop for a frame (e.g. to crop a bystander out)")
     a = ap.parse_args()
     src, out = pathlib.Path(a.src), pathlib.Path(a.out)
     if not src.is_dir():
@@ -80,6 +95,7 @@ def main() -> int:
     out.mkdir(parents=True, exist_ok=True)
     seq = parse_map(a.sequence)
     focus = {k: v.replace("_", " ") for k, v in parse_map(a.focus).items()}
+    zoom = parse_map(a.zoom)
     files = sorted(p for p in src.iterdir() if p.suffix.lower() in EXT)
     missing = [v for v in seq.values() if not (src / v).exists()]
     if missing:
@@ -96,16 +112,18 @@ def main() -> int:
             with Image.open(src / fname) as raw:
                 img = ImageOps.exif_transpose(raw).convert("RGB")
             cache.clear()
-            cache[fname] = (img, estimate_focus(img))
-        img, est = cache[fname]
+            cache[fname] = (img, *estimate_focus(img))
+        img, est, box = cache[fname]
         w, h = save(img, out / f"{name}.webp", 1600)
         save(img, out / f"{name}-m.webp", 1000)
-        rec = {"file": f"{name}.webp", "mfile": f"{name}-m.webp", "w": w, "h": h, "focus": focus.get(name, est), "src": fname}
+        rec = {"file": f"{name}.webp", "mfile": f"{name}-m.webp", "w": w, "h": h, "focus": focus.get(name, est), "box": box, "src": fname}
+        if name in zoom:
+            rec["zoom"] = float(zoom[name])
         if re.fullmatch(r"sn-\d{2}", name):
             man["frames"][name] = rec
         else:
             man["photos"].append({"name": name, **rec})
-        print(f"{fname} -> {name}.webp {w}x{h} focus {rec['focus']}")
+        print(f"{fname} -> {name}.webp {w}x{h} focus {rec['focus']} box {box}")
     man["frames"] = dict(sorted(man["frames"].items()))
     (out / "manifest.json").write_text(json.dumps(man, indent=1) + "\n", encoding="utf-8")
     print(f"manifest: {len(man['frames'])} frames, {len(man['photos'])} photos")

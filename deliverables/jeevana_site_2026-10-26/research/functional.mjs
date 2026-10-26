@@ -9,9 +9,9 @@ if (!argv[0] || argv.includes('--help')) { console.log('functional.mjs <base-url
 // ======================= CONFIG =======================
 const PITCH_PATH = '404.html';             // production build: no pitch page; the 404 carries the signature instead
 const SIGNATURE_RE = /debanjan@prodcraft\.fyi/;
-const BEATS_EXPECTED = '0,1,2'; const BEAT_PROBES = [0.05, 0.2, 0.4];
+const BEATS_EXPECTED = '0,1,2'; const BEAT_PROBES = [0.05, 0.3, 0.7];
 const TAB_ORDER = ['classes', 'register', 'contact', 'about']; const FIRST_TAB = 'about'; const LAST_TAB = 'contact'; const LAST_TAB_LABEL = /05 Contact/;
-const DEEP_LINK = 'register'; const COUNTER_TAB = 'about'; const COUNTERS_EXPECTED = '12,8,4'; const GAL_COUNT = 3;
+const DEEP_LINK = 'register'; const COUNTER_TAB = 'about'; const COUNTERS_EXPECTED = '12,8,4'; const GAL_COUNT = 11; // tree + twist + the 9 distinct cover photos (round-1 decision A5)
 const PAPER_RGB = 'rgb(243, 238, 228)';
 const FILES = { html: 'index.html', css: 'css/styles.css', js: 'js/main.js', i18n: 'js/i18n.js', backdrop: 'js/backdrop.js' };
 const LIMITS = { desktopH: 7000, mobileH: 9000, panelDesktop: 900, panelMobile: 1830, bundleKB: 150, backdropKB: 12 };
@@ -97,20 +97,26 @@ const p2 = await mk(D); await p2.goto(base + '#' + DEEP_LINK, { waitUntil: 'load
 t('deep link /#register opens the Register panel', (await visPanels(p2))[0] === DEEP_LINK, (await visPanels(p2)).join());
 await close(p2);
 await scrollTo(p, await trackY(p, '[data-fold]', 1)); await p.click('[data-album]'); await p.waitForTimeout(400);
-const gOpen = await p.evaluate(() => ({ open: document.querySelector('[data-gallery]').open, n: [...document.querySelectorAll('[data-gal-grid] img')].filter((i) => /photo-0[4-6]/.test(i.src)).length, title: document.querySelector('[data-gal-title]').textContent }));
+const gOpen = await p.evaluate(() => ({ open: document.querySelector('[data-gallery]').open, n: [...document.querySelectorAll('[data-gal-grid] img')].filter((i) => /assets\/img\/(photo|sn)-\d+/.test(i.src)).length, title: document.querySelector('[data-gal-title]').textContent }));
 await p.keyboard.press('Escape'); await p.waitForTimeout(200); const gClosed = await p.evaluate(() => !document.querySelector('[data-gallery]').open);
 t('gallery dialog opens and closes', gOpen.open && gOpen.n === GAL_COUNT && gClosed, JSON.stringify(gOpen));
 await p.evaluate(() => document.querySelector('#deck').scrollIntoView()); await p.click('[data-tab="classes"]'); await p.waitForTimeout(200); await p.click(`[data-tab="${COUNTER_TAB}"]`); await p.waitForTimeout(1500);
 const cnt = await p.evaluate(() => [...document.querySelectorAll('#about [data-count]')].map((e) => e.textContent));
 t('counters settle on the exact published values', cnt.join() === COUNTERS_EXPECTED, cnt.join());
-await scrollTo(p, await trackY(p, '[data-cover]', 0.81)); await p.waitForTimeout(500);
-const endState = await p.evaluate(() => { const bt = document.querySelector('[data-beat="2"]'); const fp = document.querySelector('.fold__pin'); const r = fp.getBoundingClientRect(); return { beatOn: bt.classList.contains('is-on'), beatOpacity: getComputedStyle(bt).opacity, bodyOpacity: getComputedStyle(document.querySelector('.cover__body')).opacity, foldTop: Math.round(r.top), enter: getComputedStyle(document.querySelector('[data-fold]')).getPropertyValue('--enter').trim(), plate: getComputedStyle(document.querySelector('[data-plate="2"]')).opacity }; });
-await scrollTo(p, await trackY(p, '[data-cover]', 1)); await p.waitForTimeout(400);
-endState.enterAtEnd = await p.evaluate(() => getComputedStyle(document.querySelector('[data-fold]')).getPropertyValue('--enter').trim());
-t('cover end: last beat held into the overlap, photo plate shown, fold-out arrived by track end (no empty viewport)', endState.enterAtEnd === '1.000' && endState.beatOn && endState.beatOpacity === '1' && +endState.bodyOpacity >= 0.85 && endState.foldTop <= 0 && +endState.enter > 0 && endState.plate === '1', JSON.stringify(endState));
-await scrollTo(p, await trackY(p, '[data-cover]', 0.92)); await p.waitForTimeout(400);
-const seq = await p.evaluate(() => ({ foldText: getComputedStyle(document.querySelector('.fold__head')).opacity, coverBody: getComputedStyle(document.querySelector('.cover__body')).opacity, coverVis: getComputedStyle(document.querySelector('[data-cover]')).visibility, logoHidden: getComputedStyle(document.querySelector('.hdr__logo')).visibility }));
-t('fade sequence: cover text at 0 before chapter headline passes 0.1', +seq.foldText > 0.1 && +seq.coverBody === 0 && seq.coverVis === 'hidden', JSON.stringify(seq));
+// round-1 geometry: last beat + CTAs held to p=1, plate shown, fold enters only in the last 20 %
+await scrollTo(p, await trackY(p, '[data-cover]', 1)); await p.waitForTimeout(500);
+const endState = await p.evaluate(() => { const bt = document.querySelector('[data-beat="2"]'); const fr = document.querySelector('[data-fold]').getBoundingClientRect(); const ctas = [...bt.querySelectorAll('.btn')].map((a) => { const r = a.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight && getComputedStyle(a).visibility !== 'hidden'; }); return { beatOn: bt.classList.contains('is-on'), beatOpacity: getComputedStyle(bt).opacity, bodyOpacity: getComputedStyle(document.querySelector('.cover__body')).opacity, ctas, foldTopVh: +(fr.top / innerHeight).toFixed(3), plate: getComputedStyle(document.querySelector('[data-plate="2"]')).opacity }; });
+t('cover end: last beat + CTAs held to p=1, photo plate shown, fold entering in the last 20 % (no empty viewport)', endState.beatOn && endState.beatOpacity === '1' && +endState.bodyOpacity >= 0.85 && endState.ctas.length === 2 && endState.ctas.every(Boolean) && endState.plate === '1' && endState.foldTopVh >= 0.7 && endState.foldTopVh < 1, JSON.stringify(endState));
+await p.evaluate(() => { const h = document.querySelector('.fold__head').getBoundingClientRect(); scrollBy(0, h.top - innerHeight * 0.5); }); await p.waitForTimeout(400);
+const seq = await p.evaluate(() => ({ foldText: getComputedStyle(document.querySelector('.fold__head')).opacity, headTopVh: +(document.querySelector('.fold__head').getBoundingClientRect().top / innerHeight).toFixed(2), coverBody: getComputedStyle(document.querySelector('.cover__body')).opacity }));
+t('fade sequence: cover text at 0 before chapter headline passes 0.1', +seq.foldText > 0.1 && +seq.coverBody === 0, JSON.stringify(seq));
+// one brand on screen at p = 0 / .5 / 1; no cover element intersects the plate
+const brandAt = []; const hits = [];
+for (const f of [0, 0.5, 1]) { await scrollTo(p, await trackY(p, '[data-cover]', f)); await p.waitForTimeout(600);
+  brandAt.push(await p.evaluate(() => { const vis = (e) => { if (!e) return false; const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && cs.display !== 'none' && cs.visibility !== 'hidden' && r.bottom > 0 && r.top < innerHeight && +getComputedStyle(e.closest('[data-beat]') || e).opacity > 0.5; }; return [document.querySelector('[data-beat="0"].is-on .cover__brand'), document.querySelector('.hdr__logo')].filter(vis).length; }));
+  hits.push(await p.evaluate(() => { const fr = document.querySelector('[data-frame]').getBoundingClientRect(); const els = [...document.querySelectorAll('[data-beat].is-on > *, .rail > *, .cover__hint')]; return els.filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && getComputedStyle(e).opacity !== '0' && r.left < fr.right - 1 && fr.left < r.right - 1 && r.top < fr.bottom - 1 && fr.top < r.bottom - 1; }).map((e) => e.className || e.tagName); })); }
+t('one brand element visible at p = 0 / .5 / 1', brandAt.every((n) => n === 1), brandAt.join(','));
+t('no cover text or rail element intersects the plate (1440, p 0/.5/1)', hits.every((h) => h.length === 0), JSON.stringify(hits));
 const ph = await p.evaluate(() => { const o = {}; document.querySelectorAll('.dp').forEach((d) => { const was = d.hidden; d.hidden = false; o[d.id] = d.offsetHeight; d.hidden = was; }); return o; });
 t('deck panels ≤ 1 viewport (900) on desktop', Object.values(ph).every((h) => h <= LIMITS.panelDesktop), JSON.stringify(ph));
 const dh = await p.evaluate(() => document.documentElement.scrollHeight);
@@ -187,6 +193,9 @@ t('mobile: 0 console errors', p._errs.length === 0, p._errs.slice(0, 2).join(' |
 await close(p);
 // iPhone 13 console
 p = await mk({ ...devices['iPhone 13'] }); await p.goto(base, { waitUntil: 'load' }); await p.waitForTimeout(1500);
+await scrollTo(p, await trackY(p, '[data-cover]', 1)); await p.waitForTimeout(500);
+const c390 = await p.evaluate(() => [...document.querySelectorAll('[data-beat="2"] .btn')].map((a) => { const r = a.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight; }));
+t('CTAs visible at p = 1 on 390 px (iPhone 13)', c390.length === 2 && c390.every(Boolean), JSON.stringify(c390));
 for (const f of [0.3, 0.7, 1]) { await scrollTo(p, await p.evaluate((f) => (document.documentElement.scrollHeight - innerHeight) * f, f)); }
 t('iPhone 13: 0 console errors', p._errs.length === 0, p._errs.slice(0, 2).join(' | '));
 await close(p);

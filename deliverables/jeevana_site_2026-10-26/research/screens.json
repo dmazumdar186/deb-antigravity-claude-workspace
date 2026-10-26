@@ -18,6 +18,9 @@
   "mobile-cover-60.png",
   "mobile-foldout.png",
   "mobile-deck.png",
+  "mobile-cover-0.png",
+  "mobile-cover-50.png",
+  "mobile-cover-100.png",
   "iphone-se-cover-0.png",
   "iphone-se-cover-50.png",
   "iphone-se-cover-100.png",
@@ -76,9 +79,11 @@
  "geometryIssues": [],
  "consoleErrors": [],
  "geo": {
-  "iphone-se": {
+  "mobile": {
    "0": {
     "portrait": true,
+    "plateOk": true,
+    "emptyBand": 0.12,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -88,6 +93,8 @@
    },
    "50": {
     "portrait": true,
+    "plateOk": true,
+    "emptyBand": 0,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -97,10 +104,47 @@
    },
    "100": {
     "portrait": true,
+    "plateOk": true,
+    "emptyBand": 0.08,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
-    "textOff": null,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   }
+  },
+  "iphone-se": {
+   "0": {
+    "portrait": true,
+    "plateOk": true,
+    "emptyBand": 0.24,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "50": {
+    "portrait": true,
+    "plateOk": true,
+    "emptyBand": 0,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
+    "textHdr": false,
+    "railHdr": false
+   },
+   "100": {
+    "portrait": true,
+    "plateOk": true,
+    "emptyBand": 0.1,
+    "textRail": false,
+    "textFrame": false,
+    "railFrame": false,
+    "textOff": false,
     "textHdr": false,
     "railHdr": false
    }
@@ -108,6 +152,8 @@
   "galaxy-s8": {
    "0": {
     "portrait": true,
+    "plateOk": true,
+    "emptyBand": 0.2,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -117,6 +163,8 @@
    },
    "50": {
     "portrait": true,
+    "plateOk": true,
+    "emptyBand": 0,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -126,10 +174,12 @@
    },
    "100": {
     "portrait": true,
+    "plateOk": true,
+    "emptyBand": 0.1,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
-    "textOff": null,
+    "textOff": false,
     "textHdr": false,
     "railHdr": false
    }
@@ -137,6 +187,8 @@
   "iphone-13": {
    "0": {
     "portrait": true,
+    "plateOk": true,
+    "emptyBand": 0.18,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -146,6 +198,8 @@
    },
    "50": {
     "portrait": true,
+    "plateOk": true,
+    "emptyBand": 0,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -155,10 +209,12 @@
    },
    "100": {
     "portrait": true,
+    "plateOk": true,
+    "emptyBand": 0.08,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
-    "textOff": null,
+    "textOff": false,
     "textHdr": false,
     "railHdr": false
    }
@@ -166,6 +222,8 @@
   "pixel-7": {
    "0": {
     "portrait": true,
+    "plateOk": true,
+    "emptyBand": 0.1,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -175,6 +233,8 @@
    },
    "50": {
     "portrait": true,
+    "plateOk": true,
+    "emptyBand": 0,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -184,10 +244,12 @@
    },
    "100": {
     "portrait": true,
+    "plateOk": true,
+    "emptyBand": 0.08,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
-    "textOff": null,
+    "textOff": false,
     "textHdr": false,
     "railHdr": false
    }
@@ -195,6 +257,8 @@
   "iphone-15-pro-max": {
    "0": {
     "portrait": true,
+    "plateOk": true,
+    "emptyBand": 0.1,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -204,6 +268,8 @@
    },
    "50": {
     "portrait": true,
+    "plateOk": true,
+    "emptyBand": 0,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -213,10 +279,12 @@
    },
    "100": {
     "portrait": true,
+    "plateOk": true,
+    "emptyBand": 0.08,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
-    "textOff": null,
+    "textOff": false,
     "textHdr": false,
     "railHdr": false
    }
@@ -224,6 +292,8 @@
   "phone-landscape": {
    "0": {
     "portrait": false,
+    "plateOk": true,
+    "emptyBand": 0,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -233,6 +303,8 @@
    },
    "50": {
     "portrait": false,
+    "plateOk": true,
+    "emptyBand": 0,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -242,10 +314,12 @@
    },
    "100": {
     "portrait": false,
+    "plateOk": true,
+    "emptyBand": 0.18,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
-    "textOff": null,
+    "textOff": false,
     "textHdr": false,
     "railHdr": false
    }
@@ -253,6 +327,8 @@
   "small-tablet": {
    "0": {
     "portrait": true,
+    "plateOk": true,
+    "emptyBand": 0.12,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -262,6 +338,8 @@
    },
    "50": {
     "portrait": true,
+    "plateOk": true,
+    "emptyBand": 0,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -271,10 +349,12 @@
    },
    "100": {
     "portrait": true,
+    "plateOk": true,
+    "emptyBand": 0.08,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
-    "textOff": null,
+    "textOff": false,
     "textHdr": false,
     "railHdr": false
    }
@@ -282,6 +362,8 @@
   "ipad-portrait": {
    "0": {
     "portrait": true,
+    "plateOk": true,
+    "emptyBand": 0,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -291,6 +373,8 @@
    },
    "50": {
     "portrait": true,
+    "plateOk": true,
+    "emptyBand": 0,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -300,10 +384,12 @@
    },
    "100": {
     "portrait": true,
+    "plateOk": true,
+    "emptyBand": 0.08,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
-    "textOff": null,
+    "textOff": false,
     "textHdr": false,
     "railHdr": false
    }
@@ -311,6 +397,8 @@
   "ipad-landscape": {
    "0": {
     "portrait": false,
+    "plateOk": true,
+    "emptyBand": 0,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -320,6 +408,8 @@
    },
    "50": {
     "portrait": false,
+    "plateOk": true,
+    "emptyBand": 0,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -329,10 +419,12 @@
    },
    "100": {
     "portrait": false,
+    "plateOk": true,
+    "emptyBand": 0.12,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
-    "textOff": null,
+    "textOff": false,
     "textHdr": false,
     "railHdr": false
    }
@@ -340,6 +432,8 @@
   "ipad-pro-portrait": {
    "0": {
     "portrait": true,
+    "plateOk": true,
+    "emptyBand": 0,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -349,6 +443,8 @@
    },
    "50": {
     "portrait": true,
+    "plateOk": true,
+    "emptyBand": 0,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -358,10 +454,12 @@
    },
    "100": {
     "portrait": true,
+    "plateOk": true,
+    "emptyBand": 0.08,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
-    "textOff": null,
+    "textOff": false,
     "textHdr": false,
     "railHdr": false
    }
@@ -369,6 +467,8 @@
   "ipad-pro-landscape": {
    "0": {
     "portrait": false,
+    "plateOk": true,
+    "emptyBand": 0,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -378,6 +478,8 @@
    },
    "50": {
     "portrait": false,
+    "plateOk": true,
+    "emptyBand": 0,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -387,10 +489,12 @@
    },
    "100": {
     "portrait": false,
+    "plateOk": true,
+    "emptyBand": 0.12,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
-    "textOff": null,
+    "textOff": false,
     "textHdr": false,
     "railHdr": false
    }
@@ -398,6 +502,8 @@
   "laptop-1280": {
    "0": {
     "portrait": false,
+    "plateOk": true,
+    "emptyBand": 0,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -407,6 +513,8 @@
    },
    "50": {
     "portrait": false,
+    "plateOk": true,
+    "emptyBand": 0,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -416,10 +524,12 @@
    },
    "100": {
     "portrait": false,
+    "plateOk": true,
+    "emptyBand": 0.12,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
-    "textOff": null,
+    "textOff": false,
     "textHdr": false,
     "railHdr": false
    }
@@ -427,6 +537,8 @@
   "laptop-1440": {
    "0": {
     "portrait": false,
+    "plateOk": true,
+    "emptyBand": 0,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -436,6 +548,8 @@
    },
    "50": {
     "portrait": false,
+    "plateOk": true,
+    "emptyBand": 0,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -445,10 +559,12 @@
    },
    "100": {
     "portrait": false,
+    "plateOk": true,
+    "emptyBand": 0.12,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
-    "textOff": null,
+    "textOff": false,
     "textHdr": false,
     "railHdr": false
    }
@@ -456,6 +572,8 @@
   "laptop-1536": {
    "0": {
     "portrait": false,
+    "plateOk": true,
+    "emptyBand": 0,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -465,6 +583,8 @@
    },
    "50": {
     "portrait": false,
+    "plateOk": true,
+    "emptyBand": 0,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -474,10 +594,12 @@
    },
    "100": {
     "portrait": false,
+    "plateOk": true,
+    "emptyBand": 0.12,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
-    "textOff": null,
+    "textOff": false,
     "textHdr": false,
     "railHdr": false
    }
@@ -485,6 +607,8 @@
   "desktop-1080p": {
    "0": {
     "portrait": false,
+    "plateOk": true,
+    "emptyBand": 0,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -494,6 +618,8 @@
    },
    "50": {
     "portrait": false,
+    "plateOk": true,
+    "emptyBand": 0,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -503,10 +629,12 @@
    },
    "100": {
     "portrait": false,
+    "plateOk": true,
+    "emptyBand": 0.12,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
-    "textOff": null,
+    "textOff": false,
     "textHdr": false,
     "railHdr": false
    }
@@ -514,6 +642,8 @@
   "desktop-1440p": {
    "0": {
     "portrait": false,
+    "plateOk": true,
+    "emptyBand": 0,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -523,6 +653,8 @@
    },
    "50": {
     "portrait": false,
+    "plateOk": true,
+    "emptyBand": 0,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -532,10 +664,12 @@
    },
    "100": {
     "portrait": false,
+    "plateOk": true,
+    "emptyBand": 0.14,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
-    "textOff": null,
+    "textOff": false,
     "textHdr": false,
     "railHdr": false
    }
@@ -543,6 +677,8 @@
   "desktop-4k": {
    "0": {
     "portrait": false,
+    "plateOk": true,
+    "emptyBand": 0,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -552,6 +688,8 @@
    },
    "50": {
     "portrait": false,
+    "plateOk": true,
+    "emptyBand": 0,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -561,10 +699,12 @@
    },
    "100": {
     "portrait": false,
+    "plateOk": true,
+    "emptyBand": 0.16,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
-    "textOff": null,
+    "textOff": false,
     "textHdr": false,
     "railHdr": false
    }
@@ -572,6 +712,8 @@
   "tv-portrait": {
    "0": {
     "portrait": true,
+    "plateOk": true,
+    "emptyBand": 0,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -581,6 +723,8 @@
    },
    "50": {
     "portrait": true,
+    "plateOk": true,
+    "emptyBand": 0,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
@@ -590,10 +734,12 @@
    },
    "100": {
     "portrait": true,
+    "plateOk": true,
+    "emptyBand": 0.06,
     "textRail": false,
     "textFrame": false,
     "railFrame": false,
-    "textOff": null,
+    "textOff": false,
     "textHdr": false,
     "railHdr": false
    }

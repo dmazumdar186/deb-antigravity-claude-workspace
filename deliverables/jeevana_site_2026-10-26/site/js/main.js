@@ -52,6 +52,20 @@
     return null;
   }
   function srcFor(rec) { return BASE + (w.innerWidth < 700 && rec.mfile ? rec.mfile : rec.file); }
+  function fit(im, rec) { // per-frame crop: body >= ~60 % of the plate height, anchored to the mat
+    if (!im || !rec || !frameEl) return;
+    var W = frameEl.clientWidth, H = frameEl.clientHeight; if (!W || !H) return;
+    var portrait = mq('(orientation: portrait)'), iw = rec.w, ih = rec.h, s0 = Math.max(W / iw, H / ih);
+    var bx = rec.box || [0, 0.2, 1, 0.8], bh = Math.max(0.05, bx[3] - bx[1]) * ih * s0;
+    var z = clamp((portrait ? 0.5 : 0.6) * H / bh, 1, 1.5); if (rec.zoom) z = Math.max(z, rec.zoom);
+    var S = s0 * z, RW = iw * S, RH = ih * S, cx = (parseFloat(rec.focus) || 50) / 100;
+    if (portrait && H < 760) z = Math.min(z, 1.3);
+    var y = clamp((portrait ? 0.62 : 0.94) * H - bx[3] * RH, H - RH, 0), x = clamp(W / 2 - cx * RW, W - RW, 0);
+    im.style.setProperty('--iw', Math.round(RW) + 'px'); im.style.setProperty('--ih', Math.round(RH) + 'px');
+    im.style.setProperty('--ix', Math.round(x) + 'px'); im.style.setProperty('--iy', Math.round(y) + 'px');
+    im.style.setProperty('--ox', Math.round((cx * RW / RW) * 100) + '%'); im.style.setProperty('--oy', Math.round(((bx[1] + bx[3]) / 2) * 100) + '%');
+    im._rec = rec;
+  }
   var cur = -1, curSrc = imgs[0] ? imgs[0].getAttribute('src') : '', front = 0;
   function setFrame(i, force) {
     i = clamp(i | 0, 0, N - 1);
@@ -63,12 +77,14 @@
       var src = srcFor(fr.rec);
       frameEl.classList.toggle('is-hold', !fr.own || (autoDone && i === N - 1));
       if (fr.rec.focus) frameEl.style.setProperty('--focus', fr.rec.focus);
+      if (src === curSrc && imgs[front] && imgs[front]._rec !== fr.rec) fit(imgs[front], fr.rec);
       if (src !== curSrc) {
         var next = imgs[1 - front], prev = imgs[front];
         curSrc = src;
         var show = function () { if (curSrc !== src) return; next.classList.add('is-on'); prev.classList.remove('is-on'); front = 1 - front; };
         next.setAttribute('alt', tr('alt.sn'));
         next.removeAttribute('srcset'); next.removeAttribute('sizes');
+        fit(next, fr.rec);
         next.onload = show; next.src = src;
         if (next.complete && next.naturalWidth) show();
         if (echo) echo.src = BASE + (fr.rec.mfile || fr.rec.file);
@@ -99,52 +115,46 @@
 
   /* ---------- scrub engine ---------- */
   function prog(el) { if (!el) return 0; var r = el.getBoundingClientRect(), span = el.offsetHeight - w.innerHeight; return span > 0 ? clamp(-r.top / span, 0, 1) : (r.top <= 0 ? 1 : 0); }
-  var coverP = 0, enter = 0, onCover = true;
+  var coverP = 0, enter = 0, onCover = true, beat0 = true;
   function coverScroll() {
     if (!cover) return;
     coverP = prog(cover);
-    var b = Math.min(beats.length - 1, Math.floor(clamp(coverP / 0.45, 0, 0.9999) * beats.length));
+    var b = Math.min(beats.length - 1, Math.floor(clamp(coverP / 0.6, 0, 0.9999) * beats.length));
+    cover.classList.toggle('is-b0', b === 0);
+    cover.classList.toggle('is-ctas', b === beats.length - 1);
+    cover.classList.toggle('is-end', coverP > 0.8);
+    beat0 = b === 0;
     beats.forEach(function (el, k) { el.classList.toggle('is-on', k === b); });
     if (!autoplay || w.scrollY > 4) {
       var f = Math.min(N - 1, Math.floor(coverP * N));
       setFrame(f);
       var t = ticks[f]; if (t) t.style.setProperty('--p', (coverP * N - f).toFixed(3));
     }
-    onCover = cover.getBoundingClientRect().bottom > w.innerHeight * 0.5 && enter < 0.5;
+    var cb = cover.getBoundingClientRect().bottom, ih = w.innerHeight;
+    cover.style.setProperty('--body', clamp((cb / ih - 0.75) / 0.25, 0, 1).toFixed(3));
+    onCover = cb > ih * 0.5;
   }
   function easeQ(x) { return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2; }
   function foldScroll() {
     if (!fold || !cover) return;
-    var out, r = fold.getBoundingClientRect();
-    if (mobile()) {
-      enter = r.top < w.innerHeight * 0.85 ? 1 : 0;
-      out = enter;
-      fold.style.setProperty('--enter', '1'); fold.style.setProperty('--tenter', '1');
-      if (spread) spread.style.setProperty('--fold', '1.0000');
-      if (body) body.style.setProperty('--body', '1');
-      fold.classList.add('is-open');
-    } else {
-      var pf = prog(fold);
-      enter = clamp(pf / 0.3, 0, 1);
-      out = clamp(enter / 0.5, 0, 1);
-      fold.style.setProperty('--enter', enter.toFixed(3));
-      fold.style.setProperty('--tenter', clamp((enter - 0.5) / 0.45, 0, 1).toFixed(3));
-      var bo = 1 - clamp((enter - 0.2) / 0.3, 0, 1);
-      cover.style.setProperty('--body', bo.toFixed(3));
-      var fv = reduced ? 1 : easeQ(pf);
-      if (spread) spread.style.setProperty('--fold', fv.toFixed(4));
-      fold.classList.toggle('is-open', pf > 0.9 || reduced);
+    var r = fold.getBoundingClientRect(), ih = w.innerHeight;
+    enter = clamp((ih - r.top) / ih, 0, 1);
+    fold.style.setProperty('--enter', enter.toFixed(3));
+    var pf = mobile() ? 1 : prog(fold);
+    if (reduced) pf = 1;
+    if (spread) {
+      spread.style.setProperty('--fold', (mobile() || reduced ? 1 : easeQ(pf)).toFixed(4));
+      $$('.plate', spread).forEach(function (pl, i) { pl.style.setProperty('--rise', (mobile() ? 1 : clamp((pf - i * 0.12) / 0.6, 0, 1)).toFixed(3)); });
     }
-    cover.classList.toggle('is-out', out >= 1);
-    if (mbar) mbar.classList.toggle('is-on', r.top < w.innerHeight * 0.5);
+    fold.classList.toggle('is-open', pf > 0.9);
+    cover.classList.toggle('is-out', r.top < ih * 0.2);
+    if (mbar) mbar.classList.toggle('is-on', r.top < ih * 0.5);
   }
   function placeDrum() { // offset of each plate's centre from the spread centre, for the drum phase
     if (!spread) return;
     var sr = spread.getBoundingClientRect(), c = sr.left + sr.width / 2;
     $$('.plate', spread).forEach(function (pl) {
-      pl.style.setProperty('--cx', '0px');
-      var r = pl.getBoundingClientRect();
-      pl.style.setProperty('--cx', Math.round(c - (r.left + r.width / 2)) + 'px');
+      void c; void pl;
     });
   }
 
@@ -220,7 +230,7 @@
     var no = '00', key = 'ch.cover', h = w.innerHeight;
     if (deck && deck.getBoundingClientRect().top < h * 0.5) { var p = $('#' + active); if (p) { no = p.getAttribute('data-chapter'); key = p.getAttribute('data-name'); } deckActive = true; }
     else if (fold && fold.getBoundingClientRect().top < h * 0.5) { no = '01'; key = 'ch.fold'; }
-    if (hdr) hdr.classList.toggle('is-cover', no === '00' || (mobile() ? false : (no === '01' && enter < 0.6)));
+    if (hdr) { hdr.classList.toggle('is-cover', no === '00'); hdr.classList.toggle('is-b0', no === '00' && beat0); }
     var sig = no + key + lang;
     if (sig === lastCh && !force) return; lastCh = sig;
     if (chNo) chNo.textContent = no;
@@ -232,12 +242,17 @@
   function frame() { ticking = false; coverScroll(); foldScroll(); syncVideo(); chapter(false); newsCheck(); }
   function onScroll() { if (w.scrollY > 4) stopAuto(); if (!ticking) { ticking = true; w.requestAnimationFrame(frame); } }
   w.addEventListener('scroll', onScroll, { passive: true });
-  w.addEventListener('resize', function () { placeDrum(); onScroll(); });
+  w.addEventListener('resize', function () { imgs.forEach(function (im) { if (im._rec) fit(im, im._rec); }); onScroll(); });
   d.addEventListener('visibilitychange', syncVideo);
 
   /* ---------- gallery ---------- */
   var gal = $('[data-gallery]'), galGrid = $('[data-gal-grid]');
-  function galPhotos() { return (MAN.photos || []).filter(function (p) { var m = /^photo-(\d+)$/.exec(p.name || ''); return m && +m[1] >= 4; }); }
+  function galPhotos() {
+    var seen = {}, out = [];
+    (MAN.photos || []).forEach(function (p) { if (/^photo-0[24]$/.test(p.name)) { seen[p.src] = 1; out.push(p); } });
+    Object.keys(MAN.frames || {}).sort().forEach(function (k) { var f = MAN.frames[k]; if (!seen[f.src]) { seen[f.src] = 1; out.push(f); } });
+    return out;
+  }
   function buildGallery() {
     if (!galGrid) return;
     while (galGrid.firstChild) galGrid.removeChild(galGrid.firstChild);
@@ -271,11 +286,11 @@
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return r.ok && j && j.ok !== false; }); })
       .catch(function () { return false; });
   }
-  function wireForm(form, url, extra, done) {
+  function wireForm(form, url, extra, done, okEl) {
     if (!form) return;
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-      var ok = $('[data-ok],[data-reg-ok]', form), err = $('[data-err],[data-reg-err]', form);
+      var ok = okEl || $('[data-ok]', form), err = $('[data-err],[data-reg-err]', form);
       var fd = {}; $$('input,select,textarea', form).forEach(function (el) { if (el.name) fd[el.name] = el.type === 'checkbox' ? el.checked : el.value.trim(); });
       var bad = null;
       $$('[required]', form).forEach(function (el) { var v = el.type === 'checkbox' ? el.checked : el.value.trim(); if (!v || (el.type === 'email' && !EMAIL.test(v))) { if (!bad) bad = el; el.setAttribute('aria-invalid', 'true'); } else el.removeAttribute('aria-invalid'); });
@@ -283,13 +298,17 @@
       fd.lang = lang; fd.source_url = location.pathname; if (extra) extra(fd);
       var btn = $('button[type="submit"]', form); if (btn) btn.disabled = true;
       post(url, fd).then(function (good) {
-        if (btn) btn.disabled = false;
+        if (btn) btn.disabled = good;
         if (ok) ok.hidden = !good; if (err) err.hidden = good;
         if (good) { form.reset(); if (done) done(); }
       });
     });
   }
-  wireForm($('[data-reg]'), '/api/register');
+  var regForm = $('[data-reg]'), regOk = $('[data-reg-ok]');
+  wireForm(regForm, '/api/register', null, function () {
+    regForm.hidden = true;
+    if (regOk) { regOk.scrollIntoView({ block: 'center', behavior: 'auto' }); try { regOk.focus({ preventScroll: true }); } catch (e) {} }
+  }, regOk);
   wireForm($('[data-news-inline]'), '/api/subscribe', function (fd) { fd.source = 'footer'; });
   var news = $('[data-news]'); trap(news);
   wireForm(news && $('form', news), '/api/subscribe', function (fd) { fd.source = 'dialog'; }, function () { setTimeout(function () { if (news.open) news.close(); }, 1600); });
@@ -330,6 +349,7 @@
       if (sel) { var o = d.createElement('option'); o.value = String(r.id || (r.day + '-' + r.time)); o.textContent = r.title + ' — ' + r.time; sel.appendChild(o); }
     });
     if (empty) empty.hidden = rows.length > 0;
+    var tt = $('[data-tt]'); if (tt) tt.hidden = rows.length === 0;
   });
 
   /* ---------- record mode (hero footage) ---------- */

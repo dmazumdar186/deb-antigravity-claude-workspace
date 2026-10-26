@@ -1,27 +1,27 @@
 {
   "date": "2026-10-26",
-  "pass": 40,
-  "total": 40,
-  "desktopHeight": 5952,
-  "mobileHeight": 5239,
+  "pass": 43,
+  "total": 43,
+  "desktopHeight": 6465,
+  "mobileHeight": 4844,
   "panelHeightsDesktop": {
-    "about": 705,
-    "classes": 522,
-    "register": 673,
-    "contact": 364
+    "about": 859,
+    "classes": 366,
+    "register": 573,
+    "contact": 340
   },
   "panelHeightsMobile": {
-    "about": 1388,
-    "classes": 853,
-    "register": 924,
-    "contact": 509
+    "about": 1395,
+    "classes": 622,
+    "register": 837,
+    "contact": 489
   },
   "sizes": {
-    "html": 23773,
-    "css": 28324,
-    "js": 21215,
-    "i18n": 14342,
-    "backdrop": 4814
+    "html": 24072,
+    "css": 35319,
+    "js": 22824,
+    "i18n": 14654,
+    "backdrop": 4926
   },
   "results": [
     {
@@ -62,7 +62,7 @@
     {
       "name": "fold-out hinge transform changes with scroll",
       "ok": true,
-      "info": "matrix3d(-0.5, 0, 0.866025, 0, → matrix3d(-0.5, 0, -0.866025, 0 → matrix(1, 0, 0, 1, 0, 0)"
+      "info": "matrix3d(0.819152, 0, -0.57357 → matrix3d(0.994801, 0, -0.10183 → matrix(1, 0, 0, 1, 0, 0)"
     },
     {
       "name": "fold-out fully open by track end",
@@ -97,7 +97,7 @@
     {
       "name": "gallery dialog opens and closes",
       "ok": true,
-      "info": "{\"open\":true,\"n\":3,\"title\":\"Photographs\"}"
+      "info": "{\"open\":true,\"n\":11,\"title\":\"Photographs\"}"
     },
     {
       "name": "counters settle on the exact published values",
@@ -105,39 +105,49 @@
       "info": "12,8,4"
     },
     {
-      "name": "cover end: last beat held into the overlap, photo plate shown, fold-out arrived by track end (no empty viewport)",
+      "name": "cover end: last beat + CTAs held to p=1, photo plate shown, fold entering in the last 20 % (no empty viewport)",
       "ok": true,
-      "info": "{\"beatOn\":true,\"beatOpacity\":\"1\",\"bodyOpacity\":\"1\",\"foldTop\":0,\"enter\":\"0.050\",\"plate\":\"1\",\"enterAtEnd\":\"1.000\"}"
+      "info": "{\"beatOn\":true,\"beatOpacity\":\"1\",\"bodyOpacity\":\"1\",\"ctas\":[true,true],\"foldTopVh\":0.8,\"plate\":\"1\"}"
     },
     {
       "name": "fade sequence: cover text at 0 before chapter headline passes 0.1",
       "ok": true,
-      "info": "{\"foldText\":\"0.222\",\"coverBody\":\"0\",\"coverVis\":\"hidden\",\"logoHidden\":\"visible\"}"
+      "info": "{\"foldText\":\"1\",\"headTopVh\":0.5,\"coverBody\":\"0\"}"
+    },
+    {
+      "name": "one brand element visible at p = 0 / .5 / 1",
+      "ok": true,
+      "info": "1,1,1"
+    },
+    {
+      "name": "no cover text or rail element intersects the plate (1440, p 0/.5/1)",
+      "ok": true,
+      "info": "[[],[],[]]"
     },
     {
       "name": "deck panels ≤ 1 viewport (900) on desktop",
       "ok": true,
-      "info": "{\"about\":705,\"classes\":522,\"register\":673,\"contact\":364}"
+      "info": "{\"about\":859,\"classes\":366,\"register\":573,\"contact\":340}"
     },
     {
       "name": "desktop page height ≤ 7,000 px",
       "ok": true,
-      "info": "5952 px"
+      "info": "6465 px"
     },
     {
       "name": "index+css+js ≤ 150 KB (backdrop ≤ 12 KB separately)",
       "ok": true,
-      "info": "{\"html\":23773,\"css\":28324,\"js\":21215,\"i18n\":14342,\"backdrop\":4814}"
+      "info": "{\"html\":24072,\"css\":35319,\"js\":22824,\"i18n\":14654,\"backdrop\":4926}"
     },
     {
       "name": "dead-link guard: zero href=\"#\" / empty tel: links in DOM (phone + WhatsApp live)",
       "ok": true,
-      "info": "{\"bad\":[],\"tel\":[\"tel:+33754287210\",\"tel:+33754287210\",\"tel:+33754287210\"],\"wa\":2}"
+      "info": "{\"bad\":[],\"tel\":[\"tel:+33754287210\",\"tel:+33754287210\"],\"wa\":2}"
     },
     {
       "name": "i18n switch flips html[lang] and ≥ 20 strings",
       "ok": true,
-      "info": "{\"lang\":\"fr\",\"changed\":104,\"title\":\"Jeevana — Yoga à Paris\",\"stored\":\"fr\",\"tag\":\"Yoga à Paris\"}"
+      "info": "{\"lang\":\"fr\",\"changed\":98,\"title\":\"Jeevana — Yoga à Paris\",\"stored\":\"fr\",\"tag\":\"Yoga à Paris\"}"
     },
     {
       "name": "register form posts to /api/register and shows success (mocked fetch)",
@@ -177,12 +187,12 @@
     {
       "name": "mobile fold-out: cover hidden, paper at (20,120), opaque header",
       "ok": true,
-      "info": "{\"coverVis\":\"hidden\",\"coverPE\":\"none\",\"inCover\":false,\"top\":\"MAIN\",\"bg\":\"rgb(243, 238, 228)\",\"hdrBg\":\"rgb(243, 238, 228)\"}"
+      "info": "{\"coverVis\":\"hidden\",\"coverPE\":\"none\",\"inCover\":false,\"top\":\"fold__pin\",\"bg\":\"rgb(243, 238, 228)\",\"hdrBg\":\"rgb(243, 238, 228)\"}"
     },
     {
       "name": "mobile fold-out: panels fit the viewport, no overflow, padding clears the bar, cover overlaps the fold",
       "ok": true,
-      "info": "{\"panelW\":372,\"vw\":413,\"docW\":413,\"padB\":116,\"barH\":69,\"overlap\":210}"
+      "info": "{\"panelW\":372,\"vw\":412,\"docW\":412,\"padB\":116,\"barH\":69,\"overlap\":168}"
     },
     {
       "name": "mobile bottom bar appears after the cover CTA scrolls out",
@@ -191,17 +201,17 @@
     {
       "name": "mobile page height ≤ 9,000 px",
       "ok": true,
-      "info": "5239 px"
+      "info": "4844 px"
     },
     {
       "name": "mobile deck panels ≤ 2 viewports (1830)",
       "ok": true,
-      "info": "{\"about\":1388,\"classes\":853,\"register\":924,\"contact\":509}"
+      "info": "{\"about\":1395,\"classes\":622,\"register\":837,\"contact\":489}"
     },
     {
       "name": "mobile deck: active tab scrolled into view, fade mask present, bar never covers panel content",
       "ok": true,
-      "info": "{\"tabIn\":true,\"fade\":\"48px\",\"lastBottom\":718,\"barTop\":773}"
+      "info": "{\"tabIn\":true,\"fade\":\"48px\",\"lastBottom\":715,\"barTop\":770}"
     },
     {
       "name": "Pixel 7: no horizontal overflow",
@@ -212,6 +222,11 @@
       "name": "mobile: 0 console errors",
       "ok": true,
       "info": ""
+    },
+    {
+      "name": "CTAs visible at p = 1 on 390 px (iPhone 13)",
+      "ok": true,
+      "info": "[true,true]"
     },
     {
       "name": "iPhone 13: 0 console errors",

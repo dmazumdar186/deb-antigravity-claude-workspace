@@ -31,9 +31,10 @@ await p.evaluate(() => document.querySelector('#practice').scrollIntoView()); aw
 await p.evaluate(() => document.querySelector('#deck').scrollIntoView()); await p.waitForTimeout(1600); await shot(p, 'mobile-deck');
 await p._ctx.close();
 // 18-viewport cover matrix
-const VP = { 'iphone-se': [375, 667, 1], 'galaxy-s8': [360, 740, 1], 'iphone-13': [390, 844, 1], 'pixel-7': [412, 915, 1], 'iphone-15-pro-max': [430, 932, 1], 'phone-landscape': [844, 390, 1], 'small-tablet': [600, 960, 1], 'ipad-portrait': [820, 1180, 0], 'ipad-landscape': [1180, 820, 0], 'ipad-pro-portrait': [1024, 1366, 0], 'ipad-pro-landscape': [1366, 1024, 0], 'laptop-1280': [1280, 800, 0], 'laptop-1440': [1440, 900, 0], 'laptop-1536': [1536, 864, 0], 'desktop-1080p': [1920, 1080, 0], 'desktop-1440p': [2560, 1440, 0], 'desktop-4k': [3840, 2160, 0], 'tv-portrait': [1080, 1920, 0] };
-for (const [name, [w, h, mob]] of Object.entries(VP)) {
-  p = await page({ viewport: { width: w, height: h }, isMobile: !!mob, hasTouch: !!mob, deviceScaleFactor: 1 });
+const VP = { 'mobile': 'Pixel 7', 'iphone-se': [375, 667, 1], 'galaxy-s8': [360, 740, 1], 'iphone-13': [390, 844, 1], 'pixel-7': [412, 915, 1], 'iphone-15-pro-max': [430, 932, 1], 'phone-landscape': [844, 390, 1], 'small-tablet': [600, 960, 1], 'ipad-portrait': [820, 1180, 0], 'ipad-landscape': [1180, 820, 0], 'ipad-pro-portrait': [1024, 1366, 0], 'ipad-pro-landscape': [1366, 1024, 0], 'laptop-1280': [1280, 800, 0], 'laptop-1440': [1440, 900, 0], 'laptop-1536': [1536, 864, 0], 'desktop-1080p': [1920, 1080, 0], 'desktop-1440p': [2560, 1440, 0], 'desktop-4k': [3840, 2160, 0], 'tv-portrait': [1080, 1920, 0] };
+for (const [name, spec] of Object.entries(VP)) {
+  const [w, h, mob] = Array.isArray(spec) ? spec : [];
+  p = await page(Array.isArray(spec) ? { viewport: { width: w, height: h }, isMobile: !!mob, hasTouch: !!mob, deviceScaleFactor: 1 } : { ...devices[spec] });
   await p.goto(base, { waitUntil: 'load' }); await p.waitForTimeout(400);
   geo[name] = {};
   for (const f of [0, 50, 100]) {
@@ -47,12 +48,16 @@ for (const [name, [w, h, mob]] of Object.entries(VP)) {
       const rail = [...document.querySelectorAll('.rail > *')].map(box).filter(Boolean).reduce((u, x) => u ? { l: Math.min(u.l, x.l), t: Math.min(u.t, x.t), r: Math.max(u.r, x.r), b: Math.max(u.b, x.b) } : x, null);
       const portrait = matchMedia('(orientation: portrait)').matches; const fr = box(document.querySelector('[data-frame]'));
       const hdr = box(document.querySelector('.hdr__nav'));
-      return { portrait, textRail: hit(bb, rail), textFrame: portrait ? false : hit(bb, fr), railFrame: portrait ? false : hit(rail, fr), textOff: bb ? bb.t < 0 || bb.b > innerHeight || bb.l < 0 || bb.r > innerWidth : null, textHdr: hit(bb, hdr), railHdr: hit(rail, hdr) };
+      const im = document.querySelector('[data-frame] .cover__img.is-on'); const plateOk = !!(im && im.complete && im.naturalWidth > 0 && getComputedStyle(im).opacity === '1');
+      const BG = /^(cover__pin|cover__grid|cover__stage|cover__canvas|cover__video|cover__echo|cover__body|fold|fold__pin|spread|deck|dp|about|about__text)$/;
+      let run = 0, worst = 0; for (let y = innerHeight * 0.01; y < innerHeight; y += innerHeight * 0.02) { const empty = [0.15, 0.5, 0.85].every((fx) => { const e = document.elementFromPoint(innerWidth * fx, y); if (!e) return true; const c = typeof e.className === 'string' ? e.className.split(' ')[0] : ''; return ['MAIN', 'BODY', 'HTML', 'SECTION'].includes(e.tagName) && !c || BG.test(c); }); run = empty ? run + 1 : 0; worst = Math.max(worst, run); }
+      const emptyBand = +(worst * 0.02).toFixed(2);
+      return { portrait, plateOk, emptyBand, textRail: hit(bb, rail), textFrame: portrait ? false : hit(bb, fr), railFrame: portrait ? false : hit(rail, fr), textOff: bb ? bb.t < 0 || bb.b > innerHeight || bb.l < 0 || bb.r > innerWidth : null, textHdr: hit(bb, hdr), railHdr: hit(rail, hdr) };
     });
   }
   await p._ctx.close();
 }
 await b.close();
-const bad = Object.entries(geo).flatMap(([n, g]) => Object.entries(g).filter(([, v]) => v.textRail || v.textFrame || v.railFrame || v.textOff || v.textHdr || v.railHdr).map(([f, v]) => `${n}@${f}: ${JSON.stringify(v)}`));
+const bad = Object.entries(geo).flatMap(([n, g]) => Object.entries(g).filter(([, v]) => v.emptyBand > 0.25 || !v.plateOk || v.textRail || v.textFrame || v.railFrame || v.textOff || v.textHdr || v.railHdr).map(([f, v]) => `${n}@${f}: ${JSON.stringify(v)}`));
 writeFileSync(new URL('./screens.json', import.meta.url).pathname, JSON.stringify({ files, geometryIssues: bad, consoleErrors: errs, geo }, null, 1));
 console.log(files.length + ' screens; geometry issues: ' + bad.length); bad.forEach((x) => console.log('  ' + x)); console.log('console errors: ' + errs.length, errs.slice(0, 3));
