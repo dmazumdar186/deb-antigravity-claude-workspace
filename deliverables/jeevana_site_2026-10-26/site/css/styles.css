@@ -17,7 +17,7 @@
   --serif: 'Cormorant Garamond', 'Iowan Old Style', Georgia, serif; --sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --deva: 'Noto Serif Devanagari', 'Kohinoor Devanagari', serif;
   --g: clamp(16px, 2.6vw, 72px); --hdr: clamp(52px, 3.6vw + 24px, 96px);
-  --ease: cubic-bezier(.2, .72, .2, 1); --feather: 48px; --b: 0;
+  --ease: cubic-bezier(.2, .72, .2, 1); --feather: 80px; --b: 0;
   --filmw: 75vh; --filmw: 75svh;
 }
 *, *::before, *::after { box-sizing: border-box; }
@@ -66,22 +66,42 @@ ul, ol { padding: 0; list-style: none; }
 
 /* ---------- cover ---------- */
 .cover { position: relative; height: 1400vh; }
-.cover__stage { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; isolation: isolate; }
+.cover__stage { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; isolation: isolate;
+  /* dawn plate stops (research/keyframes/dawn/plate.jpg at 0/25/50/72/86/100 % height); the gradient is laid on the film box so
+     stage and film share the same colour at every height; above/below the film the end colours continue */
+  --d0: #2E2C5D; --d25: #654B75; --d50: #B37B86; --d72: #F5AD88; --d86: #FBC38E; --d100: #E8B583; --film-top: 0px; --film-h: 100%;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse 22% 30% at 0% 94%, rgba(255, 214, 160, .2), rgba(255, 214, 160, 0) 70%),
+    linear-gradient(to bottom, var(--d0) 0%, var(--d25) 25%, var(--d50) 50%, var(--d72) 72%, var(--d86) 86%, var(--d100) 100%) 0 var(--film-top) / 100% var(--film-h) no-repeat,
+    linear-gradient(to bottom, var(--d0) calc(var(--film-top) + var(--film-h) / 2), var(--d100) calc(var(--film-top) + var(--film-h) / 2));
+  color: var(--ink); }
+/* the plate is brighter on the left and cooler on the right: each side of the window continues the plate column at 13 % / 87 %
+   (where the window becomes opaque), blending to the median gradient at the window's centre */
+.cover__stage::before, .cover__stage::after { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background-repeat: no-repeat; background-position: 0 var(--film-top), 0 0; background-size: 100% var(--film-h), 100% 100%; }
+.cover__stage::before { background-image: linear-gradient(to bottom, #2E2C5D 0%, #674C75 25%, #BF8287 50%, #FFC18C 72%, #FED191 86%, #FEC284 100%), linear-gradient(to bottom, #2E2C5D calc(var(--film-top) + var(--film-h) / 2), #FEC284 calc(var(--film-top) + var(--film-h) / 2));
+  -webkit-mask-image: linear-gradient(to right, #000 calc(var(--fl, 30%) + var(--feather)), transparent var(--fc, 50%)); mask-image: linear-gradient(to right, #000 calc(var(--fl, 30%) + var(--feather)), transparent var(--fc, 50%)); }
+.cover__stage::after { background-image: linear-gradient(to bottom, #2D2B5C 0%, #644B75 25%, #A97484 50%, #DDA084 72%, #E8B78C 86%, #D7AA80 100%), linear-gradient(to bottom, #2D2B5C calc(var(--film-top) + var(--film-h) / 2), #D7AA80 calc(var(--film-top) + var(--film-h) / 2));
+  -webkit-mask-image: linear-gradient(to left, #000 calc(var(--fr, 30%) + var(--feather)), transparent calc(100% - var(--fc, 50%))); mask-image: linear-gradient(to left, #000 calc(var(--fr, 30%) + var(--feather)), transparent calc(100% - var(--fc, 50%))); }
+.dawn-fade { height: 100vh; height: 100svh; background: linear-gradient(to bottom, #E8B583, var(--paper)); }
+html.on-dawn .hdr { color: #F3EEE4; }
+html.on-dawn .mono { color: #F3EEE4; }
+html.on-dawn .lang { border-color: rgba(243, 238, 228, .45); }
+html.on-dawn .lang button { color: #F3EEE4; }
+html.on-dawn .lang button[aria-pressed="true"] { background: #F3EEE4; color: #2E2C5D; }
 .cover__breath { position: absolute; z-index: 2; left: var(--ring-x, 50%); top: var(--ring-y, 50%); width: var(--ring-s, 60vh); height: var(--ring-s, 60vh); transform: translate(-50%, -50%); pointer-events: none; max-width: none; }
 html:not(.has-js) .cover__breath { display: none; }
 .cover__breath.is-faint { opacity: .06; z-index: 0; }
-.film, .film__glow { position: absolute; z-index: 1; top: 0; left: 50%; height: 100%; aspect-ratio: 3 / 4; transform: translateX(-50%); }
-.film { background: var(--paper);
+.film { position: absolute; z-index: 1; top: 0; left: 50%; height: 100%; aspect-ratio: 3 / 4; transform: translateX(-50%); }
+.film { background: transparent;
   -webkit-mask-image: radial-gradient(ellipse 78% 74% at 50% 48%, #000 58%, transparent 100%), linear-gradient(to right, transparent, #000 var(--feather), #000 calc(100% - var(--feather)), transparent), linear-gradient(to bottom, transparent, #000 var(--feather), #000 calc(100% - var(--feather)), transparent);
   -webkit-mask-composite: source-in, source-in;
   mask-image: radial-gradient(ellipse 78% 74% at 50% 48%, #000 58%, transparent 100%), linear-gradient(to right, transparent, #000 var(--feather), #000 calc(100% - var(--feather)), transparent), linear-gradient(to bottom, transparent, #000 var(--feather), #000 calc(100% - var(--feather)), transparent);
   mask-composite: intersect, intersect; }
-.film__glow { z-index: 0; transform: translateX(-50%) scale(1.1); background: radial-gradient(closest-side, rgba(196, 115, 26, .16), rgba(196, 115, 26, .06) 70%, rgba(196, 115, 26, 0)); pointer-events: none; }
 .film__poster, .film__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; }
 .film__video { opacity: 0; transition: opacity .5s ease; }
 .film.is-live .film__video { opacity: 1; }
-.copy { position: absolute; z-index: 2; left: var(--g); top: 50%; transform: translateY(-50%); width: calc((100vw - var(--filmw)) / 2 - var(--g) * 1.6); display: grid; }
-.copy__state { grid-area: 1 / 1; align-self: center; opacity: 0; visibility: hidden; transform: translateY(14px); transition: opacity .42s ease, transform .52s var(--ease), visibility 0s linear .52s; }
+.copy { position: absolute; z-index: 3; left: var(--g); bottom: 7vh; bottom: 7svh; width: calc((100vw - var(--filmw)) / 2 - var(--g) * 1.6); display: grid; }
+.copy__state { grid-area: 1 / 1; align-self: end; opacity: 0; visibility: hidden; transform: translateY(14px); transition: opacity .42s ease, transform .52s var(--ease), visibility 0s linear .52s; }
 .copy__state.is-on { opacity: 1; visibility: visible; transform: none; transition: opacity .42s ease, transform .52s var(--ease), visibility 0s; }
 .copy__state.is-on .btn--ink { animation: cta-in .64s var(--ease) .12s both; }
 @keyframes cta-in { from { opacity: 0; transform: translate3d(0, 12px, 0) scale(.94); } to { opacity: 1; transform: none; } }
@@ -96,16 +116,16 @@ html:not(.has-js) .cover__breath { display: none; }
 .sutra--lg .sutra__dev { font-size: clamp(1.6rem, min(2.6vw, 4.4vh), 4rem); line-height: 1.4; }
 .sutra--lg .sutra__iast { font-size: clamp(1.5rem, min(2.4vw, 4vh), 3.6rem); }
 
-.rail { position: absolute; z-index: 2; right: var(--g); top: calc(var(--hdr) + 3vh); width: calc((100vw - var(--filmw)) / 2 - var(--g) * 1.6); }
+.rail { position: absolute; z-index: 3; color: #F3EEE4; right: var(--g); top: calc(var(--hdr) + 3vh); width: calc((100vw - var(--filmw)) / 2 - var(--g) * 1.6); }
 .rail__label { font: 500 .7rem/1.4 var(--sans); letter-spacing: .14em; text-transform: uppercase; }
 .rail__note { font: italic 400 1rem/1.3 var(--serif); color: var(--ink-2); margin: .2rem 0 1rem; }
 .rail__list { display: grid; grid-template-columns: repeat(12, 1fr); column-gap: 3px; }
 .rail__item { display: contents; }
-.rail__no { grid-row: 1; font: 500 .62rem/1 var(--sans); color: var(--ink-2); padding-bottom: .4rem; font-variant-numeric: tabular-nums; transition: color .3s ease; }
-.rail__bar { grid-row: 2; height: 2px; background: var(--rule); position: relative; overflow: hidden; }
+.rail__no { grid-row: 1; font: 500 .62rem/1 var(--sans); color: rgba(243, 238, 228, .82); padding-bottom: .4rem; font-variant-numeric: tabular-nums; transition: color .3s ease; }
+.rail__bar { grid-row: 2; height: 2px; background: rgba(243, 238, 228, .28); position: relative; overflow: hidden; }
 .rail__bar::after { content: ''; position: absolute; inset: 0; background: var(--accent); transform-origin: 0 50%; transform: scaleX(var(--fill, 0)); }
 .rail__item.is-done .rail__bar::after { transform: scaleX(1); }
-.rail__item.is-on .rail__no { color: var(--ink); }
+.rail__item.is-on .rail__no { color: #F3EEE4; }
 .rail__item:nth-child(1) > .rail__no, .rail__item:nth-child(1) > .rail__bar { grid-column: 1; }
 .rail__item:nth-child(2) > .rail__no, .rail__item:nth-child(2) > .rail__bar { grid-column: 2; }
 .rail__item:nth-child(3) > .rail__no, .rail__item:nth-child(3) > .rail__bar { grid-column: 3; }
@@ -122,8 +142,8 @@ html:not(.has-js) .cover__breath { display: none; }
 .rail__item.is-on .rail__detail { opacity: 1; visibility: visible; transition: opacity .42s ease, visibility 0s; }
 .rail__dev { font-size: clamp(1.2rem, min(1.9vw, 3.2vh), 2.8rem); line-height: 1.4; }
 .rail__iast { font: italic 400 clamp(1.3rem, min(2vw, 3.4vh), 3rem)/1.15 var(--serif); margin-bottom: .6rem; }
-.rail__breath { font: 500 .7rem/1.4 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--accent-text); margin-bottom: .6rem; }
-.rail__mantra { font: italic 400 1rem/1.35 var(--serif); color: var(--ink-2); }
+.rail__breath { font: 500 .7rem/1.4 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: #FBE3BC; margin-bottom: .6rem; }
+.rail__mantra { font: italic 400 1rem/1.35 var(--serif); color: #F3EEE4; }
 .rail__mobile { display: none; }
 .rail__live { display: flex; align-items: center; gap: .6rem; margin-top: 1.4rem; font: 500 .66rem/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
 .rail__ring { width: 14px; height: 14px; border: 1px solid var(--accent); border-radius: 50%; transform: scale(calc(.72 + .28 * var(--b))); }
@@ -270,17 +290,37 @@ html:not([lang="fr"]) [data-lang-block="en"] { display: block; }
   .newsrow { flex-direction: column; align-items: flex-start; }
   .mbar { display: flex; gap: .5rem; position: fixed; z-index: 25; left: 0; right: 0; bottom: 0; padding: .55rem var(--g) max(.55rem, env(safe-area-inset-bottom)); background: rgba(243, 238, 228, .96); box-shadow: 0 -1px 0 var(--rule); transform: translateY(110%); transition: transform .4s var(--ease); }
   .mbar.is-shown { transform: none; }
-  .mbar .btn { flex: 1 1 0; font-size: .72rem; padding: .6rem .5rem; }
+  .mbar .btn { flex: 1 1 0; font-size: .68rem; padding: .6rem .4rem; white-space: nowrap; letter-spacing: .03em; }
   html { scroll-padding-bottom: 90px; }
   #contact .chapter__body { padding-bottom: 110px; }
   .ch2__form { padding-bottom: 20px; }
 }
 @media (min-width: 800px) and (max-height: 560px) {
-  .rail__note { display: none; } .rail__detail { padding-top: .6rem; } .rail__live { margin-top: .6rem; }
+  .copy { bottom: 4svh; } .display { font-size: 1.75rem; } .sutra__dev, .sutra__iast { font-size: .95rem; } .kicker { font-size: .66rem; }
+  .rail { top: calc(var(--hdr) + 4px); } .rail__dev { font-size: 1rem; line-height: 1.25; } .rail__iast { font-size: 1.1rem; margin-bottom: .2rem; } .rail__no { padding-bottom: .25rem; }
+  .rail__item.is-on .rail__detail, .rail__detail { display: flex; flex-direction: column; } .rail__breath { order: -1; margin-bottom: .3rem; }
+  .rail__note, .rail__label, .rail__mantra { display: none; } .rail__detail { padding-top: .6rem; } .rail__live { margin-top: .6rem; }
   .sutra blockquote { font-size: 1rem; } .kicker { margin-bottom: .5rem; } .display { margin-bottom: .7rem; }
   .chapter { height: auto; } .chapter__pin, html.has-js .chapter__pin { position: relative; height: auto; opacity: 1; transform: none; overflow: visible; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
   html.has-js .chapter__pin { opacity: 1; transform: none; }
+}
+
+/* type on the dawn: ink on the ochre haze (lower copy), cream on indigo (upper rail) */
+.copy .kicker, .copy .sutra__iast, .copy .sutra figcaption, .copy .link-plain { color: var(--ink); }
+.copy .sutra { border-left-color: var(--ink); }
+.hint { color: var(--ink); }
+.hint::after { background: var(--ink); }
+@media (max-width: 799px), (max-aspect-ratio: 4/5) {
+  .cover__stage { --film-top: 34svh; --film-h: 56svh; }
+  .copy { bottom: auto; color: #F3EEE4; }
+  .copy .kicker, .copy .sutra__iast, .copy .sutra figcaption, .copy .link-plain, .copy .link-cta { color: #F3EEE4; }
+  .copy .sutra { border-left-color: #F3EEE4; }
+  .copy .link-plain { text-decoration-color: rgba(243, 238, 228, .5); }
+  .copy::before { background: none; }
+  .copy__state { align-self: start; }
+  .rail { color: var(--ink); }
+  .rail__mobile [data-rail-breath] { color: var(--ink); }
 }

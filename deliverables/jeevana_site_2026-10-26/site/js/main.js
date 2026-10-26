@@ -123,6 +123,7 @@
     var R0 = Math.min(f.width, f.height) * 0.5, Rfit = (d - RING_CLEAR) / 1.151, faint = Rfit < R0 * 0.45, Rr = faint ? R0 * 0.8 : Math.min(R0, Rfit);
     cv.classList.toggle('is-faint', faint); // jury item 3: where the ring cannot clear the copy it sits at 6 % behind type
     var S = Rr / 0.36; stage.style.setProperty('--ring-s', Math.round(S) + 'px');
+    stage.style.setProperty('--fl', Math.round(f.left - s0.left) + 'px'); stage.style.setProperty('--fr', Math.round(s0.right - f.right) + 'px'); stage.style.setProperty('--fc', Math.round(cx - s0.left) + 'px');
     stage.style.setProperty('--ring-x', Math.round(cx - s0.left) + 'px'); stage.style.setProperty('--ring-y', Math.round(cy - s0.top) + 'px');
   }
   function setPos(x) { pos = clamp(x, 0, LAST); engine.pos = pos; var st = stateOf(pos); engine.state = st; show(st, pos); }
@@ -135,7 +136,7 @@
     T = hi >= lo ? clamp(T, lo, hi) : lo; stage.style.setProperty('--film-top', Math.round(T) + 'px'); W.setTimeout(layoutRing, 950);
   }
   function measureCopy() { // portrait class: 3:4 film between the copy (top) and the rail (bottom); paper may pass under both, the figure never
-    if (!stage || !W.matchMedia(PORTRAIT_MQ).matches) { filmH = 0; layoutRing(); return; }
+    if (!stage || !W.matchMedia(PORTRAIT_MQ).matches) { filmH = 0; stage.style.removeProperty('--film-top'); stage.style.removeProperty('--film-h'); layoutRing(); return; }
     var h = 0; copyStates.forEach(function (el) { h = Math.max(h, el.offsetHeight); }); maxCopy = h;
     var c = $('[data-copy]'), rail = $('[data-rail]'), V = stage.clientHeight || W.innerHeight, Wd = stage.clientWidth || W.innerWidth;
     copyTop = c ? c.offsetTop : 0; railTop = rail ? rail.offsetTop - 8 : V - 60;
@@ -157,7 +158,8 @@
     var p = progress(); engine.p = p;
     if (cover) cover.classList.toggle('is-moved', p > 0.002);
     if (hdr) hdr.classList.toggle('is-solid', !cover || cover.getBoundingClientRect().bottom < W.innerHeight * 0.5);
-    if (mbar) mbar.classList.toggle('is-shown', p >= COVER_DONE || (cover && cover.getBoundingClientRect().bottom < W.innerHeight));
+    root.classList.toggle('on-dawn', !!cover && cover.getBoundingClientRect().bottom >= W.innerHeight * 0.5);
+    if (mbar) mbar.classList.toggle('is-shown', !!cover && cover.getBoundingClientRect().bottom < W.innerHeight * 0.6); // only once the cover has left (never over the rail)
     if (p >= COVER_DONE) ev('cover_complete', true);
     if (W.JeevanaBackdrop && !staticMode) W.JeevanaBackdrop.setProgress(p);
     var oc = !cover || cover.getBoundingClientRect().bottom > 0; if (oc !== onCover) { onCover = oc; ringBreath(); }

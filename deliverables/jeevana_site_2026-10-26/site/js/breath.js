@@ -2,7 +2,7 @@
   'use strict';
   var api = {}, cv = null, ctx = null, raf = 0, paused = false, hidden = false;
   var W = 0, H = 0, dpr = 1, p = 0, seed = 1, reduced = false, pts = [], n = 0;
-  var INK = '42,33,26', ACC = '196,115,26', tgt = null, lvl = 0.5, G = { cx: 0, cy: 0, r: 0, rMax: 0 };
+  var INK = '243,238,228', ACC = '196,115,26', tgt = null, lvl = 0.5, G = { cx: 0, cy: 0, r: 0, rMax: 0 };
 
   function mul(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 
@@ -38,7 +38,7 @@
     G.cx = cx; G.cy = cy; G.r = R * s; G.rMax = R * 1.04;
     ctx.clearRect(0, 0, W, H);
     ctx.lineWidth = 1;
-    ctx.strokeStyle = 'rgba(' + INK + ',0.38)';
+    ctx.strokeStyle = 'rgba(' + INK + ',0.35)';
     ctx.beginPath();
     ctx.arc(cx, cy, R * s, 0, 6.2832);
     ctx.stroke();

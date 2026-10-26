@@ -142,6 +142,38 @@ T('no_empty_band_over_25pct (19 viewports × s0/s7/hold)', !bandBad.length, band
 T('breath_ring_clears_copy_and_rail_by_48px (19 viewports × s0/s7/hold)', !ringClr.length, ringClr);
 T('chapter_breath_mark_clear_of_text_and_form (landscape ≥ 1024, 3 chapters + open sheet)', !markBad.length, markBad);
 T('chapters_fit_one_viewport (landscape viewports ≥ 1024 px)', !chBad.length, chBad);
+// dawn stage (operator 2026-10-26): seam colour, luminance step, stage = plate, type contrast — 19 viewports × p 0/.5/1
+{
+  const shots = []; mkdirSync('/tmp/jvdawn', { recursive: true }); let k = 0;
+  for (const [name, s] of Object.entries(VP)) {
+    p = await page(spec(s)); await p.goto(base, { waitUntil: 'domcontentloaded' }); await p.waitForTimeout(150);
+    for (const pp of [0, 0.5, 1]) {
+      await scrollP(p, pp === 0 ? 0.004 : pp); await p.waitForTimeout(1400);
+      const film = await p.evaluate(() => { const q = document.querySelector('[data-film]').getBoundingClientRect(); return [q.left, q.top, q.right, q.bottom]; });
+      await p.evaluate(() => { window.__hid = [...document.querySelectorAll('[data-stage] *, .hdr *')].filter((e) => !e.matches('[data-film], [data-film] *')); window.__hid.forEach((e) => { e.style.visibility = 'hidden'; }); window.JeevanaBackdrop.pause(); }); await p.waitForTimeout(80);
+      const f1 = `/tmp/jvdawn/${k++}.png`; await p.screenshot({ path: f1, scale: 'css' });
+      await p.evaluate(() => { window.__hid.forEach((e) => { e.style.visibility = ''; }); window.JeevanaBackdrop.resume(); }); shots.push({ kind: 'seam', png: f1, film, tag: `${name}@${pp}` });
+      if (pp === 0.5) { await p.evaluate(() => { document.querySelector('[data-film]').style.visibility = 'hidden'; window.JeevanaBackdrop.pause(); document.querySelector('[data-breath]').style.visibility = 'hidden'; }); await p.waitForTimeout(80);
+        const f2 = `/tmp/jvdawn/${k++}.png`; await p.screenshot({ path: f2, scale: 'css' }); shots.push({ kind: 'stage', png: f2, film, tag: name });
+        await p.evaluate(() => { document.querySelector('[data-film]').style.visibility = ''; document.querySelector('[data-breath]').style.visibility = ''; window.JeevanaBackdrop.resume(); }); }
+      else {
+        const texts = await p.evaluate(() => { const vis = (el) => { for (let e = el; e && e !== document; e = e.parentElement) { const cs = getComputedStyle(e); if (cs.display === 'none' || cs.visibility === 'hidden' || parseFloat(cs.opacity) < 0.05) return false; } return true; };
+          const out = []; for (const el of document.querySelectorAll('[data-stage] *, .hdr a, .hdr button, .hdr span')) { if (![...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim()) || !vis(el)) continue; const r = el.getBoundingClientRect(); if (r.bottom < 0 || r.top > innerHeight || !r.width) continue;
+            const m = getComputedStyle(el).color.match(/[\d.]+/g).map(Number); out.push({ rect: [r.left, r.top, r.right, r.bottom], color: [m[0], m[1], m[2], m[3] ?? 1], s: el.textContent.trim().slice(0, 18), el }); }
+          window.__tx = out.map((o) => o.el); out.forEach((o) => { o.el.style.color = 'rgba(0,0,0,0)'; o.el.style.textDecorationColor = 'transparent'; delete o.el; }); return out; });
+        await p.waitForTimeout(80); const f3 = `/tmp/jvdawn/${k++}.png`; await p.screenshot({ path: f3, scale: 'css' }); shots.push({ kind: 'contrast', png: f3, texts, tag: `${name}@${pp}` });
+        await p.evaluate(() => window.__tx.forEach((e) => { e.style.color = ''; e.style.textDecorationColor = ''; }));
+      }
+    }
+    await p._ctx.close();
+  }
+  writeFileSync('/tmp/jvdawn/m.json', JSON.stringify({ plate: R + 'keyframes/dawn/plate.jpg', shots }));
+  const d = JSON.parse(execFileSync('python3', [R + 'dawn_check.py', '/tmp/jvdawn/m.json'], { maxBuffer: 1 << 24 }).toString()); M.dawn = d;
+  const sb = d.seam.filter((x) => x.pairs < 8 || x.dE >= 4); T('dawn_seam_outside_equals_inside (19 vp × p 0/.5/1, ≥ 8 pairs, ΔE76 < 4)', !sb.length, sb.slice(0, 4).concat([{ worst: Math.max(...d.seam.map((x) => x.dE)) }]));
+  const st = d.step.filter((x) => x.step > 0.06); T('dawn_no_luminance_step_over_6pct_at_window_boundary', !st.length, st.slice(0, 4).concat([{ worst: Math.max(...d.step.map((x) => x.step)) }]));
+  const sg = d.stage.filter((x) => x.dE >= 4); T('dawn_stage_midline_matches_plate (ΔE76 < 4, 19 vp)', !sg.length, sg.slice(0, 4).concat([{ worst: Math.max(...d.stage.map((x) => x.dE)) }]));
+  const cb = d.contrast.filter((x) => x.min < 4.5); T('dawn_type_contrast_ge_4.5 (19 vp × s0/hold)', !cb.length, cb.slice(0, 4).concat([{ worst: Math.min(...d.contrast.map((x) => x.min)) }]));
+}
 // 9 console clean on a full walk + dialog + forms (desktop)
 p = await page({ viewport: { width: 1440, height: 900 } }, { seen: false });
 await p.goto(base, { waitUntil: 'load' }); await p.waitForTimeout(300);

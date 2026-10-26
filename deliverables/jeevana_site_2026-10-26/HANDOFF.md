@@ -37,3 +37,15 @@ Brief: `research/brief_v3.md`. Not deployed, not committed (builder run). Reject
 - Site, domain, export login: Debanjan (ProdCraft) until handover. Data controller and data requests: Jeevana (Jeevana.yogawellness@gmail.com).
 - Operator to record before the domain goes live: Jeevana's written OK on the photos, the phone number and the copy: ______
 - Open slots: `research/to_wire.md`. KV id in `site/wrangler.toml` unchanged.
+
+## Round 1 jury + dawn stage (2026-10-26)
+- Film: `research/film_dawn/` (plate dawn) shipped via fit_film → `hero.mp4` 5.3 MB, `hero-phone.mp4` 2.6 MB (GOP 12).
+- Cover stage = the dawn plate: median gradient (plate rows 0/25/50/72/86/100 %) laid on the film box, plus left/right plate
+  columns (13 % / 87 %) blended to the median at the window centre, grain (feTurbulence α ≤ .05), low-left glow; window mask =
+  radial vignette + 80 px feather; no border/shadow. Dawn → paper via a 100svh fade before chapter 01. Ring in cream at .35.
+- Type: ink on ochre (desktop lower copy, phone rail), cream on indigo (desktop rail, phone copy, header on the cover).
+- Jury items: rail = Devanagari + IAST + one breath word + mantra·gloss (subtitle and second breath label removed; the ring
+  breathes with the rail's word); ring sized to clear copy/rail by 48 px (6 % opacity where it cannot); contact chapter uses the
+  last film frame — Eiffel photo removed (operator may overrule); one carried breath ring top-right 96 px in chapters; chapter 02
+  register = inline sheet; cover CTAs = serif underlined link + plain link; dialog with cream scrim, no shadow, text "No thanks".
+- Mobile bar now appears only after the cover has left (it covered the rail at the hold).
