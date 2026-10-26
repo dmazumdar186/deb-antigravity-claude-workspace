@@ -89,3 +89,10 @@ mocked KV; event beacon allowlist; content fixture), site_check on `/` and `/pri
     the typed fields in the body; 404 page honours the saved language.
 27. Directive and docs: full ingest command incl. `--zoom` for sn-03/sn-10 in `photos.md`; serve + URL before
     functional/screens; one working directory (repo root); `wrangler pages secret list` as the check; "43" not "40".
+
+## Supplied by the brain (2026-10-26)
+- Cloudflare Web Analytics site created for `jeevana-yoga.pages.dev`: beacon token `f7ff129092344aca8fd504fcca79bc05`
+  (public, ships in HTML). Item 21 is therefore ON: add
+  `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"f7ff129092344aca8fd504fcca79bc05"}'></script>`
+  and extend the CSP (`script-src` + `connect-src`) accordingly. This is the one permitted external script (cookieless,
+  first-party vendor = the host). When the custom domain is bound, add it as a second host on the same site.
