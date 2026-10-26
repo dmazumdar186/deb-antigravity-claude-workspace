@@ -4,7 +4,7 @@ description: the film's own sky is extended sideways so every window feather fal
   (research/keyframes/dawn/plate.jpg, scaled to the film) sits in the centre and its edge columns are extended to a
   1330 x 1108 canvas (aspect 1.2, pad 251 px a side); the film is laid over it with a 64 px horizontal alpha blend at its
   own edges. Outputs site/assets/film/hero.mp4 (crf 23..), hero-phone.mp4 (720 px wide, crf 25..), poster.jpg (widened),
-  all H.264 yuv420p, GOP 12, +faststart; crf rises until each fits its budget (6 MB / 4 MB).
+  all H.264 yuv420p tagged BT.709 (Chromium decodes untagged HD as 709; a 601 encode shifted the sky ~5 levels), GOP 12, +faststart; crf rises until each fits its budget (6 MB / 4 MB).
 usage: python3 research/fit_film.py   (then node research/stamp.mjs)"""
 import json, subprocess, pathlib, tempfile
 import numpy as np
@@ -30,14 +30,14 @@ mask = np.tile(np.concatenate([np.linspace(0, 255, BL), np.full(W0 - 2 * BL, 255
 Image.fromarray(mask, 'L').save(tmp / 'mask.png')
 # widened poster from the film's poster
 widen(Image.open(FD / meta['poster']).convert('RGB').resize((W0, H0))).save(OUT / 'poster.jpg', quality=86)
-FC = f"[1:v]format=rgb24[f];[2:v]format=gray,loop=-1:1:0[m];[f][m]alphamerge[fa];[0:v][fa]overlay={PAD}:0:shortest=1,format=yuv420p"
+FC = f"[1:v]format=rgb24[f];[2:v]format=gray,loop=-1:1:0[m];[f][m]alphamerge[fa];[0:v][fa]overlay={PAD}:0:shortest=1"
 log = {}
 for name, crf, scale, cap in (('hero.mp4', 23, None, 6 * 2**20), ('hero-phone.mp4', 25, 720, 4 * 2**20)):
     while True:
-        vf = FC + (f",scale={scale}:-2:flags=lanczos" if scale else '')
+        vf = FC + (f",scale={scale}:-2:flags=lanczos" if scale else '') + ',scale=out_color_matrix=bt709:out_range=tv,format=yuv420p'
         subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-loop', '1', '-i', str(tmp / 'bg.png'), '-i', str(src), '-loop', '1', '-i', str(tmp / 'mask.png'),
                         '-filter_complex', vf, '-an', '-c:v', 'libx264', '-preset', 'slow', '-crf', str(crf), '-g', '12', '-keyint_min', '12', '-sc_threshold', '0',
-                        '-movflags', '+faststart', '-t', str(meta['seconds']), str(OUT / name)], check=True)
+                        '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv', '-movflags', '+faststart', '-t', str(meta['seconds']), str(OUT / name)], check=True)
         size = (OUT / name).stat().st_size
         if size <= cap or crf >= 34: break
         crf += 1

@@ -76,7 +76,7 @@ ul, ol { padding: 0; list-style: none; }
     linear-gradient(to bottom, var(--d0) 0%, var(--d25) 25%, var(--d50) 50%, var(--d72) 72%, var(--d86) 86%, var(--d100) 100%) 0 var(--film-top) / 100% var(--film-h) no-repeat,
     linear-gradient(to bottom, #262551 0px, var(--d0) var(--film-top), var(--d0) calc(var(--film-top) + var(--film-h) / 2), var(--d100) calc(var(--film-top) + var(--film-h) / 2));
   color: var(--ink); }
-/* the plate is brighter on the left and cooler on the right: each side of the window continues the plate's edge columns (the widened film repeats them)
+/* the plate is brighter on the left and cooler on the right: each side of the window continues the plate's edge columns (the widened film repeats them; encoded BT.709 so the browser shows plate colours)
    (where the window becomes opaque), blending to the median gradient at the window's centre */
 .cover__stage::before, .cover__stage::after { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background-repeat: no-repeat; background-position: 0 var(--film-top), 0 0; background-size: 100% var(--film-h), 100% 100%; }
 .cover__stage::before { background-image: linear-gradient(to bottom, #2C2A5B 0%, #674C75 25%, #BC8086 50%, #FDBB89 72%, #FFCD90 86%, #F9BE84 100%), linear-gradient(to bottom, #2C2A5B calc(var(--film-top) + var(--film-h) / 2), #F9BE84 calc(var(--film-top) + var(--film-h) / 2));

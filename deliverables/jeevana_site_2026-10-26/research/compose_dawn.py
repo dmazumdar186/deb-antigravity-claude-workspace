@@ -148,8 +148,10 @@ def main():
     lo, hi = map(int, a.frames.split("-")) if "-" in a.frames else (int(a.frames),) * 2
     bg = plate()
     Image.fromarray(np.clip(grain(bg, 0), 0, 255).astype(np.uint8)).save(out / "plate.jpg", quality=92)
+    FRONTAL_12 = True  # jury: the circle closes facing the viewer
     for i in range(lo, hi + 1):
-        Image.fromarray(compose(f"sn-{i:02d}", bg, i)).save(out / f"frame-{i:02d}.jpg", quality=92)
+        key = "sn-01-front" if (i == 12 and FRONTAL_12) else f"sn-{i:02d}"
+        Image.fromarray(compose(key, bg, i)).save(out / f"frame-{i:02d}.jpg", quality=92)
 
 
 if __name__ == "__main__":

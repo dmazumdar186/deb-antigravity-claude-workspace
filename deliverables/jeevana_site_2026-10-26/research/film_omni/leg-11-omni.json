@@ -1,0 +1,24 @@
+{
+ "model": "kling-video/omni/first-last-frame",
+ "body": {
+  "prompt": "The woman in the reference images, the same face throughout, tied-back hair, mint fleece, black leggings. She stands in profile with arms raised overhead in a gentle backbend, lowers the joined hands slowly to her chest and turns to face the camera, ending in Pra\u1e47\u0101m\u0101sana, palms together at the chest, looking calmly at the viewer, a soft smile. One calm exhale. Fixed camera, eye level, full body in frame, feet on the same ground line. A soft dawn sky behind her: deep indigo above fading through dusty rose into a warm ochre haze at the ground line, no clouds, no buildings, first light. Photoreal, her face identical to the references, calm editorial pacing.",
+  "first_frame_url": "https://jeevana-frames.pages.dev/dawn/frame-11.jpg",
+  "last_frame_url": "https://jeevana-frames.pages.dev/dawn/frame-12.jpg",
+  "mode": "std",
+  "duration": 5,
+  "aspect_ratio": "9:16",
+  "image_urls": [
+   "https://jeevana-frames.pages.dev/ref/ref-01.jpg",
+   "https://jeevana-frames.pages.dev/ref/ref-02.jpg",
+   "https://jeevana-frames.pages.dev/ref/ref-03.jpg",
+   "https://jeevana-frames.pages.dev/ref/ref-04.jpg"
+  ]
+ },
+ "submit": {
+  "status": "queued",
+  "request_id": "a093cd37-34c3-4267-8cae-956301412d1b",
+  "status_url": "https://api.higgsfield.ai/requests/a093cd37-34c3-4267-8cae-956301412d1b/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/a093cd37-34c3-4267-8cae-956301412d1b/cancel",
+  "expires_after": 604800
+ }
+}
