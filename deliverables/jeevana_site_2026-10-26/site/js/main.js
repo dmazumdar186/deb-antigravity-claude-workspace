@@ -39,6 +39,7 @@
   var sent = {};
   function ev(name, once) {
     if (once && sent[name]) return; sent[name] = 1;
+    if (/^(localhost|127\.0\.0\.1)$/.test(W.location.hostname)) return; // no counts from local previews
     try { var b = new Blob([JSON.stringify({ name: name })], { type: 'application/json' }); if (navigator.sendBeacon) navigator.sendBeacon('/api/event', b); } catch (e) { /* ignore */ }
   }
   $$('[data-ev]').forEach(function (a) { a.addEventListener('click', function () { ev(a.getAttribute('data-ev')); }); });

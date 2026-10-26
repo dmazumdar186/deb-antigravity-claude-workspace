@@ -72,32 +72,33 @@ for (const [tag, o] of [['desktop', { viewport: { width: 1440, height: 900 } }],
   T(`state_rail_copy_film_one_variable_${tag} (13 samples)`, !bad.length, bad.slice(0, 2));
   T(`no_text_over_figure_${tag} (13 samples, figure_boxes.json)`, !hits.length, hits.slice(0, 2));
   if (tag === 'desktop') {
-    await scrollP(p, 7.05 / 12); await p.waitForTimeout(1300); mkdirSync('/tmp/jvfx', { recursive: true }); await p.screenshot({ path: '/tmp/jvfx/pm.png' });
+    // window edge alpha at the mask boundary (dawn-film contract): alpha = (A − B) / (C − B) per pixel, where A = shipped,
+    // B = film hidden, C = mask removed; a high-contrast probe (invert filter in all three shots) makes the ratio defined
+    // whatever the film's colours. 16 points (4 per side), 1 px inside the window box.
+    await scrollP(p, 7.05 / 12); await p.waitForTimeout(1300); mkdirSync('/tmp/jvfx', { recursive: true });
+    await p.evaluate(() => { window.JeevanaBackdrop && window.JeevanaBackdrop.pause(); const s = document.createElement('link'); document.querySelectorAll('.film__video,.film__poster').forEach((e) => { e.style.filter = 'invert(1)'; }); });
+    await p.waitForTimeout(200); await p.screenshot({ path: '/tmp/jvfx/a.png' });
+    await p.evaluate(() => { document.querySelector('[data-film]').style.opacity = '0'; }); await p.waitForTimeout(100); await p.screenshot({ path: '/tmp/jvfx/b.png' });
+    await p.evaluate(() => { const f = document.querySelector('[data-film]'); f.style.opacity = '1'; f.style.maskImage = 'none'; f.style.webkitMaskImage = 'none'; }); await p.waitForTimeout(100); await p.screenshot({ path: '/tmp/jvfx/c.png' });
     const r = await p.evaluate(() => { const q = document.querySelector('[data-film]').getBoundingClientRect(); return [q.left, q.top, q.right, q.bottom]; });
     const out = execFileSync('python3', ['-c', `
-import sys,json
+import json
 from PIL import Image
 import numpy as np
-im=np.asarray(Image.open('/tmp/jvfx/pm.png').convert('RGB')).astype(float)
+A,B,C=[np.asarray(Image.open('/tmp/jvfx/%s.png'%k).convert('RGB')).astype(float) for k in 'abc']
 l,t,r,b=${JSON.stringify(r)}
-H,W,_=im.shape
-def lab(c):
-  c=c/255; c=np.where(c>0.04045,((c+0.055)/1.055)**2.4,c/12.92)
-  x,y,z=np.dot([[0.4124,0.3576,0.1805],[0.2126,0.7152,0.0722],[0.0193,0.1192,0.9505]],c)/np.array([0.95047,1,1.08883])
-  f=lambda v: v**(1/3) if v>0.008856 else 7.787*v+16/116
-  return np.array([116*f(y)-16,500*(f(x)-f(y)),200*(f(y)-f(z))])
-def px(x,y):
-  x=int(min(W-3,max(2,x)));y=int(min(H-3,max(2,y))); return np.median(im[y-2:y+3,x-2:x+3].reshape(-1,3),axis=0)
-res=[]
+H,W,_=A.shape
+pts=[]
 for fr in (0.15,0.35,0.65,0.85):
-  for side in 'LRTB':
-    if side=='L': o,i=(l-4,t+(b-t)*fr),(l+56,t+(b-t)*fr)
-    if side=='R': o,i=(r+4,t+(b-t)*fr),(r-56,t+(b-t)*fr)
-    if side=='T': o,i=(l+(r-l)*fr,t+4 if t<=0 else t-4),(l+(r-l)*fr,t+56)
-    if side=='B': o,i=(l+(r-l)*fr,b-4 if b>=H else b+4),(l+(r-l)*fr,b-56)
-    res.append(float(np.linalg.norm(lab(px(*o))-lab(px(*i)))))
-print(json.dumps({'max':max(res),'mean':sum(res)/len(res),'n':len(res)}))`]).toString();
-    const dE = JSON.parse(out); M.paper_match_dE = dE; T('film_paper_matches_page (16 samples, 4 per side, ΔE76 < 3)', dE.max < 3, dE);
+  pts+= [(l+1,t+(b-t)*fr),(r-2,t+(b-t)*fr),(l+(r-l)*fr,max(t,0)+1),(l+(r-l)*fr,min(b,H)-2)]
+res=[]
+for x,y in pts:
+  x=int(min(W-1,max(0,x)));y=int(min(H-1,max(0,y)))
+  d=C[y,x]-B[y,x]; k=int(np.argmax(np.abs(d)))
+  if abs(d[k])<40: continue
+  res.append(float(max(0,(A[y,x][k]-B[y,x][k])/d[k])))
+print(json.dumps({'max':max(res) if res else None,'n':len(res)}))`]).toString();
+    const ea = JSON.parse(out); M.window_edge_alpha = ea; T('film_window_edge_alpha_le_0.08 (16 boundary points, A−B / C−B)', ea.n >= 12 && ea.max <= 0.08, ea);
   }
   T(`console_clean_cover_${tag}`, !p.errs.length, p.errs.slice(0, 2));
   await p._ctx.close();

@@ -1,11 +1,11 @@
 {
- "date": "2026-10-26T18:00:17.751Z",
+ "date": "2026-10-26T18:19:00.437Z",
  "film": {
   "standin": false,
   "seconds": 52,
   "keyframes": 12
  },
- "pass": 37,
+ "pass": 38,
  "total": 38,
  "results": [
   {
@@ -118,13 +118,8 @@
   },
   {
    "name": "no_empty_band_over_25pct (19 viewports × s0/s7/hold)",
-   "ok": false,
-   "detail": [
-    "iphone-13/s7=0.25",
-    "pixel-7/s7=0.26",
-    "iphone-15-pro-max/s7=0.26",
-    "tv-portrait/s7=0.26"
-   ]
+   "ok": true,
+   "detail": []
   },
   {
    "name": "chapters_fit_one_viewport (landscape viewports ≥ 1024 px)",
@@ -204,7 +199,7 @@
    "detail": [
     "/js/i18n.js?v=823b26cc",
     "/js/breath.js?v=1fa8403f",
-    "/js/main.js?v=cbe45099",
+    "/js/main.js?v=72d5a825",
     "https://static.cloudflareinsights.com/beacon.min.js"
    ]
   },
@@ -242,7 +237,7 @@
    "name": "sizes (index+css+js ≤ 150 KB, breath.js ≤ 10 KB, film ≤ 6 MB / 4 MB)",
    "ok": true,
    "detail": {
-    "index_css_js_kb": 90.1,
+    "index_css_js_kb": 91.1,
     "breath_kb": 3.8,
     "film_mb": 5.06,
     "film_m_mb": 2.39
@@ -255,7 +250,7 @@
   }
  ],
  "measurements": {
-  "autoplay_ct_at_6s": 5.535,
+  "autoplay_ct_at_6s": 5.537,
   "scrub_1440x900": {
    "1": {
     "currentTime": 51.61,
@@ -300,27 +295,27 @@
   "bands": {
    "iphone-se": {
     "s0": 0.041,
-    "s7": 0.202,
+    "s7": 0.185,
     "hold": 0.062
    },
    "galaxy-s8": {
     "s0": 0.083,
-    "s7": 0.228,
+    "s7": 0.216,
     "hold": 0.085
    },
    "iphone-13": {
     "s0": 0.13,
-    "s7": 0.251,
+    "s7": 0.236,
     "hold": 0.119
    },
    "pixel-7": {
     "s0": 0.146,
-    "s7": 0.261,
+    "s7": 0.247,
     "hold": 0.134
    },
    "iphone-15-pro-max": {
     "s0": 0.143,
-    "s7": 0.258,
+    "s7": 0.242,
     "hold": 0.16
    },
    "phone-landscape": {
@@ -330,12 +325,12 @@
    },
    "small-tablet": {
     "s0": 0.059,
-    "s7": 0.198,
+    "s7": 0.172,
     "hold": 0.071
    },
    "ipad-portrait": {
     "s0": 0.042,
-    "s7": 0.186,
+    "s7": 0.152,
     "hold": 0.045
    },
    "ipad-landscape": {
@@ -344,9 +339,9 @@
     "hold": 0.138
    },
    "ipad-pro-portrait": {
-    "s0": 0.03,
-    "s7": 0.182,
-    "hold": 0.057
+    "s0": 0.051,
+    "s7": 0.148,
+    "hold": 0.078
    },
    "ipad-pro-landscape": {
     "s0": 0.138,
@@ -385,17 +380,17 @@
    },
    "tv-portrait": {
     "s0": 0.151,
-    "s7": 0.264,
+    "s7": 0.231,
     "hold": 0.171
    },
    "pixel-7-device": {
     "s0": 0.114,
-    "s7": 0.239,
+    "s7": 0.224,
     "hold": 0.101
    }
   },
   "sizes": {
-   "index_css_js_kb": 90.1,
+   "index_css_js_kb": 91.1,
    "breath_kb": 3.8,
    "film_mb": 5.06,
    "film_m_mb": 2.39
