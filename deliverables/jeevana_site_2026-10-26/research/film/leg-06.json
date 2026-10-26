@@ -1,0 +1,30 @@
+{
+ "leg": 6,
+ "body": {
+  "prompt": "The same woman moves slowly from A\u1e63\u1e6d\u0101\u1e45ga Namask\u0101ra, knees chest and chin lowered to the floor, hips raised into Bhuja\u1e45g\u0101sana, cobra, chest lifted from the floor. One slow continuous yoga movement with the breath, nothing else moves. Fixed camera, eye level, full body always in frame, feet on the same ground line. Plain warm cream paper studio background, soft even daylight, no props, no text, no other people. Photoreal, her face unchanged, hair tied back the whole time, clothing and body unchanged throughout, hands and feet keep contact with the floor when they are on it. Calm editorial pacing.",
+  "duration": 5,
+  "aspect_ratio": "3:4",
+  "sound": "off",
+  "image_url": "https://jeevana-frames.pages.dev/frame-06.jpg",
+  "last_image_url": "https://jeevana-frames.pages.dev/frame-07.jpg",
+  "cfg_scale": 0.7
+ },
+ "submit": {
+  "status": "queued",
+  "request_id": "26de63a4-5d69-4666-aedb-1a8017083636",
+  "status_url": "https://api.higgsfield.ai/requests/26de63a4-5d69-4666-aedb-1a8017083636/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/26de63a4-5d69-4666-aedb-1a8017083636/cancel",
+  "expires_after": 604800
+ },
+ "model": "kling-video/v3.0/std/image-to-video",
+ "status": {
+  "status": "completed",
+  "request_id": "26de63a4-5d69-4666-aedb-1a8017083636",
+  "status_url": "https://api.higgsfield.ai/requests/26de63a4-5d69-4666-aedb-1a8017083636/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/26de63a4-5d69-4666-aedb-1a8017083636/cancel",
+  "expires_at": "2026-11-02T17:49:01.625181+00:00",
+  "video": {
+   "url": "https://d3u0tzju9qaucj.cloudfront.net/5afe9077-53e3-4696-8d41-03a78237e195/26de63a4-5d69-4666-aedb-1a8017083636/8ab7f2ee-375a-44be-b9af-3845babb01f3.mp4"
+  }
+ }
+}
