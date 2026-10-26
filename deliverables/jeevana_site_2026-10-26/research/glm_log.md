@@ -13,3 +13,5 @@ Hand review 2026-10-26: single global `window.JeevanaBackdrop`, no fetch/eval/co
 - One call, z-ai/glm-5.3, $0.00472 (1,116 in / 1,397 out tokens), 3,838 B; brief = gen_backdrop.py + a breath-specific override (public facts only: hairline ring, particle haze, 5.5 s clock, palette).
 - Review: single global `window.JeevanaBackdrop`, no fetch/XHR/eval/Function/storage/console. Hand edit: reduced-motion frame drew at t=2750 (b=1, full inhale) instead of b=0.5 → t=1375 (3 occurrences).
 - Shipped sha256: 1fa8403f7ab37cad2a3e5a405bcf2859e78c491dcb95f78ba6f407ff14935179
+- Round-1 hand edits (jury item 2/3): `setBreath(v|null)` (state-driven inhale/exhale target, eased 6 %/frame; null = 5.5 s clock),
+  `level()` and `geom()` (ring centre/radius probe for the clearance assertion). Still a single global, no network/eval.

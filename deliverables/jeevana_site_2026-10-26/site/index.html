@@ -12,12 +12,12 @@
 <link rel="icon" type="image/svg+xml" href="/assets/monogram.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
-<link rel="preload" as="image" href="/assets/film/poster.jpg?v=c45289ad">
+<link rel="preload" as="image" href="/assets/film/poster.jpg">
 <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/cormorant-garamond-latin-400-normal.woff2" crossorigin>
-<link rel="stylesheet" href="/css/styles.css?v=501f3dcf">
-<script src="/js/i18n.js?v=823b26cc" defer></script>
-<script src="/js/breath.js?v=1fa8403f" defer></script>
-<script src="/js/main.js?v=72d5a825" defer></script>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="/js/i18n.js" defer></script>
+<script src="/js/breath.js" defer></script>
+<script src="/js/main.js" defer></script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"f7ff129092344aca8fd504fcca79bc05"}'></script>
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Person", "name": "Jeevana Gogula", "jobTitle": "Yoga teacher", "email": "mailto:Jeevana.yogawellness@gmail.com", "address": {"@type": "PostalAddress", "addressLocality": "Paris", "addressCountry": "FR"}, "url": "https://jeevana-yoga.pages.dev/", "sameAs": ["https://www.instagram.com/jeevana.gogula/"]}</script>
 </head>
@@ -37,8 +37,8 @@
     <canvas class="cover__breath" data-breath aria-hidden="true"></canvas>
     <div class="film__glow" aria-hidden="true"></div>
     <div class="film" data-film>
-      <img class="film__poster" src="/assets/film/poster.jpg?v=c45289ad" alt="Jeevana moving through Sūrya Namaskāra" data-i18n-alt="alt.film" width="828" height="1108" data-film-poster>
-      <video class="film__video" data-film-video data-src="/assets/film/hero.json?v=343158a9" muted playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>
+      <img class="film__poster" src="/assets/film/poster.jpg" alt="Jeevana moving through Sūrya Namaskāra" data-i18n-alt="alt.film" width="828" height="1108" data-film-poster>
+      <video class="film__video" data-film-video data-src="/assets/film/hero.json" muted playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>
     </div>
     <div class="copy" data-copy>
       <div class="copy__state" data-copy-state="0">
@@ -52,52 +52,50 @@
       <div class="copy__state" data-copy-state="11">
         <p class="kicker"><span data-i18n="cover.kicker">Jeevana — Yoga in Paris</span></p>
         <h2 class="display display--sm"><span data-i18n="cover.s246.tr">The posture is steady and at ease.</span></h2>
-        <p class="ctas" data-cover-ctas><a class="btn btn--ink" href="#register" data-i18n="cta.register">Register for a class</a><a class="btn btn--line" href="#classes" data-i18n="cta.classes">See the classes</a></p>
+        <p class="ctas ctas--links" data-cover-ctas><a class="link-cta" href="#register"><span data-i18n="cta.register">Register for a class</span> <span aria-hidden="true">→</span></a><a class="link-plain" href="#classes" data-i18n="cta.classes">See the classes</a></p>
       </div>
     </div>
     <aside class="rail" data-rail aria-label="Sūrya Namaskāra — the twelve breaths" data-i18n-aria="rail.label">
       <p class="rail__label"><span data-i18n="rail.label">Sūrya Namaskāra — the twelve breaths</span></p>
-      <p class="rail__note"><span data-i18n="rail.note">a traditional sequence, taught as breath and movement</span></p>
       <ol class="rail__list">
-      <li class="rail__item" data-step="0"><span class="rail__no">01</span><span class="rail__bar" aria-hidden="true"></span>
+      <li class="rail__item" data-step="0" data-breath="exhale"><span class="rail__no">01</span><span class="rail__bar" aria-hidden="true"></span>
         <div class="rail__detail"><p class="rail__dev" lang="sa">प्रणामासन</p><p class="rail__iast">Praṇāmāsana</p>
-        <p class="rail__breath" data-i18n="sn.1.breath">Exhale</p><p class="rail__mantra">Om Mitrāya Namaḥ</p><p class="rail__gloss" data-i18n="sn.1.tr">to the friend of all</p></div></li>
-      <li class="rail__item" data-step="1"><span class="rail__no">02</span><span class="rail__bar" aria-hidden="true"></span>
+        <p class="rail__breath" data-i18n="sn.1.breath">Exhale</p><p class="rail__mantra">Om Mitrāya Namaḥ · <span data-i18n="sn.1.tr">to the friend of all</span></p></div></li>
+      <li class="rail__item" data-step="1" data-breath="inhale"><span class="rail__no">02</span><span class="rail__bar" aria-hidden="true"></span>
         <div class="rail__detail"><p class="rail__dev" lang="sa">हस्त उत्तानासन</p><p class="rail__iast">Hasta Uttānāsana</p>
-        <p class="rail__breath" data-i18n="sn.2.breath">Inhale</p><p class="rail__mantra">Om Ravaye Namaḥ</p><p class="rail__gloss" data-i18n="sn.2.tr">to the shining one</p></div></li>
-      <li class="rail__item" data-step="2"><span class="rail__no">03</span><span class="rail__bar" aria-hidden="true"></span>
+        <p class="rail__breath" data-i18n="sn.2.breath">Inhale</p><p class="rail__mantra">Om Ravaye Namaḥ · <span data-i18n="sn.2.tr">to the shining one</span></p></div></li>
+      <li class="rail__item" data-step="2" data-breath="exhale"><span class="rail__no">03</span><span class="rail__bar" aria-hidden="true"></span>
         <div class="rail__detail"><p class="rail__dev" lang="sa">पादहस्तासन</p><p class="rail__iast">Pādahastāsana</p>
-        <p class="rail__breath" data-i18n="sn.3.breath">Exhale</p><p class="rail__mantra">Om Sūryāya Namaḥ</p><p class="rail__gloss" data-i18n="sn.3.tr">to the one who induces activity</p></div></li>
-      <li class="rail__item" data-step="3"><span class="rail__no">04</span><span class="rail__bar" aria-hidden="true"></span>
+        <p class="rail__breath" data-i18n="sn.3.breath">Exhale</p><p class="rail__mantra">Om Sūryāya Namaḥ · <span data-i18n="sn.3.tr">to the one who induces activity</span></p></div></li>
+      <li class="rail__item" data-step="3" data-breath="inhale"><span class="rail__no">04</span><span class="rail__bar" aria-hidden="true"></span>
         <div class="rail__detail"><p class="rail__dev" lang="sa">अश्व सञ्चलनासन</p><p class="rail__iast">Aśva Sañcālanāsana</p>
-        <p class="rail__breath" data-i18n="sn.4.breath">Inhale</p><p class="rail__mantra">Om Bhānave Namaḥ</p><p class="rail__gloss" data-i18n="sn.4.tr">to the one who illumines</p></div></li>
-      <li class="rail__item" data-step="4"><span class="rail__no">05</span><span class="rail__bar" aria-hidden="true"></span>
+        <p class="rail__breath" data-i18n="sn.4.breath">Inhale</p><p class="rail__mantra">Om Bhānave Namaḥ · <span data-i18n="sn.4.tr">to the one who illumines</span></p></div></li>
+      <li class="rail__item" data-step="4" data-breath="exhale"><span class="rail__no">05</span><span class="rail__bar" aria-hidden="true"></span>
         <div class="rail__detail"><p class="rail__dev" lang="sa">पर्वतासन</p><p class="rail__iast">Parvatāsana</p>
-        <p class="rail__breath" data-i18n="sn.5.breath">Exhale</p><p class="rail__mantra">Om Khagāya Namaḥ</p><p class="rail__gloss" data-i18n="sn.5.tr">to the one who moves through the sky</p></div></li>
-      <li class="rail__item" data-step="5"><span class="rail__no">06</span><span class="rail__bar" aria-hidden="true"></span>
+        <p class="rail__breath" data-i18n="sn.5.breath">Exhale</p><p class="rail__mantra">Om Khagāya Namaḥ · <span data-i18n="sn.5.tr">to the one who moves through the sky</span></p></div></li>
+      <li class="rail__item" data-step="5" data-breath="retain"><span class="rail__no">06</span><span class="rail__bar" aria-hidden="true"></span>
         <div class="rail__detail"><p class="rail__dev" lang="sa">अष्टाङ्ग नमस्कार</p><p class="rail__iast">Aṣṭāṅga Namaskāra</p>
-        <p class="rail__breath" data-i18n="sn.6.breath">Retain the breath</p><p class="rail__mantra">Om Pūṣṇe Namaḥ</p><p class="rail__gloss" data-i18n="sn.6.tr">to the giver of strength</p></div></li>
-      <li class="rail__item" data-step="6"><span class="rail__no">07</span><span class="rail__bar" aria-hidden="true"></span>
+        <p class="rail__breath" data-i18n="sn.6.breath">Retain the breath</p><p class="rail__mantra">Om Pūṣṇe Namaḥ · <span data-i18n="sn.6.tr">to the giver of strength</span></p></div></li>
+      <li class="rail__item" data-step="6" data-breath="inhale"><span class="rail__no">07</span><span class="rail__bar" aria-hidden="true"></span>
         <div class="rail__detail"><p class="rail__dev" lang="sa">भुजङ्गासन</p><p class="rail__iast">Bhujaṅgāsana</p>
-        <p class="rail__breath" data-i18n="sn.7.breath">Inhale</p><p class="rail__mantra">Om Hiraṇyagarbhāya Namaḥ</p><p class="rail__gloss" data-i18n="sn.7.tr">to the golden cosmic self</p></div></li>
-      <li class="rail__item" data-step="7"><span class="rail__no">08</span><span class="rail__bar" aria-hidden="true"></span>
+        <p class="rail__breath" data-i18n="sn.7.breath">Inhale</p><p class="rail__mantra">Om Hiraṇyagarbhāya Namaḥ · <span data-i18n="sn.7.tr">to the golden cosmic self</span></p></div></li>
+      <li class="rail__item" data-step="7" data-breath="exhale"><span class="rail__no">08</span><span class="rail__bar" aria-hidden="true"></span>
         <div class="rail__detail"><p class="rail__dev" lang="sa">पर्वतासन</p><p class="rail__iast">Parvatāsana</p>
-        <p class="rail__breath" data-i18n="sn.8.breath">Exhale</p><p class="rail__mantra">Om Marīcaye Namaḥ</p><p class="rail__gloss" data-i18n="sn.8.tr">to the rays of light</p></div></li>
-      <li class="rail__item" data-step="8"><span class="rail__no">09</span><span class="rail__bar" aria-hidden="true"></span>
+        <p class="rail__breath" data-i18n="sn.8.breath">Exhale</p><p class="rail__mantra">Om Marīcaye Namaḥ · <span data-i18n="sn.8.tr">to the rays of light</span></p></div></li>
+      <li class="rail__item" data-step="8" data-breath="inhale"><span class="rail__no">09</span><span class="rail__bar" aria-hidden="true"></span>
         <div class="rail__detail"><p class="rail__dev" lang="sa">अश्व सञ्चलनासन</p><p class="rail__iast">Aśva Sañcālanāsana</p>
-        <p class="rail__breath" data-i18n="sn.9.breath">Inhale</p><p class="rail__mantra">Om Ādityāya Namaḥ</p><p class="rail__gloss" data-i18n="sn.9.tr">to the son of Aditi</p></div></li>
-      <li class="rail__item" data-step="9"><span class="rail__no">10</span><span class="rail__bar" aria-hidden="true"></span>
+        <p class="rail__breath" data-i18n="sn.9.breath">Inhale</p><p class="rail__mantra">Om Ādityāya Namaḥ · <span data-i18n="sn.9.tr">to the son of Aditi</span></p></div></li>
+      <li class="rail__item" data-step="9" data-breath="exhale"><span class="rail__no">10</span><span class="rail__bar" aria-hidden="true"></span>
         <div class="rail__detail"><p class="rail__dev" lang="sa">पादहस्तासन</p><p class="rail__iast">Pādahastāsana</p>
-        <p class="rail__breath" data-i18n="sn.10.breath">Exhale</p><p class="rail__mantra">Om Savitre Namaḥ</p><p class="rail__gloss" data-i18n="sn.10.tr">to the stimulating power</p></div></li>
-      <li class="rail__item" data-step="10"><span class="rail__no">11</span><span class="rail__bar" aria-hidden="true"></span>
+        <p class="rail__breath" data-i18n="sn.10.breath">Exhale</p><p class="rail__mantra">Om Savitre Namaḥ · <span data-i18n="sn.10.tr">to the stimulating power</span></p></div></li>
+      <li class="rail__item" data-step="10" data-breath="inhale"><span class="rail__no">11</span><span class="rail__bar" aria-hidden="true"></span>
         <div class="rail__detail"><p class="rail__dev" lang="sa">हस्त उत्तानासन</p><p class="rail__iast">Hasta Uttānāsana</p>
-        <p class="rail__breath" data-i18n="sn.11.breath">Inhale</p><p class="rail__mantra">Om Arkāya Namaḥ</p><p class="rail__gloss" data-i18n="sn.11.tr">to the one who is fit to be praised</p></div></li>
-      <li class="rail__item" data-step="11"><span class="rail__no">12</span><span class="rail__bar" aria-hidden="true"></span>
+        <p class="rail__breath" data-i18n="sn.11.breath">Inhale</p><p class="rail__mantra">Om Arkāya Namaḥ · <span data-i18n="sn.11.tr">to the one who is fit to be praised</span></p></div></li>
+      <li class="rail__item" data-step="11" data-breath="exhale"><span class="rail__no">12</span><span class="rail__bar" aria-hidden="true"></span>
         <div class="rail__detail"><p class="rail__dev" lang="sa">प्रणामासन</p><p class="rail__iast">Praṇāmāsana</p>
-        <p class="rail__breath" data-i18n="sn.12.breath">Exhale</p><p class="rail__mantra">Om Bhāskarāya Namaḥ</p><p class="rail__gloss" data-i18n="sn.12.tr">to the one who leads to enlightenment</p></div></li>
+        <p class="rail__breath" data-i18n="sn.12.breath">Exhale</p><p class="rail__mantra">Om Bhāskarāya Namaḥ · <span data-i18n="sn.12.tr">to the one who leads to enlightenment</span></p></div></li>
       </ol>
       <p class="rail__mobile" aria-hidden="true"><span data-rail-count>01 / 12</span> · <span data-rail-name>Praṇāmāsana</span> · <span data-rail-breath>Exhale</span></p>
-      <p class="rail__live" aria-hidden="true"><span class="rail__ring"></span><span data-breath-live>Inhale</span></p>
     </aside>
     <p class="hint" aria-hidden="true"><span data-i18n="hint">Scroll</span></p>
   </div>
@@ -107,7 +105,6 @@
   <div class="chapter__pin">
     <figure class="chapter__media"><img src="/assets/img/still-01@1200.webp" srcset="/assets/img/still-01@800.webp 800w, /assets/img/still-01@1200.webp 1200w" sizes="(max-width: 799px) 100vw, 40vw" alt="Jeevana in the sequence, a still from the film" data-i18n-alt="alt.still" width="828" height="1108" loading="lazy" decoding="async"></figure>
     <div class="chapter__body">
-      <svg class="mark" viewBox="0 0 100 100" aria-hidden="true" focusable="false"><circle cx="50" cy="50" r="40"/></svg>
       <p class="chapter__no"><span data-i18n="ch1.no">01</span></p>
       <h2 id="ch1-h"><span data-i18n="ch1.h">The practice</span></h2>
       <p class="lead"><span data-i18n="ch1.lead">Every class holds three things: posture, movement and breath.</span></p>
@@ -120,7 +117,6 @@
   <div class="chapter__pin">
     <figure class="chapter__media"><img src="/assets/img/still-02@1200.webp" srcset="/assets/img/still-02@800.webp 800w, /assets/img/still-02@1200.webp 1200w" sizes="(max-width: 799px) 100vw, 40vw" alt="Jeevana in the sequence, a still from the film" data-i18n-alt="alt.still" width="828" height="1108" loading="lazy" decoding="async"></figure>
     <div class="chapter__body chapter__body--wide">
-      <svg class="mark" viewBox="0 0 100 100" aria-hidden="true" focusable="false"><circle cx="50" cy="50" r="40"/></svg>
       <p class="chapter__no"><span data-i18n="ch2.no">02</span></p>
       <h2 id="ch2-h"><span data-i18n="ch2.h">Classes &amp; registration</span></h2>
       <div class="ch2">
@@ -128,8 +124,9 @@
           <ul class="hairlist hairlist--offers"><li class="offer"><h3><span data-i18n="class.group">Group class</span></h3><p><span data-i18n="class.group.d">A small group, all levels, one sequence practised together.</span></p></li><li class="offer"><h3><span data-i18n="class.private">Private session</span></h3><p><span data-i18n="class.private.d">One to one, at your pace: a first practice or a specific need.</span></p></li><li class="offer"><h3><span data-i18n="class.workshop">Workshop</span></h3><p><span data-i18n="class.workshop.d">A longer session on one theme: the breath, a family of postures, the twelve positions.</span></p></li></ul>
           <p class="price"><span data-i18n="price">Price on request</span></p>
           <div class="tt" data-tt><p class="tt__empty" data-tt-empty><span data-i18n="classes.empty">The timetable opens soon.</span> <a href="#register" data-i18n="classes.empty.cta">Register your interest</a></p><ul class="tt__rows" data-tt-rows hidden></ul></div>
+          <p class="ch2__open"><button type="button" class="link-cta" data-sheet-open aria-expanded="false" aria-controls="register"><span data-i18n="nav.register">Register</span> <span aria-hidden="true">→</span></button></p>
         </div>
-        <div class="ch2__form" id="register">
+        <div class="ch2__form sheet" id="register" data-sheet hidden>
           <form class="form" data-reg novalidate>
             <div class="form__grid">
               <label class="field"><span data-i18n="f.name">Name</span><input name="name" autocomplete="name" autocapitalize="words" enterkeyhint="next" required><small class="err" data-err="name"></small></label>
@@ -153,9 +150,8 @@
 
 <section class="chapter" id="contact" data-chapter="3" aria-labelledby="ch3-h">
   <div class="chapter__pin">
-    <figure class="chapter__media chapter__media--photo"><img src="/assets/img/eiffel@1200.webp" srcset="/assets/img/eiffel@800.webp 800w, /assets/img/eiffel@1200.webp 1200w" sizes="(max-width: 799px) 100vw, 40vw" alt="Jeevana in wheel pose on the Champ-de-Mars, Eiffel Tower behind" data-i18n-alt="alt.eiffel" width="1200" height="1600" loading="lazy" decoding="async"><figcaption><span data-i18n="eiffel.cap">Champ-de-Mars, Paris</span></figcaption></figure>
+    <figure class="chapter__media"><img src="/assets/img/still-03@1200.webp" srcset="/assets/img/still-03@800.webp 800w, /assets/img/still-03@1200.webp 1200w" sizes="(max-width: 799px) 100vw, 40vw" alt="Jeevana in Praṇāmāsana, palms together, the last frame of the film" data-i18n-alt="alt.still3" width="828" height="1108" loading="lazy" decoding="async"></figure>
     <div class="chapter__body">
-      <svg class="mark" viewBox="0 0 100 100" aria-hidden="true" focusable="false"><circle cx="50" cy="50" r="40"/></svg>
       <p class="chapter__no"><span data-i18n="ch3.no">03</span></p>
       <h2 id="ch3-h"><span data-i18n="ch3.h">Contact</span></h2>
       <p class="lead"><span data-i18n="contact.lead">For classes in Paris, group and private.</span></p>
@@ -172,6 +168,7 @@
 </section>
 </main>
 
+<div class="breathmark" data-breathmark aria-hidden="true"><svg viewBox="0 0 100 100" focusable="false"><circle cx="50" cy="50" r="46"/></svg></div>
 <nav class="mbar" data-mbar aria-label="Quick actions" data-i18n-aria="mbar.label"><a class="btn btn--ink" href="#register" data-i18n="mbar.register">Register</a><a class="btn btn--line" href="https://wa.me/33754287210" rel="noopener" data-ev="wa_tap"><span data-i18n="mbar.wa">WhatsApp</span> · +33 7 54 28 72 10</a></nav>
 
 <dialog class="news" data-news aria-labelledby="news-h">
@@ -182,8 +179,7 @@
     <label class="field"><span data-i18n="f.phone">Phone (optional)</span><input name="phone" type="tel" inputmode="tel" autocomplete="tel"><small class="err" data-err="phone"></small></label>
     <label class="hp" aria-hidden="true"><span data-i18n="f.hp">Leave this field empty</span><input name="website" tabindex="-1" autocomplete="off"></label>
     <label class="check"><input type="checkbox" name="consent" required><span data-i18n="news.consent">I agree to receive Jeevana&#x27;s newsletter by email. I can unsubscribe at any time.</span></label><small class="err" data-err="consent"></small>
-    <p class="form__foot"><button class="btn btn--ink" type="submit" data-i18n="news.yes">Keep me posted</button><button class="btn btn--quiet" type="button" data-news-close data-i18n="news.no">No thanks</button></p>
-    <p class="note"><span data-i18n="news.note">Voluntary — close this and nothing happens.</span></p>
+    <p class="form__foot"><button class="btn btn--ink" type="submit" data-i18n="news.yes">Keep me posted</button><button class="link-quiet" type="button" data-news-close data-i18n="news.no">No thanks</button></p>
     <p class="form__fail" data-fail hidden><span data-i18n="news.err">It did not go through. Please try again later.</span></p>
   </form>
   <div class="news__ok" data-ok hidden><p tabindex="-1"><span data-i18n="news.ok">Thank you. You are on the list.</span></p><button class="btn btn--quiet" type="button" data-news-close data-i18n="news.close">Close</button></div>

@@ -2,7 +2,7 @@
   'use strict';
   var api = {}, cv = null, ctx = null, raf = 0, paused = false, hidden = false;
   var W = 0, H = 0, dpr = 1, p = 0, seed = 1, reduced = false, pts = [], n = 0;
-  var INK = '42,33,26', ACC = '196,115,26';
+  var INK = '42,33,26', ACC = '196,115,26', tgt = null, lvl = 0.5, G = { cx: 0, cy: 0, r: 0, rMax: 0 };
 
   function mul(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 
@@ -32,8 +32,10 @@
 
   function draw(t) {
     if (!ctx) return;
-    var b = api.breath(t), cx = W / 2, cy = H * (0.5 - 0.04 * p), R = 0.36 * Math.min(W, H);
+    if (tgt !== null) lvl += (tgt - lvl) * 0.06; else lvl = api.breath(t);
+    var b = lvl, cx = W / 2, cy = H * (0.5 - 0.04 * p), R = 0.36 * Math.min(W, H);
     var rot = p * 0.6, s = 1 + 0.04 * b, hb = 1 + 0.3 * b;
+    G.cx = cx; G.cy = cy; G.r = R * s; G.rMax = R * 1.04;
     ctx.clearRect(0, 0, W, H);
     ctx.lineWidth = 1;
     ctx.strokeStyle = 'rgba(' + INK + ',0.38)';
@@ -91,6 +93,9 @@
   };
   api.render = function (t) { if (!reduced) draw(t); else draw(1375); };
   api.breath = function (t) { return (1 - Math.cos(6.283185307 * (t / 5500))) / 2; };
+  api.setBreath = function (v) { tgt = (v === null || v === undefined) ? null : Math.max(0, Math.min(1, v)); if (reduced) { lvl = tgt === null ? 0.5 : tgt; draw(1375); } };
+  api.level = function () { return lvl; };
+  api.geom = function () { return { cx: G.cx, cy: G.cy, r: G.r, rMax: G.rMax }; };
   api.pause = function () { paused = true; if (raf) { cancelAnimationFrame(raf); raf = 0; } };
   api.resume = function () { paused = false; start(); };
   api.destroy = function () {

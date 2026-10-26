@@ -20,6 +20,8 @@
   var PHONE_MAX = 799;          // px; phones get the lighter 3:4 encode and the 10 x 100svh track
   var PORTRAIT_MQ = '(max-width: 799px), (max-aspect-ratio: 4/5)'; // mirrors styles.css
   var FIG_TOP = 0.14, FIG_BOT = 0.87; // figure extent in the 3:4 frame (research/film/figure_boxes.json, all 12 keyframes)
+  var RING_CLEAR = 48;          // px the breath ring keeps from the copy and rail (jury round 1, item 3)
+  var BREATH_LEVEL = { inhale: 1, exhale: 0, retain: 0.5 }; // the ring follows the rail's breath word
   var JUMP = 1.2;               // s; farther than this the film seeks straight to target
   var COPY_STATES = [0, 4, 11]; // copy state shown from this pos index onwards
   var LS_LANG = 'jv-lang', LS_NEWS = 'jv-news-seen';
@@ -102,10 +104,25 @@
       el.classList.toggle('is-on', i === st); el.classList.toggle('is-done', i < Math.floor(x));
       var bar = $('.rail__bar', el); if (bar) bar.style.setProperty('--fill', i === Math.floor(x) ? clamp(x - i, 0, 1).toFixed(3) : '0');
     });
-    if (st === shown) return; shown = st; railText();
+    if (st === shown) return; shown = st; railText(); ringBreath();
     var c = copyOf(st); engine.copy = c;
     copyStates.forEach(function (el) { el.classList.toggle('is-on', Number(el.getAttribute('data-copy-state')) === c); });
     placeFilm();
+  }
+  var onCover = true;
+  function ringBreath() {
+    var bd = W.JeevanaBackdrop; if (!bd || !bd.setBreath || staticMode) return;
+    var it = items[Math.max(0, shown)], lv = it ? BREATH_LEVEL[it.getAttribute('data-breath')] : undefined;
+    bd.setBreath(onCover && lv !== undefined ? lv : null);
+  }
+  function layoutRing() { // ring centred on the film window, radius limited so it clears copy + rail by RING_CLEAR
+    var cv = $('[data-breath]'); if (!cv || !film || !stage) return;
+    var f = film.getBoundingClientRect(), s0 = stage.getBoundingClientRect(), cx = f.left + f.width / 2, cy = f.top + f.height / 2;
+    var obs = copyStates.concat([$('[data-rail]')]).filter(Boolean), d = Infinity;
+    obs.forEach(function (el) { var r = el.getBoundingClientRect(); if (!r.width || !r.height) return; var dx = Math.max(r.left - cx, 0, cx - r.right), dy = Math.max(r.top - cy, 0, cy - r.bottom); d = Math.min(d, Math.sqrt(dx * dx + dy * dy)); });
+    var R0 = Math.min(f.width, f.height) * 0.5, Rr = Math.max(40, Math.min(R0, (d - RING_CLEAR) / 1.151));
+    var S = Rr / 0.36; stage.style.setProperty('--ring-s', Math.round(S) + 'px');
+    stage.style.setProperty('--ring-x', Math.round(cx - s0.left) + 'px'); stage.style.setProperty('--ring-y', Math.round(cy - s0.top) + 'px');
   }
   function setPos(x) { pos = clamp(x, 0, LAST); engine.pos = pos; var st = stateOf(pos); engine.state = st; show(st, pos); }
   var filmH = 0, copyTop = 0, railTop = 0, maxCopy = 0;
@@ -114,15 +131,15 @@
     if (!filmH || !stage) return; var V = stage.clientHeight || W.innerHeight, on = $('.copy__state.is-on');
     var C = copyTop + (on ? on.offsetHeight : maxCopy) + 12, f = figOf(Math.max(0, shown)), H = filmH;
     var lo = C - f[0] * H, hi = railTop - f[1] * H, T = ((C + railTop) / 2) - ((f[0] + f[1]) / 2) * H;
-    T = hi >= lo ? clamp(T, lo, hi) : lo; stage.style.setProperty('--film-top', Math.round(T) + 'px');
+    T = hi >= lo ? clamp(T, lo, hi) : lo; stage.style.setProperty('--film-top', Math.round(T) + 'px'); W.setTimeout(layoutRing, 950);
   }
   function measureCopy() { // portrait class: 3:4 film between the copy (top) and the rail (bottom); paper may pass under both, the figure never
-    if (!stage || !W.matchMedia(PORTRAIT_MQ).matches) { filmH = 0; return; }
+    if (!stage || !W.matchMedia(PORTRAIT_MQ).matches) { filmH = 0; layoutRing(); return; }
     var h = 0; copyStates.forEach(function (el) { h = Math.max(h, el.offsetHeight); }); maxCopy = h;
     var c = $('[data-copy]'), rail = $('[data-rail]'), V = stage.clientHeight || W.innerHeight, Wd = stage.clientWidth || W.innerWidth;
     copyTop = c ? c.offsetTop : 0; railTop = rail ? rail.offsetTop - 8 : V - 60;
     filmH = Math.min(Wd * 4 / 3, (railTop - copyTop - h - 12) / (FIG_BOT - FIG_TOP));
-    stage.style.setProperty('--film-h', Math.round(filmH) + 'px'); placeFilm();
+    stage.style.setProperty('--film-h', Math.round(filmH) + 'px'); placeFilm(); layoutRing();
   }
   var raf = 0;
   function seekTick() {
@@ -142,6 +159,7 @@
     if (mbar) mbar.classList.toggle('is-shown', p >= COVER_DONE || (cover && cover.getBoundingClientRect().bottom < W.innerHeight));
     if (p >= COVER_DONE) ev('cover_complete', true);
     if (W.JeevanaBackdrop && !staticMode) W.JeevanaBackdrop.setProgress(p);
+    var oc = !cover || cover.getBoundingClientRect().bottom > 0; if (oc !== onCover) { onCover = oc; ringBreath(); }
     if (!engine.ready || staticMode) return;
     if (p > 0 && autoplaying) stopAutoplay();
     if (p > 0) scrolled = true;
@@ -194,7 +212,7 @@
   var lastLabel = '', breathOn = false;
   function breathLoop(t) {
     breathOn = true;
-    var b = breathAt(t); root.style.setProperty('--b', b.toFixed(3));
+    var b = W.JeevanaBackdrop && W.JeevanaBackdrop.level ? W.JeevanaBackdrop.level() : breathAt(t); root.style.setProperty('--b', b.toFixed(3));
     var inh = (t % BREATH_MS) < BREATH_MS / 2, lbl = tr(inh ? 'breath.in' : 'breath.ex');
     if (breathLive && lbl !== lastLabel) { breathLive.textContent = lbl; breathLive.setAttribute('data-phase', inh ? 'in' : 'ex'); lastLabel = lbl; }
     if (!doc.hidden) W.requestAnimationFrame(breathLoop); else breathOn = false;
@@ -206,6 +224,7 @@
     var mid = W.innerHeight * 0.5, on = -1;
     chapters.forEach(function (c, i) { var r = c.getBoundingClientRect(); if (r.top <= mid && r.bottom > mid) on = i; });
     chapters.forEach(function (c, i) { c.classList.toggle('is-on', i === on || staticMode); });
+    root.classList.toggle('in-chapters', on >= 0);
     if (on >= 0 && !reached1) { reached1 = true; armDialog(); }
   }
 
@@ -271,7 +290,15 @@
     });
   }
   wire($('[data-reg]'), '/api/register', 'reg'); wire($('[data-sub]'), '/api/subscribe', 'news');
-  $$('a[href="#register"]').forEach(function (a) { a.addEventListener('click', function () { W.setTimeout(function () { var n = $('[data-reg] [name="name"]'); if (n && W.innerWidth > PHONE_MAX) n.focus({ preventScroll: true }); }, 700); }); });
+  var sheet = $('[data-sheet]'), sheetBtn = $('[data-sheet-open]');
+  function openSheet(e) { // chapter 02: the registration form opens inline below the offerings
+    if (e) e.preventDefault(); if (!sheet) return;
+    var ch = sheet.closest('[data-chapter]'); sheet.hidden = false; if (ch) ch.classList.add('is-open'); if (sheetBtn) sheetBtn.setAttribute('aria-expanded', 'true');
+    W.requestAnimationFrame(function () { sheet.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' }); var n = $('[name="name"]', sheet); if (n) W.setTimeout(function () { n.focus({ preventScroll: true }); }, reduce ? 0 : 600); });
+  }
+  if (sheetBtn) sheetBtn.addEventListener('click', openSheet);
+  $$('a[href="#register"]').forEach(function (a) { a.addEventListener('click', openSheet); });
+  if (W.location.hash === '#register') openSheet();
 
   // ---- timetable + contact slots ----
   var ttRows = $('[data-tt-rows]'), ttEmpty = $('[data-tt-empty]');
