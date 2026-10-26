@@ -122,7 +122,7 @@
     if (filmH) { centres = []; for (var k = 0; k <= LAST; k++) centres.push(topFor(k) + filmH / 2); H = filmH; }
     var obs = copyStates.concat([$('[data-rail]')]).filter(Boolean), d = Infinity;
     obs.forEach(function (el) { var r = el.getBoundingClientRect(); if (!r.width || !r.height) return; centres.forEach(function (c) { var y = c + s0.top, dx = Math.max(r.left - cx, 0, cx - r.right), dy = Math.max(r.top - y, 0, y - r.bottom); d = Math.min(d, Math.sqrt(dx * dx + dy * dy)); }); });
-    var R0 = Math.min(0.375 * H, 0.425 * s0.width / 1.04), Rfit = (d - RING_CLEAR) / 1.151, faint = Rfit < R0 * 0.45, Rr = faint ? R0 * 0.8 : Math.min(R0, Rfit);
+    var R0 = Math.min(0.5 * H * (meta && meta.wide ? meta.wide.orig_width / meta.wide.height : 0.75), 0.425 * s0.width / 1.04), Rfit = (d - RING_CLEAR) / 1.151, faint = Rfit < R0 * 0.45, Rr = faint ? R0 * 0.8 : Math.min(R0, Rfit);
     cv.classList.toggle('is-faint', faint); // where the ring cannot clear the copy it sits at 6 % behind type
     stage.style.setProperty('--ring-s', Math.round(Rr / 0.36) + 'px');
     stage.style.setProperty('--fl', Math.round(f.left - s0.left) + 'px'); stage.style.setProperty('--fr', Math.round(s0.right - f.right) + 'px'); stage.style.setProperty('--fc', Math.round(cx - s0.left) + 'px');
@@ -145,7 +145,8 @@
     var h = 0; copyStates.forEach(function (el) { h = Math.max(h, el.offsetHeight); }); maxCopy = h;
     var c = $('[data-copy]'), rail = $('[data-rail]'), V = stage.clientHeight || W.innerHeight, Wd = stage.clientWidth || W.innerWidth;
     copyTop = c ? c.offsetTop : 0; railTop = rail ? rail.offsetTop - 8 : V - 60;
-    filmH = Math.min(Wd * 1.28, (railTop - copyTop - h - 12) / (FIG_BOT - FIG_TOP)); // the 3:4 frame inside the widened film keeps >= 6 % side gutters (r2 item 8)
+    var oar = meta && meta.wide ? meta.wide.orig_width / meta.wide.height : 0.75; // the film's own frame inside the widened window (3:4 or 9:16)
+    filmH = Math.min(Wd * 0.96 / oar, (railTop - copyTop - h - 12) / (FIG_BOT - FIG_TOP)); // the 3:4 frame inside the widened film keeps >= 6 % side gutters (r2 item 8)
     stage.style.setProperty('--film-h', Math.round(filmH) + 'px'); placeFilm();
   }
   var raf = 0;
@@ -199,7 +200,7 @@
     if (!video || !film) return;
     var url = video.getAttribute('data-src');
     fetch(url, { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error('hero.json ' + r.status); return r.json(); }).then(function (m) {
-      if (!m || !m.ready) return; meta = m; placeFilm(); K = keyframes(m); engine.K = K; engine.meta = m;
+      if (!m || !m.ready) return; meta = m; measureCopy(); K = keyframes(m); engine.K = K; engine.meta = m;
       var phone = W.innerWidth <= PHONE_MAX && m.phone, file = phone ? m.phone : m.landscape, v = m.v && m.v[phone ? 'phone' : 'landscape'];
       var src = '/assets/film/' + file + (v ? '?v=' + v : ''); engine.src = src;
       return fetch(src).then(function (r) { if (!r.ok) throw new Error('film ' + r.status); return r.blob(); })

@@ -1,30 +1,25 @@
 {
  "ready": true,
- "legs": 11,
- "leg_seconds": 5.041667,
+ "legs": 10,
+ "leg_seconds": 5.083333,
  "xfade": 0.35,
- "seconds": 52,
+ "seconds": 47.71,
  "keyframes_s": [
   0,
-  4.69,
-  9.38,
-  14.08,
-  18.77,
-  23.46,
-  28.15,
-  32.84,
-  37.53,
-  42.23,
-  46.92,
-  51.61
+  4.73,
+  9.47,
+  14.2,
+  18.93,
+  23.67,
+  28.4,
+  33.13,
+  37.87,
+  42.6,
+  47.33
  ],
- "aspect": "3:4",
+ "aspect": "9:16",
  "landscape": "hero.mp4",
  "poster": "poster.jpg",
- "plate": "dawn",
- "weak_legs": {
-  "08": "head clips the left edge for ~1 s, hair flicker; best of 3 takes"
- },
  "v": {
   "poster": "cb844090",
   "landscape": "fbb26114",
@@ -38,6 +33,7 @@
   "blend": 64
  },
  "phone": "hero-phone.mp4",
+ "plate": "dawn",
  "fig": [
   [
    0.1431,

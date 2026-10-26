@@ -1,0 +1,35 @@
+{
+ "leg": 2,
+ "body": {
+  "prompt": "The woman in the reference images, the same face throughout. She moves slowly from Hasta Utt\u0101n\u0101sana, arms raised overhead, gentle backbend into P\u0101dahast\u0101sana, standing forward fold, hands to the floor. One slow continuous yoga movement with the breath, nothing else moves. Fixed camera, eye level, full body always in frame, feet on the same ground line. A soft dawn sky behind her: deep indigo above fading through dusty rose into a warm ochre haze at the ground line, no clouds, no buildings, a quiet glow near the horizon, first light, no props, no text, no other people. Photoreal, her face unchanged, hair tied back the whole time, clothing and body unchanged throughout, hands and feet keep contact with the floor when they are on it. Calm editorial pacing.",
+  "first_frame_url": "https://jeevana-frames.pages.dev/dawn/frame-02.jpg",
+  "last_frame_url": "https://jeevana-frames.pages.dev/dawn/frame-03.jpg",
+  "mode": "std",
+  "duration": 5,
+  "aspect_ratio": "9:16",
+  "image_urls": [
+   "https://jeevana-frames.pages.dev/ref/ref-01.jpg",
+   "https://jeevana-frames.pages.dev/ref/ref-02.jpg",
+   "https://jeevana-frames.pages.dev/ref/ref-03.jpg",
+   "https://jeevana-frames.pages.dev/ref/ref-04.jpg"
+  ]
+ },
+ "submit": {
+  "status": "queued",
+  "request_id": "05c7a800-400b-428c-9711-7439f9e5ca7c",
+  "status_url": "https://api.higgsfield.ai/requests/05c7a800-400b-428c-9711-7439f9e5ca7c/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/05c7a800-400b-428c-9711-7439f9e5ca7c/cancel",
+  "expires_after": 604800
+ },
+ "model": "kling-video/omni/first-last-frame",
+ "status": {
+  "status": "completed",
+  "request_id": "05c7a800-400b-428c-9711-7439f9e5ca7c",
+  "status_url": "https://api.higgsfield.ai/requests/05c7a800-400b-428c-9711-7439f9e5ca7c/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/05c7a800-400b-428c-9711-7439f9e5ca7c/cancel",
+  "expires_at": "2026-11-02T21:26:10.038119+00:00",
+  "video": {
+   "url": "https://d3u0tzju9qaucj.cloudfront.net/5afe9077-53e3-4696-8d41-03a78237e195/05c7a800-400b-428c-9711-7439f9e5ca7c/4e7b47de-d918-428c-87ae-b67467387deb.mp4"
+  }
+ }
+}

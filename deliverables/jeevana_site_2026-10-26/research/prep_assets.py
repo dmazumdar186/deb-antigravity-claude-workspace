@@ -9,7 +9,7 @@ usage: python3 research/prep_assets.py   outputs: site/assets/img/still-0N@{800,
 import json, subprocess, pathlib, tempfile
 import numpy as np
 from PIL import Image, ImageEnhance, ImageFilter
-R = pathlib.Path(__file__).parent; FD = R / ('film_dawn' if (R / 'film_dawn/hero.json').exists() else 'film')
+R = pathlib.Path(__file__).parent; FD = R / ('film_omni' if (R / 'film_omni/hero.json').exists() else 'film_dawn' if (R / 'film_dawn/hero.json').exists() else 'film')
 S = R.parent / 'site/assets/img'; S.mkdir(parents=True, exist_ok=True)
 hj = json.loads((FD / 'hero.json').read_text()); ks = hj['keyframes_s']; n = len(ks)
 boxes = json.loads((R / 'film/figure_boxes.json').read_text())['landscape']

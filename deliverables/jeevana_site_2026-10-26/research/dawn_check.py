@@ -57,7 +57,8 @@ for s in m['shots']:
                     y = t + (b - t) * f; xs = range(int(edge - 30 * sign), int(edge + fe * sign), sign); prof = np.array([L(x, y) for x in xs if 0 <= x < W])
                 else:
                     x = l + (r - l) * f; ys = range(int(edge - 30 * sign), int(edge + fe * sign), sign); prof = np.array([L(x, y) for y in ys if 0 <= y < H])
-                if len(prof) > 20 and 0 < edge < (W if axis == 'x' else H) - 1:  # edges at the viewport boundary (full bleed) have no visible edge smax = max(smax, max(abs(prof[i:i + 9].mean() - prof[i - 9:i].mean()) for i in range(9, len(prof) - 9)))
+                if len(prof) > 20 and 0 < edge < (W if axis == 'x' else H) - 1:  # edges at the viewport boundary (full bleed) have no visible edge
+                    smax = max(smax, max(abs(prof[i:i + 9].mean() - prof[i - 9:i].mean()) for i in range(9, len(prof) - 9)))
         out.setdefault('panelstep', []).append({'tag': tag, 'step': round(smax, 3)})
     elif s['kind'] == 'panelalpha':
         A, B, C = [np.asarray(Image.open(q).convert('RGB')).astype(float) for q in s['pngs']]; l, t, r, b = s['rect']; res = []

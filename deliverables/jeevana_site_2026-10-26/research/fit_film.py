@@ -9,13 +9,17 @@ usage: python3 research/fit_film.py   (then node research/stamp.mjs)"""
 import json, subprocess, pathlib, tempfile
 import numpy as np
 from PIL import Image, ImageFilter
-R = pathlib.Path(__file__).parent; FD = R / ('film_dawn' if (R / 'film_dawn/hero.json').exists() else 'film')
+R = pathlib.Path(__file__).parent; FD = R / ('film_omni' if (R / 'film_omni/hero.json').exists() else 'film_dawn' if (R / 'film_dawn/hero.json').exists() else 'film')
 OUT = R.parent / 'site/assets/film'; OUT.mkdir(parents=True, exist_ok=True)
 meta = json.loads((FD / 'hero.json').read_text()); src = FD / meta['landscape']
-W0, H0, WW, BL = 828, 1108, 1330, 64; PAD = (WW - W0) // 2
+import subprocess as _sp
+_dims = _sp.run(['ffprobe', '-v', 'error', '-select_streams', 'v', '-show_entries', 'stream=width,height', '-of', 'csv=p=0', str(src)], capture_output=True, text=True).stdout.strip().split(',')
+H0, WW, BL = 1108, 1330, 64; W0 = int(round(int(_dims[0]) * H0 / int(_dims[1]) / 2) * 2); PAD = (WW - W0) // 2  # 3:4 → 828, 9:16 → 624; the window stays 1330 x 1108
 tmp = pathlib.Path(tempfile.mkdtemp())
 plate_p = R / 'keyframes/dawn/plate.jpg'
-plate = Image.open(plate_p).convert('RGB').resize((W0, H0), Image.LANCZOS) if plate_p.exists() else None
+def cover(im, w, h):
+    s_ = max(w / im.width, h / im.height); im = im.resize((round(im.width * s_), round(im.height * s_)), Image.LANCZOS); x = (im.width - w) // 2; y = (im.height - h) // 2; return im.crop((x, y, x + w, y + h))
+plate = cover(Image.open(plate_p).convert('RGB'), W0, H0) if plate_p.exists() else None
 def widen(frame):
     a = np.asarray(frame).astype(np.float32); base = np.asarray(plate).astype(np.float32) if plate is not None else a
     bg = np.zeros((H0, WW, 3), np.float32); bg[:, PAD:PAD + W0] = base
@@ -29,8 +33,8 @@ widen(plate if plate is not None else Image.new('RGB', (W0, H0))).save(tmp / 'bg
 mask = np.tile(np.concatenate([np.linspace(0, 255, BL), np.full(W0 - 2 * BL, 255), np.linspace(255, 0, BL)])[None, :], (H0, 1)).astype(np.uint8)
 Image.fromarray(mask, 'L').save(tmp / 'mask.png')
 # widened poster from the film's poster
-widen(Image.open(FD / meta['poster']).convert('RGB').resize((W0, H0))).save(OUT / 'poster.jpg', quality=86)
-FC = f"[1:v]format=rgb24[f];[2:v]format=gray,loop=-1:1:0[m];[f][m]alphamerge[fa];[0:v][fa]overlay={PAD}:0:shortest=1"
+widen(cover(Image.open(FD / meta['poster']).convert('RGB'), W0, H0)).save(OUT / 'poster.jpg', quality=86)
+FC = f"[1:v]scale={W0}:{H0}:flags=lanczos,format=rgb24[f];[2:v]format=gray,loop=-1:1:0[m];[f][m]alphamerge[fa];[0:v][fa]overlay={PAD}:0:shortest=1"
 log = {}
 for name, crf, scale, cap in (('hero.mp4', 23, None, 6 * 2**20), ('hero-phone.mp4', 25, 720, 4 * 2**20)):
     while True:
