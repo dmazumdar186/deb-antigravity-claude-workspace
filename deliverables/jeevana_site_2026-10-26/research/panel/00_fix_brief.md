@@ -13,8 +13,8 @@ Decisions by the brain marked ►. Scope: backend, legal, ops, measurement. Visu
 ## B. Backend hardening (lenses 6, 10, 3)
 4. `_lib.ts`: rate limiter in try/catch (KV failure → allow, `console.error`); body size cap 8 KB before parse
    (`content-length` + `text()` length); missing KV binding → 503 JSON `{error:"storage unavailable"}`.
-5. `subscribe.ts`: **no phone field accepted** (►); idempotent re-subscribe keeps the original `consent_ts`;
-   store `unsubscribe_token` (random 24 bytes hex); record `{email, lang, source, consent_ts, consent_text}`.
+5. `subscribe.ts`: phone stays as an **optional** field (► operator decision 2026-10-26, overrules the jury); the dialog shows email, phone (optional), consent; idempotent re-subscribe keeps the original `consent_ts`;
+   store `unsubscribe_token` (random 24 bytes hex); record `{email, phone?, lang, source, consent_ts, consent_text}`.
 6. New `GET /api/unsubscribe?t=<token>` → deletes the record, returns a tiny HTML page (EN/FR by `lang`). Copy on the
    site says "unsubscribe at any time" — now true; the link goes into every future newsletter (documented in to_wire).
 7. `register.ts`: `expirationTtl` 24 months on `reg:` records (retention policy, stated in the privacy page); keep

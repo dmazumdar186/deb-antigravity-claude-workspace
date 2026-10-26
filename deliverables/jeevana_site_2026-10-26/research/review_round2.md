@@ -80,3 +80,6 @@ tv-portrait-0: wordmark sits ≤ 16 svh under the mat edge (no 25 % dark grass v
 ## Process
 Fresh screens for everything (named + 19-viewport matrix × 0/50/100 + page-full with `?static=1` and without).
 Report: functional N/N with the new assertion names listed, any assertion you could not make pass and why.
+
+## Operator decision (2026-10-26, after round 2)
+The newsletter pop-up keeps an optional phone field (overrules jury H33). Email required, phone optional, consent required, quiet "No thanks".
