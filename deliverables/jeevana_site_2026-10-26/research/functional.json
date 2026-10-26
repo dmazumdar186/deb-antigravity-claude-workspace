@@ -1,688 +1,468 @@
 {
- "date": "2026-10-26",
- "pass": 85,
- "total": 85,
- "playwright": "1.63.0",
- "pillow": "12.3.0",
- "sizes": {
-  "html": 23910,
-  "css": 35832,
-  "js": 29638,
-  "i18n": 15650
+ "date": "2026-10-26T17:51:08.940Z",
+ "film": {
+  "standin": true,
+  "seconds": 5.04,
+  "keyframes": 2
  },
+ "pass": 32,
+ "total": 38,
  "results": [
   {
-   "name": "index+css+js ≤ 150 KB",
+   "name": "film_plays_unscrolled (currentTime > 4 s at 6 s)",
    "ok": true,
-   "info": {
-    "kb": 102.6
-   }
+   "detail": "ct=5.03"
   },
   {
-   "name": "no style=\"\" attributes in shipped HTML (index, privacy, 404)",
-   "ok": true,
-   "info": [
-    0,
-    0,
-    0
-   ]
-  },
-  {
-   "name": "fonts self-hosted: no Google Fonts link, @font-face from /assets/fonts, CSP font-src self",
-   "ok": true,
-   "info": {
-    "ext": []
-   }
-  },
-  {
-   "name": "Cloudflare beacon present with the supplied token; CSP allows it (script + connect)",
-   "ok": true
-  },
-  {
-   "name": "contours: one outer path per figure (single M), each ≤ 6 KB",
-   "ok": true,
-   "info": []
-  },
-  {
-   "name": "srcset never upscales: every variant ≤ the figure's native height; wash layer for every cover key",
-   "ok": true,
-   "info": []
-  },
-  {
-   "name": "phone appears exactly twice in index.html (Contact row + mobile bar); JSON-LD Person without telephone",
-   "ok": true
-  },
-  {
-   "name": "named timing constants at the top of main.js",
-   "ok": true
-  },
-  {
-   "name": "backdrop canvas retired (no backdrop.js, no <canvas> in the cover); Kling slot ships dormant (hero.json ready:false)",
-   "ok": true
-  },
-  {
-   "name": "content fixture: i18n.js matches the 12 triples + 2 sūtras (EN + FR); IAST unified; EN/FR key parity",
-   "ok": true,
-   "info": []
-  },
-  {
-   "name": "unsubscribe flow (mocked KV): token stored (24 bytes hex), re-subscribe keeps consent_ts/token/phone, GET deletes the record, FR page, second use 404",
-   "ok": true,
-   "info": {
-    "s": [
-     200,
-     200,
-     200,
-     404
-    ]
-   }
-  },
-  {
-   "name": "event beacon allowlist: known name counts (ev:<date>:<name> = 2), unknown 400 with nothing stored; /api/stats 401 without auth, 30-day JSON with it",
-   "ok": true,
-   "info": {
-    "evk": [
-     "ev:2026-10-26:wa_tap"
-    ]
-   }
-  },
-  {
-   "name": "backend hardening: 8 KB cap → 413, missing KV → 503 JSON, KV failure → rate limiter allows + 500 logged with {service,route}, reg: records expire in 24 months with consent_text",
-   "ok": true,
-   "info": [
-    413,
-    503,
-    500
-   ]
-  },
-  {
-   "name": "middleware: 404 for /wrangler.toml, /functions/*, /research/*, *.ts; passes /",
-   "ok": true,
-   "info": [
-    404,
-    404,
-    404,
-    404,
-    200
-   ]
-  },
-  {
-   "name": "notify(): BREVO_API_KEY unset → console.log only, visitor still gets 200",
-   "ok": true
-  },
-  {
-   "name": "S0: sn-01 contour draws itself (dashoffset > 0 at 0.4 s → 0 by 4 s), graphite wash fades in, rail 01 lights — no scroll",
-   "ok": true,
-   "info": {
-    "a": {
-     "intro": "drawing",
-     "off": "0.967608px",
-     "key": "sn-01",
-     "rev": "0.000",
-     "d": 2764
+   "name": "scroll_takeover_1440x900 (|currentTime − f(p)| < 0.4 s at p=.25/.5/.75/1)",
+   "ok": false,
+   "detail": {
+    "1": {
+     "currentTime": 2.328,
+     "expected": 5.04
     },
-    "c": {
-     "intro": "done",
-     "off": 0,
-     "tone": 0.18,
-     "lit": true,
-     "y": 0
+    "0.25": {
+     "currentTime": 0.302,
+     "expected": 1.375
+    },
+    "0.5": {
+     "currentTime": 0.841,
+     "expected": 2.749
+    },
+    "0.75": {
+     "currentTime": 1.563,
+     "expected": 4.124
     }
    }
   },
   {
-   "name": "S0: photograph hidden under the drawing (reveal = 0)",
-   "ok": true
-  },
-  {
-   "name": "autoplay reaches S3 within 12 s of load (no scroll), then holds",
-   "ok": true,
-   "info": {
-    "s3": 3
+   "name": "scroll_takeover_390x844 (|currentTime − f(p)| < 0.4 s at p=.25/.5/.75/1)",
+   "ok": false,
+   "detail": {
+    "1": {
+     "currentTime": 2.328,
+     "expected": 5.04
+    },
+    "0.25": {
+     "currentTime": 0.302,
+     "expected": 1.375
+    },
+    "0.5": {
+     "currentTime": 0.841,
+     "expected": 2.749
+    },
+    "0.75": {
+     "currentTime": 1.563,
+     "expected": 4.124
+    }
    }
   },
   {
-   "name": "autoplay holds at S3",
-   "ok": true
-  },
-  {
-   "name": "scroll takes over from the current state (no jump back to S0), then follows the track",
-   "ok": true,
-   "info": {
-    "kept": 3,
-    "s6": 6,
-    "ap": "off"
-   }
-  },
-  {
-   "name": "one state drives figure, rail and mobile counter: data-state = s, rail data-pos = railm data-pos = position, at 13 states (EN + FR)",
-   "ok": true,
-   "info": []
-  },
-  {
-   "name": "GLOSS: desktop rail and mobile counter show the i18n mantra + gloss of the current position (EN + FR)",
-   "ok": true
-  },
-  {
-   "name": "rail mantra text changes with the state",
-   "ok": true
-  },
-  {
-   "name": "headline: \"Twelve breaths.\" beat at S0–S3, Sūtra 2.46 from S4; CTAs from S9 (EN + FR)",
-   "ok": true
-  },
-  {
-   "name": "reveal mask: --reveal = 0 for S ≤ 8, rises across S9–S10, = 1 at S11/S12; the photograph carries a linear-gradient mask",
-   "ok": true,
-   "info": [
-    [
-     1,
-     0
-    ],
-    [
-     4,
-     0
-    ],
-    [
-     8,
-     0
-    ],
-    [
-     9,
-     0.333
-    ],
-    [
-     10,
-     0.667
-    ],
-    [
-     11,
-     1
-    ],
-    [
-     12,
-     1
-    ]
+   "name": "state_rail_copy_film_one_variable_desktop (13 samples)",
+   "ok": false,
+   "detail": [
+    {
+     "i": 2,
+     "rail": 2,
+     "copy": 0,
+     "count": "03 / 12",
+     "ct": 0.280224
+    },
+    {
+     "i": 3,
+     "rail": 3,
+     "copy": 0,
+     "count": "04 / 12",
+     "ct": 0.520974
+    }
    ]
   },
   {
-   "name": "paper stage (#F3EEE4), no dark plate; sun = radial gradient, blur ≥ 40 px, no hard disc; no CSS filter on the photograph",
+   "name": "no_text_over_figure_desktop (13 samples, figure_boxes.json)",
    "ok": true,
-   "info": {
-    "bg": "rgb(243, 238, 228)",
-    "sunBg": "radial-gradient(closest-side, rgba(196, 115, 26, 0.1), rgba(196, 115, 26, 0.05) 55%, rgba(196, 115, 26, 0))",
-    "blur": 40,
-    "round": 0,
-    "fig": "none"
+   "detail": []
+  },
+  {
+   "name": "film_paper_matches_page (16 samples, 4 per side, ΔE76 < 3)",
+   "ok": true,
+   "detail": {
+    "max": 2.3691437230311343,
+    "mean": 1.9413373061493027,
+    "n": 16
    }
   },
   {
-   "name": "desktop: 0 console errors",
+   "name": "console_clean_cover_desktop",
    "ok": true,
-   "info": []
+   "detail": []
   },
   {
-   "name": "S11 on 1440×900 @2×: the photograph is the ≥ 1600 variant and ≥ 1.5× the rendered height (currentSrc)",
-   "ok": true,
-   "info": {
-    "src": "http://localhost:8794/assets/fig/sn-12@1600.webp",
-    "nh": 651,
-    "h": 648,
-    "key": "sn-12"
-   }
-  },
-  {
-   "name": "figure height ≥ .70 of the stage desktop / ≥ .58 phones at every state, or width-capped at 56 % / 92 % of the stage (19 viewports × 13 states)",
-   "ok": true,
-   "info": []
-  },
-  {
-   "name": "feet row within 1 % of the ground line (86 % desktop / 78 % phones) at every state (19 × 13)",
-   "ok": true,
-   "info": []
-  },
-  {
-   "name": "no text box intersects the figure bbox at any state (cover copy, rail, counter, CTAs, hint, header) (19 × 13)",
-   "ok": true,
-   "info": []
-  },
-  {
-   "name": "R3 matrix: 0 console errors on all 19 viewports",
-   "ok": true,
-   "info": []
-  },
-  {
-   "name": "R3 §1a cover CTAs: bottom ≤ vh−24, opacity 1, hit-testable at p=1 (19 viewports)",
-   "ok": true,
-   "info": []
-  },
-  {
-   "name": "R3 §1b drum top ≥ CTA bottom + 16 px at p=1 (19)",
-   "ok": true,
-   "info": []
-  },
-  {
-   "name": "R3 §1c the photograph (sn-12, reveal 1) shown at p=1, opacity ≥ .95 (19)",
-   "ok": true,
-   "info": []
-  },
-  {
-   "name": "R3 §1d track end + 1 vh: drum heading opacity 1, three plates ≥ .95 (19)",
-   "ok": true,
-   "info": []
-  },
-  {
-   "name": "R3 §4d exactly one brand element visible, language toggle at the inline end (19 × S0/S5/S11)",
-   "ok": true,
-   "info": []
-  },
-  {
-   "name": "R3 §4a no visible chapter indicator over the cover (19 × S0/S5/S11)",
-   "ok": true,
-   "info": []
-  },
-  {
-   "name": "R3 §1e ?static=1: S11 photograph (reveal 1) + Sūtra 2.46 + CTAs, all 4 deck panels visible, every section at full opacity",
-   "ok": true,
-   "info": {
-    "st": "11",
-    "rev": 1,
-    "vis": 4,
-    "ctas": 1,
-    "beat": "1",
-    "h": 4198
-   }
-  },
-  {
-   "name": "R3 §1e page-full ?static=1: no empty band > 60 % vh",
-   "ok": true,
-   "info": {
-    "band": 0
-   }
-  },
-  {
-   "name": "reduced motion: S11 static (no pinned track), all copy, deck panels static",
-   "ok": true,
-   "info": {
-    "st": "11",
-    "vis": 4,
-    "h": 900,
-    "ih": 900
-   }
-  },
-  {
-   "name": "no-JS: the photograph of position 12 + Sūtra 2.46 + CTAs, cover one viewport tall",
-   "ok": true,
-   "info": {
-    "im": true,
-    "b1": 1,
-    "cta": 1,
-    "h": 900
-   }
-  },
-  {
-   "name": "i18n switch flips html[lang] and ≥ 20 strings, choice stored",
-   "ok": true,
-   "info": {
-    "changed": 99
-   }
-  },
-  {
-   "name": "each chapter tab switches the panel and updates the hash",
-   "ok": true
-  },
-  {
-   "name": "keyboard ArrowRight wraps to the first chapter",
-   "ok": true
-  },
-  {
-   "name": "back button restores the previous panel",
-   "ok": true
-  },
-  {
-   "name": "counters settle on the exact published values",
-   "ok": true
-  },
-  {
-   "name": "header chapter indicator follows the deck",
-   "ok": true,
-   "info": {
-    "no": "02",
-    "vis": "visible"
-   }
-  },
-  {
-   "name": "R3 §4b tab row top − header bottom ≤ 8 px on every deck view (desktop)",
-   "ok": true,
-   "info": [
-    0,
-    0,
-    0,
-    0
+   "name": "state_rail_copy_film_one_variable_pixel7 (13 samples)",
+   "ok": false,
+   "detail": [
+    {
+     "i": 2,
+     "rail": 2,
+     "copy": 0,
+     "count": "03 / 12",
+     "ct": 0.280224
+    },
+    {
+     "i": 3,
+     "rail": 3,
+     "copy": 0,
+     "count": "04 / 12",
+     "ct": 0.520974
+    }
    ]
   },
   {
-   "name": "R3 §4c no text box under the header/tab row after show(id) (desktop)",
+   "name": "no_text_over_figure_pixel7 (13 samples, figure_boxes.json)",
    "ok": true,
-   "info": [
-    0,
-    0,
-    0,
-    0
+   "detail": []
+  },
+  {
+   "name": "console_clean_cover_pixel7",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "state_rail_copy_film_one_variable_iphone13 (13 samples)",
+   "ok": false,
+   "detail": [
+    {
+     "i": 2,
+     "rail": 2,
+     "copy": 0,
+     "count": "03 / 12",
+     "ct": 0.280224
+    },
+    {
+     "i": 3,
+     "rail": 3,
+     "copy": 0,
+     "count": "04 / 12",
+     "ct": 0.520974
+    }
    ]
   },
   {
-   "name": "deck panels ≤ 1 viewport (900) on desktop",
+   "name": "no_text_over_figure_iphone13 (13 samples, figure_boxes.json)",
    "ok": true,
-   "info": [
-    776,
-    385,
-    573,
-    412
+   "detail": []
+  },
+  {
+   "name": "console_clean_cover_iphone13",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "ctas_visible_at_p1 (19 viewports)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "no_empty_band_over_25pct (19 viewports × s0/s7/hold)",
+   "ok": false,
+   "detail": [
+    "iphone-se/s7=0.40",
+    "galaxy-s8/s7=0.39",
+    "iphone-13/s7=0.38",
+    "pixel-7/s7=0.37",
+    "iphone-15-pro-max/s7=0.32",
+    "small-tablet/s7=0.33",
+    "ipad-portrait/s7=0.32",
+    "ipad-pro-portrait/s7=0.31",
+    "ipad-pro-landscape/s7=0.29",
+    "laptop-1440/s7=0.28",
+    "laptop-1536/s7=0.26",
+    "desktop-1080p/s7=0.29",
+    "desktop-1440p/s7=0.31",
+    "desktop-4k/s7=0.34",
+    "tv-portrait/s0=0.34",
+    "tv-portrait/s7=0.34",
+    "tv-portrait/hold=0.34",
+    "pixel-7-device/s7=0.38"
    ]
   },
   {
-   "name": "R3 §8a \"Price on request\" once, one line spanning the three offerings, warm accent",
+   "name": "chapters_fit_one_viewport (landscape viewports ≥ 1024 px)",
    "ok": true,
-   "info": {
-    "n": 1,
-    "lines": 1,
-    "span": true,
-    "color": "rgb(154, 90, 18)"
-   }
+   "detail": []
   },
   {
-   "name": "R3 §8b contact: full-width hairline list, phone + WhatsApp in one row, footer = email + Instagram + Privacy (no number)",
+   "name": "dialog_opens_after_chapter_01",
    "ok": true,
-   "info": {
-    "rows": 3,
-    "full": true,
-    "rule": true,
-    "phoneRows": 1,
-    "wa": true,
-    "footPhone": false,
-    "footLinks": [
-     "mailto:jeevanagogula.gj22@gmail.com",
-     "https://www.instagram.com/jeevana.gogula/",
-     "/privacy/"
-    ]
-   }
+   "detail": ""
   },
   {
-   "name": "R3 §8d cover rail: no \"A traditional sequence…\" dek",
-   "ok": true
-  },
-  {
-   "name": "footer: ProdCraft credit links prodcraft.fyi with rel=noopener, no mailto; Privacy link",
-   "ok": true
-  },
-  {
-   "name": "dead-link guard: zero href=\"#\" / empty tel: links in DOM (phone + WhatsApp live)",
-   "ok": true
-  },
-  {
-   "name": "F24 newsletter dialog stays closed while focus is in the register form and while Register is active (> delay)",
-   "ok": true
-  },
-  {
-   "name": "newsletter dialog opens after deck activation, closes on Esc, never reopens after close",
-   "ok": true
-  },
-  {
-   "name": "newsletter dialog: email required, phone optional (tel), consent required, \"No thanks\"",
+   "name": "dialog_esc_closes",
    "ok": true,
-   "info": {
-    "email": true,
-    "phone": true,
-    "consent": true,
-    "no": true
-   }
+   "detail": ""
   },
   {
-   "name": "newsletter page: 0 console errors",
+   "name": "dialog_never_opens_while_focus_in_form",
    "ok": true,
-   "info": []
+   "detail": ""
   },
   {
-   "name": "F26 inline error text under invalid fields (name, email, consent), EN and FR",
+   "name": "register_inline_errors",
    "ok": true,
-   "info": {
-    "er": [
-     "Please fill in this field.",
-     "Please fill in this field.",
-     "Please tick the box to agree."
-    ],
-    "erFr": [
-     "Merci de remplir ce champ.",
-     "Merci de remplir ce champ.",
-     "Merci de cocher la case pour accepter."
-    ]
-   }
+   "detail": "errors shown=3"
   },
   {
-   "name": "F26 failed submit: mailto fallback body carries the typed fields; 429 shows the WhatsApp fallback line",
+   "name": "register_success_replaces_form",
    "ok": true,
-   "info": {
-    "err": true,
-    "mail": "mailto:jeevanagogula.gj22@gmail.com?subject=Registration — Jeevana Yoga&body=My registration (the form did not go through):\nname: Test Person\nemail: test@example.com\nclass: any\nlevel: new",
-    "wa": true
-   }
+   "detail": ""
   },
   {
-   "name": "register form posts to /api/register and shows success (mocked fetch)",
-   "ok": true
-  },
-  {
-   "name": "desktop page height beyond the 14-vh cover track ≤ 3,400 px (v1 budget 7,000 − its 4-vh cover)",
+   "name": "register_posts_api",
    "ok": true,
-   "info": {
-    "total": 14673,
-    "rest": 2973
-   }
+   "detail": ""
   },
   {
-   "name": "desktop deck/forms: 0 console errors (besides the injected 429)",
+   "name": "console_clean_desktop_walk",
    "ok": true,
-   "info": []
+   "detail": []
   },
   {
-   "name": "deep link /#register opens the Register panel",
-   "ok": true
-  },
-  {
-   "name": "drum hinge transform changes with scroll",
-   "ok": true
-  },
-  {
-   "name": "drum fully open by track end (rise 1: no transform, opacity 1)",
+   "name": "register_failure_mailto_carries_fields",
    "ok": true,
-   "info": [
-    "matrix(1, 0, 0, 1, 0, 0)",
-    "matrix(1, 0, 0, 1, 0, 0)",
-    "matrix(1, 0, 0, 1, 0, 0)"
+   "detail": ""
+  },
+  {
+   "name": "console_clean_walk_pixel7",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "console_clean_walk_iphone13",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "reduced_motion_poster_and_static_copy",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "rail_breath_label_synced_to_breath_clock",
+   "ok": true,
+   "detail": "8 samples"
+  },
+  {
+   "name": "fonts_local_and_no_external_requests (beacon only)",
+   "ok": true,
+   "detail": [
+    "static.cloudflareinsights.com/beacon.min.js"
    ]
   },
   {
-   "name": "R3 §8c drum: captions opacity 1 once a card is ≥ 30 % visible, third card ≥ .9 when in view at track end, rotateY ≤ 35°",
+   "name": "zero_third_party_js_except_beacon",
    "ok": true,
-   "info": [
-    [
-     2.4,
-     1,
-     0.65
-    ],
-    [
-     0,
-     1,
-     0.6
-    ],
-    [
-     16.2,
-     1,
-     0.51
-    ],
-    [
-     0,
-     1,
-     1
-    ],
-    [
-     0,
-     1,
-     1
-    ],
-    [
-     0,
-     1,
-     1
-    ],
-    [
-     0,
-     1,
-     1
-    ],
-    [
-     0,
-     1,
-     1
-    ],
-    [
-     0,
-     1,
-     1
-    ]
-   ]
-  },
-  {
-   "name": "phones: copy block above the figure, reduced rail \"03 / 12 · Pādahastāsana · Exhale\" + mantra under it, CTAs above the safe area, scroll hint centred",
-   "ok": true,
-   "info": {
-    "txt": "03 / 12 · Pādahastāsana · Exhale Om Sūryāya Namaḥ — to the one who induces activity",
-    "below": true,
-    "rail": "none",
-    "copyTop": true,
-    "cta": true,
-    "hint": true
-   }
-  },
-  {
-   "name": "mobile drum is a horizontal snap-scroll (no 3D), plates fit the viewport",
-   "ok": true,
-   "info": {
-    "snap": "x mandatory",
-    "ox": "auto",
-    "t3": true,
-    "fit": true,
-    "first": 12,
-    "coverHidden": true,
-    "bar": false,
-    "hdrBg": "rgb(243, 238, 228)"
-   }
-  },
-  {
-   "name": "R3 §4b mobile-foldout: drum first element top − header bottom ≤ 24 px; cover hidden, opaque paper header",
-   "ok": true,
-   "info": {
-    "snap": "x mandatory",
-    "ox": "auto",
-    "t3": true,
-    "fit": true,
-    "first": 12,
-    "coverHidden": true,
-    "bar": false,
-    "hdrBg": "rgb(243, 238, 228)"
-   }
-  },
-  {
-   "name": "R3 §8e mobile bar: off while the drum is on screen",
-   "ok": true
-  },
-  {
-   "name": "R3 §8e mobile bar: on in the deck, ≤ 55 px tall",
-   "ok": true,
-   "info": {
-    "on": true,
-    "h": 55
-   }
-  },
-  {
-   "name": "mobile deck: tab fade mask present; tab row under the header (≤ 8 px)",
-   "ok": true,
-   "info": {
-    "mask": true,
-    "gap": 0.359375
-   }
-  },
-  {
-   "name": "mobile deck panels ≤ 2 viewports (1830)",
-   "ok": true,
-   "info": [
-    1187,
-    605,
-    837,
-    410
-   ]
-  },
-  {
-   "name": "mobile page height beyond the 10-vh cover track ≤ 7,300 px (v1 budget 9,000 − its cover)",
-   "ok": true,
-   "info": {
-    "total": 10171,
-    "rest": 2620
-   }
-  },
-  {
-   "name": "Pixel 7: no horizontal overflow",
-   "ok": true,
-   "info": {
-    "ov": 0
-   }
-  },
-  {
-   "name": "Pixel 7: 0 console errors",
-   "ok": true,
-   "info": []
-  },
-  {
-   "name": "iPhone 13: 0 console errors",
-   "ok": true,
-   "info": []
-  },
-  {
-   "name": "R3 §6 4K: nav ≥ 22 px, rail gloss ≥ 20 px, html ≥ 24 px, rail content fills ≥ 70 % of its column",
-   "ok": true,
-   "info": {
-    "nav": 22,
-    "gloss": 44.16,
-    "html": 31.9872,
-    "fill": 0.9005638134290108
-   }
-  },
-  {
-   "name": "privacy page (desktop): 0 console errors; publisher, host address, purposes, retention 24 months, processor, rights, no cookies; FR block toggles",
-   "ok": true,
-   "info": []
-  },
-  {
-   "name": "privacy page (Pixel 7): 0 console errors; publisher, host address, purposes, retention 24 months, processor, rights, no cookies; FR block toggles",
-   "ok": true,
-   "info": []
-  },
-  {
-   "name": "404 page: 0 console errors (besides its own 404 status), signature present, honours the saved language (fr)",
-   "ok": true,
-   "info": {
-    "h": "Cette page se repose.",
-    "sig": "https://prodcraft.fyi/",
-    "lang": "fr"
-   }
-  },
-  {
-   "name": "no external request on load except the Cloudflare beacon (all pages, all runs)",
-   "ok": true,
-   "info": [
+   "detail": [
+    "/js/i18n.js?v=823b26cc",
+    "/js/breath.js?v=1fa8403f",
+    "/js/main.js?v=b974c48c",
     "https://static.cloudflareinsights.com/beacon.min.js"
    ]
+  },
+  {
+   "name": "no_style_attributes",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "phone_appears_exactly_twice",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "old_email_absent_everywhere (served HTML/JS)",
+   "ok": true,
+   "detail": "occurrences=0"
+  },
+  {
+   "name": "content_fixture_matches (12 positions + 2 sutras, EN/FR, rail)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "en_fr_parity",
+   "ok": true,
+   "detail": "221/221"
+  },
+  {
+   "name": "privacy_page (200, mentions légales, 0 console errors)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "sizes (index+css+js ≤ 150 KB, breath.js ≤ 10 KB, film ≤ 6 MB / 4 MB)",
+   "ok": true,
+   "detail": {
+    "index_css_js_kb": 88.6,
+    "breath_kb": 3.8,
+    "film_mb": 1.73,
+    "film_m_mb": 0.69
+   }
+  },
+  {
+   "name": "film_faststart",
+   "ok": true,
+   "detail": ""
   }
- ]
+ ],
+ "measurements": {
+  "autoplay_ct_at_6s": 5.032,
+  "scrub_1440x900": {
+   "1": {
+    "currentTime": 2.328,
+    "expected": 5.04
+   },
+   "0.25": {
+    "currentTime": 0.302,
+    "expected": 1.375
+   },
+   "0.5": {
+    "currentTime": 0.841,
+    "expected": 2.749
+   },
+   "0.75": {
+    "currentTime": 1.563,
+    "expected": 4.124
+   }
+  },
+  "scrub_390x844": {
+   "1": {
+    "currentTime": 2.328,
+    "expected": 5.04
+   },
+   "0.25": {
+    "currentTime": 0.302,
+    "expected": 1.375
+   },
+   "0.5": {
+    "currentTime": 0.841,
+    "expected": 2.749
+   },
+   "0.75": {
+    "currentTime": 1.563,
+    "expected": 4.124
+   }
+  },
+  "paper_match_dE": {
+   "max": 2.3691437230311343,
+   "mean": 1.9413373061493027,
+   "n": 16
+  },
+  "bands": {
+   "iphone-se": {
+    "s0": 0.045,
+    "s7": 0.401,
+    "hold": 0.062
+   },
+   "galaxy-s8": {
+    "s0": 0.057,
+    "s7": 0.393,
+    "hold": 0.057
+   },
+   "iphone-13": {
+    "s0": 0.07,
+    "s7": 0.383,
+    "hold": 0.07
+   },
+   "pixel-7": {
+    "s0": 0.091,
+    "s7": 0.37,
+    "hold": 0.091
+   },
+   "iphone-15-pro-max": {
+    "s0": 0.133,
+    "s7": 0.319,
+    "hold": 0.133
+   },
+   "phone-landscape": {
+    "s0": 0.138,
+    "s7": 0.138,
+    "hold": 0.138
+   },
+   "small-tablet": {
+    "s0": 0.084,
+    "s7": 0.326,
+    "hold": 0.084
+   },
+   "ipad-portrait": {
+    "s0": 0.093,
+    "s7": 0.318,
+    "hold": 0.093
+   },
+   "ipad-landscape": {
+    "s0": 0.138,
+    "s7": 0.235,
+    "hold": 0.138
+   },
+   "ipad-pro-portrait": {
+    "s0": 0.103,
+    "s7": 0.308,
+    "hold": 0.103
+   },
+   "ipad-pro-landscape": {
+    "s0": 0.138,
+    "s7": 0.29,
+    "hold": 0.138
+   },
+   "laptop-1280": {
+    "s0": 0.138,
+    "s7": 0.236,
+    "hold": 0.138
+   },
+   "laptop-1440": {
+    "s0": 0.138,
+    "s7": 0.278,
+    "hold": 0.138
+   },
+   "laptop-1536": {
+    "s0": 0.138,
+    "s7": 0.264,
+    "hold": 0.138
+   },
+   "desktop-1080p": {
+    "s0": 0.138,
+    "s7": 0.286,
+    "hold": 0.138
+   },
+   "desktop-1440p": {
+    "s0": 0.138,
+    "s7": 0.314,
+    "hold": 0.138
+   },
+   "desktop-4k": {
+    "s0": 0.138,
+    "s7": 0.343,
+    "hold": 0.138
+   },
+   "tv-portrait": {
+    "s0": 0.335,
+    "s7": 0.335,
+    "hold": 0.335
+   },
+   "pixel-7-device": {
+    "s0": 0.068,
+    "s7": 0.382,
+    "hold": 0.068
+   }
+  },
+  "sizes": {
+   "index_css_js_kb": 88.6,
+   "breath_kb": 3.8,
+   "film_mb": 1.73,
+   "film_m_mb": 0.69
+  }
+ },
+ "versions": {
+  "playwright": "1.63.0",
+  "node": "v22.22.0",
+  "pillow": "12.3.0"
+ }
 }

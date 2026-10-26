@@ -112,8 +112,9 @@
   function seekTick() {
     if (raf) return;
     raf = W.requestAnimationFrame(function () {
-      raf = 0; if (!video || video.readyState < 2 || autoplaying) return;
-      var d = target - video.currentTime; if (Math.abs(d) < SEEK_EPS) return;
+      raf = 0; if (!video || autoplaying) return;
+      if (video.readyState < 1) { seekTick(); return; }
+      var d = target - video.currentTime; if (Math.abs(d) < SEEK_EPS && !seeking) return;
       if (!seeking) { seeking = true; video.currentTime = Math.abs(d) < 0.05 ? target : video.currentTime + d * LERP; }
       seekTick();
     });
