@@ -32,7 +32,7 @@ await p.goto(base, { waitUntil: 'load' }); await p.waitForTimeout(200); await sh
 for (const s of [3, 7, 11]) { await fresh(p, s); await shot(p, 'cover-s' + s); }
 await fresh(p, 'hold'); await shot(p, 'cover-hold');
 for (const [i, id] of [[1, 'practice'], [2, 'classes'], [3, 'contact']]) { await toSel(p, '#' + id); await shot(p, 'chapter-0' + i); }
-await toSel(p, '#classes'); await p.fill('[data-reg] [name="name"]', 'Test'); await p.fill('[data-reg] [name="email"]', 't@example.com'); await p.check('[data-reg] [name="consent"]'); await p.click('[data-reg] button[type="submit"]'); await p.waitForTimeout(900); await shot(p, 'register-success');
+await toSel(p, '#classes'); await p.click('[data-sheet-open]'); await p.waitForTimeout(900); await p.fill('[data-reg] [name="name"]', 'Test'); await p.fill('[data-reg] [name="email"]', 't@example.com'); await p.check('[data-reg] [name="consent"]'); await p.click('[data-reg] button[type="submit"]'); await p.waitForTimeout(900); await shot(p, 'register-success');
 await p._ctx.close();
 p = await page(D, { seen: false }); await p.goto(base, { waitUntil: 'load' }); await toSel(p, '#practice', 2600); await shot(p, 'dialog'); await p._ctx.close();
 p = await page(D); await p.goto(base + 'privacy/', { waitUntil: 'load' }); await p.waitForTimeout(400); await shot(p, 'privacy'); await p._ctx.close();

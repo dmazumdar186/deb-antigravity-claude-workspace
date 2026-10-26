@@ -61,16 +61,20 @@ for (const [tag, o] of [['1440x900', { viewport: { width: 1440, height: 900 } }]
 // 3 one variable -> state, rail, copy, film at 13 samples; 5 no text over figure (desktop, Pixel 7, iPhone 13)
 for (const [tag, o] of [['desktop', { viewport: { width: 1440, height: 900 } }], ['pixel7', { ...devices['Pixel 7'] }], ['iphone13', { ...devices['iPhone 13'] }]]) {
   p = await page(o); await p.goto(base, { waitUntil: 'domcontentloaded' }); await p.waitForTimeout(150);
-  const bad = [], hits = [];
+  const bad = [], hits = [], ringBad = [];
   for (let i = 0; i < 13; i++) {
     const pp = i < 12 ? (i + 0.05) / 12 : 1, s = Math.min(11, i); await scrollP(p, pp); await p.waitForTimeout(1300);
     const d = await p.evaluate(() => ({ rail: [...document.querySelectorAll('.rail__item')].findIndex((e) => e.classList.contains('is-on')), copy: Number((document.querySelector('.copy__state.is-on') || {}).dataset?.copyState), count: document.querySelector('[data-rail-count]').textContent, ct: document.querySelector('[data-film-video]').currentTime }));
     const ec = s >= 11 ? 11 : s >= 4 ? 4 : 0;
     if (d.rail !== s || d.copy !== ec || d.count !== String(s + 1).padStart(2, '0') + ' / 12' || Math.abs(d.ct - posToTime(i < 12 ? i + 0.05 : 11)) > 0.4) bad.push({ i, ...d });
     const g = await geo(p, s); if (g.hit.length) hits.push({ i, hit: g.hit.slice(0, 3) });
+    const bw = await p.evaluate(() => { const it = document.querySelector('.rail__item.is-on'); return { word: it.querySelector('.rail__breath').textContent, mobile: (document.querySelector('[data-rail-breath]') || {}).textContent, lvl: window.JeevanaBackdrop.level() }; });
+    const want = fx.positions[s].breath_en, lv = { Inhale: [0.9, 1.01], Exhale: [-0.01, 0.1], Retain: [0.4, 0.6] }[want.split(' ')[0]];
+    if (bw.word !== want || bw.mobile !== want || !(bw.lvl >= lv[0] && bw.lvl <= lv[1])) ringBad.push({ i, ...bw, want });
   }
   T(`state_rail_copy_film_one_variable_${tag} (13 samples)`, !bad.length, bad.slice(0, 2));
   T(`no_text_over_figure_${tag} (13 samples, figure_boxes.json)`, !hits.length, hits.slice(0, 2));
+  T(`breath_word_matches_ring_${tag} (13 samples: rail word = fixture, ring level inhale ≥ .9 / exhale ≤ .1 / retain .4–.6)`, !ringBad.length, ringBad.slice(0, 2));
   if (tag === 'desktop') {
     // window edge alpha at the mask boundary (dawn-film contract): alpha = (A − B) / (C − B) per pixel, where A = shipped,
     // B = film hidden, C = mask removed; a high-contrast probe (invert filter in all three shots) makes the ratio defined
@@ -98,38 +102,57 @@ for x,y in pts:
   if abs(d[k])<40: continue
   res.append(float(max(0,(A[y,x][k]-B[y,x][k])/d[k])))
 print(json.dumps({'max':max(res) if res else None,'n':len(res)}))`]).toString();
-    const ea = JSON.parse(out); M.window_edge_alpha = ea; T('film_window_edge_alpha_le_0.08 (16 boundary points, A−B / C−B)', ea.n >= 12 && ea.max <= 0.08, ea);
+    const ea = JSON.parse(out); M.window_edge_alpha = ea; T('film_window_no_visible_rectangle (edge alpha ≤ .05, 16 boundary points, A−B / C−B)', ea.n >= 12 && ea.max <= 0.05, ea);
   }
   T(`console_clean_cover_${tag}`, !p.errs.length, p.errs.slice(0, 2));
   await p._ctx.close();
 }
 // 6/7 CTAs at p=1 + empty band, 19 viewports
-const ctaBad = [], bandBad = [], chBad = []; M.bands = {};
+const ctaBad = [], bandBad = [], chBad = [], ringClr = [], markBad = []; M.bands = {};
 for (const [name, s] of Object.entries(VP)) {
   p = await page(spec(s)); await p.goto(base, { waitUntil: 'domcontentloaded' }); await p.waitForTimeout(150); M.bands[name] = {};
   for (const [st, pp] of [['s0', 0.05 / 12], ['s7', 7.05 / 12], ['hold', 1]]) {
     await scrollP(p, pp); await p.waitForTimeout(1200); const g = await geo(p, st === 's0' ? 0 : st === 's7' ? 7 : 11); M.bands[name][st] = +g.band.toFixed(3);
     if (g.band > 0.25) bandBad.push(`${name}/${st}=${g.band.toFixed(2)}`);
+    const rc = await p.evaluate(() => { const cv = document.querySelector('[data-breath]').getBoundingClientRect(), G = window.JeevanaBackdrop.geom(); const cx = cv.left + G.cx, cy = cv.top + G.cy, R = G.rMax; let worst = Infinity;
+      for (const el of document.querySelectorAll('.copy__state.is-on *, .rail__item.is-on .rail__detail *, .rail__label, .rail__list .rail__no, .rail__mobile')) { const cs = getComputedStyle(el); if (cs.display === 'none' || !el.textContent.trim()) continue; const r = el.getBoundingClientRect(); if (!r.width) continue;
+        const dn = Math.hypot(Math.max(r.left - cx, 0, cx - r.right), Math.max(r.top - cy, 0, cy - r.bottom)), df = Math.max(...[[r.left, r.top], [r.right, r.top], [r.left, r.bottom], [r.right, r.bottom]].map(([x, y]) => Math.hypot(x - cx, y - cy)));
+        worst = Math.min(worst, Math.max(dn - R, R - df)); } return worst; });
+    if (!(rc >= 48)) ringClr.push(`${name}/${st}=${Math.round(rc)}`);
   }
   const c = await p.evaluate(() => [...document.querySelectorAll('[data-cover-ctas] a')].map((a) => { const r = a.getBoundingClientRect(); let o = 1; for (let e = a; e; e = e.parentElement) o *= parseFloat(getComputedStyle(e).opacity); return r.top >= 0 && r.bottom <= innerHeight && r.left >= 0 && r.right <= innerWidth && r.height >= 40 && o > 0.95 && getComputedStyle(a).visibility === 'visible'; }));
-  await p.waitForTimeout(500); if (c.length !== 2 || !c.every(Boolean)) ctaBad.push(name);
+  await p.waitForTimeout(500); if (c.length !== 2 || !c.every(Boolean) || await p.evaluate(() => document.querySelectorAll('[data-cover] .btn').length)) ctaBad.push(name);
   const vw = typeof s === 'string' ? 412 : s[0], vh = typeof s === 'string' ? 915 : s[1];
-  if (vw >= 1024 && vw > vh) { const f = await p.evaluate(() => [...document.querySelectorAll('.chapter__body')].map((e) => Math.ceil(e.scrollHeight) <= innerHeight && e.getBoundingClientRect().height <= innerHeight)); if (!f.every(Boolean)) chBad.push(name); }
+  if (vw >= 1024 && vw > vh) {
+    for (const id of ['practice', 'classes', 'contact', 'sheet']) {
+      if (id === 'sheet') { await p.click('[data-sheet-open]'); await p.waitForTimeout(900); } else { await p.evaluate((id) => { document.documentElement.style.scrollBehavior = 'auto'; scrollTo(0, document.getElementById(id).offsetTop + innerHeight * 0.2); }, id); await p.waitForTimeout(900); }
+      const hit = await p.evaluate(() => { const m = document.querySelector('[data-breathmark]'), mr = m.getBoundingClientRect(); if (getComputedStyle(m).visibility !== 'visible') return 'mark hidden';
+        const els = [...document.querySelectorAll('.chapter.is-on .chapter__body *, #register input, #register select, #register textarea, #register button')].filter((e) => { const r = e.getBoundingClientRect(); return r.width && r.height && (e.children.length === 0 || /INPUT|SELECT|TEXTAREA|BUTTON/.test(e.tagName)); });
+        const h = els.find((e) => { const r = e.getBoundingClientRect(); return r.left < mr.right && r.right > mr.left && r.top < mr.bottom && r.bottom > mr.top; }); return h ? h.tagName + ':' + h.textContent.slice(0, 20) : ''; });
+      if (hit) markBad.push(`${name}/${id}: ${hit}`);
+    }
+    await p.evaluate(() => { const sh = document.querySelector('[data-sheet]'); sh.hidden = true; sh.closest('[data-chapter]').classList.remove('is-open'); });
+    const f = await p.evaluate(() => [...document.querySelectorAll('.chapter__body')].map((e) => Math.ceil(e.scrollHeight) <= innerHeight && e.getBoundingClientRect().height <= innerHeight)); if (!f.every(Boolean)) chBad.push(name); }
   if (p.errs.length) chBad.push(name + ' errors: ' + p.errs[0]);
   await p._ctx.close();
 }
 T('ctas_visible_at_p1 (19 viewports)', !ctaBad.length, ctaBad);
 T('no_empty_band_over_25pct (19 viewports × s0/s7/hold)', !bandBad.length, bandBad);
+T('breath_ring_clears_copy_and_rail_by_48px (19 viewports × s0/s7/hold)', !ringClr.length, ringClr);
+T('chapter_breath_mark_clear_of_text_and_form (landscape ≥ 1024, 3 chapters + open sheet)', !markBad.length, markBad);
 T('chapters_fit_one_viewport (landscape viewports ≥ 1024 px)', !chBad.length, chBad);
 // 9 console clean on a full walk + dialog + forms (desktop)
 p = await page({ viewport: { width: 1440, height: 900 } }, { seen: false });
 await p.goto(base, { waitUntil: 'load' }); await p.waitForTimeout(300);
 await p.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; scrollTo(0, document.querySelector('#practice').offsetTop + 10); }); await p.waitForTimeout(2200);
 const dOpen = await p.evaluate(() => document.querySelector('[data-news]').open); T('dialog_opens_after_chapter_01', dOpen);
+T('dialog_quiet (no shadow, cream scrim, text-link No thanks, no Voluntary line)', await p.evaluate(() => { const d = document.querySelector('[data-news]'); return getComputedStyle(d).boxShadow === 'none' && /243, 238, 228/.test(getComputedStyle(d, '::backdrop').backgroundColor) && d.querySelector('[data-news-close]').classList.contains('link-quiet') && !/Voluntary/.test(d.textContent); }));
 await p.keyboard.press('Escape'); await p.waitForTimeout(200); T('dialog_esc_closes', !(await p.evaluate(() => document.querySelector('[data-news]').open)));
 await p._ctx.close();
 p = await page({ viewport: { width: 1440, height: 900 } }, { seen: false });
 await p.goto(base, { waitUntil: 'load' }); await p.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; scrollTo(0, document.querySelector('#classes').offsetTop + 10); }); await p.waitForTimeout(150);
+await p.click('[data-sheet-open]'); await p.waitForTimeout(900); const sv = await p.evaluate(() => { const r = document.querySelector('[data-sheet]').getBoundingClientRect(); return r.top >= 0 && r.top < innerHeight * 0.5; });
+T('register_sheet_opens_inline_and_scrolls_into_view', sv && !(await p.evaluate(() => document.querySelector('[data-news]').open)));
 await p.focus('[data-reg] [name="name"]'); await p.waitForTimeout(2600);
 T('dialog_never_opens_while_focus_in_form', !(await p.evaluate(() => document.querySelector('[data-news]').open)));
 await p.click('[data-reg] button[type="submit"]'); await p.waitForTimeout(200);
@@ -141,7 +164,7 @@ T('register_posts_api', p.posts.some(([u, d]) => /api\/register/.test(u) && /"co
 T('console_clean_desktop_walk', !p.errs.length, p.errs.slice(0, 2));
 await p._ctx.close();
 p = await page({ viewport: { width: 1440, height: 900 } }, { api: 500 }); await p.goto(base, { waitUntil: 'load' });
-await p.evaluate(() => scrollTo(0, document.querySelector('#classes').offsetTop + 10)); await p.fill('[data-reg] [name="name"]', 'Ana'); await p.fill('[data-reg] [name="email"]', 'ana@example.com'); await p.check('[data-reg] [name="consent"]'); await p.click('[data-reg] button[type="submit"]'); await p.waitForTimeout(700);
+await p.evaluate(() => scrollTo(0, document.querySelector('#classes').offsetTop + 10)); await p.click('[data-sheet-open]'); await p.waitForTimeout(700); await p.fill('[data-reg] [name="name"]', 'Ana'); await p.fill('[data-reg] [name="email"]', 'ana@example.com'); await p.check('[data-reg] [name="consent"]'); await p.click('[data-reg] button[type="submit"]'); await p.waitForTimeout(700);
 const mh = await p.evaluate(() => document.querySelector('[data-reg] [data-mailto]').href);
 T('register_failure_mailto_carries_fields', /Ana/.test(decodeURIComponent(mh)) && /ana@example\.com/.test(decodeURIComponent(mh)) && await p.isVisible('[data-wa-fallback]'));
 await p._ctx.close();
@@ -155,10 +178,7 @@ for (const [tag, o] of [['pixel7', devices['Pixel 7']], ['iphone13', devices['iP
 p = await page({ ...devices['Pixel 7'], reducedMotion: 'reduce' }); await p.goto(base, { waitUntil: 'load' }); await p.waitForTimeout(1200);
 T('reduced_motion_poster_and_static_copy', await p.evaluate(() => !document.querySelector('[data-film-video]').getAttribute('src') && document.documentElement.classList.contains('is-static') && getComputedStyle(document.querySelector('[data-cover-ctas]').closest('.copy__state')).visibility === 'visible'));
 await p._ctx.close();
-// breath label synced to the module clock
-p = await page({ viewport: { width: 1440, height: 900 } }); await p.goto(base, { waitUntil: 'load' });
-const sync = []; for (let i = 0; i < 8; i++) { await p.waitForTimeout(700); sync.push(await p.evaluate(() => { const t = performance.now(), b1 = window.JeevanaBackdrop.breath(t), b0 = window.JeevanaBackdrop.breath(t - 40); return { rising: b1 >= b0, label: document.querySelector('[data-breath-live]').dataset.phase, mid: Math.abs((t % 2750) - 1375) > 1300 }; })); }
-T('rail_breath_label_synced_to_breath_clock', sync.filter((x) => !x.mid).every((x) => (x.label === 'in') === x.rising), sync.filter((x) => !x.mid).length + ' samples');
+p = await page({ viewport: { width: 1440, height: 900 } }); await p.goto(base, { waitUntil: 'load' }); await p.waitForTimeout(500);
 // fonts local + third-party JS
 T('fonts_local_and_no_external_requests (beacon only)', [...p.ext].every((h) => h === 'static.cloudflareinsights.com/beacon.min.js'), [...p.ext]);
 const html = await (await p.request.get(base)).text();
@@ -183,6 +203,8 @@ const sz = (f) => statSync(SITE + f).size; const page_kb = (sz('index.html') + s
 M.sizes = { index_css_js_kb: +page_kb.toFixed(1), breath_kb: +(sz('js/breath.js') / 1024).toFixed(1), film_mb: +(sz('assets/film/' + hero.landscape) / 1048576).toFixed(2), film_m_mb: +(sz('assets/film/' + hero.phone) / 1048576).toFixed(2) };
 T('sizes (index+css+js ≤ 150 KB, breath.js ≤ 10 KB, film ≤ 6 MB / 4 MB)', page_kb <= 150 && sz('js/breath.js') <= 10240 && sz('assets/film/' + hero.landscape) <= 6 * 1048576 && sz('assets/film/' + hero.phone) <= 4 * 1048576, M.sizes);
 const faststart = (f) => { const buf = readFileSync(SITE + 'assets/film/' + f); return buf.indexOf('moov') < buf.indexOf('mdat'); };
+T('film_from_dawn_plate (assets/film/hero.json plate = dawn)', hero.plate === 'dawn', `plate=${hero.plate}`);
+T('contact_chapter_uses_film_frame_not_eiffel', !/eiffel/i.test(readFileSync(SITE + 'index.html', 'utf8')) && /still-03@/.test(readFileSync(SITE + 'index.html', 'utf8')));
 T('film_faststart', faststart(hero.landscape) && faststart(hero.phone));
 await b.close();
 const pass = results.filter((r) => r.ok).length;
