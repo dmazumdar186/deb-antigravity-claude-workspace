@@ -1,17 +1,17 @@
 {
- "date": "2026-10-26T19:48:07.808Z",
+ "date": "2026-10-26T19:56:41.187Z",
  "film": {
   "standin": false,
   "seconds": 52,
   "keyframes": 12
  },
- "pass": 45,
+ "pass": 46,
  "total": 46,
  "results": [
   {
    "name": "film_plays_unscrolled (currentTime > 4 s at 6 s)",
    "ok": true,
-   "detail": "ct=5.56"
+   "detail": "ct=5.53"
   },
   {
    "name": "scroll_takeover_1440x900 (|currentTime − f(p)| < 0.4 s at p=.25/.5/.75/1)",
@@ -137,22 +137,8 @@
   },
   {
    "name": "breath_ring_clears_copy_and_rail_by_48px (19 viewports × s0/s7/hold)",
-   "ok": false,
-   "detail": [
-    "iphone-se/s0=-27",
-    "iphone-se/hold=-52",
-    "galaxy-s8/s0=27",
-    "galaxy-s8/hold=2",
-    "iphone-13/hold=48",
-    "small-tablet/s0=19",
-    "small-tablet/hold=-37",
-    "ipad-portrait/s0=19",
-    "ipad-portrait/hold=-67",
-    "ipad-pro-portrait/s0=20",
-    "ipad-pro-portrait/s7=-87",
-    "ipad-pro-portrait/hold=-10",
-    "pixel-7-device/hold=28"
-   ]
+   "ok": true,
+   "detail": []
   },
   {
    "name": "chapter_breath_mark_clear_of_text_and_form (landscape ≥ 1024, 3 chapters + open sheet)",
@@ -280,10 +266,10 @@
    "name": "sizes (index+css+js ≤ 150 KB, breath.js ≤ 10 KB, film ≤ 6 MB / 4 MB)",
    "ok": true,
    "detail": {
-    "index_css_js_kb": 96.2,
+    "index_css_js_kb": 96.1,
     "breath_kb": 4.2,
-    "film_mb": 5.36,
-    "film_m_mb": 2.63
+    "film_mb": 5.31,
+    "film_m_mb": 2.62
    }
   },
   {
@@ -303,7 +289,7 @@
   }
  ],
  "measurements": {
-  "autoplay_ct_at_6s": 5.563,
+  "autoplay_ct_at_6s": 5.535,
   "scrub_1440x900": {
    "1": {
     "currentTime": 51.61,
@@ -442,10 +428,10 @@
    }
   },
   "sizes": {
-   "index_css_js_kb": 96.2,
+   "index_css_js_kb": 96.1,
    "breath_kb": 4.2,
-   "film_mb": 5.36,
-   "film_m_mb": 2.63
+   "film_mb": 5.31,
+   "film_m_mb": 2.62
   }
  },
  "versions": {

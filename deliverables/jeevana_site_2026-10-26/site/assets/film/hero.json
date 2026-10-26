@@ -22,10 +22,13 @@
  "landscape": "hero.mp4",
  "poster": "poster.jpg",
  "plate": "dawn",
+ "weak_legs": {
+  "08": "head clips the left edge for ~1 s, hair flicker; best of 3 takes"
+ },
  "v": {
   "poster": "065ee21c",
-  "landscape": "54473492",
-  "phone": "0b4755b4"
+  "landscape": "3480f6e6",
+  "phone": "b9504054"
  },
  "phone": "hero-phone.mp4",
  "fig": [
