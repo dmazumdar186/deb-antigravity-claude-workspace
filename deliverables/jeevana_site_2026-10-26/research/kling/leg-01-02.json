@@ -5,10 +5,14 @@
   "duration": 5,
   "aspect_ratio": "3:4",
   "sound": "off",
-  "image_url": "https://jeevana-frames.pages.dev/sn-01.jpg",
-  "end_image_url": "https://jeevana-frames.pages.dev/sn-02.jpg"
+  "image_url": "https://jeevana-frames.pages.dev/frame-01.jpg",
+  "end_image_url": "https://jeevana-frames.pages.dev/frame-02.jpg"
  },
  "submit": {
-  "detail": "not_enough_credits"
+  "status": "queued",
+  "request_id": "d5502a42-0edd-4afd-96c6-890deb90275c",
+  "status_url": "https://api.higgsfield.ai/requests/d5502a42-0edd-4afd-96c6-890deb90275c/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/d5502a42-0edd-4afd-96c6-890deb90275c/cancel",
+  "expires_after": 604800
  }
 }

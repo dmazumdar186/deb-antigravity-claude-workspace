@@ -79,7 +79,7 @@ def estimate_focus(img: Image.Image) -> tuple[str, list[float]]:
     return f"{round(cx * 100)}% {round(cy * 100)}%", [round(x0, 3), round(y0, 3), round(x1, 3), round(y1, 3)]
 
 
-FIG_KEYS = ["sn-01", "sn-02", "sn-03", "sn-04", "sn-05", "sn-06", "photo-05", "alt-09", "sn-12", "portrait", "photo-03"]
+FIG_KEYS = ["sn-01", "sn-02", "sn-03", "sn-04", "sn-05", "sn-06", "photo-05", "alt-09", "portrait", "photo-03"]
 FIG_KEEP_CONTACT = {"photo-05", "sn-06", "sn-05", "photo-03"}  # prone / seated: keep the hand/knee contact row
 FIG_HEIGHTS = [2400, 1600, 1000]
 PENCIL_KEYS = {"portrait"}  # art direction 2026-10-26: graphite renders only for the About portrait (A grade)
@@ -156,36 +156,109 @@ def touch_up(key: str, im: Image.Image, ground: float) -> Image.Image:
     return im
 
 
-def contour_path(im: Image.Image, target_h: int = 420) -> tuple[str, list[int]]:
-    """Single simplified outer contour of the alpha (potrace), in a viewBox of the figure's own size."""
+def clean_mask(a: "np.ndarray", h: int) -> "np.ndarray":
+    """review_v2 A3: threshold -> open/close 3 px -> erode 3 px at the base rows -> drop specks -> feather 1.5 px."""
     import numpy as np
+    from scipy import ndimage
+    m = a > 128
+    st = np.ones((3, 3), bool)
+    m = ndimage.binary_opening(m, st, iterations=1)
+    m = ndimage.binary_closing(m, st, iterations=1)
+    base = max(2, int(0.02 * h))
+    er = ndimage.binary_erosion(m, st, iterations=3)
+    m[-base:, :] = er[-base:, :]
+    lab, n = ndimage.label(m)
+    if n > 1:
+        sizes = ndimage.sum(m, lab, range(1, n + 1))
+        m = np.isin(lab, [i + 1 for i, sz in enumerate(sizes) if sz >= 0.002 * m.sum()])
+    m = ndimage.binary_fill_holes(m)
+    return ndimage.gaussian_filter(m.astype(np.float32), 1.5)
+
+
+def contour_path(im: Image.Image, target_h: int = 600) -> tuple[str, list[int], list[str]]:
+    """One clean outer contour (potrace, alphamax 1.2) + up to 3 interior lines (longest Canny edge paths inside the
+    alpha, each >= 12 % of the figure height, none in the head band), in the figure's own pixel viewBox."""
+    import numpy as np
+    import cv2
     import potrace
     from scipy import ndimage
-    a = im.getchannel("A")
-    sc = target_h / im.height
-    small = np.asarray(a.resize((max(1, round(im.width * sc)), target_h), Image.LANCZOS)) > 110
+    sc = target_h / max(im.height, im.width)
+    size = (max(1, round(im.width * sc)), max(1, round(im.height * sc)))
+    fig_h = size[1]
+    a = np.asarray(im.getchannel("A").resize(size, Image.LANCZOS)).astype(np.float32)
+    soft = clean_mask(a, fig_h)
+    small = soft > 0.5
     lab, n = ndimage.label(small)
     if n > 1:
         sizes = ndimage.sum(small, lab, range(1, n + 1))
         small = lab == (int(np.argmax(sizes)) + 1)
-    small = ndimage.binary_fill_holes(small)
-    pad = 4  # potracer fills dark (False) pixels: trace the inverted, padded mask so the figure is the filled shape
+    pad = 4
     small = np.pad(small, pad)
-    plist = potrace.Bitmap(~small).trace(turdsize=40, alphamax=1.0, opttolerance=0.5)
-    curve = max(plist, key=lambda c: len(c.segments)) if len(plist) else None
-    if curve is None:
-        return "", [im.width, im.height]
+    plist = potrace.Bitmap(~small).trace(turdsize=40, alphamax=1.2, opttolerance=0.5)
     f = 1 / sc
 
-    def pt(p):
-        return f"{(p.x - pad) * f:.0f} {(p.y - pad) * f:.0f}"
-    d = [f"M{pt(curve.start_point)}"]
-    for seg in curve.segments:
-        if seg.is_corner:
-            d.append(f"L{pt(seg.c)}L{pt(seg.end_point)}")
-        else:
-            d.append(f"C{pt(seg.c1)} {pt(seg.c2)} {pt(seg.end_point)}")
-    return "".join(d) + "Z", [im.width, im.height]
+    def pt(x, y):
+        return f"{(x - pad) * f:.0f} {(y - pad) * f:.0f}"
+    curve = max(plist, key=lambda c: len(c.segments)) if len(plist) else None
+    d = ""
+    if curve is not None:
+        out = [f"M{pt(curve.start_point.x, curve.start_point.y)}"]
+        for seg in curve.segments:
+            if seg.is_corner:
+                out.append(f"L{pt(seg.c.x, seg.c.y)}L{pt(seg.end_point.x, seg.end_point.y)}")
+            else:
+                out.append(f"C{pt(seg.c1.x, seg.c1.y)} {pt(seg.c2.x, seg.c2.y)} {pt(seg.end_point.x, seg.end_point.y)}")
+        d = "".join(out) + "Z"
+    # interior lines
+    gray = np.asarray(im.convert("L").resize(size, Image.LANCZOS))
+    edges = cv2.Canny(cv2.GaussianBlur(gray, (5, 5), 1.4), 40, 110) > 0
+    inner_mask = ndimage.binary_erosion(soft > 0.5, np.ones((3, 3), bool), iterations=8)
+    edges &= inner_mask
+    edges[: int(0.18 * fig_h), :] = False  # no face detail before the colour phase
+    lab, n = ndimage.label(edges, structure=np.ones((3, 3), bool))
+    paths = []
+    min_len = 0.12 * fig_h
+    if n:
+        sizes = ndimage.sum(edges, lab, range(1, n + 1))
+        order = [i + 1 for i in np.argsort(sizes)[::-1] if sizes[i] >= min_len][:3]
+        for li in order:
+            comp = lab == li
+            ys, xs = np.nonzero(comp)
+            pts = set(zip(ys.tolist(), xs.tolist()))
+            nb = lambda y, x: [(y + dy, x + dx) for dy in (-1, 0, 1) for dx in (-1, 0, 1) if (dy or dx) and (y + dy, x + dx) in pts]
+            ends = [p for p in pts if len(nb(*p)) == 1]
+            cur = min(ends or pts)
+            seen, walk = {cur}, [cur]
+            while True:
+                nxt = [q for q in nb(*cur) if q not in seen]
+                if not nxt:
+                    break
+                cur = nxt[0]; seen.add(cur); walk.append(cur)
+            if len(walk) < min_len:
+                continue
+            arr = np.array([[x, y] for y, x in walk], np.int32).reshape(-1, 1, 2)
+            ap = cv2.approxPolyDP(arr, 1.2, False).reshape(-1, 2)
+            paths.append("M" + "L".join(f"{x * f:.0f} {y * f:.0f}" for x, y in ap))
+    return d, [im.width, im.height], paths
+
+
+def warm_grade(im: Image.Image) -> tuple[Image.Image, float, float]:
+    """review_v2 B5: white balance +6 % red / -4 % blue, saturation .94, blacks lifted 2 %; alpha kept."""
+    import numpy as np
+    from PIL import ImageEnhance
+    a = im.getchannel("A")
+    rgb = im.convert("RGB")
+    rgb = ImageEnhance.Color(rgb).enhance(0.94)
+    x = np.asarray(rgb, dtype=np.float32)
+    x[..., 0] *= 1.06
+    x[..., 2] *= 0.96
+    x = x * 0.98 + 255 * 0.02
+    out = Image.fromarray(np.clip(x, 0, 255).astype("uint8")).convert("RGBA")
+    out.putalpha(a)
+    m = np.asarray(a) > 200
+    src = np.asarray(im.convert("RGB"), dtype=np.float32)[m]
+    dst = np.clip(x, 0, 255)[m]
+    return out, float(src[:, 0].mean() / max(1, src[:, 2].mean())), float(dst[:, 0].mean() / max(1, dst[:, 2].mean()))
 
 
 def ingest_figs(cut_dir: pathlib.Path, pencil_dir: pathlib.Path | None, out: pathlib.Path, raw_dir: pathlib.Path,
@@ -211,7 +284,8 @@ def ingest_figs(cut_dir: pathlib.Path, pencil_dir: pathlib.Path | None, out: pat
         A = np.asarray(hi.getchannel("A"))
         rows = np.nonzero(A.max(axis=1) > 200)[0]
         ground = round((rows.max() + 1) / hi.height, 4) if len(rows) else 1.0
-        srcset, pset = [], []
+        hi, rb_src, rb_out = warm_grade(hi)
+        srcset = []
         full_h = hi.height
         heights = [hh for hh in FIG_HEIGHTS if hh <= full_h] or [full_h]
         if full_h < FIG_HEIGHTS[0] and full_h not in heights:
@@ -221,34 +295,15 @@ def ingest_figs(cut_dir: pathlib.Path, pencil_dir: pathlib.Path | None, out: pat
             name = f"{key}@{hh}.webp"
             v.save(out / name, "WEBP", quality=92, method=6, exact=False)
             srcset.append([name, v.width, v.height])
-        # flat graphite wash: the cut-out's own luminance, desaturated, alpha kept (drawn states S0-S8)
-        wset = []
-        L = hi.convert("L")
-        wash = Image.merge("RGBA", (L, L, L, hi.getchannel("A")))
-        for hh in [x for x in WASH_HEIGHTS if x <= full_h] or [full_h]:
-            v = wash if hh == full_h else wash.resize((round(wash.width * hh / full_h), hh), Image.LANCZOS)
-            name = f"{key}-wash@{hh}.webp"
-            v.save(out / name, "WEBP", quality=88, method=6)
-            wset.append([name, v.width, v.height])
-        if key in PENCIL_KEYS and pencil_dir and (pencil_dir / f"{key}.png").exists():
-            with Image.open(pencil_dir / f"{key}.png") as pr:
-                pen = pr.convert("RGBA")
-            # map the cut-out crop (in hi-res px) back to the pencil canvas by the shared aspect
-            sc = pen.height / cut.height
-            # bb is in hi-res px of the cut-out canvas; hi-res canvas = cut canvas * s
-            s_hi = HI_SCALE.get(key, 1.0)
-            pbox = tuple(round(v / s_hi * sc) for v in bb)
-            pen = pen.crop(pbox)
-            for hh in [x for x in heights if x <= pen.height * 1.0001] or [pen.height]:
-                v = pen if hh >= pen.height else pen.resize((round(pen.width * hh / pen.height), hh), Image.LANCZOS)
-                name = f"{key}-pencil@{hh}.webp"
-                v.save(out / name, "WEBP", quality=92, method=6)
-                pset.append([name, v.width, v.height])
-        d, vb = contour_path(hi)
-        contours[key] = {"vb": vb, "d": d}
-        man["fig"][key] = {"w": hi.width, "h": hi.height, "ground": ground,
-                           "srcset": srcset, "wash": wset, "pencil": pset}
-        print(f"{key}: {hi.width}x{hi.height} ground {ground} variants {[x[2] for x in srcset]} wash {len(wset)} pencil {len(pset)} contour {len(d)} B")
+        # feet span (bottom 3 % rows) for the contact shadow
+        foot = A[int(0.97 * A.shape[0]):, :].max(axis=0) > 128
+        fx = np.nonzero(foot)[0]
+        feet = [round(float(fx.min()) / hi.width, 4), round(float(fx.max() + 1) / hi.width, 4)] if len(fx) else [0.4, 0.6]
+        d, vb, inner = contour_path(hi)
+        contours[key] = {"vb": vb, "d": d, "inner": inner}
+        man["fig"][key] = {"w": hi.width, "h": hi.height, "ground": ground, "feet": feet, "srcset": srcset,
+                           "grade": {"rb_src": round(rb_src, 4), "rb_out": round(rb_out, 4)}}
+        print(f"{key}: {hi.width}x{hi.height} ground {ground} feet {feet} variants {[x[2] for x in srcset]} contour {len(d)} B inner {len(inner)} R/B {rb_src:.3f}->{rb_out:.3f}")
     (out / "contours.json").write_text(json.dumps(contours, separators=(",", ":")), encoding="utf-8")
     manifest.write_text(json.dumps(man, indent=1) + "\n", encoding="utf-8")
     return 0

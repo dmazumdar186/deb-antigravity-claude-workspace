@@ -9,7 +9,7 @@
 const argv = process.argv.slice(2);
 if (!argv[0] || argv.includes('--help')) { console.log('functional.mjs <base-url>'); process.exit(argv[0] ? 0 : 2); }
 // ======================= CONFIG =======================
-const KEYS = ['sn-01', 'sn-02', 'sn-03', 'sn-04', 'sn-05', 'sn-06', 'photo-05', 'sn-05', 'alt-09', 'sn-03', 'sn-02', 'sn-12'];
+const KEYS = ['sn-01', 'sn-02', 'sn-03', 'sn-04', 'sn-05', 'sn-06', 'photo-05', 'sn-05', 'alt-09', 'sn-03', 'sn-02', 'sn-01'];
 const DESK = { ground: 0.86, height: 0.70, maxW: 0.56 }, PHONE = { ground: 0.78, height: 0.58, maxW: 0.92 };
 const END_P = 0.92, LAST = 12;
 const TAB_ORDER = ['classes', 'register', 'contact', 'about']; const FIRST_TAB = 'about'; const LAST_TAB = 'contact';
@@ -61,7 +61,11 @@ const probe = (p) => p.evaluate(() => {
   document.querySelectorAll('[data-cover] .btn').forEach((e) => { if (!vis(e)) return; const r = e.getBoundingClientRect(); texts.push({ l: r.left, t: r.top, r: r.right, b: r.bottom, s: 'btn:' + e.textContent.trim().slice(0, 12) }); });
   const box = fr ? { l: fr.left, t: fr.top, r: fr.right, b: fr.bottom } : null;
   const hit = box ? texts.filter((x) => x.l < box.r - 1 && box.l < x.r - 1 && x.t < box.b - 1 && box.t < x.b - 1).map((x) => x.s) : [];
-  return { W: st.width, H: st.height, stTop: st.top, fig: box, key: f && f.dataset.key, g, hit, op: f ? +getComputedStyle(f).opacity : 0, state: +document.querySelector('[data-cover]').dataset.state, reveal: parseFloat(getComputedStyle(document.querySelector('[data-stage]')).getPropertyValue('--reveal')) };
+  const rl = document.querySelector('[data-rail]'); const rv = rl && getComputedStyle(rl).display !== 'none' ? [...rl.children].map((c) => c.getBoundingClientRect()).filter((r) => r.width) : [];
+  const railL = rv.length ? Math.min(...rv.map((r) => r.left)) : null;
+  const boxes = texts.concat(box ? [box] : []);
+  let run = 0, worst = 0; for (let y = st.top; y < st.bottom; y += st.height * 0.01) { const cov = boxes.some((b) => b.t <= y && b.b >= y); run = cov ? 0 : run + 1; worst = Math.max(worst, run); }
+  return { railL, empty: worst * 0.01, W: st.width, H: st.height, stTop: st.top, fig: box, key: f && f.dataset.key, g, hit, op: f ? +getComputedStyle(f).opacity : 0, state: +document.querySelector('[data-cover]').dataset.state, reveal: parseFloat(getComputedStyle(document.querySelector('[data-stage]')).getPropertyValue('--reveal')) };
 });
 const isPhoneVp = (w, h) => w < 800 || h >= w;
 
@@ -80,7 +84,15 @@ const MAN = JSON.parse(readFileSync(join(SITE, 'assets/fig/manifest.json'), 'utf
   const big = Object.entries(CONT).filter(([, v]) => Buffer.byteLength(v.d) > LIMITS.contourB || !/^M[\d. ]+/.test(v.d) || (v.d.match(/M/g) || []).length !== 1);
   t('contours: one outer path per figure (single M), each ≤ 6 KB', big.length === 0 && KEYS.every((k) => CONT[k]), big.map(([k, v]) => [k, v.d.length]));
   const up = []; for (const [k, r] of Object.entries(MAN)) for (const [n, w, h] of [...r.srcset, ...(r.wash || []), ...(r.pencil || [])]) { if (!/-pencil@/.test(n) && h > r.h + 0.5) up.push(n); }
-  t('srcset never upscales: every variant ≤ the figure\'s native height; wash layer for every cover key', up.length === 0 && KEYS.every((k) => MAN[k] && MAN[k].wash && MAN[k].wash.length), up);
+  t('srcset never upscales: every variant ≤ the figure\'s native height', up.length === 0 && KEYS.every((k) => MAN[k]), up);
+  // A3 / G24: clean contours — ≤ 1,200 points per figure, no sub-path shorter than 2 % of the figure height; 0–3 interior lines
+  const pts = (d) => (d.match(/-?\d+(\.\d+)? -?\d+(\.\d+)?/g) || []).map((q) => q.split(' ').map(Number));
+  const span = (d) => { const P = pts(d); const xs = P.map((q) => q[0]), ys = P.map((q) => q[1]); return Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)); };
+  const cbad = Object.entries(CONT).filter(([k, v]) => { const all = [v.d, ...(v.inner || [])]; const n = all.reduce((a, d) => a + pts(d).length, 0); return n > 1200 || (v.inner || []).length > 3 || all.some((d) => span(d) < 0.02 * v.vb[1]) || (v.inner || []).some((d) => span(d) < 0.12 * v.vb[1] * 0.7); });
+  t('A3/G24 contours: ≤ 1,200 points per figure, no sub-path < 2 % of the figure height, ≤ 3 interior lines (each ≥ 12 % long)', cbad.length === 0, cbad.map(([k, v]) => [k, (v.inner || []).length]));
+  t('B5 warm grade: every ingested photograph is warmer than its source (R/B ratio up)', Object.values(MAN).every((r) => r.grade && r.grade.rb_out > r.grade.rb_src), Object.entries(MAN).map(([k, r]) => [k, r.grade && r.grade.rb_src, r.grade && r.grade.rb_out]));
+  t('D9 no pencil anywhere on the site (no -pencil / -wash assets, no pencil in main.js/manifest)', !readdirSync(join(SITE, 'assets/fig')).some((f) => /pencil|wash/.test(f)) && !/pencil/.test(mainjs) && Object.values(MAN).every((r) => !r.pencil));
+  t('E14 no "Scroll" label in the cover', !/data-hint|cover__hint/.test(html) && !/>Scroll<|Défiler/.test(html));
   t('phone appears exactly twice in index.html (Contact row + mobile bar); JSON-LD Person without telephone', (html.match(/\+33 7 54 28 72 10/g) || []).length === 2 && /"@type":"Person"/.test(html) && !/"telephone"/.test(html));
   t('named timing constants at the top of main.js', ['AUTO_LEG_MS', 'S0_LINE_MS', 'S0_TONE_MS', 'COVER_END', 'COVER_OUT', 'MBAR_AT', 'FOLD_OPEN', 'REVEAL_FAILSAFE_MS', 'DIALOG_DECK_MS', 'DIALOG_TIME_MS', 'END_P', 'HOLD_IN'].every((k) => new RegExp('var [^;]*\\b' + k + ' = ').test(mainjs.slice(0, 2500))));
   t('backdrop canvas retired (no backdrop.js, no <canvas> in the cover); Kling slot ships dormant (hero.json ready:false)', !/backdrop|<canvas/.test(html) && JSON.parse(readFileSync(join(SITE, 'assets/film/hero.json'), 'utf8')).ready === false);
@@ -146,8 +158,12 @@ await p.goto(base, { waitUntil: 'load' });
   await p.waitForTimeout(400);
   const a = await p.evaluate(() => ({ intro: document.querySelector('[data-cover]').dataset.intro, off: getComputedStyle(document.querySelector('.fig.is-on .fig__line path')).strokeDashoffset, key: document.querySelector('.fig.is-on').dataset.key, rev: getComputedStyle(document.querySelector('[data-stage]')).getPropertyValue('--reveal').trim(), d: document.querySelector('.fig.is-on .fig__line path').getAttribute('d').length }));
   await p.waitForTimeout(3600);
-  const c = await p.evaluate(() => ({ intro: document.querySelector('[data-cover]').dataset.intro, off: parseFloat(getComputedStyle(document.querySelector('.fig.is-on .fig__line path')).strokeDashoffset), tone: +getComputedStyle(document.querySelector('.fig.is-on .fig__draw')).opacity, lit: document.querySelector('[data-rail-item]').classList.contains('is-on'), y: scrollY }));
-  t('S0: sn-01 contour draws itself (dashoffset > 0 at 0.4 s → 0 by 4 s), graphite wash fades in, rail 01 lights — no scroll', a.key === 'sn-01' && a.intro === 'drawing' && parseFloat(a.off) > 0.05 && a.d > 200 && c.intro === 'done' && c.off === 0 && c.tone > 0.15 && c.lit && c.y === 0, { a, c });
+  const c = await p.evaluate(() => ({ intro: document.querySelector('[data-cover]').dataset.intro, off: parseFloat(getComputedStyle(document.querySelector('.fig.is-on .fig__line path')).strokeDashoffset), tone: +getComputedStyle(document.querySelector('.fig.is-on .fig__wash')).opacity, lit: document.querySelector('[data-rail-item]').classList.contains('is-on'), y: scrollY }));
+  t('S0: sn-01 contour draws itself (dashoffset > 0 at 0.4 s → 0 by 4 s), ochre wash fades in, rail 01 lights — no scroll', a.key === 'sn-01' && a.intro === 'drawing' && parseFloat(a.off) > 0.05 && a.d > 200 && c.intro === 'done' && c.off === 0 && c.tone >= 0.1 && c.tone <= 0.14 && c.lit && c.y === 0, { a, c });
+  const dr = await p.evaluate(() => { const f = document.querySelector('.fig.is-on'); const ink = getComputedStyle(f.querySelector('.fig__ink')), soft = getComputedStyle(f.querySelector('.fig__soft')); const w = getComputedStyle(f.querySelector('.fig__wash')); const m = new DOMMatrix(w.transform);
+    return { photoFill: !!f.querySelector('.fig__draw'), ink: ink.stroke, iw: parseFloat(ink.strokeWidth), io: +ink.opacity, sw: parseFloat(soft.strokeWidth), so: +soft.opacity, inner: f.querySelectorAll('.fig__inner path').length, wbg: w.backgroundColor, wop: +w.opacity, dx: m.m41, dy: m.m42, blur: w.filter, mask: w.maskImage || w.webkitMaskImage }; });
+  t('A1 drawing = warm-ink line #2A2420 .75–1.1 px (+ 1.6× soft stroke at .18), interior lines, no grey photo fill', !dr.photoFill && dr.ink === 'rgb(42, 36, 32)' && dr.iw >= 0.75 && dr.iw <= 1.1 && Math.abs(dr.io - 0.9) < 0.01 && Math.abs(dr.sw / dr.iw - 1.6) < 0.05 && Math.abs(dr.so - 0.18) < 0.01 && dr.inner >= 1, dr);
+  t('A2 wash = pale ochre #C4731A at 10–14 %, offset 6–10 px down-right, blur 3 px, masked by the figure alpha (not the photo)', dr.wbg === 'rgb(196, 115, 26)' && dr.wop >= 0.1 && dr.wop <= 0.14 && dr.dx >= 6 && dr.dx <= 10 && dr.dy >= 6 && dr.dy <= 10 && /blur\(3px\)/.test(dr.blur) && /url\(.*fig\/sn-01@/.test(dr.mask), dr);
   t('S0: photograph hidden under the drawing (reveal = 0)', a.rev === '0.000' || a.rev === '0');
   let s3 = -1; for (let i = 0; i < 16 && s3 < 3; i++) { await p.waitForTimeout(500); s3 = await state(p); }
   t('autoplay reaches S3 within 12 s of load (no scroll), then holds', s3 === 3, { s3 });
@@ -169,7 +185,7 @@ await p.goto(base, { waitUntil: 'load' });
   }
   await p.waitForTimeout(800);
   const keyNow = await p.evaluate(() => document.querySelector('.fig.is-on').dataset.key);
-  t('one state drives figure, rail and mobile counter: data-state = s, rail data-pos = railm data-pos = position, at 13 states (EN + FR)', seen.every((x) => x.st === x.s && +x.rail === x.pos && +x.railm === x.pos && x.key) && keyNow === 'sn-12', seen.filter((x) => !(x.st === x.s && +x.rail === x.pos && +x.railm === x.pos && x.key)).slice(0, 3));
+  t('one state drives figure, rail and mobile counter: data-state = s, rail data-pos = railm data-pos = position, at 13 states (EN + FR)', seen.every((x) => x.st === x.s && +x.rail === x.pos && +x.railm === x.pos && x.key) && keyNow === 'sn-01', seen.filter((x) => !(x.st === x.s && +x.rail === x.pos && +x.railm === x.pos && x.key)).slice(0, 3));
   t('GLOSS: desktop rail and mobile counter show the i18n mantra + gloss of the current position (EN + FR)', seen.every((x) => x.ok));
   t('rail mantra text changes with the state', new Set(seen.filter((x) => x.s < 12).slice(0, 12).map((x) => x.mantra)).size === 12);
   t('headline: "Twelve breaths." beat at S0–S3, Sūtra 2.46 from S4; CTAs from S9 (EN + FR)', seen.every((x) => x.beat === (x.s >= 4 ? 1 : 0) && x.ctas === (x.s >= 9)));
@@ -178,6 +194,12 @@ await p.goto(base, { waitUntil: 'load' });
   const rv = [];
   for (const s of [1, 4, 8, 9, 10, 11, 12]) { await scrollTo(p, await stateY(p, s), 300); rv.push([s, await p.evaluate(() => { const st = document.querySelector('[data-stage]'); const v = parseFloat(getComputedStyle(st).getPropertyValue('--reveal')); const ph = document.querySelector('.fig.is-on .fig__photo'); return [v, getComputedStyle(ph).maskImage || getComputedStyle(ph).webkitMaskImage]; })]); }
   t('reveal mask: --reveal = 0 for S ≤ 8, rises across S9–S10, = 1 at S11/S12; the photograph carries a linear-gradient mask', rv.filter(([s]) => s <= 8).every(([, v]) => v[0] === 0) && rv.find(([s]) => s === 9)[1][0] > 0 && rv.find(([s]) => s === 10)[1][0] > rv.find(([s]) => s === 9)[1][0] && rv.filter(([s]) => s >= 11).every(([, v]) => v[0] === 1) && rv.every(([, v]) => /linear-gradient/.test(v[1])), rv.map(([s, v]) => [s, v[0]]));
+  const ph4 = [];
+  for (const s of [0, 9, 10, 11, 12]) { await scrollTo(p, await stateY(p, s), 900); ph4.push(await p.evaluate(() => { const f = document.querySelector('.fig.is-on'); return [f.dataset.key, /@\d+\.webp/.test(f.querySelector('.fig__photo').currentSrc)]; })); }
+  t('B4 S0 drawing = sn-01; S9/S10/S11/hold photographs = sn-03, sn-02, sn-01 (frontal Praṇāmāsana closes the circle)', ph4.map((x) => x[0]).join() === 'sn-01,sn-03,sn-02,sn-01,sn-01' && ph4.slice(1).every((x) => x[1]), ph4);
+  const gr = await p.evaluate(() => { const st = document.querySelector('[data-stage]').getBoundingClientRect(); const g = document.querySelector('[data-ground]'); const r = g.getBoundingClientRect(); const c = getComputedStyle(g); const f = document.querySelector('.fig.is-on'); const fr = f.getBoundingClientRect(); const sh = f.querySelector('.fig__shadow'); const sr = sh.getBoundingClientRect(); const cs = getComputedStyle(sh); const fx0 = parseFloat(getComputedStyle(f).getPropertyValue('--fx0')), fx1 = parseFloat(getComputedStyle(f).getPropertyValue('--fx1'));
+    return { gw: r.width, sw: st.width, gy: r.top - st.top, line: 0.86 * st.height, gh: r.height, gbg: c.backgroundColor, shW: sr.width, want: (fx1 - fx0) * fr.width * 0.6, shH: sr.height, figH: fr.height, shBg: cs.backgroundColor, blur: cs.filter, shL: sr.left, footL: fr.left + fx0 * fr.width, footR: fr.left + fx1 * fr.width }; });
+  t('B6 ground hairline edge to edge at the ground line (1 px, ink .35); contact shadow under the feet only (60 % of the foot span, 2 % of the figure, ink .22, blur 6 px)', Math.abs(gr.gw - gr.sw) < 1 && Math.abs(gr.gy - gr.line) <= 1 && gr.gh === 1 && gr.gbg === 'rgba(27, 26, 23, 0.35)' && Math.abs(gr.shW - gr.want) <= 2 && Math.abs(gr.shH - 0.02 * gr.figH) <= 1 && gr.shBg === 'rgba(27, 26, 23, 0.22)' && /blur\(6px\)/.test(gr.blur) && gr.shL >= gr.footL - 1 && gr.shL + gr.shW <= gr.footR + 1, gr);
   // stage is paper, no dark plate, sun is a blurred gradient
   const look = await p.evaluate(() => { const pin = getComputedStyle(document.querySelector('[data-stage]')); const sun = getComputedStyle(document.querySelector('.cover__sun')); const round = [...document.querySelectorAll('[data-cover] *')].filter((e) => { const c = getComputedStyle(e); return c.borderRadius === '50%' && c.backgroundImage === 'none' && c.backgroundColor !== 'rgba(0, 0, 0, 0)'; }).length; return { bg: pin.backgroundColor, sunBg: sun.backgroundImage, blur: parseFloat((sun.filter.match(/blur\(([\d.]+)px/) || [0, 0])[1]), round, fig: getComputedStyle(document.querySelector('.fig.is-on .fig__photo')).filter }; });
   t('paper stage (#F3EEE4), no dark plate; sun = radial gradient, blur ≥ 40 px, no hard disc; no CSS filter on the photograph', look.bg === PAPER_RGB && /radial-gradient/.test(look.sunBg) && look.blur >= 40 && look.round === 0 && look.fig === 'none', look);
@@ -191,20 +213,23 @@ await close(p);
   await q.goto(base, { waitUntil: 'load' }); await goState(q, 11, 1800);
   const r = await q.evaluate(() => { const im = document.querySelector('.fig.is-on .fig__photo'); const b = im.getBoundingClientRect(); return { src: im.currentSrc, nh: im.naturalHeight, h: b.height, key: im.closest('.fig').dataset.key }; });
   const m = /@(\d+)\.webp/.exec(r.src);
-  t('S11 on 1440×900 @2×: the photograph is the ≥ 1600 variant and ≥ 1.5× the rendered height (currentSrc)', r.key === 'sn-12' && m && +m[1] >= 1600 && +m[1] >= 1.5 * r.h, r);
+  t('S11 on 1440×900 @2×: the photograph is the ≥ 1600 variant and ≥ 1.5× the rendered height (currentSrc)', r.key === 'sn-01' && m && +m[1] >= 1600 && +m[1] >= 1.5 * r.h, r);
   await close(q);
 }
 
 // ---------------- 19-viewport matrix × 13 states: figure height, ground line, no text over the figure ----------------
 {
-  const H = [], G = [], X = [], E = {}, O = [];
+  const H = [], G = [], X = [], E = {}, O = [], RC = [], EB = [];
   for (const [name, sp] of Object.entries(VP)) {
     const q = await mk(spec(sp)); await q.goto(base, { waitUntil: 'load' }); await q.waitForTimeout(300);
     for (let s = 0; s <= LAST; s++) {
       await goState(q, s, s === 0 ? 900 : 700);
       const g = await probe(q); const ph = isPhoneVp(g.W, g.H), L = ph ? PHONE : DESK;
       if (!g.fig) { H.push([name, s, 'nofig']); continue; }
-      const hr = (g.fig.b - g.fig.t) / g.H, wr = (g.fig.r - g.fig.l) / g.W, capped = wr >= L.maxW - 0.004;
+      const cap = Math.min((ph && g.W >= 768 ? 0.85 : L.maxW) * g.W, g.railL ? 2 * (g.railL - 48 - g.W / 2) : 1e9);
+      const hr = (g.fig.b - g.fig.t) / g.H, wr = (g.fig.r - g.fig.l) / g.W, capped = (g.fig.r - g.fig.l) >= cap - 2;
+      if (g.railL !== null && !ph && g.fig.r > g.railL - 48 + 0.5) RC.push([name, s, Math.round(g.railL - g.fig.r)]);
+      if (ph && g.empty > 0.25) EB.push([name, s, +g.empty.toFixed(2)]);
       if (!(hr >= L.height - 0.003 || capped)) H.push([name, s, g.key, +hr.toFixed(3), +wr.toFixed(3)]);
       const feet = g.fig.t + g.g * (g.fig.b - g.fig.t) - g.stTop, line = (ph ? PHONE : DESK).ground * g.H;
       if (Math.abs(feet - line) > 0.01 * g.H) G.push([name, s, +(feet / g.H).toFixed(3)]);
@@ -213,7 +238,9 @@ await close(p);
     }
     E[name] = q._errs.slice(0, 2); await close(q);
   }
-  t('figure height ≥ .70 of the stage desktop / ≥ .58 phones at every state, or width-capped at 56 % / 92 % of the stage (19 viewports × 13 states)', H.length === 0, H.slice(0, 8));
+  t('figure height ≥ .70 of the stage desktop / ≥ .58 phones at every state, or width-capped (56 % / 92 % / 85 vw portrait tablets / rail clearance) (19 viewports × 13 states)', H.length === 0, H.slice(0, 8));
+  t('G21/E12 figure right edge ≤ rail left − 48 px at every state on every rail viewport (19 × 13)', RC.length === 0, RC.slice(0, 8));
+  t('E11/E13/E22 portrait viewports: no empty band > 25 % of the height at any state (pose text fills the band above low poses)', EB.length === 0, EB.slice(0, 8));
   t('feet row within 1 % of the ground line (86 % desktop / 78 % phones) at every state (19 × 13)', G.length === 0, G.slice(0, 8));
   t('no text box intersects the figure bbox at any state (cover copy, rail, counter, CTAs, hint, header) (19 × 13)', X.length === 0, X.slice(0, 8));
   t('R3 matrix: 0 console errors on all 19 viewports', Object.values(E).every((e) => e.length === 0), Object.entries(E).filter(([, e]) => e.length).slice(0, 3));
@@ -260,10 +287,16 @@ await close(p);
   const fullOp = await q.evaluate(() => [...document.querySelectorAll('section, .plate, .dp')].every((e) => +getComputedStyle(e).opacity === 1));
   t('R3 §1e ?static=1: S11 photograph (reveal 1) + Sūtra 2.46 + CTAs, all 4 deck panels visible, every section at full opacity', s.st === '11' && s.rev === 1 && s.vis === 4 && s.ctas === 1 && s.beat === '1' && fullOp, s);
   t('R3 §1e page-full ?static=1: no empty band > 60 % vh', band <= 0.6, { band });
+  await q.evaluate(() => scrollTo(0, 0)); await q.waitForTimeout(1500);
+  const imgs = await q.evaluate(() => [...document.querySelectorAll('img')].filter((i) => !i.closest('noscript')).map((i) => { let o = 1; for (let x = i; x && x !== document.body; x = x.parentElement) o *= +getComputedStyle(x).opacity; return [i.getAttribute('src').split('/').pop(), i.complete && i.naturalWidth > 0, o]; }));
+  t('C7 ?static=1: every img loaded (naturalWidth > 0) at opacity 1 without scrolling (About portrait, drum figures)', imgs.length >= 4 && imgs.every((x) => x[1] && x[2] === 1), imgs.filter((x) => !x[1] || x[2] !== 1));
   await close(q);
   q = await mk({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' }); await q.goto(base, { waitUntil: 'load' }); await q.waitForTimeout(1200);
   const rm = await q.evaluate(() => ({ st: document.querySelector('[data-cover]').dataset.state, vis: [...document.querySelectorAll('.dp')].filter((x) => !x.hidden).length, h: document.querySelector('[data-cover]').offsetHeight, ih: innerHeight }));
   t('reduced motion: S11 static (no pinned track), all copy, deck panels static', rm.st === '11' && rm.vis === 4 && rm.h <= rm.ih + 1, rm);
+  await q.waitForTimeout(800);
+  const rmi = await q.evaluate(() => [...document.querySelectorAll('img')].filter((i) => !i.closest('noscript')).every((i) => i.complete && i.naturalWidth > 0));
+  t('C7 reduced motion: every img loaded without scrolling', rmi);
   await close(q);
   q = await mk({ viewport: { width: 1440, height: 900 }, javaScriptEnabled: false }); await q.goto(base, { waitUntil: 'load' }); await q.waitForTimeout(600);
   const nj = await q.evaluate(() => { const im = document.querySelector('.fig-static'); const b1 = document.querySelector('[data-beat="1"]'); return { im: !!(im && im.complete && im.naturalWidth), b1: +getComputedStyle(b1).opacity, cta: +getComputedStyle(document.querySelector('[data-cover] .ctas')).opacity, h: document.querySelector('[data-cover]').offsetHeight }; });
@@ -302,10 +335,22 @@ await p.goto(base, { waitUntil: 'load' }); await p.waitForTimeout(500);
   t('R3 §4c no text box under the header/tab row after show(id) (desktop)', under.every((n) => n === 0), under);
   const ph = await p.evaluate(() => ['about', 'classes', 'register', 'contact'].map((id) => { const e = document.getElementById(id); const was = e.hidden; e.hidden = false; const h = e.offsetHeight; e.hidden = was; return h; }));
   t('deck panels ≤ 1 viewport (900) on desktop', ph.every((h) => h <= LIMITS.panelDesktop), ph);
+  // G23: no panel has an empty area > 35 % of the viewport (panel shown at the top of the deck)
+  const EA = [];
+  for (const id of ['about', 'classes', 'register', 'contact']) { await p.click(`[data-tab="${id}"]`); await p.evaluate(() => document.querySelector('#deck').scrollIntoView()); await p.waitForTimeout(300);
+    EA.push([id, await p.evaluate(() => { const nb = document.querySelector('.deck__nav').getBoundingClientRect().bottom; const pn = [...document.querySelectorAll('.dp')].find((x) => !x.hidden); const pr = pn.getBoundingClientRect(); const els = [...pn.querySelectorAll('h2,h3,p,li,img,input,select,textarea,button,dl,a')].map((e) => e.getBoundingClientRect()).filter((r) => r.height); let run = 0, worst = 0; for (let y = nb; y < Math.min(innerHeight, pr.bottom); y += 4) { const c = els.some((r) => r.top <= y && r.bottom >= y); run = c ? 0 : run + 4; worst = Math.max(worst, run); } return +(worst / innerHeight).toFixed(2); })]); }
+  t('G23 no deck panel has an empty area > 35 % of the viewport (desktop)', EA.every((x) => x[1] <= 0.35), EA);
+  // D9 About: colour photograph, frame fully inside the panel
+  await p.click('[data-tab="about"]'); await p.waitForTimeout(300);
+  const ab = await p.evaluate(() => { const im = document.querySelector('.about__img'); const fr = document.querySelector('.about__fig').getBoundingClientRect(); const pn = document.getElementById('about').getBoundingClientRect(); return { src: im.currentSrc, in: fr.left >= pn.left - 1 && fr.right <= pn.right + 1 && fr.top >= pn.top - 1 && fr.bottom <= pn.bottom + 1, crop: getComputedStyle(im.parentElement).overflow }; });
+  t('D9/G18 About: colour portrait photograph (no pencil), cropped by its frame, frame fully inside the panel', /portrait@\d+\.webp/.test(ab.src) && ab.in && ab.crop === 'hidden', ab);
+  // C8 section air at 1440
+  const air = await p.evaluate(() => { const fold = document.querySelector('[data-fold]'), pin = fold.querySelector('.fold__pin'); const head = fold.querySelector('.fold__head'); const deck = document.querySelector('#deck'); return { drum: head.offsetTop - pin.offsetTop, deck: document.querySelector('.deck__nav').offsetTop - 0 >= 0 ? parseFloat(getComputedStyle(deck).paddingTop) : 0 }; });
+  t('C8 section air at 1440: drum head ≥ 160 px below its top, deck starts with ≥ 160 px before the tab row', air.drum >= 160 && air.drum <= 200 && air.deck >= 160 && air.deck <= 200, air);
   // §8a, §8b, §8d
   await p.click('[data-tab="classes"]'); await p.waitForTimeout(200);
   const pr = await p.evaluate(() => { const e = [...document.querySelectorAll('[data-i18n="price"]')]; const r = e[0].getBoundingClientRect(); const cards = document.querySelector('#classes .cards').getBoundingClientRect(); const cs = getComputedStyle(e[0]); return { n: e.length, lines: Math.round(r.height / parseFloat(cs.lineHeight)), span: r.width >= cards.width - 2, color: cs.color }; });
-  t('R3 §8a "Price on request" once, one line spanning the three offerings, warm accent', pr.n === 1 && pr.lines === 1 && pr.span && pr.color === 'rgb(154, 90, 18)', pr);
+  t('R3 §8a + F15 "Price on request" once, one line spanning the three offerings, in ink; rail progress ticks are ink hairlines', await p.evaluate(() => { const li = document.querySelector('[data-rail-item]'); const a = getComputedStyle(li, '::after'); return a.backgroundColor === 'rgb(27, 26, 23)' && a.height === '1px'; }) && pr.n === 1 && pr.lines === 1 && pr.span && pr.color === 'rgb(27, 26, 23)', pr);
   await p.click('[data-tab="contact"]'); await p.waitForTimeout(200);
   const ct = await p.evaluate(() => { const rows = [...document.querySelectorAll('#contact .crow')].filter((r) => !r.hidden); const ul = document.querySelector('#contact .contact').getBoundingClientRect(); const ph = rows.filter((r) => /\+33 7 54 28 72 10/.test(r.textContent)); const foot = document.querySelector('.foot').textContent; return { rows: rows.length, full: rows.every((r) => r.getBoundingClientRect().width >= ul.width - 2), rule: rows.every((r) => getComputedStyle(r).borderBottomStyle === 'solid' && getComputedStyle(r).borderTopWidth === '0px'), phoneRows: ph.length, wa: ph[0] && !!ph[0].querySelector('a[href^="https://wa.me/"]') && !!ph[0].querySelector('a[href^="tel:"]'), footPhone: /\+33/.test(foot), footLinks: [...document.querySelectorAll('.foot__links a')].map((a) => a.getAttribute('href')) }; });
   t('R3 §8b contact: full-width hairline list, phone + WhatsApp in one row, footer = email + Instagram + Privacy (no number)', ct.rows === 3 && ct.full && ct.rule && ct.phoneRows === 1 && ct.wa && !ct.footPhone && ct.footLinks.join() === 'mailto:jeevanagogula.gj22@gmail.com,https://www.instagram.com/jeevana.gogula/,/privacy/', ct);
@@ -348,6 +393,9 @@ await p.goto(base, { waitUntil: 'load' }); await p.waitForTimeout(500);
   await p.unroute('**/api/register'); await p.route('**/api/**', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' }));
   await p.click('[data-reg] button[type="submit"]'); await p.waitForTimeout(500);
   t('register form posts to /api/register and shows success (mocked fetch)', await p.evaluate(() => !document.querySelector('[data-reg-ok]').hidden && document.querySelector('[data-reg]').hidden));
+  await p.waitForTimeout(400);
+  const g17 = await p.evaluate(() => document.querySelector('.deck__nav').getBoundingClientRect().top - document.querySelector('[data-hdr]').getBoundingClientRect().bottom);
+  t('G17 register success: tab row top − header bottom ≤ 8 px after the swap', g17 <= 8 && g17 >= -1, { g17 });
   // page height budget beyond the cover track
   const hh = await p.evaluate(() => ({ H: document.documentElement.scrollHeight, cover: document.querySelector('[data-cover]').offsetHeight, ov: Math.max(0, -parseFloat(getComputedStyle(document.querySelector('[data-fold]')).marginTop)) }));
   t('desktop page height beyond the 14-vh cover track ≤ 3,400 px (v1 budget 7,000 − its 4-vh cover)', hh.H - hh.cover + hh.ov <= LIMITS.otherDesktop, { total: hh.H, rest: hh.H - hh.cover + hh.ov });
@@ -364,6 +412,9 @@ await close(p);
   const q = await mk({ viewport: { width: 1440, height: 900 } }); await q.goto(base, { waitUntil: 'load' }); await q.waitForTimeout(300);
   const at = async (f) => { const y = await q.evaluate((f) => { const e = document.querySelector('[data-fold]'); return e.offsetTop + (e.offsetHeight - innerHeight) * f; }, f); await scrollTo(q, y, 500); return q.evaluate(() => [...document.querySelectorAll('.plate')].map((p) => { const m = new DOMMatrix(getComputedStyle(p).transform); const ang = Math.abs(Math.atan2(m.m13, m.m11) * 180 / Math.PI); const r = p.getBoundingClientRect(); const vis = Math.max(0, Math.min(r.bottom, innerHeight) - Math.max(r.top, 0)) / r.height; return { tr: getComputedStyle(p).transform, ang, op: +getComputedStyle(p).opacity, cap: +getComputedStyle(p.querySelector('figcaption')).opacity, vis }; })); };
   const a0 = await at(-0.3), a1 = await at(0.2), a2 = await at(1);
+  const dm = await q.evaluate(() => [...document.querySelectorAll('.plate')].map((p) => { const c = p.querySelector('.plate__fig').getBoundingClientRect(); const i = p.querySelector('.plate__img'); const r = i.getBoundingClientRect(); return { cw: c.width, ch: c.height, base: r.bottom, ih: r.height, iw: r.width, capped: r.width >= c.width - 1, ok: i.complete && i.naturalWidth > 0 }; }));
+  const free = dm.filter((x) => !x.capped);
+  t('D10 drum: three full figures, identical cards, one ground line (baselines ±2 px), equal figure height (60 % of the card) where not width-capped', dm.length === 3 && dm.every((x) => x.ok && Math.abs(x.cw - dm[0].cw) <= 1 && Math.abs(x.ch - dm[0].ch) <= 1 && Math.abs(x.base - dm[0].base) <= 2) && free.length >= 2 && free.every((x) => Math.abs(x.ih - 0.6 * x.ch) <= 2), dm);
   t('drum hinge transform changes with scroll', a0[0].tr !== a1[0].tr || a0[2].tr !== a1[2].tr);
   t('drum fully open by track end (rise 1: no transform, opacity 1)', a2.every((x) => x.op === 1 && (x.tr === 'none' || /matrix3d\(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1\)|matrix\(1, 0, 0, 1, 0, 0\)/.test(x.tr))), a2.map((x) => x.tr));
   const all = [...a0, ...a1, ...a2];
@@ -377,8 +428,8 @@ for (const dev of ['Pixel 7', 'iPhone 13']) {
   const ov = await q.evaluate(() => document.documentElement.scrollWidth - innerWidth);
   if (dev === 'Pixel 7') {
     await goState(q, 2, 700);
-    const m = await q.evaluate(() => { const r = document.querySelector('[data-railm]'); const fig = document.querySelector('.fig.is-on').getBoundingClientRect(); const rr = r.getBoundingClientRect(); return { txt: r.innerText.replace(/\s+/g, ' ').trim(), below: rr.top >= fig.bottom - 2, rail: getComputedStyle(document.querySelector('[data-rail]')).display, copyTop: document.querySelector('.beats').getBoundingClientRect().bottom <= fig.top + 1, cta: document.querySelector('[data-cover] .ctas').getBoundingClientRect().bottom <= innerHeight - 24, hint: Math.abs(document.querySelector('[data-hint]').getBoundingClientRect().left + document.querySelector('[data-hint]').getBoundingClientRect().width / 2 - innerWidth / 2) <= 2 }; });
-    t('phones: copy block above the figure, reduced rail "03 / 12 · Pādahastāsana · Exhale" + mantra under it, CTAs above the safe area, scroll hint centred', /^03 \/ 12 · Pādahastāsana · Exhale Om Sūryāya Namaḥ — to the one who induces activity$/.test(m.txt) && m.below && m.rail === 'none' && m.copyTop && m.cta && m.hint, m);
+    const m = await q.evaluate(() => { const r = document.querySelector('[data-railm]'); const fig = document.querySelector('.fig.is-on').getBoundingClientRect(); const rr = r.getBoundingClientRect(); return { txt: r.innerText.replace(/\s+/g, ' ').trim(), below: rr.top >= fig.bottom - 2, rail: getComputedStyle(document.querySelector('[data-rail]')).display, copyTop: document.querySelector('.beats').getBoundingClientRect().bottom <= fig.top + 1, cta: document.querySelector('[data-cover] .ctas').getBoundingClientRect().bottom <= innerHeight - 24 }; });
+    t('phones: copy block above the figure, pose block (Devanagari, "03 / 12 · Pādahastāsana · Exhale", mantra) under a tall pose, CTAs above the safe area', /^पादहस्तासन 03 \/ 12 · Pādahastāsana · Exhale Om Sūryāya Namaḥ — to the one who induces activity$/.test(m.txt) && m.below && m.rail === 'none' && m.copyTop && m.cta, m);
     await q.evaluate(() => document.querySelector('#practice').scrollIntoView()); await q.waitForTimeout(800);
     const fo = await q.evaluate(() => { const s = document.querySelector('[data-spread]'); const cs = getComputedStyle(s); const pl = [...document.querySelectorAll('.plate')]; const hb = document.querySelector('[data-hdr]').getBoundingClientRect().bottom; return { snap: cs.scrollSnapType, ox: cs.overflowX, t3: pl.every((p) => getComputedStyle(p).transform === 'none'), fit: pl.every((p) => p.getBoundingClientRect().width <= innerWidth), first: document.querySelector('.fold__head').getBoundingClientRect().top - hb, coverHidden: getComputedStyle(document.querySelector('.cover__pin')).visibility === 'hidden', bar: document.querySelector('[data-mbar]').classList.contains('is-on'), hdrBg: getComputedStyle(document.querySelector('[data-hdr]')).backgroundColor }; });
     t('mobile drum is a horizontal snap-scroll (no 3D), plates fit the viewport', /x/.test(fo.snap) && fo.ox === 'auto' && fo.t3 && fo.fit, fo);
@@ -402,9 +453,16 @@ for (const dev of ['Pixel 7', 'iPhone 13']) {
 // ---------------- 4K (§6) ----------------
 {
   const q = await mk({ viewport: { width: 3840, height: 2160 } }); await q.goto(base, { waitUntil: 'load' }); await goState(q, 4, 700);
-  const k = await q.evaluate(() => { const nav = document.querySelector('.lang button'); const rail = document.querySelector('[data-rail]'); const kids = [...rail.children].map((c) => c.getBoundingClientRect()); const top = Math.min(...kids.map((r) => r.top)), bot = Math.max(...kids.map((r) => r.bottom)); const col = rail.getBoundingClientRect(); return { nav: parseFloat(getComputedStyle(nav).fontSize), gloss: parseFloat(getComputedStyle(rail.querySelector('[data-rail-key="tr"]')).fontSize), html: parseFloat(getComputedStyle(document.documentElement).fontSize), fill: (bot - top) / col.height }; });
-  t('R3 §6 4K: nav ≥ 22 px, rail gloss ≥ 20 px, html ≥ 24 px, rail content fills ≥ 70 % of its column', k.nav >= 22 && k.gloss >= 20 && k.html >= 24 && k.fill >= 0.7, k);
+  const k = await q.evaluate(() => { const nav = document.querySelector('.lang button'); const rail = document.querySelector('[data-rail]'); return { nav: parseFloat(getComputedStyle(nav).fontSize), gloss: parseFloat(getComputedStyle(rail.querySelector('[data-rail-key="tr"]')).fontSize), html: parseFloat(getComputedStyle(document.documentElement).fontSize), eyebrow: parseFloat(getComputedStyle(document.querySelector('[data-beat].is-on .kicker')).fontSize) }; });
+  t('R3 §6 + G20 4K: nav ≥ 22 px, rail gloss ≥ 20 px, html ≥ 24 px, cover eyebrow ≥ 18 px', k.nav >= 22 && k.gloss >= 20 && k.html >= 24 && k.eyebrow >= 18, k);
   await close(q);
+  const G19 = [];
+  for (const [w, h] of [[2560, 1440], [3840, 2160]]) {
+    const q2 = await mk({ viewport: { width: w, height: h } }); await q2.goto(base, { waitUntil: 'load' }); await goState(q2, 4, 700);
+    G19.push(await q2.evaluate(() => { const rail = document.querySelector('[data-rail]'); const kids = [...rail.children].map((c) => c.getBoundingClientRect()); const col = rail.getBoundingClientRect(); const rem = parseFloat(getComputedStyle(document.documentElement).fontSize); let gap = 0; for (let i = 1; i < kids.length; i++) gap = Math.max(gap, kids[i].top - kids[i - 1].bottom); return { block: (Math.max(...kids.map((r) => r.bottom)) - Math.min(...kids.map((r) => r.top))) / col.height, gapRem: gap / rem }; }));
+    await close(q2);
+  }
+  t('G19 1440p/4K rail: block height ≤ 70 % of its column, gaps between rail items ≤ 2.5 rem', G19.every((x) => x.block <= 0.7 && x.gapRem <= 2.5), G19);
 }
 
 // ---------------- privacy + 404 ----------------
