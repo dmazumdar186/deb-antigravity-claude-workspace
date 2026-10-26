@@ -1,28 +1,45 @@
-// POST /api/subscribe — newsletter opt-in (dialog + footer row).
+// POST /api/subscribe — newsletter opt-in (dialog + footer row). Phone stays optional (operator decision 2026-10-26).
 // Body: { email, phone?, consent, website (honeypot), lang, source, source_url }
-// 200 { ok:true } · 400 { ok:false, error } · 429 rate_limited · 500 internal. Repeat emails return 200 (non-enumerable).
-// KV: news:<sha256(email)> -> { email, phone, ts, lang, source, source_url, consent:true }
-import { Env, EMAIL_RE, json, sha256Hex, str, consentOk, rateLimited, readBody } from './_lib';
+// 200 { ok:true } · 400 / 413 { ok:false, error } · 429 rate_limited · 503 storage unavailable · 500 internal.
+// KV: news:<sha256(email)> -> { email, phone?, lang, source, consent_ts, consent_text, unsubscribe_token }.
+// Re-subscribing is idempotent: the original consent_ts and token are kept.
+import { Env, EMAIL_RE, PHONE_RE, json, sha256Hex, randomHex, str, consentOk, rateLimited, readBody, badBody, noStore, fail, notify } from './_lib';
 
-export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
+export const CONSENT_TEXT = {
+  en: "I agree to receive Jeevana's newsletter by email. I can unsubscribe at any time.",
+  fr: "J'accepte de recevoir la lettre d'information de Jeevana par e-mail. Je peux me désinscrire à tout moment.",
+};
+
+export const onRequestPost: PagesFunction<Env> = async (ctx) => {
+  const { request, env } = ctx;
   const b = await readBody(request);
-  if (!b) return json({ ok: false, error: 'bad_body' }, 400);
-  if (str(b.website, 200)) return json({ ok: true }); // honeypot: pretend success, store nothing
-  const email = str(b.email, 254).toLowerCase();
-  const phone = str(b.phone, 40);
+  const bad = badBody(b); if (bad) return bad;
+  const body = b as Record<string, unknown>;
+  if (str(body.website, 200)) return json({ ok: true }); // honeypot: pretend success, store nothing
+  const email = str(body.email, 254).toLowerCase();
+  const phone = str(body.phone, 40);
   if (!email || !EMAIL_RE.test(email)) return json({ ok: false, error: 'bad_email' }, 400);
-  if (phone && !/^[+\d][\d\s().-]{5,39}$/.test(phone)) return json({ ok: false, error: 'bad_phone' }, 400);
-  if (!consentOk(b.consent)) return json({ ok: false, error: 'consent_required' }, 400);
+  if (phone && !PHONE_RE.test(phone)) return json({ ok: false, error: 'bad_phone' }, 400);
+  if (!consentOk(body.consent)) return json({ ok: false, error: 'consent_required' }, 400);
+  if (!env.JEEVANA_KV) return noStore();
   if (await rateLimited(env, request, 'news')) return json({ ok: false, error: 'rate_limited' }, 429, { 'Retry-After': '600' });
-  if (!env.JEEVANA_KV) return json({ ok: false, error: 'internal' }, 500);
   try {
-    const rec = {
-      email, phone, ts: new Date().toISOString(), lang: b.lang === 'fr' ? 'fr' : 'en',
-      source: str(b.source, 20), source_url: str(b.source_url, 300), consent: true,
+    const key = `news:${await sha256Hex(email)}`;
+    const prev = await env.JEEVANA_KV.get(key);
+    const old = prev ? (JSON.parse(prev) as Record<string, unknown>) : null;
+    const lang = body.lang === 'fr' ? 'fr' : 'en';
+    const rec: Record<string, unknown> = {
+      email, lang, source: str(body.source, 20), source_url: str(body.source_url, 300),
+      consent_ts: (old && old.consent_ts) || new Date().toISOString(),
+      consent_text: (old && old.consent_text) || CONSENT_TEXT[lang],
+      unsubscribe_token: (old && old.unsubscribe_token) || randomHex(24),
     };
-    await env.JEEVANA_KV.put(`news:${await sha256Hex(email)}`, JSON.stringify(rec));
+    if (phone) rec.phone = phone; else if (old && old.phone) rec.phone = old.phone;
+    await env.JEEVANA_KV.put(key, JSON.stringify(rec));
+    await env.JEEVANA_KV.put(`unsub:${rec.unsubscribe_token}`, key);
+    if (!old) ctx.waitUntil(notify(env, `Nouvelle inscription — ${email}`, ['Newsletter', `email: ${email}`, `phone: ${rec.phone || '-'}`, `lang: ${lang}`, `source: ${rec.source}`]));
     return json({ ok: true });
-  } catch {
-    return json({ ok: false, error: 'internal' }, 500);
+  } catch (err) {
+    return fail('subscribe', err);
   }
 };
