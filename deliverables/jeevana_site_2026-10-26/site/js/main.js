@@ -17,7 +17,10 @@
   var BREATH_MS = 5500;         // shared breath clock (js/breath.js uses the same period)
   var COVER_DONE = 0.98;        // p at which cover_complete fires and the mobile bar shows
   var DIALOG_DELAY = 1200;      // ms after chapter 01 is reached
-  var PHONE_MAX = 799;          // px; phones get the 9:16 film and the 10 x 100svh track
+  var PHONE_MAX = 799;          // px; phones get the lighter 3:4 encode and the 10 x 100svh track
+  var PORTRAIT_MQ = '(max-width: 799px), (max-aspect-ratio: 4/5)'; // mirrors styles.css
+  var FIG_TOP = 0.14, FIG_BOT = 0.87; // figure extent in the 3:4 frame (research/film/figure_boxes.json, all 12 keyframes)
+  var JUMP = 1.2;               // s; farther than this the film seeks straight to target
   var COPY_STATES = [0, 4, 11]; // copy state shown from this pos index onwards
   var LS_LANG = 'jv-lang', LS_NEWS = 'jv-news-seen';
 
@@ -103,9 +106,14 @@
     copyStates.forEach(function (el) { el.classList.toggle('is-on', Number(el.getAttribute('data-copy-state')) === c); });
   }
   function setPos(x) { pos = clamp(x, 0, LAST); engine.pos = pos; var st = stateOf(pos); engine.state = st; show(st, pos); }
-  function measureCopy() { // phones: the film starts below the tallest copy state (CSS reads --copy-h)
-    if (!stage) return; var h = 0; copyStates.forEach(function (el) { h = Math.max(h, el.offsetHeight); });
-    var c = $('[data-copy]'); var top = c ? c.offsetTop : 0; stage.style.setProperty('--copy-h', Math.ceil(h + top) + 'px');
+  function measureCopy() { // portrait class: 3:4 film between the copy (top) and the rail (bottom); paper may pass under both, the figure never
+    if (!stage || !W.matchMedia(PORTRAIT_MQ).matches) return;
+    var h = 0; copyStates.forEach(function (el) { h = Math.max(h, el.offsetHeight); });
+    var c = $('[data-copy]'), rail = $('[data-rail]'), V = stage.clientHeight || W.innerHeight, Wd = stage.clientWidth || W.innerWidth;
+    var C = Math.ceil(h + (c ? c.offsetTop : 0)) + 12, Rt = rail ? V - rail.offsetTop + 8 : 60;
+    var H = Math.min(Wd * 4 / 3, (V - Rt - C) / (FIG_BOT - FIG_TOP));
+    var T = C - FIG_TOP * H, spare = (V - Rt) - (T + FIG_BOT * H); if (spare > 0) T += spare / 2;
+    stage.style.setProperty('--film-top', Math.round(T) + 'px'); stage.style.setProperty('--film-h', Math.round(H) + 'px');
   }
 
   var raf = 0;
@@ -115,7 +123,7 @@
       raf = 0; if (!video || autoplaying) return;
       if (video.readyState < 1) { seekTick(); return; }
       var d = target - video.currentTime; if (Math.abs(d) < SEEK_EPS && !seeking) return;
-      if (!seeking) { seeking = true; video.currentTime = Math.abs(d) < 0.05 ? target : video.currentTime + d * LERP; }
+      if (!seeking) { seeking = true; video.currentTime = (Math.abs(d) < 0.05 || Math.abs(d) > JUMP) ? target : video.currentTime + d * LERP; }
       seekTick();
     });
   }
@@ -158,7 +166,7 @@
     var url = video.getAttribute('data-src');
     fetch(url, { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error('hero.json ' + r.status); return r.json(); }).then(function (m) {
       if (!m || !m.ready) return; meta = m; K = keyframes(m); engine.K = K; engine.meta = m;
-      var phone = W.innerWidth <= PHONE_MAX, file = phone ? m.portrait : m.landscape, v = m.v && m.v[phone ? 'portrait' : 'landscape'];
+      var phone = W.innerWidth <= PHONE_MAX && m.phone, file = phone ? m.phone : m.landscape, v = m.v && m.v[phone ? 'phone' : 'landscape'];
       var src = '/assets/film/' + file + (v ? '?v=' + v : ''); engine.src = src;
       return fetch(src).then(function (r) { if (!r.ok) throw new Error('film ' + r.status); return r.blob(); })
         .then(function (b) { video.src = URL.createObjectURL(b); }, function () { video.src = src; })

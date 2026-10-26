@@ -1,0 +1,10 @@
+{
+ "hero.mp4": {
+  "crf": 23,
+  "bytes": 5308195
+ },
+ "hero-phone.mp4": {
+  "crf": 25,
+  "bytes": 2509885
+ }
+}

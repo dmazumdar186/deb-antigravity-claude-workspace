@@ -20,11 +20,11 @@
  ],
  "aspect": "3:4",
  "landscape": "hero.mp4",
- "portrait": "hero-m.mp4",
  "poster": "poster.jpg",
  "v": {
-  "landscape": "d8dc693d",
-  "portrait": "1c2c83b5",
-  "poster": "c45289ad"
- }
+  "poster": "c45289ad",
+  "landscape": "6c5ca1a4",
+  "phone": "8c9c2b36"
+ },
+ "phone": "hero-phone.mp4"
 }

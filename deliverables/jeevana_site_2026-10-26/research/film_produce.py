@@ -58,7 +58,10 @@ def find_url(o):
     return None
 
 def leg_body(n, base, duration, aspect):
-    return {"prompt": f"The same woman moves slowly from {POSES[n-1]} into {POSES[n]}." + STYLE,
+    extra = {}
+    rp = Path(os.environ.get("RETAKE_PROMPTS", "")) if os.environ.get("RETAKE_PROMPTS") else None
+    if rp and rp.exists(): extra = json.loads(rp.read_text())
+    return {"prompt": f"The same woman moves slowly from {POSES[n-1]} into {POSES[n]}." + STYLE + extra.get(str(n), ""),
             "duration": duration, "aspect_ratio": aspect, "sound": "off",
             "image_url": f"{base}/frame-{n:02d}.jpg", "last_image_url": f"{base}/frame-{n+1:02d}.jpg", "cfg_scale": 0.7}
 

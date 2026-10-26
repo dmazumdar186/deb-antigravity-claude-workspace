@@ -1,0 +1,30 @@
+{
+ "leg": 3,
+ "body": {
+  "prompt": "The same woman moves slowly from P\u0101dahast\u0101sana, standing forward fold, hands to the floor into A\u015bva Sa\u00f1c\u0101lan\u0101sana, low lunge, one knee down, chest lifted. One slow continuous yoga movement with the breath, nothing else moves. Fixed camera, eye level, full body always in frame, feet on the same ground line. Plain warm cream paper studio background, soft even daylight, no props, no text, no other people. Photoreal, her face unchanged, hair tied back the whole time, clothing and body unchanged throughout, hands and feet keep contact with the floor when they are on it. Calm editorial pacing. From the forward fold the hands stay on the floor; she steps the right leg straight back into a low lunge, then raises the arms; no kicking or hopping; the front foot stays planted; hair unchanged.",
+  "duration": 5,
+  "aspect_ratio": "3:4",
+  "sound": "off",
+  "image_url": "https://jeevana-frames.pages.dev/frame-03.jpg",
+  "last_image_url": "https://jeevana-frames.pages.dev/frame-04.jpg",
+  "cfg_scale": 0.7
+ },
+ "submit": {
+  "status": "queued",
+  "request_id": "a3897b0c-ea0f-4618-b153-3cb30b8f4961",
+  "status_url": "https://api.higgsfield.ai/requests/a3897b0c-ea0f-4618-b153-3cb30b8f4961/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/a3897b0c-ea0f-4618-b153-3cb30b8f4961/cancel",
+  "expires_after": 604800
+ },
+ "model": "kling-video/v3.0/std/image-to-video",
+ "status": {
+  "status": "completed",
+  "request_id": "a3897b0c-ea0f-4618-b153-3cb30b8f4961",
+  "status_url": "https://api.higgsfield.ai/requests/a3897b0c-ea0f-4618-b153-3cb30b8f4961/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/a3897b0c-ea0f-4618-b153-3cb30b8f4961/cancel",
+  "expires_at": "2026-11-02T17:53:37.371177+00:00",
+  "video": {
+   "url": "https://d3u0tzju9qaucj.cloudfront.net/5afe9077-53e3-4696-8d41-03a78237e195/a3897b0c-ea0f-4618-b153-3cb30b8f4961/efec6555-68d7-4a36-ba6c-c3c0b3168907.mp4"
+  }
+ }
+}

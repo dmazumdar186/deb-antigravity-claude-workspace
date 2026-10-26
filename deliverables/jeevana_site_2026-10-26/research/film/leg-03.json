@@ -1,30 +1,31 @@
 {
  "leg": 3,
  "body": {
-  "prompt": "The same woman moves slowly from P\u0101dahast\u0101sana, standing forward fold, hands to the floor into A\u015bva Sa\u00f1c\u0101lan\u0101sana, low lunge, one knee down, chest lifted. One slow continuous yoga movement with the breath, nothing else moves. Fixed camera, eye level, full body always in frame, feet on the same ground line. Plain warm cream paper studio background, soft even daylight, no props, no text, no other people. Photoreal, her face unchanged, hair tied back the whole time, clothing and body unchanged throughout, hands and feet keep contact with the floor when they are on it. Calm editorial pacing.",
+  "prompt": "The same woman moves slowly from one yoga position into the next in one continuous movement. Fixed camera, eye level, full body always inside the frame, plain warm cream paper background, soft daylight, photoreal, her face unchanged, one single tied ponytail the whole time, same clothes. Calm pacing.",
   "duration": 5,
   "aspect_ratio": "3:4",
   "sound": "off",
+  "cfg_scale": 0.85,
   "image_url": "https://jeevana-frames.pages.dev/frame-03.jpg",
   "last_image_url": "https://jeevana-frames.pages.dev/frame-04.jpg",
-  "cfg_scale": 0.7
+  "multi_shots": true,
+  "multi_prompt": [
+   {
+    "prompt": "From the standing forward fold, hands flat on the floor, the right foot slides straight back along the floor, never lifting, into a low lunge with the back knee down. Fixed camera, eye level, full body always inside the frame, plain warm cream paper background, soft daylight, photoreal, her face unchanged, one single tied ponytail the whole time, same clothes. Calm pacing.",
+    "duration": 3
+   },
+   {
+    "prompt": "In the low lunge she lifts the chest and raises both arms overhead, front foot planted, gaze forward. Fixed camera, eye level, full body always inside the frame, plain warm cream paper background, soft daylight, photoreal, her face unchanged, one single tied ponytail the whole time, same clothes. Calm pacing.",
+    "duration": 2
+   }
+  ]
  },
  "submit": {
   "status": "queued",
-  "request_id": "20c67425-2380-42d5-b320-a981dd6d12b9",
-  "status_url": "https://api.higgsfield.ai/requests/20c67425-2380-42d5-b320-a981dd6d12b9/status",
-  "cancel_url": "https://api.higgsfield.ai/requests/20c67425-2380-42d5-b320-a981dd6d12b9/cancel",
+  "request_id": "9fc1a089-ad45-4fbc-867e-68a8bc45055c",
+  "status_url": "https://api.higgsfield.ai/requests/9fc1a089-ad45-4fbc-867e-68a8bc45055c/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/9fc1a089-ad45-4fbc-867e-68a8bc45055c/cancel",
   "expires_after": 604800
  },
- "model": "kling-video/v3.0/std/image-to-video",
- "status": {
-  "status": "completed",
-  "request_id": "20c67425-2380-42d5-b320-a981dd6d12b9",
-  "status_url": "https://api.higgsfield.ai/requests/20c67425-2380-42d5-b320-a981dd6d12b9/status",
-  "cancel_url": "https://api.higgsfield.ai/requests/20c67425-2380-42d5-b320-a981dd6d12b9/cancel",
-  "expires_at": "2026-11-02T17:48:02.573936+00:00",
-  "video": {
-   "url": "https://d3u0tzju9qaucj.cloudfront.net/5afe9077-53e3-4696-8d41-03a78237e195/20c67425-2380-42d5-b320-a981dd6d12b9/f37eae99-8db3-477b-a047-5bf4d14f1b9d.mp4"
-  }
- }
+ "model": "kling-video/v3.0/std/image-to-video"
 }

@@ -211,7 +211,7 @@ html:not([lang="fr"]) [data-lang-block="en"] { display: block; }
   .copy { left: var(--g); right: var(--g); top: var(--hdr); transform: none; width: auto; padding-bottom: .4rem; }
   .copy::before { content: ''; position: absolute; z-index: -1; inset: calc(var(--hdr) * -1) calc(var(--g) * -1) -1.6rem; background: linear-gradient(to bottom, var(--paper) 72%, rgba(243, 238, 228, 0)); }
   .copy__state { align-self: start; }
-  .film { top: max(0px, calc((var(--copy-h, 300px) + 12px - 15svh) / .85)); bottom: 0; height: auto; max-width: 100vw; }
+  .film { top: var(--film-top, 34svh); height: var(--film-h, 56svh); aspect-ratio: 3 / 4; }
   .cover__breath { width: 140vw; height: 140vw; top: 62%; }
   .rail { left: var(--g); right: var(--g); top: auto; bottom: max(10px, env(safe-area-inset-bottom)); transform: none; width: auto; display: flex; align-items: center; justify-content: space-between; gap: .8rem; }
   .rail__label, .rail__note, .rail__list { display: none; }
@@ -231,10 +231,8 @@ html:not([lang="fr"]) [data-lang-block="en"] { display: block; }
   .sutra--lg .sutra__dev { font-size: clamp(1.4rem, 6vw, 3rem); }
   .sutra--lg .sutra__iast { font-size: clamp(1.4rem, 6vw, 3rem); }
 }
-@media (max-aspect-ratio: 4/5) and (min-width: 800px) { .film { aspect-ratio: 3 / 4; } }
 @media (max-width: 799px) {
   .cover { height: 1000vh; height: calc(10 * 100svh); }
-  .film { aspect-ratio: 9 / 16; }
   .btn { min-height: 46px; padding: .7rem 1.1rem; }
   .chapter { height: auto; }
   .chapter__pin, html.has-js .chapter__pin { position: relative; height: auto; display: block; opacity: 1; transform: none; overflow: visible; }

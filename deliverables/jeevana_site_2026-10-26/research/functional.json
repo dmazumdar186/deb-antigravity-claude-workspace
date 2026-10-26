@@ -1,81 +1,66 @@
 {
- "date": "2026-10-26T17:51:08.940Z",
+ "date": "2026-10-26T17:56:24.787Z",
  "film": {
-  "standin": true,
-  "seconds": 5.04,
-  "keyframes": 2
+  "standin": false,
+  "seconds": 52,
+  "keyframes": 12
  },
- "pass": 32,
+ "pass": 37,
  "total": 38,
  "results": [
   {
    "name": "film_plays_unscrolled (currentTime > 4 s at 6 s)",
    "ok": true,
-   "detail": "ct=5.03"
+   "detail": "ct=5.55"
   },
   {
    "name": "scroll_takeover_1440x900 (|currentTime − f(p)| < 0.4 s at p=.25/.5/.75/1)",
-   "ok": false,
+   "ok": true,
    "detail": {
     "1": {
-     "currentTime": 2.328,
-     "expected": 5.04
+     "currentTime": 51.61,
+     "expected": 51.61
     },
     "0.25": {
-     "currentTime": 0.302,
-     "expected": 1.375
+     "currentTime": 14.08,
+     "expected": 14.08
     },
     "0.5": {
-     "currentTime": 0.841,
-     "expected": 2.749
+     "currentTime": 28.15,
+     "expected": 28.15
     },
     "0.75": {
-     "currentTime": 1.563,
-     "expected": 4.124
+     "currentTime": 42.23,
+     "expected": 42.23
     }
    }
   },
   {
    "name": "scroll_takeover_390x844 (|currentTime − f(p)| < 0.4 s at p=.25/.5/.75/1)",
-   "ok": false,
+   "ok": true,
    "detail": {
     "1": {
-     "currentTime": 2.328,
-     "expected": 5.04
+     "currentTime": 51.61,
+     "expected": 51.61
     },
     "0.25": {
-     "currentTime": 0.302,
-     "expected": 1.375
+     "currentTime": 14.08,
+     "expected": 14.08
     },
     "0.5": {
-     "currentTime": 0.841,
-     "expected": 2.749
+     "currentTime": 28.15,
+     "expected": 28.15
     },
     "0.75": {
-     "currentTime": 1.563,
-     "expected": 4.124
+     "currentTime": 42.23,
+     "expected": 42.23
     }
    }
   },
   {
    "name": "state_rail_copy_film_one_variable_desktop (13 samples)",
-   "ok": false,
-   "detail": [
-    {
-     "i": 2,
-     "rail": 2,
-     "copy": 0,
-     "count": "03 / 12",
-     "ct": 0.280224
-    },
-    {
-     "i": 3,
-     "rail": 3,
-     "copy": 0,
-     "count": "04 / 12",
-     "ct": 0.520974
-    }
-   ]
+   "ok": true,
+   "detail": []
   },
   {
    "name": "no_text_over_figure_desktop (13 samples, figure_boxes.json)",
@@ -86,8 +71,8 @@
    "name": "film_paper_matches_page (16 samples, 4 per side, ΔE76 < 3)",
    "ok": true,
    "detail": {
-    "max": 2.3691437230311343,
-    "mean": 1.9413373061493027,
+    "max": 1.4210426950312927,
+    "mean": 1.246067145145994,
     "n": 16
    }
   },
@@ -98,23 +83,8 @@
   },
   {
    "name": "state_rail_copy_film_one_variable_pixel7 (13 samples)",
-   "ok": false,
-   "detail": [
-    {
-     "i": 2,
-     "rail": 2,
-     "copy": 0,
-     "count": "03 / 12",
-     "ct": 0.280224
-    },
-    {
-     "i": 3,
-     "rail": 3,
-     "copy": 0,
-     "count": "04 / 12",
-     "ct": 0.520974
-    }
-   ]
+   "ok": true,
+   "detail": []
   },
   {
    "name": "no_text_over_figure_pixel7 (13 samples, figure_boxes.json)",
@@ -128,23 +98,8 @@
   },
   {
    "name": "state_rail_copy_film_one_variable_iphone13 (13 samples)",
-   "ok": false,
-   "detail": [
-    {
-     "i": 2,
-     "rail": 2,
-     "copy": 0,
-     "count": "03 / 12",
-     "ct": 0.280224
-    },
-    {
-     "i": 3,
-     "rail": 3,
-     "copy": 0,
-     "count": "04 / 12",
-     "ct": 0.520974
-    }
-   ]
+   "ok": true,
+   "detail": []
   },
   {
    "name": "no_text_over_figure_iphone13 (13 samples, figure_boxes.json)",
@@ -165,24 +120,16 @@
    "name": "no_empty_band_over_25pct (19 viewports × s0/s7/hold)",
    "ok": false,
    "detail": [
-    "iphone-se/s7=0.40",
-    "galaxy-s8/s7=0.39",
-    "iphone-13/s7=0.38",
-    "pixel-7/s7=0.37",
-    "iphone-15-pro-max/s7=0.32",
-    "small-tablet/s7=0.33",
-    "ipad-portrait/s7=0.32",
-    "ipad-pro-portrait/s7=0.31",
-    "ipad-pro-landscape/s7=0.29",
-    "laptop-1440/s7=0.28",
-    "laptop-1536/s7=0.26",
-    "desktop-1080p/s7=0.29",
-    "desktop-1440p/s7=0.31",
-    "desktop-4k/s7=0.34",
-    "tv-portrait/s0=0.34",
-    "tv-portrait/s7=0.34",
-    "tv-portrait/hold=0.34",
-    "pixel-7-device/s7=0.38"
+    "iphone-se/s7=0.41",
+    "galaxy-s8/s7=0.42",
+    "iphone-13/s7=0.42",
+    "pixel-7/s7=0.42",
+    "iphone-15-pro-max/s7=0.40",
+    "small-tablet/s7=0.36",
+    "ipad-portrait/s7=0.35",
+    "ipad-pro-portrait/s7=0.35",
+    "tv-portrait/s7=0.39",
+    "pixel-7-device/s7=0.42"
    ]
   },
   {
@@ -263,7 +210,7 @@
    "detail": [
     "/js/i18n.js?v=823b26cc",
     "/js/breath.js?v=1fa8403f",
-    "/js/main.js?v=b974c48c",
+    "/js/main.js?v=283e149a",
     "https://static.cloudflareinsights.com/beacon.min.js"
    ]
   },
@@ -301,10 +248,10 @@
    "name": "sizes (index+css+js ≤ 150 KB, breath.js ≤ 10 KB, film ≤ 6 MB / 4 MB)",
    "ok": true,
    "detail": {
-    "index_css_js_kb": 88.6,
+    "index_css_js_kb": 89.3,
     "breath_kb": 3.8,
-    "film_mb": 1.73,
-    "film_m_mb": 0.69
+    "film_mb": 5.06,
+    "film_m_mb": 2.39
    }
   },
   {
@@ -314,73 +261,73 @@
   }
  ],
  "measurements": {
-  "autoplay_ct_at_6s": 5.032,
+  "autoplay_ct_at_6s": 5.553,
   "scrub_1440x900": {
    "1": {
-    "currentTime": 2.328,
-    "expected": 5.04
+    "currentTime": 51.61,
+    "expected": 51.61
    },
    "0.25": {
-    "currentTime": 0.302,
-    "expected": 1.375
+    "currentTime": 14.08,
+    "expected": 14.08
    },
    "0.5": {
-    "currentTime": 0.841,
-    "expected": 2.749
+    "currentTime": 28.15,
+    "expected": 28.15
    },
    "0.75": {
-    "currentTime": 1.563,
-    "expected": 4.124
+    "currentTime": 42.23,
+    "expected": 42.23
    }
   },
   "scrub_390x844": {
    "1": {
-    "currentTime": 2.328,
-    "expected": 5.04
+    "currentTime": 51.61,
+    "expected": 51.61
    },
    "0.25": {
-    "currentTime": 0.302,
-    "expected": 1.375
+    "currentTime": 14.08,
+    "expected": 14.08
    },
    "0.5": {
-    "currentTime": 0.841,
-    "expected": 2.749
+    "currentTime": 28.15,
+    "expected": 28.15
    },
    "0.75": {
-    "currentTime": 1.563,
-    "expected": 4.124
+    "currentTime": 42.23,
+    "expected": 42.23
    }
   },
   "paper_match_dE": {
-   "max": 2.3691437230311343,
-   "mean": 1.9413373061493027,
+   "max": 1.4210426950312927,
+   "mean": 1.246067145145994,
    "n": 16
   },
   "bands": {
    "iphone-se": {
-    "s0": 0.045,
-    "s7": 0.401,
+    "s0": 0.049,
+    "s7": 0.41,
     "hold": 0.062
    },
    "galaxy-s8": {
-    "s0": 0.057,
-    "s7": 0.393,
-    "hold": 0.057
+    "s0": 0.09,
+    "s7": 0.419,
+    "hold": 0.084
    },
    "iphone-13": {
-    "s0": 0.07,
-    "s7": 0.383,
-    "hold": 0.07
+    "s0": 0.148,
+    "s7": 0.422,
+    "hold": 0.117
    },
    "pixel-7": {
-    "s0": 0.091,
-    "s7": 0.37,
-    "hold": 0.091
+    "s0": 0.164,
+    "s7": 0.424,
+    "hold": 0.133
    },
    "iphone-15-pro-max": {
-    "s0": 0.133,
-    "s7": 0.319,
-    "hold": 0.133
+    "s0": 0.144,
+    "s7": 0.398,
+    "hold": 0.167
    },
    "phone-landscape": {
     "s0": 0.138,
@@ -388,76 +335,76 @@
     "hold": 0.138
    },
    "small-tablet": {
-    "s0": 0.084,
-    "s7": 0.326,
-    "hold": 0.084
+    "s0": 0.061,
+    "s7": 0.362,
+    "hold": 0.07
    },
    "ipad-portrait": {
-    "s0": 0.093,
-    "s7": 0.318,
-    "hold": 0.093
+    "s0": 0.044,
+    "s7": 0.354,
+    "hold": 0.043
    },
    "ipad-landscape": {
     "s0": 0.138,
-    "s7": 0.235,
+    "s7": 0.138,
     "hold": 0.138
    },
    "ipad-pro-portrait": {
-    "s0": 0.103,
-    "s7": 0.308,
-    "hold": 0.103
+    "s0": 0.033,
+    "s7": 0.349,
+    "hold": 0.073
    },
    "ipad-pro-landscape": {
     "s0": 0.138,
-    "s7": 0.29,
+    "s7": 0.138,
     "hold": 0.138
    },
    "laptop-1280": {
     "s0": 0.138,
-    "s7": 0.236,
+    "s7": 0.138,
     "hold": 0.138
    },
    "laptop-1440": {
     "s0": 0.138,
-    "s7": 0.278,
+    "s7": 0.138,
     "hold": 0.138
    },
    "laptop-1536": {
     "s0": 0.138,
-    "s7": 0.264,
+    "s7": 0.138,
     "hold": 0.138
    },
    "desktop-1080p": {
     "s0": 0.138,
-    "s7": 0.286,
+    "s7": 0.138,
     "hold": 0.138
    },
    "desktop-1440p": {
     "s0": 0.138,
-    "s7": 0.314,
+    "s7": 0.138,
     "hold": 0.138
    },
    "desktop-4k": {
     "s0": 0.138,
-    "s7": 0.343,
+    "s7": 0.138,
     "hold": 0.138
    },
    "tv-portrait": {
-    "s0": 0.335,
-    "s7": 0.335,
-    "hold": 0.335
+    "s0": 0.153,
+    "s7": 0.389,
+    "hold": 0.181
    },
    "pixel-7-device": {
-    "s0": 0.068,
-    "s7": 0.382,
-    "hold": 0.068
+    "s0": 0.134,
+    "s7": 0.417,
+    "hold": 0.1
    }
   },
   "sizes": {
-   "index_css_js_kb": 88.6,
+   "index_css_js_kb": 89.3,
    "breath_kb": 3.8,
-   "film_mb": 1.73,
-   "film_m_mb": 0.69
+   "film_mb": 5.06,
+   "film_m_mb": 2.39
   }
  },
  "versions": {

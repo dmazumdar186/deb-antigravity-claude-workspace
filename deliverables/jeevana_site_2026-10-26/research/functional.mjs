@@ -179,10 +179,10 @@ p = await page({ viewport: { width: 1440, height: 900 } }); const pr = await p.g
 T('privacy_page (200, mentions légales, 0 console errors)', pr.status() === 200 && /Mentions légales/.test(await p.content()) && !p.errs.length, p.errs.slice(0, 1)); await p._ctx.close();
 // sizes
 const sz = (f) => statSync(SITE + f).size; const page_kb = (sz('index.html') + sz('css/styles.css') + sz('js/main.js') + sz('js/i18n.js') + sz('js/breath.js')) / 1024;
-M.sizes = { index_css_js_kb: +page_kb.toFixed(1), breath_kb: +(sz('js/breath.js') / 1024).toFixed(1), film_mb: +(sz('assets/film/' + hero.landscape) / 1048576).toFixed(2), film_m_mb: +(sz('assets/film/' + hero.portrait) / 1048576).toFixed(2) };
-T('sizes (index+css+js ≤ 150 KB, breath.js ≤ 10 KB, film ≤ 6 MB / 4 MB)', page_kb <= 150 && sz('js/breath.js') <= 10240 && sz('assets/film/' + hero.landscape) <= 6 * 1048576 && sz('assets/film/' + hero.portrait) <= 4 * 1048576, M.sizes);
+M.sizes = { index_css_js_kb: +page_kb.toFixed(1), breath_kb: +(sz('js/breath.js') / 1024).toFixed(1), film_mb: +(sz('assets/film/' + hero.landscape) / 1048576).toFixed(2), film_m_mb: +(sz('assets/film/' + hero.phone) / 1048576).toFixed(2) };
+T('sizes (index+css+js ≤ 150 KB, breath.js ≤ 10 KB, film ≤ 6 MB / 4 MB)', page_kb <= 150 && sz('js/breath.js') <= 10240 && sz('assets/film/' + hero.landscape) <= 6 * 1048576 && sz('assets/film/' + hero.phone) <= 4 * 1048576, M.sizes);
 const faststart = (f) => { const buf = readFileSync(SITE + 'assets/film/' + f); return buf.indexOf('moov') < buf.indexOf('mdat'); };
-T('film_faststart', faststart(hero.landscape) && faststart(hero.portrait));
+T('film_faststart', faststart(hero.landscape) && faststart(hero.phone));
 await b.close();
 const pass = results.filter((r) => r.ok).length;
 const versions = { playwright: req('playwright/package.json').version, node: process.version, pillow: execFileSync('python3', ['-c', 'import PIL;print(PIL.__version__)']).toString().trim() };
