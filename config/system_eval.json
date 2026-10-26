@@ -1,0 +1,149 @@
+{
+  "_comment": "Registry for execution/infrastructure/system_eval.py. Add a system = add one object; see directives/infrastructure/system_eval.md.",
+  "report_dir": "docs/reference/system_eval",
+  "cadence_days": 10,
+  "systems": {
+    "job_search_v2": {
+      "code": [
+        "execution/personal_workflows/job_search_v2/**/*.py"
+      ],
+      "directive": "directives/personal_workflows/job_search_sheet_v2.md",
+      "workflow": ".github/workflows/job_search_daily.yml",
+      "deliverable_files": [
+        "execution/personal_workflows/job_search_v2/notifier/email.py"
+      ],
+      "deliverable_func_regex": "email|report|digest",
+      "env_ignore": [
+        "COMPUTERNAME",
+        "PLAYWRIGHT_CHROMIUM_PATH",
+        "GMAIL_AUTH_MODE",
+        "GMAIL_CREDENTIALS_PATH",
+        "GMAIL_TOKEN_PATH"
+      ],
+      "data": {
+        "schema_grep": {
+          "file": "execution/personal_workflows/job_search_v2/contracts.py",
+          "pattern": "class (JobSource|NormalizedJob|RankedJob)\\b"
+        },
+        "commands": {
+          "contracts": "python3 -m pytest tests/test_job_search_v2_contracts.py -q -p no:cacheprovider",
+          "dedup": "python3 -m pytest tests/test_job_search_v2_dedup_fingerprint.py -q -p no:cacheprovider"
+        }
+      },
+      "algorithm": {
+        "command": "python3 -m pytest tests/test_job_search_v2_profile_ranker.py tests/test_job_search_v2_domain_filter.py tests/test_job_search_v2_posting_verifier.py tests/test_job_search_v2_digest_cap_and_lock.py -q -p no:cacheprovider --continue-on-collection-errors"
+      },
+      "ops": {
+        "kind": "github_workflow",
+        "workflow_file": "job_search_daily.yml",
+        "runs": 10
+      },
+      "security": {
+        "allow": [
+          {
+            "literal": "4bd8f6215d0cc52b26430765769e65a0",
+            "reason": "WTTJ Algolia public, referer-gated search key (documented in sources/wttj_algolia.py)"
+          }
+        ],
+        "connectors": [
+          "GitHub Actions",
+          "Gmail SMTP",
+          "Google Sheets",
+          "France Travail API",
+          "WTTJ Algolia",
+          "LinkedIn guest API",
+          "Gemini",
+          "Anthropic"
+        ]
+      },
+      "targets": [
+        {
+          "id": "email_one_table",
+          "kind": "grep",
+          "file": "execution/personal_workflows/job_search_v2/notifier/email.py",
+          "must_match": "\\|[^\\n]*(Title|Company|Role)[^\\n]*\\|",
+          "must_not_match": "Top 5",
+          "label": "email body = one table"
+        },
+        {
+          "id": "daily_success_rate",
+          "kind": "ops_success_rate_min",
+          "value": 0.9,
+          "label": "daily run success >= 90%"
+        },
+        {
+          "id": "wttj_daily",
+          "kind": "fact",
+          "key": "wttj_jobs_last_day",
+          "min": 1,
+          "label": ">= 1 WTTJ job per day"
+        }
+      ]
+    },
+    "linkedin_connect": {
+      "code": [
+        "execution/personal_workflows/linkedin_connect_queue.py",
+        ".claude/plugins/linkedin-connect/**/*.py"
+      ],
+      "extra_files": [
+        ".claude/plugins/linkedin-connect/**/*"
+      ],
+      "directive": "directives/personal_workflows/linkedin_connect_daily.md",
+      "deliverable_files": [
+        "execution/personal_workflows/linkedin_connect_queue.py"
+      ],
+      "deliverable_func_regex": "email|report|digest",
+      "env_ignore": [
+        "COMPUTERNAME"
+      ],
+      "data": {
+        "schema_grep": {
+          "file": "execution/personal_workflows/linkedin_connect_queue.py",
+          "pattern": "^(FIELDS|LEDGER_FIELDS) = "
+        },
+        "commands": {
+          "eval": "python3 execution/personal_workflows/tests/linkedin_connect_eval.py"
+        }
+      },
+      "algorithm": {
+        "command": "python3 execution/personal_workflows/tests/linkedin_connect_eval.py"
+      },
+      "ops": {
+        "kind": "facts"
+      },
+      "security": {
+        "allow": [],
+        "connectors": [
+          "Google Drive",
+          "Gmail",
+          "Claude in Chrome (LinkedIn)",
+          "Claude cloud scheduled tasks"
+        ]
+      },
+      "targets": [
+        {
+          "id": "report_one_table",
+          "kind": "grep",
+          "file": "execution/personal_workflows/linkedin_connect_queue.py",
+          "must_match": "\\| # \\| First name \\| Name \\| Company \\| Position \\| LinkedIn ID \\|",
+          "must_not_match": "Top 5",
+          "label": "report = one table"
+        },
+        {
+          "id": "slots_per_day",
+          "kind": "fact",
+          "key": "slots_per_day",
+          "equals": 3,
+          "label": "slots/day = 3"
+        },
+        {
+          "id": "report_email_time",
+          "kind": "fact",
+          "key": "report_email_time",
+          "equals": "20:00",
+          "label": "one email/day at 20:00"
+        }
+      ]
+    }
+  }
+}

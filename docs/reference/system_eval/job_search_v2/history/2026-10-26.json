@@ -1,0 +1,178 @@
+{
+  "system": "job_search_v2",
+  "date": "2026-10-26",
+  "generated_at": "2026-10-26T08:28:28+00:00",
+  "overall": 3.8,
+  "lenses": {
+    "architecture": {
+      "score": 4,
+      "evidence": [
+        "directive present",
+        "directive lag 0d",
+        "env keys 8/12 documented (missing GITHUB_SEED_REPOS, GITHUB_TOKEN, GMAIL_NOTIFY_TO, JOB_SEARCH_V2_INSECURE_TLS)",
+        "no machine payload in deliverables"
+      ],
+      "metrics": {
+        "directive_exists": true,
+        "directive_synced": true,
+        "env_keys": [
+          "ANTHROPIC_API_KEY",
+          "FRANCE_TRAVAIL_CLIENT_ID",
+          "FRANCE_TRAVAIL_CLIENT_SECRET",
+          "GEMINI_API_KEY",
+          "GITHUB_SEED_REPOS",
+          "GITHUB_TOKEN",
+          "GMAIL_NOTIFY_TO",
+          "GMAIL_SMTP_APP_PASSWORD",
+          "GMAIL_SMTP_USER",
+          "GOOGLE_SERVICE_ACCOUNT_PATH",
+          "JOB_SEARCH_V2_INSECURE_TLS",
+          "SHEETS_SPREADSHEET_ID"
+        ],
+        "env_missing": [
+          "GITHUB_SEED_REPOS",
+          "GITHUB_TOKEN",
+          "GMAIL_NOTIFY_TO",
+          "JOB_SEARCH_V2_INSECURE_TLS"
+        ],
+        "payload_leaks": []
+      }
+    },
+    "data": {
+      "score": 5,
+      "evidence": [
+        "schema constants present",
+        "contracts pass (5/5)",
+        "dedup pass (50/50)"
+      ],
+      "metrics": {
+        "checks": {
+          "schema_constants": true,
+          "contracts": true,
+          "dedup": true
+        }
+      }
+    },
+    "code_health": {
+      "score": 0,
+      "evidence": [
+        "ruff 13 findings",
+        "bare/swallowed excepts 7, functions >120 lines 12, TODO/FIXME 0"
+      ],
+      "metrics": {
+        "ruff_errors": 13,
+        "bare_excepts": 7,
+        "long_functions": 12,
+        "todo_fixme": 0,
+        "py_files": 40
+      }
+    },
+    "operations": {
+      "score": 4,
+      "evidence": [
+        "last 10 runs: 70% success, median 38 min, last success 20h ago"
+      ],
+      "metrics": {
+        "runs": 10,
+        "success_rate": 0.7,
+        "median_minutes": 38.1,
+        "last_success_age_h": 19.5,
+        "gaps": []
+      }
+    },
+    "algorithm": {
+      "score": 5,
+      "evidence": [
+        "ranking/caps/filters tests 268/268 pass"
+      ],
+      "metrics": {
+        "passed": 268,
+        "total": 268,
+        "rc": 0
+      }
+    },
+    "security": {
+      "score": 5,
+      "evidence": [
+        "0 secret findings, 1 allow-listed",
+        "pip-audit n/a",
+        "12 env keys, 8 connectors"
+      ],
+      "metrics": {
+        "secret_findings": [],
+        "pip_audit_vulns": null,
+        "env_keys": [
+          "ANTHROPIC_API_KEY",
+          "FRANCE_TRAVAIL_CLIENT_ID",
+          "FRANCE_TRAVAIL_CLIENT_SECRET",
+          "GEMINI_API_KEY",
+          "GITHUB_SEED_REPOS",
+          "GITHUB_TOKEN",
+          "GMAIL_NOTIFY_TO",
+          "GMAIL_SMTP_APP_PASSWORD",
+          "GMAIL_SMTP_USER",
+          "GOOGLE_SERVICE_ACCOUNT_PATH",
+          "JOB_SEARCH_V2_INSECURE_TLS",
+          "SHEETS_SPREADSHEET_ID"
+        ],
+        "connectors": [
+          "GitHub Actions",
+          "Gmail SMTP",
+          "Google Sheets",
+          "France Travail API",
+          "WTTJ Algolia",
+          "LinkedIn guest API",
+          "Gemini",
+          "Anthropic"
+        ]
+      }
+    }
+  },
+  "targets": [
+    {
+      "id": "email_one_table",
+      "label": "email body = one table",
+      "status": "unmet",
+      "note": "table header not found"
+    },
+    {
+      "id": "daily_success_rate",
+      "label": "daily run success >= 90%",
+      "status": "unmet",
+      "note": "70%"
+    },
+    {
+      "id": "wttj_daily",
+      "label": ">= 1 WTTJ job per day",
+      "status": "unknown",
+      "note": "fact wttj_jobs_last_day not supplied"
+    }
+  ],
+  "facts": {},
+  "fixes": [],
+  "comparison": {
+    "deltas": {
+      "architecture": null,
+      "data": null,
+      "code_health": null,
+      "operations": null,
+      "algorithm": null,
+      "security": null
+    },
+    "dropped": [],
+    "unmet": [
+      "email body = one table",
+      "daily run success >= 90%"
+    ],
+    "degraded": true,
+    "prev_scores": {
+      "architecture": null,
+      "data": null,
+      "code_health": null,
+      "operations": null,
+      "algorithm": null,
+      "security": null
+    }
+  },
+  "previous_date": null
+}
