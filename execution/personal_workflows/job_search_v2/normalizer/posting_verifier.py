@@ -154,6 +154,29 @@ _CLOSED_PATTERNS = [
     "cette page n'existe pas",
     "this page doesn't exist",
     "this page does not exist",
+    # 2026-10-26 operator complaint: expired rows still arriving. Variants
+    # observed on LinkedIn guest pages (any xx.linkedin.com subdomain and the
+    # /jobs-guest/jobs/api/jobPosting/<id> fragment), WTTJ and HelloWork.
+    "applications closed",
+    "applications are closed",
+    "application closed",
+    "this job is closed",
+    "this job is no longer accepting applications",
+    "this posting has expired",
+    "this job posting has expired",
+    "this opportunity is no longer available",
+    "this listing has expired",
+    "cette offre d'emploi n'est plus disponible",
+    "cette offre n'est plus en ligne",
+    "cette offre est expiree",
+    "offre cloturee",
+    "candidatures closes",
+    "candidatures fermees",
+    "ce poste a ete pourvu",
+    "cette offre a ete pourvue",
+    "ce poste n'est plus disponible",
+    "cette annonce a expire",
+    "annonce expiree",
 ]
 
 _APPLY_SIGNALS = (
@@ -192,6 +215,54 @@ def _detect_class_open_signal(html: str) -> bool:
         if any(sig in joined for sig in _CLASS_OPEN_SIGNALS):
             return True
     return False
+
+
+# A 200 page that is a LISTING (search results / company jobs index) rather
+# than a job: the site answered a dead job URL with its search page without
+# redirecting (observed on LinkedIn guest pages and WTTJ company pages,
+# 2026-10-26). Markers are class-name fragments and multi-card job links.
+_LISTING_CLASS_SIGNALS = (
+    "jobs-search__results-list",
+    "jobs-search-results",
+    "jobs-search__results",
+    "job-search-card",
+    "results-context-header",
+    "search-results",
+    "jobs-list",
+    "job-list",
+    "ais-hits",
+    "ais-infinite-hits",
+)
+_JOB_LINK_HREF_RE = re.compile(
+    r"/jobs/view/\d+"
+    r"|/companies/[^/\s\"']+/jobs/[^/\s\"']+"
+    r"|/emplois?/[^/\s\"']+"
+    r"|/offres?[^\s\"']*/\d+",
+    re.IGNORECASE,
+)
+_MIN_LISTING_JOB_LINKS = 6
+
+
+def _looks_like_listing_page(html: str) -> str | None:
+    """Return an evidence string when `html` is a search/listing page (many
+    job-card links or a results-list container) rather than a single posting.
+    Callers only consult this when the page has NO JobPosting JSON-LD."""
+    try:
+        from bs4 import BeautifulSoup  # type: ignore
+
+        soup = BeautifulSoup(html, "html.parser")
+    except Exception as exc:  # noqa: BLE001 — bs4 parse surface, never fatal
+        logger.warning("posting_verifier: listing-page scan failed (%s)", exc)
+        return None
+    for el in soup.find_all(class_=True):
+        joined = " ".join(el.get("class") or []).lower()
+        if any(sig in joined for sig in _LISTING_CLASS_SIGNALS):
+            return f"listing_page:class:{next(sig for sig in _LISTING_CLASS_SIGNALS if sig in joined)}"
+    hrefs = {a.get("href") for a in soup.find_all("a", href=True)}
+    job_links = {h for h in hrefs if h and _JOB_LINK_HREF_RE.search(h)}
+    if len(job_links) >= _MIN_LISTING_JOB_LINKS:
+        return f"listing_page:{len(job_links)}_job_links"
+    return None
 
 
 def _strip_accents(text: str) -> str:
@@ -525,6 +596,21 @@ def parse_posting_page(html: str, url: str, now: datetime) -> PageVerdict:
             final_url=url,
         )
 
+    # 3b. A 200 body that is a search/listing page (no JobPosting JSON-LD,
+    # many job-card links) means the job page is gone and the site served
+    # its index instead: closed, never "unknown"/ok_unverified (2026-10-26).
+    if not has_jsonld_jobposting:
+        listing_evidence = _looks_like_listing_page(html)
+        if listing_evidence:
+            return PageVerdict(
+                status="closed",
+                posted_at=posted_at,
+                valid_through=valid_through,
+                evidence=listing_evidence,
+                http_status=None,
+                final_url=url,
+            )
+
     # 4. Relative/absolute text dates, if still no date.
     if posted_at is None:
         text_dt, text_evidence = _find_relative_or_absolute_date(visible_low, now)
@@ -821,10 +907,22 @@ def verify_url(
     if verdict.status == "closed":
         return _finalize("closed", verdict.posted_at, "page" if verdict.posted_at else "none", verdict.evidence)
 
-    # Page date wins over source date whenever present, even if it makes the
-    # job look staler (or fresher) than the source claimed.
+    # Freshness = the MOST RECENT of (source posted_at, page datePosted).
+    # 2026-10-26: WTTJ's Algolia `published_at` is a last-updated bump while
+    # the page's JSON-LD datePosted keeps the original date; the old
+    # "page date always wins" rule re-dated every bumped posting back to its
+    # creation and dropped it as `stale`, which is where WTTJ's 100+/day
+    # went. An OPEN posting (not closed, not 404/410, no closed-text) that
+    # was updated within the window is fresh, for every source. Closed
+    # detection above is untouched.
     if verdict.posted_at is not None:
-        return _finalize("open" if verdict.status == "open" else "unknown", verdict.posted_at, "page", verdict.evidence)
+        record_status = "open" if verdict.status == "open" else "unknown"
+        if source_posted_at is not None and source_posted_at > verdict.posted_at:
+            return _finalize(
+                record_status, source_posted_at, "source",
+                f"{verdict.evidence}+source_newer",
+            )
+        return _finalize(record_status, verdict.posted_at, "page", verdict.evidence)
 
     # No page date. Fall back to source date for trusted sources, or any
     # source when we at least got a page to confirm liveness.

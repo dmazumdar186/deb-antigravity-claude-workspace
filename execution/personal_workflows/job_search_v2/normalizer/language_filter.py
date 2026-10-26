@@ -9,6 +9,11 @@ outputs:
     - (kept, stats) where stats = {requested, kept, rejected, by_reason}
 
 Detection: langdetect.detect_langs on f"{title}. {description_snippet[:400]}".
+Second gate (2026-10-26): EN/FR postings that REQUIRE a third language
+("German speaking", "fluent in Dutch", "allemand courant", 🇩🇪 in the title)
+are rejected with reason `reject:requires_other_language`; "German is a
+plus" stays. Raw-title German/Dutch tells ("(m/w/d)", "Produktmanager",
+"medewerker") reject with `reject:de_title_tell` / `reject:nl_title_tell`.
 Falls back to ACCEPT on detection failure (too-short titles) to avoid
 silently dropping borderline rows. Edge case logged.
 """
@@ -83,6 +88,101 @@ PL_TELLS = ("poszukujemy", "szukamy", " oraz ", " będzie ", " zespołu ",
 NON_EN_FR_TELLS = DE_TELLS + NL_TELLS + IT_TELLS + ES_TELLS + PL_TELLS
 
 
+# --- Gate 2 (2026-10-26): postings written in EN/FR that REQUIRE a third
+# language. Delivered example: "Staff Product Manager - Accounting Europe -
+# German speaking 🇩🇪 — Qonto — Berlin" — English text, German mandatory.
+# langdetect can never catch this; a requirement regex can. "German is a
+# plus / nice to have / appréciée" is NOT a requirement and must pass (the
+# negative patterns below are checked on the same sentence window first).
+_OTHER_LANGS_EN = r"(?:german|dutch|polish|italian|spanish|portuguese|swedish|danish|norwegian|finnish|czech|romanian|hungarian)"
+_OTHER_LANGS_FR = r"(?:allemand|neerlandais|néerlandais|polonais|italien|espagnol|portugais|suedois|suédois|danois|norvegien|norvégien|finnois|tcheque|tchèque|roumain|hongrois)"
+_OTHER_LANGUAGE_REQUIRED_RE = re.compile(
+    rf"""
+    \b{_OTHER_LANGS_EN}[\s-]*speaking\b
+    | \b(?:fluent|fluency|proficien(?:t|cy)|native|bilingual|business[\s-]*level|professional[\s-]*(?:level|proficiency))
+        (?:\s+(?:in|level|speaker(?:s)?\s+of|of))?\s+(?:(?:and|or|&|,)\s*)?{_OTHER_LANGS_EN}\b
+    | \b{_OTHER_LANGS_EN}\s+(?:is\s+)?(?:required|mandatory|essential|a\s+must|native|fluency|proficiency)\b
+    | \bmust\s+(?:be\s+)?(?:speak|fluent\s+in|proficient\s+in)\s+{_OTHER_LANGS_EN}\b
+    | \bdeutschkenntnisse\b
+    | \bdeutsch\s+(?:fliessend|fließend|verhandlungssicher|muttersprache)\b
+    | \b(?:fliessend|fließend|verhandlungssicher(?:e[sn]?)?|sehr\s+gute)\s+(?:in\s+)?deutsch(?:kenntnisse)?\b
+    | \bnederlandstalig(?:e)?\b
+    | \bvloeiend\s+nederlands\b
+    | \blangue\s+{_OTHER_LANGS_FR}e?\s+(?:requise|exigee|exigée|courante|obligatoire|indispensable|imperative|impérative)\b
+    | \b{_OTHER_LANGS_FR}\s+(?:courant|courante|bilingue|natif|native|langue\s+maternelle|obligatoire|requis|exige|exigé|indispensable|imperatif|impératif)\b
+    | \bbilingue\s+{_OTHER_LANGS_FR}\b
+    | \b(?:maitrise|maîtrise)\s+(?:de\s+l['’]|du\s+|parfaite\s+de\s+l['’])\s*{_OTHER_LANGS_FR}\b
+    """,
+    re.IGNORECASE | re.VERBOSE,
+)
+# "nice to have" softeners: if one of these sits within the same sentence
+# window as the language mention, it is a plus, not a requirement.
+_LANGUAGE_PLUS_RE = re.compile(
+    r"(?:is|are|would\s+be|serait|sera|est|sont)?\s*(?:a\s+(?:big\s+|strong\s+|real\s+|definite\s+)?(?:plus|bonus|advantage|asset)|"
+    r"nice[\s-]+to[\s-]+have|preferred|appreciated|desirable|an?\s+(?:added\s+)?advantage|"
+    r"un\s+(?:gros\s+|vrai\s+|réel\s+|reel\s+)?(?:plus|atout)|appr[ée]ci[ée]e?s?|souhait[ée]e?s?|bienvenue?s?|"
+    r"optional|optionnel(?:le)?|ein\s+plus|von\s+vorteil|wünschenswert|wunschenswert)",
+    re.IGNORECASE,
+)
+# Flag emojis of third-language markets in the TITLE are a requirement marker
+# ("German speaking 🇩🇪"). 🇫🇷 🇬🇧 🇺🇸 are fine.
+_OTHER_LANGUAGE_FLAGS = ("🇩🇪", "🇳🇱", "🇵🇱", "🇮🇹", "🇪🇸", "🇵🇹", "🇦🇹", "🇨🇭")
+
+# Title-only tell-words that settle a third language regardless of langdetect
+# (short titles skip langdetect entirely). Gender markers are stripped BEFORE
+# detection, so "(m/w/d)" / "(w/m/d)" / "(m/v)" are matched here on the RAW
+# title: the operator accepts English-language jobs located in Germany, but
+# a title carrying the German/Dutch gender formula is itself written for the
+# German/Dutch market (English titles there say "(all genders)" or "(f/m/x)").
+_DE_TITLE_TELLS_RE = re.compile(
+    r"\(\s*(?:m\s*/\s*w\s*/\s*d|w\s*/\s*m\s*/\s*d|d\s*/\s*m\s*/\s*w|m\s*/\s*w\s*/\s*x|w\s*/\s*m\s*/\s*x)\s*\)"
+    r"|\bprodukt(?:manager|managerin|owner|verantwortliche[rn]?)\b"
+    r"|\bmitarbeiter(?:in|innen)?\b"
+    r"|\bleiter(?:in)?\b\s+produkt"
+    r"|\bprojektleiter(?:in)?\b",
+    re.IGNORECASE,
+)
+_NL_TITLE_TELLS_RE = re.compile(
+    r"\(\s*m\s*/\s*v(?:\s*/\s*x)?\s*\)"
+    r"|\bmedewerk(?:er|ster|ers)\b"
+    r"|\bproductmanager\b"
+    r"|\bproducteigenaar\b",
+    re.IGNORECASE,
+)
+
+_SENTENCE_SPLIT_RE = re.compile(r"[.!?;\n•|]+")
+
+
+def _requires_other_language(title: str, description_snippet: str) -> str | None:
+    """Return the matched requirement phrase if the posting demands a third
+    language, else None. Title flags count unconditionally; text matches are
+    discounted when a 'plus / nice to have' softener sits in the same sentence."""
+    for flag in _OTHER_LANGUAGE_FLAGS:
+        if flag in title:
+            return f"title_flag:{flag}"
+    for text in (title, description_snippet):
+        if not text:
+            continue
+        for sentence in _SENTENCE_SPLIT_RE.split(text):
+            m = _OTHER_LANGUAGE_REQUIRED_RE.search(sentence)
+            if not m:
+                continue
+            if _LANGUAGE_PLUS_RE.search(sentence):
+                continue  # "German is a plus" — not a requirement
+            return m.group(0).strip()
+    return None
+
+
+def _title_third_language_tell(raw_title: str) -> str | None:
+    """Return 'de' / 'nl' when the RAW title carries a German/Dutch tell-word
+    (gender formula, 'Produktmanager', 'medewerker', …), else None."""
+    if _DE_TITLE_TELLS_RE.search(raw_title or ""):
+        return "de"
+    if _NL_TITLE_TELLS_RE.search(raw_title or ""):
+        return "nl"
+    return None
+
+
 # EN/FR role phrases that settle the language of a TITLE on their own.
 EN_FR_ROLE_ANCHORS = (
     "product manager", "product owner", "head of product", "product lead",
@@ -92,7 +192,19 @@ EN_FR_ROLE_ANCHORS = (
 
 
 def classify_language(title: str, description_snippet: str) -> tuple[bool, str]:
-    """Return (kept, reason). Reason is 'accept:<lang>' or 'reject:<lang>'."""
+    """Return (kept, reason). Reason is 'accept:<lang>', 'reject:<lang>' or
+    'reject:requires_other_language' (EN/FR text that demands a third language)."""
+    # Gate 0 (2026-10-26): raw-title tells for the German/Dutch market — checked
+    # BEFORE the gender-marker strip, because "(m/w/d)" IS the tell.
+    tell_lang = _title_third_language_tell(title)
+    if tell_lang:
+        return False, f"reject:{tell_lang}_title_tell"
+
+    # Gate 2 (2026-10-26): EN/FR text that requires German/Dutch/… — language
+    # detection would pass it, the requirement regex does not.
+    if _requires_other_language(title, description_snippet):
+        return False, "reject:requires_other_language"
+
     # Strip gender/diversity markers first — they are not language content and
     # break detection on short titles.
     title = _strip_gender_markers(title)

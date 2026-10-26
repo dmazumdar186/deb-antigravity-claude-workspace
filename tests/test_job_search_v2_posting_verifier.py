@@ -401,16 +401,73 @@ def test_page_date_overrides_stale_source_date():
     assert rec.decision == "keep"
 
 
-def test_page_date_overrides_fresh_source_date_to_stale():
-    # source says 2 days old, but page JSON-LD says 30 days old -> drop.
+def test_fresh_source_date_beats_older_page_date_for_open_posting():
+    # 2026-10-26: freshness = MOST RECENT of (source posted_at, page date).
+    # WTTJ's Algolia published_at is a last-updated bump; the page JSON-LD
+    # keeps the original datePosted. An OPEN posting updated 2 days ago with
+    # a 30-day-old page date is fresh -> keep, dated from the source.
+    # (Was: "page date overrides fresh source date to stale" -> drop.)
     html = '<html><head><script type="application/ld+json">{"@type": "JobPosting", "datePosted": "%s"}</script></head><body>Apply now</body></html>' % (
         (NOW - timedelta(days=30)).date().isoformat()
     )
-    job = make_job(posted_at=NOW - timedelta(days=2))
+    job = make_job(posted_at=NOW - timedelta(days=2), source=JobSource.WTTJ_ALGOLIA)
     rec = pv.verify_job(job, NOW, fetch=fetch_returning(200, html))
-    assert rec.date_source == "page"
-    assert rec.decision == "drop"
-    assert rec.reason == "stale"
+    assert rec.date_source == "source"
+    assert rec.decision == "keep"
+    assert rec.reason == "ok"
+    assert "source_newer" in rec.evidence
+    assert rec.age_days is not None and 1.9 < rec.age_days < 2.1
+
+
+def test_most_recent_date_rule_applies_to_every_source():
+    # Not WTTJ-specific: a generic source with a bumped date is kept too.
+    html = '<html><head><script type="application/ld+json">{"@type": "JobPosting", "datePosted": "%s"}</script></head><body>Apply now</body></html>' % (
+        (NOW - timedelta(days=20)).date().isoformat()
+    )
+    job = make_job(posted_at=NOW - timedelta(days=1), source=JobSource.FIXTURE)
+    rec = pv.verify_job(job, NOW, fetch=fetch_returning(200, html))
+    assert rec.decision == "keep" and rec.date_source == "source"
+
+
+def test_both_dates_stale_still_drops():
+    # Source bump 10 days ago AND page date 30 days ago -> nothing within
+    # the window -> stale drop remains.
+    html = '<html><head><script type="application/ld+json">{"@type": "JobPosting", "datePosted": "%s"}</script></head><body>Apply now</body></html>' % (
+        (NOW - timedelta(days=30)).date().isoformat()
+    )
+    job = make_job(posted_at=NOW - timedelta(days=10), source=JobSource.WTTJ_ALGOLIA)
+    rec = pv.verify_job(job, NOW, fetch=fetch_returning(200, html))
+    assert rec.decision == "drop" and rec.reason == "stale"
+
+
+def test_fresh_source_date_never_rescues_a_closed_page():
+    # Closed detection is untouched: fresh source date + closed text -> drop.
+    html = '<html><head><script type="application/ld+json">{"@type": "JobPosting", "datePosted": "%s"}</script></head><body><h1>Product Manager</h1><p>This job is no longer available.</p></body></html>' % (
+        (NOW - timedelta(days=1)).date().isoformat()
+    )
+    job = make_job(posted_at=NOW - timedelta(hours=2), source=JobSource.WTTJ_ALGOLIA)
+    rec = pv.verify_job(job, NOW, fetch=fetch_returning(200, html))
+    assert rec.decision == "drop" and rec.reason == "closed"
+    # ...and a past validThrough is still closed too.
+    html2 = '<html><head><script type="application/ld+json">{"@type": "JobPosting", "datePosted": "%s", "validThrough": "%s"}</script></head><body>Apply now</body></html>' % (
+        (NOW - timedelta(days=1)).date().isoformat(), (NOW - timedelta(days=1)).date().isoformat()
+    )
+    rec2 = pv.verify_job(job, NOW, fetch=fetch_returning(200, html2))
+    assert rec2.decision == "drop" and rec2.reason == "closed"
+
+
+def test_wttj_bumped_published_at_with_old_page_date_is_kept():
+    # The exact live shape measured 2026-10-26: Algolia published_at 0h ago,
+    # page JSON-LD datePosted 12 days ago, page open with "Postuler".
+    html = ('<html><head><script type="application/ld+json">{"@type":"JobPosting","datePosted":"%s",'
+            '"title":"Product Manager"}</script></head><body><h1>Product Manager</h1>'
+            '<button>Postuler</button>' + "<p>filler</p>" * 50 + '</body></html>') % (
+        (NOW - timedelta(days=12)).isoformat()
+    )
+    job = make_job(url="https://www.welcometothejungle.com/en/companies/acme/jobs/product-manager_paris",
+                   posted_at=NOW - timedelta(minutes=20), source=JobSource.WTTJ_ALGOLIA)
+    rec = pv.verify_job(job, NOW, fetch=fetch_returning(200, html))
+    assert rec.decision == "keep" and rec.status == "open" and rec.date_source == "source"
 
 
 def test_france_travail_trusts_source_date_when_page_has_none():
@@ -795,3 +852,126 @@ def test_future_page_date_is_ignored():
     no_source = _mk_job_for_edge("https://example.com/d", None)
     rec2 = _pv.verify_job(no_source, now, fetch=lambda u: (200, html, u))
     assert rec2.decision == "drop" and rec2.reason == "age_unknown"
+
+
+# ---------------------------------------------------------------------------
+# 2026-10-26: expired / "no longer accepting applications" rows still arrive.
+# Closed-text variants, LinkedIn guest-page URL shapes, and 200 listing bodies.
+# ---------------------------------------------------------------------------
+
+_FILLER = "<p>filler</p>" * 80
+
+
+@pytest.mark.parametrize("phrase", [
+    "No longer accepting applications",
+    "Cette offre n'accepte plus de candidatures",
+    "Applications closed",
+    "Applications are closed",
+    "Offre expirée",
+    "Cette offre d'emploi n'est plus disponible",
+    "This job is no longer available",
+    "Cette offre n'est plus disponible",
+    "This job is no longer accepting applications",
+    "Offre clôturée",
+    "Ce poste a été pourvu",
+    "Candidatures closes",
+])
+def test_closed_phrase_variants_2026_10_26(phrase):
+    html = f"<html><body><h1>Product Manager</h1><p>{phrase}</p><button>Apply</button>{_FILLER}</body></html>"
+    v = pv.parse_posting_page(html, "https://x.com/j", NOW)
+    assert v.status == "closed", phrase
+
+
+def _linkedin_closed_html() -> str:
+    return (
+        '<html><body><div class="top-card-layout"><h1>Product Manager</h1>'
+        '<figcaption class="closed-job__flavor--closed">No longer accepting applications</figcaption>'
+        "</div>" + _FILLER + "</body></html>"
+    )
+
+
+@pytest.mark.parametrize("url", [
+    "https://fr.linkedin.com/jobs/view/4123456789",
+    "https://de.linkedin.com/jobs/view/product-manager-at-acme-4123456789",
+    "https://uk.linkedin.com/jobs/view/4123456789/?trk=public_jobs",
+    "https://www.linkedin.com/jobs/view/4123456789",
+    "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/4123456789",
+])
+def test_linkedin_guest_variants_use_same_closed_detection(url):
+    job = _mk_job_for_edge(url, NOW - timedelta(hours=5))
+    rec = pv.verify_job(job, NOW, fetch=fetch_returning(200, _linkedin_closed_html()))
+    assert rec.decision == "drop" and rec.reason == "closed", url
+    # Fresh source date never rescues a closed page.
+    assert rec.status == "closed"
+
+
+def test_linkedin_api_fragment_fr_closed_text():
+    html = ('<section class="top-card-layout"><h2>Product Owner</h2>'
+            "<p>Cette offre n'accepte plus de candidatures</p>" + _FILLER + "</section>")
+    job = _mk_job_for_edge("https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/4000000001", NOW - timedelta(hours=1))
+    rec = pv.verify_job(job, NOW, fetch=fetch_returning(200, html))
+    assert rec.decision == "drop" and rec.reason == "closed"
+
+
+@pytest.mark.parametrize("final_url", [
+    "https://fr.linkedin.com/jobs/search?keywords=product",
+    "https://de.linkedin.com/jobs/product-manager-jobs?trk=expired_jd_redirect",
+    "https://www.linkedin.com/jobs/product-manager-jobs",
+    "https://es.linkedin.com/",
+])
+def test_linkedin_any_subdomain_listing_redirect_is_closed(final_url):
+    job = _mk_job_for_edge("https://fr.linkedin.com/jobs/view/4123456789", NOW - timedelta(hours=5))
+    rec = pv.verify_job(job, NOW, fetch=fetch_returning(200, "<html><body>" + "x" * 1000 + "</body></html>", final_url))
+    assert rec.decision == "drop" and rec.reason == "closed" and "redirect" in rec.evidence
+
+
+def _linkedin_listing_body() -> str:
+    cards = "".join(
+        f'<li><div class="base-card job-search-card"><a class="base-card__full-link" '
+        f'href="https://fr.linkedin.com/jobs/view/product-manager-at-co{i}-41000{i}">PM {i}</a></div></li>'
+        for i in range(10)
+    )
+    return ('<html><head><title>1 000+ offres d\'emploi Product Manager</title></head><body>'
+            '<h1 class="results-context-header__query-search">Product Manager</h1>'
+            f'<ul class="jobs-search__results-list">{cards}</ul>' + _FILLER + "</body></html>")
+
+
+def test_200_listing_body_counts_as_closed_not_unverified():
+    # Site answered the job URL with its search page (no redirect, HTTP 200,
+    # no JobPosting JSON-LD, no single job title): closed, never ok/unknown.
+    job = _mk_job_for_edge("https://fr.linkedin.com/jobs/view/4123456789", NOW - timedelta(hours=5))
+    rec = pv.verify_job(job, NOW, fetch=fetch_returning(200, _linkedin_listing_body()))
+    assert rec.decision == "drop" and rec.reason == "closed" and rec.evidence.startswith("listing_page")
+    rec_lenient = pv.verify_job(job, NOW, fetch=fetch_returning(200, _linkedin_listing_body()), strict=False)
+    assert rec_lenient.decision == "drop" and rec_lenient.reason == "closed"
+
+
+def test_200_listing_body_by_link_count_only():
+    # WTTJ-style company jobs index: no results-list class, many job-card links.
+    links = "".join(
+        f'<a href="/fr/companies/acme/jobs/product-manager-{i}_paris">PM {i}</a>' for i in range(8)
+    )
+    html = f"<html><body><h2>Nos offres</h2>{links}{_FILLER}</body></html>"
+    job = _mk_job_for_edge("https://www.welcometothejungle.com/fr/companies/acme/jobs/pm-gone_paris", NOW - timedelta(hours=5))
+    rec = pv.verify_job(job, NOW, fetch=fetch_returning(200, html))
+    assert rec.decision == "drop" and rec.reason == "closed" and "job_links" in rec.evidence
+
+
+def test_single_posting_with_similar_jobs_sidebar_is_not_a_listing():
+    # A real posting page carries JobPosting JSON-LD; a "similar jobs" rail
+    # with many links must not flip it to closed.
+    links = "".join(f'<a href="https://fr.linkedin.com/jobs/view/4100{i}">Similar {i}</a>' for i in range(12))
+    html = ('<html><head><script type="application/ld+json">{"@type":"JobPosting","datePosted":"%s","title":"PM"}</script></head>'
+            '<body><h1>Product Manager</h1><button>Apply now</button><ul class="jobs-search__results-list">%s</ul>%s</body></html>'
+            % ((NOW - timedelta(days=1)).date().isoformat(), links, _FILLER))
+    job = _mk_job_for_edge("https://fr.linkedin.com/jobs/view/4123456789", NOW - timedelta(hours=5))
+    rec = pv.verify_job(job, NOW, fetch=fetch_returning(200, html))
+    assert rec.decision == "keep" and rec.status == "open"
+
+
+def test_jobposting_free_single_page_with_few_links_stays_unknown_not_closed():
+    # The LinkedIn "unknown" light variant has no cards: must not be mistaken
+    # for a listing (strict mode still drops it as unconfirmed_open).
+    rec = pv.verify_job(make_job(posted_at=NOW - timedelta(days=1)), NOW,
+                        fetch=fetch_returning(200, _linkedin_unknown_html()))
+    assert rec.status == "unknown" and rec.reason == "unconfirmed_open"

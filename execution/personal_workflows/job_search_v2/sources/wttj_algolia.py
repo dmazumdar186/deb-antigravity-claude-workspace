@@ -198,6 +198,23 @@ def _hit_to_source_job(hit: dict) -> SourceJob | None:
         return None
 
 
+def _job_key(hit: dict) -> str:
+    """Dedup key for one posting across its office copies.
+
+    2026-10-26: the index returns one hit per OFFICE (objectID differs per
+    office) — live page 0 for "product manager" FR = 100 hits / 33 slugs.
+    The job page URL is built from `slug`, so slug is the natural key; fall
+    back to `reference`, then objectID. First office wins."""
+    slug = str(hit.get("slug") or "").strip()
+    if slug:
+        org = (hit.get("organization") or {}).get("slug") or ""
+        return f"{org}/{slug}"
+    ref = str(hit.get("reference") or "").strip()
+    if ref:
+        return f"ref:{ref}"
+    return f"id:{hit.get('objectID', '')}"
+
+
 def _search_page(
     client: httpx.Client, keyword: str, page: int, country_code: str
 ) -> Optional[dict]:
@@ -242,9 +259,15 @@ def fetch(
 
     Because the index is sorted by published_at desc, once any hit on a page is
     older than the posted_within_hours window, we can stop paging that keyword.
+    The in-window hits on that boundary page are still kept (the stop happens
+    AFTER the page is consumed). Verified live 2026-10-26: "product manager"
+    FR page 0 = 100 hits all <=13h -> page 1 fetched (19 in-window kept, 81
+    older) -> stop before page 2. One posting is returned once even when the
+    index carries one hit per office (see _job_key).
     """
     keywords = keywords or DEFAULT_KEYWORDS
     seen_ids: set[str] = set()
+    seen_keys: set[str] = set()
     out: list[SourceJob] = []
 
     with httpx.Client(headers=HEADERS) as client:
@@ -272,10 +295,15 @@ def fetch(
                     object_id = str(hit.get("objectID", ""))
                     if not object_id or object_id in seen_ids:
                         continue
+                    key = _job_key(hit)
+                    if key in seen_keys:
+                        seen_ids.add(object_id)
+                        continue  # same posting, another office
                     sj = _hit_to_source_job(hit)
                     if sj is None:
                         continue
                     seen_ids.add(object_id)
+                    seen_keys.add(key)
                     out.append(sj)
                     added += 1
                 logger.info(
@@ -302,15 +330,21 @@ def fetch_from_fixture(fixture_path: Path) -> list[SourceJob]:
     blob = json.loads(fixture_path.read_text(encoding="utf-8"))
     hits = blob.get("hits", []) if isinstance(blob, dict) else (blob or [])
     seen_ids: set[str] = set()
+    seen_keys: set[str] = set()
     out: list[SourceJob] = []
     for hit in hits:
         object_id = str(hit.get("objectID", ""))
         if not object_id or object_id in seen_ids:
             continue
+        key = _job_key(hit)
+        if key in seen_keys:
+            seen_ids.add(object_id)
+            continue  # same posting, another office
         sj = _hit_to_source_job(hit)
         if sj is None:
             continue
         seen_ids.add(object_id)
+        seen_keys.add(key)
         out.append(sj)
     return out
 
