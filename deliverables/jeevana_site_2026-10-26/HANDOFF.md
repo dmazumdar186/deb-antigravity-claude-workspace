@@ -22,8 +22,16 @@ Brief: `research/brief_v3.md`. Not deployed, not committed (builder run). Reject
    `node .claude/skills/site-redesign/scripts/site_check.mjs --site site --pages /,/privacy/ --allow-hosts static.cloudflareinsights.com,cloudflareinsights.com`.
 5. Deploy only after the jury + eye review: `research/deploy.sh` (from `site/`).
 
-## When the final 11-leg film lands
-Re-run 1–4 in order (boxes, stills, stamp, functional, screens). No HTML/JS edit needed: the engine reads `keyframes_s`, `seconds`, `leg_seconds`.
+## Film (by contract)
+- Final 11-leg film (52 s, 12 keyframes) verified. Operator: 3:4 on all devices (`hero-m.mp4` not shipped). `research/fit_film.py`
+  re-encodes it for scrubbing (GOP 12, faststart): `hero.mp4` crf 23 (5.1 MB) and `hero-phone.mp4` 600 px crf 25 (2.4 MB).
+- Dawn-sky film: when `research/film_dawn/hero.json` exists, fit_film.py / prep_assets.py / stamp.mjs use it automatically.
+  Run: `python3 research/fit_film.py && python3 research/prep_assets.py && node research/stamp.mjs`, then functional + screens.
+- Window treatment: radial vignette + 48 px edge feather mask and a thin warm glow (`.film__glow`); asserted by
+  `film_window_edge_alpha_le_0.08` (replaces the paper-match ΔE assertion).
+- Portrait class (phones, portrait tablets/TV): film between copy and rail; the window glides per state so the figure stays
+  centred (figure extents per keyframe written into `assets/film/hero.json` `fig` by stamp.mjs).
+- Skill fix: `site_check.mjs` ignores blob:/data: requests (the blob-fetched film was reported as a third-party host "").
 
 ## Owners
 - Site, domain, export login: Debanjan (ProdCraft) until handover. Data controller and data requests: Jeevana (Jeevana.yogawellness@gmail.com).

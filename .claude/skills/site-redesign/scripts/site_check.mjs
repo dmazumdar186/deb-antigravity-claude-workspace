@@ -44,7 +44,7 @@ try {
       const p = await ctx.newPage(); const errs = []; const hosts = new Set();
       p.on('pageerror', (e) => errs.push(e.message));
       p.on('console', (m) => { if (m.type() === 'error' && !/ERR_CERT|fonts\.g/.test(m.text()) && !allowed(m.text() + ((m.location() || {}).url || ''))) errs.push(m.text()); });
-      p.on('request', (r) => { const u = new URL(r.url()); if (!u.host.startsWith('localhost')) hosts.add(u.host); });
+      p.on('request', (r) => { const u = new URL(r.url()); if (/^(blob|data):/.test(u.protocol)) return; /* same-document object URLs (blob-fetched film) */ if (!u.host.startsWith('localhost')) hosts.add(u.host); });
       const tag = `${c.name}${path.replace(/\//g, '_') || '_'}`;
       const resp = await p.goto(base + path, { waitUntil: 'load' });
       if (!resp || resp.status() !== 200) { fail(`${tag}: HTTP ${resp && resp.status()}`); continue; }
