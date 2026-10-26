@@ -76,3 +76,12 @@ optional phone, consent, quiet "No thanks".
   self-hosted (no external request except the Cloudflare beacon).
 - Screens: cover-s0-0s, cover-s0-3s, cover-s2, cover-s5, cover-s9, cover-s11, cover-hold, plus the 19-viewport matrix at
   s0/s5/s11/hold, and the named deck/dialog/mobile set.
+
+## Final figure keys (cutout_review.md, 2026-10-26)
+01 sn-01 · 02 sn-02 · 03 sn-03 · 04 sn-04 · 05 sn-05 · 06 sn-06 · 07 **photo-05** (front cobra; sn-07 unusable) · 08 sn-05 ·
+09 **alt-09** (sn-09 unusable) · 10 sn-03 · 11 sn-02 · 12 sn-12 · portrait `portrait` · drum plates photo-03, photo-05, sn-06.
+Touch-up pass in the ingest (deterministic, Pillow/scipy): (1) zero alpha below `ground` + 1 % of height (kills mat slivers under
+feet/hands) unless the pose is prone/seated (photo-05, sn-06, sn-05, photo-03: keep the hand/knee contact row); (2) drop
+components < 0.2 % of the bbox area (specks); (3) 1 px alpha erode + 1 px feather on the outer edge (hair fringe); (4) for
+`portrait` raise alpha of the half-transparent right hand (alpha < 120 inside the hull → 255·0.9). Never use photo-01,
+photo-02, photo-04, sn-07, sn-09, alt-09b.

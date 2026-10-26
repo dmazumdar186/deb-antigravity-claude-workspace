@@ -20,7 +20,7 @@ from PIL import Image
 INK = (38, 36, 40)            # graphite colour; alpha carries the tone
 PAPER = (0xF3, 0xEE, 0xE4)
 P = dict(lift_ev=1.5, clahe_clip=2.0, clahe_tile=8, dodge_frac=0.005, max_dark=0.72, hatch_op=0.5,
-         contour_op=0.45, grain=0.10, paper_pct=15, feather=1.5, alpha_levels=48)
+         contour_op=0.5, grain=0.10, paper_pct=15, feather=1.5, alpha_levels=48)
 
 
 def tooth(h, w, rng):
@@ -60,6 +60,11 @@ def render(src, height, seed):
     h, w = al.shape
     rng = np.random.default_rng(seed)
     m = (al > 0.5).astype(np.uint8)
+    n, lab, st, _ = cv2.connectedComponentsWithStats(m, 8)
+    if n > 2:                                       # drop stray cut-out specks
+        big = st[1:, cv2.CC_STAT_AREA].max()
+        keep = np.zeros(n, np.uint8); keep[1:] = st[1:, cv2.CC_STAT_AREA] >= 0.02 * big
+        m = keep[lab]; al = al * m
     ys = np.where(m.any(1))[0]; fig_h = (ys[-1] - ys[0] + 1) if len(ys) else h
     L = (0.2126 * rgb[..., 0] + 0.7152 * rgb[..., 1] + 0.0722 * rgb[..., 2])
     L = np.where(al > 0.02, L, 1.0)
@@ -77,7 +82,9 @@ def render(src, height, seed):
     # 4. base tone darkness from smoothed E with S-curve
     Es = cv2.GaussianBlur(E, (0, 0), 1.2)
     t = 1 - Es
-    t = np.clip((t - 0.08) / 0.85, 0, 1)
+    if m.any():                                     # stretch to the figure's own range
+        lo, hi = np.percentile(t[m > 0], [3, 99])
+        t = np.clip((t - lo) / max(hi - lo, 0.1), 0, 1)
     t = t * t * (3 - 2 * t)                         # S-curve
     # 5. hatching along isophotes
     Lb = cv2.GaussianBlur(lifted, (0, 0), 4)
@@ -115,8 +122,10 @@ def render(src, height, seed):
     tone = 1 - (1 - tone) * (1 - P['contour_op'] * np.clip(cont * 1.6, 0, 1))
     # 8. highlights pure paper (top ~15 % of figure luminance)
     if m.any():
-        thr = np.percentile(Es[m > 0], 100 - P['paper_pct'])
-        tone *= np.clip((thr - Es) / 0.04 + 0.0, 0, 1) * 0.0 + np.where(Es >= thr, np.clip(1 - (Es - thr) / 0.03, 0, 1), 1)
+        Eh = cv2.GaussianBlur(Es, (0, 0), 5)
+        thr = np.percentile(Eh[m > 0], 100 - P['paper_pct'])
+        r = np.clip((Eh - (thr - 0.10)) / 0.14, 0, 1)
+        tone *= 1 - r * r * (3 - 2 * r)
     # 9. cap darkness, paper grain in tonal areas
     tone = np.clip(tone, 0, 1) * P['max_dark']
     tt = tooth(h, w, rng)
