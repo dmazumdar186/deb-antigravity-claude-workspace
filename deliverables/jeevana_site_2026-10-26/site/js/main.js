@@ -1,7 +1,8 @@
 /* Jeevana — one IIFE. Cover "Twelve breaths, drawn then real": 13 scrubbed states (S0 draws itself at load,
    S1–S8 the drawing moves, S9–S11 the drawing takes colour, S12 hold). Drum, deck, i18n, forms, dialog, events.
-   One `state` variable drives figure, rail and copy. The drawing (S0–S8) = one traced contour (contours.json,
-   self-drawing at S0, quiet re-draw on each state change) + a flat graphite wash (<key>-wash@…webp, ~18 %).
+   One `state` variable drives figure, rail and copy. The drawing (S0–S8) = one warm-ink traced contour + 2–3 interior
+   lines (contours.json; self-drawing at S0, quiet re-draw on each state change) + an offset pale-ochre wash masked by
+   the figure's own alpha. S9–S11 wipe in the photographs of positions 10–12 (sn-03, sn-02, sn-01).
    Everything comes from assets/fig/manifest.json + contours.json: a re-run of the ingest needs no HTML edit. */
 (function () {
   'use strict';
@@ -15,8 +16,8 @@
   var AUTO_LEG_MS = 2600, AUTO_TO = 3;        // autoplay S1→S3 at breathing pace, then hold
   var COVER_END = 0.8, COVER_OUT = 0.5, MBAR_AT = 0.5; // hint off at p > .8; cover hidden once the drum top < 50 % vh
   var FOLD_OPEN = 0.9, REVEAL_FAILSAFE_MS = 2500, DIALOG_DECK_MS = 1200, DIALOG_TIME_MS = 35000;
-  var DESK = { ground: 0.86, height: 0.72, maxW: 0.56 }, PHONE = { ground: 0.78, height: 0.60, min: 0.58, maxW: 0.92 };
-  var KEYS = ['sn-01', 'sn-02', 'sn-03', 'sn-04', 'sn-05', 'sn-06', 'photo-05', 'sn-05', 'alt-09', 'sn-03', 'sn-02', 'sn-12'];
+  var DESK = { ground: 0.86, height: 0.72, maxW: 0.56 }, PHONE = { ground: 0.78, height: 0.60, min: 0.58, maxW: 0.92 }, TABLET_MAXW = 0.85, RAIL_GAP = 48;
+  var KEYS = ['sn-01', 'sn-02', 'sn-03', 'sn-04', 'sn-05', 'sn-06', 'photo-05', 'sn-05', 'alt-09', 'sn-03', 'sn-02', 'sn-01'];
   var FIG = 'assets/fig/', FILM_LEG_S = 5;
 
   var d = document, w = window, root = d.documentElement;
@@ -85,7 +86,8 @@
       var bt = $('.beats', copy), cb = bt ? bt.getBoundingClientRect().bottom - stage.getBoundingClientRect().top : 0;
       target = clamp(Math.min(target, gy - cb - 10), L.min * H, L.height * H);
     }
-    var a = r.w / r.h, h = target, wd = h * a, maxW = L.maxW * W;
+    var a = r.w / r.h, h = target, wd = h * a, maxW = (ph && W >= 768 ? TABLET_MAXW : L.maxW) * W;
+    if (!ph && railEl) { var rl = railEl.getBoundingClientRect().left - stage.getBoundingClientRect().left; if (rl > W / 2) maxW = Math.min(maxW, 2 * (rl - RAIL_GAP - W / 2)); }
     if (wd > maxW) { wd = maxW; h = wd / a; }
     var top = gy - r.ground * h, left = W / 2 - wd / 2;
     return { x: left, y: top, w: wd, h: h, g: r.ground, gy: gy };
@@ -95,24 +97,33 @@
     slot.style.setProperty('--x', g.x.toFixed(1) + 'px'); slot.style.setProperty('--y', g.y.toFixed(1) + 'px');
     slot.style.setProperty('--w', g.w.toFixed(1) + 'px'); slot.style.setProperty('--h', g.h.toFixed(1) + 'px');
     slot.style.setProperty('--g', String(g.g));
+    var rr = rec(key); if (rr && rr.feet) { slot.style.setProperty('--fx0', String(rr.feet[0])); slot.style.setProperty('--fx1', String(rr.feet[1])); }
+    stage.style.setProperty('--ground', String(phone() ? PHONE.ground : DESK.ground));
     var sizes = Math.ceil(g.w * Math.max(1, 1.5 / (w.devicePixelRatio || 1))) + 'px'; // ≥ 1.5× the rendered size
     $$('img', slot).forEach(function (im) { if (im.getAttribute('sizes') !== sizes) im.setAttribute('sizes', sizes); });
     slot._g = g;
     if (slot.classList.contains('is-on')) {
       if (sun) { sun.style.setProperty('--sx', (g.x + g.w / 2).toFixed(0) + 'px'); sun.style.setProperty('--sy', (g.y + g.h * 0.3).toFixed(0) + 'px'); sun.style.setProperty('--sr', (Math.max(g.h, g.w) * 0.9).toFixed(0) + 'px'); }
-      if (railm) railm.style.setProperty('--ground', String(phone() ? PHONE.ground : DESK.ground));
+      if (railm && phone()) { // pose block: centred in the band above a low figure, else under the feet
+        var bt2 = $('.beats'), cb2 = bt2 ? bt2.getBoundingClientRect().bottom - stage.getBoundingClientRect().top : 0, bh = railm.offsetHeight, band = g.y - cb2;
+        railm.style.setProperty('--pose-y', (band >= bh + 32 ? cb2 + (band - bh) / 2 : g.gy + 10).toFixed(0) + 'px');
+      }
       if (film) { film.style.setProperty('--x', ((stage.clientWidth - g.h * 0.75) / 2).toFixed(0) + 'px'); film.style.setProperty('--y', (g.gy - g.h).toFixed(0) + 'px'); film.style.setProperty('--w', (g.h * 0.75).toFixed(0) + 'px'); film.style.setProperty('--h', g.h.toFixed(0) + 'px'); }
     }
   }
   function fill(slot, key) {
     var r = rec(key); if (!r) return;
     slot.setAttribute('data-key', key);
-    var ph = $('[data-fig-photo]', slot), dr = $('[data-fig-draw]', slot), ln = $('[data-fig-line] path', slot), sv = $('[data-fig-line]', slot);
+    var ph = $('[data-fig-photo]', slot), wa = $('[data-fig-wash]', slot), lns = $$('[data-fig-line] > path', slot), sv = $('[data-fig-line]', slot), gi = $('[data-fig-inner]', slot);
     place(slot, key);
     if (ph) { ph.setAttribute('srcset', srcset(r.srcset)); ph.setAttribute('src', FIG + r.srcset[r.srcset.length - 1][0]); ph.width = r.w; ph.height = r.h; }
-    if (dr) { var list = r.wash && r.wash.length ? r.wash : r.srcset; dr.setAttribute('srcset', srcset(list)); dr.setAttribute('src', FIG + list[list.length - 1][0]); }
+    if (wa) wa.style.setProperty('--wm', 'url("/' + FIG + r.srcset[r.srcset.length - 1][0] + '")');
     var c = CONT[key];
-    if (sv && ln && c && c.d) { sv.setAttribute('viewBox', '0 0 ' + c.vb[0] + ' ' + c.vb[1]); ln.setAttribute('d', c.d); }
+    if (sv && c && c.d) {
+      sv.setAttribute('viewBox', '0 0 ' + c.vb[0] + ' ' + c.vb[1]);
+      lns.forEach(function (l) { l.setAttribute('d', c.d); });
+      if (gi) { while (gi.firstChild) gi.removeChild(gi.firstChild); (c.inner || []).forEach(function (dd) { var pe = d.createElementNS('http://www.w3.org/2000/svg', 'path'); pe.setAttribute('d', dd); pe.setAttribute('pathLength', '1'); gi.appendChild(pe); }); }
+    }
     if (introDone) redraw(slot);
   }
   function redraw(slot) { // quiet re-draw of the contour on every state change
@@ -121,7 +132,7 @@
     w.requestAnimationFrame(function () { w.requestAnimationFrame(function () { slot.style.setProperty('--draw', '0'); }); });
     clearTimeout(slot._rd); slot._rd = setTimeout(function () { slot.classList.remove('is-redraw'); }, REDRAW_MS + 100);
   }
-  function prefetch(key) { var r = rec(key), s = slots[0]; if (!r || !s) return; var sz = $('img', s).getAttribute('sizes') || '50vw'; [r.srcset, r.wash].forEach(function (l) { if (!l || !l.length) return; var im = new Image(); im.sizes = sz; im.srcset = srcset(l); }); }
+  function prefetch(key) { var r = rec(key), s = slots[0]; if (!r || !s) return; var sz = $('img', s).getAttribute('sizes') || '50vw'; [r.srcset].forEach(function (l) { if (!l || !l.length) return; var im = new Image(); im.sizes = sz; im.srcset = srcset(l); }); }
 
   /* ---------- the one state ---------- */
   var curState = -1, curKey = '', front = 0, autoS = 0, contT = 0;
@@ -148,7 +159,7 @@
       railm.setAttribute('data-pos', String(n));
       var set = function (sel, k) { var el = $(sel, railm); if (el) el.textContent = k ? tr(k) : ''; };
       var mn = $('[data-railm-no]', railm); if (mn) mn.textContent = pad(n);
-      set('[data-railm-iast]', 'sn.' + n + '.iast'); set('[data-railm-breath]', 'sn.' + n + '.breath');
+      set('[data-railm-iast]', 'sn.' + n + '.iast'); set('[data-railm-dev]', 'sn.' + n + '.dev'); set('[data-railm-breath]', 'sn.' + n + '.breath');
       set('[data-railm-mantra]', 'sn.' + n + '.mantra'); set('[data-railm-tr]', 'sn.' + n + '.tr');
     }
   }
@@ -381,7 +392,7 @@
   if (regForm) regForm.addEventListener('focusin', function () { ev('register_start', true); });
   wireForm(regForm, '/api/register', null, function () {
     ev('register_done'); regForm.hidden = true;
-    if (regOk) { regOk.scrollIntoView({ block: 'center', behavior: 'auto' }); try { regOk.focus({ preventScroll: true }); } catch (e) { regOk.focus(); } }
+    if (regOk) { if (deck) deck.scrollIntoView({ behavior: 'auto' }); try { regOk.focus({ preventScroll: true }); } catch (e) { regOk.focus(); } }
   }, regOk);
   wireForm($('[data-news-inline]'), '/api/subscribe', function (fd) { fd.source = 'footer'; }, function () { ev('newsletter_done'); });
   var news = $('[data-news]'); trap(news);
@@ -429,13 +440,12 @@
 
   /* ---------- boot ---------- */
   applyLang(lang, false);
-  if (STATIC) panels.forEach(function (x) { x.hidden = false; x.removeAttribute('inert'); });
+  if (STATIC) { panels.forEach(function (x) { x.hidden = false; x.removeAttribute('inert'); }); $$('img[loading="lazy"]').forEach(function (im) { im.loading = 'eager'; }); }
   if (cover) {
     Promise.all([getJSON(FIG + 'manifest.json'), getJSON(FIG + 'contours.json')]).then(function (a) {
       if (a[0] && a[0].fig) MAN = a[0];
       CONT = a[1] || {};
-      var pr = rec('portrait'), ab = $('.about__img');
-      if (pr && pr.pencil && pr.pencil.length && ab) { ab.setAttribute('srcset', srcset(pr.pencil)); ab.setAttribute('src', FIG + pr.pencil[pr.pencil.length - 1][0]); ab.classList.add('is-pencil'); }
+
       if (w.scrollY > 4) { autoOn = false; finishIntro(); coverScroll(); }
       else intro();
       onScroll();

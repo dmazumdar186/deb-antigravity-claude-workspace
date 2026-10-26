@@ -1,0 +1,30 @@
+{
+ "leg": 1,
+ "body": {
+  "prompt": "The same woman moves slowly from Pra\u1e47\u0101m\u0101sana, standing, palms together at the chest into Hasta Utt\u0101n\u0101sana, arms raised overhead, gentle backbend. One slow continuous yoga movement with the breath, nothing else moves. Fixed camera, eye level, full body always in frame, feet on the same ground line. Plain warm cream paper studio background, soft even daylight, no props, no text, no other people. Photoreal, her face, hair, clothing and body unchanged throughout. Calm editorial pacing.",
+  "duration": 5,
+  "aspect_ratio": "3:4",
+  "sound": "off",
+  "image_url": "https://jeevana-frames.pages.dev/frame-01.jpg",
+  "last_image_url": "https://jeevana-frames.pages.dev/frame-02.jpg",
+  "cfg_scale": 0.7
+ },
+ "submit": {
+  "status": "queued",
+  "request_id": "9e0fcc87-f839-4af6-aaf8-5a7595901e7c",
+  "status_url": "https://api.higgsfield.ai/requests/9e0fcc87-f839-4af6-aaf8-5a7595901e7c/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/9e0fcc87-f839-4af6-aaf8-5a7595901e7c/cancel",
+  "expires_after": 604800
+ },
+ "model": "kling-video/v3.0/std/image-to-video",
+ "status": {
+  "status": "completed",
+  "request_id": "9e0fcc87-f839-4af6-aaf8-5a7595901e7c",
+  "status_url": "https://api.higgsfield.ai/requests/9e0fcc87-f839-4af6-aaf8-5a7595901e7c/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/9e0fcc87-f839-4af6-aaf8-5a7595901e7c/cancel",
+  "expires_at": "2026-11-02T17:26:17.702408+00:00",
+  "video": {
+   "url": "https://d3u0tzju9qaucj.cloudfront.net/5afe9077-53e3-4696-8d41-03a78237e195/9e0fcc87-f839-4af6-aaf8-5a7595901e7c/b05f98e2-4fda-4241-a0c2-379e3a7ba49e.mp4"
+  }
+ }
+}
