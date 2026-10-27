@@ -93,3 +93,14 @@ models; audit, QA, send the link. Lineage: graduate of Tapovan (link to the form
 - Open (P3 / needs assets): staggered gallery rhythm at 1920, Eiffel photo grade (1200 px source), About photo margin; copy slots
   per `research/to_wire.md` (timetable, prices, biography, Tapovan course details). Operator's written OK from Jeevana on photos,
   phone and copy: ______
+
+### v4 content update (2026-10-27, later): Superprof facts + Tapovan booklet
+Operator supplied her Superprof profile text and Tapovan's 2025 training booklet (`research/tapovan_livret_2025.txt`). Now on the
+preview: Hatha Yoga; "Certified yoga instructor (Moniteur de Yoga), Tapovan" (never "diplôme"); her first-person training paragraph
+(500-hour programme, Tapovan Open University Yoga & Ayurveda, Normandy); eight module items; school line (pays de Caux, 40+ years,
+Kiran Vyas, Sri Aurobindo's line); taught at Tapovan Paris 15e, Tapovan Normandie, then her home Paris 19e; today individual classes.
+Classes: Individual first, €50/h, 5 h €250, 10 h €500; in-home €25/h after tax credit; online €50/h; small group / workshop by
+arrangement; French or English; all levels; teenagers and adults; session shape. Two quotes (Egle, Thomas) "via Superprof"; the third
+Superprof recommendation is never used. Superprof linked from About, Contact and JSON-LD `sameAs`. Gates green (site_check 0,
+functional 37/37); `eye_15.md` P2s fixed (price tiers as three `data-i18n` spans, list spacing, credential line balanced).
+Still to wire: written consent from Egle and Thomas to quote them; online booking; timetable.
