@@ -26,3 +26,6 @@ Cloudflare Web Analytics beacon token f7ff1290…bc05; first-party counters `/ap
 Runbook: `/api/export` pages KV lists; beyond ~1,000 rows per list, export per `?type=news|reg`.
 
 **Email (operator, 2026-10-26, supersedes the brief):** Jeevana.yogawellness@gmail.com — use everywhere (mailto, JSON-LD, privacy page controller contact, NOTIFY_TO default). The earlier Gmail address is retired.
+
+| Superprof price / rating / review count | Contact + About link only | link `https://www.superprof.fr/professeure-yoga-propose-cours-accessibles-niveaux.html`; no figures taken (page not readable from the build session) |
+| Individual classes: price, where exactly (home 19e / student's home / online) | Classes card | "Individual classes in Paris · price on request" |

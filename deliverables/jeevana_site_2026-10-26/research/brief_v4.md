@@ -124,3 +124,12 @@ and big TV screens (3840 × 2160, 16:9, viewed from a distance). Rules:
 - Hover-only affordances get a touch equivalent (`@media (hover: none)`); focus rings visible everywhere.
 - Gate: screens_v4 must shoot 390×844, 844×390, 768×1024, 1024×768, 1366×1024, 1440×900, 1920×1080, 2560×1440,
   3840×2160, and 320×568; the eye reviewer judges every one.
+
+## Addendum 2026-10-27 (operator): teaching history, Superprof
+Verified (operator's words): Jeevana has taught at **Tapovan Paris 15e**, at **Tapovan Normandie**, then **at her home in Paris 19e**;
+today she offers **individual classes**. Her Superprof profile:
+https://www.superprof.fr/professeure-yoga-propose-cours-accessibles-niveaux.html (link it from Contact and About; the page could
+not be read by the build session, so take no price, rating or review from it). Site changes: About gets a two-line "Where she has
+taught" line (EN/FR) after the Tapovan graduate line; Classes leads with **Individual classes** (private, in Paris) as the current
+format; group and workshop stay listed as "by arrangement" formats, never as a running timetable. Arrondissement for individual
+classes: Paris 19e (her home) unless the operator says otherwise. Still to wire: price, timetable, online option.
