@@ -20,7 +20,7 @@ import argparse, json, os, re, sys, time
 from pathlib import Path
 import requests
 
-MODELS = {"sol": "openai/gpt-6.1-sol-pro", "claude": "anthropic/claude-opus-5.5"}
+MODELS = {"sol": "openai/gpt-6.1-sol-pro", "claude": "anthropic/claude-opus-5.5", "fable": "anthropic/claude-fable-5.1", "glm": "z-ai/glm-5.3"}
 FILES = ["site/index.html", "site/css/styles.css", "site/js/main.js", "site/js/i18n.js"]
 OR = "https://openrouter.ai/api/v1/chat/completions"
 
