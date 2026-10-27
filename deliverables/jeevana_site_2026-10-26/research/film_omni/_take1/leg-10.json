@@ -1,0 +1,35 @@
+{
+ "leg": 10,
+ "body": {
+  "prompt": "The woman in the reference images, the same face throughout. She moves slowly from P\u0101dahast\u0101sana, standing forward fold into Hasta Utt\u0101n\u0101sana, arms raised overhead. One slow continuous yoga movement with the breath, nothing else moves. Fixed camera, eye level, full body always in frame, feet on the same ground line. A soft dawn sky behind her: deep indigo above fading through dusty rose into a warm ochre haze at the ground line, no clouds, no buildings, a quiet glow near the horizon, first light, no props, no text, no other people. Photoreal, her face unchanged, hair tied back the whole time, clothing and body unchanged throughout, hands and feet keep contact with the floor when they are on it. Calm editorial pacing.",
+  "first_frame_url": "https://jeevana-frames.pages.dev/dawn/frame-10.jpg",
+  "last_frame_url": "https://jeevana-frames.pages.dev/dawn/frame-11.jpg",
+  "mode": "std",
+  "duration": 5,
+  "aspect_ratio": "9:16",
+  "image_urls": [
+   "https://jeevana-frames.pages.dev/ref/ref-01.jpg",
+   "https://jeevana-frames.pages.dev/ref/ref-02.jpg",
+   "https://jeevana-frames.pages.dev/ref/ref-03.jpg",
+   "https://jeevana-frames.pages.dev/ref/ref-04.jpg"
+  ]
+ },
+ "submit": {
+  "status": "queued",
+  "request_id": "6fcc5749-a8ef-435b-9b3f-378e4cfd1c0f",
+  "status_url": "https://api.higgsfield.ai/requests/6fcc5749-a8ef-435b-9b3f-378e4cfd1c0f/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/6fcc5749-a8ef-435b-9b3f-378e4cfd1c0f/cancel",
+  "expires_after": 604800
+ },
+ "model": "kling-video/omni/first-last-frame",
+ "status": {
+  "status": "completed",
+  "request_id": "6fcc5749-a8ef-435b-9b3f-378e4cfd1c0f",
+  "status_url": "https://api.higgsfield.ai/requests/6fcc5749-a8ef-435b-9b3f-378e4cfd1c0f/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/6fcc5749-a8ef-435b-9b3f-378e4cfd1c0f/cancel",
+  "expires_at": "2026-11-02T21:31:05.242926+00:00",
+  "video": {
+   "url": "https://d3u0tzju9qaucj.cloudfront.net/5afe9077-53e3-4696-8d41-03a78237e195/6fcc5749-a8ef-435b-9b3f-378e4cfd1c0f/54e7089f-59bd-42c8-b087-514d5f329fde.mp4"
+  }
+ }
+}

@@ -1,0 +1,29 @@
+/home/user/deb-antigravity-claude-workspace/deliverables/jeevana_site_2026-10-26/research/cutout_photos.py:48: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  if max(alpha.crop((0, y, w, y + 1)).getdata()) > 200: ground = y + 1; break
+sn-01	_DAV5297.jpg	492x1401	ground=0.9822	15.2s
+sn-02	_DAV5303.jpg	497x986	ground=0.9757	18.6s
+sn-03	_DAV5307.jpg	526x644	ground=0.9627	13.7s
+sn-04	_DAV5343.jpg	1165x1317	ground=0.9818	21.4s
+sn-05	_DAV5320.jpg	751x616	ground=0.961	11.6s
+sn-06	_DAV5332.jpg	975x356	ground=0.9326	11.5s
+PERFORMANCE WARNING:
+Thresholded incomplete Cholesky decomposition failed due to insufficient positive-definiteness of matrix A with parameters:
+    discard_threshold = 1.000000e-04
+    shift = 0.000000e+00
+Try decreasing discard_threshold or start with a larger shift
+
+sn-07	_DAV5337.jpg	357x561	ground=0.9554	19.6s
+sn-08	copy of sn-05
+sn-09	_DAV5310.jpg	715x870	ground=0.9724	13.1s
+sn-10	copy of sn-03
+sn-11	copy of sn-02
+sn-12	_DAV5300.jpg	331x1269	ground=0.9803	12.2s
+portrait	_DAV5356.jpg	1350x1547	ground=0.9819	19.6s
+photo-01	IMG-20260810-WA0005.jpg	750x498	ground=0.9458	12.6s
+photo-02	IMG-20260810-WA0004.jpg	345x841	ground=0.9905	14.0s
+photo-03	_DAV5352.jpg	781x817	ground=0.9694	22.4s
+photo-04	_DAV5346.jpg	637x585	ground=0.959	12.9s
+photo-05	_DAV5340.jpg	924x1240	ground=0.9806	14.1s
+photo-06	_DAV5325.jpg	438x743	ground=0.9677	30.0s
+alt-09	_DAV5312.jpg	572x1104	ground=0.9783	9.4s
+alt-09b	_DAV5315.jpg	327x1160	ground=0.9793	13.0s

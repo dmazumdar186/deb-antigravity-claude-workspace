@@ -1,0 +1,1694 @@
+{
+ "date": "2026-10-26T22:10:54.262Z",
+ "film": {
+  "standin": false,
+  "seconds": 52.42,
+  "keyframes": 12
+ },
+ "pass": 67,
+ "total": 67,
+ "results": [
+  {
+   "name": "film_plays_unscrolled (currentTime > 4 s at 6 s)",
+   "ok": true,
+   "detail": "ct=5.34"
+  },
+  {
+   "name": "scroll_takeover_1440x900 (|currentTime − f(p)| < 0.4 s at p=.25/.5/.75/1)",
+   "ok": true,
+   "detail": {
+    "1": {
+     "currentTime": 52.07,
+     "expected": 52.07
+    },
+    "0.25": {
+     "currentTime": 14.2,
+     "expected": 14.2
+    },
+    "0.5": {
+     "currentTime": 28.4,
+     "expected": 28.4
+    },
+    "0.75": {
+     "currentTime": 42.6,
+     "expected": 42.6
+    }
+   }
+  },
+  {
+   "name": "scroll_takeover_390x844 (|currentTime − f(p)| < 0.4 s at p=.25/.5/.75/1)",
+   "ok": true,
+   "detail": {
+    "1": {
+     "currentTime": 52.07,
+     "expected": 52.07
+    },
+    "0.25": {
+     "currentTime": 14.2,
+     "expected": 14.2
+    },
+    "0.5": {
+     "currentTime": 28.4,
+     "expected": 28.4
+    },
+    "0.75": {
+     "currentTime": 42.6,
+     "expected": 42.6
+    }
+   }
+  },
+  {
+   "name": "state_rail_copy_film_one_variable_desktop (13 samples)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "no_text_over_figure_desktop (13 samples, figure_boxes.json)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "breath_word_matches_ring_desktop (13 samples: rail word = fixture, ring level inhale ≥ .9 / exhale ≤ .1 / retain .4–.6)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "film_window_no_visible_rectangle (edge alpha ≤ .05, 16 boundary points, A−B / C−B)",
+   "ok": true,
+   "detail": {
+    "max": 0.01948051948051948,
+    "n": 16
+   }
+  },
+  {
+   "name": "console_clean_cover_desktop",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "state_rail_copy_film_one_variable_pixel7 (13 samples)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "no_text_over_figure_pixel7 (13 samples, figure_boxes.json)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "breath_word_matches_ring_pixel7 (13 samples: rail word = fixture, ring level inhale ≥ .9 / exhale ≤ .1 / retain .4–.6)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "console_clean_cover_pixel7",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "state_rail_copy_film_one_variable_iphone13 (13 samples)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "no_text_over_figure_iphone13 (13 samples, figure_boxes.json)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "breath_word_matches_ring_iphone13 (13 samples: rail word = fixture, ring level inhale ≥ .9 / exhale ≤ .1 / retain .4–.6)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "console_clean_cover_iphone13",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "ctas_visible_at_p1 (19 viewports)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "no_empty_band_over_25pct (19 viewports × s0/s7/hold)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "breath_ring_clears_copy_and_rail_by_48px (19 viewports × s0/s7/hold)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "one_brand_wordmark_on_cover (19 vp × s0/hold)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "wide_pose_keeps_6pct_gutters_clear_of_feather (s7, portrait + landscape ≤ 1366)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "ring_inside_viewport_and_le_85pct_width (19 vp × 3 states)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "ring_size_constant_across_states (±2 %, 19 vp)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "rail_heading_clear_of_numerals_and_4k_type_scale (numerals ≥ 18 px, nav ≥ 22 px at 3840)",
+   "ok": true,
+   "detail": [
+    [
+     19.2,
+     23.04
+    ]
+   ]
+  },
+  {
+   "name": "chapters_fit_one_viewport (landscape viewports ≥ 1024 px)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "dawn_seam_outside_equals_inside (19 vp × p 0/.5/1, ≥ 8 pairs, ΔE76 < 4)",
+   "ok": true,
+   "detail": [
+    {
+     "worst": 2.68
+    }
+   ]
+  },
+  {
+   "name": "dawn_no_luminance_step_over_6pct_at_window_boundary",
+   "ok": true,
+   "detail": [
+    {
+     "worst": 0.049
+    }
+   ]
+  },
+  {
+   "name": "dawn_stage_midline_matches_plate (ΔE76 < 4, 19 vp)",
+   "ok": true,
+   "detail": [
+    {
+     "worst": 1.64
+    }
+   ]
+  },
+  {
+   "name": "stage_sky_reaches_last_column (19 vp × 3 p, ΔE76 < 4)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "dawn_type_contrast_ge_4.5 (19 vp × s0/hold)",
+   "ok": true,
+   "detail": [
+    {
+     "worst": 5.11
+    }
+   ]
+  },
+  {
+   "name": "chapter_ring_fills_with_scroll (3 chapters)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "chapter_ring_within_24px_of_number",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "chapter_panels_composition (01 full-bleed off left, 02 ≤ 40 %, panel top ≥ text top − 8)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "newsletter_sheet_no_border_no_shadow_no_dark_buttons",
+   "ok": true,
+   "detail": {
+    "dark": [],
+    "bd": 0,
+    "shadow": "none",
+    "sheet": true
+   }
+  },
+  {
+   "name": "register_success_in_frame (heading below header, no text overlaps, no rule)",
+   "ok": true,
+   "detail": {
+    "headTop": 163.65625,
+    "hb": 75.828125,
+    "hits": [],
+    "okBorder": "0px",
+    "okIn": true
+   }
+  },
+  {
+   "name": "static_page_media_loaded_and_rings_drawn",
+   "ok": true,
+   "detail": {
+    "imgs": [
+     true,
+     true,
+     true
+    ],
+    "rings": [
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "name": "static_page_no_band_over_20svh",
+   "ok": true,
+   "detail": {
+    "gap": 0.12425347222222222,
+    "at": 900
+   }
+  },
+  {
+   "name": "mobile_chapters_no_band_over_20svh",
+   "ok": true,
+   "detail": {
+    "gap": 0.06998659117997616,
+    "at": 9480
+   }
+  },
+  {
+   "name": "phone_copy_on_sky (no solid background behind copy; scrim ≤ .45, ends by 35 % height)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "chapter_panels_no_rectangle (edge alpha ≤ .05, 16 points × 3 chapters)",
+   "ok": true,
+   "detail": [
+    {
+     "tag": "practice",
+     "n": 16,
+     "max": 0.008
+    },
+    {
+     "tag": "classes",
+     "n": 16,
+     "max": 0.012
+    },
+    {
+     "tag": "contact",
+     "n": 16,
+     "max": 0.012
+    }
+   ]
+  },
+  {
+   "name": "chapter_panels_no_luminance_step_over_6pct",
+   "ok": true,
+   "detail": [
+    {
+     "tag": "practice",
+     "step": 0.049
+    },
+    {
+     "tag": "classes",
+     "step": 0.053
+    },
+    {
+     "tag": "contact",
+     "step": 0.053
+    }
+   ]
+  },
+  {
+   "name": "contact_still_figure_le_35pct_height",
+   "ok": true,
+   "detail": 0.329
+  },
+  {
+   "name": "dialog_opens_after_chapter_01",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "dialog_quiet (no shadow, cream scrim, text-link No thanks, no Voluntary line)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "dialog_esc_closes",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "register_sheet_opens_inline_and_scrolls_into_view",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "dialog_never_opens_while_focus_in_form",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "register_inline_errors",
+   "ok": true,
+   "detail": "errors shown=3"
+  },
+  {
+   "name": "register_success_replaces_form",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "register_posts_api",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "console_clean_desktop_walk",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "register_failure_mailto_carries_fields",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "console_clean_walk_pixel7",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "console_clean_walk_iphone13",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "reduced_motion_poster_and_static_copy",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "fonts_local_and_no_external_requests (beacon only)",
+   "ok": true,
+   "detail": [
+    "static.cloudflareinsights.com/beacon.min.js"
+   ]
+  },
+  {
+   "name": "zero_third_party_js_except_beacon",
+   "ok": true,
+   "detail": [
+    "/js/i18n.js?v=2178cbfe",
+    "/js/breath.js?v=81880b2c",
+    "/js/main.js?v=cc81446c",
+    "https://static.cloudflareinsights.com/beacon.min.js"
+   ]
+  },
+  {
+   "name": "no_style_attributes",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "phone_appears_exactly_twice",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "old_email_absent_everywhere (served HTML/JS)",
+   "ok": true,
+   "detail": "occurrences=0"
+  },
+  {
+   "name": "content_fixture_matches (12 positions + 2 sutras, EN/FR, rail)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "en_fr_parity",
+   "ok": true,
+   "detail": "223/223"
+  },
+  {
+   "name": "privacy_page (200, mentions légales, 0 console errors)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "sizes (index+css+js ≤ 150 KB, breath.js ≤ 10 KB, film ≤ 6 MB / 4 MB)",
+   "ok": true,
+   "detail": {
+    "index_css_js_kb": 104.8,
+    "breath_kb": 4.3,
+    "film_mb": 5.76,
+    "film_m_mb": 1.94
+   }
+  },
+  {
+   "name": "film_from_dawn_plate (assets/film/hero.json plate = dawn)",
+   "ok": true,
+   "detail": "plate=dawn"
+  },
+  {
+   "name": "contact_chapter_uses_film_frame_not_eiffel",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "film_faststart",
+   "ok": true,
+   "detail": ""
+  }
+ ],
+ "measurements": {
+  "autoplay_ct_at_6s": 5.338,
+  "scrub_1440x900": {
+   "1": {
+    "currentTime": 52.07,
+    "expected": 52.07
+   },
+   "0.25": {
+    "currentTime": 14.2,
+    "expected": 14.2
+   },
+   "0.5": {
+    "currentTime": 28.4,
+    "expected": 28.4
+   },
+   "0.75": {
+    "currentTime": 42.6,
+    "expected": 42.6
+   }
+  },
+  "scrub_390x844": {
+   "1": {
+    "currentTime": 52.07,
+    "expected": 52.07
+   },
+   "0.25": {
+    "currentTime": 14.2,
+    "expected": 14.2
+   },
+   "0.5": {
+    "currentTime": 28.4,
+    "expected": 28.4
+   },
+   "0.75": {
+    "currentTime": 42.6,
+    "expected": 42.6
+   }
+  },
+  "window_edge_alpha": {
+   "max": 0.01948051948051948,
+   "n": 16
+  },
+  "bands": {
+   "iphone-se": {
+    "s0": 0.035,
+    "s7": 0.163,
+    "hold": 0.048
+   },
+   "galaxy-s8": {
+    "s0": 0.092,
+    "s7": 0.204,
+    "hold": 0.101
+   },
+   "iphone-13": {
+    "s0": 0.137,
+    "s7": 0.225,
+    "hold": 0.132
+   },
+   "pixel-7": {
+    "s0": 0.154,
+    "s7": 0.236,
+    "hold": 0.148
+   },
+   "iphone-15-pro-max": {
+    "s0": 0.15,
+    "s7": 0.233,
+    "hold": 0.144
+   },
+   "phone-landscape": {
+    "s0": 0.046,
+    "s7": 0.046,
+    "hold": 0.077
+   },
+   "small-tablet": {
+    "s0": 0.07,
+    "s7": 0.159,
+    "hold": 0.057
+   },
+   "ipad-portrait": {
+    "s0": 0.055,
+    "s7": 0.152,
+    "hold": 0.037
+   },
+   "ipad-landscape": {
+    "s0": 0.073,
+    "s7": 0.073,
+    "hold": 0.087
+   },
+   "ipad-pro-portrait": {
+    "s0": 0.042,
+    "s7": 0.143,
+    "hold": 0.047
+   },
+   "ipad-pro-landscape": {
+    "s0": 0.072,
+    "s7": 0.072,
+    "hold": 0.084
+   },
+   "laptop-1280": {
+    "s0": 0.073,
+    "s7": 0.073,
+    "hold": 0.088
+   },
+   "laptop-1440": {
+    "s0": 0.073,
+    "s7": 0.073,
+    "hold": 0.086
+   },
+   "laptop-1536": {
+    "s0": 0.073,
+    "s7": 0.073,
+    "hold": 0.086
+   },
+   "desktop-1080p": {
+    "s0": 0.072,
+    "s7": 0.072,
+    "hold": 0.082
+   },
+   "desktop-1440p": {
+    "s0": 0.072,
+    "s7": 0.072,
+    "hold": 0.078
+   },
+   "desktop-4k": {
+    "s0": 0.071,
+    "s7": 0.099,
+    "hold": 0.074
+   },
+   "tv-portrait": {
+    "s0": 0.159,
+    "s7": 0.236,
+    "hold": 0.162
+   },
+   "pixel-7-device": {
+    "s0": 0.122,
+    "s7": 0.212,
+    "hold": 0.116
+   }
+  },
+  "fourK": [
+   19.2,
+   23.04
+  ],
+  "dawn": {
+   "seam": [
+    {
+     "tag": "iphone-se@0",
+     "pairs": 8,
+     "dE": 0.9
+    },
+    {
+     "tag": "iphone-se@0.5",
+     "pairs": 16,
+     "dE": 0.9
+    },
+    {
+     "tag": "iphone-se@1",
+     "pairs": 8,
+     "dE": 0.9
+    },
+    {
+     "tag": "galaxy-s8@0",
+     "pairs": 16,
+     "dE": 0.9
+    },
+    {
+     "tag": "galaxy-s8@0.5",
+     "pairs": 16,
+     "dE": 0.9
+    },
+    {
+     "tag": "galaxy-s8@1",
+     "pairs": 16,
+     "dE": 0.9
+    },
+    {
+     "tag": "iphone-13@0",
+     "pairs": 16,
+     "dE": 0.95
+    },
+    {
+     "tag": "iphone-13@0.5",
+     "pairs": 16,
+     "dE": 0.9
+    },
+    {
+     "tag": "iphone-13@1",
+     "pairs": 16,
+     "dE": 0.9
+    },
+    {
+     "tag": "pixel-7@0",
+     "pairs": 16,
+     "dE": 0.9
+    },
+    {
+     "tag": "pixel-7@0.5",
+     "pairs": 16,
+     "dE": 0.9
+    },
+    {
+     "tag": "pixel-7@1",
+     "pairs": 16,
+     "dE": 0.67
+    },
+    {
+     "tag": "iphone-15-pro-max@0",
+     "pairs": 16,
+     "dE": 0.88
+    },
+    {
+     "tag": "iphone-15-pro-max@0.5",
+     "pairs": 16,
+     "dE": 0.95
+    },
+    {
+     "tag": "iphone-15-pro-max@1",
+     "pairs": 16,
+     "dE": 1.41
+    },
+    {
+     "tag": "phone-landscape@0",
+     "pairs": 22,
+     "dE": 1.33
+    },
+    {
+     "tag": "phone-landscape@0.5",
+     "pairs": 22,
+     "dE": 1.33
+    },
+    {
+     "tag": "phone-landscape@1",
+     "pairs": 22,
+     "dE": 1.33
+    },
+    {
+     "tag": "small-tablet@0",
+     "pairs": 8,
+     "dE": 0.88
+    },
+    {
+     "tag": "small-tablet@0.5",
+     "pairs": 16,
+     "dE": 1.16
+    },
+    {
+     "tag": "small-tablet@1",
+     "pairs": 8,
+     "dE": 0.82
+    },
+    {
+     "tag": "ipad-portrait@0",
+     "pairs": 8,
+     "dE": 0.7
+    },
+    {
+     "tag": "ipad-portrait@0.5",
+     "pairs": 8,
+     "dE": 0.66
+    },
+    {
+     "tag": "ipad-portrait@1",
+     "pairs": 8,
+     "dE": 0.88
+    },
+    {
+     "tag": "ipad-landscape@0",
+     "pairs": 22,
+     "dE": 2.05
+    },
+    {
+     "tag": "ipad-landscape@0.5",
+     "pairs": 22,
+     "dE": 2.05
+    },
+    {
+     "tag": "ipad-landscape@1",
+     "pairs": 22,
+     "dE": 2.05
+    },
+    {
+     "tag": "ipad-pro-portrait@0",
+     "pairs": 8,
+     "dE": 0.7
+    },
+    {
+     "tag": "ipad-pro-portrait@0.5",
+     "pairs": 8,
+     "dE": 0.63
+    },
+    {
+     "tag": "ipad-pro-portrait@1",
+     "pairs": 8,
+     "dE": 0.83
+    },
+    {
+     "tag": "ipad-pro-landscape@0",
+     "pairs": 22,
+     "dE": 1.94
+    },
+    {
+     "tag": "ipad-pro-landscape@0.5",
+     "pairs": 22,
+     "dE": 2.05
+    },
+    {
+     "tag": "ipad-pro-landscape@1",
+     "pairs": 22,
+     "dE": 2.05
+    },
+    {
+     "tag": "laptop-1280@0",
+     "pairs": 22,
+     "dE": 2.68
+    },
+    {
+     "tag": "laptop-1280@0.5",
+     "pairs": 22,
+     "dE": 1.98
+    },
+    {
+     "tag": "laptop-1280@1",
+     "pairs": 22,
+     "dE": 1.94
+    },
+    {
+     "tag": "laptop-1440@0",
+     "pairs": 22,
+     "dE": 2.65
+    },
+    {
+     "tag": "laptop-1440@0.5",
+     "pairs": 22,
+     "dE": 2.65
+    },
+    {
+     "tag": "laptop-1440@1",
+     "pairs": 22,
+     "dE": 2.65
+    },
+    {
+     "tag": "laptop-1536@0",
+     "pairs": 22,
+     "dE": 2.56
+    },
+    {
+     "tag": "laptop-1536@0.5",
+     "pairs": 22,
+     "dE": 2.56
+    },
+    {
+     "tag": "laptop-1536@1",
+     "pairs": 22,
+     "dE": 2.56
+    },
+    {
+     "tag": "desktop-1080p@0",
+     "pairs": 22,
+     "dE": 1.34
+    },
+    {
+     "tag": "desktop-1080p@0.5",
+     "pairs": 22,
+     "dE": 1.34
+    },
+    {
+     "tag": "desktop-1080p@1",
+     "pairs": 22,
+     "dE": 1.34
+    },
+    {
+     "tag": "desktop-1440p@0",
+     "pairs": 22,
+     "dE": 1.31
+    },
+    {
+     "tag": "desktop-1440p@0.5",
+     "pairs": 22,
+     "dE": 1.35
+    },
+    {
+     "tag": "desktop-1440p@1",
+     "pairs": 22,
+     "dE": 1.35
+    },
+    {
+     "tag": "desktop-4k@0",
+     "pairs": 22,
+     "dE": 1.33
+    },
+    {
+     "tag": "desktop-4k@0.5",
+     "pairs": 22,
+     "dE": 1.32
+    },
+    {
+     "tag": "desktop-4k@1",
+     "pairs": 22,
+     "dE": 1.32
+    },
+    {
+     "tag": "tv-portrait@0",
+     "pairs": 16,
+     "dE": 1.41
+    },
+    {
+     "tag": "tv-portrait@0.5",
+     "pairs": 16,
+     "dE": 0.88
+    },
+    {
+     "tag": "tv-portrait@1",
+     "pairs": 16,
+     "dE": 0.95
+    },
+    {
+     "tag": "pixel-7-device@0",
+     "pairs": 16,
+     "dE": 0.95
+    },
+    {
+     "tag": "pixel-7-device@0.5",
+     "pairs": 16,
+     "dE": 1.41
+    },
+    {
+     "tag": "pixel-7-device@1",
+     "pairs": 16,
+     "dE": 0.82
+    }
+   ],
+   "step": [
+    {
+     "tag": "iphone-se@0",
+     "step": 0.005
+    },
+    {
+     "tag": "iphone-se@0.5",
+     "step": 0.027
+    },
+    {
+     "tag": "iphone-se@1",
+     "step": 0.004
+    },
+    {
+     "tag": "galaxy-s8@0",
+     "step": 0.023
+    },
+    {
+     "tag": "galaxy-s8@0.5",
+     "step": 0.024
+    },
+    {
+     "tag": "galaxy-s8@1",
+     "step": 0.025
+    },
+    {
+     "tag": "iphone-13@0",
+     "step": 0.026
+    },
+    {
+     "tag": "iphone-13@0.5",
+     "step": 0.031
+    },
+    {
+     "tag": "iphone-13@1",
+     "step": 0.033
+    },
+    {
+     "tag": "pixel-7@0",
+     "step": 0.027
+    },
+    {
+     "tag": "pixel-7@0.5",
+     "step": 0.032
+    },
+    {
+     "tag": "pixel-7@1",
+     "step": 0.033
+    },
+    {
+     "tag": "iphone-15-pro-max@0",
+     "step": 0.029
+    },
+    {
+     "tag": "iphone-15-pro-max@0.5",
+     "step": 0.034
+    },
+    {
+     "tag": "iphone-15-pro-max@1",
+     "step": 0.037
+    },
+    {
+     "tag": "phone-landscape@0",
+     "step": 0.005
+    },
+    {
+     "tag": "phone-landscape@0.5",
+     "step": 0.005
+    },
+    {
+     "tag": "phone-landscape@1",
+     "step": 0.005
+    },
+    {
+     "tag": "small-tablet@0",
+     "step": 0.004
+    },
+    {
+     "tag": "small-tablet@0.5",
+     "step": 0.049
+    },
+    {
+     "tag": "small-tablet@1",
+     "step": 0.005
+    },
+    {
+     "tag": "ipad-portrait@0",
+     "step": 0.005
+    },
+    {
+     "tag": "ipad-portrait@0.5",
+     "step": 0.045
+    },
+    {
+     "tag": "ipad-portrait@1",
+     "step": 0.005
+    },
+    {
+     "tag": "ipad-landscape@0",
+     "step": 0.005
+    },
+    {
+     "tag": "ipad-landscape@0.5",
+     "step": 0.005
+    },
+    {
+     "tag": "ipad-landscape@1",
+     "step": 0.005
+    },
+    {
+     "tag": "ipad-pro-portrait@0",
+     "step": 0.004
+    },
+    {
+     "tag": "ipad-pro-portrait@0.5",
+     "step": 0.016
+    },
+    {
+     "tag": "ipad-pro-portrait@1",
+     "step": 0.005
+    },
+    {
+     "tag": "ipad-pro-landscape@0",
+     "step": 0.005
+    },
+    {
+     "tag": "ipad-pro-landscape@0.5",
+     "step": 0.005
+    },
+    {
+     "tag": "ipad-pro-landscape@1",
+     "step": 0.005
+    },
+    {
+     "tag": "laptop-1280@0",
+     "step": 0.005
+    },
+    {
+     "tag": "laptop-1280@0.5",
+     "step": 0.005
+    },
+    {
+     "tag": "laptop-1280@1",
+     "step": 0.005
+    },
+    {
+     "tag": "laptop-1440@0",
+     "step": 0.005
+    },
+    {
+     "tag": "laptop-1440@0.5",
+     "step": 0.005
+    },
+    {
+     "tag": "laptop-1440@1",
+     "step": 0.005
+    },
+    {
+     "tag": "laptop-1536@0",
+     "step": 0.005
+    },
+    {
+     "tag": "laptop-1536@0.5",
+     "step": 0.005
+    },
+    {
+     "tag": "laptop-1536@1",
+     "step": 0.005
+    },
+    {
+     "tag": "desktop-1080p@0",
+     "step": 0.006
+    },
+    {
+     "tag": "desktop-1080p@0.5",
+     "step": 0.006
+    },
+    {
+     "tag": "desktop-1080p@1",
+     "step": 0.006
+    },
+    {
+     "tag": "desktop-1440p@0",
+     "step": 0.006
+    },
+    {
+     "tag": "desktop-1440p@0.5",
+     "step": 0.006
+    },
+    {
+     "tag": "desktop-1440p@1",
+     "step": 0.006
+    },
+    {
+     "tag": "desktop-4k@0",
+     "step": 0.006
+    },
+    {
+     "tag": "desktop-4k@0.5",
+     "step": 0.006
+    },
+    {
+     "tag": "desktop-4k@1",
+     "step": 0.006
+    },
+    {
+     "tag": "tv-portrait@0",
+     "step": 0.016
+    },
+    {
+     "tag": "tv-portrait@0.5",
+     "step": 0.016
+    },
+    {
+     "tag": "tv-portrait@1",
+     "step": 0.018
+    },
+    {
+     "tag": "pixel-7-device@0",
+     "step": 0.029
+    },
+    {
+     "tag": "pixel-7-device@0.5",
+     "step": 0.032
+    },
+    {
+     "tag": "pixel-7-device@1",
+     "step": 0.032
+    }
+   ],
+   "stage": [
+    {
+     "tag": "iphone-se",
+     "dE": 1.64
+    },
+    {
+     "tag": "galaxy-s8",
+     "dE": 1.64
+    },
+    {
+     "tag": "iphone-13",
+     "dE": 1.64
+    },
+    {
+     "tag": "pixel-7",
+     "dE": 1.15
+    },
+    {
+     "tag": "iphone-15-pro-max",
+     "dE": 1.64
+    },
+    {
+     "tag": "phone-landscape",
+     "dE": 1.22
+    },
+    {
+     "tag": "small-tablet",
+     "dE": 1.15
+    },
+    {
+     "tag": "ipad-portrait",
+     "dE": 1.15
+    },
+    {
+     "tag": "ipad-landscape",
+     "dE": 1.15
+    },
+    {
+     "tag": "ipad-pro-portrait",
+     "dE": 1.15
+    },
+    {
+     "tag": "ipad-pro-landscape",
+     "dE": 1.15
+    },
+    {
+     "tag": "laptop-1280",
+     "dE": 1.15
+    },
+    {
+     "tag": "laptop-1440",
+     "dE": 1.15
+    },
+    {
+     "tag": "laptop-1536",
+     "dE": 1.15
+    },
+    {
+     "tag": "desktop-1080p",
+     "dE": 1.15
+    },
+    {
+     "tag": "desktop-1440p",
+     "dE": 1.15
+    },
+    {
+     "tag": "desktop-4k",
+     "dE": 1.15
+    },
+    {
+     "tag": "tv-portrait",
+     "dE": 1.15
+    },
+    {
+     "tag": "pixel-7-device",
+     "dE": 1.64
+    }
+   ],
+   "contrast": [
+    {
+     "tag": "iphone-se@0",
+     "min": 9.2,
+     "at": "Exhale"
+    },
+    {
+     "tag": "iphone-se@1",
+     "min": 9.26,
+     "at": "Exhale"
+    },
+    {
+     "tag": "galaxy-s8@0",
+     "min": 8.7,
+     "at": "01 / 12 · Praṇāmās"
+    },
+    {
+     "tag": "galaxy-s8@1",
+     "min": 8.7,
+     "at": "12 / 12 · Praṇāmās"
+    },
+    {
+     "tag": "iphone-13@0",
+     "min": 8.7,
+     "at": "01 / 12 · Praṇāmās"
+    },
+    {
+     "tag": "iphone-13@1",
+     "min": 8.7,
+     "at": "12 / 12 · Praṇāmās"
+    },
+    {
+     "tag": "pixel-7@0",
+     "min": 8.7,
+     "at": "01 / 12 · Praṇāmās"
+    },
+    {
+     "tag": "pixel-7@1",
+     "min": 8.7,
+     "at": "12 / 12 · Praṇāmās"
+    },
+    {
+     "tag": "iphone-15-pro-max@0",
+     "min": 8.7,
+     "at": "01 / 12 · Praṇāmās"
+    },
+    {
+     "tag": "iphone-15-pro-max@1",
+     "min": 8.7,
+     "at": "12 / 12 · Praṇāmās"
+    },
+    {
+     "tag": "phone-landscape@0",
+     "min": 5.19,
+     "at": "Yoga in Paris"
+    },
+    {
+     "tag": "phone-landscape@1",
+     "min": 5.11,
+     "at": "Yoga in Paris"
+    },
+    {
+     "tag": "small-tablet@0",
+     "min": 9.23,
+     "at": "Exhale"
+    },
+    {
+     "tag": "small-tablet@1",
+     "min": 9.73,
+     "at": "Exhale"
+    },
+    {
+     "tag": "ipad-portrait@0",
+     "min": 10.02,
+     "at": "Exhale"
+    },
+    {
+     "tag": "ipad-portrait@1",
+     "min": 10.2,
+     "at": "See the classes"
+    },
+    {
+     "tag": "ipad-landscape@0",
+     "min": 6.13,
+     "at": "12"
+    },
+    {
+     "tag": "ipad-landscape@1",
+     "min": 6.03,
+     "at": "Om Bhāskarāya Nama"
+    },
+    {
+     "tag": "ipad-pro-portrait@0",
+     "min": 10.11,
+     "at": "Exhale"
+    },
+    {
+     "tag": "ipad-pro-portrait@1",
+     "min": 10.18,
+     "at": "Exhale"
+    },
+    {
+     "tag": "ipad-pro-landscape@0",
+     "min": 6.32,
+     "at": "12"
+    },
+    {
+     "tag": "ipad-pro-landscape@1",
+     "min": 6.43,
+     "at": "11"
+    },
+    {
+     "tag": "laptop-1280@0",
+     "min": 5.98,
+     "at": "Yoga in Paris"
+    },
+    {
+     "tag": "laptop-1280@1",
+     "min": 5.73,
+     "at": "Om Bhāskarāya Nama"
+    },
+    {
+     "tag": "laptop-1440@0",
+     "min": 6.11,
+     "at": "12"
+    },
+    {
+     "tag": "laptop-1440@1",
+     "min": 5.95,
+     "at": "Om Bhāskarāya Nama"
+    },
+    {
+     "tag": "laptop-1536@0",
+     "min": 5.73,
+     "at": "Om Mitrāya Namaḥ ·"
+    },
+    {
+     "tag": "laptop-1536@1",
+     "min": 5.67,
+     "at": "to the one who lea"
+    },
+    {
+     "tag": "desktop-1080p@0",
+     "min": 5.95,
+     "at": "Om Mitrāya Namaḥ ·"
+    },
+    {
+     "tag": "desktop-1080p@1",
+     "min": 5.95,
+     "at": "Om Bhāskarāya Nama"
+    },
+    {
+     "tag": "desktop-1440p@0",
+     "min": 6.41,
+     "at": "12"
+    },
+    {
+     "tag": "desktop-1440p@1",
+     "min": 6.52,
+     "at": "11"
+    },
+    {
+     "tag": "desktop-4k@0",
+     "min": 6.72,
+     "at": "12"
+    },
+    {
+     "tag": "desktop-4k@1",
+     "min": 6.8,
+     "at": "11"
+    },
+    {
+     "tag": "tv-portrait@0",
+     "min": 8.7,
+     "at": "01 / 12 · Praṇāmās"
+    },
+    {
+     "tag": "tv-portrait@1",
+     "min": 8.7,
+     "at": "12 / 12 · Praṇāmās"
+    },
+    {
+     "tag": "pixel-7-device@0",
+     "min": 8.7,
+     "at": "01 / 12 · Praṇāmās"
+    },
+    {
+     "tag": "pixel-7-device@1",
+     "min": 8.7,
+     "at": "12 / 12 · Praṇāmās"
+    }
+   ],
+   "rightcol": [
+    {
+     "tag": "iphone-se@0",
+     "dE": 0.63
+    },
+    {
+     "tag": "iphone-se@0.5",
+     "dE": 1.33
+    },
+    {
+     "tag": "iphone-se@1",
+     "dE": 1.67
+    },
+    {
+     "tag": "galaxy-s8@0",
+     "dE": 2.35
+    },
+    {
+     "tag": "galaxy-s8@0.5",
+     "dE": 1.36
+    },
+    {
+     "tag": "galaxy-s8@1",
+     "dE": 2.35
+    },
+    {
+     "tag": "iphone-13@0",
+     "dE": 1.16
+    },
+    {
+     "tag": "iphone-13@0.5",
+     "dE": 0.7
+    },
+    {
+     "tag": "iphone-13@1",
+     "dE": 1.36
+    },
+    {
+     "tag": "pixel-7@0",
+     "dE": 0.65
+    },
+    {
+     "tag": "pixel-7@0.5",
+     "dE": 0.72
+    },
+    {
+     "tag": "pixel-7@1",
+     "dE": 1.61
+    },
+    {
+     "tag": "iphone-15-pro-max@0",
+     "dE": 1.16
+    },
+    {
+     "tag": "iphone-15-pro-max@0.5",
+     "dE": 0.97
+    },
+    {
+     "tag": "iphone-15-pro-max@1",
+     "dE": 1.71
+    },
+    {
+     "tag": "phone-landscape@0",
+     "dE": 0.84
+    },
+    {
+     "tag": "phone-landscape@0.5",
+     "dE": 0.84
+    },
+    {
+     "tag": "phone-landscape@1",
+     "dE": 0.84
+    },
+    {
+     "tag": "small-tablet@0",
+     "dE": 0.89
+    },
+    {
+     "tag": "small-tablet@0.5",
+     "dE": 0.85
+    },
+    {
+     "tag": "small-tablet@1",
+     "dE": 0.84
+    },
+    {
+     "tag": "ipad-portrait@0",
+     "dE": 0.52
+    },
+    {
+     "tag": "ipad-portrait@0.5",
+     "dE": 0.67
+    },
+    {
+     "tag": "ipad-portrait@1",
+     "dE": 0.89
+    },
+    {
+     "tag": "ipad-landscape@0",
+     "dE": 0.84
+    },
+    {
+     "tag": "ipad-landscape@0.5",
+     "dE": 0.84
+    },
+    {
+     "tag": "ipad-landscape@1",
+     "dE": 0.84
+    },
+    {
+     "tag": "ipad-pro-portrait@0",
+     "dE": 0.9
+    },
+    {
+     "tag": "ipad-pro-portrait@0.5",
+     "dE": 0.72
+    },
+    {
+     "tag": "ipad-pro-portrait@1",
+     "dE": 0.66
+    },
+    {
+     "tag": "ipad-pro-landscape@0",
+     "dE": 0.84
+    },
+    {
+     "tag": "ipad-pro-landscape@0.5",
+     "dE": 0.84
+    },
+    {
+     "tag": "ipad-pro-landscape@1",
+     "dE": 0.84
+    },
+    {
+     "tag": "laptop-1280@0",
+     "dE": 0.84
+    },
+    {
+     "tag": "laptop-1280@0.5",
+     "dE": 0.84
+    },
+    {
+     "tag": "laptop-1280@1",
+     "dE": 0.84
+    },
+    {
+     "tag": "laptop-1440@0",
+     "dE": 0.84
+    },
+    {
+     "tag": "laptop-1440@0.5",
+     "dE": 0.84
+    },
+    {
+     "tag": "laptop-1440@1",
+     "dE": 0.84
+    },
+    {
+     "tag": "laptop-1536@0",
+     "dE": 0.84
+    },
+    {
+     "tag": "laptop-1536@0.5",
+     "dE": 0.84
+    },
+    {
+     "tag": "laptop-1536@1",
+     "dE": 0.84
+    },
+    {
+     "tag": "desktop-1080p@0",
+     "dE": 0.84
+    },
+    {
+     "tag": "desktop-1080p@0.5",
+     "dE": 0.84
+    },
+    {
+     "tag": "desktop-1080p@1",
+     "dE": 0.84
+    },
+    {
+     "tag": "desktop-1440p@0",
+     "dE": 0.84
+    },
+    {
+     "tag": "desktop-1440p@0.5",
+     "dE": 0.84
+    },
+    {
+     "tag": "desktop-1440p@1",
+     "dE": 0.84
+    },
+    {
+     "tag": "desktop-4k@0",
+     "dE": 0.84
+    },
+    {
+     "tag": "desktop-4k@0.5",
+     "dE": 0.84
+    },
+    {
+     "tag": "desktop-4k@1",
+     "dE": 0.84
+    },
+    {
+     "tag": "tv-portrait@0",
+     "dE": 1.09
+    },
+    {
+     "tag": "tv-portrait@0.5",
+     "dE": 0.64
+    },
+    {
+     "tag": "tv-portrait@1",
+     "dE": 0.62
+    },
+    {
+     "tag": "pixel-7-device@0",
+     "dE": 1.19
+    },
+    {
+     "tag": "pixel-7-device@0.5",
+     "dE": 0.72
+    },
+    {
+     "tag": "pixel-7-device@1",
+     "dE": 1.03
+    }
+   ]
+  },
+  "static_band": {
+   "gap": 0.12425347222222222,
+   "at": 900
+  },
+  "mobile_chapters_band": {
+   "gap": 0.06998659117997616,
+   "at": 9480
+  },
+  "r2": {
+   "seam": [],
+   "step": [],
+   "stage": [],
+   "contrast": [],
+   "panelalpha": [
+    {
+     "tag": "practice",
+     "n": 16,
+     "max": 0.008
+    },
+    {
+     "tag": "classes",
+     "n": 16,
+     "max": 0.012
+    },
+    {
+     "tag": "contact",
+     "n": 16,
+     "max": 0.012
+    }
+   ],
+   "panelstep": [
+    {
+     "tag": "practice",
+     "step": 0.049
+    },
+    {
+     "tag": "classes",
+     "step": 0.053
+    },
+    {
+     "tag": "contact",
+     "step": 0.053
+    }
+   ],
+   "figheight": 0.329
+  },
+  "sizes": {
+   "index_css_js_kb": 104.8,
+   "breath_kb": 4.3,
+   "film_mb": 5.76,
+   "film_m_mb": 1.94
+  }
+ },
+ "versions": {
+  "playwright": "1.63.0",
+  "node": "v22.22.0",
+  "pillow": "12.3.0"
+ }
+}

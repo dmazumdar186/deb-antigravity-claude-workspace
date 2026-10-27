@@ -1,0 +1,1 @@
+{"ready": false, "landscape": "hero.mp4", "portrait": "hero-m.mp4", "aspect": "3:4", "keyframes": 12, "leg_seconds": 5, "note": "Kling slot (brief_v2): when the 12-keyframe film exists, drop hero.mp4 (+ hero-m.mp4) here and set ready:true; main.js blob-fetches and scrubs it instead of the figure crossfades."}

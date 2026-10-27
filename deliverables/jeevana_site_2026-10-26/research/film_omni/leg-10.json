@@ -1,0 +1,35 @@
+{
+ "leg": 10,
+ "body": {
+  "prompt": "The woman in the reference images, the same face throughout. She moves slowly from P\u0101dahast\u0101sana, standing forward fold into Hasta Utt\u0101n\u0101sana, arms raised overhead. One slow continuous yoga movement with the breath, nothing else moves. Fixed camera, eye level, full body always in frame, feet on the same ground line. A soft dawn sky behind her: deep indigo above fading through dusty rose into a warm ochre haze at the ground line, no clouds, no buildings, a quiet glow near the horizon, first light, no props, no text, no other people. Photoreal, her face unchanged, hair tied back the whole time, clothing and body unchanged throughout, hands and feet keep contact with the floor when they are on it. Calm editorial pacing. Hair in a tied low bun throughout, never loose, never a large dark shape. From the forward fold she rises slowly through upright and lifts the joined arms overhead into a gentle backbend.",
+  "first_frame_url": "https://jeevana-frames.pages.dev/dawn/frame-10.jpg",
+  "last_frame_url": "https://jeevana-frames.pages.dev/dawn/frame-11.jpg",
+  "mode": "std",
+  "duration": 5,
+  "aspect_ratio": "9:16",
+  "image_urls": [
+   "https://jeevana-frames.pages.dev/ref/ref-01.jpg",
+   "https://jeevana-frames.pages.dev/ref/ref-02.jpg",
+   "https://jeevana-frames.pages.dev/ref/ref-03.jpg",
+   "https://jeevana-frames.pages.dev/ref/ref-04.jpg"
+  ]
+ },
+ "submit": {
+  "status": "queued",
+  "request_id": "9af9da93-b513-49ed-aa79-3391760b57c5",
+  "status_url": "https://api.higgsfield.ai/requests/9af9da93-b513-49ed-aa79-3391760b57c5/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/9af9da93-b513-49ed-aa79-3391760b57c5/cancel",
+  "expires_after": 604800
+ },
+ "model": "kling-video/omni/first-last-frame",
+ "status": {
+  "status": "completed",
+  "request_id": "9af9da93-b513-49ed-aa79-3391760b57c5",
+  "status_url": "https://api.higgsfield.ai/requests/9af9da93-b513-49ed-aa79-3391760b57c5/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/9af9da93-b513-49ed-aa79-3391760b57c5/cancel",
+  "expires_at": "2026-11-02T21:39:50.075227+00:00",
+  "video": {
+   "url": "https://d3u0tzju9qaucj.cloudfront.net/5afe9077-53e3-4696-8d41-03a78237e195/9af9da93-b513-49ed-aa79-3391760b57c5/72282e03-7c55-4db1-b458-e3f1d5acfb34.mp4"
+  }
+ }
+}

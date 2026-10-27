@@ -1,0 +1,18 @@
+{
+ "model": "kling-video/v3.0/std/image-to-video",
+ "body": {
+  "prompt": "The same woman, a yoga teacher in a pale mint fleece and black leggings, moves slowly and continuously from standing with palms together at her chest into a gentle backbend with both arms raised overhead, one calm breath, fixed camera, plain warm cream paper background, soft even daylight, no other objects, no text, photoreal, her face and body unchanged, elegant editorial fashion-film pacing",
+  "duration": 5,
+  "aspect_ratio": "3:4",
+  "sound": "off",
+  "image_url": "https://jeevana-frames.pages.dev/frame-01.jpg",
+  "end_image_url": "https://jeevana-frames.pages.dev/frame-02.jpg"
+ },
+ "submit": {
+  "status": "queued",
+  "request_id": "d5502a42-0edd-4afd-96c6-890deb90275c",
+  "status_url": "https://api.higgsfield.ai/requests/d5502a42-0edd-4afd-96c6-890deb90275c/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/d5502a42-0edd-4afd-96c6-890deb90275c/cancel",
+  "expires_after": 604800
+ }
+}
