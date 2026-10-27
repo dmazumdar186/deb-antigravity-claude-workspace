@@ -49,6 +49,7 @@ def call(model: str, system: str, user: str, max_tokens: int, json_mode: bool, e
             if r.status_code in (429, 500, 502, 503) and attempt < 2:
                 time.sleep(8 * (attempt + 1)); continue
             r.raise_for_status()
+            r.encoding = "utf-8"  # SSE has no charset; requests would decode as latin-1
             text, usage, finish, gid = [], {}, None, None
             for line in r.iter_lines(decode_unicode=True):
                 if not line or not line.startswith("data: "):
