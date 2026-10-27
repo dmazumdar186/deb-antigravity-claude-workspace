@@ -100,8 +100,7 @@ pinned sections, no cut-outs, no dark plates, no gradients behind photos, no dro
 open items; update `research/to_wire.md` only if a slot changed. Commit on the current branch, never `_raw_assets/`.
 
 ## Addendum 2026-10-27 (operator): lineage
-Jeevana trained in yoga at **Tapovan** (https://www.tapovan.com/), the same school as Jitendra. Verified fact; add a
-short "Lineage" line in the About section (EN/FR) with the Tapovan link (rel="noopener", in the CSP allowlist only if it
-is an image/font host — a plain link needs nothing). Phrase it the way Jitendra's `lineage.en.json` does, in Jeevana's
-words: school name, link, one generic-true sentence on what the training gives her teaching. No certificate name, no
-hours, no dates: those are "to wire".
+Jeevana trained in yoga at **Tapovan** (https://www.tapovan.com/). Verified fact. Add a short "Lineage" line in the About
+section (EN/FR) with the Tapovan link (rel="noopener noreferrer"): school name, link, one generic-true sentence on what
+the training gives her teaching. No certificate name, no hours, no dates: those are "to wire".
+**Never mention Jitendra anywhere on Jeevana's site, copy, alt text, metadata or handoff: they are not associated.**
