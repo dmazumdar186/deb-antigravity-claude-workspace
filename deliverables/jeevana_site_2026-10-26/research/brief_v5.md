@@ -18,9 +18,9 @@ the others), gentle denoise, no plastic skin, no change to her face. Grade all t
 The operator will be asked for originals; the site must still look clean with these.
 
 ## Brand (from `_raw_assets/v5/logo-concepts.jpg`, **Concept 3**: brush-stroke figure arching back, crescent moon, "JEEVANA YOGA")
-Rebuild it as clean vector art (SVG): the brush figure + crescent moon as the **mark**; "JEEVANA YOGA" set in Cormorant as the
-**wordmark**. Omit the "G1A" letters (they read as a generator artefact); keep the lockup so they can be restored if the operator
-asks. Outputs in `site/assets/brand/`: `logo.svg` (mark + wordmark, horizontal), `logo-stacked.svg`, `mark.svg`, `favicon.svg`,
+Rebuild it as clean vector art (SVG): the brush figure + crescent moon as the **mark**; "G1A" (as drawn in the concept: brush-style G, the gold 1 inside the figure, A) above
+"JEEVANA YOGA" in Cormorant as the **wordmark**. **Keep the "G1A" letters** (operator, 2026-10-27: "Jeevana" is pronounced like G1A — it is a deliberate play on her name, part of the
+brand). The full Concept 3 lockup is: brush figure + crescent moon over "G1A", then "JEEVANA YOGA" below. Outputs in `site/assets/brand/`: `logo.svg` (mark + wordmark, horizontal), `logo-stacked.svg`, `mark.svg`, `favicon.svg`,
 `favicon-32.png`, `favicon-16.png`, `apple-touch-icon.png` (180, paper background), `icon-512.png`, `og.jpg` (1200×630: `sun`
 photo + logo on paper). Use them in the header, footer, `<link rel=icon>`, apple-touch-icon, OG/Twitter tags, JSON-LD `logo`.
 
