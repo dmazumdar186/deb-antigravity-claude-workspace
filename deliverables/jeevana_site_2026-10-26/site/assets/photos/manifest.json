@@ -219,5 +219,135 @@
   "lqip": "data:image/webp;base64,UklGRqIAAABXRUJQVlA4IJYAAADwBACdASoYACAAPulepE2pJSMiMAwBIB0JbACxHuNkkB971HB00aB6AS300HWPYMAA/iGS3sld+nnTJl316FiY7JHr/cCTHzudavaDv9CDaB5etUq658xnsIL5+nOUFQMUEdSW+WIS31fz5stdIIVNVhqMMYB6PiAFQpFzhPfWIw5nkEXCeE+4blSZq9gELNsKKuHAAAA=",
   "alt_en": "Jeevana in a full backbend, Chakrāsana, on a blue mat on the Champ-de-Mars, the Eiffel Tower behind her.",
   "alt_fr": "Jeevana en pont complet, Chakrāsana, sur un tapis bleu au Champ-de-Mars, la tour Eiffel derrière elle."
+ },
+ "sun": {
+  "widths": [
+   800,
+   1400,
+   2000,
+   2400
+  ],
+  "ratio": "600/800",
+  "w": 2400,
+  "h": 3200,
+  "srcset": [
+   [
+    "sun@800.webp",
+    800,
+    1067
+   ],
+   [
+    "sun@1400.webp",
+    1400,
+    1867
+   ],
+   [
+    "sun@2000.webp",
+    2000,
+    2667
+   ],
+   [
+    "sun@2400.webp",
+    2400,
+    3200
+   ]
+  ],
+  "lqip": "data:image/webp;base64,UklGRogAAABXRUJQVlA4IHwAAACwBACdASoSABgAPu1gqE4ppSQiMBgMATAdiWcAzBwQ8NjeqvlfLOMwnbPOD8CAAPx/c4JAur0IpwbEtTlrdXLUW7iR045ioc/kJ5Fbcux1bLkurbdozr53CpmUnhim+zLZOnbPuwFpkwqTNN24VpcgY+NbbJpsLUvRTAAA",
+  "alt_en": "Jeevana against a sunlit grey wall, eyes closed and face turned to the sun, arms folded, in a black dress, her hair lifting in the wind.",
+  "alt_fr": "Jeevana contre un mur gris baigné de soleil, les yeux fermés, le visage tourné vers le soleil, les bras croisés, en robe noire, les cheveux soulevés par le vent.",
+  "upscale": "realesrgan_x4plus+realplksr_x2 blend"
+ },
+ "diwali": {
+  "widths": [
+   800,
+   1400,
+   2000
+  ],
+  "ratio": "603/804",
+  "w": 2000,
+  "h": 2667,
+  "srcset": [
+   [
+    "diwali@800.webp",
+    800,
+    1067
+   ],
+   [
+    "diwali@1400.webp",
+    1400,
+    1867
+   ],
+   [
+    "diwali@2000.webp",
+    2000,
+    2667
+   ]
+  ],
+  "lqip": "data:image/webp;base64,UklGRrgAAABXRUJQVlA4IKwAAADQBACdASoSABgAPu1iqlAppSOisBgIATAdiWYAuwAMB2FxwdXZufNDltZqtWNwAAD+ZxrIsAygsaEYh/3lG/zks1NbZKL9smGgyOzYk3402COOm3z6w72i4Zi55Dj3vSHeSE79wbnw4tcn/HQi8NPOKZ2FVd2jd0bzvrM2k6H837PT3tFM4Eihz0luWlzuBOo10DVZNCCARaDhrWy7cf+deC6M2Yh0ODCpwAAA",
+  "alt_en": "Jeevana in a blue saree, sitting on the floor and lighting a diya beside a marigold rangoli for Diwali.",
+  "alt_fr": "Jeevana en saree bleu, assise par terre, allume une diya près d'une rangoli de soucis pour Diwali.",
+  "upscale": "realesrgan_x4plus+realplksr_x2 blend"
+ },
+ "saree-eiffel": {
+  "widths": [
+   800,
+   1400,
+   2000
+  ],
+  "ratio": "574/766",
+  "w": 2000,
+  "h": 2669,
+  "srcset": [
+   [
+    "saree-eiffel@800.webp",
+    800,
+    1068
+   ],
+   [
+    "saree-eiffel@1400.webp",
+    1400,
+    1868
+   ],
+   [
+    "saree-eiffel@2000.webp",
+    2000,
+    2669
+   ]
+  ],
+  "lqip": "data:image/webp;base64,UklGRpIAAABXRUJQVlA4IIYAAACQBACdASoSABgAPu1or1CppaSiqAqpMB2JZwDO7A9QE+bwzeg1Fx/2CXZamAAA/udEKjLhbN7eGj00UHqSRDXy/QpC3HWnCEiojl/bF8A3XTxZIg7jJsnjtTjaqx/WewVqfg+9hVBD+y5Q8+Qez1p0BuZ/RTGlQpdMSUJhf8cGD+f6hiiAAA==",
+  "alt_en": "Jeevana in a deep red saree with a gold border, smiling in front of the Eiffel Tower in Paris.",
+  "alt_fr": "Jeevana en saree rouge profond bordé d'or, souriante devant la tour Eiffel à Paris.",
+  "upscale": "realesrgan_x4plus+realplksr_x2 blend"
+ },
+ "lobby": {
+  "widths": [
+   800,
+   1400,
+   1800
+  ],
+  "ratio": "477/779",
+  "w": 1800,
+  "h": 2940,
+  "srcset": [
+   [
+    "lobby@800.webp",
+    800,
+    1306
+   ],
+   [
+    "lobby@1400.webp",
+    1400,
+    2286
+   ],
+   [
+    "lobby@1800.webp",
+    1800,
+    2940
+   ]
+  ],
+  "lqip": "data:image/webp;base64,UklGRtYAAABXRUJQVlA4IMoAAACwBACdASoPABgAPu1iqU2ppaOiMAgBMB2JbACdMoRwAdAo2gfbFULaiB1CMigAAP7avKwSCDTCHhLRkRswxj5rh8cYaSIugW/wtFe6u9GxuZnySjXeS7K6bPSCbhAVUgYzMLARFK4dMBYdAPkut5iT+NLw2hrSdPQZ755b0q2TUQY4ykvfXRgPnzIB/4f9RIFPOm7qUnzdKAXS/2K5MWHJavRI8IzkizlzRD2LygqbsXLMVd5BQOSOsRvjL2R5ikp6nok4howHiAAA",
+  "alt_en": "Jeevana in a green and gold lehenga with a yellow dupatta, standing before white orchids in a hotel lobby.",
+  "alt_fr": "Jeevana en lehenga vert et or avec un dupatta jaune, debout devant des orchidées blanches dans le hall d'un hôtel.",
+  "upscale": "realesrgan_x4plus+realplksr_x2 blend"
  }
 }
