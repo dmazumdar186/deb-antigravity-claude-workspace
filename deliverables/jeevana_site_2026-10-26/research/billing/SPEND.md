@@ -1,12 +1,12 @@
 # Jeevana site — paid spend (billable third-party costs)
 
-Generated 2026-10-27 17:20 UTC by `research/billing/spend_report.py` from the per-call ledgers.
+Generated 2026-10-27 18:03 UTC by `research/billing/spend_report.py` from the per-call ledgers.
 
 | Vendor | USD |
 |---|---|
 | Higgsfield (Kling 3.0) | 13.62 |
-| OpenRouter | 9.02 |
-| **Total** | **22.64** |
+| OpenRouter | 9.37 |
+| **Total** | **22.99** |
 
 ## Line items
 
@@ -31,6 +31,7 @@ Generated 2026-10-27 17:20 UTC by `research/billing/spend_report.py` from the pe
 | 2026-10-27 | OpenRouter | z-ai/glm-5.3 v5 motifs draft | 0.0090 | ledger.md |
 | 2026-10-27 | OpenRouter | z-ai/glm-5.3 08 critique | 0.0187 | ledger.md |
 | 2026-10-27 | OpenRouter | openai/gpt-6.1-sol-pro 08 critique | 0.3172 | ledger.md |
+| 2026-10-27 | OpenRouter | openai/gpt-6.1-sol-pro 09 critique | 0.3553 | ledger.md |
 | 2026-10-27 | OpenRouter | openai/gpt-6-astra-pro availability probe (gen-1793121606-1ytNbdLVBYZCipboFAw6) | 0.0158 | one-word test call |
 
 ## Not itemised
@@ -51,3 +52,4 @@ Generated 2026-10-27 17:20 UTC by `research/billing/spend_report.py` from the pe
 | 2026-10-27T16:39:50Z | 30 | 19.1805 |
 | 2026-10-27T17:03:30Z | 30 | 19.4977 |
 | 2026-10-27T17:20:15Z | 30 | 19.5164 |
+| 2026-10-27T18:03:09Z | 30 | 19.5322 |
