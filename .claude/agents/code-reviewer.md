@@ -1,7 +1,7 @@
 ---
 name: code-reviewer
 description: Reviews code for bugs, security issues, and forbidden patterns. Returns PASS/FAIL verdict with severity-ranked issues and fix suggestions.
-model: claude-opus-5-5
+model: claude-fable-5-1
 effort: low
 maxTurns: 40
 tools:

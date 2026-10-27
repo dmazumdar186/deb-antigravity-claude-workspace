@@ -17,7 +17,7 @@ Usage:
     python3 execution/infrastructure/jev_router.py pick "find the file where the router lives"
 
 Tiers (operator order 2026-10-06, Haiku banned):
-    tiny     -> answer inline (main model, Opus 5.5 since 2026-10-27)
+    tiny     -> answer inline (main model, Fable 5.1)
     bulk     -> sub-agent on claude-sonnet-5-5
     standard -> sub-agent on claude-opus-5-5
     hard     -> inline (Fable 5.1)
@@ -61,10 +61,10 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "skill_pick": True,
     "log_keep": 500,
     "routes": {
-        "tiny": {"mode": "inline", "model": "claude-opus-5-5"},
+        "tiny": {"mode": "inline", "model": "claude-fable-5-1"},
         "bulk": {"mode": "subagent", "model": "claude-sonnet-5-5"},
         "standard": {"mode": "subagent", "model": "claude-opus-5-5"},
-        "hard": {"mode": "inline", "model": "claude-opus-5-5"},
+        "hard": {"mode": "inline", "model": "claude-fable-5-1"},
     },
 }
 

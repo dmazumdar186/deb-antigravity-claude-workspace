@@ -8,9 +8,9 @@
   "skill_pick": true,
   "log_keep": 500,
   "routes": {
-    "tiny": {"mode": "inline", "model": "claude-opus-5-5"},
+    "tiny": {"mode": "inline", "model": "claude-fable-5-1"},
     "bulk": {"mode": "subagent", "model": "claude-sonnet-5-5"},
     "standard": {"mode": "subagent", "model": "claude-opus-5-5"},
-    "hard": {"mode": "inline", "model": "claude-opus-5-5"}
+    "hard": {"mode": "inline", "model": "claude-fable-5-1"}
   }
 }

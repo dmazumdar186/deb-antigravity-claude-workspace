@@ -1,7 +1,7 @@
 ---
 name: qa
 description: Tests scripts by classifying risk, running safe tests, validating contracts, and reporting pass/fail with evidence.
-model: claude-sonnet-5-5
+model: claude-fable-5-1
 effort: low
 maxTurns: 25
 tools:

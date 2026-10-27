@@ -1,7 +1,7 @@
 ---
 name: email-classifier
 description: Classify a chunk of Gmail email summaries into Action Required / Waiting On / Reference and write the result to a JSON file. Spawned in parallel by the gmail-label skill; never returns classification data in its reply.
-model: claude-sonnet-5-5
+model: claude-fable-5-1
 effort: low
 maxTurns: 25
 omitClaudeMd: true
