@@ -32,7 +32,7 @@ function schedule(){clearTimeout(timer);timer=0;if(!playing||motion.matches||pau
 function playUI(){if(motion.matches)playing=false;if(play){play.disabled=motion.matches;play.setAttribute('aria-pressed',String(playing));const icon=$('.play-symbol',play);if(icon)icon.textContent=playing?'❚❚':'▷';}if(label){const key=motion.matches?'motionOff':playing?'pauseSequence':'playSequence';label.dataset.i18n=key;label.textContent=t(key);}if(live)live.setAttribute('aria-live',playing?'off':'polite');schedule();}
 function stop(){playing=false;playUI();}
 on(prev,'click',()=>{stop();go(Math.max(0,active-1));});on(next,'click',()=>{stop();go(Math.min(last,active+1));});
-on(play,'click',()=>{if(motion.matches)return;playing=!playing;playHover=false;playUI();});
+on(play,'click',()=>{if(motion.matches)return;playing=!playing;playHover=false;playUI();if(playing){go(active===last?0:active+1);schedule();}else{clearTimeout(timer);timer=0;}});
 on(play,'pointerenter',ev=>{if(ev.pointerType==='mouse'&&playing){playHover=true;schedule();}});on(play,'pointerleave',()=>{playHover=false;schedule();});
 on(track,'keydown',ev=>{const keys={ArrowRight:Math.max(active,intent)+1,ArrowLeft:Math.min(active,intent)-1,Home:0,End:last};if(!(ev.key in keys))return;ev.preventDefault();stop();go(keys[ev.key]);});
 on(track,'scroll',()=>{if(!frame)frame=requestAnimationFrame(paint);clearTimeout(settle);settle=setTimeout(()=>{display(nearest());intent=active;},120);},{passive:true});
