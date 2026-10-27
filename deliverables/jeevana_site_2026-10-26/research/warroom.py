@@ -158,10 +158,10 @@ def main() -> None:
             extra = read(Path(a.extra)) if a.extra else ""
             user += ("\n\n# CRITIQUE TO APPLY (apply every P1 and P2; P3 at your judgement; keep what is marked excellent)\n"
                      + notes + ("\n\n# GATE / EYE-REVIEW OUTPUT (fix every failure)\n" + extra if extra else "")
-                     + "\n\nReturn the complete revised files.")
+                     + "\n\nReturn ONLY the files you changed, each complete (unchanged files omitted). Keep the output compact: no comments longer than one line, no blank-line padding.")
         else:
             user += "\n\nWrite the first complete version now."
-        text, usage = call(model, AUTHOR_SYS, user, max_tokens=120000, json_mode=True)
+        text, usage = call(model, AUTHOR_SYS, user, max_tokens=120000, json_mode=True, effort=("medium" if a.cmd == "revise" else "high"))
         ledger(root, f"{n:02d} {a.cmd}", model, usage)
         try:
             obj = parse_json(text)
