@@ -46,8 +46,12 @@ PHOTOS = {
     },
     "saree-eiffel": {
         "file": "saree-eiffel.png",
-        # avatar circle x 12-40, y 815-843; partial circle on the right edge x >= 625, y 445-505
-        "box": (46, 76, 620, 842),
+        # avatar circle x 12-40, y 815-843; partial circle on the right edge x >= 625, y 445-505.
+        # v5 review: tighter 3:4 on her (hair y~370 to hem y~828 = ~75 % of the frame height), the tower's
+        # first platform and arch kept; bottom stops 10 px into the stone ledge so the feet stay in.
+        "box": (98, 225, 558, 838),
+        "dehaze": True,
+        "grade": {"lift": 0.06, "sat": 1.0},
         "widths": [800, 1400, 2000],
         "alt_en": "Jeevana in a deep red saree with a gold border, smiling in front of the Eiffel Tower in Paris.",
         "alt_fr": "Jeevana en saree rouge profond bordé d'or, souriante devant la tour Eiffel à Paris.",
@@ -56,6 +60,7 @@ PHOTOS = {
         "file": "lobby.webp",
         # no UI found; trim a 2 px edge to drop resampling fringes
         "box": (2, 2, 479, 781),
+        "grade": {"sat": 0.8},  # v5 review: the lehenga/orchid yellows read orange against the paper; -20 % saturation
         "widths": [800, 1400, 1800],
         "alt_en": "Jeevana in a green and gold lehenga with a yellow dupatta, standing before white orchids in a hotel lobby.",
         "alt_fr": "Jeevana en lehenga vert et or avec un dupatta jaune, debout devant des orchidées blanches dans le hall d'un hôtel.",
@@ -130,7 +135,64 @@ def upscale(im: Image.Image, models: Path, work: Path, key: str) -> tuple[Image.
 
 
 # ---------------------------------------------------------------- grade
-def grade(im: Image.Image) -> Image.Image:
+def _guided(I: np.ndarray, p: np.ndarray, r: int, eps: float) -> np.ndarray:
+    """Grey guided filter (He et al.) with box means; keeps the transmission edge-aware so no halos."""
+    import cv2
+
+    def box(x: np.ndarray) -> np.ndarray:
+        return cv2.boxFilter(x, -1, (2 * r + 1, 2 * r + 1), borderType=cv2.BORDER_REFLECT)
+
+    mI, mp = box(I), box(p)
+    a = (box(I * p) - mI * mp) / (box(I * I) - mI * mI + eps)
+    b = mp - a * mI
+    return box(a) * I + box(b)
+
+
+def dehaze(im: Image.Image, omega: float = 0.6, t0: float = 0.4) -> Image.Image:
+    """Gentle dark-channel dehaze + black point + saree saturation (saree-eiffel only, v5 review).
+
+    The Instagram copy is milky: the tower sits at L~0.75 with almost no local contrast. A partial
+    dark-channel prior (omega < 1, transmission floor t0) restores the ironwork without touching her
+    (dark saree/hair have t~1); the guided filter keeps the transmission map edge-aware (no halos).
+    """
+    import cv2
+
+    a = np.asarray(im.convert("RGB"), np.float32) / 255.0
+    h, w = a.shape[:2]
+    k = max(3, round(w / 120)) | 1
+    dark = cv2.erode(a.min(axis=2), cv2.getStructuringElement(cv2.MORPH_RECT, (k, k)))
+    flat = dark.ravel()
+    top = flat >= np.quantile(flat, 0.999)
+    A = np.minimum(a.reshape(-1, 3)[top].mean(axis=0), 0.98)
+    t_raw = 1 - omega * cv2.erode((a / A).min(axis=2), cv2.getStructuringElement(cv2.MORPH_RECT, (k, k)))
+    grey = a @ np.array([0.299, 0.587, 0.114], np.float32)
+    t = np.clip(_guided(grey, t_raw.astype(np.float32), max(8, w // 60), 1e-3), t0, 1)[..., None]
+    a = (a - A) / t + A
+    # black point up / white point in, from robust percentiles (no clipping of the sky detail)
+    lum = a @ np.array([0.2126, 0.7152, 0.0722], np.float32)
+    lo, hi = np.quantile(lum, 0.004), np.quantile(lum, 0.998)
+    a = (a - lo * 0.9) / max(hi - lo * 0.9, 1e-3)
+    # mild local contrast on luminance: large-radius unsharp (clarity), small amount, no halos at this radius
+    lum = np.clip(a @ np.array([0.2126, 0.7152, 0.0722], np.float32), 0, 1)
+    blur = cv2.GaussianBlur(lum, (0, 0), w / 90)
+    a = a + (0.28 * (lum - blur))[..., None]
+    # slight saturation on the saree: red, reasonably saturated pixels, soft mask
+    hsv = cv2.cvtColor((np.clip(a, 0, 1) * 255).astype(np.uint8), cv2.COLOR_RGB2HSV).astype(np.float32)
+    hue, sat = hsv[..., 0], hsv[..., 1] / 255
+    red = ((hue < 12) | (hue > 168)) & (sat > 0.3)
+    m = cv2.GaussianBlur(red.astype(np.float32), (0, 0), 3)[..., None]
+    l2 = (a @ np.array([0.2126, 0.7152, 0.0722], np.float32))[..., None]
+    a = l2 + (a - l2) * (1 + 0.14 * m)
+    # the over-exposed stone ledge under her feet: pull it down to warm stone so it is no longer a white plate
+    ledge = int(h * (1 - 10 / 613))
+    ramp = np.clip((np.arange(h, dtype=np.float32) - (ledge - h * 0.012)) / (h * 0.012), 0, 1)[:, None, None]
+    bright = np.clip((l2 - 0.8) / 0.15, 0, 1)
+    stone = np.array([0xD9, 0xC6, 0xA4], np.float32) / 255.0
+    a = a * (1 - 0.55 * ramp * bright) + stone * 0.55 * ramp * bright
+    return Image.fromarray((np.clip(a, 0, 1) * 255 + 0.5).astype(np.uint8))
+
+
+def grade(im: Image.Image, lift: float = 0.22, sat: float = 0.94) -> Image.Image:
     """Warm, soft, parchment-leaning; never orange. Lift blacks toward ink #2B1E14, ease highlights."""
     a = np.asarray(im.convert("RGB"), np.float32) / 255.0
     lum = a @ np.array([0.2126, 0.7152, 0.0722], np.float32)
@@ -142,14 +204,14 @@ def grade(im: Image.Image) -> Image.Image:
     # soft toe: blacks lift slightly toward warm ink
     ink = np.array([0x2B, 0x1E, 0x14], np.float32) / 255.0
     sh = np.clip(1 - lum / 0.35, 0, 1)[..., None] ** 2
-    a = a * (1 - 0.22 * sh) + ink * 0.22 * sh
+    a = a * (1 - lift * sh) + ink * lift * sh
     # soft shoulder: highlights toward parchment #EAD9B8 just a touch
     paper = np.array([0xEA, 0xD9, 0xB8], np.float32) / 255.0
     hi = np.clip((lum - 0.75) / 0.25, 0, 1)[..., None] ** 2
     a = a * (1 - 0.12 * hi) + paper * 0.12 * hi
     # slight desaturation (soft, not orange)
     lum2 = (a @ np.array([0.2126, 0.7152, 0.0722], np.float32))[..., None]
-    a = lum2 + (a - lum2) * 0.94
+    a = lum2 + (a - lum2) * sat
     return Image.fromarray((np.clip(a, 0, 1) * 255 + 0.5).astype(np.uint8))
 
 
@@ -438,9 +500,12 @@ def photos(args: argparse.Namespace) -> None:
         src = Image.open(RAW / spec["file"]).convert("RGB").crop(spec["box"])
         src.save(args.work / f"{key}_crop.png")
         up, method = upscale(src, args.models, args.work, key)
-        up = grade(up)
+        if spec.get("dehaze"):
+            up = dehaze(up)
+        up = grade(up, **spec.get("grade", {}))
         cap = up.width if "lanczos" not in method else src.width * 2
-        widths = [w for w in spec["widths"] if w <= cap]
+        # allow a <=10 % Lanczos step past the SR output so a tighter crop still ships the same widths
+        widths = [w for w in spec["widths"] if w <= cap * 1.1]
         srcset = []
         for w in widths:
             h = round(up.height * w / up.width)

@@ -39,21 +39,31 @@ const clsInit = () => { window.__cls = 0; new PerformanceObserver((l) => { for (
   const litC = () => p.evaluate(() => [...document.querySelectorAll('svg.twelve--cover .arc')].findIndex((a) => a.classList.contains('on')));
   ok((await lit()) === 0, 'arc 1 lit by default');
   const sl = () => p.evaluate(() => document.querySelector('[data-strip]').scrollLeft);
-  const centred = () => p.evaluate(() => { const s = document.querySelector('[data-strip]'), c = document.querySelectorAll('.card')[JV_strip.cur()], a = s.getBoundingClientRect(), b = c.getBoundingClientRect(); return Math.abs(b.left + b.width / 2 - (a.left + a.width / 2)); });
+  // start alignment: the active card rests on the left gutter (or the strip is clamped at its end)
+  const aligned = () => p.evaluate(() => { const s = document.querySelector('[data-strip]'), c = document.querySelectorAll('.card')[JV_strip.cur()], pad = parseFloat(getComputedStyle(s).paddingLeft), max = s.scrollWidth - s.clientWidth; return Math.abs(Math.min(c.offsetLeft - pad, max) - s.scrollLeft); });
+  const view = () => p.evaluate(() => { const s = document.querySelector('[data-strip]'), pad = parseFloat(getComputedStyle(s).paddingLeft), a = s.getBoundingClientRect(), cs = [...document.querySelectorAll('.card')].map((c) => c.getBoundingClientRect()); return { pad, first: cs[0].left - a.left, full: cs.filter((r) => r.left >= a.left + pad - 2 && r.right <= a.right - pad + 2).length, lastGap: a.right - pad - cs[cs.length - 1].right, sl: s.scrollLeft, max: s.scrollWidth - s.clientWidth }; });
+  const v0 = await view(); ok(Math.abs(v0.first - v0.pad) < 2 && v0.full === 3, `1440: card 1 starts on the gutter (${v0.first.toFixed(0)} vs ${v0.pad}px) and 3 cards are fully in view (${v0.full})`);
   const sl0 = await sl();
   await p.click('[data-next]'); await p.waitForTimeout(900);
-  ok((await sl()) > sl0 + 20 && (await centred()) < 4, `next arrow moves the cards (scrollLeft ${sl0} → ${await sl()}) and centres card 2`);
+  ok((await sl()) > sl0 + 20 && (await aligned()) < 4, `next arrow moves the cards (scrollLeft ${sl0} → ${await sl()}) and aligns card 2 to the gutter`);
   ok(await p.evaluate(() => JV_strip.cur()) === 1 && (await lit()) === 1 && (await litC()) === 1, 'next arrow → card 2, backdrop arcs follow');
   ok((await p.textContent('[data-cur]')) === '02', 'progress shows 02');
   const sl1 = await sl(); await p.focus('[data-strip]'); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(900);
   ok((await sl()) > sl1 + 20, 'ArrowRight moves the cards (scrollLeft changes)');
   ok(await p.evaluate(() => JV_strip.cur()) === 2 && (await lit()) === 2, 'ArrowRight key → card 3');
   await p.keyboard.press('ArrowLeft'); await p.waitForTimeout(900); ok(await p.evaluate(() => JV_strip.cur()) === 1, 'ArrowLeft key → card 2');
-  await p.click('[data-prev]'); await p.waitForTimeout(900); ok(await p.evaluate(() => JV_strip.cur()) === 0 && (await centred()) < 4, 'prev arrow → card 1, centred');
-  // snap: scroll manually off-centre, expect it to settle centred
+  await p.click('[data-prev]'); await p.waitForTimeout(900); ok(await p.evaluate(() => JV_strip.cur()) === 0 && (await aligned()) < 4 && (await sl()) < 2, 'prev arrow → card 1, back on the gutter');
+  // snap: scroll manually off a card edge, expect it to settle start-aligned
   await p.evaluate(() => { const s = document.querySelector('[data-strip]'); s.scrollBy({ left: 1300, behavior: 'instant' }); }); await p.waitForTimeout(1200);
-  const off = await p.evaluate(() => { const s = document.querySelector('[data-strip]'); const c = document.querySelectorAll('.card')[JV_strip.cur()]; return Math.abs(c.offsetLeft + c.offsetWidth / 2 - s.scrollLeft - s.clientWidth / 2); });
-  ok(off < 4 && (await lit()) === await p.evaluate(() => JV_strip.cur()), `scroll-snap centres a card (off ${off.toFixed(1)}px) and lights its arc`);
+  const off = await aligned();
+  ok(off < 4 && (await lit()) === await p.evaluate(() => JV_strip.cur()), `scroll-snap start-aligns a card (off ${off.toFixed(1)}px) and lights its arc`);
+  // the end: card 12 flush with the right gutter (no void), and the clamped last cards still activate one by one
+  await p.evaluate(() => JV_strip.go(11)); await p.waitForTimeout(1200); const ve = await view();
+  ok(Math.abs(ve.sl - ve.max) < 2 && Math.abs(ve.lastGap) < 2 && ve.full === 3 && (await p.evaluate(() => JV_strip.cur())) === 11, `go(11): scroll clamped at the end, card 12 flush right (gap ${ve.lastGap.toFixed(1)}px), card 12 active`);
+  await p.click('[data-prev]'); await p.waitForTimeout(700); const c10 = await p.evaluate(() => JV_strip.cur());
+  await p.click('[data-next]'); await p.waitForTimeout(700); const c11 = await p.evaluate(() => JV_strip.cur());
+  ok(c10 === 10 && c11 === 11 && Math.abs((await sl()) - ve.max) < 2, `at the end, prev/next still step the active card (${c10 + 1}, ${c11 + 1}) while scrollLeft stays clamped`);
+  await p.evaluate(() => JV_strip.go(4)); await p.waitForTimeout(1200);
   // drag
   const before = await p.evaluate(() => JV_strip.cur()), slD = await sl(); const box = await p.locator('[data-strip]').boundingBox();
   await p.mouse.move(box.x + box.width / 2, box.y + 200); await p.mouse.down(); await p.mouse.move(box.x + box.width / 2 - 400, box.y + 200, { steps: 8 }); await p.mouse.up(); await p.waitForTimeout(1000);
@@ -61,7 +71,7 @@ const clsInit = () => { window.__cls = 0; new PerformanceObserver((l) => { for (
   // autoplay
   await p.mouse.move(5, 5); const a0 = await p.evaluate(() => JV_strip.cur()), slA = await sl(); await p.click('[data-play]');
   ok(await p.evaluate(() => JV_strip.playing()), 'play starts autoplay'); await p.mouse.move(5, 5); await p.waitForTimeout(4600);
-  ok(await p.evaluate(() => JV_strip.cur()) === (a0 + 2) % 12 && (await sl()) !== slA, 'autoplay advanced after 4 s (scrollLeft changes)');
+  ok(await p.evaluate(() => JV_strip.cur()) === (a0 + 1) % 12 && (await sl()) !== slA, 'autoplay waits 4 s, then advances one card (scrollLeft changes)');
   await p.click('[data-play]'); ok(!(await p.evaluate(() => JV_strip.playing())), 'pause stops autoplay');
   ok(errs.length === 0, 'strip: no console errors ' + errs.join(' | ')); await ctx.close();
 }
@@ -97,6 +107,16 @@ for (const [label, dev] of [['iPhone 13', devices['iPhone 13']], ['iPad Mini', d
   const hm = await m.p.evaluate(() => document.querySelector('form[data-form=register]').getBoundingClientRect().height); ok(hm <= 760, `register form compact on iPhone 13 (${Math.round(hm)}px ≤ 760)`);
   await m.p.click('[data-lang="fr"]'); await m.p.waitForTimeout(200);
   ok(!/€/.test(await m.p.evaluate(() => document.body.innerText)), 'no € in French either'); await m.ctx.close();
+}
+{ // consent wording beside each checkbox = the CONSENT_TEXT the API stores with the record (EN + FR, verbatim)
+  const { readFileSync } = await import('node:fs');
+  const ct = (f) => { const m = readFileSync(new URL(`../site/functions/api/${f}.ts`, import.meta.url), 'utf8').match(/en:\s*(['"])(.*?)\1,\s*fr:\s*(['"])(.*?)\3/s); return { en: m[2], fr: m[4] }; };
+  const want = { register: ct('register'), subscribe: ct('subscribe') };
+  const { ctx, p } = await page(); await p.goto(BASE + '/', { waitUntil: 'networkidle' });
+  const shown = () => p.evaluate(() => ({ register: document.querySelector('#reg-consent + span').textContent.trim(), subscribe: document.querySelector('#news-consent + span').textContent.trim() }));
+  const en = await shown(); await p.click('.bar [data-lang="fr"]'); await p.waitForTimeout(200); const fr = await shown();
+  for (const k of ['register', 'subscribe']) ok(en[k] === want[k].en && fr[k] === want[k].fr, `${k}: consent text matches ${k}.ts CONSENT_TEXT verbatim (EN + FR)`);
+  await ctx.close();
 }
 { // reduced motion: autoplay honours it (instant scroll), rings filled
   const { ctx, p } = await page({ reducedMotion: 'reduce' }); await p.goto(BASE + '/', { waitUntil: 'networkidle' });

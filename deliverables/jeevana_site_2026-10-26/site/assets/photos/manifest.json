@@ -294,27 +294,27 @@
    1400,
    2000
   ],
-  "ratio": "574/766",
+  "ratio": "460/613",
   "w": 2000,
-  "h": 2669,
+  "h": 2665,
   "srcset": [
    [
     "saree-eiffel@800.webp",
     800,
-    1068
+    1066
    ],
    [
     "saree-eiffel@1400.webp",
     1400,
-    1868
+    1866
    ],
    [
     "saree-eiffel@2000.webp",
     2000,
-    2669
+    2665
    ]
   ],
-  "lqip": "data:image/webp;base64,UklGRpIAAABXRUJQVlA4IIYAAACQBACdASoSABgAPu1or1CppaSiqAqpMB2JZwDO7A9QE+bwzeg1Fx/2CXZamAAA/udEKjLhbN7eGj00UHqSRDXy/QpC3HWnCEiojl/bF8A3XTxZIg7jJsnjtTjaqx/WewVqfg+9hVBD+y5Q8+Qez1p0BuZ/RTGlQpdMSUJhf8cGD+f6hiiAAA==",
+  "lqip": "data:image/webp;base64,UklGRsAAAABXRUJQVlA4ILQAAADwBACdASoSABgAPu1sq1EppaOiqAqpMB2JYwCsAA+CxqnH6omKadnVTHpVYmNJ5AAAzh54y39zMrSfAhAEn6+5JW5gOejFWncnYiYI0Y3rB4qhZghbLx2ZhmBHBOPZABZD5S2pGvoTnK28FioTa5oq4Rd5oflMWKUjuqla1kXZjwiVYDXpl1VUpsxW41PgNhm1hcLhZ3s5a1lVJqhUH7TXjFZYQ83wcGd1AvXNMpBkmLQYAAA=",
   "alt_en": "Jeevana in a deep red saree with a gold border, smiling in front of the Eiffel Tower in Paris.",
   "alt_fr": "Jeevana en saree rouge profond bordé d'or, souriante devant la tour Eiffel à Paris.",
   "upscale": "realesrgan_x4plus+realplksr_x2 blend"
@@ -345,7 +345,7 @@
     2940
    ]
   ],
-  "lqip": "data:image/webp;base64,UklGRtYAAABXRUJQVlA4IMoAAACwBACdASoPABgAPu1iqU2ppaOiMAgBMB2JbACdMoRwAdAo2gfbFULaiB1CMigAAP7avKwSCDTCHhLRkRswxj5rh8cYaSIugW/wtFe6u9GxuZnySjXeS7K6bPSCbhAVUgYzMLARFK4dMBYdAPkut5iT+NLw2hrSdPQZ755b0q2TUQY4ykvfXRgPnzIB/4f9RIFPOm7qUnzdKAXS/2K5MWHJavRI8IzkizlzRD2LygqbsXLMVd5BQOSOsRvjL2R5ikp6nok4howHiAAA",
+  "lqip": "data:image/webp;base64,UklGRs4AAABXRUJQVlA4IMIAAADQBACdASoPABgAPu1iqU2ppaOiMAgBMB2JbACdMoR3AdAQ2m5t5gkWt9wOQSsMAAD+2rysEY5UV0pPppeZRxMH8VvuL0OsO9Jij+I58CiQbfKZ0zpc4An7aefsexIl1AaJPJeOtbKbtBvJqzx/QCKoNWKYFV2B35ZOw7FF9bOTKo3mRYIRcF+lv8P2kpgLf6/lyxc8ai1BEI2h1we2BPJLzXeYuXE2TEZgK7HnHwR7XkDC8iwbL/HTp4mU4UMrcBLQAA==",
   "alt_en": "Jeevana in a green and gold lehenga with a yellow dupatta, standing before white orchids in a hotel lobby.",
   "alt_fr": "Jeevana en lehenga vert et or avec un dupatta jaune, debout devant des orchidées blanches dans le hall d'un hôtel.",
   "upscale": "realesrgan_x4plus+realplksr_x2 blend"
