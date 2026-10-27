@@ -153,7 +153,7 @@ def main() -> None:
         extra = read(Path(a.extra)) if a.extra else ""
         if extra:
             user += "\n\n# GATE / EYE-REVIEW OUTPUT (fold into your critique)\n" + extra
-        text, usage = call(model, CRITIC_SYS, user, max_tokens=6000, json_mode=False)
+        text, usage = call(model, CRITIC_SYS, user, max_tokens=24000, json_mode=False, effort="medium")
         ledger(root, f"{n:02d} critique", model, usage)
         p = root / f"research/warroom/round_{n:02d}_critique_{a.by}.md"
         p.write_text(f"# Round {n} critique by {model}\n\n{text}\n", encoding="utf-8")
