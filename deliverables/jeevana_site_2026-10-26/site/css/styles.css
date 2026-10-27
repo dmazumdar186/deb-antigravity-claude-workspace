@@ -246,3 +246,7 @@ h2,h3,.lineage-link{text-wrap:balance}
 .mini{stroke-opacity:.5}
 /* 4K: larger About/Contact photos and readable small text */
 @media(min-width:2560px){.covered,.lineage .school,.lineage .taught,.facts dd,.sequence-note{font-size:1rem}.about-image{max-width:none}.contact-image{max-width:min(100%,760px)}}
+
+/* Concept 2 seal lockups (2026-10-27) */
+.logo{height:clamp(42px,3vw,96px);width:auto}
+.logo.logo--stacked{height:clamp(110px,8vw,200px)}
