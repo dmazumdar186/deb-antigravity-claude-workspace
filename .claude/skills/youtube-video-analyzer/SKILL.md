@@ -33,8 +33,8 @@ Three tiers are available:
 
 | Tier | Flag | Cost | When to use |
 |---|---|---|---|
-| **default** | `--tier default` (or omit) | ~$0.03/video | `claude-opus-5-5` (standard tier, 2026-10-27) — standard quality, cheapest Claude path |
-| **premium** | `--tier premium` | ~$0.10/video (estimate) | Judgement tier (`claude-fable-5-1`, only when the operator names it) — richer visual analysis, more nuanced pacing notes |
+| **default** | `--tier default` (or omit) | ~$0.03/video | `claude-fable-5-1` (execution tier) — standard quality, cheapest Claude path |
+| **premium** | `--tier premium` | ~$0.10/video (estimate) | Judgement tier (`claude-fable-5-1`) — richer visual analysis, more nuanced pacing notes |
 | **gemini** | `--tier gemini` | **$0.00** | Free. Gemini reads the YouTube URL natively — no frame extraction needed. Use when user wants zero spend or to compare outputs. |
 
 If the user hasn't specified, default to `--tier default` for most videos. Suggest `--tier gemini` when the user mentions cost or wants a quick free check. Suggest `--tier premium` when deep visual analysis or a long-form video warrants it.
@@ -127,8 +127,8 @@ After producing a breakdown the user may want to:
 
 | Tier | Typical cost per video |
 |---|---|
-| `--tier default` (`claude-opus-5-5`, standard tier) | ~$0.03 |
-| `--tier premium` (judgement tier, `claude-fable-5-1`, only when the operator names it) | ~$0.10 (estimate — 2x the Opus-era figure; the script prints actual usage) |
+| `--tier default` (`claude-fable-5-1`, execution tier) | ~$0.03 |
+| `--tier premium` (judgement tier, resolves to `claude-fable-5-1`) | ~$0.10 (estimate — 2x the Opus-era figure; the script prints actual usage) |
 | `--tier gemini` (latest Gemini Flash, free tier) | $0.00 |
 
 v2 is ~10× cheaper than v1 thanks to PySceneDetect, perceptual-hash dedup, and 3×3 grid tiling (which reduces vision tokens ~85%). The script prints token usage after each run. Always `--deep-dry-run` first on unfamiliar long videos for an accurate cost forecast; use `--dry-run` for lightweight canary checks.
