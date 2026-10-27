@@ -74,3 +74,8 @@ No 4K over-scaling of the form beyond 1.25×. Also find and fix the 400 response
 Use GLM 5.3 for the motif drafts and a critique round; Sol (`openai/gpt-6.1-sol-pro`) for one critique round; Fable via OpenRouter
 only if credit allows (balance was $0.83 on 2026-10-27; the operator will top up). Implementation and fixes: Claude Opus 5.5
 sub-agents (subscription). Screenshot review: Claude Sonnet 5.5.
+
+## Billing (operator, 2026-10-27: "keep a stock of all the spend on this project until the end, we need to bill Jeevana")
+Every paid call (OpenRouter, Higgsfield, any API) is logged per call: OpenRouter to `research/warroom/ledger.md` (existing table),
+video legs to `research/film*/ledger.jsonl`, anything else to `research/billing/manual.jsonl`. `python3 research/billing/spend_report.py snapshot`
+rebuilds `research/billing/SPEND.md` after each paid round.
