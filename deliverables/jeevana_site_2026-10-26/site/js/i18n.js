@@ -25,7 +25,7 @@ const en={
  breathsEyebrow:`02 / Sūrya Namaskāra`,breathsTitle:`One breath.\nTwelve moments.`,
  breathsBody:`A sun salutation, unfolded. Follow the photographs, the breath, and the words that accompany each movement.`,
  stripHelp:`Swipe or drag to explore. Use the arrow keys when the sequence is focused.`,
- stripLabel:`Twelve breaths: sun salutation`,previous:`Previous breath`,next:`Next breath`,
+ stripLabel:`Twelve breaths: sun salutation`,stripRole:`carousel`,previous:`Previous breath`,next:`Next breath`,
  playSequence:`Play the sequence`,pauseSequence:`Pause the sequence`,motionOff:`Autoplay off`,breathCount:`Breath {n} of 12`,
  sequenceNote:`An invitation to explore, not a substitute for individual guidance. Let comfort lead; never force a posture. If retaining the breath feels uncomfortable, breathe freely.`,
  classesEyebrow:`03 / Practise together`,classesTitle:`Make room\nfor your practice.`,
@@ -88,7 +88,7 @@ const fr={
  breathsEyebrow:`02 / Sūrya Namaskāra`,breathsTitle:`Un souffle.\nDouze instants.`,
  breathsBody:`Une salutation au soleil, pas à pas. Suivez les photographies, le souffle et les mots qui accompagnent chaque mouvement.`,
  stripHelp:`Balayez ou faites glisser pour explorer. Utilisez les touches fléchées lorsque la séquence est sélectionnée.`,
- stripLabel:`Douze souffles : salutation au soleil`,previous:`Souffle précédent`,next:`Souffle suivant`,
+ stripLabel:`Douze souffles : salutation au soleil`,stripRole:`carrousel`,previous:`Souffle précédent`,next:`Souffle suivant`,
  playSequence:`Lancer la séquence`,pauseSequence:`Mettre en pause`,motionOff:`Lecture auto désactivée`,breathCount:`Souffle {n} sur 12`,
  sequenceNote:`Une invitation à explorer, qui ne remplace pas un accompagnement individuel. Privilégiez le confort ; ne forcez jamais une posture. Si retenir le souffle vous gêne, respirez librement.`,
  classesEyebrow:`03 / Pratiquer ensemble`,classesTitle:`Faire une place\nà votre pratique.`,
@@ -137,7 +137,7 @@ const positions=[
  [`Pādahastāsana`,`Exhale`,`Expirer`,`to the one who induces activity`,`à celui qui suscite l'activité`],
  [`Aśva Sañcālanāsana`,`Inhale`,`Inspirer`,`to the one who illumines`,`à celui qui illumine`],
  [`Parvatāsana`,`Exhale`,`Expirer`,`to the one who moves through the sky`,`à celui qui traverse le ciel`],
- [`Aṣṭāṅga Namaskāra`,`Retain the breath`,`Retenir le souffle`,`to the giver of strength`,`à celui qui donne la force`],
+ [`Aṣaskāra`,`Retain the breath`,`Retenir le souffle`,`to the giver of strength`,`à celui qui donne la force`],
  [`Bhujaṅgāsana`,`Inhale`,`Inspirer`,`to the golden cosmic self`,`au soi cosmique doré`],
  [`Parvatāsana`,`Exhale`,`Expirer`,`to the rays of light`,`aux rayons de lumière`],
  [`Aśva Sañcālanāsana`,`Inhale`,`Inspirer`,`to the son of Aditi`,`au fils d'Aditi`],
@@ -155,9 +155,8 @@ positions.forEach((p,index)=>{
 const dictionaries={en,fr};
 function t(key){return dictionaries[language][key]??en[key]??key;}
 function replaceText(el,value){
- const parts=value.split('\n');
  el.replaceChildren();
- parts.forEach((part,index)=>{if(index)el.append(document.createElement('br'));el.append(document.createTextNode(part));});
+ value.split('\n').forEach((part,index)=>{if(index)el.append(document.createElement('br'));el.append(document.createTextNode(part));});
 }
 function setLanguage(value,persist=true){
  language=value==='fr'?'fr':'en';root.lang=language;
@@ -170,7 +169,7 @@ function setLanguage(value,persist=true){
    const span=document.createElement('span');span.className='word w'+wordIndex++;span.textContent=word;el.append(span);
   });
  });
- [['data-i18n-alt','alt'],['data-i18n-aria','aria-label']].forEach(([attribute,target])=>{
+ [['data-i18n-alt','alt'],['data-i18n-aria','aria-label'],['data-i18n-roledesc','aria-roledescription']].forEach(([attribute,target])=>{
   document.querySelectorAll('['+attribute+']').forEach(el=>el.setAttribute(target,t(el.getAttribute(attribute))));
  });
  document.querySelectorAll('[data-lang]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.lang===language)));
@@ -178,8 +177,7 @@ function setLanguage(value,persist=true){
  const privacy=location.pathname.startsWith('/privacy');
  document.title=t(privacy?'privacyTitle':'pageTitle');
  if(!privacy){
-  const metadata=[['meta[name=description]','description'],['meta[property="og:title"]','pageTitle'],['meta[property="og:description"]','ogDescription'],['meta[property="og:image:alt"]','ogImageAlt']];
-  metadata.forEach(([selector,key])=>{const el=document.querySelector(selector);if(el)el.content=t(key);});
+  [['meta[name=description]','description'],['meta[property="og:title"]','pageTitle'],['meta[property="og:description"]','ogDescription'],['meta[property="og:image:alt"]','ogImageAlt']].forEach(([selector,key])=>{const el=document.querySelector(selector);if(el)el.content=t(key);});
   const locale=document.querySelector('meta[property="og:locale"]');if(locale)locale.content=language==='fr'?'fr_FR':'en_GB';
  }
  if(persist){try{localStorage.setItem('jv_lang',language);}catch(_){}}
@@ -189,7 +187,6 @@ function setLanguage(value,persist=true){
 window.JeevanaI18n={dictionaries,t,setLanguage,get language(){return language;}};
 function init(){
  try{
-  document.querySelectorAll('[data-language]').forEach(button=>{if(!button.hasAttribute('data-lang'))button.dataset.lang=button.dataset.language;});
   document.querySelectorAll('button[data-lang]').forEach(button=>button.addEventListener('click',()=>setLanguage(button.dataset.lang)));
   setLanguage(language,false);
  }finally{root.classList.remove('i18n-wait');}

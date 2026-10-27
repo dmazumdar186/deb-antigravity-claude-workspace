@@ -1,4 +1,4 @@
-# gates 05 2026-10-27T10:17:03Z
+# gates 05 2026-10-27T10:34:40Z
 ## site_check
 ok   pixel7_: inputs ≥16px
 ok   pixel7_: bottom bar clear of CTA
@@ -10,10 +10,10 @@ ok   pixel7_privacy_: tap targets ok
 ok   pixel7_privacy_: inputs ≥16px
 ok   pixel7_privacy_: bottom bar clear of CTA
 ok   pixel7_privacy_: console clean
-FAIL iphone13_: 1 reveal element(s) still invisible 150ms after a 2600px fling
+ok   iphone13_: nothing hidden after fling
 ok   iphone13_: no overflow
 ok   iphone13_: all reveals shown
-FAIL iphone13_: tap targets <40px: INPUT. 28x50 | INPUT. 20x20 | INPUT. 28x50 | INPUT. 20x20
+ok   iphone13_: tap targets ok
 ok   iphone13_: inputs ≥16px
 ok   iphone13_: bottom bar clear of CTA
 ok   iphone13_: console clean
@@ -27,7 +27,7 @@ ok   iphone13_privacy_: console clean
 ok   pixel7-reduced_: nothing hidden after fling
 ok   pixel7-reduced_: no overflow
 ok   pixel7-reduced_: all reveals shown
-FAIL pixel7-reduced_: tap targets <40px: INPUT. 28x50 | INPUT. 20x20 | INPUT. 28x50 | INPUT. 20x20
+ok   pixel7-reduced_: tap targets ok
 ok   pixel7-reduced_: inputs ≥16px
 ok   pixel7-reduced_: bottom bar clear of CTA
 ok   pixel7-reduced_: console clean
@@ -39,7 +39,7 @@ ok   pixel7-reduced_privacy_: inputs ≥16px
 ok   pixel7-reduced_privacy_: bottom bar clear of CTA
 ok   pixel7-reduced_privacy_: console clean
 
-FAILED — 4 failure(s). Screenshots: /home/user/deb-antigravity-claude-workspace/deliverables/jeevana_site_2026-10-26/screens
+PASSED — 0 failure(s). Screenshots: /home/user/deb-antigravity-claude-workspace/deliverables/jeevana_site_2026-10-26/screens
 ## functional_v4
 ok   layout shift 0.000 < .05
 ok   all images have alt
@@ -52,57 +52,37 @@ ok   privacy page honours FR
 ok   CSP clean 
 ok   no console errors 
 ok   arc 1 lit by default
-FAIL next arrow → card 2, backdrop arcs follow
-FAIL progress shows 02
-FAIL ArrowRight key → card 3
-FAIL ArrowLeft key → card 2
-node:internal/modules/run_main:123
-    triggerUncaughtException(
-    ^
+ok   next arrow → card 2, backdrop arcs follow
+ok   progress shows 02
+ok   ArrowRight key → card 3
+ok   ArrowLeft key → card 2
+ok   prev arrow → card 1
+ok   scroll-snap centres a card (off 0.0px) and lights its arc
+FAIL mouse drag advances
+ok   play starts autoplay
+FAIL autoplay advanced after 4 s
+ok   pause stops autoplay
+ok   strip: no console errors 
+ok   reduced motion: backdrop static
+ok   reduced motion: rings filled
+ok   register: 200 → success state in place, body has consent/lang/honeypot
+ok   register: no page reload
+ok   register 200: console clean
+ok   register: 400 → error shown
+ok   register: no page reload
+ok   register 400: console clean
+ok   subscribe: 200 → success state in place, body has consent/lang/honeypot
+ok   subscribe: no page reload
+ok   subscribe 200: console clean
+ok   subscribe: 400 → error shown
+ok   subscribe: no page reload
+ok   subscribe 400: console clean
+ok   register: empty submit blocked client-side
 
-page.click: Timeout 30000ms exceeded.
-Call log:
-[2m  - waiting for locator('[data-prev]')[22m
-[2m    - locator resolved to <button disabled data-prev="" type="button" class="circle-button" data-i18n-aria="previous" aria-controls="breath-strip" aria-label="Previous breath">←</button>[22m
-[2m  - attempting click action[22m
-[2m    2 × waiting for element to be visible, enabled and stable[22m
-[2m      - element is not enabled[22m
-[2m    - retrying click action[22m
-[2m    - waiting 20ms[22m
-[2m    2 × waiting for element to be visible, enabled and stable[22m
-[2m      - element is not enabled[22m
-[2m    - retrying click action[22m
-[2m      - waiting 100ms[22m
-[2m    56 × waiting for element to be visible, enabled and stable[22m
-[2m       - element is not enabled[22m
-[2m     - retrying click action[22m
-[2m       - waiting 500ms[22m
-
-    at /home/user/deb-antigravity-claude-workspace/deliverables/jeevana_site_2026-10-26/research/functional_v4.mjs:47:11 {
-  log: [
-    "  - waiting for locator('[data-prev]')",
-    '    - locator resolved to <button disabled data-prev="" type="button" class="circle-button" data-i18n-aria="previous" aria-controls="breath-strip" aria-label="Previous breath">←</button>',
-    '  - attempting click action',
-    '    2 × waiting for element to be visible, enabled and stable',
-    '      - element is not enabled',
-    '    - retrying click action',
-    '    - waiting 20ms',
-    '    2 × waiting for element to be visible, enabled and stable',
-    '      - element is not enabled',
-    '    - retrying click action',
-    '      - waiting 100ms',
-    '    56 × waiting for element to be visible, enabled and stable',
-    '       - element is not enabled',
-    '     - retrying click action',
-    '       - waiting 500ms'
-  ],
-  name: 'TimeoutError'
-}
-
-Node.js v22.22.0
+FAILED — 35 pass, 2 fail
 ## screens_v4
 screens -> /home/user/deb-antigravity-claude-workspace/deliverables/jeevana_site_2026-10-26/research/screens_v4/ 124
 pngs: 124
 ## grep forbidden
 ## weight
-112K	total
+116K	total
