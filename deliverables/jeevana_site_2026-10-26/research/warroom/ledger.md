@@ -11,3 +11,5 @@
 | 2026-10-27 10:48 | 07 revise | openai/gpt-6.1-sol-pro | 247347 | 66607 | 1.0478 | 296.5 | stop | gen-1793097832-dgqMzGaunVP0ADxSWvsp |
 | 2026-10-27 16:31 | v5 motifs draft (refused: reasoning cannot be disabled, not billed) | z-ai/glm-5.3 | 0 | 0 | 0.0000 | 0.6 | http 400 | - |
 | 2026-10-27 16:32 | v5 motifs draft | z-ai/glm-5.3 | 415 | 6408 | 0.0090 | 33.8 | stop | gen-1793118683-a1pv2ArTZ8Ngb9TRS1L7 |
+| 2026-10-27 17:02 | 08 critique | z-ai/glm-5.3 | 67155 | 4755 | 0.0187 | 32.5 | stop | gen-1793120527-2trjctcjaLYX2gBaoh4T |
+| 2026-10-27 17:03 | 08 critique | openai/gpt-6.1-sol-pro | 203582 | 3526 | 0.3172 | 63.0 | stop | gen-1793120525-hxuy7eKjvIMGzonXc1vj |

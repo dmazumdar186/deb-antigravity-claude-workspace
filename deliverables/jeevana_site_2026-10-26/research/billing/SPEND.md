@@ -1,12 +1,12 @@
 # Jeevana site — paid spend (billable third-party costs)
 
-Generated 2026-10-27 16:40 UTC by `research/billing/spend_report.py` from the per-call ledgers.
+Generated 2026-10-27 17:03 UTC by `research/billing/spend_report.py` from the per-call ledgers.
 
 | Vendor | USD |
 |---|---|
 | Higgsfield (Kling 3.0) | 13.62 |
-| OpenRouter | 8.66 |
-| **Total** | **22.29** |
+| OpenRouter | 9.00 |
+| **Total** | **22.62** |
 
 ## Line items
 
@@ -27,7 +27,10 @@ Generated 2026-10-27 16:40 UTC by `research/billing/spend_report.py` from the pe
 | 2026-10-27 | OpenRouter | anthropic/claude-opus-5.5 05 revise | 1.7757 | ledger.md |
 | 2026-10-27 | OpenRouter | openai/gpt-6.1-sol-pro 06 critique | 0.2657 | ledger.md |
 | 2026-10-27 | OpenRouter | openai/gpt-6.1-sol-pro 07 revise | 1.0478 | ledger.md |
+| 2026-10-27 | OpenRouter | z-ai/glm-5.3 v5 motifs draft (refused: reasoning cannot be disabled, not billed) | 0.0000 | ledger.md |
 | 2026-10-27 | OpenRouter | z-ai/glm-5.3 v5 motifs draft | 0.0090 | ledger.md |
+| 2026-10-27 | OpenRouter | z-ai/glm-5.3 08 critique | 0.0187 | ledger.md |
+| 2026-10-27 | OpenRouter | openai/gpt-6.1-sol-pro 08 critique | 0.3172 | ledger.md |
 
 ## Not itemised
 - Claude subscription (Max plan) usage for this session and its sub-agents: flat-fee plan, not metered per project.
@@ -45,3 +48,4 @@ Generated 2026-10-27 16:40 UTC by `research/billing/spend_report.py` from the pe
 | When | Credits bought | Usage to date |
 |---|---|---|
 | 2026-10-27T16:39:50Z | 30 | 19.1805 |
+| 2026-10-27T17:03:30Z | 30 | 19.4977 |
