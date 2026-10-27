@@ -137,7 +137,7 @@ const positions=[
  [`Pādahastāsana`,`Exhale`,`Expirer`,`to the one who induces activity`,`à celui qui suscite l'activité`],
  [`Aśva Sañcālanāsana`,`Inhale`,`Inspirer`,`to the one who illumines`,`à celui qui illumine`],
  [`Parvatāsana`,`Exhale`,`Expirer`,`to the one who moves through the sky`,`à celui qui traverse le ciel`],
- [`Aṣaskāra`,`Retain the breath`,`Retenir le souffle`,`to the giver of strength`,`à celui qui donne la force`],
+ [`Aṣṭāṅga Namaskāra`,`Retain the breath`,`Retenir le souffle`,`to the giver of strength`,`à celui qui donne la force`],
  [`Bhujaṅgāsana`,`Inhale`,`Inspirer`,`to the golden cosmic self`,`au soi cosmique doré`],
  [`Parvatāsana`,`Exhale`,`Expirer`,`to the rays of light`,`aux rayons de lumière`],
  [`Aśva Sañcālanāsana`,`Inhale`,`Inspirer`,`to the son of Aditi`,`au fils d'Aditi`],
