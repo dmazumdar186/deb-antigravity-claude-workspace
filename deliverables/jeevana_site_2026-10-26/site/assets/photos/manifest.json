@@ -292,29 +292,29 @@
   "widths": [
    800,
    1400,
-   2000
+   1800
   ],
-  "ratio": "460/613",
-  "w": 2000,
-  "h": 2665,
+  "ratio": "435/580",
+  "w": 1800,
+  "h": 2400,
   "srcset": [
    [
     "saree-eiffel@800.webp",
     800,
-    1066
+    1067
    ],
    [
     "saree-eiffel@1400.webp",
     1400,
-    1866
+    1867
    ],
    [
-    "saree-eiffel@2000.webp",
-    2000,
-    2665
+    "saree-eiffel@1800.webp",
+    1800,
+    2400
    ]
   ],
-  "lqip": "data:image/webp;base64,UklGRsAAAABXRUJQVlA4ILQAAADwBACdASoSABgAPu1sq1EppaOiqAqpMB2JYwCsAA+CxqnH6omKadnVTHpVYmNJ5AAAzh54y39zMrSfAhAEn6+5JW5gOejFWncnYiYI0Y3rB4qhZghbLx2ZhmBHBOPZABZD5S2pGvoTnK28FioTa5oq4Rd5oflMWKUjuqla1kXZjwiVYDXpl1VUpsxW41PgNhm1hcLhZ3s5a1lVJqhUH7TXjFZYQ83wcGd1AvXNMpBkmLQYAAA=",
+  "lqip": "data:image/webp;base64,UklGRvQAAABXRUJQVlA4IOgAAABwBQCdASoSABgAPu1srFEppaQiqAqpMB2JYwCdM1gX+AVGTLhEqexMMcLFe1ko50hSwQAAAP2Uq/ewJ1XMNL9npCxsM1txUQQaiu13oEea2yhxtd8LgfQ6k/33RU9MKER8Td9ptjnSA0M/YHuChaQLvRO+PjPrn+Xo4VeMObMNAhvwfj/Ru28ZlCuPrt/E8XYAuATn1McLsj0nHeK1XUajv3OqCXUJDeLkM/p99QSLPi9jKQRoGykFv76rUMrAJ4+JPtA8HXJiAI87gks25vLP8m/71JFnzo0YeHJzADyUjGkULtCgAAAA",
   "alt_en": "Jeevana in a deep red saree with a gold border, smiling in front of the Eiffel Tower in Paris.",
   "alt_fr": "Jeevana en saree rouge profond bordé d'or, souriante devant la tour Eiffel à Paris.",
   "upscale": "realesrgan_x4plus+realplksr_x2 blend"

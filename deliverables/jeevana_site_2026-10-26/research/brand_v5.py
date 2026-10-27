@@ -282,6 +282,32 @@ def favicon(body_d: str) -> str:
             f'<title>{TITLE}</title>{inner}</svg>\n')
 
 
+def header_seal(body_d: str, panel_d: str) -> str:
+    """Seal for the header (v5.1 review: G1A was illegible at ~44 px): no ring text, so the figure and a heavier G1A
+    fill the ring. Sage ring r 150, terracotta ring r 138, light disc behind; drawn in the same 400-unit box."""
+    letters = g1a(weight=600)
+    heavy = letters.replace(f'fill="{SAGE}"', f'fill="{SAGE}" stroke="{SAGE}" stroke-width="3" stroke-linejoin="round"')
+    return (DEFS + '<circle cx="200" cy="200" r="150" fill="#F3E7CF" stroke="' + SAGE + '" stroke-width="10"/>'
+            + circle(137.5, TERRA, 2.4)
+            + f'<g transform="translate(200 {200 + FIG_DY - 4}) scale(1.04) translate(-200 -200)">'
+            + figure_svg(body_d, panel_d) + heavy + "</g>")
+
+
+def header_lockup(body_d: str, panel_d: str) -> str:
+    """logo-header.svg: header seal + two-line name ("Jeevana" / "Yoga & Wellness"), compact enough for a 390 px
+    phone header at 48 px tall. The seal is the left 312 x 312 square, so CSS can crop to it on very narrow screens."""
+    s1, s2 = 150, 80
+    _, w1 = line("Jeevana", 500, s1, 0, 0)
+    _, w2 = line("Yoga & Wellness", 500, s2, 0, 0, 0.02)
+    x0 = 312 + 30  # in the 312-unit frame (seal centre 156,156); x-heights sit either side of the centre
+    d1, _ = line("Jeevana", 500, s1, x0, 152)
+    d2, _ = line("Yoga & Wellness", 500, s2, x0 + 4, 242, 0.02)
+    W = x0 + max(w1, w2 + 4) + 8
+    body = (f'<g transform="translate(-44 -44)">{header_seal(body_d, panel_d)}</g>'
+            f'<path fill="{INK}" d="{d1}"/><path fill="{INK}" d="{d2}"/>')
+    return svg(W, 312, body)
+
+
 def build() -> None:
     import cairosvg
 
@@ -291,6 +317,7 @@ def build() -> None:
     S = seal(body_d, panel_d)
 
     (BRAND / "mark.svg").write_text(svg(400, 400, S), encoding="utf-8")
+    (BRAND / "logo-header.svg").write_text(header_lockup(body_d, panel_d), encoding="utf-8")
 
     # horizontal lockup: seal, then "Jeevana Yoga & Wellness" with the x-height centred on the seal
     name = "Jeevana Yoga & Wellness"

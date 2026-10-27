@@ -47,12 +47,14 @@ PHOTOS = {
     "saree-eiffel": {
         "file": "saree-eiffel.png",
         # avatar circle x 12-40, y 815-843; partial circle on the right edge x >= 625, y 445-505.
-        # v5 review: tighter 3:4 on her (hair y~370 to hem y~828 = ~75 % of the frame height), the tower's
-        # first platform and arch kept; bottom stops 10 px into the stone ledge so the feet stay in.
-        "box": (98, 225, 558, 838),
+        # v5.1 review: exact 3:4 (the frame is 3:4, so CSS crops nothing), centred on her (x~330).
+        # Top at y 245 drops the blown sky between the legs above the first platform (the "bleached
+        # strip"); bottom at y 825 keeps the gold hem (ends y~829) and leaves only ~3 px of the blown
+        # parapet (starts y~821), which dehaze() tones to warm stone: a floor line, not a white plate.
+        "box": (113, 245, 548, 825),
         "dehaze": True,
-        "grade": {"lift": 0.06, "sat": 1.0},
-        "widths": [800, 1400, 2000],
+        "grade": {"lift": 0.04, "sat": 1.0},
+        "widths": [800, 1400, 1800],  # 435 px crop x4 = 1740; 1800 is within the 10 % Lanczos allowance
         "alt_en": "Jeevana in a deep red saree with a gold border, smiling in front of the Eiffel Tower in Paris.",
         "alt_fr": "Jeevana en saree rouge profond bordé d'or, souriante devant la tour Eiffel à Paris.",
     },
@@ -148,47 +150,58 @@ def _guided(I: np.ndarray, p: np.ndarray, r: int, eps: float) -> np.ndarray:
     return box(a) * I + box(b)
 
 
-def dehaze(im: Image.Image, omega: float = 0.6, t0: float = 0.4) -> Image.Image:
-    """Gentle dark-channel dehaze + black point + saree saturation (saree-eiffel only, v5 review).
+def dehaze(im: Image.Image, omega: float = 0.72, t0: float = 0.35) -> Image.Image:
+    """Natural dehaze for saree-eiffel (v5.1 review: v5 was still milky and read as a cut-out).
 
-    The Instagram copy is milky: the tower sits at L~0.75 with almost no local contrast. A partial
-    dark-channel prior (omega < 1, transmission floor t0) restores the ironwork without touching her
-    (dark saree/hair have t~1); the guided filter keeps the transmission map edge-aware (no halos).
+    1. partial dark-channel prior (omega < 1, transmission floor t0), guided-filtered so no halos;
+    2. CLAHE on LAB luminance (blended 70 %) so the tower and the arch get local contrast back
+       *with* her, rather than only her being contrasty against a milky plate (the cut-out read);
+    3. black point up / white point in from robust percentiles, gentle S-curve on luminance;
+    4. the remaining sliver of blown parapet under the hem is toned to warm stone.
     """
     import cv2
 
     a = np.asarray(im.convert("RGB"), np.float32) / 255.0
     h, w = a.shape[:2]
     k = max(3, round(w / 120)) | 1
-    dark = cv2.erode(a.min(axis=2), cv2.getStructuringElement(cv2.MORPH_RECT, (k, k)))
+    se = cv2.getStructuringElement(cv2.MORPH_RECT, (k, k))
+    dark = cv2.erode(a.min(axis=2), se)
     flat = dark.ravel()
     top = flat >= np.quantile(flat, 0.999)
     A = np.minimum(a.reshape(-1, 3)[top].mean(axis=0), 0.98)
-    t_raw = 1 - omega * cv2.erode((a / A).min(axis=2), cv2.getStructuringElement(cv2.MORPH_RECT, (k, k)))
+    t_raw = 1 - omega * cv2.erode((a / A).min(axis=2), se)
     grey = a @ np.array([0.299, 0.587, 0.114], np.float32)
     t = np.clip(_guided(grey, t_raw.astype(np.float32), max(8, w // 60), 1e-3), t0, 1)[..., None]
-    a = (a - A) / t + A
-    # black point up / white point in, from robust percentiles (no clipping of the sky detail)
-    lum = a @ np.array([0.2126, 0.7152, 0.0722], np.float32)
-    lo, hi = np.quantile(lum, 0.004), np.quantile(lum, 0.998)
-    a = (a - lo * 0.9) / max(hi - lo * 0.9, 1e-3)
-    # mild local contrast on luminance: large-radius unsharp (clarity), small amount, no halos at this radius
-    lum = np.clip(a @ np.array([0.2126, 0.7152, 0.0722], np.float32), 0, 1)
-    blur = cv2.GaussianBlur(lum, (0, 0), w / 90)
-    a = a + (0.28 * (lum - blur))[..., None]
-    # slight saturation on the saree: red, reasonably saturated pixels, soft mask
-    hsv = cv2.cvtColor((np.clip(a, 0, 1) * 255).astype(np.uint8), cv2.COLOR_RGB2HSV).astype(np.float32)
-    hue, sat = hsv[..., 0], hsv[..., 1] / 255
-    red = ((hue < 12) | (hue > 168)) & (sat > 0.3)
+    a = np.clip((a - A) / t + A, 0, 1)
+    # CLAHE on L (LAB, 8-bit); chroma untouched so the saree red does not shift
+    lab = cv2.cvtColor((a * 255 + 0.5).astype(np.uint8), cv2.COLOR_RGB2LAB)
+    L = lab[..., 0]
+    cl = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(6, 8)).apply(L)
+    lab[..., 0] = np.clip(0.3 * L.astype(np.float32) + 0.7 * cl.astype(np.float32), 0, 255).astype(np.uint8)
+    a = cv2.cvtColor(lab, cv2.COLOR_LAB2RGB).astype(np.float32) / 255.0
+    # black point up / white point in (robust percentiles; the tiny parapet sliver is excluded)
+    W3 = np.array([0.2126, 0.7152, 0.0722], np.float32)
+    lum = a @ W3
+    body = lum[: int(h * 0.97)]
+    lo, hi = np.quantile(body, 0.006), np.quantile(body, 0.997)
+    a = np.clip((a - lo) / max(hi - lo, 1e-3), 0, 1)
+    # gentle S-curve on luminance, applied as a ratio so hue and saturation hold
+    l1 = np.clip(a @ W3, 1e-4, 1)
+    l2 = 0.78 * l1 + 0.22 * l1 * l1 * (3 - 2 * l1)  # 22 % smoothstep: deepens below .5, lifts above
+    a = np.clip(a * (l2 / l1)[..., None], 0, 1)
+    # a touch of saturation on the saree only (red, already saturated pixels, soft mask)
+    hsv = cv2.cvtColor((a * 255).astype(np.uint8), cv2.COLOR_RGB2HSV).astype(np.float32)
+    red = ((hsv[..., 0] < 12) | (hsv[..., 0] > 168)) & (hsv[..., 1] / 255 > 0.3)
     m = cv2.GaussianBlur(red.astype(np.float32), (0, 0), 3)[..., None]
-    l2 = (a @ np.array([0.2126, 0.7152, 0.0722], np.float32))[..., None]
-    a = l2 + (a - l2) * (1 + 0.14 * m)
-    # the over-exposed stone ledge under her feet: pull it down to warm stone so it is no longer a white plate
-    ledge = int(h * (1 - 10 / 613))
-    ramp = np.clip((np.arange(h, dtype=np.float32) - (ledge - h * 0.012)) / (h * 0.012), 0, 1)[:, None, None]
-    bright = np.clip((l2 - 0.8) / 0.15, 0, 1)
-    stone = np.array([0xD9, 0xC6, 0xA4], np.float32) / 255.0
-    a = a * (1 - 0.55 * ramp * bright) + stone * 0.55 * ramp * bright
+    lm = (a @ W3)[..., None]
+    a = lm + (a - lm) * (1 + 0.06 * m)
+    # the blown parapet sliver under the hem: tone it fully to warm stone, feathered over 1.5 % of the height
+    lm = a @ W3
+    ramp = np.clip((np.arange(h, dtype=np.float32) - (h - h * 0.018)) / (h * 0.008), 0, 1)[:, None]
+    bright = np.clip((lm - 0.78) / 0.12, 0, 1)
+    wgt = (ramp * bright)[..., None]
+    stone = np.array([0xC9, 0xB7, 0x98], np.float32) / 255.0
+    a = a * (1 - wgt) + stone * wgt
     return Image.fromarray((np.clip(a, 0, 1) * 255 + 0.5).astype(np.uint8))
 
 

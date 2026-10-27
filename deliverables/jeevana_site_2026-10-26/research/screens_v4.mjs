@@ -17,8 +17,17 @@ for (const [w, h, mobile] of [[390, 844, true], [844, 390, true], [320, 568, tru
     await p.screenshot({ path: `${OUT}${w}-0${i + 2}-${s}.png` });
     if (mobile || s === 'classes') { await p.evaluate(() => scrollBy(0, innerHeight - 140)); await p.waitForTimeout(700); await p.screenshot({ path: `${OUT}${w}-0${i + 2}-${s}-b.png` }); }
   }
+  // phones: the registration form and the footer, so the form and the footer seal are reviewed
+  if (w <= 844) {
+    for (const [sel, name] of [['#registration', '05-classes-form'], ['.site-footer', '07-contact-footer']]) {
+      await p.evaluate((sel) => { const el = document.querySelector(sel); const hh = document.querySelector('header.bar').offsetHeight; const y = el.getBoundingClientRect().top + scrollY; scrollTo({ top: sel === '.site-footer' ? document.documentElement.scrollHeight : y - hh - 8, behavior: 'instant' }); }, sel); await p.waitForTimeout(900);
+      await p.screenshot({ path: `${OUT}${w}-${name}.png` });
+    }
+  }
+  // strip: as a visitor lands on it, the strip top just under the header (scrolling down, so a collapsing header is collapsed)
   for (const n of [1, 6, 12]) {
-    await p.evaluate((n) => { JV_strip.go(n - 1); const el = document.querySelector('[data-strip]'); scrollTo(0, el.getBoundingClientRect().top + scrollY - (innerHeight - el.offsetHeight) / 2); }, n); await p.waitForTimeout(1300);
+    await p.evaluate((n) => { JV_strip.go(n - 1); const el = document.querySelector('[data-strip]'); scrollTo({ top: el.getBoundingClientRect().top + scrollY - 300, behavior: 'instant' }); }, n); await p.waitForTimeout(250);
+    await p.evaluate(() => { const el = document.querySelector('[data-strip]'); const hh = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hfit')) || document.querySelector('header.bar').offsetHeight; scrollTo({ top: el.getBoundingClientRect().top + scrollY - hh, behavior: 'instant' }); }); await p.waitForTimeout(1300);
     await p.screenshot({ path: `${OUT}${w}-strip-${String(n).padStart(2, '0')}.png` });
   }
   await ctx.close();

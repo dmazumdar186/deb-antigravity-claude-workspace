@@ -44,7 +44,7 @@ a{color:inherit;text-decoration:none}button,input,select,textarea{font:inherit;c
 
 .card .step-frame{transition:opacity 480ms var(--ease),transform 480ms var(--ease)}
 .card:not(.is-active) .step-frame{opacity:.88}
-.design-credit{opacity:.8}
+.design-credit{opacity:1}
 .design-credit>a:last-child{display:none}
 .consent input:checked::after{left:21px;top:15px;width:6px;height:12px}
 @media(max-width:1100px){.photo-square,.photo-tall{padding-top:0}.practice-gallery{align-items:start}}
@@ -233,7 +233,7 @@ input:not([type=checkbox]):not([type=radio]),select,textarea{background:var(--fr
 .wordmark .logo{height:clamp(44px,3.3vw,60px)}
 @media(max-width:760px){.wordmark .logo{height:38px}}
 @media(max-width:400px){.wordmark .logo{height:34px}}
-@media(max-width:360px){.wordmark .logo{height:30px}.header-actions .button-small{padding-inline:10px}.bar.is-scrolled .primary-nav{display:none}.bar.is-scrolled .header-inner{min-height:64px}}
+@media(max-width:360px){.wordmark .logo{height:30px}.header-actions .button-small{padding-inline:10px}.bar.is-scrolled.is-down .primary-nav{display:none}.bar.is-scrolled.is-down .header-inner{min-height:64px}}
 @media(min-width:2560px){.header-inner{min-height:clamp(112px,4.4vw,170px)}.wordmark .logo{height:clamp(72px,2.4vw,96px)}}
 /* reading measure, wraps, numerals */
 .about-copy p,.practice-intro .body-copy,.sequence-introduction>.body-copy{max-width:66ch}
@@ -250,3 +250,46 @@ h2,h3,.lineage-link{text-wrap:balance}
 /* Concept 2 seal lockups (2026-10-27) */
 .logo{height:clamp(42px,3vw,96px);width:auto}
 .logo.logo--stacked{height:clamp(110px,8vw,200px)}
+
+/* ===== v5.1 (review v51): strip fits the viewport, legible header seal, rays clear of text, seams, 4K ===== */
+/* header lockup: logo-header.svg = seal without arc text (figure + heavier G1A) + two-line name; the seal is the image height */
+.wordmark .logo.logo--header{height:clamp(56px,3.9vw,72px);width:auto;max-width:none}
+@media(min-width:2560px){.wordmark .logo.logo--header{height:clamp(84px,3vw,112px)}}
+@media(max-width:760px){.wordmark .logo.logo--header{height:48px}}
+@media(max-width:360px){.wordmark .logo.logo--header{width:48px;height:48px;object-fit:cover;object-position:0 50%}}
+@media(orientation:landscape) and (max-height:500px){.wordmark .logo.logo--header{height:48px}.header-inner,.header-actions{min-height:58px}}
+.site-footer .wordmark .logo.logo--stacked{height:clamp(120px,9vw,220px)}
+/* strip: photo + caption + controls fit 100svh minus the header. main.js measures --strip-chrome (tallest caption +
+   strip padding + controls row); the caption keeps no reserved blank lines */
+.breath-strip .card .step-copy,.breath-strip .card h3{min-height:0}
+@media(max-width:360px){:root{--hfit:66px}}
+@media(orientation:portrait),(min-height:501px){.breath-strip .card .step-frame{max-height:max(var(--strip-floor,170px),calc(100svh - var(--hfit,var(--hh,92px)) - var(--strip-chrome,22rem) - 12px))}}
+.breath-strip{padding-bottom:16px}
+@media(max-width:760px){.breath-strip{padding-top:14px;padding-bottom:8px}.sequence-controls{margin-top:6px;padding-top:12px}}
+@media(max-width:360px){.sequence-controls{flex-wrap:nowrap;gap:6px}.sequence-controls [data-play-label]{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}.play-button{min-width:44px;min-height:44px;justify-content:center}}
+@media(min-width:3200px){.sequence{--max:3200px}}
+.twelve--strip{width:clamp(180px,20vw,460px);height:clamp(180px,20vw,460px)}
+/* cover Sūrya disc: in portrait the photo sits under the copy, so nothing of the disc is drawn above the photo's top edge */
+@media(orientation:portrait){.portrait-stage{clip-path:inset(-8px -100vw -100vh -100vw)}}
+.sutra-number{max-width:12ch;line-height:1.35}
+/* links: the arrow stays with its text */
+.paris .testimonials>.text-link,.lineage>a.text-link{white-space:nowrap;gap:8px}
+/* contact: one row layout everywhere (label above value, arrow at the right) */
+.contact-links>a{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:16px;row-gap:2px;align-items:center}
+.contact-links .small-label{grid-column:1;grid-row:1;flex:none}
+.contact-links .contact-value{grid-column:1;grid-row:2}
+.contact-links>a>span:last-child{grid-column:2;grid-row:1/3;margin-left:0;align-self:center}
+/* paper: aged edges only at the sides (top/bottom inset shading met at every section boundary as a tonal seam);
+   the strip band feathers into the page instead of stepping */
+.section,.cover{box-shadow:inset clamp(30px,3vw,110px) 0 clamp(50px,5vw,180px) calc(-1*clamp(30px,3vw,110px)) rgb(120 78 28 / .13),inset calc(-1*clamp(30px,3vw,110px)) 0 clamp(50px,5vw,180px) calc(-1*clamp(30px,3vw,110px)) rgb(120 78 28 / .13)}
+.sequence{background-color:var(--paper);background-image:var(--fibre),linear-gradient(180deg,rgb(222 202 159 / 0),var(--mist) clamp(60px,6vw,180px),var(--mist) calc(100% - clamp(60px,6vw,180px)),rgb(222 202 159 / 0))}
+/* 4K: form labels and consent a step up (inputs stay at the 1.25x cap) */
+@media(min-width:2560px){.registration-form,.newsletter-form{max-width:none}.about-frame .ph{aspect-ratio:2/3;object-position:45% 50%}}
+@media(min-width:3200px){.registration-form .field>label,.newsletter-form .field>label,.levels>legend{font-size:var(--f)}.pill{font-size:calc(var(--f)*.92)}.registration-form .consent,.newsletter-form .consent{font-size:calc(var(--f)*.9)}
+  .cover-copy{grid-column:1/7}.cover-portrait{grid-column:7/-1}.cover-ctas .button{font-size:1.15rem;min-height:3.2rem;padding:.7rem 1.6rem;gap:1rem}}
+/* strip photos cropped to the viewport keep her head in frame */
+.breath-strip .step-frame .ph{object-position:50% 28%}
+/* safety note: same left edge as the hint above it, 75ch measure kept by right padding */
+.sequence-note.container{max-width:none;padding-right:max(0px,calc(min(100vw - var(--gutter)*2,var(--max)) - 75ch))}
+/* landscape phones: About photo beside the text, capped in height */
+@media(orientation:landscape) and (max-height:500px){.about-layout{grid-template-columns:2fr 3fr;align-items:start}.about-frame .ph{max-height:75vh;width:auto;margin-inline:auto}}

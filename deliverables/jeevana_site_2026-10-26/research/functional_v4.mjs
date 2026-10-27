@@ -140,5 +140,20 @@ for (const [kind, sel, fill] of [['register', 'form[data-form=register]', async 
   await p.route('**/api/register', (r) => { hit = true; r.fulfill({ status: 200, body: '{}' }); });
   await p.click('form[data-form=register] button[type=submit]'); await p.waitForTimeout(300);
   ok(!hit && await p.isVisible('form[data-form=register] [data-err]'), 'register: empty submit blocked client-side'); await ctx.close(); }
+{ // v5.1: strip (photo + caption + controls) fits the viewport under the header; header seal legible; phone nav stays reachable
+  for (const [w, h, m] of [[320, 568, true], [390, 844, true], [1024, 768, true], [1440, 900, false], [1920, 1080, false], [3840, 2160, false]]) {
+    const { ctx, p } = await page({ viewport: { width: w, height: h }, isMobile: m, hasTouch: m });
+    await p.goto(BASE + '/', { waitUntil: 'networkidle' }); await p.waitForTimeout(400);
+    await p.evaluate(() => { const el = document.querySelector('[data-strip]'); scrollTo({ top: el.getBoundingClientRect().top + scrollY - 300, behavior: 'instant' }); }); await p.waitForTimeout(250);
+    await p.evaluate(() => { const el = document.querySelector('[data-strip]'); const hh = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hfit')) || document.querySelector('header.bar').offsetHeight; scrollTo({ top: el.getBoundingClientRect().top + scrollY - hh, behavior: 'instant' }); }); await p.waitForTimeout(500);
+    const r = await p.evaluate(() => { const R = (s) => document.querySelector(s).getBoundingClientRect(); const cards = [...document.querySelectorAll('.card')].filter((c) => { const b = c.getBoundingClientRect(); return b.left >= -2 && b.right <= innerWidth + 2; }).length;
+      return { hdr: R('header.bar').bottom, frameTop: R('.card .step-frame').top, ctl: R('.sequence-controls').bottom, cards, seal: R('.bar .logo').height }; });
+    ok(r.frameTop >= r.hdr - 1 && r.ctl <= h + 1, `${w}x${h}: strip photo, caption and controls fit under the header (photo top ${Math.round(r.frameTop)} ≥ ${Math.round(r.hdr)}, controls end ${Math.round(r.ctl)} ≤ ${h})`);
+    if (w >= 3200) ok(r.cards === 5, `${w}: five whole cards in view (${r.cards})`);
+    ok(r.seal >= (w <= 760 ? 48 : 56) - 0.5, `${w}: header seal ${Math.round(r.seal)} px tall`);
+    if (w <= 360) { await p.evaluate(() => scrollBy({ top: -200, behavior: 'instant' })); await p.waitForTimeout(400); ok(await p.isVisible('.primary-nav a[href="#contact"]'), `${w}: navigation returns on scroll up`); }
+    await ctx.close();
+  }
+}
 await b.close();
 console.log(`\n${failn ? 'FAILED' : 'PASSED'} — ${pass} pass, ${failn} fail`); process.exit(failn ? 1 : 0);
