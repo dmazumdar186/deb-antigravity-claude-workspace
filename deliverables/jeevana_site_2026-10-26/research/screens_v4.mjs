@@ -3,7 +3,7 @@ import { createRequire } from 'node:module'; import { mkdirSync, readdirSync, un
 const req = createRequire('/opt/node22/lib/node_modules/'); const { chromium } = req('playwright');
 const BASE = process.argv[2] || 'http://localhost:8794'; const OUT = new URL('./screens_v4/', import.meta.url).pathname;
 mkdirSync(OUT, { recursive: true }); for (const f of readdirSync(OUT)) unlinkSync(OUT + f);
-const b = await chromium.launch(); const secs = ['top', 'practice', 'twelve', 'classes', 'about', 'contact'];
+const b = await chromium.launch(); const secs = ['top', 'about', 'practice', 'twelve', 'classes', 'paris', 'contact'];
 for (const [w, h, mobile] of [[390, 844, true], [844, 390, true], [320, 568, true], [768, 1024, true], [1024, 768, true], [1366, 1024, true], [1440, 900, false], [1920, 1080, false], [2560, 1440, false], [3840, 2160, false]]) {
   const ctx = await b.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 1, isMobile: mobile, hasTouch: mobile });
   const p = await ctx.newPage(); await p.route('**/cloudflareinsights.com/**', (r) => r.fulfill({ status: 200, body: '' }));

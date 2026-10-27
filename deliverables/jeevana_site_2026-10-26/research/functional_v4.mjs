@@ -1,6 +1,6 @@
 // v4 functional gate (Playwright). usage: node research/serve_csp.mjs site 8794 & node research/functional_v4.mjs [base]
 import { createRequire } from 'node:module';
-const req = createRequire('/opt/node22/lib/node_modules/'); const { chromium } = req('playwright');
+const req = createRequire('/opt/node22/lib/node_modules/'); const { chromium, devices } = req('playwright');
 const BASE = process.argv[2] || 'http://localhost:8794';
 let pass = 0, failn = 0; const ok = (c, m) => { if (c) { pass++; console.log('ok  ', m); } else { failn++; console.log('FAIL', m); } };
 const b = await chromium.launch();
@@ -26,7 +26,7 @@ const clsInit = () => { window.__cls = 0; new PerformanceObserver((l) => { for (
   ok(await p.evaluate(() => document.documentElement.lang === 'fr'), 'html lang=fr');
   await p.reload({ waitUntil: 'networkidle' });
   ok((await p.getAttribute('#h1', 'aria-label')).startsWith('Stable.'), 'FR persists after reload');
-  ok((await p.getAttribute('img.ph', 'alt')).includes('Jeevana assise'), 'alt text switches to FR');
+  ok((await p.getAttribute('img.ph', 'alt')).includes('les yeux fermés'), 'alt text switches to FR');
   await p.goto(BASE + '/privacy/'); ok(await p.evaluate(() => document.querySelector('[data-lang-block="fr"]') && !document.querySelector('[data-lang-block="fr"]').hidden), 'privacy page honours FR');
   await p.click('[data-lang="en"]');
   const csp = errs.filter((e) => /Content Security Policy|Refused/.test(e)); ok(csp.length === 0, 'CSP clean ' + csp.join(' | '));
@@ -38,27 +38,65 @@ const clsInit = () => { window.__cls = 0; new PerformanceObserver((l) => { for (
   const lit = () => p.evaluate(() => [...document.querySelectorAll('svg.twelve--strip .arc')].findIndex((a) => a.classList.contains('on')));
   const litC = () => p.evaluate(() => [...document.querySelectorAll('svg.twelve--cover .arc')].findIndex((a) => a.classList.contains('on')));
   ok((await lit()) === 0, 'arc 1 lit by default');
+  const sl = () => p.evaluate(() => document.querySelector('[data-strip]').scrollLeft);
+  const centred = () => p.evaluate(() => { const s = document.querySelector('[data-strip]'), c = document.querySelectorAll('.card')[JV_strip.cur()], a = s.getBoundingClientRect(), b = c.getBoundingClientRect(); return Math.abs(b.left + b.width / 2 - (a.left + a.width / 2)); });
+  const sl0 = await sl();
   await p.click('[data-next]'); await p.waitForTimeout(900);
+  ok((await sl()) > sl0 + 20 && (await centred()) < 4, `next arrow moves the cards (scrollLeft ${sl0} → ${await sl()}) and centres card 2`);
   ok(await p.evaluate(() => JV_strip.cur()) === 1 && (await lit()) === 1 && (await litC()) === 1, 'next arrow → card 2, backdrop arcs follow');
   ok((await p.textContent('[data-cur]')) === '02', 'progress shows 02');
-  await p.focus('[data-strip]'); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(900);
+  const sl1 = await sl(); await p.focus('[data-strip]'); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(900);
+  ok((await sl()) > sl1 + 20, 'ArrowRight moves the cards (scrollLeft changes)');
   ok(await p.evaluate(() => JV_strip.cur()) === 2 && (await lit()) === 2, 'ArrowRight key → card 3');
   await p.keyboard.press('ArrowLeft'); await p.waitForTimeout(900); ok(await p.evaluate(() => JV_strip.cur()) === 1, 'ArrowLeft key → card 2');
-  await p.click('[data-prev]'); await p.waitForTimeout(900); ok(await p.evaluate(() => JV_strip.cur()) === 0, 'prev arrow → card 1');
+  await p.click('[data-prev]'); await p.waitForTimeout(900); ok(await p.evaluate(() => JV_strip.cur()) === 0 && (await centred()) < 4, 'prev arrow → card 1, centred');
   // snap: scroll manually off-centre, expect it to settle centred
   await p.evaluate(() => { const s = document.querySelector('[data-strip]'); s.scrollBy({ left: 1300, behavior: 'instant' }); }); await p.waitForTimeout(1200);
   const off = await p.evaluate(() => { const s = document.querySelector('[data-strip]'); const c = document.querySelectorAll('.card')[JV_strip.cur()]; return Math.abs(c.offsetLeft + c.offsetWidth / 2 - s.scrollLeft - s.clientWidth / 2); });
   ok(off < 4 && (await lit()) === await p.evaluate(() => JV_strip.cur()), `scroll-snap centres a card (off ${off.toFixed(1)}px) and lights its arc`);
   // drag
-  const before = await p.evaluate(() => JV_strip.cur()); const box = await p.locator('[data-strip]').boundingBox();
+  const before = await p.evaluate(() => JV_strip.cur()), slD = await sl(); const box = await p.locator('[data-strip]').boundingBox();
   await p.mouse.move(box.x + box.width / 2, box.y + 200); await p.mouse.down(); await p.mouse.move(box.x + box.width / 2 - 400, box.y + 200, { steps: 8 }); await p.mouse.up(); await p.waitForTimeout(1000);
-  ok(await p.evaluate(() => JV_strip.cur()) > before, 'mouse drag advances');
+  ok(await p.evaluate(() => JV_strip.cur()) > before && (await sl()) > slD + 20, 'mouse drag advances (scrollLeft changes)');
   // autoplay
-  await p.mouse.move(5, 5); const a0 = await p.evaluate(() => JV_strip.cur()); await p.click('[data-play]');
+  await p.mouse.move(5, 5); const a0 = await p.evaluate(() => JV_strip.cur()), slA = await sl(); await p.click('[data-play]');
   ok(await p.evaluate(() => JV_strip.playing()), 'play starts autoplay'); await p.mouse.move(5, 5); await p.waitForTimeout(4600);
-  ok(await p.evaluate(() => JV_strip.cur()) === (a0 + 2) % 12, 'autoplay advanced after 4 s');
+  ok(await p.evaluate(() => JV_strip.cur()) === (a0 + 2) % 12 && (await sl()) !== slA, 'autoplay advanced after 4 s (scrollLeft changes)');
   await p.click('[data-play]'); ok(!(await p.evaluate(() => JV_strip.playing())), 'pause stops autoplay');
   ok(errs.length === 0, 'strip: no console errors ' + errs.join(' | ')); await ctx.close();
+}
+for (const [label, dev] of [['iPhone 13', devices['iPhone 13']], ['iPad Mini', devices['iPad Mini']], ['iPad landscape', devices['iPad Mini landscape']]]) { // touch: CDP swipe + arrows on phone/tablet
+  const { ctx, p, errs } = await page({ ...dev }); await p.goto(BASE + '/', { waitUntil: 'networkidle' });
+  await p.evaluate(() => { const s = document.querySelector('[data-strip]'); scrollTo({ top: s.getBoundingClientRect().top + scrollY - Math.max(0, (innerHeight - s.offsetHeight) / 2) - 40, behavior: 'instant' }); }); await p.waitForTimeout(700);
+  const st = () => p.evaluate(() => ({ sl: document.querySelector('[data-strip]').scrollLeft, cur: JV_strip.cur() }));
+  const box = await p.evaluate(() => { const r = document.querySelector('[data-strip] .card img').getBoundingClientRect(); return { x: Math.round(innerWidth * 0.75), y: Math.round(Math.max(r.top + 30, Math.min(r.top + r.height / 2, innerHeight - 30))) }; });
+  const s0 = await st(); const c = await ctx.newCDPSession(p);
+  await c.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: box.x, y: box.y }] });
+  for (let i = 1; i <= 12; i++) { await c.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: box.x - i * 20, y: box.y }] }); await p.waitForTimeout(16); }
+  await c.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await p.waitForTimeout(1400);
+  const s1 = await st(); ok(s1.sl > s0.sl + 20 && s1.cur > s0.cur, `${label}: touch swipe moves the strip (scrollLeft ${s0.sl} → ${s1.sl}, card ${s0.cur + 1} → ${s1.cur + 1})`);
+  await p.tap('[data-next]'); await p.waitForTimeout(1000); const s2 = await st();
+  ok(s2.sl > s1.sl + 20 && s2.cur === s1.cur + 1, `${label}: next arrow moves the strip (scrollLeft ${s1.sl} → ${s2.sl})`);
+  ok(errs.length === 0, `${label}: console clean ` + errs.join(' | ')); await ctx.close();
+}
+{ // Reserve CTA: smooth-scroll to the form and focus its first field; no 4xx on load; beacons use allowlisted names
+  const { ctx, p } = await page(); const bad = [], names = [];
+  p.on('response', (r) => { if (r.status() >= 400 && !/cloudflareinsights/.test(r.url())) bad.push(r.status() + ' ' + r.url()); });
+  await p.route('**/api/event', (r) => { names.push(r.request().postDataJSON().name); r.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' }); });
+  await p.goto(BASE + '/', { waitUntil: 'networkidle' }); await p.waitForTimeout(500);
+  ok(bad.length === 0, 'no 4xx/5xx responses on load ' + bad.join(' | '));
+  await p.click('.cover [data-reserve]'); await p.waitForTimeout(1600);
+  ok(await p.evaluate(() => document.activeElement && document.activeElement.id === 'reg-name'), 'Reserve a session focuses the first form field');
+  ok(await p.evaluate(() => { const r = document.getElementById('registration').getBoundingClientRect(); return r.top >= -2 && r.top < innerHeight / 2; }), 'Reserve a session scrolls to the form');
+  const allow = ['cover_complete', 'deck_open', 'register_start', 'register_done', 'newsletter_open', 'newsletter_done', 'wa_tap', 'ig_tap', 'call_tap', 'lang_fr'];
+  ok(names.length > 0 && names.every((n) => allow.includes(n)), 'beacon names are on the event.ts allowlist: ' + names.join(','));
+  const h = await p.evaluate(() => document.querySelector('form[data-form=register]').getBoundingClientRect().height); ok(h <= 520, `register form compact on desktop (${Math.round(h)}px ≤ 520)`);
+  ok(await p.evaluate(() => !/€/.test(document.body.innerText) && !/€/.test(document.querySelector('script[type="application/ld+json"]').textContent)), 'no fee or € anywhere on the page');
+  await ctx.close();
+  const m = await page({ ...devices['iPhone 13'] }); await m.p.goto(BASE + '/', { waitUntil: 'networkidle' });
+  const hm = await m.p.evaluate(() => document.querySelector('form[data-form=register]').getBoundingClientRect().height); ok(hm <= 760, `register form compact on iPhone 13 (${Math.round(hm)}px ≤ 760)`);
+  await m.p.click('[data-lang="fr"]'); await m.p.waitForTimeout(200);
+  ok(!/€/.test(await m.p.evaluate(() => document.body.innerText)), 'no € in French either'); await m.ctx.close();
 }
 { // reduced motion: autoplay honours it (instant scroll), rings filled
   const { ctx, p } = await page({ reducedMotion: 'reduce' }); await p.goto(BASE + '/', { waitUntil: 'networkidle' });
