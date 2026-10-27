@@ -1,0 +1,88 @@
+# gates 07 2026-10-27T10:48:48Z
+## site_check
+ok   pixel7_: inputs ≥16px
+ok   pixel7_: bottom bar clear of CTA
+ok   pixel7_: console clean
+ok   pixel7_privacy_: nothing hidden after fling
+ok   pixel7_privacy_: no overflow
+ok   pixel7_privacy_: all reveals shown
+ok   pixel7_privacy_: tap targets ok
+ok   pixel7_privacy_: inputs ≥16px
+ok   pixel7_privacy_: bottom bar clear of CTA
+ok   pixel7_privacy_: console clean
+ok   iphone13_: nothing hidden after fling
+ok   iphone13_: no overflow
+ok   iphone13_: all reveals shown
+FAIL iphone13_: tap targets <40px: INPUT. 20x20 | INPUT. 20x20
+ok   iphone13_: inputs ≥16px
+ok   iphone13_: bottom bar clear of CTA
+ok   iphone13_: console clean
+ok   iphone13_privacy_: nothing hidden after fling
+ok   iphone13_privacy_: no overflow
+ok   iphone13_privacy_: all reveals shown
+ok   iphone13_privacy_: tap targets ok
+ok   iphone13_privacy_: inputs ≥16px
+ok   iphone13_privacy_: bottom bar clear of CTA
+ok   iphone13_privacy_: console clean
+ok   pixel7-reduced_: nothing hidden after fling
+ok   pixel7-reduced_: no overflow
+ok   pixel7-reduced_: all reveals shown
+FAIL pixel7-reduced_: tap targets <40px: INPUT. 20x20 | INPUT. 20x20
+ok   pixel7-reduced_: inputs ≥16px
+ok   pixel7-reduced_: bottom bar clear of CTA
+ok   pixel7-reduced_: console clean
+ok   pixel7-reduced_privacy_: nothing hidden after fling
+ok   pixel7-reduced_privacy_: no overflow
+ok   pixel7-reduced_privacy_: all reveals shown
+ok   pixel7-reduced_privacy_: tap targets ok
+ok   pixel7-reduced_privacy_: inputs ≥16px
+ok   pixel7-reduced_privacy_: bottom bar clear of CTA
+ok   pixel7-reduced_privacy_: console clean
+
+FAILED — 3 failure(s). Screenshots: /home/user/deb-antigravity-claude-workspace/deliverables/jeevana_site_2026-10-26/screens
+## functional_v4
+ok   layout shift 0.000 < .05
+ok   all images have alt
+ok   every photo has descriptive alt
+ok   FR toggle switches the headline
+ok   html lang=fr
+ok   FR persists after reload
+ok   alt text switches to FR
+ok   privacy page honours FR
+ok   CSP clean 
+ok   no console errors 
+ok   arc 1 lit by default
+ok   next arrow → card 2, backdrop arcs follow
+ok   progress shows 02
+ok   ArrowRight key → card 3
+ok   ArrowLeft key → card 2
+ok   prev arrow → card 1
+ok   scroll-snap centres a card (off 0.5px) and lights its arc
+FAIL mouse drag advances
+ok   play starts autoplay
+FAIL autoplay advanced after 4 s
+ok   pause stops autoplay
+ok   strip: no console errors 
+ok   reduced motion: backdrop static
+ok   reduced motion: rings filled
+ok   register: 200 → success state in place, body has consent/lang/honeypot
+ok   register: no page reload
+ok   register 200: console clean
+ok   register: 400 → error shown
+ok   register: no page reload
+ok   register 400: console clean
+ok   subscribe: 200 → success state in place, body has consent/lang/honeypot
+ok   subscribe: no page reload
+ok   subscribe 200: console clean
+ok   subscribe: 400 → error shown
+ok   subscribe: no page reload
+ok   subscribe 400: console clean
+ok   register: empty submit blocked client-side
+
+FAILED — 35 pass, 2 fail
+## screens_v4
+screens -> /home/user/deb-antigravity-claude-workspace/deliverables/jeevana_site_2026-10-26/research/screens_v4/ 124
+pngs: 124
+## grep forbidden
+## weight
+104K	total
