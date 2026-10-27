@@ -1,6 +1,6 @@
 # Jeevana site — paid spend (billable third-party costs)
 
-Generated 2026-10-27 18:03 UTC by `research/billing/spend_report.py` from the per-call ledgers.
+Generated 2026-10-27 18:36 UTC by `research/billing/spend_report.py` from the per-call ledgers.
 
 | Vendor | USD |
 |---|---|
@@ -53,3 +53,4 @@ Generated 2026-10-27 18:03 UTC by `research/billing/spend_report.py` from the pe
 | 2026-10-27T17:03:30Z | 30 | 19.4977 |
 | 2026-10-27T17:20:15Z | 30 | 19.5164 |
 | 2026-10-27T18:03:09Z | 30 | 19.5322 |
+| 2026-10-27T18:36:30Z | 30 | 19.8875 |

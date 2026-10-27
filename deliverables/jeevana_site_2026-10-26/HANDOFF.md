@@ -104,3 +104,16 @@ arrangement; French or English; all levels; teenagers and adults; session shape.
 Superprof recommendation is never used. Superprof linked from About, Contact and JSON-LD `sameAs`. Gates green (site_check 0,
 functional 37/37); `eye_15.md` P2s fixed (price tiers as three `data-i18n` spans, list spacing, credential line balanced).
 Still to wire: written consent from Egle and Thomas to quote them; online booking; timetable.
+
+### v5 (2026-10-27, evening): operator review applied — preview https://v4.jeevana-yoga.pages.dev
+Sun-photo cover with "Reserve a session" → form; About me next (diwali photo, first person, Tapovan training high up); practice;
+twelve breaths (start-aligned strip: 1+peek / 2 / 3 / 4 / 5 cards by width, controls below captions, fits 100svh; arrows, keys,
+drag, touch, autoplay verified on the live preview in Chromium desktop + iPhone/iPad/Pixel emulation); classes + compact form
+(457 px desktop / 680 px phone); Paris with the red saree at the Eiffel Tower (back-bend removed) + two quotes; contact with the
+lobby photo. No fees anywhere. Palm-leaf manuscript palette (parchment, vermilion, turmeric, indigo) with Sūrya disc, Om, lotus,
+yantra, diya, binding holes, Devanagari numerals (GLM 5.3 drafts, $0.009). Photos: Instagram UI cropped out, Real-ESRGAN x4plus +
+RealPLKSR x2 blend (free models), regraded. Brand: client chose Concept 2 seal, name "Jeevana Yoga & Wellness", G1A kept
+(pronounced like Jeevana); logo/logo-header/logo-stacked/mark/favicon/og in site/assets/brand (research/brand_v5.py).
+Reviews: four Sonnet eye audits per round (eye_17, eye_21) + Sol/GLM critiques; final gates site_check PASSED, functional 75/75, 148 PNGs.
+Not tested: real Safari/WebKit (not installed). Billing: research/billing/SPEND.md (rebuilt by research/billing/spend_report.py).
+Production still serves deploy 1; promote only on the operator's word.
