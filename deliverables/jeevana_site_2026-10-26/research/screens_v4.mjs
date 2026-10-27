@@ -18,7 +18,7 @@ for (const [w, h, mobile] of [[390, 844, true], [844, 390, true], [320, 568, tru
     if (mobile || s === 'classes') { await p.evaluate(() => scrollBy(0, innerHeight - 140)); await p.waitForTimeout(700); await p.screenshot({ path: `${OUT}${w}-0${i + 2}-${s}-b.png` }); }
   }
   for (const n of [1, 6, 12]) {
-    await p.evaluate((n) => { JV_strip.go(n - 1); const el = document.querySelector('.strip'); scrollTo(0, el.getBoundingClientRect().top + scrollY - (innerHeight - el.offsetHeight) / 2); }, n); await p.waitForTimeout(1300);
+    await p.evaluate((n) => { JV_strip.go(n - 1); const el = document.querySelector('[data-strip]'); scrollTo(0, el.getBoundingClientRect().top + scrollY - (innerHeight - el.offsetHeight) / 2); }, n); await p.waitForTimeout(1300);
     await p.screenshot({ path: `${OUT}${w}-strip-${String(n).padStart(2, '0')}.png` });
   }
   await ctx.close();

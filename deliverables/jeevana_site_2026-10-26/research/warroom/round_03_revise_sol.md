@@ -1,0 +1,9 @@
+# Round 3 revise by openai/gpt-6.1-sol-pro
+
+Revised all four files: restored the DOM hooks; added independent, strip-driven twelve-arc backdrops; preserved framed photographs and the centre-detection/drag engine; enlarged labels and legal text; corrected mist contrast, checkbox sizing and touch targets; added fluid 4K containers, portrait stacking, short-landscape layouts and safe-area spacing. Autoplay stops at twelve instead of rewinding. Forms now provide translated inline validation, optional newsletter phone, sibling success states and fetch-based events, with subscribe counted only after success. Language restoration starts synchronously, uses jv_lang, and supports privacy language blocks and legacy toggle attributes. Main-page components are guarded when absent.
+
+Repository-dependent work remains unverified: asset existence/weight, photo processing, privacy markup, automated gates, screenshots, reviewer rounds, handoff/commit and preview deployment. No passing gates or deployment are claimed. The OG tag deliberately retains the supplied, known hero asset; the required 1200×630 paper-margin rendition still needs generation rather than referencing a nonexistent file.
+
+Files: site/index.html (42645 B), site/css/styles.css (34282 B), site/js/main.js (12257 B), site/js/i18n.js (18791 B)
+
+Usage: {'prompt_tokens': 147972, 'completion_tokens': 40893, 'total_tokens': 188865, 'cost': 0.6024868, 'is_byok': False, 'prompt_tokens_details': {'cached_tokens': 53888, 'cache_write_tokens': 0, 'audio_tokens': 0, 'video_tokens': 0}, 'cost_details': {'upstream_inference_cost': 0.6024868, 'upstream_inference_prompt_cost': 0.1935568, 'upstream_inference_completions_cost': 0.40893}, 'completion_tokens_details': {'reasoning_tokens': 6783, 'image_tokens': 0, 'audio_tokens': 0}, 'wall_s': 450.1, 'gen': 'gen-1793093151-xXbJQAWMBIa1tMgrguQJ', 'finish': 'stop'}
