@@ -18,6 +18,7 @@ Every slot below ships empty or generic-true; nothing was invented.
 | Kling film (final, 11 legs) | `research/film/hero.*` → `node research/stamp.mjs` copies to `site/assets/film/`; re-run figure_boxes.py, prep_assets.py, functional, screens | 5 s stand-in (`standin:true`), scaled to 12 states |
 | Instagram bio link | `https://<domain>/?utm_source=instagram&utm_medium=bio` | — |
 | Jeevana's written OK | photos, phone, copy (record in HANDOFF.md) before the domain goes live | pending |
+| Tapovan training details (years, course) | lineage line in About names the school only (operator 2026-10-27); add years/course once Jeevana confirms | pending |
 | Content order (lens 5) | timetable → price → first-class terms → one consented testimonial → arrondissement + reply time | pending |
 
 Wired: contact email Jeevana.yogawellness@gmail.com (operator 2026-10-26; old address removed from site/, asserted); phone / WhatsApp +33 7 54 28 72 10 (Contact row + mobile bar only); KV `JEEVANA_KV` (id in wrangler.toml);

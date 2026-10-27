@@ -1,186 +1,197 @@
-/* Jeevana — every visible string, EN + FR. Sanskrit (Devanagari / IAST) is shared by both languages. */
-(function () {
+(() => {
   'use strict';
-  var S = {
-    'brand': 'Jeevana',
-    'sn.1.dev': 'प्रणामासन', 'sn.1.iast': 'Praṇāmāsana', 'sn.1.mantra': 'Om Mitrāya Namaḥ',
-    'sn.2.dev': 'हस्त उत्तानासन', 'sn.2.iast': 'Hasta Uttānāsana', 'sn.2.mantra': 'Om Ravaye Namaḥ',
-    'sn.3.dev': 'पादहस्तासन', 'sn.3.iast': 'Pādahastāsana', 'sn.3.mantra': 'Om Sūryāya Namaḥ',
-    'sn.4.dev': 'अश्व सञ्चलनासन', 'sn.4.iast': 'Aśva Sañcālanāsana', 'sn.4.mantra': 'Om Bhānave Namaḥ',
-    'sn.5.dev': 'पर्वतासन', 'sn.5.iast': 'Parvatāsana', 'sn.5.mantra': 'Om Khagāya Namaḥ',
-    'sn.6.dev': 'अष्टाङ्ग नमस्कार', 'sn.6.iast': 'Aṣṭāṅga Namaskāra', 'sn.6.mantra': 'Om Pūṣṇe Namaḥ',
-    'sn.7.dev': 'भुजङ्गासन', 'sn.7.iast': 'Bhujaṅgāsana', 'sn.7.mantra': 'Om Hiraṇyagarbhāya Namaḥ',
-    'sn.8.dev': 'पर्वतासन', 'sn.8.iast': 'Parvatāsana', 'sn.8.mantra': 'Om Marīcaye Namaḥ',
-    'sn.9.dev': 'अश्व सञ्चलनासन', 'sn.9.iast': 'Aśva Sañcālanāsana', 'sn.9.mantra': 'Om Ādityāya Namaḥ',
-    'sn.10.dev': 'पादहस्तासन', 'sn.10.iast': 'Pādahastāsana', 'sn.10.mantra': 'Om Savitre Namaḥ',
-    'sn.11.dev': 'हस्त उत्तानासन', 'sn.11.iast': 'Hasta Uttānāsana', 'sn.11.mantra': 'Om Arkāya Namaḥ',
-    'sn.12.dev': 'प्रणामासन', 'sn.12.iast': 'Praṇāmāsana', 'sn.12.mantra': 'Om Bhāskarāya Namaḥ'
+  const en = {
+    pageTitle: `Jeevana — Yoga in Paris`,
+    description: `Yoga in Paris with Jeevana Gogula. Explore the practice, discover twelve breaths, and register your interest in a class.`,
+    ogDescription: `Steady. At ease. Twelve breaths at a time. Yoga in Paris with Jeevana Gogula.`,
+    ogImageAlt: `Jeevana seated on a park lawn in Paris.`,
+    skip: `Skip to content`, home: `Jeevana — home`, navigation: `Main navigation`, language: `Language`,
+    navPractice: `Practice`, navBreaths: `Twelve breaths`, navClasses: `Classes`, navContact: `Contact`, register: `Register`,
+    heroEyebrow: `Yoga in Paris`, heroLine1: `Steady. At ease.`, heroLine2: `Twelve breaths`, heroLine3: `at a time.`,
+    heroSub: `The posture is steady and at ease. A place to begin, with movement, attention, and the breath.`,
+    heroRegister: `Register for a class`, seeClasses: `See the classes`, portraitNote: `A little space to simply be.`,
+    coverFoot: `Movement. Stillness. A fresh beginning.`, explore: `Explore the practice`,
+    practiceEyebrow: `01 / The practice`, practiceTitle: `Less striving.\nMore listening.`,
+    sutra12: `Yoga is the stilling of the movements of the mind.`, sutra12Ref: `Yoga Sūtra 1.2`,
+    practiceBody: `Jeevana teaches yoga in Paris. The practice begins with attention: noticing the ground, the rhythm of breathing, and the space between movements. A posture is not an image to reproduce, but a place to explore steadiness and ease. Movement and stillness belong together; effort can sit alongside softness. From a simple seated pause to a flowing sequence, the invitation is to stay curious about what is present. There is no need to rush towards a shape. Each breath offers another moment to listen, adjust, and begin again with fresh attention.`,
+    photoLift: `01 · Open`, photoRest: `02 · Rest`, photoBe: `03 · Be`,
+    breathsEyebrow: `02 / Sūrya Namaskāra`, breathsTitle: `One breath.\nTwelve moments.`,
+    breathsBody: `A sun salutation, unfolded. Follow the photographs, the breath, and the words that accompany each movement.`,
+    stripHelp: `Swipe or drag to explore. Use the arrow keys when the sequence is focused.`,
+    stripLabel: `Twelve breaths: sun salutation`, previous: `Previous breath`, next: `Next breath`,
+    playSequence: `Play the sequence`, pauseSequence: `Pause the sequence`, motionOff: `Autoplay off`, breathCount: `Breath {n} of 12`,
+    sequenceNote: `An invitation to explore, not a substitute for individual guidance. Let comfort lead; never force or hold the breath if it feels uncomfortable.`,
+    classesEyebrow: `03 / Practise together`, classesTitle: `Make room\nfor your practice.`,
+    timetable: `Timetable opens soon — register your interest.`,
+    group: `Group`, private: `Private`, workshop: `Workshop`,
+    groupBody: `Share the space, and explore movement and stillness together.`,
+    privateBody: `A space to discuss your questions and your own practice.`,
+    workshopBody: `Time set aside to explore a part of the practice more closely.`,
+    price: `Price on request`, interest: `Register your interest`,
+    registrationEyebrow: `Your next breath`, registrationTitle: `Begin with\na hello.`,
+    registrationBody: `Tell Jeevana what you are looking for. This is an expression of interest, not a confirmed booking.`,
+    preferEmail: `Prefer email? Write to Jeevana ↗`, registrationFormTitle: `Class registration`, yourDetails: `Your details`,
+    requiredNote: `All fields are required unless marked optional.`, name: `Name`, email: `Email`, optionalPhone: `Phone (optional)`,
+    phoneHint: `Include your country code, for example +33.`, format: `Format`, anyFormat: `Open to any format`, experience: `Experience`,
+    levelNew: `New to yoga`, levelSome: `Some experience`, levelRegular: `Regular practice`, message: `A note for Jeevana (optional)`,
+    registerConsent: `I agree that Jeevana stores these details to answer my registration. They are never shared or sold, and I can ask for their deletion at any time by email.`,
+    subscribeConsent: `I agree to receive Jeevana's newsletter by email. I can unsubscribe at any time.`,
+    privacyShort: `Privacy information`, sendRegistration: `Send my interest`, sending: `Sending…`,
+    registrationSuccessTitle: `Your hello is on its way.`,
+    registrationSuccessBody: `Thank you for your interest. Jeevana has received your details. This is not a confirmed booking.`,
+    errorName: `Please enter your name. Your other details have been kept.`,
+    errorEmail: `Please check your email address and try again. Your details have been kept.`,
+    errorPhone: `Please check your phone number, including its country code, and try again.`,
+    errorConsent: `Please tick the consent checkbox before sending.`,
+    errorRate: `Too many attempts. Please wait 10 minutes before trying again, or contact Jeevana by email.`,
+    errorServer: `Your request could not be saved. Your details are still here. Please try again or email Jeevana.`,
+    errorNetwork: `The request could not be confirmed. Please check your connection and try again, or email Jeevana. Your details are still here.`,
+    aboutEyebrow: `04 / Jeevana, Paris`, aboutTitle: `Rooted in practice.\nHere in Paris.`,
+    aboutBody: `Yoga has a place in the city, too. Jeevana Gogula teaches in Paris, where the pace of everyday life offers a reason to pause. Her practice brings attention back to movement, breath, and stillness. Whether you are looking for a group class or a private session, you can get in touch to explore a way to practise together in Paris.`,
+    lineage: `Lineage`, tapovan: `Graduate of Tapovan`, lineageBody: `This training provides a foundation for sharing the practice with care.`,
+    contactEyebrow: `05 / Stay in touch`, contactTitle: `A conversation\nis a beginning.`,
+    newsletterEyebrow: `A note, now and then`, newsletterTitle: `Keep a little space\nfor yoga.`,
+    newsletterBody: `Receive Jeevana’s newsletter by email.`, newsletterFormTitle: `Newsletter sign-up`, yourEmail: `Your email`, subscribe: `Subscribe`,
+    newsletterSuccessTitle: `A little space, kept.`, newsletterSuccessBody: `Thank you. You are subscribed to Jeevana’s newsletter. You can unsubscribe at any time.`,
+    footerThought: `Steady. At ease. One breath at a time.`, backTop: `Back to top`, privacy: `Privacy & mentions légales`, designerEmail: `Email Debanjan Mazumdar`,
+    heroAlt: `Jeevana seated cross-legged on a park lawn in Paris, eyes closed, a gentle smile, hands resting on her knees.`,
+    practice01Alt: `Jeevana in cobra pose on a mat, chest lifted, eyes closed.`,
+    practice02Alt: `Jeevana in child's pose on a grey mat, seen from above.`,
+    practice03Alt: `Jeevana seated in meditation on the grass, hands in jñāna mudrā.`,
+    parisAlt: `Jeevana in a full backbend, Chakrāsana, on a blue mat on the Champ-de-Mars, the Eiffel Tower behind her.`
   };
-  var B = ['ex', 'in', 'ex', 'in', 'ex', 're', 'in', 'ex', 'in', 'ex', 'in', 'ex'];
-  var en = {
-    'title': 'Jeevana — Yoga in Paris',
-    'skip': 'Skip to content', 'lang.label': 'Language',
-    'nav.classes': 'Classes', 'nav.register': 'Register',
-    'cover.tag': 'Yoga in Paris',
-    'cover.s12.ref': 'Yoga Sūtra 1.2', 'cover.s12.tr': 'Yoga is the stilling of the movements of the mind.',
-    'cover.s246.ref': 'Yoga Sūtra 2.46', 'cover.s246.tr': 'The posture is steady and at ease.',
-    'cta.register': 'Register for a class', 'cta.classes': 'See the classes',
-    'hint': 'Scroll', 'rail.label': 'Sūrya Namaskāra — the twelve breaths',
-    
-    'rail.pos': 'Position', 'rail.trad': 'What the tradition says',
-    'breath.in': 'Inhale', 'breath.ex': 'Exhale', 'breath.re': 'Retain the breath',
-    'sn.1.tr': 'to the friend of all', 'sn.2.tr': 'to the shining one', 'sn.3.tr': 'to the one who induces activity',
-    'sn.4.tr': 'to the one who illumines', 'sn.5.tr': 'to the one who moves through the sky', 'sn.6.tr': 'to the giver of strength',
-    'sn.7.tr': 'to the golden cosmic self', 'sn.8.tr': 'to the rays of light', 'sn.9.tr': 'to the son of Aditi',
-    'sn.10.tr': 'to the stimulating power', 'sn.11.tr': 'to the one who is fit to be praised', 'sn.12.tr': 'to the one who leads to enlightenment',
-    'ch.cover': 'Jeevana', 'ch.fold': 'The practice',
-    'fold.no': '01 —', 'fold.title': 'The practice',
-    'fold.lead': 'Every class holds three things: posture, movement and breath.',
-    
-    'plate.hatha': 'Hatha', 'plate.hatha.d': 'Held postures, built with attention to alignment and breath.',
-    'plate.vinyasa': 'Vinyasa', 'plate.vinyasa.d': 'Movement linked to breath, one position flowing into the next.',
-    'plate.breath': 'Breath & stillness', 'plate.breath.d': 'Breathing practice and a closing rest, where the class settles.',
-    'plate.s12.ref': 'Yoga Sūtra 1.2',
-    
-    'alt.sn': 'Jeevana in the position shown on the rail', 'alt.portrait': 'Jeevana seated, smiling', 'alt.tree': 'Jeevana in tree pose on the Champ-de-Mars, Eiffel Tower behind', 'alt.seated': 'Jeevana in seated meditation', 'alt.cobra': 'Jeevana in cobra pose, eyes closed', 'alt.child': 'Jeevana in child\'s pose, seen from above', 'alt.gal': 'Jeevana, photograph',
-    'alt.eiffel': 'Jeevana in wheel pose on the Champ-de-Mars, Eiffel Tower behind',
-    'deck.label': 'Chapters',
-    'tab.about': '02 About', 'tab.classes': '03 Classes', 'tab.register': '04 Register', 'tab.contact': '05 Contact',
-    'ch.about': 'About', 'ch.classes': 'Classes', 'ch.register': 'Register', 'ch.contact': 'Contact',
-    'about.h': 'Yoga in Paris, taught from the tradition.',
-    'about.bio': 'Jeevana teaches yoga in Paris. Classes in Paris — group and private. Each class follows the traditional order of posture, breath and rest, and adapts to the body in the room.',
-    'about.c1.h': 'Traditional roots', 'about.c1.p': 'The Yoga Sūtras, the breath and the sequence. Sūrya Namaskāra is taught as the tradition teaches it: breath and movement together.',
-    'about.c2.h': 'For every body', 'about.c2.p': 'Beginners are welcome. Every posture has an adaptation, and the breath sets the pace, not the clock.',
-    'about.c3.h': 'In Paris', 'about.c3.p': 'Classes in Paris — group and private. Location shared on registration.',
-    'about.n1': 'positions in Sūrya Namaskāra', 'about.n2': 'limbs of yoga in the Yoga Sūtras', 'about.n3': 'chapters of the Yoga Sūtras',
-    'classes.h': 'Weekly timetable',
-    'day.1': 'Mon', 'day.2': 'Tue', 'day.3': 'Wed', 'day.4': 'Thu', 'day.5': 'Fri', 'day.6': 'Sat', 'day.7': 'Sun',
-    'classes.empty': 'The timetable opens soon.',
-    'classes.empty.cta': 'Register your interest',
-    'class.group': 'Group class', 'class.group.d': 'A small group, all levels, one sequence practised together.',
-    'class.private': 'Private session', 'class.private.d': 'One to one, at your pace: a first practice or a specific need.',
-    'class.workshop': 'Workshop', 'class.workshop.d': 'A longer session on one theme: the breath, a family of postures, the twelve positions.',
-    'price': 'Price on request',
-    'reg.h': 'Register for a class', 'reg.lead': 'Leave your details and Jeevana will reply by email.',
-    'f.name': 'Name', 'f.email': 'Email', 'f.phone': 'Phone (optional)', 'f.class': 'Class', 'f.any': 'Any class',
-    'f.level': 'Level', 'lv.new': 'New to yoga', 'lv.some': 'Some practice', 'lv.reg': 'Regular practice',
-    'f.msg': 'Message (optional)', 'f.hp': 'Leave this field empty',
-    'reg.consent': 'I agree that Jeevana stores these details to answer my registration. They are never shared or sold, and I can ask for their deletion at any time by email.',
-    'reg.send': 'Send my registration',
-    'reg.ok': 'Thank you. Your registration has arrived; Jeevana will reply by email.',
-    'reg.err': 'It did not go through. Write directly to Jeevana:',
-    'reg.subject': 'Registration — Jeevana Yoga',
-    'contact.h': 'Contact', 'contact.lead': 'For classes in Paris, group and private.', 'c.phone': 'Phone · WhatsApp', 'c.phone.v': '— call or WhatsApp',
-    'c.email': 'Email', 'c.ig': 'Instagram', 'c.wa': 'WhatsApp', 'c.tel': 'Phone', 'c.fb': 'Facebook',
-    'news.h': 'Keep in touch with Jeevana',
-    'news.p': 'Newsletters, events and workshops in Paris.', 'news.note': 'Voluntary — close this and nothing happens.',
-    'news.consent': 'I agree to receive Jeevana\'s newsletter by email. I can unsubscribe at any time.',
-    'news.yes': 'Keep me posted', 'news.no': 'No thanks',
-    'news.ok': 'Thank you. You are on the list.', 'news.err': 'It did not go through. Please try again later.',
-    'foot.news': 'Newsletter', 'foot.news.p': 'Events and workshops in Paris, a few times a year.',
-    'foot.sub': 'Subscribe', 'foot.city': 'Yoga in Paris',
-    'foot.sig': 'Designed by Debanjan Mazumdar · ProdCraft',
-    'mbar.register': 'Register', 'mbar.classes': 'Classes', 'mbar.label': 'Quick actions', 'nav.label': 'Main',
-    'cover.kicker': 'Jeevana — Yoga in Paris', 'cover.h': 'Twelve breaths.', 'rail.of': '/ 12',
-    'alt.ashtanga': 'Jeevana in Aṣṭāṅga Namaskāra, the eight-limbed salute',
-    'foot.privacy': 'Privacy · Mentions légales',
-    'err.req': 'Please fill in this field.', 'err.email': 'Please enter a valid email address.', 'err.consent': 'Please tick the box to agree.',
-    'err.wa': 'or message Jeevana on WhatsApp', 'mail.body': 'My registration (the form did not go through):',
-    'nf.h': 'This page is resting.', 'nf.p': 'The page you asked for does not exist.', 'nf.home': 'Jeevana — Yoga in Paris',
-    'nav.practice': 'The practice', 'nav.contact': 'Contact',
-    'rail.note': 'a traditional sequence, taught as breath and movement', 'rail.now': 'Now',
-    'ch1.no': '01', 'ch1.h': 'The practice', 'ch1.lead': 'Every class holds three things: posture, movement and breath.',
-    'ch1.i1.h': 'The breath sets the pace', 'ch1.i1.p': 'Each movement rides an inhale or an exhale. The breath sets the pace, not the clock.',
-    'ch1.i2.h': 'A sequence', 'ch1.i2.p': 'Each class follows the traditional order of posture, breath and rest, and adapts to the body in the room.',
-    'ch1.i3.h': 'Stillness', 'ch1.i3.p': 'Breathing practice and a closing rest, where the class settles.',
-    'ch1.i4.h': 'Beginners welcome', 'ch1.i4.p': 'Beginners are welcome. Every posture has an adaptation.',
-    'ch2.no': '02', 'ch2.h': 'Classes & registration', 'ch2.offers': 'Offers', 'ch2.tt': 'Timetable',
-    'ch3.no': '03', 'ch3.h': 'Contact', 'eiffel.cap': 'Champ-de-Mars, Paris', 'mbar.wa': 'WhatsApp',
-    'alt.film': 'Jeevana moving through Sūrya Namaskāra', 'alt.still': 'Jeevana in the sequence, a still from the film', 'news.close': 'Close', 'rail.short': 'The twelve breaths', 'alt.still3': 'Jeevana in Praṇāmāsana, palms together, the last frame of the film', 'err.phone': 'Please enter a valid phone number.'
+  const fr = {
+    pageTitle: `Jeevana — Yoga à Paris`,
+    description: `Le yoga à Paris avec Jeevana Gogula. Explorez la pratique, découvrez douze souffles et manifestez votre intérêt pour un cours.`,
+    ogDescription: `Stable. À l'aise. Douze souffles à la fois. Le yoga à Paris avec Jeevana Gogula.`,
+    ogImageAlt: `Jeevana assise sur une pelouse à Paris.`,
+    skip: `Aller au contenu`, home: `Jeevana — accueil`, navigation: `Navigation principale`, language: `Langue`,
+    navPractice: `Pratique`, navBreaths: `Douze souffles`, navClasses: `Cours`, navContact: `Contact`, register: `S’inscrire`,
+    heroEyebrow: `Yoga à Paris`, heroLine1: `Stable. À l'aise.`, heroLine2: `Douze souffles`, heroLine3: `à la fois.`,
+    heroSub: `La posture est stable et confortable. Un point de départ, avec le mouvement, l’attention et le souffle.`,
+    heroRegister: `S’inscrire à un cours`, seeClasses: `Découvrir les cours`, portraitNote: `Un peu d’espace pour simplement être.`,
+    coverFoot: `Mouvement. Immobilité. Un nouveau départ.`, explore: `Explorer la pratique`,
+    practiceEyebrow: `01 / La pratique`, practiceTitle: `Moins chercher.\nMieux écouter.`,
+    sutra12: `Le yoga est l'apaisement des mouvements du mental.`, sutra12Ref: `Yoga Sūtra 1.2`,
+    practiceBody: `Jeevana enseigne le yoga à Paris. La pratique commence par l’attention : sentir le sol, le rythme de la respiration et l’espace entre les mouvements. Une posture n’est pas une image à reproduire, mais un lieu où explorer la stabilité et l’aisance. Mouvement et immobilité se répondent ; l’effort peut côtoyer la douceur. D’une simple pause assise à un enchaînement fluide, l’invitation est de rester à l’écoute de ce qui est là. Inutile de se précipiter vers une forme. Chaque souffle offre un instant pour écouter, ajuster et recommencer avec une attention renouvelée.`,
+    photoLift: `01 · S’ouvrir`, photoRest: `02 · Se reposer`, photoBe: `03 · Être`,
+    breathsEyebrow: `02 / Sūrya Namaskāra`, breathsTitle: `Un souffle.\nDouze instants.`,
+    breathsBody: `Une salutation au soleil, pas à pas. Suivez les photographies, le souffle et les mots qui accompagnent chaque mouvement.`,
+    stripHelp: `Balayez ou faites glisser pour explorer. Utilisez les touches fléchées lorsque la séquence est sélectionnée.`,
+    stripLabel: `Douze souffles : salutation au soleil`, previous: `Souffle précédent`, next: `Souffle suivant`,
+    playSequence: `Lancer la séquence`, pauseSequence: `Mettre en pause`, motionOff: `Lecture auto désactivée`, breathCount: `Souffle {n} sur 12`,
+    sequenceNote: `Une invitation à explorer, qui ne remplace pas un accompagnement individuel. Privilégiez le confort ; ne forcez jamais et ne retenez pas le souffle si cela vous gêne.`,
+    classesEyebrow: `03 / Pratiquer ensemble`, classesTitle: `Faire une place\nà votre pratique.`,
+    timetable: `Le planning ouvre bientôt — manifestez votre intérêt.`,
+    group: `Collectif`, private: `Individuel`, workshop: `Atelier`,
+    groupBody: `Partager un espace et explorer ensemble le mouvement et l’immobilité.`,
+    privateBody: `Un espace pour échanger sur vos questions et votre propre pratique.`,
+    workshopBody: `Un temps dédié pour explorer un aspect de la pratique de plus près.`,
+    price: `Tarif sur demande`, interest: `Manifester mon intérêt`,
+    registrationEyebrow: `Votre prochain souffle`, registrationTitle: `Commencer par\nun bonjour.`,
+    registrationBody: `Dites à Jeevana ce que vous recherchez. Il s’agit d’une manifestation d’intérêt, et non d’une réservation confirmée.`,
+    preferEmail: `Par e-mail ? Écrivez à Jeevana ↗`, registrationFormTitle: `Inscription à un cours`, yourDetails: `Vos coordonnées`,
+    requiredNote: `Tous les champs sont requis, sauf mention « facultatif ».`, name: `Nom`, email: `E-mail`, optionalPhone: `Téléphone (facultatif)`,
+    phoneHint: `Indiquez l’indicatif du pays, par exemple +33.`, format: `Format`, anyFormat: `Tous les formats m’intéressent`, experience: `Expérience`,
+    levelNew: `Je découvre le yoga`, levelSome: `J’ai déjà pratiqué`, levelRegular: `Je pratique régulièrement`, message: `Un mot pour Jeevana (facultatif)`,
+    registerConsent: `J'accepte que Jeevana conserve ces informations pour répondre à mon inscription. Elles ne sont jamais partagées ni vendues, et je peux demander leur suppression à tout moment par e-mail.`,
+    subscribeConsent: `J'accepte de recevoir la lettre d'information de Jeevana par e-mail. Je peux me désinscrire à tout moment.`,
+    privacyShort: `Protection des données`, sendRegistration: `Envoyer ma demande`, sending: `Envoi en cours…`,
+    registrationSuccessTitle: `Votre bonjour est envoyé.`,
+    registrationSuccessBody: `Merci pour votre intérêt. Jeevana a reçu vos coordonnées. Il ne s’agit pas d’une réservation confirmée.`,
+    errorName: `Veuillez indiquer votre nom. Vos autres informations sont conservées.`,
+    errorEmail: `Vérifiez votre adresse e-mail et réessayez. Vos informations sont conservées.`,
+    errorPhone: `Vérifiez votre numéro de téléphone, avec l’indicatif du pays, puis réessayez.`,
+    errorConsent: `Veuillez cocher la case de consentement avant l’envoi.`,
+    errorRate: `Trop de tentatives. Patientez 10 minutes avant de réessayer, ou contactez Jeevana par e-mail.`,
+    errorServer: `Votre demande n’a pas pu être enregistrée. Vos informations sont toujours là. Réessayez ou écrivez à Jeevana.`,
+    errorNetwork: `L’envoi n’a pas pu être confirmé. Vérifiez votre connexion et réessayez, ou écrivez à Jeevana. Vos informations sont toujours là.`,
+    aboutEyebrow: `04 / Jeevana, Paris`, aboutTitle: `Ancrée dans la pratique.\nIci, à Paris.`,
+    aboutBody: `Le yoga a aussi sa place en ville. Jeevana Gogula enseigne à Paris, où le rythme du quotidien invite à faire une pause. Sa pratique ramène l’attention vers le mouvement, le souffle et l’immobilité. Que vous cherchiez un cours collectif ou une séance individuelle, vous pouvez la contacter pour explorer une façon de pratiquer ensemble à Paris.`,
+    lineage: `Lignée`, tapovan: `Diplômée de Tapovan`, lineageBody: `Cette formation lui donne une base pour transmettre la pratique avec attention.`,
+    contactEyebrow: `05 / Garder le lien`, contactTitle: `Une conversation,\nun commencement.`,
+    newsletterEyebrow: `Un mot, de temps en temps`, newsletterTitle: `Garder une petite place\npour le yoga.`,
+    newsletterBody: `Recevez la lettre d’information de Jeevana par e-mail.`, newsletterFormTitle: `Inscription à la lettre d’information`, yourEmail: `Votre e-mail`, subscribe: `S’abonner`,
+    newsletterSuccessTitle: `Une petite place, gardée.`, newsletterSuccessBody: `Merci. Vous êtes inscrit à la lettre d’information de Jeevana. Vous pouvez vous désinscrire à tout moment.`,
+    footerThought: `Stable. À l’aise. Un souffle à la fois.`, backTop: `Retour en haut`, privacy: `Confidentialité & mentions légales`, designerEmail: `Écrire à Debanjan Mazumdar`,
+    heroAlt: `Jeevana assise en tailleur sur une pelouse à Paris, les yeux fermés, un léger sourire, les mains posées sur les genoux.`,
+    practice01Alt: `Jeevana en posture du cobra sur un tapis, la poitrine ouverte, les yeux fermés.`,
+    practice02Alt: `Jeevana en posture de l'enfant sur un tapis gris, vue d'en haut.`,
+    practice03Alt: `Jeevana assise en méditation sur l'herbe, les mains en jñāna mudrā.`,
+    parisAlt: `Jeevana en pont complet, Chakrāsana, sur un tapis bleu au Champ-de-Mars, la tour Eiffel derrière elle.`
   };
-  var fr = {
-    'title': 'Jeevana — Yoga à Paris',
-    'skip': 'Aller au contenu', 'lang.label': 'Langue',
-    'nav.classes': 'Cours', 'nav.register': 'S\'inscrire',
-    'cover.tag': 'Yoga à Paris',
-    'cover.s12.ref': 'Yoga Sūtra 1.2', 'cover.s12.tr': 'Le yoga est l\'apaisement des mouvements du mental.',
-    'cover.s246.ref': 'Yoga Sūtra 2.46', 'cover.s246.tr': 'La posture est stable et confortable.',
-    'cta.register': 'S\'inscrire à un cours', 'cta.classes': 'Voir les cours',
-    'hint': 'Défiler', 'rail.label': 'Sūrya Namaskāra — les douze souffles',
-    
-    'rail.pos': 'Position', 'rail.trad': 'Ce que dit la tradition',
-    'breath.in': 'Inspirer', 'breath.ex': 'Expirer', 'breath.re': 'Retenir le souffle',
-    'sn.1.tr': 'à l\'ami de tous', 'sn.2.tr': 'à celui qui rayonne', 'sn.3.tr': 'à celui qui suscite l\'activité',
-    'sn.4.tr': 'à celui qui illumine', 'sn.5.tr': 'à celui qui traverse le ciel', 'sn.6.tr': 'à celui qui donne la force',
-    'sn.7.tr': 'au soi cosmique doré', 'sn.8.tr': 'aux rayons de lumière', 'sn.9.tr': 'au fils d\'Aditi',
-    'sn.10.tr': 'à la puissance qui stimule', 'sn.11.tr': 'à celui qui est digne de louange', 'sn.12.tr': 'à celui qui mène à l\'éveil',
-    'ch.cover': 'Jeevana', 'ch.fold': 'La pratique',
-    'fold.no': '01 —', 'fold.title': 'La pratique',
-    'fold.lead': 'Chaque cours réunit trois choses : la posture, le mouvement et le souffle.',
-    
-    'plate.hatha': 'Hatha', 'plate.hatha.d': 'Des postures tenues, construites avec attention à l\'alignement et au souffle.',
-    'plate.vinyasa': 'Vinyasa', 'plate.vinyasa.d': 'Le mouvement lié au souffle, chaque position menant à la suivante.',
-    'plate.breath': 'Souffle et immobilité', 'plate.breath.d': 'Un travail du souffle et une relaxation finale, où le cours se pose.',
-    'plate.s12.ref': 'Yoga Sūtra 1.2',
-    
-    'alt.sn': 'Jeevana dans la position indiquée', 'alt.portrait': 'Jeevana assise, souriante', 'alt.tree': 'Jeevana en posture de l\'arbre au Champ-de-Mars, la tour Eiffel derrière', 'alt.seated': 'Jeevana en méditation assise', 'alt.cobra': 'Jeevana en posture du cobra, yeux fermés', 'alt.child': 'Jeevana en posture de l\'enfant, vue d\'en haut', 'alt.gal': 'Jeevana, photographie',
-    'alt.eiffel': 'Jeevana en posture de la roue au Champ-de-Mars, la tour Eiffel derrière',
-    'deck.label': 'Chapitres',
-    'tab.about': '02 À propos', 'tab.classes': '03 Cours', 'tab.register': '04 S\'inscrire', 'tab.contact': '05 Contact',
-    'ch.about': 'À propos', 'ch.classes': 'Cours', 'ch.register': 'S\'inscrire', 'ch.contact': 'Contact',
-    'about.h': 'Le yoga à Paris, enseigné depuis la tradition.',
-    'about.bio': 'Jeevana enseigne le yoga à Paris. Des cours à Paris — collectifs et particuliers. Chaque cours suit l\'ordre traditionnel de la posture, du souffle et du repos, et s\'adapte au corps de chacun.',
-    'about.c1.h': 'Racines traditionnelles', 'about.c1.p': 'Les Yoga Sūtras, le souffle et la séquence. Sūrya Namaskāra est enseigné comme le transmet la tradition : souffle et mouvement ensemble.',
-    'about.c2.h': 'Pour tous les corps', 'about.c2.p': 'Les débutants sont les bienvenus. Chaque posture a son adaptation, et c\'est le souffle qui donne le rythme, pas l\'horloge.',
-    'about.c3.h': 'À Paris', 'about.c3.p': 'Des cours à Paris — collectifs et particuliers. Lieu communiqué à l\'inscription.',
-    'about.n1': 'positions dans Sūrya Namaskāra', 'about.n2': 'membres du yoga dans les Yoga Sūtras', 'about.n3': 'chapitres des Yoga Sūtras',
-    'classes.h': 'Planning de la semaine',
-    'day.1': 'Lun', 'day.2': 'Mar', 'day.3': 'Mer', 'day.4': 'Jeu', 'day.5': 'Ven', 'day.6': 'Sam', 'day.7': 'Dim',
-    'classes.empty': 'Le planning ouvre bientôt.',
-    'classes.empty.cta': 'Signaler mon intérêt',
-    'class.group': 'Cours collectif', 'class.group.d': 'Un petit groupe, tous niveaux, une séquence pratiquée ensemble.',
-    'class.private': 'Séance particulière', 'class.private.d': 'En individuel, à votre rythme : une première pratique ou un besoin précis.',
-    'class.workshop': 'Atelier', 'class.workshop.d': 'Une séance longue sur un thème : le souffle, une famille de postures, les douze positions.',
-    'price': 'Tarif sur demande',
-    'reg.h': 'S\'inscrire à un cours', 'reg.lead': 'Laissez vos coordonnées, Jeevana vous répondra par e-mail.',
-    'f.name': 'Nom', 'f.email': 'E-mail', 'f.phone': 'Téléphone (facultatif)', 'f.class': 'Cours', 'f.any': 'N\'importe quel cours',
-    'f.level': 'Niveau', 'lv.new': 'Débutant·e', 'lv.some': 'Un peu de pratique', 'lv.reg': 'Pratique régulière',
-    'f.msg': 'Message (facultatif)', 'f.hp': 'Laissez ce champ vide',
-    'reg.consent': 'J\'accepte que Jeevana conserve ces informations pour répondre à mon inscription. Elles ne sont jamais partagées ni vendues, et je peux demander leur suppression à tout moment par e-mail.',
-    'reg.send': 'Envoyer mon inscription',
-    'reg.ok': 'Merci. Votre inscription est bien arrivée ; Jeevana vous répondra par e-mail.',
-    'reg.err': 'L\'envoi a échoué. Écrivez directement à Jeevana :',
-    'reg.subject': 'Inscription — Jeevana Yoga',
-    'contact.h': 'Contact', 'contact.lead': 'Pour les cours à Paris, collectifs et particuliers.', 'c.phone': 'Téléphone · WhatsApp', 'c.phone.v': '— appel ou WhatsApp',
-    'c.email': 'E-mail', 'c.ig': 'Instagram', 'c.wa': 'WhatsApp', 'c.tel': 'Téléphone', 'c.fb': 'Facebook',
-    'news.h': 'Garder le contact avec Jeevana',
-    'news.p': 'Lettres d\'information, événements et ateliers à Paris.', 'news.note': 'Facultatif — fermez cette fenêtre et rien ne se passe.',
-    'news.consent': 'J\'accepte de recevoir la lettre d\'information de Jeevana par e-mail. Je peux me désinscrire à tout moment.',
-    'news.yes': 'Me tenir informé·e', 'news.no': 'Non merci',
-    'news.ok': 'Merci. Vous êtes inscrit·e.', 'news.err': 'L\'envoi a échoué. Merci de réessayer plus tard.',
-    'foot.news': 'Lettre d\'information', 'foot.news.p': 'Événements et ateliers à Paris, quelques fois par an.',
-    'foot.sub': 'S\'abonner', 'foot.city': 'Yoga à Paris',
-    'foot.sig': 'Conçu par Debanjan Mazumdar · ProdCraft',
-    'mbar.register': 'S\'inscrire', 'mbar.classes': 'Cours', 'mbar.label': 'Actions rapides', 'nav.label': 'Principal',
-    'cover.kicker': 'Jeevana — Yoga à Paris', 'cover.h': 'Douze souffles.', 'rail.of': '/ 12',
-    'alt.ashtanga': 'Jeevana en Aṣṭāṅga Namaskāra, le salut aux huit membres',
-    'foot.privacy': 'Confidentialité · Mentions légales',
-    'err.req': 'Merci de remplir ce champ.', 'err.email': 'Merci d\'indiquer une adresse e-mail valide.', 'err.consent': 'Merci de cocher la case pour accepter.',
-    'err.wa': 'ou écrivez à Jeevana sur WhatsApp', 'mail.body': 'Mon inscription (le formulaire n\'est pas passé) :',
-    'nf.h': 'Cette page se repose.', 'nf.p': 'La page demandée n\'existe pas.', 'nf.home': 'Jeevana — Yoga à Paris',
-    'nav.practice': 'La pratique', 'nav.contact': 'Contact',
-    'rail.note': 'une séquence traditionnelle, enseignée comme souffle et mouvement', 'rail.now': 'Maintenant',
-    'ch1.no': '01', 'ch1.h': 'La pratique', 'ch1.lead': 'Chaque cours réunit trois choses : la posture, le mouvement et le souffle.',
-    'ch1.i1.h': 'Le souffle donne le rythme', 'ch1.i1.p': 'Chaque mouvement suit une inspiration ou une expiration. C\'est le souffle qui donne le rythme, pas l\'horloge.',
-    'ch1.i2.h': 'Une séquence', 'ch1.i2.p': 'Chaque cours suit l\'ordre traditionnel de la posture, du souffle et du repos, et s\'adapte au corps de chacun.',
-    'ch1.i3.h': 'L\'immobilité', 'ch1.i3.p': 'Un travail du souffle et une relaxation finale, où le cours se pose.',
-    'ch1.i4.h': 'Débutants bienvenus', 'ch1.i4.p': 'Les débutants sont les bienvenus. Chaque posture a son adaptation.',
-    'ch2.no': '02', 'ch2.h': 'Cours et inscription', 'ch2.offers': 'Formules', 'ch2.tt': 'Planning',
-    'ch3.no': '03', 'ch3.h': 'Contact', 'eiffel.cap': 'Champ-de-Mars, Paris', 'mbar.wa': 'WhatsApp',
-    'alt.film': 'Jeevana enchaînant Sūrya Namaskāra', 'alt.still': 'Jeevana dans la séquence, une image du film', 'news.close': 'Fermer', 'rail.short': 'Les douze souffles', 'alt.still3': 'Jeevana en Praṇāmāsana, mains jointes, la dernière image du film', 'err.phone': 'Merci d\'indiquer un numéro de téléphone valide.'
-  };
-  var k;
-  for (k in S) { if (Object.prototype.hasOwnProperty.call(S, k)) { en[k] = S[k]; fr[k] = S[k]; } }
-  for (var i = 0; i < 12; i++) { en['sn.' + (i + 1) + '.breath'] = en['breath.' + B[i]]; fr['sn.' + (i + 1) + '.breath'] = fr['breath.' + B[i]]; }
-  window.JV_I18N = { en: en, fr: fr };
+  const positions = [
+    [`Praṇāmāsana`, `Exhale`, `Expirer`, `to the friend of all`, `à l'ami de tous`],
+    [`Hasta Uttānāsana`, `Inhale`, `Inspirer`, `to the shining one`, `à celui qui rayonne`],
+    [`Pādahastāsana`, `Exhale`, `Expirer`, `to the one who induces activity`, `à celui qui suscite l'activité`],
+    [`Aśva Sañcālanāsana`, `Inhale`, `Inspirer`, `to the one who illumines`, `à celui qui illumine`],
+    [`Parvatāsana`, `Exhale`, `Expirer`, `to the one who moves through the sky`, `à celui qui traverse le ciel`],
+    [`Aṣṭāṅga Namaskāra`, `Retain the breath`, `Retenir le souffle`, `to the giver of strength`, `à celui qui donne la force`],
+    [`Bhujaṅgāsana`, `Inhale`, `Inspirer`, `to the golden cosmic self`, `au soi cosmique doré`],
+    [`Parvatāsana`, `Exhale`, `Expirer`, `to the rays of light`, `aux rayons de lumière`],
+    [`Aśva Sañcālanāsana`, `Inhale`, `Inspirer`, `to the son of Aditi`, `au fils d'Aditi`],
+    [`Pādahastāsana`, `Exhale`, `Expirer`, `to the stimulating power`, `à la puissance qui stimule`],
+    [`Hasta Uttānāsana`, `Inhale`, `Inspirer`, `to the one who is fit to be praised`, `à celui qui est digne de louange`],
+    [`Praṇāmāsana`, `Exhale`, `Expirer`, `to the one who leads to enlightenment`, `à celui qui mène à l'éveil`]
+  ];
+  positions.forEach((p, index) => {
+    const n = index + 1;
+    en['s' + n + 'Alt'] = `Step ${n}: Jeevana in ${p[0]} on a mat on a park lawn in Paris.`;
+    fr['s' + n + 'Alt'] = `Étape ${n} : Jeevana en ${p[0]} sur un tapis, sur une pelouse à Paris.`;
+    en['s' + n + 'Breath'] = p[1]; fr['s' + n + 'Breath'] = p[2];
+    en['s' + n + 'Gloss'] = p[3]; fr['s' + n + 'Gloss'] = p[4];
+  });
+  const dictionaries = { en, fr };
+  let language = 'en';
+  const storageKey = 'jeevana-language';
+  function t(key) { return dictionaries[language][key] ?? en[key] ?? key; }
+  function setLanguage(value, persist = true) {
+    language = value === 'fr' ? 'fr' : 'en';
+    document.documentElement.lang = language;
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const value = t(el.dataset.i18n);
+      if (value.includes('\n')) {
+        const parts = value.split('\n');
+        el.replaceChildren();
+        parts.forEach((part, index) => {
+          if (index) el.append(document.createElement('br'));
+          el.append(document.createTextNode(part));
+        });
+      } else el.textContent = value;
+    });
+    let wordIndex = 0;
+    document.querySelectorAll('[data-i18n-words]').forEach(el => {
+      el.replaceChildren();
+      t(el.dataset.i18nWords).split(/\s+/).forEach((word, index) => {
+        if (index) el.append(document.createTextNode(' '));
+        const span = document.createElement('span');
+        span.className = 'word w' + wordIndex++;
+        span.textContent = word;
+        el.append(span);
+      });
+    });
+    [['data-i18n-alt', 'alt'], ['data-i18n-aria', 'aria-label']].forEach(([attribute, target]) => {
+      document.querySelectorAll('[' + attribute + ']').forEach(el => el.setAttribute(target, t(el.getAttribute(attribute))));
+    });
+    document.querySelectorAll('[data-language]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.language === language)));
+    document.title = t('pageTitle');
+    const metadata = [
+      ['meta[name=description]', 'description'],
+      ['meta[property="og:title"]', 'pageTitle'],
+      ['meta[property="og:description"]', 'ogDescription'],
+      ['meta[property="og:image:alt"]', 'ogImageAlt']
+    ];
+    metadata.forEach(([selector, key]) => { const el = document.querySelector(selector); if (el) el.content = t(key); });
+    const locale = document.querySelector('meta[property="og:locale"]');
+    if (locale) locale.content = language === 'fr' ? 'fr_FR' : 'en_GB';
+    if (persist) { try { localStorage.setItem(storageKey, language); } catch (_) {} }
+    document.dispatchEvent(new CustomEvent('jeevana:language', { detail: { language } }));
+  }
+  window.JeevanaI18n = { dictionaries, t, setLanguage, get language() { return language; } };
+  document.querySelectorAll('[data-language]').forEach(button => {
+    button.addEventListener('click', () => setLanguage(button.dataset.language));
+  });
+  let initial = 'en';
+  try { if (localStorage.getItem(storageKey) === 'fr') initial = 'fr'; } catch (_) {}
+  setLanguage(initial, false);
 })();
