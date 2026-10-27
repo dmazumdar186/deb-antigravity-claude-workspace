@@ -133,3 +133,23 @@ not be read by the build session, so take no price, rating or review from it). S
 taught" line (EN/FR) after the Tapovan graduate line; Classes leads with **Individual classes** (private, in Paris) as the current
 format; group and workshop stay listed as "by arrangement" formats, never as a running timetable. Arrondissement for individual
 classes: Paris 19e (her home) unless the operator says otherwise. Still to wire: price, timetable, online option.
+
+## Addendum 2026-10-27 (operator pasted her Superprof profile): verified facts, use them
+- Style: **Hatha Yoga**. Training: **intensive 500-hour programme at Tapovan Open University Yoga & Ayurveda (Normandy)**: Hatha
+  Yoga, āsana, prāṇāyāma, meditation, relaxation, Yoga Nidra, Ayur Yoga. (Supersedes the earlier "no 500 hours" rule: it is her own statement.)
+- Formats and places: at Jeevana's (Paris 19e); online by webcam; at the student's home or a public place within 10 km of Paris 19e.
+  Individual and small-group sessions; teenagers and adults; all levels; **French or English**.
+- A session: centring and breathing → movements and postures adapted to the level → relaxation or meditation. Adaptable aims:
+  starting yoga, mobility and flexibility, unwinding after work, stress, support for a sport such as running. "Not perfect postures:
+  progress at your own pace and feel better in your body."
+- Prices: **€50 per hour** (1-hour class). Packages: **5 hours €250**, **10 hours €500**. In-home lessons: **€25/hour after the
+  French tax credit** (say "after tax credit (crédit d'impôt)", no further claim). Online: €50/hour.
+- Recommendations: Superprof shows 3. Use **Egle** ("Jeevana is an amazing yoga teacher. She takes time to explain. Every session is
+  something new and inspiring.") and **Thomas** ("I didn't want to do it, but since taking her classes, I can't stop… I still go to her
+  classes and I love them."), attributed "via Superprof", first names only. **Never use the third one (its author must not appear on
+  this site).** Superprof "Recommended" badge wording may be quoted: "recommended for her professionalism, teaching skills, and the
+  quality of her lessons".
+- Site: Classes section now carries the real formats and prices (Individual at hers / at yours / online; small group on request),
+  the package prices, the tax-credit line, languages, levels, the session shape; About carries the training paragraph in her words
+  (EN/FR, first person is fine: it is her profile text); a small "What students say" row with the two quotes. Keep "timetable opens
+  soon" only if no fixed slots; prices replace "Price on request" everywhere.
