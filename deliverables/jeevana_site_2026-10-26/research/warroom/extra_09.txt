@@ -1,0 +1,2 @@
+# Gate status after round 7 + hand fixes
+site_check: PASSED (0 failures). functional_v4: 36 pass, 1 fail: "mouse drag advances" (a mouse drag of 400 px on [data-strip] right after a programmatic scrollBy(1300) does not advance JV_strip.cur(); make pointer drag robust regardless of prior scroll state: on pointerdown cancel any pending settle/snap timers, set scroll-snap-type none while dragging, on pointerup compute nearest from the live scrollLeft and call go()).
