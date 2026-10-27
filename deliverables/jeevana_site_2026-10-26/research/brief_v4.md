@@ -153,3 +153,20 @@ classes: Paris 19e (her home) unless the operator says otherwise. Still to wire:
   the package prices, the tax-credit line, languages, levels, the session shape; About carries the training paragraph in her words
   (EN/FR, first person is fine: it is her profile text); a small "What students say" row with the two quotes. Keep "timetable opens
   soon" only if no fixed slots; prices replace "Price on request" everywhere.
+
+## Addendum 2026-10-27 (operator sent the Tapovan Normandie 2025 training booklet; text in `research/tapovan_livret_2025.txt`)
+Use it to write the About/lineage content in depth, truthfully, in Jeevana's register, EN/FR:
+- The school: Tapovan, in the pays de Caux (Normandy), "where Yoga and Ayurveda have been lived for more than 40 years", under
+  Kiran Vyas, pioneer of Ayurveda in France; Tapovan Open University; inspired by Sri Aurobindo ("nothing can be taught; the teacher
+  is a help and a guide"), Gandhi, Tagore, the Mother, Yehudi Menuhin. A residential training "where you live yoga in all its
+  sincerity, while respecting your own body and your own culture".
+- What she studied there (the 2025 intensive Hatha Yoga training): the international Yoga protocol and traditional āsana; prāṇāyāma
+  and the yoga of the breath; Yoga Nidra (deep yogic relaxation); dhāraṇā (concentration) and dhyāna (meditation); Ayur Yoga (what
+  Ayurveda brings to yoga); jñāna, bhakti and karma yoga; integral yoga; the pedagogy of yoga (how to give a class); practical
+  teaching placements; the basics of Ayurveda. Her own summary (Superprof) stays the headline: "an intensive 500-hour programme
+  at Tapovan Open University Yoga & Ayurveda".
+- Credential wording: **"Certified yoga instructor (Moniteur de Yoga), Tapovan"** / FR "Monitrice de Yoga certifiée, Tapovan".
+  Never "diplômée d'État", never "diplôme" (Tapovan's diplôme is a separate 1,000-hour track), no dates, no exam details.
+- Shape: About gets (1) her first-person training paragraph (Superprof text, lightly edited), (2) a "What the training covered"
+  list of 6–8 short items from the module list above, (3) one line on the school and its lineage with the Tapovan training link,
+  (4) the "Where she has taught" line. Keep it a reading rhythm, not a CV: ≤ 180 words EN.
