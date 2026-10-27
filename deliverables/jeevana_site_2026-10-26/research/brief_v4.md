@@ -104,3 +104,23 @@ Jeevana is a **graduate of Tapovan** (link the training page: https://www.tapova
 section (EN/FR) with the Tapovan link (rel="noopener noreferrer"): school name, link, "graduated" stated plainly (EN "Graduate of Tapovan", FR "Diplômée de Tapovan"), one generic-true
 sentence on what the training gives her teaching. No hours, no dates, no course title: those are "to wire".
 **Never mention Jitendra anywhere on Jeevana's site, copy, alt text, metadata or handoff: they are not associated.**
+
+## Addendum 2026-10-27 (operator): every screen, every orientation
+The page must be right on every viewport and orientation: phones portrait and landscape (360–430 × 640–930 and the
+reverse), small and large tablets / iPad portrait and landscape (768–1366), laptops (1280–1680), desktops (1920–2560),
+and big TV screens (3840 × 2160, 16:9, viewed from a distance). Rules:
+- Fluid everything: `clamp()` type scale (display 2.2 rem → 7 rem, body 1 rem → 1.35 rem at 4K), container
+  `min(100% - 2*gutter, 1680px)` up to 1920 and `min(..., 2200px)` at ≥ 2560 so copy never spans more than ~70 ch;
+  gutters `clamp(16px, 4vw, 96px)`.
+- Orientation, not only width: `@media (orientation: portrait)` stacks copy above photo with the ring behind the
+  photo; `(orientation: landscape) and (max-height: 500px)` (phone landscape) uses a two-column cover with min-height
+  auto and smaller type; `(min-aspect-ratio: 21/9)` caps the cover photo height at 86svh.
+- `svh`/`dvh` units for cover height; `safe-area-inset-*` padding; no horizontal scroll at any width from 320 px.
+- The twelve-breaths strip: 1 card + peek on phones, 2 on tablets portrait, 3 on tablets landscape/laptops, 4 at
+  ≥ 1920, 5 at ≥ 3200; card height from `aspect-ratio: 3/4` and a `max-height: 70svh` cap so landscape phones still
+  show the caption.
+- Photos: `srcset` 800/1400/2000 (+2800 hero) with `sizes` matching the actual column at each breakpoint; 4K gets
+  the 2000/2800 files; never upscale beyond the source.
+- Hover-only affordances get a touch equivalent (`@media (hover: none)`); focus rings visible everywhere.
+- Gate: screens_v4 must shoot 390×844, 844×390, 768×1024, 1024×768, 1366×1024, 1440×900, 1920×1080, 2560×1440,
+  3840×2160, and 320×568; the eye reviewer judges every one.
