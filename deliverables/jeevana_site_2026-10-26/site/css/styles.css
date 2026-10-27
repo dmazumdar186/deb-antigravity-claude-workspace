@@ -74,3 +74,10 @@ html{scroll-padding-top:0}.section,.sequence,section[id]{scroll-margin-top:var(-
 @media(max-width:340px){.step-frame{max-height:46svh}}
 .class-details{margin-top:28px;max-width:70ch;color:var(--ink-soft);line-height:1.8}.class-details p+p{margin-top:8px}.testimonials{margin-top:40px;border-top:1px solid var(--rule);padding-top:22px}.testimonials .small-label{color:var(--ochre-text);margin-bottom:14px}.quote-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.quote-row figure{margin:0}.quote-row blockquote{margin:0;font-family:Cormorant,Georgia,serif;font-size:clamp(1.3rem,1.6vw,1.8rem);line-height:1.35;color:var(--indigo)}.quote-row figcaption{margin-top:10px;font-size:var(--legal);color:var(--ink-soft)}.lineage .training,.lineage .taught{margin-top:14px;line-height:1.8}.lineage .covered-title{margin-top:18px}.covered{margin:0;padding-left:1.1em;font-size:var(--legal);line-height:1.8;color:var(--ink-soft)}.lineage>a.text-link{display:inline-flex;gap:8px;min-height:44px;align-items:center;font-size:var(--legal);color:var(--indigo)}
 @media(max-width:760px){.quote-row{grid-template-columns:1fr}}
+
+/* eye_15 P2 fixes */
+.covered{margin-bottom:1.1em}
+.price{text-wrap:balance}
+.price .tier{white-space:nowrap}
+@media(max-width:1100px){.price .tier{display:block}.price .sep{display:none}}
+.lineage-link{text-wrap:balance}
