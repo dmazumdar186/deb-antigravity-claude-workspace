@@ -29,7 +29,7 @@ until a screenshot of every state has been looked at and the verdict file exists
    map view, empty state, closed role) × viewports (1440, 1024, 390) × themes (light, dark)
    × reduced-motion where motion exists. Motion: three frames 700 ms apart of every animated
    element; any pop, blank, or jump is a defect.
-4. **Human-eye review.** Spawn reviewer agents (one per edition/section, ≤ 40 images each)
+4. **Human-eye review.** Spawn reviewer agents (`model: "sonnet"`, `omitClaudeMd`; one per edition/section, ≤ 40 images each; never the session model)
    that `Read` EVERY PNG and log per image: PASS or a defect row (severity P1/P2/P3, element,
    what a picky client would say, suggested fix). Checklist: alignment, wrapping and orphaned
    dots, uniform tile/button heights, clipped or overlapping text, placeholder or developer

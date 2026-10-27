@@ -27,14 +27,14 @@ Category map (identical subfolders for `directives/` and `execution/`): **`direc
 6. **Token economy** — main context stays lean; delegate; low effort everywhere. Full rule: `.claude/rules/token-economy.md`.
 7. **Output contract (2026-10-26).** What the operator asked to receive (fields, shape, channel, cadence) is a contract. Never add a note, count, debug dump or machine payload to a human deliverable; machine state gets its own channel. Changing a deliverable or a schedule needs the operator's word; an audit "hardening" is not it. It slips through convenience during fixes: re-read the directive's contract line before shipping.
 
-## Models — Jev-routed tiers (set 2026-10-06)
+## Models — Opus default, Fable only by name (2026-10-27)
 
-- **Three tiers, effort `low` everywhere, Haiku banned.** `/jev on` (`directives/infrastructure/jev.md`) runs Jev as a per-prompt router that picks the tier; a directive's `--mode` does the same for scripts. Pin full IDs, never aliases:
-  - `claude-sonnet-5-5` (OR `anthropic/claude-sonnet-5.5`) — **bulk/fast**: search, reformat, lookups, bulk per-row work.
-  - `claude-opus-5-5` (OR `anthropic/claude-opus-5.5`) — **standard**: routine coding and writing, sub-agent implementation from a plan.
-  - `claude-fable-5-1` (OR `anthropic/claude-fable-5.1`) — **judgement**: the main session, architecture, debugging, audits, anything ambiguous. Session default and `CLAUDE_CODE_SUBAGENT_MODEL` default.
-- The brain does **not** grind: exploration, implementation from a plan, scraping, formatting and fan-out go to workers with a complete brief; every main-session token is a judgement token. Keep the auto-loaded prefix byte-stable.
-- Supersedes "Fable 5.1 only" (2026-09-21). History + reverts: `.claude/SETTINGS_NOTES.md`. In `execution/`, `model_registry.LAST_KNOWN_GOOD` maps `bulk`/`default`/`premium` to the three tiers.
+- **Session default `claude-opus-5-5`, sub-agent default `claude-sonnet-5-5`, effort `low` everywhere, Haiku banned.** Set in `.claude/settings.json` (`model`, `CLAUDE_CODE_SUBAGENT_MODEL`). Pin full IDs, never aliases:
+  - `claude-sonnet-5-5` — **bulk**: search, reformat, lookups, per-row work, screenshot/image review.
+  - `claude-opus-5-5` — **standard**: the session, routine coding/writing, implementation from a plan, audits.
+  - `claude-fable-5-1` — **only when the operator names Fable for a task.** Never a default anywhere: not in agent frontmatter, skills, workflows, scheduled tasks or `Agent(model=...)`.
+- Why: on 2026-10-27 a 4-5 h website build spent most of the Fable weekly pool because every unnamed spawn (sub-agents, eye-review agents reading PNGs, workflow workers) inherited Fable. `/jev on` only injects a routing hint; it cannot switch the model. Every `Agent(...)` call names its model.
+- History + reverts: `.claude/SETTINGS_NOTES.md`. In `execution/`, `model_registry.LAST_KNOWN_GOOD` maps `bulk`/`default`/`premium` (API-key billed, not the subscription pool).
 
 ## Sub-agents & parallelism
 

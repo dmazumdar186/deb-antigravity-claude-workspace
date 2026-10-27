@@ -55,7 +55,7 @@ bolted beside a headline; stock photos; text wordmarks; emoji icons; third-party
    backdrop ≤ 12 KB, zero third-party JS.
 3. **Pitch page** `for-<name>/`: what it is, Today/Concept table (6 rows incl. measured heights),
    what does not exist yet, next, signature "Debanjan, Founder, ProdCraft, debanjan@prodcraft.fyi".
-4. **Two mandatory eye-review rounds**: a reviewer agent (Opus, `omitClaudeMd`) Reads every PNG in
+4. **Two mandatory eye-review rounds**: a reviewer agent (`model: "sonnet"`, `omitClaudeMd`) Reads every PNG in
    `screens/` against the checklist in `concept_recipe.md` and returns SHIP or a numbered defect
    list. Fix every item, re-screenshot, round 2. **Ship only on SHIP.** Images never enter the brain.
 5. **Deploy**: `bash scripts/deploy.sh <site-dir> <slug>-redesign for-<name>/`. Sandbox Chromium
@@ -70,9 +70,9 @@ bolted beside a headline; stock photos; text wordmarks; emoji icons; third-party
 |---|---|
 | Creative modules (backdrop canvas, generative motifs) | GLM 5.3 via OpenRouter (`z-ai/glm-5.3` → `glm-5.2`); fallback `moonshotai/kimi-k3`. Public facts only — no names, emails, phones, client data (`directives/infrastructure/glm_5_2_integration.md`) |
 | Hero footage | Kling 3.0 via Higgsfield when `HF_API_TOKEN` exists (`execution/gtm_client_workflows/greenjobs_redesign/generate_hero_footage.py`, estimate first); else self-render with `scripts/render_hero_video.mjs` |
-| Judgement (brief, verdicts, handoff) | Fable 5.1 (session) |
-| Build worker | Opus 5.5, effort low |
-| Eye reviewer | Opus 5.5, reads PNGs, returns text only |
+| Judgement (brief, verdicts, handoff) | the session model (Opus 5.5 default since 2026-10-27; Fable only if the operator names it) |
+| Build worker | Opus 5.5, effort low (`model: "opus"` on the Agent call, always explicit) |
+| Eye reviewer | Sonnet 5.5 (`model: "sonnet"`), reads PNGs, returns text only |
 | Gates | `scripts/site_check.mjs`, `scripts/functional_template.mjs`, `scripts/measure_live.mjs` |
 
 ## Feedback loop

@@ -404,3 +404,13 @@ once at user scope from this cloud session (`claude plugin install <mod>@deb-wor
 which plugin sync carries to the account's other sessions. Verify in a new session: the `jev → <tier>` band
 above the prompt. Update a mod: edit under `.claude/mods/`, bump `version` in its `plugin.json`, push main,
 then `claude plugin update deb-workspace-mods` (or `/reload-plugins`).
+
+## 2026-10-27 — Fable removed from every default (operator order: weekly Fable pool at 78% after one website build)
+
+- `.claude/settings.json`: `model` `claude-fable-5-1` → `claude-opus-5-5`; `CLAUDE_CODE_SUBAGENT_MODEL` → `claude-sonnet-5-5`; `modelSettings` effort `low` for all three IDs.
+- `.claude/agents/*.md`: note-taker, documenter, email-classifier, qa → `claude-sonnet-5-5`; code-reviewer, anneal-reviewer, pipeline-auditor → `claude-opus-5-5`.
+- `.claude/jev/config.json` + `jev_router.py` defaults: `tiny`/`hard` routes → `claude-opus-5-5` (the router only injects text; it never switched the model).
+- `.claude/workflows/*.md` default worker → `claude-opus-5-5`. `human-eye-test` and `site-redesign` reviewer agents → `model: "sonnet"` explicit.
+- Scheduled tasks: "LinkedIn connect: 20:00 daily report" → `claude-sonnet-5-5`; "System eval: 10-day report" → `claude-opus-5-5`. The three device-bound LinkedIn slots stay on Fable until changed from a Cowork chat on the laptop (`model cannot be patched directly on a device-bound routine`).
+- CLAUDE.md/AGENTS.md/GEMINI.md Models section + `token-economy.md` §2 + `sub-agent-delegation.md` rewritten to match.
+- **Revert:** `git revert` this commit; or set `model`/`CLAUDE_CODE_SUBAGENT_MODEL` back to `claude-fable-5-1` in settings.json.
