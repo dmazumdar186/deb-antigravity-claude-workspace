@@ -69,3 +69,27 @@ Assets to carry: `_raw_assets/` (22 originals), `_raw_assets/cutouts_v3/` (best 
 `research/content_fixture.json` (sūtras + 12 mantras, EN/FR), `site/functions/` + `site/wrangler.toml` (KV live),
 `site/privacy/`, fonts, contact facts (email Jeevana.yogawellness@gmail.com, +33 7 54 28 72 10, Instagram).
 Spend today: Higgsfield $16.19 (films in `research/film*`), OpenRouter ≈ $0.02. Production still serves deploy 1.
+
+## v4 — "the Jitendra way, done once more" (2026-10-27) — PREVIEW https://v4.jeevana-yoga.pages.dev
+Operator orders this day: continue the site; inspiration from the earlier yoga site, not a copy; her real photos, polished,
+never laid on a dark plate; every screen and orientation 320 px → 4K TV; build it with a war room of OpenAI Sol and Claude
+models; audit, QA, send the link. Lineage: graduate of Tapovan (link to the formation page); never mention any other teacher.
+- Brief `research/brief_v4.md` (+ addenda). Photos: 16 originals pulled from the shared Drive folder → `research/polish_photos.py`
+  → `site/assets/photos/<key>@<w>.webp` (hero, practice-01..03, paris, sn-01..12; manifest.json). `_raw_assets/` stays gitignored.
+- War room `research/warroom.py` (OpenRouter credits, not the subscription): Sol `openai/gpt-6.1-sol-pro` drafted (r1) and revised
+  (r3, r7); Claude `anthropic/claude-opus-5.5` critiqued (r2) and revised (r5); Sol critiqued (r4, r6). Round 9 stopped on
+  OpenRouter **402 Payment Required**; the last two polish passes ran as Opus sub-agents on the subscription. Ledger:
+  `research/warroom/ledger.md` (≈ $8.62 on credits). Lessons in the script: stream + retry (a 10-min generation
+  was reset), decode SSE bytes per line (requests decoded as latin-1 → mojibake; chunk-edge chars were dropped), revisions
+  return changed files only (a full rewrite hit Opus's 120k output cap). Sanskrit strings are verified against
+  `research/content_fixture.json` after every round (`iast`, `dev`, `mantra` × 12).
+- Gates (`research/gates.sh <tag>` → `research/warroom/gates_<tag>.txt`): `site_check.mjs` PASSED, `research/functional_v4.mjs`
+  37/37 (i18n persist, privacy FR, CSP, strip arrows/keys/snap/drag/autoplay, backdrop arcs, forms 200/400 states, honeypot),
+  `research/screens_v4.mjs` 124 PNGs at 320×568, 390×844, 844×390, 768×1024, 1024×768, 1366×1024, 1440×900, 1920×1080,
+  2560×1440, 3840×2160. Eye reviews by Claude Sonnet agents (four viewport groups): rounds 5, 7, 11 → `eye_*.md`; final
+  verification `eye_13.md` = **SHIP, 0 P1, 0 P2**. DOM contract for the gates: `research/sol_handoff.md`.
+- Deploy: `research/deploy_v4.sh` → Pages branch `v4` only (`https://v4.jeevana-yoga.pages.dev`). **Production still serves deploy 1**;
+  promote with `--branch main` from `site/` only on the operator's word. Functions/KV/privacy/fonts unchanged.
+- Open (P3 / needs assets): staggered gallery rhythm at 1920, Eiffel photo grade (1200 px source), About photo margin; copy slots
+  per `research/to_wire.md` (timetable, prices, biography, Tapovan course details). Operator's written OK from Jeevana on photos,
+  phone and copy: ______
