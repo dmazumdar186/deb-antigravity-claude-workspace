@@ -62,4 +62,4 @@ finally{clearTimeout(timeout);if(fields)fields.disabled=false;button.disabled=fa
 on(document,'jeevana:language',()=>{strip.refresh();forms.forEach(f=>{if(f.dataset.pending==='true'){const l=$('[data-submit-label]',f);if(l)l.textContent=t('sending');}});queuePage();});
 function motionChanged(){if(motion.matches){reveals.forEach(e=>show(e,true));fillMinis();}strip.refresh();queuePage();}
 if(motion.addEventListener)motion.addEventListener('change',motionChanged);else if(motion.addListener)motion.addListener(motionChanged);if(desktop.addEventListener)desktop.addEventListener('change',queuePage);
-})();
+})();(function(){var b=document.querySelector('.bar');if(!b)return;var s=function(){document.documentElement.style.setProperty('--hh',b.offsetHeight+'px')};s();if('ResizeObserver'in window)new ResizeObserver(s).observe(b);else addEventListener('resize',s)})();
