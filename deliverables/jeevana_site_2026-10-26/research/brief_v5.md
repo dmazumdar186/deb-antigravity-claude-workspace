@@ -79,3 +79,11 @@ sub-agents (subscription). Screenshot review: Claude Sonnet 5.5.
 Every paid call (OpenRouter, Higgsfield, any API) is logged per call: OpenRouter to `research/warroom/ledger.md` (existing table),
 video legs to `research/film*/ledger.jsonl`, anything else to `research/billing/manual.jsonl`. `python3 research/billing/spend_report.py snapshot`
 rebuilds `research/billing/SPEND.md` after each paid round.
+
+## Brand change (operator, 2026-10-27, client's choice): Concept 2, name "Jeevana Yoga & Wellness"
+Supersedes the Concept 3 brand above. Source: `_raw_assets/v5/logo-concepts.jpg`, **Concept 2** (top-centre): a circular seal —
+sage outer ring and a thin terracotta/gold inner ring, a seated meditation figure in terracotta with "G1A" (sage G and A, terracotta 1
+on the figure's body) across her, ring text on the top arc, "G1A" on the bottom arc. Business name everywhere: **Jeevana Yoga &
+Wellness** (FR keeps the English name). Ring text: top arc "JEEVANA YOGA & WELLNESS", bottom arc "G1A". Keep G1A. Same output file
+names in `site/assets/brand/` so links keep working; favicon = the seal simplified (figure + G1A, no ring text) legible at 16 px.
+Text: page title, header/footer wordmark, og:site_name, JSON-LD `name`, logo alt "G1A — Jeevana Yoga & Wellness".
