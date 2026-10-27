@@ -35,22 +35,46 @@ def read(p: Path, limit: int | None = None) -> str:
     return t[:limit] if limit else t
 
 def call(model: str, system: str, user: str, max_tokens: int, json_mode: bool, effort: str = "high") -> tuple[str, dict]:
-    body = {"model": model, "max_tokens": max_tokens, "reasoning": {"effort": effort},
+    """Streamed completion (keeps the proxy connection alive on 10-minute generations); retries on resets."""
+    body = {"model": model, "max_tokens": max_tokens, "reasoning": {"effort": effort}, "stream": True,
+            "stream_options": {"include_usage": True},
             "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}]}
     if json_mode:
         body["response_format"] = {"type": "json_object"}
     t0 = time.time()
     for attempt in range(3):
-        r = requests.post(OR, headers={"Authorization": f"Bearer {key()}", "HTTP-Referer": "https://prodcraft.fyi", "X-Title": "jeevana-warroom"},
-                          json=body, timeout=1800)
-        if r.status_code in (429, 500, 502, 503) and attempt < 2:
-            time.sleep(8 * (attempt + 1)); continue
-        r.raise_for_status()
-        d = r.json()
-        msg = d["choices"][0]["message"]
-        text = msg.get("content") or ""
-        usage = d.get("usage", {}) | {"wall_s": round(time.time() - t0, 1), "gen": d.get("id"), "finish": d["choices"][0].get("finish_reason")}
-        return text, usage
+        try:
+            r = requests.post(OR, headers={"Authorization": f"Bearer {key()}", "HTTP-Referer": "https://prodcraft.fyi", "X-Title": "jeevana-warroom"},
+                              json=body, timeout=(30, 600), stream=True)
+            if r.status_code in (429, 500, 502, 503) and attempt < 2:
+                time.sleep(8 * (attempt + 1)); continue
+            r.raise_for_status()
+            text, usage, finish, gid = [], {}, None, None
+            for line in r.iter_lines(decode_unicode=True):
+                if not line or not line.startswith("data: "):
+                    continue
+                data = line[6:]
+                if data.strip() == "[DONE]":
+                    break
+                try:
+                    d = json.loads(data)
+                except json.JSONDecodeError:
+                    continue
+                gid = gid or d.get("id")
+                for ch in d.get("choices") or []:
+                    delta = ch.get("delta") or {}
+                    if delta.get("content"):
+                        text.append(delta["content"])
+                    if ch.get("finish_reason"):
+                        finish = ch["finish_reason"]
+                if d.get("usage"):
+                    usage = d["usage"]
+            usage = usage | {"wall_s": round(time.time() - t0, 1), "gen": gid, "finish": finish}
+            return "".join(text), usage
+        except (requests.exceptions.ChunkedEncodingError, requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:
+            if attempt == 2:
+                raise
+            print(f"stream broke ({e.__class__.__name__}); retry {attempt + 1}", file=sys.stderr); time.sleep(10)
     raise RuntimeError("unreachable")
 
 def ledger(root: Path, step: str, model: str, usage: dict) -> None:
