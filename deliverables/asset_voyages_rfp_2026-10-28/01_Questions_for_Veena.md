@@ -18,10 +18,11 @@ https://asset-voyages-redesign.pages.dev/console/
 
 4. **What we understood, what it needs, and our questions**: our reading of your brief, what runs behind the scenes and what it would cost you to run, a few suggestions, and 30 questions.
 https://asset-voyages-redesign.pages.dev/questions/
+(the questions start here: https://asset-voyages-redesign.pages.dev/questions/#s8)
 
-The four pages are unlisted: they are hidden from Google and not linked from any public site, but anyone with the links can open them, so please share them only internally. The concept uses sample data. The concept and the console are illustrations, not a list of what is included; what is included is set only by the proposal you sign.
+The four pages are unlisted: they are hidden from Google and not linked from any public site, but anyone with the links can open them, so please share them only internally. The concept uses sample data. The concept and the console are illustrations, not a list of what is included; what is included is set only by the signed proposal.
 
-Could you reply to the 30 questions on page 4 by email, by Friday 6 November? The page has a reply button with the questions already numbered, and eight are marked "Answer first" if time is short. I prefer to have everything in writing so nothing gets lost between us. Short answers are fine, and "don't know yet" is a perfectly good answer. Anything not answered by then follows the assumption shown under each question. Once we have them, we'll send the full proposal with the costs.
+Could you reply to the 30 questions on page 4 by email, by Friday 6 November? The page has a reply button with the questions already numbered and labelled (write OK to accept our assumption, or your answer), and eight are marked "Answer first" if time is short. I prefer to have everything in writing so nothing gets lost between us. Short answers are fine, and "don't know yet" is a perfectly good answer. Anything not answered by then follows the assumption shown under each question. Once we have them, we'll send the full proposal with the costs.
 
 Best,
 Debanjan

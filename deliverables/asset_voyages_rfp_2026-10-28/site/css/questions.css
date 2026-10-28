@@ -87,3 +87,9 @@ html{scroll-behavior:smooth}
 .qs li{scroll-margin-top:96px}
 @media (max-width:899px){.qs li{scroll-margin-top:136px}}
 @media (max-width:599px){.toc{position:static}.q-sec,.qs li{scroll-margin-top:84px}}
+.q-jump{margin-top:18px}
+.q-jump a{display:inline-flex;align-items:center;min-height:44px;color:#fff;font-weight:600;text-underline-offset:3px}
+.box ul{margin:6px 0 0;padding-left:1.2em}
+.box li+li{margin-top:4px}
+html:has(.qs li:target){scroll-behavior:auto}
+@media (max-width:599px){.qs li{display:block;padding:12px 14px}.qs li b{display:inline;margin-right:.35em;font-size:20px}}

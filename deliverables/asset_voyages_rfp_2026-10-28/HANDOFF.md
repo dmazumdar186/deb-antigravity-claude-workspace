@@ -276,3 +276,6 @@ Every fix in `08_Audit_Round1_11_Lenses.md` (29) and `09_Audit_Round1_Project_Ex
 - site_check: PASSED on 4 pages × 4 contexts.
 - `screens/` re-shot (review set + `r1-*` for §08, #q18, console, home top at desktop and iPhone 13).
 
+
+## v2.4: audit round 2 fixes (11/12 audits, 2026-10-28)
+All 34 fixes applied; log `13_Round2_Fix_Log.md`. `01b_20_Questions_source.md` renamed `01b_Questions_source.md`. Staff login wording verified against Cloudflare Access Independent MFA docs (28 Oct). Functional 61/61; site_check PASSED 4 pages × 4 contexts; `screens/r2-*` reviewed; redeployed. Not committed.

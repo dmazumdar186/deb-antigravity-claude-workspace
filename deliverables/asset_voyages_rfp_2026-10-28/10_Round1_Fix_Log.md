@@ -1,6 +1,6 @@
 # Audit round 1: fix log (2026-10-28)
 
-Where the two audits differed, the more protective wording that is still plain was used. Defaults are identical in `site/questions/`, `01b_20_Questions_source.md` and `07_Question_Coverage_Matrix.md`. Still 30 questions; no new question (new topics folded into defaults or page sections).
+Where the two audits differed, the more protective wording that is still plain was used. Defaults are identical in `site/questions/`, `01b_Questions_source.md` and `07_Question_Coverage_Matrix.md`. Still 30 questions; no new question (new topics folded into defaults or page sections).
 
 ## 08 — 11 lenses (29)
 

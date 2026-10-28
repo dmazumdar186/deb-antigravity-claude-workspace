@@ -1,6 +1,6 @@
 # Audit round 2 of 3: 11 lenses, hostile-client posture (2026-10-28)
 
-**Scope.** The cover email `01_Questions_for_Veena.md` and the four pages under `site/` (`/`, `/pour-asset/`, `/console/`, `/questions/`), cross-checked against `01b_20_Questions_source.md`, `07_Question_Coverage_Matrix.md`, `HANDOFF.md`, `research/infra_costs_2026.md`, `/tmp/rfp/brief.txt` and `/tmp/rfp/form.txt`. Audit only: no site file was edited.
+**Scope.** The cover email `01_Questions_for_Veena.md` and the four pages under `site/` (`/`, `/pour-asset/`, `/console/`, `/questions/`), cross-checked against `01b_Questions_source.md`, `07_Question_Coverage_Matrix.md`, `HANDOFF.md`, `research/infra_costs_2026.md`, `/tmp/rfp/brief.txt` and `/tmp/rfp/form.txt`. Audit only: no site file was edited.
 
 **Posture and rules (same as round 1).** ASSET is the most hostile client possible: it answers late, vaguely or not at all, disputes scope and exploits every ambiguity. Checked rules: no ProdCraft fees; no other client names; plain language; no invented facts; no more than 30 MECE questions, each with a bounded written default; answers by Fri 6 Nov 2026; only the signed proposal defines scope.
 
@@ -83,7 +83,7 @@
 | 18 | Minor (readability) | §05 single paragraph (5 sentences, 4 hedges) | It reads as a wall of caveats on a phone. | Split into 3 short lines: what we design for / the 99.5 % target and how it is measured / what is excluded and where firm terms live. |
 | 19 | Minor (French tone) | Pitch « Faits et contradictions relevés » | "Contradictions" sounds accusatory to the client's management. | « Points relevés, à confirmer avec vous » |
 | 20 | Minor | §03 "The audit… will confirm whether to keep or replace it, with the costs of each option" | If J1 recommends keeping WordPress, the client may demand a re-price of a signed custom build at no cost. | Add: "If the audit changes the approach, the change process applies." |
-| 21 | Minor (internal) | Filename `01b_20_Questions_source.md` holds 30 questions | The filename is stale. | Rename to `01b_Questions_source.md`, or note it in HANDOFF. |
+| 21 | Minor (internal) | Filename `01b_Questions_source.md` holds 30 questions | The filename is stale. | Rename to `01b_Questions_source.md`, or note it in HANDOFF. |
 
 ## Part C: lenses
 

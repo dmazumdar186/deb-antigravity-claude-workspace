@@ -1,14 +1,14 @@
 {
   "date": "2026-10-28",
-  "pass": 56,
-  "total": 56,
+  "pass": 61,
+  "total": 61,
   "desktopHeight": 21464,
   "mobileHeightPixel7": 15853,
   "mobileHeight390": 15159,
   "sizes": {
-    "html": 33849,
+    "html": 34036,
     "css": 29763,
-    "js": 49279
+    "js": 50078
   },
   "results": [
     {
@@ -24,7 +24,7 @@
     {
       "name": "film: video fetched as a blob (seekable) or canvas fallback",
       "ok": true,
-      "info": "{\"blob\":true,\"ready\":4,\"dur\":30.042,\"canvas\":false}"
+      "info": "{\"blob\":true,\"ready\":1,\"dur\":30.042,\"canvas\":false}"
     },
     {
       "name": "film: scroll scrubs currentTime to the keyframe (15 s), and back (5 s)",
@@ -162,7 +162,7 @@
     {
       "name": "budget: index + css + all js ≤ 150 KB (video excluded)",
       "ok": true,
-      "info": "{\"html\":33849,\"css\":29763,\"js\":49279} = 110.2 KB"
+      "info": "{\"html\":34036,\"css\":29763,\"js\":50078} = 111.2 KB"
     },
     {
       "name": "confidentiality: no other client or project named anywhere in the built site",
@@ -243,7 +243,7 @@
       "ok": true
     },
     {
-      "name": "questions: 30 questions, unlisted (not \"private\") wording, no absolute \"never lost\", references promised, 0 errors",
+      "name": "questions: 30 questions, unlisted (not \"private\") wording, no absolute \"never lost\", work examples without client names, 0 errors",
       "ok": true,
       "info": "questions=30"
     },
@@ -253,7 +253,28 @@
       "info": "{\"ids\":true,\"af\":\"q1,q2,q3,q5,q6,q9,q15,q18\",\"n\":2}"
     },
     {
-      "name": "questions r1: hostile-client absolutes removed (any time, instantly, lunch, authenticator app, 29 pages, \"as your brief describes\")",
+      "name": "questions r1: hostile-client absolutes removed (any time, instantly, lunch, 29 pages, \"as your brief describes\")",
+      "ok": true
+    },
+    {
+      "name": "questions r2: jump link, launch needs written go-ahead, one rounds rule, plan-bound support, consent default, 3-year total, firm deadline, no \"contract is signed\"",
+      "ok": true
+    },
+    {
+      "name": "questions r2: #q18 deep link lands instantly below the header (no smooth scroll)",
+      "ok": true,
+      "info": "top=96"
+    },
+    {
+      "name": "pitch r2: audit only after signature, no \"contradictions\"/\"bonne équipe\"/\"si possible\", roles bounded by Q28",
+      "ok": true
+    },
+    {
+      "name": "console r2: roles example tied to Q28, two-step for all accounts",
+      "ok": true
+    },
+    {
+      "name": "home r2: quote form has a « Précisions » free-text box (Q22)",
       "ok": true
     },
     {

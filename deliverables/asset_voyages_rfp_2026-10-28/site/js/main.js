@@ -167,7 +167,7 @@
   if (f03) f03.addEventListener('submit', function (e) {
     e.preventDefault(); if (!valid(f03)) return;
     var el = f03.elements, n = +el.pax.value;
-    okMsg(f03, 'Demande enregistrée (maquette) — ' + (curRow ? curRow.dataset.id : '') + ' · départ ' + el.from.value + ' le ' + el.out.value + ' · ' + n + (n > 1 ? ' voyageurs' : ' voyageur') + ' · ' + el.cls.value + '. Rien n’a été envoyé ; en production, la demande est liée au congrès, enregistrée et notifiée à l’équipe, qui émet le devis.');
+    okMsg(f03, 'Demande enregistrée (maquette) — ' + (curRow ? curRow.dataset.id : '') + ' · départ ' + el.from.value + ' le ' + el.out.value + ' · ' + n + (n > 1 ? ' voyageurs' : ' voyageur') + ' · ' + el.cls.value + (el.notes && el.notes.value.trim() ? ' · précisions notées' : '') + '. Rien n’a été envoyé ; en production, la demande est liée au congrès, enregistrée et notifiée à l’équipe, qui émet le devis.');
   });
 
   /* contact: three journeys (F01 / F02 / congrès) */
