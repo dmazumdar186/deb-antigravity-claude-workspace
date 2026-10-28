@@ -1,4 +1,4 @@
-# ASSET Voyages — Website Redesign: Clarification Questions
+# INTERNAL — full question bank (do not send; the client gets the 20 questions in 01_Questions_for_Veena.md). Use it to read their answers for gaps.
 Prepared by Debanjan Mazumdar, Founder, ProdCraft · 28 October 2026
 Reference: *ASSET Voyages website redesign requirements*, Version 0.4 EN (28 Oct 2026), and the Supplier Response Form v0.1
 

@@ -86,7 +86,7 @@ My honest view: €4,000 is still very low for this scope. The 3-year figure (�
 
 ## 6. What we do next (order)
 
-1. Reply to Veena today: confirm interest, propose a call, send the clarification questions (`01_…`). **No prices in the email** (your rule).
+1. Reply to Veena today: confirm interest and send the 20 questions; answers in writing, no call (`01_Questions_for_Veena.md` (20 questions, written answers by email; the long list is `99_INTERNAL_kickoff_call_checklist.md`)). **No prices in the email** (your rule).
 2. Concept mock-up live (`site/`) linked in the reply as "an initial visual direction".
 3. After the call: fill in the brackets in `proposal/asset-voyages-v1.json`, rebuild the DOCX and send it as a PDF (the brief asks for a **PDF** technical proposal + itemised quotation, HT/TVA/TTC).
 4. Prepare 2–3 references they can verify. We have **no travel/MICE reference**. Lead with GreenJobs (catalogue/listings with filters = the Congress catalogue pattern), Jitendra/Jeevana (live FR/EN), Evolution Exhibits (exhibitions = the "E" in MICE).
