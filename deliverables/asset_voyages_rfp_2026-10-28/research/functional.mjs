@@ -36,6 +36,11 @@ const t3 = await p.evaluate(() => document.querySelector('[data-film-video]').cu
 await go(p, await filmY(p, 1)); await p.waitForTimeout(2000);
 const t1 = await p.evaluate(() => document.querySelector('[data-film-video]').currentTime);
 t('film: scroll scrubs currentTime to the keyframe (15 s), and back (5 s)', Math.abs(t3 - 15) < 0.6 && Math.abs(t1 - 5) < 0.6, `${t3.toFixed(2)} → ${t1.toFixed(2)}`);
+await go(p, await filmY(p, 0)); await p.waitForTimeout(1500);
+await p.evaluate((y) => { document.documentElement.style.scrollBehavior = 'auto'; window.scrollTo(0, y); }, await filmY(p, 5)); await p.waitForTimeout(60);
+const fling = await p.evaluate(() => { const vis = [...document.querySelectorAll('[data-film-state]')].filter((el) => getComputedStyle(el).visibility === 'visible' && +getComputedStyle(el).opacity > 0); const v = document.querySelector('[data-film-video]'); return { n: vis.length, on: vis.map((e) => +e.dataset.filmState), shown: Math.round(v.currentTime / 5) }; });
+await p.waitForTimeout(2500); const settled = await onState(p);
+t('film fling: exactly one text layer visible (hard swap), matching the frame on screen, settles on 05', fling.n === 1 && Math.abs(fling.on[0] - fling.shown) <= 1 && settled === 5, JSON.stringify({ ...fling, settled }));
 const hdr = await p.evaluate(() => ({ sc: document.querySelector('[data-header]').classList.contains('is-scrolled'), prog: +document.querySelector('[data-header]').style.getPropertyValue('--page-progress') }));
 t('header: shrinks on scroll, progress bar advances', hdr.sc && hdr.prog > 0, JSON.stringify(hdr));
 // card stack
@@ -152,6 +157,9 @@ const mh = await p.evaluate(() => document.documentElement.scrollHeight);
 t('Pixel 7: 0 console errors', p._errs.length === 0, p._errs.slice(0, 2).join(' | '));
 await p.close();
 p = await mk({ ...devices['iPhone 13'] }); await p.goto(base, { waitUntil: 'load' }); await p.waitForTimeout(1200);
+let fit = true; const fitInfo = [];
+for (const k of [0, 3, 5]) { await go(p, await filmY(p, k)); await p.waitForTimeout(700); const r = await p.evaluate(() => { const m = document.querySelector('.film__media').getBoundingClientRect(); const c = document.querySelector('[data-film-state].is-on').getBoundingClientRect(); return { subjBottom: Math.round(m.top + m.height * 0.78), copyTop: Math.round(c.top) }; }); fitInfo.push(k + ':' + r.subjBottom + '<=' + r.copyTop); if (r.subjBottom > r.copyTop) fit = false; }
+t('iPhone 13: film subject never covered by the copy (states 01/04/06)', fit, fitInfo.join(' '));
 const ovi = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth);
 const mh390 = await p.evaluate(() => document.documentElement.scrollHeight);
 t('iPhone 13: no horizontal overflow, 0 errors', ovi <= 0 && p._errs.length === 0, ovi + ' px');

@@ -89,13 +89,11 @@ button,input,select,textarea{font:inherit;color:inherit}
 .film__media{position:absolute;inset:0;z-index:-1}
 .film__video,.film__canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:100% 50%;background:var(--paper)}
 .film__copy{position:absolute;left:var(--g);top:0;bottom:0;width:min(31vw,600px);display:grid;align-content:center;padding-top:var(--hh)}
-.film__state{grid-area:1/1;opacity:0;transform:translateY(18px);pointer-events:none;transition:opacity .42s ease,transform .52s var(--ease)}
-.film__state.is-on{opacity:1;transform:none;pointer-events:auto}
+.film__state{grid-area:1/1;opacity:0;visibility:hidden;pointer-events:none}
+.film__state.is-on{opacity:1;visibility:visible;pointer-events:auto}
 .film__h{font:500 clamp(46px,5.4vw,96px)/.96 var(--serif);letter-spacing:-.022em;margin:18px 0 22px;text-wrap:balance}
 .film__p{font-size:clamp(16px,1.2vw,19px);line-height:1.5;max-width:30em;color:var(--muted)}
 .film__actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
-.film__state.is-on .btn--accent{animation:cta-in .64s var(--ease) .12s both}
-@keyframes cta-in{from{opacity:0;transform:translate3d(0,12px,0) scale(.94)}to{opacity:1;transform:none}}
 .film__steps{position:absolute;left:var(--g);right:var(--g);bottom:26px;display:grid;grid-template-columns:repeat(7,1fr);gap:10px}
 .film__steps li{position:relative;padding-top:12px;font:600 10px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:rgb(10 31 48 / .5);transition:color .3s ease}
 .film__steps li::before,.film__steps li::after{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--rule)}
@@ -154,6 +152,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .field label{font:600 10.5px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .field input,.field select,.field textarea{width:100%;min-height:46px;padding:10px 12px;border:1px solid rgb(10 31 48 / .28);border-radius:4px;background:#fff;font-size:15px}
 .field textarea{min-height:90px;resize:vertical}
+.field textarea[readonly]{min-height:0;resize:none;line-height:1.35;background:#F7F5EF}
 .field input:focus,.field select:focus,.field textarea:focus{outline:2px solid var(--or);outline-offset:0;border-color:var(--or)}
 .hint{font-size:12px;color:var(--muted)}
 .cat__bar{display:flex;justify-content:space-between;gap:12px;padding:0 4px 12px;border-bottom:1px solid var(--rule);font:600 11px/1.2 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
@@ -211,10 +210,10 @@ button,input,select,textarea{font:inherit;color:inherit}
 .caps__n{font:600 12px/1 var(--mono);letter-spacing:.12em;color:rgb(255 255 255 / .5);transition:transform .42s var(--ease),color .3s ease}
 .caps__list h3{font:500 clamp(26px,2.4vw,40px)/1.05 var(--serif);transition:transform .32s var(--ease)}
 .caps__list p{color:rgb(255 255 255 / .66);transition:transform .38s var(--ease),color .3s ease}
-.caps__list li:hover::before{transform:scaleY(1)}
+@media (hover:hover){.caps__list li:hover::before{transform:scaleY(1)}
 .caps__list li:hover .caps__n{transform:translateX(18px);color:#F7A35C}
 .caps__list li:hover h3{transform:translateX(7px)}
-.caps__list li:hover p{transform:translateX(-6px);color:#fff}
+.caps__list li:hover p{transform:translateX(-6px);color:#fff}}
 
 /* 07 agency */
 .agency{display:grid;grid-template-columns:minmax(160px,1fr) minmax(0,3fr);gap:var(--g);padding:clamp(100px,10vw,170px) var(--g)}
@@ -289,7 +288,7 @@ button,input,select,textarea{font:inherit;color:inherit}
   .client-pop{right:8px;left:8px;width:auto}
   .toast{right:8px}
   .film{height:calc(5.5 * 100svh)}
-  .film__media{top:var(--hh);bottom:auto;height:auto;aspect-ratio:4/5}
+  .film__media{top:var(--hh);bottom:auto;left:50%;right:auto;width:auto;height:min(125vw,calc(100svh - var(--hh) - 330px));aspect-ratio:4/5;transform:translateX(-50%)}
   .film__video,.film__canvas{object-position:50% 0}
   .film__copy{left:0;right:0;width:auto;top:auto;bottom:62px;padding:22px var(--g) 12px;align-content:end;display:grid;background:linear-gradient(rgb(242 238 229 / 0),var(--paper) 22px)}
   .film__h{font-size:clamp(34px,9.6vw,46px);margin:10px 0 12px}
@@ -306,7 +305,9 @@ button,input,select,textarea{font:inherit;color:inherit}
   .statement,.caps__top,.agency,.contact__top{display:block}
   .statement{min-height:0;padding:88px var(--g)}
   .statement .display,.agency .display,.contact .display{font-size:clamp(40px,11.5vw,60px);margin-top:16px}
+  .statement__trades{display:grid;gap:10px}
   .statement__trades span+span::before{display:none}
+  .statement__trades span::before{content:"";display:inline-block;width:18px;height:1px;margin-right:10px;vertical-align:middle;background:#F7A35C}
   .statement__trades{gap:10px 14px}
   .offers__track{min-height:0}
   .offers__sticky{position:relative;height:auto;display:block;padding:80px var(--g) 64px}

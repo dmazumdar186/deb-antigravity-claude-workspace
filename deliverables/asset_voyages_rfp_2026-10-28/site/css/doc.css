@@ -70,7 +70,8 @@ tbody th{font-weight:600;width:24%}
   .dh{min-height:58px}
   .dh img{height:26px}
   .con{grid-template-columns:1fr}
-  .con__side{grid-auto-flow:column;grid-auto-columns:max-content;overflow-x:auto;border-right:0;border-bottom:1px solid var(--rule);padding:10px 12px;position:sticky;top:58px;z-index:5}
+  .con__side{display:flex;flex-wrap:wrap;gap:4px;border-right:0;border-bottom:1px solid var(--rule);padding:8px 10px;position:sticky;top:58px;z-index:5}
+  .con__side a{padding:9px 10px}
   .con__side p{display:none}
   .stats{grid-template-columns:1fr 1fr}
   .roles{grid-template-columns:1fr}

@@ -52,7 +52,7 @@
     var pos = clamp01(p) * Math.max(n - 1, 0), off = i - pos, dir = i % 2 === 0 ? 1 : -1;
     var exit = clamp01((-off - 0.08) / 0.82), depth = Math.max(0, Math.min(4, off));
     return { x: exit > 0 ? dir * 36 * exit : dir * depth * 2.8, y: exit > 0 ? -76 * exit : depth * 3.2, r: exit > 0 ? dir * 3.5 * exit : dir * depth * 0.8,
-      s: exit > 0 ? 1 - 0.03 * exit : Math.max(0.9, 1 - depth * 0.028), o: exit > 0 ? 1 - 0.96 * exit : Math.max(0.58, 1 - depth * 0.1), z: n - i };
+      s: exit > 0 ? 1 - 0.03 * exit : Math.max(0.9, 1 - depth * 0.028), o: exit > 0 ? Math.max(0, 1 - exit * 1.6) : Math.max(0.58, 1 - depth * 0.1), z: n - i };
   }
   function drumState(p, i, n) {
     var x = Math.min(Math.max(n - 1, 0), clamp01(p) * n), fl = Math.floor(x), fr = x - fl, k = clamp01((fr - 0.6) / 0.4);
@@ -77,7 +77,7 @@
         if (!motion) { c.removeAttribute('style'); c.inert = false; return; }
         var s = folioState(fp, i, cards.length);
         c.style.setProperty('--fx', s.x + '%'); c.style.setProperty('--fy', s.y + '%'); c.style.setProperty('--fr', s.r + 'deg');
-        c.style.setProperty('--fs', String(s.s)); c.style.setProperty('--fo', String(s.o)); c.style.zIndex = String(s.z);
+        c.style.setProperty('--fs', String(s.s)); c.style.setProperty('--fo', String(s.o)); c.style.zIndex = String(s.z); c.style.visibility = s.o < 0.02 ? 'hidden' : '';
         c.inert = Math.abs(i - fp * (cards.length - 1)) > 0.5;
       });
       if (fIdx) fIdx.textContent = '0' + (Math.round(fp * (cards.length - 1)) + 1);

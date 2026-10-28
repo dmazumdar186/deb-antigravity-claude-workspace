@@ -29,6 +29,7 @@
     states.forEach(function (el) { var on = +el.dataset.filmState === i; el.classList.toggle('is-on', on); if ('inert' in el) el.inert = !on; el.setAttribute('aria-hidden', on ? 'false' : 'true'); });
     steps.forEach(function (el) { el.classList.toggle('is-on', +el.dataset.filmStep === i); });
   }
+  if (small && film) film.poster = 'assets/hero-m.jpg';
   if (reduce) {
     show(0);
     var box = document.createElement('div'); box.className = 'film__static'; var ol = document.createElement('ol');
@@ -43,7 +44,6 @@
   var base = 'assets/hero' + (small ? '-m' : '');
   var webm = film && film.canPlayType && film.canPlayType('video/webm; codecs="vp9"');
   var src = base + (webm ? '.webm' : '.mp4');
-  if (small && film) film.poster = 'assets/hero-m.jpg';
   var target = 0, raf = 0, seeking = false, canvas = null, ctx = null, ct = 0;
   function useCanvas() {
     if (canvas || !window.AVFilm || !media) return;
@@ -52,15 +52,18 @@
     var fit = function () { var r = media.getBoundingClientRect(), d = Math.min(2, window.devicePixelRatio || 1); canvas.width = Math.round(r.width * d); canvas.height = Math.round(r.height * d); paint(); };
     window.addEventListener('resize', fit); fit();
   }
+  /* text state follows the frame actually on screen (hard swap at mid-leg), never the raw scroll */
+  function sync(time) { show(Math.min(LAST, Math.max(0, Math.round(time / LEG)))); }
   function paint() { if (!canvas) return; ctx = ctx || canvas.getContext('2d'); window.AVFilm.draw(ctx, canvas.width, canvas.height, ct); }
   function tick() {
     if (raf) return;
     raf = requestAnimationFrame(function () {
       raf = 0;
-      if (canvas) { var d0 = target - ct; if (Math.abs(d0) < 1 / 48) { ct = target; paint(); return; } ct += d0 * 0.22; paint(); tick(); return; }
+      if (canvas) { var d0 = target - ct; if (Math.abs(d0) < 1 / 48) { ct = target; paint(); sync(ct); return; } ct += d0 * 0.22; paint(); sync(ct); tick(); return; }
       if (!film || film.readyState < 1) { if (film) tick(); return; }
       var delta = target - film.currentTime;
-      if (Math.abs(delta) < 1 / 48) return;
+      sync(film.currentTime);
+      if (Math.abs(delta) < 1 / 48) { sync(target); return; }
       if (!seeking) { seeking = true; film.currentTime += delta * 0.22; }
       tick();
     });
@@ -71,13 +74,13 @@
     var t = Math.min(LAST, (p / 0.92) * LAST), s = Math.floor(Math.min(t, LAST - 0.001)), f = t - s;
     var g = Math.min(1, Math.max(0, (f - 0.15) / 0.7));
     target = (s + g) * LEG;
-    show(f < 0.5 ? s : Math.min(LAST, s + 1));
+    if (!canvas && (!film || film.readyState < 1)) show(f < 0.5 ? s : Math.min(LAST, s + 1));
     steps.forEach(function (el, i) { el.style.setProperty('--fill', Math.min(1, Math.max(0, t * (LAST + 1) / LAST - i)).toFixed(3)); });
     hero.classList.toggle('is-moving', p > 0.01);
     tick();
   }
   if (film) {
-    film.addEventListener('seeked', function () { seeking = false; });
+    film.addEventListener('seeked', function () { seeking = false; sync(film.currentTime); });
     film.addEventListener('loadedmetadata', frame);
     film.addEventListener('error', useCanvas);
     var load = function () {

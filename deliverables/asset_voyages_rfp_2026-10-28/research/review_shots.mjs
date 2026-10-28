@@ -12,7 +12,7 @@ async function shoot(ctxOpts, name, plan) {
   const ctx = await b.newContext({ locale: 'fr-FR', ...ctxOpts }); const p = await ctx.newPage();
   p.on('console', (m) => { if (m.type() === 'error') errs.push(name + ': ' + m.text()); }); p.on('pageerror', (e) => errs.push(name + ': ' + e.message));
   await p.goto(base, { waitUntil: 'load' }); await p.evaluate(() => document.fonts.ready); await p.waitForTimeout(1500);
-  for (const [label, fn] of plan) { await fn(p); await p.waitForTimeout(900); await p.screenshot({ path: `${out}/${name}-${label}.png` }); if (label.includes('listing')) { await p.keyboard.press('Escape'); await p.waitForTimeout(300); } }
+  for (const [label, fn] of plan) { await p.mouse.move(0, 0); await fn(p); await p.waitForTimeout(900); await p.screenshot({ path: `${out}/${name}-${label}.png` }); if (label.includes('listing')) { await p.keyboard.press('Escape'); await p.waitForTimeout(300); } }
   await ctx.close();
 }
 const at = (sel, frac = 0) => async (p) => { await p.evaluate(([s, f]) => { const el = document.querySelector(s); const r = el.getBoundingClientRect(); const y = scrollY + r.top + f * Math.max(0, el.offsetHeight - innerHeight); window.scrollTo(0, y); }, [sel, frac]); };

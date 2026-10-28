@@ -14,7 +14,7 @@ Source: `site/` (index, css, js, `pour-asset/`, `console/`, `_headers` with CSP 
   - "Un chef de projet dédié : présent dès la prise de brief"
   - the PME-PMI/TPE line and the reporting line
   - the slogan "Optimisez vos voyages d'affaires"
-- Assets taken from the live site: the real logo (dark and light versions), the favicon, the hero photo `slide_2_asset.jpg` (now `skyline.webp`) and the Selectour Affaires logo. Every other plate is a generated SVG labelled "Illustration".
+- Assets taken from the live site: the real logo (dark and light versions), the favicon, and the Selectour Affaires logo. `skyline.webp` is no longer from their site: it is a Paris panorama, https://commons.wikimedia.org/wiki/File:Paris-pano-wladyslaw.jpg, by Wladyslaw Sojka, CC BY 3.0 (credit shown in the figcaption), cropped to 1600x607. Every other plate is a generated SVG labelled "Illustration".
 - Contradictions (footnoted in the pitch):
   - The live domain is asset-voyagesdaffaires.com, but the RFP cites www.assetvoyages.com.
   - The client area is "Connexion Traveldoo" (plus IRES and the Smart app), but the RFP says Wondermiles.
@@ -84,7 +84,7 @@ ASSET packs the trip into one travel wallet, ships it and unpacks it on site. Th
 5. **Congress catalogue.** The v1 logic, restyled. It covers search, filters, sort, pagination, no-results, the listing dialog and the F03 quote prefilled with fr-FR dates in a text field.
 6. **Drum « La méthode ASSET ».** Five steps, each held for 60 % of its scroll unit.
 7. **Hover list.** The 13 services that are actually on their site.
-8. **L'agence.** Selectour and the skyline photo from their site.
+8. **L'agence.** Selectour, and a Paris panorama (Wikimedia Commons, CC BY 3.0, credited).
 9. **Contact.** Three journeys (F01, F02 with a live summary, congrès).
 10. **Footer.**
 

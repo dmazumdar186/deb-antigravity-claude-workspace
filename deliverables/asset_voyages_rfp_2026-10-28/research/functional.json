@@ -3,12 +3,12 @@
   "pass": 46,
   "total": 46,
   "desktopHeight": 21364,
-  "mobileHeightPixel7": 15702,
-  "mobileHeight390": 14974,
+  "mobileHeightPixel7": 15739,
+  "mobileHeight390": 15037,
   "sizes": {
-    "html": 33169,
-    "css": 29525,
-    "js": 46033
+    "html": 33478,
+    "css": 29680,
+    "js": 47529
   },
   "results": [
     {
@@ -39,7 +39,7 @@
     {
       "name": "card stack: first card retires as the next slides in",
       "ok": true,
-      "info": "{\"c0\":1,\"c0m\":0.04,\"c1m\":1}"
+      "info": "{\"c0\":1,\"c0m\":0,\"c1m\":1}"
     },
     {
       "name": "card stack: third card on top at the end, counter 03",
@@ -153,7 +153,7 @@
     {
       "name": "budget: index + css + all js ≤ 150 KB (video excluded)",
       "ok": true,
-      "info": "{\"html\":33169,\"css\":29525,\"js\":46033} = 106.2 KB"
+      "info": "{\"html\":33478,\"css\":29680,\"js\":47529} = 108.1 KB"
     },
     {
       "name": "confidentiality: no other client or project named anywhere in the built site",

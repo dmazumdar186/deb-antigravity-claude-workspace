@@ -86,12 +86,13 @@
     if (to <= from) return; c.save(); c.globalAlpha *= alpha; c.strokeStyle = color; c.lineWidth = px * g.lw; c.lineCap = 'round'; if (dash) c.setLineDash(dash);
     c.beginPath(); for (var i = 0; i <= 60; i++) { var p = qpt(a, b, k, mix(from, to, i / 60)); if (i) c.lineTo(p[0], p[1]); else c.moveTo(p[0], p[1]); } c.stroke(); c.restore();
   }
-  function pin(c, g, p, label, alpha, right, pulse) {
+  function pin(c, g, p, label, alpha, right, pulse, t) {
     if (alpha <= 0) return; c.save(); c.globalAlpha *= alpha;
     if (pulse) { for (var i = 0; i < 2; i++) { var q = (pulse + i * 0.5) % 1; c.strokeStyle = OR; c.globalAlpha = alpha * (1 - q) * 0.7; c.lineWidth = 1.4 * g.lw; c.beginPath(); c.arc(p[0], p[1], 1.6 + q * 6, 0, 7); c.stroke(); } c.globalAlpha = alpha; }
     c.fillStyle = WHITE; c.strokeStyle = INK; c.lineWidth = 1.6 * g.lw; c.beginPath(); c.arc(p[0], p[1], 1.5, 0, 7); c.fill(); c.stroke();
     c.fillStyle = INK; c.beginPath(); c.arc(p[0], p[1], 0.6, 0, 7); c.fill();
-    txt(c, label, p[0] + (right ? 2.8 : -2.8), p[1] + 0.9, 2.3, 'mono', INK, right ? 'left' : 'right');
+    if (right === 'below' && t < 23.5) txt(c, label, p[0], p[1] + 5, 2.3, 'mono', INK, 'center');
+    else txt(c, label, p[0] + (right ? 2.8 : -2.8), p[1] + 0.9, 2.3, 'mono', INK, right ? 'left' : 'right');
     c.restore();
   }
   function drawMap(c, g, t, alpha, zoom, zc) {
@@ -129,8 +130,8 @@
     var fl = lin(t, 20.4, 23.6);
     if (fl > 0) arc(c, g, PARIS, DEST, CTRL, 0, ease(fl), 2.4, OR, 1);
     pin(c, g, PARIS, 'PARIS', seg(t, 6.6, 7.4), false);
-    pin(c, g, DEST, 'VILLE DU CONGRÈS', seg(t, 7.0, 7.8), g.land && DEST[0] + 24 < g.MW, t > 23.4 && t < 25.5 ? (t - 23.4) * 0.9 : 0);
-    if (fl > 0 && fl < 1) plane(c, g, ease(fl));
+    pin(c, g, DEST, 'VILLE DU CONGRÈS', seg(t, 7.0, 7.8), 'below', t > 23.4 && t < 25.5 ? (t - 23.4) * 0.9 : 0, t);
+    if (fl > 0 && fl < 0.93) plane(c, g, Math.min(1, ease(fl) + 0.07));
     c.restore();
   }
   function plane(c, g, s) {
@@ -208,6 +209,8 @@
     c.save(); c.translate(x, y); c.scale(sc, sc); c.globalAlpha *= alpha;
     c.fillStyle = 'rgba(10,31,48,.16)'; rr(c, -w / 2 + 0.9, -h / 2 + 1.2, w, h, 1.4); c.fill();
     c.fillStyle = '#0A2638'; rr(c, -w / 2, -h / 2, w, h, 1.4); c.fill();
+    var f0 = Math.cos(open * Math.PI);
+    if (f0 < 0) drawFlap(f0);
     if (inner) inner(c, sc);
     c.save(); c.globalAlpha *= frontA;
     c.fillStyle = NAVY; rr(c, -w / 2, -h / 2 + h * 0.34, w, h * 0.66, 1.4); c.fill();
@@ -216,10 +219,11 @@
     txt(c, 'POCHETTE DE VOYAGE', 0, h * 0.2 + 3.4, 1.3, 'mono', OR, 'center', 0.95);
     c.restore();
     /* flap hinged on the top edge */
-    var f = Math.cos(open * Math.PI); /* 1 closed (down), -1 open (up) */
-    c.save(); c.translate(0, -h / 2); c.scale(1, f);
-    c.fillStyle = f > 0 ? '#11405F' : '#0A2638'; c.beginPath(); c.moveTo(-w / 2, 0); c.lineTo(w / 2, 0); c.lineTo(w / 2, h * 0.3); c.quadraticCurveTo(0, h * 0.5, -w / 2, h * 0.3); c.closePath(); c.fill();
-    c.restore();
+    var f = f0; /* 1 closed (down), -1 open (up) */
+    function drawFlap(f) { c.save(); c.translate(0, -h / 2); c.scale(1, f);
+      c.fillStyle = f > 0 ? '#11405F' : '#0A2638'; c.beginPath(); c.moveTo(-w / 2, 0); c.lineTo(w / 2, 0); c.lineTo(w / 2, h * 0.3); c.quadraticCurveTo(0, h * 0.5, -w / 2, h * 0.3); c.closePath(); c.fill();
+      c.restore(); }
+    if (f >= 0) drawFlap(f);
     if (f > 0) { c.fillStyle = OR; c.beginPath(); c.arc(0, -h / 2 + h * 0.42 * f, 1, 0, 7); c.fill(); }
     c.restore();
   }
@@ -227,14 +231,14 @@
   /* ---------- the hall ---------- */
   function hall(c, g, t, alpha) {
     if (alpha <= 0.003) return;
-    var x = -10, y = -6, w = 76, h = 58, s = mix(0.94, 1, seg(t, 23.6, 24.6));
+    var x = -17, y = -6, w = 68, h = 58, s = mix(0.94, 1, seg(t, 23.6, 24.6));
     card(c, g, x, y, w, h, 0, s, alpha, WHITE, function (c) {
       txt(c, 'SALLE PLÉNIÈRE · PLAN', 4, 5, 1.6, 'mono', OR);
       var st = seg(t, 23.7, 24.1); c.fillStyle = NAVY; c.fillRect(w / 2 - 22 * st, 8, 44 * st, 4.4); if (st > 0.9) txt(c, 'SCÈNE', w / 2, 11.1, 1.6, 'mono', '#FFFFFF', 'center');
-      var bn = seg(t, 24.0, 24.4); c.fillStyle = OR; c.fillRect(8, 8, 2.4, 16 * bn); c.fillRect(w - 10.4, 8, 2.4, 16 * bn);
+      var bn = seg(t, 24.0, 24.4); c.fillStyle = OR; c.fillRect(5, 8, 2.2, 9 * bn); c.fillRect(w - 7.2, 8, 2.2, 9 * bn);
       for (var r = 0; r < 6; r++) {
         var k = seg(t, 23.9 + r * 0.1, 24.3 + r * 0.1); if (k <= 0) continue;
-        for (var i = 0; i < 16; i++) { if (i === 8) continue; var sx = 13 + i * 3.1 + (i > 8 ? 0 : 0), sy = 19 + r * 4.8 + (1 - k) * 3; c.globalAlpha = alpha * k; c.fillStyle = r < 2 ? NAVY : 'rgba(13,48,72,.55)'; rr(c, sx, sy, 2.3, 2, 0.4); c.fill(); }
+        for (var i = 0; i < 16; i++) { if (i === 8) continue; var sx = w / 2 - 25.95 + i * 3.1, sy = 19 + r * 4.8 + (1 - k) * 3; c.globalAlpha = alpha * k; c.fillStyle = r < 2 ? NAVY : 'rgba(13,48,72,.55)'; rr(c, sx, sy, 2.3, 2, 0.4); c.fill(); }
       }
       c.globalAlpha = alpha;
       line(c, g, 4, h - 6, w - 4, h - 6, 1, INK, 0.2); txt(c, 'ACCUEIL', w / 2, h - 2.4, 1.5, 'mono', INK, 'center', 0.55);
@@ -280,7 +284,7 @@
     var c = ctx; c.save(); c.translate(g.cx, g.cy); c.scale(g.u, g.u);
 
     /* map (from 5.6 s), zooms into the destination at arrival, then gives way */
-    var mapA = 1 - seg(t, 10.4, 11.6) * 0.72 + seg(t, 17.8, 19.2) * 0.72;
+    var mapA = 1 - seg(t, 10.4, 11.6) * 0.72 + seg(t, 16.8, 18.2) * 0.72;
     mapA *= 1 - seg(t, 23.9, 24.7);
     var zoom = 1 + seg(t, 23.5, 24.7) * 1.6;
     if (t > 5.5 && t < 24.8) drawMap(c, g, t, mapA, zoom, DEST);
@@ -295,47 +299,61 @@
       if (dock < 1) stamp(c, g, mix(28, PARIS[0] + 1, dock), mix(20, PARIS[1] + 16, dock), 7 * mix(1, 0.24, dock), ['POLITIQUE', 'APPLIQUÉE'], seg(t, 4.0, 4.5) * (1 - out), -12);
     }
 
-    /* 10–20 s: bookings print out of the brief, fan, then pack into the wallet */
+    /* 10–16 s: bookings print out of the brief and slide INTO a large open pochette (the pack) */
     var docs = [
-      { w: 44, h: 17, x: -14, y: -14, r: -7, f: boarding(c, g) },
-      { w: 30, h: 17, x: 20, y: -20, r: 6, f: train(c, g) },
-      { w: 30, h: 19, x: -18, y: 14, r: -3, f: hotel(c, g) },
-      { w: 18, h: 26, x: 22, y: 12, r: 9, f: badge(c, g) }
+      { w: 44, h: 17, x: -14, y: -24, r: -6, f: boarding(c, g) },
+      { w: 30, h: 17, x: 18, y: -30, r: 6, f: train(c, g) },
+      { w: 30, h: 19, x: -24, y: -6, r: -4, f: hotel(c, g) },
+      { w: 18, h: 26, x: 24, y: -8, r: 8, f: badge(c, g) }
     ];
-    var wIn = seg(t, 15.4, 16.2), pack = seg(t, 15.8, 17.4), flap = seg(t, 17.2, 18.2), wGo = seg(t, 18.3, 19.6);
-    var WX = mix(0, PARIS[0] + 1, wGo), WY = mix(4, PARIS[1] + 9, wGo), WS = mix(1, 0.32, wGo);
-    var intoPlane = seg(t, 20.2, 20.7);
-    function docsAt(c, k0, packed) {
+    var wIn = seg(t, 11.4, 12.4), flap = seg(t, 15.9, 16.8), wGo = seg(t, 17.0, 18.4);
+    var START = [PARIS[0] + 9, PARIS[1] + 7];
+    var fly = lin(t, 20.4, 23.6), fe = ease(fly), onRoute = qpt(PARIS, DEST, CTRL, fe);
+    var front = seg(t, 23.7, 24.5);                     /* arrival: the pochette comes to the front of the hall */
+    var WX = mix(0, START[0], wGo), WY = mix(18, START[1], wGo), WS = mix(1.3, 0.5, wGo), WR = 0;
+    if (t > 20.4) { var lift = seg(t, 20.4, 21.2); WX = onRoute[0] + mix(9, 0, lift); WY = onRoute[1] + mix(7, -3, lift); var q2 = qpt(PARIS, DEST, CTRL, Math.min(1, fe + 0.01)); WR = Math.atan2(q2[1] - onRoute[1], q2[0] - onRoute[0]) * 0.25; }
+    function docsIn(c) {
       docs.forEach(function (d, i) {
-        var e = seg(t, 10.6 + i * 0.55, 12.2 + i * 0.55); if (e <= 0) return;
-        var x = mix(PARIS[0] - 6, d.x, e), y = mix(PARIS[1] + 10, d.y, e), s = mix(0.2, 1, e), r = d.r * e;
-        if (packed) { x = mix(x, (i - 1.5) * 1.6, pack); y = mix(y, 0.5 + i * 0.6, pack); s = mix(s, 0.7, pack); r = mix(r, (i - 1.5) * 2, pack); }
-        card(c, g, x, y, d.w, d.h, r, s, 1, i === 1 ? '#FBF8F1' : WHITE, d.f);
+        var e = seg(t, 10.5 + i * 0.45, 12.0 + i * 0.45); if (e <= 0) return;
+        var pk = seg(t, 13.2 + i * 0.3, 14.6 + i * 0.3);
+        var x = mix(mix(PARIS[0] - 6, d.x, e), (i - 1.5) * 6, pk), y = mix(mix(PARIS[1] + 10, d.y, e), 10 + i * 0.8, pk);
+        var sc = mix(mix(0.2, 1, e), 0.8, pk), r = mix(d.r * e, (i - 1.5) * 2.5, pk);
+        card(c, g, x, y, d.w, d.h, r, sc, 1, i === 1 ? '#FBF8F1' : WHITE, d.f);
       });
     }
-    if (t >= 10.4 && t < 15.4) docsAt(c, 0, false);
-    if (t >= 15.4 && t < 20.8) {
-      wallet(c, g, WX, WY, WS * mix(0.85, 1, wIn), wIn * (1 - intoPlane), 1 - flap,
-        flap < 1 ? function (c, sc) { c.save(); c.scale(1 / sc, 1 / sc); c.translate(-WX, -WY); docsAt(c, 0, true); c.restore(); } : null,
-        lin(t, 16.3, 16.9));
+    if (t >= 10.4 && t < 11.4) docsIn(c);
+    var walletA = wIn * (1 - seg(t, 25.6, 26.4));
+    if (t >= 11.4 && t < 23.7) {
+      var inner = flap < 1 ? function (c, sc) { c.save(); c.rotate(-WR); c.scale(1 / sc, 1 / sc); c.translate(-WX, -WY); docsIn(c); c.restore(); } : null;
+      c.save(); c.translate(WX, WY); c.rotate(WR);
+      wallet(c, g, 0, 0, WS, walletA, 1 - flap, inner, 1);
+      c.restore();
     }
 
-    /* 18.6–25 s: the departure board */
-    var bA = seg(t, 18.6, 19.3) * (1 - seg(t, 23.4, 24.2));
+    /* 17.8–24 s: the departure board */
+    var bA = seg(t, 17.8, 18.5) * (1 - seg(t, 23.4, 24.2));
     if (bA > 0) board(c, g, t, bA);
 
-    /* 23.6–28 s: on site — the hall assembles, the wallet unpacks */
+    /* 23.6–26 s: on site — the hall assembles, the same pochette comes forward and the documents come OUT */
     var hallA = seg(t, 23.6, 24.4) * (1 - seg(t, 25.6, 26.6));
     var hallX = -seg(t, 25.6, 26.6) * 30;
-    if (hallA > 0) {
+    if (t >= 23.6 && t < 26.8) {
       c.save(); c.translate(hallX, 0); if (!g.land) { c.translate(-2, 2); c.scale(0.84, 0.84); }
+      c.save(); c.globalAlpha *= 1 - seg(t, 25.6, 26.6);
       hall(c, g, t, hallA);
-      var un = seg(t, 24.0, 24.5), fan = seg(t, 24.3, 24.95);
-      wallet(c, g, 30, 26, 0.62, hallA * seg(t, 23.8, 24.1), un, null);
-      card(c, g, mix(30, 18, fan), mix(22, 24, fan), 22, 30, mix(0, -8, fan), mix(0.3, 0.72, fan), hallA * fan, WHITE, programme(c, g));
-      card(c, g, mix(30, 38, fan), mix(22, 10, fan), 18, 26, mix(0, 10, fan), mix(0.3, 0.8, fan), hallA * fan, WHITE, badge(c, g));
-      card(c, g, mix(30, 42, fan), mix(22, 34, fan), 44, 17, mix(0, 4, fan), mix(0.3, 0.5, fan), hallA * fan, WHITE, boarding(c, g));
-      c.restore();
+      var un = seg(t, 24.2, 24.6), out = seg(t, 24.4, 25.0);
+      var HX = mix(DEST[0], 32, front), HY = mix(DEST[1] - 3, 24, front), HS = mix(0.5, 0.85, front);
+      var outDocs = [
+        { w: 22, h: 30, x: 22, y: 2, r: -10, s: 0.7, f: programme(c, g) },
+        { w: 18, h: 26, x: 36, y: -4, r: 8, s: 0.8, f: badge(c, g) },
+        { w: 44, h: 17, x: 44, y: 8, r: 12, s: 0.55, f: boarding(c, g) }
+      ];
+      wallet(c, g, HX, HY, HS, 1, un, out > 0 ? function (c, sc) {
+        c.save(); c.scale(1 / sc, 1 / sc); c.translate(-HX, -HY);
+        outDocs.forEach(function (d, i) { var k = seg(t, 24.4 + i * 0.12, 24.9 + i * 0.12); card(c, g, mix(HX + (i - 1) * 4, d.x, k), mix(HY + 4, d.y, k), d.w, d.h, mix(0, d.r, k), mix(0.6, d.s, k), 1, WHITE, d.f); });
+        c.restore();
+      } : null, 1);
+      c.restore(); c.restore();
       assist(c, g, t, Math.min(g.hw - 9, 48), -34, hallA * seg(t, 24.4, 24.9));
     }
 
@@ -357,7 +375,7 @@
     c.fillStyle = 'rgba(10,31,48,.18)'; rr(c, x0 - 1.4, y0 - 1.0, W + 2.8, th + 2.6, 0.8); c.fill();
     c.fillStyle = '#071521'; rr(c, x0 - 1.6, y0 - 1.3, W + 2.8, th + 2.6, 0.8); c.fill();
     for (var i = 0; i < n; i++) {
-      var ft = 18.7 + i * 0.04, k = lin(t, ft, ft + 0.26), ch = k < 0.5 ? g.tiles[i] : s.charAt(i), sy = Math.abs(Math.cos(k * Math.PI));
+      var ft = 18.1 + i * 0.04, k = lin(t, ft, ft + 0.26), ch = k < 0.5 ? g.tiles[i] : s.charAt(i), sy = Math.abs(Math.cos(k * Math.PI));
       if (k >= 1) sy = 1; var x = x0 + i * (tw + gap);
       c.fillStyle = '#16293A'; rr(c, x, y0, tw, th, 0.3); c.fill();
       c.save(); c.translate(x + tw / 2, y0 + th / 2); c.scale(1, Math.max(0.05, sy));
