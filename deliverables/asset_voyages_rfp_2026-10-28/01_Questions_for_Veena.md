@@ -5,6 +5,8 @@ Hello Veena,
 
 Thanks for sending the brief and the response form. We're interested, and our initial proposal is attached.
 
+I also built an initial visual direction so you can see the approach rather than read about it, including a working demo of the Congress search: https://asset-voyages-redesign.pages.dev/ (a short note for your management is at https://asset-voyages-redesign.pages.dev/pour-asset/). It's a concept with sample data, not linked from anywhere and hidden from Google.
+
 Alongside our proposal, I have a few questions. Could you reply to them by email? I prefer to have everything in writing so nothing gets lost between us. Short answers are fine, and "don't know yet" is a perfectly good answer.
 
 **Timing and budget**
