@@ -179,3 +179,35 @@ An independent reviewer is still to run (caller).
 - No independent reviewer.
 - The sandbox cannot open *.pages.dev, so the live-viewport trust gate was not run. Live verification was: HTTP 200 on /, /pour-asset/, /console/, the videos and film.js; CSS hash match on styles.css and doc.css; CSP with `blob:` confirmed in the live headers.
 - GPT was not used for microcopy. The headlines were written in session, and every quoted claim is verbatim.
+
+## v2.1: independent reviewer fixes (2026-10-28)
+
+The reviewer verdict was NOT SHIP. Every item has been fixed, redeployed to the same URLs, and not committed.
+
+1. **Film text.** Text layers now hard-swap: opacity and visibility switch 0/1 with no crossfade. The text state follows the frame on screen (`round(currentTime / 5)`), not the raw scroll position. Asserted by a fast-scroll test: exactly one layer visible, and it matches the frame.
+2. **Pack / ship / unpack, re-choreographed and re-rendered** (desktop, mobile and both posters):
+   - **04 Réservation:** the documents slide INTO a large open pochette.
+   - **05 Départ:** the closed pochette travels the route, with the plane just ahead.
+   - **06 Sur place:** the same pochette comes to the front of the hall and opens, and the programme, badge and boarding pass come OUT of it.
+3. **iPhone 13 cropping.** The mobile frame height is now `min(125vw, 100svh − header − 330px)`. Asserted: the subject is never covered by the copy (states 01, 04, 06).
+4. **Clipped « VILLE DU CONGRÈS ».** The label now sits under the pin and is hidden during the zoom.
+5. **Stage 03 headline.** Now « Un itinéraire tracé avec vous. », with no price or outcome promise.
+6. **The two flagged quotes, re-fetched and verified on 2026-10-28:**
+   - « […] nous trouvons la meilleure combinaison tarifaire pour les billets complexes, comme les multi-segments ou les tours du monde. » is from https://asset-voyagesdaffaires.com/solutions-voyages-affaires-pme/expertise-tarifaires/. The original reads « Ensuite, nous trouvons… »; the cut is marked [ … ].
+   - « La politique de voyage de votre société sera appliquée de manière systématique, quel que soit le canal de réservation utilisé. » is from https://asset-voyagesdaffaires.com/solutions-voyages-affaires-pme/politique-de-voyages/.
+7. **Lingering offer cards.** Retired offer cards now fade fully and are then hidden.
+8. **Reduced motion on phones.** It now uses the portrait poster.
+9. **Coquilles.** « quelle que soit » and « voyages d'affaires » are corrected on the page, and the pitch says « deux coquilles corrigées ».
+10. **Pitch table.** Reframed as « ce que l'on atteint sans changer de page »; the measured figures are kept.
+11. **Smaller items:**
+    - Mobile statement tags now have rule separators.
+    - The console's mobile tab row wraps.
+    - The congress field in the quote form is a 2-line read-only textarea.
+    - Hover effects apply only on hover devices, and the review shots park the mouse.
+    - Non-breaking spaces inside « ».
+
+**Gates:**
+- Functional: 48/48 (two new assertions).
+- site_check: PASSED on 3 pages × 4 contexts.
+- `screens/` re-shot; one self-review round.
+- Paris skyline photo and its credit confirmed present before deploy (done by the other worker; not touched here).

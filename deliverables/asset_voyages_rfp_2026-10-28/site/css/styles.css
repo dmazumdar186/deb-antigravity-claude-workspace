@@ -306,8 +306,7 @@ button,input,select,textarea{font:inherit;color:inherit}
   .statement{min-height:0;padding:88px var(--g)}
   .statement .display,.agency .display,.contact .display{font-size:clamp(40px,11.5vw,60px);margin-top:16px}
   .statement__trades{display:grid;gap:10px}
-  .statement__trades span+span::before{display:none}
-  .statement__trades span::before{content:"";display:inline-block;width:18px;height:1px;margin-right:10px;vertical-align:middle;background:#F7A35C}
+  .statement__trades span::before,.statement__trades span+span::before{content:"";display:inline-block;width:18px;height:1px;margin-right:10px;vertical-align:middle;background:#F7A35C}
   .statement__trades{gap:10px 14px}
   .offers__track{min-height:0}
   .offers__sticky{position:relative;height:auto;display:block;padding:80px var(--g) 64px}
