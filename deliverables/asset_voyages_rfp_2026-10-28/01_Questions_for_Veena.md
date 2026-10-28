@@ -10,7 +10,7 @@ Rather than send long attachments, I've put everything online so you and the man
 1. **The concept website**: an initial visual direction for the new site, including a working demo of the Congress search.
 https://asset-voyages-redesign.pages.dev/
 
-2. **What changes, and why**: how the new site compares with today's, and how it turns visitors into enquiries for each of your three activities.
+2. **What changes, and why** (in French): today's site compared with the concept, and how the new site turns visitors into enquiries for each of your three activities.
 https://asset-voyages-redesign.pages.dev/pour-asset/
 
 3. **Veena's console**: a preview of the simple dashboard you would use to publish pages and congresses and follow every enquiry, without needing a developer.
@@ -19,7 +19,7 @@ https://asset-voyages-redesign.pages.dev/console/
 4. **What we understood, what it needs, and our questions**: our reading of your brief, what runs behind the scenes and what it would cost you to run, a few suggestions, and 25 questions.
 https://asset-voyages-redesign.pages.dev/questions/
 
-All four pages are private: they aren't linked from anywhere and are hidden from Google. The concept uses sample data.
+The four pages are unlisted: they are hidden from Google and not linked from any public site, but anyone with the links can open them, so please share them only internally. The concept uses sample data.
 
 Could you reply to the 25 questions on page 4 by email? I prefer to have everything in writing so nothing gets lost between us. Short answers are fine, and "don't know yet" is a perfectly good answer. Once we have them, we'll send the full proposal with the costs.
 
