@@ -1,0 +1,182 @@
+{
+ "slug": "asset-voyages-v1",
+ "title": "ASSET Voyages Website Redesign for ASSET Voyages",
+ "subtitle": "Business Travel · MICE · International Congresses",
+ "version": "1.0",
+ "date": "2026-10-28",
+ "parties": {
+  "provider": {"name": "Debanjan Mazumdar", "title": "Founder, ProdCraft", "company": "ProdCraft", "email": "debanjan@prodcraft.fyi"},
+  "client": {"name": "Veena Khatri", "title": "Office Manager Assistant, for ASSET Voyages Management", "company": "ASSET Voyages", "email": "direction@assetvoyages.com"}
+ },
+ "blocks": [
+  {"kv": [
+   ["Prepared for", "ASSET Voyages Management, attention Veena Khatri"],
+   ["Prepared by", "Debanjan Mazumdar, Founder, ProdCraft"],
+   ["Date", "28 October 2026"],
+   ["In response to", "ASSET Voyages website redesign requirements, Version 0.4 EN, 28 October 2026"]
+  ]},
+  {"p": "This proposal contains all of the details and costs regarding the approach, scope of work, investment and terms for the redesign of asset-voyagesdaffaires.com, as requested by ASSET Voyages. Work packages L0, L1 and L2 form the core scope and work without the options L3 and L4. All prices are in euros, excluding VAT unless stated."},
+  {"pagebreak": true},
+
+  {"h1": "01. The Situation"},
+  {"h2": "ASSET Voyages needs a B2B portal, not a brochure."},
+  {"p": "Hello Veena,"},
+  {"p": "I went through your Developer Brief, the response form and the current website. ASSET Voyages sells three very different things to three very different buyers: managed business travel to SMEs and travel managers, group events (MICE) to HR and communications teams, and flight quotations to congress participants. Each buyer needs their own journey, and today's site does not give them one. Here are what I believe to be the core problems:"},
+  {"pagebreak": true},
+
+  {"h1": "02. What It Is Costing You"},
+  {"h2": "Four problems on the current setup."},
+  {"h3": "1. Enquiries that do not reach the right person"},
+  {"p": "[SITE FINDING: current forms and how enquiries arrive]. A Business Travel lead, a 200-person seminar brief and a congress flight request need different questions, a different owner and a tracked status. Without that, leads wait in a shared mailbox and nobody can measure which activity brings business."},
+  {"h3": "2. The Congress catalogue does not exist yet"},
+  {"p": "Congress participants search by discipline, city and date. Without a searchable catalogue with one page per congress, ASSET cannot rank for those searches, cannot pre-fill a quotation with the event, and cannot protect the GM&E codes the business depends on."},
+  {"h3": "3. Your team depends on a developer"},
+  {"p": "[SITE FINDING: CMS and editing today]. Veena and a backup editor need to publish pages and congress listings themselves, with roles, approvals and version history, so content stays current without waiting for a supplier."},
+  {"h3": "4. Search value and trust at risk"},
+  {"p": "[SITE FINDING: SEO, HTTPS, mobile, legal pages]. The redesign must keep every page that ranks today with a mapped 301 redirect, meet GDPR and cookie rules, and load fast on a phone, where most first visits now happen."},
+  {"p": "The following pages cover the full scope of the project, including investment. Let me know if you have any questions by emailing me at debanjan@prodcraft.fyi. A list of clarification questions accompanies this proposal; the answers will turn the estimates below into a fixed price."},
+  {"p": "Thanks,"},
+  {"p": "Debanjan"},
+  {"pagebreak": true},
+
+  {"h1": "03. What You Get"},
+  {"h2": "A fast, secure B2B portal your team runs, with the integrations kept for later."},
+  {"p": "My proposed solution to the problems above is as follows. An initial visual direction is online at [CONCEPT URL]."},
+  {"h3": "1. Three journeys, two clicks to a form"},
+  {"p": "A homepage that routes each visitor to Business Travel, MICE or Congresses within one click; dedicated pages for SMEs and microbusinesses, travel and procurement managers, assistance and expertise, and digital solutions (Wondermiles); three enquiry forms (F01 to F03) reachable in two or three clicks, with no account required. Premium, understated design built from reusable components, tested at 320, 375, 768 and 1440 px, targeting WCAG 2.2 AA."},
+  {"h3": "2. A Congress catalogue that scales to hundreds of events"},
+  {"p": "Search and filters by discipline, country, city, period and name, sorted by date, with pagination and a no-results state; one indexable page per congress showing the official source and verification date; a quotation form pre-filled with the congress and open to any departure airport. Behind it, the editorial workflow (draft, approval, publication) is kept separate from the internal GM&E workflow (detected to archived). GM&E codes and evidence sit in a protected store that the public site cannot read, and an automated test checks every page, script and response for leaks before each release."},
+  {"h3": "3. ASSET Console: your own administration, no licence"},
+  {"p": "A custom administration built for ASSET, with no third-party CMS licence or plugins: pages, media, congresses, CSV import and export of listings, and an enquiry inbox with status, owner, history and CSV export. Roles for technical administrator, editor (Veena), contributor, commercial viewer and Congress/fare approver; multi-factor login for every administrator; version history with restore; soft delete; access log."},
+  {"h3": "4. Built to be handed over"},
+  {"p": "Domain, hosting, repository and every tool account are opened in ASSET's name. Source code, design files, data and media are yours; documented exports, a tested backup restore and a written runbook mean another supplier could take over at any time."},
+  {"p": "I consider this well within what ProdCraft delivers and am confident I can do an outstanding job here for you. If I was not, I would not have put together this proposal."},
+  {"pagebreak": true},
+
+  {"h1": "04. Technical Approach"},
+  {"h2": "Why custom-built rather than an off-the-shelf CMS."},
+  {"bullets": [
+   "**Public site:** pre-rendered pages (Astro, TypeScript) on Cloudflare's network with EU data handling. Pages are plain HTML on a CDN, which targets LCP 2.5 s or less, INP 200 ms or less and CLS 0.1 or less on every template.",
+   "**ASSET Console and enquiries:** server functions (Cloudflare Workers) with a relational database (Cloudflare D1, SQLite) and media storage (R2). Every exchange involving secrets or business data runs server-side.",
+   "**Access:** the Console sits behind Cloudflare Access, so the login page is not exposed to the internet; multi-factor login by authenticator app or your company Microsoft or Google accounts.",
+   "**Environments:** separate development, staging and production. Staging is password-protected and marked noindex.",
+   "**Integrations:** decoupled connectors for email notifications, a future CRM (API or webhook), the Wondermiles client-area link and, as options, SSO and AI. Core forms work without any of them.",
+   "**Why not WordPress:** no plugin updates to chase, no exposed admin, no licence fees, and GM&E code protection enforced by the data model rather than by configuration.",
+   "**Reasonable alternative (costed on request):** a headless CMS (Directus) for editing with the same public site, if ASSET prefers a packaged editor interface. It adds hosting and maintenance cost and is not recommended."
+  ]},
+  {"h3": "Data protection and compliance"},
+  {"p": "Privacy information and lawful basis per form; marketing boxes unticked; no personal data in URLs or analytics; cookie-free analytics by default, with a consent banner only if ASSET keeps trackers that need it; Cloudflare Turnstile anti-spam (no cookies); retention rules proposed for ASSET approval; data processing agreement; internal procedure for access and deletion requests."},
+  {"h3": "SEO migration"},
+  {"p": "Full crawl of the current site, a URL inventory with a keep, merge, redirect or remove decision per page, a one-hop 301 redirect map, editable titles and descriptions, structured data, XML sitemap, robots.txt, canonicals, hreflang ready for English, and Search Console monitoring after launch."},
+  {"pagebreak": true},
+
+  {"h1": "05. Scope of Work"},
+  {"h2": "What ProdCraft will build."},
+  {"bullets": [
+   "**L0 Audit and discovery:** inventory of CMS, hosting, DNS, certificates, licences, account owners and backups; content, URL, form, analytics, performance and compliance audit; two workshops on user journeys; architecture diagram, data flows, backlog and risks.",
+   "**L1 Core website (French):** design system, wireframes, desktop and mobile mock-ups and a clickable prototype; homepage, Business Travel, SMEs and microbusinesses, procurement and travel managers, assistance and expertise, digital solutions, MICE hub, agency and resources, articles, guides and FAQ, contact and legal pages, up to [25] pages; forms F01, F02 and F04 to F06; ASSET Console; conversion tracking; SEO migration; security hardening; training for Veena and a backup editor.",
+   "**L2 Congress catalogue:** structured congress records, search and filters, listing pages, form F03 linked to the congress ID, the editorial and GM&E workflows, protected authorisation store, CSV schema, import of up to 300 listings with duplicate detection, export, and the approved rule for past events.",
+   "**Acceptance:** documented test cases T01 to T15 with datasets, results and evidence in an acceptance report; no launch with a blocking defect.",
+   "**Handover:** illustrated administration guide, deployment, restore and export procedures, account and licence inventory, secure transfer of secrets, Git repository in ASSET's name."
+  ]},
+  {"h3": "Milestones"},
+  {"bullets": [
+   "**J0 Kickoff (week 1):** team, access inventory, schedule and responsibilities.",
+   "**J1 Audit and discovery (weeks 1 to 2):** architecture, SEO inventory, baseline, backlog and risks.",
+   "**J2 UX and UI (weeks 2 to 4):** wireframes, desktop and mobile mock-ups, prototype and design system.",
+   "**J3 Core website (weeks 4 to 7):** pages, ASSET Console, forms and tracking on staging.",
+   "**J4 Congresses (weeks 6 to 8):** tested catalogue, filters, statuses, listings and enquiries.",
+   "**J5 Pre-launch (weeks 9 to 10):** SEO migration, acceptance tests, fixes, training, backup and rollback plan; cutover only on written authorisation from ASSET management.",
+   "**J6 Stabilisation (weeks 11 to 14):** monitoring, fixes, access, source code, exports and closure of outstanding items.",
+   "**Throughout:** weekly written update, one business day response, the current website stays online and untouched until cutover."
+  ]},
+  {"h3": "Timeline"},
+  {"p": "My proposed timeline is pragmatic and takes into account past experience building similar systems. Assuming a go-ahead on Monday 16 November 2026:"},
+  {"bullets": [
+   "Audit and discovery complete: Friday 27 November 2026",
+   "Mock-ups and design system approved: Friday 11 December 2026",
+   "Core website and Congress catalogue on staging: Friday 22 January 2027 (allowing for the Christmas break)",
+   "Launch, after written authorisation: week of 8 February 2027",
+   "Stabilisation closed: Friday 5 March 2027"
+  ]},
+  {"p": "Dates move day for day with the start date, with the time taken for written approvals (planned at 3 working days per milestone), and with any input from ASSET that arrives late (account access, approved content and images, congress data, recipient mailboxes, partner confirmations)."},
+  {"p": "**Out of scope:** ticket issuance and the flight booking engine (they stay outside the website); advertising campaigns; paid CRM software; bulk scraping and automatic publication; professional translation fees; photography and stock image licences; any fees charged by Wondermiles, Air France–KLM or the current hosting provider. Anything else is quoted before it starts."},
+  {"pagebreak": true},
+
+  {"h1": "06. Investment"},
+  {"h2": "Your investment."},
+  {"p": "Note: payments are made against accepted milestones. The balance is due on launch, defined as the fulfilment of the core scope above and its acceptance by ASSET."},
+  {"table": {"header": ["Work package", "Price (excl. VAT)", "Qty", "Subtotal"], "rows": [
+   ["L0 Audit and discovery", "Included", "1", "€0"],
+   ["L1 Core website, French", "€2,500", "1", "€2,500"],
+   ["L2 Congress catalogue and workflows", "€1,500", "1", "€1,500"],
+   ["Total core investment (excl. VAT)", "", "", "€4,000"],
+   ["VAT at 20%", "", "", "€800"],
+   ["Total core investment (incl. VAT)", "", "", "€4,800"],
+   ["30% at J2 approval (mock-ups)", "", "", "€1,200 excl. VAT"],
+   ["30% at J4 approval (Congresses on staging)", "", "", "€1,200 excl. VAT"],
+   ["40% balance at launch acceptance", "", "", "€1,600 excl. VAT"]
+  ]}},
+  {"h3": "Options (quoted separately, none required for launch)"},
+  {"table": {"header": ["Option", "What it includes", "Price (excl. VAT)"], "rows": [
+   ["English activation", "English versions of the templates, language switch, hreflang and URLs; translated text supplied by ASSET or a translation agency", "€750"],
+   ["CRM connector", "API or webhook connection to the CRM ASSET selects: authentication, field mapping, duplicate handling, retry and error alerts", "€500"],
+   ["L3a Wondermiles feasibility", "Review of Wondermiles documentation and contract permissions; written recommendation with journeys for login, failure and logout", "€400"],
+   ["L3b Wondermiles single sign-on", "SSO into Wondermiles, if a standard protocol (SAML or OpenID Connect) is available and authorised", "€1,200"],
+   ["L3c Wondermiles API and account creation", "Automatic client account creation and data exchange", "Quoted after L3a"],
+   ["L4 AI congress ingestion", "AI finds candidate congresses from approved official sources into a review queue with source, confidence, quotas and audit trail; nothing is published without human approval", "€1,500"]
+  ]}},
+  {"h3": "Monthly management plan (starts at launch)"},
+  {"table": {"header": ["Plan", "What is included every month", "Per month (excl. VAT)"], "rows": [
+   ["Manage", "Hosting and delivery on Cloudflare's network; every tool subscription the site needs (hosting, email sending, monitoring, and AI usage if L4 is selected), paid by ProdCraft; SSL renewed automatically; daily off-site backups with a tested restore every quarter; 24/7 uptime and security monitoring; security patches and dependency updates; Core Web Vitals and accessibility checks; redirects, sitemap and Search Console health kept clean; content changes, new pages and congress updates requested by your team, applied on a rolling basis; help for Veena and the backup editor; a monthly report on uptime, traffic, enquiries by activity, congress searches and what changed", "€600"]
+  ]}},
+  {"p": "Three-month minimum, then rolling monthly; cancel any time with 30 days' written notice. No lock-in: accounts, code and data stay yours. Larger new features are quoted separately before they start."},
+  {"h3": "How the plan is measured (reported to you every month)"},
+  {"table": {"header": ["Metric", "Commitment"], "rows": [
+   ["Availability", "99.9% per month, measured by an independent monitor"],
+   ["Backups", "Daily, 100% success; restore drill every quarter. RPO 24 hours, RTO 8 business hours"],
+   ["Response time", "1 business day (9:00 to 18:00 CET, Monday to Friday); 4 hours for a site outage or a failed form"],
+   ["Requested changes", "Applied within 2 business days of the request"],
+   ["Security", "Critical patches within 48 hours of release"],
+   ["Page speed", "Core Web Vitals targets met on every template, checked monthly"]
+  ]}},
+  {"h3": "Total core cost over three years"},
+  {"table": {"header": ["Item", "Excl. VAT", "Incl. VAT"], "rows": [
+   ["Core website and Congress catalogue (L0 + L1 + L2), once", "€4,000", "€4,800"],
+   ["Monthly management plan, 36 months at €600", "€21,600", "€25,920"],
+   ["Licences and third-party subscriptions", "€0 (included in the plan)", "€0"],
+   ["Total over three years, excluding unselected options", "€25,600", "€30,720"]
+  ]}},
+  {"p": "Prices valid for 60 days from the date of this proposal."},
+  {"pagebreak": true},
+
+  {"h1": "07. Relevant Work"},
+  {"h2": "Recent projects by ProdCraft."},
+  {"bullets": [
+   "**GreenJobs (UK and Ireland), greenjobs-redesign.pages.dev/uk:** a listings catalogue with search, filters, list and map views, one indexable page per listing with structured data, and an admin console. The same pattern as the Congress catalogue.",
+   "**Evolution Exhibits, evolution-exhibits-v4.pages.dev:** trade-show and exhibition environments, the 'E' in MICE; a premium, document-style presentation of event services.",
+   "**Yoga avec Jitendra, yogaavecjitendra.fr:** a live French and English site in production, on the same architecture proposed here.",
+   "**Jeevana Yoga & Wellness, v4.jeevana-yoga.pages.dev:** bilingual French and English service site with booking enquiries.",
+   "**Gaia Talent, gaia-talent-redesign.pages.dev:** B2B specialist recruitment portal for Ireland's green economy.",
+   "**MISB business school, misb-redesign.pages.dev:** prospectus-style concept for a Paris and Lyon school with programme filters and admissions journeys.",
+   "**ProdCraft, prodcraft.fyi:** our own AI engineering practice, which supports the optional AI features."
+  ]},
+  {"h3": "Team"},
+  {"table": {"header": ["Role", "Person", "Effort"], "rows": [
+   ["Project lead, architecture and full-stack development", "Debanjan Mazumdar", "[x] days"],
+   ["UX and UI design", "[name]", "[x] days"],
+   ["Quality assurance and accessibility testing", "[name]", "[x] days"],
+   ["French copy review", "[name]", "[x] days"]
+  ]}},
+  {"pagebreak": true},
+
+  {"h1": "08. Agreement"},
+  {"h2": "Terms and conditions."},
+  {"p": "ProdCraft will design and build the ASSET Voyages website for ASSET Voyages according to the description laid out in this proposal. The core scope is L0, L1 and L2; options are added only when selected in writing. No production work and no DNS change takes place without written authorisation from ASSET management. Milestone payments are invoiced on written approval of each milestone; the monthly plan is charged at the start of each month from launch. Cancellation of the monthly plan: 30 days' written notice; anything already paid is not refunded. All infrastructure, data, source code and design files belong to ASSET Voyages. Rights, data processing and exit provisions are set out in the contract and the data processing agreement. Response time: one business day. Additional features, extensions or integrations separate from the listed requirements may affect the timeline and costs laid out above. If you have a question or comment, email debanjan@prodcraft.fyi."},
+  {"p": "By signing below, both parties indicate their acceptance of this proposal and constitute approval to begin work."},
+  {"signature": [
+   {"for": "ProdCraft", "name": "Debanjan Mazumdar", "title": "Founder, ProdCraft", "email": "debanjan@prodcraft.fyi"},
+   {"for": "ASSET Voyages", "name": "[name]", "title": "[title], ASSET Voyages Management", "email": "direction@assetvoyages.com"}
+  ]}
+ ]
+}
