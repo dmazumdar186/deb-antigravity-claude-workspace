@@ -1,12 +1,12 @@
 {
   "date": "2026-10-28",
-  "pass": 46,
-  "total": 46,
+  "pass": 48,
+  "total": 48,
   "desktopHeight": 21364,
   "mobileHeightPixel7": 15739,
   "mobileHeight390": 15037,
   "sizes": {
-    "html": 33478,
+    "html": 33455,
     "css": 29680,
     "js": 47529
   },
@@ -32,9 +32,14 @@
       "info": "15.02 → 5.02"
     },
     {
+      "name": "film fling: exactly one text layer visible (hard swap), matching the frame on screen, settles on 05",
+      "ok": true,
+      "info": "{\"n\":1,\"on\":[2],\"shown\":2,\"settled\":5}"
+    },
+    {
       "name": "header: shrinks on scroll, progress bar advances",
       "ok": true,
-      "info": "{\"sc\":true,\"prog\":0.04720484753713839}"
+      "info": "{\"sc\":true,\"prog\":0.23602423768569195}"
     },
     {
       "name": "card stack: first card retires as the next slides in",
@@ -153,7 +158,7 @@
     {
       "name": "budget: index + css + all js ≤ 150 KB (video excluded)",
       "ok": true,
-      "info": "{\"html\":33478,\"css\":29680,\"js\":47529} = 108.1 KB"
+      "info": "{\"html\":33455,\"css\":29680,\"js\":47529} = 108.1 KB"
     },
     {
       "name": "confidentiality: no other client or project named anywhere in the built site",
@@ -209,6 +214,11 @@
       "name": "Pixel 7: 0 console errors",
       "ok": true,
       "info": ""
+    },
+    {
+      "name": "iPhone 13: film subject never covered by the copy (states 01/04/06)",
+      "ok": true,
+      "info": "0:274<=352 3:274<=352 5:274<=352"
     },
     {
       "name": "iPhone 13: no horizontal overflow, 0 errors",
