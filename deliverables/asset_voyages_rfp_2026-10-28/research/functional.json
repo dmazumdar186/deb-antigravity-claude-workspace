@@ -1,6 +1,6 @@
 {
   "date": "2026-10-28",
-  "pass": 35,
+  "pass": 36,
   "total": 36,
   "desktopHeight": 6107,
   "mobileHeight": 5131,
@@ -165,7 +165,7 @@
     },
     {
       "name": "congress catalogue: ascending date sort, pager, discipline/country/period filters, search, no-results state",
-      "ok": false,
+      "ok": true,
       "info": "{\"c0\":6,\"c2\":6,\"cDisc\":2,\"cCP\":2,\"cQ\":2,\"noRes\":true}"
     },
     {
