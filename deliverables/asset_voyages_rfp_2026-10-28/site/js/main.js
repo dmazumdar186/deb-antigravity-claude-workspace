@@ -184,7 +184,7 @@
     };
     var sumUp = function () {
       if (!recap) return; var e = cf.elements;
-      recap.textContent = 'Récapitulatif : ' + e.etype.value + ' · ' + (e.dest.value || 'destination à définir') + ' · ' + (e.when.value || 'dates souples') + ' · ' + (e.pax.value || '?') + ' participants' + (e.svc.value ? ' · ' + e.svc.value : '') + '.';
+      recap.textContent = 'Récapitulatif : ' + e.etype.value + ' · ' + (e.dest.value || 'destination à définir') + ' · ' + (e.when.value || 'dates souples') + ' · ' + (e.pax.value || '?') + ' participants' + (e.svc.value ? ' · ' + e.svc.value : '') + (e.budget && e.budget.value ? ' · budget ' + e.budget.value : '') + '.';
     };
     $$('[data-j]', cf).forEach(function (r) { r.addEventListener('change', function () { setJourney(r.value); }); });
     cf.addEventListener('input', sumUp);

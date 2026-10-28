@@ -1,14 +1,14 @@
 {
   "date": "2026-10-28",
-  "pass": 61,
-  "total": 61,
+  "pass": 62,
+  "total": 62,
   "desktopHeight": 21464,
   "mobileHeightPixel7": 15853,
   "mobileHeight390": 15159,
   "sizes": {
-    "html": 34036,
+    "html": 34238,
     "css": 29763,
-    "js": 50078
+    "js": 50147
   },
   "results": [
     {
@@ -162,7 +162,7 @@
     {
       "name": "budget: index + css + all js ≤ 150 KB (video excluded)",
       "ok": true,
-      "info": "{\"html\":34036,\"css\":29763,\"js\":50078} = 111.2 KB"
+      "info": "{\"html\":34238,\"css\":29763,\"js\":50147} = 111.5 KB"
     },
     {
       "name": "confidentiality: no other client or project named anywhere in the built site",
@@ -258,6 +258,10 @@
     },
     {
       "name": "questions r2: jump link, launch needs written go-ahead, one rounds rule, plan-bound support, consent default, 3-year total, firm deadline, no \"contract is signed\"",
+      "ok": true
+    },
+    {
+      "name": "r3: full brief event list (Q7 + §04), conditional consent banner, GM&E rule (Q28 + console), Q17 import, \"usually\" within minutes, effort by role, MICE budget field",
       "ok": true
     },
     {

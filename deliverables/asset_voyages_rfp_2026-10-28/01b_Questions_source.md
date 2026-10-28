@@ -24,7 +24,7 @@ Eight questions are marked **(Answer first)**. Each has an anchor on the page (`
 6. (Answer first) Should the new site be on asset-voyagesdaffaires.com, assetvoyages.com, or both? Are there other web addresses or campaign pages we should know about?  
    *If we don't hear back, we'll assume:* the new site lives on asset-voyagesdaffaires.com, the address Google knows today, and assetvoyages.com points to it (web address only; your email is not touched). No other addresses are included.
 7. Could you give us read-only access to Google Analytics and Search Console? Which trackers (LinkedIn, Meta) and ad campaigns (Google Ads, LinkedIn Ads) must keep working?  
-   *If we don't hear back, we'll assume:* we plan the move of old pages from our own scan of the site. No trackers are carried over. Visitor statistics need no cookies, and the site itself counts the actions your brief lists (clicks, form starts and sends, errors and congress searches) without cookies or personal data. Ad campaigns are not included.
+   *If we don't hear back, we'll assume:* we plan the move of old pages from our own scan of the site. No trackers are carried over. Visitor statistics need no cookies, and the site itself counts the actions your brief lists (button clicks, form starts and sends, errors, congress searches, congress page views, account requests and client-login clicks) without cookies or personal data. Ad campaigns are not included.
 8. Does Selectour ask for anything on your website (logos, legal mentions, brand rules)?  
    *If we don't hear back, we'll assume:* we show the Selectour Affaires logo and membership line as they appear on today's site, and nothing more.
 
@@ -50,7 +50,7 @@ Eight questions are marked **(Answer first)**. Each has an anchor on the page (`
 
 **5. Congress catalogue**
 17. Could you share 10 sample rows from your list of events (the 300 in the brief), with where the listings come from and roughly how many you add each year?  
-   *If we don't hear back, we'll assume:* ASSET provides one spreadsheet of up to 300 congresses in our template, using the fields listed in your brief. We import it once and send back a list of any rows with errors for ASSET to correct. Finding, researching or rewriting listings is not included. Veena adds new ones in the admin afterwards.
+   *If we don't hear back, we'll assume:* ASSET provides one spreadsheet of up to 300 congresses in our template, using the fields listed in your brief. We import it once and send back a list of any rows with errors for ASSET to correct. Finding, researching or rewriting listings is not included. Veena adds new ones in the admin afterwards, one by one or by spreadsheet import.
 18. (Answer first) Does ASSET already work with Air France-KLM's Global Meetings and Events programme? How do the event codes work: one per congress or several, and do they expire?  
    *If we don't hear back, we'll assume:* no fare code and no special-fare wording appears anywhere until ASSET confirms the arrangement in writing. The locked admin holds the code, its evidence and its validity period for each congress, as your brief lists.
 19. Who at ASSET does each step from spotting a congress to approving it for sale? Who gives the final approval: one person or several?  
@@ -76,7 +76,7 @@ Eight questions are marked **(Answer first)**. Each has an anchor on the page (`
 27. Must the site and its data stay in the EU or in France, do your clients send security questionnaires, and who at ASSET handles personal-data questions?  
    *If we don't hear back, we'll assume:* the database is stored in the EU. Some providers (such as Cloudflare and Resend) are US companies, used under data-processing agreements as EU rules require; the full list of providers comes with the proposal. No security questionnaire is included (one can be answered later, quoted separately), and ASSET management handles personal-data requests using the written procedure we provide.
 28. Who besides Veena will use the admin: a backup editor, other contributors, sales staff who only read enquiries? We need to know to set access and plan training.  
-   *If we don't hear back, we'll assume:* two people edit the site, Veena and one backup editor, both trained. Management can read enquiries and give the final approval for congresses, but not edit pages.
+   *If we don't hear back, we'll assume:* two people edit the site, Veena and one backup editor, both trained. Management can read enquiries and give the final approval for congresses, but not edit pages. Only Veena and management can see the GM&E fare codes and their evidence; the backup editor cannot.
 29. What kind of changes do you expect each month (new pages, offers, articles, congress updates)?  
    *If we don't hear back, we'll assume:* up to 5 hours of changes a month are included in the optional maintenance plan priced in the proposal; unused hours do not carry over, and anything more is quoted first.
 30. What support hours do you need from us for the website (office hours, or also evenings and weekends in congress season), and how long an interruption can your business accept?  

@@ -151,3 +151,30 @@ After fixes 1–4: re-run `site_check`, redeploy, and repeat the live-vs-local `
 ## Verdict
 
 **FIX, then SEND.** Make fix 1 (Medium, about 5 minutes). Make fixes 2–4 (Minor, about 5 minutes) in the same pass. Redeploy and run the `cmp` once more, then send. Nothing else blocks.
+
+## Round 3 fixes + architect re-check (28 Oct 2026)
+
+**Applied** (from `14_` fixes 1–3 and this file's fixes 1–4):
+- `14_` #1: Q7 default now lists "(button clicks, form starts and sends, errors, congress searches, congress page views, account requests and client-login clicks)"; the §04 row is widened the same way.
+- `14_` #2: « Budget indicatif (facultatif) » field added to the MICE form (`site/index.html`) and shown in the recap (`js/main.js`); the MICE row on `/pour-asset/` adds « budget indicatif ».
+- `14_` #3: the consent-banner default now starts "Only if a tracker is kept (question 7): …".
+- Experts #1: Q28 default adds "Only Veena and management can see the GM&E fare codes and their evidence; the backup editor cannot." Console note (l.96) now reads « … ne sont visibles que par les personnes autorisées (question 28) ». Card 05 reads « Voit les codes tarifaires GM&E et leurs justificatifs. » Card 02 (Veena) gains « Voit les codes tarifaires GM&E », so the cards match Q28.
+- Experts #2: §05 "can usually be put back within minutes".
+- Experts #3: Q17 "…afterwards, one by one or by spreadsheet import."
+- Experts #4: §09 "The name of the project lead and the effort by role come with the proposal."
+- `01b_` and `07_` re-synced: the Q7, Q17 and Q28 defaults, plus the U61, U63 and U114 rows; `07_` has a round-3 change note. `14_` fixes 4–5 are recorded as must-do items in `16_Proposal_Carryover.md`, not applied to the pages.
+
+**Gates:**
+- Functional: 62/62. One r2 assertion was updated to the new cookie-banner wording, and one r3 assertion was added covering all fixes.
+- site_check: PASSED, 0 failures, on 4 pages × 4 contexts.
+- Screenshots: the changed parts were shot at desktop and on iPhone 13 (`/tmp/r3fix/`) and looked at. The MICE budget field and recap, the role cards, the GM&E note and the §04 row are clean. In the tall phone capture, the skip link looks like it overlaps a card. This comes from how a capture taller than the screen is stitched together: in the real viewport the link sits at top −60 px, off-screen.
+- Redeployed. Live and local have the same sha1 for all 4 pages and all 9 CSS/JS files.
+
+**Solution Architect re-check: is the GM&E visibility rule now identical everywhere?**
+- Q28 (page, `01b_`, `07_` ×2): "Only Veena and management can see the GM&E fare codes and their evidence; the backup editor cannot." The text is verbatim in all four places.
+- Q19: Veena moves each congress through the steps (including « demande de code envoyée » and « code reçu ») and management gives the final approval. This agrees: the two people who handle the codes are exactly the two who can see them.
+- Console: the note points to "authorised people (question 28)". Card 02 (Veena) and card 05 (approver = management) both see the codes. Card 03 (contributor) and card 04 (sales reader) do not. The Congrès table shows « Suivi interne » to Veena, which is now allowed. No "only role", "seul rôle" or "personne qui valide" wording is left anywhere in `site/`, `01_`, `01b_` or `07_`.
+- Public pages: home and pitch still say the codes never reach the public site or the browser. This agrees with the console.
+- T05 ("invisible to unauthorised roles") now has a defined set of authorised roles: Veena and management. Everyone else is unauthorised.
+
+**Solution Architect: SIGN.**
