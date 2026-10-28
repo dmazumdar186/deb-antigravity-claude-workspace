@@ -3,9 +3,9 @@
 
 Hello Veena,
 
-Thanks for sending the brief and the response form. We're interested and want to send you a full proposal.
+Thanks for sending the brief and the response form. We're interested, and our initial proposal is attached.
 
-Before we put numbers on it, I have a few questions. Could you reply to them by email? I prefer to have everything in writing so nothing gets lost between us. Short answers are fine, and "don't know yet" is a perfectly good answer.
+Alongside our proposal, I have a few questions. Could you reply to them by email? I prefer to have everything in writing so nothing gets lost between us. Short answers are fine, and "don't know yet" is a perfectly good answer.
 
 **Timing and budget**
 1. When is the proposal due, and is there a date the new site has to be live by?
@@ -41,7 +41,7 @@ Before we put numbers on it, I have a few questions. Could you reply to them by 
 19. Who besides you will edit the site day to day? We need to know so we can plan the training.
 20. What kind of changes do you expect each month (new pages, offers, congress updates)? This tells us how to size the monthly support plan.
 
-Once I have your answers, I'll send the full proposal within 5 working days.
+The attached proposal gives our estimates based on the brief. Your answers will let us turn those estimates into a fixed price.
 
 Best,
 Debanjan
