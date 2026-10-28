@@ -24,7 +24,7 @@
     {
       "name": "film: video fetched as a blob (seekable) or canvas fallback",
       "ok": true,
-      "info": "{\"blob\":true,\"ready\":4,\"dur\":30.042,\"canvas\":false}"
+      "info": "{\"blob\":true,\"ready\":1,\"dur\":30.042,\"canvas\":false}"
     },
     {
       "name": "film: scroll scrubs currentTime to the keyframe (15 s), and back (5 s)",

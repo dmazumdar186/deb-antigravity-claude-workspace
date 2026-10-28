@@ -20,7 +20,7 @@ Prepared 28 October 2026. Final list: **30 questions in 7 groups**, each with a 
 | U06 | Governance | Content owner per activity who validates its pages | Q | Q3 |
 | U07 | Commercial | Payment split against milestones | D | 30/30/20/20 against accepted milestones; ASSET may change |
 | U08 | Commercial | Tax presentation | K | Brief p9: HT, rate, amount, TTC |
-| U09 | Schedule | Earliest start date | D | Within 5 working days of the signed proposal; proposal sent within 24–48 hours of the answers, or by Tue 10 Nov 2026 if none by 6 Nov; access to today's site due at kickoff (Q1 default, J0) |
+| U09 | Schedule | Earliest start date | D | Within 5 working days of the signed proposal; proposal sent within 24–48 working hours of the answers, or by Tue 10 Nov 2026 if none by 6 Nov; access to today's site due at kickoff (Q1 default, J0) |
 | U10 | Governance | Change-request process | K | Brief p2: assessed for cost, schedule, security, SEO |
 | U11 | Commercial | Managed monthly plan vs ad-hoc maintenance; minimum term | D | Optional monthly maintenance plan priced in the proposal (term stated there); up to 5 h of changes, no rollover (Q29) |
 | U12 | Operations | Stabilisation period length | D | 4 weeks after launch (J6), defects against the accepted tests only; new requests quoted. After J6, support comes from the optional maintenance plan or is quoted per request |
@@ -119,7 +119,7 @@ Prepared 28 October 2026. Final list: **30 questions in 7 groups**, each with a 
 | U106 | Congress | Other airlines named on congress pages | D | No airline or partner named publicly until ASSET approves in writing (see Q20) |
 | U105 | Scope | Exclusions and assumptions | D | On the page (§03) and in the proposal: ticketing, booking engine, ads, paid CRM software, bulk scraping, automatic publication, photography, copywriting beyond Q9, translation |
 | U107 | Scope | Revision rounds (brief p7: supplier must specify) | D | One rule: two rounds of changes per design stage and two per content stage (page wording included; Q9 refers to it); further rounds quoted first (§07 on the page) |
-| U108 | Governance | Deadline for answers; what late answers do | D | Friday 6 November 2026, returned as one PDF answer sheet; proposal within 24–48 hours of the answers (by 10 Nov if none); later answers by email until signature, may change price and dates (§08 box) |
+| U108 | Governance | Deadline for answers; what late answers do | D | Friday 6 November 2026, returned as one PDF answer sheet; proposal within 24–48 working hours of the answers (by 10 Nov if none); later answers by email until signature, may change price and dates (§08 box) |
 | U109 | Congress | Who prepares and cleans the import file | D | ASSET, in our template; one import, error rows returned; no research or rewriting (Q17 default) |
 | U110 | Compliance | Who writes the legal pages | D | ASSET supplies or approves the wording of the legal pages; no legal advice from us (Q9 default). ASSET writes the French text for new pages |
 | U111 | Governance | Acceptance and deemed approval | D | 3 working days per stage; silence = approved for design and content stages only, unless blocking problems are listed; launch always needs management's written go-ahead; acceptance testing 5 working days against T01-T15 only (Q3 default) |
@@ -180,7 +180,7 @@ Rules applied: every Q-unknown maps to exactly one question; no two questions re
 **1. Timing, budget and decisions**
 
 1. When is the proposal due, and when do you plan to choose a supplier? Is there a date the new site has to be live by, or a busy period when it should not launch?  
-   *Resolves:* U01, U02, U03 · *Default if unanswered:* we send the proposal within 24–48 hours of receiving your answers, or by 10 November if no answers arrive by 6 November; work starts within 5 working days of the signed proposal; launch about 12 weeks after the start, moving day for day with any late input; no launch between 21 December and 1 January.
+   *Resolves:* U01, U02, U03 · *Default if unanswered:* we send the proposal within 24–48 working hours of receiving your answers, or by 10 November if no answers arrive by 6 November; work starts within 5 working days of the signed proposal; launch about 12 weeks after the start, moving day for day with any late input; no launch between 21 December and 1 January.
 
 2. Is there a budget range or a cap for the core site and the Congress catalogue? A rough bracket is enough.  
    *Resolves:* U04 · *Default if unanswered:* we quote the core site and the Congress catalogue as set out in our proposal, which lists the pages, listings, rounds of changes and exclusions. Every option is priced separately, so you can pick.
@@ -316,7 +316,7 @@ Total Jev spend ≈ $0.05, zero errors.
 
 | # | If we don't hear back, we'll assume |
 |---|---|
-| 1 | we send the proposal within 24–48 hours of receiving your answers, or by 10 November if no answers arrive by 6 November; work starts within 5 working days of the signed proposal; launch about 12 weeks after the start, moving day for day with any late input; no launch between 21 December and 1 January. |
+| 1 | we send the proposal within 24–48 working hours of receiving your answers, or by 10 November if no answers arrive by 6 November; work starts within 5 working days of the signed proposal; launch about 12 weeks after the start, moving day for day with any late input; no launch between 21 December and 1 January. |
 | 2 | we quote the core site and the Congress catalogue as set out in our proposal, which lists the pages, listings, rounds of changes and exclusions. Every option is priced separately, so you can pick. |
 | 3 | ASSET management approves each stage in writing (directly, or through Ms Khatri on its behalf) within 3 working days, in one combined reply for all three activities. To keep the dates on track, if neither an approval nor a written list of blocking problems arrives in that time, a design or content stage counts as approved so work can continue. Launch always needs management's written go-ahead (section 07). Acceptance testing before launch lasts 5 working days, against the tests in your brief (T01–T15) only. |
 | 4 | nothing in a current contract limits the project, and ASSET arranges any handover from today's provider. |

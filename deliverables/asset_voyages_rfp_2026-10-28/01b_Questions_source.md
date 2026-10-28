@@ -2,7 +2,7 @@
 
 Seven groups, no overlap, covering the whole project: the decision, today's website, content, enquiries, the Congress catalogue, partners and options, running the site. Every question carries the default we will apply if it is not answered in writing. Proof of coverage: `07_Question_Coverage_Matrix.md`.
 
-Answers received by Friday 6 November 2026 are built into the proposal. We send the proposal within 24–48 hours of receiving the answers, or by Tuesday 10 November if no answers arrive by 6 November. Anything not answered in writing by then follows the assumption under each question. You can change an assumption by email until the proposal is signed; a change may alter the price and dates. After signature, changes are agreed in writing with their effect on price and dates.
+Answers received by Friday 6 November 2026 are built into the proposal. We send the proposal within 24–48 working hours of receiving the answers, or by Tuesday 10 November if no answers arrive by 6 November. Anything not answered in writing by then follows the assumption under each question. You can change an assumption by email until the proposal is signed; a change may alter the price and dates. After signature, changes are agreed in writing with their effect on price and dates.
 
 The concept, the console and the assumptions on the questions page are illustrations to help you answer; they are not a list of what is included. What is included is set only by the signed proposal. The proposal, once signed, is our contract.
 
@@ -10,7 +10,7 @@ Eight questions are marked **(Answer first)**. Each has an anchor on the page (`
 
 **1. Timing, budget and decisions**
 1. (Answer first) When is the proposal due, and when do you plan to choose a supplier? Is there a date the new site has to be live by, or a busy period when it should not launch?  
-   *If we don't hear back, we'll assume:* we send the proposal within 24–48 hours of receiving your answers, or by 10 November if no answers arrive by 6 November; work starts within 5 working days of the signed proposal; launch about 12 weeks after the start, moving day for day with any late input; no launch between 21 December and 1 January.
+   *If we don't hear back, we'll assume:* we send the proposal within 24–48 working hours of receiving your answers, or by 10 November if no answers arrive by 6 November; work starts within 5 working days of the signed proposal; launch about 12 weeks after the start, moving day for day with any late input; no launch between 21 December and 1 January.
 2. (Answer first) Is there a budget range or a cap for the core site and the Congress catalogue? A rough bracket is enough.  
    *If we don't hear back, we'll assume:* we quote the core site and the Congress catalogue as set out in our proposal, which lists the pages, listings, rounds of changes and exclusions. Every option is priced separately, so you can pick.
 3. (Answer first) Who at ASSET approves each stage (design, content, launch), and does each activity (Business Travel, MICE, Congresses) sign off its own pages? How many working days should we plan for each approval?  
