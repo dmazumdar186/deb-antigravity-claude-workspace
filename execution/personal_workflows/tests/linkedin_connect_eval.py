@@ -175,11 +175,12 @@ def c14_topup_after_skips(d):
 
 
 def c15_weekly_trim(d):
+    """No weekly cap (operator order 2026-10-28): 150 sent in the last 6 days still plans 25 today."""
     seed_master(d, 200)
-    ledger(d, [((dt.date.today() - dt.timedelta(days=1 + i % 6)).isoformat(), f"p{i}", "sent") for i in range(95)])
+    ledger(d, [((dt.date.today() - dt.timedelta(days=1 + i % 6)).isoformat(), f"p{i}", "sent") for i in range(150)])
     r = run(d, "plan")
     n = len(list(csv.DictReader((d / f"queue_{TODAY}.csv").open())))
-    return n == 5 and "weekly soft cap" in r.stderr, f"queued {n}; {r.stderr.strip()}"
+    return n == 25 and "weekly" not in r.stderr, f"queued {n}; {r.stderr.strip()}"
 
 
 def c16_report_four_fields(d):

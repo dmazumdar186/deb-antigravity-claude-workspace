@@ -20,7 +20,7 @@ The operator receives one report email per day, at 20:00 Europe/Paris, sent by a
 - Data dir: `REPO\data\linkedin_connect` (gitignored; never commit anything under it). `Q` below means `python REPO\execution\personal_workflows\linkedin_connect_queue.py --data-dir REPO\data\linkedin_connect`.
 - Drive folder `linkedin_connect`, id `1y5LRuJ8qRJ2VITMS2hUDae315s7cwi06`: holds `ledger_<YYYY-MM-DDTHHMM>.csv` snapshots and `aliases.csv`.
 - Report: `REPO\data\linkedin_connect\report_<YYYY-MM-DD>.md`, uploaded to the Drive folder under that name (overwrite the same day's file). The 20:00 cloud task emails it to debolshop@gmail.com, subject `LinkedIn connects <YYYY-MM-DD> (<n> sent)`.
-- Caps: 25 sends/day (script-enforced), 100/7 days, 45–120 s between profiles.
+- Caps: 25 sends/day (script-enforced), every day Monday to Sunday, **no weekly cap**; 45–120 s between profiles. LinkedIn's own "weekly invitation limit" dialog is a stop trigger (step 3), not a number.
 
 ## Steps
 0. **Pull state.** Drive connector: search `parentId = '1y5LRuJ8qRJ2VITMS2hUDae315s7cwi06'`. Download `aliases.csv` and every `ledger_*.csv` (small files) and write them to `REPO\data\linkedin_connect\drive\`. Then `Q sync --aliases drive\aliases.csv` and `Q sync --ledger <each snapshot>`. Then rebuild the master: `Q consolidate --in <every *.csv under REPO root and under the folders "Bay Area Recruitment Campaign 13 Oct 26", "Recruitment City Wise", "Campaign 24 Sep 26 Wellness", excluding any file whose name contains bounce>`.

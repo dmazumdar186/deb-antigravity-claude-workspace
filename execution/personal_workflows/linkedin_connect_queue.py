@@ -37,7 +37,9 @@ from pathlib import Path
 from urllib.parse import unquote
 
 DAILY_CAP = 25
-WEEKLY_SOFT_CAP = 100  # LinkedIn's own weekly ceiling is ~100; warn before we get near it
+# No weekly cap (operator order 2026-10-28): 25 a day, every day, Monday to Sunday. The 100/7-day
+# trim that lived here from 2026-10-23 was never asked for and stopped sends on 10-27 and 10-28.
+# LinkedIn's own "weekly invitation limit" dialog is a stop trigger in the runbook, not a number here.
 FIELDS = ("slug", "name", "company", "position", "linkedin_url", "source_file")
 LEDGER_FIELDS = ("ts", "date", "slug", "name", "status", "note")
 STATUSES = ("sent", "skipped", "already_connected", "pending", "withdrawn", "retry")
@@ -253,10 +255,6 @@ def cmd_plan(store: Store, limit: int, shuffle: bool) -> int:
     blocked = _blocked(ledger, day)
     already = len(_sent_on(ledger, day))
     room = max(0, limit - already)
-    week = _sent_last_7_days(ledger)
-    if week + room > WEEKLY_SOFT_CAP:
-        room = max(0, WEEKLY_SOFT_CAP - week)
-        print(f"[warn] weekly soft cap: {week} sent in last 7 days, trimming today to {room}", file=sys.stderr)
     qp = store.queue_path(day)
     queue = [r for r in read_csv(qp) if r["slug"] not in blocked] if qp.exists() else []
     queued = {r["slug"] for r in queue} | ({r["slug"] for r in read_csv(qp)} if qp.exists() else set())
@@ -423,7 +421,6 @@ def cmd_health(store: Store, as_json: bool) -> int:
         "master_present": len(master) > 0,
         "no_double_terminal_rows": not doubles,
         "sent_today_within_cap": sent_today <= DAILY_CAP,
-        "week_within_soft_cap": _sent_last_7_days(ledger) <= WEEKLY_SOFT_CAP,
         "ledger_statuses_valid": all(r["status"] in STATUSES for r in ledger),
         "no_orphan_ledger_rows": all(r["slug"] in slugs for r in ledger) if master else True,
         "lock_not_stale": age is None or age <= LOCK_TTL_MIN,
@@ -452,7 +449,7 @@ def cmd_status(store: Store) -> int:
     print(f"master: {len(master)}  handled: {len(done)}  remaining: {len(master) - len(done)}")
     if orphans or bad:
         print(f"[warn] ledger integrity: {len(orphans)} orphan slug(s), {len(bad)} bad status row(s)", file=sys.stderr)
-    print(f"today sent: {len(_sent_on(ledger, _today()))}/{DAILY_CAP}  last 7 days: {_sent_last_7_days(ledger)}/{WEEKLY_SOFT_CAP}")
+    print(f"today sent: {len(_sent_on(ledger, _today()))}/{DAILY_CAP}  last 7 days: {_sent_last_7_days(ledger)} (no weekly cap)")
     print("by status: " + ", ".join(f"{k}={v}" for k, v in by.items()))
     return 0
 
