@@ -50,13 +50,13 @@
 <section class="film" id="top" data-film aria-label="Du brief au retour : le voyage d’affaires en sept étapes">
   <div class="film__stage">
     <div class="film__media" aria-hidden="true">
-      <video class="film__video" data-film-video muted playsinline preload="none" poster="assets/hero.jpg"></video>
+      <video class="film__video" data-film-video muted playsinline preload="none"></video>
     </div>
     <div class="film__copy">
       <div class="film__state is-on" data-film-state="0">
         <p class="eyebrow"><span>01</span> Le brief</p>
         <h1 class="film__h">Optimisez vos voyages d’affaires.</h1>
-        <p class="film__p">ASSET Voyages est une agence de voyages d’Affaires à taille humaine, membre du réseau Selectour Affaires.</p>
+        <p class="film__p">ASSET Voyages est une agence de voyages d’affaires à taille humaine, membre du réseau Selectour Affaires.</p>
         <p class="film__actions"><a class="btn btn--accent" href="#contact">Parler à un conseiller <b aria-hidden="true">→</b></a><a class="btn btn--line" href="#congres">Trouver un congrès</a></p>
       </div>
       <div class="film__state" data-film-state="1">
@@ -110,7 +110,7 @@
   <p class="label" data-reveal>Notre promesse</p>
   <div>
     <h2 class="display" id="st-h" data-reveal>Que votre voyage ne soit plus un coût, mais un avantage.</h2>
-    <p class="lead" data-reveal>ASSET Voyages, agence du réseau Selectour Affaires met à votre service des conseillers dédiés experts en voyage d’affaire tout au long de votre voyage, des tarifs négociés sur vos principales destinations et une offre de services pour répondre à tous les besoins professionnels de votre entreprise.</p>
+    <p class="lead" data-reveal>ASSET Voyages, agence du réseau Selectour Affaires met à votre service des conseillers dédiés experts en voyages d’affaires tout au long de votre voyage, des tarifs négociés sur vos principales destinations et une offre de services pour répondre à tous les besoins professionnels de votre entreprise.</p>
     <p class="statement__trades" data-reveal><span>Voyages d’affaires</span><span>MICE</span><span>Congrès internationaux</span></p>
   </div>
 </section>
@@ -192,7 +192,7 @@
         <li class="row" data-id="CG-0111" data-disc="Cardiologie" data-country="États-Unis" data-city="Chicago" data-start="2027-11-13" data-end="2027-11-16"><p class="row__date"></p><div><p class="row__t">Congrès nord-américain de cardiologie — exemple</p><p class="row__d">Cardiologie</p></div><p class="row__place">Chicago, États-Unis</p><button class="btn btn--line btn--sm" type="button" data-open>Voir la fiche</button></li>
         <li class="row" data-id="CG-0112" data-disc="Oncologie" data-country="France" data-city="Marseille" data-start="2027-01-28" data-end="2027-01-30"><p class="row__date"></p><div><p class="row__t">Journées d’oncologie digestive — exemple</p><p class="row__d">Oncologie</p></div><p class="row__place">Marseille, France</p><button class="btn btn--line btn--sm" type="button" data-open>Voir la fiche</button></li>
       </ul>
-      <div class="empty" data-empty hidden><p class="h3">Aucun congrès ne correspond.</p><p>Élargissez la période ou la discipline, ou décrivez votre congrès : nous le cherchons pour vous.</p><a class="btn btn--ink btn--sm" href="#contact" data-journey="congres">Demander une recherche</a></div>
+      <div class="empty" data-empty hidden><p class="h3">Aucun congrès ne correspond.</p><p>Élargissez la période ou la discipline, ou décrivez votre congrès : nous le cherchons pour vous.</p><a class="btn btn--ink btn--sm" href="#contact" data-journey="congres" data-search>Demander une recherche</a></div>
       <nav class="pager" data-pager aria-label="Pages du catalogue"></nav>
       <p class="foot">Noms, dates et lieux fictifs pour la démonstration. En production, chaque fiche est saisie ou importée (CSV) dans la <a href="console/">Console</a>, validée puis publiée ; les statuts internes et les codes GM&amp;E ne sont jamais envoyés au navigateur.</p>
     </div>
@@ -320,8 +320,8 @@
 <footer class="ftr">
   <div class="ftr__brand"><img src="assets/logo-asset-light.png" alt="ASSET Voyages" width="263" height="90" loading="lazy"><p>Agence de voyages d’affaires dédiée aux entreprises. Membre du réseau Selectour.</p></div>
   <div><p class="label">Agence</p><p>58, rue Jean-Pierre Timbaud<br>92130 Issy-les-Moulineaux<br><a href="tel:+33155572900" class="nw">01 55 57 29 00</a></p></div>
-  <div><p class="label">Liens</p><p><a href="#offres">Offres</a><br><a href="#congres">Congrès</a><br><a href="#contact">Contact</a><br><a href="#top">Haut de page ↑</a></p></div>
-  <p class="ftr__meta">Concept de refonte non officiel, préparé par ProdCraft · <a href="pour-asset/">Note pour ASSET</a> · <a href="console/">Console (maquette)</a> · non indexé</p>
+  <div><p class="label">Liens</p><p><a href="#offres">Offres</a><br><a href="#congres">Congrès</a><br><a href="#contact">Contact</a><br><a href="pour-asset/">Note pour ASSET</a><br><a href="questions/">Nos questions</a><br><a href="#top">Haut de page ↑</a></p></div>
+  <p class="ftr__meta">Concept de refonte non officiel, préparé par ProdCraft · <a href="pour-asset/">Note pour ASSET</a> · <a href="console/">Console (maquette)</a> · <a href="questions/">Questions (en anglais)</a> · non référencé</p>
 </footer>
 
 <dialog class="listing" data-listing aria-labelledby="l-title">
@@ -344,6 +344,7 @@
       <div class="field"><label for="d-class">Classe</label><select id="d-class" name="cls"><option>Économique</option><option>Premium économique</option><option>Affaires</option><option>Première</option></select></div>
       <div class="field"><label for="d-name">Nom</label><input id="d-name" name="name" autocomplete="name" required></div>
       <div class="field"><label for="d-mail">E-mail</label><input id="d-mail" name="email" type="email" inputmode="email" autocomplete="email" required></div>
+      <p class="privacy field--full">Vos données servent uniquement à préparer ce devis. Aucune donnée personnelle dans les adresses de page ni dans la mesure d’audience.</p>
       <p class="form__actions field--full"><button class="btn btn--accent" type="submit">Demander le devis</button></p>
       <p class="ok field--full" data-ok role="status" hidden></p>
     </form>

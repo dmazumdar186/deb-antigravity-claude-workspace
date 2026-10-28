@@ -35,7 +35,7 @@ if (!only || only === 'p') await shoot({ ...devices['Pixel 7'] }, 'p7', mobilePl
 if (!only || only === 'i') await shoot({ ...devices['iPhone 13'] }, 'i13', mobilePlan.slice(0, 5));
 if (!only || only === 'r') await shoot({ ...devices['Pixel 7'], reducedMotion: 'reduce' }, 'p7r', [['01-top', film(0)], ['02-static', at('.film__static')], ['03-offers', at('#offres')], ['04-method', at('#methode')]]);
 if (!only || only === 'r') await shoot({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' }, 'dr', [['01-top', film(0)], ['02-static', at('.film__static')]]);
-for (const pg of ['pour-asset/', 'console/']) for (const [n, o] of [['d', { viewport: { width: 1440, height: 900 } }], ['p7', { ...devices['Pixel 7'] }]]) {
+for (const pg of ['pour-asset/', 'console/', 'questions/']) for (const [n, o] of [['d', { viewport: { width: 1440, height: 900 } }], ['p7', { ...devices['Pixel 7'] }]]) {
   if (only && only !== 'x') continue;
   const ctx = await b.newContext({ locale: 'fr-FR', ...o }); const p = await ctx.newPage(); await p.goto(base + pg, { waitUntil: 'load' }); await p.waitForTimeout(600);
   await p.screenshot({ path: `${out}/${pg.replace('/', '')}-${n}-full.png`, fullPage: true }); await ctx.close();

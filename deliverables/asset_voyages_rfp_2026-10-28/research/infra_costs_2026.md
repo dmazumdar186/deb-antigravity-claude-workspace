@@ -19,13 +19,13 @@ Date checked: 2026-10-28. Prices in USD as published; EUR shown at an assumed ~0
 | Uptime monitoring | UptimeRobot Free | 0 | 50 monitors, 5-min interval, commercial use allowed, 1 status page; SMS only via paid credits (10 for $3). Solo $12/mo annual | https://uptimerobot.com/pricing/ | 2026-10-28 |
 | Backups | Worker cron: D1 export -> R2 (daily) + Time Travel | 0 at our size | Cron triggers run up to 15 min on Workers (see Workers pricing page). Store dumps in a second place (see risks) | https://developers.cloudflare.com/workers/platform/pricing/ | 2026-10-28 |
 | DPA / GDPR | Cloudflare Customer DPA | 0 | Includes EU SCCs (Module 2/3) and DPF reliance | https://www.cloudflare.com/cloudflare-customer-dpa/ | 2026-10-28 |
-| OpenRouter AI (optional) | pay-per-use | usage-based, est. EUR 1-5 (my estimate, no source) | Not researched | n/a | n/a |
+| OpenRouter AI (optional) | pay-per-use | usage-based, est. EUR 5-20/month (own estimate, no published price: ~50 congress pages checked a week, ~200 pages read a month at a few cents each incl. retries, capped monthly; aligned with /questions/ 2026-10-28) | Not researched | n/a | n/a |
 
 Not in table: domain name (~EUR 10-15/year, not researched); Cloudflare Email Routing (free per https://www.cloudflare.com/plans/free/, only for inbound alias forwarding, not for sending).
 
 ### Total monthly tool cost
 - Low: EUR 0 (everything on free plans; D1 free gives 7-day Time Travel, 100k writes/day; Workers Free 10 ms CPU is tight for an admin app and staging+prod would share limits).
-- Expected: about EUR 4.5 (Workers Paid $5) + EUR 0-9 email (Brevo Starter only if the daily cap bites) = EUR 5-15/month; with optional UptimeRobot Solo (~EUR 10) and AI (~EUR 1-5): up to ~EUR 30.
+- Expected: about EUR 4.5 (Workers Paid $5) + EUR 0-9 email (Brevo Starter only if the daily cap bites) = EUR 5-15/month; with optional UptimeRobot Solo (~EUR 10): up to ~EUR 25 (the optional AI helper, EUR 5-20, is listed separately on /questions/).
 - Staging: a second Worker + D1 + R2 bucket in the same account adds no fixed fee.
 
 ## 2. D1 location and GDPR

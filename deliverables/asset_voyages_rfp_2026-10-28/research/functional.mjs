@@ -49,6 +49,8 @@ await go(p, await trackY(p, '[data-folio]', 0)); const c0 = await card(0), c2a =
 await go(p, await trackY(p, '[data-folio]', 0.5)); const c0m = await card(0), c1m = await card(1);
 await go(p, await trackY(p, '[data-folio]', 1)); const c0e = await card(0), c2e = await card(2);
 const idx = await p.evaluate(() => document.querySelector('[data-folio-idx]').textContent);
+const rot = await p.evaluate(() => [...document.querySelectorAll('[data-card]')].every((c) => { const m = getComputedStyle(c).transform; if (m === 'none') return true; const v = m.match(/matrix\(([^)]+)\)/)[1].split(',').map(Number); return Math.abs(v[1]) < 1e-6; }));
+t('card stack: no rotation (text stays sharp)', rot);
 t('card stack: first card retires as the next slides in', c0.o === 1 && c0.tf !== c0m.tf && c0m.o < 0.2 && c1m.o > 0.95, JSON.stringify({ c0: c0.o, c0m: c0m.o, c1m: c1m.o }));
 t('card stack: third card on top at the end, counter 03', c2e.o > 0.95 && c0e.o < 0.1 && c2a.o < c2e.o && idx === '03', JSON.stringify({ c2a: c2a.o, c2e: c2e.o, idx }));
 // drum
@@ -122,7 +124,7 @@ const sizes = { html: kb('index.html'), css: kb('css/styles.css'), js: jsFiles.r
 t('budget: index + css + all js ≤ 150 KB (video excluded)', sizes.html + sizes.css + sizes.js <= 150 * 1024, JSON.stringify(sizes) + ' = ' + ((sizes.html + sizes.css + sizes.js) / 1024).toFixed(1) + ' KB');
 const walk = (d) => readdirSync(d).flatMap((f) => { const q = join(d, f); return statSync(q).isDirectory() ? walk(q) : [q]; });
 const textFiles = walk(SITE).filter((f) => /\.(html|css|js|json|txt|_headers)$|_headers$/.test(f));
-const BANNED = /evolution|exhibit|misb|greenjobs|green jobs|gaia|jitendra|jeevana|midas|papaya|gtm people/i;
+const BANNED = /evolution|\bexhibits?\b|misb|greenjobs|green jobs|gaia|jitendra|jeevana|midas|papaya|gtm people/i;
 const hits = textFiles.filter((f) => BANNED.test(readFileSync(f, 'utf8'))).map((f) => f.replace(SITE, ''));
 t('confidentiality: no other client or project named anywhere in the built site', hits.length === 0, hits.join() || textFiles.length + ' files clean');
 const html = readFileSync(SITE + 'index.html', 'utf8');
@@ -172,9 +174,23 @@ await p.close();
 // pitch + console
 p = await mk({ viewport: { width: 1440, height: 900 } }); await p.goto(base + 'pour-asset/', { waitUntil: 'load' }); await p.waitForTimeout(500);
 const pitch = await p.evaluate(() => document.body.innerText);
-t('pitch: signature, measured heights, no unmeasured estimates, 0 errors', /Debanjan/.test(pitch) && /Fondateur, ProdCraft/.test(pitch) && /debanjan@prodcraft\.fyi/.test(pitch) && !/trentaine|\{\{/.test(pitch) && /5 014 px/.test(pitch) && p._errs.length === 0);
+t('pitch: signature, business benefit per activity, written-answers next step (no call, no lot codes, no px), 0 errors', /Debanjan/.test(pitch) && /Fondateur, ProdCraft/.test(pitch) && /debanjan@prodcraft\.fyi/.test(pitch) && /Ce que la refonte change pour ASSET/.test(pitch) && /routées vers la bonne personne/.test(pitch) && /Vos réponses écrites/.test(pitch) && !/30 minutes|section 8|\bL[0-4]\b|trentaine|\{\{|\d px|hébergé sur notre domaine|mot pour mot de votre site actuel \(/.test(pitch) && p._errs.length === 0);
+const q8 = await p.evaluate(() => { const a = document.querySelector('a[href="../questions/#s8"]'); return !!a; });
+t('pitch: next step links to the 25 questions (#s8)', q8);
+await p.goto(base + 'questions/', { waitUntil: 'load' }); await p.waitForTimeout(300);
+const qp = await p.evaluate(() => ({ txt: document.body.innerText, n: document.querySelectorAll('#s8 .qs li').length, s8: !!document.getElementById('s8') }));
+t('questions: 25 questions, unlisted (not "private") wording, no absolute "never lost", references promised, 0 errors', qp.n === 25 && qp.s8 && /unlisted/.test(qp.txt) && !/\bprivate\b/i.test(qp.txt.replace(/private event codes/i, '')) && !/never lost/i.test(qp.txt) && /references/i.test(qp.txt) && /€4\.30/.test(qp.txt) && p._errs.length === 0, 'questions=' + qp.n);
+let links = true; const linkInfo = [];
+for (const [pg, need] of [['', ['pour-asset/', 'console/', 'questions/']], ['pour-asset/', ['../', '../console/', '../questions/']], ['console/', ['../', '../pour-asset/', '../questions/']], ['questions/', ['../', '../pour-asset/', '../console/']]]) {
+  await p.goto(base + pg, { waitUntil: 'load' }); const hrefs = await p.evaluate(() => [...document.querySelectorAll('a')].map((a) => a.getAttribute('href')));
+  const miss = need.filter((h) => !hrefs.some((x) => x === h || x.startsWith(h + '#'))); if (miss.length) { links = false; linkInfo.push((pg || '/') + ' missing ' + miss.join()); }
+}
+t('cross-links: each of the 4 pages links to the 3 others', links, linkInfo.join(' | ') || 'all linked');
 await p.goto(base + 'console/', { waitUntil: 'load' }); await p.waitForTimeout(300);
 const con = await p.evaluate(() => [...document.querySelectorAll('.role h3')].map((h) => h.textContent));
+const cdash = await p.evaluate(() => ({ tiles: [...document.querySelectorAll('.stats p')].map((x) => x.textContent), pages: document.querySelectorAll('#pages tbody tr').length, details: !!document.querySelector('#congres details:not([open])'), h1: !!document.querySelector('h1'), jargon: /MFA|moindre privilège|côté serveur|navigateur|Workflow interne/.test(document.body.innerText), disabled: document.querySelectorAll('button[disabled]').length }));
+await p.click('#pages [data-mock]'); await p.waitForTimeout(150); const toastC = await p.evaluate(() => { const t = document.querySelector('.mtoast'); return !!t && !t.hidden && /Maquette/.test(t.textContent); });
+t('console: work-to-do tiles, Pages section, GM&E detail folded, plain French, live buttons with mock toast, H1', /à attribuer/.test(cdash.tiles[0]) && /rappel/.test(cdash.tiles[1]) && /validation/.test(cdash.tiles[2]) && cdash.pages >= 5 && cdash.details && cdash.h1 && !cdash.jargon && cdash.disabled === 0 && toastC, JSON.stringify({ ...cdash, toastC }));
 t('console: five RFP roles', con.length === 5 && /Administrateur technique/.test(con[0]) && /Éditrice/.test(con[1]) && /Contributeur/.test(con[2]) && /Lecteur commercial/.test(con[3]) && /Approbateur/.test(con[4]), con.join(' | '));
 await p.close();
 p = await mk({ ...devices['Pixel 7'] }); await p.goto(base + 'console/', { waitUntil: 'load' }); await p.waitForTimeout(300);

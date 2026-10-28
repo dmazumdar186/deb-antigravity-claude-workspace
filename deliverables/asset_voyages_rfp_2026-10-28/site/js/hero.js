@@ -29,7 +29,7 @@
     states.forEach(function (el) { var on = +el.dataset.filmState === i; el.classList.toggle('is-on', on); if ('inert' in el) el.inert = !on; el.setAttribute('aria-hidden', on ? 'false' : 'true'); });
     steps.forEach(function (el) { el.classList.toggle('is-on', +el.dataset.filmStep === i); });
   }
-  if (small && film) film.poster = 'assets/hero-m.jpg';
+  if (film) film.poster = small ? 'assets/hero-m.jpg' : 'assets/hero.jpg';
   if (reduce) {
     show(0);
     var box = document.createElement('div'); box.className = 'film__static'; var ol = document.createElement('ol');
@@ -89,8 +89,9 @@
         .then(function (b) { film.preload = 'auto'; film.src = URL.createObjectURL(b); film.load(); })
         .catch(function () { film.src = src; film.load(); });
     };
-    load();
-    setTimeout(function () { if (film.readyState < 1) useCanvas(); }, 9000);
+    /* phones: wait for the first scroll (or 4 s idle) before downloading the film */
+    if (small) { var go = function () { window.removeEventListener('scroll', go); clearTimeout(idle); if (!film.src) load(); }; var idle = setTimeout(go, 4000); window.addEventListener('scroll', go, { passive: true }); } else load();
+    setTimeout(function () { if (film.readyState < 1) useCanvas(); }, small ? 15000 : 9000);
   } else useCanvas();
   var scheduled = false;
   function schedule() { if (scheduled) return; scheduled = true; requestAnimationFrame(function () { scheduled = false; frame(); }); }

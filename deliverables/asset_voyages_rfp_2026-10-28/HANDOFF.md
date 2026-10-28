@@ -211,3 +211,50 @@ The reviewer verdict was NOT SHIP. Every item has been fixed, redeployed to the 
 - site_check: PASSED on 3 pages × 4 contexts.
 - `screens/` re-shot; one self-review round.
 - Paris skyline photo and its credit confirmed present before deploy (done by the other worker; not touched here).
+
+## v2.2: panel audit fixes (05/06 audits, 2026-10-28)
+
+Every item in both audits is fixed. Redeployed, and all four pages return 200. Not committed.
+
+### The questions page
+- « Private » is now « unlisted ».
+- « Never lost » is now « designed so an enquiry is saved through a backup path ».
+- Costs:
+  - Cloudflare paid plan ≈ €4.30.
+  - Domain ≈ €9–32 a year.
+  - With a paid monitoring plan (≈ €10): up to ≈ €25.
+  - The AI helper stays at €5–20. The research file was updated to match, with the method stated.
+- WordPress: the page now recommends a custom build, to be confirmed by the J1 audit. It no longer dismisses their current setup.
+- References and a named project lead are promised with the proposal.
+- Questions 6, 12, 14, 19, 22 and 25 were tightened. There are still 25.
+
+### The pitch
+- New per-activity benefit table.
+- Comparison rows are in plain language: no px and no screen counts.
+- Next step: written answers to the 25 questions, linked to `../questions/#s8`. Steps are now J1 and « le site principal », with no L codes and no call.
+- New wording: « passages entre guillemets… ».
+- New wording: « adresse de test ».
+
+### The console
+- The headline tiles now show work to do.
+- New Pages section.
+- The GM&E explanation is folded into a `<details>` block.
+- Plain French throughout.
+- Buttons are live and show a mock-up toast (`js/console.js`).
+- Visually hidden H1.
+- The phone tab row is a single scrollable line.
+
+### The home page
+- Card stack: no rotation, and the outgoing card's text is hidden before the swap.
+- Typos fixed: « voyages d'affaires » and « d'affaires ».
+- Privacy line added to the quote form.
+- « Demander une recherche » pre-fills and focuses the congress field.
+- On phones the video loads after the first scroll or 4 s, and phones get the portrait poster.
+- Label colour darkened to #9A4705.
+- Footer tap targets enlarged.
+- All four pages link to each other.
+
+### Gates
+- Functional: 53/53. New tests cover cross-links, the questions page, the console, the pitch and card rotation.
+- site_check: PASSED on 4 pages × 4 contexts.
+- `screens/` re-shot for all four pages, with stale shots deleted.

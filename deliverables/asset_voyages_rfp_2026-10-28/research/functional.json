@@ -1,14 +1,14 @@
 {
   "date": "2026-10-28",
-  "pass": 48,
-  "total": 48,
-  "desktopHeight": 21364,
-  "mobileHeightPixel7": 15739,
-  "mobileHeight390": 15037,
+  "pass": 53,
+  "total": 53,
+  "desktopHeight": 21464,
+  "mobileHeightPixel7": 15835,
+  "mobileHeight390": 15141,
   "sizes": {
-    "html": 33455,
-    "css": 29664,
-    "js": 47529
+    "html": 33768,
+    "css": 29763,
+    "js": 48812
   },
   "results": [
     {
@@ -24,7 +24,7 @@
     {
       "name": "film: video fetched as a blob (seekable) or canvas fallback",
       "ok": true,
-      "info": "{\"blob\":true,\"ready\":1,\"dur\":30.042,\"canvas\":false}"
+      "info": "{\"blob\":true,\"ready\":4,\"dur\":30.042,\"canvas\":false}"
     },
     {
       "name": "film: scroll scrubs currentTime to the keyframe (15 s), and back (5 s)",
@@ -34,12 +34,16 @@
     {
       "name": "film fling: exactly one text layer visible (hard swap), matching the frame on screen, settles on 05",
       "ok": true,
-      "info": "{\"n\":1,\"on\":[3],\"shown\":3,\"settled\":5}"
+      "info": "{\"n\":1,\"on\":[2],\"shown\":3,\"settled\":5}"
     },
     {
       "name": "header: shrinks on scroll, progress bar advances",
       "ok": true,
-      "info": "{\"sc\":true,\"prog\":0.23602423768569195}"
+      "info": "{\"sc\":true,\"prog\":0.23487648317447968}"
+    },
+    {
+      "name": "card stack: no rotation (text stays sharp)",
+      "ok": true
     },
     {
       "name": "card stack: first card retires as the next slides in",
@@ -158,12 +162,12 @@
     {
       "name": "budget: index + css + all js ≤ 150 KB (video excluded)",
       "ok": true,
-      "info": "{\"html\":33455,\"css\":29664,\"js\":47529} = 108.1 KB"
+      "info": "{\"html\":33768,\"css\":29763,\"js\":48812} = 109.7 KB"
     },
     {
       "name": "confidentiality: no other client or project named anywhere in the built site",
       "ok": true,
-      "info": "12 files clean"
+      "info": "15 files clean"
     },
     {
       "name": "third-party claim: Selectour Affaires sentence verbatim + real logo file",
@@ -231,8 +235,27 @@
       "info": "{\"src\":\"\",\"list\":6,\"film\":2015,\"vh\":839}"
     },
     {
-      "name": "pitch: signature, measured heights, no unmeasured estimates, 0 errors",
+      "name": "pitch: signature, business benefit per activity, written-answers next step (no call, no lot codes, no px), 0 errors",
       "ok": true
+    },
+    {
+      "name": "pitch: next step links to the 25 questions (#s8)",
+      "ok": true
+    },
+    {
+      "name": "questions: 25 questions, unlisted (not \"private\") wording, no absolute \"never lost\", references promised, 0 errors",
+      "ok": true,
+      "info": "questions=25"
+    },
+    {
+      "name": "cross-links: each of the 4 pages links to the 3 others",
+      "ok": true,
+      "info": "all linked"
+    },
+    {
+      "name": "console: work-to-do tiles, Pages section, GM&E detail folded, plain French, live buttons with mock toast, H1",
+      "ok": true,
+      "info": "{\"tiles\":[\"1nouvelle demande à attribuer\",\"1rappel prévu aujourd’hui\",\"2congrès en attente de validation\",\"4demandes ce mois-ci\"],\"pages\":6,\"details\":true,\"h1\":true,\"jargon\":false,\"disabled\":0,\"toastC\":true}"
     },
     {
       "name": "console: five RFP roles",
