@@ -117,3 +117,23 @@ RealPLKSR x2 blend (free models), regraded. Brand: client chose Concept 2 seal, 
 Reviews: four Sonnet eye audits per round (eye_17, eye_21) + Sol/GLM critiques; final gates site_check PASSED, functional 75/75, 148 PNGs.
 Not tested: real Safari/WebKit (not installed). Billing: research/billing/SPEND.md (rebuilt by research/billing/spend_report.py).
 Production still serves deploy 1; promote only on the operator's word.
+
+### v6 (2026-10-28): new seal (leftmost, Concept 2 revised) + aged-papyrus paper
+- Brand: client switched to the LEFTMOST seal of `research/brand_v6_src/logo-concepts-revised.jpg` (terracotta figure, lotus,
+  gold crescent, "JEEVANA YOGA / AND WELLNESS", G1A across her). `research/brand_v6.py` rebuilds every file in
+  `site/assets/brand/` under the same names and viewBoxes (no HTML path/size change). Approach: raster-in-SVG (the embossed
+  shading and translucent lotus do not survive potrace): seal disc cut with an anti-aliased circular alpha (transparent
+  outside the sage ring, inner cream kept), LANCZOS upscale + light unsharp, WebP data URI; the wordmark stays vector
+  (Cormorant outlines). Header and favicons use the inner seal (figure, lotus, moon, G1A, gold ring) inside vector
+  sage/terracotta rings; 16/32 px crop tighter to figure + G1A; apple-touch = inner seal, icon-512 = full seal (80 % safe zone).
+  404 now shows `brand/mark.svg` (was the v1 dark monogram); `site.webmanifest` icons pointed at `assets/brand/` (old paths 404'd).
+- Paper (birch-bark / old papyrus): `--paper #D4BC8E`, `--mist #C9AE80`, `--frame #E3CFA6`, `::selection #C4A672`; light rgb()
+  equivalents in gradients, chips, format cards and the 2560 header moved to match; theme-color + manifest colours `#D4BC8E`.
+  Text tokens darkened to hold contrast: `--ink-soft #4A3826`, `--ochre-text #76240F`; inside `.sequence` (on mist)
+  `--ochre-text #70220E`, `--ink-soft #463423`.
+- Contrast (paper / mist): ink 8.77 / 7.59; ink-soft 6.04 / 5.23 (sequence 5.55 on mist); ochre-text 5.61 / 4.85 (sequence
+  5.12); indigo 6.05 / 5.24. `--verm #A63A22` is icon/stroke only (no text): 3.50 / 3.03, above the 3:1 graphics floor.
+- Gates `research/warroom/gates_v6.txt`: site_check PASSED (0 failures), functional 75/75, 148 PNGs. Eye check by the worker
+  on 1440 and 390 header, 390 footer, 1440 sequence: seal intact, nothing cut, frames still read lighter than the ground.
+- Deployed to preview only (https://v4.jeevana-yoga.pages.dev); live CSS serves `--paper:#D4BC8E`, favicon/logo hashes match.
+  Production still serves deploy 1.

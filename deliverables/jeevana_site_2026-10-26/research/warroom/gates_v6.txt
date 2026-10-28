@@ -1,0 +1,109 @@
+# gates v6 2026-10-28T07:50:01Z
+## site_check
+ok   pixel7_: inputs ≥16px
+ok   pixel7_: bottom bar clear of CTA
+ok   pixel7_: console clean
+ok   pixel7_privacy_: nothing hidden after fling
+ok   pixel7_privacy_: no overflow
+ok   pixel7_privacy_: all reveals shown
+ok   pixel7_privacy_: tap targets ok
+ok   pixel7_privacy_: inputs ≥16px
+ok   pixel7_privacy_: bottom bar clear of CTA
+ok   pixel7_privacy_: console clean
+ok   iphone13_: nothing hidden after fling
+ok   iphone13_: no overflow
+ok   iphone13_: all reveals shown
+ok   iphone13_: tap targets ok
+ok   iphone13_: inputs ≥16px
+ok   iphone13_: bottom bar clear of CTA
+ok   iphone13_: console clean
+ok   iphone13_privacy_: nothing hidden after fling
+ok   iphone13_privacy_: no overflow
+ok   iphone13_privacy_: all reveals shown
+ok   iphone13_privacy_: tap targets ok
+ok   iphone13_privacy_: inputs ≥16px
+ok   iphone13_privacy_: bottom bar clear of CTA
+ok   iphone13_privacy_: console clean
+ok   pixel7-reduced_: nothing hidden after fling
+ok   pixel7-reduced_: no overflow
+ok   pixel7-reduced_: all reveals shown
+ok   pixel7-reduced_: tap targets ok
+ok   pixel7-reduced_: inputs ≥16px
+ok   pixel7-reduced_: bottom bar clear of CTA
+ok   pixel7-reduced_: console clean
+ok   pixel7-reduced_privacy_: nothing hidden after fling
+ok   pixel7-reduced_privacy_: no overflow
+ok   pixel7-reduced_privacy_: all reveals shown
+ok   pixel7-reduced_privacy_: tap targets ok
+ok   pixel7-reduced_privacy_: inputs ≥16px
+ok   pixel7-reduced_privacy_: bottom bar clear of CTA
+ok   pixel7-reduced_privacy_: console clean
+
+PASSED — 0 failure(s). Screenshots: /home/user/deb-antigravity-claude-workspace/deliverables/jeevana_site_2026-10-26/screens
+## functional_v4
+ok   ArrowLeft key → card 2
+ok   prev arrow → card 1, back on the gutter
+ok   scroll-snap start-aligns a card (off 0.4px) and lights its arc
+ok   go(11): scroll clamped at the end, card 12 flush right (gap -0.2px), card 12 active
+ok   at the end, prev/next still step the active card (11, 12) while scrollLeft stays clamped
+ok   mouse drag advances (scrollLeft changes)
+ok   play starts autoplay
+ok   autoplay waits 4 s, then advances one card (scrollLeft changes)
+ok   pause stops autoplay
+ok   strip: no console errors 
+ok   iPhone 13: touch swipe moves the strip (scrollLeft 0 → 321, card 1 → 2)
+ok   iPhone 13: next arrow moves the strip (scrollLeft 321 → 642)
+ok   iPhone 13: console clean 
+ok   iPad Mini: touch swipe moves the strip (scrollLeft 0 → 360, card 1 → 2)
+ok   iPad Mini: next arrow moves the strip (scrollLeft 360 → 721)
+ok   iPad Mini: console clean 
+ok   iPad landscape: touch swipe moves the strip (scrollLeft 0 → 319, card 1 → 2)
+ok   iPad landscape: next arrow moves the strip (scrollLeft 319 → 638)
+ok   iPad landscape: console clean 
+ok   no 4xx/5xx responses on load 
+ok   Reserve a session focuses the first form field
+ok   Reserve a session scrolls to the form
+ok   beacon names are on the event.ts allowlist: register_start
+ok   register form compact on desktop (457px ≤ 520)
+ok   no fee or € anywhere on the page
+ok   register form compact on iPhone 13 (680px ≤ 760)
+ok   no € in French either
+ok   register: consent text matches register.ts CONSENT_TEXT verbatim (EN + FR)
+ok   subscribe: consent text matches subscribe.ts CONSENT_TEXT verbatim (EN + FR)
+ok   reduced motion: backdrop static
+ok   reduced motion: rings filled
+ok   register: 200 → success state in place, body has consent/lang/honeypot
+ok   register: no page reload
+ok   register 200: console clean
+ok   register: 400 → error shown
+ok   register: no page reload
+ok   register 400: console clean
+ok   subscribe: 200 → success state in place, body has consent/lang/honeypot
+ok   subscribe: no page reload
+ok   subscribe 200: console clean
+ok   subscribe: 400 → error shown
+ok   subscribe: no page reload
+ok   subscribe 400: console clean
+ok   register: empty submit blocked client-side
+ok   320x568: strip photo, caption and controls fit under the header (photo top 80 ≥ 65, controls end 556 ≤ 568)
+ok   320: header seal 48 px tall
+ok   320: navigation returns on scroll up
+ok   390x844: strip photo, caption and controls fit under the header (photo top 128 ≥ 114, controls end 797 ≤ 844)
+ok   390: header seal 48 px tall
+ok   1024x768: strip photo, caption and controls fit under the header (photo top 121 ≥ 93, controls end 755 ≤ 768)
+ok   1024: header seal 56 px tall
+ok   1440x900: strip photo, caption and controls fit under the header (photo top 121 ≥ 93, controls end 887 ≤ 900)
+ok   1440: header seal 56 px tall
+ok   1920x1080: strip photo, caption and controls fit under the header (photo top 121 ≥ 93, controls end 990 ≤ 1080)
+ok   1920: header seal 72 px tall
+ok   3840x2160: strip photo, caption and controls fit under the header (photo top 198 ≥ 170, controls end 1531 ≤ 2160)
+ok   3840: five whole cards in view (5)
+ok   3840: header seal 112 px tall
+
+PASSED — 75 pass, 0 fail
+## screens_v4
+screens -> /home/user/deb-antigravity-claude-workspace/deliverables/jeevana_site_2026-10-26/research/screens_v4/ 148
+pngs: 148
+## grep forbidden
+## weight
+148K	total
