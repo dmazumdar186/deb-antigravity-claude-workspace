@@ -1,6 +1,7 @@
 /* ASSET Voyages — concept "le dépliant". Paper + card document system, pinned scrub tracks, one accent (ASSET orange). */
-@font-face{font-family:"Cormorant Garamond";src:url("../assets/fonts/CormorantGaramond.woff2") format("woff2");font-weight:300 700;font-display:swap}
-@font-face{font-family:"Cormorant Garamond";src:url("../assets/fonts/CormorantGaramond-Italic.woff2") format("woff2");font-weight:300 700;font-style:italic;font-display:swap}
+@font-face{font-family:"Cormorant Garamond";src:url("../assets/fonts/CormorantGaramond-400.woff2") format("woff2");font-weight:300 449;font-display:swap}
+@font-face{font-family:"Cormorant Garamond";src:url("../assets/fonts/CormorantGaramond-500.woff2") format("woff2");font-weight:450 700;font-display:swap}
+@font-face{font-family:"Cormorant Garamond";src:url("../assets/fonts/CormorantGaramond-Italic-400.woff2") format("woff2");font-weight:300 700;font-style:italic;font-display:swap}
 @font-face{font-family:Inter;src:url("../assets/fonts/Inter.woff2") format("woff2");font-weight:100 900;font-display:swap}
 
 :root{

@@ -299,15 +299,15 @@ Prices valid for 60 days from the date of this proposal.
 
 ## 07. Relevant Work
 
-### Recent projects by ProdCraft.
+### What ProdCraft has already built.
 
-- **Yoga avec Jitendra, yogaavecjitendra.fr (client project, live):** a French and English site in production, on the same static architecture proposed here.
-- **GreenJobs (UK and Ireland), greenjobs-redesign.pages.dev/uk (concept):** a listings catalogue with search, filters, list and map views, one indexable page per listing with structured data, and an admin console. The same pattern as the Congress catalogue.
-- **Evolution Exhibits, evolution-exhibits-v4.pages.dev (concept):** trade-show and exhibition environments, the 'E' in MICE; a premium, document-style presentation of event services.
-- **Jeevana Yoga & Wellness, v4.jeevana-yoga.pages.dev (concept):** bilingual French and English service site with booking enquiries.
-- **Gaia Talent, gaia-talent-redesign.pages.dev (concept):** B2B specialist recruitment portal for Ireland's green economy.
-- **MISB business school, misb-redesign.pages.dev (concept):** prospectus-style concept for a Paris and Lyon school with programme filters and admissions journeys.
-- **ProdCraft, prodcraft.fyi (our own company):** our AI engineering practice, which supports the optional AI features.
+- **A searchable listings catalogue:** search, filters, list and map views, one indexable page per listing with structured data, and an administration console. The same pattern as the Congress catalogue.
+- **Live bilingual French and English service sites in Paris:** in production on the static architecture proposed here, with enquiry forms, review moderation, consent management and a GDPR access and deletion request flow.
+- **Premium, document-style presentations for event and exhibition businesses:** scroll-driven storytelling built without third-party scripts, as in the ASSET concept.
+- **Approval pipelines:** content drafted, reviewed and approved before anything is published, with a full event log.
+- **ProdCraft, prodcraft.fyi:** our own AI engineering practice, which supports the optional AI features.
+
+Out of respect for our clients' confidentiality, we do not name them in proposals. Live projects can be shown, and client references can be put in touch with ASSET, on request and with their permission. The ASSET concept itself is online at asset-voyages-redesign.pages.dev.
 
 #### Team
 

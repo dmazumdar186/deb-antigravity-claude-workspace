@@ -72,6 +72,6 @@ No figure in the DOCX lacks a source. No figure was changed from the fixed price
 5. **Contractual latest launch (medium).** 12 March 2027 is a hard date; it is protected only by the "day for day" delay clause. Keep written records of late ASSET inputs.
 6. **Data protection (medium).** DPA template not drafted; CNIL 3-year prospect retention cited from memory (verify); Cloudflare EU jurisdiction and Brevo hosting location marked UNVERIFIED in research.
 7. **Service credit (low).** 10% credit capped at one month a year; Cloudflare offers no SLA on the plans used, so platform outages are excluded only as "third-party host failures". Exclusion wording must match the contract.
-8. **References (low).** Only Jitendra is labelled client work. Jeevana is labelled concept (no record of it being a commissioned project); correct if it was paid client work. No travel/MICE reference.
+8. **References (low).** Client names removed from the proposal (operator rule 2026-10-28: never name one client to another). Capabilities are described anonymously; references offered on request with permission. No travel/MICE reference.
 9. **AI disclosure (low).** AI-assisted engineering disclosed; L4 human approval stated.
 10. **Validity.** Prices valid to 27 December 2026; the go-ahead date of 16 November drives every date.
