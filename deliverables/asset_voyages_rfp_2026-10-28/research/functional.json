@@ -34,7 +34,7 @@
     {
       "name": "film fling: exactly one text layer visible (hard swap), matching the frame on screen, settles on 05",
       "ok": true,
-      "info": "{\"n\":1,\"on\":[2],\"shown\":3,\"settled\":5}"
+      "info": "{\"n\":1,\"on\":[3],\"shown\":3,\"settled\":5}"
     },
     {
       "name": "header: shrinks on scroll, progress bar advances",
@@ -239,13 +239,13 @@
       "ok": true
     },
     {
-      "name": "pitch: next step links to the 25 questions (#s8)",
+      "name": "pitch: next step links to the 30 questions (#s8)",
       "ok": true
     },
     {
-      "name": "questions: 25 questions, unlisted (not \"private\") wording, no absolute \"never lost\", references promised, 0 errors",
+      "name": "questions: 30 questions, unlisted (not \"private\") wording, no absolute \"never lost\", references promised, 0 errors",
       "ok": true,
-      "info": "questions=25"
+      "info": "questions=30"
     },
     {
       "name": "cross-links: each of the 4 pages links to the 3 others",

@@ -16,12 +16,12 @@ https://asset-voyages-redesign.pages.dev/pour-asset/
 3. **Veena's console**: a preview of the simple dashboard you would use to publish pages and congresses and follow every enquiry, without needing a developer.
 https://asset-voyages-redesign.pages.dev/console/
 
-4. **What we understood, what it needs, and our questions**: our reading of your brief, what runs behind the scenes and what it would cost you to run, a few suggestions, and 25 questions.
+4. **What we understood, what it needs, and our questions**: our reading of your brief, what runs behind the scenes and what it would cost you to run, a few suggestions, and 30 questions.
 https://asset-voyages-redesign.pages.dev/questions/
 
 The four pages are unlisted: they are hidden from Google and not linked from any public site, but anyone with the links can open them, so please share them only internally. The concept uses sample data.
 
-Could you reply to the 25 questions on page 4 by email? I prefer to have everything in writing so nothing gets lost between us. Short answers are fine, and "don't know yet" is a perfectly good answer. Once we have them, we'll send the full proposal with the costs.
+Could you reply to the 30 questions on page 4 by email? I prefer to have everything in writing so nothing gets lost between us. Short answers are fine, and "don't know yet" is a perfectly good answer. Once we have them, we'll send the full proposal with the costs.
 
 Best,
 Debanjan

@@ -46,6 +46,8 @@ html{scroll-behavior:smooth}
 .ms span{display:block;color:var(--muted);font-size:15.5px;margin-top:2px}
 .qs{list-style:none;padding:0!important;gap:14px!important}
 .qs li{display:grid;grid-template-columns:2.4em 1fr;gap:6px;background:#fff;border:1px solid var(--rule);border-radius:8px;padding:14px 16px}
+.qs .qa{display:block;margin-top:8px;font-size:14.5px;line-height:1.5;color:var(--muted)}
+.qs .qa i{font-style:normal;font-weight:600;color:var(--ink)}
 .qs li b{font:500 22px/1.1 "EB Garamond",Georgia,serif;color:var(--or-ink)}
 .top{display:inline-flex;align-items:center;min-height:44px;margin-top:18px;font-size:14px;color:var(--muted)}
 .q-foot{border-top:1px solid var(--rule);padding:28px var(--g) 40px;text-align:center;font-size:13.5px;color:var(--muted)}

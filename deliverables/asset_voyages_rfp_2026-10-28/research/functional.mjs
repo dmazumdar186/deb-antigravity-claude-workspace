@@ -176,10 +176,10 @@ p = await mk({ viewport: { width: 1440, height: 900 } }); await p.goto(base + 'p
 const pitch = await p.evaluate(() => document.body.innerText);
 t('pitch: signature, business benefit per activity, written-answers next step (no call, no lot codes, no px), 0 errors', /Debanjan/.test(pitch) && /Fondateur, ProdCraft/.test(pitch) && /debanjan@prodcraft\.fyi/.test(pitch) && /Ce que la refonte change pour ASSET/.test(pitch) && /routées vers la bonne personne/.test(pitch) && /Vos réponses écrites/.test(pitch) && !/30 minutes|section 8|\bL[0-4]\b|trentaine|\{\{|\d px|hébergé sur notre domaine|mot pour mot de votre site actuel \(/.test(pitch) && p._errs.length === 0);
 const q8 = await p.evaluate(() => { const a = document.querySelector('a[href="../questions/#s8"]'); return !!a; });
-t('pitch: next step links to the 25 questions (#s8)', q8);
+t('pitch: next step links to the 30 questions (#s8)', q8);
 await p.goto(base + 'questions/', { waitUntil: 'load' }); await p.waitForTimeout(300);
 const qp = await p.evaluate(() => ({ txt: document.body.innerText, n: document.querySelectorAll('#s8 .qs li').length, s8: !!document.getElementById('s8') }));
-t('questions: 25 questions, unlisted (not "private") wording, no absolute "never lost", references promised, 0 errors', qp.n === 25 && qp.s8 && /unlisted/.test(qp.txt) && !/\bprivate\b/i.test(qp.txt.replace(/private event codes/i, '')) && !/never lost/i.test(qp.txt) && /references/i.test(qp.txt) && /€4\.30/.test(qp.txt) && p._errs.length === 0, 'questions=' + qp.n);
+t('questions: 30 questions, unlisted (not "private") wording, no absolute "never lost", references promised, 0 errors', qp.n === 30 && qp.s8 && /unlisted/.test(qp.txt) && !/\bprivate\b/i.test(qp.txt.replace(/private event codes/i, '')) && !/never lost/i.test(qp.txt) && /references/i.test(qp.txt) && /€4\.30/.test(qp.txt) && p._errs.length === 0, 'questions=' + qp.n);
 let links = true; const linkInfo = [];
 for (const [pg, need] of [['', ['pour-asset/', 'console/', 'questions/']], ['pour-asset/', ['../', '../console/', '../questions/']], ['console/', ['../', '../pour-asset/', '../questions/']], ['questions/', ['../', '../pour-asset/', '../console/']]]) {
   await p.goto(base + pg, { waitUntil: 'load' }); const hrefs = await p.evaluate(() => [...document.querySelectorAll('a')].map((a) => a.getAttribute('href')));
