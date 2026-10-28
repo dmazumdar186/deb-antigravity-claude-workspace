@@ -1,7 +1,7 @@
 {
   "date": "2026-10-28",
-  "pass": 62,
-  "total": 62,
+  "pass": 65,
+  "total": 65,
   "desktopHeight": 21464,
   "mobileHeightPixel7": 15853,
   "mobileHeight390": 15159,
@@ -24,7 +24,7 @@
     {
       "name": "film: video fetched as a blob (seekable) or canvas fallback",
       "ok": true,
-      "info": "{\"blob\":true,\"ready\":1,\"dur\":30.042,\"canvas\":false}"
+      "info": "{\"blob\":true,\"ready\":4,\"dur\":30.042,\"canvas\":false}"
     },
     {
       "name": "film: scroll scrubs currentTime to the keyframe (15 s), and back (5 s)",
@@ -34,7 +34,7 @@
     {
       "name": "film fling: exactly one text layer visible (hard swap), matching the frame on screen, settles on 05",
       "ok": true,
-      "info": "{\"n\":1,\"on\":[2],\"shown\":3,\"settled\":5}"
+      "info": "{\"n\":1,\"on\":[2],\"shown\":2,\"settled\":5}"
     },
     {
       "name": "header: shrinks on scroll, progress bar advances",
@@ -248,9 +248,18 @@
       "info": "questions=30"
     },
     {
-      "name": "questions r1: ids q1-q30, 8 answer-first badges, pre-numbered reply mailto, 6 Nov deadline, scope rule",
+      "name": "questions r1: ids q1-q30, 8 answer-first badges, answer-sheet PDF + Word links (no mailto reply), 6 Nov deadline, 24–48 h proposal, scope rule",
       "ok": true,
-      "info": "{\"ids\":true,\"af\":\"q1,q2,q3,q5,q6,q9,q15,q18\",\"n\":2}"
+      "info": "{\"ids\":true,\"af\":\"q1,q2,q3,q5,q6,q9,q15,q18\",\"m\":[\"ASSET_Answer_Sheet.pdf\",\"ASSET_Answer_Sheet.pdf\"],\"alt\":\"ASSET_Answer_Sheet.docx\"}"
+    },
+    {
+      "name": "answer sheet: PDF (AcroForm) and DOCX served",
+      "ok": true,
+      "info": "200 200"
+    },
+    {
+      "name": "tone + name: no plain-English framing, no bare first name, Ms Khatri / Mme Khatri used",
+      "ok": true
     },
     {
       "name": "questions r1: hostile-client absolutes removed (any time, instantly, lunch, 29 pages, \"as your brief describes\")",
@@ -287,6 +296,10 @@
       "info": "all linked"
     },
     {
+      "name": "console: Mme Veena Khatri first, then Mme Khatri; no bare first name",
+      "ok": true
+    },
+    {
       "name": "console: work-to-do tiles, Pages section, GM&E detail folded, plain French, live buttons with mock toast, H1",
       "ok": true,
       "info": "{\"tiles\":[\"1nouvelle demande à attribuer\",\"1rappel prévu aujourd’hui\",\"1congrès en brouillon, hors du site\",\"4demandes ce mois-ci\"],\"pages\":6,\"details\":true,\"h1\":true,\"jargon\":false,\"disabled\":0,\"toastC\":true}"
@@ -299,7 +312,7 @@
     {
       "name": "console: five RFP roles",
       "ok": true,
-      "info": "Administrateur technique | Éditrice (Veena) | Contributeur | Lecteur commercial | Approbateur congrès / tarifs"
+      "info": "Administrateur technique | Éditrice (Mme Khatri) | Contributeur | Lecteur commercial | Approbateur congrès / tarifs"
     },
     {
       "name": "console mobile: tables scroll inside their frame with a visible hint",
