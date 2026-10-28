@@ -69,7 +69,7 @@ address{font-style:normal}
 .lang__soon em{font:500 10px/1 var(--sans);font-style:normal;letter-spacing:.04em;margin-left:5px;text-transform:none}
 .hdr__client{font:500 13px/1 var(--sans);text-decoration:none;display:inline-flex;align-items:center;min-height:44px;padding:0 6px}
 @media (max-width:999px){.hdr__chapter{display:none}}
-@media (max-width:799px){.hdr__client,.hdr__cta{display:none}.lang__soon em{display:none}}
+@media (max-width:799px){.hdr__client,.hdr__cta{display:none}}
 
 /* ---- cover ---- */
 .cover{position:relative;height:400vh;height:400svh;margin-bottom:-160vh;margin-bottom:-160svh;background:var(--navy-ink);--out:0}
@@ -408,3 +408,12 @@ address{font-style:normal}
 .lang a,.lang span{min-width:44px;justify-content:center}
 .doc-hdr > a:first-child{display:flex;align-items:center;min-height:44px}
 @media (max-width:799px){input,select,textarea,.field input,.field select,.field textarea{font-size:16px}}
+fieldset{border:0;margin:0;padding:0;min-width:0}
+legend{padding:0}
+.dp__head .h2{font-size:clamp(30px,3.2vw,48px);max-width:24ch}
+.cat__reset{align-self:end}
+@media (min-width:800px){.field--per,.cat__reset{grid-column:1/-1}}
+@media (max-width:799px){.fold__pin{padding-top:24px}.cat__filters{padding:12px;gap:8px}.cat__reset{min-height:44px}}
+.row__date,.row__place,.row__d{margin:0}
+.tbl td.lock{white-space:normal;min-width:150px}
+.ftr a[href^="tel"],.cover__meta a{white-space:nowrap}

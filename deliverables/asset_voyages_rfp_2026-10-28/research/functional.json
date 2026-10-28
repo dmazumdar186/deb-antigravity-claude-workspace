@@ -2,25 +2,25 @@
   "date": "2026-10-28",
   "pass": 36,
   "total": 36,
-  "desktopHeight": 6107,
-  "mobileHeight": 5131,
+  "desktopHeight": 6033,
+  "mobileHeight": 5111,
   "panelHeightsDesktop": {
-    "voyages": 563,
-    "mice": 513,
-    "congres": 745,
-    "agence": 591,
-    "contact": 832
+    "voyages": 545,
+    "mice": 478,
+    "congres": 688,
+    "agence": 517,
+    "contact": 770
   },
   "panelHeightsMobile": {
-    "voyages": 1403,
-    "mice": 829,
-    "congres": 1466,
-    "agence": 986,
-    "contact": 1804
+    "voyages": 1399,
+    "mice": 757,
+    "congres": 1244,
+    "agence": 950,
+    "contact": 1770
   },
   "sizes": {
-    "html": 37305,
-    "css": 32306,
+    "html": 37308,
+    "css": 33007,
     "js": 20599,
     "backdrop": 5901
   },
@@ -92,17 +92,17 @@
     {
       "name": "deck panels ≤ 1 viewport (900) on desktop",
       "ok": true,
-      "info": "{\"voyages\":563,\"mice\":513,\"congres\":745,\"agence\":591,\"contact\":832}"
+      "info": "{\"voyages\":545,\"mice\":478,\"congres\":688,\"agence\":517,\"contact\":770}"
     },
     {
       "name": "desktop page height ≤ 9,000 px",
       "ok": true,
-      "info": "6107 px"
+      "info": "6033 px"
     },
     {
       "name": "index+css+js ≤ 150 KB (backdrop ≤ 12 KB separately)",
       "ok": true,
-      "info": "{\"html\":37305,\"css\":32306,\"js\":20599,\"backdrop\":5901}"
+      "info": "{\"html\":37308,\"css\":33007,\"js\":20599,\"backdrop\":5901}"
     },
     {
       "name": "desktop: 0 console errors",
@@ -141,17 +141,17 @@
     {
       "name": "mobile page height ≤ 12,000 px",
       "ok": true,
-      "info": "5131 px"
+      "info": "5111 px"
     },
     {
       "name": "mobile deck panels ≤ 2 viewports (1830)",
       "ok": true,
-      "info": "{\"voyages\":1403,\"mice\":829,\"congres\":1466,\"agence\":986,\"contact\":1804}"
+      "info": "{\"voyages\":1399,\"mice\":757,\"congres\":1244,\"agence\":950,\"contact\":1770}"
     },
     {
       "name": "mobile deck: active tab scrolled into view, fade mask present, bar never covers panel content",
       "ok": true,
-      "info": "{\"tabIn\":true,\"fade\":\"44px\",\"lastBottom\":740,\"barTop\":774}"
+      "info": "{\"tabIn\":true,\"fade\":\"44px\",\"lastBottom\":739,\"barTop\":774}"
     },
     {
       "name": "Pixel 7: no horizontal overflow",
