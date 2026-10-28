@@ -1,0 +1,205 @@
+{
+  "date": "2026-10-28",
+  "pass": 35,
+  "total": 36,
+  "desktopHeight": 6107,
+  "mobileHeight": 5131,
+  "panelHeightsDesktop": {
+    "voyages": 563,
+    "mice": 513,
+    "congres": 745,
+    "agence": 591,
+    "contact": 832
+  },
+  "panelHeightsMobile": {
+    "voyages": 1403,
+    "mice": 829,
+    "congres": 1466,
+    "agence": 986,
+    "contact": 1804
+  },
+  "sizes": {
+    "html": 37305,
+    "css": 32306,
+    "js": 20599,
+    "backdrop": 5901
+  },
+  "results": [
+    {
+      "name": "cover beats change at 25/50/75% of the track",
+      "ok": true,
+      "info": "0,1,2,3"
+    },
+    {
+      "name": "video plays (or canvas fallback runs)",
+      "ok": true,
+      "info": "{\"hasVideo\":true,\"playing\":true,\"src\":\"http://localhost:8793/assets/hero.mp4\",\"canvasVisible\":false}"
+    },
+    {
+      "name": "fold-out hinge transform changes with scroll",
+      "ok": true,
+      "info": "matrix3d(-0.766044, 0, 0.64278 → matrix3d(0.34202, 0, 0.939693, → matrix(1, 0, 0, 1, 0, 0)"
+    },
+    {
+      "name": "fold-out fully open by track end",
+      "ok": true,
+      "info": "{\"tf\":\"matrix(1, 0, 0, 1, 0, 0)\",\"fold\":\"1.0000\",\"open\":true}"
+    },
+    {
+      "name": "each chapter tab switches the panel and updates the hash",
+      "ok": true,
+      "info": "mice:mice#mice | congres:congres#congres | agence:agence#agence | contact:contact#contact | voyages:voyages#voyages"
+    },
+    {
+      "name": "back button restores the previous panel",
+      "ok": true,
+      "info": "contact #contact"
+    },
+    {
+      "name": "header chapter indicator follows the deck",
+      "ok": true,
+      "info": "05 Contact"
+    },
+    {
+      "name": "keyboard ArrowRight wraps to the first chapter",
+      "ok": true,
+      "info": "voyages"
+    },
+    {
+      "name": "deep link /#congres opens the congress catalogue",
+      "ok": true
+    },
+    {
+      "name": "gallery dialog opens and closes",
+      "ok": true,
+      "info": "{\"open\":true,\"n\":1,\"title\":\"Journées d'oncologie digestive — exemple\"}"
+    },
+    {
+      "name": "agence counters settle on the exact published values",
+      "ok": true,
+      "info": "+122,24h/24,7 j/7"
+    },
+    {
+      "name": "cover end: beat 04 held into the overlap, photo plate shown, fold-out arrived by track end (no empty viewport)",
+      "ok": true,
+      "info": "{\"beatOn\":true,\"beatOpacity\":\"1\",\"bodyOpacity\":\"0.9\",\"foldTop\":0,\"enter\":\"0.050\",\"plate\":\"1\",\"enterAtEnd\":\"1.000\"}"
+    },
+    {
+      "name": "fade sequence: cover text at 0 before chapter headline passes 0.1",
+      "ok": true,
+      "info": "{\"foldText\":\"0.111\",\"coverBody\":\"0\",\"coverVis\":\"hidden\",\"logoHidden\":\"visible\"}"
+    },
+    {
+      "name": "deck panels ≤ 1 viewport (900) on desktop",
+      "ok": true,
+      "info": "{\"voyages\":563,\"mice\":513,\"congres\":745,\"agence\":591,\"contact\":832}"
+    },
+    {
+      "name": "desktop page height ≤ 9,000 px",
+      "ok": true,
+      "info": "6107 px"
+    },
+    {
+      "name": "index+css+js ≤ 150 KB (backdrop ≤ 12 KB separately)",
+      "ok": true,
+      "info": "{\"html\":37305,\"css\":32306,\"js\":20599,\"backdrop\":5901}"
+    },
+    {
+      "name": "desktop: 0 console errors",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mobile cover beats",
+      "ok": true,
+      "info": "0,1,2,3"
+    },
+    {
+      "name": "mobile uses the portrait video (hero-m.mp4) or canvas",
+      "ok": true,
+      "info": "{\"hasVideo\":true,\"src\":\"hero-m.mp4\"}"
+    },
+    {
+      "name": "mobile fold-out is a horizontal snap-scroll (no 3D)",
+      "ok": true,
+      "info": "{\"snap\":\"x mandatory\",\"overflow\":\"auto\",\"scrollW\":1180,\"clientW\":412,\"tf\":\"none\",\"scrolledTo\":384}"
+    },
+    {
+      "name": "mobile fold-out: cover hidden, paper at (20,120), opaque header",
+      "ok": true,
+      "info": "{\"coverVis\":\"hidden\",\"coverPE\":\"none\",\"inCover\":false,\"top\":\"MAIN\",\"bg\":\"rgb(238, 236, 230)\",\"hdrBg\":\"rgb(238, 236, 230)\"}"
+    },
+    {
+      "name": "mobile fold-out: panels fit the viewport, no overflow, padding clears the bar, cover overlaps the fold",
+      "ok": true,
+      "info": "{\"panelW\":372,\"vw\":412,\"docW\":412,\"padB\":100,\"barH\":65,\"overlap\":210}"
+    },
+    {
+      "name": "mobile bottom bar appears after the cover CTA scrolls out",
+      "ok": true
+    },
+    {
+      "name": "mobile page height ≤ 12,000 px",
+      "ok": true,
+      "info": "5131 px"
+    },
+    {
+      "name": "mobile deck panels ≤ 2 viewports (1830)",
+      "ok": true,
+      "info": "{\"voyages\":1403,\"mice\":829,\"congres\":1466,\"agence\":986,\"contact\":1804}"
+    },
+    {
+      "name": "mobile deck: active tab scrolled into view, fade mask present, bar never covers panel content",
+      "ok": true,
+      "info": "{\"tabIn\":true,\"fade\":\"44px\",\"lastBottom\":740,\"barTop\":774}"
+    },
+    {
+      "name": "Pixel 7: no horizontal overflow",
+      "ok": true,
+      "info": "0 px"
+    },
+    {
+      "name": "mobile: 0 console errors",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "congress catalogue: ascending date sort, pager, discipline/country/period filters, search, no-results state",
+      "ok": false,
+      "info": "{\"c0\":6,\"c2\":6,\"cDisc\":2,\"cCP\":2,\"cQ\":2,\"noRes\":true}"
+    },
+    {
+      "name": "congress listing: source + verified date, quote form prefilled from the congress, confirmation without network, no GM&E code or fare claim public",
+      "ok": true,
+      "info": "{\"pre\":{\"ev\":\"Journées d'oncologie digestive — exemple (CG-0112)\",\"to\":\"Marseille, France\",\"out\":\"2027-01-27\",\"back\":\"2027-01-31\"},\"conf\":\"Demande enregistrée (maquette) — CG-0112 · départ Toulouse ·\",\"reqs\":[]}"
+    },
+    {
+      "name": "MICE progressive brief: 4 steps, summary before submission, confirmation",
+      "ok": true,
+      "info": "{\"sumN\":6,\"mOk\":true}"
+    },
+    {
+      "name": "French page, EN switch stub marked bientôt, noindex",
+      "ok": true,
+      "info": "{\"lang\":\"fr\",\"en\":true,\"robots\":\"noindex,nofollow\"}"
+    },
+    {
+      "name": "ASSET checks: 0 console errors",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "console mock: noindex, labelled maquette, CSV import, editorial statuses, 0 errors",
+      "ok": true,
+      "info": "{\"robots\":\"noindex,nofollow\",\"maquette\":true,\"csv\":true,\"states\":true}"
+    },
+    {
+      "name": "named third party (Selectour Affaires) backed by the verbatim site claim",
+      "ok": true
+    },
+    {
+      "name": "pitch page: 0 console errors, signature present",
+      "ok": true
+    }
+  ]
+}

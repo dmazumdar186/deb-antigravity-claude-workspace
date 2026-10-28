@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Console ASSET — maquette · Concept</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#0a1f30">
+<link rel="icon" href="../assets/favicon-32.png" sizes="32x32">
+<link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+<a class="skip" href="#con-main">Aller au contenu</a>
+<header class="doc-hdr"><a href="../" aria-label="Retour au concept"><img src="../assets/logo-asset.png" alt="ASSET Voyages" width="490" height="180"></a><span class="tag tag--sample">Console · maquette</span></header>
+<div class="con">
+  <nav class="con__side" aria-label="Console">
+    <a href="#demandes" aria-current="page">Demandes</a>
+    <a href="#congres">Congrès</a>
+    <a href="#roles">Rôles et accès</a>
+    <a href="../">Voir le site</a>
+    <p>Maquette statique : aucune donnée réelle, aucun compte. Les codes GM&amp;E et justificatifs restent côté serveur et ne figurent jamais dans le navigateur.</p>
+  </nav>
+  <main class="con__main" id="con-main">
+    <p class="con__banner"><span class="tag tag--sample">Maquette</span> Aperçu de l'administration proposée pour Veena et un éditeur suppléant. Toutes les lignes sont des exemples.</p>
+    <div class="con__grid">
+      <p class="stat"><b>4</b><span>demandes d'exemple</span></p>
+      <p class="stat"><b>3</b><span>activités : voyages, MICE, congrès</span></p>
+      <p class="stat"><b>12</b><span>congrès d'exemple</span></p>
+      <p class="stat"><b>5</b><span>rôles proposés</span></p>
+    </div>
+
+    <section id="demandes" aria-labelledby="d-t">
+      <h2 id="d-t">Demandes <span class="btns"><button class="btn btn--line btn--sm" type="button" disabled>Exporter CSV</button></span></h2>
+      <div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th scope="col">Réf.</th><th scope="col">Type</th><th scope="col">Reçue</th><th scope="col">Contact</th><th scope="col">Congrès</th><th scope="col">Statut</th><th scope="col">Responsable</th></tr></thead>
+        <tbody>
+          <tr><td>D-0004</td><td>Congrès — devis vol</td><td>28/10/2026</td><td>Société D (exemple)</td><td>CG-0101</td><td><span class="st st--new">Nouvelle</span></td><td>Non attribuée</td></tr>
+          <tr><td>D-0003</td><td>MICE — brief</td><td>27/10/2026</td><td>Société C (exemple)</td><td>—</td><td><span class="st st--wip">En cours</span></td><td>Équipe Meetings &amp; Events</td></tr>
+          <tr><td>D-0002</td><td>Voyages d'affaires — audit</td><td>26/10/2026</td><td>Société B (exemple)</td><td>—</td><td><span class="st st--wip">Rappel prévu</span></td><td>Conseiller voyages</td></tr>
+          <tr><td>D-0001</td><td>Voyages d'affaires — compte</td><td>24/10/2026</td><td>Société A (exemple)</td><td>—</td><td><span class="st st--done">Qualifiée</span></td><td>Veena</td></tr>
+        </tbody>
+      </table></div>
+      <p class="foot">Chaque demande garde son historique, son consentement et sa source ; aucune donnée personnelle dans les URL ni dans la mesure d'audience.</p>
+    </section>
+
+    <section id="congres" aria-labelledby="c-t">
+      <h2 id="c-t">Congrès <span class="btns"><button class="btn btn--navy btn--sm" type="button" disabled>Importer un CSV</button> <button class="btn btn--line btn--sm" type="button" disabled>Nouveau congrès</button></span></h2>
+      <div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th scope="col">ID</th><th scope="col">Titre</th><th scope="col">Dates</th><th scope="col">Statut éditorial</th><th scope="col">Workflow interne</th><th scope="col">Vérifié le</th><th scope="col">Code GM&amp;E</th></tr></thead>
+        <tbody>
+          <tr><td>CG-0112</td><td>Journées d'oncologie digestive — exemple</td><td>28–30 janv. 2027</td><td><span class="st st--pub">Publié</span></td><td><span class="wf">Approuvé pour la vente</span></td><td>12/10/2026</td><td class="lock">Protégé · rôle approbateur</td></tr>
+          <tr><td>CG-0108</td><td>Congrès européen de radiologie — exemple</td><td>24–28 févr. 2027</td><td><span class="st st--rev">En validation</span></td><td><span class="wf">Demande déposée</span></td><td>12/10/2026</td><td class="lock">Protégé · rôle approbateur</td></tr>
+          <tr><td>CG-0103</td><td>Journées françaises de diabétologie — exemple</td><td>23–26 mars 2027</td><td><span class="st st--pub">Publié</span></td><td><span class="wf">Vérifié</span></td><td>12/10/2026</td><td class="lock">—</td></tr>
+          <tr><td>CG-0109</td><td>Sommet RH et mobilité — exemple</td><td>13–14 avr. 2027</td><td><span class="st st--draft">Brouillon</span></td><td><span class="wf">Détecté</span></td><td>—</td><td class="lock">—</td></tr>
+          <tr><td>CG-0107</td><td>Rencontres d'ophtalmologie — exemple</td><td>8–11 mai 2027</td><td><span class="st st--rev">En validation</span></td><td><span class="wf">Dossier GM&amp;E à préparer</span></td><td>12/10/2026</td><td class="lock">—</td></tr>
+        </tbody>
+      </table></div>
+      <p class="foot">Le statut éditorial (brouillon → en validation → publié, retour au brouillon sans perte) est séparé du workflow interne (détecté → vérifié → dossier GM&amp;E à préparer → demande déposée → code reçu → émission autorisée → approuvé pour la vente → archivé). Seul le statut « publié » a un effet public ; le workflow n'apparaît jamais sur le site.</p>
+    </section>
+
+    <section id="roles" aria-labelledby="r-t">
+      <h2 id="r-t">Rôles et accès</h2>
+      <div class="cards">
+        <div class="card"><p class="eyebrow">Administrateur technique</p><p class="small">Configuration, sauvegardes, MFA obligatoire.</p></div>
+        <div class="card"><p class="eyebrow">Éditrice — Veena</p><p class="small">Pages, congrès, publication, import CSV.</p></div>
+        <div class="card"><p class="eyebrow">Contributeur · lecteur commercial</p><p class="small">Brouillons ; consultation des demandes.</p></div>
+        <div class="card"><p class="eyebrow">Approbateur congrès / tarifs</p><p class="small">Seul rôle à voir les codes et justificatifs.</p></div>
+      </div>
+    </section>
+  </main>
+</div>
+</body>
+</html>

@@ -21,9 +21,9 @@ Alongside our proposal, I have a few questions. Could you reply to them by email
 7. Will your team write the new French copy, or do you want us to rewrite the existing pages?
 8. Do you have approved photos, client logos and testimonials we can use?
 
-**Enquiries**
+**Enquiries and logins**
 9. Who should get each type of enquiry (Business Travel, MICE, Congresses)? Do you use a CRM today?
-10. How quickly does your team usually reply to a new enquiry? We'd like to put that promise in the confirmation email.
+10. Does your team sign in with Microsoft 365 or Google Workspace? We'd use it for a secure two-step login to the new admin area.
 
 **Congress catalogue**
 11. Do you already have a list of events (the 300 mentioned in the brief)? Could you share 10 sample rows?

@@ -56,7 +56,6 @@ function draw(t, p) {
   c.clearRect(0, 0, w, h);
   var wA = 1 - ez(cl((p - 0.24) / 0.14, 0, 1)); // stage-1 weight
   var wB = ez(cl((p - 0.66) / 0.14, 0, 1));     // stage-3 weight
-  var wJ = Math.sin(Math.PI * cl((p - 0.30) / 0.40, 0, 1)); // journey weight
   var dx = 0.62, dy = 0.55, dl = Math.sqrt(dx * dx + dy * dy); dx /= dl; dy /= dl;
   var px = -dy, py = dx;
   var pos = [];
@@ -71,14 +70,14 @@ function draw(t, p) {
   }
   c.lineWidth = 0.6;
   if (wA > 0.02) {
-    c.strokeStyle = FG; c.globalAlpha = 0.10 * wA; c.beginPath();
+    c.strokeStyle = FG; c.globalAlpha = 0.16 * wA; c.beginPath();
     for (i = 0; i < S.pairs.length; i++) {
       o = S.pairs[i]; c.moveTo(pos[o[0]][0], pos[o[0]][1]); c.lineTo(pos[o[1]][0], pos[o[1]][1]);
     }
     c.stroke();
   }
   if (wB > 0.02) {
-    c.strokeStyle = FG; c.globalAlpha = 0.12 * wB; c.beginPath();
+    c.strokeStyle = FG; c.globalAlpha = 0.2 * wB; c.beginPath();
     for (i = 0; i < S.links.length; i++) {
       o = S.links[i]; c.moveTo(pos[o[0]][0], pos[o[0]][1]); c.lineTo(pos[o[1]][0], pos[o[1]][1]);
     }
@@ -90,15 +89,6 @@ function draw(t, p) {
     c.fillStyle = (i % 43 === 3) ? AC : FG;
     c.globalAlpha = o.al * (o.ci ? 0.9 + 0.1 * wB : 1);
     c.fillRect(pos[i][0] - o.sz / 2, pos[i][1] - o.sz / 2, o.sz, o.sz);
-  }
-  if (wJ > 0.01) { // brand initial dissolving into dots
-    var r = mul((S.seed + 7) | 0), k, a = 0.08 * wJ;
-    c.fillStyle = FG; c.font = "italic 14px Georgia, 'Times New Roman', serif"; c.textBaseline = "middle";
-    for (k = 0; k < 3; k++) {
-      x = (0.30 + k * 0.20) * w; y = (0.40 + 0.14 * k) * h;
-      c.globalAlpha = a; c.fillText("A", x, y);
-      for (i = 0; i < 7; i++) { c.globalAlpha = a * r(); c.fillRect(x + (r() - 0.5) * 26, y + (r() - 0.5) * 26, 1, 1); }
-    }
   }
   var rp = cl((p - 0.74) / 0.18, 0, 1); // single pulse ring on the second cluster
   if (rp > 0 && rp < 1) {
