@@ -80,3 +80,10 @@ html{scroll-behavior:smooth}
   .q-sec .wrap{background:#fff}
 }
 @media (min-width:900px){.toc a .s{display:none}}
+/* round 1: answer-first badge, reply button, question anchors, phone contents row */
+.af{display:inline-block;font:600 11.5px/1.2 Inter,system-ui,sans-serif;letter-spacing:.02em;color:var(--or-ink);background:#FFF4E8;border:1px solid var(--or);border-radius:999px;padding:3px 9px;margin:0 4px 4px 0;vertical-align:2px}
+.q-reply{display:inline-flex;align-items:center;min-height:44px;padding:10px 18px;border-radius:6px;background:var(--ink);color:#fff;text-decoration:none;font:600 15px/1.3 Inter,system-ui,sans-serif;margin-top:4px}
+.q-reply:hover,.q-reply:focus-visible{background:var(--or-ink)}
+.qs li{scroll-margin-top:96px}
+@media (max-width:899px){.qs li{scroll-margin-top:136px}}
+@media (max-width:599px){.toc{position:static}.q-sec,.qs li{scroll-margin-top:84px}}

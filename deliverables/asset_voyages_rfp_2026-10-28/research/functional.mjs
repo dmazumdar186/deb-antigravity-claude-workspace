@@ -106,10 +106,10 @@ const f01 = await p.evaluate(() => ({ j: document.querySelector('[data-j][value=
 t('contact (F01): "Demander un audit" preselects the business journey and need', f01.j && f01.need === 'Audit de vos voyages' && f01.req, JSON.stringify(f01));
 // header tools
 await go(p, 0); await p.click('[data-en]'); await p.waitForTimeout(150);
-const toast = await p.evaluate(() => { const tt = document.querySelector('[data-toast]'); return !tt.hidden && /bientôt/.test(tt.textContent); });
+const toast = await p.evaluate(() => { const tt = document.querySelector('[data-toast]'); return !tt.hidden && /option chiffrée/.test(tt.textContent) && !/bientôt|coming soon/i.test(tt.textContent); });
 await p.click('[data-client]'); await p.waitForTimeout(100);
 const pop = await p.evaluate(() => !document.querySelector('[data-client-pop]').hidden && document.querySelector('[data-client]').getAttribute('aria-expanded') === 'true');
-t('header: EN switch says "bientôt", client-area note opens', toast && pop, JSON.stringify({ toast, pop }));
+t('header: EN switch says "option" (not "bientôt"), client-area note opens', toast && pop, JSON.stringify({ toast, pop }));
 const fonts = await p.evaluate(() => document.fonts.check('500 40px "EB Garamond"') && [...document.fonts].some((f) => f.family.includes('EB Garamond') && f.status === 'loaded'));
 t('fonts: EB Garamond self-hosted and loaded (no Cormorant)', fonts && !/Cormorant/.test(readFileSync(SITE + 'css/styles.css', 'utf8')), String(fonts));
 const dh = await p.evaluate(() => document.documentElement.scrollHeight);
@@ -174,12 +174,16 @@ await p.close();
 // pitch + console
 p = await mk({ viewport: { width: 1440, height: 900 } }); await p.goto(base + 'pour-asset/', { waitUntil: 'load' }); await p.waitForTimeout(500);
 const pitch = await p.evaluate(() => document.body.innerText);
-t('pitch: signature, business benefit per activity, written-answers next step (no call, no lot codes, no px), 0 errors', /Debanjan/.test(pitch) && /Fondateur, ProdCraft/.test(pitch) && /debanjan@prodcraft\.fyi/.test(pitch) && /Ce que la refonte change pour ASSET/.test(pitch) && /routées vers la bonne personne/.test(pitch) && /Vos réponses écrites/.test(pitch) && !/30 minutes|section 8|\bL[0-4]\b|trentaine|\{\{|\d px|hébergé sur notre domaine|mot pour mot de votre site actuel \(/.test(pitch) && p._errs.length === 0);
+t('pitch: signature, business benefit per activity, written-answers next step (no call, no lot codes, no px), 0 errors', /Debanjan/.test(pitch) && /Fondateur, ProdCraft/.test(pitch) && /debanjan@prodcraft\.fyi/.test(pitch) && /Ce que la refonte change pour ASSET/.test(pitch) && /routées vers l’adresse que vous choisissez/.test(pitch) && /seule la proposition détaillée, une fois signée/.test(pitch) && /vendredi 6 novembre 2026/.test(pitch) && !/29 pages|film définitif|bonne personne/.test(pitch) && /Vos réponses écrites/.test(pitch) && !/30 minutes|section 8|\bL[0-4]\b|trentaine|\{\{|\d px|hébergé sur notre domaine|mot pour mot de votre site actuel \(/.test(pitch) && p._errs.length === 0);
 const q8 = await p.evaluate(() => { const a = document.querySelector('a[href="../questions/#s8"]'); return !!a; });
 t('pitch: next step links to the 30 questions (#s8)', q8);
 await p.goto(base + 'questions/', { waitUntil: 'load' }); await p.waitForTimeout(300);
 const qp = await p.evaluate(() => ({ txt: document.body.innerText, n: document.querySelectorAll('#s8 .qs li').length, s8: !!document.getElementById('s8') }));
 t('questions: 30 questions, unlisted (not "private") wording, no absolute "never lost", references promised, 0 errors', qp.n === 30 && qp.s8 && /unlisted/.test(qp.txt) && !/\bprivate\b/i.test(qp.txt.replace(/private event codes/i, '')) && !/never lost/i.test(qp.txt) && /references/i.test(qp.txt) && /€4\.30/.test(qp.txt) && p._errs.length === 0, 'questions=' + qp.n);
+const r1 = await p.evaluate(() => { const ids = [...document.querySelectorAll('#s8 .qs li')].map((li) => li.id); const af = [...document.querySelectorAll('#s8 .qs li .af')].map((x) => x.closest('li').id); const m = [...document.querySelectorAll('a.q-reply')].map((a) => a.getAttribute('href')); return { ids: ids.join() === Array.from({ length: 30 }, (_, i) => 'q' + (i + 1)).join(), af: af.join(), m, txt: document.body.innerText }; });
+const mt = r1.m[0] ? decodeURIComponent(r1.m[0].replace(/&amp;/g, '&')) : '';
+t('questions r1: ids q1-q30, 8 answer-first badges, pre-numbered reply mailto, 6 Nov deadline, scope rule', r1.ids && r1.af === 'q1,q2,q3,q5,q6,q9,q15,q18' && r1.m.length >= 1 && /^mailto:debanjan@prodcraft\.fyi\?subject=ASSET – réponses aux questions&body=1\. \n2\. /.test(mt) && /30\. \n$/.test(mt) && /Friday 6 November 2026/.test(r1.txt) && /set only by the proposal you sign/.test(r1.txt), JSON.stringify({ ids: r1.ids, af: r1.af, n: r1.m.length }));
+t('questions r1: hostile-client absolutes removed (any time, instantly, lunch, authenticator app, 29 pages, "as your brief describes")', !/at any time|instantly|price of a lunch|authenticator app|29 pages|as your brief describes|No loss of Google ranking|with the same number|our hourly rate/i.test(r1.txt) && /two rounds of changes/i.test(r1.txt) && /outages at the hosting providers are outside this target/.test(r1.txt) && /Built into the site/.test(r1.txt) && /one-time code sent to their work email/.test(r1.txt));
 let links = true; const linkInfo = [];
 for (const [pg, need] of [['', ['pour-asset/', 'console/', 'questions/']], ['pour-asset/', ['../', '../console/', '../questions/']], ['console/', ['../', '../pour-asset/', '../questions/']], ['questions/', ['../', '../pour-asset/', '../console/']]]) {
   await p.goto(base + pg, { waitUntil: 'load' }); const hrefs = await p.evaluate(() => [...document.querySelectorAll('a')].map((a) => a.getAttribute('href')));
@@ -190,7 +194,13 @@ await p.goto(base + 'console/', { waitUntil: 'load' }); await p.waitForTimeout(3
 const con = await p.evaluate(() => [...document.querySelectorAll('.role h3')].map((h) => h.textContent));
 const cdash = await p.evaluate(() => ({ tiles: [...document.querySelectorAll('.stats p')].map((x) => x.textContent), pages: document.querySelectorAll('#pages tbody tr').length, details: !!document.querySelector('#congres details:not([open])'), h1: !!document.querySelector('h1'), jargon: /MFA|moindre privilège|côté serveur|navigateur|Workflow interne/.test(document.body.innerText), disabled: document.querySelectorAll('button[disabled]').length }));
 await p.click('#pages [data-mock]'); await p.waitForTimeout(150); const toastC = await p.evaluate(() => { const t = document.querySelector('.mtoast'); return !!t && !t.hidden && /Maquette/.test(t.textContent); });
-t('console: work-to-do tiles, Pages section, GM&E detail folded, plain French, live buttons with mock toast, H1', /à attribuer/.test(cdash.tiles[0]) && /rappel/.test(cdash.tiles[1]) && /validation/.test(cdash.tiles[2]) && cdash.pages >= 5 && cdash.details && cdash.h1 && !cdash.jargon && cdash.disabled === 0 && toastC, JSON.stringify({ ...cdash, toastC }));
+t('console: work-to-do tiles, Pages section, GM&E detail folded, plain French, live buttons with mock toast, H1', /à attribuer/.test(cdash.tiles[0]) && /rappel/.test(cdash.tiles[1]) && /brouillon/.test(cdash.tiles[2]) && cdash.pages >= 5 && cdash.details && cdash.h1 && !cdash.jargon && cdash.disabled === 0 && toastC, JSON.stringify({ ...cdash, toastC }));
+const pubOnly = await p.evaluate(() => [...document.querySelectorAll('#congres tbody tr')].map((tr) => [tr.cells[0].textContent, tr.cells[3].textContent]));
+const statuses = await p.evaluate(() => [...document.querySelectorAll('#demandes tbody .st')].map((x) => x.textContent));
+await p.goto(base, { waitUntil: 'load' }); const pubIds = await p.evaluate(() => [...new Set((document.body.innerHTML.match(/CG-0\d{3}/g) || []))]);
+const leak = pubOnly.filter(([id, st]) => pubIds.includes(id) && !/Publié/.test(st)).map(([id]) => id);
+t('console r1: enquiry statuses use the agreed steps; no draft or pending congress appears in the public catalogue', statuses.every((x) => /^(Nouvelle|Qualifiée|Devis envoyé|Gagnée|Perdue)$/.test(x)) && leak.length === 0 && pubOnly.some(([, st]) => /Brouillon/.test(st)), JSON.stringify({ statuses, leak }));
+await p.goto(base + 'console/', { waitUntil: 'load' });
 t('console: five RFP roles', con.length === 5 && /Administrateur technique/.test(con[0]) && /Éditrice/.test(con[1]) && /Contributeur/.test(con[2]) && /Lecteur commercial/.test(con[3]) && /Approbateur/.test(con[4]), con.join(' | '));
 await p.close();
 p = await mk({ ...devices['Pixel 7'] }); await p.goto(base + 'console/', { waitUntil: 'load' }); await p.waitForTimeout(300);

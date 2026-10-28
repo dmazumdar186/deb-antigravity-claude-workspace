@@ -1,14 +1,14 @@
 {
   "date": "2026-10-28",
-  "pass": 53,
-  "total": 53,
+  "pass": 56,
+  "total": 56,
   "desktopHeight": 21464,
-  "mobileHeightPixel7": 15835,
-  "mobileHeight390": 15141,
+  "mobileHeightPixel7": 15853,
+  "mobileHeight390": 15159,
   "sizes": {
-    "html": 33768,
+    "html": 33849,
     "css": 29763,
-    "js": 48812
+    "js": 49279
   },
   "results": [
     {
@@ -34,7 +34,7 @@
     {
       "name": "film fling: exactly one text layer visible (hard swap), matching the frame on screen, settles on 05",
       "ok": true,
-      "info": "{\"n\":1,\"on\":[3],\"shown\":3,\"settled\":5}"
+      "info": "{\"n\":1,\"on\":[2],\"shown\":3,\"settled\":5}"
     },
     {
       "name": "header: shrinks on scroll, progress bar advances",
@@ -140,7 +140,7 @@
       "info": "{\"j\":true,\"need\":\"Audit de vos voyages\",\"req\":true}"
     },
     {
-      "name": "header: EN switch says \"bientôt\", client-area note opens",
+      "name": "header: EN switch says \"option\" (not \"bientôt\"), client-area note opens",
       "ok": true,
       "info": "{\"toast\":true,\"pop\":true}"
     },
@@ -162,12 +162,12 @@
     {
       "name": "budget: index + css + all js ≤ 150 KB (video excluded)",
       "ok": true,
-      "info": "{\"html\":33768,\"css\":29763,\"js\":48812} = 109.7 KB"
+      "info": "{\"html\":33849,\"css\":29763,\"js\":49279} = 110.2 KB"
     },
     {
       "name": "confidentiality: no other client or project named anywhere in the built site",
       "ok": true,
-      "info": "15 files clean"
+      "info": "16 files clean"
     },
     {
       "name": "third-party claim: Selectour Affaires sentence verbatim + real logo file",
@@ -248,6 +248,15 @@
       "info": "questions=30"
     },
     {
+      "name": "questions r1: ids q1-q30, 8 answer-first badges, pre-numbered reply mailto, 6 Nov deadline, scope rule",
+      "ok": true,
+      "info": "{\"ids\":true,\"af\":\"q1,q2,q3,q5,q6,q9,q15,q18\",\"n\":2}"
+    },
+    {
+      "name": "questions r1: hostile-client absolutes removed (any time, instantly, lunch, authenticator app, 29 pages, \"as your brief describes\")",
+      "ok": true
+    },
+    {
       "name": "cross-links: each of the 4 pages links to the 3 others",
       "ok": true,
       "info": "all linked"
@@ -255,7 +264,12 @@
     {
       "name": "console: work-to-do tiles, Pages section, GM&E detail folded, plain French, live buttons with mock toast, H1",
       "ok": true,
-      "info": "{\"tiles\":[\"1nouvelle demande à attribuer\",\"1rappel prévu aujourd’hui\",\"2congrès en attente de validation\",\"4demandes ce mois-ci\"],\"pages\":6,\"details\":true,\"h1\":true,\"jargon\":false,\"disabled\":0,\"toastC\":true}"
+      "info": "{\"tiles\":[\"1nouvelle demande à attribuer\",\"1rappel prévu aujourd’hui\",\"1congrès en brouillon, hors du site\",\"4demandes ce mois-ci\"],\"pages\":6,\"details\":true,\"h1\":true,\"jargon\":false,\"disabled\":0,\"toastC\":true}"
+    },
+    {
+      "name": "console r1: enquiry statuses use the agreed steps; no draft or pending congress appears in the public catalogue",
+      "ok": true,
+      "info": "{\"statuses\":[\"Nouvelle\",\"Devis envoyé\",\"Qualifiée\",\"Gagnée\"],\"leak\":[]}"
     },
     {
       "name": "console: five RFP roles",

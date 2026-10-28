@@ -30,13 +30,13 @@
   </nav>
   <main class="con__main" id="con-main">
     <h1 class="sr">Console ASSET — maquette</h1>
-    <p class="banner"><span class="tag">Maquette</span> Aperçu de l’administration proposée pour Veena et un éditeur suppléant. Toutes les lignes sont des exemples.</p>
+    <p class="banner"><span class="tag">Maquette</span> Aperçu de l’administration proposée pour Veena et un éditeur suppléant. Toutes les lignes sont des exemples. La maquette illustre une direction ; seule la proposition signée fixe ce qui est inclus.</p>
     <section id="a-faire" aria-labelledby="t-t">
       <h2 id="t-t">Aujourd’hui <span class="tag">exemple</span></h2>
       <div class="stats">
         <p><b>1</b>nouvelle demande à attribuer</p>
         <p><b>1</b>rappel prévu aujourd’hui</p>
-        <p><b>2</b>congrès en attente de validation</p>
+        <p><b>1</b>congrès en brouillon, hors du site</p>
         <p><b>4</b>demandes ce mois-ci</p>
       </div>
     </section>
@@ -48,9 +48,9 @@
         <thead><tr><th scope="col">Réf.</th><th scope="col">Type</th><th scope="col">Reçue</th><th scope="col">Contact</th><th scope="col">Congrès</th><th scope="col">Statut</th><th scope="col">Responsable</th></tr></thead>
         <tbody>
           <tr><td>D-0004</td><td>Congrès — devis vol</td><td>28/10/2026</td><td>Société D (exemple)</td><td>CG-0101</td><td><span class="st st--new">Nouvelle</span></td><td>À attribuer</td></tr>
-          <tr><td>D-0003</td><td>MICE — brief</td><td>27/10/2026</td><td>Société C (exemple)</td><td>—</td><td><span class="st st--wip">En cours</span></td><td>Équipe Meetings &amp; Events</td></tr>
-          <tr><td>D-0002</td><td>Voyages d’affaires — audit</td><td>26/10/2026</td><td>Société B (exemple)</td><td>—</td><td><span class="st st--wip">Rappel aujourd’hui</span></td><td>Conseiller voyages</td></tr>
-          <tr><td>D-0001</td><td>Voyages d’affaires — compte</td><td>24/10/2026</td><td>Société A (exemple)</td><td>—</td><td><span class="st st--done">Qualifiée</span></td><td>Veena</td></tr>
+          <tr><td>D-0003</td><td>MICE — brief</td><td>27/10/2026</td><td>Société C (exemple)</td><td>—</td><td><span class="st st--wip">Devis envoyé</span></td><td>Équipe Meetings &amp; Events</td></tr>
+          <tr><td>D-0002</td><td>Voyages d’affaires — audit</td><td>26/10/2026</td><td>Société B (exemple)</td><td>—</td><td><span class="st st--wip">Qualifiée</span> <span class="wf">rappel aujourd’hui</span></td><td>Conseiller voyages</td></tr>
+          <tr><td>D-0001</td><td>Voyages d’affaires — compte</td><td>24/10/2026</td><td>Société A (exemple)</td><td>—</td><td><span class="st st--done">Gagnée</span></td><td>Veena</td></tr>
         </tbody>
       </table>
       </div>
@@ -72,7 +72,7 @@
         </tbody>
       </table>
       </div>
-      <p class="foot">Chaque modification est enregistrée : on peut revenir à une version précédente en un clic.</p>
+      <p class="foot">Chaque modification est enregistrée : on peut revenir à une version précédente.</p>
     </section>
     <section id="congres" aria-labelledby="c-t">
       <h2 id="c-t">Congrès <span><button class="btn" type="button" data-mock>Importer un tableur</button> <button class="btn btn--line" type="button" data-mock>Nouveau congrès</button></span></h2>
@@ -82,10 +82,11 @@
         <thead><tr><th scope="col">Réf.</th><th scope="col">Congrès</th><th scope="col">Dates</th><th scope="col">Sur le site</th><th scope="col">Suivi interne</th><th scope="col">Vérifié le</th></tr></thead>
         <tbody>
           <tr><td>CG-0112</td><td>Journées d’oncologie digestive — exemple</td><td>28–30 janv. 2027</td><td><span class="st st--pub">Publié</span></td><td><span class="wf">Validé pour la vente</span></td><td>12/10/2026</td></tr>
-          <tr><td>CG-0108</td><td>Congrès européen de radiologie — exemple</td><td>24–28 févr. 2027</td><td><span class="st st--rev">En attente de validation</span></td><td><span class="wf">Demande de code envoyée</span></td><td>12/10/2026</td></tr>
+          <tr><td>CG-0108</td><td>Congrès européen de radiologie — exemple</td><td>24–28 févr. 2027</td><td><span class="st st--pub">Publié</span></td><td><span class="wf">Demande de code envoyée</span></td><td>12/10/2026</td></tr>
           <tr><td>CG-0103</td><td>Journées françaises de diabétologie — exemple</td><td>23–26 mars 2027</td><td><span class="st st--pub">Publié</span></td><td><span class="wf">Vérifié</span></td><td>12/10/2026</td></tr>
-          <tr><td>CG-0109</td><td>Sommet RH et mobilité — exemple</td><td>13–14 avr. 2027</td><td><span class="st st--draft">Brouillon</span></td><td><span class="wf">Repéré</span></td><td>—</td></tr>
-          <tr><td>CG-0107</td><td>Rencontres d’ophtalmologie — exemple</td><td>8–11 mai 2027</td><td><span class="st st--rev">En attente de validation</span></td><td><span class="wf">Dossier à préparer</span></td><td>12/10/2026</td></tr>
+          <tr><td>CG-0109</td><td>Sommet RH et mobilité — exemple</td><td>13–14 avr. 2027</td><td><span class="st st--pub">Publié</span></td><td><span class="wf">Vérifié</span></td><td>12/10/2026</td></tr>
+          <tr><td>CG-0107</td><td>Rencontres d’ophtalmologie — exemple</td><td>8–11 mai 2027</td><td><span class="st st--pub">Publié</span></td><td><span class="wf">Dossier à préparer</span></td><td>12/10/2026</td></tr>
+          <tr><td>CG-0113</td><td>Journées de rhumatologie — exemple</td><td>10–12 juin 2027</td><td><span class="st st--draft">Brouillon</span></td><td><span class="wf">Repéré</span></td><td>—</td></tr>
         </tbody>
       </table>
       </div>

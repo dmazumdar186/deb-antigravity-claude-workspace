@@ -4,7 +4,7 @@ Prepared 28 October 2026. Final list: **30 questions in 7 groups**, each with a 
 
 **Status key.** **Q** ask ASSET now · **A** we find it ourselves in the J1 audit (how stated) · **D** we propose a default ASSET can override (default stated) · **K** already known (source cited).
 
-**Defensive rule (operator, 28 Oct).** Every question carries a written default: anything ASSET does not answer in writing follows that default; changes by email before signature, then through the change process. So every Q-unknown is also bounded by a D-style fallback.
+**Defensive rule (operator, 28 Oct; tightened in audit round 1).** Every question carries a written default. Answers received by **Friday 6 November 2026** are built into the proposal; anything not answered in writing by then follows that default. ASSET can change an assumption by email until the contract is signed, and a change may alter price and dates; after signature, the change process applies. The concept, the console and the assumptions are illustrations; only the signed proposal defines scope. So every Q-unknown is also bounded by a D-style fallback.
 
 ## Pass 1 — top-down: every unknown in the brief, form and email
 
@@ -20,11 +20,11 @@ Prepared 28 October 2026. Final list: **30 questions in 7 groups**, each with a 
 | U06 | Governance | Content owner per activity who validates its pages | Q | Q3 |
 | U07 | Commercial | Payment split against milestones | D | 30/30/20/20 against accepted milestones; ASSET may change |
 | U08 | Commercial | Tax presentation | K | Brief p9: HT, rate, amount, TTC |
-| U09 | Schedule | Earliest start date | D | Go-ahead Mon 16 Nov 2026 |
+| U09 | Schedule | Earliest start date | D | Within 5 working days of a signed order and access to today's site; Mon 16 Nov 2026 at the earliest (Q1 default) |
 | U10 | Governance | Change-request process | K | Brief p2: assessed for cost, schedule, security, SEO |
-| U11 | Commercial | Managed monthly plan vs ad-hoc maintenance; minimum term | D | Managed monthly plan, 12-month minimum, stated in proposal |
-| U12 | Operations | Stabilisation period length | D | 4 weeks after launch (J6) |
-| U13 | L0 audit | Current CMS | K | WordPress (fetched from live site, HANDOFF) |
+| U11 | Commercial | Managed monthly plan vs ad-hoc maintenance; minimum term | D | Optional monthly maintenance plan priced in the proposal (term stated there); up to 5 h of changes, no rollover (Q29) |
+| U12 | Operations | Stabilisation period length | D | 4 weeks after launch (J6), defects against the accepted tests only; new requests quoted |
+| U13 | L0 audit | Current CMS | K | WordPress 6.9.11: `<meta name="generator">` and `wp-content/` paths in the live homepage HTML, fetched 28 Oct 2026 (HANDOFF) |
 | U14 | L0 audit | CMS version, plugins, custom code | A | J1 audit: admin access + fingerprinting |
 | U15 | L0 audit | Who maintains current site; contract or notice period | Q | Q4 |
 | U16 | L0 audit | Account holders: registrar, DNS, hosting, SSL, email, GA, GSC, Google Business Profile, tag manager | Q | Q5 |
@@ -65,18 +65,18 @@ Prepared 28 October 2026. Final list: **30 questions in 7 groups**, each with a 
 | U51 | Forms | Reply-time promise in the acknowledgement | Q | Q15 |
 | U52 | Forms | CRM in use | Q | Q16 |
 | U53 | Forms | Newsletter/email marketing tool (marketing consent box) | Q | Q16 |
-| U54 | Forms | Enquiry statuses and reminder rules | D | New, qualified, quote sent, won/lost; reminder after 1 business day |
+| U54 | Forms | Enquiry statuses and reminder rules | D | New, qualified, quote sent, won/lost, plus a reminder flag (console sample aligned in round 1); reminder after 1 business day |
 | U55 | Forms | F01 volume unit and bands; company categories | D | Annual travel spend bands; SME / mid-size / large |
 | U56 | Forms | F02 budget as total or per person; file upload | D | Optional total budget; optional PDF upload |
 | U57 | Forms | Phone/callback preference, booking slots | D | Callback request field; no calendar tool |
 | U58 | Forms | Anti-spam method | D | Cookie-free invisible challenge (Turnstile) |
 | U59 | Data | Retention of enquiry data | D | Brief asks supplier to propose: 3 years after last contact for prospects (CNIL) |
 | U60 | Data | Who handles personal-data requests (DPO or referent) | Q | Q27 |
-| U61 | Measurement | Conversion events | K | Brief p4 lists them |
+| U61 | Measurement | Conversion events | K+D | Brief p4 lists them (CTA clicks, form starts, sends, errors, searches). Counted by the site itself, no cookies, no personal data; Cloudflare Web Analytics does page views only (its FAQ: custom events "Not yet", checked 28 Oct) |
 | U62 | Measurement | Commercial targets | K | Brief p4: agreed after the audit |
 | U63 | Admin | Who holds each role: backup editor, contributors, commercial viewers | Q | Q28 |
-| U64 | Admin | Company sign-in (Microsoft 365 / Google Workspace) for MFA | Q | Q26 |
-| U65 | Training | Training format and language | D | Two video sessions in French, recorded |
+| U64 | Admin | Company sign-in (Microsoft 365 / Google Workspace) for MFA | Q | Q26 (default: one-time code to the work email, a documented Cloudflare Access method, checked 28 Oct) |
+| U65 | Training | Training format and language | D | Two recorded video sessions in French |
 | U66 | Congress | Existing list of 300, real columns (sample) | Q | Q17 |
 | U67 | Congress | Source of listings and any licence limits | Q | Q17 |
 | U68 | Congress | Yearly volume of new congresses | Q | Q17 |
@@ -107,17 +107,24 @@ Prepared 28 October 2026. Final list: **30 questions in 7 groups**, each with a 
 | U93 | AI | Who reviews the AI queue | D | The congress approver named in Q19 |
 | U94 | Hosting | EU or France data residency | Q | Q27 |
 | U95 | Security | Client security questionnaires / ISO | Q | Q27 |
-| U96 | Hosting | Subprocessors acceptable (EU data centres, DPA) | D | EU-located database with DPA; listed in proposal |
+| U96 | Hosting | Subprocessors acceptable (EU data centres, DPA) | D | Database in the EU; US providers (Cloudflare, Resend) under data-processing agreements; full list in the proposal (Q27) |
 | U97 | Security | Staging access list | D | ASSET team only, behind two-step login |
 | U98 | Security | Secret transfer method | D | Shared password manager |
 | U99 | Operations | Support hours, out-of-hours in congress season | Q | Q30 |
 | U100 | Operations | Maximum acceptable outage | Q | Q30 |
-| U101 | Operations | Backup targets and retention | D | RPO 24 h, RTO 8 business hours, 30-day retention |
+| U101 | Operations | Backup targets and retention | D | RPO 24 h; aim of 8 business hours to restore after a serious incident on our side, hosting-provider outages excluded; 30-day retention; photos and documents copied daily |
 | U102 | Operations | Monthly change volume | Q | Q29 |
-| U103 | Quality | Accessibility and performance targets | K | Brief p7: WCAG 2.2 AA; LCP/INP/CLS |
+| U103 | Quality | Accessibility and performance targets | K+D | Brief p7: WCAG 2.2 AA; LCP/INP/CLS. Default: design target on main journeys, automated + manual tests, written report, no third-party certification; lab speed tests until field data exists |
 | U104 | Launch | Cutover authority | K | Brief p8: written authorisation from management |
 | U106 | Congress | Other airlines named on congress pages | D | No airline or partner named publicly until ASSET approves in writing (see Q20) |
-| U105 | Scope | Exclusions and assumptions | D | Stated in proposal: ticketing, booking engine, ads, paid CRM, translation |
+| U105 | Scope | Exclusions and assumptions | D | On the page (§03) and in the proposal: ticketing, booking engine, ads, paid CRM software, bulk scraping, automatic publication, photography, copywriting beyond Q9, translation |
+| U107 | Scope | Revision rounds (brief p7: supplier must specify) | D | Two rounds of changes per design and content stage; further rounds quoted first (§07 on the page) |
+| U108 | Governance | Deadline for answers; what late answers do | D | Friday 6 November 2026; later answers by email until signature, may change price and dates (§08 box) |
+| U109 | Congress | Who prepares and cleans the import file | D | ASSET, in our template; one import, error rows returned; no research or rewriting (Q17 default) |
+| U110 | Compliance | Who writes the legal pages | D | ASSET supplies or approves the wording; no legal advice from us (Q9 default) |
+| U111 | Governance | Acceptance and deemed approval | D | 3 working days per stage, silence = approved unless blocking defects listed; acceptance testing 5 working days against T01-T15 only (Q3 default) |
+| U112 | SEO | Redirect scope ("priority URLs", T10) | D | Every address in our crawl and Search Console's last 12 months, redirected to its closest new page; nothing outside those two sources (defaults list) |
+| U113 | Scope | Concept/console vs contract scope | D | Illustrations only; only the signed proposal defines what is included (§01, email, pitch, console) |
 
 Brief's "Decisions to confirm before contract" (p9) cross-check: budget and schedule → Q1-Q2; existing technology → Q4-Q6; content and languages → Q9-Q14 (page counts Q9, brand guidelines Q10, images Q11, English Q14); commercial enquiries → Q15-Q16 (handling rules: D, U54); partners → Q18, Q23-Q24; operations → Q27, Q29-Q30 (backups, retention, stabilisation: D). The email's asks that are ours to answer (approach, costs, timeline, team, examples, exclusions) are not client unknowns; their client-side inputs are U01-U12 and U105.
 
@@ -172,13 +179,13 @@ Rules applied: every Q-unknown maps to exactly one question; no two questions re
 **1. Timing, budget and decisions**
 
 1. When is the proposal due, and when do you plan to choose a supplier? Is there a date the new site has to be live by, or a busy period when it should not launch?  
-   *Resolves:* U01, U02, U03 · *Default if unanswered:* we send the proposal by Friday 13 November 2026, start on Monday 16 November, and launch in February 2027 (about 12 weeks). No launch between 21 December and 1 January.
+   *Resolves:* U01, U02, U03 · *Default if unanswered:* we send the proposal by Friday 13 November 2026. Work starts within 5 working days of a signed order and access to today's site (Monday 16 November at the earliest). Launch is planned about 12 weeks after the start, never between 21 December and 1 January. Any late input from ASSET (approvals, texts, photos, access, the congress file) moves the dates by the same number of days.
 
 2. Is there a budget range or a cap for the core site and the Congress catalogue? A rough bracket is enough.  
-   *Resolves:* U04 · *Default if unanswered:* we quote the core site and the Congress catalogue as your brief describes them, with every option priced separately, so you can pick.
+   *Resolves:* U04 · *Default if unanswered:* we quote the core site and the Congress catalogue as set out in our proposal, which lists the pages, listings, rounds of changes and exclusions. Every option is priced separately, so you can pick.
 
 3. Who at ASSET approves each stage (design, content, launch), and does each activity (Business Travel, MICE, Congresses) sign off its own pages? How many working days should we plan for each approval?  
-   *Resolves:* U05, U06 · *Default if unanswered:* ASSET management approves each stage in writing within 3 working days, and Veena sends one combined reply for all three activities. Later approvals move the dates by the same number of days.
+   *Resolves:* U05, U06 · *Default if unanswered:* ASSET management approves each stage in writing (directly, or through Veena on its behalf) within 3 working days, in one combined reply for all three activities. If neither an approval nor a written list of blocking problems arrives in that time, the stage counts as approved. Acceptance testing before launch lasts 5 working days, against the tests in your brief (T01–T15) only.
 
 **2. Today's website and accounts**
 
@@ -189,10 +196,10 @@ Rules applied: every Q-unknown maps to exactly one question; no two questions re
    *Resolves:* U16, U17 · *Default if unanswered:* ASSET gives us access at kickoff. Every new account is opened in ASSET's name, owned by management, with Veena as day-to-day administrator. Getting back accounts held by others is up to ASSET.
 
 6. Should the new site be on asset-voyagesdaffaires.com, assetvoyages.com, or both? Are there other web addresses or campaign pages we should know about?  
-   *Resolves:* U18, U19 · *Default if unanswered:* the new site lives on asset-voyagesdaffaires.com, the address Google knows today, and assetvoyages.com points to it. No other addresses are included.
+   *Resolves:* U18, U19 · *Default if unanswered:* the new site lives on asset-voyagesdaffaires.com, the address Google knows today, and assetvoyages.com points to it (web address only; your email is not touched). No other addresses are included.
 
 7. Could you give us read-only access to Google Analytics and Search Console? Which trackers (LinkedIn, Meta) and ad campaigns (Google Ads, LinkedIn Ads) must keep working?  
-   *Resolves:* U24, U25, U26 · *Default if unanswered:* we plan the move of old pages from our own scan of the site. No trackers are carried over: we use statistics that need no cookies. Ad campaigns are not included.
+   *Resolves:* U24, U25, U26 · *Default if unanswered:* we plan the move of old pages from our own scan of the site. No trackers are carried over. Visitor statistics need no cookies, and the site itself counts the actions your brief lists (clicks, form starts and sends, errors and congress searches) without cookies or personal data. Ad campaigns are not included.
 
 8. Does Selectour ask for anything on your website (logos, legal mentions, brand rules)?  
    *Resolves:* U33 · *Default if unanswered:* we show the Selectour Affaires logo and membership line as they appear on today's site, and nothing more.
@@ -200,7 +207,7 @@ Rules applied: every Q-unknown maps to exactly one question; no two questions re
 **3. Content, brand and languages**
 
 9. Will your team write the new French copy, or do you want us to rewrite the existing pages? Roughly how many pages, articles and FAQ entries do you expect at launch?  
-   *Resolves:* U34, U35 · *Default if unanswered:* ASSET writes or approves the French text. We move today's pages over and edit them lightly for clarity and Google: up to 20 pages plus 3 legal pages. Veena adds further articles and FAQ herself.
+   *Resolves:* U34, U35 · *Default if unanswered:* ASSET writes or approves the French text. We move up to 20 of today's pages plus 3 legal pages, editing wording only (titles, headings, clarity and typos), with one round of your corrections per page; other pages are merged or redirected. ASSET supplies or approves the wording of the legal pages; we do not give legal advice. Veena adds further articles and FAQ herself.
 
 10. Do you have brand guidelines (logo files, colours, fonts)? Is the logo fixed, or is a light refresh welcome?  
    *Resolves:* U36 · *Default if unanswered:* we keep today's logo and colours exactly as they are and build a simple style guide from them.
@@ -212,7 +219,7 @@ Rules applied: every Q-unknown maps to exactly one question; no two questions re
    *Resolves:* U42 · *Default if unanswered:* the small-business page explains the service and collects account and demo requests, with no prices or service levels.
 
 13. Which assistance services exist today (for example an emergency line), with their hours and phone numbers, so we only publish what is real?  
-   *Resolves:* U43 · *Default if unanswered:* we show only the 24/7 assistance line as it appears on today's site, with the same number.
+   *Resolves:* U43 · *Default if unanswered:* we show the 24/7 assistance wording as it appears on today's site, and publish a phone number only once you confirm it in writing.
 
 14. Which journeys should be in English first, from when (launch or later), and who will translate?  
    *Resolves:* U44, U45, U46 · *Default if unanswered:* the site is in French only at launch. English is a separate option, and ASSET arranges and pays for professional translation.
@@ -223,15 +230,15 @@ Rules applied: every Q-unknown maps to exactly one question; no two questions re
    *Resolves:* U50, U51 · *Default if unanswered:* every enquiry goes to one shared mailbox (direction@assetvoyages.com until you name another), and the confirmation email says you will reply shortly, with no time promised.
 
 16. Which sales tools do you use today: a CRM, a newsletter or email-marketing tool, or email only?  
-   *Resolves:* U52, U53 · *Default if unanswered:* you use no CRM or newsletter tool. Enquiries are followed in the site's own enquiry list with a spreadsheet export, and forms carry no marketing tick box.
+   *Resolves:* U52, U53 · *Default if unanswered:* you use no CRM or newsletter tool. Enquiries are followed in the site's own enquiry list with an export that opens in Excel, and forms carry no marketing tick box.
 
 **5. Congress catalogue**
 
 17. Could you share 10 sample rows from your list of events (the 300 in the brief), with where the listings come from and roughly how many you add each year?  
-   *Resolves:* U66, U67, U68 · *Default if unanswered:* we import one file of up to 300 congresses using the fields listed in your brief, and Veena adds new ones in the admin afterwards.
+   *Resolves:* U66, U67, U68 · *Default if unanswered:* ASSET provides one spreadsheet of up to 300 congresses in our template, using the fields listed in your brief. We import it once and send back a list of any rows with errors for ASSET to correct. Finding, researching or rewriting listings is not included. Veena adds new ones in the admin afterwards.
 
 18. Does ASSET already work with Air France-KLM's Global Meetings and Events programme? How do the event codes work: one per congress or several, and do they expire?  
-   *Resolves:* U70, U71 · *Default if unanswered:* no fare code and no special-fare wording appears anywhere until ASSET confirms the arrangement in writing. The locked admin can hold several codes per congress, each with an end date.
+   *Resolves:* U70, U71 · *Default if unanswered:* no fare code and no special-fare wording appears anywhere until ASSET confirms the arrangement in writing. The locked admin holds the code, its evidence and its validity period for each congress, as your brief lists.
 
 19. Who at ASSET does each step from spotting a congress to approving it for sale? Who gives the final approval: one person or several?  
    *Resolves:* U72, U73 · *Default if unanswered:* Veena moves each congress through the steps and ASSET management gives the final approval for sale.
@@ -240,10 +247,10 @@ Rules applied: every Q-unknown maps to exactly one question; no two questions re
    *Resolves:* U74 · *Default if unanswered:* only “request a quote”: no fare badge, no discount and no partner claim.
 
 21. When a congress is over, should its page stay online as an archive, or come down?  
-   *Resolves:* U75 · *Default if unanswered:* the page stays online as a past edition, without the quote button, and links to the next edition once it is listed.
+   *Resolves:* U75 · *Default if unanswered:* the page stays online as a past edition, without the quote button, and Veena can add a link to the next edition once it is listed.
 
 22. What should one congress quote request cover: several travellers leaving from different cities (for example, a lab sending doctors from Lyon and Paris), and hotel or transfers as well as flights?  
-   *Resolves:* U77, U78 · *Default if unanswered:* one request can list several travellers from several departure cities, for flights only, with a free-text box for hotel or transfer needs.
+   *Resolves:* U77, U78 · *Default if unanswered:* one request covers one group, with one departure city and a number of travellers, for flights only. Extra departure cities, hotel or transfer needs go in a free-text box.
 
 **6. Partners and options**
 
@@ -259,19 +266,19 @@ Rules applied: every Q-unknown maps to exactly one question; no two questions re
 **7. Security, data and running the site**
 
 26. Does your team sign in with Microsoft 365 or Google Workspace? We'd use it for a secure two-step login to the admin area.  
-   *Resolves:* U64 · *Default if unanswered:* staff use an authenticator app on their phone for the second step.
+   *Resolves:* U64 · *Default if unanswered:* staff confirm each login with a one-time code sent to their work email.
 
 27. Must the site and its data stay in the EU or in France, do your clients send security questionnaires, and who at ASSET handles personal-data questions?  
-   *Resolves:* U60, U94, U95 · *Default if unanswered:* data is stored in the EU, no security questionnaire is included (one can be answered later at our hourly rate), and ASSET management handles personal-data requests using the written procedure we provide.
+   *Resolves:* U60, U94, U95 · *Default if unanswered:* the database is stored in the EU. Some providers (such as Cloudflare and Resend) are US companies, used under data-processing agreements as EU rules require; the full list of providers comes with the proposal. No security questionnaire is included (one can be answered later, quoted separately), and ASSET management handles personal-data requests using the written procedure we provide.
 
 28. Who besides Veena will use the admin: a backup editor, other contributors, sales staff who only read enquiries? We need to know to set access and plan training.  
-   *Resolves:* U63 · *Default if unanswered:* two people edit the site, Veena and one backup editor, both trained. Management can read enquiries but not edit pages.
+   *Resolves:* U63 · *Default if unanswered:* two people edit the site, Veena and one backup editor, both trained. Management can read enquiries and give the final approval for congresses, but not edit pages.
 
 29. What kind of changes do you expect each month (new pages, offers, articles, congress updates)?  
-   *Resolves:* U102 · *Default if unanswered:* up to 5 hours of changes a month are included in the monthly plan; anything more is quoted first.
+   *Resolves:* U102 · *Default if unanswered:* up to 5 hours of changes a month are included in the optional maintenance plan priced in the proposal; unused hours do not carry over, and anything more is quoted first.
 
-30. What support hours do you need (office hours, or also evenings and weekends in congress season), and how long an interruption can your business accept?  
-   *Resolves:* U99, U100 · *Default if unanswered:* support Monday to Friday, 9:00–18:00 Paris time, with no evening or weekend cover, and the site back within 8 business hours after a serious incident.
+30. What support hours do you need from us for the website (office hours, or also evenings and weekends in congress season), and how long an interruption can your business accept?  
+   *Resolves:* U99, U100 · *Default if unanswered:* support Monday to Friday, 9:00–18:00 Paris time, with no evening or weekend cover. We aim to have the site back within 8 business hours after a serious incident on our side; outages at the hosting providers are outside this target.
 
 **Changes from 25 to 30:** added Q4/Q5 split, Q10 brand guidelines (brief p9 names it; old list only had Selectour's rules), Q13 split from SME offer, Q16 sales tools (CRM moved out of routing; newsletter added: it decides the marketing tick box), Q18 GM&E arrangement and code structure (brief p6: partners must confirm GM&E; code structure shapes the private data model), Q24 Wondermiles permissions and contact (brief p3: "approved Wondermiles presentation, authorised images"). Widened without new overlap: Q1 (+selection date, blackout period), Q3 (+content owners), Q5 (+Google Business Profile, owner of new accounts), Q6 (+other addresses), Q7 (+ad campaigns), Q9 (+articles, FAQ), Q11 (+team members), Q14 (+timing), Q15 (+backup, reply time), Q17 (+yearly volume), Q19 (+each workflow step), Q22 (+hotel/transfers), Q23 (+other client tools), Q27 (+questionnaires, data contact), Q28 (+all admin roles). Removed as a question: retention (now D).
 
@@ -299,7 +306,8 @@ Total Jev spend ≈ $0.05, zero errors.
 
 - 56 Q-unknowns → 30 questions, one-to-one (each unknown in exactly one question; every question resolves 1-3 unknowns). Zero uncovered by judgement; Jev agrees on 52 of 56 and its 4 misses were checked and rejected.
 - 16 A-unknowns are found by us in J1 (crawl, DNS, page source, Search Console once Q7 grants access, Lighthouse, L3a study).
-- 26 D-unknowns carry a stated default in the proposal; 8 K-unknowns are already settled by the brief or the live site.
+- 33 D-unknowns carry a stated default (26 original + 7 added in audit round 1: U107-U113); 8 K-unknowns are already settled by the brief or the live site (U61 and U103 also carry a default).
+- Round 1 added no question: each new topic was folded into an existing default or a section of the page, so the list stays at 30 and MECE.
 - Every one of the 30 questions also carries a written default, shown on the page, so a late, vague or missing answer still leaves a defined scope.
 - Every row of the brief's "Decisions to confirm before contract" table maps to at least one question or a stated default.
 
@@ -307,33 +315,38 @@ Total Jev spend ≈ $0.05, zero errors.
 
 | # | If we don't hear back, we'll assume |
 |---|---|
-| 1 | we send the proposal by Friday 13 November 2026, start on Monday 16 November, and launch in February 2027 (about 12 weeks). No launch between 21 December and 1 January. |
-| 2 | we quote the core site and the Congress catalogue as your brief describes them, with every option priced separately, so you can pick. |
-| 3 | ASSET management approves each stage in writing within 3 working days, and Veena sends one combined reply for all three activities. Later approvals move the dates by the same number of days. |
+| 1 | we send the proposal by Friday 13 November 2026. Work starts within 5 working days of a signed order and access to today's site (Monday 16 November at the earliest). Launch is planned about 12 weeks after the start, never between 21 December and 1 January. Any late input from ASSET (approvals, texts, photos, access, the congress file) moves the dates by the same number of days. |
+| 2 | we quote the core site and the Congress catalogue as set out in our proposal, which lists the pages, listings, rounds of changes and exclusions. Every option is priced separately, so you can pick. |
+| 3 | ASSET management approves each stage in writing (directly, or through Veena on its behalf) within 3 working days, in one combined reply for all three activities. If neither an approval nor a written list of blocking problems arrives in that time, the stage counts as approved. Acceptance testing before launch lasts 5 working days, against the tests in your brief (T01–T15) only. |
 | 4 | nothing in a current contract limits the project, and ASSET arranges any handover from today's provider. |
 | 5 | ASSET gives us access at kickoff. Every new account is opened in ASSET's name, owned by management, with Veena as day-to-day administrator. Getting back accounts held by others is up to ASSET. |
-| 6 | the new site lives on asset-voyagesdaffaires.com, the address Google knows today, and assetvoyages.com points to it. No other addresses are included. |
-| 7 | we plan the move of old pages from our own scan of the site. No trackers are carried over: we use statistics that need no cookies. Ad campaigns are not included. |
+| 6 | the new site lives on asset-voyagesdaffaires.com, the address Google knows today, and assetvoyages.com points to it (web address only; your email is not touched). No other addresses are included. |
+| 7 | we plan the move of old pages from our own scan of the site. No trackers are carried over. Visitor statistics need no cookies, and the site itself counts the actions your brief lists (clicks, form starts and sends, errors and congress searches) without cookies or personal data. Ad campaigns are not included. |
 | 8 | we show the Selectour Affaires logo and membership line as they appear on today's site, and nothing more. |
-| 9 | ASSET writes or approves the French text. We move today's pages over and edit them lightly for clarity and Google: up to 20 pages plus 3 legal pages. Veena adds further articles and FAQ herself. |
+| 9 | ASSET writes or approves the French text. We move up to 20 of today's pages plus 3 legal pages, editing wording only (titles, headings, clarity and typos), with one round of your corrections per page; other pages are merged or redirected. ASSET supplies or approves the wording of the legal pages; we do not give legal advice. Veena adds further articles and FAQ herself. |
 | 10 | we keep today's logo and colours exactly as they are and build a simple style guide from them. |
 | 11 | we publish only what is on today's site and what you confirm in writing: no client logos, testimonials or new figures, illustrations instead of photos, and no named team members. |
 | 12 | the small-business page explains the service and collects account and demo requests, with no prices or service levels. |
-| 13 | we show only the 24/7 assistance line as it appears on today's site, with the same number. |
+| 13 | we show the 24/7 assistance wording as it appears on today's site, and publish a phone number only once you confirm it in writing. |
 | 14 | the site is in French only at launch. English is a separate option, and ASSET arranges and pays for professional translation. |
 | 15 | every enquiry goes to one shared mailbox (direction@assetvoyages.com until you name another), and the confirmation email says you will reply shortly, with no time promised. |
-| 16 | you use no CRM or newsletter tool. Enquiries are followed in the site's own enquiry list with a spreadsheet export, and forms carry no marketing tick box. |
-| 17 | we import one file of up to 300 congresses using the fields listed in your brief, and Veena adds new ones in the admin afterwards. |
-| 18 | no fare code and no special-fare wording appears anywhere until ASSET confirms the arrangement in writing. The locked admin can hold several codes per congress, each with an end date. |
+| 16 | you use no CRM or newsletter tool. Enquiries are followed in the site's own enquiry list with an export that opens in Excel, and forms carry no marketing tick box. |
+| 17 | ASSET provides one spreadsheet of up to 300 congresses in our template, using the fields listed in your brief. We import it once and send back a list of any rows with errors for ASSET to correct. Finding, researching or rewriting listings is not included. Veena adds new ones in the admin afterwards. |
+| 18 | no fare code and no special-fare wording appears anywhere until ASSET confirms the arrangement in writing. The locked admin holds the code, its evidence and its validity period for each congress, as your brief lists. |
 | 19 | Veena moves each congress through the steps and ASSET management gives the final approval for sale. |
 | 20 | only “request a quote”: no fare badge, no discount and no partner claim. |
-| 21 | the page stays online as a past edition, without the quote button, and links to the next edition once it is listed. |
-| 22 | one request can list several travellers from several departure cities, for flights only, with a free-text box for hotel or transfer needs. |
+| 21 | the page stays online as a past edition, without the quote button, and Veena can add a link to the next edition once it is listed. |
+| 22 | one request covers one group, with one departure city and a number of travellers, for flights only. Extra departure cities, hotel or transfer needs go in a free-text box. |
 | 23 | one “Client login” button to today's Traveldoo address, which Veena can change in the admin. No single login, and no other tools linked. |
 | 24 | Wondermiles is named in text only, with no logo or screenshots, until Wondermiles approves them in writing. No technical link-up is assumed. |
 | 25 | the AI option is priced as a helper that finds new congresses on official websites for your team to check. Nothing is published without a person approving it. |
-| 26 | staff use an authenticator app on their phone for the second step. |
-| 27 | data is stored in the EU, no security questionnaire is included (one can be answered later at our hourly rate), and ASSET management handles personal-data requests using the written procedure we provide. |
-| 28 | two people edit the site, Veena and one backup editor, both trained. Management can read enquiries but not edit pages. |
-| 29 | up to 5 hours of changes a month are included in the monthly plan; anything more is quoted first. |
-| 30 | support Monday to Friday, 9:00–18:00 Paris time, with no evening or weekend cover, and the site back within 8 business hours after a serious incident. |
+| 26 | staff confirm each login with a one-time code sent to their work email. |
+| 27 | the database is stored in the EU. Some providers (such as Cloudflare and Resend) are US companies, used under data-processing agreements as EU rules require; the full list of providers comes with the proposal. No security questionnaire is included (one can be answered later, quoted separately), and ASSET management handles personal-data requests using the written procedure we provide. |
+| 28 | two people edit the site, Veena and one backup editor, both trained. Management can read enquiries and give the final approval for congresses, but not edit pages. |
+| 29 | up to 5 hours of changes a month are included in the optional maintenance plan priced in the proposal; unused hours do not carry over, and anything more is quoted first. |
+| 30 | support Monday to Friday, 9:00–18:00 Paris time, with no evening or weekend cover. We aim to have the site back within 8 business hours after a serious incident on our side; outages at the hosting providers are outside this target. |
+
+## Audit round 1 changes (28 Oct)
+
+Applied from `08_Audit_Round1_11_Lenses.md` and `09_Audit_Round1_Project_Experts.md` (log: `10_Round1_Fix_Log.md`). Defaults changed: Q1, Q2, Q3, Q6, Q7, Q9, Q13, Q16, Q17, Q18, Q21, Q22, Q26, Q27, Q28, Q29, Q30 (question text now "from us for the website"). Answer-first questions: Q1, Q2, Q3, Q5, Q6, Q9, Q15, Q18. New D rows U107-U113; updated U09, U11, U12, U13, U54, U61, U64, U65, U96, U101, U103, U105.
+

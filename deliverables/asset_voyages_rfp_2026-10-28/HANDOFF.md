@@ -226,12 +226,12 @@ Every item in both audits is fixed. Redeployed, and all four pages return 200. N
   - The AI helper stays at €5–20. The research file was updated to match, with the method stated.
 - WordPress: the page now recommends a custom build, to be confirmed by the J1 audit. It no longer dismisses their current setup.
 - References and a named project lead are promised with the proposal.
-- Questions 6, 12, 14, 19, 22 and 25 were tightened. There are still 25.
+- Questions 6, 12, 14, 19, 22 and 25 were tightened. There were 25 at v2.2; the list was later raised to 30 (see v2.3).
 
 ### The pitch
 - New per-activity benefit table.
 - Comparison rows are in plain language: no px and no screen counts.
-- Next step: written answers to the 25 questions, linked to `../questions/#s8`. Steps are now J1 and « le site principal », with no L codes and no call.
+- Next step: written answers to the questions (25 at v2.2, now 30), linked to `../questions/#s8`. Steps are now J1 and « le site principal », with no L codes and no call.
 - New wording: « passages entre guillemets… ».
 - New wording: « adresse de test ».
 
@@ -258,3 +258,21 @@ Every item in both audits is fixed. Redeployed, and all four pages return 200. N
 - Functional: 53/53. New tests cover cross-links, the questions page, the console, the pitch and card rotation.
 - site_check: PASSED on 4 pages × 4 contexts.
 - `screens/` re-shot for all four pages, with stale shots deleted.
+
+## v2.3: audit round 1 fixes (08/09 audits, 2026-10-28)
+
+Every fix in `08_Audit_Round1_11_Lenses.md` (29) and `09_Audit_Round1_Project_Experts.md` (25) is applied; mapping in `10_Round1_Fix_Log.md`. Redeployed; not committed.
+
+- **Questions: 30** (not 25), in 7 groups, each with a written default. Eight marked « Answer first » (Q1, 2, 3, 5, 6, 9, 15, 18). Each has an anchor `#q1`…`#q30`; `js/questions.js` re-aligns a deep link once fonts load. Reply button: `mailto:debanjan@prodcraft.fyi`, subject « ASSET – réponses aux questions », body pre-numbered 1.–30.
+- **Answer deadline:** Friday 6 November 2026 (email, pitch, §08, §09). Late answers by email until the contract is signed, may change price and dates.
+- **Scope rule:** concept, console and assumptions are illustrations; only the signed proposal defines what is included (email, `/questions/` §01, pitch, console banner, home footer).
+- **WordPress, how it was detected:** `curl -sL https://asset-voyagesdaffaires.com/` on 28 Oct 2026 returned 200 with `<meta name="generator" content="WordPress 6.9.11">`, a Slider Revolution 6.2.18 generator tag, and `wp-content/` asset paths. This is the evidence behind « Your current site runs on WordPress ».
+- **Verified against official docs (28 Oct):** Cloudflare Access sends a one-time PIN to approved email addresses (developers.cloudflare.com, One-time PIN login), so Q26's default is now an email code, not an authenticator app. Cloudflare Web Analytics uses no cookies or localStorage (cloudflare.com/web-analytics), but its FAQ says custom events are "Not yet" supported, so conversion counting (clicks, form starts and sends, errors, searches) is a separate built-in row in §04.
+- **Console sample:** enquiry statuses are Nouvelle / Qualifiée (+ rappel flag) / Devis envoyé / Gagnée. Every congress in the public catalogue is « Publié »; one draft (CG-0113) exists only in the console.
+- **Home:** EN label « option »; toast « Version anglaise : option chiffrée séparément ».
+
+**Gates:**
+- Functional: 56/56 (three new: questions r1 ids/badges/mailto/deadline/scope; absolutes removed; console statuses and no draft in the public catalogue).
+- site_check: PASSED on 4 pages × 4 contexts.
+- `screens/` re-shot (review set + `r1-*` for §08, #q18, console, home top at desktop and iPhone 13).
+

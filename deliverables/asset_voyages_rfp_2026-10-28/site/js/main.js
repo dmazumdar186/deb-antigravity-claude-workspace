@@ -34,7 +34,7 @@
     document.addEventListener('click', function (e) { if (!cPop.hidden && !cPop.contains(e.target)) { cPop.hidden = true; cBtn.setAttribute('aria-expanded', 'false'); } });
   }
   var en = $('[data-en]'), toast = $('[data-toast]'), tt = 0;
-  if (en && toast) en.addEventListener('click', function () { toast.textContent = 'English version: coming soon · version anglaise bientôt'; toast.hidden = false; clearTimeout(tt); tt = setTimeout(function () { toast.hidden = true; }, 2600); });
+  if (en && toast) en.addEventListener('click', function () { toast.textContent = 'Version anglaise : option chiffrée séparément'; toast.hidden = false; clearTimeout(tt); tt = setTimeout(function () { toast.hidden = true; }, 2600); });
 
   /* ---------- reveals: always painted on phones; IO + failsafe on desktop ---------- */
   var items = $$('[data-reveal]');
