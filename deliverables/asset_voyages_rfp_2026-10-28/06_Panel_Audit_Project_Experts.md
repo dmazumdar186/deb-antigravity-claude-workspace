@@ -89,3 +89,33 @@
 
 ## Verdict
 **FIX FIRST.** There are no blockers. Fix items 1–5, 7, 9 and 10 (about 2 hours), then send.
+
+## Round 2 verification (2026-10-28, 16:45 UTC, independent re-check)
+
+Method: Playwright on a local static server (desktop 1440×900, iPhone 13), axe-core WCAG 2.2 AA on 4 pages, `site_check.mjs` re-run on 4 pages × 4 contexts (PASSED, 104 ok / 0 FAIL), file reads and greps, curl on live URLs (all 200, byte-identical to `site/`).
+
+| # | Item | Status | Evidence |
+|---|---|---|---|
+| 1 | Pitch business benefit | PASS | « Ce que la refonte change pour ASSET » table, 3 activities × visitor/page/form/received, closes with « des demandes qualifiées, routées vers la bonne personne » |
+| 2 | 24 vs 6 screens | PASS | comparison rows in plain language; no screen counts, no px |
+| 3 | Next step contradicts email | PASS | step 1 = written answers by e-mail to the 25 questions, link `../questions/#s8` resolves |
+| 4 | Console tiles meta | PASS | 1 demande à attribuer · 1 rappel · 2 congrès en attente · 4 demandes ce mois-ci |
+| 5 | No Pages section | PASS | Pages table (6 rows, status, date, « Modifier »); GM&E note in a closed `<details>` |
+| 6 | Buttons look disabled | PASS | full contrast (ink text, opacity 1); click shows toast « Maquette : … sera actif dans la vraie Console » |
+| 7 | "No WordPress" verdict | PASS | §3 « Our recommendation: a custom build… The audit (step J1) will confirm whether to keep or replace it » |
+| 8 | Quote form privacy | PASS | dialog shows « Vos données servent uniquement à préparer ce devis… » |
+| 9 | Pages don't link | PASS | all 4 pages link to the other 3; console sidebar has « Note pour ASSET » and « Questions » |
+| 10 | Card bleed-through | PASS | 19 scroll positions sampled: never more than 1 card with visible text, computed rotation 0 at every step; mid-swap screenshot clean |
+| 11 | Console tab row on phone | PASS | iPhone 13: one line, `nowrap`, `overflow-x:auto`, 56 px tall (8% of 664 px), `position:static` (scrolls away) |
+| 12 | Contrast | PASS | `.cat__head .label` = rgb(154,71,5) (#9A4705); axe 0 contrast violations |
+| 13 | Footer tap targets | PASS | 27–30 px tall |
+| 14 | « Demander une recherche » | PASS | no-results → click: focus on `#g-name`, value copied from search ("zzqx congrès Lyon") |
+| 15 | Video on phone | PASS | before scroll only `hero-m.jpg` requested; `hero-m.webm` after first scroll; desktop `hero.jpg` not loaded |
+| 16 | Console H1 | PASS | visually hidden `<h1>Console ASSET — maquette</h1>`; 1 H1 on every page |
+| 17 | Typo claim | PASS | « voyage d'affaire » and « d'Affaires » gone; pitch lists the corrected typos |
+
+Fresh screenshots (`screens/check-*`, re-shot this round, plus spot shots): no new visual regression on home, pitch, console (desktop and phone) or questions (§5–§9 on phone).
+
+**New defect (FAIL, minor, text):** `site/pour-asset/index.html` line 27, « il est invisible sur Google et lié d'aucun site public » is incorrect French. Fix: « il n'apparaît pas sur Google et n'est lié depuis aucun site public ».
+
+**Round 2 verdict: FIX FIRST (one line of French, about 1 minute), then SEND.** All 17 items verified fixed.

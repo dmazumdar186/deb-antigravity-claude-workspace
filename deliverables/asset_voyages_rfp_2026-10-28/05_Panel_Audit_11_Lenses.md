@@ -88,3 +88,36 @@ Scope: the cover email `01_Questions_for_Veena.md` and the four pages in `site/`
 
 ## Verdict: FIX FIRST
 There are two blockers. Both are text edits: the "private" claim, and the call that contradicts the written-answers rule.
+
+## Round 2 verification (2026-10-28, 16:45 UTC, independent re-check)
+
+Method: file reads, greps on `site/` and the email, Playwright on a local static server (desktop 1440×900 and iPhone 13), axe-core (WCAG 2.2 AA) on all 4 pages, `site_check.mjs` re-run on 4 pages × 4 contexts after the console tab-row change, and curl on the live URLs. Live HTML, CSS and JS are byte-identical to `site/`.
+
+| Lens item | Status | Evidence |
+|---|---|---|
+| 1. Cloudflare ≈ €4.50 | PASS | `/questions/` §4 now ≈ €4.30 |
+| 1. "≈ €30 with SMS alerts" | PASS | now "With a paid monitoring plan (≈ €10): up to ≈ €25" (5–15 + 10) |
+| 1. AI €5–20 vs research €1–5 | PASS | page states method ("about 200 pages read a month"); `research/infra_costs_2026.md` line 28 now €5–20 |
+| 1. Domain low end | PASS | ≈ €9–32 |
+| 2. Stale screenshots | PASS | `screens/` re-shot by this round's site_check (all 4 pages) |
+| 2. One-way links | PASS | every page links to the other three (home footer, pitch top bar + footer note, console sidebar, questions top bar + footer); 0 broken internal links, 0 missing anchors |
+| 3. "Private" claim | PASS | email, `/questions/` §1 and footer say "unlisted… anyone with the link can open it"; grep "private" only hits "private event codes" |
+| 3. "Never lost" promise | PASS | now "designed so an enquiry is saved through a backup path" (§4 and §5) |
+| 3. "mot pour mot" claim | PASS | now "Les passages entre guillemets sont repris mot pour mot… les titres sont des propositions" |
+| 4. J0–J6 vs L0–L4 | PASS | no L codes left on any page; pitch uses "étape J1" |
+| 4. Dead "section 8" | PASS | pitch links `../questions/#s8`; `id="s8"` exists |
+| 5. No proof / references | PASS | §9: "Verifiable references and the name of the project lead come with the proposal" |
+| 7. 30-minute call vs written answers | PASS | grep for call/échange/30 minutes/rendez-vous: 0 offers; step 1 is "Vos réponses écrites, par e-mail" |
+| 9. Email misdescribes `/pour-asset/` | PASS | pitch now has the per-activity table (visitor → page → form → what ASSET receives); email says "(in French)" |
+| 9. Console jargon | PASS | "Double authentification", "tableur"; GM&E note folded in a closed `<details>` |
+| 9. "voyage d'affaire" | PASS | grep 0 hits; hero reads "voyages d'affaires" |
+| 9. Compound questions | PASS (partly) | Q6/12/14/19/22/25 tightened; 32 "?" on the page vs 36; count still 25 everywhere (email, pitch, questions) |
+| 9. No phone shots of §5–§7, §9 | PASS | shot on iPhone 13 this round; layout clean, no horizontal scroll |
+
+Global checks: no ProdCraft fee (every € is a provider, translator, stock or CRM cost, labelled "paid to the providers, not to us"); 0 other-client names; 0 "px" in visible copy; no call offers; no analytics or tracking script (CSP `script-src 'self'`; only own JS files; "Cloudflare Web Analytics" appears only as a recommendation in a table); site_check PASSED, 104 ok / 0 FAIL; axe 0 violations on all 4 pages; 0 JS errors; live `/`, `/pour-asset/`, `/console/`, `/questions/` all 200.
+
+**New defect (FAIL, minor, text):** `site/pour-asset/index.html` line 27, « il est invisible sur Google et lié d'aucun site public » is incorrect French. Fix: « il n'apparaît pas sur Google et n'est lié depuis aucun site public ».
+
+**Still open, not on the fix list (accepted for this send):** RFP confidentiality vs an unlisted public URL; 99.5% exclusions; break-glass admin login; off-platform backup not costed; no proposal date; no "what happens to the URLs if not selected"; `research/infra_costs_2026.md` line 28 still says "about EUR 4.5" (internal only); home catalogue note still says "(CSV)".
+
+**Round 2 verdict: FIX FIRST (one line of French, about 1 minute), then SEND.**
