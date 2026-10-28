@@ -1,0 +1,25 @@
+{
+ "ready": true,
+ "legs": 11,
+ "leg_seconds": 5.041667,
+ "xfade": 0.35,
+ "seconds": 52.0,
+ "keyframes_s": [
+  0.0,
+  4.69,
+  9.38,
+  14.08,
+  18.77,
+  23.46,
+  28.15,
+  32.84,
+  37.53,
+  42.23,
+  46.92,
+  51.61
+ ],
+ "aspect": "3:4",
+ "landscape": "hero.mp4",
+ "portrait": "hero-m.mp4",
+ "poster": "poster.jpg"
+}

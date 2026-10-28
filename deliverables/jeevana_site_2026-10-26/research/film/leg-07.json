@@ -1,0 +1,30 @@
+{
+ "leg": 7,
+ "body": {
+  "prompt": "The same woman moves slowly from Bhuja\u1e45g\u0101sana, cobra, chest lifted from the floor into Parvat\u0101sana, downward-facing V, hips high. One slow continuous yoga movement with the breath, nothing else moves. Fixed camera, eye level, full body always in frame, feet on the same ground line. Plain warm cream paper studio background, soft even daylight, no props, no text, no other people. Photoreal, her face unchanged, hair tied back the whole time, clothing and body unchanged throughout, hands and feet keep contact with the floor when they are on it. Calm editorial pacing. Hair stays tied in a ponytail for the whole clip, never loose, never long; she moves from cobra through plank into downward dog in one steady motion.",
+  "duration": 5,
+  "aspect_ratio": "3:4",
+  "sound": "off",
+  "image_url": "https://jeevana-frames.pages.dev/frame-07.jpg",
+  "last_image_url": "https://jeevana-frames.pages.dev/frame-08.jpg",
+  "cfg_scale": 0.7
+ },
+ "submit": {
+  "status": "queued",
+  "request_id": "3ac6fb7f-4715-448e-9dba-da0dc7f97825",
+  "status_url": "https://api.higgsfield.ai/requests/3ac6fb7f-4715-448e-9dba-da0dc7f97825/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/3ac6fb7f-4715-448e-9dba-da0dc7f97825/cancel",
+  "expires_after": 604800
+ },
+ "model": "kling-video/v3.0/std/image-to-video",
+ "status": {
+  "status": "completed",
+  "request_id": "3ac6fb7f-4715-448e-9dba-da0dc7f97825",
+  "status_url": "https://api.higgsfield.ai/requests/3ac6fb7f-4715-448e-9dba-da0dc7f97825/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/3ac6fb7f-4715-448e-9dba-da0dc7f97825/cancel",
+  "expires_at": "2026-11-02T17:53:44.789198+00:00",
+  "video": {
+   "url": "https://d3u0tzju9qaucj.cloudfront.net/5afe9077-53e3-4696-8d41-03a78237e195/3ac6fb7f-4715-448e-9dba-da0dc7f97825/d059d27c-ac45-40e9-9118-35d433c95192.mp4"
+  }
+ }
+}

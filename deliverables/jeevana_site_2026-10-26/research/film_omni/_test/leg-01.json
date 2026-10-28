@@ -1,0 +1,24 @@
+{
+ "model": "kling-video/omni/first-last-frame",
+ "body": {
+  "prompt": "The woman shown in the reference images, the same face, tied-back hair, mint fleece and black leggings, moves slowly from Pra\u1e47\u0101m\u0101sana, standing with palms together at the chest, into Hasta Utt\u0101n\u0101sana, arms raised overhead with a gentle backbend, as one calm breath. Fixed camera, eye level, full body always in frame, feet on the same ground line. A soft dawn sky behind her: deep indigo above fading through dusty rose into a warm ochre haze at the ground line, no clouds, no buildings, first light. Photoreal, her face unchanged and identical to the references, calm editorial pacing.",
+  "first_frame_url": "https://jeevana-frames.pages.dev/dawn/frame-01.jpg",
+  "last_frame_url": "https://jeevana-frames.pages.dev/dawn/frame-02.jpg",
+  "mode": "std",
+  "duration": 5,
+  "aspect_ratio": "9:16",
+  "image_urls": [
+   "https://jeevana-frames.pages.dev/ref/ref-01.jpg",
+   "https://jeevana-frames.pages.dev/ref/ref-02.jpg",
+   "https://jeevana-frames.pages.dev/ref/ref-03.jpg",
+   "https://jeevana-frames.pages.dev/ref/ref-04.jpg"
+  ]
+ },
+ "submit": {
+  "status": "queued",
+  "request_id": "a7d8d8b5-13ea-4a9f-aaef-866ec5fbe220",
+  "status_url": "https://api.higgsfield.ai/requests/a7d8d8b5-13ea-4a9f-aaef-866ec5fbe220/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/a7d8d8b5-13ea-4a9f-aaef-866ec5fbe220/cancel",
+  "expires_after": 604800
+ }
+}

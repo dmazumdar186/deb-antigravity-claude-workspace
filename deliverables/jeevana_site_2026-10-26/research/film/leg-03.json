@@ -1,0 +1,41 @@
+{
+ "leg": 3,
+ "body": {
+  "prompt": "The same woman moves slowly from one yoga position into the next in one continuous movement. Fixed camera, eye level, full body always inside the frame, plain warm cream paper background, soft daylight, photoreal, her face unchanged, one single tied ponytail the whole time, same clothes. Calm pacing.",
+  "duration": 5,
+  "aspect_ratio": "3:4",
+  "sound": "off",
+  "cfg_scale": 0.85,
+  "image_url": "https://jeevana-frames.pages.dev/frame-03.jpg",
+  "last_image_url": "https://jeevana-frames.pages.dev/frame-04.jpg",
+  "multi_shots": true,
+  "multi_prompt": [
+   {
+    "prompt": "From the standing forward fold, hands flat on the floor, the right foot slides straight back along the floor, never lifting, into a low lunge with the back knee down. Fixed camera, eye level, full body always inside the frame, plain warm cream paper background, soft daylight, photoreal, her face unchanged, one single tied ponytail the whole time, same clothes. Calm pacing.",
+    "duration": 3
+   },
+   {
+    "prompt": "In the low lunge she lifts the chest and raises both arms overhead, front foot planted, gaze forward. Fixed camera, eye level, full body always inside the frame, plain warm cream paper background, soft daylight, photoreal, her face unchanged, one single tied ponytail the whole time, same clothes. Calm pacing.",
+    "duration": 2
+   }
+  ]
+ },
+ "submit": {
+  "status": "queued",
+  "request_id": "9fc1a089-ad45-4fbc-867e-68a8bc45055c",
+  "status_url": "https://api.higgsfield.ai/requests/9fc1a089-ad45-4fbc-867e-68a8bc45055c/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/9fc1a089-ad45-4fbc-867e-68a8bc45055c/cancel",
+  "expires_after": 604800
+ },
+ "model": "kling-video/v3.0/std/image-to-video",
+ "status": {
+  "status": "completed",
+  "request_id": "9fc1a089-ad45-4fbc-867e-68a8bc45055c",
+  "status_url": "https://api.higgsfield.ai/requests/9fc1a089-ad45-4fbc-867e-68a8bc45055c/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/9fc1a089-ad45-4fbc-867e-68a8bc45055c/cancel",
+  "expires_at": "2026-11-02T17:57:43.292465+00:00",
+  "video": {
+   "url": "https://d3u0tzju9qaucj.cloudfront.net/5afe9077-53e3-4696-8d41-03a78237e195/9fc1a089-ad45-4fbc-867e-68a8bc45055c/6ab1213a-42e2-4f71-887b-4a8c6ffcf62b.mp4"
+  }
+ }
+}

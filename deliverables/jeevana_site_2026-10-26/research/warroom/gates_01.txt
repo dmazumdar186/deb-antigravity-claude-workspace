@@ -1,0 +1,78 @@
+# gates 01 2026-10-27T09:20:39Z
+## site_check
+FAIL pixel7_: inputs <16px: INPUT#reg-consent 10px | INPUT#news-consent 10px
+ok   pixel7_: bottom bar clear of CTA
+ok   pixel7_: console clean
+ok   pixel7_privacy_: nothing hidden after fling
+ok   pixel7_privacy_: no overflow
+ok   pixel7_privacy_: all reveals shown
+FAIL pixel7_privacy_: tap targets <40px: BUTTON. 36x32 | BUTTON. 35x32
+ok   pixel7_privacy_: inputs ≥16px
+ok   pixel7_privacy_: bottom bar clear of CTA
+FAIL pixel7_privacy_: 8 console/page error(s): Cannot read properties of null (reading 'classList')
+FAIL iphone13_: 1 reveal element(s) still invisible 150ms after a 2600px fling
+ok   iphone13_: no overflow
+ok   iphone13_: all reveals shown
+FAIL iphone13_: tap targets <40px: A.wordmark 91x34 | A. 39x43 | A. 37x43 | A. 37x43 | BUTTON. 27x44 | BUTTON. 27x44 | A.button button-small 79x38 | A. 108x31
+FAIL iphone13_: inputs <16px: INPUT#reg-consent 10px | INPUT#news-consent 10px
+ok   iphone13_: bottom bar clear of CTA
+ok   iphone13_: console clean
+ok   iphone13_privacy_: nothing hidden after fling
+ok   iphone13_privacy_: no overflow
+ok   iphone13_privacy_: all reveals shown
+FAIL iphone13_privacy_: tap targets <40px: BUTTON. 36x32 | BUTTON. 35x32
+ok   iphone13_privacy_: inputs ≥16px
+ok   iphone13_privacy_: bottom bar clear of CTA
+FAIL iphone13_privacy_: 8 console/page error(s): Cannot read properties of null (reading 'classList')
+ok   pixel7-reduced_: nothing hidden after fling
+ok   pixel7-reduced_: no overflow
+ok   pixel7-reduced_: all reveals shown
+FAIL pixel7-reduced_: tap targets <40px: A.wordmark 91x34 | A. 39x43 | A. 37x43 | A. 37x43 | BUTTON. 27x44 | BUTTON. 27x44 | A.button button-small 79x38 | A. 108x31
+FAIL pixel7-reduced_: inputs <16px: INPUT#reg-consent 10px | INPUT#news-consent 10px
+ok   pixel7-reduced_: bottom bar clear of CTA
+ok   pixel7-reduced_: console clean
+ok   pixel7-reduced_privacy_: nothing hidden after fling
+ok   pixel7-reduced_privacy_: no overflow
+ok   pixel7-reduced_privacy_: all reveals shown
+FAIL pixel7-reduced_privacy_: tap targets <40px: BUTTON. 36x32 | BUTTON. 35x32
+ok   pixel7-reduced_privacy_: inputs ≥16px
+ok   pixel7-reduced_privacy_: bottom bar clear of CTA
+FAIL pixel7-reduced_privacy_: 8 console/page error(s): Cannot read properties of null (reading 'classList')
+
+FAILED — 14 failure(s). Screenshots: /home/user/deb-antigravity-claude-workspace/deliverables/jeevana_site_2026-10-26/screens
+## functional_v4
+ok   layout shift 0.001 < .05
+ok   all images have alt
+ok   every photo has descriptive alt
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+page.click: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('.bar [data-lang="fr"]')[22m
+
+    at /home/user/deb-antigravity-claude-workspace/deliverables/jeevana_site_2026-10-26/research/functional_v4.mjs:24:11 {
+  log: [ `  - waiting for locator('.bar [data-lang="fr"]')` ],
+  name: 'TimeoutError'
+}
+
+Node.js v22.22.0
+## screens_v4
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+page.evaluate: TypeError: Cannot read properties of null (reading 'getBoundingClientRect')
+    at eval (eval at evaluate (:311:30), <anonymous>:1:66)
+    at UtilityScript.evaluate (<anonymous>:313:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+    at /home/user/deb-antigravity-claude-workspace/deliverables/jeevana_site_2026-10-26/research/screens_v4.mjs:16:13 {
+  log: []
+}
+
+Node.js v22.22.0
+pngs: 3
+## grep forbidden
+## weight
+104K	total

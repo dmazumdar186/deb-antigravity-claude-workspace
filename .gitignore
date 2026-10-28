@@ -138,3 +138,4 @@ downloads/
 
 # LinkedIn connect dataset: PII. Ledger/aliases live in Google Drive folder linkedin_connect; master is rebuilt locally. Never in this public repo.
 data/linkedin_connect/
+deliverables/jeevana_site_2026-10-26/_raw_assets/

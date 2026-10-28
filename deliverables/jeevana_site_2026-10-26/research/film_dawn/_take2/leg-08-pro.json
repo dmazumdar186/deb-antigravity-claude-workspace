@@ -1,0 +1,30 @@
+{
+ "leg": 8,
+ "body": {
+  "prompt": "The same woman moves slowly from Parvat\u0101sana, downward-facing V, hips high into A\u015bva Sa\u00f1c\u0101lan\u0101sana, low lunge with the other leg. One slow continuous yoga movement with the breath, nothing else moves. Fixed camera, eye level, full body always in frame, feet on the same ground line. A soft dawn sky behind her: deep indigo above fading through dusty rose into a warm ochre haze at the ground line, no clouds, no buildings, a quiet glow near the horizon, first light, no props, no text, no other people. Photoreal, her face unchanged, hair tied back the whole time, clothing and body unchanged throughout, hands and feet keep contact with the floor when they are on it. Calm editorial pacing. She faces left the whole time, the head never turns toward or away from the camera; the camera holds her centred and her whole body stays inside the frame; from downward dog the left foot steps forward between the hands into a low lunge and the arms rise forward.",
+  "duration": 5,
+  "aspect_ratio": "3:4",
+  "sound": "off",
+  "image_url": "https://jeevana-frames.pages.dev/dawn/frame-08.jpg",
+  "last_image_url": "https://jeevana-frames.pages.dev/dawn/frame-09.jpg",
+  "cfg_scale": 0.7
+ },
+ "submit": {
+  "status": "queued",
+  "request_id": "fdc48dc6-7508-4a92-8da1-f85bfc0f3462",
+  "status_url": "https://api.higgsfield.ai/requests/fdc48dc6-7508-4a92-8da1-f85bfc0f3462/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/fdc48dc6-7508-4a92-8da1-f85bfc0f3462/cancel",
+  "expires_after": 604800
+ },
+ "model": "kling-video/v3.0/pro/image-to-video",
+ "status": {
+  "status": "completed",
+  "request_id": "fdc48dc6-7508-4a92-8da1-f85bfc0f3462",
+  "status_url": "https://api.higgsfield.ai/requests/fdc48dc6-7508-4a92-8da1-f85bfc0f3462/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/fdc48dc6-7508-4a92-8da1-f85bfc0f3462/cancel",
+  "expires_at": "2026-11-02T19:41:37.718715+00:00",
+  "video": {
+   "url": "https://d3u0tzju9qaucj.cloudfront.net/5afe9077-53e3-4696-8d41-03a78237e195/fdc48dc6-7508-4a92-8da1-f85bfc0f3462/b4a46373-2585-4062-b686-a93ff507d736.mp4"
+  }
+ }
+}

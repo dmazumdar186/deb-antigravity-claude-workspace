@@ -1,0 +1,41 @@
+{
+ "leg": 2,
+ "body": {
+  "prompt": "The same woman moves slowly from one yoga position into the next in one continuous movement. Fixed camera, eye level, full body always inside the frame, plain warm cream paper background, soft daylight, photoreal, her face unchanged, one single tied ponytail the whole time, same clothes. Calm pacing.",
+  "duration": 5,
+  "aspect_ratio": "3:4",
+  "sound": "off",
+  "cfg_scale": 0.85,
+  "image_url": "https://jeevana-frames.pages.dev/frame-02.jpg",
+  "last_image_url": "https://jeevana-frames.pages.dev/frame-03.jpg",
+  "multi_shots": true,
+  "multi_prompt": [
+   {
+    "prompt": "Standing backbend, arms overhead: she slowly lowers the arms and torso forward through upright in one unbroken arc. Fixed camera, eye level, full body always inside the frame, plain warm cream paper background, soft daylight, photoreal, her face unchanged, one single tied ponytail the whole time, same clothes. Calm pacing.",
+    "duration": 3
+   },
+   {
+    "prompt": "She folds forward from the hips until her hands reach the floor beside her feet, head relaxed, legs straight. Fixed camera, eye level, full body always inside the frame, plain warm cream paper background, soft daylight, photoreal, her face unchanged, one single tied ponytail the whole time, same clothes. Calm pacing.",
+    "duration": 2
+   }
+  ]
+ },
+ "submit": {
+  "status": "queued",
+  "request_id": "d6173e79-f8fb-4d88-b2c7-9b8da21ed40b",
+  "status_url": "https://api.higgsfield.ai/requests/d6173e79-f8fb-4d88-b2c7-9b8da21ed40b/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/d6173e79-f8fb-4d88-b2c7-9b8da21ed40b/cancel",
+  "expires_after": 604800
+ },
+ "model": "kling-video/v3.0/std/image-to-video",
+ "status": {
+  "status": "completed",
+  "request_id": "d6173e79-f8fb-4d88-b2c7-9b8da21ed40b",
+  "status_url": "https://api.higgsfield.ai/requests/d6173e79-f8fb-4d88-b2c7-9b8da21ed40b/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/d6173e79-f8fb-4d88-b2c7-9b8da21ed40b/cancel",
+  "expires_at": "2026-11-02T17:57:39.434255+00:00",
+  "video": {
+   "url": "https://d3u0tzju9qaucj.cloudfront.net/5afe9077-53e3-4696-8d41-03a78237e195/d6173e79-f8fb-4d88-b2c7-9b8da21ed40b/4e10691c-bfdb-4bcb-8166-70380fc9c8cb.mp4"
+  }
+ }
+}

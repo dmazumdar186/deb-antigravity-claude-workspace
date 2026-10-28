@@ -1,0 +1,28 @@
+{
+ "still-01": {
+  "keyframe": 3,
+  "size": [
+   1192,
+   1306
+  ]
+ },
+ "still-02": {
+  "keyframe": 0,
+  "size": [
+   596,
+   439
+  ],
+  "crop": [
+   115,
+   92
+  ]
+ },
+ "still-03": {
+  "keyframe": 11,
+  "size": [
+   1035,
+   2417
+  ],
+  "figure_height_frac": 0.33
+ }
+}

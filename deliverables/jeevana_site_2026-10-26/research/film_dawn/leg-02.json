@@ -1,0 +1,30 @@
+{
+ "leg": 2,
+ "body": {
+  "prompt": "The same woman moves slowly from Hasta Utt\u0101n\u0101sana, arms raised overhead, gentle backbend into P\u0101dahast\u0101sana, standing forward fold, hands to the floor. One slow continuous yoga movement with the breath, nothing else moves. Fixed camera, eye level, full body always in frame, feet on the same ground line. A soft dawn sky behind her: deep indigo above fading through dusty rose into a warm ochre haze at the ground line, no clouds, no buildings, a quiet glow near the horizon, first light, no props, no text, no other people. Photoreal, her face unchanged, hair tied back the whole time, clothing and body unchanged throughout, hands and feet keep contact with the floor when they are on it. Calm editorial pacing. Continuous single motion from the backbend straight down into the forward fold; she never returns to upright; hair stays in the same tied bun throughout.",
+  "duration": 5,
+  "aspect_ratio": "3:4",
+  "sound": "off",
+  "image_url": "https://jeevana-frames.pages.dev/dawn/frame-02.jpg",
+  "last_image_url": "https://jeevana-frames.pages.dev/dawn/frame-03.jpg",
+  "cfg_scale": 0.7
+ },
+ "submit": {
+  "status": "queued",
+  "request_id": "091d494c-6d9e-40a9-bbfe-144d7d57e5d8",
+  "status_url": "https://api.higgsfield.ai/requests/091d494c-6d9e-40a9-bbfe-144d7d57e5d8/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/091d494c-6d9e-40a9-bbfe-144d7d57e5d8/cancel",
+  "expires_after": 604800
+ },
+ "model": "kling-video/v3.0/std/image-to-video",
+ "status": {
+  "status": "completed",
+  "request_id": "091d494c-6d9e-40a9-bbfe-144d7d57e5d8",
+  "status_url": "https://api.higgsfield.ai/requests/091d494c-6d9e-40a9-bbfe-144d7d57e5d8/status",
+  "cancel_url": "https://api.higgsfield.ai/requests/091d494c-6d9e-40a9-bbfe-144d7d57e5d8/cancel",
+  "expires_at": "2026-11-02T19:30:32.244722+00:00",
+  "video": {
+   "url": "https://d3u0tzju9qaucj.cloudfront.net/5afe9077-53e3-4696-8d41-03a78237e195/091d494c-6d9e-40a9-bbfe-144d7d57e5d8/c959ce8b-5737-4c2f-afff-4841a9152755.mp4"
+  }
+ }
+}
