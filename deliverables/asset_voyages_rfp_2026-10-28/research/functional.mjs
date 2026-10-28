@@ -1,189 +1,178 @@
 #!/usr/bin/env node
-/* functional_template.mjs — the 29-assertion Playwright suite from MISB v3, with every site-specific selector
-   and value lifted into the constants below. A worker copies this file to <deliverable>/research/functional.mjs,
-   edits ONLY the CONFIG block (≈ 5 minutes), keeps every assertion NAME, and runs:
-     python3 -m http.server 8793 --directory <site> &  node functional.mjs http://localhost:8793/
-   outputs: functional.json next to the script (pass/total, page heights, panel heights, sizes, results); exit 0 only on N/N.
-   usage: node functional_template.mjs <url> | --help */
-const argv = process.argv.slice(2);
-if (!argv[0] || argv.includes('--help') || argv.includes('-h')) {
-  console.log('functional_template.mjs <base-url> — 29-assertion prospectus suite (cover beats, video/canvas, signature object, deck, counters, fade sequencing, heights, sizes, mobile rules, pitch). Edit the CONFIG block first.');
-  process.exit(argv[0] ? 0 : 2);
-}
-// ======================= CONFIG — edit these, nothing below =======================
-const PITCH_PATH = 'pour-asset/';            // pitch page folder (for-<name>/ or pour-<name>/)
-const SIGNATURE_RE = /debanjan@prodcraft\.fyi/; // must appear in the pitch HTML
-const COVER = '[data-cover]';              // pinned cover track
-const BEAT = '[data-beat]';                // one per fact beat; last beat index = BEATS - 1
-const BEATS_EXPECTED = '0,1,2,3';          // beat index at track progress .1/.3/.55/.8 (4 beats)
-const LAST_BEAT = '[data-beat="3"]';
-const COVER_BODY = '.cover__body';         // the cover text layer that must hit opacity 0 before the next headline
-const COVER_PLATE = '[data-plate].is-on';  // photo plate shown on the last beat (desktop)
-const HERO_VIDEO = '[data-hero-video]'; const BACKDROP = '[data-backdrop]'; const PORTRAIT_RE = /hero-m/;
-const FOLD = '[data-fold]';                // signature pinned object track (fold-out / stack / drum)
-const FOLD_PIN = '.fold__pin'; const FOLD_HEAD = '.fold__head'; const SPREAD = '[data-spread]';
-const FOLD_PANEL = '.panel--left';         // one hinged panel whose transform changes with scroll
-const FOLD_ANCHOR = '#sommaire';             // id the mobile tests scrollIntoView
-const DECK = '#deck'; const DECK_NAV = '[data-deck-nav]'; const PANEL = '.dp'; const TAB = (id) => `[data-tab="${id}"]`;
-const TAB_ORDER = ['mice', 'congres', 'agence', 'contact', 'voyages']; // click order; last = first chapter
-const FIRST_TAB = 'voyages'; const LAST_TAB = 'contact'; const LAST_TAB_LABEL = /05 Contact/;
-const DEEP_LINK = 'congres';                   // /#<id> opened on a fresh load
-const COUNTER_TAB = 'agence'; const COUNTERS_EXPECTED = '+122,24h/24,7 j/7'; // exact published values, in DOM order
-const GALLERY_BTN = '.row:not([hidden]) [data-open]'; const GALLERY = '[data-listing]'; const GAL_GRID = '[data-l-title]'; const GAL_TITLE = '[data-l-title]'; const GAL_COUNT = 1;
-const HDR_LOGO = '.hdr__logo'; const MBAR = '[data-mbar]';
-const PAPER_RGB = 'rgb(238, 236, 230)';    // --paper as computed
-const CHAPTER_NO = '[data-chapter-no]'; const CHAPTER_NAME = '[data-chapter-name]';
-const FILES = { html: 'index.html', css: 'css/styles.css', js: 'js/main.js', backdrop: 'js/backdrop.js' };
-const LIMITS = { desktopH: 9000, mobileH: 12000, panelDesktop: 900, panelMobile: 2 * 915, bundleKB: 150, backdropKB: 12 };
-const OUT_JSON = './functional.json';
-const CONSTS = { BEAT, COVER, COVER_BODY, HERO_VIDEO, BACKDROP, FOLD, FOLD_PIN, FOLD_HEAD, SPREAD, FOLD_PANEL, FOLD_ANCHOR, DECK, DECK_NAV, PANEL, GALLERY, GAL_GRID, GAL_TITLE, HDR_LOGO, MBAR, CHAPTER_NO, CHAPTER_NAME, LAST_BEAT, FILES, SIG_SRC: SIGNATURE_RE.source };
-// ======================= end CONFIG =======================
-// NOTE: selectors inside page.evaluate() callbacks run in the browser and cannot see the constants above;
-// pass them as the second argument (see `beat`/`trackY` helpers) — the remaining literal selectors in evaluate bodies
-// (.panel--left, [data-spread], .fold__pin, [data-mbar], [data-cover], .dp, [data-beat], [data-plate]) must be edited by hand if renamed.
-import { createRequire } from 'node:module'; import { writeFileSync } from 'node:fs';
+/* functional.mjs — ASSET Voyages concept v2 (« Du brief au retour »). Adapted from
+   .claude/skills/site-redesign/scripts/functional_template.mjs for the film / card-stack / drum architecture.
+   usage: node research/serve_csp.mjs site 8794 &  node research/functional.mjs http://localhost:8794/
+   outputs: research/functional.json; exit 0 only on N/N. */
+import { createRequire } from 'node:module'; import { writeFileSync, readFileSync, readdirSync, statSync } from 'node:fs'; import { join } from 'node:path';
+const base = (process.argv[2] || 'http://localhost:8794/').replace(/\/?$/, '/');
+const SITE = new URL('../site/', import.meta.url).pathname;
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= '/opt/pw-browsers';
-const _req = createRequire(import.meta.url); let _pw; for (const p of ['/opt/node-tools/node_modules/playwright', '/tmp/pwtest/node_modules/playwright', 'playwright']) { try { _pw = _req(p); break; } catch {} }
-if (!_pw) { console.error('playwright not found'); process.exit(2); }
-const { chromium, devices } = _pw;
-const base = argv[0].endsWith('/') ? argv[0] : argv[0] + '/'; const R = []; const t = (name, ok, info) => { R.push({ name, ok: !!ok, info }); console.log((ok ? 'ok   ' : 'FAIL ') + name + (info !== undefined ? ' — ' + info : '')); };
+const req = createRequire(import.meta.url); let pw; for (const p of ['/opt/node-tools/node_modules/playwright', '/tmp/pwtest/node_modules/playwright', 'playwright']) { try { pw = req(p); break; } catch {} }
+const { chromium, devices } = pw;
+const R = []; const t = (name, ok, info) => { R.push({ name, ok: !!ok, info }); console.log((ok ? 'ok   ' : 'FAIL ') + name + (info !== undefined ? ' — ' + info : '')); };
 const b = await chromium.launch();
-async function mk(opts) { const p = await b.newPage(opts); await p.addInitScript((c) => { for (const k in c) window[k] = c[k]; window.SIGNATURE_RE = new RegExp(c.SIG_SRC); }, CONSTS); const errs = []; p.on('pageerror', (e) => errs.push(e.message)); p.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); }); p._errs = errs; return p; }
-const scrollTo = async (p, y) => { await p.evaluate((v) => { document.documentElement.style.scrollBehavior = 'auto'; window.scrollTo(0, v); }, y); await p.waitForTimeout(350); };
-const trackY = (p, sel, f) => p.evaluate(([s, f]) => { const el = document.querySelector(s); return el.offsetTop + (el.offsetHeight - innerHeight) * f; }, [sel, f]);
-const beat = (p) => p.evaluate(() => { const b = [...document.querySelectorAll(BEAT)].find((x) => x.classList.contains('is-on')); return b ? +b.dataset.beat : -1; });
-// ---- desktop
+async function mk(opts) {
+  const ctx = await b.newContext({ locale: 'fr-FR', ...opts }); const p = await ctx.newPage(); const errs = [], hosts = new Set();
+  p.on('pageerror', (e) => errs.push(e.message)); p.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
+  p.on('request', (r) => { const u = r.url(); if (/^https?:/.test(u)) hosts.add(new URL(u).host); });
+  p._errs = errs; p._hosts = hosts; return p;
+}
+const go = async (p, y) => { await p.evaluate((v) => { document.documentElement.style.scrollBehavior = 'auto'; window.scrollTo(0, v); }, y); await p.waitForTimeout(450); };
+const trackY = (p, sel, f) => p.evaluate(([s, f]) => { const el = document.querySelector(s); return el.getBoundingClientRect().top + scrollY + (el.offsetHeight - innerHeight) * f; }, [sel, f]);
+const filmY = (p, k) => p.evaluate((k) => { const el = document.querySelector('[data-film]'); return el.offsetTop + (el.offsetHeight - innerHeight) * Math.min(1, (k / 6) * 0.92); }, k);
+const onState = (p) => p.evaluate(() => { const s = document.querySelector('[data-film-state].is-on'); return s ? +s.dataset.filmState : -1; });
+
+// ================= desktop =================
 let p = await mk({ viewport: { width: 1440, height: 900 } });
-await p.goto(base, { waitUntil: 'load' }); await p.waitForTimeout(1500);
-const beats = [];
-for (const f of [0.1, 0.3, 0.55, 0.8]) { await scrollTo(p, await trackY(p, COVER, f)); beats.push(await beat(p)); }
-t('cover beats change at 25/50/75% of the track', beats.join(',') === BEATS_EXPECTED, beats.join(','));
-const vs = await p.evaluate(() => { const v = document.querySelector(HERO_VIDEO); const c = document.querySelector(BACKDROP); return { hasVideo: document.querySelector(COVER).classList.contains('has-video'), playing: !!(v && !v.paused && v.readyState >= 2), src: v && v.currentSrc, canvasVisible: c && getComputedStyle(c).display !== 'none' }; });
-t('video plays (or canvas fallback runs)', vs.playing || vs.canvasVisible, JSON.stringify(vs));
-await scrollTo(p, 0);
-const f0 = await p.evaluate(() => getComputedStyle(document.querySelector(FOLD_PANEL)).transform);
-await scrollTo(p, await trackY(p, FOLD, 0.5)); const f50 = await p.evaluate(() => getComputedStyle(document.querySelector(FOLD_PANEL)).transform);
-await scrollTo(p, await trackY(p, FOLD, 1)); await p.waitForTimeout(300);
-const fEnd = await p.evaluate(() => ({ tf: getComputedStyle(document.querySelector(FOLD_PANEL)).transform, fold: getComputedStyle(document.querySelector(SPREAD)).getPropertyValue('--fold').trim(), open: document.querySelector(FOLD).classList.contains('is-open') }));
-t('fold-out hinge transform changes with scroll', f0 !== f50 && f50 !== fEnd.tf, `${f0.slice(0, 30)} → ${f50.slice(0, 30)} → ${fEnd.tf.slice(0, 30)}`);
-t('fold-out fully open by track end', fEnd.fold === '1.0000' && fEnd.open && /^(none|matrix\(1, 0, 0, 1, 0, 0\))$/.test(fEnd.tf), JSON.stringify(fEnd));
-// deck tabs
-await p.evaluate(() => document.querySelector(DECK).scrollIntoView()); await p.waitForTimeout(400);
-const vis = async () => p.evaluate(() => [...document.querySelectorAll(PANEL)].filter((d) => !d.hidden).map((d) => d.id));
-let okTabs = true, info = [];
-for (const id of TAB_ORDER) { await p.click(TAB(id)); await p.waitForTimeout(250); const v = await vis(); const h = await p.evaluate(() => location.hash); info.push(id + ':' + v.join('/') + h); if (!(v.length === 1 && v[0] === id && h === '#' + id)) okTabs = false; }
-t('each chapter tab switches the panel and updates the hash', okTabs, info.join(' | '));
-await p.goBack(); await p.waitForTimeout(400); const back1 = await vis(); const bh = await p.evaluate(() => location.hash);
-t('back button restores the previous panel', back1[0] === LAST_TAB && bh === '#' + LAST_TAB, back1.join('/') + ' ' + bh);
-const chapterInd = await p.evaluate(() => document.querySelector(CHAPTER_NO).textContent + ' ' + document.querySelector(CHAPTER_NAME).textContent);
-t('header chapter indicator follows the deck', LAST_TAB_LABEL.test(chapterInd), chapterInd);
-// keyboard
-await p.focus(TAB(LAST_TAB)); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(250);
-t('keyboard ArrowRight wraps to the first chapter', (await vis())[0] === FIRST_TAB, (await vis()).join());
-// deep link fresh load
-const p2 = await mk({ viewport: { width: 1440, height: 900 } }); await p2.goto(base + '#' + DEEP_LINK, { waitUntil: 'load' }); await p2.waitForTimeout(900);
-t('deep link /#congres opens the congress catalogue', (await p2.evaluate(() => [...document.querySelectorAll(PANEL)].filter((d) => !d.hidden).map((d) => d.id)))[0] === DEEP_LINK);
-await p2.close();
-// gallery
-await p.click(TAB('congres')); await p.waitForTimeout(300); await p.click(GALLERY_BTN); await p.waitForTimeout(300);
-const gOpen = await p.evaluate(() => ({ open: document.querySelector(GALLERY).open, n: [...document.querySelectorAll(GAL_GRID)].filter((e) => e.textContent.trim()).length, title: document.querySelector(GAL_TITLE).textContent }));
-await p.keyboard.press('Escape'); await p.waitForTimeout(200); const gClosed = await p.evaluate(() => !document.querySelector(GALLERY).open);
-t('gallery dialog opens and closes', gOpen.open && gOpen.n === GAL_COUNT && gClosed, JSON.stringify(gOpen));
-await p.click(TAB(COUNTER_TAB)); await p.waitForTimeout(1500);
-const cnt = await p.evaluate(() => [...document.querySelectorAll('[data-count]')].map((e) => e.textContent));
-t('agence counters settle on the exact published values', cnt.join() === COUNTERS_EXPECTED, cnt.join());
-// 2 cover end state: beat 04 still visible, fold-out already entering (no empty viewport)
-await scrollTo(p, await trackY(p, COVER, 0.81)); await p.waitForTimeout(400);
-const endState = await p.evaluate(() => { const b = document.querySelector(LAST_BEAT); const fp = document.querySelector(FOLD_PIN); const r = fp.getBoundingClientRect(); return { beatOn: b.classList.contains('is-on'), beatOpacity: getComputedStyle(b).opacity, bodyOpacity: getComputedStyle(document.querySelector(COVER_BODY)).opacity, foldTop: Math.round(r.top), enter: getComputedStyle(document.querySelector(FOLD)).getPropertyValue('--enter').trim(), plate: getComputedStyle(document.querySelector('[data-plate="3"]')).opacity }; });
-await scrollTo(p, await trackY(p, COVER, 1)); await p.waitForTimeout(400);
-endState.enterAtEnd = await p.evaluate(() => getComputedStyle(document.querySelector(FOLD)).getPropertyValue('--enter').trim());
-t('cover end: beat 04 held into the overlap, photo plate shown, fold-out arrived by track end (no empty viewport)', endState.enterAtEnd === '1.000' &&  endState.beatOn && endState.beatOpacity === '1' && +endState.bodyOpacity >= 0.85 && endState.foldTop <= 0 && +endState.enter > 0 && endState.plate === '1', JSON.stringify(endState));
-// 2 fade sequencing: fold text may only appear once the cover text is gone
-await scrollTo(p, await trackY(p, COVER, 0.92)); await p.waitForTimeout(400);
-const seq = await p.evaluate(() => ({ foldText: getComputedStyle(document.querySelector(FOLD_HEAD)).opacity, coverBody: getComputedStyle(document.querySelector(COVER_BODY)).opacity, coverVis: getComputedStyle(document.querySelector(COVER)).visibility, logoHidden: getComputedStyle(document.querySelector(HDR_LOGO)).visibility }));
-t('fade sequence: cover text at 0 before chapter headline passes 0.1', +seq.foldText > 0.1 && +seq.coverBody === 0 && seq.coverVis === 'hidden', JSON.stringify(seq));
-// panel heights
-const ph = await p.evaluate(() => { const o = {}; document.querySelectorAll(PANEL).forEach((d) => { const was = d.hidden; d.hidden = false; o[d.id] = d.offsetHeight; d.hidden = was; }); return o; });
-t('deck panels ≤ 1 viewport (900) on desktop', Object.values(ph).every((h) => h <= LIMITS.panelDesktop), JSON.stringify(ph));
+await p.goto(base, { waitUntil: 'load' }); await p.waitForTimeout(2500);
+const seen = []; for (let k = 0; k <= 6; k++) { await go(p, await filmY(p, k)); seen.push(await onState(p)); }
+t('film: seven states in order across the scroll track', seen.join() === '0,1,2,3,4,5,6', seen.join());
+const fills = await p.evaluate(() => [...document.querySelectorAll('[data-film-step]')].map((li) => li.style.getPropertyValue('--fill')));
+t('film: step rail fills to the last stage', fills.every((f) => +f >= 0.99), fills.join());
+const vid = await p.evaluate(() => { const v = document.querySelector('[data-film-video]'); const c = document.querySelector('.film__canvas'); return { blob: /^blob:/.test(v.currentSrc || v.src), ready: v.readyState, dur: v.duration, canvas: !!c }; });
+t('film: video fetched as a blob (seekable) or canvas fallback', (vid.blob && vid.ready >= 1 && Math.abs(vid.dur - 30) < 0.2) || vid.canvas, JSON.stringify(vid));
+await go(p, await filmY(p, 3)); await p.waitForTimeout(2000);
+const t3 = await p.evaluate(() => document.querySelector('[data-film-video]').currentTime);
+await go(p, await filmY(p, 1)); await p.waitForTimeout(2000);
+const t1 = await p.evaluate(() => document.querySelector('[data-film-video]').currentTime);
+t('film: scroll scrubs currentTime to the keyframe (15 s), and back (5 s)', Math.abs(t3 - 15) < 0.6 && Math.abs(t1 - 5) < 0.6, `${t3.toFixed(2)} → ${t1.toFixed(2)}`);
+const hdr = await p.evaluate(() => ({ sc: document.querySelector('[data-header]').classList.contains('is-scrolled'), prog: +document.querySelector('[data-header]').style.getPropertyValue('--page-progress') }));
+t('header: shrinks on scroll, progress bar advances', hdr.sc && hdr.prog > 0, JSON.stringify(hdr));
+// card stack
+const card = (i) => p.evaluate((i) => { const c = document.querySelectorAll('[data-card]')[i]; const cs = getComputedStyle(c); return { tf: cs.transform, o: +cs.opacity }; }, i);
+await go(p, await trackY(p, '[data-folio]', 0)); const c0 = await card(0), c2a = await card(2);
+await go(p, await trackY(p, '[data-folio]', 0.5)); const c0m = await card(0), c1m = await card(1);
+await go(p, await trackY(p, '[data-folio]', 1)); const c0e = await card(0), c2e = await card(2);
+const idx = await p.evaluate(() => document.querySelector('[data-folio-idx]').textContent);
+t('card stack: first card retires as the next slides in', c0.o === 1 && c0.tf !== c0m.tf && c0m.o < 0.2 && c1m.o > 0.95, JSON.stringify({ c0: c0.o, c0m: c0m.o, c1m: c1m.o }));
+t('card stack: third card on top at the end, counter 03', c2e.o > 0.95 && c0e.o < 0.1 && c2a.o < c2e.o && idx === '03', JSON.stringify({ c2a: c2a.o, c2e: c2e.o, idx }));
+// drum
+const drum = () => p.evaluate(() => [...document.querySelectorAll('[data-step]')].map((li) => ({ o: +getComputedStyle(li).opacity, r: li.style.getPropertyValue('--dr'), on: li.classList.contains('is-on') })));
+await go(p, await trackY(p, '[data-drum]', 0)); const d0 = await drum();
+await go(p, await trackY(p, '[data-drum]', 0.5)); const d5 = await drum();
+const prog = await p.evaluate(() => +document.querySelector('[data-drum]').style.getPropertyValue('--approach-progress'));
+t('drum: step 01 faces the reader at the start', d0[0].o > 0.98 && d0[0].on && d0[1].o < 0.5, JSON.stringify(d0.map((x) => x.o)));
+t('drum: rotates to step 03 at mid-track (rotateX on neighbours, progress bar)', d5[2].on && d5[2].o > 0.95 && d5[1].o < 0.05 && d5[0].r !== '0deg' && prog > 0.45 && prog < 0.55, JSON.stringify({ on: d5.findIndex((x) => x.on), o: d5.map((x) => x.o.toFixed(2)), prog }));
+// catalogue
+await p.evaluate(() => document.querySelector('#congres').scrollIntoView()); await p.waitForTimeout(400);
+const cat = () => p.evaluate(() => ({ n: document.querySelector('[data-count-label]').textContent, vis: [...document.querySelectorAll('.row')].filter((r) => !r.hidden).map((r) => r.dataset.id), empty: !document.querySelector('[data-empty]').hidden, dates: [...document.querySelectorAll('.row')].filter((r) => !r.hidden).map((r) => r.dataset.start) }));
+let c = await cat();
+t('catalogue: 12 congresses, 6 per page, ascending date sort', c.n === '12 congrès · page 1/2' && c.vis.length === 6 && c.dates.join() === [...c.dates].sort().join() && !c.empty, c.n + ' ' + c.dates.join());
+await p.click('[data-pager] button[aria-label="Page 2"]'); await p.waitForTimeout(200); const pg2 = await cat();
+t('catalogue: pagination shows page 2', pg2.vis.length === 6 && pg2.vis[0] !== c.vis[0] && pg2.dates[0] >= c.dates[5], pg2.n);
+await p.fill('#q', 'vienne'); await p.waitForTimeout(200); c = await cat();
+t('catalogue: text search (accent-insensitive, city)', c.vis.length === 2 && /2 congrès/.test(c.n), c.vis.join());
+await p.fill('#q', ''); await p.selectOption('#f-disc', 'Oncologie'); await p.waitForTimeout(200); c = await cat();
+t('catalogue: discipline filter', c.vis.length === 2, c.vis.join());
+await p.selectOption('#f-country', 'France'); await p.selectOption('#f-per', '1'); await p.waitForTimeout(200); c = await cat();
+t('catalogue: combined country + period filter', c.vis.join() === 'CG-0112', c.vis.join());
+await p.fill('#q', 'zzzz'); await p.waitForTimeout(200); c = await cat();
+t('catalogue: no-results state', c.vis.length === 0 && c.empty && /^0 congrès/.test(c.n), c.n);
+await p.click('.cat__filters button[type=reset]'); await p.waitForTimeout(250); c = await cat();
+t('catalogue: reset restores the full list', c.n === '12 congrès · page 1/2' && !c.empty, c.n);
+// listing + prefilled quote
+await p.click('.row[data-id="CG-0103"] [data-open]'); await p.waitForTimeout(300);
+const lst = await p.evaluate(() => { const f = document.querySelector('[data-form="f03"]').elements; return { open: document.querySelector('[data-listing]').open, title: document.querySelector('[data-l-title]').textContent, ev: f.event.value, to: f.to.value, out: f.out.value, back: f.back.value, from: f.from.value }; });
+t('listing: dialog opens with the congress, source and verification date', lst.open && /diabétologie/.test(lst.title), lst.title);
+t('quote (F03): prefilled event + ID, destination, fr-FR dates, departure open to any airport', /CG-0103/.test(lst.ev) && lst.to === 'Lyon, France' && lst.out === '22/03/2027' && lst.back === '27/03/2027' && lst.from === '', JSON.stringify(lst));
+await p.click('[data-form="f03"] button[type=submit]'); await p.waitForTimeout(200);
+const inv = await p.evaluate(() => document.querySelector('[data-form="f03"] [data-ok]').hidden);
+await p.fill('#d-from', 'Nantes'); await p.fill('#d-name', 'Test'); await p.fill('#d-mail', 'test@example.com'); await p.click('[data-form="f03"] button[type=submit]'); await p.waitForTimeout(200);
+const okq = await p.evaluate(() => document.querySelector('[data-form="f03"] [data-ok]').textContent);
+t('quote (F03): blocks an incomplete request, confirms a valid one without sending', inv && /CG-0103/.test(okq) && /Nantes/.test(okq) && /Rien n’a été envoyé/.test(okq), okq.slice(0, 80));
+await p.keyboard.press('Escape'); await p.waitForTimeout(200);
+t('listing: Escape closes the dialog', await p.evaluate(() => !document.querySelector('[data-listing]').open));
+// contact journeys
+await p.evaluate(() => document.querySelector('[data-film-state="5"] [data-journey]').click()); await p.waitForTimeout(500);
+const j = await p.evaluate(() => ({ ev: !document.querySelector('[data-part="evenement"]').hidden, en: document.querySelector('[data-part="entreprise"]').hidden, radio: document.querySelector('[data-j][value="evenement"]').checked }));
+t('contact: "Préparer un événement" opens the MICE journey', j.ev && j.en && j.radio, JSON.stringify(j));
+await p.fill('#m-dest', 'Lisbonne'); await p.fill('#m-pax', '40');
+const recap = await p.evaluate(() => document.querySelector('[data-recap]').textContent);
+t('contact (F02): live summary before submission', /Lisbonne/.test(recap) && /40 participants/.test(recap), recap);
+await p.fill('#m-pax', '4'); await p.fill('#c-name', 'Test'); await p.fill('#c-mail', 'test@example.com'); await p.click('[data-form="contact"] button[type=submit]'); await p.waitForTimeout(200);
+const blocked = await p.evaluate(() => document.querySelector('[data-form="contact"] [data-ok]').hidden);
+await p.fill('#m-pax', '40'); await p.click('[data-form="contact"] button[type=submit]'); await p.waitForTimeout(200);
+const okc = await p.evaluate(() => document.querySelector('[data-form="contact"] [data-ok]').textContent);
+t('contact (F02): groups start at 10 people; valid brief confirmed without sending', blocked && /MICE/.test(okc) && /rien n’a été envoyé/.test(okc), okc.slice(0, 70));
+await p.evaluate(() => document.querySelector('[data-folio] [data-need="Audit de vos voyages"]').click()); await p.waitForTimeout(300);
+const f01 = await p.evaluate(() => ({ j: document.querySelector('[data-j][value="entreprise"]').checked, need: document.querySelector('[data-need-select]').value, req: document.querySelector('#c-co').required }));
+t('contact (F01): "Demander un audit" preselects the business journey and need', f01.j && f01.need === 'Audit de vos voyages' && f01.req, JSON.stringify(f01));
+// header tools
+await go(p, 0); await p.click('[data-en]'); await p.waitForTimeout(150);
+const toast = await p.evaluate(() => { const tt = document.querySelector('[data-toast]'); return !tt.hidden && /bientôt/.test(tt.textContent); });
+await p.click('[data-client]'); await p.waitForTimeout(100);
+const pop = await p.evaluate(() => !document.querySelector('[data-client-pop]').hidden && document.querySelector('[data-client]').getAttribute('aria-expanded') === 'true');
+t('header: EN switch says "bientôt", client-area note opens', toast && pop, JSON.stringify({ toast, pop }));
+const fonts = await p.evaluate(() => document.fonts.check('500 40px "EB Garamond"') && [...document.fonts].some((f) => f.family.includes('EB Garamond') && f.status === 'loaded'));
+t('fonts: EB Garamond self-hosted and loaded (no Cormorant)', fonts && !/Cormorant/.test(readFileSync(SITE + 'css/styles.css', 'utf8')), String(fonts));
 const dh = await p.evaluate(() => document.documentElement.scrollHeight);
-t('desktop page height ≤ 9,000 px', dh <= LIMITS.desktopH, dh + ' px');
-const sizes = await p.evaluate(async () => { const f = async (u) => (await (await fetch(u)).text()).length; return { html: await f(FILES.html), css: await f(FILES.css), js: await f(FILES.js), backdrop: await f(FILES.backdrop) }; });
-t('index+css+js ≤ 150 KB (backdrop ≤ 12 KB separately)', sizes.html + sizes.css + sizes.js <= LIMITS.bundleKB * 1024 && sizes.backdrop <= LIMITS.backdropKB * 1024, JSON.stringify(sizes));
-t('desktop: 0 console errors', p._errs.length === 0, p._errs.slice(0, 2).join(' | '));
+t('desktop: 0 console errors (served with the real _headers CSP)', p._errs.length === 0, p._errs.slice(0, 2).join(' | '));
+t('zero third-party requests', [...p._hosts].every((h) => /^localhost/.test(h)), [...p._hosts].join());
 await p.close();
-// ---- mobile (Pixel 7)
+
+// ================= static checks =================
+const kb = (f) => statSync(SITE + f).size;
+const jsFiles = readdirSync(SITE + 'js').map((f) => 'js/' + f);
+const sizes = { html: kb('index.html'), css: kb('css/styles.css'), js: jsFiles.reduce((a, f) => a + kb(f), 0) };
+t('budget: index + css + all js ≤ 150 KB (video excluded)', sizes.html + sizes.css + sizes.js <= 150 * 1024, JSON.stringify(sizes) + ' = ' + ((sizes.html + sizes.css + sizes.js) / 1024).toFixed(1) + ' KB');
+const walk = (d) => readdirSync(d).flatMap((f) => { const q = join(d, f); return statSync(q).isDirectory() ? walk(q) : [q]; });
+const textFiles = walk(SITE).filter((f) => /\.(html|css|js|json|txt|_headers)$|_headers$/.test(f));
+const BANNED = /evolution|exhibit|misb|greenjobs|green jobs|gaia|jitendra|jeevana|midas|papaya|gtm people/i;
+const hits = textFiles.filter((f) => BANNED.test(readFileSync(f, 'utf8'))).map((f) => f.replace(SITE, ''));
+t('confidentiality: no other client or project named anywhere in the built site', hits.length === 0, hits.join() || textFiles.length + ' files clean');
+const html = readFileSync(SITE + 'index.html', 'utf8');
+t('third-party claim: Selectour Affaires sentence verbatim + real logo file', html.includes('Avec plus de 122 agences et plateaux d’affaires en France, Selectour Affaires constitue le premier réseau dédié aux voyages d’affaires.') && kb('assets/img/selectour-affaires.png') > 1000);
+t('no invented figures: no €, %, prices or GM&E codes in the public page', !/\d\s?€|\d\s?%|GME-\d/.test(html.replace(/<[^>]+>/g, ' ')));
+t('lang fr + no English UI strings in the home page', /<html lang="fr">/.test(html) && !/\b(Search|Submit|Contact us|Read more|Learn more)\b/.test(html));
+
+// ================= mobile =================
 p = await mk({ ...devices['Pixel 7'] });
-await p.goto(base, { waitUntil: 'load' }); await p.waitForTimeout(1200);
-const mb = []; for (const f of [0.1, 0.3, 0.55, 0.8]) { await scrollTo(p, await trackY(p, COVER, f)); mb.push(await beat(p)); }
-t('mobile cover beats', mb.join(',') === BEATS_EXPECTED, mb.join(','));
-const mv = await p.evaluate(() => { const v = document.querySelector(HERO_VIDEO); return { hasVideo: document.querySelector(COVER).classList.contains('has-video'), src: v && v.currentSrc && v.currentSrc.split('/').pop() }; });
-t('mobile uses the portrait video (hero-m.mp4) or canvas', !mv.hasVideo || PORTRAIT_RE.test(mv.src), JSON.stringify(mv));
-await p.evaluate(() => document.querySelector(FOLD_ANCHOR).scrollIntoView()); await p.waitForTimeout(400);
-const snap = await p.evaluate(() => { const s = document.querySelector(SPREAD); const cs = getComputedStyle(s); return { snap: cs.scrollSnapType, overflow: cs.overflowX, scrollW: s.scrollWidth, clientW: s.clientWidth, tf: getComputedStyle(document.querySelector(FOLD_PANEL)).transform }; });
-await p.evaluate(() => { const s = document.querySelector(SPREAD); s.scrollBy({ left: 400, behavior: 'auto' }); }); await p.waitForTimeout(400);
-const sl = await p.evaluate(() => document.querySelector(SPREAD).scrollLeft);
-t('mobile fold-out is a horizontal snap-scroll (no 3D)', /x mandatory/.test(snap.snap) && snap.scrollW > snap.clientW && sl > 100 && snap.tf === 'none', JSON.stringify({ ...snap, scrolledTo: sl }));
-const bar = await p.evaluate(() => document.querySelector(MBAR).classList.contains('is-on'));
-// 1 (round 2) cover fully clipped at the fold-out position, paper at (20,120)
-await p.evaluate(() => document.querySelector(FOLD_ANCHOR).scrollIntoView()); await p.waitForTimeout(500);
-const clip = await p.evaluate(() => { const cover = document.querySelector(COVER); const cs = getComputedStyle(cover); const el = document.elementFromPoint(20, 120); const bgOf = (e) => { while (e) { const b = getComputedStyle(e).backgroundColor; if (b && b !== 'rgba(0, 0, 0, 0)' && b !== 'transparent') return b; e = e.parentElement; } return 'none'; }; return { coverVis: cs.visibility, coverPE: cs.pointerEvents, inCover: !!(el && el.closest(COVER)), top: el && (el.className || el.tagName), bg: bgOf(el), hdrBg: getComputedStyle(document.querySelector('.hdr')).backgroundColor }; });
-t('mobile fold-out: cover hidden, paper at (20,120), opaque header', clip.coverVis === 'hidden' && clip.coverPE === 'none' && !clip.inCover && clip.bg === PAPER_RGB && clip.hdrBg === PAPER_RGB, JSON.stringify(clip));
-// 4 mobile fold-out geometry
-const mf = await p.evaluate(() => { const pan = document.querySelector(FOLD_PANEL).getBoundingClientRect(); const g = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--gutter')) || 20; const bar = document.querySelector(MBAR).getBoundingClientRect(); const pin = document.querySelector(FOLD_PIN); const band = (() => { const c = document.querySelector(COVER).getBoundingClientRect(); const f = document.querySelector(FOLD).getBoundingClientRect(); return Math.round(c.bottom - f.top); })(); return { panelW: Math.round(pan.width), vw: innerWidth, docW: document.documentElement.scrollWidth, padB: parseFloat(getComputedStyle(pin).paddingBottom), barH: Math.round(bar.height), overlap: band }; });
-t('mobile fold-out: panels fit the viewport, no overflow, padding clears the bar, cover overlaps the fold', mf.panelW <= mf.vw && mf.panelW >= mf.vw - 60 && mf.docW <= mf.vw && mf.padB >= mf.barH + 16 && mf.overlap > 0, JSON.stringify(mf));
-t('mobile bottom bar appears after the cover CTA scrolls out', bar);
-const mh = await p.evaluate(() => document.documentElement.scrollHeight);
-t('mobile page height ≤ 12,000 px', mh <= LIMITS.mobileH, mh + ' px');
-const mph = await p.evaluate(() => { const o = {}; document.querySelectorAll(PANEL).forEach((d) => { const was = d.hidden; d.hidden = false; o[d.id] = d.offsetHeight; d.hidden = was; }); return o; });
-t('mobile deck panels ≤ 2 viewports (1830)', Object.values(mph).every((h) => h <= LIMITS.panelMobile), JSON.stringify(mph));
-// 5 mobile deck: active tab in view, bottom bar clear of panel content
-await p.evaluate(() => document.querySelector(DECK).scrollIntoView()); await p.waitForTimeout(300); await p.click(TAB(LAST_TAB)); await p.waitForTimeout(900);
-const md = await p.evaluate(() => { const a = document.querySelector('[data-tab="contact"]').getBoundingClientRect(); const ul = document.querySelector(DECK_NAV + ' ul').getBoundingClientRect(); const fade = getComputedStyle(document.querySelector(DECK_NAV), '::after').width; return { tabIn: a.left >= ul.left - 1 && a.right <= ul.right + 1, fade }; });
-await p.evaluate(() => { const d = document.querySelector(DECK); window.scrollTo(0, d.offsetTop + d.offsetHeight - innerHeight); }); await p.waitForTimeout(500);
-const mb2 = await p.evaluate(() => { const panel = [...document.querySelectorAll(PANEL)].find((d) => !d.hidden); const last = panel.lastElementChild.getBoundingClientRect(); const bar = document.querySelector(MBAR).getBoundingClientRect(); return { lastBottom: Math.round(last.bottom), barTop: Math.round(bar.top) }; });
-t('mobile deck: active tab scrolled into view, fade mask present, bar never covers panel content', md.tabIn && md.fade !== 'auto' && parseFloat(md.fade) > 0 && mb2.lastBottom < mb2.barTop, JSON.stringify({ ...md, ...mb2 }));
+await p.goto(base, { waitUntil: 'load' }); await p.waitForTimeout(2000);
+const ms = []; for (const k of [0, 3, 6]) { await go(p, await filmY(p, k)); ms.push(await onState(p)); }
+const msrc = await p.evaluate(() => { const v = document.querySelector('[data-film-video]'); return { poster: v.poster.split('/').pop(), canvas: !!document.querySelector('.film__canvas'), dur: v.duration }; });
+t('Pixel 7: film scrubs (states 0/3/6) on the portrait cut', ms.join() === '0,3,6' && msrc.poster === 'hero-m.jpg', ms.join() + ' ' + JSON.stringify(msrc));
+const geo = await p.evaluate(() => { const h = document.querySelector('[data-header]').getBoundingClientRect(); const s = document.querySelector('[data-film-state].is-on .eyebrow').getBoundingClientRect(); const m = document.querySelector('.film__media').getBoundingClientRect(); const hb = getComputedStyle(document.querySelector('[data-header]')).backgroundColor; return { hBottom: Math.round(h.bottom), mediaTop: Math.round(m.top), copyTop: Math.round(s.top), hb }; });
+t('Pixel 7: opaque header never covers the film or its copy', geo.mediaTop >= geo.hBottom && geo.copyTop > geo.hBottom && geo.hb === 'rgb(10, 31, 48)', JSON.stringify(geo));
+const flat = await p.evaluate(() => ({ card: getComputedStyle(document.querySelector('[data-card]')).transform, step: getComputedStyle(document.querySelector('[data-step]')).transform, sticky: getComputedStyle(document.querySelector('.offers__sticky')).position }));
+t('Pixel 7: card stack and drum flatten (no 3D, no pin)', flat.card === 'none' && flat.step === 'none' && flat.sticky === 'relative', JSON.stringify(flat));
+let anchorsOk = true; const ai = [];
+for (const id of ['offres', 'congres', 'methode', 'services', 'agence', 'contact']) {
+  await p.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; }); await p.click('[data-burger]'); await p.waitForTimeout(300); await p.click(`[data-menu] a[href="#${id}"]`); await p.waitForTimeout(500);
+  const r = await p.evaluate((id) => { const h = document.querySelector('[data-header]').getBoundingClientRect().bottom; const first = document.querySelector('#' + id + ' .label, #' + id + ' h2'); return { h: Math.round(h), top: Math.round(first.getBoundingClientRect().top) }; }, id);
+  ai.push(id + ':' + r.top + '/' + r.h); if (r.top < r.h) anchorsOk = false;
+}
+t('Pixel 7: menu anchors land below the fixed header (no overlap)', anchorsOk, ai.join(' '));
+const tel = await p.evaluate(() => { const a = document.querySelector('.contact__tel'); return a.getBoundingClientRect().height < parseFloat(getComputedStyle(a).fontSize) * 1.6; });
+t('Pixel 7: phone number on one line', tel);
 const ov = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth);
 t('Pixel 7: no horizontal overflow', ov <= 0, ov + ' px');
-t('mobile: 0 console errors', p._errs.length === 0, p._errs.slice(0, 2).join(' | '));
+const inputs = await p.evaluate(() => [...document.querySelectorAll('.field input,.field select')].every((i) => parseFloat(getComputedStyle(i).fontSize) >= 16));
+t('Pixel 7: form fields ≥ 16 px (no iOS zoom)', inputs);
+const mh = await p.evaluate(() => document.documentElement.scrollHeight);
+t('Pixel 7: 0 console errors', p._errs.length === 0, p._errs.slice(0, 2).join(' | '));
 await p.close();
-// ---- ASSET-specific: catalogue, listing quote, MICE brief, language stub, console
-p = await mk({ viewport: { width: 1440, height: 900 } }); await p.goto(base + '#congres', { waitUntil: 'load' }); await p.waitForTimeout(900);
-const visRows = () => p.evaluate(() => [...document.querySelectorAll('.row')].filter((r) => !r.hidden).map((r) => r.dataset.start));
-const c0 = await visRows(); const sorted = c0.join() === [...c0].sort().join() && c0.length === 6;
-await p.click('[data-pager] button[aria-label="Page 2"]'); await p.waitForTimeout(200); const c2 = await visRows();
-await p.selectOption('#f-disc', 'Cardiologie'); await p.waitForTimeout(200); const cDisc = (await visRows()).length;
-await p.selectOption('#f-disc', ''); await p.selectOption('#f-country', 'France'); await p.selectOption('#f-per', '1'); await p.waitForTimeout(200); const cCP = (await visRows()).length;
-await p.click('[data-filters] button[type=reset]'); await p.waitForTimeout(200); await p.fill('#q', 'vienne'); await p.waitForTimeout(200); const cQ = (await visRows()).length;
-await p.fill('#q', 'introuvable'); await p.waitForTimeout(200); const noRes = await p.evaluate(() => !document.querySelector('[data-empty]').hidden && document.querySelectorAll('.row:not([hidden])').length === 0);
-t('congress catalogue: ascending date sort, pager, discipline/country/period filters, search, no-results state', sorted && c2.length === 6 && c2[0] > c0[5] && cDisc === 2 && cCP === 2 && cQ === 2 && noRes, JSON.stringify({ c0: c0.length, c2: c2.length, cDisc, cCP, cQ, noRes }));
-await p.fill('#q', ''); await p.waitForTimeout(200); await p.click('.row:not([hidden]) [data-open]'); await p.waitForTimeout(300);
-const pre = await p.evaluate(() => { const f = document.querySelector('[data-form="f03"]').elements; return { ev: f.event.value, to: f.to.value, out: f.out.value, back: f.back.value }; });
-const reqs = []; p.on('request', (r) => { if (!/localhost/.test(r.url()) || r.method() !== 'GET') reqs.push(r.method() + ' ' + r.url()); });
-await p.fill('#d-from', 'Toulouse'); await p.fill('#d-pax', '3'); await p.selectOption('#d-class', 'Affaires'); await p.fill('#d-name', 'Test'); await p.fill('#d-mail', 'test@example.com');
-await p.click('[data-form="f03"] button[type=submit]'); await p.waitForTimeout(300);
-const conf = await p.evaluate(() => { const o = document.querySelector('[data-form="f03"] [data-ok]'); return !o.hidden && o.textContent; });
-const html = await p.content(); const js = await p.evaluate(async () => (await (await fetch('js/main.js')).text()));
-t('congress listing: source + verified date, quote form prefilled from the congress, confirmation without network, no GM&E code or fare claim public', /CG-0112/.test(pre.ev) && pre.to === 'Marseille, France' && pre.out === '2027-01-27' && pre.back === '2027-01-31' && conf && /CG-0112/.test(conf) && reqs.length === 0 && /Source officielle/.test(html) && /Vérifié le/.test(html) && !/code GM&amp;E\s*:|tarif préférentiel|\d+\s?€/i.test(html + js), JSON.stringify({ pre, conf: conf && conf.slice(0, 60), reqs }));
-await p.keyboard.press('Escape'); await p.click(TAB('mice')); await p.waitForTimeout(300);
-for (let i = 0; i < 3; i++) { await p.click('[data-next]'); await p.waitForTimeout(150); }
-const sumN = await p.evaluate(() => document.querySelectorAll('[data-summary] dt').length);
-await p.fill('#m-name', 'Test'); await p.fill('#m-co', 'Test'); await p.fill('#m-mail', 'test@example.com'); await p.click('[data-send]'); await p.waitForTimeout(200);
-const mOk = await p.evaluate(() => !document.querySelector('[data-brief] [data-ok]').hidden);
-t('MICE progressive brief: 4 steps, summary before submission, confirmation', sumN === 6 && mOk, JSON.stringify({ sumN, mOk }));
-const lang = await p.evaluate(() => ({ lang: document.documentElement.lang, en: !!document.querySelector('.lang__soon[aria-disabled="true"]'), robots: document.querySelector('meta[name=robots]').content }));
-t('French page, EN switch stub marked bientôt, noindex', lang.lang === 'fr' && lang.en && /noindex/.test(lang.robots), JSON.stringify(lang));
-t('ASSET checks: 0 console errors', p._errs.length === 0, p._errs.slice(0, 2).join(' | '));
+p = await mk({ ...devices['iPhone 13'] }); await p.goto(base, { waitUntil: 'load' }); await p.waitForTimeout(1200);
+const ovi = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth);
+const mh390 = await p.evaluate(() => document.documentElement.scrollHeight);
+t('iPhone 13: no horizontal overflow, 0 errors', ovi <= 0 && p._errs.length === 0, ovi + ' px');
 await p.close();
-p = await mk({ viewport: { width: 1440, height: 900 } }); await p.goto(base + 'console/', { waitUntil: 'load' }); await p.waitForTimeout(400);
-const cons = await p.evaluate(() => ({ robots: document.querySelector('meta[name=robots]').content, maquette: /maquette/i.test(document.body.textContent), csv: /Importer un CSV/.test(document.body.textContent), states: ['Brouillon', 'En validation', 'Publié'].every((s) => document.body.textContent.includes(s)) }));
-t('console mock: noindex, labelled maquette, CSV import, editorial statuses, 0 errors', /noindex/.test(cons.robots) && cons.maquette && cons.csv && cons.states && p._errs.length === 0, JSON.stringify(cons));
+// reduced motion
+p = await mk({ ...devices['Pixel 7'], reducedMotion: 'reduce' }); await p.goto(base, { waitUntil: 'load' }); await p.waitForTimeout(1200);
+const rm = await p.evaluate(() => ({ src: document.querySelector('[data-film-video]').currentSrc, list: document.querySelectorAll('.film__static li').length, film: document.querySelector('[data-film]').offsetHeight, vh: innerHeight }));
+t('reduced motion: poster + static list of the six other stages, no scrub track, no video download', !rm.src && rm.list === 6 && rm.film < rm.vh * 3, JSON.stringify(rm));
 await p.close();
-const sel = await (async () => { const q = await mk({ viewport: { width: 1440, height: 900 } }); await q.goto(base, { waitUntil: 'load' }); const ok = await q.evaluate(() => /membre du réseau Selectour Affaires/.test(document.body.textContent)); await q.close(); return ok; })();
-t('named third party (Selectour Affaires) backed by the verbatim site claim', sel);
-// pitch
-p = await mk({ viewport: { width: 1440, height: 900 } }); await p.goto(base + PITCH_PATH, { waitUntil: 'load' }); await p.waitForTimeout(600);
-t('pitch page: 0 console errors, signature present', p._errs.length === 0 && (await p.evaluate(() => SIGNATURE_RE.test(document.body.innerHTML))));
+// pitch + console
+p = await mk({ viewport: { width: 1440, height: 900 } }); await p.goto(base + 'pour-asset/', { waitUntil: 'load' }); await p.waitForTimeout(500);
+const pitch = await p.evaluate(() => document.body.innerText);
+t('pitch: signature, measured heights, no unmeasured estimates, 0 errors', /Debanjan/.test(pitch) && /Fondateur, ProdCraft/.test(pitch) && /debanjan@prodcraft\.fyi/.test(pitch) && !/trentaine|\{\{/.test(pitch) && /5 014 px/.test(pitch) && p._errs.length === 0);
+await p.goto(base + 'console/', { waitUntil: 'load' }); await p.waitForTimeout(300);
+const con = await p.evaluate(() => [...document.querySelectorAll('.role h3')].map((h) => h.textContent));
+t('console: five RFP roles', con.length === 5 && /Administrateur technique/.test(con[0]) && /Éditrice/.test(con[1]) && /Contributeur/.test(con[2]) && /Lecteur commercial/.test(con[3]) && /Approbateur/.test(con[4]), con.join(' | '));
+await p.close();
+p = await mk({ ...devices['Pixel 7'] }); await p.goto(base + 'console/', { waitUntil: 'load' }); await p.waitForTimeout(300);
+const cm = await p.evaluate(() => { const w = document.querySelector('.wrap'); return { hint: getComputedStyle(document.querySelector('.hint-scroll')).display !== 'none', scroll: w.scrollWidth > w.clientWidth, ov: document.documentElement.scrollWidth - innerWidth }; });
+t('console mobile: tables scroll inside their frame with a visible hint', cm.hint && cm.scroll && cm.ov <= 0, JSON.stringify(cm));
 await p.close(); await b.close();
 const pass = R.filter((r) => r.ok).length; console.log(`\n${pass}/${R.length} passed`);
-writeFileSync(new URL(OUT_JSON, import.meta.url).pathname, JSON.stringify({ date: new Date().toISOString().slice(0, 10), pass, total: R.length, desktopHeight: dh, mobileHeight: mh, panelHeightsDesktop: ph, panelHeightsMobile: mph, sizes, results: R }, null, 2));
+writeFileSync(new URL('./functional.json', import.meta.url).pathname, JSON.stringify({ date: new Date().toISOString().slice(0, 10), pass, total: R.length, desktopHeight: dh, mobileHeightPixel7: mh, mobileHeight390: mh390, sizes, results: R }, null, 2));
 process.exit(pass === R.length ? 0 : 1);

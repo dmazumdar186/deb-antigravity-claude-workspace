@@ -3,301 +3,351 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>ASSET Voyages — Voyages d'affaires, MICE et congrès · Concept</title>
-<meta name="description" content="Concept de refonte pour ASSET Voyages, agence de voyages d'affaires du réseau Selectour Affaires à Issy-les-Moulineaux. Maquette non officielle.">
+<title>ASSET Voyages — Voyages d’affaires, MICE et congrès · Concept</title>
+<meta name="description" content="Concept de refonte pour ASSET Voyages, agence de voyages d’affaires du réseau Selectour Affaires à Issy-les-Moulineaux. Maquette non officielle.">
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#0a1f30">
-<link rel="icon" href="assets/favicon-32.png" sizes="32x32">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="assets/favicon-192.png">
+<link rel="preload" href="assets/fonts/EBGaramond.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/Inter.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="css/styles.css">
+<script src="js/boot.js"></script>
+<script src="js/film.js" defer></script>
+<script src="js/hero.js" defer></script>
+<script src="js/main.js" defer></script>
 </head>
 <body>
-<a class="skip" href="#deck">Aller au contenu</a>
+<a class="skip" href="#main">Aller au contenu</a>
 
-<svg width="0" height="0" class="sr" aria-hidden="true" focusable="false">
-  <symbol id="g-globe" viewBox="0 0 320 200"><rect width="320" height="200" fill="#0d3048"/><g fill="none" stroke="#F5F1EA" stroke-opacity=".35" stroke-width=".8"><circle cx="160" cy="100" r="78"/><ellipse cx="160" cy="100" rx="40" ry="78"/><ellipse cx="160" cy="100" rx="66" ry="78"/><path d="M82 100h156M92 62h136M92 138h136"/></g><g fill="none" stroke="#EF760D" stroke-width="1.4"><path d="M128 70Q170 20 214 82"/><path d="M128 70Q120 120 176 148"/><path d="M128 70Q96 96 104 128"/></g><g fill="#F5F1EA"><circle cx="128" cy="70" r="3.2"/><circle cx="214" cy="82" r="2.4"/><circle cx="176" cy="148" r="2.4"/><circle cx="104" cy="128" r="2.4"/></g></symbol>
-  <symbol id="g-dial" viewBox="0 0 320 200"><rect width="320" height="200" fill="#0d3048"/><circle cx="160" cy="100" r="70" fill="none" stroke="#F5F1EA" stroke-opacity=".3"/><g stroke="#F5F1EA" stroke-opacity=".7" stroke-width="1.2"><path d="M160 34v10M160 156v10M94 100h10M216 100h10M113 53l6 6M201 141l6 6M207 53l-6 6M119 141l-6 6"/></g><path d="M160 100V58" stroke="#EF760D" stroke-width="2"/><path d="M160 100l30 18" stroke="#F5F1EA" stroke-width="1.6"/><circle cx="160" cy="100" r="3.5" fill="#EF760D"/><text x="160" y="190" fill="#F5F1EA" fill-opacity=".8" font-family="Inter,system-ui,sans-serif" font-size="11" letter-spacing="2" text-anchor="middle">24H/24 · 7 JOURS/7</text></symbol>
-  <symbol id="g-routes" viewBox="0 0 320 200"><rect width="320" height="200" fill="#EEECE6"/><g fill="none" stroke="#0d3048" stroke-opacity=".18"><path d="M0 40h320M0 80h320M0 120h320M0 160h320M64 0v200M128 0v200M192 0v200M256 0v200"/></g><g fill="none" stroke="#0d3048" stroke-width="1.2" stroke-dasharray="3 4"><path d="M150 108Q90 40 40 60"/><path d="M150 108Q230 30 286 52"/><path d="M150 108Q250 150 292 168"/><path d="M150 108Q100 170 52 158"/></g><g fill="#0d3048"><circle cx="40" cy="60" r="3"/><circle cx="286" cy="52" r="3"/><circle cx="292" cy="168" r="3"/><circle cx="52" cy="158" r="3"/></g><circle cx="150" cy="108" r="6" fill="#EF760D"/></symbol>
-  <symbol id="g-mice" viewBox="0 0 320 200"><rect width="320" height="200" fill="#F5F1EA"/><g fill="#0d3048" fill-opacity=".85"><circle cx="160" cy="100" r="5"/></g><g fill="none" stroke="#0d3048" stroke-opacity=".35"><circle cx="160" cy="100" r="30"/><circle cx="160" cy="100" r="56"/><circle cx="160" cy="100" r="82"/></g><g fill="#0d3048"><circle cx="190" cy="100" r="3"/><circle cx="130" cy="100" r="3"/><circle cx="160" cy="70" r="3"/><circle cx="160" cy="130" r="3"/><circle cx="200" cy="60" r="3"/><circle cx="120" cy="140" r="3"/><circle cx="120" cy="60" r="3"/><circle cx="200" cy="140" r="3"/></g><g fill="#EF760D"><circle cx="238" cy="72" r="3.5"/><circle cx="82" cy="128" r="3.5"/></g></symbol>
-</svg>
-
-<header class="hdr over" data-hdr>
-  <a class="hdr__logo" href="#top" aria-label="ASSET Voyages — accueil"><img src="assets/logo-asset.png" alt="ASSET Voyages" width="490" height="180"></a>
-  <p class="hdr__chapter" aria-live="polite"><span data-chapter-no>00</span><span class="hdr__rule" aria-hidden="true"></span><span data-chapter-name>Couverture</span></p>
-  <div class="hdr__right">
-    <a class="hdr__client" href="#espace-client" data-go="voyages">Espace client</a>
-    <div class="lang" role="group" aria-label="Langue"><a href="#top" aria-current="true" lang="fr">FR</a><span class="lang__soon" aria-disabled="true" lang="en" title="Version anglaise : bientôt">EN<em>bientôt</em></span></div>
-    <a class="btn btn--navy btn--sm hdr__cta" href="#contact" data-go="contact">Nous contacter</a>
+<header class="hdr" data-header>
+  <a class="hdr__logo" href="#top" aria-label="ASSET Voyages, retour en haut"><img src="assets/logo-asset-light.png" alt="ASSET Voyages" width="263" height="90"></a>
+  <p class="hdr__ctx">Voyages d’affaires · MICE · Congrès<br><span>Agence Selectour Affaires · Issy-les-Moulineaux</span></p>
+  <nav class="hdr__nav" id="menu" data-menu aria-label="Navigation principale">
+    <a href="#offres">Offres</a>
+    <a href="#congres">Congrès</a>
+    <a href="#methode">Méthode</a>
+    <a href="#services">Services</a>
+    <a href="#agence">L’agence</a>
+    <a class="hdr__cta" href="#contact">Contact</a>
+  </nav>
+  <div class="hdr__tools">
+    <button class="hdr__client" type="button" aria-expanded="false" aria-controls="client-pop" data-client>Espace client</button>
+    <div class="lang" role="group" aria-label="Langue"><span class="lang__on" aria-current="true">FR</span><button type="button" class="lang__en" data-en aria-describedby="en-note">EN</button><span class="lang__soon" id="en-note">bientôt</span></div>
+    <button class="hdr__burger" type="button" aria-expanded="false" aria-controls="menu" data-burger><span class="sr">Menu</span><i></i><i></i></button>
   </div>
+  <div class="client-pop" id="client-pop" data-client-pop hidden>
+    <p><b>Espace client</b> — ouvre l’outil externe autorisé, sans mot de passe stocké sur ce site.</p>
+    <p class="small">Aujourd’hui : « Connexion Traveldoo ». La consultation cite Wondermiles : lien à confirmer avec ASSET.</p>
+  </div>
+  <p class="toast" data-toast role="status" hidden></p>
+  <span class="hdr__progress" aria-hidden="true"><i></i></span>
 </header>
 
-<main id="top">
-<section class="cover" data-cover data-cur="0" aria-label="Couverture">
-  <div class="cover__pin" data-cover-pin>
-    <div class="cover__stage" data-stage aria-hidden="true">
-      <canvas class="cover__canvas" data-backdrop></canvas>
-      <video class="cover__video" data-hero-video muted playsinline loop preload="none"></video>
-      <div class="cover__grain"></div>
+<main id="main">
+<!-- 01 FILM -->
+<section class="film" id="top" data-film aria-label="Du brief au retour : le voyage d’affaires en sept étapes">
+  <div class="film__stage">
+    <div class="film__media" aria-hidden="true">
+      <video class="film__video" data-film-video muted playsinline preload="none" poster="assets/hero.jpg"></video>
     </div>
-    <div class="cover__plates" aria-hidden="true">
-      <figure class="cplate" data-plate="1"><img src="assets/img/skyline.webp" alt="" width="1600" height="608"><figcaption>Photo du site actuel ASSET Voyages</figcaption></figure>
-      <figure class="cplate" data-plate="2"><svg viewBox="0 0 320 200"><use href="#g-dial"/></svg><figcaption>Illustration — assistance 24h/24, 7 jours/7</figcaption></figure>
-      <figure class="cplate" data-plate="3"><svg viewBox="0 0 320 200"><use href="#g-globe"/></svg><figcaption>Illustration — France et international</figcaption></figure>
-    </div>
-    <div class="cover__body">
-      <img class="cover__logo" src="assets/logo-asset-light.png" alt="ASSET Voyages" width="263" height="90">
-      <h1 class="cover__title">Optimisez vos <em>voyages d'affaires</em></h1>
-      <div class="cover__beats">
-        <div class="beat is-on" data-beat="0"><p class="beat__kicker"><span>01</span>L'agence</p><p class="beat__text">ASSET Voyages est une agence de voyages d'Affaires à taille humaine, membre du réseau Selectour Affaires.</p><p class="beat__meta">58, rue Jean-Pierre Timbaud · Issy-les-Moulineaux</p></div>
-        <div class="beat" data-beat="1"><p class="beat__kicker"><span>02</span>Le réseau</p><p class="beat__text">« Avec plus de 122 agences et plateaux d'affaires en France, Selectour Affaires constitue le premier réseau dédié aux voyages d'affaires. »</p><p class="beat__meta">Source : site actuel d'ASSET Voyages</p></div>
-        <div class="beat" data-beat="2"><p class="beat__kicker"><span>03</span>L'assistance</p><p class="beat__text">Un service dédié pour les voyageurs d'affaires, disponible 24h/24, 7 jours/7.</p><p class="beat__meta">Intégralement géré par les équipes Selectour</p></div>
-        <div class="beat" data-beat="3"><p class="beat__kicker"><span>04</span>Votre interlocuteur</p><p class="beat__text">« Chaque entreprise […] est suivie et conseillée par un interlocuteur dédié. »</p><p class="beat__meta">Voyages d'affaires · séminaires · congrès</p></div>
+    <div class="film__copy">
+      <div class="film__state is-on" data-film-state="0">
+        <p class="eyebrow"><span>01</span> Le brief</p>
+        <h1 class="film__h">Optimisez vos voyages d’affaires.</h1>
+        <p class="film__p">ASSET Voyages est une agence de voyages d’Affaires à taille humaine, membre du réseau Selectour Affaires.</p>
+        <p class="film__actions"><a class="btn btn--accent" href="#contact">Parler à un conseiller <b aria-hidden="true">→</b></a><a class="btn btn--line" href="#congres">Trouver un congrès</a></p>
       </div>
-      <ul class="doors" aria-label="Trois portes d'entrée">
-        <li><a class="btn btn--cream" href="#voyages" data-go="voyages"><span>01</span>Voyages d'affaires</a></li>
-        <li><a class="btn btn--ghost" href="#mice" data-go="mice"><span>02</span>MICE — séminaires, incentives</a></li>
-        <li><a class="btn btn--ghost" href="#congres" data-go="congres"><span>03</span>Congrès internationaux</a></li>
-      </ul>
-      <p class="cover__meta"><b>Agence Selectour Affaires</b> · Issy-les-Moulineaux · <a href="tel:+33155572900">01 55 57 29 00</a></p>
+      <div class="film__state" data-film-state="1">
+        <p class="eyebrow"><span>02</span> Politique voyage</p>
+        <h2 class="film__h">Vos règles, appliquées partout.</h2>
+        <p class="film__p">« La politique de voyage de votre société sera appliquée de manière systématique, quel que soit le canal de réservation utilisé. »</p>
+      </div>
+      <div class="film__state" data-film-state="2">
+        <p class="eyebrow"><span>03</span> Itinéraire</p>
+        <h2 class="film__h">Le bon trajet, au bon tarif.</h2>
+        <p class="film__p">« Une solide expertise tarifaire, une équipe d’experts plaçant le voyageur au cœur de notre programme Smart Corporate Travel afin d’optimiser votre budget. »</p>
+      </div>
+      <div class="film__state" data-film-state="3">
+        <p class="eyebrow"><span>04</span> Réservation</p>
+        <h2 class="film__h">Tout est réservé. Tout tient dans la pochette.</h2>
+        <p class="film__p">« Profitez d’IRES notre plateforme de réservation en ligne qui intègre votre politique voyages et les préférences de vos collaborateurs. Cette solution est couplée avec notre application mobile Smart ; un véritable carnet de voyage. »</p>
+      </div>
+      <div class="film__state" data-film-state="4">
+        <p class="eyebrow"><span>05</span> Départ</p>
+        <h2 class="film__h">Vous partez. Nous restons joignables.</h2>
+        <p class="film__p">« Un service dédié pour les voyageurs d’affaires, disponible <span class="nw">24h/24, 7 jours/7</span>, il est intégralement géré par nos équipes Selectour. »</p>
+      </div>
+      <div class="film__state" data-film-state="5">
+        <p class="eyebrow"><span>06</span> Sur place</p>
+        <h2 class="film__h">Sur place, tout se déplie.</h2>
+        <p class="film__p">« Un chef de projet dédié : présent dès la prise de brief pour comprendre vos besoins. » Séminaires et groupes, dès 10 personnes.</p>
+        <p class="film__actions"><a class="btn btn--line" href="#contact" data-journey="evenement">Préparer un événement</a></p>
+      </div>
+      <div class="film__state" data-film-state="6">
+        <p class="eyebrow"><span>07</span> Retour &amp; reporting</p>
+        <h2 class="film__h">Au retour, des chiffres clairs.</h2>
+        <p class="film__p">« Un reporting complet et personnalisé des voyages d’affaires de vos collaborateurs pour optimiser votre budget voyage d’entreprise. »</p>
+        <p class="film__actions"><a class="btn btn--accent" href="#contact" data-journey="entreprise" data-need="Audit de vos voyages">Demander un audit de vos voyages <b aria-hidden="true">→</b></a></p>
+      </div>
     </div>
-    <ol class="rail" aria-hidden="true">
-      <li class="rail__item is-on" data-rail-item><span class="rail__label">01 · L'agence</span><span class="rail__bar"></span></li>
-      <li class="rail__item" data-rail-item><span class="rail__label">02 · Le réseau</span><span class="rail__bar"></span></li>
-      <li class="rail__item" data-rail-item><span class="rail__label">03 · L'assistance</span><span class="rail__bar"></span></li>
-      <li class="rail__item" data-rail-item><span class="rail__label">04 · L'interlocuteur</span><span class="rail__bar"></span></li>
+    <ol class="film__steps" aria-label="Étapes">
+      <li data-film-step="0" class="is-on"><span>Brief</span></li>
+      <li data-film-step="1"><span>Politique voyage</span></li>
+      <li data-film-step="2"><span>Itinéraire</span></li>
+      <li data-film-step="3"><span>Réservation</span></li>
+      <li data-film-step="4"><span>Départ</span></li>
+      <li data-film-step="5"><span>Sur place</span></li>
+      <li data-film-step="6"><span>Retour</span></li>
     </ol>
-    <p class="cover__hint">Faites défiler</p>
+    <p class="film__hint" aria-hidden="true">Faites défiler · du brief au retour</p>
   </div>
 </section>
 
-<section class="fold" id="sommaire" data-fold data-chapter="00" data-chapter-name="Sommaire" aria-labelledby="fold-t">
-  <div class="fold__pin">
-    <div class="fold__head">
-      <div><p class="chapter-mark"><span>Sommaire —</span> le dépliant</p><h2 class="h2" id="fold-t">Trois métiers, un même interlocuteur.</h2></div>
-      <p class="lead">Chaque volet mène à son parcours : un formulaire en deux ou trois clics, sans création de compte.</p>
-    </div>
-    <div class="fold__spread" data-spread>
-      <article class="panel panel--left">
-        <figure class="plate"><svg viewBox="0 0 320 200" role="img" aria-label="Illustration d'itinéraires depuis Issy-les-Moulineaux"><use href="#g-routes"/></svg></figure>
-        <p class="panel__no">01</p>
-        <h3 class="h3">Voyages d'affaires</h3>
-        <p class="small">Des conseillers dédiés experts en voyage d'affaire tout au long de votre voyage, des tarifs négociés sur vos principales destinations.</p>
-        <ul><li>Offre PME-TPE</li><li>Politique de voyages</li><li>Service 24h/24</li><li>Notes de frais</li></ul>
-        <a class="btn btn--navy btn--sm" href="#voyages" data-go="voyages">Ouvrir le volet</a>
-      </article>
-      <article class="panel panel--centre">
-        <figure class="plate"><img src="assets/img/skyline.webp" alt="Ville de nuit — photo du site actuel ASSET Voyages" width="1600" height="608" loading="lazy"></figure>
-        <p class="panel__no">02</p>
-        <h3 class="h3">MICE</h3><p class="eyebrow">Séminaires · incentives · congrès d'entreprise</p>
-        <p class="small">Un chef de projet dédié : présent dès la prise de brief pour comprendre vos besoins.</p>
-        <ul><li>Séminaires</li><li>Incentives</li><li>Voyages de groupes</li><li>Dès 10 personnes</li></ul>
-        <a class="btn btn--navy btn--sm" href="#mice" data-go="mice">Démarrer un brief</a>
-      </article>
-      <article class="panel panel--right">
-        <figure class="plate"><svg viewBox="0 0 320 200" role="img" aria-label="Illustration d'arcs de vol sur un globe"><use href="#g-globe"/></svg></figure>
-        <p class="panel__no">03</p>
-        <h3 class="h3">Congrès internationaux</h3>
-        <p class="small">Un catalogue filtrable : chaque congrès avec sa source officielle, ses dates et une demande de devis vol pré-remplie.</p>
-        <ul><li>Recherche</li><li>Discipline</li><li>Pays</li><li>Période</li></ul>
-        <a class="btn btn--navy btn--sm" href="#congres" data-go="congres">Voir le catalogue</a>
-      </article>
-    </div>
-    <p class="fold__hint">Le dépliant s'ouvre en défilant</p>
+<!-- 02 STATEMENT -->
+<section class="statement sec-ink" aria-labelledby="st-h">
+  <p class="label" data-reveal>Notre promesse</p>
+  <div>
+    <h2 class="display" id="st-h" data-reveal>Que votre voyage ne soit plus un coût, mais un avantage.</h2>
+    <p class="lead" data-reveal>ASSET Voyages, agence du réseau Selectour Affaires met à votre service des conseillers dédiés experts en voyage d’affaire tout au long de votre voyage, des tarifs négociés sur vos principales destinations et une offre de services pour répondre à tous les besoins professionnels de votre entreprise.</p>
+    <p class="statement__trades" data-reveal><span>Voyages d’affaires</span><span>MICE</span><span>Congrès internationaux</span></p>
   </div>
 </section>
 
-<section class="deck" id="deck" aria-label="Chapitres">
-  <nav class="deck__nav" data-deck-nav aria-label="Chapitres">
-    <ul role="tablist">
-      <li><a href="#voyages" role="tab" data-tab="voyages" aria-controls="voyages"><span>01</span>Voyages d'affaires</a></li>
-      <li><a href="#mice" role="tab" data-tab="mice" aria-controls="mice"><span>02</span>MICE</a></li>
-      <li><a href="#congres" role="tab" data-tab="congres" aria-controls="congres"><span>03</span>Congrès</a></li>
-      <li><a href="#agence" role="tab" data-tab="agence" aria-controls="agence"><span>04</span>L'agence</a></li>
-      <li><a href="#contact" role="tab" data-tab="contact" aria-controls="contact"><span>05</span>Contact</a></li>
-    </ul>
-  </nav>
-  <div class="deck__panels">
-
-  <!-- 01 voyages -->
-  <article class="dp" id="voyages" role="tabpanel" data-chapter="01" data-chapter-name="Voyages d'affaires">
-    <header class="dp__head"><p class="chapter-mark"><span>01 —</span> Voyages d'affaires</p><h2 class="h2">Votre voyage n'est plus un coût, mais un avantage.</h2><p class="lead">« Nous perfectionnons sans cesse nos outils technologiques afin que votre voyage ne soit plus un coût mais un avantage pour votre entreprise. »</p></header>
-    <div class="cards">
-      <section class="card reveal"><p class="eyebrow">PME · TPE</p><h3 class="h3">Une offre simplifiée</h3><p class="small">Nous proposons aux PME-PMI ainsi qu'aux TPE des solutions sur mesure pour gérer et optimiser vos déplacements professionnels (avion, train, voiture de location, autocar…).</p><button class="lnk" type="button" data-go="contact" data-need="Ouverture de compte">Demander un compte →</button></section>
-      <section class="card reveal"><p class="eyebrow">Achats · travel managers</p><h3 class="h3">Politique et reporting</h3><p class="small">Un reporting complet et personnalisé des voyages d'affaires de vos collaborateurs pour optimiser votre budget voyage d'entreprise.</p><ul><li>Politique de voyages</li><li>Notes de frais</li><li>Dématérialisation des factures</li><li>Expertise tarifaire</li></ul><button class="lnk" type="button" data-go="contact" data-need="Audit de vos voyages">Demander un audit voyages →</button></section>
-      <section class="card reveal"><p class="eyebrow">Assistance · expertise</p><h3 class="h3">Disponible 24h/24, 7&nbsp;jours/7</h3><p class="small">Nous vous informons en temps réel en cas de phénomène climatique extrême ou d'événements qui pourraient influencer vos voyages d'affaires.</p><ul><li>Service VIP</li><li>Service 24h/24</li><li>Géolocalisation</li><li>Assurances</li></ul><button class="lnk" type="button" data-go="contact" data-need="Assistance et services">Parler à un conseiller →</button></section>
-      <section class="card card--navy reveal" id="espace-client"><p class="eyebrow">Solutions digitales</p><h3 class="h3">Wondermiles</h3><p class="small">Présentation de l'outil, démo et accès client. Textes et visuels à valider par ASSET et Wondermiles.</p><ul><li>Demande de démo</li><li>Espace client — lien externe</li><li>Aucun mot de passe stocké sur le site</li></ul><button class="lnk" type="button" data-client aria-expanded="false" aria-controls="client-note">Espace client →</button><p class="client-note" id="client-note" hidden>Maquette : ce lien ouvrira l'outil client autorisé (adresse configurable dans la Console). Le site actuel propose « Connexion Traveldoo ».</p></section>
-    </div>
-    <p class="strip"><span><b>Sur le site actuel :</b> Smart Corporate Travel</span><span>OPTIM R — optimisation tarifaire</span><span>IRES — réservation en ligne</span><span>Application mobile Smart</span></p>
-  </article>
-
-  <!-- 02 mice -->
-  <article class="dp" id="mice" role="tabpanel" data-chapter="02" data-chapter-name="MICE" hidden inert>
-    <header class="dp__head"><p class="chapter-mark"><span>02 —</span> MICE · séminaires, incentives, congrès d'entreprise</p><h2 class="h2">Un brief progressif, un chef de projet dédié.</h2><p class="lead">Votre projet de voyage de groupe devient accessible dès 10 personnes. Analyse, cahier des charges, réussite : le brief ci-dessous prépare le premier entretien.</p></header>
-    <form class="brief" data-brief novalidate aria-label="Brief MICE">
-      <ol class="steps" aria-hidden="true"><li class="is-on" data-step-dot>Événement</li><li data-step-dot>Destination</li><li data-step-dot>Services</li><li data-step-dot>Récapitulatif</li></ol>
-      <div>
-        <fieldset class="step" data-step="0"><legend class="h3">Quel événement préparez-vous ?</legend>
-          <div class="form"><div class="field field--full"><span class="field__l" id="ev-l">Type d'événement</span><div class="chips" role="radiogroup" aria-labelledby="ev-l">
-            <label><input type="radio" name="type" value="Séminaire" checked><span>Séminaire</span></label><label><input type="radio" name="type" value="Incentive"><span>Incentive</span></label><label><input type="radio" name="type" value="Congrès d'entreprise"><span>Congrès d'entreprise</span></label><label><input type="radio" name="type" value="Lancement de produit"><span>Lancement de produit</span></label><label><input type="radio" name="type" value="Voyage de groupe"><span>Voyage de groupe</span></label></div></div>
-            <div class="field"><label for="m-pax">Nombre de participants</label><input id="m-pax" name="pax" type="number" min="10" inputmode="numeric" value="40" required><span class="hint">À partir de 10 personnes</span></div>
-          </div></fieldset>
-        <fieldset class="step" data-step="1" hidden><legend class="h3">Où et quand ?</legend>
-          <div class="form"><div class="field"><label for="m-dest">Destination(s) envisagée(s)</label><input id="m-dest" name="dest" type="text" autocomplete="off" placeholder="France, Europe, long-courrier…" enterkeyhint="next"></div>
-            <div class="field"><label for="m-when">Période</label><select id="m-when" name="when"><option>Printemps 2027</option><option>Été 2027</option><option>Automne 2027</option><option>Hiver 2027-2028</option><option>À définir</option></select></div>
-            <label class="check"><input type="checkbox" name="flex" checked> Dates flexibles</label></div></fieldset>
-        <fieldset class="step" data-step="2" hidden><legend class="h3">Quels services ?</legend>
-          <div class="form"><div class="field field--full"><span class="field__l" id="sv-l">Prestations</span><div class="chips" aria-labelledby="sv-l">
-            <label><input type="checkbox" name="svc" value="Transport" checked><span>Transport</span></label><label><input type="checkbox" name="svc" value="Hébergement" checked><span>Hébergement</span></label><label><input type="checkbox" name="svc" value="Salles de réunion"><span>Salles de réunion</span></label><label><input type="checkbox" name="svc" value="Restauration"><span>Restauration</span></label><label><input type="checkbox" name="svc" value="Activités"><span>Activités</span></label><label><input type="checkbox" name="svc" value="Transferts"><span>Transferts</span></label></div></div>
-            <div class="field"><label for="m-bud">Budget indicatif (facultatif)</label><input id="m-bud" name="budget" type="text" inputmode="text" placeholder="Facultatif"></div></div></fieldset>
-        <fieldset class="step" data-step="3" hidden><legend class="h3">Récapitulatif et coordonnées</legend>
-          <dl class="summary" data-summary></dl>
-          <div class="form"><div class="field"><label for="m-name">Nom</label><input id="m-name" name="name" autocomplete="name" required></div><div class="field"><label for="m-co">Société</label><input id="m-co" name="company" autocomplete="organization" required></div><div class="field"><label for="m-mail">E-mail professionnel</label><input id="m-mail" name="email" type="email" autocomplete="email" inputmode="email" required></div><div class="field"><label for="m-tel">Téléphone</label><input id="m-tel" name="tel" type="tel" autocomplete="tel" inputmode="tel"></div></div>
-          <p class="ok" data-ok hidden role="status">Merci — votre brief est prêt. Maquette : rien n'a été envoyé ; en production, il est enregistré, accusé de réception et routé vers l'équipe Meetings &amp; Events.</p></fieldset>
-        <div class="form__actions"><button class="btn btn--line" type="button" data-prev hidden>Retour</button><button class="btn btn--navy" type="button" data-next>Étape suivante</button><button class="btn btn--navy" type="submit" data-send hidden>Envoyer le brief</button></div>
+<!-- 03 OFFERS: pinned card stack -->
+<section class="offers sec-paper" id="offres" aria-labelledby="of-h">
+  <div class="offers__track" data-folio>
+    <div class="offers__sticky">
+      <header class="offers__head">
+        <p class="label">Ce que contient la pochette</p>
+        <h2 class="h2" id="of-h">Trois métiers. Un seul interlocuteur.</h2>
+      </header>
+      <div class="offers__cards">
+        <article class="doc doc--pass" data-card>
+          <div class="doc__band"><span>01</span><span>Carte d’embarquement</span></div>
+          <div class="doc__body">
+            <p class="label">PME · TPE · travel managers</p>
+            <h3 class="h3">Voyages d’affaires</h3>
+            <p>Nous proposons aux PME-PMI ainsi qu’aux TPE des solutions sur mesure pour gérer et optimiser vos déplacements professionnels. (Avion, Train, voiture de location, autocar...).</p>
+            <ul class="doc__list"><li>Interlocuteur dédié</li><li>Politique de voyages</li><li>Service 24h/24</li><li>Notes de frais</li><li>Statistiques</li></ul>
+            <p class="doc__cta"><a class="btn btn--ink" href="#contact" data-journey="entreprise" data-need="Ouverture de compte">Ouvrir un compte</a><a class="lnk" href="#contact" data-journey="entreprise" data-need="Audit de vos voyages">Demander un audit →</a></p>
+          </div>
+          <div class="doc__stub" aria-hidden="true"><span>PARIS</span><span>→</span><span>MONDE</span><i></i></div>
+        </article>
+        <article class="doc doc--prog" data-card>
+          <div class="doc__band"><span>02</span><span>Programme de séminaire</span></div>
+          <div class="doc__body">
+            <p class="label">MICE · séminaires, incentives, groupes</p>
+            <h3 class="h3">Meetings &amp; Events</h3>
+            <p>Votre projet de voyage de groupe devient accessible dès 10 personnes. Un chef de projet dédié : présent dès la prise de brief pour comprendre vos besoins.</p>
+            <ol class="doc__steps"><li><b>Analyse</b> Un entretien approfondi pour définir vos objectifs stratégiques.</li><li><b>Cahier des charges</b> Nous établissons ensemble un document précis pour ne rien laisser au hasard.</li><li><b>Réussite</b> Nous apportons notre savoir-faire pour faire de votre séminaire d’entreprise un moment d’exception.</li></ol>
+            <p class="doc__cta"><a class="btn btn--ink" href="#contact" data-journey="evenement">Envoyer un brief</a></p>
+          </div>
+        </article>
+        <article class="doc doc--badge" data-card>
+          <div class="doc__band"><span>03</span><span>Badge congrès</span></div>
+          <div class="doc__body">
+            <p class="label">Congressistes · laboratoires · sociétés savantes</p>
+            <h3 class="h3">Congrès internationaux</h3>
+            <p>Trouvez votre congrès dans le catalogue, puis demandez votre vol depuis sa fiche : départ de l’aéroport de votre choix, devis émis par ASSET.</p>
+            <ul class="doc__list"><li>Recherche par nom, ville, discipline, pays, période</li><li>Source officielle et date de vérification sur chaque fiche</li><li>Aucun billet émis automatiquement</li></ul>
+            <p class="doc__cta"><a class="btn btn--ink" href="#congres">Ouvrir le catalogue</a></p>
+          </div>
+        </article>
       </div>
+      <p class="offers__count" aria-hidden="true"><span data-folio-idx>01</span> / 03</p>
+    </div>
+  </div>
+</section>
+
+<!-- 04 CONGRESS CATALOGUE -->
+<section class="cat sec-paper2" id="congres" aria-labelledby="cat-h">
+  <header class="cat__head">
+    <p class="label" data-reveal>Catalogue des congrès <span class="tag">Données d’exemple</span></p>
+    <h2 class="h2" id="cat-h" data-reveal>Trouver son congrès. Demander son vol.</h2>
+    <p class="lead" data-reveal>Recherchez par nom, ville, discipline, pays ou période. Chaque fiche indique sa source officielle et sa date de vérification.</p>
+  </header>
+  <div class="cat__grid">
+    <form class="cat__filters" data-filters role="search" aria-label="Filtrer les congrès">
+      <div class="field field--q"><label for="q">Recherche</label><input id="q" name="q" type="search" placeholder="Nom, ville…" autocomplete="off" enterkeyhint="search"></div>
+      <div class="field"><label for="f-disc">Discipline</label><select id="f-disc" name="disc"><option value="">Toutes</option></select></div>
+      <div class="field"><label for="f-country">Pays</label><select id="f-country" name="country"><option value="">Tous</option></select></div>
+      <div class="field"><label for="f-per">Période</label><select id="f-per" name="per"><option value="">Toutes</option><option value="1">janv. – mars 2027</option><option value="2">avr. – juin 2027</option><option value="3">juil. – sept. 2027</option><option value="4">oct. – déc. 2027</option></select></div>
+      <button class="btn btn--line btn--sm" type="reset">Réinitialiser</button>
     </form>
-    <p class="note">Le département Meetings &amp; Events intervient sur des formats variés : lancements de produits, événements immersifs, réunions d'affaires stratégiques.</p>
-  </article>
-
-  <!-- 03 congres -->
-  <article class="dp" id="congres" role="tabpanel" data-chapter="03" data-chapter-name="Congrès" hidden inert>
-    <header class="dp__head"><p class="chapter-mark"><span>03 —</span> Congrès internationaux</p><h2 class="h2">Trouver son congrès, demander son vol.</h2><p class="lead">Recherchez par nom, ville, discipline, pays ou période. Chaque fiche indique sa source officielle et sa date de vérification. <span class="tag tag--sample">Données d'exemple</span></p></header>
-    <div class="cat">
-      <form class="cat__filters" data-filters role="search" aria-label="Filtrer les congrès">
-        <div class="field field--full"><label for="q">Recherche</label><input id="q" name="q" type="search" placeholder="Nom, ville…" autocomplete="off" enterkeyhint="search"></div>
-        <div class="field"><label for="f-disc">Discipline</label><select id="f-disc" name="disc"><option value="">Toutes</option></select></div>
-        <div class="field"><label for="f-country">Pays</label><select id="f-country" name="country"><option value="">Tous</option></select></div>
-        <div class="field field--per"><label for="f-per">Période</label><select id="f-per" name="per"><option value="">Toutes</option><option value="1">Janv. – mars 2027</option><option value="2">Avr. – juin 2027</option><option value="3">Juil. – sept. 2027</option><option value="4">Oct. – déc. 2027</option></select></div>
-        <button class="btn btn--line btn--sm cat__reset" type="reset">Réinitialiser</button>
-      </form>
-      <div class="cat__list">
-        <p class="cat__bar"><span data-count-label aria-live="polite">12 congrès</span><span>Tri : date croissante</span></p>
-        <ul class="rows" data-rows>
-          <li class="row" data-id="CG-0101" data-disc="Cardiologie" data-country="Espagne" data-city="Madrid" data-start="2027-08-27" data-end="2027-08-30"><p class="row__date"></p><div><p class="row__t">Congrès européen de cardiologie — exemple</p><p class="row__d">Cardiologie</p></div><p class="row__place">Madrid, Espagne</p><button class="btn btn--line btn--sm" type="button" data-open>Voir la fiche</button></li>
-          <li class="row" data-id="CG-0102" data-disc="Oncologie" data-country="Allemagne" data-city="Berlin" data-start="2027-10-15" data-end="2027-10-19"><p class="row__date"></p><div><p class="row__t">Congrès international d'oncologie — exemple</p><p class="row__d">Oncologie</p></div><p class="row__place">Berlin, Allemagne</p><button class="btn btn--line btn--sm" type="button" data-open>Voir la fiche</button></li>
-          <li class="row" data-id="CG-0103" data-disc="Diabétologie" data-country="France" data-city="Lyon" data-start="2027-03-23" data-end="2027-03-26"><p class="row__date"></p><div><p class="row__t">Journées françaises de diabétologie — exemple</p><p class="row__d">Diabétologie</p></div><p class="row__place">Lyon, France</p><button class="btn btn--line btn--sm" type="button" data-open>Voir la fiche</button></li>
-          <li class="row" data-id="CG-0104" data-disc="Neurologie" data-country="Autriche" data-city="Vienne" data-start="2027-06-19" data-end="2027-06-22"><p class="row__date"></p><div><p class="row__t">Congrès mondial de neurologie — exemple</p><p class="row__d">Neurologie</p></div><p class="row__place">Vienne, Autriche</p><button class="btn btn--line btn--sm" type="button" data-open>Voir la fiche</button></li>
-          <li class="row" data-id="CG-0105" data-disc="Dermatologie" data-country="Pays-Bas" data-city="Amsterdam" data-start="2027-09-29" data-end="2027-10-02"><p class="row__date"></p><div><p class="row__t">Congrès européen de dermatologie — exemple</p><p class="row__d">Dermatologie</p></div><p class="row__place">Amsterdam, Pays-Bas</p><button class="btn btn--line btn--sm" type="button" data-open>Voir la fiche</button></li>
-          <li class="row" data-id="CG-0106" data-disc="Pneumologie" data-country="Italie" data-city="Milan" data-start="2027-09-04" data-end="2027-09-08"><p class="row__date"></p><div><p class="row__t">Congrès international de pneumologie — exemple</p><p class="row__d">Pneumologie</p></div><p class="row__place">Milan, Italie</p><button class="btn btn--line btn--sm" type="button" data-open>Voir la fiche</button></li>
-          <li class="row" data-id="CG-0107" data-disc="Ophtalmologie" data-country="France" data-city="Paris" data-start="2027-05-08" data-end="2027-05-11"><p class="row__date"></p><div><p class="row__t">Rencontres d'ophtalmologie — exemple</p><p class="row__d">Ophtalmologie</p></div><p class="row__place">Paris, France</p><button class="btn btn--line btn--sm" type="button" data-open>Voir la fiche</button></li>
-          <li class="row" data-id="CG-0108" data-disc="Radiologie" data-country="Autriche" data-city="Vienne" data-start="2027-02-24" data-end="2027-02-28"><p class="row__date"></p><div><p class="row__t">Congrès européen de radiologie — exemple</p><p class="row__d">Radiologie</p></div><p class="row__place">Vienne, Autriche</p><button class="btn btn--line btn--sm" type="button" data-open>Voir la fiche</button></li>
-          <li class="row" data-id="CG-0109" data-disc="Ressources humaines" data-country="Portugal" data-city="Lisbonne" data-start="2027-04-13" data-end="2027-04-14"><p class="row__date"></p><div><p class="row__t">Sommet RH et mobilité — exemple</p><p class="row__d">Ressources humaines</p></div><p class="row__place">Lisbonne, Portugal</p><button class="btn btn--line btn--sm" type="button" data-open>Voir la fiche</button></li>
-          <li class="row" data-id="CG-0110" data-disc="Finance" data-country="Royaume-Uni" data-city="Londres" data-start="2027-11-17" data-end="2027-11-18"><p class="row__date"></p><div><p class="row__t">Forum des directions financières — exemple</p><p class="row__d">Finance</p></div><p class="row__place">Londres, Royaume-Uni</p><button class="btn btn--line btn--sm" type="button" data-open>Voir la fiche</button></li>
-          <li class="row" data-id="CG-0111" data-disc="Cardiologie" data-country="États-Unis" data-city="Chicago" data-start="2027-11-13" data-end="2027-11-16"><p class="row__date"></p><div><p class="row__t">Congrès nord-américain de cardiologie — exemple</p><p class="row__d">Cardiologie</p></div><p class="row__place">Chicago, États-Unis</p><button class="btn btn--line btn--sm" type="button" data-open>Voir la fiche</button></li>
-          <li class="row" data-id="CG-0112" data-disc="Oncologie" data-country="France" data-city="Marseille" data-start="2027-01-28" data-end="2027-01-30"><p class="row__date"></p><div><p class="row__t">Journées d'oncologie digestive — exemple</p><p class="row__d">Oncologie</p></div><p class="row__place">Marseille, France</p><button class="btn btn--line btn--sm" type="button" data-open>Voir la fiche</button></li>
-        </ul>
-        <div class="empty" data-empty hidden><p class="h3">Aucun congrès ne correspond.</p><p class="small">Élargissez la période ou la discipline — ou décrivez votre congrès, nous le cherchons pour vous.</p><button class="btn btn--navy btn--sm" type="button" data-go="contact" data-need="Congrès hors catalogue">Demander une recherche</button></div>
-        <nav class="pager" data-pager aria-label="Pages du catalogue"></nav>
-      </div>
+    <div class="cat__list">
+      <p class="cat__bar"><span data-count-label aria-live="polite">12 congrès</span><span>Tri : date croissante</span></p>
+      <ul class="rows" data-rows>
+        <li class="row" data-id="CG-0101" data-disc="Cardiologie" data-country="Espagne" data-city="Madrid" data-start="2027-08-27" data-end="2027-08-30"><p class="row__date"></p><div><p class="row__t">Congrès européen de cardiologie — exemple</p><p class="row__d">Cardiologie</p></div><p class="row__place">Madrid, Espagne</p><button class="btn btn--line btn--sm" type="button" data-open>Voir la fiche</button></li>
+        <li class="row" data-id="CG-0102" data-disc="Oncologie" data-country="Allemagne" data-city="Berlin" data-start="2027-10-15" data-end="2027-10-19"><p class="row__date"></p><div><p class="row__t">Congrès international d’oncologie — exemple</p><p class="row__d">Oncologie</p></div><p class="row__place">Berlin, Allemagne</p><button class="btn btn--line btn--sm" type="button" data-open>Voir la fiche</button></li>
+        <li class="row" data-id="CG-0103" data-disc="Diabétologie" data-country="France" data-city="Lyon" data-start="2027-03-23" data-end="2027-03-26"><p class="row__date"></p><div><p class="row__t">Journées françaises de diabétologie — exemple</p><p class="row__d">Diabétologie</p></div><p class="row__place">Lyon, France</p><button class="btn btn--line btn--sm" type="button" data-open>Voir la fiche</button></li>
+        <li class="row" data-id="CG-0104" data-disc="Neurologie" data-country="Autriche" data-city="Vienne" data-start="2027-06-19" data-end="2027-06-22"><p class="row__date"></p><div><p class="row__t">Congrès mondial de neurologie — exemple</p><p class="row__d">Neurologie</p></div><p class="row__place">Vienne, Autriche</p><button class="btn btn--line btn--sm" type="button" data-open>Voir la fiche</button></li>
+        <li class="row" data-id="CG-0105" data-disc="Dermatologie" data-country="Pays-Bas" data-city="Amsterdam" data-start="2027-09-29" data-end="2027-10-02"><p class="row__date"></p><div><p class="row__t">Congrès européen de dermatologie — exemple</p><p class="row__d">Dermatologie</p></div><p class="row__place">Amsterdam, Pays-Bas</p><button class="btn btn--line btn--sm" type="button" data-open>Voir la fiche</button></li>
+        <li class="row" data-id="CG-0106" data-disc="Pneumologie" data-country="Italie" data-city="Milan" data-start="2027-09-04" data-end="2027-09-08"><p class="row__date"></p><div><p class="row__t">Congrès international de pneumologie — exemple</p><p class="row__d">Pneumologie</p></div><p class="row__place">Milan, Italie</p><button class="btn btn--line btn--sm" type="button" data-open>Voir la fiche</button></li>
+        <li class="row" data-id="CG-0107" data-disc="Ophtalmologie" data-country="France" data-city="Paris" data-start="2027-05-08" data-end="2027-05-11"><p class="row__date"></p><div><p class="row__t">Rencontres d’ophtalmologie — exemple</p><p class="row__d">Ophtalmologie</p></div><p class="row__place">Paris, France</p><button class="btn btn--line btn--sm" type="button" data-open>Voir la fiche</button></li>
+        <li class="row" data-id="CG-0108" data-disc="Radiologie" data-country="Autriche" data-city="Vienne" data-start="2027-02-24" data-end="2027-02-28"><p class="row__date"></p><div><p class="row__t">Congrès européen de radiologie — exemple</p><p class="row__d">Radiologie</p></div><p class="row__place">Vienne, Autriche</p><button class="btn btn--line btn--sm" type="button" data-open>Voir la fiche</button></li>
+        <li class="row" data-id="CG-0109" data-disc="Ressources humaines" data-country="Portugal" data-city="Lisbonne" data-start="2027-04-13" data-end="2027-04-14"><p class="row__date"></p><div><p class="row__t">Sommet RH et mobilité — exemple</p><p class="row__d">Ressources humaines</p></div><p class="row__place">Lisbonne, Portugal</p><button class="btn btn--line btn--sm" type="button" data-open>Voir la fiche</button></li>
+        <li class="row" data-id="CG-0110" data-disc="Finance" data-country="Royaume-Uni" data-city="Londres" data-start="2027-11-17" data-end="2027-11-18"><p class="row__date"></p><div><p class="row__t">Forum des directions financières — exemple</p><p class="row__d">Finance</p></div><p class="row__place">Londres, Royaume-Uni</p><button class="btn btn--line btn--sm" type="button" data-open>Voir la fiche</button></li>
+        <li class="row" data-id="CG-0111" data-disc="Cardiologie" data-country="États-Unis" data-city="Chicago" data-start="2027-11-13" data-end="2027-11-16"><p class="row__date"></p><div><p class="row__t">Congrès nord-américain de cardiologie — exemple</p><p class="row__d">Cardiologie</p></div><p class="row__place">Chicago, États-Unis</p><button class="btn btn--line btn--sm" type="button" data-open>Voir la fiche</button></li>
+        <li class="row" data-id="CG-0112" data-disc="Oncologie" data-country="France" data-city="Marseille" data-start="2027-01-28" data-end="2027-01-30"><p class="row__date"></p><div><p class="row__t">Journées d’oncologie digestive — exemple</p><p class="row__d">Oncologie</p></div><p class="row__place">Marseille, France</p><button class="btn btn--line btn--sm" type="button" data-open>Voir la fiche</button></li>
+      </ul>
+      <div class="empty" data-empty hidden><p class="h3">Aucun congrès ne correspond.</p><p>Élargissez la période ou la discipline, ou décrivez votre congrès : nous le cherchons pour vous.</p><a class="btn btn--ink btn--sm" href="#contact" data-journey="congres">Demander une recherche</a></div>
+      <nav class="pager" data-pager aria-label="Pages du catalogue"></nav>
+      <p class="foot">Noms, dates et lieux fictifs pour la démonstration. En production, chaque fiche est saisie ou importée (CSV) dans la <a href="console/">Console</a>, validée puis publiée ; les statuts internes et les codes GM&amp;E ne sont jamais envoyés au navigateur.</p>
     </div>
-    <p class="foot">Noms, dates et lieux fictifs pour la démonstration. En production, chaque fiche est saisie ou importée (CSV) dans la Console, validée, puis publiée ; les statuts internes ne sont jamais affichés ici.</p>
-  </article>
-
-  <!-- 04 agence -->
-  <article class="dp" id="agence" role="tabpanel" data-chapter="04" data-chapter-name="L'agence" hidden inert>
-    <header class="dp__head"><p class="chapter-mark"><span>04 —</span> L'agence</p><h2 class="h2">Une agence à taille humaine, un réseau national.</h2><p class="lead">À partir d'une relation basée sur la confiance, l'expertise et la simplicité.</p></header>
-    <div class="ag">
-      <section class="card reveal">
-        <p class="quote">« Chaque entreprise quelque soit sa taille et son volume consacré aux voyages affaires est suivie et conseillée par un interlocuteur dédié. »</p>
-        <div class="stats">
-          <p class="stat"><b data-count="122" data-prefix="+">+122</b><span>agences et plateaux d'affaires Selectour Affaires en France</span></p>
-          <p class="stat"><b data-count="24" data-suffix="h/24">24h/24</b><span>service dédié aux voyageurs d'affaires</span></p>
-          <p class="stat"><b data-count="7" data-suffix=" j/7">7 j/7</b><span>assistance gérée par les équipes Selectour</span></p>
-        </div>
-        <div class="selectour"><img src="assets/img/selectour-affaires.png" alt="Selectour Affaires" width="300" height="136" loading="lazy"><p class="small">Membre du réseau Selectour Affaires — mention et logo repris du site actuel.</p></div>
-      </section>
-      <section class="card reveal">
-        <p class="eyebrow">Ressources</p><h3 class="h3">Équipe, références, guides</h3>
-        <ul><li>Équipe : portraits et rôles autorisés par ASSET</li><li>Références clients : uniquement celles approuvées</li><li>Guides et FAQ voyages d'affaires (reprise de la FAQ actuelle)</li><li>Actualités éditables par Veena, sans développeur</li></ul>
-        <p class="note">Emplacements volontairement vides : aucune référence, aucun témoignage ni aucun chiffre n'est inventé dans cette maquette.</p>
-      </section>
-    </div>
-  </article>
-
-  <!-- 05 contact -->
-  <article class="dp" id="contact" role="tabpanel" data-chapter="05" data-chapter-name="Contact" hidden inert>
-    <header class="dp__head"><p class="chapter-mark"><span>05 —</span> Contact</p><h2 class="h2">Trois parcours, trois équipes.</h2><p class="lead">Choisissez votre besoin : la demande arrive directement à la bonne personne.</p></header>
-    <div class="journeys">
-      <section class="card card--navy"><p class="eyebrow">Entreprise</p><h3 class="h3">Voyages d'affaires</h3><p class="small">Compte, audit, démo : formulaire ci-dessous.</p><a class="lnk" href="#f-co" data-focus="f-co">Remplir le formulaire →</a></section>
-      <section class="card"><p class="eyebrow">Événement</p><h3 class="h3">MICE</h3><p class="small">Séminaire, incentive, congrès d'entreprise : brief progressif.</p><button class="lnk" type="button" data-go="mice">Démarrer le brief →</button></section>
-      <section class="card"><p class="eyebrow">Congressiste</p><h3 class="h3">Congrès</h3><p class="small">Trouvez le congrès, demandez votre vol depuis sa fiche.</p><button class="lnk" type="button" data-go="congres">Ouvrir le catalogue →</button></section>
-    </div>
-    <div class="contact">
-      <form class="card form" data-form="f01" novalidate aria-label="Demande voyages d'affaires">
-        <div class="field"><label for="f-co">Société</label><input id="f-co" name="company" autocomplete="organization" required></div>
-        <div class="field"><label for="f-name">Nom</label><input id="f-name" name="name" autocomplete="name" required></div>
-        <div class="field"><label for="f-mail">E-mail professionnel</label><input id="f-mail" name="email" type="email" inputmode="email" autocomplete="email" required></div>
-        <div class="field"><label for="f-tel">Téléphone</label><input id="f-tel" name="tel" type="tel" inputmode="tel" autocomplete="tel"></div>
-        <div class="field"><label for="f-cat">Catégorie</label><select id="f-cat" name="cat"><option>PME / PMI</option><option>TPE</option><option>ETI / grand compte</option><option>Profession libérale</option><option>Association / institution</option></select></div>
-        <div class="field"><label for="f-need">Besoin</label><select id="f-need" name="need" data-need-select><option>Ouverture de compte</option><option>Audit de vos voyages</option><option>Assistance et services</option><option>Démo Wondermiles</option><option>Congrès hors catalogue</option><option>Autre</option></select></div>
-        <div class="field field--full"><label for="f-msg">Commentaires</label><textarea id="f-msg" name="msg" rows="2"></textarea></div>
-        <label class="check"><input type="checkbox" name="news"> J'accepte de recevoir les informations d'ASSET Voyages (facultatif).</label>
-        <p class="foot field--full">Vos données servent uniquement à traiter cette demande. Maquette : aucun envoi réseau.</p>
-        <div class="form__actions"><button class="btn btn--navy" type="submit">Envoyer la demande</button></div>
-        <p class="ok" data-ok hidden role="status">Merci — demande enregistrée (maquette). En production : accusé de réception, routage vers l'équipe voyages d'affaires, statut dans la Console.</p>
-      </form>
-      <section class="card">
-        <p class="eyebrow">L'agence</p>
-        <address class="addr">ASSET Voyages — Selectour<br>58, rue Jean-Pierre Timbaud<br>92130 Issy-les-Moulineaux</address>
-        <a class="tel" href="tel:+33155572900">01 55 57 29 00</a>
-        <figure class="map"><svg viewBox="0 0 320 120" role="img" aria-label="Plan schématique, non à l'échelle"><rect width="320" height="120" fill="#EEECE6"/><path d="M0 84C80 70 140 96 220 76S320 60 320 60" fill="none" stroke="#0dafdb" stroke-opacity=".5" stroke-width="10"/><g stroke="#0d3048" stroke-opacity=".25"><path d="M40 0v120M120 0v120M200 0v120M280 0v120M0 30h320"/></g><circle cx="160" cy="44" r="7" fill="#EF760D"/><text x="174" y="48" font-family="Inter,system-ui,sans-serif" font-size="11" fill="#141414">ASSET Voyages</text></svg></figure>
-        <p class="foot">Plan schématique, non à l'échelle.</p>
-      </section>
-    </div>
-  </article>
   </div>
 </section>
 
-<section class="teaser" id="why" data-chapter="06" data-chapter-name="Pourquoi ce concept">
-  <div class="teaser__in">
-    <div><p class="chapter-mark chapter-mark--cream"><span>06 —</span> Pourquoi ce concept</p><h2 class="h2">Une maquette qui répond au cahier des charges, écran par écran.</h2><p class="lead">Trois parcours commerciaux, un catalogue de congrès filtrable, une console d'édition pour Veena — en français, prêt pour l'anglais.</p></div>
-    <div class="btns"><a class="btn btn--cream" href="pour-asset/">Lire la note pour ASSET</a><a class="btn btn--ghost" href="console/">Voir la Console (maquette)</a></div>
+<!-- 05 METHOD: drum -->
+<section class="method sec-navy" id="methode" aria-labelledby="me-h" data-drum>
+  <div class="method__sticky">
+    <div class="method__intro">
+      <p class="label">La méthode ASSET</p>
+      <h2 class="h2" id="me-h">Un interlocuteur. Une méthode. Du brief au retour.</h2>
+      <p class="lead">« Nous traitons tous vos processus avant, pendant et après le voyage. »</p>
+      <span class="method__bar" aria-hidden="true"><i></i></span>
+    </div>
+    <div class="method__window">
+      <ol class="method__steps">
+        <li data-step><span class="method__n">01</span><div><h3>Analyse</h3><p>« Nous vous proposons une première prise de contact afin de mieux comprendre le profil de vos dépenses en voyages d’affaires et déplacements professionnels. »</p></div></li>
+        <li data-step><span class="method__n">02</span><div><h3>Cahier des charges</h3><p>« Nous établissons ensemble un document précis pour ne rien laisser au hasard. »</p></div></li>
+        <li data-step><span class="method__n">03</span><div><h3>Réservation</h3><p>« Nous trouvons la meilleure combinaison tarifaire pour les billets complexes, comme les multi-segments ou les tours du monde. »</p></div></li>
+        <li data-step><span class="method__n">04</span><div><h3>Accompagnement</h3><p>« Nous vous informons en temps réel en cas de phénomène climatique extrême ou d’événements qui pourraient influencer vos voyages d’affaires. »</p></div></li>
+        <li data-step><span class="method__n">05</span><div><h3>Bilan</h3><p>« Un reporting complet et personnalisé des voyages d’affaires de vos collaborateurs. »</p></div></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- 06 SERVICES: hover list -->
+<section class="caps sec-ink" id="services" aria-labelledby="ca-h">
+  <div class="caps__top">
+    <p class="label" data-reveal>Gamme de service complète</p>
+    <h2 class="h2" id="ca-h" data-reveal>Tout ce que contient la pochette. Une seule agence.</h2>
+  </div>
+  <ol class="caps__list">
+    <li data-reveal><span class="caps__n">01</span><h3>Service VIP</h3><p>Un service cousu main pour répondre aux demandes de voyages des dirigeants les plus exigeants.</p></li>
+    <li data-reveal><span class="caps__n">02</span><h3>Service 24h/24</h3><p>Un service dédié pour les voyageurs d’affaires, disponible <span class="nw">24h/24, 7 jours/7</span>.</p></li>
+    <li data-reveal><span class="caps__n">03</span><h3>Offre PME-TPE</h3><p>Solution de voyages d’affaires dédiée aux PME et TPE.</p></li>
+    <li data-reveal><span class="caps__n">04</span><h3>Politique de voyages</h3><p>Définir précisément les règles de transport, d’hébergement et d’assurance.</p></li>
+    <li data-reveal><span class="caps__n">05</span><h3>Expertise tarifaire</h3><p>Une expertise tarifaire au service de votre budget voyage.</p></li>
+    <li data-reveal><span class="caps__n">06</span><h3>Diagnostic</h3><p>Un diagnostic complet avec des recommandations d’optimisation.</p></li>
+    <li data-reveal><span class="caps__n">07</span><h3>Notes de frais</h3><p>Gestion des notes de frais liées aux déplacements professionnels.</p></li>
+    <li data-reveal><span class="caps__n">08</span><h3>Dématérialisation des factures</h3><p>Automatiser l’archivage de toutes vos pièces justificatives liées aux voyages.</p></li>
+    <li data-reveal><span class="caps__n">09</span><h3>Statistiques</h3><p>Un reporting complet et personnalisé des voyages d’affaires de vos collaborateurs.</p></li>
+    <li data-reveal><span class="caps__n">10</span><h3>Géolocalisation</h3><p>Vos voyageurs reçoivent des recommandations efficaces et un soutien immédiat.</p></li>
+    <li data-reveal><span class="caps__n">11</span><h3>Assurances</h3><p>Assurance voyages d’affaires : protection de vos salariés.</p></li>
+    <li data-reveal><span class="caps__n">12</span><h3>Voyages de groupes</h3><p>Le service Voyage de groupes « CE &amp; Collectivités ».</p></li>
+    <li data-reveal><span class="caps__n">13</span><h3>Événementiel et séminaire</h3><p>Organisation de séminaire et événementiel d’entreprise.</p></li>
+  </ol>
+</section>
+
+<!-- 07 AGENCY -->
+<section class="agency sec-paper" id="agence" aria-labelledby="ag-h">
+  <p class="label" data-reveal>L’agence</p>
+  <div class="agency__main">
+    <h2 class="display" id="ag-h" data-reveal>À taille humaine. Dans le premier réseau dédié.</h2>
+    <div class="agency__cols">
+      <div data-reveal>
+        <p class="lead">Chaque entreprise quelque soit sa taille et son volume consacré aux voyages affaires est suivie et conseillée par un interlocuteur dédié qui lui proposera des solutions sur mesure au meilleur prix du marché, tout en étant réactif aux demandes liées à des situations imprévues de dernière minute.</p>
+        <p>À partir d’une relation basée sur la confiance, l’expertise et la simplicité. Nous mettons à votre disposition un ensemble de services complets et sur-mesure qui s’adaptent à vos besoins réels.</p>
+      </div>
+      <aside class="agency__card" data-reveal>
+        <img src="assets/img/selectour-affaires.png" alt="Selectour Affaires" width="300" height="136" loading="lazy">
+        <p class="agency__fig"><b>+122</b> agences et plateaux d’affaires</p>
+        <p class="small">« Avec plus de 122 agences et plateaux d’affaires en France, Selectour Affaires constitue le premier réseau dédié aux voyages d’affaires. » <span class="muted">Chiffre repris du site actuel, non daté : à revérifier avant publication.</span></p>
+      </aside>
+    </div>
+    <figure class="agency__photo" data-reveal>
+      <img src="assets/img/skyline.webp" alt="Vue urbaine, photo du site actuel d’ASSET Voyages" width="1600" height="607" loading="lazy">
+      <figcaption>58, rue Jean-Pierre Timbaud · 92130 Issy-les-Moulineaux · photo du site actuel</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- 08 CONTACT -->
+<section class="contact sec-ink" id="contact" aria-labelledby="co-h">
+  <div class="contact__top">
+    <p class="label" data-reveal>Contact</p>
+    <h2 class="display" id="co-h" data-reveal>Votre prochain départ commence par un brief.</h2>
+  </div>
+  <div class="contact__grid">
+    <div class="contact__side">
+      <p class="lead">Trois parcours, un seul interlocuteur. Aucun compte à créer.</p>
+      <a class="contact__tel" href="tel:+33155572900"><span class="nw">01 55 57 29 00</span></a>
+      <address>ASSET Voyages — Selectour<br>58, rue Jean-Pierre Timbaud<br>92130 Issy-les-Moulineaux</address>
+    </div>
+    <form class="form" data-form="contact" novalidate aria-label="Formulaire de contact">
+      <fieldset class="journeys">
+        <legend>Vous êtes</legend>
+        <label><input type="radio" name="journey" value="entreprise" checked data-j><span><b>Une entreprise</b>Compte, audit, assistance</span></label>
+        <label><input type="radio" name="journey" value="evenement" data-j><span><b>Un événement</b>Séminaire, incentive, groupe</span></label>
+        <label><input type="radio" name="journey" value="congres" data-j><span><b>Un congrès</b>Vol vers un congrès</span></label>
+      </fieldset>
+      <div class="form__grid" data-part="entreprise">
+        <div class="field"><label for="c-co">Société</label><input id="c-co" name="company" autocomplete="organization" required></div>
+        <div class="field"><label for="c-cat">Catégorie</label><select id="c-cat" name="cat"><option>PME / PMI</option><option>TPE</option><option>ETI / grand compte</option><option>Association / institution</option></select></div>
+        <div class="field"><label for="c-vol">Volume estimé</label><select id="c-vol" name="vol"><option>Moins de 20 déplacements par an</option><option>20 à 100 par an</option><option>Plus de 100 par an</option><option>Je ne sais pas encore</option></select></div>
+        <div class="field"><label for="c-need">Besoin</label><select id="c-need" name="need" data-need-select><option>Ouverture de compte</option><option>Audit de vos voyages</option><option>Assistance et services</option><option>Démo de l’outil de réservation</option><option>Autre</option></select></div>
+      </div>
+      <div class="form__grid" data-part="evenement" hidden>
+        <div class="field"><label for="m-type">Type d’événement</label><select id="m-type" name="etype"><option>Séminaire</option><option>Incentive</option><option>Voyage de groupe</option><option>Convention</option></select></div>
+        <div class="field"><label for="m-dest">Destination(s)</label><input id="m-dest" name="dest" placeholder="France, Europe, long-courrier…" autocomplete="off"></div>
+        <div class="field"><label for="m-when">Dates (souples)</label><input id="m-when" name="when" placeholder="ex. printemps 2027" autocomplete="off"></div>
+        <div class="field"><label for="m-pax">Participants</label><input id="m-pax" name="pax" type="number" min="10" inputmode="numeric" value="25"><span class="hint">À partir de 10 personnes</span></div>
+        <div class="field field--full"><label for="m-svc">Services souhaités</label><input id="m-svc" name="svc" placeholder="transport, hébergement, salle, activités…" autocomplete="off"></div>
+        <p class="recap field--full" data-recap aria-live="polite"></p>
+      </div>
+      <div class="form__grid" data-part="congres" hidden>
+        <p class="field--full">Le plus rapide : <a class="lnk lnk--light" href="#congres">ouvrez la fiche du congrès</a>, la demande de vol y est pré-remplie. Congrès absent du catalogue ? Décrivez-le ici.</p>
+        <div class="field field--full"><label for="g-name">Congrès (nom, ville, dates)</label><input id="g-name" name="congress" autocomplete="off"></div>
+      </div>
+      <div class="form__grid">
+        <div class="field"><label for="c-name">Nom</label><input id="c-name" name="name" autocomplete="name" required></div>
+        <div class="field"><label for="c-mail">E-mail professionnel</label><input id="c-mail" name="email" type="email" inputmode="email" autocomplete="email" required></div>
+        <div class="field"><label for="c-tel">Téléphone (facultatif)</label><input id="c-tel" name="tel" type="tel" inputmode="tel" autocomplete="tel"></div>
+        <div class="field field--full"><label for="c-msg">Commentaires</label><textarea id="c-msg" name="msg" rows="3"></textarea></div>
+      </div>
+      <p class="privacy">Vos données servent uniquement à traiter votre demande. Aucune donnée personnelle dans les adresses de page ni dans la mesure d’audience.</p>
+      <p class="form__actions"><button class="btn btn--accent" type="submit">Envoyer la demande <b aria-hidden="true">→</b></button></p>
+      <p class="ok" data-ok role="status" hidden></p>
+    </form>
   </div>
 </section>
 </main>
 
 <footer class="ftr">
-  <div class="ftr__in">
-    <img src="assets/logo-asset.png" alt="ASSET Voyages" width="490" height="180" loading="lazy">
-    <div><p>ASSET Voyages — Selectour · 58, rue Jean-Pierre Timbaud, 92130 Issy-les-Moulineaux · <a href="tel:+33155572900">01 55 57 29 00</a></p><p>Concept de refonte non officiel, préparé par ProdCraft. Non indexé.</p></div>
-    <nav aria-label="Pied de page"><a href="#contact" data-go="contact">Contact</a><a href="pour-asset/">Note pour ASSET</a><a href="console/">Console (maquette)</a><span class="lnk">Mentions légales — à reprendre</span></nav>
-  </div>
+  <div class="ftr__brand"><img src="assets/logo-asset-light.png" alt="ASSET Voyages" width="263" height="90" loading="lazy"><p>Agence de voyages d’affaires dédiée aux entreprises. Membre du réseau Selectour.</p></div>
+  <div><p class="label">Agence</p><p>58, rue Jean-Pierre Timbaud<br>92130 Issy-les-Moulineaux<br><a href="tel:+33155572900" class="nw">01 55 57 29 00</a></p></div>
+  <div><p class="label">Liens</p><p><a href="#offres">Offres</a><br><a href="#congres">Congrès</a><br><a href="#contact">Contact</a><br><a href="#top">Haut de page ↑</a></p></div>
+  <p class="ftr__meta">Concept de refonte non officiel, préparé par ProdCraft · <a href="pour-asset/">Note pour ASSET</a> · <a href="console/">Console (maquette)</a> · non indexé</p>
 </footer>
 
 <dialog class="listing" data-listing aria-labelledby="l-title">
   <button class="listing__close" type="button" data-close aria-label="Fermer">×</button>
   <div class="listing__in">
     <div class="listing__info">
-      <p class="eyebrow">Fiche congrès <span class="tag tag--sample">Exemple</span></p>
+      <p class="label">Fiche congrès <span class="tag">Exemple</span></p>
       <h3 class="h3" id="l-title" data-l-title></h3>
-      <dl class="facts"><dt>Dates</dt><dd data-l-dates></dd><dt>Lieu</dt><dd data-l-place></dd><dt>Discipline</dt><dd data-l-disc></dd><dt>Référence</dt><dd data-l-id></dd><dt>Source officielle</dt><dd>Site de l'organisateur — lien saisi dans la Console</dd><dt>Vérifié le</dt><dd data-l-ver>12 octobre 2026 (exemple)</dd></dl>
-      <p class="note">ASSET émet le devis ; aucun billet n'est émis automatiquement.</p>
+      <dl class="facts"><dt>Dates</dt><dd data-l-dates></dd><dt>Lieu</dt><dd data-l-place></dd><dt>Discipline</dt><dd data-l-disc></dd><dt>Référence</dt><dd data-l-id></dd><dt>Source officielle</dt><dd>Site de l’organisateur (lien saisi dans la Console)</dd><dt>Vérifié le</dt><dd>12 octobre 2026 (exemple)</dd></dl>
+      <p class="small">ASSET émet le devis ; aucun billet n’est émis automatiquement.</p>
     </div>
-    <form class="listing__form form" data-form="f03" novalidate aria-label="Demander un devis vol">
-      <p class="h3 field--full">Demander un devis vol</p>
+    <form class="listing__form" data-form="f03" novalidate aria-label="Demander un devis vol">
+      <p class="h3">Demander un devis vol</p>
       <div class="field field--full"><label for="d-ev">Congrès</label><input id="d-ev" name="event" readonly></div>
-      <div class="field"><label for="d-from">Aéroport ou ville de départ</label><input id="d-from" name="from" list="airports" placeholder="Tout aéroport" autocomplete="off" required><datalist id="airports"><option value="Paris — CDG"><option value="Paris — Orly"><option value="Lyon"><option value="Marseille"><option value="Nice"><option value="Toulouse"><option value="Bordeaux"><option value="Nantes"></datalist></div>
+      <div class="field"><label for="d-from">Départ (aéroport ou ville)</label><input id="d-from" name="from" list="airports" placeholder="Tout aéroport" autocomplete="off" required><datalist id="airports"><option value="Paris — CDG"><option value="Paris — Orly"><option value="Lyon"><option value="Marseille"><option value="Nice"><option value="Toulouse"><option value="Bordeaux"><option value="Nantes"></datalist></div>
       <div class="field"><label for="d-to">Destination</label><input id="d-to" name="to" required></div>
-      <div class="field"><label for="d-out">Aller</label><input id="d-out" name="out" type="date" required></div>
-      <div class="field"><label for="d-back">Retour</label><input id="d-back" name="back" type="date"></div>
+      <div class="field"><label for="d-out">Aller (jj/mm/aaaa)</label><input id="d-out" name="out" inputmode="numeric" pattern="\d{2}/\d{2}/\d{4}" placeholder="jj/mm/aaaa" required></div>
+      <div class="field"><label for="d-back">Retour (jj/mm/aaaa)</label><input id="d-back" name="back" inputmode="numeric" pattern="\d{2}/\d{2}/\d{4}" placeholder="jj/mm/aaaa"></div>
       <div class="field"><label for="d-pax">Voyageurs</label><input id="d-pax" name="pax" type="number" min="1" value="1" inputmode="numeric" required></div>
       <div class="field"><label for="d-class">Classe</label><select id="d-class" name="cls"><option>Économique</option><option>Premium économique</option><option>Affaires</option><option>Première</option></select></div>
       <div class="field"><label for="d-name">Nom</label><input id="d-name" name="name" autocomplete="name" required></div>
       <div class="field"><label for="d-mail">E-mail</label><input id="d-mail" name="email" type="email" inputmode="email" autocomplete="email" required></div>
-      <div class="form__actions"><button class="btn btn--navy" type="submit">Demander le devis</button></div>
-      <p class="ok" data-ok hidden role="status"></p>
+      <p class="form__actions field--full"><button class="btn btn--accent" type="submit">Demander le devis</button></p>
+      <p class="ok field--full" data-ok role="status" hidden></p>
     </form>
   </div>
 </dialog>
-
-<nav class="mbar" data-mbar aria-label="Actions rapides">
-  <a class="btn btn--line" href="tel:+33155572900">Appeler</a>
-  <a class="btn btn--line" href="#congres" data-go="congres">Congrès</a>
-  <a class="btn btn--navy" href="#contact" data-go="contact">Contact</a>
-</nav>
-
-<script src="js/backdrop.js" defer></script>
-<script src="js/main.js" defer></script>
 </body>
 </html>

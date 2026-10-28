@@ -87,3 +87,10 @@
 - **First-screen changes are never numeric-only (prodcraft v2.3, 2026-10-19):** any CSS touching the cover ships only after a reviewer reads the re-shot cover frames at 0/30/55/80/100 % across the matrix. Elements that share a column (plate + rail) live in one flex column, never independent offsets; assert non-intersection of their boxes at every viewport × progress.
 - **Serve locally with the real `_headers`** (`qa_live/serve_csp.mjs`): a CSP-blocked inline style or script is invisible on `http.server` and a console error on every live viewport. No `style=""` attributes in shipped HTML.
 - **Reviewer hygiene:** ≤ 40 images per reviewer context; require the count of files actually read in every report; if a reviewer reports a media/request limit, discard its verdicts and spawn a fresh reviewer for the unread files.
+
+## Scroll-scrubbed film (ASSET v2, 2026-10-28)
+- **Blob-scrubbed `<video preload="none">` deadlock:** gating seeks on `readyState >= 2` never fires, because nothing ever plays, so the 9 s fallback silently swapped in the canvas. After assigning the blob set `preload='auto'`, and gate seeks on `readyState >= 1`. Assert `currentSrc` starts with `blob:` and that `currentTime` lands on the keyframe in the functional suite.
+- **Encode for seeking:** use `-g 6` at 24 fps. CRF 30 for x264 and CRF 38 for VP9 give about 3 MB per 30 s vector film. Serve webm first, because the Playwright Chromium build has no H.264.
+- **The canvas fallback renders at the viewport's aspect, not the video's.** Keep labels inside the clip at 16:10 as well as 16:9 (flip sides when there is no room).
+- **Self-rendered film:** a pure `draw(ctx, W, H, t)` module drives both the render (`?record=1`) and the live fallback. Review keyframe contact sheets for both aspects before rendering. GLM drafts need re-choreography; budget for it.
+- `site_check.mjs` now ignores blob:/data: URLs. They have no host and used to read as "third-party hosts: ''".

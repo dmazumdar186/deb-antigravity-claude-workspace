@@ -50,3 +50,132 @@ No Agent tool was available inside the build worker, so the worker read the PNGs
 - No independent reviewer sub-agent.
 - The sandbox cannot screenshot *.pages.dev, so the live viewport trust gate was not run.
 - The real Wondermiles client-area URL is unknown, so that link is a note.
+
+---
+
+# v2 — concept-first redesign « Du brief au retour » (2026-10-28)
+
+The operator rejected v1 because the fold-out and tabs read as a copy of an earlier concept. v2 was rebuilt from a concept paper (`04_Concept_Paper.md`), not patched.
+
+**Live (noindex), same URLs:**
+- https://asset-voyages-redesign.pages.dev/
+- pitch: https://asset-voyages-redesign.pages.dev/pour-asset/
+- console: https://asset-voyages-redesign.pages.dev/console/
+
+Git keeps v1.
+
+## Concept
+ASSET packs the trip into one travel wallet, ships it and unpacks it on site. The hero is a 30-second scroll-scrubbed film in seven stages, with a step rail: Brief → Politique voyage → Itinéraire → Réservation (the documents pack into the « pochette ») → Départ (split-flap board, plane on the route) → Sur place (a congress hall assembles, the wallet unpacks badge and programme, assistance 24h/24 · 7j/7) → Retour & reporting.
+
+**How it was chosen:**
+- `openai/gpt-6.1-sol` proposed « Le Dossier qui voyage » and two others.
+- `z-ai/glm-5.3` proposed « De la Demande au Tarmac » and two others; we rejected its invented figures.
+- The synthesis and the reasons are in the paper.
+- Logs and costs: `research/glm_log.md`, $0.107 in total. Raw input and output: `research/v2_models/`.
+
+## Sections
+1. **Floating pill header** with a progress bar, « Espace client » note (Traveldoo vs Wondermiles) and an FR / EN « bientôt » switch.
+2. **Film.**
+3. **Statement band.**
+4. **Pinned card stack: « Ce que contient la pochette ».** Three document-styled offer cards:
+   - boarding pass: Voyages d'affaires
+   - seminar programme: Meetings & Events
+   - congress badge: Congrès internationaux
+5. **Congress catalogue.** The v1 logic, restyled. It covers search, filters, sort, pagination, no-results, the listing dialog and the F03 quote prefilled with fr-FR dates in a text field.
+6. **Drum « La méthode ASSET ».** Five steps, each held for 60 % of its scroll unit.
+7. **Hover list.** The 13 services that are actually on their site.
+8. **L'agence.** Selectour and the skyline photo from their site.
+9. **Contact.** Three journeys (F01, F02 with a live summary, congrès).
+10. **Footer.**
+
+## Facts
+- All quotes are verbatim from the live pages, fetched again on 2026-10-28:
+  - home
+  - service-evenementiel-seminaire-entreprise
+  - voyages-de-groupes-entreprise
+  - diagnostic
+  - politique-de-voyages
+  - notes-de-frais
+  - dematerialisation-des-factures
+  - assurance-voyages-affaires
+  - expertise-tarifaires
+  - voyage-daffaire-pme-tpe
+- No figures beyond « 122 » (footnoted as undated). No prices, %, clients, testimonials or GM&E codes.
+- The 15 % and 70 % claims on the politique-de-voyages page were deliberately left out.
+
+## Film
+- `js/film.js` is a pure function of time. The first draft was GLM's; it was re-choreographed by hand.
+- Rendered by `research/render_film.mjs` (Chromium + ffmpeg, 24 fps, GOP 6):
+
+| File | Size |
+|---|---|
+| `hero.mp4` (1920×1080) | 3.2 MB |
+| `hero.webm` (1920×1080) | 3.4 MB |
+| `hero-m.mp4` (1080×1350) | 3.0 MB |
+| `hero-m.webm` (1080×1350) | 3.7 MB |
+| posters `hero.jpg` / `hero-m.jpg` | |
+
+- The video is fetched as a blob for scrubbing, with webm preferred.
+- Fallback: the live canvas draws the same module.
+- Reduced motion: the poster plus a static list of the six other stages.
+- `hero.json` (`ready: true`) keeps the slot ready for produced footage.
+
+## Fonts
+- EB Garamond (variable, self-hosted) for display. Cormorant was removed.
+- Inter for text.
+- Zoomed accent check: `screens/accents-zoom-*.png`. The À, é and è glyphs are precomposed and correctly attached.
+
+## Gates (local, served with the real `_headers` CSP via `research/serve_csp.mjs`)
+
+**Functional suite** (`research/functional.mjs`): 46/46. It covers:
+- the film: states 0–6, rail fill, blob source, and currentTime scrubbing 15 s → 5 s
+- the card stack and the drum
+- the catalogue: search, filters, combined filter, no-results, reset, pagination
+- the listing and the F03 prefill and validation
+- F01 and F02 journeys
+- EN and the client note
+- fonts, zero console errors, zero third-party requests
+- budget and confidentiality
+- the Selectour claim
+- Pixel 7: header overlap, flattening, anchors, phone on one line, overflow, 16 px inputs
+- iPhone 13
+- reduced motion
+- pitch and console
+
+**site_check:** PASSED on /, /pour-asset/ and /console/, at desktop, Pixel 7, iPhone 13 and reduced motion. Fixes it needed along the way:
+- tap targets on the logo, EN, inline links and the phone number
+- `site_check.mjs` reported blob: URLs as third-party hosts; it now ignores hosts that are empty
+
+**Budget:** index 33 KB + css 29 KB + js 46 KB (film.js 22 KB) ≈ 108 KB. Zero third-party JS.
+
+**Confidentiality:** a grep of `site/` for other clients and projects returns 0 matches; it is also asserted in the functional suite.
+
+**Measured heights:**
+
+| | Desktop 1440 | Mobile 390 |
+|---|---|---|
+| Live site | 5,014 px | 10,527 px |
+| Concept | 21,364 px | 14,950 px |
+
+The concept is longer because the film, the card stack and the drum are scroll tracks. The pitch table states this plainly.
+
+## Eye review
+One self round on the PNGs in `screens/`. Fixed:
+- the copy column overlapping the film at 1440
+- the board not settled at the t=20 keyframe
+- a mobile subject that was too small; the portrait stage was enlarged
+- portrait labels and the hall clipped
+- the empty-state block showing under results (the `[hidden]` override)
+- uneven card heights
+- the « / » separators wrapping on mobile
+- the contact column left empty on desktop (now sticky)
+- the pitch cover misaligned with the body
+- the video readiness deadlock that silently fell back to canvas
+
+An independent reviewer is still to run (caller).
+
+## Not done
+- Not committed.
+- No independent reviewer.
+- The sandbox cannot open *.pages.dev, so the live-viewport trust gate was not run. Live verification was: HTTP 200 on /, /pour-asset/, /console/, the videos and film.js; CSS hash match on styles.css and doc.css; CSP with `blob:` confirmed in the live headers.
+- GPT was not used for microcopy. The headlines were written in session, and every quoted claim is verbatim.
