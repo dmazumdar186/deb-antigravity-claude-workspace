@@ -1,0 +1,12 @@
+# Internal: founder Q&A on deliverability, price, architecture, risk (2026-10-31) — not for the client
+
+Summary of the answers given in session (full text in the session transcript):
+1. Not 100%. ~40% of scope is proven (public site, i18n, forms, SEO, consent, hosting, acceptance register); the console/roles/versions/import/vault are new code. Defects are expected during build and caught before acceptance by staging + T01–T15 + three review rounds + 4-week stabilisation.
+2. Yes: system design (domain model, state machines, invariants) → architecture (components, trust boundaries, failure modes) → build with audit stack, SAST, human-eye gate, generated acceptance report.
+3. Price (excl. VAT): lean €4,000 build + €600/mo ×12 min; fair solo €9.5–12k + €600–750; market €18–25k + €750–900. Recommendation: €7,500 build + €600/mo 12-month minimum.
+4. Reuse: Astro/CF template, consent, GDPR flow, SEO validator, Playwright gates, proposal tooling, Jev. Build new (reusable platform): Console editor/media/versions/audit; Access roles; D1 schema; CSV import/dedup; enquiry back-office; backups + restore drill; uptime + status page; Lighthouse/axe CI; crawl→redirect map.
+5. Contracts before code; walking skeleton week 1; idempotent imports/deploys/migrations; GM&E vault structural + CI leak test; T-tests as CI; handover as product (media upload, CSV dry-run, one-click export, restore, per-screen help, generated guide, recorded training); ops without us (nightly backup, monthly restore drill, external monitor, scheduled dependency PRs).
+6. Complexity 6.2/10 (weighted function-point table). Confidence P = Π(1−r_i) ≈ 0.73 on conservative timeline (7.3/10), ≈ 5.5/10 on lean. Biggest residual risks: client inputs late (0.08), founder availability (0.07).
+7. Guardrails: signed proposal = scope; prototype table; frozen tests; deemed acceptance; 50/50 with go-live on cleared funds; changes paid first; L441-10; DPA; vault leak test; no unprovable claims; everything in their name. Reputation: generated acceptance report + test register as portfolio; footer credit + LinkedIn post.
+8. Stack: Pages, Workers, D1 (EU), R2, Access, Turnstile, Queues, Cron; TypeScript, Astro, Preact/web components, Zod, Drizzle; Brevo+Resend adapter; OpenRouter+Jev adapter. Modular monolith with adapters, not microservices. Reusable as the ProdCraft platform.
+9. Timeline: lean ~9–10 weeks to launch (late Jan 2027), conservative ~13–14 weeks (mid-Mar 2027); contract the conservative dates; +4 weeks stabilisation; second training session 4 weeks after launch.
