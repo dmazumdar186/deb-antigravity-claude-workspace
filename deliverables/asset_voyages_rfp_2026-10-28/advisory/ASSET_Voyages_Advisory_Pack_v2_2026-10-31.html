@@ -300,7 +300,7 @@ table.score td:nth-child(4){width:55%}
 </tr>
 </tbody>
 </table>
-<p>The largest unmeasured line is the Console (≈ 44 h, never timed on this stack). If I spike one thing first, it's the block editor + publish-rebuild loop. Internal reviewers' standing concerns: 44 h for a block editor with versions, media and preview is optimistic; Console UX and the MICE brief need testing with real users; single-vendor concentration. Is "40% proven" honest, and would you buy off-the-shelf for any MISSING row?</p>
+<p>The largest unmeasured line is the Console (≈ 44 h, never timed on this stack). If I spike one thing first, it's the block editor + publish-rebuild loop. Internal reviewers' standing concerns: defaults and deemed approvals may read as pressure to the client; Console design for Veena is under-specified next to the public site; 44 h for a block editor with versions, media and preview is optimistic; Console UX and the MICE brief need testing with real users; single-vendor concentration. Is "40% proven" honest, and would you buy off-the-shelf for any MISSING row?</p>
 <h1 id="4-design">4. Design</h1>
 <p><strong>Domain model.</strong> Two D1 databases: <code>public_db</code> (content, catalogue, enquiries, events; readable by build and form Worker) and <code>vault_db</code> (GM&E; bound only to the admin Worker). ULIDs; every mutable table has <code>created_at/updated_at/deleted_at/created_by/updated_by</code>.</p>
 <pre><code class="language-text">public_db
@@ -615,7 +615,7 @@ vault_db
 </tr>
 </tbody>
 </table>
-<p><strong>Why a modular monolith, and why not Directus or microservices.</strong> Five users, ≈ 300 listings, low traffic: separate services add network failure modes, deploy coordination and monitoring for no scaling benefit. One repo, three Worker entry points, shared typed modules, adapters at the edges. <em>Directus + same Astro front end:</em> mature editor, roles, revisions, media; maybe −25 to −30 h on the Console; but a server + Postgres (≈ €10–30/month, estimate), its patching and uptime become mine, ≈ 16 h setup, the vault becomes a permission setting rather than a structural split, and a second runtime to hand over. <em>WordPress + ACF</em> (keep current): cheapest for editors, but plugin surface, PHP hosting, GM&amp;E isolation harder to prove; L0 must assess it honestly. <strong>Directus is the call I most want challenged.</strong></p>
+<p><strong>Why a modular monolith, and why not Directus or microservices.</strong> Five users, ≈ 300 listings, low traffic: separate services add network failure modes, deploy coordination and monitoring for no scaling benefit. One repo, three Worker entry points, shared typed modules, adapters at the edges. <em>Directus + same Astro front end:</em> mature editor, roles, revisions, media; maybe −25 to −30 h on the Console; but a server + Postgres (≈ €10–30/month, estimate), its patching and uptime become mine, ≈ 16 h setup (≈ €1,100 at €70/h), the vault becomes a permission setting rather than a structural split, and a second runtime to hand over. <em>WordPress + ACF</em> (keep current): cheapest for editors, but plugin surface, PHP hosting, GM&amp;E isolation harder to prove; L0 must assess it honestly. <strong>Directus is the call I most want challenged.</strong> Also: is Cloudflare-only (no Workers/D1 SLA at my plan) acceptable concentration for this client? Is the KV enquiry fallback worth its complexity versus a visible error when D1 is down? Is the backup design adequate for RPO 24 h / RTO 8 bh, and what would you add?</p>
 <p><strong>Things I've thought about; check me.</strong> Platform limits from Cloudflare docs as I read them on 31 Oct; re-verify all at J0.</p>
 <table>
 <thead>
@@ -860,6 +860,18 @@ vault_db
 <td>Every preview</td>
 </tr>
 <tr>
+<td>Acceptance</td>
+<td>T01–T15 suite + report generator</td>
+<td>Evidence (screenshots, DB rows, logs) compiled into the acceptance report</td>
+<td>J3, J4, J5</td>
+</tr>
+<tr>
+<td>Human-eye gate</td>
+<td>Screenshot every page/state/viewport; reviewer reads each</td>
+<td>PASS or defect list</td>
+<td>J2, J3, J5</td>
+</tr>
+<tr>
 <td>Restore</td>
 <td>Script + stopwatch</td>
 <td><strong>T13</strong> ≤ RTO, smoke green</td>
@@ -924,10 +936,11 @@ vault_db
 </tr>
 </tbody>
 </table>
-<p><strong>Handover is a product.</strong> Media upload with required alt/rights; self-serve CSV dry run (Veena imports 10 rows); one-click export (T14); restore runbook + drill record (T13); help panel on every Console screen; illustrated guide generated from Console screenshots (Veena follows it in T15); two recorded trainings, the second 4 weeks after launch; runbook "for a stranger at 6 a.m." (deploy, rollback, restore, export, rotate secrets, add user) tested by someone not involved; signed account inventory; transfer package via password manager. Backups, drills, monitors and dependency PRs run on schedules, not my memory: if I stop, the site keeps running on ASSET's accounts.</p>
+<p><strong>Handover is a product.</strong> Media upload with required alt/rights; self-serve CSV dry run (Veena imports 10 rows); one-click export (T14); restore runbook + drill record (T13); help panel on every Console screen; illustrated guide generated from Console screenshots (Veena follows it in T15); two recorded trainings, the second 4 weeks after launch; runbook "for a stranger at 6 a.m." (deploy, rollback, restore, export, rotate secrets, add user) tested by someone not involved; signed account inventory (every account, owner, plan, cost, renewal date); transfer package via password manager with a defined transfer-assistance period (Open: length to set in the proposal). Backups, drills, monitors and dependency PRs run on schedules, not my memory: if I stop, the site keeps running on ASSET's accounts; what stops is patching and support.</p>
+<p>Questions: is a skeleton in weeks 1–2 realistic alongside the L0 audit, or does it delay J1? Which CI gate would you drop as cost without benefit, and which is missing? Is the J3 definition of done strong enough to stop me calling the Console done before Veena can use it? How would you credibly test that a stranger can follow the runbook?</p>
 <h1 id="7-effort-timeline-price">7. Effort, timeline, price</h1>
-<p><strong>Hours</strong> (estimates by analogy, not measured): two independent counts, ≈ 220 and 238 core; planning figure 265–286 with 20% contingency. Biggest swings: design 16 vs 24, PM 25 vs 18, QA 16 vs 22. Options: English 8 h · CRM connector 6 h · Wondermiles feasibility 4 h / SSO 12 h · AI ingestion 16 h. Included: up to 20 pages from ≈ 8 templates + 3 legal; up to 300 imported listings; copy from ASSET, light edit; 2 revision rounds per stage; 2 trainings; 4-week stabilisation. Translation excluded.</p>
-<p><strong>Calendar</strong> (start Mon 16 Nov if signed by 13 Nov; approvals within 3 working days; no launch 21 Dec–1 Jan). Lean ≈ 35 h/week; conservative ≈ 22 h/week plus realistic client delay. I intend to contract the conservative dates. 4–5 weeks would only work by cutting the Console to text/images and GM&amp;E to statuses only.</p>
+<p><strong>Hours</strong> (estimates by analogy, not measured): two independent counts, ≈ 220 and 238 core; planning figure 265–286 with 20% contingency. Per-line deltas (first vs second count): L0 8/12, design 16/24, pages 24/20, Console 40/44, SEO 8/12, GDPR + measurement 6/8, infra 10/12, QA 16/22, PM 25/18; forms, back-office, catalogue, handover agree. Options: English 8 h · CRM connector 6 h · Wondermiles feasibility 4 h / SSO 12 h · AI ingestion 16 h. Included: up to 20 pages from ≈ 8 templates + 3 legal; up to 300 imported listings; copy from ASSET, light edit; 2 revision rounds per stage; 2 trainings; 4-week stabilisation. Translation excluded.</p>
+<p><strong>Calendar</strong> (start Mon 16 Nov if signed by 13 Nov; approvals within 3 working days; no launch 21 Dec–1 Jan). Lean ≈ 35 h/week (≈ 9–10 weeks to launch); conservative (≈ 13–14 weeks) ≈ 22 h/week plus realistic client delay. I intend to contract the conservative dates. 4–5 weeks would only work by cutting the Console to text/images and GM&amp;E to statuses only.</p>
 <table>
 <thead>
 <tr>
@@ -1031,7 +1044,7 @@ vault_db
 </tr>
 </tbody>
 </table>
-<p>The plan covers hosting and tools (accounts in ASSET's name, paid by me), security updates, backups and drills, monitoring, up to 5 h of changes a month, Mon–Fri support, monthly report. <strong>Running costs:</strong> Workers Paid $5 (≈ €4.3, includes D1, Queues, Time Travel); D1, R2, Access (≤ 50 users, unverified), Turnstile, Web Analytics €0 at this size; Brevo €0–9; Resend €0; UptimeRobot €0–10; domain ≈ €9–32/year; L4 AI €5–20; off-platform backup Open. Total ≈ €5–15/month, up to ≈ €25 with paid monitoring. Is €7.5k so low it reads as risk? Would you go to €9.5k+?</p>
+<p>The plan covers hosting and tools (accounts in ASSET's name, paid by me), security updates, backups and drills, monitoring, up to 5 h of changes a month, Mon–Fri support, monthly report. <strong>Running costs:</strong> Workers Paid $5 (≈ €4.3, includes D1, Queues, Time Travel); D1, R2, Access (≤ 50 users, unverified), Turnstile, Web Analytics €0 at this size; Brevo €0–9 (300/day free, Starter if needed); Resend €0; UptimeRobot €0–10; domain ≈ €9–32/year; L4 AI €5–20; off-platform backup Open. Total ≈ €5–15/month, up to ≈ €25 with paid monitoring. Is €7.5k so low it reads as risk? Would you go to €9.5k+? Is 20% contingency enough for a never-built Console? Is contracting the conservative calendar right when a rival may promise 10 weeks?</p>
 <h1 id="8-risk-and-complexity">8. Risk and complexity</h1>
 <p><strong>Complexity</strong> = Σ effort weight × rating (1 trivial … 10 novel/hard to test). Ratings are my judgement, reconstructed to match the score I first computed.</p>
 <table>
@@ -1229,7 +1242,7 @@ vault_db
 </tr>
 </tbody>
 </table>
-<p>So roughly 3-in-4 on the conservative calendar, about even on lean. The two biggest residuals aren't engineering. Would you use a reference-class forecast instead? Is the Console's 22% × 8 right?</p>
+<p>So roughly 3-in-4 on the conservative calendar, about even on lean. The two biggest residuals aren't engineering. Would you use a reference-class forecast instead? Is the Console's 22% × 8 right? Add any risk I've missed.</p>
 <h1 id="9-kpis-per-stage">9. KPIs per stage</h1>
 <p>Every KPI has a method and an owner (me unless stated). "Baseline" means measured, not targeted.</p>
 <table>
@@ -1268,12 +1281,12 @@ vault_db
 </tr>
 <tr>
 <td>J5</td>
-<td>T01–T15 100% with evidence; priority redirects 100%, ≥ 95% of all URLs implemented, 0 chains, 0 blanket-to-home; RTO ≤ 8 bh; Lighthouse Perf ≥ 90, A11y ≥ 95, SEO ≥ 95; ZAP 0 high; 0 launch blockers (management)</td>
+<td>T01–T15 100% with evidence; priority redirects 100%, ≥ 95% of all URLs implemented, 0 chains, 0 blanket-to-home; RTO ≤ 8 bh; Lighthouse Perf ≥ 90, A11y ≥ 95, SEO ≥ 95; ZAP 0 high, SAST 0 HIGH/CRITICAL; 0 launch blockers (management)</td>
 <td>Acceptance report, redirect test, drill, ZAP</td>
 </tr>
 <tr>
 <td>J6</td>
-<td>Uptime ≥ 99.5%; no new 404s on mapped URLs; enquiries/day baseline by activity (Veena); Veena's first solo publish ≤ 3 working days after launch; 0 open items; 5 green front-door days</td>
+<td>Uptime ≥ 99.5%; no new 404s on mapped URLs, coverage errors trending to 0; enquiries/day baseline by activity (Veena); Veena's first solo publish ≤ 3 working days after launch; 0 open items; 5 green front-door days</td>
 <td>UptimeRobot, GSC weekly, D1 counts, audit log</td>
 </tr>
 <tr>
@@ -1345,7 +1358,7 @@ vault_db
 </tr>
 </tbody>
 </table>
-<p>Four open-ended asks: the single change that most raises on-time delivery; the one that most raises the chance of winning; anything you think is <strong>wrong</strong>, not just risky; anything you'd refuse to sign off.</p>
+<p>Four open-ended asks: the single change that most raises on-time delivery; the one that most raises the chance of winning; anything you think is <strong>wrong</strong>, not just risky; anything you'd refuse to sign off; any part of the plan you'd cut entirely.</p>
 <table class="score">
 <tr><th>§</th><th>Section</th><th>Score 1–10</th><th>Comment</th></tr>
 <tr><td>2</td><td>The job</td><td></td><td></td></tr>
@@ -1363,4 +1376,4 @@ vault_db
 <p>Name: ____________________ Date: __________ Time spent: _____ h</p>
 <h1 id="appendix-glossary-and-sources">Appendix: glossary and sources</h1>
 <p><strong>Glossary.</strong> MICE: meetings, incentives, conferences, exhibitions. GM&amp;E: Air France–KLM Global Meetings &amp; Events, per-event codes giving attendees discounted fares. Wondermiles / Traveldoo: corporate booking tools. D1: Cloudflare's hosted SQLite (Time Travel = point-in-time restore). R2: object storage. Access: Cloudflare Zero Trust login gateway. Turnstile: CAPTCHA alternative. RPO/RTO: max data loss / max restore time. LCP/INP/CLS: Core Web Vitals; TBT: lab proxy for INP; CrUX: Chrome field data. DSR: GDPR data-subject request. CNIL: French data regulator. DPA/SCCs/DPF: processing agreement / EU clauses / EU–US framework. HT/TTC: excl./incl. VAT. ZAP: OWASP scanner.</p>
-<p><strong>Sources.</strong> ASSET RFP v0.4 EN, 28 Oct 2026 (restricted); client site fetched 28 Oct 2026. Cloudflare (checked 28 Oct 2026): Workers pricing https://developers.cloudflare.com/workers/platform/pricing/ · Pages limits https://developers.cloudflare.com/pages/platform/limits/ · D1 pricing https://developers.cloudflare.com/d1/platform/pricing/ · Time Travel https://developers.cloudflare.com/d1/reference/time-travel/ · D1 location https://developers.cloudflare.com/d1/configuration/data-location/ · R2 https://developers.cloudflare.com/r2/pricing/ · Zero Trust limits https://developers.cloudflare.com/cloudflare-one/account-limits/ · Turnstile https://developers.cloudflare.com/turnstile/plans/ · Web Analytics https://www.cloudflare.com/web-analytics/ · DPA https://www.cloudflare.com/cloudflare-customer-dpa/ · incidents https://blog.cloudflare.com/cloudflare-service-outage-june-12-2025/ , https://blog.cloudflare.com/5-december-2025-outage/ . Email/monitor: https://www.brevo.com/products/transactional-email/ · https://resend.com/pricing · https://uptimerobot.com/pricing/ . Market: https://www.malt.fr/t/barometre-tarifs/tech/developpeur-backend/developpeur-fullstack · https://tjmetre.fr/barometre · https://barometre.freeland.com/tjm/developpeur · https://www.lafabriquedunet.fr/agences/pages/agences-developpement-web/tarifs · https://www.agence2web.com/tarifs-site-web/ · https://seedweb.fr/prix-site-internet/ · https://ellebay-digital.com/blog/cout-maintenance-site-web-2026 · https://makedifferent.fr/blog/cout-maintenance-site-web/ . <strong>Not sourced</strong> (Open): CNIL retention period, Google Event policy, Access ≤ 50 free users, the reconstructed complexity/risk tables.</p></body></html>
+<p><strong>Sources.</strong> ASSET RFP v0.4 EN, 28 Oct 2026 (restricted); client site fetched 28 Oct 2026. Cloudflare (checked 28 Oct 2026): Workers pricing https://developers.cloudflare.com/workers/platform/pricing/ · Pages limits https://developers.cloudflare.com/pages/platform/limits/ · D1 pricing https://developers.cloudflare.com/d1/platform/pricing/ · Time Travel https://developers.cloudflare.com/d1/reference/time-travel/ · D1 location https://developers.cloudflare.com/d1/configuration/data-location/ · R2 https://developers.cloudflare.com/r2/pricing/ · Zero Trust limits https://developers.cloudflare.com/cloudflare-one/account-limits/ · Turnstile https://developers.cloudflare.com/turnstile/plans/ · Web Analytics https://www.cloudflare.com/web-analytics/ · DPA https://www.cloudflare.com/cloudflare-customer-dpa/ · incidents https://blog.cloudflare.com/cloudflare-service-outage-june-12-2025/ , https://blog.cloudflare.com/fail-small-resilience-plan/ (18 Nov 2025), https://blog.cloudflare.com/5-december-2025-outage/ . Email/monitor: https://www.brevo.com/products/transactional-email/ · https://resend.com/pricing · https://uptimerobot.com/pricing/ . Market: https://www.malt.fr/t/barometre-tarifs/tech/developpeur-backend/developpeur-fullstack · https://tjmetre.fr/barometre · https://barometre.freeland.com/tjm/developpeur · https://www.lafabriquedunet.fr/agences/pages/agences-developpement-web/tarifs · https://www.agence2web.com/tarifs-site-web/ · https://seedweb.fr/prix-site-internet/ · https://ellebay-digital.com/blog/cout-maintenance-site-web-2026 · https://makedifferent.fr/blog/cout-maintenance-site-web/ . <strong>Not sourced</strong> (Open): CNIL retention period, Google Event policy, Access ≤ 50 free users, the reconstructed complexity/risk tables.</p></body></html>

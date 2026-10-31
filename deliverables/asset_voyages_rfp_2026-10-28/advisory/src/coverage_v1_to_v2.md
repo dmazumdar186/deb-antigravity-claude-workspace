@@ -57,7 +57,10 @@ Each v1 item maps to exactly one v2 section. "DROP" = removed, with reason.
 | App. A 30 questions | DROP | Defaults-if-unanswered; shaping ones in 2; live at questions page |
 | App. B glossary | Appendix | Condensed |
 | App. C file index | DROP | Internal paths, no reviewer use |
-| App. D sources | Appendix | Static-assets billing, Business SLA, fail-small blog, Postmark, SES URLs DROP (not cited by any v2 fact) |
+| App. D sources | Appendix | Static-assets billing, Business SLA, Postmark, SES URLs DROP (not cited by any v2 fact) |
 | App. E QA log | DROP | Allowed cut |
 
 Topic overlap check: each topic sits in one v2 section; cross-references only ("D3 in §10").
+
+## Restorations after independent MECE check
+All 12 flagged items restored: 5.11 questions (5); 6.8 questions (6); 7.7 Q2–Q3 (7); 8.5 missed-risk ask (8); 10.3 cut-entirely ask (10); Acceptance + Human-eye test rows (6); per-line hour deltas (7); calendar run lengths (7); Directus €1,100 (5); PM + designer concerns (3); SAST at J5 and GSC coverage at J6 (9); inventory fields, transfer-assistance period (6) and Brevo 300/day (7). Fail-small source link restored for the 18 Nov 2025 incident (Appendix).
