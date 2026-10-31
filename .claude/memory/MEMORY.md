@@ -4,3 +4,4 @@
 <!-- Keep under 200 lines. Add entries below. -->
 - [Panel-pass roster](panel_roster.md) — eleven lenses, ALL mandatory before any ship/done claim (operator order 2026-09-16): Karpathy, Cherny, Dario Amodei, Anthropic research, Hormozi, Saraev, Daniela Amodei, Sutskever, Murati, Brockman, Hassabis.
 - [Client confidentiality](client_confidentiality.md) — never name one client to another in proposals; Jitendra + Jeevana are live clients
+- [Payment terms](payment_terms.md) — 50% on signature, 50% on acceptance before go-live; deemed acceptance, rights pass on full payment (operator order 2026-10-31)
