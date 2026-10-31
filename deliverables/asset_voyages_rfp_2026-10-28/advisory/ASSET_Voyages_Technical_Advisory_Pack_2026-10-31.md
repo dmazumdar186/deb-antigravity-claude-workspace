@@ -402,7 +402,7 @@ The concept (`D/site/`, deployed noindex at the URLs in §1.4) is a static site,
 
 | Evidence | Result | Source |
 |---|---|---|
-| Functional suite | 62/62 at the last documented run (round 3); the brief to this pack cites 65/65, which we could not find recorded in the folder | `D/15_Audit_Round3_Project_Experts.md`, `HANDOFF.md` |
+| Functional suite | 65/65 at the last run (28 Oct, recorded in `D/research/functional.json`); round 3 documented 62/62 before three assertions were added | `D/research/functional.json`, `D/15_Audit_Round3_Project_Experts.md` |
 | site_check | PASSED on 4 pages × 4 contexts (desktop, Pixel 7, iPhone 13, reduced motion) | `HANDOFF.md` v2.4 |
 | axe-core (WCAG 2.0/2.1/2.2 A+AA) | 0 violations on 4 pages × 2 viewports (rounds 1, 2 and 3) | `D/09_`, `D/12_`, `D/15_` |
 | Bundle | ≈ 108 KB (index 33 + CSS 29 + JS 46, of which film 22); zero third-party JS; self-hosted fonts | `HANDOFF.md` |
@@ -480,7 +480,8 @@ public_db
        status {draft|in_review|published|archived}, published_at, approved_by,
        translation_of, human_translated:bool, version)
   block(id, page_id, position, type, data_json, version)
-     type ∈ {hero, text, image_text, cards, list, faq, cta, quote_claim, congress_strip, contact_doors}
+     type ∈ {hero, text, image_text, cards, list, faq, cta, quote_claim,
+             congress_strip, contact_doors}
   media(id, r2_key, mime, width, height, alt_text NOT NULL, rights_note NOT NULL,
         rights_expires_on, uploaded_by)
   claim(id, text, source_url, page_id, approved_by, approved_on)      -- claims register
@@ -769,7 +770,7 @@ Same code, different bindings (`wrangler.toml` environments). Secrets per enviro
 | Transport | TLS, HSTS (preload after stabilisation) |
 | Headers | CSP `default-src 'self'`, no inline script, `frame-ancestors 'none'`, `nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` minimal |
 | Admin exposure | No public admin; Access on hostname; JWT verified in-app (defence in depth) |
-| MFA | OTP to named email + second factor, or client IdP with MFA (Q26 default) |
+| MFA | Access one-time PIN alone is a single factor (possession of the mailbox), so it is not MFA. Default (Q26): client IdP with enforced MFA; if ASSET has none, a Cloudflare-supported IdP with TOTP/passkey. Open: which IdP ASSET uses. |
 | Least privilege | Five roles, matrix-tested; Cloudflare API tokens scoped per job; GitHub branch protection |
 | Secrets | Worker secrets only; pre-commit and pre-push SAST block secrets; bundle scan for keys; rotation at handover |
 | Input | Zod at every boundary; parameterised queries via Drizzle; CSV parsing with size and row caps |
@@ -802,7 +803,8 @@ Same code, different bindings (`wrangler.toml` environments). Secrets per enviro
 
 **WordPress + ACF** (keep the current platform): lowest switching cost for editors; but plugin attack surface, PHP hosting, and the GM&E isolation is harder to prove. Kept as the "retain" option the L0 audit must evaluate honestly.
 
-**Why not microservices.** Five users, ≈ 300 listings, low traffic. Separate services would add network failure modes, deploy coordination and monitoring cost with no scaling benefit. A modular monolith (one repo, three Worker entry points, shared typed modules, adapters at the edges) keeps boundaries in code and deploys as one unit.
+**Why not microservices.** Five users, ≈ 300 listings, low traffic. Separate services would add network failure modes, deploy coordination and monitoring cost with no scaling benefit. A modular monolith (one repo, three Worker entry points, shared typed modules, adapters at the edges) keeps boundaries in code and ships from one pipeline. Strictly, three Workers deploy as three versioned uploads; CI deploys them in a fixed order from one commit, and the forward-only schema rule (§5.5) keeps a partial deploy safe.
+
 
 ## 5.11 Questions for the reviewers
 
@@ -810,6 +812,30 @@ Same code, different bindings (`wrangler.toml` environments). Secrets per enviro
 2. Is the KV fallback for enquiries worth its complexity, or would you accept a visible error when D1 is down?
 3. Would you choose Directus here? What would change your mind either way?
 4. Is the backup design adequate for RPO 24 h / RTO 8 business hours? What would you add?
+
+## 5.12 Engineering specifics (added at pre-review QA)
+
+Platform limits below are from Cloudflare's public docs as we understand them on 31 Oct 2026; each is marked to re-verify at J0 because they change.
+
+| Topic | Position | Status |
+|---|---|---|
+| Load assumed | Order of magnitude only: ≤ 5 staff users, ≈ 300 listings, low thousands of visits/day, tens of enquiries/day. No traffic data from ASSET yet. | Open: obtain 12 months of analytics at L0 to replace these guesses. |
+| D1 size and concurrency | Workload is ≈ MBs; D1 per-database limit is 10 GB (Paid). A D1 database executes queries serially on one primary, so throughput depends on query time; at tens of writes/day this is not a constraint. Public reads hit Pages static output, not D1. | Re-verify limits at J0. |
+| Workers CPU for CSV import | 300 rows parse and validate in well under a second of CPU; Workers Paid allows 30 s CPU by default (configurable higher). Cap: 5 MB / 2,000 rows per file; larger files rejected with a message. Insert in D1 `batch()` chunks inside one batch ID so a failed chunk rolls back that import. | Cap values are our proposal. |
+| Media pipeline | Upload via admin Worker to R2 (type sniffed, size cap 10 MB, EXIF stripped). Responsive variants either at build time (Astro image, sharp in CI) or via Cloudflare Image Transformations on the R2 origin. Default: build-time variants (no per-transform cost). | Open: confirm image counts at L0. |
+| Search and pagination | Catalogue is ≈ 300 rows: the build emits a JSON index and the browser filters and paginates client-side (as the concept does). No SQL LIKE or FTS5 on the public path. The Console list uses SQL with `LIMIT/OFFSET` and indexed filters; FTS5 only if listings exceed ≈ 5,000. | Decided default. |
+| Caching / freshness | No ISR: the site is fully static and every publish triggers a deduplicated rebuild (§5.3). HTML is served with short edge cache and revalidation; hashed assets are immutable. Freshness after publish = build time (to measure, target < 5 min). | Measure in walking skeleton. |
+| Draft preview | Preview builds per draft are not planned; the Console renders a draft with the same Astro components server-side behind Access, `noindex`. | Open: confirm effort fits inside Console core hours. |
+| Editor concurrency | Optimistic locking: each entity carries `version`; a save with a stale version returns 409 and shows the other editor's change. No real-time co-editing. | Decided default. |
+| i18n slugs | Slugs are per locale (`page.slug` unique per `locale`), linked by `translation_of`; French slugs keep today's URLs where the redirect map retains them. | Decided default. |
+| Rate limiting on forms | Turnstile on every form plus a per-IP limit on `/api/*` (Workers rate-limiting binding or WAF rule, e.g. 10 posts / 10 min / IP) and a body size cap. | Thresholds to tune on staging. |
+| Access session | Session 12 h for admin, re-auth for vault actions if the IdP supports it; revocation by removing the email from the policy and revoking sessions. | Open: vault step-up depends on IdP. |
+| D1 migration rollback | Migrations are forward-only (expand/contract). Each migration is applied first to a staging copy of prod; rollback of a bad one is a forward-fix or Time Travel restore to the pre-migration bookmark recorded by CI. | Decided default. |
+| Secret rotation | Inventory of secrets (vault key, email API keys, Turnstile, deploy hook) in the runbook with owner and rotation steps; rotate at handover and annually. Vault key rotation needs re-encryption: store a key ID with each ciphertext so old and new keys coexist during rotation. | Key-ID column added to design. |
+| GDPR data-subject flows | Access, rectification, erasure via the DSR procedure in §4.6, answered within one month; erasure also covers backups by expiry (30 days / 12 weeks), which the privacy notice must state. | Open: ASSET to name the DSR contact. |
+| Audit-log tamper evidence | Append-only table (no update/delete grants in code), each row stores a hash of the previous row (hash chain), and the nightly backup exports it off-platform, so silent edits are detectable. Not tamper-proof against a platform admin. | Decided default. |
+| Backup encryption | R2 encrypts at rest; the weekly off-platform copy is encrypted client-side (age or GPG) before upload, key held by ASSET admin and ProdCraft. Vault dump is encrypted separately. | Open: off-platform provider not chosen. |
+| Test data | Seed fixtures with fictional listings and fake GM&E codes; staging uses seed data by default, an anonymised prod copy only with ASSET's approval. No real codes outside prod. | Decided default. |
 
 
 # 6. Build plan
@@ -1378,4 +1404,15 @@ Source: `D/01b_Questions_source.md`. "AF" = Answer first. Defaults apply if not 
 - Agence2web: https://www.agence2web.com/tarifs-site-web/ · Seedweb: https://seedweb.fr/prix-site-internet/
 - Ellebay: https://ellebay-digital.com/blog/cout-maintenance-site-web-2026 · Make Different: https://makedifferent.fr/blog/cout-maintenance-site-web/
 
-**Not sourced in this pack** (flagged): CNIL prospect-retention period (cited from memory); Google Event structured-data policy (to check); Access free tier ≤ 50 users (third-party source); the 65/65 functional-gate figure (folder records 62/62); the original complexity and risk tables (reconstructed to match stated totals); French late-payment article numbering (to verify with an accountant).
+**Not sourced in this pack** (flagged): CNIL prospect-retention period (cited from memory); Google Event structured-data policy (to check); Access free tier ≤ 50 users (third-party source); the original complexity and risk tables (reconstructed to match stated totals); French late-payment article numbering (to verify with an accountant).
+
+
+# Appendix E. Pre-review QA log
+
+Pre-review QA on 31 Oct 2026, done by a reviewer playing a principal engineer. No scope decision was changed.
+
+1. §3.3: functional suite figure changed from 62/62 to 65/65; the source is `research/functional.json`, dated 28 Oct. Appendix D no longer lists it as unsourced.
+2. §5.8: removed the claim that email OTP is MFA. The default is now an IdP with enforced MFA, with an Open line for ASSET's IdP.
+3. §5.10: "deploys as one unit" was wrong, since three Workers are three separate uploads. The text now describes the ordered deploy.
+4. New §5.12 "Engineering specifics" covers load assumptions, D1 size and concurrency, Workers CPU for CSV import, the media pipeline, search and pagination, caching and freshness, draft preview, editor concurrency, i18n slugs, form rate limits, Access sessions, migration rollback, secret rotation with key IDs, GDPR data-subject requests and backups, audit-log hash chain, backup encryption and test data. Items we could not settle are marked "Open".
+5. Checked the totals in §7.1: 219 rounds to ≈ 220, 238 + 48 = 286, and 20% contingency is correct.

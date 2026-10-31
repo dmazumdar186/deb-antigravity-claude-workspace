@@ -565,4 +565,15 @@ Source: `D/01b_Questions_source.md`. "AF" = Answer first. Defaults apply if not 
 - Agence2web: https://www.agence2web.com/tarifs-site-web/ · Seedweb: https://seedweb.fr/prix-site-internet/
 - Ellebay: https://ellebay-digital.com/blog/cout-maintenance-site-web-2026 · Make Different: https://makedifferent.fr/blog/cout-maintenance-site-web/
 
-**Not sourced in this pack** (flagged): CNIL prospect-retention period (cited from memory); Google Event structured-data policy (to check); Access free tier ≤ 50 users (third-party source); the 65/65 functional-gate figure (folder records 62/62); the original complexity and risk tables (reconstructed to match stated totals); French late-payment article numbering (to verify with an accountant).
+**Not sourced in this pack** (flagged): CNIL prospect-retention period (cited from memory); Google Event structured-data policy (to check); Access free tier ≤ 50 users (third-party source); the original complexity and risk tables (reconstructed to match stated totals); French late-payment article numbering (to verify with an accountant).
+
+
+# Appendix E. Pre-review QA log
+
+Pre-review QA on 31 Oct 2026, done by a reviewer playing a principal engineer. No scope decision was changed.
+
+1. §3.3: functional suite figure changed from 62/62 to 65/65; the source is `research/functional.json`, dated 28 Oct. Appendix D no longer lists it as unsourced.
+2. §5.8: removed the claim that email OTP is MFA. The default is now an IdP with enforced MFA, with an Open line for ASSET's IdP.
+3. §5.10: "deploys as one unit" was wrong, since three Workers are three separate uploads. The text now describes the ordered deploy.
+4. New §5.12 "Engineering specifics" covers load assumptions, D1 size and concurrency, Workers CPU for CSV import, the media pipeline, search and pagination, caching and freshness, draft preview, editor concurrency, i18n slugs, form rate limits, Access sessions, migration rollback, secret rotation with key IDs, GDPR data-subject requests and backups, audit-log hash chain, backup encryption and test data. Items we could not settle are marked "Open".
+5. Checked the totals in §7.1: 219 rounds to ≈ 220, 238 + 48 = 286, and 20% contingency is correct.
