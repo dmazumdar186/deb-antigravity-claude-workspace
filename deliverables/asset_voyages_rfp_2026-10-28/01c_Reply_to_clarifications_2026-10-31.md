@@ -1,0 +1,34 @@
+**To:** direction@assetvoyages.com
+**Subject:** Re: Request for Proposal – ASSET Voyages Website Redesign
+
+Dear Ms Veena Khatri,
+
+Thank you for the quick reply. Here are the clarifications, point by point. Where an answer depends on information we don't have yet, I say so, and the written proposal will settle it.
+
+**1. Technologies, and whether someone else can maintain the site**
+The site would be built on standard, widely used open-source tools: a static site generator for the public pages, a small custom administration (the console you saw) running on Cloudflare's platform, with a standard SQL database for congresses and enquiries. There is no proprietary framework and no licence that ties the site to ProdCraft. Any competent web developer can maintain it from the repository and the documentation; that is a design goal, not a side effect. The audit at the start of the project confirms this choice against your current setup, and the proposal names the exact components so your management can have them checked independently.
+
+**2. What your team can change on its own**
+Through the console, without a developer: the text, images and links of every page; adding, editing, approving and unpublishing pages, articles and FAQ entries; the full congress catalogue (create, edit, import, approve, archive); the enquiry list (status, owner, notes, export). Pages are built from a set of agreed sections (for example text, image and text, list, call to action), so your team can reorder and reuse them. What stays with a developer: adding a new type of section, changing the design system, and anything touching integrations or the underlying platform. The exact list of section types is fixed in the proposal, so there is no ambiguity later about what is editable.
+
+**3. Source code, documentation, data exports and transfer assistance**
+Yes, all four are part of the core scope. Specifically: the complete source repository under ASSET's own account from the first day; an administration guide and a technical runbook (deploy, restore, export); a full export of pages, congresses, enquiries and media in open formats, runnable by your team at any time; and a defined transfer package if you ever move to another supplier. All accounts (domain, hosting, database, email sending) are opened in ASSET's name. The proposal sets out what the transfer package contains and how long transfer assistance is included, so it is not open-ended on either side.
+
+**4. Design revision rounds, and what from the prototype is included at launch**
+Two revision rounds are included at each design stage (wireframes, then desktop and mobile mock-ups), and two rounds on content per stage; further rounds are quoted before they start. On the prototype: it was built to show the direction and to make the congress journey concrete, not as a feature list. The proposal will carry a one-page table listing every element visible in the prototype and the console with one of three marks: included at launch, optional (priced separately), or illustration only. You will see that table before you sign, so nothing in the prototype can be assumed either way.
+
+**5. Importing and checking the initial 300 congress listings**
+Importing is included, provided the spreadsheet follows the template we supply (we provide it with the proposal, and we validate it with a dry run before the real import). Checking is included at the level of data quality: required fields, dates, duplicates, broken links to official sites, and a report of what was rejected and why. What is not included is researching or verifying the events themselves, or finding missing information; that remains with your team, who know the congresses. If you would like us to take on that research, it is a separate item and we would scope it with you.
+
+**6. Fixed price, payment milestones, maintenance costs and rates for future changes**
+Yes. The proposal will give a fixed price for the core scope (audit, core site, congress catalogue), tied to a written scope so the price holds; payment against your milestones J0 to J6, with the final payment on acceptance; the monthly maintenance plan with its contents and measured commitments; and an hourly rate and a change procedure for work outside the scope. I would rather not put figures in an email ahead of the proposal: a price only means something next to the scope it covers, and several of your 30 answers change that scope. The proposal follows within 24 to 48 working hours of your answers, or by 10 November on the stated assumptions if the answers come later.
+
+**7. Wondermiles**
+Agreed. For launch we quote a simple, configurable "client login" link to Wondermiles, with click measurement and no passwords stored on your site. API and single sign-on are priced separately, in two steps: first a short feasibility study (what Wondermiles actually allows, contractually and technically), then the integration itself, quoted only once the study has an answer. I prefer not to quote the integration before that, because its cost depends almost entirely on what Wondermiles supports.
+
+Please take the time you need with your manager. The answer sheet remains the quickest way for us to turn this into a precise, fixed proposal.
+
+Kind regards,
+Debanjan
+Founder, ProdCraft
+debanjan@prodcraft.fyi
