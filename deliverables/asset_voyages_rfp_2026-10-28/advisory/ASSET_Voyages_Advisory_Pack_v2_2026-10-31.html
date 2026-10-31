@@ -1,0 +1,1366 @@
+<!doctype html><html lang="en-GB"><head><meta charset="utf-8"><title>ASSET Voyages Technical Advisory Pack</title><style>@page{size:A4}
+body{font-family:Inter,'DejaVu Sans',sans-serif;font-size:10.5pt;line-height:1.45;color:#1b1f24}
+h1{font-size:15pt;color:#0b2545;border-bottom:2px solid #0b2545;padding-bottom:4px;margin-top:0;break-before:auto;margin-top:14px}
+h2{font-size:12pt;color:#13315c;margin:12px 0 5px;break-after:avoid}
+h1.toch{break-before:page}
+.cover h1.title{break-before:auto;border:0;font-size:28pt;margin-top:10px}
+.kicker{text-transform:uppercase;letter-spacing:.12em;color:#8a5a00;font-size:9pt}
+.subtitle{font-size:13pt;color:#333;margin-bottom:14px}
+.cover .note{margin-top:40px;color:#444;border-left:3px solid #8a5a00;padding-left:10px}
+table{border-collapse:collapse;width:100%;margin:6px 0 12px;font-size:9.5pt;break-inside:auto}
+tr{break-inside:avoid}
+th,td{border:1px solid #c9d1db;padding:3px 5px;vertical-align:top;text-align:left}
+th{background:#eaf0f7}
+table.meta td:first-child{font-weight:600;width:28%}
+code{font-family:'DejaVu Sans Mono',monospace;font-size:8pt;background:#f2f4f7;padding:0 2px;word-break:break-word}
+pre{background:#f6f8fa;border:1px solid #d7dde5;padding:8px;font-size:7.6pt;line-height:1.3;white-space:pre;overflow:visible;break-inside:avoid}
+pre code{background:none;padding:0}
+.toc ul{list-style:none;padding-left:12px}.toc>ul{padding-left:0}.toc>ul>li{margin-top:6px;font-weight:600}.toc>ul>li li{font-weight:400}
+.toc a{color:#13315c;text-decoration:none}
+a{color:#13315c}
+.formula{text-align:center;font-size:13pt;margin:10px}
+table.score td{height:34px}
+table.score td:nth-child(4){width:55%}
+.cover h1.title{font-size:22pt}
+</style></head><body><div class="cover">
+<p class="kicker">ASSET Voyages bid · weekend review pack · v2 · 31 October 2026</p>
+<h1 class="title">ASSET Voyages: website and Congress catalogue</h1>
+<p class="subtitle">Here's what I'm planning to build. Please tell me where I'm wrong.</p>
+</div>
+
+<h1 id="1-what-this-is">1. What this is</h1>
+<p>Thank you both for doing this. I'm Debanjan, and I'm bidding solo (me plus an AI-assisted build workflow) for a French business-travel agency's new site: public pages, a structured Congress catalogue, an enquiry back-office and an editor console. It's a competitive consultation, nothing is signed, and it's bigger than anything I've shipped as one product: about 40% of the hours rest on code I've run in production; 60% is new. I'd much rather you break it now than the client does at acceptance. Please keep it to yourselves: the RFP is restricted to invited suppliers and this pack has my internal pricing.</p>
+<p><strong>Links</strong> (concept is noindex; nothing on it persists)</p>
+<table>
+<thead>
+<tr>
+<th>What</th>
+<th>URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Current client site (WordPress 6.9.11)</td>
+<td>http://asset-voyagesdaffaires.com</td>
+</tr>
+<tr>
+<td>My concept, home: film « Du brief au retour », offer cards, catalogue demo (12 fictional listings), three contact journeys</td>
+<td>https://asset-voyages-redesign.pages.dev/</td>
+</tr>
+<tr>
+<td>Pitch page: why it's shaped this way</td>
+<td>https://asset-voyages-redesign.pages.dev/pour-asset/</td>
+</tr>
+<tr>
+<td>Console mock-up (static; buttons show a toast)</td>
+<td>https://asset-voyages-redesign.pages.dev/console/</td>
+</tr>
+<tr>
+<td>The 30 questions I sent, with defaults</td>
+<td>https://asset-voyages-redesign.pages.dev/questions/</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What I need from you</strong></p>
+<ol>
+<li>Skim §2 (context). Read §3–§9 properly.</li>
+<li>Score each section 1–10 with a comment on the sheet in §10. Rubric: 9–10 you'd approve it at work unchanged; 7–8 sound, minor gaps; 5–6 at least one gap likely to cause a slip, an acceptance defect or overrun; 3–4 you'd block it; 1–2 start again.</li>
+<li><strong>Attack §6 (build plan and tests) and §7 (effort, timeline, price) hardest.</strong> §5's "check me" table is the other place I'd expect to be wrong.</li>
+<li>Put your own probability next to mine for each risk in §8. That's the single most useful thing you can give me.</li>
+<li>Grade against the client's requirement and a one-person team, not a ten-person team. "Hire someone" is a legitimate finding.</li>
+</ol>
+<p>Conventions: <strong>Estimate</strong> = derived, not measured. <strong>Open:</strong> = unverified or waiting on the client. Euros excluding VAT (HT).</p>
+<h1 id="2-the-job">2. The job</h1>
+<p><strong>Client.</strong> ASSET Voyages, a business-travel agency in Issy-les-Moulineaux, member of the Selectour Affaires network (« agence de voyages d'Affaires à taille humaine »). Coordinator: Veena (centralises responses, runs business acceptance); management approves budget, scope, architecture, milestones and launch. Today's site runs WordPress 6.9.11 + Slider Revolution 6.2.18 on <code>asset-voyagesdaffaires.com</code>, while the RFP cites <code>www.assetvoyages.com</code> (Open: which domain, Q6). Its client area says « Connexion Traveldoo » whereas the RFP says Wondermiles (Open: Q23). Unknown: host, domain/DNS owner, URL count, traffic, trackers, CRM, enquiry volumes.</p>
+<table>
+<thead>
+<tr>
+<th>Activity</th>
+<th>What it is</th>
+<th>Conversion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Business Travel</td>
+<td>Managed corporate travel; booking, policy, reporting, invoicing, 24/7 assistance</td>
+<td>F01 travel review / account request</td>
+</tr>
+<tr>
+<td>MICE</td>
+<td>Group events from 10 people; dedicated project lead</td>
+<td>F02 progressive brief</td>
+</tr>
+<tr>
+<td>International congresses</td>
+<td>Delegate travel to (often medical) congresses, incl. Air France–KLM GM&amp;E preferential fares where ASSET holds the event code</td>
+<td>F03 flight quote pre-filled with the congress</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What the RFP (v0.4, 9 pp) demands.</strong> Outcomes: qualified enquiries in all three activities; Veena + a backup publish without a developer; keep SEO value and the old site up throughout; integration points without making launch depend on unconfirmed API/SSO. Ticketing stays outside the CMS. 12–18 weeks "indicative"; written approval per milestone.</p>
+<table>
+<thead>
+<tr>
+<th>Work packages</th>
+<th>Milestones</th>
+<th>Acceptance tests (launch blocked by security defect, data loss, failed form, code exposure, missing critical redirect)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>L0</strong> (mand.) audit, workshops, journeys; keep/replace CMS with cost case</td>
+<td><strong>J0</strong> kickoff, access inventory</td>
+<td><strong>T01/T02</strong> BT / MICE forms: errors, saved once, routed, acknowledged</td>
+</tr>
+<tr>
+<td><strong>L1</strong> (mand.) design, CMS, French content, BT + MICE pages, forms, measurement, SEO migration, security, training</td>
+<td><strong>J1</strong> audit: architecture, SEO inventory, baseline, backlog</td>
+<td><strong>T03</strong> congress search, filters, sort, no-results · <strong>T04</strong> draft not public</td>
+</tr>
+<tr>
+<td><strong>L2</strong> (mand.) Congress catalogue, search, workflow, permissions, CSV import/export, moderation</td>
+<td><strong>J2</strong> wireframes, mock-ups, design system</td>
+<td><strong>T05</strong> GM&amp;E code invisible to public and unauthorised roles · <strong>T06</strong> pre-filled ticket enquiry saved + notified</td>
+</tr>
+<tr>
+<td><strong>L3</strong> (opt.) Wondermiles feasibility, SSO/API</td>
+<td><strong>J3</strong> core site on staging</td>
+<td><strong>T07</strong> past-congress rule · <strong>T08</strong> client-area link, no local passwords · <strong>T09</strong> tracker refusal works</td>
+</tr>
+<tr>
+<td><strong>L4</strong> (opt.) controlled AI ingestion, human approval, logs</td>
+<td><strong>J4</strong> catalogue tested · <strong>J5</strong> pre-launch: SEO migration, tests, training, rollback · <strong>J6</strong> stabilisation, handover</td>
+<td><strong>T10</strong> priority URLs redirect · <strong>T11</strong> keyboard + screen reader · <strong>T12</strong> responsive + performance · <strong>T13</strong> test restore · <strong>T14</strong> documented export · <strong>T15</strong> Veena publishes and edits alone</td>
+</tr>
+</tbody>
+</table>
+<p>Other hard numbers: responsive at 320/375/768/1440; LCP ≤ 2.5 s, INP ≤ 200 ms, CLS ≤ 0.1 at p75; WCAG 2.2 AA; RPO 24 h / RTO 8 business hours; French at launch, FR+EN architecture, no unapproved machine translation; GM&amp;E codes never in HTML, scripts, public responses, exports or browser; accounts and data under ASSET's control; "team" and handover are assessment criteria.</p>
+<p><strong>Scope at a glance.</strong> Pages: home (3 activity cards, approved-claims strip, next 6 published congresses, client-area link), Business Travel, SMEs, procurement/travel managers, assistance (only register-confirmed services), digital solutions (approved Wondermiles text, demo CTA, configurable client-area button), MICE hub + 3 sub-pages, congress catalogue, agency/resources/articles/FAQ, contact (three doors) + 3 legal: ≈ 20 pages from ≈ 8 templates and ≈ 15 components. Journeys: SME owner → F01 "SME account"; travel manager → F01 "travel review"; HR/comms → F02 (3–4 steps + summary, back keeps data); congress participant → listing → F03 with hidden <code>congress_id</code>, free-text departure; existing client → external link, no login fields. Every form within 2–3 clicks, no prospect accounts. Forms (F04–F06): server-side validation, Turnstile, dedup, privacy-notice version stored, send log, email fallback, admin-only recipients per activity, POST-only, no PII in URLs or analytics. CRM (option, 6 h): outbound webhook after durable save, lookup-by-email upsert, 3 retries + dead-letter + resend, pinned API version; forms pass with it off. Measurement (H1–H4): CTA clicks, form start/submit/error, searches, listing views, account requests, client-area clicks, with source/page/activity, via a first-party beacon (Cloudflare Web Analytics has no custom events). Claims register (claim, source, page, ASSET OK + date) signed before J5. L0 deliverables: CMS/versions/extensions sheet, DNS/TLS inventory, signed account-owner register, crawl inventory, forms/trackers/Search Console list, Lighthouse baseline on 5 pages + legal/cookie check, keep-or-replace recommendation, one workshop (≤ 2 h) and 5 journey maps. Governance: RACI, change requests with cost/schedule/security/SEO impact fields, no DNS change without written go; every licence and third party listed with cost and payer.</p>
+<p><strong>What the client already asked</strong> (seven clarifications, 31 Oct; my reply committed to):</p>
+<ul>
+<li>Standard open-source stack, maintainable by another developer from repo + docs; a fixed list of editable section types and a clear line on what stays with a developer.</li>
+<li>Repo in an organisation in ASSET's name, full handover with rights, admin guide, runbook, export ASSET can run, a defined transfer package.</li>
+<li>2 revision rounds per design and content stage; a prototype table marking every visible element included / optional / illustration only.</li>
+<li>A congress spreadsheet template with dry-run validation and rejection report; no event research by us.</li>
+<li>Fixed price for core, monthly plan with measured commitments, hourly rate for changes; free correction of any in-scope T01–T15 failure.</li>
+<li>Wondermiles: link at launch, feasibility study, integration quoted afterwards.</li>
+</ul>
+<p>I also sent 30 questions; the defaults that shape the design: one shared enquiry mailbox (Q15); no trackers carried over (Q7); up to 300 congresses in my template (Q17); no fare code or wording until GM&amp;E is confirmed in writing (Q18/20); past congress stays as past edition, form off (Q21); "Client login" button to the Traveldoo URL (Q23); IdP-or-OTP-plus-second-factor login (Q26); EU database (Q27); two editors, only Veena and management see GM&amp;E codes (Q28); support Mon–Fri 9–18 Paris, back within 8 business hours (Q30).</p>
+<h1 id="3-what-i-have-vs-what-i-must-build">3. What I have vs what I must build</h1>
+<p>My workspace splits deterministic scripts (tested) from the AI layer (routing and drafting only). Reusable pieces: an Astro 5 + Cloudflare template (CSP/HSTS headers, FR-default i18n, a11y baseline, KV rate limit, health endpoint, Vitest + Playwright + acceptance gate, CI); a contracts-first pattern with <code>--mock</code> adapters and a draft → review → approved pipeline; a static-site validator; a Worker form-intake pattern; pre-commit/pre-push SAST hooks; a screenshot-reading eye-review gate. Prior builds (anonymised): a public job board with listings, filters and a 3,047-check validation suite; two live bilingual FR/EN sites with forms, moderation and a GDPR request flow; an approval pipeline with an R2 preview worker. <strong>No travel or MICE reference.</strong></p>
+<p>The concept proves front-end craft only: functional suite 65/65 (28 Oct); site_check pass on 4 pages × desktop/Pixel 7/iPhone 13/reduced motion; axe 0 violations; ≈ 108 KB bundle, zero third-party JS. Limit: I couldn't screenshot <code>*.pages.dev</code> from the sandbox, so live checks were HTTP 200, CSS hash and CSP header only.</p>
+<table>
+<thead>
+<tr>
+<th>Capability</th>
+<th>Status</th>
+<th>Lift path</th>
+<th>Est. h (new work)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Static site, FR default, hreflang-ready; security headers</td>
+<td>EXISTS</td>
+<td>Scaffold template; tighten CSP for Console</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Forms: validation, Turnstile; consent + GDPR DSR flow</td>
+<td>EXISTS</td>
+<td>Reuse; port DSR from KV/Supabase to D1</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Structured data, sitemap, robots, canonicals</td>
+<td>EXISTS</td>
+<td>Add <code>Event</code> schema</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Durable save + two-provider email fallback</td>
+<td>PARTIAL</td>
+<td>KV save exists; add D1, <code>send_log</code>, Brevo → Resend, retry queue</td>
+<td>in forms</td>
+</tr>
+<tr>
+<td>Redirects</td>
+<td>PARTIAL</td>
+<td>Generated 302 maps today; switch to 301, add generator + chain test</td>
+<td>8</td>
+</tr>
+<tr>
+<td>Listings with filters</td>
+<td>PARTIAL</td>
+<td>Job-board pattern; add period filter, search index</td>
+<td>in catalogue</td>
+</tr>
+<tr>
+<td>Approval pipeline</td>
+<td>PARTIAL</td>
+<td>Port to D1 state machines</td>
+<td>in catalogue</td>
+</tr>
+<tr>
+<td>Admin auth</td>
+<td>PARTIAL</td>
+<td>Basic Auth today → Access + 5 roles + MFA + break-glass</td>
+<td>10</td>
+</tr>
+<tr>
+<td>Monitoring</td>
+<td>PARTIAL</td>
+<td>Health endpoint exists; add external probes, status page, dead-man alarm</td>
+<td>1.5</td>
+</tr>
+<tr>
+<td>AI ingestion (L4)</td>
+<td>PARTIAL</td>
+<td>Model routing exists; queue, eval set, pinning new</td>
+<td>option</td>
+</tr>
+<tr>
+<td>Block editor, preview, publish trigger</td>
+<td>MISSING</td>
+<td>New "Console" package, ASSET as first tenant</td>
+<td>14</td>
+</tr>
+<tr>
+<td>Versions/restore, soft delete (30-day trash)</td>
+<td>MISSING</td>
+<td><code>revision</code> snapshots</td>
+<td>7</td>
+</tr>
+<tr>
+<td>Audit log (12 months)</td>
+<td>MISSING</td>
+<td>Same-transaction writes, hash chain</td>
+<td>3</td>
+</tr>
+<tr>
+<td>D1 data layer</td>
+<td>MISSING</td>
+<td>Drizzle schema + migrations; <strong>never used D1 before</strong></td>
+<td>in modules</td>
+</tr>
+<tr>
+<td>Encrypted vault</td>
+<td>MISSING</td>
+<td>AES-GCM, key in Worker secret, key ID per ciphertext</td>
+<td>in M9</td>
+</tr>
+<tr>
+<td>CSV import (dry run, dedup, report, batch ID)</td>
+<td>MISSING</td>
+<td>New</td>
+<td>5</td>
+</tr>
+<tr>
+<td>Enquiry back-office</td>
+<td>MISSING</td>
+<td>Inbox, statuses, owner, history, logged export, routing</td>
+<td>12</td>
+</tr>
+<tr>
+<td>Backups + restore drill</td>
+<td>MISSING</td>
+<td>Cron Worker + runbook + timed drill</td>
+<td>3 + drill</td>
+</tr>
+<tr>
+<td>Lighthouse and axe as CI gates</td>
+<td>MISSING</td>
+<td>Used ad hoc; wire in with thresholds</td>
+<td>in QA</td>
+</tr>
+<tr>
+<td>Crawl → URL inventory → redirect map</td>
+<td>MISSING</td>
+<td>New script + <code>--mock</code> test</td>
+<td>in 8 above</td>
+</tr>
+<tr>
+<td>GM&amp;E leak scanner</td>
+<td>MISSING</td>
+<td>Over all public output, seeded canary</td>
+<td>2.5</td>
+</tr>
+<tr>
+<td>Media library</td>
+<td>MISSING</td>
+<td>R2 upload, required alt + rights note, resizing</td>
+<td>4</td>
+</tr>
+<tr>
+<td>Event beacon + dashboard</td>
+<td>MISSING</td>
+<td>First-party, no cookie, no IP</td>
+<td>3.5</td>
+</tr>
+</tbody>
+</table>
+<p>The largest unmeasured line is the Console (≈ 44 h, never timed on this stack). If I spike one thing first, it's the block editor + publish-rebuild loop. Internal reviewers' standing concerns: 44 h for a block editor with versions, media and preview is optimistic; Console UX and the MICE brief need testing with real users; single-vendor concentration. Is "40% proven" honest, and would you buy off-the-shelf for any MISSING row?</p>
+<h1 id="4-design">4. Design</h1>
+<p><strong>Domain model.</strong> Two D1 databases: <code>public_db</code> (content, catalogue, enquiries, events; readable by build and form Worker) and <code>vault_db</code> (GM&E; bound only to the admin Worker). ULIDs; every mutable table has <code>created_at/updated_at/deleted_at/created_by/updated_by</code>.</p>
+<pre><code class="language-text">public_db
+ user(id, email, display_name, roles[], active, last_login_at)
+ page(id, slug, locale{fr|en}, title, meta_*, template, status, published_at,
+      approved_by, translation_of, human_translated, version)        slug unique per locale
+ block(id, page_id, position, type, data_json, version)
+   type ∈ {hero,text,image_text,cards,list,faq,cta,quote_claim,congress_strip,contact_doors}
+ media(id, r2_key, mime, w, h, alt_text NOT NULL, rights_note NOT NULL, rights_expires_on)
+ claim(id, text, source_url, page_id, approved_by, approved_on)       claims register
+ congress(id, title, slug, discipline, country_iso2, city, venue, organiser, start_date,
+          end_date, timezone, official_url, verified_on, language, editorial_status,
+          visibility, fare_badge, next_edition_id, import_batch_id, version)
+ enquiry(id, type{BT|MICE|CONG|SME_ACCOUNT|DEMO}, source_utm_json, landing_path,
+         referrer_domain, company, contact_name, email, phone, payload_json,
+         congress_id?, status, owner_id, privacy_notice_version, marketing_optin(_at),
+         dedup_key, purge_after)
+ enquiry_event · send_log(provider, recipient_hash, status, error) · recipient_rule
+ revision(entity, entity_id, version, snapshot_json) · audit_log(actor, action, entity,
+         ip_trunc, prev_hash) · event(name, path, activity, utm_*, props_json, day)
+ import_batch(rows_total/ok/rejected/flagged, dry_run, report_r2_key) · setting(key,value)
+vault_db
+ authorisation(id, congress_id, application_date, channel, code_ciphertext, code_iv,
+               key_id, evidence_r2_key, conditions, stage, approver_id, valid_from/to)
+ stage_history(authorisation_id, from_stage, to_stage, actor_id, note, at)
+</code></pre>
+<p><code>vault.congress_id</code> refers to <code>public_db</code> by value only; no code path the build or form Worker can run joins across.</p>
+<p><strong>State machines.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Machine</th>
+<th>States and transitions</th>
+<th>Guards / rules</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Editorial (pages, congresses)</td>
+<td>draft → in_review (contributor+) → published (editor+); return to draft or unpublish without data loss; published → archived → restore to draft</td>
+<td>Every transition writes <code>revision</code> + <code>audit_log</code>. Only <code>published</code> enters the build. EN publishes only if <code>human_translated</code>. Self-publish allowed (two-person rule optional: there are only two editors).</td>
+</tr>
+<tr>
+<td>GM&amp;E (vault only)</td>
+<td>detected → verified → application_to_prepare → application_submitted → code_received → issuance_authorised → approved_for_sale → archived</td>
+<td>verified needs <code>official_url</code> + <code>verified_on</code>; submitted needs date + channel; code_received needs encrypted code + evidence + validity, approver/admin only; issuance needs named sign-off; approved_for_sale (approver) unlocks <code>fare_badge</code>; archived is read-only; step back = approver + mandatory note</td>
+</tr>
+<tr>
+<td>Enquiry</td>
+<td>new → contacted → qualified → quoted → won / lost; any → spam (purged at 30 days)</td>
+<td>Each move logs actor, time, note. Duplicate (same email + type + congress within 24 h) appends an event to the first record.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Invariants</strong> (each has a test that must fail if broken).</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Invariant</th>
+<th>Enforced by</th>
+<th>Test</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>I-1</td>
+<td>No GM&amp;E code, evidence or stage in any public byte (HTML, JS, JSON index, sitemap, CSV, API, error page)</td>
+<td>Structural: no vault binding outside admin Worker. Scan: every stored code + a seeded canary searched across all build output and public API responses</td>
+<td>T05; CI blocks deploy</td>
+</tr>
+<tr>
+<td>I-2</td>
+<td>No personal data in URLs, events or logs</td>
+<td>POST-only; beacon property whitelist; search text dropped if it looks like email/phone; log redaction; truncated IP</td>
+<td>T09 payload crawl; CI log grep</td>
+</tr>
+<tr>
+<td>I-3</td>
+<td>Nothing reaches prod except via the editorial machine</td>
+<td>Build selects <code>published</code> only; no direct-publish API</td>
+<td>T04</td>
+</tr>
+<tr>
+<td>I-4</td>
+<td>Enquiry durably stored before "thank you"</td>
+<td>D1 write (KV fallback) then 200; email async via queue</td>
+<td>T01 with D1 and email broken</td>
+</tr>
+<tr>
+<td>I-5</td>
+<td>No client-area password stored</td>
+<td>No password column anywhere</td>
+<td>T08 schema check</td>
+</tr>
+<tr>
+<td>I-6</td>
+<td>Every mutation attributable</td>
+<td><code>audit_log</code> in same transaction</td>
+<td>Unit test per route</td>
+</tr>
+<tr>
+<td>I-7</td>
+<td>No fare badge without <code>approved_for_sale</code></td>
+<td>Badge write path checks vault stage</td>
+<td>T05 dataset</td>
+</tr>
+<tr>
+<td>I-8</td>
+<td>Imports idempotent</td>
+<td>Hard-dup key, batch ID, dry run writes nothing</td>
+<td>Same file twice → 0 rows</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Roles.</strong> Technical admin (me, later ASSET's developer); Editor (Veena, backup); Contributor (optional, drafts only); Commercial viewer (management, sales); Congress/fare approver (management, Veena). Roles are a set per user: Veena is Editor + Approver; the backup editor is Editor only (Q28). Matrix lives as data in <code>permissions.ts</code>, one middleware on every admin route, tested exhaustively (5 roles × every route × allow/deny). Access gates the hostname; the app maps the Access JWT email to roles.</p>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Admin</th>
+<th>Editor</th>
+<th>Contrib.</th>
+<th>Viewer (mgmt)</th>
+<th>Approver</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Create/edit draft, submit, upload media</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Publish/unpublish/archive; CSV import; enquiry status/owner</td>
+<td>✓</td>
+<td>✓</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Restore revision / trash</td>
+<td>✓</td>
+<td>✓</td>
+<td>own drafts</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Read + export enquiries (logged)</td>
+<td>✓</td>
+<td>✓</td>
+<td>—</td>
+<td>✓</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Public catalogue export</td>
+<td>✓</td>
+<td>✓</td>
+<td>—</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Read vault, advance GM&amp;E stage, set fare badge</td>
+<td>✓</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Hard delete; recipients, settings, users</td>
+<td>✓</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Read audit log</td>
+<td>✓</td>
+<td>own actions</td>
+<td>—</td>
+<td>—</td>
+<td>vault only</td>
+</tr>
+</tbody>
+</table>
+<p><strong>CSV import.</strong> Schema v1 = RFP congress fields; ISO dates, ISO 3166 alpha-2, UTF-8, <code>;</code>/<code>,</code> auto-detected. Required: title, discipline, country, city, start/end date, official_url, verified_on, language. Coded errors (E01 missing, E02 bad date, E03 end before start, E04 bad URL, E05 unreachable URL, E06 bad country…). Hard duplicate (normalised title + start date + city) rejected; soft (same title, same year) flagged. Flow: upload → dry run → downloadable report → confirm → import as drafts with batch ID → bulk publish.</p>
+<p><strong>Retention</strong> (proposals, ASSET to approve): prospects 3 years after last contact (Open: verify against CNIL guidance); spam 30 days; audit/Access/send logs 12 months; raw events 13 months; vault until <code>valid_to</code> + agreed period; revisions all or last 50 (Open); won clients per ASSET's own policy; backups 30 days Time Travel, 30 nightly, 12 weekly. Export: one command/button → ZIP of every table (CSV + JSON) + media + checksummed manifest; vault exported separately, encrypted. DSR: search by email across enquiry tables, export or delete, log it.</p>
+<p><strong>i18n and SEO.</strong> French at <code>/</code> or <code>/fr/</code> (Open: decide from the crawl, today's URLs have no prefix); English under <code>/en/</code>, built, off until bought. Per-locale slugs linked by <code>translation_of</code>; self canonical; <code>hreflang</code> (fr, en, x-default) only when both are live. Migration: crawl → inventory (status, title, canonical, inlinks, GSC clicks) → per-URL decision (retain/merge/redirect/remove; ASSET approves priority URLs) → generated <code>_redirects</code> (301) → chain and no-blanket-to-home checks → staging test (each old URL → one 301 → 200) → cutover checklist → weekly Search Console + 404 report through J6. Intentional removals return 410. Staging noindex + behind Access. Congress pages emit schema.org <code>Event</code> (Open: check against Google's event policy). Past congress: banner, form off, link to next edition, indexable 12 months, then 301.</p>
+<h1 id="5-architecture">5. Architecture</h1>
+<pre><code class="language-text">                          INTERNET (untrusted)
+   visitor ───────────────┬──────────────────────────── staff (Veena, mgmt)
+          ┌───────────────▼───────────────┐       ┌───────────────▼──────────────┐
+   TB1    │ Cloudflare edge: TLS, WAF,    │       │ Cloudflare Access (TB2)      │
+          │ Turnstile, rate limit         │       │ IdP + MFA → signed JWT       │
+          └───────┬──────────────┬────────┘       └───────────────┬──────────────┘
+         static HTML/JSON   POST /api/*                    admin.&lt;domain&gt;/*
+          (Pages, public)  ┌─────▼──────┐               ┌──────▼───────┐ TB3: JWT verify,
+                           │ api Worker │               │ admin Worker │ roles, Zod
+                           └─┬───────┬──┘               └─┬─────┬────┬─┘ per route
+                      ┌──────▼──┐ ┌──▼─────┐     ┌────────▼┐ ┌──▼──┐ │
+                      │public_db│ │ Queue  │     │public_db│ │vault│ │ TB4: vault
+                      └─────────┘ └──┬─────┘     └─────────┘ │ _db │ │ binding ONLY
+                              ┌──────▼───────┐               └─────┘ │ here
+                              │ email adapter│→ Brevo / Resend ┌─────▼──────────┐
+                              └──────────────┘                 │ R2: media,     │
+   cron Worker: backups, purge, retry, heartbeat               │ evidence(priv),│
+   publish ─► deduped deploy hook ─► CI build (published rows  │ backups(priv)  │
+   only) ─► leak scan + SEO lint (TB5) ─► Pages atomic deploy  └────────────────┘
+</code></pre>
+<p><strong>Components.</strong> Pages (pre-built Astro HTML + JSON search index); three Workers from one repo (<code>api</code>: forms, beacon, health; <code>admin</code>: Console API behind Access; <code>cron</code>); D1 with EU jurisdiction set at creation, Time Travel 30 days; R2 (no egress); Access; Turnstile; Queues (email + rebuild dedup); Brevo primary (French), Resend fallback; GitHub org in ASSET's name with Actions + Renovate; UptimeRobot probes + status page (independent of Cloudflare); L4 only: OpenRouter, pinned model, schema-bound output, never publishes. TypeScript throughout; Zod at every boundary; Drizzle; Console UI in Preact or web components (Open, D3 in §10).</p>
+<table>
+<thead>
+<tr>
+<th>Boundary</th>
+<th>Control</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TB1 internet → edge</td>
+<td>TLS, HSTS, CSP, WAF managed rules, Turnstile, per-IP rate limit on <code>/api/*</code></td>
+</tr>
+<tr>
+<td>TB2 internet → admin</td>
+<td>Access policy by named email; IdP with enforced MFA; 12 h session</td>
+</tr>
+<tr>
+<td>TB3 admin Worker → data</td>
+<td>Verify JWT (aud + signature), email → roles, permission middleware, Zod</td>
+</tr>
+<tr>
+<td>TB4 vault</td>
+<td>Only admin Worker has <code>vault_db</code> + private R2 bindings; AES-GCM; approver/admin only</td>
+</tr>
+<tr>
+<td>TB5 build → public</td>
+<td>Build reads published rows only; leak scanner before deploy</td>
+</tr>
+<tr>
+<td>TB6 Workers → third parties</td>
+<td>Worker secrets; minimum data (no PII to AI; hashed recipients in logs)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Flows.</strong> <em>Enquiry:</em> POST → Turnstile → Zod → dedup key → D1 insert (KV if D1 errors) → 200 → queue → Brevo, else Resend, else flag + 15-min retry + Console banner → <code>send_log</code>. <em>Publish:</em> approve → state + revision + audit → deduped deploy hook (many presses = one build) → CI → leak scan + SEO lint → atomic deploy. <em>Import:</em> upload → validate + dedup dry run → report to R2 → confirm → transactional insert as drafts. <em>Authorisation:</em> approver advances stage → <code>stage_history</code> + audit; badge write checks stage. <em>Measurement:</em> cookie-free page views + beacon with whitelisted properties → <code>event</code> → daily aggregates. <em>Backup:</em> nightly export of both DBs → private R2 → weekly off-platform copy → heartbeat.</p>
+<p><strong>Environments, deploy, rollback.</strong> dev (Wrangler, local D1/R2, fake codes) · staging (<code>staging.</code> + <code>admin.staging.</code>, own D1/R2, seed data, Access, <code>X-Robots-Tag: noindex</code>) · prod. Same code, per-env bindings and secrets; PR previews against staging. Pages deploys are immutable with instant rollback; Workers versioned with rollback; CI deploys the three Workers in fixed order from one commit; migrations forward-only, expand → migrate → contract across two releases, so a partial deploy or code rollback never meets an incompatible schema. Cutover: DNS TTL lowered 48 h before, checklist, switch on written go, old host kept 30 days for revert.</p>
+<p><strong>Backups.</strong> L1 D1 Time Travel (minutes, 30 days) · L2 nightly SQL export to private R2, 30 copies (RPO 24 h) · L3 weekly off-platform copy of L2 + media, 12 kept, client-side encrypted · L4 git. Restore drill: fresh D1, import last night's dump, point a staging Worker at it, smoke suite, stopwatch; at J5 (T13) then monthly. <strong>Never run on this stack.</strong> Open: off-platform provider not chosen or priced.</p>
+<p><strong>Observability.</strong> UptimeRobot every 5 min on home, a congress page, <code>/api/health</code> (D1 read, queue depth, secret presence, build SHA) and admin reachability; status page; dead-man heartbeat from backup cron; Worker exceptions and failed jobs → one error channel (service/env/error/count); no-PII logs; send failures as a Console banner for Veena; monthly report.</p>
+<p><strong>Security.</strong> CSP <code>default-src 'self'</code>, no inline script, <code>frame-ancestors 'none'</code>, nosniff, strict referrer, minimal Permissions-Policy; HSTS (preload after stabilisation). No public admin; JWT re-verified in-app. Email OTP alone is one factor, so not MFA: default is ASSET's IdP with enforced MFA, else a supported IdP with TOTP/passkey (Open: which IdP ASSET uses). Scoped API tokens, branch protection, SAST pre-push, <code>npm audit</code>, Renovate, critical patches within 2 business days, ZAP baseline at J3/J5. Subprocessors: Cloudflare (DPA + SCCs/DPF), Brevo (FR), Resend (US), UptimeRobot, GitHub.</p>
+<table>
+<thead>
+<tr>
+<th>Failure</th>
+<th>Fallback</th>
+<th>Detection</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>D1 unavailable</td>
+<td>Write to KV, replay job; user still gets "thank you"</td>
+<td>health, error channel</td>
+</tr>
+<tr>
+<td>Brevo fails / both fail</td>
+<td>Resend / saved + banner + 15-min and daily retry</td>
+<td><code>send_log</code></td>
+</tr>
+<tr>
+<td>Access outage (12 Jun 2025, ~2h28)</td>
+<td>Public site unaffected; break-glass CLI</td>
+<td>probe</td>
+</tr>
+<tr>
+<td>Cloudflare global incident (18 Nov 2025, ~2h10)</td>
+<td>None on-platform; status page; excluded from SLA</td>
+<td>external probe</td>
+</tr>
+<tr>
+<td>Bad deploy / bad migration</td>
+<td>Instant rollback / forward-fix or Time Travel to CI-recorded bookmark</td>
+<td>synthetic, staging migration test</td>
+</tr>
+<tr>
+<td>Accidental deletion</td>
+<td>Trash 30 days + revisions</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Code typed into free text</td>
+<td>Leak scanner fails build</td>
+<td>CI</td>
+</tr>
+<tr>
+<td>Rebuild storm / spam wave</td>
+<td>Deduped hook / Turnstile + rate limit + spam status</td>
+<td>queue depth, counts</td>
+</tr>
+<tr>
+<td>Me unavailable</td>
+<td>Runbook for a stranger; everything in ASSET's name; backup developer <strong>not yet arranged</strong></td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why a modular monolith, and why not Directus or microservices.</strong> Five users, ≈ 300 listings, low traffic: separate services add network failure modes, deploy coordination and monitoring for no scaling benefit. One repo, three Worker entry points, shared typed modules, adapters at the edges. <em>Directus + same Astro front end:</em> mature editor, roles, revisions, media; maybe −25 to −30 h on the Console; but a server + Postgres (≈ €10–30/month, estimate), its patching and uptime become mine, ≈ 16 h setup, the vault becomes a permission setting rather than a structural split, and a second runtime to hand over. <em>WordPress + ACF</em> (keep current): cheapest for editors, but plugin surface, PHP hosting, GM&amp;E isolation harder to prove; L0 must assess it honestly. <strong>Directus is the call I most want challenged.</strong></p>
+<p><strong>Things I've thought about; check me.</strong> Platform limits from Cloudflare docs as I read them on 31 Oct; re-verify all at J0.</p>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Position</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Load</td>
+<td>≤ 5 staff, ≈ 300 listings, low thousands of visits/day, tens of enquiries/day</td>
+<td>Open: guesses; get 12 months of analytics at L0</td>
+</tr>
+<tr>
+<td>D1 size/concurrency</td>
+<td>Workload ≈ MBs vs 10 GB per DB (Paid); one serial primary, fine at tens of writes/day; public reads hit static output, not D1</td>
+<td>Re-verify</td>
+</tr>
+<tr>
+<td>Workers CPU for import</td>
+<td>300 rows ≪ 1 s CPU (30 s default on Paid); cap 5 MB / 2,000 rows; D1 <code>batch()</code> chunks under one batch ID so a failed chunk rolls back the import</td>
+<td>Caps are my proposal</td>
+</tr>
+<tr>
+<td>Media pipeline</td>
+<td>Upload via admin Worker to R2: type sniffed, 10 MB cap, EXIF stripped; responsive variants at build time (sharp in CI) rather than Image Transformations</td>
+<td>Open: image counts at L0</td>
+</tr>
+<tr>
+<td>Search, pagination</td>
+<td>Build emits JSON index; browser filters and paginates (20/page). Console uses SQL <code>LIMIT/OFFSET</code> + indexed filters; FTS5 only past ≈ 5,000 rows</td>
+<td>Decided</td>
+</tr>
+<tr>
+<td>Caching/freshness</td>
+<td>No ISR; fully static; deduped rebuild per publish; short edge cache on HTML, immutable hashed assets; freshness = build time, target &lt; 5 min</td>
+<td>Measure in skeleton</td>
+</tr>
+<tr>
+<td>Draft preview</td>
+<td>No per-draft builds; Console renders drafts server-side with the same Astro components, behind Access, noindex</td>
+<td>Open: fits Console hours?</td>
+</tr>
+<tr>
+<td>Editor conflicts</td>
+<td>Optimistic locking on <code>version</code>; stale save → 409 showing the other change; no co-editing</td>
+<td>Decided</td>
+</tr>
+<tr>
+<td>Form rate limits</td>
+<td>Turnstile + per-IP limit (e.g. 10 posts / 10 min) + body size cap</td>
+<td>Tune on staging</td>
+</tr>
+<tr>
+<td>Access session</td>
+<td>12 h; step-up re-auth for vault actions if the IdP supports it; revoke by removing email + sessions</td>
+<td>Open: depends on IdP</td>
+</tr>
+<tr>
+<td>Migration rollback</td>
+<td>Forward-only; applied first to a staging copy of prod; bookmark recorded by CI</td>
+<td>Decided</td>
+</tr>
+<tr>
+<td>Secret rotation</td>
+<td>Inventory (vault key, email keys, Turnstile, deploy hook) with owner and steps; rotate at handover and yearly; <code>key_id</code> per ciphertext so old and new vault keys coexist</td>
+<td>Decided</td>
+</tr>
+<tr>
+<td>Backup encryption</td>
+<td>R2 at rest; off-platform copy encrypted client-side (age/GPG), key with ASSET admin and me; vault dump separately encrypted</td>
+<td>Open: provider</td>
+</tr>
+<tr>
+<td>Audit-log tamper evidence</td>
+<td>Append-only in code, each row hashes the previous, exported nightly off-platform; detects silent edits, not tamper-proof against a platform admin</td>
+<td>Decided</td>
+</tr>
+<tr>
+<td>GDPR DSR</td>
+<td>Access/rectify/erase within one month; erasure reaches backups by expiry (30 days / 12 weeks), stated in the privacy notice</td>
+<td>Open: ASSET's DSR contact</td>
+</tr>
+<tr>
+<td>Test data</td>
+<td>Fictional listings and fake codes; staging on seed data; anonymised prod copy only with approval; no real codes outside prod</td>
+<td>Decided</td>
+</tr>
+</tbody>
+</table>
+<h1 id="6-build-plan-and-tests">6. Build plan and tests</h1>
+<p><strong>Contracts first (week 1).</strong> A frozen <code>CONTRACTS.md</code>: C0 scope (prototype table, section types, counts, T01–T15 annex) · C1 schema + migration policy · C2 every route (method, path, role, Zod in/out, errors) · C3 state machines as typed tables · C4 invariants with tests · C5 adapters (<code>EmailProvider</code>, <code>Store</code>, <code>Clock</code>, <code>AIProvider</code>), each with a mock · C6 CSV v1 · C7 beacon events · C8 ops commands. Every AI-assisted session is held to it.</p>
+<p><strong>Walking skeleton (weeks 1–2), on staging:</strong> one Astro page from one block → F01 → D1 → queue → email adapter → Console behind Access listing the enquiry → publish triggers rebuild → nightly backup → restore into fresh D1 → CI with leak scanner, axe and Lighthouse. It measures the unmeasured: rebuild time, Access/JWT path, export size and restore time, and my real Console speed. The estimate is re-based at J1.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Module</th>
+<th>Content</th>
+<th>h</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>M1</td>
+<td>Audit (L0)</td>
+<td>Crawl tool, inventory, account register, baseline, workshop, architecture doc</td>
+<td>12</td>
+</tr>
+<tr>
+<td>M2</td>
+<td>Design system</td>
+<td>Tokens, ≈ 15 components, 8 templates, mock-ups 375/1440, HTML prototype</td>
+<td>24</td>
+</tr>
+<tr>
+<td>M3</td>
+<td>Public pages</td>
+<td>≈ 20 pages + 3 legal</td>
+<td>20</td>
+</tr>
+<tr>
+<td>M4</td>
+<td>Forms</td>
+<td>F01–F03, validation, Turnstile, dedup, durable save, email fallback</td>
+<td>12</td>
+</tr>
+<tr>
+<td>M5</td>
+<td>Enquiry back-office</td>
+<td>Inbox, statuses, owner, history, logged export, routing</td>
+<td>12</td>
+</tr>
+<tr>
+<td>M6</td>
+<td>Measurement + GDPR</td>
+<td>Beacon, dashboard, consent, legal, DSR</td>
+<td>8</td>
+</tr>
+<tr>
+<td>M7</td>
+<td>Console core</td>
+<td>Access + roles, block editor, media, revisions, soft delete, audit log, publish</td>
+<td>44</td>
+</tr>
+<tr>
+<td>M8</td>
+<td>Catalogue public</td>
+<td>Index, filters, pagination, listing, past-event rule, <code>Event</code>, sitemap</td>
+<td>14</td>
+</tr>
+<tr>
+<td>M9</td>
+<td>Catalogue admin + vault</td>
+<td>Congress form, import, exports, both state machines, encryption, leak scanner</td>
+<td>18 (21 detailed)</td>
+</tr>
+<tr>
+<td>M10</td>
+<td>SEO migration</td>
+<td>Redirect generator, chain test, Search Console</td>
+<td>12</td>
+</tr>
+<tr>
+<td>M11</td>
+<td>Infrastructure</td>
+<td>Envs, CI, backups, drill, monitoring, break-glass</td>
+<td>12</td>
+</tr>
+<tr>
+<td>M12</td>
+<td>QA + acceptance</td>
+<td>T01–T15, manual a11y, CWV lab, ZAP, report</td>
+<td>22</td>
+</tr>
+<tr>
+<td>M13</td>
+<td>Handover</td>
+<td>Guide, runbook, inventory, 2 trainings, transfer package</td>
+<td>10</td>
+</tr>
+<tr>
+<td>M14</td>
+<td>Project management</td>
+<td>Weekly updates, milestone packs, change control</td>
+<td>18</td>
+</tr>
+<tr>
+<td></td>
+<td><strong>Core</strong></td>
+<td></td>
+<td><strong>238 + 48 contingency = 286</strong></td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>Tool</th>
+<th>Covers</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Unit</td>
+<td>Vitest</td>
+<td>State machines, permission matrix, dedup, CSV parser, redirect generator, encryption round-trip</td>
+<td>Every push</td>
+</tr>
+<tr>
+<td>Integration</td>
+<td>Vitest + Miniflare/local D1</td>
+<td>Routes on real local D1; adapters mocked and real</td>
+<td>Every push</td>
+</tr>
+<tr>
+<td>E2E</td>
+<td>Playwright</td>
+<td>Journeys; Console flows; <strong>T01–T10</strong> automated (T01/T02 with email deliberately broken; T03 on 300 rows × 10 queries; T04 draft → 404 + absent from sitemap/index; T10 every priority URL → one 301 → 200)</td>
+<td>Every preview</td>
+</tr>
+<tr>
+<td>Leak</td>
+<td>Scanner + canary</td>
+<td><strong>T05</strong>: 0 matches; canary found</td>
+<td>Every build, blocks deploy</td>
+</tr>
+<tr>
+<td>A11y</td>
+<td>axe + NVDA/VoiceOver script</td>
+<td><strong>T11</strong>: 0 serious; 5 journeys manual</td>
+<td>Preview; manual J3, J5</td>
+</tr>
+<tr>
+<td>Performance</td>
+<td>Lighthouse CI per template</td>
+<td><strong>T12</strong>: LCP ≤ 2.5 s, CLS ≤ 0.1, TBT as INP proxy; 4-width screenshots + eye review</td>
+<td>Every preview</td>
+</tr>
+<tr>
+<td>Restore</td>
+<td>Script + stopwatch</td>
+<td><strong>T13</strong> ≤ RTO, smoke green</td>
+<td>J5, monthly</td>
+</tr>
+<tr>
+<td>Export / editor</td>
+<td>Spreadsheet check; observed session</td>
+<td><strong>T14</strong> columns match doc (partly manual); <strong>T15</strong> Veena alone with the guide (manual)</td>
+<td>J4, J5</td>
+</tr>
+<tr>
+<td>Security</td>
+<td>SAST, <code>npm audit</code>, ZAP</td>
+<td>No HIGH/CRITICAL</td>
+<td>Push; ZAP J3, J5</td>
+</tr>
+<tr>
+<td>Live</td>
+<td>Front-door probe</td>
+<td>5 consecutive green days before "live"</td>
+<td>From cutover</td>
+</tr>
+</tbody>
+</table>
+<p><strong>CI gates</strong> (all must pass to merge): typecheck → lint → unit → integration → build → leak scanner → SEO lint (one H1, titles, canonicals, hreflang, no internal status words) → preview deploy → E2E → axe → Lighthouse → front-door on preview. Main protected; prod only from tagged releases.</p>
+<table>
+<thead>
+<tr>
+<th>Done when</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>J0</td>
+<td>RACI, access inventory, dated schedule, repo + Cloudflare in ASSET's name, approval</td>
+</tr>
+<tr>
+<td>J1</td>
+<td>Crawl inventory with decisions, account register, baseline, architecture doc, risk register, <strong>skeleton on staging</strong>, estimate re-based</td>
+</tr>
+<tr>
+<td>J2</td>
+<td>8 templates at 375/1440, prototype, design-system page, claims register started, ≤ 2 rounds</td>
+</tr>
+<tr>
+<td>J3</td>
+<td>All L1 pages served from Console content; T01–T02; events verified; axe and Lighthouse green; <strong>Veena edits a page alone</strong></td>
+</tr>
+<tr>
+<td>J4</td>
+<td>300 listings (or ASSET's file + rejection report); T03–T08; vault + leak test green</td>
+</tr>
+<tr>
+<td>J5</td>
+<td>Redirect map approved, T10; T01–T15 pass with evidence report; training 1; restore timed; rollback plan; written go; DNS cutover</td>
+</tr>
+<tr>
+<td>J6</td>
+<td>4 weeks of checks and fixes; outstanding list closed; training 2; handover complete with secrets rotated</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Handover is a product.</strong> Media upload with required alt/rights; self-serve CSV dry run (Veena imports 10 rows); one-click export (T14); restore runbook + drill record (T13); help panel on every Console screen; illustrated guide generated from Console screenshots (Veena follows it in T15); two recorded trainings, the second 4 weeks after launch; runbook "for a stranger at 6 a.m." (deploy, rollback, restore, export, rotate secrets, add user) tested by someone not involved; signed account inventory; transfer package via password manager. Backups, drills, monitors and dependency PRs run on schedules, not my memory: if I stop, the site keeps running on ASSET's accounts.</p>
+<h1 id="7-effort-timeline-price">7. Effort, timeline, price</h1>
+<p><strong>Hours</strong> (estimates by analogy, not measured): two independent counts, ≈ 220 and 238 core; planning figure 265–286 with 20% contingency. Biggest swings: design 16 vs 24, PM 25 vs 18, QA 16 vs 22. Options: English 8 h · CRM connector 6 h · Wondermiles feasibility 4 h / SSO 12 h · AI ingestion 16 h. Included: up to 20 pages from ≈ 8 templates + 3 legal; up to 300 imported listings; copy from ASSET, light edit; 2 revision rounds per stage; 2 trainings; 4-week stabilisation. Translation excluded.</p>
+<p><strong>Calendar</strong> (start Mon 16 Nov if signed by 13 Nov; approvals within 3 working days; no launch 21 Dec–1 Jan). Lean ≈ 35 h/week; conservative ≈ 22 h/week plus realistic client delay. I intend to contract the conservative dates. 4–5 weeks would only work by cutting the Console to text/images and GM&amp;E to statuses only.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>J0</th>
+<th>J1</th>
+<th>J2</th>
+<th>J3</th>
+<th>J4</th>
+<th>J5 cutover</th>
+<th>J6 ends</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lean</td>
+<td>20 Nov</td>
+<td>2 Dec</td>
+<td>16 Dec</td>
+<td>15 Jan</td>
+<td>22 Jan</td>
+<td>wk of 25 Jan</td>
+<td>26 Feb</td>
+</tr>
+<tr>
+<td>Conservative</td>
+<td>20 Nov</td>
+<td>2 Dec</td>
+<td>8 Jan</td>
+<td>5 Feb</td>
+<td>19 Feb</td>
+<td>12 Mar</td>
+<td>9 Apr</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Price option</th>
+<th>Build</th>
+<th>Monthly plan (12-month min.)</th>
+<th>Build rate on 265 h</th>
+<th>3-year total HT</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lean</td>
+<td>€4,000</td>
+<td>€600</td>
+<td>≈ €15/h</td>
+<td>€25,600</td>
+</tr>
+<tr>
+<td><strong>Recommended</strong></td>
+<td><strong>€7,500</strong></td>
+<td><strong>€600</strong></td>
+<td>≈ €28/h</td>
+<td><strong>€29,100</strong></td>
+</tr>
+<tr>
+<td>Fair solo</td>
+<td>€9,500–12,000</td>
+<td>€600–750</td>
+<td>≈ €36–45/h</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Small Paris agency</td>
+<td>€18,000–25,000</td>
+<td>€750–900</td>
+<td>≈ €68–94/h</td>
+<td>€45,000–57,400</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Market evidence (mostly search summaries; verify before quoting)</th>
+<th>Figure</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Paris full-stack freelance day rate (Malt, TJMetre, Freeland 2026)</td>
+<td>≈ €520–600/day; 265 h ≈ 38 days ≈ €21k</td>
+</tr>
+<tr>
+<td>Small agency, 5–15 people (La Fabrique du Net)</td>
+<td>€550–800/day</td>
+</tr>
+<tr>
+<td>Custom site with back-office and APIs (Agence2web) / medium web app (Seedweb)</td>
+<td>from €8,000 / €20,000–50,000</td>
+</tr>
+<tr>
+<td>WordPress maintenance (Make Different, Ellebay) / out-of-contract hourly</td>
+<td>€100–350/month / €60–150</td>
+</tr>
+</tbody>
+</table>
+<p>The plan covers hosting and tools (accounts in ASSET's name, paid by me), security updates, backups and drills, monitoring, up to 5 h of changes a month, Mon–Fri support, monthly report. <strong>Running costs:</strong> Workers Paid $5 (≈ €4.3, includes D1, Queues, Time Travel); D1, R2, Access (≤ 50 users, unverified), Turnstile, Web Analytics €0 at this size; Brevo €0–9; Resend €0; UptimeRobot €0–10; domain ≈ €9–32/year; L4 AI €5–20; off-platform backup Open. Total ≈ €5–15/month, up to ≈ €25 with paid monitoring. Is €7.5k so low it reads as risk? Would you go to €9.5k+?</p>
+<h1 id="8-risk-and-complexity">8. Risk and complexity</h1>
+<p><strong>Complexity</strong> = Σ effort weight × rating (1 trivial … 10 novel/hard to test). Ratings are my judgement, reconstructed to match the score I first computed.</p>
+<table>
+<thead>
+<tr>
+<th>Module</th>
+<th>Weight</th>
+<th>Rating</th>
+<th>Contrib.</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Public pages</td>
+<td>0.15</td>
+<td>3</td>
+<td>0.45</td>
+<td>Done before</td>
+</tr>
+<tr>
+<td>Forms + dedup + fallback</td>
+<td>0.10</td>
+<td>6</td>
+<td>0.60</td>
+<td>Async email, two providers</td>
+</tr>
+<tr>
+<td>Enquiry back-office</td>
+<td>0.08</td>
+<td>5</td>
+<td>0.40</td>
+<td>CRUD + history</td>
+</tr>
+<tr>
+<td>Console editor, media, versions</td>
+<td>0.22</td>
+<td>8</td>
+<td>1.76</td>
+<td>New; non-developer UX; rebuild loop</td>
+</tr>
+<tr>
+<td>Roles, MFA, audit</td>
+<td>0.10</td>
+<td>7</td>
+<td>0.70</td>
+<td>Access JWT + matrix</td>
+</tr>
+<tr>
+<td>Catalogue public / admin + import</td>
+<td>0.08 / 0.10</td>
+<td>4 / 7</td>
+<td>0.32 / 0.70</td>
+<td>Pattern exists / dedup, idempotency</td>
+</tr>
+<tr>
+<td>GM&amp;E vault + workflow</td>
+<td>0.07</td>
+<td>8</td>
+<td>0.56</td>
+<td>Encryption, isolation, leak proof</td>
+</tr>
+<tr>
+<td>SEO migration / infra + backups</td>
+<td>0.05 / 0.05</td>
+<td>7 / 7</td>
+<td>0.35 / 0.35</td>
+<td>Unknown URL count / restore never run on D1</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td>1.00</td>
+<td></td>
+<td><strong>≈ 6.2/10</strong></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Confidence</strong> that J5 lands on the contracted date and scope: <span class="formula">P = Π (1 − r<sub>i</sub>)</span>, r<sub>i</sub> = residual chance (after mitigation) that risk <em>i</em> breaks it. Independence is optimistic: R1 and R2 correlate through the calendar. Doesn't cover losing the bid or post-launch defects.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Risk</th>
+<th>Mitigation</th>
+<th>r cons.</th>
+<th>r lean</th>
+<th><strong>Your r</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R1</td>
+<td>Client inputs late</td>
+<td>Defaults, day-for-day shift, weekly written chase</td>
+<td>0.08</td>
+<td>0.14</td>
+<td></td>
+</tr>
+<tr>
+<td>R2</td>
+<td>Me unavailable (single point of failure)</td>
+<td>Conservative calendar, runbook, repo in client's name; no backup dev yet</td>
+<td>0.07</td>
+<td>0.11</td>
+<td></td>
+</tr>
+<tr>
+<td>R3</td>
+<td>Console overrun</td>
+<td>Fixed section types; skeleton measures speed; scope-cut list</td>
+<td>0.03</td>
+<td>0.08</td>
+<td></td>
+</tr>
+<tr>
+<td>R4</td>
+<td>Site access / DNS / domain blocked</td>
+<td>Ask at J0; parallel build</td>
+<td>0.03</td>
+<td>0.05</td>
+<td></td>
+</tr>
+<tr>
+<td>R5</td>
+<td>Vault flaw or leak</td>
+<td>Structural isolation, encryption, canary scanner, role tests</td>
+<td>0.01</td>
+<td>0.01</td>
+<td></td>
+</tr>
+<tr>
+<td>R6</td>
+<td>SEO migration loses a critical URL</td>
+<td>Crawl + GSC, chain test, T10, weekly checks</td>
+<td>0.02</td>
+<td>0.03</td>
+<td></td>
+</tr>
+<tr>
+<td>R7</td>
+<td>Platform limit found late</td>
+<td>Skeleton exercises every binding</td>
+<td>0.01</td>
+<td>0.02</td>
+<td></td>
+</tr>
+<tr>
+<td>R8</td>
+<td>Notifications fail in prod</td>
+<td>Two providers, durable save, banner</td>
+<td>0.01</td>
+<td>0.01</td>
+<td></td>
+</tr>
+<tr>
+<td>R9</td>
+<td>Acceptance dispute</td>
+<td>T01–T15 frozen; defects only against tests</td>
+<td>0.01</td>
+<td>0.03</td>
+<td></td>
+</tr>
+<tr>
+<td>R10</td>
+<td>Client CSV quality</td>
+<td>Template, dry run, rejection report</td>
+<td>0.01</td>
+<td>0.03</td>
+<td></td>
+</tr>
+<tr>
+<td>R11</td>
+<td>Restore fails at drill</td>
+<td>Drill in skeleton and J5; Time Travel</td>
+<td>0.01</td>
+<td>0.02</td>
+<td></td>
+</tr>
+<tr>
+<td>R12</td>
+<td>Scope creep</td>
+<td>Change control</td>
+<td>0.01</td>
+<td>0.04</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td><strong>P</strong></td>
+<td></td>
+<td><strong>≈ 0.735</strong></td>
+<td><strong>≈ 0.552</strong></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>So roughly 3-in-4 on the conservative calendar, about even on lean. The two biggest residuals aren't engineering. Would you use a reference-class forecast instead? Is the Console's 22% × 8 right?</p>
+<h1 id="9-kpis-per-stage">9. KPIs per stage</h1>
+<p>Every KPI has a method and an owner (me unless stated). "Baseline" means measured, not targeted.</p>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>KPI → target</th>
+<th>Method / tool</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>J0</td>
+<td>Access inventory 100% (domain, DNS, hosting, email, GA, GSC, GBP) with owner; accounts in ASSET's name 100%; schedule approved</td>
+<td>Account register; email</td>
+</tr>
+<tr>
+<td>J1</td>
+<td>100% of crawled URLs have a decision; 100% of URLs with ≥ 1 GSC click in 16 months mapped; lab CWV on 5 pages; tracker + form counts; skeleton measures (rebuild, restore, Console velocity); estimate re-based vs 286 h</td>
+<td>Crawl tool, GSC export, Lighthouse, network crawl, CI logs</td>
+</tr>
+<tr>
+<td>J2</td>
+<td>8/8 templates approved; ≤ 2 rounds; every form ≤ 2–3 clicks from home; claims register lists every claim (Veena)</td>
+<td>Approval email, click-count table</td>
+</tr>
+<tr>
+<td>J3</td>
+<td>23/23 pages; T01–T02 green; axe 0 serious; lab LCP ≤ 2.5 s, CLS ≤ 0.1, TBT ≤ 200 ms per template; 8 event types fire, 0 PII; Veena edits alone</td>
+<td>Playwright, axe, Lighthouse CI, payload grep, observed session</td>
+</tr>
+<tr>
+<td>J4</td>
+<td>Imported/rejected/flagged counts with codes; 100% hard dups rejected; leak 0 + canary found; T03–T08 100%; role matrix 100%</td>
+<td>Import report, scanner, suite</td>
+</tr>
+<tr>
+<td>J5</td>
+<td>T01–T15 100% with evidence; priority redirects 100%, ≥ 95% of all URLs implemented, 0 chains, 0 blanket-to-home; RTO ≤ 8 bh; Lighthouse Perf ≥ 90, A11y ≥ 95, SEO ≥ 95; ZAP 0 high; 0 launch blockers (management)</td>
+<td>Acceptance report, redirect test, drill, ZAP</td>
+</tr>
+<tr>
+<td>J6</td>
+<td>Uptime ≥ 99.5%; no new 404s on mapped URLs; enquiries/day baseline by activity (Veena); Veena's first solo publish ≤ 3 working days after launch; 0 open items; 5 green front-door days</td>
+<td>UptimeRobot, GSC weekly, D1 counts, audit log</td>
+</tr>
+<tr>
+<td>Monthly</td>
+<td>Availability ≥ 99.5% excl. provider-wide incidents; 100% nightly backups, 0 missed heartbeats; drill passed + timed; changes within 5 h delivered in agreed days (Open: set); critical patches ≤ 2 business days; enquiries by activity with source; field CWV if CrUX publishes</td>
+<td>Probe, cron log, drill log, tickets, dashboard, CrUX</td>
+</tr>
+</tbody>
+</table>
+<p>Which of these is vanity, and which business KPI is missing? Is 99.5% honest on Cloudflare with no platform SLA? Is TBT a fair INP proxy?</p>
+<h1 id="10-open-decisions-and-scoring-sheet">10. Open decisions and scoring sheet</h1>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Decision</th>
+<th>My lean</th>
+<th>What would change it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>D1</td>
+<td>Price: €4k / €7.5k / ≥ €9.5k</td>
+<td>€7.5k + €600 × 12</td>
+<td>Evidence procurement discounts low bids</td>
+</tr>
+<tr>
+<td>D2</td>
+<td>Console: build vs Directus</td>
+<td>Build</td>
+<td>Credible estimate the custom Console exceeds ≈ 70 h, or vault isolation equally provable in Directus</td>
+</tr>
+<tr>
+<td>D3</td>
+<td>Console UI: Preact vs web components</td>
+<td>Undecided</td>
+<td>Your view on third-party maintainability</td>
+</tr>
+<tr>
+<td>D4</td>
+<td>D1 (EU) vs managed EU Postgres</td>
+<td>D1</td>
+<td>D1 maturity, export, limits, lock-in</td>
+</tr>
+<tr>
+<td>D5</td>
+<td>5-working-day deemed acceptance</td>
+<td>Keep, worded politely</td>
+<td>Evidence it costs the bid</td>
+</tr>
+<tr>
+<td>D6</td>
+<td>Off-platform backup store</td>
+<td>Choose before J1</td>
+<td>Your recommendation</td>
+</tr>
+<tr>
+<td>D7</td>
+<td>Backup developer</td>
+<td>Name one before signature</td>
+<td>Whether the bid is viable without one</td>
+</tr>
+<tr>
+<td>D8</td>
+<td>French at <code>/</code> or <code>/fr/</code></td>
+<td>Decide from crawl</td>
+<td>Old URL structure</td>
+</tr>
+</tbody>
+</table>
+<p>Four open-ended asks: the single change that most raises on-time delivery; the one that most raises the chance of winning; anything you think is <strong>wrong</strong>, not just risky; anything you'd refuse to sign off.</p>
+<table class="score">
+<tr><th>§</th><th>Section</th><th>Score 1–10</th><th>Comment</th></tr>
+<tr><td>2</td><td>The job</td><td></td><td></td></tr>
+<tr><td>3</td><td>What I have vs must build</td><td></td><td></td></tr>
+<tr><td>4</td><td>Design</td><td></td><td></td></tr>
+<tr><td>5</td><td>Architecture</td><td></td><td></td></tr>
+<tr><td>6</td><td>Build plan and tests</td><td></td><td></td></tr>
+<tr><td>7</td><td>Effort, timeline, price</td><td></td><td></td></tr>
+<tr><td>8</td><td>Risk and complexity</td><td></td><td></td></tr>
+<tr><td>9</td><td>KPIs</td><td></td><td></td></tr>
+<tr><td>10</td><td>Open decisions</td><td></td><td></td></tr>
+<tr><td>—</td><td><b>Overall: would you fund this plan?</b></td><td></td><td></td></tr>
+</table>
+
+<p>Name: ____________________ Date: __________ Time spent: _____ h</p>
+<h1 id="appendix-glossary-and-sources">Appendix: glossary and sources</h1>
+<p><strong>Glossary.</strong> MICE: meetings, incentives, conferences, exhibitions. GM&amp;E: Air France–KLM Global Meetings &amp; Events, per-event codes giving attendees discounted fares. Wondermiles / Traveldoo: corporate booking tools. D1: Cloudflare's hosted SQLite (Time Travel = point-in-time restore). R2: object storage. Access: Cloudflare Zero Trust login gateway. Turnstile: CAPTCHA alternative. RPO/RTO: max data loss / max restore time. LCP/INP/CLS: Core Web Vitals; TBT: lab proxy for INP; CrUX: Chrome field data. DSR: GDPR data-subject request. CNIL: French data regulator. DPA/SCCs/DPF: processing agreement / EU clauses / EU–US framework. HT/TTC: excl./incl. VAT. ZAP: OWASP scanner.</p>
+<p><strong>Sources.</strong> ASSET RFP v0.4 EN, 28 Oct 2026 (restricted); client site fetched 28 Oct 2026. Cloudflare (checked 28 Oct 2026): Workers pricing https://developers.cloudflare.com/workers/platform/pricing/ · Pages limits https://developers.cloudflare.com/pages/platform/limits/ · D1 pricing https://developers.cloudflare.com/d1/platform/pricing/ · Time Travel https://developers.cloudflare.com/d1/reference/time-travel/ · D1 location https://developers.cloudflare.com/d1/configuration/data-location/ · R2 https://developers.cloudflare.com/r2/pricing/ · Zero Trust limits https://developers.cloudflare.com/cloudflare-one/account-limits/ · Turnstile https://developers.cloudflare.com/turnstile/plans/ · Web Analytics https://www.cloudflare.com/web-analytics/ · DPA https://www.cloudflare.com/cloudflare-customer-dpa/ · incidents https://blog.cloudflare.com/cloudflare-service-outage-june-12-2025/ , https://blog.cloudflare.com/5-december-2025-outage/ . Email/monitor: https://www.brevo.com/products/transactional-email/ · https://resend.com/pricing · https://uptimerobot.com/pricing/ . Market: https://www.malt.fr/t/barometre-tarifs/tech/developpeur-backend/developpeur-fullstack · https://tjmetre.fr/barometre · https://barometre.freeland.com/tjm/developpeur · https://www.lafabriquedunet.fr/agences/pages/agences-developpement-web/tarifs · https://www.agence2web.com/tarifs-site-web/ · https://seedweb.fr/prix-site-internet/ · https://ellebay-digital.com/blog/cout-maintenance-site-web-2026 · https://makedifferent.fr/blog/cout-maintenance-site-web/ . <strong>Not sourced</strong> (Open): CNIL retention period, Google Event policy, Access ≤ 50 free users, the reconstructed complexity/risk tables.</p></body></html>
