@@ -32,6 +32,9 @@ I would rather not put figures in an email ahead of the proposal: a price only m
 **7. Wondermiles**
 Agreed. For launch we quote a simple "client login" link, which your team can point to Wondermiles or keep on today's Traveldoo address (question 23), with click measurement and no passwords stored on your site. API and single sign-on are priced separately, in two steps: first a short feasibility study (what Wondermiles actually allows, contractually and technically), then the integration itself, quoted only once the study has an answer. I prefer not to quote the integration before that, because its cost depends almost entirely on what Wondermiles supports.
 
+**8. Two small requests from our side**
+Both are optional and for after delivery, so they have no bearing on the proposal or the price. First, we would like to place a discreet "Site by ProdCraft" credit in the site footer, in the same style as your legal links; it is how small studios like ours are found by future clients. Second, once the site has passed your acceptance tests and is live, we would appreciate a short LinkedIn post from ASSET Voyages about the new site, mentioning Debanjan Mazumdar and ProdCraft. If either does not suit your communication rules, just say so and we will leave it out.
+
 Please take the time you need with your manager. The answer sheet remains the quickest way for us to turn this into a precise, fixed proposal.
 
 Kind regards,
