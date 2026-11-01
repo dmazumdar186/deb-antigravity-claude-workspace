@@ -217,3 +217,9 @@ Status is judged only from the v2 files (`BUILD_LOG.md` v2, `EVAL_REPORT_v2.md`,
 8. Harness: warn when narration duplicates captions. Add consent and capability wording ("can be e-mailed") to the Jev set, with a held-out split.
 9. Log tokens and your review minutes on the next film. Without them there are no unit economics.
 10. Before any campaign: run a fresh `lemo_bootstrap.py install`, run `build.sh` end to end, record the model id, and build the `content.json` template and `film_ledger.jsonl`.
+
+## Update: v2.1 (2026-11-01)
+
+- `EVAL_REPORT_v2_1.md`: overall WARN, no FAIL. 34/35 metrics pass. The one WARN is the version digits in the required credits.
+- `VISUAL_QA_v2_1.md` (independent reviewer, round 3): **PASS**. All 8 round-2 findings are closed. The lowest orange contrast is 4.95:1 (the payoff "6"). There are no invented cities and no IDs other than M0271. One low item remains: real London spellings are partly visible on neighbouring cards as the loupe lands.
+- Still open: operator watch (lens 6 gate), audience test (lens 1), Annex A line (lens 3), raw-CSV re-check of F13–F15, fresh-container rebuild (lens 2/10), house style + content.json + ledger (lens 11).
