@@ -53,7 +53,7 @@ Implementation lives IN THIS WORKSPACE under `execution/personal_workflows/self_
 | `personalizer.py` | Sonnet 4.6 with prompt caching. Generates: 1 subject line + 1 opener line (≤15 words, outcome-oriented per `tone.json`). ~€1.60/mo for 600 leads. | Phase 3 |
 | `instantly_client.py` | Wraps Instantly Growth API. Uploads leads to campaign, reads campaign stats, pauses/resumes. Reuses `execution/modules/outputs/instantly.py` as base. | Phase 3 |
 | `webhook_receiver.py` | Cloudflare Worker (deployed separately) receives Instantly reply webhook, HMAC-verifies, classifies via Sonnet, routes hot leads to Telegram + Gmail label. | Phase 3 |
-| `reply_classifier.py` | Sonnet 4.6 classifies replies into 5 buckets: `hot` / `positive` / `neutral` / `negative` / `auto_reply_or_OOO`. | Phase 3 |
+| `reply_classifier.py` | Classifies replies into 5 buckets: `hot` / `positive` / `neutral` / `negative` / `auto_reply_or_OOO`. Deterministic rule layer on the reply text (quoted thread stripped) first; LLM for the rest (live path still stubbed). Stop requests suppress the sender via `apply_opt_out()`. Precedence + suppression: see **Reply classifier rules** under Phase 3. | Phase 3 |
 | `digest.py` | Nightly digest to Telegram + `debolshop@gmail.com`: `sent N / opened O / replied R / positive P / hot H / bounced B / canary=OK\|FAIL / warmup day X of 14`. | Phase 3 |
 | `canary.py` | Front-door synthetic. Sends 1 real email/day to a monitored inbox, asserts inbox placement (not spam) via mail-tester.com scoring + IMAP check of the destination. Hard-fails the daily run if placement fails. | Phase 3 |
 | `acceptance.py` | Output-acceptance gate. Reads Instantly campaign stats at end of day; asserts sends>0, bounce_rate<5%, unsubscribe_rate<0.3%, complaints=0. Hard-fails if any breach. | Phase 3 |
@@ -168,7 +168,7 @@ Build order (each committed independently):
 4. `personalizer.py` — Sonnet with prompt caching. System prompt (400 tokens from `tone.json`) cached across the day.
 5. `instantly_client.py` — Instantly API wrapper. Dry-run uses `would_upload` counter.
 6. `webhook_receiver.py` — Cloudflare Worker. Deploy separately via `wrangler`. HMAC-verifies Instantly signature.
-7. `reply_classifier.py` — Sonnet classifier. Fixture: 20 known replies (5 per class × 4 non-`auto_reply` classes + 5 auto-replies) MUST route correctly.
+7. `reply_classifier.py` — rule layer + LLM fallback. Fixture: `tests/fixtures/reply_labelled.json` (48 labelled EN+FR replies, adversarial cases included); `test_labelled_fixture_precision_recall` reports per-class precision/recall, and stop + adversarial cases are hard-asserted.
 8. `digest.py` — Nightly digest.
 9. `canary.py` — front-door synthetic (see below).
 10. `acceptance.py` — output-acceptance gate (see below).
@@ -194,6 +194,13 @@ Build order (each committed independently):
 - Output-acceptance gate PASS × 5 consecutive days
 - Frozen corpus 32/32 PASS
 - 6-auditor mandatory audit stack fires and all report PASS (per `~/.claude/rules/mandatory-audit-stack.md`)
+
+**Reply classifier rules (`reply_classifier.py`, revised 2026-11-01 after the ProdCraft wk 02 panel review):**
+- **Quoted text is stripped before any rule runs.** Our own outbound email and its unsubscribe footer come back inside the quote. Removed: `>` lines, `On … wrote:` / `Le … a écrit :` attributions (if `>` lines follow, only the attribution line is dropped, so text written below or between the quoted lines is kept; otherwise everything after it is cut), `-----Original Message-----` / `Message d'origine`, Outlook `From:`+`Sent:` header blocks, `____` rules, forwarded-message markers, Gmail/Outlook/Apple HTML quote containers.
+- **Precedence (first match wins):** 1. stop/unsubscribe → `negative`, `opt_out=true` (**always wins**, including over auto-reply headers). 2. auto-reply metadata (`Auto-Submitted` ≠ `no`, `X-Autoreply`, `X-Autorespond`, `Precedence: auto_reply`, or a subject starting `Automatic reply` / `Out of office` / `Réponse automatique` …) → `auto_reply_or_OOO`. A machine-written message has no buying intent, so its "urgent: call me on …" line is not a hot lead. 3. hot (phone number *with* call-me context, meeting request, ready to sign) → `hot` (dry-run; live mode LLM-verifies). 4. explicit decline (`not interested`, `pas intéressé`, `no thanks`) → `negative`, `opt_out=false`. 5. interest wording → `positive`. 6. OOO wording in the body → `auto_reply_or_OOO`, **only if nothing above fired**. 7. LLM (live, stubbed) / `neutral` (dry-run).
+- **Tightened patterns:** bare `absent` and `will return / be back` are gone. The OOO body rules use anchored phrasing (`je suis absent(e)`, `absent du bureau`, `I'll be back on <weekday/date>`). A phone number counts only after `call/ring/reach me`, `appelez-moi`, `my number is` or `mon numéro`, and it is ignored when `urgent/urgence/emergency` appears in the 60 characters before it. Order numbers, invoice refs and postcodes do not fire.
+- **Suppression:** `apply_opt_out(result, sender)` writes the sender to `config/suppression.json` through `suppression_writer.add_suppression` (reason `negative_reply`, source `reply_classifier`). It is idempotent: one entry per address, and every event is still logged in `history`. `icp_filter.py` reads that file, so the address is rejected from every later batch. Only stop requests (`opt_out=true`) are suppressed, and only the address, not the domain. A plain decline is `negative` but not suppressed, so the operator can decide on re-contact. CLI: `--sender <addr> --write-suppression`; without the flag the write is a dry-run. Removing the lead from the live Instantly sequence belongs to the webhook path and is not built yet (`instantly_client.py` live calls are stubbed).
+- **`rule_confidence`** (renamed from `confidence`) is a fixed per-rule prior, not a calibrated probability. Dry-run numbers on the 48-case fixture, measured 2026-11-01: precision/recall hot 1.00/1.00, positive 1.00/0.88, neutral 0.89/1.00, negative 1.00/1.00, auto_reply_or_OOO 1.00/1.00. **The fixture was written alongside the rules (a dev set), so treat these numbers as a regression floor, not a production estimate.** Re-measure on real labelled replies once Phase 4 produces them.
 
 ### Phase 4 — Go-live canary week (15 emails/day for 7 days)
 
@@ -246,11 +253,12 @@ Same as v1 process: register + DNS + Workspace seat + 4-week warmup + flip to ac
 - **Instantly free-tier warmup exhausted or account restricted**: no fallback path built-in. Manual intervention required. Suspend campaign, contact Instantly support, re-warm if needed.
 - **Apify $5 credit exhausted mid-month**: fallback = manual list from Crunchbase Advanced Search (limited free) or LinkedIn Sales Nav free trial. Digest MUST flag "Apify credit exhausted, running on manual seed" so operator knows.
 - **Sonnet 4.6 rate-limited**: fallback to Gemini 2.5 Flash free (already `GEMINI_API_KEY` in `.env` per project memory). Personalizer accepts a `--llm` flag.
-- **Reply classifier confuses auto-reply/OOO for positive**: refine classifier prompt; add explicit OOO-text patterns to a hard-rule pre-filter BEFORE hitting the LLM (deterministic layer catches 95% of OOO).
+- **Reply classifier confuses auto-reply/OOO for positive**: refine classifier prompt; the hard-rule layer runs BEFORE the LLM (header/subject auto-reply detection, then anchored OOO body patterns). Add the misrouted reply to `tests/fixtures/reply_labelled.json` and re-run the precision/recall test. No catch-rate claim until it is measured on real replies.
 - **Gmail Push API silence**: Instantly webhook is primary; Gmail Push is a redundant path for the "Interested" label. If both silent, canary + acceptance still work.
 - **Cal.com double-booking**: Cal.com blocks natively.
 - **AM lockdown**: this system uses entirely separate accounts, domain, inbox, credentials, Cloudflare account (if used), and Telegram bot. Do NOT import code or copy paths from `execution/infrastructure/api-proxy/`. See `CLAUDE.local.md` "ACCESSORY MASTERS — LOCKDOWN" for the no-touch list.
-- **GDPR opt-out received via reply (not link)**: classifier routes to `negative`; contact + domain lands in `suppression.json` permanently.
+- **GDPR opt-out received via reply (not link)**: the stop rule wins over every other rule. The classifier returns `negative` + `opt_out=true`, and `apply_opt_out()` writes the address to `suppression.json` permanently (idempotent). The domain is not auto-suppressed, so colleagues stay contactable; add the domain by hand if the reply asks for it.
+- **Our own unsubscribe footer in the quoted thread**: stripped before matching (see Reply classifier rules); it no longer produces false `negative`.
 - **Front-door synthetic FAIL**: `run.py` halts the day. Digest to Telegram. No cold sends. Root-cause: DNS drift? DKIM broken? Warmup score collapsed? Instantly account flag? Fix before next-day resume.
 - **Output-acceptance gate FAIL**: `killswitch.py` fires. Campaign paused. Root-cause before resume.
 - **Kill-switch state**: `KILL_SWITCH=1` in `.env` halts `run.py` at line 1. Also pauses Instantly campaign via API. To resume: set to `0`, resume in Instantly UI, verify canary green.
@@ -269,6 +277,8 @@ Same as v1 process: register + DNS + Workspace seat + 4-week warmup + flip to ac
 - LIA document filed. Suppression retention verified working.
 
 ## Changelog
+
+- **2026-11-01 — reply_classifier correctness fixes** (panel review of the ProdCraft wk 02 film). Stop now beats OOO, and hot beats OOO. Quoted thread is stripped before matching. Broad OOO and phone patterns are tightened, and auto-reply headers/subject are used. Stop requests are written to `suppression.json`. `confidence` is renamed to `rule_confidence`. Added a 48-case EN+FR labelled fixture with a precision/recall test. Unmeasured "~95%" claims removed.
 
 - **2026-07-08 — v2 (Blueprint A2, ACTIVE).** Pivoted from Cloudflare Worker + raw SMTP × 6–9 inboxes to Instantly.ai Growth API + 1 warmed inbox × 1 secondary domain. Root cause of pivot: (a) Smartlead Basic (paste's original recommendation) has NO API/webhook in 2026 — moved to Unlimited Smart at $174/mo, killing the €36/mo assumption; Instantly Growth exposes API + webhook at ~$37/mo entry tier. (b) Apollo free tier cut from 10k → 100 credits/mo in late 2025, killing the free-sourcing assumption; replaced with Apify $5 credit for Google Maps + LinkedIn Actors. (c) Reliability bar raised: operator explicitly flagged that this must NOT fail like `job_search_v2` did — mandatory front-door synthetic + output-acceptance gate + 6-auditor stack now hard-gated. Cost: ~€48/mo TTC (€34 Instantly + €8.28 GWS + €0.85 Porkbun + €1.60 Sonnet + €4 Million Verifier variable). €3 over the €45 target, well within the €100 hard ceiling. Implementation now IN this workspace at `execution/personal_workflows/self_outbound_system/`, not in a separate repo. Phase 0 (research) complete 2026-07-08.
 

@@ -1,0 +1,357 @@
+{
+  "_description": "Labelled inbound replies for reply_classifier.py precision/recall. Hand-written alongside the rule layer (dev set, not a held-out sample): treat the reported numbers as a regression floor, not a production estimate. Cases whose note starts with 'adversarial' or 'stop' are hard-asserted.",
+  "cases": [
+    {
+      "id": "r01",
+      "lang": "en",
+      "label": "negative",
+      "body": "Please unsubscribe me from your list.",
+      "note": "stop"
+    },
+    {
+      "id": "r02",
+      "lang": "en",
+      "label": "negative",
+      "body": "Remove me from your mailing list, thanks.",
+      "note": "stop"
+    },
+    {
+      "id": "r03",
+      "lang": "en",
+      "label": "negative",
+      "body": "Do not email me again.",
+      "note": "stop"
+    },
+    {
+      "id": "r04",
+      "lang": "en",
+      "label": "negative",
+      "body": "Stop contacting me, I am not interested.",
+      "note": "stop"
+    },
+    {
+      "id": "r05",
+      "lang": "en",
+      "label": "negative",
+      "body": "I'm out of office until Monday, please remove me.",
+      "note": "adversarial: stop inside OOO wording"
+    },
+    {
+      "id": "r06",
+      "lang": "en",
+      "label": "negative",
+      "body": "Automatic reply: I am away. Please take me off this list.",
+      "note": "adversarial: stop beats auto-reply headers",
+      "subject": "Automatic reply: Product roadmap",
+      "headers": {
+        "Auto-Submitted": "auto-replied"
+      }
+    },
+    {
+      "id": "r07",
+      "lang": "en",
+      "label": "negative",
+      "body": "Don’t email me again.\n\nOn Tue, 27 Oct 2026 at 09:14, Debanjan Mazumdar <deb@prodcraft.example> wrote:\n> Hi Claire, quick question about your roadmap...\n> Debanjan\n> If you'd rather not hear from me, reply 'unsubscribe' or click here to unsubscribe.",
+      "note": "stop with curly apostrophe + quoted footer"
+    },
+    {
+      "id": "r08",
+      "lang": "fr",
+      "label": "negative",
+      "body": "Désinscrivez-moi de votre liste.",
+      "note": "stop"
+    },
+    {
+      "id": "r09",
+      "lang": "fr",
+      "label": "negative",
+      "body": "Merci de ne plus me contacter.",
+      "note": "stop"
+    },
+    {
+      "id": "r10",
+      "lang": "fr",
+      "label": "negative",
+      "body": "Je suis en congés, mais retirez-moi de vos envois s'il vous plaît.",
+      "note": "adversarial: stop inside OOO wording (FR)"
+    },
+    {
+      "id": "r11",
+      "lang": "en",
+      "label": "negative",
+      "body": "Not interested, thanks.\n\nOn Tue, 27 Oct 2026 at 09:14, Debanjan Mazumdar <deb@prodcraft.example> wrote:\n> Hi Claire, quick question about your roadmap...\n> Debanjan\n> If you'd rather not hear from me, reply 'unsubscribe' or click here to unsubscribe.",
+      "note": "decline; quoted footer must not add a stop hit"
+    },
+    {
+      "id": "r12",
+      "lang": "en",
+      "label": "negative",
+      "body": "No thanks, we're all set on product leadership.",
+      "note": "decline"
+    },
+    {
+      "id": "r13",
+      "lang": "fr",
+      "label": "negative",
+      "body": "Pas intéressé, merci.\n\nLe mar. 27 oct. 2026 à 09:14, Debanjan Mazumdar <deb@prodcraft.example> a écrit :\n> Bonjour Claire, une question sur votre roadmap...\n> Pour vous désinscrire, répondez 'stop' ou cliquez ici pour vous désinscrire.",
+      "note": "decline FR; quoted footer"
+    },
+    {
+      "id": "r14",
+      "lang": "fr",
+      "label": "negative",
+      "body": "Ça ne m'intéresse pas pour le moment.",
+      "note": "decline FR"
+    },
+    {
+      "id": "r15",
+      "lang": "en",
+      "label": "hot",
+      "body": "Interested, I will be back Tuesday, can we jump on a call?",
+      "note": "adversarial: hot beats OOO wording"
+    },
+    {
+      "id": "r16",
+      "lang": "en",
+      "label": "hot",
+      "body": "Yes, call me at +33 6 12 34 56 78 tomorrow.",
+      "note": "phone with context"
+    },
+    {
+      "id": "r17",
+      "lang": "en",
+      "label": "hot",
+      "body": "Good timing. Let's schedule a call next week, Thursday works.",
+      "note": "meeting request"
+    },
+    {
+      "id": "r18",
+      "lang": "en",
+      "label": "hot",
+      "body": "We're ready to move forward. Send over the proposal.\n\n________________________________\nFrom: Debanjan Mazumdar <deb@prodcraft.example>\nSent: Tuesday, October 27, 2026 9:14 AM\nTo: Marc <marc@acme.example>\nSubject: Product roadmap\n\nHi Marc, ... To unsubscribe, reply 'remove me'.",
+      "note": "Outlook quote with 'remove me' must be stripped"
+    },
+    {
+      "id": "r19",
+      "lang": "en",
+      "label": "hot",
+      "body": "I was out of the office last week, sorry. My number is 06 12 34 56 78, ring me.",
+      "note": "adversarial: OOO words in a live reply"
+    },
+    {
+      "id": "r20",
+      "lang": "fr",
+      "label": "hot",
+      "body": "Intéressé. Appelez-moi au 06 12 34 56 78 demain matin.",
+      "note": "phone FR"
+    },
+    {
+      "id": "r21",
+      "lang": "fr",
+      "label": "hot",
+      "body": "On peut s'appeler jeudi ? Je suis dispo pour un appel à 14h.",
+      "note": "meeting request FR"
+    },
+    {
+      "id": "r22",
+      "lang": "fr",
+      "label": "hot",
+      "body": "Je suis de retour lundi, on pourrait caler un créneau mardi ?",
+      "note": "adversarial: hot beats 'de retour' (FR)"
+    },
+    {
+      "id": "r23",
+      "lang": "en",
+      "label": "positive",
+      "body": "Yes, tell me more about the offer. How does pricing work?",
+      "note": "interest"
+    },
+    {
+      "id": "r24",
+      "lang": "en",
+      "label": "positive",
+      "body": "Interested in learning more. What are next steps?",
+      "note": "interest"
+    },
+    {
+      "id": "r25",
+      "lang": "en",
+      "label": "positive",
+      "body": "Absent a clear budget we can't commit yet, but I'm interested in the approach.",
+      "note": "adversarial: 'absent' in a buyer reply"
+    },
+    {
+      "id": "r26",
+      "lang": "en",
+      "label": "positive",
+      "body": "Sounds interesting. We will return to the roadmap topic in Q1, happy to chat then.",
+      "note": "adversarial: 'will return' in a buyer reply"
+    },
+    {
+      "id": "r27",
+      "lang": "en",
+      "label": "positive",
+      "body": "Sure. What does your availability look like?",
+      "note": "positive with no rule phrasing (expected dry-run miss)"
+    },
+    {
+      "id": "r28",
+      "lang": "fr",
+      "label": "positive",
+      "body": "Ça m'intéresse, vous pouvez m'en dire plus ?",
+      "note": "interest FR"
+    },
+    {
+      "id": "r29",
+      "lang": "fr",
+      "label": "positive",
+      "body": "Volontiers, envoyez-moi une présentation.\n\nLe mar. 27 oct. 2026 à 09:14, Debanjan Mazumdar <deb@prodcraft.example> a écrit :\n> Bonjour Claire, une question sur votre roadmap...\n> Pour vous désinscrire, répondez 'stop' ou cliquez ici pour vous désinscrire.",
+      "note": "interest FR; quoted FR footer"
+    },
+    {
+      "id": "r30",
+      "lang": "fr",
+      "label": "positive",
+      "body": "J'aimerais en savoir plus sur votre accompagnement.",
+      "note": "interest FR"
+    },
+    {
+      "id": "r31",
+      "lang": "en",
+      "label": "neutral",
+      "body": "Who gave you my email address?",
+      "note": "neutral"
+    },
+    {
+      "id": "r32",
+      "lang": "en",
+      "label": "neutral",
+      "body": "I've moved on from Acme. Try jane@acme.example instead.",
+      "note": "referral / wrong person"
+    },
+    {
+      "id": "r33",
+      "lang": "en",
+      "label": "neutral",
+      "body": "Thanks.\n\nOn Tue, 27 Oct 2026 at 09:14, Debanjan Mazumdar <deb@prodcraft.example> wrote:\n> Hi Claire, quick question about your roadmap...\n> Debanjan\n> If you'd rather not hear from me, reply 'unsubscribe' or click here to unsubscribe.",
+      "note": "adversarial: quoted unsubscribe footer only"
+    },
+    {
+      "id": "r34",
+      "lang": "en",
+      "label": "neutral",
+      "body": "Your order 2026-4471-8890-1123 reference doesn't match anything we have.",
+      "note": "adversarial: order number is not a phone"
+    },
+    {
+      "id": "r35",
+      "lang": "en",
+      "label": "neutral",
+      "body": "Got it, will forward internally.\n\n-----Original Message-----\nFrom: Debanjan\nTo unsubscribe reply STOP or 'remove me'.",
+      "note": "Original Message quote"
+    },
+    {
+      "id": "r36",
+      "lang": "fr",
+      "label": "neutral",
+      "body": "Merci pour votre message, je transmets à mon associé.",
+      "note": "neutral FR"
+    },
+    {
+      "id": "r37",
+      "lang": "fr",
+      "label": "neutral",
+      "body": "Bien reçu.\n\nLe mar. 27 oct. 2026 à 09:14, Debanjan Mazumdar <deb@prodcraft.example> a écrit :\n> Bonjour Claire, une question sur votre roadmap...\n> Pour vous désinscrire, répondez 'stop' ou cliquez ici pour vous désinscrire.",
+      "note": "adversarial: quoted FR footer only"
+    },
+    {
+      "id": "r38",
+      "lang": "en",
+      "label": "neutral",
+      "body": "Thanks.\n<div class=\"gmail_quote\">On Tue wrote:<blockquote>Click to unsubscribe</blockquote></div>",
+      "note": "Gmail HTML quote block"
+    },
+    {
+      "id": "r39",
+      "lang": "en",
+      "label": "auto_reply_or_OOO",
+      "body": "I am out of the office until Monday and will return your message then.",
+      "note": "OOO body"
+    },
+    {
+      "id": "r40",
+      "lang": "en",
+      "label": "auto_reply_or_OOO",
+      "body": "Auto-reply: currently on vacation, back next week.",
+      "note": "OOO body"
+    },
+    {
+      "id": "r41",
+      "lang": "en",
+      "label": "auto_reply_or_OOO",
+      "body": "This is an automatic reply. I am on leave until further notice.",
+      "note": "OOO body"
+    },
+    {
+      "id": "r42",
+      "lang": "en",
+      "label": "auto_reply_or_OOO",
+      "body": "Thank you for your email. I have limited access to email this week.",
+      "note": "subject-only evidence",
+      "subject": "Automatic reply: Product roadmap"
+    },
+    {
+      "id": "r43",
+      "lang": "en",
+      "label": "auto_reply_or_OOO",
+      "body": "I'm away. For urgent matters please call me on +44 20 7946 0958.",
+      "note": "adversarial: phone in auto-reply must not become hot",
+      "subject": "Out of Office: Product roadmap",
+      "headers": {
+        "Auto-Submitted": "auto-replied"
+      }
+    },
+    {
+      "id": "r44",
+      "lang": "en",
+      "label": "auto_reply_or_OOO",
+      "body": "Thanks for reaching out, I'll get back to you soon.",
+      "note": "header-only evidence",
+      "headers": {
+        "X-Autoreply": "yes"
+      }
+    },
+    {
+      "id": "r45",
+      "lang": "fr",
+      "label": "auto_reply_or_OOO",
+      "body": "Je suis absent jusqu'au 15 juillet. Réponse automatique.",
+      "note": "OOO FR"
+    },
+    {
+      "id": "r46",
+      "lang": "fr",
+      "label": "auto_reply_or_OOO",
+      "body": "En congés cette semaine, de retour le 20.",
+      "note": "OOO FR"
+    },
+    {
+      "id": "r47",
+      "lang": "fr",
+      "label": "auto_reply_or_OOO",
+      "body": "Je suis absente. Pour toute urgence, appelez-moi au 06 98 76 54 32.",
+      "note": "adversarial: urgent phone in FR auto-reply",
+      "subject": "Réponse automatique : roadmap",
+      "headers": {
+        "X-Autorespond": "1"
+      }
+    },
+    {
+      "id": "r48",
+      "lang": "fr",
+      "label": "auto_reply_or_OOO",
+      "body": "Bonjour, je suis actuellement absente et n'ai pas accès à mes mails. Pour toute urgence, contactez-moi au 06 11 22 33 44.",
+      "note": "adversarial: urgent phone, no headers"
+    }
+  ]
+}
