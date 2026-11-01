@@ -10,7 +10,7 @@ Every word or number on screen must trace to a row here. Two kinds of source: **
 | F04 | Reply kinds named in the post | out of office · unsubscribe · no · interested, wants to speak · a question that needs a proper answer | operator post wk 02 |
 | F05 | The bottleneck line | "the bottleneck has simply moved from sending to reading" | operator post wk 02 |
 | F06 | Classifier classes | hot · positive · neutral · negative · auto_reply_or_OOO | code: `execution/personal_workflows/self_outbound_system/reply_classifier.py` docstring line 3 |
-| F07 | Deterministic layer runs first | "Deterministic layer FIRST" | code: reply_classifier.py line 97 (comment) |
+| F07 | Deterministic layer runs first | "Deterministic layer FIRST" | code: reply_classifier.py line 98 (comment; only these four words may be quoted) |
 | F08 | OOO rule result | class `auto_reply_or_OOO`, confidence 0.99, explanation "deterministic OOO pattern matched", cost_eur_estimate 0.0 | code: reply_classifier.py lines 99–107 |
 | F09 | Stop / unsubscribe rule result | class `negative`, confidence 0.99, explanation "deterministic stop/unsubscribe pattern matched", cost 0.0 | code: reply_classifier.py lines 109–117 |
 | F10 | Meeting / phone rule result | class `hot`, confidence 0.90, explanation "deterministic phone / meeting-request pattern matched", cost 0.0 | code: reply_classifier.py lines 119–131 |
