@@ -11,7 +11,7 @@ Every word or number on screen must trace to a row here. Two kinds of source: **
 | F05 | The bottleneck line | "the bottleneck has simply moved from sending to reading" | operator post wk 02 |
 | F06 | Classifier classes | hot · positive · neutral · negative · auto_reply_or_OOO | code: `execution/personal_workflows/self_outbound_system/reply_classifier.py` docstring line 3 |
 | F07 | Deterministic layer runs first | "Deterministic layer FIRST" | code: reply_classifier.py line 97 (comment) |
-| F08 | OOO rule result | class `auto_reply_or_OOO`, confidence 0.99, explanation "deterministic OOO pattern matched", cost_eur_estimate 0.0 | code: reply_classifier.py lines 98–107 |
+| F08 | OOO rule result | class `auto_reply_or_OOO`, confidence 0.99, explanation "deterministic OOO pattern matched", cost_eur_estimate 0.0 | code: reply_classifier.py lines 99–107 |
 | F09 | Stop / unsubscribe rule result | class `negative`, confidence 0.99, explanation "deterministic stop/unsubscribe pattern matched", cost 0.0 | code: reply_classifier.py lines 109–117 |
 | F10 | Meeting / phone rule result | class `hot`, confidence 0.90, explanation "deterministic phone / meeting-request pattern matched", cost 0.0 | code: reply_classifier.py lines 119–131 |
 | F11 | Example OOO patterns (verbatim regex intent) | "out of office", "on vacation", "automatic reply", "will return", "en congés", "réponse automatique" | code: `_OOO_PATTERNS` lines 42–54 |
@@ -24,7 +24,7 @@ Every word or number on screen must trace to a row here. Two kinds of source: **
 | F18 | The real target | 30–60 positive conversations a month, with booked calls tracked in the CRM | operator post wk 02 |
 | F19 | The reframe | "the target was never 800 sends a day for its own sake" | operator post wk 02 |
 | F20 | Series frame | ProdCraft · weekly notes · wk 02 · page 02 | wk 02 card |
-| F21 | Code snippet shown (must be byte-identical to the file) | reply_classifier.py lines 98–107 | code |
+| F21 | Code snippet shown (must be byte-identical to the file) | reply_classifier.py lines 99–107 (line 98 is a comment carrying the unmeasured "~95%" and is never shown) | code |
 
 ## Hard rules
 

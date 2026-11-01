@@ -1,0 +1,17 @@
+WCAG contrast, final mp4 decoded as BT.709 limited (text = darkest 2% of box, bg = brightest 40%)
+0.0s headline (93 px)                bg #eeece7  text #131314  15.77:1  PASS
+0.0s wordmark "ProdCraft"            bg #eeece7  text #151311  15.77:1  PASS
+0.0s "wk 02" (14 px)                 bg #eeece7  text #4b4b48   7.44:1  PASS
+0.0s footer (14 px)                  bg #eeece7  text #494846   7.77:1  PASS
+0.0s "02" gold (14 px)               bg #f0ece5  text #685d3d   5.56:1  PASS
+6.0s F05 italic                      bg #eeece7  text #151414  15.62:1  PASS
+6.0s reply card text                 bg #f6f4f0  text #161616  16.54:1  PASS
+6.0s "illustrative replies" (15 px)  bg #efede8  text #484646   7.99:1  PASS
+11.0s code string on gold highlight  bg #dbd3c3  text #3e4c5a   5.87:1  PASS
+11.0s code string on panel           bg #e6e2dc  text #3f5063   6.39:1  PASS
+11.0s result line on card            bg #f6f5f1  text #171614  16.59:1  PASS
+15.5s dimmed result (ink2 on card)   bg #f7f5f2  text #474649   8.58:1  PASS
+15.5s F15 heading                    bg #eeece7  text #141315  15.69:1  PASS
+20.0s 30-60                          bg #eeece6  text #141518  15.48:1  PASS
+20.0s F18 small lines                bg #eeece7  text #151414  15.61:1  PASS
+26.5s credit line (15 px)            bg #eeede7  text #484746   7.90:1  PASS
