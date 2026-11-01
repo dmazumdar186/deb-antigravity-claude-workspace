@@ -1,81 +1,84 @@
-# Trusted Segments — script
+# Trusted Segments — script (v2)
 
-Duration 76.25 s · 1920×1080 · 24 fps · narrator Kokoro `bf_emma` (British English), speed 0.9 · 72 BPM grid.
-Fact ids refer to `FACTS.md` (F01–F23). Numbers in the narration are spelled out for the voice and written as digits on screen.
+```
+version:   v2
+duration:  61.38 s (end card 4.50 s)
+picture:   1920×1080, 24 fps
+voice:     Kokoro bf_emma (British English), speed 0.95, offline
+narration: 15 lines, 133 words (space-separated), 130.0 wpm over the whole film
+captions:  18 cues, ≤ 42 chars a line, ≤ 2 lines, ≤ 17 chars/s, 1–7 s, gaps ≥ 0.084 s (trusted-segments_clean.captions.srt)
+facts:     FACTS.md ids F01–F27; numbers are spelled out for the voice and written as digits on screen
+```
 
-## Narration (voice-over)
+## Narration
 
 | # | In | Out | Spoken text | Facts |
 |---|---|---|---|---|
-| L01 | 00:00.42 | 00:05.88 | One sentence, from the brief. Graduates working in finance, in London, for more than three years. | F01 |
-| L02 | 00:06.25 | 00:08.29 | One sentence. Four answers. | F01 |
-| L03 | 00:08.75 | 00:12.98 | The file: five hundred and twenty-five records, for five hundred members. | F02 |
-| L04 | 00:13.33 | 00:16.18 | Under the loupe, London is spelled eight different ways. | F04 |
-| L05 | 00:16.67 | 00:18.86 | And twenty-five people appear twice. | F03 |
-| L06 | 00:19.58 | 00:22.26 | Filter the file as delivered: two members. | F07 |
-| L07 | 00:22.92 | 00:25.27 | Normalise the spellings: twenty-six. | F08 |
-| L08 | 00:25.83 | 00:30.13 | Remove the duplicates, read employers and job titles: forty-nine. | F09 |
-| L09 | 00:32.08 | 00:33.57 | But look at the dates. | — |
-| L10 | 00:34.17 | 00:38.23 | Sixty-eight percent of profiles have not been touched in two years or more. | F13 |
-| L11 | 00:38.75 | 00:43.04 | Three years in post, and three years without an update, are the same signal. | F22 |
-| L12 | 00:43.75 | 00:51.28 | One user put it plainly. Three hundred and forty London expats. Twenty had moved back years ago. Two unsubscribed. | F17 |
-| L13 | 00:53.33 | 00:59.44 | So the forty-nine split by trust. One current. Five to confirm. Forty-three to reactivate. | F09 F11 F21 |
-| L14 | 01:00.42 | 01:02.23 | Six can be emailed today. | F12 |
-| L15 | 01:04.17 | 01:11.19 | Describe your audience in one sentence. Get a segment you can trust. No member record ever leaves the platform. | F19 |
-| L16 | 01:11.67 | 01:12.72 | Trusted Segments. *(rendered as "Trusted Segments, the product." and cut after "Segments")* | F23 |
+| L01 | 00:00.42 | 00:05.72 | One sentence from the brief. Graduates working in finance, in London, for more than three years. | F01 |
+| L02 | 00:06.13 | 00:08.07 | One sentence. Four answers. | F01 |
+| L03 | 00:08.25 | 00:11.79 | Five hundred and twenty-five rows, for five hundred members. | F02 |
+| L04 | 00:12.00 | 00:14.37 | Under the loupe, London is spelled eight ways. | F04 F26 |
+| L06 | 00:14.58 | 00:17.12 | Filter the file as delivered: two rows. | F07 |
+| L07 | 00:17.33 | 00:20.09 | Normalise spellings and labels: twenty-six. | F08 |
+| L08 | 00:20.29 | 00:24.86 | Merge twenty-five duplicates, read employers and job titles: forty-nine. | F03 F09 |
+| L09 | 00:25.58 | 00:26.88 | But look at the dates. | — |
+| L10 | 00:27.08 | 00:30.84 | Sixty-eight percent of profiles: untouched for two years or more. | F13 |
+| L11 | 00:31.04 | 00:35.06 | Three years in post and three years without an update: the same signal. | F22 |
+| L12 | 00:35.58 | 00:41.30 | Three hundred and forty London expats. Twenty had moved back years ago. Two unsubscribed. | F17 |
+| L13 | 00:42.04 | 00:47.19 | The forty-nine split by trust: one to send, five to confirm, forty-three to win back. | F09 F11 F25 |
+| L14 | 00:47.42 | 00:49.33 | Six worth contacting today. | F12 |
+| L15 | 00:49.92 | 00:53.89 | The administrator's problem is not building the list. It is believing it. | F24 |
+| L16 | 00:54.33 | 00:55.32 | Trusted Segments. *(rendered as "Trusted Segments, the product." and cut after "Segments")* | F23 |
 
-## Subtitles (as in trusted-segments.srt)
+### Captions
 
 | Cue | In | Out | Text | Facts | Burned in |
 |---|---|---|---|---|---|
-| S01a | 00:00.42 | 00:02.74 | One sentence, from the brief. | F01 | yes |
-| S01b | 00:02.78 | 00:06.21 | Graduates working in finance, in London, for more than three years. | F01 | yes |
-| S02 | 00:06.25 | 00:08.71 | One sentence. Four answers. | F01 | yes |
-| S03 | 00:08.75 | 00:13.29 | The file: 525 records, for 500 members. | F02 | yes |
-| S04 | 00:13.33 | 00:16.63 | Under the loupe, London is spelled 8 different ways. | F04 | yes |
-| S05 | 00:16.67 | 00:19.46 | And 25 people appear twice. | F03 | yes |
-| S06 | 00:19.58 | 00:22.86 | Filter the file as delivered: 2 members. | F07 | yes |
-| S07 | 00:22.92 | 00:25.79 | Normalise the spellings: 26. | F08 | yes |
-| S08 | 00:25.83 | 00:30.73 | Remove the duplicates, read employers and job titles: 49. | F09 | yes |
-| S09 | 00:32.08 | 00:34.13 | But look at the dates. | — | yes |
-| S10 | 00:34.17 | 00:38.71 | 68 % of profiles have not been touched in 2 years or more. | F13 | yes |
-| S11 | 00:38.75 | 00:43.64 | “Three years in post” and “three years without an update” are the same signal. | F22 | yes |
-| S12a | 00:43.75 | 00:47.95 | One user put it plainly: “340 London expats. | F17 | yes |
-| S12b | 00:47.99 | 00:51.88 | Twenty had moved back years ago. Two unsubscribed.” | F17 | yes |
-| S13a | 00:53.33 | 00:55.59 | So the 49 split by trust. | F09 F11 F21 | yes |
-| S13b | 00:55.63 | 01:00.04 | 1 current. 5 to confirm. 43 to reactivate. | F09 F11 F21 | yes |
-| S14 | 01:00.42 | 01:02.83 | 6 can be e-mailed today. | F12 | no: the same words are on screen as type |
-| S15a | 01:04.17 | 01:06.85 | Describe your audience in one sentence. | F19 | no: the same words are on screen as type |
-| S15b | 01:06.89 | 01:08.85 | Get a segment you can trust. | F19 | no: the same words are on screen as type |
-| S15c | 01:08.89 | 01:11.63 | No member record ever leaves the platform. | F19 | no: the same words are on screen as type |
-| S16 | 01:11.67 | 01:13.87 | Trusted Segments. | F23 | no: the same words are on screen as type |
+| C01 | 00:00.42 | 00:02.12 | One sentence from the brief: | F01 | yes |
+| C02 | 00:02.20 | 00:06.04 | “Graduates working in finance in London / for more than three years” | F01 | yes |
+| C03 | 00:06.13 | 00:08.16 | One sentence. Four answers. | F01 | yes |
+| C04 | 00:08.25 | 00:11.91 | 525 rows, for 500 members. | F02 | yes |
+| C05 | 00:12.00 | 00:14.50 | Under the loupe, London is spelled 8 ways. | F04 F26 | yes |
+| C06 | 00:14.58 | 00:17.25 | Filter the file as delivered: 2 rows. | F07 | yes |
+| C07 | 00:17.33 | 00:20.21 | Normalise spellings and labels: 26. | F08 | yes |
+| C08 | 00:20.29 | 00:25.36 | Merge 25 duplicates, read employers / and job titles: 49. | F03 F09 | yes |
+| C09 | 00:25.58 | 00:27.00 | But look at the dates. | — | yes |
+| C10 | 00:27.08 | 00:30.96 | 68 % of profiles: untouched / for 2 years or more. | F13 | yes |
+| C11 | 00:31.04 | 00:35.50 | Three years in post and three years / without an update: the same signal. | F22 | yes |
+| C12 | 00:35.58 | 00:39.92 | “340 London expats. / Twenty had moved back years ago. | F17 | no (same words on screen as type) |
+| C13 | 00:40.00 | 00:41.80 | Two unsubscribed.” | F17 | no (same words on screen as type) |
+| C14 | 00:42.04 | 00:44.10 | The 49 split by trust: | F09 F11 F25 | yes |
+| C15 | 00:44.18 | 00:47.33 | 1 to send, 5 to confirm, / 43 to win back. | F09 F11 F25 | yes |
+| C16 | 00:47.42 | 00:49.83 | 6 worth contacting today. | F12 | no (same words on screen as type) |
+| C17 | 00:49.92 | 00:54.25 | The administrator’s problem is not / building the list. It is believing it. | F24 | no (same words on screen as type) |
+| C19 | 00:54.33 | 00:55.82 | Trusted Segments. | F23 | no (same words on screen as type) |
 
-## On-screen text and marks
+## On-screen text
 
 | In | Out | What is on screen | Facts |
 |---|---|---|---|
-| 00:00.12 | 01:11.67 | Search box, typed: "Graduates working in finance in London for more than three years" | F01 |
-| 00:06.25 | 01:05.00 | Four empty answer slots: ? ? ? ? | F01 |
-| 00:08.10 | 00:12.47 | Tag: "Schematic · IDs and city only · no member data" | hard rules |
-| 00:09.97 | 00:12.57 | Reading: "Rows in the file / 525 / for 500 members announced" | F02 |
-| 00:13.75 | 00:16.67 | Under the loupe: card M0475, city line "Londres (Royaume-Uni)" lit and underlined | F04 |
-| 00:14.58 | 00:19.48 | Reading: "London, as typed in the file": Greater London · LONDON · London · London - Canary Wharf · London, UK · Londres · Londres (Royaume-Uni) · london — "8 spellings" | F04 |
-| 00:17.05 | 00:19.48 | Reading: "Duplicate persons / 25 / IDs M0501 – M0525"; 25 rings on the table | F03 |
-| 00:19.58 | 00:23.63 | Reading: "Naive filter · file as delivered / 2" (lands on the word); 2 cards outlined | F07 |
-| 00:23.63 | 00:28.22 | Reading: "Normalised · 8 spellings, 3 sector labels / 26"; 26 cards outlined | F08 |
-| 00:28.22 | 00:32.07 | Reading: "Full logic · dedup + employer + job title / 49"; 49 cards outlined | F09 |
-| 00:32.50 | 00:33.75 | Under the loupe: schematic card "in post: 3 yrs / updated: 3 yrs ago", the update line underlined | F22 |
-| 00:33.33 | 00:36.93 | Develop front: stale cards go dark across the table | F13 |
-| 00:33.67 | 00:38.95 | Reading: "Profiles untouched for 2+ years / 68 % / of 500 members · ref. 2026-10-12" | F13 |
-| 00:38.75 | 00:44.88 | Two records side by side: "read as tenure — “Three years in post”" | "read as freshness — “Three years without an update”" | F22 |
-| 00:42.21 | 00:44.88 | Pen stroke "=" and label "the same signal" | F22 |
-| 00:44.58 | 00:52.50 | Note on the table: “340 London expats. / Twenty had moved back years ago. / Two unsubscribed.” — "user verbatim" | F17 |
-| 00:52.95 | 01:03.93 | Index columns: "Current" · "To confirm" · "To reactivate" | F21 |
-| 00:55.71 | 01:03.93 | Counts land: 1 · 5 · 43 | F11 |
-| 01:00.42 | 01:03.83 | Bracket around Current + To confirm: "6 can be e-mailed today" | F12 |
-| 01:03.33 | 01:04.45 | The table switches off; the six cards glow | F12 |
-| 01:04.17 | 01:16.25 | Product line, three lines: "Describe your audience in one sentence." / "Get a segment you can trust." / "No member record ever leaves the platform." | F19 |
-| 01:05.75 | 01:16.25 | Answer slots fill: 2 as delivered · 26 normalised · 49 full logic · 6 e-mail today | F07 F08 F09 F12 |
-| 01:11.67 | 01:16.25 | Title in the search box: "Trusted Segments" | F23 |
+| 00:00.12 | 00:54.23 | Search box, typed: "Graduates working in finance in London for more than three years" | F01 |
+| 00:06.13 | 00:52.02 | Four empty answer slots: ? ? ? ? | F01 |
+| 00:06.98 | 00:50.51 | Tag (bottom right, whenever cards are on the lit table): "Schematic · no member data" | hard rules |
+| 00:08.25 | 00:11.30 | Reading: "Rows in the file" / 525 / "for 500 members" | F02 |
+| 00:12.08 | 00:15.69 | Under the loupe, the one real record: "M0271" · "Londres (Royaume-Uni)", city line lit and underlined | F26 F04 |
+| 00:12.67 | 00:15.88 | Reading: "London, as typed in the file": Greater London · LONDON · London · London - Canary Wharf · London, UK · Londres · Londres (Royaume-Uni) · london — "8 spellings" | F04 |
+| 00:14.58 | 00:16.25 | Reading: "Naive filter · file as delivered" (value lands with the word) | F07 |
+| 00:16.25 | 00:19.22 | Reading: "Naive filter · file as delivered" / 2 / "rows matching the sentence"; 2 cards outlined | F07 |
+| 00:19.22 | 00:24.06 | Reading: "Normalised · spellings and labels" / 26 / "rows matching the sentence"; 26 cards outlined | F08 |
+| 00:20.59 | 00:25.52 | 25 rings on the duplicate cards | F03 |
+| 00:24.06 | 00:28.21 | Reading: "Full logic · dedup + employer + job title" / 49 / "members matching the sentence"; 49 cards outlined | F09 |
+| 00:25.79 | 00:27.48 | Under the loupe, an example card (no ID): "example" · "in post: 3 yrs" · "updated: 3 yrs ago", the update line underlined | F22 |
+| 00:26.67 | 00:30.07 | Develop front: stale cards go dark across the table | F13 |
+| 00:27.48 | 00:31.14 | Reading: "Profiles untouched for 2+ years" / 68 % / "of 500 members · ref. 2026-10-12" | F13 |
+| 00:30.54 | 00:35.42 | One plate, two records: "read as tenure" — “Three years in post” = "read as freshness" — “Three years without an update” (pen stroke "=" on "same") | F22 |
+| 00:35.80 | 00:41.59 | Note on the table: “340 London expats. / Twenty had moved back years ago. / Two unsubscribed.” — "user verbatim" | F17 |
+| 00:42.24 | 00:47.60 | Index columns: "Current → send" · "To confirm → confirm" · "To reactivate → reactivate"; counts land on the words: 1 · 5 · 43 | F21 F25 F11 |
+| 00:47.55 | 00:50.92 | Payoff, centred, largest element: "6" / "worth contacting today:" / "1 to send, 5 to confirm."; the six cards in a row | F12 |
+| 00:50.21 | 00:51.12 | The table switches off; the six cards glow | F12 |
+| 00:50.50 | 00:56.88 | Thesis: "The administrator’s problem is not building the list." / "It is believing it." | F24 |
+| 00:52.02 | 00:56.88 | Answer slots fill: 2 as delivered · 26 normalised · 49 full logic · 6 worth contacting | F07 F08 F09 F12 |
+| 00:54.33 | 00:56.88 | Title in the search box: "Trusted Segments" | F23 |
+| 00:56.88 | 01:01.38 | End card: "Trusted Segments" / Made in code by an AI agent with lemo-opuscar (MIT) / Synthetic voice: Kokoro (Apache 2.0) / Piano: Salamander Grand Piano V3 by Alexander Holm / Licence CC BY 3.0 / https://creativecommons.org/licenses/by/3.0/ / Strings and mallets: CC0, Versilian Studios / Fonts: IBM Plex (OFL) / Record cards are schematic · no member data | hard rules |
 
-Card IDs (M0001–M0525) are anonymous record stubs; cities and set membership on the cards are schematic (see `src/FACTS.md`).
+Every glyph run drawn on screen, frame by frame, is listed in `src/out/drawn_text.json` (written by `tools/drawn_text.mjs`). Background cards carry no member ID; the only ID is F26 (M0271), with its real city.

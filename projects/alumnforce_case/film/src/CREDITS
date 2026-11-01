@@ -1,11 +1,12 @@
-Trusted Segments — third-party assets in the film
+Trusted Segments — third-party assets in the film (also on the film's end card)
 
-Voice: Kokoro-82M (ONNX, kokoro-onnx 0.6.1), voice bf_emma — Apache License 2.0 (https://huggingface.co/hexgrad/Kokoro-82M)
+Made in code by an AI agent with lemo-opuscar (MIT), https://github.com/lemomo-ai/lemo-opuscar at commit bebbbe1
+Voice: Kokoro-82M (ONNX, kokoro-onnx 0.6.1), voice bf_emma — Apache License 2.0 (https://huggingface.co/hexgrad/Kokoro-82M). Synthetic voice.
 Speech check: faster-whisper 1.2.1, model small.en (OpenAI Whisper, MIT) — used for checking only, nothing of it is in the film
 Piano: "Salamander Grand Piano V3" by Alexander Holm, licensed under CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/)
 Samples (CC0): VS Chamber Orchestra: Community Edition (Versilian Studios) — cellos, violas, violins, contrabass
 Samples (CC0): Versilian Community Sample Library (Versilian Studios) — bowed vibraphone, glockenspiel
 Fonts: IBM Plex Mono, IBM Plex Sans, IBM Plex Serif — SIL Open Font License 1.1 (fonts/OFL-*.txt), via Google Fonts
 Foley and beds: synthesised in code (core/audio/sfx.py)
-Picture: drawn in code; no images, logos or footage. The record cards are schematic stand-ins (member IDs and a city field only).
-Facts: projects/alumnforce_case/film/FACTS.md (F01–F23), from the candidate's own case study.
+Picture: drawn in code; no images, logos or footage. Record cards are schematic (see FACTS.md); the only ID is F26.
+Facts: projects/alumnforce_case/film/FACTS.md (F01–F27).

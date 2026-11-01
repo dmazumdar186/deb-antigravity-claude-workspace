@@ -1,0 +1,78 @@
+1
+00:00:00,417 --> 00:00:02,117
+One sentence from the brief:
+
+2
+00:00:02,202 --> 00:00:06,040
+“Graduates working in finance in London
+for more than three years”
+
+3
+00:00:06,125 --> 00:00:08,165
+One sentence. Four answers.
+
+4
+00:00:08,250 --> 00:00:11,915
+525 rows, for 500 members.
+
+5
+00:00:12,000 --> 00:00:14,498
+Under the loupe, London is spelled 8 ways.
+
+6
+00:00:14,583 --> 00:00:17,248
+Filter the file as delivered: 2 rows.
+
+7
+00:00:17,333 --> 00:00:20,207
+Normalise spellings and labels: 26.
+
+8
+00:00:20,292 --> 00:00:25,357
+Merge 25 duplicates, read employers
+and job titles: 49.
+
+9
+00:00:25,583 --> 00:00:26,998
+But look at the dates.
+
+10
+00:00:27,083 --> 00:00:30,957
+68 % of profiles: untouched
+for 2 years or more.
+
+11
+00:00:31,042 --> 00:00:35,498
+Three years in post and three years
+without an update: the same signal.
+
+12
+00:00:35,583 --> 00:00:39,918
+“340 London expats.
+Twenty had moved back years ago.
+
+13
+00:00:40,003 --> 00:00:41,802
+Two unsubscribed.”
+
+14
+00:00:42,042 --> 00:00:44,097
+The 49 split by trust:
+
+15
+00:00:44,182 --> 00:00:47,332
+1 to send, 5 to confirm,
+43 to win back.
+
+16
+00:00:47,417 --> 00:00:49,830
+6 worth contacting today.
+
+17
+00:00:49,917 --> 00:00:54,248
+The administrator’s problem is not
+building the list. It is believing it.
+
+18
+00:00:54,333 --> 00:00:55,818
+Trusted Segments.

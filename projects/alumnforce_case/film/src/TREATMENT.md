@@ -81,3 +81,7 @@ L1 F01 typed + read · L2 "One sentence. Four answers." · L3 F02 · L4 F04 · L
 - Readings: dark caption plates, small sans label (30 px) above, mono reading (96–120 px), source line (28 px mono) below: the fact id is not shown, the record wording is.
 - Query strip and product line: IBM Plex Mono 44 px on dark glass. Title "Trusted Segments": IBM Plex Serif 76 px.
 - Signal colour: orange #FF5A1F, marks and readings only. Minimum text on screen ≈ 28 px; card micro-text is drawn as bars until it reaches 24 px and fades in by 30 px.
+
+## v2 (round 2, after the panel and visual QA)
+
+Same style, same arc, tightened to 61.4 s: the duplicates fold into the "49" line, the quote loses its attribution line, and the ending becomes payoff → thesis → name → end card. The loupe lands on the one real record (F26, M0271 · "Londres (Royaume-Uni)"); every other card is ID-less. After the split, the "6" (F12: "worth contacting today: 1 to send, 5 to confirm.") is the largest element, centred, with the six cards in a row under it; the light switches off; the search box comes back with its four answers filled; the thesis (F24) sits under it; the query gives way to "Trusted Segments"; a 4.5 s end card carries the disclosure and credits.

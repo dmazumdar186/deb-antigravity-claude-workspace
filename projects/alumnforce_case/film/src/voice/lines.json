@@ -3,114 +3,108 @@
   "id": "L01",
   "voice": "bf_emma",
   "lang": "en-gb",
-  "speed": 0.9,
-  "text": "One sentence, from the brief. Graduates working in finance, in London, for more than three years."
+  "speed": 0.95,
+  "text": "One sentence from the brief. Graduates working in finance, in London, for more than three years."
  },
  {
   "id": "L02",
   "voice": "bf_emma",
   "lang": "en-gb",
-  "speed": 0.9,
+  "speed": 0.95,
   "text": "One sentence. Four answers."
  },
  {
   "id": "L03",
   "voice": "bf_emma",
   "lang": "en-gb",
-  "speed": 0.9,
-  "text": "The file: five hundred and twenty-five records, for five hundred members."
+  "speed": 0.95,
+  "text": "Five hundred and twenty-five rows, for five hundred members."
  },
  {
   "id": "L04",
   "voice": "bf_emma",
   "lang": "en-gb",
-  "speed": 0.9,
-  "text": "Under the loupe, London is spelled eight different ways.",
-  "asr": "Under the loop, London is spelled eight different ways."
- },
- {
-  "id": "L05",
-  "voice": "bf_emma",
-  "lang": "en-gb",
-  "speed": 0.9,
-  "text": "And twenty-five people appear twice."
+  "speed": 0.95,
+  "text": "Under the loupe, London is spelled eight ways.",
+  "asr": "Under the loop, London is spelled eight ways."
  },
  {
   "id": "L06",
   "voice": "bf_emma",
   "lang": "en-gb",
-  "speed": 0.9,
-  "text": "Filter the file as delivered: two members."
+  "speed": 0.95,
+  "text": "Filter the file as delivered: two rows."
  },
  {
   "id": "L07",
   "voice": "bf_emma",
   "lang": "en-gb",
-  "speed": 0.9,
-  "text": "Normalise the spellings: twenty-six."
+  "speed": 0.95,
+  "text": "Normalise spellings and labels: twenty-six.",
+  "asr": "Normalize spellings and labels: twenty-six."
  },
  {
   "id": "L08",
   "voice": "bf_emma",
   "lang": "en-gb",
-  "speed": 0.9,
-  "text": "Remove the duplicates, read employers and job titles: forty-nine."
+  "speed": 0.95,
+  "text": "Merge twenty-five duplicates, read employers and job titles: forty-nine."
  },
  {
   "id": "L09",
   "voice": "bf_emma",
   "lang": "en-gb",
-  "speed": 0.86,
+  "speed": 0.95,
   "text": "But look at the dates."
  },
  {
   "id": "L10",
   "voice": "bf_emma",
   "lang": "en-gb",
-  "speed": 0.9,
-  "text": "Sixty-eight percent of profiles have not been touched in two years or more.",
-  "asr": "68% of profiles have not been touched in two years or more."
+  "speed": 0.95,
+  "text": "Sixty-eight percent of profiles: untouched for two years or more.",
+  "asr": "68% of profiles: untouched for two years or more."
  },
  {
   "id": "L11",
   "voice": "bf_emma",
   "lang": "en-gb",
-  "speed": 0.9,
-  "text": "Three years in post, and three years without an update, are the same signal."
+  "speed": 0.95,
+  "text": "Three years in post and three years without an update: the same signal."
  },
  {
   "id": "L12",
   "voice": "bf_emma",
   "lang": "en-gb",
-  "speed": 0.9,
-  "text": "One user put it plainly. Three hundred and forty London expats. Twenty had moved back years ago. Two unsubscribed."
+  "speed": 0.95,
+  "text": "Three hundred and forty London expats. Twenty had moved back years ago. Two unsubscribed."
  },
  {
   "id": "L13",
   "voice": "bf_emma",
   "lang": "en-gb",
-  "speed": 0.9,
-  "text": "So the forty-nine split by trust. One current. Five to confirm. Forty-three to reactivate."
+  "speed": 0.95,
+  "text": "The forty-nine split by trust: one to send, five to confirm, forty-three to win back."
  },
  {
   "id": "L14",
   "voice": "bf_emma",
   "lang": "en-gb",
-  "speed": 0.9,
-  "text": "Six can be emailed today."
+  "speed": 0.95,
+  "text": "Six worth contacting today."
  },
  {
   "id": "L15",
   "voice": "bf_emma",
   "lang": "en-gb",
-  "speed": 0.9,
-  "text": "Describe your audience in one sentence. Get a segment you can trust. No member record ever leaves the platform."
+  "speed": 0.95,
+  "text": "The administrator's problem is not building the list. It is believing it."
  },
  {
   "id": "L16",
   "voice": "bf_emma",
   "lang": "en-gb",
-  "speed": 0.9,
+  "speed": 0.95,
   "text": "Trusted Segments, the product.",
   "asr": "Trusted Segments.",
   "cut_after": "segments"

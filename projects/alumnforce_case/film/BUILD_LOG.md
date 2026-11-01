@@ -142,3 +142,94 @@ node films/trusted-segments/tools/script_md.mjs films/trusted-segments > films/t
 ```
 
 Kokoro and the sampler are deterministic on the same machine; a different CPU may shift a voice line by a few milliseconds, which `export.mjs` absorbs (it re-reads the durations and word times).
+
+---
+
+# v2 (round 2) — 2026-11-01, 11:23:43 → 12:04:30 UTC
+
+## Provenance
+
+| | |
+|---|---|
+| Generating model | standard tier (Jev-routed tier name; no model id recorded here by policy) |
+| CLI | Claude Code 2.1.316 |
+| Toolkit | lemo-opuscar **bebbbe1aa92a3cb4bb6f83500e61b23a17d1aa00**, pinned; `build.sh` now refuses to run on any other SHA. `setup.sh` still not run. |
+| Brief | the coordinator's round-2 message (fix list 1–13, summarised in the table below), built on `VISUAL_QA.md`, `panel/lens_01…12`, and the updated `FACTS.md` (F12 reworded, F24–F27, new hard rules) |
+| Reproducibility | only `src/` reproduces the film (`sh build.sh`); re-running the brief would write a different film |
+
+## Result (v2)
+
+| | `trusted-segments.mp4` (burned captions, grain 1) | `trusted-segments_clean.mp4` (no captions, no grain) |
+|---|---|---|
+| Size | 19,495,053 bytes (18.6 MiB) | 22,119,327 bytes (21.1 MiB) |
+| Video | 1920×1080, 24 fps, H.264 High, yuv420p BT.709 limited, CRF 26 `-tune grain` | same, CRF 23 `-tune film` |
+| Audio | AAC-LC 48 kHz stereo 192 kb/s | same |
+| Duration | 61.375 s (end card 4.50 s) | 61.375 s |
+| Loudness | −16.0 LUFS integrated, true peak −1.7 dBTP, LRA 3.0 LU (`ebur128`, both files) | same |
+
+- Narration 133 words (space-separated; 139 if hyphenated numbers count as two) → 130.0 wpm over the whole film (135.9 wpm hyphen-split). Kokoro `bf_emma`, speed 0.95, 15 lines.
+- Per-line speech check: 15/15 pass, 0 mismatches (`small.en`; `asr` overrides only for "loupe"→"loop", "Normalise"→"Normalize", "Sixty-eight percent"→"68%").
+- Final-mix speech check (`tools/final_asr.py` on the clean master, music and foley in): 136 expected, 138 heard, ratio 0.978; both differences are the `asr` overrides themselves ("normalise", "sixty eight percent" heard spelled out). Every word and number is heard correctly.
+- Captions: 18 cues; every cue ≤ 42 chars/line, ≤ 2 lines, ≤ 17 chars/s (max 16.9), 1–7 s, gaps ≥ 0.084 s; `export.mjs` fails the build otherwise.
+- Reading time (`readcheck.mjs`): 35/35. Drawn-text manifest: 185 entries over 1,473 frames, **0 under 28 px**; one `fillText` in the page (inside `drawText()`): `grep -c fillText src/film.js` = 1.
+- Freeze (`freezedetect n=-60dB d=2`): the only freeze starts at 57.125 s, the end card. Black frames: 0.
+- Cue check: 25 actions + 15 voice starts on whole frames, 18 key actions in story order, 16 key foley hits on their actions.
+
+## What changed and why (finding → fix)
+
+| # | Finding | Fix |
+|---|---|---|
+| 1 | Label/value desync on the climb plate (QA #1) | One `STEPS` table; label, value and source switch together at the narrator's number (`stepAt(t)`); the first step shows the label with no value. `TEXTS` reports label and value separately so readcheck covers both. |
+| 2 | Caption misquoted F01; long one-line cues | Captions rewritten as 18 two-line cues; F01 is quoted exactly, without commas, in quotation marks (commas stay only in the spoken line). `export.mjs` enforces 42 chars/line, 2 lines, 17 cps, 1–7 s, gaps ≥ 0.084 s, and fails the build. The burned captions use the same cue lines. Cues whose exact words are on screen as type (F17 note, F12 payoff, F24, F23) are not burned in; all are in the SRT. |
+| 3 | "6 can be e-mailed today" overclaims | F12 wording: on screen "6" / "worth contacting today:" / "1 to send, 5 to confirm."; spoken "Six worth contacting today." Columns read "Current → send", "To confirm → confirm", "To reactivate → reactivate" (F21 + F25); the 43 are voiced "forty-three to win back". Fourth answer slot: "worth contacting". |
+| 4 | Real-looking IDs on invented records | Background cards have no ID (blank bar). The first loupe lands on F26: M0271 · "Londres (Royaume-Uni)" (reliability C in `annexB_result.csv`, so it sits in "To reactivate"). The dates card says "example" in the ID slot. Tag "Schematic · no member data" bottom right, title-safe, from the table switching on until it switches off. |
+| 5 | Ending sold nothing | After the split: "6" at 330 px, centred, the six cards in a row under it, held 2.95 s (text 3.3 s); light off; the search box returns with 2 · 26 · 49 · 6 filled; F24 thesis under it; the query fades fully, then "Trusted Segments" wipes in (no ghost, QA #13); 4.5 s end card with the disclosure and credits from FACTS hard rules, including "Piano: Salamander Grand Piano V3 by Alexander Holm / Licence CC BY 3.0 / https://creativecommons.org/licenses/by/3.0/". F27 not shown (optional; it would have pushed the card past the reading-time budget). F19 dropped in favour of F24 per the fix order. |
+| 6 | 76 s too long | 61.4 s: speed 0.9 → 0.95 (1.0 was tried: L13 "one to send" was heard as "want to send"), the duplicates line merged into L08, the quote lost its attribution line, breaths 0.2 s, silences 0.7–0.8 s, the timeline laid out from the measured voice durations (frame grid instead of a beat grid). |
+| 7 | Orange on translucent plates ≈ 2.5:1 | Plates at α 0.94 and values in a lighter tint #FF7A45 (≈ 6:1 on the plate by WCAG formula); "8 spellings" in the same tint; secondary lines #c4c8ce (QA #8). |
+| 8 | Note ghosting, plate over highlighted cards, 4.3 s freeze | Note: ink fades first, then paper, both before the table dims; it fades in only after the pair plate has gone, and the push into it takes 1.5 s (QA #3, #6). Cards that light up (2/26/49) and the 25 duplicates are chosen outside the plate and caption rectangles at the overview camera (QA #4). A slow push on the index columns and a slow scale on the "6"; no hold over 3 s before the end card. |
+| 9 | No drawn-text manifest | `drawText()` draws and logs every glyph run (text, screen x/y, px, alpha); `tools/drawn_text.mjs` renders all 1,473 frames and writes `src/out/drawn_text.json` ({text, t_start, t_end, x, y, px, px_max, frames}). The loupe's "×2.5" and all count-ups are gone; only fact values, credits (Apache 2.0, CC BY 3.0, V3, CC0) and the F22 example "3 yrs" contain digits. |
+| 10 | Build robustness | `build.sh`: checks the toolkit SHA, readcheck on its own line (fails the build), renders to temp names then `mv`, masters through `tools/master.sh` (temp file → checks loudness, peak and ≤ 25 MB → `mv`). |
+| 11 | Loudness targets disagreed | One target: −16 LUFS integrated, true peak ≤ −1.5 dBTP (loudnorm aims at −1.7 for a 0.2 dB margin through AAC). `core/render/mux.sh` (hard-coded −14) is no longer used. |
+| 12 | Deliverables | Burned and clean masters; captions renamed `trusted-segments_clean.captions.srt` (for the clean file only; a different basename so players don't auto-load it on the burned file); SCRIPT.md with a header block, "## Narration" and "## On-screen text", fact ids per line; new contact sheet (8 frames: one per beat plus the payoff and the end card). v1 moved to `v1/trusted-segments_v1.mp4` (+ its SRT). |
+| 13 | Log | This section. |
+
+Also from VISUAL_QA: #9 tag inside title-safe; #10 column headers drawn above the flying cards; #11 the "=" sits inside one plate with both records; #12 bracket removed (replaced by the payoff); #14 dates card has no ID and the loupe no longer touches a plate; #15 "68 %" set in the sans face.
+
+## Stage timings (v2, measured)
+
+| Stage | Wall clock |
+|---|---|
+| Reading FACTS, VISUAL_QA, lenses | 11:23:43 → ~11:28 |
+| Voice: 5 TTS + trim + speech-check passes (0.9; 0.95; 1.0 rejected; 0.95 without L03; final 0.95 with L03) | 58.2 + 51.4 + 56.2 + 65.3 + 58.7 s = 289.8 s of tool time; final voice written 11:31:53 |
+| Page authoring (timeline layout, export with caption rules, film.js rewrite, master.sh, drawn_text.mjs, cuecheck) incl. look stills and checks | 11:31:53 → 11:47:29 (936 s) |
+| Readcheck | 48.3 s · 47.7 s (final) |
+| Drawn-text manifest (1,473 frames) | 48.2 s · 50.6 s (final) |
+| Mix (`mix.py`: score 3.7 s, voice/foley/beds 2.7 s, master stems 2.0 s) | 8.7 s |
+| Frame render, burned | 100.5 s (14.7 fps) · final 96.3 s (15.3 fps) |
+| Frame render, clean (`--q nosubs=1`) | 94.4 s · final 94.1 s (15.7 fps) |
+| Master + encode (two-pass loudnorm, x264 slow) | burned 69.9 s · final 70.4 s; clean 74.6 s · final 74.0 s |
+| Final-mix speech check | 15.4 s |
+| Fix round (hero transition overlap, TP margin, clean CRF) | 11:51 → 11:54:16, then the final pipeline 11:54:16 → 12:01:45 |
+| **Total v2 wall clock** | **11:23:43 → 12:04:30 = 2,447 s (40 min 47 s)**; v1 + v2 = 5,398 s (≈ 90 min) |
+
+## Known gaps (v2)
+
+- The loupe still has no lens distortion or colour fringe (Canvas 2D).
+- At 15.4 s and 27.4 s the loupe lifts with a 0.4 s expanding, fading ring, which reads as a soft ghost for a few frames.
+- The eval's number check will see "2.0", "3.0", "V3", "CC0" and "3 yrs" (the credits required by FACTS hard rules, and the F22 example card); they are not member figures.
+- wpm sits at the 130 floor by a space-split count (133 words / 61.375 s).
+- `build.sh` (v2) was not run end to end in one go; every step in it was run individually with the same commands and flags (timings above).
+
+## Reproduce (v2)
+
+```sh
+cd /tmp/ext/lemo/lemo-opuscar && git checkout bebbbe1aa92a3cb4bb6f83500e61b23a17d1aa00
+python3.13 -m venv /tmp/ext/venv && /tmp/ext/venv/bin/pip install -r requirements.txt -r requirements-voice.txt
+PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install --no-audit --no-fund && git checkout -q -- package.json package-lock.json
+ln -sfn /tmp/ext/venv .venv
+sh tools/fetch.sh voice && for l in salamander vsco2ce vcsl; do sh tools/fetch.sh instruments $l; done
+mkdir -p films/trusted-segments && cp -r <workspace>/projects/alumnforce_case/film/src/. films/trusted-segments/
+export PLAYWRIGHT_CHROME=/opt/pw-browsers/chromium_headless_shell-1243/chrome-headless-shell-linux64/chrome-headless-shell
+sh films/trusted-segments/build.sh        # voice → checks → 2 renders → mix → 2 masters → captions → drawn_text.json → SCRIPT.md
+LIB=$PWD .venv/bin/python -I films/trusted-segments/tools/final_asr.py films/trusted-segments/trusted-segments_clean.mp4 films/trusted-segments/voice/lines.json
+```

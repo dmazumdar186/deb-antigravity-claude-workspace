@@ -1,0 +1,1852 @@
+[
+ {
+  "text": "G",
+  "t_start": 0.20833,
+  "t_end": 0.25,
+  "x": 214,
+  "y": 385,
+  "px": 37.8,
+  "px_max": 37.8,
+  "frames": 1
+ },
+ {
+  "text": "Gr",
+  "t_start": 0.25,
+  "t_end": 0.2917,
+  "x": 214,
+  "y": 385,
+  "px": 37.9,
+  "px_max": 37.9,
+  "frames": 1
+ },
+ {
+  "text": "Gra",
+  "t_start": 0.29167,
+  "t_end": 0.3333,
+  "x": 214,
+  "y": 385,
+  "px": 37.9,
+  "px_max": 37.9,
+  "frames": 1
+ },
+ {
+  "text": "Grad",
+  "t_start": 0.33333,
+  "t_end": 0.4167,
+  "x": 213,
+  "y": 385,
+  "px": 37.9,
+  "px_max": 37.9,
+  "frames": 2
+ },
+ {
+  "text": "Gradu",
+  "t_start": 0.41667,
+  "t_end": 0.4583,
+  "x": 213,
+  "y": 385,
+  "px": 37.9,
+  "px_max": 37.9,
+  "frames": 1
+ },
+ {
+  "text": "Gradua",
+  "t_start": 0.45833,
+  "t_end": 0.5,
+  "x": 213,
+  "y": 385,
+  "px": 37.9,
+  "px_max": 37.9,
+  "frames": 1
+ },
+ {
+  "text": "One sentence from the brief:",
+  "t_start": 0.45833,
+  "t_end": 2.125,
+  "x": 960,
+  "y": 998,
+  "px": 40,
+  "px_max": 40,
+  "frames": 40
+ },
+ {
+  "text": "Graduat",
+  "t_start": 0.5,
+  "t_end": 0.5417,
+  "x": 213,
+  "y": 385,
+  "px": 37.9,
+  "px_max": 37.9,
+  "frames": 1
+ },
+ {
+  "text": "Graduate",
+  "t_start": 0.54167,
+  "t_end": 0.625,
+  "x": 212,
+  "y": 385,
+  "px": 37.9,
+  "px_max": 37.9,
+  "frames": 2
+ },
+ {
+  "text": "Graduates",
+  "t_start": 0.625,
+  "t_end": 0.6667,
+  "x": 212,
+  "y": 385,
+  "px": 37.9,
+  "px_max": 37.9,
+  "frames": 1
+ },
+ {
+  "text": "Graduates ",
+  "t_start": 0.66667,
+  "t_end": 0.7083,
+  "x": 212,
+  "y": 385,
+  "px": 38,
+  "px_max": 38,
+  "frames": 1
+ },
+ {
+  "text": "Graduates w",
+  "t_start": 0.70833,
+  "t_end": 0.75,
+  "x": 212,
+  "y": 385,
+  "px": 38,
+  "px_max": 38,
+  "frames": 1
+ },
+ {
+  "text": "Graduates wo",
+  "t_start": 0.75,
+  "t_end": 0.8333,
+  "x": 211,
+  "y": 385,
+  "px": 38,
+  "px_max": 38,
+  "frames": 2
+ },
+ {
+  "text": "Graduates wor",
+  "t_start": 0.83333,
+  "t_end": 0.875,
+  "x": 211,
+  "y": 385,
+  "px": 38,
+  "px_max": 38,
+  "frames": 1
+ },
+ {
+  "text": "Graduates work",
+  "t_start": 0.875,
+  "t_end": 0.9167,
+  "x": 211,
+  "y": 385,
+  "px": 38,
+  "px_max": 38,
+  "frames": 1
+ },
+ {
+  "text": "Graduates worki",
+  "t_start": 0.91667,
+  "t_end": 0.9583,
+  "x": 211,
+  "y": 385,
+  "px": 38,
+  "px_max": 38,
+  "frames": 1
+ },
+ {
+  "text": "Graduates workin",
+  "t_start": 0.95833,
+  "t_end": 1.0417,
+  "x": 210,
+  "y": 385,
+  "px": 38,
+  "px_max": 38,
+  "frames": 2
+ },
+ {
+  "text": "Graduates working",
+  "t_start": 1.04167,
+  "t_end": 1.0833,
+  "x": 210,
+  "y": 385,
+  "px": 38,
+  "px_max": 38,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working ",
+  "t_start": 1.08333,
+  "t_end": 1.125,
+  "x": 210,
+  "y": 385,
+  "px": 38.1,
+  "px_max": 38.1,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working i",
+  "t_start": 1.125,
+  "t_end": 1.1667,
+  "x": 209,
+  "y": 385,
+  "px": 38.1,
+  "px_max": 38.1,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in",
+  "t_start": 1.16667,
+  "t_end": 1.25,
+  "x": 209,
+  "y": 384,
+  "px": 38.1,
+  "px_max": 38.1,
+  "frames": 2
+ },
+ {
+  "text": "Graduates working in ",
+  "t_start": 1.25,
+  "t_end": 1.2917,
+  "x": 209,
+  "y": 384,
+  "px": 38.1,
+  "px_max": 38.1,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in f",
+  "t_start": 1.29167,
+  "t_end": 1.3333,
+  "x": 209,
+  "y": 384,
+  "px": 38.1,
+  "px_max": 38.1,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in fi",
+  "t_start": 1.33333,
+  "t_end": 1.375,
+  "x": 208,
+  "y": 384,
+  "px": 38.1,
+  "px_max": 38.1,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in fin",
+  "t_start": 1.375,
+  "t_end": 1.4583,
+  "x": 208,
+  "y": 384,
+  "px": 38.1,
+  "px_max": 38.1,
+  "frames": 2
+ },
+ {
+  "text": "Graduates working in fina",
+  "t_start": 1.45833,
+  "t_end": 1.5,
+  "x": 208,
+  "y": 384,
+  "px": 38.2,
+  "px_max": 38.2,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in finan",
+  "t_start": 1.5,
+  "t_end": 1.5417,
+  "x": 207,
+  "y": 384,
+  "px": 38.2,
+  "px_max": 38.2,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in financ",
+  "t_start": 1.54167,
+  "t_end": 1.5833,
+  "x": 207,
+  "y": 384,
+  "px": 38.2,
+  "px_max": 38.2,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in finance",
+  "t_start": 1.58333,
+  "t_end": 1.6667,
+  "x": 207,
+  "y": 384,
+  "px": 38.2,
+  "px_max": 38.2,
+  "frames": 2
+ },
+ {
+  "text": "Graduates working in finance ",
+  "t_start": 1.66667,
+  "t_end": 1.7083,
+  "x": 207,
+  "y": 384,
+  "px": 38.2,
+  "px_max": 38.2,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in finance i",
+  "t_start": 1.70833,
+  "t_end": 1.75,
+  "x": 206,
+  "y": 384,
+  "px": 38.2,
+  "px_max": 38.2,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in finance in",
+  "t_start": 1.75,
+  "t_end": 1.7917,
+  "x": 206,
+  "y": 384,
+  "px": 38.2,
+  "px_max": 38.2,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in finance in ",
+  "t_start": 1.79167,
+  "t_end": 1.875,
+  "x": 206,
+  "y": 384,
+  "px": 38.2,
+  "px_max": 38.3,
+  "frames": 2
+ },
+ {
+  "text": "Graduates working in finance in L",
+  "t_start": 1.875,
+  "t_end": 1.9167,
+  "x": 205,
+  "y": 384,
+  "px": 38.3,
+  "px_max": 38.3,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in finance in Lo",
+  "t_start": 1.91667,
+  "t_end": 1.9583,
+  "x": 205,
+  "y": 384,
+  "px": 38.3,
+  "px_max": 38.3,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in finance in Lon",
+  "t_start": 1.95833,
+  "t_end": 2,
+  "x": 205,
+  "y": 384,
+  "px": 38.3,
+  "px_max": 38.3,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in finance in Lond",
+  "t_start": 2,
+  "t_end": 2.0833,
+  "x": 205,
+  "y": 384,
+  "px": 38.3,
+  "px_max": 38.3,
+  "frames": 2
+ },
+ {
+  "text": "Graduates working in finance in Londo",
+  "t_start": 2.08333,
+  "t_end": 2.125,
+  "x": 204,
+  "y": 384,
+  "px": 38.3,
+  "px_max": 38.3,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in finance in London",
+  "t_start": 2.125,
+  "t_end": 2.1667,
+  "x": 204,
+  "y": 384,
+  "px": 38.3,
+  "px_max": 38.3,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in finance in London ",
+  "t_start": 2.16667,
+  "t_end": 2.2083,
+  "x": 204,
+  "y": 384,
+  "px": 38.4,
+  "px_max": 38.4,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in finance in London f",
+  "t_start": 2.20833,
+  "t_end": 2.2917,
+  "x": 204,
+  "y": 384,
+  "px": 38.4,
+  "px_max": 38.4,
+  "frames": 2
+ },
+ {
+  "text": "“Graduates working in finance in London",
+  "t_start": 2.20833,
+  "t_end": 6.0417,
+  "x": 960,
+  "y": 946,
+  "px": 40,
+  "px_max": 40,
+  "frames": 92
+ },
+ {
+  "text": "for more than three years”",
+  "t_start": 2.20833,
+  "t_end": 6.0417,
+  "x": 960,
+  "y": 998,
+  "px": 40,
+  "px_max": 40,
+  "frames": 92
+ },
+ {
+  "text": "Graduates working in finance in London fo",
+  "t_start": 2.29167,
+  "t_end": 2.3333,
+  "x": 203,
+  "y": 383,
+  "px": 38.4,
+  "px_max": 38.4,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in finance in London for",
+  "t_start": 2.33333,
+  "t_end": 2.375,
+  "x": 203,
+  "y": 383,
+  "px": 38.4,
+  "px_max": 38.4,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in finance in London for ",
+  "t_start": 2.375,
+  "t_end": 2.4167,
+  "x": 203,
+  "y": 383,
+  "px": 38.4,
+  "px_max": 38.4,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in finance in London for m",
+  "t_start": 2.41667,
+  "t_end": 2.5,
+  "x": 202,
+  "y": 383,
+  "px": 38.4,
+  "px_max": 38.4,
+  "frames": 2
+ },
+ {
+  "text": "Graduates working in finance in London for mo",
+  "t_start": 2.5,
+  "t_end": 2.5417,
+  "x": 202,
+  "y": 383,
+  "px": 38.4,
+  "px_max": 38.4,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in finance in London for mor",
+  "t_start": 2.54167,
+  "t_end": 2.5833,
+  "x": 202,
+  "y": 383,
+  "px": 38.5,
+  "px_max": 38.5,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in finance in London for more",
+  "t_start": 2.58333,
+  "t_end": 2.625,
+  "x": 201,
+  "y": 383,
+  "px": 38.5,
+  "px_max": 38.5,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in finance in London for more ",
+  "t_start": 2.625,
+  "t_end": 2.7083,
+  "x": 201,
+  "y": 383,
+  "px": 38.5,
+  "px_max": 38.5,
+  "frames": 2
+ },
+ {
+  "text": "Graduates working in finance in London for more t",
+  "t_start": 2.70833,
+  "t_end": 2.75,
+  "x": 201,
+  "y": 383,
+  "px": 38.5,
+  "px_max": 38.5,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in finance in London for more th",
+  "t_start": 2.75,
+  "t_end": 2.7917,
+  "x": 201,
+  "y": 383,
+  "px": 38.5,
+  "px_max": 38.5,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in finance in London for more tha",
+  "t_start": 2.79167,
+  "t_end": 2.8333,
+  "x": 200,
+  "y": 383,
+  "px": 38.5,
+  "px_max": 38.5,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in finance in London for more than",
+  "t_start": 2.83333,
+  "t_end": 2.9167,
+  "x": 200,
+  "y": 383,
+  "px": 38.5,
+  "px_max": 38.5,
+  "frames": 2
+ },
+ {
+  "text": "Graduates working in finance in London for more than ",
+  "t_start": 2.91667,
+  "t_end": 2.9583,
+  "x": 200,
+  "y": 383,
+  "px": 38.6,
+  "px_max": 38.6,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in finance in London for more than t",
+  "t_start": 2.95833,
+  "t_end": 3,
+  "x": 199,
+  "y": 383,
+  "px": 38.6,
+  "px_max": 38.6,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in finance in London for more than th",
+  "t_start": 3,
+  "t_end": 3.0417,
+  "x": 199,
+  "y": 383,
+  "px": 38.6,
+  "px_max": 38.6,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in finance in London for more than thr",
+  "t_start": 3.04167,
+  "t_end": 3.125,
+  "x": 199,
+  "y": 383,
+  "px": 38.6,
+  "px_max": 38.6,
+  "frames": 2
+ },
+ {
+  "text": "Graduates working in finance in London for more than thre",
+  "t_start": 3.125,
+  "t_end": 3.1667,
+  "x": 199,
+  "y": 383,
+  "px": 38.6,
+  "px_max": 38.6,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in finance in London for more than three",
+  "t_start": 3.16667,
+  "t_end": 3.2083,
+  "x": 198,
+  "y": 383,
+  "px": 38.6,
+  "px_max": 38.6,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in finance in London for more than three ",
+  "t_start": 3.20833,
+  "t_end": 3.25,
+  "x": 198,
+  "y": 383,
+  "px": 38.6,
+  "px_max": 38.6,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in finance in London for more than three y",
+  "t_start": 3.25,
+  "t_end": 3.3333,
+  "x": 198,
+  "y": 383,
+  "px": 38.7,
+  "px_max": 38.7,
+  "frames": 2
+ },
+ {
+  "text": "Graduates working in finance in London for more than three ye",
+  "t_start": 3.33333,
+  "t_end": 3.375,
+  "x": 197,
+  "y": 382,
+  "px": 38.7,
+  "px_max": 38.7,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in finance in London for more than three yea",
+  "t_start": 3.375,
+  "t_end": 3.4167,
+  "x": 197,
+  "y": 382,
+  "px": 38.7,
+  "px_max": 38.7,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in finance in London for more than three year",
+  "t_start": 3.41667,
+  "t_end": 3.4583,
+  "x": 197,
+  "y": 382,
+  "px": 38.7,
+  "px_max": 38.7,
+  "frames": 1
+ },
+ {
+  "text": "Graduates working in finance in London for more than three years",
+  "t_start": 3.45833,
+  "t_end": 7.4583,
+  "x": 197,
+  "y": 382,
+  "px": 38.1,
+  "px_max": 39.3,
+  "frames": 96
+ },
+ {
+  "text": "?",
+  "t_start": 6.16667,
+  "t_end": 53.125,
+  "x": 497,
+  "y": 580,
+  "px": 53.9,
+  "px_max": 67.3,
+  "frames": 263
+ },
+ {
+  "text": "One sentence. Four answers.",
+  "t_start": 6.16667,
+  "t_end": 8.1667,
+  "x": 960,
+  "y": 998,
+  "px": 40,
+  "px_max": 40,
+  "frames": 48
+ },
+ {
+  "text": "Schematic · no member data",
+  "t_start": 7,
+  "t_end": 50.5417,
+  "x": 1632,
+  "y": 1006,
+  "px": 28,
+  "px_max": 28,
+  "frames": 1045
+ },
+ {
+  "text": "Graduates working in finance in London for more than three years",
+  "t_start": 7.45833,
+  "t_end": 54.25,
+  "x": 214,
+  "y": 294,
+  "px": 32.1,
+  "px_max": 37.9,
+  "frames": 73
+ },
+ {
+  "text": "?",
+  "t_start": 8.20833,
+  "t_end": 51.8333,
+  "x": 594,
+  "y": 127,
+  "px": 47.8,
+  "px_max": 53.5,
+  "frames": 56
+ },
+ {
+  "text": "Rows in the file",
+  "t_start": 8.29167,
+  "t_end": 11.3333,
+  "x": 132,
+  "y": 122,
+  "px": 30,
+  "px_max": 30,
+  "frames": 73
+ },
+ {
+  "text": "525",
+  "t_start": 8.29167,
+  "t_end": 11.3333,
+  "x": 128,
+  "y": 228,
+  "px": 104,
+  "px_max": 104,
+  "frames": 73
+ },
+ {
+  "text": "for 500 members",
+  "t_start": 8.29167,
+  "t_end": 11.3333,
+  "x": 132,
+  "y": 290,
+  "px": 28,
+  "px_max": 28,
+  "frames": 73
+ },
+ {
+  "text": "525 rows, for 500 members.",
+  "t_start": 8.29167,
+  "t_end": 11.9167,
+  "x": 960,
+  "y": 998,
+  "px": 40,
+  "px_max": 40,
+  "frames": 87
+ },
+ {
+  "text": "—",
+  "t_start": 11.125,
+  "t_end": 25.125,
+  "x": 1558,
+  "y": 256,
+  "px": 33.7,
+  "px_max": 37.8,
+  "frames": 17
+ },
+ {
+  "text": "Madrid",
+  "t_start": 11.125,
+  "t_end": 15.7083,
+  "x": 1125,
+  "y": 266,
+  "px": 35.8,
+  "px_max": 37.8,
+  "frames": 5
+ },
+ {
+  "text": "M0271",
+  "t_start": 11.125,
+  "t_end": 15.7083,
+  "x": 1132,
+  "y": 469,
+  "px": 40.1,
+  "px_max": 47,
+  "frames": 110
+ },
+ {
+  "text": "Londres (Royaume-Uni)",
+  "t_start": 11.125,
+  "t_end": 15.875,
+  "x": 1131,
+  "y": 524,
+  "px": 31.3,
+  "px_max": 36.8,
+  "frames": 173
+ },
+ {
+  "text": "London, UK",
+  "t_start": 11.125,
+  "t_end": 15.875,
+  "x": 1558,
+  "y": 528,
+  "px": 34,
+  "px_max": 37.8,
+  "frames": 71
+ },
+ {
+  "text": "Luxembourg",
+  "t_start": 11.125,
+  "t_end": 15.7083,
+  "x": 705,
+  "y": 529,
+  "px": 35.8,
+  "px_max": 37.8,
+  "frames": 5
+ },
+ {
+  "text": "London",
+  "t_start": 11.125,
+  "t_end": 15.875,
+  "x": 1126,
+  "y": 791,
+  "px": 34,
+  "px_max": 37.8,
+  "frames": 75
+ },
+ {
+  "text": "Singapore",
+  "t_start": 11.125,
+  "t_end": 25.2083,
+  "x": 1529,
+  "y": 812,
+  "px": 33.7,
+  "px_max": 37.9,
+  "frames": 10
+ },
+ {
+  "text": "Lille",
+  "t_start": 11.125,
+  "t_end": 25.125,
+  "x": 1135,
+  "y": 1082,
+  "px": 33.7,
+  "px_max": 36.8,
+  "frames": 5
+ },
+ {
+  "text": "Madrid",
+  "t_start": 11.25,
+  "t_end": 15.625,
+  "x": 1115,
+  "y": 274,
+  "px": 38.1,
+  "px_max": 42.1,
+  "frames": 105
+ },
+ {
+  "text": "London, UK",
+  "t_start": 11.25,
+  "t_end": 15.625,
+  "x": 1576,
+  "y": 553,
+  "px": 38.1,
+  "px_max": 42.1,
+  "frames": 105
+ },
+ {
+  "text": "Luxembourg",
+  "t_start": 11.25,
+  "t_end": 15.625,
+  "x": 668,
+  "y": 554,
+  "px": 38.1,
+  "px_max": 42.1,
+  "frames": 105
+ },
+ {
+  "text": "London",
+  "t_start": 11.25,
+  "t_end": 15.625,
+  "x": 1116,
+  "y": 832,
+  "px": 38.1,
+  "px_max": 42.1,
+  "frames": 105
+ },
+ {
+  "text": "Singapore",
+  "t_start": 11.25,
+  "t_end": 27.5,
+  "x": 1545,
+  "y": 854,
+  "px": 38.1,
+  "px_max": 41.8,
+  "frames": 62
+ },
+ {
+  "text": "Under the loupe, London is spelled 8 ways.",
+  "t_start": 12.04167,
+  "t_end": 14.5,
+  "x": 960,
+  "y": 998,
+  "px": 40,
+  "px_max": 40,
+  "frames": 59
+ },
+ {
+  "text": "London, as typed in the file",
+  "t_start": 12.70833,
+  "t_end": 15.875,
+  "x": 132,
+  "y": 202,
+  "px": 30,
+  "px_max": 30,
+  "frames": 76
+ },
+ {
+  "text": "8 spellings",
+  "t_start": 12.70833,
+  "t_end": 15.875,
+  "x": 132,
+  "y": 740,
+  "px": 32,
+  "px_max": 32,
+  "frames": 76
+ },
+ {
+  "text": "Greater London",
+  "t_start": 12.79167,
+  "t_end": 15.875,
+  "x": 117,
+  "y": 262,
+  "px": 34,
+  "px_max": 34,
+  "frames": 74
+ },
+ {
+  "text": "LONDON",
+  "t_start": 12.875,
+  "t_end": 15.875,
+  "x": 117,
+  "y": 314,
+  "px": 34,
+  "px_max": 34,
+  "frames": 72
+ },
+ {
+  "text": "London - Canary Wharf",
+  "t_start": 13.04167,
+  "t_end": 15.875,
+  "x": 118,
+  "y": 418,
+  "px": 34,
+  "px_max": 34,
+  "frames": 68
+ },
+ {
+  "text": "Londres",
+  "t_start": 13.20833,
+  "t_end": 15.875,
+  "x": 119,
+  "y": 522,
+  "px": 34,
+  "px_max": 34,
+  "frames": 64
+ },
+ {
+  "text": "london",
+  "t_start": 13.33333,
+  "t_end": 25.2083,
+  "x": 113,
+  "y": 626,
+  "px": 33.7,
+  "px_max": 37.9,
+  "frames": 66
+ },
+ {
+  "text": "Naive filter · file as delivered",
+  "t_start": 14.625,
+  "t_end": 19.25,
+  "x": 1162,
+  "y": 122,
+  "px": 30,
+  "px_max": 30,
+  "frames": 111
+ },
+ {
+  "text": "rows matching the sentence",
+  "t_start": 14.625,
+  "t_end": 24.0833,
+  "x": 1162,
+  "y": 290,
+  "px": 28,
+  "px_max": 28,
+  "frames": 227
+ },
+ {
+  "text": "Filter the file as delivered: 2 rows.",
+  "t_start": 14.625,
+  "t_end": 17.25,
+  "x": 960,
+  "y": 998,
+  "px": 40,
+  "px_max": 40,
+  "frames": 63
+ },
+ {
+  "text": "—",
+  "t_start": 15.41667,
+  "t_end": 27.5,
+  "x": 1599,
+  "y": 254,
+  "px": 38.7,
+  "px_max": 41.4,
+  "frames": 19
+ },
+ {
+  "text": "2",
+  "t_start": 16.29167,
+  "t_end": 19.25,
+  "x": 1158,
+  "y": 228,
+  "px": 104,
+  "px_max": 104,
+  "frames": 71
+ },
+ {
+  "text": "Normalise spellings and labels: 26.",
+  "t_start": 17.375,
+  "t_end": 20.2083,
+  "x": 960,
+  "y": 998,
+  "px": 40,
+  "px_max": 40,
+  "frames": 68
+ },
+ {
+  "text": "Normalised · spellings and labels",
+  "t_start": 19.25,
+  "t_end": 24.0833,
+  "x": 1162,
+  "y": 122,
+  "px": 30,
+  "px_max": 30,
+  "frames": 116
+ },
+ {
+  "text": "26",
+  "t_start": 19.25,
+  "t_end": 24.0833,
+  "x": 1158,
+  "y": 228,
+  "px": 104,
+  "px_max": 104,
+  "frames": 116
+ },
+ {
+  "text": "Merge 25 duplicates, read employers",
+  "t_start": 20.33333,
+  "t_end": 25.375,
+  "x": 960,
+  "y": 946,
+  "px": 40,
+  "px_max": 40,
+  "frames": 121
+ },
+ {
+  "text": "and job titles: 49.",
+  "t_start": 20.33333,
+  "t_end": 25.375,
+  "x": 960,
+  "y": 998,
+  "px": 40,
+  "px_max": 40,
+  "frames": 121
+ },
+ {
+  "text": "Full logic · dedup + employer + job title",
+  "t_start": 24.08333,
+  "t_end": 28.2083,
+  "x": 1162,
+  "y": 122,
+  "px": 30,
+  "px_max": 30,
+  "frames": 99
+ },
+ {
+  "text": "49",
+  "t_start": 24.08333,
+  "t_end": 28.2083,
+  "x": 1158,
+  "y": 228,
+  "px": 104,
+  "px_max": 104,
+  "frames": 99
+ },
+ {
+  "text": "members matching the sentence",
+  "t_start": 24.08333,
+  "t_end": 28.2083,
+  "x": 1162,
+  "y": 290,
+  "px": 28,
+  "px_max": 28,
+  "frames": 99
+ },
+ {
+  "text": "Montreal",
+  "t_start": 25,
+  "t_end": 25.0833,
+  "x": 585,
+  "y": 112,
+  "px": 33.7,
+  "px_max": 34.9,
+  "frames": 2
+ },
+ {
+  "text": "Bordeaux",
+  "t_start": 25,
+  "t_end": 25.2083,
+  "x": 981,
+  "y": 363,
+  "px": 33.7,
+  "px_max": 37.9,
+  "frames": 5
+ },
+ {
+  "text": "example",
+  "t_start": 25,
+  "t_end": 25.2083,
+  "x": 601,
+  "y": 556,
+  "px": 33.7,
+  "px_max": 37.9,
+  "frames": 5
+ },
+ {
+  "text": "Nantes",
+  "t_start": 25,
+  "t_end": 25.2083,
+  "x": 996,
+  "y": 604,
+  "px": 33.7,
+  "px_max": 37.9,
+  "frames": 5
+ },
+ {
+  "text": "Lyon",
+  "t_start": 25,
+  "t_end": 25.2083,
+  "x": 202,
+  "y": 604,
+  "px": 33.7,
+  "px_max": 37.9,
+  "frames": 5
+ },
+ {
+  "text": "in post: 3 yrs",
+  "t_start": 25,
+  "t_end": 27.5,
+  "x": 601,
+  "y": 659,
+  "px": 29.7,
+  "px_max": 36.8,
+  "frames": 60
+ },
+ {
+  "text": "updated: 3 yrs ago",
+  "t_start": 25,
+  "t_end": 27.5,
+  "x": 601,
+  "y": 702,
+  "px": 29.7,
+  "px_max": 36.8,
+  "frames": 60
+ },
+ {
+  "text": "New York",
+  "t_start": 25,
+  "t_end": 25.2083,
+  "x": 968,
+  "y": 856,
+  "px": 33.7,
+  "px_max": 37.9,
+  "frames": 5
+ },
+ {
+  "text": "Milan",
+  "t_start": 25,
+  "t_end": 25.2083,
+  "x": 593,
+  "y": 861,
+  "px": 33.7,
+  "px_max": 37.9,
+  "frames": 5
+ },
+ {
+  "text": "Bordeaux",
+  "t_start": 25.20833,
+  "t_end": 27.5,
+  "x": 1073,
+  "y": 297,
+  "px": 38.7,
+  "px_max": 41.6,
+  "frames": 10
+ },
+ {
+  "text": "example",
+  "t_start": 25.20833,
+  "t_end": 27.5,
+  "x": 636,
+  "y": 518,
+  "px": 38.7,
+  "px_max": 41.7,
+  "frames": 55
+ },
+ {
+  "text": "Nantes",
+  "t_start": 25.20833,
+  "t_end": 27.5,
+  "x": 1090,
+  "y": 573,
+  "px": 38.7,
+  "px_max": 41.7,
+  "frames": 55
+ },
+ {
+  "text": "Lyon",
+  "t_start": 25.20833,
+  "t_end": 27.5,
+  "x": 179,
+  "y": 573,
+  "px": 38.7,
+  "px_max": 41.7,
+  "frames": 55
+ },
+ {
+  "text": "london",
+  "t_start": 25.20833,
+  "t_end": 27.5,
+  "x": 636,
+  "y": 577,
+  "px": 38.7,
+  "px_max": 41.7,
+  "frames": 55
+ },
+ {
+  "text": "New York",
+  "t_start": 25.20833,
+  "t_end": 27.5,
+  "x": 1058,
+  "y": 863,
+  "px": 38.7,
+  "px_max": 41.6,
+  "frames": 11
+ },
+ {
+  "text": "Milan",
+  "t_start": 25.20833,
+  "t_end": 27.5,
+  "x": 627,
+  "y": 868,
+  "px": 38.7,
+  "px_max": 41.7,
+  "frames": 55
+ },
+ {
+  "text": "But look at the dates.",
+  "t_start": 25.625,
+  "t_end": 27,
+  "x": 960,
+  "y": 998,
+  "px": 40,
+  "px_max": 40,
+  "frames": 33
+ },
+ {
+  "text": "68 % of profiles: untouched",
+  "t_start": 27.125,
+  "t_end": 30.9583,
+  "x": 960,
+  "y": 946,
+  "px": 40,
+  "px_max": 40,
+  "frames": 92
+ },
+ {
+  "text": "for 2 years or more.",
+  "t_start": 27.125,
+  "t_end": 30.9583,
+  "x": 960,
+  "y": 998,
+  "px": 40,
+  "px_max": 40,
+  "frames": 92
+ },
+ {
+  "text": "Lille",
+  "t_start": 27.20833,
+  "t_end": 27.5,
+  "x": 137,
+  "y": 273,
+  "px": 39,
+  "px_max": 41.3,
+  "frames": 7
+ },
+ {
+  "text": "Montreal",
+  "t_start": 27.45833,
+  "t_end": 27.5,
+  "x": 602,
+  "y": 10,
+  "px": 39,
+  "px_max": 39,
+  "frames": 1
+ },
+ {
+  "text": "Profiles untouched for 2+ years",
+  "t_start": 27.5,
+  "t_end": 31.1667,
+  "x": 132,
+  "y": 122,
+  "px": 30,
+  "px_max": 30,
+  "frames": 88
+ },
+ {
+  "text": "68 %",
+  "t_start": 27.5,
+  "t_end": 31.1667,
+  "x": 128,
+  "y": 228,
+  "px": 104,
+  "px_max": 104,
+  "frames": 88
+ },
+ {
+  "text": "of 500 members · ref. 2026-10-12",
+  "t_start": 27.5,
+  "t_end": 31.1667,
+  "x": 132,
+  "y": 290,
+  "px": 28,
+  "px_max": 28,
+  "frames": 88
+ },
+ {
+  "text": "read as tenure",
+  "t_start": 30.58333,
+  "t_end": 35.4167,
+  "x": 170,
+  "y": 378,
+  "px": 30,
+  "px_max": 30,
+  "frames": 116
+ },
+ {
+  "text": "“Three years in post”",
+  "t_start": 30.58333,
+  "t_end": 35.4167,
+  "x": 170,
+  "y": 466,
+  "px": 46,
+  "px_max": 46,
+  "frames": 116
+ },
+ {
+  "text": "read as freshness",
+  "t_start": 31.08333,
+  "t_end": 35.4167,
+  "x": 1030,
+  "y": 378,
+  "px": 30,
+  "px_max": 30,
+  "frames": 104
+ },
+ {
+  "text": "“Three years without an update”",
+  "t_start": 31.08333,
+  "t_end": 35.4167,
+  "x": 1030,
+  "y": 466,
+  "px": 46,
+  "px_max": 46,
+  "frames": 104
+ },
+ {
+  "text": "Three years in post and three years",
+  "t_start": 31.08333,
+  "t_end": 35.5,
+  "x": 960,
+  "y": 946,
+  "px": 40,
+  "px_max": 40,
+  "frames": 106
+ },
+ {
+  "text": "without an update: the same signal.",
+  "t_start": 31.08333,
+  "t_end": 35.5,
+  "x": 960,
+  "y": 998,
+  "px": 40,
+  "px_max": 40,
+  "frames": 106
+ },
+ {
+  "text": "“340 London expats.",
+  "t_start": 35.79167,
+  "t_end": 35.9167,
+  "x": 384,
+  "y": 575,
+  "px": 34.4,
+  "px_max": 37.2,
+  "frames": 3
+ },
+ {
+  "text": "Twenty had moved back years ago.",
+  "t_start": 35.79167,
+  "t_end": 35.9167,
+  "x": 385,
+  "y": 625,
+  "px": 34.4,
+  "px_max": 37.2,
+  "frames": 3
+ },
+ {
+  "text": "Two unsubscribed.”",
+  "t_start": 35.79167,
+  "t_end": 35.9167,
+  "x": 386,
+  "y": 676,
+  "px": 34.4,
+  "px_max": 37.2,
+  "frames": 3
+ },
+ {
+  "text": "“340 London expats.",
+  "t_start": 35.91667,
+  "t_end": 36.4583,
+  "x": 379,
+  "y": 557,
+  "px": 38.6,
+  "px_max": 53.2,
+  "frames": 13
+ },
+ {
+  "text": "Twenty had moved back years ago.",
+  "t_start": 35.91667,
+  "t_end": 36.4583,
+  "x": 380,
+  "y": 613,
+  "px": 38.6,
+  "px_max": 53.2,
+  "frames": 13
+ },
+ {
+  "text": "Two unsubscribed.”",
+  "t_start": 35.91667,
+  "t_end": 36.4583,
+  "x": 381,
+  "y": 670,
+  "px": 38.6,
+  "px_max": 53.2,
+  "frames": 13
+ },
+ {
+  "text": "“340 London expats.",
+  "t_start": 36.45833,
+  "t_end": 41.625,
+  "x": 476,
+  "y": 449,
+  "px": 53.9,
+  "px_max": 58.8,
+  "frames": 124
+ },
+ {
+  "text": "Twenty had moved back years ago.",
+  "t_start": 36.45833,
+  "t_end": 41.625,
+  "x": 478,
+  "y": 528,
+  "px": 53.9,
+  "px_max": 58.8,
+  "frames": 124
+ },
+ {
+  "text": "Two unsubscribed.”",
+  "t_start": 36.45833,
+  "t_end": 41.625,
+  "x": 480,
+  "y": 607,
+  "px": 53.9,
+  "px_max": 58.8,
+  "frames": 124
+ },
+ {
+  "text": "user verbatim",
+  "t_start": 36.5,
+  "t_end": 41.625,
+  "x": 490,
+  "y": 716,
+  "px": 31.2,
+  "px_max": 33.6,
+  "frames": 123
+ },
+ {
+  "text": "The 49 split by trust:",
+  "t_start": 42.08333,
+  "t_end": 44.125,
+  "x": 960,
+  "y": 998,
+  "px": 40,
+  "px_max": 40,
+  "frames": 49
+ },
+ {
+  "text": "Current",
+  "t_start": 42.25,
+  "t_end": 47.5,
+  "x": 180,
+  "y": 178,
+  "px": 36,
+  "px_max": 36,
+  "frames": 126
+ },
+ {
+  "text": "→ send",
+  "t_start": 42.25,
+  "t_end": 47.5,
+  "x": 323,
+  "y": 178,
+  "px": 30,
+  "px_max": 30,
+  "frames": 126
+ },
+ {
+  "text": "To confirm",
+  "t_start": 42.25,
+  "t_end": 47.5,
+  "x": 650,
+  "y": 178,
+  "px": 36,
+  "px_max": 36,
+  "frames": 126
+ },
+ {
+  "text": "→ confirm",
+  "t_start": 42.25,
+  "t_end": 47.5,
+  "x": 842,
+  "y": 178,
+  "px": 30,
+  "px_max": 30,
+  "frames": 126
+ },
+ {
+  "text": "To reactivate",
+  "t_start": 42.25,
+  "t_end": 47.5,
+  "x": 1200,
+  "y": 178,
+  "px": 36,
+  "px_max": 36,
+  "frames": 126
+ },
+ {
+  "text": "→ reactivate",
+  "t_start": 42.25,
+  "t_end": 47.5,
+  "x": 1430,
+  "y": 178,
+  "px": 30,
+  "px_max": 30,
+  "frames": 126
+ },
+ {
+  "text": "1",
+  "t_start": 44.16667,
+  "t_end": 47.5,
+  "x": 171,
+  "y": 274,
+  "px": 96,
+  "px_max": 96,
+  "frames": 80
+ },
+ {
+  "text": "1 to send, 5 to confirm,",
+  "t_start": 44.20833,
+  "t_end": 47.3333,
+  "x": 960,
+  "y": 946,
+  "px": 40,
+  "px_max": 40,
+  "frames": 75
+ },
+ {
+  "text": "43 to win back.",
+  "t_start": 44.20833,
+  "t_end": 47.3333,
+  "x": 960,
+  "y": 998,
+  "px": 40,
+  "px_max": 40,
+  "frames": 75
+ },
+ {
+  "text": "5",
+  "t_start": 44.91667,
+  "t_end": 47.5,
+  "x": 643,
+  "y": 274,
+  "px": 96,
+  "px_max": 96,
+  "frames": 62
+ },
+ {
+  "text": "43",
+  "t_start": 45.875,
+  "t_end": 47.5,
+  "x": 1199,
+  "y": 272,
+  "px": 96,
+  "px_max": 96,
+  "frames": 39
+ },
+ {
+  "text": "6",
+  "t_start": 47.58333,
+  "t_end": 50.9167,
+  "x": 960,
+  "y": 470,
+  "px": 331.5,
+  "px_max": 343.2,
+  "frames": 80
+ },
+ {
+  "text": "worth contacting today:",
+  "t_start": 47.58333,
+  "t_end": 50.9167,
+  "x": 960,
+  "y": 591,
+  "px": 56.3,
+  "px_max": 58.2,
+  "frames": 80
+ },
+ {
+  "text": "1 to send, 5 to confirm.",
+  "t_start": 47.58333,
+  "t_end": 50.9167,
+  "x": 960,
+  "y": 663,
+  "px": 48.2,
+  "px_max": 49.9,
+  "frames": 80
+ },
+ {
+  "text": "The administrator’s problem is not building the list.",
+  "t_start": 50.54167,
+  "t_end": 57.2083,
+  "x": 960,
+  "y": 748,
+  "px": 48,
+  "px_max": 48,
+  "frames": 160
+ },
+ {
+  "text": "It is believing it.",
+  "t_start": 50.54167,
+  "t_end": 57.2083,
+  "x": 960,
+  "y": 822,
+  "px": 48,
+  "px_max": 48,
+  "frames": 160
+ },
+ {
+  "text": "2",
+  "t_start": 52.04167,
+  "t_end": 61.375,
+  "x": 563,
+  "y": 243,
+  "px": 60.9,
+  "px_max": 68.4,
+  "frames": 224
+ },
+ {
+  "text": "as delivered",
+  "t_start": 52.04167,
+  "t_end": 61.375,
+  "x": 563,
+  "y": 321,
+  "px": 29.7,
+  "px_max": 33.3,
+  "frames": 224
+ },
+ {
+  "text": "26",
+  "t_start": 52.33333,
+  "t_end": 61.375,
+  "x": 820,
+  "y": 336,
+  "px": 64.3,
+  "px_max": 68.4,
+  "frames": 217
+ },
+ {
+  "text": "normalised",
+  "t_start": 52.33333,
+  "t_end": 61.375,
+  "x": 820,
+  "y": 418,
+  "px": 31.3,
+  "px_max": 33.3,
+  "frames": 217
+ },
+ {
+  "text": "49",
+  "t_start": 52.625,
+  "t_end": 61.375,
+  "x": 1101,
+  "y": 341,
+  "px": 65,
+  "px_max": 68.4,
+  "frames": 210
+ },
+ {
+  "text": "full logic",
+  "t_start": 52.625,
+  "t_end": 61.375,
+  "x": 1101,
+  "y": 423,
+  "px": 31.6,
+  "px_max": 33.3,
+  "frames": 210
+ },
+ {
+  "text": "6",
+  "t_start": 52.95833,
+  "t_end": 61.375,
+  "x": 1387,
+  "y": 339,
+  "px": 65.5,
+  "px_max": 68.4,
+  "frames": 202
+ },
+ {
+  "text": "worth contacting",
+  "t_start": 52.95833,
+  "t_end": 61.375,
+  "x": 1387,
+  "y": 423,
+  "px": 31.9,
+  "px_max": 33.3,
+  "frames": 202
+ },
+ {
+  "text": "Trusted Segments",
+  "t_start": 54.375,
+  "t_end": 61.375,
+  "x": 960,
+  "y": 161,
+  "px": 64,
+  "px_max": 75.6,
+  "frames": 275
+ },
+ {
+  "text": "Made in code by an AI agent with lemo-opuscar (MIT)",
+  "t_start": 56.91667,
+  "t_end": 61.375,
+  "x": 960,
+  "y": 380,
+  "px": 36,
+  "px_max": 36,
+  "frames": 107
+ },
+ {
+  "text": "Synthetic voice: Kokoro (Apache 2.0)",
+  "t_start": 56.91667,
+  "t_end": 61.375,
+  "x": 960,
+  "y": 444,
+  "px": 36,
+  "px_max": 36,
+  "frames": 107
+ },
+ {
+  "text": "Piano: Salamander Grand Piano V3 by Alexander Holm",
+  "t_start": 56.91667,
+  "t_end": 61.375,
+  "x": 960,
+  "y": 508,
+  "px": 36,
+  "px_max": 36,
+  "frames": 107
+ },
+ {
+  "text": "Licence CC BY 3.0",
+  "t_start": 56.91667,
+  "t_end": 61.375,
+  "x": 960,
+  "y": 572,
+  "px": 36,
+  "px_max": 36,
+  "frames": 107
+ },
+ {
+  "text": "https://creativecommons.org/licenses/by/3.0/",
+  "t_start": 56.91667,
+  "t_end": 61.375,
+  "x": 960,
+  "y": 636,
+  "px": 36,
+  "px_max": 36,
+  "frames": 107
+ },
+ {
+  "text": "Strings and mallets: CC0, Versilian Studios",
+  "t_start": 56.91667,
+  "t_end": 61.375,
+  "x": 960,
+  "y": 700,
+  "px": 36,
+  "px_max": 36,
+  "frames": 107
+ },
+ {
+  "text": "Fonts: IBM Plex (OFL)",
+  "t_start": 56.91667,
+  "t_end": 61.375,
+  "x": 960,
+  "y": 764,
+  "px": 36,
+  "px_max": 36,
+  "frames": 107
+ },
+ {
+  "text": "Record cards are schematic · no member data",
+  "t_start": 56.91667,
+  "t_end": 61.375,
+  "x": 960,
+  "y": 828,
+  "px": 36,
+  "px_max": 36,
+  "frames": 107
+ }
+]

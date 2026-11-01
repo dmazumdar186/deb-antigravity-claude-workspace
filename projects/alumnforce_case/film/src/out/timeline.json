@@ -1,340 +1,377 @@
 {
- "dur": 76.25,
- "bpm": 72,
- "beat": 0.8333333333333334,
+ "dur": 61.375,
+ "fps": 24,
  "hit": {
   "typeOn": 0.12,
-  "slots": 6.25,
-  "lightOn": 7.5,
-  "pullEnd": 12.0833,
-  "drop1": 12.9167,
-  "cityLit": 13.75,
-  "spell": 14.5833,
-  "lift1": 16.6667,
-  "dups": 16.6667,
-  "climb": 19.5833,
-  "hush1": 30.2083,
-  "drop2": 31.6667,
-  "dateLit": 32.5,
-  "front": 33.3333,
-  "lift2": 33.75,
-  "pair": 38.75,
-  "quote": 44.5833,
-  "hush2": 51.4583,
-  "index": 52.5,
-  "six": 60.4167,
-  "off": 63.3333,
-  "glideUp": 63.75,
-  "product": 64.1667,
-  "title": 71.6667
+  "slots": 6.125,
+  "lightOn": 6.583333333333333,
+  "pullStart": 7,
+  "drop1": 11.5,
+  "pullEnd": 10.083333333333334,
+  "cityLit": 12.083333333333334,
+  "spell": 12.666666666666666,
+  "climb": 14.583333333333334,
+  "lift1": 15.291666666666666,
+  "spellEnd": 15.875,
+  "hush1": 24.916666666666668,
+  "drop2": 25.375,
+  "dateLit": 25.791666666666668,
+  "front": 26.666666666666668,
+  "lift2": 27.083333333333332,
+  "pair": 30.541666666666668,
+  "quote": 35.166666666666664,
+  "hush2": 41.333333333333336,
+  "index": 41.791666666666664,
+  "six": 47.25,
+  "off": 50.208333333333336,
+  "glideUp": 50.416666666666664,
+  "thesis": 50.5,
+  "title": 54.333333333333336,
+  "endCard": 56.875
  },
  "words": {
-  "n2": 21.423,
-  "n26": 24.177,
-  "n49": 28.773,
-  "n68": 34.167,
-  "sameSig": 42.21,
-  "c1": 55.713,
-  "c5": 56.693,
-  "c43": 58.313,
-  "n6": 60.417,
-  "spell8": 14.893,
-  "dup25": 16.847,
-  "rec525": 10.27
+  "rec525": 8.25,
+  "spell8": 13.44,
+  "n2": 16.303,
+  "n26": 19.273,
+  "dup25": 20.592,
+  "n49": 24.112,
+  "n68": 27.083,
+  "sameSig": 34.202,
+  "c1": 44.262,
+  "c5": 45.002,
+  "c43": 45.962
  },
  "voice": [
   {
    "id": "L01",
-   "beat": 0.5,
+   "t": 0.4166666666666667,
+   "t1": 5.716,
    "f": "F01",
-   "t": 0.4167,
-   "text": "One sentence, from the brief. Graduates working in finance, in London, for more than three years.",
-   "dur": 5.461,
-   "t1": 5.878
+   "text": "One sentence from the brief. Graduates working in finance, in London, for more than three years."
   },
   {
    "id": "L02",
-   "beat": 7.5,
+   "t": 6.125,
+   "t1": 8.068,
    "f": "F01",
-   "t": 6.25,
-   "text": "One sentence. Four answers.",
-   "dur": 2.043,
-   "t1": 8.293
+   "text": "One sentence. Four answers."
   },
   {
    "id": "L03",
-   "beat": 10.5,
+   "t": 8.25,
+   "t1": 11.785,
    "f": "F02",
-   "t": 8.75,
-   "text": "The file: five hundred and twenty-five records, for five hundred members.",
-   "dur": 4.231,
-   "t1": 12.981
+   "text": "Five hundred and twenty-five rows, for five hundred members."
   },
   {
    "id": "L04",
-   "beat": 16,
-   "f": "F04",
-   "t": 13.3333,
-   "text": "Under the loupe, London is spelled eight different ways.",
-   "dur": 2.85,
-   "t1": 16.183
-  },
-  {
-   "id": "L05",
-   "beat": 20,
-   "f": "F03",
-   "t": 16.6667,
-   "text": "And twenty-five people appear twice.",
-   "dur": 2.196,
-   "t1": 18.863
+   "t": 12,
+   "t1": 14.372,
+   "f": "F04 F26",
+   "text": "Under the loupe, London is spelled eight ways."
   },
   {
    "id": "L06",
-   "beat": 23.5,
+   "t": 14.583333333333334,
+   "t1": 17.122,
    "f": "F07",
-   "t": 19.5833,
-   "text": "Filter the file as delivered: two members.",
-   "dur": 2.681,
-   "t1": 22.264
+   "text": "Filter the file as delivered: two rows."
   },
   {
    "id": "L07",
-   "beat": 27.5,
+   "t": 17.333333333333332,
+   "t1": 20.089,
    "f": "F08",
-   "t": 22.9167,
-   "text": "Normalise the spellings: twenty-six.",
-   "dur": 2.355,
-   "t1": 25.272
+   "text": "Normalise spellings and labels: twenty-six."
   },
   {
    "id": "L08",
-   "beat": 31,
-   "f": "F09",
-   "t": 25.8333,
-   "text": "Remove the duplicates, read employers and job titles: forty-nine.",
-   "dur": 4.296,
-   "t1": 30.129
+   "t": 20.291666666666668,
+   "t1": 24.857,
+   "f": "F03 F09",
+   "text": "Merge twenty-five duplicates, read employers and job titles: forty-nine."
   },
   {
    "id": "L09",
-   "beat": 38.5,
+   "t": 25.583333333333332,
+   "t1": 26.879,
    "f": "—",
-   "t": 32.0833,
-   "text": "But look at the dates.",
-   "dur": 1.49,
-   "t1": 33.573
+   "text": "But look at the dates."
   },
   {
    "id": "L10",
-   "beat": 41,
+   "t": 27.083333333333332,
+   "t1": 30.838,
    "f": "F13",
-   "t": 34.1667,
-   "text": "Sixty-eight percent of profiles have not been touched in two years or more.",
-   "dur": 4.061,
-   "t1": 38.228
+   "text": "Sixty-eight percent of profiles: untouched for two years or more."
   },
   {
    "id": "L11",
-   "beat": 46.5,
+   "t": 31.041666666666668,
+   "t1": 35.058,
    "f": "F22",
-   "t": 38.75,
-   "text": "Three years in post, and three years without an update, are the same signal.",
-   "dur": 4.294,
-   "t1": 43.044
+   "text": "Three years in post and three years without an update: the same signal."
   },
   {
    "id": "L12",
-   "beat": 52.5,
+   "t": 35.583333333333336,
+   "t1": 41.302,
    "f": "F17",
-   "t": 43.75,
-   "text": "One user put it plainly. Three hundred and forty London expats. Twenty had moved back years ago. Two unsubscribed.",
-   "dur": 7.529,
-   "t1": 51.279
+   "text": "Three hundred and forty London expats. Twenty had moved back years ago. Two unsubscribed."
   },
   {
    "id": "L13",
-   "beat": 64,
-   "f": "F09 F11 F21",
-   "t": 53.3333,
-   "text": "So the forty-nine split by trust. One current. Five to confirm. Forty-three to reactivate.",
-   "dur": 6.11,
-   "t1": 59.443
+   "t": 42.041666666666664,
+   "t1": 47.192,
+   "f": "F09 F11 F25",
+   "text": "The forty-nine split by trust: one to send, five to confirm, forty-three to win back."
   },
   {
    "id": "L14",
-   "beat": 72.5,
+   "t": 47.416666666666664,
+   "t1": 49.33,
    "f": "F12",
-   "t": 60.4167,
-   "text": "Six can be emailed today.",
-   "dur": 1.814,
-   "t1": 62.231
+   "text": "Six worth contacting today."
   },
   {
    "id": "L15",
-   "beat": 77,
-   "f": "F19",
-   "t": 64.1667,
-   "text": "Describe your audience in one sentence. Get a segment you can trust. No member record ever leaves the platform.",
-   "dur": 7.025,
-   "t1": 71.192
+   "t": 49.916666666666664,
+   "t1": 53.886,
+   "f": "F24",
+   "text": "The administrator's problem is not building the list. It is believing it."
   },
   {
    "id": "L16",
-   "beat": 86,
+   "t": 54.333333333333336,
+   "t1": 55.318,
    "f": "F23",
-   "t": 71.6667,
-   "text": "Trusted Segments, the product.",
-   "dur": 1.05,
-   "t1": 72.717
+   "text": "Trusted Segments, the product."
   }
  ],
  "cues": [
   {
-   "id": "S01a",
+   "id": "C01",
    "line": "L01",
-   "text": "One sentence, from the brief.",
-   "t0": 0.4167,
-   "t1": 2.737
+   "text": "One sentence from the brief:",
+   "lines": [
+    "One sentence from the brief:"
+   ],
+   "burn": true,
+   "t0": 0.4166666666666667,
+   "t1": 2.117,
+   "cps": 16.47
   },
   {
-   "id": "S01b",
+   "id": "C02",
    "line": "L01",
-   "text": "Graduates working in finance, in London, for more than three years.",
-   "t0": 2.777,
-   "t1": 6.21
+   "text": "“Graduates working in finance in London\nfor more than three years”",
+   "lines": [
+    "“Graduates working in finance in London",
+    "for more than three years”"
+   ],
+   "burn": true,
+   "t0": 2.202,
+   "t1": 6.04,
+   "cps": 16.94
   },
   {
-   "id": "S02",
+   "id": "C03",
    "line": "L02",
    "text": "One sentence. Four answers.",
-   "t0": 6.25,
-   "t1": 8.71
+   "lines": [
+    "One sentence. Four answers."
+   ],
+   "burn": true,
+   "t0": 6.125,
+   "t1": 8.165,
+   "cps": 13.24
   },
   {
-   "id": "S03",
+   "id": "C04",
    "line": "L03",
-   "text": "The file: 525 records, for 500 members.",
-   "t0": 8.75,
-   "t1": 13.293
+   "text": "525 rows, for 500 members.",
+   "lines": [
+    "525 rows, for 500 members."
+   ],
+   "burn": true,
+   "t0": 8.25,
+   "t1": 11.915,
+   "cps": 7.09
   },
   {
-   "id": "S04",
+   "id": "C05",
    "line": "L04",
-   "text": "Under the loupe, London is spelled 8 different ways.",
-   "t0": 13.3333,
-   "t1": 16.627
+   "text": "Under the loupe, London is spelled 8 ways.",
+   "lines": [
+    "Under the loupe, London is spelled 8 ways."
+   ],
+   "burn": true,
+   "t0": 12,
+   "t1": 14.498,
+   "cps": 16.81
   },
   {
-   "id": "S05",
-   "line": "L05",
-   "text": "And 25 people appear twice.",
-   "t0": 16.6667,
-   "t1": 19.463
-  },
-  {
-   "id": "S06",
+   "id": "C06",
    "line": "L06",
-   "text": "Filter the file as delivered: 2 members.",
-   "t0": 19.5833,
-   "t1": 22.864
+   "text": "Filter the file as delivered: 2 rows.",
+   "lines": [
+    "Filter the file as delivered: 2 rows."
+   ],
+   "burn": true,
+   "t0": 14.583333333333334,
+   "t1": 17.248,
+   "cps": 13.89
   },
   {
-   "id": "S07",
+   "id": "C07",
    "line": "L07",
-   "text": "Normalise the spellings: 26.",
-   "t0": 22.9167,
-   "t1": 25.793
+   "text": "Normalise spellings and labels: 26.",
+   "lines": [
+    "Normalise spellings and labels: 26."
+   ],
+   "burn": true,
+   "t0": 17.333333333333332,
+   "t1": 20.207,
+   "cps": 12.18
   },
   {
-   "id": "S08",
+   "id": "C08",
    "line": "L08",
-   "text": "Remove the duplicates, read employers and job titles: 49.",
-   "t0": 25.8333,
-   "t1": 30.729
+   "text": "Merge 25 duplicates, read employers\nand job titles: 49.",
+   "lines": [
+    "Merge 25 duplicates, read employers",
+    "and job titles: 49."
+   ],
+   "burn": true,
+   "t0": 20.291666666666668,
+   "t1": 25.357,
+   "cps": 10.66
   },
   {
-   "id": "S09",
+   "id": "C09",
    "line": "L09",
    "text": "But look at the dates.",
-   "t0": 32.0833,
-   "t1": 34.127
+   "lines": [
+    "But look at the dates."
+   ],
+   "burn": true,
+   "t0": 25.583333333333332,
+   "t1": 26.998,
+   "cps": 15.55
   },
   {
-   "id": "S10",
+   "id": "C10",
    "line": "L10",
-   "text": "68 % of profiles have not been touched in 2 years or more.",
-   "t0": 34.1667,
-   "t1": 38.71
+   "text": "68 % of profiles: untouched\nfor 2 years or more.",
+   "lines": [
+    "68 % of profiles: untouched",
+    "for 2 years or more."
+   ],
+   "burn": true,
+   "t0": 27.083333333333332,
+   "t1": 30.957,
+   "cps": 12.13
   },
   {
-   "id": "S11",
+   "id": "C11",
    "line": "L11",
-   "text": "“Three years in post” and “three years without an update” are the same signal.",
-   "t0": 38.75,
-   "t1": 43.644
+   "text": "Three years in post and three years\nwithout an update: the same signal.",
+   "lines": [
+    "Three years in post and three years",
+    "without an update: the same signal."
+   ],
+   "burn": true,
+   "t0": 31.041666666666668,
+   "t1": 35.498,
+   "cps": 15.71
   },
   {
-   "id": "S12a",
+   "id": "C12",
    "line": "L12",
-   "text": "One user put it plainly: “340 London expats.",
-   "t0": 43.75,
-   "t1": 47.95
+   "text": "“340 London expats.\nTwenty had moved back years ago.",
+   "lines": [
+    "“340 London expats.",
+    "Twenty had moved back years ago."
+   ],
+   "burn": false,
+   "t0": 35.583333333333336,
+   "t1": 39.918,
+   "cps": 11.77
   },
   {
-   "id": "S12b",
+   "id": "C13",
    "line": "L12",
-   "text": "Twenty had moved back years ago. Two unsubscribed.”",
-   "t0": 47.99,
-   "t1": 51.879
+   "text": "Two unsubscribed.”",
+   "lines": [
+    "Two unsubscribed.”"
+   ],
+   "burn": false,
+   "t0": 40.003,
+   "t1": 41.802,
+   "cps": 10.01
   },
   {
-   "id": "S13a",
+   "id": "C14",
    "line": "L13",
-   "text": "So the 49 split by trust.",
-   "t0": 53.3333,
-   "t1": 55.593
+   "text": "The 49 split by trust:",
+   "lines": [
+    "The 49 split by trust:"
+   ],
+   "burn": true,
+   "t0": 42.041666666666664,
+   "t1": 44.097,
+   "cps": 10.7
   },
   {
-   "id": "S13b",
+   "id": "C15",
    "line": "L13",
-   "text": "1 current. 5 to confirm. 43 to reactivate.",
-   "t0": 55.633,
-   "t1": 60.043
+   "text": "1 to send, 5 to confirm,\n43 to win back.",
+   "lines": [
+    "1 to send, 5 to confirm,",
+    "43 to win back."
+   ],
+   "burn": true,
+   "t0": 44.182,
+   "t1": 47.332,
+   "cps": 12.38
   },
   {
-   "id": "S14",
+   "id": "C16",
    "line": "L14",
-   "text": "6 can be e-mailed today.",
-   "t0": 60.4167,
-   "t1": 62.831
+   "text": "6 worth contacting today.",
+   "lines": [
+    "6 worth contacting today."
+   ],
+   "burn": false,
+   "t0": 47.416666666666664,
+   "t1": 49.83,
+   "cps": 10.36
   },
   {
-   "id": "S15a",
+   "id": "C17",
    "line": "L15",
-   "text": "Describe your audience in one sentence.",
-   "t0": 64.1667,
-   "t1": 66.847
+   "text": "The administrator’s problem is not\nbuilding the list. It is believing it.",
+   "lines": [
+    "The administrator’s problem is not",
+    "building the list. It is believing it."
+   ],
+   "burn": false,
+   "t0": 49.916666666666664,
+   "t1": 54.248,
+   "cps": 16.62
   },
   {
-   "id": "S15b",
-   "line": "L15",
-   "text": "Get a segment you can trust.",
-   "t0": 66.887,
-   "t1": 68.847
-  },
-  {
-   "id": "S15c",
-   "line": "L15",
-   "text": "No member record ever leaves the platform.",
-   "t0": 68.887,
-   "t1": 71.627
-  },
-  {
-   "id": "S16",
+   "id": "C19",
    "line": "L16",
    "text": "Trusted Segments.",
-   "t0": 71.6667,
-   "t1": 73.867
+   "lines": [
+    "Trusted Segments."
+   ],
+   "burn": false,
+   "t0": 54.333333333333336,
+   "t1": 55.818,
+   "cps": 11.45
   }
  ],
  "ev": [
@@ -609,769 +646,329 @@
    0.5
   ],
   [
-   6.25,
+   6.125,
    "label",
    0.6
   ],
   [
-   6.37,
+   6.245,
    "label",
    0.6
   ],
   [
-   6.49,
+   6.365,
    "label",
    0.6
   ],
   [
-   6.61,
+   6.485,
    "label",
    0.6
   ],
   [
-   7.5,
+   6.583333333333333,
    "starter",
    1
   ],
   [
-   7.55,
+   6.753333333333333,
+   "starter",
+   0.7
+  ],
+  [
+   6.983333333333333,
+   "starter",
+   0.8
+  ],
+  [
+   7,
    "sweep",
    0.8
   ],
   [
-   7.67,
-   "starter",
-   0.7
+   8.25,
+   "label",
+   0.6
   ],
   [
-   7.9,
-   "starter",
-   0.8
-  ],
-  [
-   12.9167,
+   11.5,
    "loupe",
    1
   ],
   [
-   13.75,
+   12.083333333333334,
    "paper",
    0.6
   ],
   [
-   14.5833,
+   12.666666666666666,
    "label",
    0.8
   ],
   [
-   16.6667,
-   "lift",
-   0.6
-  ],
-  [
-   16.847,
-   "tick",
-   0.45
-  ],
-  [
-   16.917,
-   "tick",
-   0.45
-  ],
-  [
-   16.987,
-   "tick",
-   0.45
-  ],
-  [
-   17.057,
-   "tick",
-   0.45
-  ],
-  [
-   17.127,
-   "tick",
-   0.45
-  ],
-  [
-   17.197,
-   "tick",
-   0.45
-  ],
-  [
-   17.267,
-   "tick",
-   0.45
-  ],
-  [
-   17.337,
-   "tick",
-   0.45
-  ],
-  [
-   17.407,
-   "tick",
-   0.45
-  ],
-  [
-   17.477,
-   "tick",
-   0.45
-  ],
-  [
-   17.547,
-   "tick",
-   0.45
-  ],
-  [
-   17.617,
-   "tick",
-   0.45
-  ],
-  [
-   17.687,
-   "tick",
-   0.45
-  ],
-  [
-   17.757,
-   "tick",
-   0.45
-  ],
-  [
-   17.827,
-   "tick",
-   0.45
-  ],
-  [
-   17.897,
-   "tick",
-   0.45
-  ],
-  [
-   17.967,
-   "tick",
-   0.45
-  ],
-  [
-   18.037,
-   "tick",
-   0.45
-  ],
-  [
-   18.107,
-   "tick",
-   0.45
-  ],
-  [
-   18.177,
-   "tick",
-   0.45
-  ],
-  [
-   18.247,
-   "tick",
-   0.45
-  ],
-  [
-   18.317,
-   "tick",
-   0.45
-  ],
-  [
-   18.387,
-   "tick",
-   0.45
-  ],
-  [
-   18.457,
-   "tick",
-   0.45
-  ],
-  [
-   18.527,
-   "tick",
-   0.45
-  ],
-  [
-   19.5833,
+   14.583333333333334,
    "label",
    0.7
   ],
   [
-   20.923,
-   "tick",
-   0.25
+   15.291666666666666,
+   "lift",
+   0.6
   ],
   [
-   21.173,
-   "tick",
-   0.25
-  ],
-  [
-   21.423,
+   16.303,
    "land",
    1
   ],
   [
-   23.677,
-   "tick",
-   0.25
-  ],
-  [
-   23.696,
-   "tick",
-   0.25
-  ],
-  [
-   23.715,
-   "tick",
-   0.25
-  ],
-  [
-   23.735,
-   "tick",
-   0.25
-  ],
-  [
-   23.754,
-   "tick",
-   0.25
-  ],
-  [
-   23.773,
-   "tick",
-   0.25
-  ],
-  [
-   23.792,
-   "tick",
-   0.25
-  ],
-  [
-   23.812,
-   "tick",
-   0.25
-  ],
-  [
-   23.831,
-   "tick",
-   0.25
-  ],
-  [
-   23.85,
-   "tick",
-   0.25
-  ],
-  [
-   23.869,
-   "tick",
-   0.25
-  ],
-  [
-   23.889,
-   "tick",
-   0.25
-  ],
-  [
-   23.908,
-   "tick",
-   0.25
-  ],
-  [
-   23.927,
-   "tick",
-   0.25
-  ],
-  [
-   23.946,
-   "tick",
-   0.25
-  ],
-  [
-   23.965,
-   "tick",
-   0.25
-  ],
-  [
-   23.985,
-   "tick",
-   0.25
-  ],
-  [
-   24.004,
-   "tick",
-   0.25
-  ],
-  [
-   24.023,
-   "tick",
-   0.25
-  ],
-  [
-   24.042,
-   "tick",
-   0.25
-  ],
-  [
-   24.062,
-   "tick",
-   0.25
-  ],
-  [
-   24.081,
-   "tick",
-   0.25
-  ],
-  [
-   24.1,
-   "tick",
-   0.25
-  ],
-  [
-   24.119,
-   "tick",
-   0.25
-  ],
-  [
-   24.139,
-   "tick",
-   0.25
-  ],
-  [
-   24.158,
-   "tick",
-   0.25
-  ],
-  [
-   24.177,
+   19.273,
    "land",
    1
   ],
   [
-   28.273,
+   20.592,
    "tick",
-   0.25
+   0.4
   ],
   [
-   28.292,
+   20.652,
    "tick",
-   0.25
+   0.4
   ],
   [
-   28.311,
+   20.712,
    "tick",
-   0.25
+   0.4
   ],
   [
-   28.331,
+   20.772,
    "tick",
-   0.25
+   0.4
   ],
   [
-   28.35,
+   20.832,
    "tick",
-   0.25
+   0.4
   ],
   [
-   28.369,
+   20.892,
    "tick",
-   0.25
+   0.4
   ],
   [
-   28.388,
+   20.952,
    "tick",
-   0.25
+   0.4
   ],
   [
-   28.408,
+   21.012,
    "tick",
-   0.25
+   0.4
   ],
   [
-   28.427,
+   21.072,
    "tick",
-   0.25
+   0.4
   ],
   [
-   28.446,
+   21.132,
    "tick",
-   0.25
+   0.4
   ],
   [
-   28.465,
+   21.192,
    "tick",
-   0.25
+   0.4
   ],
   [
-   28.485,
+   21.252,
    "tick",
-   0.25
+   0.4
   ],
   [
-   28.504,
+   21.312,
    "tick",
-   0.25
+   0.4
   ],
   [
-   28.523,
+   21.372,
    "tick",
-   0.25
+   0.4
   ],
   [
-   28.542,
+   21.432,
    "tick",
-   0.25
+   0.4
   ],
   [
-   28.561,
+   21.492,
    "tick",
-   0.25
+   0.4
   ],
   [
-   28.581,
+   21.552,
    "tick",
-   0.25
+   0.4
   ],
   [
-   28.6,
+   21.612,
    "tick",
-   0.25
+   0.4
   ],
   [
-   28.619,
+   21.672,
    "tick",
-   0.25
+   0.4
   ],
   [
-   28.638,
+   21.732,
    "tick",
-   0.25
+   0.4
   ],
   [
-   28.658,
+   21.792,
    "tick",
-   0.25
+   0.4
   ],
   [
-   28.677,
+   21.852,
    "tick",
-   0.25
+   0.4
   ],
   [
-   28.696,
+   21.912,
    "tick",
-   0.25
+   0.4
   ],
   [
-   28.715,
+   21.972,
    "tick",
-   0.25
+   0.4
   ],
   [
-   28.735,
+   22.032,
    "tick",
-   0.25
+   0.4
   ],
   [
-   28.754,
-   "tick",
-   0.25
-  ],
-  [
-   28.773,
+   24.112,
    "land",
    1
   ],
   [
-   31.6667,
+   25.375,
    "loupe",
    1.1
   ],
   [
-   32.5,
+   25.791666666666668,
    "paper",
    0.6
   ],
   [
-   33.3333,
+   26.666666666666668,
    "front",
    1
   ],
   [
-   33.75,
-   "lift",
-   0.6
-  ],
-  [
-   34.167,
+   27.083,
    "land",
    0.8
   ],
   [
-   38.75,
+   27.083333333333332,
+   "lift",
+   0.6
+  ],
+  [
+   30.541666666666668,
    "label",
    0.7
   ],
   [
-   39.25,
-   "label",
-   0.7
-  ],
-  [
-   42.21,
+   34.202,
    "pen",
    1
   ],
   [
-   44.5833,
+   35.166666666666664,
    "sweep",
    0.7
   ],
   [
-   44.9833,
+   35.666666666666664,
    "paper",
    0.5
   ],
   [
-   52.5,
+   41.791666666666664,
    "whoosh",
    1
   ],
   [
-   55.713,
+   44.262,
    "land",
    0.9
   ],
   [
-   56.693,
+   45.002,
    "land",
    0.9
   ],
   [
-   58.313,
+   45.962,
    "land",
    0.9
   ],
   [
-   60.417,
+   47.25,
+   "land",
+   1.1
+  ],
+  [
+   47.3,
    "pen",
-   1
+   0.8
   ],
   [
-   63.3333,
+   50.208333333333336,
    "switch",
    1
   ],
   [
-   63.75,
+   50.416666666666664,
    "sweep",
    0.5
   ],
   [
-   64.167,
-   "key",
-   0.35
+   52.017,
+   "tick",
+   0.5
   ],
   [
-   64.277,
-   "key",
-   0.35
+   52.317,
+   "tick",
+   0.5
   ],
   [
-   64.387,
-   "key",
-   0.35
+   52.617,
+   "tick",
+   0.5
   ],
   [
-   64.497,
-   "key",
-   0.35
+   52.917,
+   "tick",
+   0.5
   ],
   [
-   64.607,
-   "key",
-   0.35
-  ],
-  [
-   64.717,
-   "key",
-   0.35
-  ],
-  [
-   64.827,
-   "key",
-   0.35
-  ],
-  [
-   64.937,
-   "key",
-   0.35
-  ],
-  [
-   65.047,
-   "key",
-   0.35
-  ],
-  [
-   65.157,
-   "key",
-   0.35
-  ],
-  [
-   65.267,
-   "key",
-   0.35
-  ],
-  [
-   65.377,
-   "key",
-   0.35
-  ],
-  [
-   65.487,
-   "key",
-   0.35
-  ],
-  [
-   65.597,
-   "key",
-   0.35
-  ],
-  [
-   65.707,
-   "key",
-   0.35
-  ],
-  [
-   65.817,
-   "key",
-   0.35
-  ],
-  [
-   65.927,
-   "key",
-   0.35
-  ],
-  [
-   66.037,
-   "key",
-   0.35
-  ],
-  [
-   66.147,
-   "key",
-   0.35
-  ],
-  [
-   66.257,
-   "key",
-   0.35
-  ],
-  [
-   66.367,
-   "key",
-   0.35
-  ],
-  [
-   66.477,
-   "key",
-   0.35
-  ],
-  [
-   66.587,
-   "key",
-   0.35
-  ],
-  [
-   66.697,
-   "key",
-   0.35
-  ],
-  [
-   66.807,
-   "key",
-   0.35
-  ],
-  [
-   66.917,
-   "key",
-   0.35
-  ],
-  [
-   67.027,
-   "key",
-   0.35
-  ],
-  [
-   67.137,
-   "key",
-   0.35
-  ],
-  [
-   67.247,
-   "key",
-   0.35
-  ],
-  [
-   67.357,
-   "key",
-   0.35
-  ],
-  [
-   67.467,
-   "key",
-   0.35
-  ],
-  [
-   67.577,
-   "key",
-   0.35
-  ],
-  [
-   67.687,
-   "key",
-   0.35
-  ],
-  [
-   67.797,
-   "key",
-   0.35
-  ],
-  [
-   67.907,
-   "key",
-   0.35
-  ],
-  [
-   68.017,
-   "key",
-   0.35
-  ],
-  [
-   68.127,
-   "key",
-   0.35
-  ],
-  [
-   68.237,
-   "key",
-   0.35
-  ],
-  [
-   68.347,
-   "key",
-   0.35
-  ],
-  [
-   68.457,
-   "key",
-   0.35
-  ],
-  [
-   71.6667,
+   54.333333333333336,
    "land",
    0.7
+  ],
+  [
+   56.875,
+   "paper",
+   0.4
   ]
  ]
 }

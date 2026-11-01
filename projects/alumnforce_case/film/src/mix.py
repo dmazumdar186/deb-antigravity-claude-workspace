@@ -13,7 +13,7 @@ from core.audio import sfx as X
 from core.audio.sfx import SR, add
 
 TL = json.load(open(os.path.join(HERE, 'out', 'timeline.json')))
-H, WD, DUR, BEAT = TL['hit'], TL['words'], TL['dur'], TL['beat']
+H, WD, DUR, BEAT = TL['hit'], TL['words'], TL['dur'], 60 / 72
 N = int(DUR * SR) + SR
 S.seed(72)
 rng = np.random.default_rng(12)
@@ -84,12 +84,13 @@ for ch in ['F', 'C', 'Dm', 'Bb', 'F']:
         if t + bt(j) < H['off'] - 0.1: pn(t + bt(j), top[[0, 2, 1, 3][j]], bt(1.3), .25)
     t += bt(2)
 for w, p in (('c1', 'C6'), ('c5', 'F6'), ('c43', 'A5')): ev.append((WD[w], 'glockenspiel', p, 1.4, .36, .25))
-ev.append((WD['n6'], 'vibraphone_bowed', 'F5', 3.0, .45, 0)); pn(WD['n6'], 'F4', bt(3), .3); pn(WD['n6'], 'C5', bt(3), .28)
+ev.append((H['six'], 'vibraphone_bowed', 'F5', 3.0, .45, 0)); pn(H['six'], 'F4', bt(3), .3); pn(H['six'], 'C5', bt(3), .28); pn(H['six'], 'A4', bt(3), .26)
 # F — the close: the switch cuts the music; a cello pedal, then the title chord
 ev.append(dict(t=H['off'] + 0.4, inst='cellos', pitch='F2', dur=7.5, vel=.26, pan=0, attack=1.0))
 ev.append((H['glideUp'], 'vibraphone_bowed', 'C5', 4.0, .36, .1))
-cues = {c['id']: c for c in TL['cues']}
-for cid, p in (('S15a', 'A4'), ('S15b', 'C5'), ('S15c', 'F5')): pn(cues[cid]['t0'], p, bt(3), .26)
+for k, p in ((0, 'A4'), (1, 'C5'), (2, 'F5')): pn(H['thesis'] + k * bt(2), p, bt(3), .26)        # under the thesis (F24)
+ec = H['endCard']
+ev.append(dict(t=ec, inst='vibraphone_bowed', pitch='F5', dur=4.0, vel=.3, pan=0, attack=.4)); ev.append(dict(t=ec, inst='cellos', pitch='F3', dur=4.0, vel=.2, pan=.1, attack=.8))
 ti = H['title']
 for p in ('F2', 'C3', 'F3', 'A3', 'C4', 'F4', 'A4'): pn(ti, p, 4.4, .36, -.1)
 ev.append((ti, 'vibraphone_bowed', 'A5', 4.4, .42, .2)); ev.append(dict(t=ti, inst='cellos', pitch='F3', dur=4.2, vel=.28, pan=.2, attack=.6))
@@ -168,6 +169,7 @@ def hp2(x, f): return np.stack([X.hp(x[:, c], f) for c in range(2)], 1)
 music, fol, beds = hp2(music, 38), hp2(fol, 38), hp2(beds, 38)
 mix = voice + music + fol + beds
 mix = mix[:int(DUR * SR)]
+fo = int(1.2 * SR); mix[-fo:] *= np.linspace(1, 0, fo)[:, None] ** 1.5                 # the end card fades out
 peak = np.abs(mix).max(); mix = mix / peak * .95
 mix = np.stack([X.limit(mix[:, c], .9) for c in range(2)], 1)
 os.makedirs(os.path.join(HERE, 'out', 'stems'), exist_ok=True)
