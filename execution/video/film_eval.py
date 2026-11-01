@@ -29,6 +29,7 @@ import difflib
 import hashlib
 import itertools
 import json
+import math
 import os
 import platform
 import re
@@ -510,7 +511,7 @@ _STRUCT_COL_RE = re.compile(
 _NARR_COL_RE = re.compile(r"\b(vo|v\.o\.|voice[- ]?over|voiceover|voice|narration|narrator|spoken|audio)\b",
                           re.IGNORECASE)
 NARR_SEC_RE = re.compile(r"^(narration|voice[- ]?over|voiceover|vo|spoken|script)\b", re.IGNORECASE)
-ONSCREEN_SEC_RE = re.compile(r"^(on[- ]?screen|drawn|supers?\b|text on screen|graphics|titles?\b)", re.IGNORECASE)
+ONSCREEN_SEC_RE = re.compile(r"^(on[- ]?screen|drawn text|supers?\b|text on screen|graphics\b)", re.IGNORECASE)
 NARR_LABEL_RE = re.compile(
     r"^\s*(?:[-*+>]\s+)*[*_]{0,2}\s*(?:vo|v\.o\.|voice[- ]?over|voiceover|narration|narrator|voice)\b"
     r"\s*(?:\([^)]*\))?\s*[*_]{0,2}\s*[:\uff1a]\s*[*_]{0,2}\s*(?P<body>.+)$", re.IGNORECASE)
@@ -815,7 +816,7 @@ def load_drawn(path: Path) -> list[Drawn]:
     if isinstance(data, dict):
         data = next((data[k] for k in ("items", "drawn", "texts", "entries") if isinstance(data.get(k), list)), [])
     if not isinstance(data, list):
-        raise ValueError("drawn text JSON must be a list of {text, t_start, t_end, x, y, px}")
+        raise TypeError("drawn text JSON must be a list of {text, t_start, t_end, x, y, px}")
     raw: list[Drawn] = []
     for e in data:
         if not isinstance(e, dict) or not str(e.get("text", "")).strip():
@@ -1531,6 +1532,7 @@ def jev_metrics(narration: list[Src], facts: dict[str, Fact], index: FactIndex, 
     cal = load_jev_calibration()
     t_ent = float(cal.get("entailed", {}).get("threshold", T["jev_entail"]))
     t_con = float(cal.get("contradiction", {}).get("threshold", T["jev_contra"]))
+    T["jev_claim"] = float(cal.get("claim", {}).get("threshold", T["jev_claim"]))   # used by run_jev step 1
     auroc = float(cal.get("entailed", {}).get("auroc", 0.0))
     gate = auroc >= T["jev_auroc_gate"]
     thr = (f"entailment mean >= {t_ent:.3f} per claim line (calibrated, AUROC {auroc:.2f}); "
@@ -1644,7 +1646,7 @@ def calibrate(labels_csv: Path, facts_path: Path, out_md: Path, repeats: int) ->
     y_con = [int(rows[i]["contradiction"]) for i in claim_rows]
     s_ent = [ent_s[i] for i in claim_rows]
     s_con = [con_s[i] for i in claim_rows]
-    report: dict[str, Any] = {"date": dt.date.today().isoformat(), "models": res["models"], "repeats": repeats,
+    report: dict[str, Any] = {"date": dt.datetime.now(dt.timezone.utc).date().isoformat(), "models": res["models"], "repeats": repeats,
                               "prompt_hash": res["prompt_hash"], "labels": str(labels_csv.name),
                               "facts_sha256": hashlib.sha256(facts_path.read_bytes()).hexdigest()[:16],
                               "cost_usd": round(res["cost"], 6)}
@@ -1652,11 +1654,13 @@ def calibrate(labels_csv: Path, facts_path: Path, out_md: Path, repeats: int) ->
         pos = [s for s, y in zip(scores, ys) if y]
         neg = [s for s, y in zip(scores, ys) if not y]
         b = best_threshold(scores, ys)
-        report[name] = {"auroc": round(auroc(pos, neg), 4), "n": len(ys), "n_pos": len(pos), "n_neg": len(neg), **b}
+        report[name] = {"auroc": round(auroc(pos, neg), 4), "n": len(ys), "n_pos": len(pos), "n_neg": len(neg),
+                        "min_pos": round(min(pos, default=float("nan")), 4),
+                        "max_neg": round(max(neg, default=float("nan")), 4), **b}
     # recall-95 point for entailment: lowest cut that still flags >= 95 % of unsupported lines
     neg_ent = sorted(s for s, y in zip(s_ent, y_sup) if not y)
     if neg_ent:
-        k = max(0, int(round(0.95 * len(neg_ent))) - 1)
+        k = max(0, round(0.95 * len(neg_ent)) - 1)
         t95 = neg_ent[k] + 1e-4
         pos_ent = [s for s, y in zip(s_ent, y_sup) if y]
         report["entailed"]["recall95_threshold"] = round(t95, 4)
@@ -1676,24 +1680,27 @@ def render_calibration_md(rep: dict[str, Any], rows: list[dict[str, str]], claim
                           ent_s: list[float], con_s: list[float], res: dict[str, Any]) -> str:
     e, c, k = rep["entailed"], rep["contradiction"], rep["claim"]
     out = ["# Jev support calibration (film_eval)", "",
-           f"Date {rep['date']} · model {', '.join(rep['models'])} · N={rep['repeats']} repeats · "
-           f"prompt {rep['prompt_hash']} · FACTS sha256 {rep['facts_sha256']} · cost ${rep['cost_usd']}", "",
-           f"Labelled set: `{rep['labels']}`, {len(rows)} lines hand-labelled against the case FACTS.md "
-           "(state.facts). Scores are the mean noul over the repeats. Threshold = max Youden J; "
-           "a line is predicted positive when its score >= threshold.", "",
+           (f"Date {rep['date']} · model {', '.join(rep['models'])} · N={rep['repeats']} repeats · "
+            f"prompt {rep['prompt_hash']} · FACTS sha256 {rep['facts_sha256']} · cost ${rep['cost_usd']}"), "",
+           (f"Labelled set: `{rep['labels']}`, {len(rows)} lines hand-labelled against the case FACTS.md "
+            "(state.facts). Scores are the mean noul over the repeats. Threshold = max Youden J; "
+            "a line is predicted positive when its score >= threshold."), "",
            "| Question | n (pos/neg) | AUROC | Best threshold | TP | FP | FN | TN |", "|---|---|---|---|---|---|---|---|"]
     for name, d in (("(a) claim: makes a factual claim", k), ("(b) entailed: stated in the fact sheet", e),
                     ("(c) contradiction", c)):
         out.append(f"| {name} | {d['n']} ({d['n_pos']}/{d['n_neg']}) | {d['auroc']:.3f} | {d['threshold']} | "
                    f"{d['tp']} | {d['fp']} | {d['fn']} | {d['tn']} |")
-    out += ["", "(b) and (c) are scored on the claim lines only (gold `claim=1`), as in the film run.", ""]
+    out += ["", "(b) and (c) are scored on the claim lines only (gold `claim=1`), as in the film run. "
+            "Separation margin (lowest positive score vs highest negative): "
+            + "; ".join(f"{nm} {d['min_pos']} vs {d['max_neg']}" for nm, d in (("claim", k), ("entailed", e),
+                                                                             ("contradiction", c))), ""]
     if "recall95_threshold" in e:
         out.append(f"Recall-95 point for (b): flag below {e['recall95_threshold']} catches >= 95 % of unsupported "
                    f"lines with {e['recall95_false_flags']} supported lines falsely flagged.")
     out += [f"Repeat stability: mean spread {rep['mean_repeat_spread']}, max {rep['max_repeat_spread']} (noul units).",
-            "", "film_eval reads `jev_support_thresholds.json`: entailment flags a claim line whose mean is below the "
-            "(b) threshold, contradiction flags a line at or above the (c) threshold. Flags FAIL only when that "
-            "question's AUROC >= 0.9, otherwise they WARN.", "",
+            "", ("film_eval reads `jev_support_thresholds.json`: entailment flags a claim line whose mean is below the "
+                 "(b) threshold, contradiction flags a line at or above the (c) threshold. Flags FAIL only when that "
+                 "question's AUROC >= 0.9, otherwise they WARN."), "",
             "## Per-category means", "", "| Category | n | claim | entailed | contradiction |", "|---|---|---|---|---|"]
     cats: dict[str, list[int]] = {}
     for i, r in enumerate(rows):
@@ -1747,7 +1754,7 @@ def compare_reports(old: dict[str, Any], new_metrics: list[Metric]) -> list[dict
                          "verdict": f"- -> {m.verdict}"})
             continue
         a, b = _num(o.get("value")), _num(m.value)
-        delta = f"{b - a:+g}" if a is not None and b is not None and a == a and b == b else ""
+        delta = f"{b - a:+g}" if a is not None and b is not None and not (math.isnan(a) or math.isnan(b)) else ""
         rows.append({"name": m.name, "old": _fmt(o.get("value"), o.get("unit", "")), "new": _fmt(m.value, m.unit),
                      "delta": delta, "verdict": f"{o.get('verdict')} -> {m.verdict}"})
     for name, o in om.items():
@@ -1840,7 +1847,7 @@ def evaluate(args: argparse.Namespace) -> tuple[dict[str, Any], list[Metric]]:
         try:
             drawn = load_drawn(dp)
             metrics += drawn_metrics(drawn, index, dp.name, vinfo.get("height"))
-        except (ValueError, OSError) as exc:
+        except (ValueError, TypeError, OSError) as exc:
             metrics.append(metric("content", "number_fidelity_drawn", None, "-", FAIL, note=f"unreadable: {exc}",
                                   source=dp.name, basis_key="number_fidelity"))
     metrics += tag_metrics(srcs, facts, index, sn)

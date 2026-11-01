@@ -60,3 +60,9 @@ C06,call_to_action,Talk to us about your next campaign.,0,,0
 C07,call_to_action,Confirm or correct your profile.,0,,0
 C08,call_to_action,Start your first segment today.,0,,0
 C09,call_to_action,Bring us the sentence you want answered.,0,,0
+H01,hard_mixed,"Forty-nine match, and most of them are current.",1,0,1
+H02,hard_mixed,Six can be e-mailed today.,1,0,0
+H03,hard_mixed,"Twenty-five people appear twice, and the file announces five hundred members.",1,1,0
+H04,hard_mixed,"Two members match the naive filter, twenty-six after normalising, fifty with the full logic.",1,0,1
+H05,hard_mixed,The product line promises that no member record ever leaves the platform.,1,1,0
+H06,hard_mixed,London is spelled eight ways and the UK three ways.,1,1,0
