@@ -342,5 +342,134 @@ class CalibrationAndCompare(unittest.TestCase):
                                   "--facts", "/nope.md"]), 2)
 
 
+
+class SilentFilm(unittest.TestCase):
+    """Silent, caption-free film (prodcraft wk02): no --srt, '(none)' narration, 4:5 profile."""
+    SCRIPT = ("# T\n\n## On-screen text\n\n| In | Out | Text | Facts |\n|---|---|---|---|\n"
+              "| 00:01.00 | 00:03.00 | 49 members | F09 |\n\n## Narration\n\n{narr}\n\n## Staging notes\n\nx\n")
+
+    def test_placeholder_narration_is_no_narration(self):
+        for narr in ("(none)", "none", "None.", "\u2014", "(\u2014)", ""):
+            srcs, mode = fe.script_sources(self.SCRIPT.format(narr=narr))
+            self.assertEqual(mode, "sections")
+            self.assertEqual([s.kind for s in srcs], ["onscreen"], narr)
+        srcs, _ = fe.script_sources(self.SCRIPT.format(narr="None of this is spoken."))
+        self.assertEqual([s.kind for s in srcs], ["onscreen", "narration"])
+
+    def test_speech_rate_and_jev_skip_with_reason(self):
+        m = fe.speech_rate([], [], 22.7, "SCRIPT.md")
+        self.assertEqual((m.verdict, m.note), (fe.SKIPPED, "no narration"))
+        _, idx = index()
+        facts, _ = index()
+        j = fe.jev_metrics([], facts, idx, {}, 1, "SCRIPT.md")
+        self.assertEqual([(x.verdict, x.note) for x in j], [(fe.SKIPPED, "no narration")])
+
+    def test_asr_skips_without_transcribing(self):
+        _, idx = index()
+        args = fe.build_parser().parse_args(["--asr-python", "/nope/python"])
+        ms, transcript = fe.asr_metrics(Path("/nope.mp4"), [], [], idx, args, {}, True, "no SRT")
+        self.assertEqual(transcript, "")
+        self.assertEqual([(m.name, m.verdict, m.note) for m in ms],
+                         [("asr_wer", fe.SKIPPED, "no narration"), ("asr_numbers_audible", fe.SKIPPED, "no narration")])
+
+    def test_captions_skipped_reason(self):
+        ms = fe.captions_skipped()
+        self.assertEqual({m.name for m in ms}, set(fe.CAPTION_METRICS))
+        self.assertTrue(all(m.verdict == fe.SKIPPED and m.note == "no captions supplied" for m in ms))
+        self.assertNotIn("captions_parsed", {m.name for m in ms})
+
+    def test_srt_is_optional_on_the_command_line(self):
+        args = fe.build_parser().parse_args(["--video", "v.mp4", "--script", "s.md", "--facts", "f.md"])
+        self.assertIsNone(args.srt)
+        self.assertEqual(args.profile, "default")
+        with tempfile.TemporaryDirectory() as d:
+            for n in ("s.md", "f.md"):
+                (Path(d) / n).write_text("x", encoding="utf-8")
+            # only the (missing) video is reported; no --srt is not a usage error by itself
+            self.assertEqual(fe.main(["--video", f"{d}/nope.mp4", "--script", f"{d}/s.md", "--facts", f"{d}/f.md"]), 2)
+            self.assertEqual(fe.main(["--video", f"{d}/s.md", "--srt", f"{d}/nope.srt", "--script", f"{d}/s.md",
+                                      "--facts", f"{d}/f.md"]), 2)
+
+    def test_evaluate_without_srt_has_no_caption_fail(self):
+        _, idx = index()
+        with tempfile.TemporaryDirectory() as d:
+            sp, fp = Path(d) / "SCRIPT.md", Path(d) / "FACTS.md"
+            sp.write_text(self.SCRIPT.format(narr="(none)"), encoding="utf-8")
+            fp.write_text(FACTS_MD, encoding="utf-8")
+            video = Path(d) / "v.mp4"
+            video.write_bytes(b"not a video")
+            args = fe.build_parser().parse_args(["--video", str(video), "--script", str(sp), "--facts", str(fp)])
+            orig = fe.shutil.which
+            fe.shutil.which = lambda _b: None          # offline: no ffprobe/ffmpeg
+            try:
+                report, ms = fe.evaluate(args)
+            finally:
+                fe.shutil.which = orig
+        by = {m.name: m for m in ms}
+        self.assertNotIn("captions_parsed", by)
+        self.assertEqual((by["number_fidelity_srt"].verdict, by["number_fidelity_srt"].note),
+                         (fe.SKIPPED, "no captions supplied"))
+        self.assertEqual((by["caption_cps"].verdict, by["speech_rate"].note), (fe.SKIPPED, "no narration"))
+        self.assertEqual(by["number_fidelity_onscreen"].verdict, fe.PASS)
+        self.assertEqual((by["number_fidelity_narration"].verdict, by["number_fidelity_narration"].note),
+                         (fe.SKIPPED, "no narration"))
+        self.assertIsNone(report["inputs"]["srt"]["path"])
+        self.assertNotIn(fe.FAIL, {m.verdict for m in ms})
+
+
+class LinkedInProfile(unittest.TestCase):
+    def _resolution(self, w: int, h: int, profile: str) -> fe.Metric:
+        probe = {"streams": [{"codec_type": "video", "width": w, "height": h, "avg_frame_rate": "30/1",
+                              "codec_name": "h264", "pix_fmt": "yuv420p"}],
+                 "format": {"duration": "22.7", "bit_rate": "2000000"}}
+        saved = (fe.shutil.which, fe.ffprobe, fe.ffmpeg_scan)
+        fe.shutil.which = lambda _b: "/usr/bin/x"
+        fe.ffprobe = lambda _v: probe
+        fe.ffmpeg_scan = lambda *_a: {"loudness": {}, "black": [], "freeze": [], "silence": []}
+        try:
+            with tempfile.TemporaryDirectory() as d:
+                v = Path(d) / "v.mp4"
+                v.write_bytes(b"x")
+                ms, _ = fe.technical_metrics(v, 0.0, None, profile)
+        finally:
+            fe.shutil.which, fe.ffprobe, fe.ffmpeg_scan = saved
+        return next(m for m in ms if m.name == "resolution")
+
+    def test_resolution_4x5(self):
+        self.assertEqual(self._resolution(1080, 1350, "default").verdict, fe.WARN)
+        m = self._resolution(1080, 1350, "linkedin_4x5")
+        self.assertEqual(m.verdict, fe.PASS)
+        self.assertIn("guess", m.basis)
+        self.assertEqual(self._resolution(1920, 1080, "linkedin_4x5").verdict, fe.WARN)
+        self.assertEqual(self._resolution(1920, 1080, "default").verdict, fe.PASS)
+
+    def test_mobile_pt_warn_only_with_profile(self):
+        _, idx = index()
+        items = [{"text": "wk 02", "t_start": 0.0, "t_end": 3.0, "x": 1, "y": 1, "px": 14},
+                 {"text": "Who replied?", "t_start": 0.0, "t_end": 3.0, "x": 1, "y": 99, "px": 93},
+                 {"text": "flash", "t_start": 0.0, "t_end": 0.2, "x": 1, "y": 199, "px": 10}]
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "drawn_text.json"
+            p.write_text(json.dumps(items), encoding="utf-8")
+            drawn = fe.load_drawn(p)
+        self.assertNotIn("drawn_text_mobile", {m.name for m in fe.drawn_metrics(drawn, idx, "d.json", 1350)})
+        m = {x.name: x for x in fe.drawn_metrics(drawn, idx, "d.json", 1350, "linkedin_4x5")}["drawn_text_mobile"]
+        self.assertEqual((m.verdict, m.value, m.n), (fe.WARN, round(14 * 390 / 1080, 1), 2))
+        self.assertEqual(len(m.detail), 1)
+        self.assertIn("guess", m.basis)
+        # 31 px * 390/1080 = 11.2 pt -> PASS; 30 px = 10.8 pt -> WARN
+        for px, verdict in ((31, fe.PASS), (30, fe.WARN)):
+            with tempfile.TemporaryDirectory() as d:
+                p = Path(d) / "d.json"
+                p.write_text(json.dumps([{"text": "a", "t_start": 0, "t_end": 2, "x": 0, "y": 0, "px": px}]), "utf-8")
+                got = {x.name: x for x in fe.drawn_metrics(fe.load_drawn(p), idx, "d", 1350, "linkedin_4x5")}
+            self.assertEqual(got["drawn_text_mobile"].verdict, verdict, px)
+
+    def test_profile_parses(self):
+        self.assertEqual(fe.build_parser().parse_args(["--profile", "linkedin_4x5"]).profile, "linkedin_4x5")
+        with self.assertRaises(SystemExit):
+            fe.build_parser().parse_args(["--profile", "tiktok"])
+
+
 if __name__ == "__main__":
     unittest.main()

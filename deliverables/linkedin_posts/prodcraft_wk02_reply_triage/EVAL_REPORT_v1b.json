@@ -1,7 +1,7 @@
 {
   "tool": "film_eval",
   "version": "2.1.0",
-  "run_timestamp": "2026-11-01T14:13:31Z",
+  "run_timestamp": "2026-11-01T14:14:03Z",
   "overall": "WARN",
   "inputs": {
     "video": {
@@ -301,12 +301,12 @@
     {
       "group": "content",
       "name": "number_fidelity_narration",
-      "value": "0 numbers",
+      "value": null,
       "threshold": "every number matches a FACTS value",
-      "verdict": "PASS",
+      "verdict": "SKIPPED",
       "unit": "",
       "detail": [],
-      "note": "no numbers in this source",
+      "note": "no narration",
       "n": 0,
       "source": "SCRIPT.md narration (sections)",
       "basis": ""

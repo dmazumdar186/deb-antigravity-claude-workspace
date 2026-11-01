@@ -9,8 +9,13 @@ description: Scores a rendered explainer film against its captions, script, fact
              claim -> entailment + contradiction, N repeats, calibrated threshold).
              --calibrate runs the Jev questions over a labelled CSV and writes AUROC, the best
              threshold and the confusion matrix. --compare prints per-metric deltas vs an older report.
+             --srt is optional: without it caption metrics are SKIPPED ("no captions supplied"); a
+             "(none)" / "none" / em-dash / empty narration section means no narration (speech rate,
+             ASR and Jev SKIPPED). --profile linkedin_4x5 accepts 1080x1350 and adds a mobile-feed
+             drawn-text size WARN.
              Directive: directives/video/film_eval.md
-inputs: --video MP4 --srt SRT --script SCRIPT.md --facts FACTS.md [--drawn drawn_text.json]
+inputs: --video MP4 [--srt SRT] --script SCRIPT.md --facts FACTS.md [--drawn drawn_text.json]
+        [--profile default|linkedin_4x5]
         [--asr --asr-model small.en --asr-lang en --asr-python PY] [--jev --jev-repeats 3]
         [--deny FILE] [--deny-names "Camille,Roux"] [--hold 5] [--max-mb 25] [--expect-sha256 HEX]
         [--compare old.json] [--out JSON] [--md MD]
@@ -52,7 +57,7 @@ _ROOT = Path(__file__).resolve().parents[2]
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
-VERSION = "2.0.0"
+VERSION = "2.1.0"
 PASS, WARN, FAIL, SKIPPED = "PASS", "WARN", "FAIL", "SKIPPED"
 DEFAULT_DENY_NAMES = "Camille,Roux"
 EVAL_DATA = Path(__file__).resolve().parent / "eval_data"
@@ -71,6 +76,8 @@ T: dict[str, Any] = {
     "tag_cov_warn": 0.8, "quote_similar": 0.6,
     "wer_pass": 0.05, "wer_warn": 0.10,
     "drawn_min_px": 28, "drawn_min_on": 1.0,
+    # --profile linkedin_4x5
+    "p45_w": 1080, "p45_h": 1350, "mobile_pt_width": 390, "mobile_ref_px": 1080, "mobile_min_pt": 11.0,
     "jev_claim": 0.5, "jev_entail": 0.5, "jev_contra": 0.5, "jev_auroc_gate": 0.9,
 }
 SOURCES: dict[str, str] = {
@@ -90,6 +97,9 @@ SOURCES: dict[str, str] = {
     "speech_rate": "guess, bounded by BBC Subtitle Guidelines (160-180 wpm subtitle rate)",
     "tag_coverage": "guess", "quote_fidelity": "exact match; 0.6 similarity cut = guess",
     "asr_wer": "guess", "drawn_text_size": "guess (28 px at 1080p, >= 1 s on screen)",
+    "resolution_linkedin_4x5": "guess (LinkedIn 4:5 feed video, 1080x1350)",
+    "drawn_text_mobile": "guess (mobile-feed readability proxy: px x 390/1080 = pt on a 390-pt-wide phone, "
+                         "11 pt floor)",
     "jev": "calibrated on eval_data/jev_support_labels.csv (see jev_support_calibration.md)",
 }
 
@@ -603,8 +613,25 @@ def _skip_noise(lines: list[str]) -> list[bool]:
     return skip
 
 
+PLACEHOLDER_RE = re.compile(r"^[(\[]?\s*(?:none|[-\u2013\u2014])?\s*[)\]]?\.?$", re.IGNORECASE)
+NO_NARRATION = "no narration"
+NO_CAPTIONS = "no captions supplied"
+
+
+def is_placeholder(text: str) -> bool:
+    """'(none)', 'none', an em dash or nothing: the section is deliberately empty."""
+    return bool(PLACEHOLDER_RE.match(collapse_ws(text)))
+
+
 def script_sources(text: str) -> tuple[list[Src], str]:
-    """Narration and on-screen-text items of SCRIPT.md and the detection mode.
+    """Narration and on-screen-text items of SCRIPT.md and the detection mode. Placeholder lines
+    ('(none)', 'none', an em dash) are dropped, so a silent film has no narration items."""
+    items, mode = _script_sources(text)
+    return [s for s in items if not is_placeholder(s.text)], mode
+
+
+def _script_sources(text: str) -> tuple[list[Src], str]:
+    """Raw narration and on-screen-text items of SCRIPT.md and the detection mode.
 
     1. sections: "## Narration ..." and "## On-screen text ..." (tables or prose; subheadings stay
        inside). Everything outside them (title, metadata line, subtitles table, footnotes) is ignored.
@@ -1037,7 +1064,8 @@ def _v3(pass_ok: bool, warn_ok: bool) -> str:
     return PASS if pass_ok else (WARN if warn_ok else FAIL)
 
 
-def technical_metrics(video: Path, srt_end: float, expect_sha: str | None) -> tuple[list[Metric], dict[str, Any]]:
+def technical_metrics(video: Path, srt_end: float, expect_sha: str | None,
+                      profile: str = "default") -> tuple[list[Metric], dict[str, Any]]:
     M: list[Metric] = []
     info: dict[str, Any] = {}
     g, vs = "technical", video.name
@@ -1072,7 +1100,7 @@ def technical_metrics(video: Path, srt_end: float, expect_sha: str | None) -> tu
     duration = float(fmt.get("duration") or (v or {}).get("duration") or 0.0)
     info["duration"] = duration
     dur_ok = duration > 0 and srt_end <= duration + 0.5
-    M.append(metric(g, "duration", round(duration, 3), ">= last caption end",
+    M.append(metric(g, "duration", round(duration, 3), ">= last caption end" if srt_end else "> 0 s (no captions)",
                     PASS if dur_ok else (FAIL if duration <= 0 else WARN), unit="s",
                     detail=[] if dur_ok or duration <= 0 else [f"last cue ends {srt_end:.2f}s, video {duration:.2f}s"],
                     n=1, source=vs, basis_key="fps"))
@@ -1081,9 +1109,14 @@ def technical_metrics(video: Path, srt_end: float, expect_sha: str | None) -> tu
         M.append(metric(g, "video_stream", None, "present", FAIL, n=1, source=vs))
     else:
         w, h = int(v.get("width", 0)), int(v.get("height", 0))
-        info["height"] = h
-        M.append(metric(g, "resolution", f"{w}x{h}", f">= {T['min_w']}x{T['min_h']}",
-                        PASS if w >= T["min_w"] and h >= T["min_h"] else WARN, n=1, source=vs))
+        info["height"], info["width"] = h, w
+        if profile == "linkedin_4x5":
+            ok = w >= T["p45_w"] and h >= T["p45_h"] and abs(w * 5 - h * 4) <= 0.01 * h * 4
+            M.append(metric(g, "resolution", f"{w}x{h}", f">= {T['p45_w']}x{T['p45_h']}, 4:5 (profile linkedin_4x5)",
+                            PASS if ok else WARN, n=1, source=vs, basis_key="resolution_linkedin_4x5"))
+        else:
+            M.append(metric(g, "resolution", f"{w}x{h}", f">= {T['min_w']}x{T['min_h']}",
+                            PASS if w >= T["min_w"] and h >= T["min_h"] else WARN, n=1, source=vs))
         num, _, den = str(v.get("avg_frame_rate") or v.get("r_frame_rate") or "0/1").partition("/")
         fps = float(num) / float(den or 1) if float(den or 1) else 0.0
         info["fps"] = fps
@@ -1274,6 +1307,17 @@ def quote_fidelity(entries: list[tuple[str, str, list[str]]], facts: dict[str, F
                   n=total, source=source)
 
 
+CAPTION_METRICS = {"caption_cps": "max CPS <= 17 (FAIL > 21)", "caption_duration": "1.0-7.0 s per cue",
+                   "caption_line_length": "<= 42 chars per line", "caption_lines_per_cue": "<= 2",
+                   "caption_timing": "no overlaps; gaps 0 or >= 2 frames; cues inside the video"}
+
+
+def captions_skipped(reason: str = NO_CAPTIONS) -> list[Metric]:
+    """No --srt: every caption metric is SKIPPED (burned-in / drawn text is checked via --drawn)."""
+    return [metric("captions", name, None, thr, SKIPPED, note=reason, n=0, source="no SRT")
+            for name, thr in CAPTION_METRICS.items()]
+
+
 def caption_metrics(cues: list[Cue], duration: float | None, fps: float | None, srt_name: str) -> list[Metric]:
     g = "captions"
     if not cues:
@@ -1330,16 +1374,17 @@ def speech_rate(narration: list[Src], cues: list[Cue], duration: float | None, s
         secs, basis = max(1.0, duration - T["hold"]), "video duration minus final hold"
     if not secs or not words:
         return metric("content", "speech_rate", None, thr, SKIPPED, n=words, source=script_name,
-                      note="no narration found" if not words else "no timing (no cues, no duration)")
+                      note=NO_NARRATION if not words else "no timing (no cues, no duration)")
     wpm = words / (secs / 60.0)
     ok = T["wpm_lo"] <= wpm <= T["wpm_hi"]
     near = T["wpm_lo"] - T["wpm_margin"] <= wpm <= T["wpm_hi"] + T["wpm_margin"]
     return metric("content", "speech_rate", round(wpm, 1), thr, _v3(ok, near), unit="wpm", n=words,
-                  source=f"{script_name} narration + SRT timing",
+                  source=f"{script_name} narration + " + ("SRT timing" if cues else "video duration"),
                   note=f"{words} words (count_words) / {secs:.1f}s {basis}")
 
 
-def drawn_metrics(drawn: list[Drawn], index: FactIndex, src_name: str, height: int | None) -> list[Metric]:
+def drawn_metrics(drawn: list[Drawn], index: FactIndex, src_name: str, height: int | None,
+                  profile: str = "default") -> list[Metric]:
     M = [number_fidelity("number_fidelity_drawn", src_name,
                          [(d.loc, d.text, extract_numbers(d.text, index.id_prefixes)) for d in drawn], index)]
     small = [d for d in drawn if 0 < d.px < T["drawn_min_px"] and d.t_end - d.t_start >= T["drawn_min_on"]]
@@ -1349,6 +1394,16 @@ def drawn_metrics(drawn: list[Drawn], index: FactIndex, src_name: str, height: i
                     n=len(drawn), source=src_name,
                     note=f"{len(drawn)} distinct strings from {sum(d.draws for d in drawn)} draw records"
                          + (f"; video height {height}px" if height else "")))
+    if profile == "linkedin_4x5":
+        scale = T["mobile_pt_width"] / T["mobile_ref_px"]
+        on = [d for d in drawn if d.px > 0 and d.t_end - d.t_start >= T["drawn_min_on"]]
+        tiny = [d for d in on if d.px * scale < T["mobile_min_pt"]]
+        least = min((d.px for d in on), default=None)
+        M.append(metric("content", "drawn_text_mobile", None if least is None else round(least * scale, 1),
+                        f"no text < {T['mobile_min_pt']:g} pt at px x {T['mobile_pt_width']}/{T['mobile_ref_px']} "
+                        f"(on screen >= {T['drawn_min_on']:.0f} s)", WARN if tiny else PASS, unit="pt",
+                        detail=[f"{d.loc}: {d.px:g}px = {d.px * scale:.1f} pt \"{d.text[:50]}\"" for d in tiny],
+                        n=len(on), source=src_name, note="profile linkedin_4x5; mobile-feed readability proxy"))
     return M
 
 
@@ -1409,8 +1464,12 @@ def asr_metrics(video: Path, narration: list[Src], cues: list[Cue], index: FactI
                 versions: dict[str, str], has_audio: bool, srt_name: str) -> tuple[list[Metric], str]:
     wer_thr = f"<= {T['wer_pass']:.0%} (WARN <= {T['wer_warn']:.0%})"
     aud_thr = "every subtitle number heard in the transcript"
-    data, how = (None, "no audio stream") if not has_audio else transcribe(video, args.asr_model, args.asr_lang,
-                                                                            args.asr_python)
+    if not narration:
+        data, how = None, NO_NARRATION
+    elif not has_audio:
+        data, how = None, "no audio stream"
+    else:
+        data, how = transcribe(video, args.asr_model, args.asr_lang, args.asr_python)
     if data is None:
         return [metric("ai", "asr_wer", None, wer_thr, SKIPPED, note=how, source=video.name),
                 metric("ai", "asr_numbers_audible", None, aud_thr, SKIPPED, note=how, source=srt_name,
@@ -1433,7 +1492,8 @@ def asr_metrics(video: Path, narration: list[Src], cues: list[Cue], index: FactI
                 missing.append(f"cue {c.index} ({c.start:.2f}s): '{num.raw}' not heard")
     if checked == 0:
         M.append(metric("ai", "asr_numbers_audible", "0 checked", aud_thr, SKIPPED, n=0, source=srt_name,
-                        note="no digits in the SRT to check", basis_key="asr_wer"))
+                        note=NO_CAPTIONS if not srt_name or srt_name == "no SRT" else "no digits in the SRT to check",
+                        basis_key="asr_wer"))
     else:
         M.append(metric("ai", "asr_numbers_audible", f"{checked - len(missing)}/{checked}", aud_thr,
                         FAIL if missing else PASS, detail=missing, n=checked, source=f"{srt_name} vs ASR transcript",
@@ -1539,7 +1599,7 @@ def jev_metrics(narration: list[Src], facts: dict[str, Fact], index: FactIndex, 
            + ("FAIL when flagged" if gate else "advisory (AUROC < 0.9): max WARN"))
     src = f"{script_name} narration"
     if not narration:
-        return [metric("ai", "jev_entailment", None, thr, SKIPPED, note="no narration lines", source=src, basis_key="jev")]
+        return [metric("ai", "jev_entailment", None, thr, SKIPPED, note=NO_NARRATION, source=src, basis_key="jev")]
     try:
         res = run_jev([s.text for s in narration], fact_sheet_text(facts), repeats,
                       claim_override=[bool(s.tags) or bool(src_numbers(s, index.id_prefixes)) for s in narration])
@@ -1811,19 +1871,21 @@ def evaluate(args: argparse.Namespace) -> tuple[dict[str, Any], list[Metric]]:
         T["hold"] = args.hold
     if args.max_mb is not None:
         T["max_mb"] = args.max_mb
-    video, srt_p, script_p, facts_p = (Path(p) for p in (args.video, args.srt, args.script, args.facts))
+    video, script_p, facts_p = (Path(p) for p in (args.video, args.script, args.facts))
+    srt_p = Path(args.srt) if args.srt else None
+    profile = getattr(args, "profile", "default") or "default"
     facts_text = facts_p.read_text(encoding="utf-8")
     facts = parse_facts(facts_text)
     index = FactIndex(facts, facts_text)
     script_text = script_p.read_text(encoding="utf-8")
-    cues = parse_srt(srt_p.read_text(encoding="utf-8", errors="replace"))
+    cues = parse_srt(srt_p.read_text(encoding="utf-8", errors="replace")) if srt_p else []
     srt_end = max((c.end for c in cues), default=0.0)
     versions = {"film_eval": VERSION, "python": platform.python_version(),
                 "ffmpeg": tool_version("ffmpeg"), "ffprobe": tool_version("ffprobe")}
-    sn, srn = script_p.name, srt_p.name
+    sn, srn = script_p.name, (srt_p.name if srt_p else "no SRT")
 
     metrics: list[Metric] = []
-    tech, vinfo = technical_metrics(video, srt_end, args.expect_sha256)
+    tech, vinfo = technical_metrics(video, srt_end, args.expect_sha256, profile)
     metrics += tech
     duration = vinfo.get("duration")
     if not facts:
@@ -1834,19 +1896,28 @@ def evaluate(args: argparse.Namespace) -> tuple[dict[str, Any], list[Metric]]:
     narration = [s for s in srcs if s.kind == "narration"]
     onscreen = [s for s in srcs if s.kind == "onscreen"]
     P = index.id_prefixes
-    metrics.append(number_fidelity("number_fidelity_narration", f"{sn} narration ({mode})",
-                                   [(s.loc, s.text, src_numbers(s, P)) for s in narration], index))
+    if narration:
+        metrics.append(number_fidelity("number_fidelity_narration", f"{sn} narration ({mode})",
+                                       [(s.loc, s.text, src_numbers(s, P)) for s in narration], index))
+    else:
+        metrics.append(metric("content", "number_fidelity_narration", None, "every number matches a FACTS value",
+                              SKIPPED, note=NO_NARRATION, n=0, source=f"{sn} narration ({mode})",
+                              basis_key="number_fidelity"))
     if onscreen or mode == "sections":
         metrics.append(number_fidelity("number_fidelity_onscreen", f"{sn} on-screen text",
                                        [(s.loc, s.text, src_numbers(s, P)) for s in onscreen], index))
-    metrics.append(number_fidelity("number_fidelity_srt", srn,
-                                   [(f"SRT:{c.index}", c.text, extract_numbers(c.text, P)) for c in cues], index))
+    if srt_p:
+        metrics.append(number_fidelity("number_fidelity_srt", srn,
+                                       [(f"SRT:{c.index}", c.text, extract_numbers(c.text, P)) for c in cues], index))
+    else:
+        metrics.append(metric("content", "number_fidelity_srt", None, "every number matches a FACTS value", SKIPPED,
+                              note=NO_CAPTIONS, n=0, source=srn, basis_key="number_fidelity"))
     drawn: list[Drawn] = []
     if args.drawn:
         dp = Path(args.drawn)
         try:
             drawn = load_drawn(dp)
-            metrics += drawn_metrics(drawn, index, dp.name, vinfo.get("height"))
+            metrics += drawn_metrics(drawn, index, dp.name, vinfo.get("height"), profile)
         except (ValueError, TypeError, OSError) as exc:
             metrics.append(metric("content", "number_fidelity_drawn", None, "-", FAIL, note=f"unreadable: {exc}",
                                   source=dp.name, basis_key="number_fidelity"))
@@ -1857,14 +1928,15 @@ def evaluate(args: argparse.Namespace) -> tuple[dict[str, Any], list[Metric]]:
     for s in onscreen:
         quoted = ATTRIBUTION_RE.search(s.raw) or set(s.tags) & quoted_facts
         entries.append((s.loc, "quotation:onscreen" if quoted else "label", s.cells))
-    entries.append(("SRT", "quotation:spoken", [" ".join(c.text for c in cues)]))   # quotes span cues
+    if cues:
+        entries.append(("SRT", "quotation:spoken", [" ".join(c.text for c in cues)]))   # quotes span cues
     entries += [(d.loc, "label", [d.text]) for d in drawn]
-    metrics.append(quote_fidelity(entries, facts, f"{sn} + {srn}" + (" + drawn" if drawn else "")))
+    metrics.append(quote_fidelity(entries, facts, sn + (f" + {srn}" if srt_p else "") + (" + drawn" if drawn else "")))
 
     deny = load_deny(args.deny_names, Path(args.deny) if args.deny else None)
     pii_src = ([("SRT", c.index, c.text) for c in cues] + [(sn, n + 1, ln) for n, ln in enumerate(script_text.splitlines())]
                + [("drawn", d.k, d.text) for d in drawn])
-    metrics += caption_metrics(cues, duration, vinfo.get("fps"), srn)
+    metrics += caption_metrics(cues, duration, vinfo.get("fps"), srn) if srt_p else captions_skipped()
     metrics.append(speech_rate(narration, cues, duration, sn))
 
     transcript = ""
@@ -1877,7 +1949,8 @@ def evaluate(args: argparse.Namespace) -> tuple[dict[str, Any], list[Metric]]:
     hits = pii_scan(pii_src, deny)
     metrics.append(metric("content", "pii_scan", f"{len(hits)} hits", f"no e-mail, phone or denied name ({', '.join(deny)})",
                           FAIL if hits else PASS, detail=hits, n=len(pii_src),
-                          source=f"{srn} + {sn}" + (" + drawn" if drawn else "") + (" + ASR" if transcript else "")))
+                          source=(f"{srn} + " if srt_p else "") + sn + (" + drawn" if drawn else "")
+                          + (" + ASR" if transcript else "")))
     metrics[-1].basis = "FACTS hard rules (no member data)"
     if args.jev:
         metrics += jev_metrics(narration, facts, index, versions, args.jev_repeats, sn)
@@ -1890,12 +1963,13 @@ def evaluate(args: argparse.Namespace) -> tuple[dict[str, Any], list[Metric]]:
         "overall": overall(metrics),
         "inputs": {
             "video": {"path": str(video.resolve()), **vinfo},
-            "srt": {"path": str(srt_p.resolve()), "sha256": _sha(srt_p), "cues": len(cues)},
+            "srt": ({"path": str(srt_p.resolve()), "sha256": _sha(srt_p), "cues": len(cues)} if srt_p
+                    else {"path": None, "note": NO_CAPTIONS, "cues": 0}),
             "script": {"path": str(script_p.resolve()), "sha256": _sha(script_p), "mode": mode,
                        "narration_items": len(narration), "onscreen_items": len(onscreen)},
             "facts": {"path": str(facts_p.resolve()), "sha256": _sha(facts_p), "facts": len(facts)},
         },
-        "thresholds": dict(T), "threshold_sources": dict(SOURCES),
+        "profile": profile, "thresholds": dict(T), "threshold_sources": dict(SOURCES),
         "tool_versions": versions,
         "metrics": [asdict(m) for m in metrics],
     }
@@ -1914,10 +1988,12 @@ def evaluate(args: argparse.Namespace) -> tuple[dict[str, Any], list[Metric]]:
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description="Deterministic evaluation of a short explainer film.")
     p.add_argument("--video")
-    p.add_argument("--srt")
+    p.add_argument("--srt", help="captions; optional (absent = caption metrics SKIPPED, 'no captions supplied')")
     p.add_argument("--script")
     p.add_argument("--facts")
     p.add_argument("--drawn", help="renderer log of every drawn string: [{text, t_start, t_end, x, y, px}]")
+    p.add_argument("--profile", choices=("default", "linkedin_4x5"), default="default",
+                   help="delivery profile: linkedin_4x5 accepts 1080x1350 and adds the mobile drawn-text WARN")
     p.add_argument("--asr", action="store_true", help="faster-whisper WER + numbers audible (SKIPPED if unavailable)")
     p.add_argument("--asr-model", default="small.en")
     p.add_argument("--asr-lang", default="en", help="language code; empty string = auto-detect")
@@ -1947,9 +2023,9 @@ def main(argv: list[str] | None = None) -> int:
             print("film_eval: --calibrate needs an existing labels CSV and --facts", file=sys.stderr)
             return 2
         return calibrate(Path(args.calibrate), Path(args.facts), Path(args.calib_out), max(1, args.jev_repeats))
-    req = ("video", "srt", "script", "facts")
+    req = ("video", "script", "facts")
     missing = [f"--{k} {getattr(args, k)}" for k in req if not getattr(args, k) or not Path(getattr(args, k)).is_file()]
-    for opt in ("deny", "drawn", "compare"):
+    for opt in ("srt", "deny", "drawn", "compare"):
         if getattr(args, opt) and not Path(getattr(args, opt)).is_file():
             missing.append(f"--{opt} {getattr(args, opt)}")
     if missing:

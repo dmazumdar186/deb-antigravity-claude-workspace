@@ -12,7 +12,9 @@ Score a short AI-made explainer film before it reaches a client. The inputs are 
 
 ## Inputs
 
-- `--video`, `--srt`, `--script` (SCRIPT.md) and `--facts` (FACTS.md table `| id | Fact | Value | Source |`) are required.
+- `--video`, `--script` (SCRIPT.md) and `--facts` (FACTS.md table `| id | Fact | Value | Source |`) are required.
+- `--srt` is optional. Without it, `number_fidelity_srt` and every caption metric are SKIPPED with the reason "no captions supplied"; burned-in or drawn text is still checked via `--drawn`. Do not pass an empty SRT for a caption-free film: a supplied SRT with no cues still FAILs `captions_parsed` (it usually means a broken export).
+- `--profile default|linkedin_4x5` (default `default`). `linkedin_4x5` checks resolution against 1080x1350 at 4:5 instead of ≥ 1280x720, and adds `drawn_text_mobile` (needs `--drawn`).
 - `--drawn drawn_text.json`: `[{text, t_start, t_end, x, y, px}, ...]`, one record per drawn string. Identical strings at the same place and size with touching time ranges are merged.
 - `--asr`: faster-whisper, `--asr-model small.en` (the build's model), `--asr-lang en`. If the current interpreter lacks `faster_whisper`, it uses `--asr-python` (default: env `FILM_EVAL_ASR_PYTHON`, else the session venv path).
 - `--jev`, `--jev-repeats 3`. Needs `OPENROUTER_API_KEY`. A 16-line film costs about $0.003.
@@ -30,6 +32,8 @@ SCRIPT.md is split into **sources**, and nothing outside them is checked: no tit
 2. **Labelled lines**: `VO:` / `Narrator:` and `ON SCREEN:` / `SUPER:`.
 3. **Narration-only fallbacks**: a table with a narration column, then blockquotes, then all prose. The report records the mode (`inputs.script.mode`).
 
+A placeholder line, "(none)", "none", "—" (or "-", "–"), is dropped from every source. A narration section that holds only a placeholder, or nothing, means **no narration**: `number_fidelity_narration`, `speech_rate`, `asr_wer`, `asr_numbers_audible` and the Jev metrics are SKIPPED with the reason "no narration" (ASR is not run).
+
 Number words in **narration** are converted to digits first: "forty-nine" → 49, "five hundred and twenty-five" → 525, "sixty-eight per cent" → 68 %. A lone "one" stays a word, because it is usually a determiner. On-screen text is checked as digits only, since words there describe the picture ("four empty slots"). SRT and drawn text are checked as displayed.
 
 ## Outputs
@@ -45,6 +49,7 @@ Number words in **narration** are converted to digits first: "forty-nine" → 49
 |---|---|---|---|---|
 | file_size | ≤ 25 MB (10^6 B) | — | > 25 MB | Gmail attachment limit |
 | resolution / fps / video_codec / audio_codec / bitrate | ≥1280x720 / 23.9–60 / h264+yuv420p / aac / ≤ 8000 kbps | otherwise | — | guess |
+| resolution (`--profile linkedin_4x5`) | ≥ 1080x1350 at 4:5 (±1 %) | otherwise | — | guess (LinkedIn 4:5 feed video, 1080x1350) |
 | audio_present | stream present | — | none | — |
 | loudness_integrated (ebur128) | −16 ± 1 LUFS | — | outside | AES TD1004 (2015) / TD1008 (2021): −16 LUFS for streamed speech; ±1 LU tolerance per EBU R128; measured per ITU-R BS.1770 |
 | true_peak | ≤ −1.0 dBTP | — | > −1.0 | EBU R128 / AES TD1008 |
@@ -53,6 +58,7 @@ Number words in **narration** are converted to digits first: "forty-nine" → 49
 | frozen_frames / silence (outside final hold) | ≤ 4 s / ≤ 3 s | ≤ 10 s / ≤ 6 s | beyond | guess |
 | number_fidelity_narration / _onscreen / _srt / _drawn | every number in FACTS | — | any unmatched (line listed) | FACTS.md is the source of truth |
 | drawn_text_size | nothing < 28 px on screen ≥ 1 s | flagged | — | guess (28 px at 1080p) |
+| drawn_text_mobile (`--profile linkedin_4x5`) | nothing on screen ≥ 1 s with px × (390/1080) < 11 pt (i.e. < 30.5 px) | flagged | — | guess (mobile-feed readability proxy: a 1080-px-wide frame shown on a 390-pt-wide phone) |
 | tag_coverage | 100 % of numeric lines tagged | ≥ 80 % | < 80 % | guess |
 | tag_validity | all ids exist | — | unknown id | — |
 | tag_consistency | numbers belong to the tagged facts | mismatch | — | — |
@@ -131,6 +137,7 @@ The one entailment miss is H02, "Six can be e-mailed today". F12 says "worth con
 
 - **Sine-tone or music-only fixtures** make Whisper hallucinate, so WER ≫ 100 %. Test WER on a film with speech.
 - **No audio stream:** loudness, silence and ASR are SKIPPED; `audio_present` FAILs.
+- **Silent, caption-free film** (music only, on-screen type, e.g. LinkedIn 4:5 posts): omit `--srt`, write "(none)" under `## Narration`, pass `--drawn` and `--profile linkedin_4x5`. Caption and narration metrics are SKIPPED with their reasons, not FAILed. First seen on `deliverables/linkedin_posts/prodcraft_wk02_reply_triage/` (v1 report: two false FAILs, `captions_parsed` and `speech_rate` 2.6 wpm from "(none)" counted as a word).
 - **Label/value time conflicts in drawn text are not checked.** `drawn_text.json` has no label↔value link, and a spatial heuristic would bring back false positives. If the renderer adds a `group` id per label/value pair, add the check then.
 - **Prose fallback:** if SCRIPT.md has neither sections nor labels, the `all_prose` fallback includes non-spoken prose. Check `inputs.script.mode`.
 - **Phone numbers in a script line** also show up as unmatched numbers. Both FAILs are intended.
@@ -147,3 +154,4 @@ The one entailment miss is H02, "Six can be e-mailed today". F12 says "worth con
   - Single loudness target −16 ± 1 LUFS / ≤ −1 dBTP; every threshold now carries a source or "guess".
   - `n` and `source` added per metric; `--compare`; one tokenizer (`count_words`); speech rate over caption-covered time; caption gap measured in frames at the video fps; ASR default `small.en`; ASR interpreter taken from env, not hard-coded.
   - On the v1 film, the 18 number and 20 quote false positives are gone. The FAIL that remains is loudness (−14 LUFS against the −16 ± 1 target).
+- 2026-11-01: v2.1.0 after the prodcraft wk02 silent LinkedIn film: `--srt` optional ("no captions supplied" SKIPs); placeholder narration ("(none)", "none", "—", empty) = no narration (narration fidelity, speech rate, ASR, Jev SKIPPED, "no narration"); `--profile linkedin_4x5` (1080x1350 resolution PASS, `drawn_text_mobile` WARN under 11 pt, source "guess").

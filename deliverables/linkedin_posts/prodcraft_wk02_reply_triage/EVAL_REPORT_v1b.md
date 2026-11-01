@@ -1,6 +1,6 @@
 # Film evaluation: prodcraft-wk02-replies.mp4
 
-**Overall: WARN** · film_eval 2.1.0 · run 2026-11-01T14:13:31Z · sha256 `82338647cd8820c64ea9a2893532e57ed57da1434f0a7f3409bc65da6411fa6d`
+**Overall: WARN** · film_eval 2.1.0 · run 2026-11-01T14:14:03Z · sha256 `82338647cd8820c64ea9a2893532e57ed57da1434f0a7f3409bc65da6411fa6d`
 
 | Group | Metric | Value | n | Source | Threshold | Basis | Verdict |
 |---|---|---|---|---|---|---|---|
@@ -18,7 +18,7 @@
 | technical | black_frames | 0 s | 0 | prodcraft-wk02-replies.mp4 | longest black < 0.5s (FAIL >= 2.0s); first 1.0s, final 5.0s ignored | guess | **PASS** |
 | technical | frozen_frames | 0 s | 0 | prodcraft-wk02-replies.mp4 | longest freeze <= 4.0s outside final 5.0s (FAIL > 10.0s) | guess | **PASS** |
 | technical | silence | 0 s | 0 | prodcraft-wk02-replies.mp4 | longest silence <= 3.0s outside final 5.0s (FAIL > 6.0s) | guess | **PASS** |
-| content | number_fidelity_narration | 0 numbers | 0 | SCRIPT.md narration (sections) | every number matches a FACTS value | - | **PASS** |
+| content | number_fidelity_narration | - | 0 | SCRIPT.md narration (sections) | every number matches a FACTS value | - | **SKIPPED** |
 | content | number_fidelity_onscreen | 11/11 matched | 11 | SCRIPT.md on-screen text | every number matches a FACTS value | - | **PASS** |
 | content | number_fidelity_srt | - | 0 | no SRT | every number matches a FACTS value | - | **SKIPPED** |
 | content | number_fidelity_drawn | 13/13 matched | 13 | drawn_text.json | every number matches a FACTS value | - | **PASS** |
@@ -109,6 +109,7 @@ _profile linkedin_4x5; mobile-feed readability proxy_
 - quote_fidelity: drawn#35@8.27s: label "cost_eur_estimate" (wording not checked; numbers are)
 
 ## Skipped
+- number_fidelity_narration: no narration
 - number_fidelity_srt: no captions supplied
 - speech_rate: no narration
 - caption_cps: no captions supplied
@@ -119,7 +120,6 @@ _profile linkedin_4x5; mobile-feed readability proxy_
 
 ## Notes
 - loudness_integrated: 27.7s of programme measured
-- number_fidelity_narration: no numbers in this source
 
 ## Tool versions
 - film_eval: 2.1.0
