@@ -7,17 +7,16 @@
 ## Findings
 
 **HIGH 1: No proven manual output.** One film, no recorded human watch, eval verdict FAIL.
-Fix: the operator watches v1 full length with sound and logs the verdict (film, watcher, pass or defects). Nothing moves up a rung before that.
+Fix: the operator watches v1 with sound and logs the verdict. Nothing moves up a rung before that.
 
 **HIGH 2: The eval gate is not calibrated.**
 - Most FAILs are false positives. Cue IDs (`S02`), `1920×1080`, `M0475` and labels like "8 spellings" are flagged.
-- It breaks its own rule. "No fact line < 0.5" holds, yet lines at 0.32 and 0.19 only WARN.
 - Its loudness target is −16 LUFS; the directive masters to −14.
 
 Fix: scan only narration, subtitles and on-screen text, and allow ID patterns. Check its verdicts against human verdicts on 5 films before it blocks anything.
 
-**HIGH 3: Too much is fuzzy, and there is no template.** Each film is about 430 new lines of code plus a new script. The teardown says "Rebuild yes, re-create no".
-Fix: freeze one human-approved film per client as the house template. Variants change only a few named slots (`school_name`, `segment_sentence`, fact ids) via `--q content=…json`. Variants never re-author.
+**HIGH 3: Too much is fuzzy, and there is no template.** Each film is about 430 new lines of code plus a new script.
+Fix: freeze one human-approved film per client as the house template. Variants change only a few named slots (`school_name`, `segment_sentence`, fact ids) via `--q content=…json`.
 
 **MED 4: The bottleneck is facts and review, not render.** Render, mix and encode take about 5 of the 49 minutes. Each account needs its own verified fact sheet.
 Fix: size the campaign by fact curation plus about 3 minutes of watching per film.
@@ -34,7 +33,7 @@ Fix: the directive says "never post, send or schedule; a human ships".
 
 ## Human gates
 
-1. Fact sheet sign-off, before any tokens are spent. Highest leverage.
+1. Fact sheet sign-off, before any tokens are spent.
 2. Treatment plus 6 stills.
 3. Final watch of every customer-facing film, at every rung.
 
