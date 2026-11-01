@@ -1,0 +1,83 @@
+1
+00:00:00,417 --> 00:00:02,737
+One sentence, from the brief.
+
+2
+00:00:02,777 --> 00:00:06,210
+Graduates working in finance, in London, for more than three years.
+
+3
+00:00:06,250 --> 00:00:08,710
+One sentence. Four answers.
+
+4
+00:00:08,750 --> 00:00:13,293
+The file: 525 records, for 500 members.
+
+5
+00:00:13,333 --> 00:00:16,627
+Under the loupe, London is spelled 8 different ways.
+
+6
+00:00:16,667 --> 00:00:19,463
+And 25 people appear twice.
+
+7
+00:00:19,583 --> 00:00:22,864
+Filter the file as delivered: 2 members.
+
+8
+00:00:22,917 --> 00:00:25,793
+Normalise the spellings: 26.
+
+9
+00:00:25,833 --> 00:00:30,729
+Remove the duplicates, read employers and job titles: 49.
+
+10
+00:00:32,083 --> 00:00:34,127
+But look at the dates.
+
+11
+00:00:34,167 --> 00:00:38,710
+68 % of profiles have not been touched in 2 years or more.
+
+12
+00:00:38,750 --> 00:00:43,644
+“Three years in post” and “three years without an update” are the same signal.
+
+13
+00:00:43,750 --> 00:00:47,950
+One user put it plainly: “340 London expats.
+
+14
+00:00:47,990 --> 00:00:51,879
+Twenty had moved back years ago. Two unsubscribed.”
+
+15
+00:00:53,333 --> 00:00:55,593
+So the 49 split by trust.
+
+16
+00:00:55,633 --> 00:01:00,043
+1 current. 5 to confirm. 43 to reactivate.
+
+17
+00:01:00,417 --> 00:01:02,831
+6 can be e-mailed today.
+
+18
+00:01:04,167 --> 00:01:06,847
+Describe your audience in one sentence.
+
+19
+00:01:06,887 --> 00:01:08,847
+Get a segment you can trust.
+
+20
+00:01:08,887 --> 00:01:11,627
+No member record ever leaves the platform.
+
+21
+00:01:11,667 --> 00:01:13,867
+Trusted Segments.
