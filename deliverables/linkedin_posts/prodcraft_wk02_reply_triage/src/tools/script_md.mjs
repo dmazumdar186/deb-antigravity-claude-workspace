@@ -1,46 +1,42 @@
-// SCRIPT.md from the same timeline the page draws from (times = first frame fully on screen → first frame leaving).
+// SCRIPT.md from content.json + house.js (times = first frame fully on screen → first frame leaving).
 // usage: node tools/script_md.mjs <film_dir> > SCRIPT.md
 import path from 'path'; import fs from 'fs';
 const D = path.resolve(process.argv[2] || '.');
-const { K, b, DUR, CARDS, RESULT, RULE_TAG, TXT } = await import(path.join(D, 'timeline.js'));
-const code = JSON.parse(fs.readFileSync(path.join(D, 'out/code.json'), 'utf8')).lines;
+const { b } = await import(path.join(D, 'house.js'));
+const S = JSON.parse(fs.readFileSync(path.join(D, 'content.json'), 'utf8'));
+const code = JSON.parse(fs.readFileSync(path.join(D, 'out/code.json'), 'utf8'));
+const K = S.beats, DUR = b(S.meta.dur_beats);
 const tc = s => { const m = Math.floor(s / 60), r = s - m * 60; return `${String(m).padStart(2, '0')}:${r.toFixed(2).padStart(5, '0')}`; };
-const rows = [];
-const row = (inB, outB, text, facts, note = '') => rows.push([b(inB), outB == null ? DUR : b(outB), text, facts, note]);
+const rows = [], row = (inB, outB, text, facts, note = '') => rows.push([b(inB), outB == null ? DUR : b(outB), text, facts, note]);
 const esc = s => s.replace(/\|/g, '\\|');
-row(0, null, `${TXT.brand} · ${TXT.wk}`, 'F20', 'header, whole film, after the ProdCraft logo');
-row(0, null, `${TXT.foot} · ${TXT.page}`, 'F20', 'footer, whole film');
-row(0, K.headOut, TXT.head.join(' '), 'F01 F02', 'poster headline (wk 02 card); 32 inbox tiles under it');
-row(K.f05 + 1, K.f05Out, TXT.f05.join(' '), 'F05', 'the problem line, quoted');
-row(K.label + 0.5, K.knife, TXT.label, 'F04', 'label, once, above the cards');
-const tagOf = { ooo: 'F04 F11', stop: 'F04 F12', hot: 'F04 F13', rest: 'F04' };
-CARDS.forEach((c, i) => row(K.card0 + i * 0.5 + 0.5, K.knife, c.text, tagOf[c.kind], 'illustrative reply card'));
-row(K.rules + 0.5, K.rulesOut, TXT.rules, 'F07', 'heading');
-row(K.panel + 1, K.panelOut, `${TXT.file.join('')} · ${TXT.verbatim}`, 'F21', 'code panel tab');
-code.forEach((l, k) => row(K.panel + 1, K.panelOut, '`' + l.trim() + '`', /\d/.test(l) ? 'F21 F08' : 'F21',
-  'code line ' + (99 + k) + (k === 0 ? ', gold bar from ' + b(K.ooo).toFixed(2) + ' s' : k === 3 ? ', gold bar from ' + b(K.oooRes).toFixed(2) + ' s' : '')));
-row(K.oooRes + 0.5, K.knife, RESULT.ooo, 'F08 F14', 'on both out-of-office cards');
-row(K.stop + 1, K.knife, RESULT.stop, 'F09', 'on the unsubscribe card');
-row(K.stop + 1, K.knife, RULE_TAG.stop, 'F12', 'rule tag, same card');
-row(K.hot + 1, K.knife, RESULT.hot, 'F10', 'on the call card');
-row(K.hot + 1, K.knife, RULE_TAG.hot, 'F13', 'rule tag, same card');
-row(K.f15 + 0.5, K.f15Out, TXT.f15, 'F15', 'heading');
-[0, 1, 2].forEach(k => row(K.crm + 0.25 * k + 0.25, K.knife, TXT.crm, 'F16', 'tick on each remaining card'));
-row(K.f19 + 1.5, K.out, TXT.f19.join(' '), 'F19 F02', 'the reframe, three lines');
-row(K.f18 + 1, K.out, [TXT.f18a, TXT.f18n, TXT.f18b, TXT.f18c].join(' '), 'F18', '"30–60" set large');
-row(K.credits + 0.5, K.loop, TXT.credits[0], '', 'end card, small');
-row(K.credits + 1, K.loop, TXT.credits[1], '', 'end card, small');
+row(0, null, `ProdCraft · ${S.chrome.wk}`, S.chrome.facts, 'header, whole film, after the ProdCraft logo');
+row(0, null, `ProdCraft · weekly notes · ${S.chrome.page}`, S.chrome.facts, 'footer, whole film');
+row(0, K.headOut, S.poster.head.join(' '), S.poster.facts, `poster headline; ${S.poster.tiles} inbox tiles under it start lighting at ${b(K.light0).toFixed(2)} s`);
+row(K.f05 + 0.75, K.f05Out, S.quote.lines.join(' '), S.quote.facts, 'the problem line, quoted, under a gold rule');
+row(K.label + 0.5, K.knife, S.label.text, S.label.facts, 'label, once, above the cards');
+S.cards.forEach((c, i) => row(K.card0 + i * K.cardStep + 0.5, K.knife, c.text, c.facts, `illustrative reply card (${c.kind})`));
+row(K.rules + 0.5, K.limits, S.headings.rules.text, S.headings.rules.facts, 'heading');
+row(K.panel + 1, K.panelOut, S.code.tab, S.code.facts, 'code panel tab (provenance)');
+code.shown.forEach((l, k) => row(K.panel + 1, K.panelOut, '`' + l.trim() + '`', /\d/.test(l) ? S.code.numeric_facts : S.code.facts,
+  `code line ${S.code.from + k}` + (S.rules[0].code_lines.includes(k) ? ', gold bar while the OOO rule fires' : '')));
+S.rules.forEach((r, k) => {
+  const st = K.sort[k] + 1.5;
+  row(st + 0.5, K.knife, r.tag, r.tag_facts, `rule tag on the ${r.kind} card (which pattern list fired)`);
+  row(st + 0.5 + 0.125 * (r.result.length - 1), K.knife, r.result.join(' / '), r.facts, `result on the ${r.kind} card; ${r.note}`);
+});
+row(K.limits + 0.75, K.limitsOut, S.headings.limits.text, S.headings.limits.facts, 'heading, before the routing beat');
+row(K.group + 0.5, K.knife, S.routing.label, S.routing.label_facts, 'group label over the cards no rule caught');
+row(K.crm + 0.25, K.knife, S.routing.crm, S.routing.crm_facts, 'one shared tick for the routed group');
+row(K.f19 + 1.5, K.out, S.reframe.lines.join(' '), S.reframe.facts, 'the reframe, three lines');
+row(K.f18 + 1.0, K.out, [S.payoff.lead, S.payoff.numeral, ...S.payoff.lines].join(' '), S.payoff.facts, `"${S.payoff.numeral}" set large`);
+S.credits.forEach((s, k) => row(K.credits + 0.5 * k + 0.5, K.loop, s, '', 'end card, small'));
 rows.sort((a, c) => a[0] - c[0]);
-const out = [];
-out.push('# ProdCraft weekly notes wk 02 film: "32 inboxes, 800 sends. Who replied?"', '');
-out.push('<!-- metadata -->');
-out.push(`<!-- film: prodcraft-wk02-replies.mp4 · 1080×1350 (4:5) · 30 fps · ${DUR.toFixed(3)} s · silent-safe, music and sound design only -->`);
-out.push('<!-- facts: FACTS.md (ids in the Facts column) · times: first frame fully on screen → first frame leaving · generated by src/tools/script_md.mjs from src/timeline.js -->');
-out.push('', '## On-screen text', '');
-out.push('| # | In | Out | Text | Facts |', '|---|---|---|---|---|');
+const out = [`# ProdCraft weekly notes wk ${S.meta.week} film: "${S.poster.head.join(' ')}"`, '', '<!-- metadata -->',
+  `<!-- film: ${S.meta.name}.mp4 · 1080×1350 (4:5) · 30 fps · ${DUR.toFixed(3)} s · silent-safe, music and sound design only -->`,
+  '<!-- facts: FACTS.md (ids in the Facts column) · times: first frame fully on screen → first frame leaving · generated by src/tools/script_md.mjs from src/content.json -->',
+  '', '## On-screen text', '', '| # | In | Out | Text | Facts |', '|---|---|---|---|---|'];
 rows.forEach(([a, c, text, facts], k) => out.push(`| ${k + 1} | ${tc(a)} | ${tc(c)} | ${esc(text)} | ${facts} |`));
-out.push('', '## Narration', '', '(none)', '');
-out.push('## Staging notes', '');
+out.push('', '## Narration', '', '(none)', '', '## Staging notes', '');
 rows.forEach(([, , , , note], k) => note && out.push(`- row ${k + 1}: ${note}`));
-out.push('- No reply card shows a name, company, e-mail address or number; the three cards no rule catches get no class, model name or confidence.', '');
+out.push('- No reply card shows a name, company, e-mail address or number. The cards no rule catches get no class, model name or confidence.', '');
 process.stdout.write(out.join('\n'));

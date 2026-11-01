@@ -11,9 +11,11 @@ Music       Original score (marimba, vibraphone, glockenspiel, contrabass pizzic
             (VSCO 2 CE), Versilian Studios / Sam Gossner. No CC BY instruments (no Salamander piano, no MuldjordKit),
             so no CC BY attribution is required.
 Foley       Procedural (lemo-opuscar core/audio/sfx.py), no samples.
-Fonts       Newsreader (Production Type), JetBrains Mono (JetBrains), Geist (Vercel / The Geist Project Authors),
+Fonts       Newsreader (Production Type), JetBrains Mono (JetBrains),
             all SIL Open Font License 1.1, from Google Fonts; licence texts in fonts/OFL-*.txt.
-Logo        ProdCraft's own mark (deliverables/prodcraft_site_2026-10-19/site/assets/logo-prodcraft.png), tinted to ink.
-Code shown  execution/personal_workflows/self_outbound_system/reply_classifier.py lines 99-107, verbatim (dedented by 4).
+Logo        ProdCraft's own mark (src/assets/logo-prodcraft.png, a copy of deliverables/prodcraft_site_2026-10-19/site/assets/
+            logo-prodcraft.png), tone-mapped to ink with its light details kept, as on the wk 02 card.
+Code shown  The operator's own build (not the client system): execution/personal_workflows/self_outbound_system/
+            reply_classifier.py lines 99-107, verbatim (dedented by 4, re-indented 1 space per level to fit 30 px).
 Replies     The reply cards are invented, generic and illustrative (labelled on screen).
 Facts       ../FACTS.md

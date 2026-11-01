@@ -1,0 +1,562 @@
+[
+ {
+  "text": "ProdCraft",
+  "t_start": 0,
+  "t_end": 27.7333,
+  "x": 144,
+  "y": 124,
+  "px": 26.4,
+  "px_max": 26.4,
+  "frames": 832
+ },
+ {
+  "text": "wk 02",
+  "t_start": 0,
+  "t_end": 27.7333,
+  "x": 982,
+  "y": 128,
+  "px": 14,
+  "px_max": 14,
+  "frames": 832
+ },
+ {
+  "text": "32 inboxes, 800",
+  "t_start": 0,
+  "t_end": 27.7333,
+  "x": 96,
+  "y": 231,
+  "px": 93,
+  "px_max": 93,
+  "frames": 123
+ },
+ {
+  "text": "sends. Who replied?",
+  "t_start": 0,
+  "t_end": 27.7333,
+  "x": 96,
+  "y": 327,
+  "px": 93,
+  "px_max": 93,
+  "frames": 123
+ },
+ {
+  "text": "ProdCraft · weekly notes",
+  "t_start": 0,
+  "t_end": 27.7333,
+  "x": 96,
+  "y": 1247,
+  "px": 14,
+  "px_max": 14,
+  "frames": 832
+ },
+ {
+  "text": "02",
+  "t_start": 0,
+  "t_end": 27.7333,
+  "x": 982,
+  "y": 1247,
+  "px": 14,
+  "px_max": 14,
+  "frames": 832
+ },
+ {
+  "text": "“the bottleneck has simply",
+  "t_start": 2.56667,
+  "t_end": 8.2667,
+  "x": 92,
+  "y": 1148,
+  "px": 46,
+  "px_max": 46,
+  "frames": 171
+ },
+ {
+  "text": "illustrative replies",
+  "t_start": 2.66667,
+  "t_end": 17.2,
+  "x": 96,
+  "y": 462,
+  "px": 15,
+  "px_max": 15,
+  "frames": 436
+ },
+ {
+  "text": "Tell me more.",
+  "t_start": 2.66667,
+  "t_end": 17.2,
+  "x": 120,
+  "y": 486,
+  "px": 25,
+  "px_max": 25,
+  "frames": 436
+ },
+ {
+  "text": "moved from sending to reading”",
+  "t_start": 2.66667,
+  "t_end": 8.2667,
+  "x": 96,
+  "y": 1203,
+  "px": 46,
+  "px_max": 46,
+  "frames": 168
+ },
+ {
+  "text": "I’m out of the office until Monday.",
+  "t_start": 2.96667,
+  "t_end": 17.2,
+  "x": 120,
+  "y": 560,
+  "px": 25,
+  "px_max": 25,
+  "frames": 427
+ },
+ {
+  "text": "Please unsubscribe me.",
+  "t_start": 3.2,
+  "t_end": 17.2,
+  "x": 120,
+  "y": 634,
+  "px": 25,
+  "px_max": 25,
+  "frames": 420
+ },
+ {
+  "text": "What does pricing look like?",
+  "t_start": 3.46667,
+  "t_end": 17.2,
+  "x": 120,
+  "y": 708,
+  "px": 25,
+  "px_max": 25,
+  "frames": 412
+ },
+ {
+  "text": "Automatic reply: on vacation.",
+  "t_start": 3.76667,
+  "t_end": 17.2,
+  "x": 120,
+  "y": 782,
+  "px": 25,
+  "px_max": 25,
+  "frames": 403
+ },
+ {
+  "text": "Can we jump on a call next week?",
+  "t_start": 4,
+  "t_end": 17.2,
+  "x": 120,
+  "y": 844,
+  "px": 25,
+  "px_max": 25,
+  "frames": 396
+ },
+ {
+  "text": "Not interested, thanks.",
+  "t_start": 4.26667,
+  "t_end": 17.2,
+  "x": 120,
+  "y": 749,
+  "px": 25,
+  "px_max": 25,
+  "frames": 388
+ },
+ {
+  "text": "verbatim",
+  "t_start": 8.26667,
+  "t_end": 13.7667,
+  "x": 2002,
+  "y": 257,
+  "px": 14,
+  "px_max": 14,
+  "frames": 165
+ },
+ {
+  "text": "self_outbound_system / ",
+  "t_start": 8.26667,
+  "t_end": 13.7667,
+  "x": 1156,
+  "y": 258,
+  "px": 18,
+  "px_max": 18,
+  "frames": 165
+ },
+ {
+  "text": "reply_classifier.py",
+  "t_start": 8.26667,
+  "t_end": 13.7667,
+  "x": 1409,
+  "y": 258,
+  "px": 18,
+  "px_max": 18,
+  "frames": 165
+ },
+ {
+  "text": "Rules first.",
+  "t_start": 8.26667,
+  "t_end": 12.8,
+  "x": 96,
+  "y": 289,
+  "px": 64,
+  "px_max": 64,
+  "frames": 136
+ },
+ {
+  "text": "ooo_hits = _matches_any(text, _OOO_PATTERNS)",
+  "t_start": 8.26667,
+  "t_end": 13.7667,
+  "x": 1122,
+  "y": 315,
+  "px": 24,
+  "px_max": 24,
+  "frames": 165
+ },
+ {
+  "text": "if",
+  "t_start": 8.26667,
+  "t_end": 13.8,
+  "x": 1122,
+  "y": 348,
+  "px": 24,
+  "px_max": 24,
+  "frames": 166
+ },
+ {
+  "text": " ooo_hits:",
+  "t_start": 8.26667,
+  "t_end": 13.8,
+  "x": 1151,
+  "y": 348,
+  "px": 24,
+  "px_max": 24,
+  "frames": 166
+ },
+ {
+  "text": "    ",
+  "t_start": 8.26667,
+  "t_end": 13.8667,
+  "x": 1122,
+  "y": 381,
+  "px": 24,
+  "px_max": 24,
+  "frames": 168
+ },
+ {
+  "text": "return",
+  "t_start": 8.26667,
+  "t_end": 13.8667,
+  "x": 1180,
+  "y": 381,
+  "px": 24,
+  "px_max": 24,
+  "frames": 168
+ },
+ {
+  "text": " {",
+  "t_start": 8.26667,
+  "t_end": 13.8667,
+  "x": 1266,
+  "y": 381,
+  "px": 24,
+  "px_max": 24,
+  "frames": 168
+ },
+ {
+  "text": "        ",
+  "t_start": 8.26667,
+  "t_end": 13.8667,
+  "x": 1122,
+  "y": 414,
+  "px": 24,
+  "px_max": 24,
+  "frames": 840
+ },
+ {
+  "text": "\"class\"",
+  "t_start": 8.26667,
+  "t_end": 13.8667,
+  "x": 1237,
+  "y": 414,
+  "px": 24,
+  "px_max": 24,
+  "frames": 168
+ },
+ {
+  "text": ": ",
+  "t_start": 8.26667,
+  "t_end": 13.8667,
+  "x": 1338,
+  "y": 414,
+  "px": 24,
+  "px_max": 24,
+  "frames": 336
+ },
+ {
+  "text": "\"auto_reply_or_OOO\"",
+  "t_start": 8.26667,
+  "t_end": 13.8667,
+  "x": 1367,
+  "y": 414,
+  "px": 24,
+  "px_max": 24,
+  "frames": 168
+ },
+ {
+  "text": ",",
+  "t_start": 8.26667,
+  "t_end": 13.8667,
+  "x": 1640,
+  "y": 414,
+  "px": 24,
+  "px_max": 24,
+  "frames": 336
+ },
+ {
+  "text": "\"confidence\"",
+  "t_start": 8.26667,
+  "t_end": 13.8667,
+  "x": 1237,
+  "y": 447,
+  "px": 24,
+  "px_max": 24,
+  "frames": 168
+ },
+ {
+  "text": ": 0.99,",
+  "t_start": 8.26667,
+  "t_end": 13.8667,
+  "x": 1410,
+  "y": 447,
+  "px": 24,
+  "px_max": 24,
+  "frames": 168
+ },
+ {
+  "text": "\"explanation\"",
+  "t_start": 8.26667,
+  "t_end": 13.8667,
+  "x": 1237,
+  "y": 480,
+  "px": 24,
+  "px_max": 24,
+  "frames": 168
+ },
+ {
+  "text": "\"deterministic OOO pattern matched\"",
+  "t_start": 8.26667,
+  "t_end": 13.8667,
+  "x": 1453,
+  "y": 480,
+  "px": 24,
+  "px_max": 24,
+  "frames": 168
+ },
+ {
+  "text": "\"detected_intent_signals\"",
+  "t_start": 8.26667,
+  "t_end": 13.8667,
+  "x": 1237,
+  "y": 513,
+  "px": 24,
+  "px_max": 24,
+  "frames": 168
+ },
+ {
+  "text": ": ooo_hits,",
+  "t_start": 8.26667,
+  "t_end": 13.8667,
+  "x": 1597,
+  "y": 513,
+  "px": 24,
+  "px_max": 24,
+  "frames": 168
+ },
+ {
+  "text": "\"cost_eur_estimate\"",
+  "t_start": 8.26667,
+  "t_end": 13.8667,
+  "x": 1237,
+  "y": 546,
+  "px": 24,
+  "px_max": 24,
+  "frames": 168
+ },
+ {
+  "text": ": 0.0,",
+  "t_start": 8.26667,
+  "t_end": 13.8667,
+  "x": 1511,
+  "y": 546,
+  "px": 24,
+  "px_max": 24,
+  "frames": 168
+ },
+ {
+  "text": "    }",
+  "t_start": 8.26667,
+  "t_end": 13.8667,
+  "x": 1122,
+  "y": 579,
+  "px": 24,
+  "px_max": 24,
+  "frames": 168
+ },
+ {
+  "text": "auto_reply_or_OOO · 0.99 · €0.00 · no model called",
+  "t_start": 9.86667,
+  "t_end": 17.2,
+  "x": 120,
+  "y": 1007,
+  "px": 19,
+  "px_max": 19,
+  "frames": 440
+ },
+ {
+  "text": "negative · 0.99 · €0.00",
+  "t_start": 11.2,
+  "t_end": 17.2,
+  "x": 120,
+  "y": 935,
+  "px": 19,
+  "px_max": 19,
+  "frames": 180
+ },
+ {
+  "text": "_STOP_PATTERNS",
+  "t_start": 11.2,
+  "t_end": 17.2,
+  "x": 964,
+  "y": 935,
+  "px": 17,
+  "px_max": 17,
+  "frames": 180
+ },
+ {
+  "text": "hot · 0.90",
+  "t_start": 12.26667,
+  "t_end": 17.2,
+  "x": 120,
+  "y": 1079,
+  "px": 19,
+  "px_max": 19,
+  "frames": 148
+ },
+ {
+  "text": "_HOT_PATTERNS",
+  "t_start": 12.26667,
+  "t_end": 17.2,
+  "x": 964,
+  "y": 1079,
+  "px": 17,
+  "px_max": 17,
+  "frames": 148
+ },
+ {
+  "text": "The rest: to the right person, with context.",
+  "t_start": 12.56667,
+  "t_end": 17.3667,
+  "x": 96,
+  "y": 265,
+  "px": 46,
+  "px_max": 46,
+  "frames": 144
+ },
+ {
+  "text": "CRM updated",
+  "t_start": 14.16667,
+  "t_end": 17.2,
+  "x": 146,
+  "y": 777,
+  "px": 19,
+  "px_max": 19,
+  "frames": 263
+ },
+ {
+  "text": "The target was never",
+  "t_start": 17.36667,
+  "t_end": 25.3667,
+  "x": 96,
+  "y": 377,
+  "px": 84,
+  "px_max": 84,
+  "frames": 240
+ },
+ {
+  "text": "800 sends a day",
+  "t_start": 17.6,
+  "t_end": 25.3667,
+  "x": 96,
+  "y": 471,
+  "px": 84,
+  "px_max": 84,
+  "frames": 233
+ },
+ {
+  "text": "for its own sake.",
+  "t_start": 17.86667,
+  "t_end": 25.3667,
+  "x": 96,
+  "y": 563,
+  "px": 84,
+  "px_max": 84,
+  "frames": 225
+ },
+ {
+  "text": "It was",
+  "t_start": 18.16667,
+  "t_end": 25.3667,
+  "x": 96,
+  "y": 652,
+  "px": 40,
+  "px_max": 40,
+  "frames": 216
+ },
+ {
+  "text": "30–60",
+  "t_start": 18.16667,
+  "t_end": 25.3667,
+  "x": 90,
+  "y": 1166,
+  "px": 250,
+  "px_max": 250,
+  "frames": 216
+ },
+ {
+  "text": "positive conversations a month,",
+  "t_start": 18.26667,
+  "t_end": 25.3667,
+  "x": 96,
+  "y": 978,
+  "px": 44,
+  "px_max": 44,
+  "frames": 213
+ },
+ {
+  "text": "with booked calls tracked in the CRM.",
+  "t_start": 18.4,
+  "t_end": 25.3667,
+  "x": 96,
+  "y": 1034,
+  "px": 44,
+  "px_max": 44,
+  "frames": 209
+ },
+ {
+  "text": "Made in code with lemo-opuscar (MIT)",
+  "t_start": 21.86667,
+  "t_end": 27.7333,
+  "x": 96,
+  "y": 1152,
+  "px": 15,
+  "px_max": 15,
+  "frames": 176
+ },
+ {
+  "text": "music: original, CC0 samples (Versilian Studios)",
+  "t_start": 22.16667,
+  "t_end": 27.7333,
+  "x": 96,
+  "y": 1182,
+  "px": 15,
+  "px_max": 15,
+  "frames": 167
+ }
+]

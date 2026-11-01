@@ -1,0 +1,19 @@
+ProdCraft weekly notes, wk 02: "32 inboxes, 800 sends. Who replied?" (prodcraft-wk02-replies.mp4)
+
+Picture and score made in code (Canvas 2D page, sampled and synthesised audio) with an AI coding agent, from FACTS.md.
+No synthetic voice, no generated or stock footage, no real person's data.
+
+Toolkit     lemo-opuscar by LemoLab, MIT License, commit bebbbe1aa92a3cb4bb6f83500e61b23a17d1aa00
+            (https://github.com/lemomo-ai/lemo-opuscar). Its render, sampler and sfx tools were used unmodified;
+            no demo film, still or asset was reused.
+Music       Original score (marimba, vibraphone, glockenspiel, contrabass pizzicato, woodblock, claves, shaker).
+            Samples (CC0 1.0): Versilian Community Sample Library (VCSL) and VS Chamber Orchestra: Community Edition
+            (VSCO 2 CE), Versilian Studios / Sam Gossner. No CC BY instruments (no Salamander piano, no MuldjordKit),
+            so no CC BY attribution is required.
+Foley       Procedural (lemo-opuscar core/audio/sfx.py), no samples.
+Fonts       Newsreader (Production Type), JetBrains Mono (JetBrains), Geist (Vercel / The Geist Project Authors),
+            all SIL Open Font License 1.1, from Google Fonts; licence texts in fonts/OFL-*.txt.
+Logo        ProdCraft's own mark (deliverables/prodcraft_site_2026-10-19/site/assets/logo-prodcraft.png), tinted to ink.
+Code shown  execution/personal_workflows/self_outbound_system/reply_classifier.py lines 99-107, verbatim (dedented by 4).
+Replies     The reply cards are invented, generic and illustrative (labelled on screen).
+Facts       ../FACTS.md

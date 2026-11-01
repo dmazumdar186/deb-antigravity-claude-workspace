@@ -5,6 +5,7 @@
   107
  ],
  "dedent": 4,
+ "reindent_per_level": 1,
  "sha256_of_source_lines": "51b50c1184811911fb163d37b60fd0d61d65ba70a481eb9a9af7a8255e85ff7a",
  "lines": [
   "ooo_hits = _matches_any(text, _OOO_PATTERNS)",
@@ -16,5 +17,16 @@
   "        \"detected_intent_signals\": ooo_hits,",
   "        \"cost_eur_estimate\": 0.0,",
   "    }"
+ ],
+ "shown": [
+  "ooo_hits = _matches_any(text, _OOO_PATTERNS)",
+  "if ooo_hits:",
+  " return {",
+  "  \"class\": \"auto_reply_or_OOO\",",
+  "  \"confidence\": 0.99,",
+  "  \"explanation\": \"deterministic OOO pattern matched\",",
+  "  \"detected_intent_signals\": ooo_hits,",
+  "  \"cost_eur_estimate\": 0.0,",
+  " }"
  ]
 }

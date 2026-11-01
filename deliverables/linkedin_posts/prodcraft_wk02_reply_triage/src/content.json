@@ -1,0 +1,239 @@
+{
+ "_doc": "Week-specific content for a ProdCraft Notes film. film.js, mix.py and the tools read ONLY this file for anything that changes per week. Beats are in beats of the house tempo (112.5 BPM, 16 frames at 30 fps). See execution/video/lemo_house_styles/prodcraft-notes/STYLE.md, 'Making the next week'.",
+ "meta": {
+  "week": "02",
+  "name": "prodcraft-wk02-replies",
+  "title": "ProdCraft weekly notes · wk 02 · 32 inboxes, 800 sends. Who replied?",
+  "comment": "Code-rendered picture and score made with an AI coding agent (lemo-opuscar toolkit); no synthetic voice, no generated footage. Facts: FACTS.md",
+  "dur_beats": 52
+ },
+ "chrome": {
+  "wk": "wk 02",
+  "page": "02",
+  "facts": "F20"
+ },
+ "poster": {
+  "head": [
+   "32 inboxes, 800",
+   "sends. Who replied?"
+  ],
+  "facts": "F01 F02",
+  "tiles": 32,
+  "tile_cols": 8
+ },
+ "quote": {
+  "lines": [
+   "“the bottleneck has simply",
+   "moved from sending to reading”"
+  ],
+  "facts": "F05"
+ },
+ "label": {
+  "text": "illustrative replies",
+  "facts": "F04"
+ },
+ "cards": [
+  {
+   "text": "Not interested, thanks.",
+   "kind": "rest",
+   "tile": 29,
+   "facts": "F04"
+  },
+  {
+   "text": "I’m out of the office until Monday.",
+   "kind": "ooo",
+   "tile": 9,
+   "facts": "F04 F11"
+  },
+  {
+   "text": "What does pricing look like?",
+   "kind": "rest",
+   "tile": 20,
+   "facts": "F04"
+  },
+  {
+   "text": "Please unsubscribe me.",
+   "kind": "stop",
+   "tile": 14,
+   "facts": "F04 F12"
+  },
+  {
+   "text": "Can we jump on a call next week?",
+   "kind": "hot",
+   "tile": 6,
+   "facts": "F04 F13"
+  }
+ ],
+ "rules": [
+  {
+   "kind": "ooo",
+   "tag": "_OOO_PATTERNS",
+   "tag_facts": "F11",
+   "code_lines": [
+    0,
+    3
+   ],
+   "result": [
+    "auto_reply_or_OOO · 0.99 (set by the rule)",
+    "€0.00 · no model called"
+   ],
+   "facts": "F08 F14",
+   "note": "0.99 is a constant in the code (line 103), not a measured accuracy"
+  },
+  {
+   "kind": "stop",
+   "tag": "_STOP_PATTERNS",
+   "tag_facts": "F12",
+   "code_lines": [],
+   "result": [
+    "negative · stop rule · 0.99 · €0.00"
+   ],
+   "facts": "F09",
+   "note": "no 'sequence stopped' claim: the classifier only labels"
+  },
+  {
+   "kind": "hot",
+   "tag": "_HOT_PATTERNS",
+   "tag_facts": "F13",
+   "code_lines": [],
+   "result": [
+    "hot · meeting request · to a person"
+   ],
+   "facts": "F10 F15",
+   "note": "0.90 not shown: it is returned only in dry-run (line 124)"
+  }
+ ],
+ "code": {
+  "file": "execution/personal_workflows/self_outbound_system/reply_classifier.py",
+  "from": 99,
+  "to": 107,
+  "dedent": 4,
+  "reindent": 1,
+  "tab": "from my own build · same rules-first pattern · verbatim",
+  "file_label": "reply_classifier.py",
+  "facts": "F21",
+  "numeric_facts": "F21 F08",
+  "forbid": [
+   "95",
+   "%"
+  ]
+ },
+ "headings": {
+  "rules": {
+   "text": "Rules first.",
+   "facts": "F07"
+  },
+  "limits": {
+   "text": "Rules catch the obvious. Anything else goes to a person.",
+   "facts": "F15 F17"
+  }
+ },
+ "routing": {
+  "label": "to the right person, with context",
+  "label_facts": "F15",
+  "crm": "CRM updated",
+  "crm_facts": "F16"
+ },
+ "reframe": {
+  "lines": [
+   "The target was never",
+   "800 sends a day",
+   "for its own sake."
+  ],
+  "facts": "F19 F02"
+ },
+ "payoff": {
+  "lead": "It was",
+  "numeral": "30–60",
+  "lines": [
+   "positive conversations a month,",
+   "with booked calls tracked in the CRM."
+  ],
+  "facts": "F18"
+ },
+ "credits": [
+  "Made in code with lemo-opuscar (MIT)",
+  "music: original, CC0 samples (Versilian Studios)"
+ ],
+ "beats": {
+  "light0": 0.25,
+  "lightStep": 0.5,
+  "lightCount": 8,
+  "f05": 4.0,
+  "ribbon": 4.5,
+  "label": 5.5,
+  "card0": 6.0,
+  "cardStep": 0.5,
+  "headOut": 6.75,
+  "reflowUp": 7.25,
+  "lights": 8.5,
+  "f05Out": 14.0,
+  "knifeRibbon": 14.0,
+  "rules": 14.5,
+  "reflowC": 14.5,
+  "panel": 14.5,
+  "sort": [
+   16.0,
+   18.5,
+   20.75
+  ],
+  "panelOut": 24.5,
+  "limits": 22.5,
+  "reflowD": 25.0,
+  "group": 25.0,
+  "crm": 25.75,
+  "knife": 32.0,
+  "limitsOut": 32.5,
+  "f19": 33.0,
+  "f18": 34.25,
+  "f18Rule": 35.5,
+  "credits": 41.0,
+  "out": 47.0,
+  "loop": 51.5
+ },
+ "sound": {
+  "fire_notes": {
+   "ooo": "A6",
+   "stop": "F#6",
+   "hot": "D7"
+  }
+ },
+ "contact_sheet": [
+  [
+   0.0,
+   "poster / frame 0"
+  ],
+  [
+   2.0,
+   "first replies light up"
+  ],
+  [
+   4.4,
+   "replies pour in, F05"
+  ],
+  [
+   9.5,
+   "rules first: OOO fires"
+  ],
+  [
+   11.6,
+   "stop rule, its pattern list"
+  ],
+  [
+   12.6,
+   "hot rule, to a person"
+  ],
+  [
+   15.2,
+   "the rest: to the right person, CRM"
+  ],
+  [
+   21.0,
+   "the reframe (F19, F18)"
+  ],
+  [
+   26.5,
+   "end card"
+  ]
+ ]
+}

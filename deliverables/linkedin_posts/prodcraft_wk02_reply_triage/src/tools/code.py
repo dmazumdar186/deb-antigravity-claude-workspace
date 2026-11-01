@@ -1,19 +1,32 @@
-"""F21: the code on screen, byte-identical to the source. Reads reply_classifier.py lines 99-107 (the OOO block the
-wk 02 card shows; line 98 is the comment with the unmeasured "~95%", which FACTS forbids on screen), removes exactly the
-4-space function indent (re-indentation is allowed by FACTS) and writes out/code.json. Fails if any line does not start
-with those 4 spaces or if re-adding them does not reproduce the file bytes.
-usage: python -I tools/code.py <reply_classifier.py> <film_dir>"""
-import sys, json, hashlib, os
-src, film = sys.argv[1], sys.argv[2]
-raw = open(src, 'rb').read().split(b'\n')
-block = raw[98:107]                                   # 1-based lines 99..107
-assert block[0].strip().startswith(b'ooo_hits = _matches_any'), block[0]
-assert all(l.startswith(b'    ') for l in block), 'unexpected indent'
-lines = [l[4:].decode('utf-8') for l in block]
-assert b'\n'.join(b'    ' + l.encode('utf-8') for l in lines) == b'\n'.join(block)
-assert not any('95' in l or '%' in l for l in lines)
+"""The code on screen, byte-identical to the source (FACTS: verbatim; re-indentation only to fit the frame).
+Reads content.json "code": file, from, to (1-based, inclusive), dedent, reindent. Writes out/code.json with
+  lines: the source lines minus the common `dedent` spaces (proved to re-expand to the exact source bytes), and
+  shown: the same lines re-indented to `reindent` spaces per 4-space level (proved to re-expand to `lines`).
+Fails on any forbidden substring (content.json code.forbid) or if a line does not carry the dedent.
+usage: python -I tools/code.py <workspace_root> <film_dir>"""
+import sys, json, hashlib, os, re
+ws, film = sys.argv[1], sys.argv[2]
+cfg = json.load(open(os.path.join(film, 'content.json'), encoding='utf-8'))['code']
+raw = open(os.path.join(ws, cfg['file']), 'rb').read().split(b'\n')
+block = raw[cfg['from'] - 1:cfg['to']]
+d = cfg['dedent']
+assert all(l.startswith(b' ' * d) for l in block), 'a line lacks the common indent'
+lines = [l[d:].decode('utf-8') for l in block]
+assert b'\n'.join(b' ' * d + l.encode('utf-8') for l in lines) == b'\n'.join(block)
+for bad in cfg.get('forbid', []):
+    assert not any(bad in l for l in lines), f'forbidden substring {bad!r} in the code block'
+def reind(l, n):
+    m = re.match(r'^( *)', l); k = len(m.group(1)); assert k % 4 == 0, l
+    return ' ' * (k // 4 * n) + l[k:]
+shown = [reind(l, cfg['reindent']) for l in lines]
+def expand(s, n):
+    k = len(s) - len(s.lstrip(' ')); assert k % n == 0, s
+    return ' ' * (k // n * 4) + s[k:]
+assert [expand(s, cfg['reindent']) for s in shown] == lines       # re-indent is reversible: nothing else changed
+assert [s.lstrip(' ') for s in shown] == [l.lstrip(' ') for l in lines]       # same tokens, same order
 sha = hashlib.sha256(b'\n'.join(block)).hexdigest()
 os.makedirs(os.path.join(film, 'out'), exist_ok=True)
-json.dump({'source': 'execution/personal_workflows/self_outbound_system/reply_classifier.py', 'lines_1based': [99, 107],
-           'dedent': 4, 'sha256_of_source_lines': sha, 'lines': lines}, open(os.path.join(film, 'out', 'code.json'), 'w'), indent=1)
-print(f'code.py: 9 lines verbatim (dedent 4), sha256 {sha[:16]}')
+json.dump({'source': cfg['file'], 'lines_1based': [cfg['from'], cfg['to']], 'dedent': d, 'reindent_per_level': cfg['reindent'],
+           'sha256_of_source_lines': sha, 'lines': lines, 'shown': shown},
+          open(os.path.join(film, 'out', 'code.json'), 'w', encoding='utf-8'), indent=1, ensure_ascii=False)
+print(f'code.py: {len(lines)} lines verbatim ({cfg["file"]} {cfg["from"]}-{cfg["to"]}, dedent {d}, re-indent {cfg["reindent"]}/level), sha256 {sha[:16]}')

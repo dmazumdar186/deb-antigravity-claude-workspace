@@ -1,17 +1,19 @@
-WCAG contrast, final mp4 decoded as BT.709 limited (text = darkest 2% of box, bg = brightest 40%)
-0.0s headline (93 px)                bg #eeece7  text #131314  15.77:1  PASS
-0.0s wordmark "ProdCraft"            bg #eeece7  text #151311  15.77:1  PASS
-0.0s "wk 02" (14 px)                 bg #eeece7  text #4b4b48   7.44:1  PASS
-0.0s footer (14 px)                  bg #eeece7  text #494846   7.77:1  PASS
-0.0s "02" gold (14 px)               bg #f0ece5  text #685d3d   5.56:1  PASS
-6.0s F05 italic                      bg #eeece7  text #151414  15.62:1  PASS
-6.0s reply card text                 bg #f6f4f0  text #161616  16.54:1  PASS
-6.0s "illustrative replies" (15 px)  bg #efede8  text #484646   7.99:1  PASS
-11.0s code string on gold highlight  bg #dbd3c3  text #3e4c5a   5.87:1  PASS
-11.0s code string on panel           bg #e6e2dc  text #3f5063   6.39:1  PASS
-11.0s result line on card            bg #f6f5f1  text #171614  16.59:1  PASS
-15.5s dimmed result (ink2 on card)   bg #f7f5f2  text #474649   8.58:1  PASS
-15.5s F15 heading                    bg #eeece7  text #141315  15.69:1  PASS
-20.0s 30-60                          bg #eeece6  text #141518  15.48:1  PASS
-20.0s F18 small lines                bg #eeece7  text #151414  15.61:1  PASS
-26.5s credit line (15 px)            bg #eeede7  text #484746   7.90:1  PASS
+motion onset (max abs pixel change vs frame 0, per frame): [0, 56, 56, 56, 56, 75, 98, 82, 82, 82, 82, 82]
+WCAG contrast on the encoded v2 film (BT.709 decode; text = darkest 2% of box, bg = brightest 40%)
+0.0s headline                            bg #eeece7 text #131315 15.73:1 PASS
+0.0s "wk 02"                             bg #eeede7 text #4b4b49  7.44:1 PASS
+0.0s gold "02"                           bg #f0ede5 text #695c3e  5.56:1 PASS
+9.0s panel tab (provenance)              bg #eeede7 text #45444a  8.17:1 PASS
+9.0s code line on gold highlight         bg #e6e2db text #151413 14.29:1 PASS
+9.0s code string on panel                bg #e6e1da text #2b2f34 10.43:1 PASS
+9.6s _OOO_PATTERNS tag (gold text)       bg #f7f5f0 text #715728  6.20:1 PASS
+9.6s OOO result chip                     bg #f6f5f1 text #141415 16.86:1 PASS
+9.6s card text                           bg #f6f4f1 text #151516 16.75:1 PASS
+9.6s "illustrative replies"              bg #eeede8 text #46454a  8.09:1 PASS
+11.6s card text on highlight (hot lit)   bg #f6f4f1 text #161515 16.63:1 PASS
+15.0s limits heading                     bg #eeece7 text #141415 15.65:1 PASS
+21.0s 30-60                              bg #eeece6 text #141519 15.47:1 PASS
+26.5s credit line (18 px)                bg #eeece7 text #484748  7.84:1 PASS
+pixels changed by >40 levels vs frame 0, frames 0-11: [0, 406, 333, 422, 292, 594, 4693, 7029, 7215, 7215, 7204, 7215]
+9.6s code string (blue) on gold highlight bg #dad2c1 text #415263  5.36:1 PASS
+9.6s code string (blue) on panel         bg #e6e3dc text #3f5267  6.22:1 PASS

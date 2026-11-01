@@ -4,4 +4,4 @@ Approved house styles for films made with the pinned lemo-opuscar toolkit (`dire
 
 | Folder | Name | Base | What it is | Reference build |
 |---|---|---|---|---|
-| `prodcraft-notes/` | ProdCraft Notes | swiss-motion (+ living-screencast for code) | The ProdCraft weekly-notes card in motion, 1080×1350, 30 fps, silent-safe, frame 0 = the card | `deliverables/linkedin_posts/prodcraft_wk02_reply_triage/src/` (wk 02) |
+| `prodcraft-notes/` | ProdCraft Notes | swiss-motion (+ living-screencast for code) | The ProdCraft weekly-notes card in motion, 1080×1350, 30 fps, silent-safe, frame 0 = the card; tokens in `house.js`, per-week `content.json` | `deliverables/linkedin_posts/prodcraft_wk02_reply_triage/src/` (wk 02 v2) |

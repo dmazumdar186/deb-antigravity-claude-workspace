@@ -3,18 +3,44 @@
  "en": "ProdCraft Notes",
  "cn": "ProdCraft 周记",
  "based_on": "swiss-motion",
- "borrows": ["living-screencast"],
+ "borrows": [
+  "living-screencast"
+ ],
  "size": "1080x1350",
  "fps": 30,
  "bpm": 112.5,
  "library_version": "bebbbe1",
  "created": "2026-11-01",
- "line": "The ProdCraft weekly-notes card in motion: warm paper, a Newsreader headline, verbatim code in a pale panel, and one gold signal that marks what fired; frame 0 is the card.",
+ "line": "The ProdCraft weekly-notes card in motion: warm paper, a Newsreader headline, verbatim code in a pale panel, one gold signal that marks what fired; frame 0 is the card, motion by 0.3 s, phone-legible.",
  "line_cn": "ProdCraft 每周笔记卡片动起来：暖色纸面、Newsreader 大标题、原样代码面板，唯一的金色标记被触发的规则；第 0 帧就是卡片本身。",
- "palette": {"paper": "#EFEDE8", "ink": "#16181c", "ink2": "#464951", "panel": "#E6E3DC", "tabbar": "#E7E4DD", "highlight": "#DCD3C2",
-             "gold_bar": "#A58239", "gold_light": "#C8A35C", "gold_text": "#7A5C22", "code_blue": "#3A5A78", "rule": "#BEBDBA",
-             "card": "#F7F6F2", "card_edge": "#CDCAC3", "border": "#B8B6B1"},
- "fonts": {"headline": "Newsreader (opsz 72, 500)", "accent": "Newsreader italic (opsz 36)", "code_labels": "JetBrains Mono 400/700", "body": "Geist 500"},
- "reference_build": "deliverables/linkedin_posts/prodcraft_wk02_reply_triage/src/",
- "uses": ["ProdCraft weekly notes (LinkedIn, 4:5)", "Code-and-claim explainers", "Series cards that must loop"]
+ "palette": {
+  "paper": "#EFEDE8",
+  "ink": "#16181c",
+  "ink2": "#464951",
+  "panel": "#E6E3DC",
+  "tabbar": "#E7E4DD",
+  "highlight": "#DCD3C2",
+  "gold_bar": "#A58239",
+  "gold_light": "#C8A35C",
+  "gold_text": "#7A5C22",
+  "code_blue": "#3A5A78",
+  "rule": "#BEBDBA",
+  "card": "#F7F6F2",
+  "card_edge": "#CDCAC3",
+  "border": "#B8B6B1"
+ },
+ "fonts": {
+  "headline": "Newsreader display (opsz 72) 500/600",
+  "text": "Newsreader text (opsz 24) 400/500",
+  "accent": "Newsreader italic (opsz 36)",
+  "code_labels": "JetBrains Mono 400/700"
+ },
+ "reference_build": "deliverables/linkedin_posts/prodcraft_wk02_reply_triage/src/ (v2)",
+ "uses": [
+  "ProdCraft weekly notes (LinkedIn, 4:5)",
+  "Code-and-claim explainers",
+  "Series cards that must loop"
+ ],
+ "tokens": "house.js (frame, grid, safe areas, type scale, palette, chrome, card, panel, tiles)",
+ "content": "each film's src/content.json (see STYLE.md §11)"
 }
