@@ -2,7 +2,7 @@
 
 **Verdict: NOT CLEAR.** The film looks factually clean. The bounds around it don't hold: the picture has no bound, and the spoken-number check checks nothing.
 
-The model writes the script, every pixel (`film.js`), the labels, the score and `mix.py`. The audio steps are bounded (BUILD_LOG.md:12-15). The picture is bounded only by the model's own review.
+The model writes the script, every pixel, the score and the mix. Audio is bounded (BUILD_LOG.md:12-15). The picture is bounded only by self-review.
 
 ## High
 
@@ -18,7 +18,7 @@ The model writes the script, every pixel (`film.js`), the labels, the score and 
 
 ## Low
 
-7. **Drift.** The toolkit is tuned for Opus 5.5 (LEMO_TEARDOWN.md:151) and pulls upstream `main` on every run (:128). **Fix:** pin the SHA. Monthly, and on every model change, render this brief again and score it with `film_eval` plus a vision reviewer with a rubric (drawn numbers, overlaps, maps or logos, typos). Plant three known-bad mutations to prove the harness still catches them.
+7. **Drift.** The toolkit is tuned for Opus 5.5 (LEMO_TEARDOWN.md:151) and pulls upstream `main` on every run (:128). **Fix:** pin the SHA. Monthly, and on every model change, render this brief again and score it with `film_eval` plus a vision reviewer with a rubric. Plant three known-bad mutations to prove the harness still catches them.
 8. **Mix.** LUFS, true peak and WER on the final mix cover voice burial and clipping. Adequate.
 
 ## Honest gaps
