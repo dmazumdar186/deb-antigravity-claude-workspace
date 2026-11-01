@@ -12,32 +12,32 @@
 | 2 | 00:00.00 | 00:27.73 | ProdCraft · weekly notes · 02 | F20 |
 | 3 | 00:00.00 | 00:03.60 | 32 inboxes, 800 sends. Who replied? | F01 F02 |
 | 4 | 00:02.53 | 00:07.47 | “the bottleneck has simply moved from sending to reading” | F05 |
-| 5 | 00:03.20 | 00:17.07 | illustrative replies | F04 |
-| 6 | 00:03.47 | 00:17.07 | Not interested, thanks. | F04 |
-| 7 | 00:03.73 | 00:17.07 | I’m out of the office until Monday. | F04 F11 |
-| 8 | 00:04.00 | 00:17.07 | What does pricing look like? | F04 |
-| 9 | 00:04.27 | 00:17.07 | Please unsubscribe me. | F04 F12 |
-| 10 | 00:04.53 | 00:17.07 | Can we jump on a call next week? | F04 F13 |
+| 5 | 00:03.20 | 00:17.20 | illustrative replies | F04 |
+| 6 | 00:03.47 | 00:17.20 | Not right now. Maybe next quarter? | F04 |
+| 7 | 00:03.73 | 00:17.20 | I’m out of the office until Monday. | F04 F11 |
+| 8 | 00:04.00 | 00:17.20 | What does pricing look like? | F04 |
+| 9 | 00:04.27 | 00:17.20 | Please unsubscribe me. | F04 F12 |
+| 10 | 00:04.53 | 00:17.20 | Can we jump on a call next week? | F04 F13 |
 | 11 | 00:08.00 | 00:12.00 | Rules first. | F07 |
-| 12 | 00:08.27 | 00:13.07 | from my own build · same rules-first pattern · verbatim | F21 |
-| 13 | 00:08.27 | 00:13.07 | `ooo_hits = _matches_any(text, _OOO_PATTERNS)` | F21 |
-| 14 | 00:08.27 | 00:13.07 | `if ooo_hits:` | F21 |
-| 15 | 00:08.27 | 00:13.07 | `return {` | F21 |
-| 16 | 00:08.27 | 00:13.07 | `"class": "auto_reply_or_OOO",` | F21 |
-| 17 | 00:08.27 | 00:13.07 | `"confidence": 0.99,` | F21 F08 |
-| 18 | 00:08.27 | 00:13.07 | `"explanation": "deterministic OOO pattern matched",` | F21 |
-| 19 | 00:08.27 | 00:13.07 | `"detected_intent_signals": ooo_hits,` | F21 |
-| 20 | 00:08.27 | 00:13.07 | `"cost_eur_estimate": 0.0,` | F21 F08 |
-| 21 | 00:08.27 | 00:13.07 | `}` | F21 |
-| 22 | 00:09.60 | 00:17.07 | _OOO_PATTERNS | F11 |
-| 23 | 00:09.67 | 00:17.07 | auto_reply_or_OOO · 0.99 (set by the rule) / €0.00 · no model called | F08 F14 |
-| 24 | 00:10.93 | 00:17.07 | _STOP_PATTERNS | F12 |
-| 25 | 00:10.93 | 00:17.07 | negative · stop rule · 0.99 · €0.00 | F09 |
-| 26 | 00:12.13 | 00:17.07 | _HOT_PATTERNS | F13 |
-| 27 | 00:12.13 | 00:17.07 | hot · meeting request · to a person | F10 F15 |
+| 12 | 00:08.40 | 00:13.20 | from my own build · same rules-first pattern · verbatim | F21 |
+| 13 | 00:08.40 | 00:13.20 | `ooo_hits = _matches_any(text, _OOO_PATTERNS)` | F21 |
+| 14 | 00:08.40 | 00:13.20 | `if ooo_hits:` | F21 |
+| 15 | 00:08.40 | 00:13.20 | `return {` | F21 |
+| 16 | 00:08.40 | 00:13.20 | `"class": "auto_reply_or_OOO",` | F21 |
+| 17 | 00:08.40 | 00:13.20 | `"confidence": 0.99,` | F21 F08 |
+| 18 | 00:08.40 | 00:13.20 | `"explanation": "deterministic OOO pattern matched",` | F21 |
+| 19 | 00:08.40 | 00:13.20 | `"detected_intent_signals": ooo_hits,` | F21 |
+| 20 | 00:08.40 | 00:13.20 | `"cost_eur_estimate": 0.0,` | F21 F08 |
+| 21 | 00:08.40 | 00:13.20 | `}` | F21 |
+| 22 | 00:09.60 | 00:17.20 | _OOO_PATTERNS | F11 |
+| 23 | 00:09.67 | 00:17.20 | auto_reply_or_OOO · 0.99 (set by the rule) / €0.00 · no model called | F08 F14 |
+| 24 | 00:10.93 | 00:17.20 | _STOP_PATTERNS | F12 |
+| 25 | 00:10.93 | 00:17.20 | negative · stop rule · 0.99 · €0.00 | F09 |
+| 26 | 00:12.13 | 00:17.20 | _HOT_PATTERNS | F13 |
+| 27 | 00:12.13 | 00:17.20 | hot · meeting request · to a person | F10 F15 |
 | 28 | 00:12.40 | 00:17.33 | Rules catch the obvious. Anything else goes to a person. | F15 F17 |
-| 29 | 00:13.60 | 00:17.07 | to the right person, with context | F15 |
-| 30 | 00:13.87 | 00:17.07 | CRM updated | F16 |
+| 29 | 00:13.73 | 00:17.20 | to the right person, with context | F15 |
+| 30 | 00:14.00 | 00:17.20 | ✓ CRM updated | F16 |
 | 31 | 00:18.40 | 00:25.07 | The target was never 800 sends a day for its own sake. | F19 F02 |
 | 32 | 00:18.80 | 00:25.07 | It was 30–60 positive conversations a month, with booked calls tracked in the CRM. | F18 |
 | 33 | 00:22.13 | 00:27.47 | Made in code with lemo-opuscar (MIT) |  |

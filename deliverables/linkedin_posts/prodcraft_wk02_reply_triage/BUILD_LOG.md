@@ -110,7 +110,7 @@ Everything else PASS: size, duration, fps, codec, audio, bitrate, loudness −16
 - `prodcraft-wk02-replies.mp4`, `poster.png`, `SCRIPT.md` (header block; "## On-screen text" with 36 time-coded rows and fact ids; "## Narration" = "(none)"; staging notes), `contact_sheet.jpg` (8 frames, one per beat), `EVAL_REPORT.json` / `.md`, this log.
 - `src/`: `index.html`, `film.js`, `timeline.js`, `mix.py`, `build.sh`, `events.json`, `logo-prodcraft.png`, `CREDITS`, `fonts/` (9 woff2 + 3 OFL texts), `stems/` (music, ticks, foley; AAC), `tools/` (fonts, code, master, drawn_text, poster, script_md, contact_sheet), `out/drawn_text.json`, `out/code.json`, `out/readcheck.txt`, `out/contrast.txt`, `out/no_captions.srt` (empty, eval only).
 - House style: `execution/video/lemo_house_styles/prodcraft-notes/` + `execution/video/lemo_house_styles/README.md`.
-- Not committed (as instructed).
+- Committed to git by the coordinator as of `88526e7` (v1 files under `v1/`); the agent itself made no commits.
 
 ## Reproduce
 
@@ -254,7 +254,7 @@ Results: no card overlap, no text through the header, no ghosting. Exits leave 1
 - `deliverables/linkedin_posts/prodcraft_wk02_reply_triage/ref/wk02_card.png`;
 - `execution/video/lemo_house_styles/prodcraft-notes/styleframe.png`.
 
-Not committed (as instructed).
+Committed to git as of `88526e7` (v2 source, renders and logs; committed by the coordinator, not by the agent). `src/assets/logo-prodcraft.png` and `ref/wk02_card.png` are tracked; a new top-level `poster.png` and the house style's `styleframe.png` still need `git add -f`.
 
 ## Reproduce (v2)
 
@@ -266,5 +266,58 @@ sh deliverables/linkedin_posts/prodcraft_wk02_reply_triage/src/build.sh
 # → mp4, poster.png, SCRIPT.md, contact_sheet.jpg, EVAL_REPORT.* in the deliverable folder; src/out/{drawn_text.json, hashes.txt, readcheck.txt, stems/}
 ```
 It needs the vcsl and vsco2ce sample packs in the clone, and the fonts in `src/fonts/` (fetch once with `python3 -I src/tools/fonts.py src` if they are missing; the build never fetches).
+
+---
+
+# v2.1 (final polish), 2026-11-01, 14:45:14 → ~14:50 UTC
+
+Brief: the coordinator's v2.1 list, based on `VISUAL_QA_v2.md` (PASS-WITH-FIXES) and `panel/ROUND2_CLOSURE.md`. Changes were made in `content.json`, `house.js` and minimal edits to `film.js`, then rebuilt with `src/build.sh`. Generating model: standard tier. Toolkit pinned at bebbbe1. v2 was moved to `v2/` first: `prodcraft-wk02-replies_v2.mp4`, `v2_poster.png`, plus copies of `v2_contact_sheet.jpg`, `v2_SCRIPT.md` and `v2_EVAL_REPORT.*`.
+
+| # | Required | Done |
+|---|---|---|
+| 1 | cards[0] reads "Not right now. Maybe next quarter?" | `content.json`. Still F04, kind `rest`, routed to a person. It matches no stop pattern, which is code-accurate. Readcheck: 3.43 s needed, 13.76 s on screen. |
+| 2 | Code at ≥ 11 pt without a wider line | `house.js`: code 31 px with −0.6 px tracking (53 chars × 18.0 = 954 px, same as 30 px). Measured on the frame at 9.6 s, the longest line's ink spans x 105 → 1010 in both v2 and v2.1. Glyphs are 1 px taller; **11.2 pt** effective. `film.js` now passes the tracking to `drawText` and `measure`. |
+| 3 | Panel vs cards around 8.0 s | Sequenced: the column re-flows down in half a beat (`reflowCDur` 0.5, beats 14.5–15.0) and only then does the panel slide in (beats 15.0–15.75, `panelIn`). The panel exit and the routing re-flow are also strictly sequential (panel out 24.75–25.25, re-flow from 25.25). At 0.1 s through 7.5–9.0 s, panel and cards never overlap. |
+| 4 | Exit line must not strike through text | The knife line now runs in the 8 px gap above each card and the group row, not through the card's middle. Checked at 0.1 s over 16.5–18.0 s. The collapse that follows leaves 1-frame clip slices (17.5 s), the same as every clip wipe. |
+| 5 | Log the ✓ | `logShape()` logs the drawn check mark as "✓" (31 px class, with a `vis` fraction) when it is visible: `drawn_text.json` has "✓" from 13.87 s. SCRIPT.md row: "✓ CRM updated". |
+| 6 | BUILD_LOG | The "Not committed" lines are corrected (committed by the coordinator as of `88526e7`). This section added. |
+
+Timing changes in `content.json`: `reflowC` 14.5 (+`reflowCDur` 0.5), `panel` 15.0 (+`panelIn` 0.75), `panelOut` 24.75, `reflowD`/`group` 25.25, `crm` 26.0, `knife` 32.25. The score's first silence moved to beats 14.75–15.75, so the panel's landing thump is the first sound after it. Duration is still 52 beats (27.733 s).
+
+## Result (v2.1)
+
+| | |
+|---|---|
+| File | `prodcraft-wk02-replies.mp4`, 3,070,374 bytes; H.264 High, CRF 14, maxrate 8M, 1080×1350, 30 fps, yuv420p, +faststart |
+| Audio | −16.0 LUFS, true peak −1.8 dBTP |
+| Readcheck | 36/36 OK (group 3.48 of 3.37 s; CRM 3.24 of 2.17 s; code line 104 4.80 of 4.63 s) |
+| film_eval 2.1.0 `--profile linkedin_4x5` | **OVERALL WARN, 0 FAIL** (21 PASS, 8 SKIPPED, 2 WARN). `drawn_text_mobile` now flags only the card-scale chrome (14 px, 26.4 px wordmark) and the 18 px credits. The code lines are no longer flagged. |
+| `fillText` | `grep -c fillText src/film.js` = 1 (inside `drawText`); the ✓ path is logged by `logShape` |
+
+| Artifact | sha256 |
+|---|---|
+| `prodcraft-wk02-replies.mp4` | `e86b5108ac211cac41e282ca82f9e76dedb12bc017187725444efcdeea0ff9a0` |
+| frame @ 0 s | `ace51356970ea197ec87507296b35723f803474b1736c00edc3a0301eb7296e6` (unchanged since v2: frame 0 = the poster) |
+| frame @ 9.6 s | `55749508030284e3b4030027e38a9f1bb2f635a70a8e635b156682eab5585d6c` |
+| frame @ 21.0 s | `11ab06cb02ae8b76bd6cf744cc0ffc83a63a2475725c96db2bf2c34eb04d9304` |
+| audio (decoded s16le) | `5c0bb1c04b1a953a5e0417899a94d95707c09fa2f84a03ea645262a73bc177dd` |
+| `poster.png` | `7730a4c09f35d28e22fc8b159af4fbe183e7c543947ac641ef4eaa9d8e7e06b4` (unchanged) |
+
+## Frame check (mine, 0.1 s steps)
+
+- **0–1.0 s.** Frame 0 is the poster. The first envelope fill is visible at 0.2 s, and the second and third follow every half beat.
+- **7.5–9.0 s.** F05 leaves, the column re-flows down, then the panel slides in above an already settled column. No overlap.
+- **Card-1 (OOO) sort, 8.5–10.0 s.** The card lights at 8.5 s while code line 99 is gold, and the gold moves to line 102 at 8.8 s. The card collapses in place at 9.0–9.1 s, re-opens at the top at 9.2–9.3 s, and its `_OOO_PATTERNS` tag and two result rows stamp in at 9.4–9.6 s. No card-on-card frames.
+- **16.5–18.0 s.** The gold reading rule completes under the heading. The knife lines sit in the gaps between cards (17.3–17.4 s), the rows collapse (17.5 s), and the page is clear at 17.6 s. "The target was never" rises at 17.7 s.
+
+## Stage timings (v2.1, measured)
+
+| Stage | Wall clock |
+|---|---|
+| Moving v2, reading VISUAL_QA_v2 | 14:45:14 → ~14:46 |
+| Edits (content.json, house.js, film.js, script_md.mjs, mix.py) | ~1 min |
+| `build.sh` (full: render, mix, master, poster, manifest, SCRIPT, sheet, black-frame check, film_eval, hashes, promote) | 59.6 s |
+| 0.1 s frame review + code-width measurement | ~2 min |
+| **Total v2.1** | **≈ 5 min** |
 
 Operator watch: _pending_.

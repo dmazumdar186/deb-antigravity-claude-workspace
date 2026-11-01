@@ -34,7 +34,7 @@
  },
  "cards": [
   {
-   "text": "Not interested, thanks.",
+   "text": "Not right now. Maybe next quarter?",
    "kind": "rest",
    "tile": 29,
    "facts": "F04"
@@ -171,25 +171,27 @@
   "knifeRibbon": 14.0,
   "rules": 14.5,
   "reflowC": 14.5,
-  "panel": 14.5,
+  "panel": 15.0,
   "sort": [
    16.0,
    18.5,
    20.75
   ],
-  "panelOut": 24.5,
+  "panelOut": 24.75,
   "limits": 22.5,
-  "reflowD": 25.0,
-  "group": 25.0,
-  "crm": 25.75,
-  "knife": 32.0,
+  "reflowD": 25.25,
+  "group": 25.25,
+  "crm": 26.0,
+  "knife": 32.25,
   "limitsOut": 32.5,
   "f19": 33.0,
   "f18": 34.25,
   "f18Rule": 35.5,
   "credits": 41.0,
   "out": 47.0,
-  "loop": 51.5
+  "loop": 51.5,
+  "reflowCDur": 0.5,
+  "panelIn": 0.75
  },
  "sound": {
   "fire_notes": {

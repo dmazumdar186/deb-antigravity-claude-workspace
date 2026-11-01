@@ -22,7 +22,7 @@ export const TYPE = {
   card: ['NRT400', 32, 0],              // reply / item cards
   group: ['NRI', 32, 0],                // group label
   chip: ['JBM400', 31, 0],              // results and rule tags
-  code: ['JBM400', 30, 0], code_kw: ['JBM700', 30, 0],
+  code: ['JBM400', 31, -0.6], code_kw: ['JBM700', 31, -0.6],   // 53 chars x 18.0 = 954 px, same line width as 30 px
   tab: ['JBM400', 31, -1.6],              // code panel tab (provenance)
   label: ['JBM400', 31, 0.6],           // "illustrative …" label
   wordmark: ['NRT500', 26.4, -0.2], chrome: ['JBM400', 14, 1.6], credits: ['JBM400', 18, 0.8],

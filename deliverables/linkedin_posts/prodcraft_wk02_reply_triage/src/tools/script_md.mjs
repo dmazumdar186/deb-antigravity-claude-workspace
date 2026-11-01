@@ -16,8 +16,8 @@ row(K.f05 + 0.75, K.f05Out, S.quote.lines.join(' '), S.quote.facts, 'the problem
 row(K.label + 0.5, K.knife, S.label.text, S.label.facts, 'label, once, above the cards');
 S.cards.forEach((c, i) => row(K.card0 + i * K.cardStep + 0.5, K.knife, c.text, c.facts, `illustrative reply card (${c.kind})`));
 row(K.rules + 0.5, K.limits, S.headings.rules.text, S.headings.rules.facts, 'heading');
-row(K.panel + 1, K.panelOut, S.code.tab, S.code.facts, 'code panel tab (provenance)');
-code.shown.forEach((l, k) => row(K.panel + 1, K.panelOut, '`' + l.trim() + '`', /\d/.test(l) ? S.code.numeric_facts : S.code.facts,
+row(K.panel + K.panelIn, K.panelOut, S.code.tab, S.code.facts, 'code panel tab (provenance)');
+code.shown.forEach((l, k) => row(K.panel + K.panelIn, K.panelOut, '`' + l.trim() + '`', /\d/.test(l) ? S.code.numeric_facts : S.code.facts,
   `code line ${S.code.from + k}` + (S.rules[0].code_lines.includes(k) ? ', gold bar while the OOO rule fires' : '')));
 S.rules.forEach((r, k) => {
   const st = K.sort[k] + 1.5;
@@ -26,7 +26,7 @@ S.rules.forEach((r, k) => {
 });
 row(K.limits + 0.75, K.limitsOut, S.headings.limits.text, S.headings.limits.facts, 'heading, before the routing beat');
 row(K.group + 0.5, K.knife, S.routing.label, S.routing.label_facts, 'group label over the cards no rule caught');
-row(K.crm + 0.25, K.knife, S.routing.crm, S.routing.crm_facts, 'one shared tick for the routed group');
+row(K.crm + 0.25, K.knife, '✓ ' + S.routing.crm, S.routing.crm_facts, 'one shared tick for the routed group');
 row(K.f19 + 1.5, K.out, S.reframe.lines.join(' '), S.reframe.facts, 'the reframe, three lines');
 row(K.f18 + 1.0, K.out, [S.payoff.lead, S.payoff.numeral, ...S.payoff.lines].join(' '), S.payoff.facts, `"${S.payoff.numeral}" set large`);
 S.credits.forEach((s, k) => row(K.credits + 0.5 * k + 0.5, K.loop, s, '', 'end card, small'));

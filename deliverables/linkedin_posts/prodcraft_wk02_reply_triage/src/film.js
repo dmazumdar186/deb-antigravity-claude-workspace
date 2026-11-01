@@ -141,7 +141,7 @@ const L = {
 function layout(t) {
   const mix = (A, B, p) => Object.fromEntries(Object.keys(A).map(k => [k, lerp(A[k], B[k], p)]));
   let s = mix(L.B1, L.B2, ez(t, K.reflowUp, 1));
-  s = mix(s, L.C, ez(t, K.reflowC, 1));
+  s = mix(s, L.C, ez(t, K.reflowC, K.reflowCDur ?? 1));   // done before the panel starts to slide in (no overlap)
   return mix(s, L.D, ez(t, K.reflowD, 1));
 }
 
@@ -226,10 +226,17 @@ function ledger(t, lay) {
     popClip();
     if (r.p >= 1 && t < b(K.knife) && collapse <= 0)
       readable('card' + r.i, c.text, x + CARD.inset, r.y + 10, x + CARD.inset + measure(c.text, font('card')), r.y + 48);
-    if (knife > 0) { ctx.fillStyle = C.ink; ctx.fillRect(x, r.y + r.h / 2 - 1, w * knife, 2); }
+    if (knife > 0) { ctx.fillStyle = C.ink; ctx.fillRect(x, r.y - CARD.gap / 2 - 1, w * knife, 2); }   // in the gap above the card, not through its text
   }
 }
-function check(x, y, s, col) { ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.lineCap = 'square'; ctx.beginPath(); ctx.moveTo(x, y - s * 0.45); ctx.lineTo(x + s * 0.35, y - s * 0.1); ctx.lineTo(x + s, y - s * 0.9); ctx.stroke(); ctx.lineCap = 'butt'; }
+function logShape(text, x0, y0, x1, y1, px) {   // a path that reads as a character (e.g. ✓): logged like drawText when visible
+  const m = ctx.getTransform(), a = ctx.globalAlpha;
+  const bx0 = m.a * x0 + m.e, bx1 = m.a * x1 + m.e, by0 = m.d * y0 + m.f, by1 = m.d * y1 + m.f;
+  const ix = Math.min(bx1, CLIP[2]) - Math.max(bx0, CLIP[0]), iy = Math.min(by1, CLIP[3]) - Math.max(by0, CLIP[1]);
+  if (a >= 0.02 && ix > 0 && iy > 0) DRAWN.push({ text, x: Math.round(bx0), y: Math.round(by1), px, a: +a.toFixed(2), vis: +clamp((ix * iy) / ((bx1 - bx0) * (by1 - by0))).toFixed(2), shape: true });
+}
+function check(x, y, s, col) {
+  logShape('✓', x - 2, y - s - 2, x + s + 2, y + 2, size('chip')); ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.lineCap = 'square'; ctx.beginPath(); ctx.moveTo(x, y - s * 0.45); ctx.lineTo(x + s * 0.35, y - s * 0.1); ctx.lineTo(x + s, y - s * 0.9); ctx.stroke(); ctx.lineCap = 'butt'; }
 function group(t, x, y, w, p, knife, collapse) {   // the routed group: one label and one shared CRM tick
   const h = GROUP_H * p * (1 - collapse); if (h < 0.5) return;
   pushClip(x - 2, collapse > 0 ? y + (GROUP_H - h) / 2 : y, w + 4, h);
@@ -241,7 +248,7 @@ function group(t, x, y, w, p, knife, collapse) {   // the routed group: one labe
     popClip();
   }
   popClip();
-  if (knife > 0) { ctx.fillStyle = C.ink; ctx.fillRect(x, y + GROUP_H / 2 - 1, w * knife, 2); }
+  if (knife > 0) { ctx.fillStyle = C.ink; ctx.fillRect(x, y - CARD.gap / 2 - 1, w * knife, 2); }
   if (p >= 1 && t < b(K.knife) && collapse <= 0) {
     readable('group', S.routing.label, x + 2, y + 8, x + 2 + measure(S.routing.label, font('group')), y + 44);
     if (cp >= 1) readable('crm', S.routing.crm, x + w - 4 - cw, y + 8, x + w - 4, y + 44);
@@ -266,7 +273,7 @@ function hlLine(t) {   // OOO lines only while the OOO rule is the one firing; n
 }
 function panel(t) {
   if (t < b(K.panel) || t >= b(K.panelOut + 0.5)) return;
-  const xin = (1 - ez(t, K.panel, 1)) * (W - PANEL.x + 8), up = ez(t, K.panelOut, 0.5);
+  const xin = (1 - ez(t, K.panel, K.panelIn)) * (W - PANEL.x + 8), up = ez(t, K.panelOut, 0.5);
   const x = PANEL.x + xin, y = PY;
   pushClip(0, PY - 2, W, PH + 4);
   ctx.translate(0, -up * (PH + 4));
@@ -280,15 +287,15 @@ function panel(t) {
     const by = y + PANEL.tab_h + PANEL.pad_t + 28 + k * PANEL.lh;
     if (k === hl) { ctx.fillStyle = C.hl; ctx.fillRect(x, by - 29, PANEL.w, PANEL.lh); ctx.fillStyle = C.gold; ctx.fillRect(x, by - 29, PANEL.bar, PANEL.lh); }
     let cx = x + PANEL.code_x;
-    for (const [tx, col, key] of tokens(s)) cx += drawText(tx, cx, by, font(key), col);
+    for (const [tx, col, key] of tokens(s)) cx += drawText(tx, cx, by, font(key), col, { ls: ls(key) });
   });
   ctx.fillStyle = C.border; ctx.fillRect(x, y, PANEL.w, 1); ctx.fillRect(x, y + PH - 1, PANEL.w, 1); ctx.fillRect(x, y, 1, PH); ctx.fillRect(x + PANEL.w - 1, y, 1, PH);
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   popClip();
-  if (t >= b(K.panel + 1) && t < b(K.panelOut)) {
+  if (t >= b(K.panel + K.panelIn) && t < b(K.panelOut)) {
     readable('tab', S.code.tab, PANEL.x + 30, PY + 8, PANEL.x + 30 + measure(S.code.tab, font('tab'), ls('tab')), PY + 44);
     CODE.shown.forEach((s, k) => readable('code' + k, s.trim(), PANEL.x + PANEL.code_x, PY + PANEL.tab_h + PANEL.pad_t + k * PANEL.lh,
-      PANEL.x + PANEL.code_x + measure(s, font('code')), PY + PANEL.tab_h + PANEL.pad_t + (k + 1) * PANEL.lh));
+      PANEL.x + PANEL.code_x + measure(s, font('code'), ls('code')), PY + PANEL.tab_h + PANEL.pad_t + (k + 1) * PANEL.lh));
   }
 }
 
@@ -393,7 +400,7 @@ ev(K.f05, 'rule'); ev(K.ribbon, 'slide', { v: 0.5 });
 S.cards.forEach((c, i) => ev(K.card0 + i * K.cardStep, 'card', { i }));
 LATER_LIT.forEach((_, k) => ev(K.lights + k * 0.25, 'light', { k }));
 ev(K.headOut, 'slide', { v: 0.35 }); ev(K.reflowUp, 'slide', { v: 0.3 });
-ev(K.knifeRibbon, 'knife'); ev(K.panel, 'panel'); ev(K.panel + 1, 'land');
+ev(K.knifeRibbon, 'knife'); ev(K.panel, 'panel'); ev(K.panel + K.panelIn, 'land');
 for (const r of S.rules) { const P = ph(RULE[r.kind]); ev(P.fire, 'fire', { kind: r.kind }); ev(P.out, 'slide', { v: 0.25 }); ev(P.stamp, 'stamp', { n: r.result.length }); }
 ev(K.limits, 'slide', { v: 0.3 }); ev(K.panelOut, 'slide', { v: 0.45 }); ev(K.group, 'slide', { v: 0.3 }); ev(K.crm, 'crm', { k: 0 });
 ev(K.knife, 'knife'); ev(K.f19, 'land'); ev(K.f18, 'thunk'); ev(K.out, 'slide', { v: 0.35 }); ev(K.out + 0.5, 'slide', { v: 0.25 });

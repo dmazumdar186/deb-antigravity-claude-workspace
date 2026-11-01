@@ -43,7 +43,7 @@ def chord_at(beat):
     bar, half = int(beat // 4), int((beat % 4) // 2)
     return BARS[min(bar, 12)][half]
 def silent(beat):          # the two silences: a break before the panel lands, a near-silence before the reframe
-    return 14.5 <= beat < 15.5 or 31.5 <= beat < 33.0
+    return 14.75 <= beat < 15.75 or 31.5 <= beat < 33.0
 
 ev = []   # sampler score: (t, inst, pitch, dur, vel, pan[, gain])
 # marimba ostinato in eighths: root-fifth-third-fifth, octave up in the second half of each chord (the grid's pulse)

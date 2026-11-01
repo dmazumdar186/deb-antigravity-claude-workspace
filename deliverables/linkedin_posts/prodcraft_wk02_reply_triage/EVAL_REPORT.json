@@ -1,13 +1,13 @@
 {
   "tool": "film_eval",
   "version": "2.1.0",
-  "run_timestamp": "2026-11-01T14:34:36Z",
+  "run_timestamp": "2026-11-01T14:48:31Z",
   "overall": "WARN",
   "inputs": {
     "video": {
       "path": "/home/user/deb-antigravity-claude-workspace/deliverables/linkedin_posts/prodcraft_wk02_reply_triage/prodcraft-wk02-replies.mp4",
-      "sha256": "ecf6d307aff0039957ec70cdd8a32424c13971196a640bcba6f8beb507a01524",
-      "size_bytes": 3161627,
+      "sha256": "e86b5108ac211cac41e282ca82f9e76dedb12bc017187725444efcdeea0ff9a0",
+      "size_bytes": 3070374,
       "has_audio": true,
       "duration": 27.733333,
       "height": 1350,
@@ -21,19 +21,19 @@
     },
     "script": {
       "path": "/home/user/deb-antigravity-claude-workspace/deliverables/linkedin_posts/prodcraft_wk02_reply_triage/SCRIPT.md",
-      "sha256": "7c8f2cef0a38b4b245b9411a899201eb0f06679f93f4f70400457075c27bfc17",
+      "sha256": "d6d3bc0cc3025831ef76c992b41b9a67d349092ea559e6462ab2bc729e816ada",
       "mode": "sections",
       "narration_items": 0,
       "onscreen_items": 34
     },
     "facts": {
       "path": "/home/user/deb-antigravity-claude-workspace/deliverables/linkedin_posts/prodcraft_wk02_reply_triage/FACTS.md",
-      "sha256": "e09a768e80e0ade0730686b9843449c3ee2da74c77043f709a50c79035ff45fe",
+      "sha256": "2d73c32a919fcc47e642d26add1b01ccaf530560b1332d5410eecb94f9fd3a49",
       "facts": 21
     },
     "drawn": {
       "path": "/home/user/deb-antigravity-claude-workspace/deliverables/linkedin_posts/prodcraft_wk02_reply_triage/src/out/drawn_text.json",
-      "items": 53
+      "items": 54
     }
   },
   "profile": "linkedin_4x5",
@@ -119,7 +119,7 @@
     {
       "group": "technical",
       "name": "file_size",
-      "value": 3.16,
+      "value": 3.07,
       "threshold": "<= 25.0 MB",
       "verdict": "PASS",
       "unit": "MB",
@@ -210,7 +210,7 @@
     {
       "group": "technical",
       "name": "bitrate",
-      "value": 912,
+      "value": 886,
       "threshold": "<= 8000 kbps",
       "verdict": "PASS",
       "unit": "kbps",
@@ -236,7 +236,7 @@
     {
       "group": "technical",
       "name": "true_peak",
-      "value": -1.7,
+      "value": -1.8,
       "threshold": "<= -1.0 dBTP",
       "verdict": "PASS",
       "unit": "dBTP",
@@ -362,11 +362,11 @@
         "drawn#1@0.00s: 14px for 27.7s \"wk 02\"",
         "drawn#4@0.00s: 14px for 27.7s \"ProdCraft · weekly notes\"",
         "drawn#5@0.00s: 14px for 27.7s \"02\"",
-        "drawn#51@21.97s: 18px for 5.8s \"Made in code with lemo-opuscar (MIT)\"",
-        "drawn#52@22.23s: 18px for 5.5s \"music: original, CC0 samples (Versilian Studios)\""
+        "drawn#52@21.97s: 18px for 5.8s \"Made in code with lemo-opuscar (MIT)\"",
+        "drawn#53@22.23s: 18px for 5.5s \"music: original, CC0 samples (Versilian Studios)\""
       ],
-      "note": "53 distinct strings from 53 draw records; video height 1350px",
-      "n": 53,
+      "note": "54 distinct strings from 54 draw records; video height 1350px",
+      "n": 54,
       "source": "drawn_text.json",
       "basis": "guess (28 px at 1080p, >= 1 s on screen)"
     },
@@ -382,29 +382,11 @@
         "drawn#1@0.00s: 14px = 5.1 pt \"wk 02\"",
         "drawn#4@0.00s: 14px = 5.1 pt \"ProdCraft · weekly notes\"",
         "drawn#5@0.00s: 14px = 5.1 pt \"02\"",
-        "drawn#15@7.83s: 30px = 10.8 pt \"ooo_hits = _matches_any(text, _OOO_PATTERNS)\"",
-        "drawn#16@7.83s: 30px = 10.8 pt \"if\"",
-        "drawn#17@7.83s: 30px = 10.8 pt \" }\"",
-        "drawn#19@7.87s: 30px = 10.8 pt \" ooo_hits:\"",
-        "drawn#20@7.87s: 30px = 10.8 pt \"return\"",
-        "drawn#21@7.87s: 30px = 10.8 pt \"\"class\"\"",
-        "drawn#22@7.87s: 30px = 10.8 pt \"\"confidence\"\"",
-        "drawn#23@7.87s: 30px = 10.8 pt \"\"explanation\"\"",
-        "drawn#24@7.87s: 30px = 10.8 pt \"\"detected_intent_signals\"\"",
-        "drawn#25@7.87s: 30px = 10.8 pt \"\"cost_eur_estimate\"\"",
-        "drawn#26@7.93s: 30px = 10.8 pt \" {\"",
-        "drawn#27@7.93s: 30px = 10.8 pt \": \"",
-        "drawn#28@7.93s: 30px = 10.8 pt \"\"auto_reply_or_OOO\"\"",
-        "drawn#29@7.97s: 30px = 10.8 pt \": 0.99,\"",
-        "drawn#30@7.97s: 30px = 10.8 pt \"\"deterministic OOO pattern matched\"\"",
-        "drawn#31@7.97s: 30px = 10.8 pt \": 0.0,\"",
-        "drawn#32@8.00s: 30px = 10.8 pt \",\"",
-        "drawn#33@8.00s: 30px = 10.8 pt \": ooo_hits,\"",
-        "drawn#51@21.97s: 18px = 6.5 pt \"Made in code with lemo-opuscar (MIT)\"",
-        "drawn#52@22.23s: 18px = 6.5 pt \"music: original, CC0 samples (Versilian Studios)\""
+        "drawn#52@21.97s: 18px = 6.5 pt \"Made in code with lemo-opuscar (MIT)\"",
+        "drawn#53@22.23s: 18px = 6.5 pt \"music: original, CC0 samples (Versilian Studios)\""
       ],
       "note": "profile linkedin_4x5; mobile-feed readability proxy",
-      "n": 53,
+      "n": 54,
       "source": "drawn_text.json",
       "basis": "guess (mobile-feed readability proxy: px x 390/1080 = pt on a 390-pt-wide phone, 11 pt floor)"
     },
@@ -460,11 +442,11 @@
         "INFO SCRIPT.md:28: label \"explanation\" (wording not checked; numbers are)",
         "INFO SCRIPT.md:29: label \"detected_intent_signals\" (wording not checked; numbers are)",
         "INFO SCRIPT.md:30: label \"cost_eur_estimate\" (wording not checked; numbers are)",
-        "INFO drawn#21@7.87s: label \"class\" (wording not checked; numbers are)",
-        "INFO drawn#22@7.87s: label \"confidence\" (wording not checked; numbers are)",
-        "INFO drawn#23@7.87s: label \"explanation\" (wording not checked; numbers are)",
-        "INFO drawn#24@7.87s: label \"detected_intent_signals\" (wording not checked; numbers are)",
-        "INFO drawn#25@7.87s: label \"cost_eur_estimate\" (wording not checked; numbers are)"
+        "INFO drawn#20@8.10s: label \"class\" (wording not checked; numbers are)",
+        "INFO drawn#21@8.10s: label \"confidence\" (wording not checked; numbers are)",
+        "INFO drawn#22@8.10s: label \"explanation\" (wording not checked; numbers are)",
+        "INFO drawn#23@8.10s: label \"detected_intent_signals\" (wording not checked; numbers are)",
+        "INFO drawn#24@8.10s: label \"cost_eur_estimate\" (wording not checked; numbers are)"
       ],
       "note": "",
       "n": 15,
@@ -493,7 +475,7 @@
       "unit": "",
       "detail": [],
       "note": "",
-      "n": 139,
+      "n": 140,
       "source": "SCRIPT.md + drawn",
       "basis": "FACTS hard rules (no member data)"
     },
