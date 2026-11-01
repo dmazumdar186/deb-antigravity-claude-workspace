@@ -15,7 +15,7 @@ facts:     FACTS.md ids F01–F27; numbers are spelled out for the voice and wri
 | # | In | Out | Spoken text | Facts |
 |---|---|---|---|---|
 | L01 | 00:00.42 | 00:05.72 | One sentence from the brief. Graduates working in finance, in London, for more than three years. | F01 |
-| L02 | 00:06.13 | 00:08.07 | One sentence. Four answers. | F01 |
+| L02 | 00:06.13 | 00:08.07 | One sentence. Four answers. | F01 F28 |
 | L03 | 00:08.25 | 00:11.79 | Five hundred and twenty-five rows, for five hundred members. | F02 |
 | L04 | 00:12.00 | 00:14.37 | Under the loupe, London is spelled eight ways. | F04 F26 |
 | L06 | 00:14.58 | 00:17.12 | Filter the file as delivered: two rows. | F07 |
@@ -30,13 +30,13 @@ facts:     FACTS.md ids F01–F27; numbers are spelled out for the voice and wri
 | L15 | 00:49.92 | 00:53.89 | The administrator's problem is not building the list. It is believing it. | F24 |
 | L16 | 00:54.33 | 00:55.32 | Trusted Segments. *(rendered as "Trusted Segments, the product." and cut after "Segments")* | F23 |
 
-### Captions
+## Captions
 
 | Cue | In | Out | Text | Facts | Burned in |
 |---|---|---|---|---|---|
 | C01 | 00:00.42 | 00:02.12 | One sentence from the brief: | F01 | yes |
 | C02 | 00:02.20 | 00:06.04 | “Graduates working in finance in London / for more than three years” | F01 | yes |
-| C03 | 00:06.13 | 00:08.16 | One sentence. Four answers. | F01 | yes |
+| C03 | 00:06.13 | 00:08.16 | One sentence. Four answers. | F01 F28 | yes |
 | C04 | 00:08.25 | 00:11.91 | 525 rows, for 500 members. | F02 | yes |
 | C05 | 00:12.00 | 00:14.50 | Under the loupe, London is spelled 8 ways. | F04 F26 | yes |
 | C06 | 00:14.58 | 00:17.25 | Filter the file as delivered: 2 rows. | F07 | yes |

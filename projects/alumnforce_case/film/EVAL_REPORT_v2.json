@@ -1,0 +1,857 @@
+{
+  "tool": "film_eval",
+  "version": "2.0.0",
+  "run_timestamp": "2026-11-01T12:06:57Z",
+  "overall": "WARN",
+  "inputs": {
+    "video": {
+      "path": "/home/user/deb-antigravity-claude-workspace/projects/alumnforce_case/film/trusted-segments.mp4",
+      "sha256": "ab1346e249bb09404c8b9d7526d9114196ac9c1686fa78b5ef9898b399313ec9",
+      "size_bytes": 19495053,
+      "has_audio": true,
+      "duration": 61.375,
+      "height": 1080,
+      "fps": 24.0
+    },
+    "srt": {
+      "path": "/home/user/deb-antigravity-claude-workspace/projects/alumnforce_case/film/trusted-segments_clean.captions.srt",
+      "sha256": "7a27673fb74fd941879b109598980d787f0d188556539fa3c0eef42baaa23edf",
+      "cues": 18
+    },
+    "script": {
+      "path": "/home/user/deb-antigravity-claude-workspace/projects/alumnforce_case/film/SCRIPT.md",
+      "sha256": "694452fa3583d95df37ed56e3e08a0e9c3c0a67f289daed8c84034588f87c491",
+      "mode": "sections",
+      "narration_items": 15,
+      "onscreen_items": 23
+    },
+    "facts": {
+      "path": "/home/user/deb-antigravity-claude-workspace/projects/alumnforce_case/film/FACTS.md",
+      "sha256": "3a12e51230336e0e0aa9e3fbe41069751d3be181ccb6f3f5bad022f260fa58c7",
+      "facts": 28
+    },
+    "drawn": {
+      "path": "/home/user/deb-antigravity-claude-workspace/projects/alumnforce_case/film/src/out/drawn_text.json",
+      "items": 185
+    }
+  },
+  "thresholds": {
+    "max_mb": 25.0,
+    "min_w": 1280,
+    "min_h": 720,
+    "fps_lo": 23.9,
+    "fps_hi": 60.0,
+    "max_kbps": 8000,
+    "lufs_target": -16.0,
+    "lufs_tol": 1.0,
+    "tp_max": -1.0,
+    "lra_warn": 15.0,
+    "head_ignore": 1.0,
+    "hold": 5.0,
+    "black_warn": 0.5,
+    "black_fail": 2.0,
+    "freeze_warn": 4.0,
+    "freeze_fail": 10.0,
+    "silence_warn": 3.0,
+    "silence_fail": 6.0,
+    "cps_warn": 17.0,
+    "cps_fail": 21.0,
+    "cue_min": 1.0,
+    "cue_max": 7.0,
+    "line_max": 42,
+    "lines_max": 2,
+    "gap_frames": 2,
+    "wpm_lo": 130.0,
+    "wpm_hi": 170.0,
+    "wpm_margin": 15.0,
+    "tag_cov_warn": 0.8,
+    "quote_similar": 0.6,
+    "wer_pass": 0.05,
+    "wer_warn": 0.1,
+    "drawn_min_px": 28,
+    "drawn_min_on": 1.0,
+    "jev_claim": 0.3683,
+    "jev_entail": 0.5,
+    "jev_contra": 0.5,
+    "jev_auroc_gate": 0.9
+  },
+  "threshold_sources": {
+    "file_size": "Gmail attachment limit (25 MB)",
+    "resolution": "guess (web-delivery convention)",
+    "fps": "guess",
+    "video_codec": "guess (h264/yuv420p plays everywhere)",
+    "audio_codec": "guess",
+    "bitrate": "guess",
+    "loudness_integrated": "AES TD1004/TD1008 (-16 LUFS for streamed speech); measured per ITU-R BS.1770 / EBU R128; +/-1 LU tolerance per EBU R128",
+    "true_peak": "EBU R128 / AES TD1008 (max -1 dBTP)",
+    "loudness_range": "guess",
+    "black_frames": "guess",
+    "frozen_frames": "guess",
+    "silence": "guess",
+    "caption_cps": "Netflix English Timed Text Style Guide: 17 cps = children's limit (adult 20), used as WARN; FAIL 21 = guess",
+    "caption_duration": "Netflix TTSG: max 7 s; min 1.0 s = guess (Netflix minimum is 5/6 s)",
+    "caption_line_length": "Netflix TTSG: 42 characters per line",
+    "caption_lines_per_cue": "Netflix TTSG: max 2 lines",
+    "caption_timing": "Netflix TTSG timing guidelines: 2-frame minimum gap between events",
+    "speech_rate": "guess, bounded by BBC Subtitle Guidelines (160-180 wpm subtitle rate)",
+    "tag_coverage": "guess",
+    "quote_fidelity": "exact match; 0.6 similarity cut = guess",
+    "asr_wer": "guess",
+    "drawn_text_size": "guess (28 px at 1080p, >= 1 s on screen)",
+    "jev": "calibrated on eval_data/jev_support_labels.csv (see jev_support_calibration.md)"
+  },
+  "tool_versions": {
+    "film_eval": "2.0.0",
+    "python": "3.13.18",
+    "ffmpeg": "ffmpeg version 6.1.1-3ubuntu5 Copyright (c) 2000-2023 the FFmpeg developers",
+    "ffprobe": "ffprobe version 6.1.1-3ubuntu5 Copyright (c) 2007-2023 the FFmpeg developers",
+    "faster_whisper": "1.2.1 (/tmp/ext/venv/bin/python, model small.en)",
+    "jev_model": "typesafe/jev-1.13-20260917"
+  },
+  "metrics": [
+    {
+      "group": "technical",
+      "name": "file_size",
+      "value": 19.5,
+      "threshold": "<= 25.0 MB",
+      "verdict": "PASS",
+      "unit": "MB",
+      "detail": [],
+      "note": "",
+      "n": 1,
+      "source": "trusted-segments.mp4",
+      "basis": "Gmail attachment limit (25 MB)"
+    },
+    {
+      "group": "technical",
+      "name": "duration",
+      "value": 61.375,
+      "threshold": ">= last caption end",
+      "verdict": "PASS",
+      "unit": "s",
+      "detail": [],
+      "note": "",
+      "n": 1,
+      "source": "trusted-segments.mp4",
+      "basis": "consistency check"
+    },
+    {
+      "group": "technical",
+      "name": "resolution",
+      "value": "1920x1080",
+      "threshold": ">= 1280x720",
+      "verdict": "PASS",
+      "unit": "",
+      "detail": [],
+      "note": "",
+      "n": 1,
+      "source": "trusted-segments.mp4",
+      "basis": "guess (web-delivery convention)"
+    },
+    {
+      "group": "technical",
+      "name": "fps",
+      "value": 24.0,
+      "threshold": "23.9-60.0",
+      "verdict": "PASS",
+      "unit": "",
+      "detail": [],
+      "note": "",
+      "n": 1,
+      "source": "trusted-segments.mp4",
+      "basis": "guess"
+    },
+    {
+      "group": "technical",
+      "name": "video_codec",
+      "value": "h264/yuv420p",
+      "threshold": "h264/yuv420p",
+      "verdict": "PASS",
+      "unit": "",
+      "detail": [],
+      "note": "",
+      "n": 1,
+      "source": "trusted-segments.mp4",
+      "basis": "guess (h264/yuv420p plays everywhere)"
+    },
+    {
+      "group": "technical",
+      "name": "audio_present",
+      "value": true,
+      "threshold": "audio stream present",
+      "verdict": "PASS",
+      "unit": "",
+      "detail": [],
+      "note": "",
+      "n": 1,
+      "source": "trusted-segments.mp4",
+      "basis": "guess"
+    },
+    {
+      "group": "technical",
+      "name": "audio_codec",
+      "value": "aac 48000 Hz 2ch",
+      "threshold": "aac",
+      "verdict": "PASS",
+      "unit": "",
+      "detail": [],
+      "note": "",
+      "n": 1,
+      "source": "trusted-segments.mp4",
+      "basis": "guess"
+    },
+    {
+      "group": "technical",
+      "name": "bitrate",
+      "value": 2541,
+      "threshold": "<= 8000 kbps",
+      "verdict": "PASS",
+      "unit": "kbps",
+      "detail": [],
+      "note": "",
+      "n": 1,
+      "source": "trusted-segments.mp4",
+      "basis": "guess"
+    },
+    {
+      "group": "technical",
+      "name": "loudness_integrated",
+      "value": -16.0,
+      "threshold": "-16.0 +/-1.0 LUFS",
+      "verdict": "PASS",
+      "unit": "LUFS",
+      "detail": [],
+      "note": "61.4s of programme measured",
+      "n": 1,
+      "source": "trusted-segments.mp4",
+      "basis": "AES TD1004/TD1008 (-16 LUFS for streamed speech); measured per ITU-R BS.1770 / EBU R128; +/-1 LU tolerance per EBU R128"
+    },
+    {
+      "group": "technical",
+      "name": "true_peak",
+      "value": -1.7,
+      "threshold": "<= -1.0 dBTP",
+      "verdict": "PASS",
+      "unit": "dBTP",
+      "detail": [],
+      "note": "",
+      "n": 1,
+      "source": "trusted-segments.mp4",
+      "basis": "EBU R128 / AES TD1008 (max -1 dBTP)"
+    },
+    {
+      "group": "technical",
+      "name": "loudness_range",
+      "value": 3.0,
+      "threshold": "<= 15.0 LU",
+      "verdict": "PASS",
+      "unit": "LU",
+      "detail": [],
+      "note": "",
+      "n": 1,
+      "source": "trusted-segments.mp4",
+      "basis": "guess"
+    },
+    {
+      "group": "technical",
+      "name": "black_frames",
+      "value": 0.0,
+      "threshold": "longest black < 0.5s (FAIL >= 2.0s); first 1.0s, final 5.0s ignored",
+      "verdict": "PASS",
+      "unit": "s",
+      "detail": [],
+      "note": "",
+      "n": 0,
+      "source": "trusted-segments.mp4",
+      "basis": "guess"
+    },
+    {
+      "group": "technical",
+      "name": "frozen_frames",
+      "value": 0.0,
+      "threshold": "longest freeze <= 4.0s outside final 5.0s (FAIL > 10.0s)",
+      "verdict": "PASS",
+      "unit": "s",
+      "detail": [
+        "freeze 57.12-61.38s (0.00s outside hold)"
+      ],
+      "note": "",
+      "n": 1,
+      "source": "trusted-segments.mp4",
+      "basis": "guess"
+    },
+    {
+      "group": "technical",
+      "name": "silence",
+      "value": 0.0,
+      "threshold": "longest silence <= 3.0s outside final 5.0s (FAIL > 6.0s)",
+      "verdict": "PASS",
+      "unit": "s",
+      "detail": [],
+      "note": "",
+      "n": 0,
+      "source": "trusted-segments.mp4",
+      "basis": "guess"
+    },
+    {
+      "group": "content",
+      "name": "number_fidelity_narration",
+      "value": "20/20 matched",
+      "threshold": "every number matches a FACTS value",
+      "verdict": "PASS",
+      "unit": "",
+      "detail": [],
+      "note": "",
+      "n": 20,
+      "source": "SCRIPT.md narration (sections)",
+      "basis": ""
+    },
+    {
+      "group": "content",
+      "name": "number_fidelity_onscreen",
+      "value": "30/30 matched",
+      "threshold": "every number matches a FACTS value",
+      "verdict": "PASS",
+      "unit": "",
+      "detail": [],
+      "note": "",
+      "n": 30,
+      "source": "SCRIPT.md on-screen text",
+      "basis": ""
+    },
+    {
+      "group": "content",
+      "name": "number_fidelity_srt",
+      "value": "15/15 matched",
+      "threshold": "every number matches a FACTS value",
+      "verdict": "PASS",
+      "unit": "",
+      "detail": [],
+      "note": "",
+      "n": 15,
+      "source": "trusted-segments_clean.captions.srt",
+      "basis": ""
+    },
+    {
+      "group": "content",
+      "name": "number_fidelity_drawn",
+      "value": "42/42 matched",
+      "threshold": "every number matches a FACTS value",
+      "verdict": "PASS",
+      "unit": "",
+      "detail": [],
+      "note": "",
+      "n": 42,
+      "source": "drawn_text.json",
+      "basis": ""
+    },
+    {
+      "group": "content",
+      "name": "drawn_text_size",
+      "value": 28.0,
+      "threshold": "no text < 28 px on screen >= 1 s",
+      "verdict": "PASS",
+      "unit": "px",
+      "detail": [],
+      "note": "185 distinct strings from 185 draw records; video height 1080px",
+      "n": 185,
+      "source": "drawn_text.json",
+      "basis": "guess (28 px at 1080p, >= 1 s on screen)"
+    },
+    {
+      "group": "content",
+      "name": "tag_coverage",
+      "value": "25/26 (96%)",
+      "threshold": "100% of numeric lines tagged (WARN >= 80%)",
+      "verdict": "WARN",
+      "unit": "",
+      "detail": [
+        "SCRIPT.md:82 [onscreen]: no fact id -> End card: \"Trusted Segments\" / Made in code by an AI agent with lemo-opuscar (MIT) / Synthetic voice"
+      ],
+      "note": "",
+      "n": 26,
+      "source": "SCRIPT.md (narration + on-screen)",
+      "basis": "guess"
+    },
+    {
+      "group": "content",
+      "name": "tag_validity",
+      "value": "0 unknown ids",
+      "threshold": "every tagged id exists in FACTS",
+      "verdict": "PASS",
+      "unit": "",
+      "detail": [],
+      "note": "",
+      "n": 46,
+      "source": "SCRIPT.md (narration + on-screen)",
+      "basis": "guess"
+    },
+    {
+      "group": "content",
+      "name": "tag_consistency",
+      "value": "1 mismatches",
+      "threshold": "each number on a tagged line belongs to one of its tagged facts",
+      "verdict": "WARN",
+      "unit": "",
+      "detail": [
+        "SCRIPT.md:73 [onscreen]: '500' is in F02, line tagged F13"
+      ],
+      "note": "",
+      "n": 26,
+      "source": "SCRIPT.md (narration + on-screen)",
+      "basis": "guess"
+    },
+    {
+      "group": "content",
+      "name": "quote_fidelity",
+      "value": "14/40 exact",
+      "threshold": "quotations match FACTS exactly (smart/straight quotes and line breaks ignored)",
+      "verdict": "WARN",
+      "unit": "",
+      "detail": [
+        "SCRIPT.md:63: altered quote of F02 (72% similar): \"for 500 members\" vs \"525 rows, 500 members\"",
+        "INFO SCRIPT.md:62: label \"Schematic · no member data\" (wording not checked; numbers are)",
+        "INFO SCRIPT.md:63: label \"Rows in the file\" (wording not checked; numbers are)",
+        "INFO SCRIPT.md:64: label \"M0271\" (wording not checked; numbers are)",
+        "INFO SCRIPT.md:65: label \"London, as typed in the file\" (wording not checked; numbers are)",
+        "INFO SCRIPT.md:65: label \"8 spellings\" (wording not checked; numbers are)",
+        "INFO SCRIPT.md:66: label \"Naive filter · file as delivered\" (wording not checked; numbers are)",
+        "INFO SCRIPT.md:67: label \"Naive filter · file as delivered\" (wording not checked; numbers are)",
+        "INFO SCRIPT.md:67: label \"rows matching the sentence\" (wording not checked; numbers are)",
+        "INFO SCRIPT.md:68: label \"Normalised · spellings and labels\" (wording not checked; numbers are)",
+        "INFO SCRIPT.md:68: label \"rows matching the sentence\" (wording not checked; numbers are)",
+        "INFO SCRIPT.md:70: label \"Full logic · dedup + employer + job title\" (wording not checked; numbers are)",
+        "INFO SCRIPT.md:70: label \"members matching the sentence\" (wording not checked; numbers are)",
+        "INFO SCRIPT.md:71: label \"example\" (wording not checked; numbers are)",
+        "INFO SCRIPT.md:71: label \"in post: 3 yrs\" (wording not checked; numbers are)",
+        "INFO SCRIPT.md:71: label \"updated: 3 yrs ago\" (wording not checked; numbers are)",
+        "INFO SCRIPT.md:73: label \"Profiles untouched for 2+ years\" (wording not checked; numbers are)",
+        "INFO SCRIPT.md:73: label \"of 500 members · ref. 2026-10-12\" (wording not checked; numbers are)",
+        "INFO SCRIPT.md:74: label \"read as tenure\" (wording not checked; numbers are)",
+        "INFO SCRIPT.md:74: label \"read as freshness\" (wording not checked; numbers are)",
+        "INFO SCRIPT.md:74: label \"same\" (wording not checked; numbers are)",
+        "INFO SCRIPT.md:75: label \"user verbatim\" (wording not checked; numbers are)",
+        "INFO SCRIPT.md:76: label \"Current → send\" (wording not checked; numbers are)",
+        "INFO SCRIPT.md:76: label \"To confirm → confirm\" (wording not checked; numbers are)",
+        "INFO SCRIPT.md:76: label \"To reactivate → reactivate\" (wording not checked; numbers are)",
+        "INFO SCRIPT.md:77: label \"worth contacting today:\" (wording not checked; numbers are)"
+      ],
+      "note": "",
+      "n": 40,
+      "source": "SCRIPT.md + trusted-segments_clean.captions.srt + drawn",
+      "basis": "exact match; 0.6 similarity cut = guess"
+    },
+    {
+      "group": "content",
+      "name": "speech_rate",
+      "value": 148.7,
+      "threshold": "130-170 wpm (WARN +/-15)",
+      "verdict": "PASS",
+      "unit": "wpm",
+      "detail": [],
+      "note": "133 words (count_words) / 53.7s caption-covered time",
+      "n": 133,
+      "source": "SCRIPT.md narration + SRT timing",
+      "basis": "guess, bounded by BBC Subtitle Guidelines (160-180 wpm subtitle rate)"
+    },
+    {
+      "group": "content",
+      "name": "pii_scan",
+      "value": "0 hits",
+      "threshold": "no e-mail, phone or denied name (Camille, Roux)",
+      "verdict": "PASS",
+      "unit": "",
+      "detail": [],
+      "note": "",
+      "n": 288,
+      "source": "trusted-segments_clean.captions.srt + SCRIPT.md + drawn + ASR",
+      "basis": "FACTS hard rules (no member data)"
+    },
+    {
+      "group": "captions",
+      "name": "caption_cps",
+      "value": 16.9,
+      "threshold": "max CPS <= 17 (FAIL > 21)",
+      "verdict": "PASS",
+      "unit": "cps",
+      "detail": [],
+      "note": "",
+      "n": 18,
+      "source": "trusted-segments_clean.captions.srt",
+      "basis": "Netflix English Timed Text Style Guide: 17 cps = children's limit (adult 20), used as WARN; FAIL 21 = guess"
+    },
+    {
+      "group": "captions",
+      "name": "caption_duration",
+      "value": "1.42-5.06",
+      "threshold": "1.0-7.0 s per cue",
+      "verdict": "PASS",
+      "unit": "s",
+      "detail": [],
+      "note": "",
+      "n": 18,
+      "source": "trusted-segments_clean.captions.srt",
+      "basis": "Netflix TTSG: max 7 s; min 1.0 s = guess (Netflix minimum is 5/6 s)"
+    },
+    {
+      "group": "captions",
+      "name": "caption_line_length",
+      "value": 42,
+      "threshold": "<= 42 chars per line",
+      "verdict": "PASS",
+      "unit": "chars",
+      "detail": [],
+      "note": "",
+      "n": 25,
+      "source": "trusted-segments_clean.captions.srt",
+      "basis": "Netflix TTSG: 42 characters per line"
+    },
+    {
+      "group": "captions",
+      "name": "caption_lines_per_cue",
+      "value": 2,
+      "threshold": "<= 2",
+      "verdict": "PASS",
+      "unit": "lines",
+      "detail": [],
+      "note": "",
+      "n": 18,
+      "source": "trusted-segments_clean.captions.srt",
+      "basis": "Netflix TTSG: max 2 lines"
+    },
+    {
+      "group": "captions",
+      "name": "caption_timing",
+      "value": "0 overlaps, 0 sub-2-frame gaps",
+      "threshold": "no overlaps; gaps 0 or >= 2 frames; cues inside the video",
+      "verdict": "PASS",
+      "unit": "",
+      "detail": [],
+      "note": "",
+      "n": 17,
+      "source": "trusted-segments_clean.captions.srt",
+      "basis": "Netflix TTSG timing guidelines: 2-frame minimum gap between events"
+    },
+    {
+      "group": "ai",
+      "name": "asr_wer",
+      "value": 0.72,
+      "threshold": "<= 5% (WARN <= 10%)",
+      "verdict": "PASS",
+      "unit": "%",
+      "detail": [],
+      "note": "1 edits over 138 normalised reference tokens; language en",
+      "n": 138,
+      "source": "trusted-segments.mp4 vs SCRIPT narration",
+      "basis": "guess"
+    },
+    {
+      "group": "ai",
+      "name": "asr_numbers_audible",
+      "value": "15/15",
+      "threshold": "every subtitle number heard in the transcript",
+      "verdict": "PASS",
+      "unit": "",
+      "detail": [],
+      "note": "transcript number words converted to digits before matching",
+      "n": 15,
+      "source": "trusted-segments_clean.captions.srt vs ASR transcript",
+      "basis": "guess"
+    },
+    {
+      "group": "ai",
+      "name": "jev_entailment",
+      "value": 0.896,
+      "threshold": "entailment mean >= 0.705 per claim line (calibrated, AUROC 0.99); FAIL when flagged",
+      "verdict": "PASS",
+      "unit": "mean noul",
+      "detail": [],
+      "note": "mean spread across repeats 0.019 (max 0.040); N=3 repeats; cost $0.003877; 87 calls; model typesafe/jev-1.13-20260917; prompt 23ed4e21bcad3a8b",
+      "n": 14,
+      "source": "SCRIPT.md narration",
+      "basis": "calibrated on eval_data/jev_support_labels.csv (see jev_support_calibration.md)"
+    },
+    {
+      "group": "ai",
+      "name": "jev_contradiction",
+      "value": "0 flagged",
+      "threshold": "no line >= 0.288 (calibrated, AUROC 1.00); FAIL when flagged",
+      "verdict": "PASS",
+      "unit": "",
+      "detail": [],
+      "note": "max 0.13",
+      "n": 15,
+      "source": "SCRIPT.md narration",
+      "basis": "calibrated on eval_data/jev_support_labels.csv (see jev_support_calibration.md)"
+    },
+    {
+      "group": "ai",
+      "name": "jev_claims",
+      "value": "14/15 claim lines",
+      "threshold": "claim noul >= 0.3683 or fact tag/number",
+      "verdict": "PASS",
+      "unit": "",
+      "detail": [
+        "INFO SCRIPT.md:17: Jev said no claim; checked anyway (tag/number)",
+        "INFO SCRIPT.md:18: Jev said no claim; checked anyway (tag/number)",
+        "INFO SCRIPT.md:30: Jev said no claim; checked anyway (tag/number)",
+        "INFO SCRIPT.md:31: Jev said no claim; checked anyway (tag/number)"
+      ],
+      "note": "Jev alone: 10; mean claim spread 0.019",
+      "n": 15,
+      "source": "SCRIPT.md narration",
+      "basis": "calibrated on eval_data/jev_support_labels.csv (see jev_support_calibration.md)"
+    }
+  ],
+  "asr_transcript": " One sentence from the brief. Graduates working in finance in London for more than three years.  One sentence, four answers. Five hundred and twenty-five rows, for five hundred members.  Under the loop, London is spelled eight ways. Filter the file as delivered, two rows.  Normalise spellings and labels, twenty-six. Merge twenty-five duplicates, read employers and job titles, forty-nine.  But look at the dates, 68% of profiles, untouched for two years or more, three years in post  and three years without an update, the same signal, 340 London expats, 20 had moved back  years ago, two unsubscribed. The 49 split by trust, one to send, five to confirm, 43  to win back, six worth contacting today. The administrator's problem is not building  the list. It is believing it. Trusted segments.",
+  "compare": {
+    "against": "trusted-segments_v1_r2.json (film_eval 2.0.0, sha256 dfef89b27210f025)",
+    "rows": [
+      {
+        "name": "file_size",
+        "old": "23.18 MB",
+        "new": "19.5 MB",
+        "delta": "-3.68",
+        "verdict": "PASS -> PASS"
+      },
+      {
+        "name": "duration",
+        "old": "76.25 s",
+        "new": "61.375 s",
+        "delta": "-14.875",
+        "verdict": "PASS -> PASS"
+      },
+      {
+        "name": "resolution",
+        "old": "1920x1080",
+        "new": "1920x1080",
+        "delta": "",
+        "verdict": "PASS -> PASS"
+      },
+      {
+        "name": "fps",
+        "old": "24",
+        "new": "24",
+        "delta": "+0",
+        "verdict": "PASS -> PASS"
+      },
+      {
+        "name": "video_codec",
+        "old": "h264/yuv420p",
+        "new": "h264/yuv420p",
+        "delta": "",
+        "verdict": "PASS -> PASS"
+      },
+      {
+        "name": "audio_present",
+        "old": "True",
+        "new": "True",
+        "delta": "",
+        "verdict": "PASS -> PASS"
+      },
+      {
+        "name": "audio_codec",
+        "old": "aac 48000 Hz 2ch",
+        "new": "aac 48000 Hz 2ch",
+        "delta": "",
+        "verdict": "PASS -> PASS"
+      },
+      {
+        "name": "bitrate",
+        "old": "2432 kbps",
+        "new": "2541 kbps",
+        "delta": "+109",
+        "verdict": "PASS -> PASS"
+      },
+      {
+        "name": "loudness_integrated",
+        "old": "-14 LUFS",
+        "new": "-16 LUFS",
+        "delta": "-2",
+        "verdict": "FAIL -> PASS"
+      },
+      {
+        "name": "true_peak",
+        "old": "-1.2 dBTP",
+        "new": "-1.7 dBTP",
+        "delta": "-0.5",
+        "verdict": "PASS -> PASS"
+      },
+      {
+        "name": "loudness_range",
+        "old": "3.2 LU",
+        "new": "3 LU",
+        "delta": "-0.2",
+        "verdict": "PASS -> PASS"
+      },
+      {
+        "name": "black_frames",
+        "old": "0 s",
+        "new": "0 s",
+        "delta": "+0",
+        "verdict": "PASS -> PASS"
+      },
+      {
+        "name": "frozen_frames",
+        "old": "4.29 s",
+        "new": "0 s",
+        "delta": "-4.29",
+        "verdict": "WARN -> PASS"
+      },
+      {
+        "name": "silence",
+        "old": "0 s",
+        "new": "0 s",
+        "delta": "+0",
+        "verdict": "PASS -> PASS"
+      },
+      {
+        "name": "number_fidelity_narration",
+        "old": "20/20 matched",
+        "new": "20/20 matched",
+        "delta": "+0",
+        "verdict": "PASS -> PASS"
+      },
+      {
+        "name": "number_fidelity_onscreen",
+        "old": "29/30 matched",
+        "new": "30/30 matched",
+        "delta": "+1",
+        "verdict": "PASS -> PASS"
+      },
+      {
+        "name": "number_fidelity_srt",
+        "old": "15/15 matched",
+        "new": "15/15 matched",
+        "delta": "+0",
+        "verdict": "PASS -> PASS"
+      },
+      {
+        "name": "number_fidelity_drawn",
+        "old": "(new)",
+        "new": "42/42 matched",
+        "delta": "",
+        "verdict": "- -> PASS"
+      },
+      {
+        "name": "drawn_text_size",
+        "old": "(new)",
+        "new": "28 px",
+        "delta": "",
+        "verdict": "- -> PASS"
+      },
+      {
+        "name": "tag_coverage",
+        "old": "25/25 (100%)",
+        "new": "25/26 (96%)",
+        "delta": "+0",
+        "verdict": "PASS -> WARN"
+      },
+      {
+        "name": "tag_validity",
+        "old": "0 unknown ids",
+        "new": "0 unknown ids",
+        "delta": "+0",
+        "verdict": "PASS -> PASS"
+      },
+      {
+        "name": "tag_consistency",
+        "old": "2 mismatches",
+        "new": "1 mismatches",
+        "delta": "-1",
+        "verdict": "WARN -> WARN"
+      },
+      {
+        "name": "quote_fidelity",
+        "old": "13/30 exact",
+        "new": "14/40 exact",
+        "delta": "+1",
+        "verdict": "PASS -> WARN"
+      },
+      {
+        "name": "speech_rate",
+        "old": "137.4 wpm",
+        "new": "148.7 wpm",
+        "delta": "+11.3",
+        "verdict": "PASS -> PASS"
+      },
+      {
+        "name": "pii_scan",
+        "old": "0 hits",
+        "new": "0 hits",
+        "delta": "+0",
+        "verdict": "PASS -> PASS"
+      },
+      {
+        "name": "caption_cps",
+        "old": "19.5 cps",
+        "new": "16.9 cps",
+        "delta": "-2.6",
+        "verdict": "WARN -> PASS"
+      },
+      {
+        "name": "caption_duration",
+        "old": "1.96-4.90 s",
+        "new": "1.42-5.06 s",
+        "delta": "",
+        "verdict": "PASS -> PASS"
+      },
+      {
+        "name": "caption_line_length",
+        "old": "78 chars",
+        "new": "42 chars",
+        "delta": "-36",
+        "verdict": "WARN -> PASS"
+      },
+      {
+        "name": "caption_lines_per_cue",
+        "old": "1 lines",
+        "new": "2 lines",
+        "delta": "+1",
+        "verdict": "PASS -> PASS"
+      },
+      {
+        "name": "caption_timing",
+        "old": "0 overlaps, 14 sub-2-frame gaps",
+        "new": "0 overlaps, 0 sub-2-frame gaps",
+        "delta": "+0",
+        "verdict": "WARN -> PASS"
+      },
+      {
+        "name": "asr_wer",
+        "old": "3.73 %",
+        "new": "0.72 %",
+        "delta": "-3.01",
+        "verdict": "PASS -> PASS"
+      },
+      {
+        "name": "asr_numbers_audible",
+        "old": "15/15",
+        "new": "15/15",
+        "delta": "+0",
+        "verdict": "PASS -> PASS"
+      },
+      {
+        "name": "jev_entailment",
+        "old": "0.868",
+        "new": "0.896",
+        "delta": "+0.028",
+        "verdict": "FAIL -> PASS"
+      },
+      {
+        "name": "jev_contradiction",
+        "old": "0 flagged",
+        "new": "0 flagged",
+        "delta": "+0",
+        "verdict": "PASS -> PASS"
+      },
+      {
+        "name": "jev_claims",
+        "old": "15/16 claim lines",
+        "new": "14/15 claim lines",
+        "delta": "-1",
+        "verdict": "PASS -> PASS"
+      }
+    ]
+  }
+}

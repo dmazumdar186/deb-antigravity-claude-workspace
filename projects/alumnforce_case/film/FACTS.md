@@ -31,6 +31,7 @@ Source of truth: `../VERIFICATION.md`, `../README.md`, `../presentation.html` (r
 | F25 | Status actions | send · confirm · reactivate | presentation slide 4 ("Three words, three actions") |
 | F26 | Real record for the loupe close-up (ID + city only, both from the result file) | M0271 · "Londres (Royaume-Uni)" | `../annexB_result.csv` row M0271 |
 | F27 | The ask | Fund one quarter plus four weeks of measurement | presentation slide 8 |
+| F28 | Framing of the four counts (2, 26, 49, 6) | "Same sentence, four answers" | presentation slide 3 (title) |
 
 ## Hard rules for the film
 
