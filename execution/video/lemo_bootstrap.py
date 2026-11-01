@@ -1,6 +1,6 @@
 """
 description: Reproducible, pinned bootstrap for the third-party lemo-opuscar film toolkit (clone at a pinned SHA, hashed venv, npm ci, sha256-checked model/sample packs, manifest). Never runs upstream setup.sh, never pulls.
-inputs: CLI subcommand check | install | doctor | lock; --target DIR (default .tmp/lemo-opuscar), --cache DIR (or env LEMO_CACHE; default .tmp/lemo-cache), --packs LIST, --mirror URL (or env LEMO_ASSET_MIRROR), --python EXE, --dry-run, --full; lock: --from-venv DIR --out FILE
+inputs: CLI subcommand check, install, doctor or lock; --target DIR (default .tmp/lemo-opuscar), --cache DIR (or env LEMO_CACHE; default .tmp/lemo-cache), --packs LIST, --mirror URL (or env LEMO_ASSET_MIRROR), --python EXE, --dry-run, --full; lock: --from-venv DIR --out FILE
 outputs: <target>/ (git clone at PIN_SHA), <target>/.venv, <target>/node_modules, extracted packs under <target>/core/, <cache>/packs/*.tar, <cache>/whisper/<model>@<rev>/, <target>/bootstrap_manifest.json, <target>/lemo.env; stdout report. Exit 0 ready, 1 a check failed, 2 a fetch/install step failed or usage error.
 
 Directive: directives/video/lemo_opuscar.md
@@ -190,7 +190,7 @@ class Report:
 def run(cmd: list[str], *, cwd: Path | None = None, env: dict | None = None, check: bool = True,
         timeout: int = 1800) -> subprocess.CompletedProcess:
     r = subprocess.run(cmd, cwd=str(cwd) if cwd else None, env=env, capture_output=True, text=True,
-                       encoding="utf-8", errors="replace", timeout=timeout)
+                       encoding="utf-8", errors="replace", timeout=timeout, check=False)
     if check and r.returncode != 0:
         raise FetchFailed(f"command failed ({r.returncode}): {' '.join(cmd)}\n{(r.stderr or r.stdout)[-1500:]}")
     return r
@@ -408,7 +408,7 @@ def download(url: str, dest: Path, timeout: int = 1800) -> None:
     if shutil.which("curl"):
         r = subprocess.run(["curl", "-L", "--fail", "-sS", "--retry", "3", "--retry-delay", "2",
                             "--connect-timeout", "20", "-C", "-", "-o", str(dest), url],
-                           capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout, check=False)
         if r.returncode != 0:
             raise FetchFailed(f"download failed (curl exit {r.returncode}) {url}: {r.stderr.strip()[:300]}")
         return
@@ -623,6 +623,7 @@ def write_manifest(target: Path, data: dict) -> Path:
     with os.fdopen(fd, "w", encoding="utf-8") as f:
         json.dump(doc, f, indent=2, sort_keys=True)
         f.write("\n")
+    os.chmod(tmp, 0o644)
     os.replace(tmp, path)
     return path
 

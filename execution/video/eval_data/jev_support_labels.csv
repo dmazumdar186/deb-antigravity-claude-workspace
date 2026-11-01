@@ -1,0 +1,62 @@
+id,category,line,claim,supported,contradiction
+V01,verbatim_supported,"Rows in the file: 525 rows, 500 members.",1,1,0
+V02,verbatim_supported,"There are 25 duplicate persons, M0501 to M0525.",1,1,0
+V03,verbatim_supported,London is spelled 8 different ways.,1,1,0
+V04,verbatim_supported,174 members have no declared sector.,1,1,0
+V05,verbatim_supported,The naive filter on the file as delivered returns 2.,1,1,0
+V06,verbatim_supported,The full logic returns 49.,1,1,0
+V07,verbatim_supported,"Among the 49, finance sources are declared 24, employer 17, title 8.",1,1,0
+V08,verbatim_supported,68 % of profiles are untouched for 2+ years.,1,1,0
+V09,verbatim_supported,The median delay between job start and profile update is 112 days.,1,1,0
+V10,verbatim_supported,8 of 12 verbatims are not about speed.,1,1,0
+V11,verbatim_supported,Describe your audience in one sentence. Get a segment you can trust. No member record ever leaves the platform.,1,1,0
+P01,paraphrase_supported,"Once the London spellings are normalised and the sector labels merged, the count rises to twenty-six.",1,1,0
+P02,paraphrase_supported,Forty-nine graduates match when you remove duplicates and read employers and job titles.,1,1,0
+P03,paraphrase_supported,Only one of the forty-nine is current; five need confirming and forty-three need reactivating.,1,1,0
+P04,paraphrase_supported,Six people are worth contacting today.,1,1,0
+P05,paraphrase_supported,Sixty-eight percent of profiles have gone two years or more without an update.,1,1,0
+P06,paraphrase_supported,Seventy-seven percent of members have not logged in for a year or more.,1,1,0
+P07,paraphrase_supported,The file lists five hundred and twenty-five rows but announces five hundred members.,1,1,0
+P08,paraphrase_supported,"The UK is written three different ways, and forty-one records have no country.",1,1,0
+P09,paraphrase_supported,It takes a median of one hundred and twelve days for a profile to catch up with a new job.,1,1,0
+P10,paraphrase_supported,Being three years in post and going three years without an update are the same signal.,1,1,0
+W01,wrong_number,The file has 525 rows for 480 members.,1,0,1
+W02,wrong_number,London is spelled 9 different ways.,1,0,1
+W03,wrong_number,The full logic returns 48.,1,0,1
+W04,wrong_number,Normalising the spellings gives 28.,1,0,1
+W05,wrong_number,The naive filter on the file as delivered returns 3 members.,1,0,1
+W06,wrong_number,"Among the 49, only 2 are current.",1,0,1
+W07,wrong_number,72 % of profiles are untouched for 2+ years.,1,0,1
+W08,wrong_number,The median delay between job start and profile update is 121 days.,1,0,1
+W09,wrong_number,Seven people are worth contacting today.,1,0,1
+W10,wrong_number,Thirty-four of the forty-nine need reactivating.,1,0,1
+W11,wrong_number,There are 30 duplicate persons in the file.,1,0,1
+W12,wrong_number,One hundred and seventy members have no declared sector.,1,0,1
+U01,unsupported_claim,Most alumni open the newsletter within a day.,1,0,0
+U02,unsupported_claim,Schools using Trusted Segments double their event attendance.,1,0,0
+U03,unsupported_claim,Half of the members live outside France.,1,0,0
+U04,unsupported_claim,"The platform already serves 2,000 schools.",1,0,0
+U05,unsupported_claim,Finance graduates earn more than the alumni average.,1,0,0
+U06,unsupported_claim,The data was exported last Tuesday.,1,0,0
+U07,unsupported_claim,Members who confirm their profile are twice as likely to donate.,1,0,0
+U08,unsupported_claim,London is the most common city in the file.,1,0,0
+U09,unsupported_claim,The duplicates were caused by a 2019 migration.,1,0,0
+U10,unsupported_claim,Members spend 20 minutes a week on the platform.,1,0,0
+R01,rhetorical_no_claim,But look at the dates.,0,,0
+R02,rhetorical_no_claim,So what changed?,0,,0
+R03,rhetorical_no_claim,Here is the problem.,0,,0
+R04,rhetorical_no_claim,Let's take a closer look.,0,,0
+R05,rhetorical_no_claim,Which one would you trust?,0,,0
+R06,rhetorical_no_claim,That is where it gets interesting.,0,,0
+R07,rhetorical_no_claim,Now picture your own file.,0,,0
+R08,rhetorical_no_claim,"Simple question, hard answer.",0,,0
+R09,rhetorical_no_claim,And then something else appears.,0,,0
+C01,call_to_action,Book a demo this week.,0,,0
+C02,call_to_action,Try it on your own alumni file.,0,,0
+C03,call_to_action,Ask your team which segment they trust.,0,,0
+C04,call_to_action,Reply to this email to get the full analysis.,0,,0
+C05,call_to_action,Send the segment to your events team.,0,,0
+C06,call_to_action,Talk to us about your next campaign.,0,,0
+C07,call_to_action,Confirm or correct your profile.,0,,0
+C08,call_to_action,Start your first segment today.,0,,0
+C09,call_to_action,Bring us the sentence you want answered.,0,,0

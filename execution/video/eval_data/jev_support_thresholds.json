@@ -1,0 +1,51 @@
+{
+  "date": "2026-11-01",
+  "models": [
+    "typesafe/jev-1.13-20260917"
+  ],
+  "repeats": 3,
+  "prompt_hash": "23ed4e21bcad3a8b",
+  "labels": "jev_support_labels.csv",
+  "facts_sha256": "71c2e0c30625a17d",
+  "cost_usd": 0.015768,
+  "claim": {
+    "auroc": 1.0,
+    "n": 61,
+    "n_pos": 43,
+    "n_neg": 18,
+    "threshold": 0.37,
+    "youden_j": 1.0,
+    "tp": 43,
+    "fp": 0,
+    "fn": 0,
+    "tn": 18
+  },
+  "entailed": {
+    "auroc": 1.0,
+    "n": 43,
+    "n_pos": 21,
+    "n_neg": 22,
+    "threshold": 0.4317,
+    "youden_j": 1.0,
+    "tp": 21,
+    "fp": 0,
+    "fn": 0,
+    "tn": 22,
+    "recall95_threshold": 0.0401,
+    "recall95_false_flags": 0
+  },
+  "contradiction": {
+    "auroc": 1.0,
+    "n": 43,
+    "n_pos": 12,
+    "n_neg": 31,
+    "threshold": 0.5717,
+    "youden_j": 1.0,
+    "tp": 12,
+    "fp": 0,
+    "fn": 0,
+    "tn": 31
+  },
+  "mean_repeat_spread": 0.0076,
+  "max_repeat_spread": 0.07
+}
