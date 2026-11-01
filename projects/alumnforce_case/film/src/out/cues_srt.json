@@ -66,27 +66,27 @@
  },
  {
   "t0": 42.041666666666664,
-  "t1": 44.097,
+  "t1": 44.117,
   "text": "The 49 split by trust:"
  },
  {
-  "t0": 44.182,
-  "t1": 47.332,
-  "text": "1 to send, 5 to confirm,\n43 to win back."
+  "t0": 44.202,
+  "t1": 47.498,
+  "text": "1 to send, 5 to confirm,\n43 to reactivate."
  },
  {
-  "t0": 47.416666666666664,
-  "t1": 49.83,
+  "t0": 47.583333333333336,
+  "t1": 49.996,
   "text": "6 worth contacting today."
  },
  {
-  "t0": 49.916666666666664,
-  "t1": 54.248,
+  "t0": 50.083333333333336,
+  "t1": 54.415,
   "text": "The administrator’s problem is not\nbuilding the list. It is believing it."
  },
  {
-  "t0": 54.333333333333336,
-  "t1": 55.818,
+  "t0": 54.5,
+  "t1": 55.985,
   "text": "Trusted Segments."
  }
 ]

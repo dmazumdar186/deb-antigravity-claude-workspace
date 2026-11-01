@@ -12,7 +12,7 @@ const HT = TL.hit, WD = TL.words, CUES = TL.cues;
 window.DUR = TL.dur;
 
 // ---------- palette & type ----------
-const SIG = '#FF5A1F', SIG2 = '#FF7A45', INK = '#15171A', PAPERW = '#F1F2F3', SUB = '#c4c8ce';
+const SIG = '#FF5A1F', SIG2 = '#FF8A55', INK = '#15171A', PAPERW = '#F1F2F3', SUB = '#c4c8ce';
 const PLATE_A = 0.94, PLATE = `rgba(14,15,17,${PLATE_A})`;
 const F = { mono: (s, w = 400) => `${w} ${s}px PM`, sans: (s, w = 400) => `${w} ${s}px PS`, serif: s => `500 ${s}px PF`, serifI: s => `italic 400 ${s}px PF` };
 const rgba = (r, g, b, a) => `rgba(${r | 0},${g | 0},${b | 0},${a})`;
@@ -120,8 +120,8 @@ const darkOf = (c, t) => { if (!c.stale) return 0; const r = frontR(t); if (r < 
 // ---------- level of detail: glyphs only when ≥ ~24 px on screen, bars otherwise ----------
 const MW = new Map();
 function mw(s, font) { const k = font + '|' + s; let v = MW.get(k); if (v === undefined) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.font = font; v = ctx.measureText(s).width; ctx.restore(); MW.set(k, v); } return v; }
-function lodText(s, x, y, size, font, col, a, scale, maxW) {
-  const px = size * scale, g = ss((px - 22) / 7);
+function lodText(s, x, y, size, font, col, a, scale, maxW, barOnly = false) {
+  const px = size * scale, g = barOnly ? 0 : ss((px - 22) / 7);
   let fs = size; const w0 = mw(s, font(size)); if (maxW && w0 > maxW) fs = size * maxW / w0;
   const w = Math.min(w0, maxW || 1e9);
   const ga = ctx.globalAlpha;
@@ -146,7 +146,8 @@ function drawCard(c, t, scale, opt = {}) {
   else if (c.example) lodText('example', -80, -32, 17, s => F.mono(s, 500), ink, ia * (opt.idA ?? 1), scale);
   else { ctx.fillStyle = rgba(30, 32, 36, 0.3 * barA); ctx.fillRect(-80, -45, 62, 14); }
   ctx.fillStyle = rgba(36, 38, 42, 0.9 * barA); ctx.fillRect(4, -45, 76 * c.bars[0] + 20, 15);
-  lodText(c.city, -80, -6, 17, s => F.sans(s, 500), ink, ia * (opt.cityA ?? 1), scale, 160);
+  // N1: only the real record, the example card and the eight real London spellings (F04) can ever become legible
+  lodText(c.city, -80, -6, 17, s => F.sans(s, 500), ink, ia * (opt.cityA ?? 1), scale, 160, !(c.real || c.example || SPELLINGS.includes(c.city)));
   if (c.example) {
     lodText('in post: 3 yrs', -80, 20, 15, s => F.mono(s, 400), ink, ia * (opt.dateA ?? 1), scale);
     lodText('updated: 3 yrs ago', -80, 42, 15, s => F.mono(s, 400), ink, ia * (opt.dateA ?? 1), scale);
@@ -333,11 +334,11 @@ function drawIndex(t) {
   const veil = eo(seg(t, HT.index, HT.index + 1.0)) * 0.6 + eo(seg(t, HT.six - 0.1, HT.six + 0.4)) * 0.3;
   ctx.fillStyle = `rgba(14,15,17,${Math.min(0.9, veil)})`; ctx.fillRect(0, 0, W, H);
   const zi = zoomIdx(t), Z = (x, y) => [W / 2 + (x - W / 2) * zi, H / 2 + (y - H / 2) * zi];
-  const pa = fadeWin(t, HT.index + 0.45, HT.six + 0.25, 0.5, 0.4);
+  const pa = fadeWin(t, HT.index + 0.45, HT.six - 0.05, 0.5, 0.25);
   const words = [WD.c1, WD.c5, WD.c43], nums = [1, 5, 43];
   COLX.forEach(([x, w], k) => { const [px, py] = Z(x, 120); plate(px, py, w * zi, 680 * zi, pa * 0.94); });
   // flying cards (below the headers)
-  const heroT = HT.six - 0.15;
+  const heroT = HT.six;
   for (const c of S49) {
     const k = flightK(c, t); if (k <= 0) continue;
     const [wx, wy] = w2s(c.x, c.y), [tx0, ty0, ts] = colTarget(c), [tx, ty] = Z(tx0, ty0);
@@ -347,8 +348,8 @@ function drawIndex(t) {
     if (live(c)) {           // the six fly again, into the hero row
       const h = eio(seg(t, heroT, heroT + 0.6)); const [hx, hy, hs] = heroTarget(c);
       x = lerp(x, hx, h); y = lerp(y, hy, h); s = lerp(s, hs, h);
-      a = 1 - seg(t, HT.glideUp, HT.glideUp + 0.7);
-    } else a = 1 - seg(t, HT.six - 0.1, HT.six + 0.4) * 0.85 - seg(t, HT.off, HT.off + 0.4) * 0.15;
+      a = 1 - seg(t, HT.glideUp, HT.glideUp + 0.35);
+    } else a = 1 - seg(t, HT.six - 0.3, HT.six - 0.05);
     if (a <= 0) continue;
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = a; ctx.translate(x, y); ctx.rotate(r); ctx.scale(s, s);
     if (live(c) && t > HT.off) { ctx.shadowColor = 'rgba(255,236,200,0.9)'; ctx.shadowBlur = 40; }
@@ -366,12 +367,13 @@ function drawIndex(t) {
     ctx.globalAlpha = 1;
   });
   // the payoff (F12): the largest element, centred, held ≥ 2.5 s
-  const ha = Math.min(eo(seg(t, HT.six + 0.3, HT.six + 0.7)), 1 - seg(t, HT.glideUp, HT.glideUp + 0.5));
+  const ha = Math.min(eo(seg(t, HT.six + 0.4, HT.six + 0.55)), 1 - seg(t, HT.glideUp, HT.glideUp + 0.35));
+  const hs = Math.min(eo(seg(t, HT.six + 0.55, HT.six + 0.8)), 1 - seg(t, HT.glideUp, HT.glideUp + 0.35));
   if (ha > 0) {
     const sc = 1 + 0.04 * seg(t, HT.six, HT.off);
     ctx.save(); ctx.translate(W / 2, 470); ctx.scale(sc, sc); ctx.globalAlpha = ha;
     drawText('6', 0, 0, F.mono(330, 500), SIG2, 'center');
-    drawText('worth contacting today:', 0, 120, F.sans(56, 500), PAPERW, 'center');
+    ctx.globalAlpha = hs; drawText('worth contacting today:', 0, 120, F.sans(56, 500), PAPERW, 'center');
     drawText('1 to send, 5 to confirm.', 0, 192, F.sans(48, 400), '#d9dce0', 'center');
     ctx.restore(); ctx.globalAlpha = 1;
   }
@@ -418,6 +420,7 @@ function screenTexts(t) {
   const ca = fadeWin(t, HT.climb, WD.n49 + 4.1, 0.4, 0.35);
   put('climbL', st.label, 1130, 70, 1840, 320, ca);
   if (st.value !== '—') put('climbV', st.value, 1130, 70, 1840, 320, ca);
+  put('dupL', '25 duplicate persons', 100, 866, 560, 938, fadeWin(t, WD.dup25 - 0.05, HT.hush1 + 0.4, 0.3, 0.35));
   put('stale', 'Profiles untouched for 2+ years', 100, 70, 780, 320, fadeWin(t, Math.max(WD.n68 - 0.3, HT.lift2 + 0.4), HT.pair + 0.6));
   return T;
 }
@@ -431,8 +434,9 @@ window.TEXTS = t => {
   if (t > HT.pair && t < HT.quote + 0.25) out.push({ id: 'pairA', text: 'Three years in post', x0: 130, y0: 320, x1: 920, y1: 570 });
   if (t > HT.pair + 0.5 && t < HT.quote + 0.25) out.push({ id: 'pairB', text: 'Three years without an update', x0: 1000, y0: 320, x1: 1790, y1: 570 });
   if (t > HT.quote + 0.63 && t < HT.index - 0.35) out.push({ id: 'note', text: NOTE_L.join(' '), ...noteBox(t) });
-  if (t > HT.index + 0.5 && t < HT.six + 0.25) COLX.forEach(([x, w, lab, act], k) => out.push({ id: 'col' + k, text: lab + ' ' + act, x0: x, y0: 120, x1: x + w, y1: 800 }));
-  if (t > HT.six + 0.3 && t < HT.glideUp + 0.5) { out.push({ id: 'six', text: '6', x0: 860, y0: 220, x1: 1060, y1: 480 }); out.push({ id: 'sixA', text: 'worth contacting today:', x0: 600, y0: 540, x1: 1320, y1: 600 }); out.push({ id: 'sixB', text: '1 to send, 5 to confirm.', x0: 640, y0: 615, x1: 1280, y1: 670 }); }
+  if (t > HT.index + 0.5 && t < HT.six - 0.05) COLX.forEach(([x, w, lab, act], k) => out.push({ id: 'col' + k, text: lab + ' ' + act, x0: x, y0: 120, x1: x + w, y1: 800 }));
+  if (t > HT.six + 0.4 && t < HT.glideUp + 0.35) out.push({ id: 'six', text: '6', x0: 860, y0: 220, x1: 1060, y1: 480 });
+  if (t > HT.six + 0.55 && t < HT.glideUp + 0.35) { out.push({ id: 'sixA', text: 'worth contacting today:', x0: 600, y0: 540, x1: 1320, y1: 600 }); out.push({ id: 'sixB', text: '1 to send, 5 to confirm.', x0: 640, y0: 615, x1: 1280, y1: 670 }); }
   F24.forEach((s, i) => { if (t > productT() && t < HT.endCard) out.push({ id: 'f24_' + i, text: s, x0: 260, y0: 690 + i * 74, x1: 1660, y1: 750 + i * 74 }); });
   if (t >= HT.endCard) END.forEach(([s], i) => out.push({ id: 'end' + i, text: s, x0: 200, y0: endY(i) - 44, x1: 1720, y1: endY(i) + 12 }));
   return out.filter(clampBox);
@@ -454,6 +458,7 @@ function drawPlates(t) {
     if (loupeState(t)) { const [sx, sy] = w2s(T1.x, T1.y); ctx.globalAlpha = a; ctx.strokeStyle = SIG; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(sx - LR - 50, sy); ctx.lineTo(x + 690, sy); ctx.stroke(); ctx.fillStyle = SIG; ctx.beginPath(); ctx.arc(sx - LR - 50, sy, 5, 0, 7); ctx.fill(); ctx.globalAlpha = 1; }
   }
   if (A.climbL) { const st = stepAt(t); reading(1130, 70, 710, A.climbL, st.label, st.value === '—' ? '' : st.value, st.source); }
+  if (A.dupL) { const a = A.dupL; plate(100, 866, 460, 72, a); ctx.globalAlpha = a; ring(146, 902, 18, a, 1, 3); ctx.globalAlpha = a; drawText('25', 182, 918, F.mono(44, 500), SIG2); drawText('duplicate persons', 254, 914, F.sans(32, 500), PAPERW); ctx.globalAlpha = 1; }
   if (A.stale) reading(100, 70, 680, A.stale, 'Profiles untouched for 2+ years', '68 %', 'of 500 members · ref. 2026-10-12', { vfont: F.sans(104, 600) });
 }
 
@@ -474,9 +479,9 @@ const END = [
 ];
 const endY = i => 380 + i * 64;
 function drawEnd(t) {
-  if (t < HT.endCard) return;
-  const a = eo(seg(t, HT.endCard, HT.endCard + 0.35));
-  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = a; ctx.fillStyle = '#0e0f11'; ctx.fillRect(0, 0, W, H);
+  if (t < HT.endCard - 0.25) return;
+  const bg = eo(seg(t, HT.endCard - 0.25, HT.endCard)), a = eo(seg(t, HT.endCard + 0.02, HT.endCard + 0.32));
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = bg; ctx.fillStyle = '#0e0f11'; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = a;
   drawText('Trusted Segments', W / 2, 290, F.serif(64), PAPERW, 'center');
   ctx.fillStyle = SIG; ctx.fillRect(W / 2 - 60, 322, 120, 3);
   END.forEach(([s, w], i) => drawText(s, W / 2, endY(i), F.sans(36, w), '#d9dce0', 'center'));
@@ -489,10 +494,12 @@ window.render = t => {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.fillStyle = '#0e0f11'; ctx.fillRect(0, 0, W, H);
   applyCam(cam); drawWorld(t, cam[2]);
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  drawLoupe(t); drawIndex(t); drawPair(t); drawPlates(t); drawThesis(t);
+  drawLoupe(t);
+  // the light falloff darkens the table only; plates, readings and type are drawn after it (N3)
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   const v = ctx.createRadialGradient(W / 2, H / 2, H * 0.45, W / 2, H / 2, H * 1.05); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,0.28)');
   ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+  drawIndex(t); drawPair(t); drawPlates(t); drawThesis(t);
   drawEnd(t);
   drawSubs(t);
   window.__DRAWN = DRAWN;

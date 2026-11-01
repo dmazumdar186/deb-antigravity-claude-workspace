@@ -8,7 +8,7 @@ export const F01 = 'Graduates working in finance in London for more than three y
 
 // narration: Kokoro bf_emma, en-gb, speed 0.95; fact ids per line
 export const LINES = {
-  L01: 'F01', L02: 'F01', L03: 'F02', L04: 'F04 F26', L06: 'F07', L07: 'F08', L08: 'F03 F09', L09: '—', L10: 'F13',
+  L01: 'F01', L02: 'F01 F28', L03: 'F02', L04: 'F04 F26', L06: 'F07', L07: 'F08', L08: 'F03 F09', L09: '—', L10: 'F13',
   L11: 'F22', L12: 'F17', L13: 'F09 F11 F25', L14: 'F12', L15: 'F24', L16: 'F23',
 };
 
@@ -43,7 +43,7 @@ export function layout(dur) {
   put('L13', H.index + 0.25);
   H.six = fr(V.L13.t1 + 0.05); put('L14', H.six + 0.15);               // the payoff appears with the end of L13's breath
   H.off = fr(H.six + 2.95); H.glideUp = fr(H.off + 0.2);
-  put('L15', H.off - 0.3); H.thesis = fr(H.off + 0.3);             // F24
+  put('L15', H.off - 0.3); H.thesis = fr(H.glideUp + 0.45);             // after the payoff has gone (N2)             // F24
   H.title = fr(V.L15.t1 + 0.45); put('L16', H.title);                  // F23
   H.endCard = fr(Math.max(H.title + 2.55, V.L16.t1 + 0.8));
   const DUR = fr(H.endCard + 4.5);
@@ -73,7 +73,7 @@ export const SUBS = [
   { id: 'C12', line: 'L12', text: '“340 London expats.\nTwenty had moved back years ago.', burn: false },
   { id: 'C13', line: 'L12', from: 'two', text: 'Two unsubscribed.”', burn: false },
   { id: 'C14', line: 'L13', text: 'The 49 split by trust:' },
-  { id: 'C15', line: 'L13', from: '1', text: '1 to send, 5 to confirm,\n43 to win back.' },
+  { id: 'C15', line: 'L13', from: '1', text: '1 to send, 5 to confirm,\n43 to reactivate.' },
   { id: 'C16', line: 'L14', text: '6 worth contacting today.', burn: false },
   { id: 'C17', line: 'L15', text: 'The administrator’s problem is not\nbuilding the list. It is believing it.', burn: false },
   { id: 'C19', line: 'L16', text: 'Trusted Segments.', burn: false },

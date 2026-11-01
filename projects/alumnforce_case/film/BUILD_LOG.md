@@ -233,3 +233,56 @@ export PLAYWRIGHT_CHROME=/opt/pw-browsers/chromium_headless_shell-1243/chrome-he
 sh films/trusted-segments/build.sh        # voice → checks → 2 renders → mix → 2 masters → captions → drawn_text.json → SCRIPT.md
 LIB=$PWD .venv/bin/python -I films/trusted-segments/tools/final_asr.py films/trusted-segments/trusted-segments_clean.mp4 films/trusted-segments/voice/lines.json
 ```
+
+---
+
+# v2.1 (round 3 polish) — 2026-11-01, 12:13:50 → 12:25:57 UTC
+
+Brief: the coordinator's round-3 message, built on `VISUAL_QA_v2.md` (N1–N8). Same constraints (toolkit bebbbe1, Kokoro only, no setup.sh). Generating model: standard tier; CLI Claude Code 2.1.316. v2 outputs were moved first to `v2/` (`trusted-segments.mp4`, `trusted-segments_clean.mp4`, `contact_sheet_v2.jpg`); `v1/` untouched.
+
+## Result (v2.1)
+
+| | `trusted-segments.mp4` (burned) | `trusted-segments_clean.mp4` |
+|---|---|---|
+| Size | 19,370,226 bytes | 22,009,282 bytes |
+| Duration | 61.54 s (end card 4.50 s) | 61.54 s |
+| Loudness | −16.0 LUFS, TP −1.7 dBTP | −16.0 LUFS, TP −1.7 dBTP |
+
+- `film_eval.py` (command as given, `--asr --jev --jev-repeats 3`, compared with v2): **Overall WARN, no FAIL**. 35 metrics: 34 PASS, 1 WARN (`tag_consistency`: "2.0" and "3.0" in the end-card credit line, "Apache 2.0" / "CC BY 3.0", required by FACTS hard rules). v2 → v2.1: tag_coverage WARN → PASS, quote_fidelity WARN → PASS, number_fidelity_drawn 43/43, speech_rate 147.1 wpm, ASR WER 0.73 %, numbers audible 15/15, Jev entailment 0.899, 0 contradictions. Reports: `EVAL_REPORT_v2_1.json`, `EVAL_REPORT_v2_1.md`.
+- Per-line speech check 15/15 (0 mismatches); final-mix check: every word and number heard (the two differences are the `asr` overrides).
+- readcheck 36/36; drawn-text manifest 165 entries over 1,477 frames, 0 under 28 px; one `fillText` in `film.js`.
+- Freeze: only the end card (from 57.29 s). Black frames: 0.
+
+## What changed (finding → fix)
+
+| # | Finding | Fix |
+|---|---|---|
+| N1 | Invented cities legible inside the loupe | A card's city can become glyphs only for M0271 (F26), the "example" card, and the eight real London spellings (F04); every other city is always a redaction-style bar, at any zoom. No ID on any of them. |
+| N2 | Thesis faded in over the payoff | Payoff text and the six cards fade out in 0.35 s from the glide; the thesis starts 0.45 s after the glide (`H.thesis = glideUp + 0.45`), on a clear frame. |
+| N3 | Left-hand orange values 4.2–4.8:1 under the vignette | The vignette now darkens only the table: plates, readings, index, payoff and thesis are drawn after it. Values in a lighter tint #FF8A55. |
+| N4 | F03 only in the voice | Legend plate bottom left from the word "twenty-five": ring + "25" + "duplicate persons" (on both masters). |
+| N5 | Ghost column text behind flying cards at ~47 s | Columns (headers, counts, the 43 dark cards) fade out before the six cards move; the "6" fades in after the cards have passed under it, the text after they land. The "6" is at full strength 2.6 s. |
+| N6 | End card dissolved over the panel | The closing frame fades to the dark ground first (0.25 s), then the card fades in. |
+| N7 | "win back" vs "To reactivate" | Voice and caption now say "43 to reactivate" (L13 re-spoken; speech check passes). |
+| N8 | Sidecar name | No `.srt` shares the basename `trusted-segments`: the only caption file is `trusted-segments_clean.captions.srt` (kept, since the eval reads that path). VLC's fuzzy matching could still offer it for the burned file; not tested. |
+| — | SCRIPT.md format | "## Captions" is its own section; L02/C03 tagged "F01 F28" (FACTS F28); the 68 % line tagged "F13 F02"; the end-card line tagged "F23 hard rules"; the 525 reading written without quote marks. |
+
+## Stage timings (v2.1, measured)
+
+| Stage | Wall clock |
+|---|---|
+| Reading VISUAL_QA_v2 + eval report, moving v2 files | 12:13:50 → ~12:15 |
+| Voice (all lines re-run; L13 changed) + trim + speech check | 53.3 s |
+| film.js / timeline / SCRIPT generator edits + spot stills (in parallel with the voice run) | ~12:15 → 12:16:37 (full pipeline started then; it ran to ~12:24:40) |
+| Readcheck | 54.0 s |
+| Drawn-text manifest (1,477 frames) | 49.8 s |
+| Mix | 8.9 s |
+| Frame render burned / clean | 98.9 s (14.9 fps) / 94.3 s (15.7 fps) |
+| Master + encode burned / clean | 71.0 s / 73.9 s |
+| Final-mix speech check | 15.0 s |
+| film_eval.py (ASR + Jev ×3) | 24.6 s |
+| **Total v2.1** | **12:13:50 → 12:25:57 = 727 s** |
+
+## Reproduce (v2.1)
+
+Same as v2: copy `src/` into `films/trusted-segments/` of the pinned clone and run `sh films/trusted-segments/build.sh`, then the eval command above from the workspace root.

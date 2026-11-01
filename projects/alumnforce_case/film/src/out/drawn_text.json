@@ -672,7 +672,7 @@
  {
   "text": "?",
   "t_start": 6.16667,
-  "t_end": 53.125,
+  "t_end": 53.2917,
   "x": 497,
   "y": 580,
   "px": 53.9,
@@ -692,17 +692,17 @@
  {
   "text": "Schematic · no member data",
   "t_start": 7,
-  "t_end": 50.5417,
+  "t_end": 50.7083,
   "x": 1632,
   "y": 1006,
   "px": 28,
   "px_max": 28,
-  "frames": 1045
+  "frames": 1049
  },
  {
   "text": "Graduates working in finance in London for more than three years",
   "t_start": 7.45833,
-  "t_end": 54.25,
+  "t_end": 54.4167,
   "x": 214,
   "y": 294,
   "px": 32.1,
@@ -712,7 +712,7 @@
  {
   "text": "?",
   "t_start": 8.20833,
-  "t_end": 51.8333,
+  "t_end": 52,
   "x": 594,
   "y": 127,
   "px": 47.8,
@@ -760,26 +760,6 @@
   "frames": 87
  },
  {
-  "text": "—",
-  "t_start": 11.125,
-  "t_end": 25.125,
-  "x": 1558,
-  "y": 256,
-  "px": 33.7,
-  "px_max": 37.8,
-  "frames": 17
- },
- {
-  "text": "Madrid",
-  "t_start": 11.125,
-  "t_end": 15.7083,
-  "x": 1125,
-  "y": 266,
-  "px": 35.8,
-  "px_max": 37.8,
-  "frames": 5
- },
- {
   "text": "M0271",
   "t_start": 11.125,
   "t_end": 15.7083,
@@ -810,16 +790,6 @@
   "frames": 71
  },
  {
-  "text": "Luxembourg",
-  "t_start": 11.125,
-  "t_end": 15.7083,
-  "x": 705,
-  "y": 529,
-  "px": 35.8,
-  "px_max": 37.8,
-  "frames": 5
- },
- {
   "text": "London",
   "t_start": 11.125,
   "t_end": 15.875,
@@ -830,51 +800,11 @@
   "frames": 75
  },
  {
-  "text": "Singapore",
-  "t_start": 11.125,
-  "t_end": 25.2083,
-  "x": 1529,
-  "y": 812,
-  "px": 33.7,
-  "px_max": 37.9,
-  "frames": 10
- },
- {
-  "text": "Lille",
-  "t_start": 11.125,
-  "t_end": 25.125,
-  "x": 1135,
-  "y": 1082,
-  "px": 33.7,
-  "px_max": 36.8,
-  "frames": 5
- },
- {
-  "text": "Madrid",
-  "t_start": 11.25,
-  "t_end": 15.625,
-  "x": 1115,
-  "y": 274,
-  "px": 38.1,
-  "px_max": 42.1,
-  "frames": 105
- },
- {
   "text": "London, UK",
   "t_start": 11.25,
   "t_end": 15.625,
   "x": 1576,
   "y": 553,
-  "px": 38.1,
-  "px_max": 42.1,
-  "frames": 105
- },
- {
-  "text": "Luxembourg",
-  "t_start": 11.25,
-  "t_end": 15.625,
-  "x": 668,
-  "y": 554,
   "px": 38.1,
   "px_max": 42.1,
   "frames": 105
@@ -888,16 +818,6 @@
   "px": 38.1,
   "px_max": 42.1,
   "frames": 105
- },
- {
-  "text": "Singapore",
-  "t_start": 11.25,
-  "t_end": 27.5,
-  "x": 1545,
-  "y": 854,
-  "px": 38.1,
-  "px_max": 41.8,
-  "frames": 62
  },
  {
   "text": "Under the loupe, London is spelled 8 ways.",
@@ -1010,16 +930,6 @@
   "frames": 63
  },
  {
-  "text": "—",
-  "t_start": 15.41667,
-  "t_end": 27.5,
-  "x": 1599,
-  "y": 254,
-  "px": 38.7,
-  "px_max": 41.4,
-  "frames": 19
- },
- {
   "text": "2",
   "t_start": 16.29167,
   "t_end": 19.25,
@@ -1080,6 +990,26 @@
   "frames": 121
  },
  {
+  "text": "duplicate persons",
+  "t_start": 20.58333,
+  "t_end": 25.3333,
+  "x": 254,
+  "y": 914,
+  "px": 32,
+  "px_max": 32,
+  "frames": 114
+ },
+ {
+  "text": "25",
+  "t_start": 20.58333,
+  "t_end": 25.3333,
+  "x": 182,
+  "y": 918,
+  "px": 44,
+  "px_max": 44,
+  "frames": 114
+ },
+ {
   "text": "Full logic · dedup + employer + job title",
   "t_start": 24.08333,
   "t_end": 28.2083,
@@ -1110,51 +1040,11 @@
   "frames": 99
  },
  {
-  "text": "Montreal",
-  "t_start": 25,
-  "t_end": 25.0833,
-  "x": 585,
-  "y": 112,
-  "px": 33.7,
-  "px_max": 34.9,
-  "frames": 2
- },
- {
-  "text": "Bordeaux",
-  "t_start": 25,
-  "t_end": 25.2083,
-  "x": 981,
-  "y": 363,
-  "px": 33.7,
-  "px_max": 37.9,
-  "frames": 5
- },
- {
   "text": "example",
   "t_start": 25,
   "t_end": 25.2083,
   "x": 601,
   "y": 556,
-  "px": 33.7,
-  "px_max": 37.9,
-  "frames": 5
- },
- {
-  "text": "Nantes",
-  "t_start": 25,
-  "t_end": 25.2083,
-  "x": 996,
-  "y": 604,
-  "px": 33.7,
-  "px_max": 37.9,
-  "frames": 5
- },
- {
-  "text": "Lyon",
-  "t_start": 25,
-  "t_end": 25.2083,
-  "x": 202,
-  "y": 604,
   "px": 33.7,
   "px_max": 37.9,
   "frames": 5
@@ -1180,36 +1070,6 @@
   "frames": 60
  },
  {
-  "text": "New York",
-  "t_start": 25,
-  "t_end": 25.2083,
-  "x": 968,
-  "y": 856,
-  "px": 33.7,
-  "px_max": 37.9,
-  "frames": 5
- },
- {
-  "text": "Milan",
-  "t_start": 25,
-  "t_end": 25.2083,
-  "x": 593,
-  "y": 861,
-  "px": 33.7,
-  "px_max": 37.9,
-  "frames": 5
- },
- {
-  "text": "Bordeaux",
-  "t_start": 25.20833,
-  "t_end": 27.5,
-  "x": 1073,
-  "y": 297,
-  "px": 38.7,
-  "px_max": 41.6,
-  "frames": 10
- },
- {
   "text": "example",
   "t_start": 25.20833,
   "t_end": 27.5,
@@ -1220,51 +1080,11 @@
   "frames": 55
  },
  {
-  "text": "Nantes",
-  "t_start": 25.20833,
-  "t_end": 27.5,
-  "x": 1090,
-  "y": 573,
-  "px": 38.7,
-  "px_max": 41.7,
-  "frames": 55
- },
- {
-  "text": "Lyon",
-  "t_start": 25.20833,
-  "t_end": 27.5,
-  "x": 179,
-  "y": 573,
-  "px": 38.7,
-  "px_max": 41.7,
-  "frames": 55
- },
- {
   "text": "london",
   "t_start": 25.20833,
   "t_end": 27.5,
   "x": 636,
   "y": 577,
-  "px": 38.7,
-  "px_max": 41.7,
-  "frames": 55
- },
- {
-  "text": "New York",
-  "t_start": 25.20833,
-  "t_end": 27.5,
-  "x": 1058,
-  "y": 863,
-  "px": 38.7,
-  "px_max": 41.6,
-  "frames": 11
- },
- {
-  "text": "Milan",
-  "t_start": 25.20833,
-  "t_end": 27.5,
-  "x": 627,
-  "y": 868,
   "px": 38.7,
   "px_max": 41.7,
   "frames": 55
@@ -1298,26 +1118,6 @@
   "px": 40,
   "px_max": 40,
   "frames": 92
- },
- {
-  "text": "Lille",
-  "t_start": 27.20833,
-  "t_end": 27.5,
-  "x": 137,
-  "y": 273,
-  "px": 39,
-  "px_max": 41.3,
-  "frames": 7
- },
- {
-  "text": "Montreal",
-  "t_start": 27.45833,
-  "t_end": 27.5,
-  "x": 602,
-  "y": 10,
-  "px": 39,
-  "px_max": 39,
-  "frames": 1
  },
  {
   "text": "Profiles untouched for 2+ years",
@@ -1522,167 +1322,167 @@
  {
   "text": "Current",
   "t_start": 42.25,
-  "t_end": 47.5,
+  "t_end": 47.375,
   "x": 180,
   "y": 178,
   "px": 36,
   "px_max": 36,
-  "frames": 126
+  "frames": 123
  },
  {
   "text": "→ send",
   "t_start": 42.25,
-  "t_end": 47.5,
+  "t_end": 47.375,
   "x": 323,
   "y": 178,
   "px": 30,
   "px_max": 30,
-  "frames": 126
+  "frames": 123
  },
  {
   "text": "To confirm",
   "t_start": 42.25,
-  "t_end": 47.5,
+  "t_end": 47.375,
   "x": 650,
   "y": 178,
   "px": 36,
   "px_max": 36,
-  "frames": 126
+  "frames": 123
  },
  {
   "text": "→ confirm",
   "t_start": 42.25,
-  "t_end": 47.5,
+  "t_end": 47.375,
   "x": 842,
   "y": 178,
   "px": 30,
   "px_max": 30,
-  "frames": 126
+  "frames": 123
  },
  {
   "text": "To reactivate",
   "t_start": 42.25,
-  "t_end": 47.5,
+  "t_end": 47.375,
   "x": 1200,
   "y": 178,
   "px": 36,
   "px_max": 36,
-  "frames": 126
+  "frames": 123
  },
  {
   "text": "→ reactivate",
   "t_start": 42.25,
-  "t_end": 47.5,
+  "t_end": 47.375,
   "x": 1430,
   "y": 178,
   "px": 30,
   "px_max": 30,
-  "frames": 126
+  "frames": 123
  },
  {
   "text": "1",
-  "t_start": 44.16667,
-  "t_end": 47.5,
+  "t_start": 44.20833,
+  "t_end": 47.375,
   "x": 171,
-  "y": 274,
+  "y": 277,
   "px": 96,
   "px_max": 96,
-  "frames": 80
+  "frames": 76
  },
  {
   "text": "1 to send, 5 to confirm,",
   "t_start": 44.20833,
-  "t_end": 47.3333,
+  "t_end": 47.5,
   "x": 960,
   "y": 946,
   "px": 40,
   "px_max": 40,
-  "frames": 75
+  "frames": 79
  },
  {
-  "text": "43 to win back.",
+  "text": "43 to reactivate.",
   "t_start": 44.20833,
-  "t_end": 47.3333,
+  "t_end": 47.5,
   "x": 960,
   "y": 998,
   "px": 40,
   "px_max": 40,
-  "frames": 75
+  "frames": 79
  },
  {
   "text": "5",
-  "t_start": 44.91667,
-  "t_end": 47.5,
+  "t_start": 44.66667,
+  "t_end": 47.375,
   "x": 643,
-  "y": 274,
+  "y": 273,
   "px": 96,
   "px_max": 96,
-  "frames": 62
+  "frames": 65
  },
  {
   "text": "43",
-  "t_start": 45.875,
-  "t_end": 47.5,
-  "x": 1199,
-  "y": 272,
+  "t_start": 45.625,
+  "t_end": 47.375,
+  "x": 1198,
+  "y": 276,
   "px": 96,
   "px_max": 96,
-  "frames": 39
+  "frames": 42
  },
  {
   "text": "6",
-  "t_start": 47.58333,
-  "t_end": 50.9167,
+  "t_start": 47.83333,
+  "t_end": 50.9583,
   "x": 960,
   "y": 470,
-  "px": 331.5,
+  "px": 331.9,
   "px_max": 343.2,
-  "frames": 80
+  "frames": 75
  },
  {
   "text": "worth contacting today:",
-  "t_start": 47.58333,
-  "t_end": 50.9167,
+  "t_start": 48,
+  "t_end": 50.9583,
   "x": 960,
   "y": 591,
-  "px": 56.3,
+  "px": 56.4,
   "px_max": 58.2,
-  "frames": 80
+  "frames": 71
  },
  {
   "text": "1 to send, 5 to confirm.",
-  "t_start": 47.58333,
-  "t_end": 50.9167,
+  "t_start": 48,
+  "t_end": 50.9583,
   "x": 960,
-  "y": 663,
-  "px": 48.2,
+  "y": 664,
+  "px": 48.4,
   "px_max": 49.9,
-  "frames": 80
+  "frames": 71
  },
  {
   "text": "The administrator’s problem is not building the list.",
-  "t_start": 50.54167,
-  "t_end": 57.2083,
+  "t_start": 51.08333,
+  "t_end": 57.375,
   "x": 960,
   "y": 748,
   "px": 48,
   "px_max": 48,
-  "frames": 160
+  "frames": 151
  },
  {
   "text": "It is believing it.",
-  "t_start": 50.54167,
-  "t_end": 57.2083,
+  "t_start": 51.08333,
+  "t_end": 57.375,
   "x": 960,
   "y": 822,
   "px": 48,
   "px_max": 48,
-  "frames": 160
+  "frames": 151
  },
  {
   "text": "2",
-  "t_start": 52.04167,
-  "t_end": 61.375,
+  "t_start": 52.20833,
+  "t_end": 61.5417,
   "x": 563,
   "y": 243,
   "px": 60.9,
@@ -1691,8 +1491,8 @@
  },
  {
   "text": "as delivered",
-  "t_start": 52.04167,
-  "t_end": 61.375,
+  "t_start": 52.20833,
+  "t_end": 61.5417,
   "x": 563,
   "y": 321,
   "px": 29.7,
@@ -1701,8 +1501,8 @@
  },
  {
   "text": "26",
-  "t_start": 52.33333,
-  "t_end": 61.375,
+  "t_start": 52.5,
+  "t_end": 61.5417,
   "x": 820,
   "y": 336,
   "px": 64.3,
@@ -1711,8 +1511,8 @@
  },
  {
   "text": "normalised",
-  "t_start": 52.33333,
-  "t_end": 61.375,
+  "t_start": 52.5,
+  "t_end": 61.5417,
   "x": 820,
   "y": 418,
   "px": 31.3,
@@ -1721,8 +1521,8 @@
  },
  {
   "text": "49",
-  "t_start": 52.625,
-  "t_end": 61.375,
+  "t_start": 52.79167,
+  "t_end": 61.5417,
   "x": 1101,
   "y": 341,
   "px": 65,
@@ -1731,8 +1531,8 @@
  },
  {
   "text": "full logic",
-  "t_start": 52.625,
-  "t_end": 61.375,
+  "t_start": 52.79167,
+  "t_end": 61.5417,
   "x": 1101,
   "y": 423,
   "px": 31.6,
@@ -1741,8 +1541,8 @@
  },
  {
   "text": "6",
-  "t_start": 52.95833,
-  "t_end": 61.375,
+  "t_start": 53.125,
+  "t_end": 61.5417,
   "x": 1387,
   "y": 339,
   "px": 65.5,
@@ -1751,8 +1551,8 @@
  },
  {
   "text": "worth contacting",
-  "t_start": 52.95833,
-  "t_end": 61.375,
+  "t_start": 53.125,
+  "t_end": 61.5417,
   "x": 1387,
   "y": 423,
   "px": 31.9,
@@ -1761,8 +1561,8 @@
  },
  {
   "text": "Trusted Segments",
-  "t_start": 54.375,
-  "t_end": 61.375,
+  "t_start": 54.54167,
+  "t_end": 61.5417,
   "x": 960,
   "y": 161,
   "px": 64,
@@ -1771,8 +1571,8 @@
  },
  {
   "text": "Made in code by an AI agent with lemo-opuscar (MIT)",
-  "t_start": 56.91667,
-  "t_end": 61.375,
+  "t_start": 57.08333,
+  "t_end": 61.5417,
   "x": 960,
   "y": 380,
   "px": 36,
@@ -1781,8 +1581,8 @@
  },
  {
   "text": "Synthetic voice: Kokoro (Apache 2.0)",
-  "t_start": 56.91667,
-  "t_end": 61.375,
+  "t_start": 57.08333,
+  "t_end": 61.5417,
   "x": 960,
   "y": 444,
   "px": 36,
@@ -1791,8 +1591,8 @@
  },
  {
   "text": "Piano: Salamander Grand Piano V3 by Alexander Holm",
-  "t_start": 56.91667,
-  "t_end": 61.375,
+  "t_start": 57.08333,
+  "t_end": 61.5417,
   "x": 960,
   "y": 508,
   "px": 36,
@@ -1801,8 +1601,8 @@
  },
  {
   "text": "Licence CC BY 3.0",
-  "t_start": 56.91667,
-  "t_end": 61.375,
+  "t_start": 57.08333,
+  "t_end": 61.5417,
   "x": 960,
   "y": 572,
   "px": 36,
@@ -1811,8 +1611,8 @@
  },
  {
   "text": "https://creativecommons.org/licenses/by/3.0/",
-  "t_start": 56.91667,
-  "t_end": 61.375,
+  "t_start": 57.08333,
+  "t_end": 61.5417,
   "x": 960,
   "y": 636,
   "px": 36,
@@ -1821,8 +1621,8 @@
  },
  {
   "text": "Strings and mallets: CC0, Versilian Studios",
-  "t_start": 56.91667,
-  "t_end": 61.375,
+  "t_start": 57.08333,
+  "t_end": 61.5417,
   "x": 960,
   "y": 700,
   "px": 36,
@@ -1831,8 +1631,8 @@
  },
  {
   "text": "Fonts: IBM Plex (OFL)",
-  "t_start": 56.91667,
-  "t_end": 61.375,
+  "t_start": 57.08333,
+  "t_end": 61.5417,
   "x": 960,
   "y": 764,
   "px": 36,
@@ -1841,8 +1641,8 @@
  },
  {
   "text": "Record cards are schematic · no member data",
-  "t_start": 56.91667,
-  "t_end": 61.375,
+  "t_start": 57.08333,
+  "t_end": 61.5417,
   "x": 960,
   "y": 828,
   "px": 36,
