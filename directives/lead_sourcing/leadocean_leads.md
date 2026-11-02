@@ -54,6 +54,9 @@ Always run a step with `--limit 20` (or `export --sample 30`) before scaling.
 ### Gates
 - **Email:** primary = first numbered email of type `work`. Accept status `verified` only. `catch_all`,
   `catch_all_valid` (search filter returns 0 of them anyway), `untested`, `unknown`, `risky`, `role`, `derived` -> rejects.
+  **Reoon rescue (2026-11-02):** an `untested` or `catch_all` email that `reoon_verify.py` rated `safe` with score >= 90
+  (cache `.tmp/reoon/cache.jsonl`) is accepted. Run `reoon_verify.py` on the rejects first, then gate -> enrich -> icebreak -> build.
+  Always run `reoon_verify.py` on the final CSV too: LeadOcean `verified` is not enough (Reoon dropped 67/436 incl. 5 spamtraps).
   Email domain must equal the company domain (or subdomain / same base label); free-mail and role locals
   (info@, sales@, events2@ ...) rejected. MX must exist (null MX "0 ." counts as none). No SMTP probing.
 - **Jev:** one `decide` per company: `niche` choice {av, fitout, dmc, none} + `fit` noul (B2B, writes custom

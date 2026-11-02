@@ -58,6 +58,25 @@ UA = "Mozilla/5.0 (compatible; ProdcraftResearchBot/1.0; +https://prodcraft.ai)"
 LLM_MODEL = "anthropic/claude-sonnet-5.5"  # bulk tier, effort low via llm_client.default_effort
 LLM_PRICE_IN, LLM_PRICE_OUT = 2.0 / 1e6, 10.0 / 1e6  # OpenRouter list price, USD per token (2026-11-02)
 ACCEPT_STATUSES = ("verified",)  # strictest deliverable LeadOcean status; see directive
+# LeadOcean statuses that may be rescued when Reoon (power mode) independently rated the address safe.
+RESCUE_STATUSES = ("untested", "catch_all")
+REOON_CACHE = ROOT / ".tmp" / "reoon" / "cache.jsonl"
+
+
+def load_reoon_safe() -> set[str]:
+    """Emails Reoon rated safe with score >= 90 (written by reoon_verify.py)."""
+    safe: set[str] = set()
+    if not REOON_CACHE.exists():
+        return safe
+    for line in REOON_CACHE.read_text(encoding="utf-8").splitlines():
+        try:
+            d = json.loads(line)
+        except json.JSONDecodeError:
+            log.warning("skipping bad reoon cache line")
+            continue
+        if d.get("status") == "safe" and isinstance(d.get("score"), int) and d["score"] >= 90 and not d.get("role"):
+            safe.add(d["email"].lower())
+    return safe
 TODAY = dt.datetime.now(dt.timezone.utc).date().isoformat()
 
 # --------------------------------------------------------------------------------------
@@ -639,6 +658,7 @@ def hygiene(rows: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict
         rejects.append(r)
 
     seen_email, seen_person = set(), set()
+    reoon_safe = load_reoon_safe()
     staged = []
     for r in rows:
         r["_metro"] = label_metro(r)
@@ -650,7 +670,7 @@ def hygiene(rows: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict
         if not email or "@" not in email:
             reject(r, "no_email")
             continue
-        if status not in ACCEPT_STATUSES:
+        if status not in ACCEPT_STATUSES and not (status in RESCUE_STATUSES and email.lower() in reoon_safe):
             reject(r, f"status_{status or 'blank'}")
             continue
         local, edom = email.split("@", 1)
