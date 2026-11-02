@@ -1,27 +1,28 @@
 """Instantly A/B copy monitor: Jev pre-launch gate, weekly scorer drift check, daily family-pooled variant pruning, scorecard ledger and AI evals.
 
 description: Automated Instantly A/B copy monitor -- Jev gate for spun copy, weekly Jev-vs-reply-rate drift check, daily family-pooled role scoring that disables complaint/loser roles, scorecard ledger, and idempotency/consistency evals
-inputs: CLI subcommand gate --copy <json> | validate | monitor [--live] [--detail] | eval [--copy <json>]; --config (default execution/infrastructure/instantly_copy_tests.json); env INSTANTLY_API_KEY, OPENROUTER_API_KEY (via jev_client)
-outputs: Markdown report on stdout + .tmp/copy_monitor/report_<date>.md (monitor) / validate_<date>.md / eval_<date>.md; one JSON line per monitor/validate/eval run appended to docs/metrics/instantly_copy_monitor_ledger.jsonl; monitor --live PATCHes campaign sequences (v_disabled)
+inputs: CLI subcommand gate --copy <json> | validate [--record] | monitor [--live] [--detail] | eval [--copy <json>] [--record]; --config (default execution/infrastructure/instantly_copy_tests.json); env INSTANTLY_API_KEY, OPENROUTER_API_KEY (via jev_client)
+outputs: Markdown report on stdout + .tmp/copy_monitor/report_<date>.md (monitor) / validate_<date>.md / eval_<date>.md; one JSON line appended to docs/metrics/instantly_copy_monitor_ledger.jsonl per monitor --live / validate --record / eval --record run; monitor --live PATCHes campaign sequences (v_disabled)
 
 Usage:
     python3 execution/infrastructure/instantly_copy_monitor.py gate --copy execution/infrastructure/instantly_copy_variants.json
-    python3 execution/infrastructure/instantly_copy_monitor.py validate
+    python3 execution/infrastructure/instantly_copy_monitor.py validate [--record]
     python3 execution/infrastructure/instantly_copy_monitor.py monitor             # dry run
     python3 execution/infrastructure/instantly_copy_monitor.py monitor --detail    # + per-campaign tables
     python3 execution/infrastructure/instantly_copy_monitor.py monitor --live      # applies changes
-    python3 execution/infrastructure/instantly_copy_monitor.py eval                # E1-E5, read-only
+    python3 execution/infrastructure/instantly_copy_monitor.py eval [--record]     # E1-E5, read-only
 
 Arguments:
     - --copy: JSON file -- list of {"id","subject","body"} with Instantly spintax ({{RANDOM | a | b}}, {{a|b}})
     - --config: JSON -- {"tag_ids": [...], "tests": [{"campaign_id","name","family","started","roles","baseline_sent"}]}
     - --live: monitor only -- apply at most one role disable per family (default is dry run)
     - --detail: monitor only -- also print the per-campaign variant tables
+    - --record: validate / eval -- append a ledger line (the scheduled run); monitor writes one only with --live
 
 Writes:
     - stdout + .tmp/copy_monitor/<kind>_<YYYY-MM-DD>.md
-    - docs/metrics/instantly_copy_monitor_ledger.jsonl (append-only; committed by the scheduled run)
-    - exit 0 OK; exit 1 gate/eval failure; exit 2 Instantly / Jev API failure
+    - docs/metrics/instantly_copy_monitor_ledger.jsonl (append-only; monitor --live, validate/eval --record)
+    - exit 0 OK; exit 1 gate/eval failure; exit 2 Instantly / Jev API failure or malformed config/copy JSON
 
 Env vars used:
     - INSTANTLY_API_KEY -- Instantly v2 bearer key
@@ -62,7 +63,7 @@ except ImportError:  # optional dependency
 ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
-from execution.modules import jev_client as jev
+from execution.modules import jev_client as jev  # noqa: E402, RUF100
 
 BASE_URL = "https://api.instantly.ai/api/v2"
 # urllib's default UA is 403'd by Instantly's edge; send a real one.
@@ -93,7 +94,11 @@ MC_SEED = 7
 LOW_CONF = 0.6
 EMAILS_GAP_S = 3.2          # /emails is limited to 20 req/min
 RETRY_429_S = 20.0
-MAX_429_RETRIES = 4
+MAX_429_RETRIES = 4         # retries on 429 and on 500/502/503/504 (same backoff)
+RETRY_STATUSES = (429, 500, 502, 503, 504)
+MAX_PAGES = 200
+# Reply attribution (thread lookups on /emails): at 3.2 s each, 75 lookups ~ 4 min.
+MAX_THREAD_LOOKUPS = 75
 
 VALIDATE_MIN_CONTACTED = 150
 VALIDATE_RENDERS = 5
@@ -125,6 +130,29 @@ class ApiError(RuntimeError):
     """Instantly or Jev failure -> exit 2."""
 
 
+class ConfigError(ValueError):
+    """Unreadable or malformed config / copy JSON -> clear message, exit 2."""
+
+
+def load_json(path: str | Path, what: str) -> Any:
+    """Read a JSON file; any read/parse failure becomes a one-line ConfigError (no traceback)."""
+    try:
+        return json.loads(Path(path).read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:
+        raise ConfigError(f"{what} not found: {path}") from exc
+    except (OSError, UnicodeDecodeError) as exc:
+        raise ConfigError(f"{what} unreadable: {path}: {exc.__class__.__name__}") from exc
+    except ValueError as exc:  # json.JSONDecodeError
+        raise ConfigError(f"{what} is not valid JSON: {path}: {exc}") from exc
+
+
+def load_config(path: str | Path) -> dict[str, Any]:
+    cfg = load_json(path, "config")
+    if not isinstance(cfg, dict) or not isinstance(cfg.get("tests", []), list):
+        raise ConfigError(f"config must be a JSON object with a 'tests' list: {path}")
+    return cfg
+
+
 @dataclass
 class RunStats:
     """Technical counters for the ledger. Updated only from the main thread."""
@@ -135,6 +163,9 @@ class RunStats:
     low_conf: int = 0
     api_retries: int = 0
     api_errors: int = 0
+    replies_pre_test: int = 0       # excluded: answer an outbound sent before the test started
+    replies_unattributed: int = 0   # excluded: answering outbound could not be determined
+    thread_lookups: int = 0
 
     def reset(self) -> None:
         for k, v in asdict(RunStats()).items():
@@ -309,9 +340,11 @@ def aggregate_metrics(step_rows: list[dict[str, Any]], replies: list[dict[str, A
                       baseline: dict[str, int] | None = None) -> dict[int, dict[int, dict[str, int]]]:
     """Merge analytics/steps rows with classified replies -> {step: {variant: {sent, positive, human, unsub, auto}}}.
 
-    analytics/steps ignores start_date for `sent` (verified 2026-11-02: lifetime totals), so the
-    config stores `baseline_sent` {"step_variant": sent-at-test-start}; it is subtracted (floor 0)
-    so a control arm with months of history is compared on the same window as new arms.
+    analytics/steps is called WITHOUT start_date: `sent` is lifetime either way, and with
+    start_date == the day the variants were created it omits the new variants' rows entirely
+    (verified 2026-11-02). The config stores `baseline_sent` {"step_variant": sent-at-test-start};
+    it is subtracted (floor 0) so a control arm with months of history is compared on the same
+    window as new arms.
 
     `replies` items: {"step": "0_s_v", "kind": <effective kind>}. Only sequence 0 counts.
     """
@@ -568,6 +601,9 @@ def apply_role_disable(api: Any, plan: dict[str, list[Any]], step: int) -> list[
             out.append(dict(t, status="disabled" if ok else "failed", why="" if ok else "change not confirmed on re-read"))
         except ApiError as exc:
             out.append(dict(t, status="failed", why=str(exc)))
+        except (KeyError, IndexError, TypeError, ValueError, AttributeError) as exc:
+            # Malformed campaign payload for this target only: report it and keep going.
+            out.append(dict(t, status="failed", why=f"unexpected campaign shape: {exc.__class__.__name__}: {exc}"))
     return out
 
 
@@ -595,6 +631,66 @@ def strip_quoted(text: str) -> str:
             break
         lines.append(line)
     return "\n".join(lines).strip()
+
+
+def _parse_ts(s: Any) -> dt.datetime | None:
+    try:
+        t = dt.datetime.fromisoformat(str(s or "").replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return t if t.tzinfo else t.replace(tzinfo=dt.timezone.utc)
+
+
+def outbound_for(reply: dict[str, Any], thread_sent: list[dict[str, Any]]) -> dt.datetime | None:
+    """Send time of the outbound email a reply answers: latest sent email (ue_type 1) in the thread
+    with the reply's `step` key, sent at or before the reply. None when it cannot be determined."""
+    r_ts, step = _parse_ts(reply.get("timestamp_email")), reply.get("step")
+    best = None
+    for e in thread_sent:
+        if e.get("ue_type") not in (1, None) or e.get("step") != step:
+            continue
+        ts = _parse_ts(e.get("timestamp_email"))
+        if ts is None or (r_ts is not None and ts > r_ts):
+            continue
+        if best is None or ts > best:
+            best = ts
+    return best
+
+
+def attribute_replies(emails: list[dict[str, Any]], started: str, baseline: dict[str, Any] | None,
+                      thread_sent: Callable[[str], list[dict[str, Any]] | None]
+                      ) -> tuple[list[dict[str, Any]], dict[str, int]]:
+    """Keep only replies to outbound emails sent on/after `started` (the window `sent` is measured on).
+
+    Only the control/old slots had pre-test sends, so counting every reply received since `started`
+    would credit them with replies to old sends. A slot with no pre-test sends (`baseline_sent` 0 or
+    absent while the test has a baseline) is post-test by construction: no lookup. Other replies
+    look up their thread's sent emails via `thread_sent(thread_id)`; the caller caches per thread
+    and bounds the calls, returning None once its budget is spent. A reply with no step, no thread,
+    no matching outbound, or past the budget is excluded and counted as `unattributed`.
+    Returns (kept emails, {"pre_test": n, "unattributed": n}).
+    """
+    start = dt.datetime.fromisoformat(started).replace(tzinfo=dt.timezone.utc)
+    kept: list[dict[str, Any]] = []
+    counts = {"pre_test": 0, "unattributed": 0}
+    for e in emails:
+        key = parse_step_key(e.get("step"))
+        if key is None:
+            counts["unattributed"] += 1
+            continue
+        if baseline is not None and int(baseline.get(f"{key[1]}_{key[2]}") or 0) == 0:
+            kept.append(e)
+            continue
+        tid = e.get("thread_id")
+        thread = thread_sent(tid) if tid else None
+        sent_at = outbound_for(e, thread) if thread is not None else None
+        if sent_at is None:
+            counts["unattributed"] += 1
+        elif sent_at >= start:
+            kept.append(e)
+        else:
+            counts["pre_test"] += 1
+    return kept, counts
 
 
 # ======================================================================================
@@ -634,9 +730,16 @@ def _sum_cells(cells_list: list[dict[str, int]]) -> dict[str, int]:
     return out
 
 
+OVERALL_LABEL = "cross-family (reporting only)"
+
+
 def ledger_row(families: dict[str, dict[str, Any]], run_seconds: float, *, live: bool, today: dt.date,
                started: list[str], decisions: int, stats: RunStats) -> dict[str, Any]:
-    """One monitor ledger line. `families`: {name: {"pool": pool_family(...), "campaigns": n}}."""
+    """One monitor ledger line. `families`: {name: {"pool": pool_family(...), "campaigns": n}}.
+
+    `overall` pools step-1 roles by name ACROSS families (control of one family with control of
+    another); it feeds the scorecard only and never a decision, so it carries OVERALL_LABEL.
+    """
     fam_out: dict[str, Any] = {}
     overall_step0: dict[str, list[dict[str, int]]] = {}
     all_cells: list[dict[str, int]] = []
@@ -649,6 +752,7 @@ def ledger_row(families: dict[str, dict[str, Any]], run_seconds: float, *, live:
             all_cells += list(s_cells.values())
     overall = role_block({r: _sum_cells(cs) for r, cs in sorted(overall_step0.items(), key=lambda kv: _role_sort_key(kv[0]))})
     overall["totals"] = _sum_cells(all_cells)
+    overall["label"] = OVERALL_LABEL
     first = min(started) if started else today.isoformat()
     return {
         "type": "monitor", "date": today.isoformat(), "live": live, "run_seconds": round(run_seconds, 1),
@@ -657,6 +761,7 @@ def ledger_row(families: dict[str, dict[str, Any]], run_seconds: float, *, live:
             "jev_calls": stats.jev_calls, "jev_cost_usd": round(stats.jev_cost_usd, 6), "jev_errors": stats.jev_errors,
             "jev_low_conf_share": (stats.low_conf / stats.replies) if stats.replies else 0.0,
             "api_retries": stats.api_retries, "api_errors": stats.api_errors, "decisions_made": decisions,
+            "replies_pre_test": stats.replies_pre_test, "replies_unattributed": stats.replies_unattributed,
             "days_since_start": (today - dt.date.fromisoformat(first)).days,
         },
     }
@@ -665,7 +770,7 @@ def ledger_row(families: dict[str, dict[str, Any]], run_seconds: float, *, live:
 # (key, label, op, target, kind) -- kind drives formatting: pct | rel | count | sec | rho
 SCORECARD = [
     ("pos_rate_best_new", "Positive reply rate, step 1 best new role", ">=", 0.010, "pct"),
-    ("uplift", "Uplift best new vs control (relative)", ">", 0.0, "rel"),
+    ("uplift", "Uplift best new vs control (relative, cross-family, reporting only)", ">", 0.0, "rel"),
     ("unsub_rate", "Unsub/complaint rate", "<=", 0.005, "pct"),
     ("auto_rate", "Auto-reply (OOO) rate, inbox proxy", ">=", 0.008, "pct"),
     ("jev_low_conf_share", "Jev low-confidence share", "<=", 0.15, "pct"),
@@ -703,6 +808,10 @@ def metric_met(op: str, value: float | None, target: float) -> bool | None:
     return {">=": value >= target, ">": value > target, "<=": value <= target}[op]
 
 
+BUSINESS_METRICS = ("pos_rate_best_new", "uplift", "unsub_rate", "auto_rate")
+GRADE_MIN_MEASURABLE = 7
+
+
 def grade(share: float) -> str:
     """A >= 90%, B >= 75%, C >= 60%, D >= 40%, else F."""
     for g, lo in (("A", 0.90), ("B", 0.75), ("C", 0.60), ("D", 0.40)):
@@ -711,13 +820,25 @@ def grade(share: float) -> str:
     return "F"
 
 
-def nearest_row(rows: list[dict[str, Any]], today: dt.date, typ: str = "monitor",
-                lo: int = 6, hi: int = 8) -> dict[str, Any] | None:
-    """Ledger row of `typ` dated lo..hi days before today, nearest to the midpoint (later wins a tie; last line of a day wins)."""
+def scorecard_grade(met: int, measurable: int, business_measurable: int) -> str:
+    """Letter grade only with >= 1 measurable business metric AND >= 7/9 measurable; else "n/a (k/9 measurable)".
+
+    Dropping n/a metrics from the denominator alone graded a no-data day "A" on 5/9 technical targets.
+    """
+    if business_measurable < 1 or measurable < GRADE_MIN_MEASURABLE:
+        return f"n/a ({measurable}/{len(SCORECARD)} measurable)"
+    return grade(met / measurable)
+
+
+def nearest_row(rows: list[dict[str, Any]], today: dt.date, lo: int = 6, hi: int = 8) -> dict[str, Any] | None:
+    """Live monitor row dated lo..hi days before today, nearest to the midpoint (later wins a tie; last line of a day wins).
+
+    Only `type: monitor` rows with `live: true` count: a dry run is not a baseline.
+    """
     mid = (lo + hi) / 2
     best, best_key = None, None
     for r in rows:
-        if r.get("type") != typ or r.get("error"):
+        if r.get("type") != "monitor" or r.get("live") is not True or r.get("error"):
             continue
         try:
             age = (today - dt.date.fromisoformat(str(r.get("date")))).days
@@ -759,7 +880,7 @@ def scorecard_lines(row: dict[str, Any], history: list[dict[str, Any]], today: d
     old = nearest_row(history, today)
     old_vals = scorecard_values(old, latest_row(history, "validate", str(old.get("date"))) if old else None) if old else {}
     lines = ["## Scorecard", "", "| Metric | Target | Today | Δ vs ~7 days ago | Status |", "|---|---|---|---|---|"]
-    met = measurable = 0
+    met = measurable = business = 0
     for key, label, op, target, kind in SCORECARD:
         v = vals.get(key)
         ok = metric_met(op, v, target)
@@ -768,9 +889,10 @@ def scorecard_lines(row: dict[str, Any], history: list[dict[str, Any]], today: d
         if ok is not None:
             measurable += 1
             met += int(ok)
+            business += int(key in BUSINESS_METRICS)
         status = "n/a" if ok is None else ("✅" if ok else "⚠️")
         lines.append(f"| {label} | {op} {_fmt(kind, target)} | {_fmt(kind, v)} | {_fmt(kind, d, delta=True)} | {status} |")
-    g = grade(met / measurable) if measurable else "n/a"
+    g = scorecard_grade(met, measurable, business)
     lines += ["", f"**Grade {g}** ({met}/{measurable} measurable targets met)", ""]
     return lines, g
 
@@ -812,6 +934,8 @@ class Instantly:
         self.s.headers.update({"Authorization": f"Bearer {key}", "User-Agent": USER_AGENT,
                                "Accept": "application/json"})
         self._last_emails = 0.0
+        self._threads: dict[str, list[dict[str, Any]]] = {}
+        self.thread_budget = MAX_THREAD_LOOKUPS
 
     def _req(self, method: str, path: str, *, params: Any = None, body: Any = None) -> Any:
         for attempt in range(MAX_429_RETRIES + 1):
@@ -820,7 +944,7 @@ class Instantly:
             except requests.RequestException as exc:
                 STATS.api_errors += 1
                 raise ApiError(f"{method} {path}: {exc.__class__.__name__}") from exc
-            if r.status_code == 429 and attempt < MAX_429_RETRIES:
+            if r.status_code in RETRY_STATUSES and attempt < MAX_429_RETRIES:
                 STATS.api_retries += 1
                 time.sleep(RETRY_429_S)
                 continue
@@ -833,7 +957,7 @@ class Instantly:
                 STATS.api_errors += 1
                 raise ApiError(f"{method} {path}: non-JSON response") from exc
         STATS.api_errors += 1
-        raise ApiError(f"{method} {path}: rate-limited")
+        raise ApiError(f"{method} {path}: retries exhausted")
 
     def get(self, path: str, params: Any = None) -> Any:
         return self._req("GET", path, params=params)
@@ -844,33 +968,56 @@ class Instantly:
     def patch_sequences(self, cid: str, sequences: list[dict[str, Any]]) -> Any:
         return self._req("PATCH", f"/campaigns/{cid}", body={"sequences": sequences})
 
-    def step_analytics(self, cid: str, start: str) -> list[dict[str, Any]]:
-        res = self.get("/campaigns/analytics/steps", {"campaign_id": cid, "start_date": start})
+    def step_analytics(self, cid: str) -> list[dict[str, Any]]:
+        """Lifetime per-(step, variant) rows. NO start_date: with start_date == the day the variants
+        were created, Instantly omits the new variants' rows entirely (verified 2026-11-02)."""
+        res = self.get("/campaigns/analytics/steps", {"campaign_id": cid})
         return res if isinstance(res, list) else []
+
+    def _emails_get(self, params: dict[str, Any]) -> Any:
+        """GET /emails honouring its 20 req/min limit."""
+        wait = EMAILS_GAP_S - (time.monotonic() - self._last_emails)
+        if wait > 0:
+            time.sleep(wait)
+        try:
+            return self.get("/emails", params)
+        finally:
+            self._last_emails = time.monotonic()
 
     def received_emails(self, cid: str, started: str) -> list[dict[str, Any]]:
         out: list[dict[str, Any]] = []
-        after = None
-        while True:
-            wait = EMAILS_GAP_S - (time.monotonic() - self._last_emails)
-            if wait > 0:
-                time.sleep(wait)
+        after, seen = None, set()
+        for _ in range(MAX_PAGES):
             params = {"campaign_id": cid, "email_type": "received", "limit": 100,
                       "min_timestamp_created": f"{started}T00:00:00.000Z"}
             if after:
                 params["starting_after"] = after
-            res = self.get("/emails", params)
-            self._last_emails = time.monotonic()
+            res = self._emails_get(params)
             items = res.get("items") or []
             out.extend(i for i in items if i.get("ue_type") == 2 and str(i.get("timestamp_email") or "")[:10] >= started)
             after = res.get("next_starting_after")
-            if not items or not after:
-                return out
+            if not items or not after or after in seen:
+                break
+            seen.add(after)
+        return out
+
+    def thread_sent(self, thread_id: str) -> list[dict[str, Any]] | None:
+        """Sent emails of one thread (cached per thread). None once the per-client lookup budget is spent."""
+        if thread_id in self._threads:
+            return self._threads[thread_id]
+        if self.thread_budget <= 0:
+            return None
+        self.thread_budget -= 1
+        STATS.thread_lookups += 1
+        res = self._emails_get({"search": f"thread:{thread_id}", "email_type": "sent", "limit": 100})
+        items = [i for i in (res.get("items") or []) if isinstance(i, dict)]
+        self._threads[thread_id] = items
+        return items
 
     def paged(self, path: str, params: dict[str, Any]) -> list[dict[str, Any]]:
         out: list[dict[str, Any]] = []
         after = None
-        for _ in range(200):
+        for _ in range(MAX_PAGES):
             p = dict(params, limit=100)
             if after:
                 p["starting_after"] = after
@@ -989,8 +1136,12 @@ def fetch_snapshot(api: Instantly, tests: list[dict[str, Any]]) -> dict[str, Any
         c = api.campaign(cid)
         entry: dict[str, Any] = {"status": c.get("status"), "sequences": c.get("sequences") or []}
         if c.get("status") == 1:
-            entry["step_rows"] = api.step_analytics(cid, t["started"])
-            entry["emails"] = api.received_emails(cid, t["started"])
+            entry["step_rows"] = api.step_analytics(cid)
+            received = api.received_emails(cid, t["started"])
+            entry["emails"], entry["attribution"] = attribute_replies(
+                received, t["started"], t.get("baseline_sent"), api.thread_sent)
+            STATS.replies_pre_test += entry["attribution"]["pre_test"]
+            STATS.replies_unattributed += entry["attribution"]["unattributed"]
         camps[cid] = entry
     return {"tests": tests, "campaigns": camps}
 
@@ -1013,12 +1164,16 @@ def compute(snap: dict[str, Any], replies: dict[str, list[dict[str, Any]]]) -> d
     """Pure: snapshot + classified replies -> {"families": {name: {...}}, "started": [...]}. Families in config order."""
     families: dict[str, dict[str, Any]] = {}
     for t in snap["tests"]:
-        fam = families.setdefault(t.get("family") or t["campaign_id"], {"members": [], "skipped": []})
+        fam = families.setdefault(t.get("family") or t["campaign_id"],
+                                  {"members": [], "skipped": [], "warnings": [], "unattributed": 0})
         c = snap["campaigns"].get(t["campaign_id"]) or {}
         name = t.get("name") or t["campaign_id"]
         if c.get("status") != 1:
             fam["skipped"].append(f"{name} (status {c.get('status')})")
             continue
+        if not t.get("baseline_sent"):
+            fam["warnings"].append(f"{name}: no baseline_sent, sends are lifetime totals (not windowed to the test)")
+        fam["unattributed"] += int((c.get("attribution") or {}).get("unattributed", 0))
         state = variant_state_of(c.get("sequences") or [])
         fam["members"].append({
             "campaign_id": t["campaign_id"], "name": name, "roles": campaign_roles(t, state), "state": state,
@@ -1062,6 +1217,10 @@ def family_lines(name: str, f: dict[str, Any], *, live: bool, outcomes: list[dic
     lines = [f"## Family: {name} ({len(members)} active campaign{'s' if len(members) != 1 else ''})", ""]
     if f["skipped"]:
         lines += [f"Skipped (not active): {', '.join(f['skipped'])}", ""]
+    for w in f.get("warnings") or []:
+        lines.append(f"- Warning: {w}")
+    if f.get("warnings"):
+        lines.append("")
     if not d:
         return lines + ["No active campaigns.", ""]
     total = len(members)
@@ -1072,6 +1231,8 @@ def family_lines(name: str, f: dict[str, Any], *, live: bool, outcomes: list[dic
             p = d["pbest"].get((s, role))
             lines.append(f"| {s + 1} | {role} | {c['n']} | {c['sent']} | {c['positive']} | {c['human']} | {c['unsub']} | "
                          f"{c['auto']} | {'-' if p is None else f'{p:.2f}'} | {c['active']}/{c['n']} |")
+    if f.get("unattributed"):
+        lines += ["", f"Unattributed replies (excluded from counts): {f['unattributed']}"]
     lines += ["", "**Actions**", ""]
     a = d["action"]
     if a is None:
@@ -1141,9 +1302,9 @@ def _technical_only(today: dt.date, err: str, run_seconds: float) -> dict[str, A
 # ======================================================================================
 
 def _load_copies(path: str | Path) -> list[dict[str, Any]]:
-    copies = json.loads(Path(path).read_text(encoding="utf-8"))
-    if not isinstance(copies, list):
-        raise SystemExit("--copy must be a JSON list of {id, subject, body}")
+    copies = load_json(path, "copy file")
+    if not isinstance(copies, list) or not all(isinstance(c, dict) for c in copies):
+        raise ConfigError(f"copy file must be a JSON list of {{id, subject, body}}: {path}")
     return copies
 
 
@@ -1203,9 +1364,10 @@ def cmd_validate(args: argparse.Namespace) -> int:
     report = "\n".join(lines) + "\n"
     print(report)
     _write_out("validate", report)
-    append_ledger({"type": "validate", "date": utc_today().isoformat(), "campaigns": len(res_rows),
-                   "spearman": {k: round(v, 4) for k, v in corr.items()}, "jev_cost_usd": round(STATS.jev_cost_usd, 6),
-                   "jev_errors": STATS.jev_errors})
+    if args.record:
+        append_ledger({"type": "validate", "date": utc_today().isoformat(), "record": True, "campaigns": len(res_rows),
+                       "spearman": {k: round(v, 4) for k, v in corr.items()},
+                       "jev_cost_usd": round(STATS.jev_cost_usd, 6), "jev_errors": STATS.jev_errors})
     return 0
 
 
@@ -1225,15 +1387,22 @@ def run_monitor(api: Instantly, cfg: dict[str, Any], *, live: bool, detail: bool
 def cmd_monitor(args: argparse.Namespace) -> int:
     t0 = time.monotonic()
     STATS.reset()
-    cfg = json.loads(Path(args.config).read_text(encoding="utf-8"))
+    cfg = load_config(args.config)
     today = utc_today()
     try:
-        api = instantly_client()
-        body, result = run_monitor(api, cfg, live=args.live, detail=args.detail)
-        inbox = inbox_section(api, cfg.get("tag_ids") or [])
-    except ApiError as exc:
-        append_ledger(_technical_only(today, str(exc), time.monotonic() - t0))
+        return _monitor_once(args, cfg, today, t0)
+    except Exception as exc:
+        # Any failure (API or a bug): a live run leaves a technical-only ledger line, then the
+        # exception propagates (ApiError -> exit 2; anything else -> traceback, non-zero exit).
+        if args.live:
+            append_ledger(_technical_only(today, f"{exc.__class__.__name__}: {exc}", time.monotonic() - t0))
         raise
+
+
+def _monitor_once(args: argparse.Namespace, cfg: dict[str, Any], today: dt.date, t0: float) -> int:
+    api = instantly_client()
+    body, result = run_monitor(api, cfg, live=args.live, detail=args.detail)
+    inbox = inbox_section(api, cfg.get("tag_ids") or [])
     run_seconds = time.monotonic() - t0
     fams = {n: {"pool": f["decision"]["pool"], "campaigns": len(f["members"])}
             for n, f in result["families"].items() if f.get("decision")}
@@ -1245,7 +1414,8 @@ def cmd_monitor(args: argparse.Namespace) -> int:
     report = "\n".join(lines) + "\n"
     print(report)
     _write_out("report", report)
-    append_ledger(row)
+    if args.live:  # dry runs never touch the ledger (they would pollute the Δ-7d baseline)
+        append_ledger(row)
     return 0
 
 
@@ -1329,7 +1499,7 @@ def _agreement(runs: list[list[str]]) -> float:
 def cmd_eval(args: argparse.Namespace) -> int:
     t0 = time.monotonic()
     STATS.reset()
-    cfg = json.loads(Path(args.config).read_text(encoding="utf-8"))
+    cfg = load_config(args.config)
     tests = cfg.get("tests") or []
     api = instantly_client()
     res: dict[str, dict[str, Any]] = {}
@@ -1348,7 +1518,7 @@ def cmd_eval(args: argparse.Namespace) -> int:
     # E2: two full dry-run passes back to back.
     p1, res1 = run_monitor(api, cfg, live=False, detail=False)
     p2, res2 = run_monitor(api, cfg, live=False, detail=False)
-    tdiff = [l for l in difflib.unified_diff(p1, p2, lineterm="", n=0) if l[:1] in "+-" and l[:3] not in ("+++", "---")]
+    tdiff = [ln for ln in difflib.unified_diff(p1, p2, lineterm="", n=0) if ln[:1] in "+-" and ln[:3] not in ("+++", "---")]
     e2 = actions_of(res1) == actions_of(res2)
     res["E2"] = {"pass": e2, "actions": len(actions_of(res1)), "table_lines_changed": len(tdiff),
                  "detail": f"actions {'identical' if e2 else 'DIFFER'} ({len(actions_of(res1))}); "
@@ -1398,10 +1568,11 @@ def cmd_eval(args: argparse.Namespace) -> int:
     report = "\n".join(lines) + "\n"
     print(report)
     _write_out("eval", report)
-    append_ledger({"type": "eval", "date": utc_today().isoformat(), "run_seconds": round(run_s, 1),
-                   "results": {k: {kk: vv for kk, vv in v.items() if kk != "detail"} for k, v in res.items()},
-                   "jev_calls": STATS.jev_calls, "jev_cost_usd": round(STATS.jev_cost_usd, 6), "jev_errors": STATS.jev_errors,
-                   "api_retries": STATS.api_retries, "api_errors": STATS.api_errors})
+    if args.record:
+        append_ledger({"type": "eval", "date": utc_today().isoformat(), "record": True, "run_seconds": round(run_s, 1),
+                       "results": {k: {kk: vv for kk, vv in v.items() if kk != "detail"} for k, v in res.items()},
+                       "jev_calls": STATS.jev_calls, "jev_cost_usd": round(STATS.jev_cost_usd, 6),
+                       "jev_errors": STATS.jev_errors, "api_retries": STATS.api_retries, "api_errors": STATS.api_errors})
     return 0 if all(v["pass"] for v in res.values()) else 1
 
 
@@ -1412,11 +1583,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     g = sub.add_parser("gate", help="Pre-launch Jev gate for spun copy.")
     g.add_argument("--copy", required=True, help="JSON list of {id, subject, body}.")
     v = sub.add_parser("validate", help="Weekly Jev-vs-reply-rate drift check.")
+    v.add_argument("--record", action="store_true", help="Append a ledger line (scheduled run).")
     m = sub.add_parser("monitor", help="Daily family-pooled scoring; dry run unless --live.")
     m.add_argument("--live", action="store_true", help="Apply changes (PATCH Instantly).")
     m.add_argument("--detail", action="store_true", help="Also print per-campaign variant tables.")
     e = sub.add_parser("eval", help="E1-E5 idempotency/consistency evals (read-only).")
     e.add_argument("--copy", default=str(DEFAULT_COPY), help="Copy file for the E5 gate-stability eval.")
+    e.add_argument("--record", action="store_true", help="Append a ledger line (scheduled run).")
     for sp in (g, v, m, e):
         sp.add_argument("--config", default=argparse.SUPPRESS, help="Same as the top-level --config.")
     return p.parse_args(argv)
@@ -1429,6 +1602,9 @@ def main(argv: list[str] | None = None) -> int:
         return handlers[args.cmd](args)
     except ApiError as exc:
         print(f"API failure: {exc}", file=sys.stderr)
+        return 2
+    except ConfigError as exc:
+        print(f"Config error: {exc}", file=sys.stderr)
         return 2
 
 

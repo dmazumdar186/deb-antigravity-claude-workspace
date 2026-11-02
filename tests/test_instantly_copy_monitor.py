@@ -1,7 +1,10 @@
 """Offline unit tests for the pure decision logic in execution/infrastructure/instantly_copy_monitor.py."""
 from __future__ import annotations
 
+import json
 import random
+
+import pytest
 
 from execution.infrastructure import instantly_copy_monitor as m
 
@@ -337,10 +340,10 @@ def test_role_block_uplift_positive_and_human_fallback():
     assert m.role_block({"control": _cell(0), "B": _cell(0)})["best_new_vs_control_uplift"] is None
 
 
-def _row(date, pos_b=10, sent=1000, low=0.1, run=100.0):
+def _row(date, pos_b=10, sent=1000, low=0.1, run=100.0, live=True):
     pool = {"cells": {0: {"control": _cell(sent, 5, 20, 2, 9), "B": _cell(sent, pos_b, 25, 1, 10), "C": _cell(sent, 2, 10, 0, 6)}}}
     st = m.RunStats(jev_calls=10, replies=10, low_conf=int(low * 10))
-    return m.ledger_row({"recruitment": {"pool": pool, "campaigns": 8}}, run, live=False,
+    return m.ledger_row({"recruitment": {"pool": pool, "campaigns": 8}}, run, live=live,
                         today=m.dt.date.fromisoformat(date), started=["2026-11-02"], decisions=0, stats=st)
 
 
@@ -354,13 +357,16 @@ def test_ledger_row_shape_and_scorecard_values():
 
 
 def test_nearest_row_window():
-    rows = [{"type": "monitor", "date": d} for d in ("2026-11-01", "2026-11-02", "2026-11-03", "2026-11-05")]
+    rows = [{"type": "monitor", "live": True, "date": d} for d in ("2026-11-01", "2026-11-02", "2026-11-03", "2026-11-05")]
     today = m.dt.date(2026, 11, 9)
     assert m.nearest_row(rows, today)["date"] == "2026-11-02"            # 7 days back
     assert m.nearest_row(rows[2:], today)["date"] == "2026-11-03"        # 6 days back
     assert m.nearest_row(rows[3:], today) is None                        # 4 days back -> n/a
     assert m.nearest_row([{"type": "validate", "date": "2026-11-02"}], today) is None
-    assert m.nearest_row([{"type": "monitor", "date": "2026-11-02", "error": "x"}], today) is None
+    assert m.nearest_row([{"type": "monitor", "live": True, "date": "2026-11-02", "error": "x"}], today) is None
+    # Only live monitor rows are a baseline: dry runs (live false / missing) are ignored.
+    assert m.nearest_row([{"type": "monitor", "live": False, "date": "2026-11-02"}], today) is None
+    assert m.nearest_row([{"type": "monitor", "date": "2026-11-02"}], today) is None
 
 
 def test_scorecard_lines_delta_and_grade():
@@ -378,7 +384,8 @@ def test_ledger_append_and_load(tmp_path):
     p = tmp_path / "sub" / "ledger.jsonl"
     m.append_ledger({"type": "monitor", "date": "2026-11-02"}, p)
     m.append_ledger({"type": "eval", "date": "2026-11-02"}, p)
-    p.open("a", encoding="utf-8").write("not json\n")
+    with p.open("a", encoding="utf-8") as fh:
+        fh.write("not json\n")
     rows = m.load_ledger(p)
     assert [r["type"] for r in rows] == ["monitor", "eval"] and all("ts" in r for r in rows)
     assert m.load_ledger(tmp_path / "missing.jsonl") == []
@@ -418,3 +425,332 @@ def test_sync_wanted_uses_roles_and_drift():
     assert len(sync.drift(seq, want)) == 4
     fixed = sync.patched(seq, want)
     assert sync.drift(fixed, want) == [] and fixed[0]["steps"][0]["variants"][0] == {"subject": "ctl", "body": "x"}
+
+
+# ---- 2026-11-02 audit fixes -----------------------------------------------------------------
+
+class _Resp:
+    def __init__(self, status, payload):
+        self.status_code, self._payload, self.text = status, payload, json.dumps(payload)
+
+    def json(self):
+        return self._payload
+
+
+class _Session:
+    """Fake requests.Session: pops queued (status, payload) responses, records every call."""
+
+    def __init__(self, responses):
+        self.responses, self.calls = list(responses), []
+
+    def request(self, method, url, params=None, json=None, timeout=None):
+        self.calls.append((method, url, dict(params or {})))
+        return _Resp(*self.responses.pop(0))
+
+
+def _client(responses, monkeypatch):
+    monkeypatch.setattr(m, "RETRY_429_S", 0)
+    monkeypatch.setattr(m, "EMAILS_GAP_S", 0)
+    api = m.Instantly("k")
+    api.s = _Session(responses)
+    return api
+
+
+# 1. analytics/steps without start_date; new-variant rows kept
+def test_step_analytics_has_no_start_date_and_new_variant_rows_are_kept(monkeypatch):
+    rows = [{"step": "0", "variant": "0", "sent": 96}, {"step": "0", "variant": "1", "sent": 5},
+            {"step": "0", "variant": "2", "sent": 4}]
+    api = _client([(200, rows)], monkeypatch)
+    got = api.step_analytics("cid")
+    assert "start_date" not in api.s.calls[0][2] and api.s.calls[0][2] == {"campaign_id": "cid"}
+    agg = m.aggregate_metrics(got, [], {"0_0": 91})
+    assert agg[0][0]["sent"] == 5 and agg[0][1]["sent"] == 5 and agg[0][2]["sent"] == 4
+
+
+# 2. reply / send window: only replies to outbound sent on/after `started`
+def _rep(step, ts, thread="t1"):
+    return {"step": step, "timestamp_email": ts, "thread_id": thread}
+
+
+def _sent(step, ts):
+    return {"step": step, "ue_type": 1, "timestamp_email": ts}
+
+
+def test_outbound_for_latest_matching_step_before_reply():
+    thread = [_sent("0_0_0", "2026-10-15T01:00:00.000Z"), _sent("0_1_0", "2026-10-20T01:00:00.000Z"),
+              _sent("0_1_0", "2026-11-03T01:00:00.000Z"), _sent("0_1_0", "2026-11-09T01:00:00.000Z")]
+    got = m.outbound_for(_rep("0_1_0", "2026-11-04T09:00:00.000Z"), thread)
+    assert got == m.dt.datetime(2026, 11, 3, 1, tzinfo=m.dt.timezone.utc)
+    assert m.outbound_for(_rep("0_2_0", "2026-11-04T09:00:00.000Z"), thread) is None
+
+
+def test_attribute_replies_excludes_pre_test_sends_and_counts_unattributed():
+    threads = {
+        "old": [_sent("0_0_0", "2026-10-20T01:00:00.000Z")],     # control send before the test
+        "new": [_sent("0_0_0", "2026-11-03T01:00:00.000Z")],     # control send during the test
+        "none": [_sent("0_1_0", "2026-11-03T01:00:00.000Z")],    # no outbound for the reply's step
+    }
+    looked = []
+
+    def lookup(tid):
+        looked.append(tid)
+        return threads.get(tid)
+
+    emails = [_rep("0_0_0", "2026-11-04T00:00:00Z", "old"), _rep("0_0_0", "2026-11-04T00:00:00Z", "new"),
+              _rep("0_0_0", "2026-11-04T00:00:00Z", "none"), _rep("0_0_1", "2026-11-04T00:00:00Z", "x"),
+              _rep(None, "2026-11-04T00:00:00Z", "y"), _rep("0_0_0", "2026-11-04T00:00:00Z", "budget-spent"),
+              {"step": "0_0_0", "timestamp_email": "2026-11-04T00:00:00Z"}]
+    kept, counts = m.attribute_replies(emails, "2026-11-02", {"0_0": 91, "0_1": 0}, lookup)
+    assert [e["thread_id"] for e in kept] == ["new", "x"]                  # slot 0_1 has no pre-test sends: no lookup
+    assert counts == {"pre_test": 1, "unattributed": 4}
+    assert "x" not in looked
+    # Without a baseline every reply is looked up.
+    kept2, _ = m.attribute_replies([_rep("0_0_1", "2026-11-04T00:00:00Z", "new")], "2026-11-02", None, lookup)
+    assert kept2 == [] and looked[-1] == "new"
+
+
+def test_aggregate_after_attribution_does_not_credit_control_with_old_replies():
+    rows = [{"step": "0", "variant": "0", "sent": 191}, {"step": "0", "variant": "1", "sent": 100}]
+    emails = [dict(_rep("0_0_0", "2026-11-04T00:00:00Z", "old"), kind="interested"),
+              dict(_rep("0_0_1", "2026-11-04T00:00:00Z", "b"), kind="interested")]
+    kept, _ = m.attribute_replies(emails, "2026-11-02", {"0_0": 91},
+                                  lambda tid: [_sent("0_0_0", "2026-10-20T00:00:00Z")])
+    agg = m.aggregate_metrics(rows, kept, {"0_0": 91})
+    assert agg[0][0]["positive"] == 0 and agg[0][1]["positive"] == 1
+
+
+def test_thread_sent_cached_and_budget_bounded(monkeypatch):
+    api = _client([(200, {"items": [_sent("0_0_0", "2026-11-03T00:00:00Z")]}), (200, {"items": []})], monkeypatch)
+    api.thread_budget = 2
+    assert len(api.thread_sent("a")) == 1 and len(api.thread_sent("a")) == 1   # cached: one call
+    assert api.s.calls[0][2] == {"search": "thread:a", "email_type": "sent", "limit": 100}
+    assert api.thread_sent("b") == [] and api.thread_sent("c") is None          # budget spent
+    assert len(api.s.calls) == 2
+
+
+def test_fetch_snapshot_attributes_and_counts(monkeypatch):
+    class Api:
+        def campaign(self, cid):
+            return {"status": 1, "sequences": []}
+
+        def step_analytics(self, cid):
+            return []
+
+        def received_emails(self, cid, started):
+            return [_rep("0_0_0", "2026-11-04T00:00:00Z", "old"), _rep("0_0_1", "2026-11-04T00:00:00Z", "b")]
+
+        def thread_sent(self, tid):
+            return [_sent("0_0_0", "2026-10-20T00:00:00Z")]
+
+    m.STATS.reset()
+    snap = m.fetch_snapshot(Api(), [{"campaign_id": "c", "started": "2026-11-02", "baseline_sent": {"0_0": 5}}])
+    c = snap["campaigns"]["c"]
+    assert [e["thread_id"] for e in c["emails"]] == ["b"] and c["attribution"] == {"pre_test": 1, "unattributed": 0}
+    assert m.STATS.replies_pre_test == 1
+
+
+# 3. grade needs business data and >= 7/9 measurable
+def test_scorecard_grade_rule():
+    assert m.scorecard_grade(5, 5, 0) == "n/a (5/9 measurable)"
+    assert m.scorecard_grade(6, 6, 1) == "n/a (6/9 measurable)"
+    assert m.scorecard_grade(7, 7, 0) == "n/a (7/9 measurable)"
+    assert m.scorecard_grade(7, 7, 1) == "A" and m.scorecard_grade(5, 8, 2) == "C"
+
+
+def test_scorecard_no_business_data_is_not_graded():
+    row = _row("2026-11-09", sent=0)
+    lines, g = m.scorecard_lines(row, [{"type": "validate", "date": "2026-11-02", "spearman": {"human": 0.31}}],
+                                 m.dt.date(2026, 11, 9))
+    assert g.startswith("n/a (") and "Grade n/a" in "\n".join(lines)
+
+
+# 4. ledger hygiene
+def _args(**kw):
+    import argparse
+    base = {"config": "cfg.json", "live": False, "detail": False, "record": False}
+    base.update(kw)
+    return argparse.Namespace(**base)
+
+
+def _stub_monitor(monkeypatch, written, *, fail=None):
+    monkeypatch.setattr(m, "load_config", lambda p: {"tests": [], "tag_ids": []})
+    monkeypatch.setattr(m, "instantly_client", lambda: object())
+    monkeypatch.setattr(m, "inbox_section", lambda api, tags: [])
+    monkeypatch.setattr(m, "load_ledger", lambda *a: [])
+    monkeypatch.setattr(m, "_write_out", lambda kind, text: None)
+    monkeypatch.setattr(m, "append_ledger", lambda row, *a: written.append(row))
+
+    def run(api, cfg, live, detail):
+        if fail:
+            raise fail
+        return [], {"families": {}, "started": ["2026-11-02"]}
+    monkeypatch.setattr(m, "run_monitor", run)
+
+
+def test_monitor_appends_ledger_only_when_live(monkeypatch):
+    written = []
+    _stub_monitor(monkeypatch, written)
+    assert m.cmd_monitor(_args(live=False)) == 0 and written == []
+    assert m.cmd_monitor(_args(live=True)) == 0 and written[0]["type"] == "monitor" and written[0]["live"] is True
+
+
+def test_validate_and_eval_have_record_flag():
+    assert m.parse_args(["validate"]).record is False and m.parse_args(["validate", "--record"]).record is True
+    assert m.parse_args(["eval"]).record is False and m.parse_args(["eval", "--record"]).record is True
+
+
+def test_committed_ledger_is_scrubbed():
+    rows = m.load_ledger()
+    assert rows and all(r["type"] != "monitor" or r.get("live") is True for r in rows)
+    assert all(r.get("record") is True for r in rows if r["type"] in ("validate", "eval"))
+
+
+# 5. apply loop and monitor failure path
+def test_apply_role_disable_malformed_campaign_fails_one_target_only():
+    good = [{"steps": [{"variants": [{"subject": "a"}, {"subject": "b"}, {"subject": "c"}]}]}]
+    api = m.MockInstantly({"bad": {"status": 1, "sequences": [{"steps": "oops"}]},
+                           "bad2": {"status": 1, "sequences": [{"steps": [{"variants": 5}]}]},
+                           "ok": {"status": 1, "sequences": good}})
+    plan = {"targets": [{"campaign_id": c, "name": c, "variant": 2} for c in ("bad", "bad2", "ok")],
+            "held": [], "already": []}
+    out = m.apply_role_disable(api, plan, 0)
+    assert [o["status"] for o in out] == ["failed", "failed", "disabled"]
+    assert "unexpected campaign shape" in out[0]["why"] and "TypeError" in out[1]["why"]
+
+
+def test_monitor_unexpected_exception_writes_technical_row_if_live_and_reraises(monkeypatch):
+    written = []
+    _stub_monitor(monkeypatch, written, fail=KeyError("steps"))
+    with pytest.raises(KeyError):
+        m.cmd_monitor(_args(live=False))
+    assert written == []
+    with pytest.raises(KeyError):
+        m.cmd_monitor(_args(live=True))
+    assert written[0]["error"].startswith("KeyError") and "technical" in written[0] and "families" not in written[0]
+
+
+# 6. sync
+def _sync():
+    from execution.infrastructure import instantly_copy_sync as sync
+    return sync
+
+
+def test_sync_to_html_escapes_and_line_breaks():
+    sync = _sync()
+    assert sync.to_html("Q&A <b>\nline 2\n\nnext") == "<div>Q&amp;A &lt;b&gt;<br />line 2</div><div><br /></div><div>next</div>"
+    assert sync.to_html("« Bonjour » l'été \"x\"") == "<div>« Bonjour » l'été \"x\"</div>"
+
+
+def test_sync_live_copy_has_no_escapable_chars():
+    # The committed copy converts identically before/after the escape fix (11/11 in sync stays true).
+    for c in json.loads(m.DEFAULT_COPY.read_text(encoding="utf-8")):
+        body = c.get("body") or ""
+        assert not any(ch in body for ch in "&<>")
+        assert "\n" not in body.replace("\n\n", "")
+
+
+STD_ROLES = {"0": {"control": 0, "B": 1, "C": 2}, "1": {"old": 0, "new": 1}, "2": {"old": 0, "new": 1}}
+
+
+def _copies():
+    return {f"rec_{k}": {"id": f"rec_{k}", "subject": "S", "body": "b"} for k in ("s1_B", "s1_C", "s2", "s3")}
+
+
+def _seq3():
+    return [{"steps": [{"delay": 2, "variants": [{"subject": "x", "body": "y"} for _ in range(3)]},
+                       {"delay": 3, "variants": [{} for _ in range(2)]}, {"delay": 4, "variants": [{} for _ in range(2)]}]}]
+
+
+def test_sync_skips_inactive_and_reports_config_errors():
+    sync = _sync()
+    api = m.MockInstantly({"paused": {"status": 2, "sequences": _seq3()}, "live": {"status": 1, "sequences": _seq3()},
+                           "short": {"status": 1, "sequences": [{"steps": [{"variants": [{}]}]}]}})
+    line, ok = sync.sync_one(api, {"campaign_id": "paused", "name": "P", "family": "rec", "roles": STD_ROLES}, _copies(), False)
+    assert ok and line.startswith("skipped  P (status 2)")
+    line, ok = sync.sync_one(api, {"campaign_id": "live", "name": "N", "family": "rec"}, _copies(), False)
+    assert not ok and "no `roles`" in line
+    line, ok = sync.sync_one(api, {"campaign_id": "live", "name": "N", "family": "zzz", "roles": STD_ROLES}, _copies(), False)
+    assert not ok and "no id 'zzz_s1_B'" in line
+    line, ok = sync.sync_one(api, {"campaign_id": "short", "name": "S", "family": "rec", "roles": STD_ROLES}, _copies(), False)
+    assert not ok and "lacks a wanted slot" in line
+    line, ok = sync.sync_one(api, {"campaign_id": "live", "name": "N", "family": "rec", "roles": STD_ROLES}, _copies(), True)
+    assert ok and line.startswith("updated  N") and len(api.patches) == 1
+
+
+def test_sync_untouched_checks_step_level_fields():
+    sync = _sync()
+    want = {(0, 1): ("S", "b"), (0, 2): ("S", "b"), (1, 1): ("S", "b"), (2, 1): ("S", "b")}
+    before = _seq3()
+    after = sync.patched(before, want)
+    assert sync.untouched(before, after, want)
+    after[0]["steps"][1]["delay"] = 9
+    assert not sync.untouched(before, after, want)
+    after2 = sync.patched(before, want)
+    after2[0]["steps"][0]["variants"][0]["subject"] = "changed control"
+    assert not sync.untouched(before, after2, want)
+
+
+# 7. paging guards and 5xx retry
+def test_received_emails_stops_on_repeating_cursor(monkeypatch):
+    page = (200, {"items": [{"ue_type": 2, "timestamp_email": "2026-11-03T00:00:00Z"}], "next_starting_after": "same"})
+    api = _client([page] * 5, monkeypatch)
+    out = api.received_emails("c", "2026-11-02")
+    assert len(api.s.calls) == 2 and len(out) == 2
+
+
+def test_received_emails_page_cap(monkeypatch):
+    monkeypatch.setattr(m, "MAX_PAGES", 3)
+    pages = [(200, {"items": [{"ue_type": 2, "timestamp_email": "2026-11-03"}], "next_starting_after": f"c{i}"})
+             for i in range(10)]
+    api = _client(pages, monkeypatch)
+    api.received_emails("c", "2026-11-02")
+    assert len(api.s.calls) == 3
+
+
+def test_req_retries_5xx_then_succeeds_and_bounds_retries(monkeypatch):
+    m.STATS.reset()
+    api = _client([(502, {}), (503, {}), (200, {"ok": 1})], monkeypatch)
+    assert api.get("/x") == {"ok": 1} and m.STATS.api_retries == 2
+    api = _client([(500, {})] * 5, monkeypatch)
+    with pytest.raises(m.ApiError):
+        api.get("/x")
+    assert len(api.s.calls) == m.MAX_429_RETRIES + 1
+    api = _client([(404, {})], monkeypatch)
+    with pytest.raises(m.ApiError):
+        api.get("/x")
+    assert len(api.s.calls) == 1
+
+
+# 8. malformed config JSON -> exit 2, no traceback
+def test_malformed_config_exits_2(tmp_path, capsys):
+    bad = tmp_path / "bad.json"
+    bad.write_text("{not json", encoding="utf-8")
+    assert m.main(["--config", str(bad), "monitor"]) == 2
+    assert "Config error" in capsys.readouterr().err
+    assert _sync().main(["--config", str(bad)]) == 2
+    assert "Config error" in capsys.readouterr().err
+    assert _sync().main(["--config", str(m.DEFAULT_CONFIG), "--copy", str(bad)]) == 2
+
+
+# 9. missing baseline_sent -> warning in the family section
+def test_missing_baseline_warns_in_family_section():
+    snap, replies = _snapshot()
+    snap["tests"][2].pop("baseline_sent", None)
+    text = "\n".join(m.report_body(m.compute(snap, replies), live=False))
+    fam = text.split("## Family: yoga_fr")[1]
+    assert "- Warning: yoga: no baseline_sent, sends are lifetime totals" in fam
+    assert "Warning" not in text.split("## Family: yoga_fr")[0]
+
+
+def test_unattributed_count_reported_per_family():
+    snap, replies = _snapshot()
+    snap["campaigns"]["r0"]["attribution"] = {"pre_test": 2, "unattributed": 3}
+    text = "\n".join(m.report_body(m.compute(snap, replies), live=False))
+    assert "Unattributed replies (excluded from counts): 3" in text.split("## Family: yoga_fr")[0]
+
+
+# 10. overall block labelled
+def test_overall_block_labelled_cross_family():
+    r = _row("2026-11-09")
+    assert r["overall"]["label"] == "cross-family (reporting only)"
+    assert "replies_unattributed" in r["technical"] and "replies_pre_test" in r["technical"]
