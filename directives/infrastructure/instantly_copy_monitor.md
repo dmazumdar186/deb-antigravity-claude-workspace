@@ -137,6 +137,10 @@ E1 (on a recorded synthetic snapshot) and E3 also run in pytest.
 - Malformed config or copy JSON (monitor and sync) → `Config error: …` on stderr, exit 2.
 - A live apply that hits a malformed campaign payload marks that campaign FAILED and continues with the others.
 
+- **Inbox-health signals (learned in the 2026-11-02 audit):** Instantly's 100% warm-up health score only measures its own warm-up network, so never read it as cold-email inbox placement. `GET /accounts/analytics/daily` accepts at most a 31-day window per call. Out-of-office auto-replies fire only for inboxed mail; this workspace's baseline is ~1.2% per new prospect. `match_lead_esp=true` means Google and Microsoft senders reach different prospect pools, so don't compare providers directly. With `prioritize_new_leads=false`, follow-ups take the daily cap and the new-prospect count collapses (the operator turned it on 2026-11-02).
+- **Placement tests:** `POST /inbox-placement-tests` (`emails` = sender inboxes, `recipients_labels` from `/email-service-provider-options`) returns 402 once the plan's free tests are used up.
+- **Blacklist checks:** query SURBL through Google DoH (`dns.google/resolve`); Cloudflare DoH returns empty answers even for `test.surbl.org`. 127.0.0.64 = SURBL abuse list (prodcraftteam.co and anchorcadencegroup.co were listed on 2026-11-02).
+
 ## Exit Criteria
 
 - `gate`: every copy PASSes (exit 0) before it is pushed.
