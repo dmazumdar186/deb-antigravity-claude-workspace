@@ -2,7 +2,7 @@
 leadocean_leads.py
 
 description: LeadOcean -> verified, Jev-gated, site-enriched, icebreaker-personalised cold email leads (Instantly CSV) for the AI Proposal Engine niches (event production/AV, commercial interior fit-out, incentive travel/DMC).
-inputs: subcommand (count | export | topup | gate | enrich | icebreak | build) + flags (see --help); env LEADOCEAN_API_KEY, OPENROUTER_API_KEY (alias OPENROUTER_API_TOEKN), SERPER_API_KEY (optional fallback).
+inputs: [--wave 1|2] subcommand (count | export | topup | gate | verify | enrich | icebreak | build) + flags (see --help); env LEADOCEAN_API_KEY, OPENROUTER_API_KEY (alias OPENROUTER_API_TOEKN), SERPER_API_KEY (optional fallback), REOON_API_KEY (wave 2 verify).
 outputs: .tmp/leadocean/{counts.json, export_plan.json, exports.json, raw/*.csv, topup_*.json, jev_cache.json, gate.json, sites/*.json, enrich.json, icebreak.json, prodcraft_leads_YYYY-MM-DD.csv, rejects.csv, summary.json}
 usage:
     python3 execution/lead_sourcing/leadocean_leads.py count
@@ -13,6 +13,10 @@ usage:
     python3 execution/lead_sourcing/leadocean_leads.py enrich [--limit 20]
     python3 execution/lead_sourcing/leadocean_leads.py icebreak [--limit 20]
     python3 execution/lead_sourcing/leadocean_leads.py build
+    # wave 2: national US+UK, verified/untested + Reoon, wave-1 people excluded (outputs in .tmp/leadocean/wave2/)
+    python3 execution/lead_sourcing/leadocean_leads.py --wave 2 topup --niches av,fitout,dmc --max-pages 40 --max-per-domain 4
+    python3 execution/lead_sourcing/leadocean_leads.py --wave 2 gate && ... --wave 2 verify && ... --wave 2 enrich
+    python3 execution/lead_sourcing/leadocean_leads.py --wave 2 icebreak --max-usd 13 && ... --wave 2 build
 
 Every step is idempotent and resumable: results are cached under .tmp/leadocean/ keyed by
 export key, company domain or person id, so a re-run only does the missing work.
@@ -61,6 +65,42 @@ ACCEPT_STATUSES = ("verified",)  # strictest deliverable LeadOcean status; see d
 # LeadOcean statuses that may be rescued when Reoon (power mode) independently rated the address safe.
 RESCUE_STATUSES = ("untested", "catch_all")
 REOON_CACHE = ROOT / ".tmp" / "reoon" / "cache.jsonl"
+
+# Wave 2 (2026-11-02): national US + UK, LeadOcean verified/untested/catch_all, every address re-checked by
+# Reoon, wave-1 people excluded. `--wave 2` moves every cache/output under .tmp/leadocean/wave2/.
+WAVE = 1
+W1_TMP = ROOT / ".tmp" / "leadocean"
+W1_LEADS = W1_TMP / "prodcraft_leads_reoon.csv"
+W2_STATUSES = ("verified", "untested", "catch_all")
+# Exported in wave 2: LeadOcean `catch_all` never came back Reoon-safe in the 2026-11-02 test (6/6 catch_all,
+# 1 unknown), so export rows go to verified + untested only; hygiene still accepts catch_all if one appears.
+W2_SEARCH_STATUSES = ("verified", "untested")
+STATUSES: tuple[str, ...] = ACCEPT_STATUSES  # LeadOcean statuses accepted by hygiene this wave
+SEARCH_STATUSES: tuple[str, ...] = ACCEPT_STATUSES  # statuses asked for in counts/exports this wave
+VIEWED_SET = "prodcraft_w1"  # LeadOcean viewed list holding every wave-1 person_id (excludeViewed on wave-2 calls)
+W2_METROS = {"us_all": 1, "uk_all": 1}
+# Company-first universes (industries where wave-1 Jev-kept leads actually came from; free counts 2026-11-02:
+# AV 3,611 US / 1,400 UK, fit-out 6,219 / 1,178, DMC 1,920 / 682 companies).
+W2_INDUSTRY = {
+    "av": ["Events Services", "Media Production", "Broadcast Media Production and Distribution",
+           "Entertainment Providers", "Audio and Video Equipment Manufacturing"],
+    "fitout": ["Construction", "Building Construction", "Nonresidential Building Construction",
+               "Building Finishing Contractors", "Specialty Trade Contractors"],
+    "dmc": ["Events Services", "Travel Arrangements", "Hospitality", "Leisure; Travel and Tourism"],
+}
+
+
+def set_wave(n: int) -> None:
+    """Point every cache/output path at the wave's own folder (wave 1 = legacy .tmp/leadocean/)."""
+    global WAVE, TMP, RAW, SITES, STATUSES, SEARCH_STATUSES
+    WAVE = n
+    if n == 2:
+        TMP = W1_TMP / "wave2"
+        STATUSES, SEARCH_STATUSES = W2_STATUSES, W2_SEARCH_STATUSES
+    else:
+        TMP = W1_TMP
+        STATUSES = SEARCH_STATUSES = ACCEPT_STATUSES
+    RAW, SITES = TMP / "raw", TMP / "sites"
 
 
 def load_reoon_safe() -> set[str]:
@@ -165,6 +205,8 @@ M: dict[str, dict[str, Any]] = {
     "london": {"label": "London", "hqCity": ["London"], "hqCountry": ["GB"]},
     "london_edinburgh": {"label": "London/Edinburgh", "hqCity": ["London", "Edinburgh"], "hqCountry": ["GB"]},
     "us_other": {"label": "US (other)", "hqCountry": ["US"]},
+    "us_all": {"label": "US (other)", "hqCountry": ["US"]},
+    "uk_all": {"label": "UK (other)", "hqCountry": ["GB"]},
 }
 
 FREE_MAIL = {
@@ -386,9 +428,10 @@ class LeadOcean:
                 "unsupported": meta.get("unsupportedFilters") or []}
 
 
-def filters_for(niche: str, metro: str, *, email: bool = True, status: tuple[str, ...] = ACCEPT_STATUSES,
+def filters_for(niche: str, metro: str, *, email: bool = True, status: tuple[str, ...] | None = None,
                 titles: bool = True) -> dict[str, Any]:
     n, m = NICHES[niche], M[metro]
+    status = status or SEARCH_STATUSES
     f: dict[str, Any] = {"companyKeywords": n["companyKeywords"], "minEmployees": n["minEmployees"],
                          "maxEmployees": n["maxEmployees"]}
     for k in ("hqCity", "hqState", "hqCountry"):
@@ -403,6 +446,8 @@ def filters_for(niche: str, metro: str, *, email: bool = True, status: tuple[str
         f["seniority"], f["excludeTitle"] = SENIORITY, n["excludeTitle"]
     if email:
         f["emailStatus"], f["emailType"] = list(status), ["work"]
+    if WAVE == 2:
+        f["excludeViewed"], f["viewedSet"] = "true", VIEWED_SET
     return f
 
 
@@ -491,7 +536,7 @@ def cmd_export(args: argparse.Namespace) -> None:
         if spent + limit > args.budget:
             print(f"skip {key}: budget {args.budget} would be exceeded (spent {spent})")
             continue
-        body = {"name": f"prodcraft {key} {TODAY}", "filters": filters_for(c["niche"], c["metro"]),
+        body = {"name": f"prodcraft {key} {TODAY}", "filters": export_body_filters(filters_for(c["niche"], c["metro"])),
                 "limit": limit, "columns": EXPORT_COLUMNS, "caps": {"emails": 3}}
         try:
             data = lo.req("POST", "/v1/exports", body=body)["data"]
@@ -507,6 +552,7 @@ def cmd_export(args: argparse.Namespace) -> None:
 
 
 def poll_and_download(lo: LeadOcean, state: dict[str, Any], state_path: Path) -> None:
+    RAW.mkdir(parents=True, exist_ok=True)
     pending = [k for k, s in state.items() if s.get("status") not in ("downloaded", "failed", "cancelled")]
     while pending:
         for key in list(pending):
@@ -634,20 +680,60 @@ STATE_CODES = {"nevada": "NV", "florida": "FL", "tennessee": "TN", "arizona": "A
 
 
 def label_metro(r: dict[str, Any]) -> str:
-    """US-wide DMC rows: map the contact's city/state onto a playbook metro (else us_other)."""
+    """US-wide DMC rows (and every wave-2 national row): map the contact's city/state onto a playbook metro."""
     niche = NICHES[r["_niche"]]
-    if r["_metro"] != "us_other" or not niche.get("label_metros"):
-        return r["_metro"]
     city = (r.get("city") or "").lower()
+    if r["_metro"] == "uk_all":
+        return "london" if city == "london" else "uk_all"
+    if r["_metro"] == "us_all":
+        cands = [m for m, d in M.items() if "hqState" in d]
+    elif r["_metro"] != "us_other" or not niche.get("label_metros"):
+        return r["_metro"]
+    else:
+        cands = niche["label_metros"]
     st = (r.get("state") or "").strip()
     st = STATE_CODES.get(st.lower(), st.upper())
-    for m in niche["label_metros"]:
+    for m in cands:
         d = M[m]
         if st not in d.get("hqState", []):
             continue
         if not d.get("hqCity") or any(c.lower() == city for c in d["hqCity"]):
             return m
-    return "us_other"
+    return "us_all" if r["_metro"] == "us_all" else "us_other"
+
+
+def wave1_exclusions() -> dict[str, Any]:
+    """Wave-1 people/emails (never re-contact) and per-company sending counts (2-per-company cap spans waves)."""
+    emails: set[str] = set()
+    people: set[str] = set()
+    per_domain: Counter = Counter()
+    if W1_LEADS.exists():
+        with open(W1_LEADS, newline="", encoding="utf-8") as fh:
+            for r in csv.DictReader(fh):
+                emails.add((r.get("email") or "").strip().lower())
+                if r.get("linkedin_url"):
+                    people.add(r["linkedin_url"].strip().lower().rstrip("/"))
+                people.add(f"{slug(r.get('first_name'))}|{slug(r.get('last_name'))}|{r.get('company_domain', '')}")
+                if r.get("send_bucket") in ("main", "catchall"):
+                    per_domain[r.get("company_domain", "")] += 1
+    ids: set[str] = set()
+    for f in sorted((W1_TMP / "raw").glob("*.csv")):
+        with open(f, newline="", encoding="utf-8") as fh:
+            for r in csv.DictReader(fh):
+                if r.get("person_id"):
+                    ids.add(r["person_id"])
+                if r.get("profile_url"):
+                    people.add(r["profile_url"].strip().lower().rstrip("/"))
+    return {"emails": emails - {""}, "people": people, "person_ids": ids, "per_domain": per_domain}
+
+
+def person_keys(r: dict[str, Any]) -> set[str]:
+    keys = {f"{slug(r.get('profile_first_name'))}|{slug(r.get('profile_last_name'))}|{r.get('_company_domain', '')}"}
+    if r.get("profile_url"):
+        keys.add(r["profile_url"].strip().lower().rstrip("/"))
+    if r.get("person_id"):
+        keys.add(r["person_id"])
+    return keys
 
 
 def hygiene(rows: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
@@ -659,6 +745,7 @@ def hygiene(rows: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict
 
     seen_email, seen_person = set(), set()
     reoon_safe = load_reoon_safe()
+    w1 = wave1_exclusions() if WAVE == 2 else None
     staged = []
     for r in rows:
         r["_metro"] = label_metro(r)
@@ -670,7 +757,7 @@ def hygiene(rows: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict
         if not email or "@" not in email:
             reject(r, "no_email")
             continue
-        if status not in ACCEPT_STATUSES and not (status in RESCUE_STATUSES and email.lower() in reoon_safe):
+        if status not in STATUSES and not (status in RESCUE_STATUSES and email.lower() in reoon_safe):
             reject(r, f"status_{status or 'blank'}")
             continue
         local, edom = email.split("@", 1)
@@ -693,6 +780,11 @@ def hygiene(rows: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict
         if email in seen_email or pid in seen_person:
             reject(r, "duplicate")
             continue
+        if w1 and (email in w1["emails"] or person_keys(r) & (w1["people"] | w1["person_ids"])):
+            seen_email.add(email)
+            seen_person.add(pid)
+            reject(r, "wave1_duplicate")
+            continue
         seen_email.add(email)
         seen_person.add(pid)
         staged.append(r)
@@ -710,12 +802,18 @@ def hygiene(rows: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict
             reject(r, "mx_unresolved")
             continue
         by_company[r["_company_domain"]].append(r)
-    for people in by_company.values():
+    for dom, people in by_company.items():
         people.sort(key=lambda p: (title_rank(p.get("current_job_title", "")),
                                    0 if (p.get("profile_is_decision_maker") or "").lower() == "true" else 1))
+        # Wave 2 keeps one reserve per company: Reoon runs after this, and the final 2-per-company cap
+        # (counting wave-1 senders) is applied in w2_select once the Reoon buckets are known.
+        slots = 2
+        if w1:
+            left = max(0, 2 - w1["per_domain"][dom])
+            slots = left + 1 if left else 0
         for i, p in enumerate(people):
-            (keep if i < 2 else rejects).append(p)
-            if i >= 2:
+            (keep if i < slots else rejects).append(p)
+            if i >= slots:
                 p["reject_reason"] = "company_cap_2"
     return keep, rejects
 
@@ -827,6 +925,87 @@ def cmd_gate(args: argparse.Namespace) -> None:
         gated.append(r)
     jsave(TMP / "gate.json", {"kept": gated, "rejects": rejects})
     print(f"gate: kept {len(gated)}, flags {dict(flagged)}, rejects {dict(Counter(r['reject_reason'] for r in rejects))}")
+
+
+# --------------------------------------------------------------------------------------
+# 4b. verify (wave 2): Reoon power-mode on every gated address, then the final per-company selection
+# --------------------------------------------------------------------------------------
+def cmd_verify(args: argparse.Namespace) -> None:
+    from execution.lead_sourcing import reoon_verify as rv
+    kept = jload(TMP / "gate.json", {}).get("kept", [])
+    if not kept:
+        raise SystemExit("run `gate` first")
+    cache = rv.load_cache()
+    todo = sorted({r["_email"] for r in kept} - set(cache))
+    if args.limit:
+        todo = todo[: args.limit]
+    if len(todo) > args.max_credits:
+        raise SystemExit(f"{len(todo)} emails need Reoon credits; --max-credits is {args.max_credits}")
+    key = rv.api_key()
+    print(f"reoon: {len(kept)} gated rows, {len(todo)} new emails to verify", flush=True)
+    lock = threading.Lock()
+    done = 0
+
+    def work(email: str) -> None:
+        nonlocal done
+        res = rv.verify_one(email, key)
+        with lock:
+            cache[email] = res
+            done += 1
+            if res["status"] != "error":
+                with open(rv.CACHE, "a", encoding="utf-8") as fh:
+                    fh.write(json.dumps(res) + "\n")
+            if done % 250 == 0:
+                print(f"reoon: {done}/{len(todo)}", flush=True)
+
+    rv.CACHE.parent.mkdir(parents=True, exist_ok=True)
+    with ThreadPoolExecutor(max_workers=args.workers) as pool:
+        list(pool.map(work, todo))
+    stats = jload(TMP / "costs.json", {})
+    stats["reoon_credits"] = stats.get("reoon_credits", 0) + sum(1 for e in todo if cache.get(e, {}).get("status") != "error")
+    jsave(TMP / "costs.json", stats)
+    b = Counter(rv.bucket(cache[r["_email"]]) if r["_email"] in cache else "pending" for r in kept)
+    st = Counter(cache.get(r["_email"], {}).get("status", "pending") for r in kept)
+    print(f"reoon buckets over gated rows {dict(b)}; statuses {dict(st)}")
+
+
+def site_vetoed(e: dict[str, Any]) -> bool:
+    """Site-based veto: the website clearly says another business (wedding, residential, leisure, other)."""
+    js = e.get("jev_site")
+    return bool(js and ((js["niche"] == "none" and js["niche_conf"] >= 0.7 and js["fit"] < 0.5) or js["fit"] < 0.25))
+
+
+def w2_select(kept: list[dict[str, Any]], enrich: dict[str, Any] | None
+              ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
+    """Wave 2 final pick: Reoon bucket (drop -> reject), site veto (when enrich given), then the 2-per-company cap
+    counting wave-1 senders, preferring Reoon `main` over `catchall`, then seniority.
+    Returns (selected, rejects, reoon_dropped) where reoon_dropped is a subset of rejects."""
+    from execution.lead_sourcing import reoon_verify as rv
+    cache, w1 = rv.load_cache(), wave1_exclusions()
+    selected, rejects, dropped = [], [], []
+    by_company: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for r in kept:
+        res = cache.get(r["_email"])
+        if not res:
+            rejects.append({**r, "reject_reason": "reoon_pending"})
+            continue
+        r = {**r, "_reoon": res, "_bucket": rv.bucket(res)}
+        if r["_bucket"] == "drop":
+            r["reject_reason"] = f"reoon_{res.get('status') or 'error'}"
+            rejects.append(r)
+            dropped.append(r)
+            continue
+        if enrich is not None and site_vetoed(enrich.get(r["_company_domain"], {})):
+            rejects.append({**r, "reject_reason": "jev_site_offniche"})
+            continue
+        by_company[r["_company_domain"]].append(r)
+    for dom, people in by_company.items():
+        people.sort(key=lambda p: (p["_bucket"] != "main", title_rank(p.get("current_job_title", "")),
+                                   0 if (p.get("profile_is_decision_maker") or "").lower() == "true" else 1))
+        slots = max(0, 2 - w1["per_domain"][dom])
+        selected.extend(people[:slots])
+        rejects.extend({**p, "reject_reason": "company_cap_2"} for p in people[slots:])
+    return selected, rejects, dropped
 
 
 # --------------------------------------------------------------------------------------
@@ -1004,6 +1183,8 @@ def cmd_enrich(args: argparse.Namespace) -> None:
     kept = gate.get("kept", [])
     if not kept:
         raise SystemExit("run `gate` first")
+    if WAVE == 2:
+        kept = w2_select(kept, None)[0]
     companies: dict[str, str] = {}
     for r in kept:
         companies.setdefault(r["_company_domain"], r.get("current_company_name", ""))
@@ -1123,6 +1304,8 @@ def cmd_icebreak(args: argparse.Namespace) -> None:
     enrich = jload(TMP / "enrich.json", {})
     out_path = TMP / "icebreak.json"
     out = jload(out_path, {})
+    if WAVE == 2:
+        kept = w2_select(kept, enrich)[0]
     todo = [r for r in kept if r["_email"] not in out and r["_company_domain"] in enrich]
     if args.limit:
         todo = todo[: args.limit]
@@ -1132,6 +1315,8 @@ def cmd_icebreak(args: argparse.Namespace) -> None:
 
     def work(r: dict[str, Any]) -> None:
         nonlocal done
+        if args.max_usd and tokens["in"] * LLM_PRICE_IN + tokens["out"] * LLM_PRICE_OUT >= args.max_usd:
+            return  # budget guard: leave the row uncached so a later run can finish it
         e = enrich[r["_company_domain"]]
         if not e.get("site_facts") and not e.get("context"):
             rec, status = validate_ice(None, e)
@@ -1211,7 +1396,55 @@ def company_filters(niche: str, metro: str) -> dict[str, Any]:
         f["excludeIndustry"] = n["excludeIndustry"]
     if n.get("industry"):
         f["industry"] = n["industry"]
+    if WAVE == 2:
+        # hasMailableContacts ignores `untested`, which wave 2 accepts; the industry list replaces the
+        # exclude list (company keywords alone gave 13.9k US "AV" firms, mostly ad agencies and venues).
+        f.pop("hasMailableContacts")
+        f.pop("excludeIndustry", None)
+        f["industry"] = W2_INDUSTRY[niche]
+        if niche == "dmc":
+            f["excludeKeywords"] = n["excludeKeywords"] + ["wedding"]
     return f
+
+
+def export_body_filters(f: dict[str, Any]) -> dict[str, Any]:
+    """GET-style filters -> JSON export filters (booleans as JSON booleans)."""
+    return {k: (v == "true") if k == "excludeViewed" else v for k, v in f.items()}
+
+
+def mark_wave1_viewed(lo: LeadOcean) -> None:
+    """Put every wave-1 exported person_id on the LeadOcean viewed list (free, idempotent), so wave-2 counts and
+    exports with excludeViewed never bill a wave-1 person again."""
+    ids = sorted(wave1_exclusions()["person_ids"])
+    for i in range(0, len(ids), 10000):
+        lo.req("POST", "/v1/people/viewed", body={"ids": ids[i:i + 10000], "set": VIEWED_SET})
+    got = lo.req("GET", "/v1/people/viewed", params={"set": VIEWED_SET})
+    print(f"viewed list {VIEWED_SET}: {len(ids)} wave-1 person_ids sent; list says {json.dumps(got.get('data'))[:200]}")
+
+
+def export_rows_left_today(lo: LeadOcean) -> int:
+    day = lo.req("GET", "/v1/account")["data"]["exports"]["day"]
+    return max(0, int(day["limit"]) - int(day["used"]))
+
+
+# Wave 2: a company with more matching decision-makers than --max-per-domain is re-counted with only the top
+# seniority bands (owner/founder/C-suite/partner); most then fit, and the export uses the same tight filter.
+TIGHT_SENIORITY = ["owner", "founder", "c_suite", "partner"]
+
+
+def domain_filters(niche: str, metro: str, domains: list[str], tight: bool = False) -> dict[str, Any]:
+    f = filters_for(niche, metro)
+    for k in ("companyKeywords", "hqCity", "hqState", "hqCountry", "minEmployees", "maxEmployees",
+              "industry", "excludeIndustry"):
+        f.pop(k, None)
+    f["domain"] = domains
+    if tight:
+        f["seniority"] = TIGHT_SENIORITY
+    return f
+
+
+def domain_count(lo: LeadOcean, niche: str, metro: str, domain: str, tight: bool = False) -> int:
+    return int(lo.count(domain_filters(niche, metro, [domain], tight)).get("total") or 0)
 
 
 def cmd_topup(args: argparse.Namespace) -> None:
@@ -1221,12 +1454,23 @@ def cmd_topup(args: argparse.Namespace) -> None:
     state = jload(state_path, {})
     spent = sum(int(s.get("requested", 0)) for s in state.values())
     left = args.budget - spent
-    print(f"export rows spent {spent}, left {left}")
-    seen_domains = {norm_domain(r.get("current_company_domain")) for r in load_raw_rows()}
+    w1 = None
+    if WAVE == 2:
+        mark_wave1_viewed(lo)
+        w1 = wave1_exclusions()
+        # The daily export allowance is the real ceiling in wave 2; --budget caps this run on top of it.
+        spent_today = sum(int(s.get("requested", 0)) for s in state.values() if s.get("day") == TODAY)
+        left = min(args.budget - spent_today, export_rows_left_today(lo))
+        seen_domains = {d for d, c in w1["per_domain"].items() if c >= 2}
+        seen_domains |= {d for s in state.values() for d in s.get("domains", [])}
+    else:
+        seen_domains = {norm_domain(r.get("current_company_domain")) for r in load_raw_rows()}
+    print(f"export rows spent {spent}, left for this run {left}")
     comp_path, jev_path = TMP / "topup_companies.json", TMP / "topup_jev.json"
     comps, jcache = jload(comp_path, {}), jload(jev_path, {})
     for niche in args.niches.split(","):
-        for metro, weight in NICHES[niche]["metros"].items():
+        metros = W2_METROS if WAVE == 2 else NICHES[niche]["metros"]
+        for metro, weight in metros.items():
             key = f"{niche}:{metro}"
             if weight < 1 or key in comps:
                 continue
@@ -1253,7 +1497,7 @@ def cmd_topup(args: argparse.Namespace) -> None:
                     break
             comps[key] = rows
             jsave(comp_path, comps)
-            print(f"companies {key}: {len(rows)}")
+            print(f"companies {key}: {len(rows)}", flush=True)
     # Jev gate on the company description (a much richer state than a contact headline)
     todo = [(k, c) for k, rows in comps.items() for c in rows
             if c["domain"] and c["domain"] not in seen_domains and c["domain"] not in jcache]
@@ -1261,70 +1505,133 @@ def cmd_topup(args: argparse.Namespace) -> None:
     states = [{"company_name": c["name"], "industry": c["industry"], "domain": d, "description": c["description"]}
               for d, (_k, c) in uniq.items()]
     cost = 0.0
-    if states:
-        for d, res in zip(uniq, jev.decide_many(states, jev_questions(), workers=8)):
+    doms = list(uniq)
+    for i in range(0, len(states), 500):
+        for d, res in zip(doms[i:i + 500], jev.decide_many(states[i:i + 500], jev_questions(), workers=8)):
             cost += res.cost_usd
             jcache[d] = ({"error": res.error[:200]} if res.error else
                          {"niche": res.choice("niche"), "niche_conf": res.confidence("niche"), "fit": res.noul("fit")})
         jsave(jev_path, jcache)
+        print(f"topup jev: {min(i + 500, len(states))}/{len(states)} companies, ${cost:.4f}", flush=True)
     costs = jload(TMP / "costs.json", {})
     costs["jev_usd"] = round(costs.get("jev_usd", 0.0) + cost, 6)
     jsave(TMP / "costs.json", costs)
-    # ICP companies not yet exported, with their free per-domain verified-decision-maker count
-    cands = []
+    # ICP companies not yet exported, with their free per-domain decision-maker count
+    cands, seen_c = [], set()
     for key, rows in comps.items():
         niche, metro = key.split(":")
         for c in rows:
             j = jcache.get(c["domain"], {})
-            if c["domain"] in seen_domains or j.get("niche") != niche or j.get("fit", 0) < 0.6:
+            if (not c["domain"] or c["domain"] in seen_domains or c["domain"] in seen_c or j.get("niche") != niche
+                    or j.get("fit", 0) < 0.6):
                 continue
-            cands.append((niche, metro, c["domain"]))
-    print(f"topup: {len(cands)} Jev-approved new companies; Jev ${cost:.4f}")
+            seen_c.add(c["domain"])
+            cands.append((niche, metro, c["domain"], float(j.get("fit", 0))))
+    print(f"topup: {len(cands)} Jev-approved new companies; Jev ${cost:.4f}", flush=True)
+    cnt_path = TMP / "topup_counts.json"
+    cnt = jload(cnt_path, {})
+    lock = threading.Lock()
+
+    def count_one(item: tuple[str, str, str, bool]) -> None:
+        n, m, d, tight = item
+        try:
+            v = domain_count(lo, n, m, d, tight)
+        except RuntimeError as exc:
+            log.warning("count %s: %s", d, exc)
+            return
+        with lock:
+            cnt[f"{n}|{d}" + ("|tight" if tight else "")] = v
+            if len(cnt) % 200 == 0:
+                jsave(cnt_path, cnt)
+                print(f"domain counts: {len(cnt)}", flush=True)
+
+    todo_c = [(n, m, d, False) for n, m, d, _f in cands if f"{n}|{d}" not in cnt]
+    with ThreadPoolExecutor(max_workers=args.workers) as pool:
+        list(pool.map(count_one, todo_c))
+    if WAVE == 2:
+        todo_t = [(n, m, d, True) for n, m, d, _f in cands
+                  if (cnt.get(f"{n}|{d}") or 0) > args.max_per_domain and f"{n}|{d}|tight" not in cnt]
+        with ThreadPoolExecutor(max_workers=args.workers) as pool:
+            list(pool.map(count_one, todo_t))
+    jsave(cnt_path, cnt)
     counted = []
-    for niche, metro, d in cands:
-        f = filters_for(niche, metro)
-        for k in ("companyKeywords", "hqCity", "hqState", "hqCountry", "minEmployees", "maxEmployees",
-                  "industry", "excludeIndustry"):
-            f.pop(k, None)
-        f["domain"] = [d]
-        n = lo.count(f).get("total") or 0
+    for niche, metro, d, fit in cands:
+        n, tight = cnt.get(f"{niche}|{d}") or 0, False
+        if n > args.max_per_domain and f"{niche}|{d}|tight" in cnt:
+            n, tight = cnt[f"{niche}|{d}|tight"], True
         # > max_per_domain usually means a big employer or a domain LeadOcean maps to another firm
         # (2026-11-02: one "Atlanta AV" domain returned 190 Crawford & Company insurance rows).
-        if 0 < n <= args.max_per_domain:
-            counted.append((n, niche, metro, d))
-    counted.sort()  # fewest contacts first: least 2-per-company waste per row spent
-    groups: dict[tuple[str, str], list[str]] = defaultdict(list)
-    rows_needed = 0
-    for n, niche, metro, d in counted:
-        if rows_needed + n > left:
+        if not 0 < n <= args.max_per_domain:
             continue
-        groups[(niche, metro)].append(d)
-        rows_needed += n
-    print(f"topup: {len(counted)} companies hold contacts; exporting {rows_needed} rows over "
-          f"{sum(len(v) for v in groups.values())} companies")
+        slots = max(0, 2 - w1["per_domain"][d]) if w1 else 2
+        if slots == 0:
+            continue
+        # rows bought beyond the per-company cap (+1 Reoon reserve in wave 2) are waste: fewest first
+        waste = max(0, n - slots - (1 if w1 else 0))
+        counted.append((waste, n, -fit, niche, f"{metro}|tight" if tight else metro, d))
+    counted.sort()
+    picked: list[tuple[int, str, str, str]] = []
+    rows_needed = 0
+    if WAVE == 2:
+        # split the day's rows by what each niche still needs to reach its allocation
+        have = Counter()
+        if W1_LEADS.exists():
+            with open(W1_LEADS, newline="", encoding="utf-8") as fh:
+                have.update(r["niche"] for r in csv.DictReader(fh) if r.get("send_bucket") == "main")
+        # --weights scales a niche's need by its measured safe-lead yield per row (2026-11-02 day-1 sample:
+        # AV 33%, DMC 31%, fit-out 10%), so rows go where they buy the most safe leads.
+        wts = {k: float(v) for k, _s, v in (x.partition("=") for x in args.weights.split(",") if x)}
+        need = {k: max(1, NICHES[k]["target"] - have[k]) * wts.get(k, 1.0) for k in args.niches.split(",")}
+        share = {k: int(left * v / sum(need.values())) for k, v in need.items()}
+        used = Counter()
+        for _w, n, _f, niche, metro, d in counted:
+            if used[niche] + n <= share[niche] and rows_needed + n <= left:
+                picked.append((n, niche, metro, d))
+                used[niche] += n
+                rows_needed += n
+        taken = {d for *_x, d in picked}
+        for _w, n, _f, niche, metro, d in counted:  # second pass: unspent share goes to any niche
+            if d not in taken and rows_needed + n <= left:
+                picked.append((n, niche, metro, d))
+                rows_needed += n
+        print(f"topup: niche need {need}, row share {share}")
+    else:
+        for _w, n, _f, niche, metro, d in counted:
+            if rows_needed + n <= left:
+                picked.append((n, niche, metro, d))
+                rows_needed += n
+    groups: dict[tuple[str, str], list[tuple[int, str]]] = defaultdict(list)
+    for n, niche, metro, d in picked:
+        groups[(niche, metro)].append((n, d))
+    by_n = Counter(n for n, *_x in picked)
+    print(f"topup: {len(counted)} companies hold contacts (rows {sum(c[1] for c in counted)}); exporting "
+          f"{rows_needed} rows over {len(picked)} companies; contacts-per-domain {dict(sorted(by_n.items()))}; "
+          f"by niche {dict(Counter(p[1] for p in picked))}", flush=True)
     if args.plan_only:
         return
-    for (niche, metro), domains in groups.items():
-        key = f"{niche}:{metro}:topup"
-        if key in state:
-            continue
-        f = filters_for(niche, metro)
-        for k in ("companyKeywords", "hqCity", "hqState", "hqCountry", "minEmployees", "maxEmployees",
-                  "industry", "excludeIndustry"):
-            f.pop(k, None)
-        f["domain"] = domains
-        limit = sum(n for n, ni, me, d in counted if (ni, me) == (niche, metro) and d in domains)
-        try:
-            data = lo.req("POST", "/v1/exports", body={"name": f"prodcraft {key} {TODAY}", "filters": f,
-                                                       "limit": limit, "columns": EXPORT_COLUMNS,
-                                                       "caps": {"emails": 3}})["data"]
-        except RuntimeError as exc:
-            print(f"topup export {key} refused: {exc}")
-            continue
-        state[key] = {"id": data["id"], "requested": limit, "status": data.get("status"), "niche": niche,
-                      "metro": metro, "topup": True}
-        jsave(state_path, state)
-        print(f"queued {key} limit={limit}")
+    for (niche, metro_t), items in groups.items():
+        metro, _sep, tight = metro_t.partition("|")
+        for gi in range(0, len(items), args.chunk):
+            chunk = items[gi:gi + args.chunk]
+            # wave 2: run-unique keys (a re-run on the same day plans fresh domains; seen ones are skipped above)
+            key = (f"{niche}:{metro}:topup" if WAVE == 1
+                   else f"{niche}:{metro}:w2:{TODAY}:{len(state)}" + (":tight" if tight else ""))
+            if key in state:
+                continue
+            domains = [d for _n, d in chunk]
+            f = domain_filters(niche, metro, domains, bool(tight))
+            limit = sum(n for n, _d in chunk)
+            try:
+                data = lo.req("POST", "/v1/exports", body={"name": f"prodcraft {key} {TODAY}",
+                                                           "filters": export_body_filters(f), "limit": limit,
+                                                           "columns": EXPORT_COLUMNS, "caps": {"emails": 3}})["data"]
+            except RuntimeError as exc:
+                print(f"topup export {key} refused: {exc}")
+                continue
+            state[key] = {"id": data["id"], "requested": limit, "status": data.get("status"), "niche": niche,
+                          "metro": metro, "topup": True, "domains": domains, "day": TODAY}
+            jsave(state_path, state)
+            print(f"queued {key} limit={limit}", flush=True)
     poll_and_download(lo, state, state_path)
 
 
@@ -1349,39 +1656,117 @@ def name_case(s: Any) -> str:
     return v.title() if v == v.lower() or v == v.upper() else v
 
 
+def lead_row(r: dict[str, Any], e: dict[str, Any], i: dict[str, Any]) -> dict[str, Any]:
+    flags = r.get("_jev_flags", [])
+    return {
+        "email": r["_email"], "first_name": name_case(r.get("profile_first_name")),
+        "last_name": name_case(r.get("profile_last_name")), "title": clean(r.get("current_job_title")),
+        "company_name": clean(r.get("current_company_name")), "company_domain": r["_company_domain"],
+        "website": clean(r.get("current_company_website")) or f"https://{r['_company_domain']}",
+        "niche": r["_niche"], "metro": M[r["_metro"]]["label"], "city": clean(r.get("city")),
+        "state": clean(r.get("state")), "country": clean(r.get("country_code")),
+        "employees": clean(r.get("current_company_employees")), "linkedin_url": clean(r.get("profile_url")),
+        "email_status": r["_email_status"], "email_verified_date": r["_email_verified_date"],
+        "jev_niche_conf": r.get("_jev_niche_conf", ""), "jev_fit_score": r.get("_jev_fit", ""),
+        "company_summary": clean(e.get("company_summary")), "site_facts": clean(e.get("site_facts")),
+        "project_reference": clean(i.get("project_reference")), "icebreaker": clean(i.get("icebreaker")),
+        "personalization_status": i.get("personalization_status", "template_only"),
+        "source": "leadocean_export" + ("|wave2" if WAVE == 2 else "") + ("|" + "|".join(flags) if flags else "")
+                  + ("|site_serper" if e.get("source") == "serper" else ""),
+    }
+
+
+REOON_COLS = ["reoon_status", "reoon_score", "reoon_catch_all", "reoon_safe", "send_bucket"]
+SPLIT_COLS = ["email", "first_name", "last_name", "title", "company_name", "website", "city", "state", "country",
+              "niche", "metro", "project_reference", "icebreaker", "personalization_status", "reoon_score"]
+SPLIT_NICHE = {"av": "EventAV", "fitout": "Fitout", "dmc": "DMC"}
+SEND_WINDOW = {"US": "Mon-Thu 09:00-12:00 America/Chicago (= 10-1 ET, 7-10 PT)",
+               "UK": "Mon-Thu 08:30-11:30 Europe/London"}
+
+
+def campaign_country(row: dict[str, Any]) -> str:
+    """US | UK | Other. Blank contact country falls back to the HQ market (London/UK metros -> UK)."""
+    c = (row.get("country") or "").upper()
+    if c == "US":
+        return "US"
+    if c in ("GB", "UK"):
+        return "UK"
+    if not c:
+        return "UK" if row.get("metro", "").startswith(("London", "UK")) else "US"
+    return "Other"
+
+
+def write_campaign_split(rows: list[dict[str, Any]], outdir: Path) -> dict[str, int]:
+    """Wave-1 campaign file layout: {Niche}_{US|UK}_{Personalized|NoPersonalization}.csv (main bucket),
+    catchall/..._CatchAll.csv, REVIEW_OtherCountries_AllNiches.csv and _campaign_index.csv.
+    Personalized = non-empty icebreaker AND project_reference."""
+    files: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
+    for r in rows:
+        if r.get("send_bucket") not in ("main", "catchall"):
+            continue
+        country = campaign_country(r)
+        if country == "Other":
+            files[("review", "REVIEW_OtherCountries_AllNiches")].append(r)
+            continue
+        pers = "Personalized" if r.get("icebreaker") and r.get("project_reference") else "NoPersonalization"
+        name = f"{SPLIT_NICHE[r['niche']]}_{country}_{pers}"
+        files[(r["send_bucket"], name + ("_CatchAll" if r["send_bucket"] == "catchall" else ""))].append(r)
+    (outdir / "catchall").mkdir(parents=True, exist_ok=True)
+    index = []
+    order = {"review": 0, "catchall": 1, "main": 2}
+    for (bucket, name), items in sorted(files.items(), key=lambda kv: (order[kv[0][0]], kv[0][1])):
+        path = outdir / ("catchall" if bucket == "catchall" else "") / f"{name}.csv"
+        with open(path, "w", newline="", encoding="utf-8") as fh:
+            w = csv.DictWriter(fh, fieldnames=SPLIT_COLS, extrasaction="ignore")
+            w.writeheader()
+            w.writerows(items)
+        if bucket == "review":
+            index.append({"file": name, "bucket": "review", "niche": "mixed", "country": "Other",
+                          "personalization": "mixed", "leads": len(items), "send_window": "manual / skip"})
+        else:
+            parts = name.split("_")
+            index.append({"file": name, "bucket": bucket, "niche": parts[0], "country": parts[1],
+                          "personalization": parts[2], "leads": len(items), "send_window": SEND_WINDOW[parts[1]]})
+    with open(outdir / "_campaign_index.csv", "w", newline="", encoding="utf-8") as fh:
+        w = csv.DictWriter(fh, fieldnames=["file", "bucket", "niche", "country", "personalization", "leads",
+                                           "send_window"])
+        w.writeheader()
+        w.writerows(index)
+    return {i["file"]: i["leads"] for i in index}
+
+
 def cmd_build(args: argparse.Namespace) -> None:
     gate = jload(TMP / "gate.json", {})
     enrich, ice = jload(TMP / "enrich.json", {}), jload(TMP / "icebreak.json", {})
     exports = jload(TMP / "exports.json", {})
     rows, rejects = [], list(gate.get("rejects", []))
-    for r in gate.get("kept", []):
-        e, i = enrich.get(r["_company_domain"], {}), ice.get(r["_email"], {})
-        flags = r.get("_jev_flags", [])
-        js = e.get("jev_site")
-        # Site-based veto: the website clearly says another business (wedding, residential, leisure, other).
-        if js and ((js["niche"] == "none" and js["niche_conf"] >= 0.7 and js["fit"] < 0.5) or js["fit"] < 0.25):
-            r["reject_reason"] = "jev_site_offniche"
-            rejects.append(r)
-            continue
-        rows.append({
-            "email": r["_email"], "first_name": name_case(r.get("profile_first_name")),
-            "last_name": name_case(r.get("profile_last_name")), "title": clean(r.get("current_job_title")),
-            "company_name": clean(r.get("current_company_name")), "company_domain": r["_company_domain"],
-            "website": clean(r.get("current_company_website")) or f"https://{r['_company_domain']}",
-            "niche": r["_niche"], "metro": M[r["_metro"]]["label"], "city": clean(r.get("city")),
-            "state": clean(r.get("state")), "country": clean(r.get("country_code")),
-            "employees": clean(r.get("current_company_employees")), "linkedin_url": clean(r.get("profile_url")),
-            "email_status": r["_email_status"], "email_verified_date": r["_email_verified_date"],
-            "jev_niche_conf": r.get("_jev_niche_conf", ""), "jev_fit_score": r.get("_jev_fit", ""),
-            "company_summary": clean(e.get("company_summary")), "site_facts": clean(e.get("site_facts")),
-            "project_reference": clean(i.get("project_reference")), "icebreaker": clean(i.get("icebreaker")),
-            "personalization_status": i.get("personalization_status", "template_only"),
-            "source": "leadocean_export" + ("|" + "|".join(flags) if flags else "")
-                      + ("|site_serper" if e.get("source") == "serper" else ""),
-        })
-    out = TMP / f"prodcraft_leads_{TODAY}.csv"
+    reoon_rows: list[dict[str, Any]] = []
+    if WAVE == 2:
+        from execution.lead_sourcing import reoon_verify as rv
+        selected, sel_rejects, dropped = w2_select(gate.get("kept", []), enrich)
+        rejects += sel_rejects
+        for r in selected + dropped:
+            row = lead_row(r, enrich.get(r["_company_domain"], {}), ice.get(r["_email"], {}))
+            res = r["_reoon"]
+            row.update(reoon_status=res.get("status", ""), reoon_score=res.get("score", ""),
+                       reoon_catch_all=res.get("catch_all", ""), reoon_safe=res.get("safe", ""),
+                       send_bucket=rv.bucket(res))
+            if not row["country"]:
+                row["country"] = "GB" if r.get("_metro") in ("uk_all", "london") else "US"
+            reoon_rows.append(row)
+        rows = [x for x in reoon_rows if x["send_bucket"] != "drop"]
+    else:
+        for r in gate.get("kept", []):
+            e, i = enrich.get(r["_company_domain"], {}), ice.get(r["_email"], {})
+            if site_vetoed(e):
+                r["reject_reason"] = "jev_site_offniche"
+                rejects.append(r)
+                continue
+            rows.append(lead_row(r, e, i))
+    prefix = "prodcraft_leads_wave2" if WAVE == 2 else "prodcraft_leads"
+    out = TMP / f"{prefix}_{TODAY}.csv"
     with open(out, "w", newline="", encoding="utf-8") as fh:
-        w = csv.DictWriter(fh, fieldnames=OUT_COLS)
+        w = csv.DictWriter(fh, fieldnames=OUT_COLS, extrasaction="ignore")
         w.writeheader()
         w.writerows(rows)
     with open(TMP / "rejects.csv", "w", newline="", encoding="utf-8") as fh:
@@ -1395,31 +1780,43 @@ def cmd_build(args: argparse.Namespace) -> None:
                         "metro": M.get(r.get("_metro", ""), {}).get("label", ""),
                         "email_status": r.get("_email_status", ""), "reject_reason": r.get("reject_reason", ""),
                         "linkedin_url": r.get("profile_url", "")})
+    split = {}
+    if WAVE == 2:
+        with open(TMP / "prodcraft_leads_wave2_reoon.csv", "w", newline="", encoding="utf-8") as fh:
+            w = csv.DictWriter(fh, fieldnames=OUT_COLS + REOON_COLS)
+            w.writeheader()
+            w.writerows(reoon_rows)
+        split = write_campaign_split(reoon_rows, TMP / "campaigns_by_country")
     per_niche = Counter(r["niche"] for r in rows)
     per_metro: dict[str, Counter] = defaultdict(Counter)
     for r in rows:
         per_metro[r["niche"]][r["metro"]] += 1
     costs = jload(TMP / "costs.json", {})
     summary = {
-        "date": TODAY, "final_leads": len(rows), "per_niche": dict(per_niche),
+        "date": TODAY, "wave": WAVE, "final_leads": len(rows), "per_niche": dict(per_niche),
         "targets": {k: v["target"] for k, v in NICHES.items()},
         "per_niche_metro": {k: dict(v.most_common()) for k, v in per_metro.items()},
         "rejects_total": len(rejects), "rejects_by_reason": dict(Counter(r.get("reject_reason") for r in rejects)),
         "personalized": sum(1 for r in rows if r["personalization_status"] == "personalized"),
         "personalized_pct": round(100 * sum(1 for r in rows if r["icebreaker"]) / max(len(rows), 1), 1),
         "jev_flags": dict(Counter(f for r in gate.get("kept", []) for f in r.get("_jev_flags", []))),
-        "accepted_email_status": list(ACCEPT_STATUSES),
+        "accepted_email_status": list(STATUSES),
+        "send_buckets": dict(Counter(r["send_bucket"] for r in reoon_rows)) if reoon_rows else {},
+        "per_niche_country_bucket": dict(Counter(f"{r['niche']}|{campaign_country(r)}|{r['send_bucket']}"
+                                                 for r in reoon_rows)) if reoon_rows else {},
+        "campaign_files": split,
         "leadocean_rows_requested": sum(int(s.get("requested", 0)) for s in exports.values()),
         "leadocean_records_billed": sum(int(s.get("billed") or 0) for s in exports.values()),
         "leadocean_rows_downloaded": sum(int(s.get("rows") or 0) for s in exports.values()),
         "exports": {k: {x: s.get(x) for x in ("requested", "rows", "billed", "status")} for k, s in exports.items()},
         "cost_usd": {"jev": costs.get("jev_usd", 0.0), "llm_est": costs.get("llm_usd_est", 0.0),
                      "llm_calls": costs.get("llm_calls", 0)},
-        "files": {"leads": str(out.relative_to(ROOT)), "rejects": ".tmp/leadocean/rejects.csv"},
+        "reoon_credits": costs.get("reoon_credits", 0),
+        "files": {"leads": str(out.relative_to(ROOT)), "rejects": str((TMP / "rejects.csv").relative_to(ROOT))},
     }
     jsave(TMP / "summary.json", summary)
-    print(json.dumps({k: summary[k] for k in ("final_leads", "per_niche", "rejects_by_reason", "personalized_pct",
-                                              "leadocean_records_billed", "cost_usd")}, indent=1))
+    print(json.dumps({k: summary[k] for k in ("final_leads", "per_niche", "send_buckets", "rejects_by_reason",
+                                              "personalized_pct", "leadocean_records_billed", "cost_usd")}, indent=1))
 
 
 def main() -> None:
@@ -1439,16 +1836,30 @@ def main() -> None:
     t.add_argument("--max-pages", type=int, default=6)
     t.add_argument("--plan-only", action="store_true")
     t.add_argument("--max-per-domain", type=int, default=8, help="skip domains with more matching people")
-    for name in ("gate", "enrich", "icebreak"):
+    t.add_argument("--workers", type=int, default=6, help="parallel free per-domain counts")
+    t.add_argument("--chunk", type=int, default=50, help="domains per export (API max 50)")
+    t.add_argument("--weights", default="", help="wave 2: niche row-share weights, e.g. av=1,dmc=1,fitout=0.3")
+    for name in ("gate", "enrich", "icebreak", "verify"):
         s = sub.add_parser(name)
         s.add_argument("--limit", type=int, default=0, help="process at most N new items (testing)")
+        if name == "icebreak":
+            s.add_argument("--max-usd", type=float, default=0.0, help="stop new LLM calls past this estimate")
+        if name == "verify":
+            s.add_argument("--max-credits", type=int, default=6000, help="refuse to spend more Reoon credits")
+            s.add_argument("--workers", type=int, default=8)
     sub.add_parser("build")
     p.add_argument("-v", "--verbose", action="store_true")
+    p.add_argument("--wave", type=int, choices=(1, 2), default=1,
+                   help="2 = national US+UK, verified/untested/catch_all + Reoon, wave-1 people excluded; "
+                        "caches under .tmp/leadocean/wave2/")
     args = p.parse_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.WARNING,
                         format="%(levelname)s %(name)s: %(message)s")
+    set_wave(args.wave)
+    if args.cmd == "verify" and WAVE != 2:
+        raise SystemExit("`verify` is the wave-2 Reoon step; wave 1 uses reoon_verify.py on the final CSV")
     TMP.mkdir(parents=True, exist_ok=True)
-    {"count": cmd_count, "export": cmd_export, "gate": cmd_gate, "enrich": cmd_enrich,
+    {"count": cmd_count, "export": cmd_export, "gate": cmd_gate, "enrich": cmd_enrich, "verify": cmd_verify,
      "icebreak": cmd_icebreak, "build": cmd_build, "topup": cmd_topup}[args.cmd](args)
 
 

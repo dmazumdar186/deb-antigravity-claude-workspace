@@ -32,6 +32,19 @@ supports it, a checkable one-line icebreaker.
 
 Always run a step with `--limit 20` (or `export --sample 30`) before scaling.
 
+### Wave 2 (`--wave 2`, added 2026-11-02): national US + UK, Reoon on every address
+Global flag before the subcommand: `python3 execution/lead_sourcing/leadocean_leads.py --wave 2 <step>`. Every cache
+and output moves to `.tmp/leadocean/wave2/` (wave-1 files are never touched). Order:
+`topup` -> `gate` -> `verify` -> `enrich` -> `icebreak` -> `build`.
+
+| Step | Wave-2 behaviour |
+|---|---|
+| `topup --niches av,fitout,dmc --max-pages 40 --max-per-domain 4 --budget N` | Puts every wave-1 person_id on the LeadOcean viewed list `prodcraft_w1` (free) and adds `excludeViewed` to every count/export, so no wave-1 person is billed again. Company search per niche x {US, UK} (`hqCountry`, industry whitelist `W2_INDUSTRY`, no `hasMailableContacts` because it ignores `untested`), Jev on the description, free per-domain count (6 workers, cached in `topup_counts.json`), then exports the domains with the least cap waste first, rows split by what each niche still needs. Rows per run = min(`--budget` minus rows already requested today, the account's export rows left today). |
+| `gate` | Hygiene accepts LeadOcean `verified`/`untested`/`catch_all`; rejects wave-1 emails/people (`wave1_duplicate`); per-company cap counts wave-1 senders and keeps one reserve row for Reoon. |
+| `verify [--max-credits 6000]` | Reoon power mode on every gated address (shared cache `.tmp/reoon/cache.jsonl`). |
+| `enrich` / `icebreak [--max-usd X]` | Only rows that survive Reoon (main or catchall) and the final 2-per-company cap. |
+| `build` | `prodcraft_leads_wave2_YYYY-MM-DD.csv` (main+catchall), `prodcraft_leads_wave2_reoon.csv` (adds Reoon-dropped rows, `send_bucket`), `rejects.csv`, `summary.json`, and `campaigns_by_country/` in the wave-1 layout (`{EventAV|Fitout|DMC}_{US|UK}_{Personalized|NoPersonalization}.csv`, `catchall/*_CatchAll.csv`, `REVIEW_OtherCountries_AllNiches.csv`, `_campaign_index.csv`). Personalized = icebreaker AND project_reference. Blank contact country falls back to the HQ market. |
+
 ## Outputs
 - `.tmp/leadocean/prodcraft_leads_YYYY-MM-DD.csv`: email, first_name, last_name, title, company_name,
   company_domain, website, niche, metro, city, state, country, employees, linkedin_url, email_status,
@@ -104,6 +117,23 @@ Always run a step with `--limit 20` (or `export --sample 30`) before scaling.
 - Bare "fit out"/"fit-out" keywords match fitness and apparel brands; use construction phrases plus a construction
   industry list. AV keywords ("staging", "experiential", "corporate events") pull in restaurants, schools and
   breweries; the `NOISE_INDUSTRIES` exclude list plus Jev handle it.
+
+### Wave 2 learnings (2026-11-02/03)
+- `POST /v1/people/viewed {ids, set}` is free (10,000 ids/call); `excludeViewed=true&viewedSet=prodcraft_w1` on
+  counts and exports drops the 3,812 wave-1 people. Export filters need it as a JSON boolean.
+- Export `filters.domain` takes at most 50 domains (HTTP 400 otherwise): `--chunk 50`.
+- Domain-filtered exports had 0 duplicate rows (239/239 unique person_ids) vs ~19% on keyword exports.
+- National company universes (keywords + `W2_INDUSTRY`, free `/v1/companies/count`): AV 3,611 US / 1,400 UK,
+  fit-out 6,219 / 1,178, DMC 1,245 / 465 after exclude keywords. Searched 11,899 (fit-out US capped at 4,000);
+  Jev approved 4,631 (AV 2,047, fit-out 2,357, DMC 397; $0.27). Free per-domain counts (verified+untested,
+  decision-makers): 0 = 28%, 1-4 = 35%, 5+ = 37%. Re-counting the 5+ with owner/founder/C-suite/partner only
+  (`TIGHT_SENIORITY`) lifted the exportable pool from 1,607 companies / 3,482 rows to 2,167 / 5,045 rows.
+- LeadOcean status vs Reoon (gated day-1 rows): `verified` 16/19 safe, `untested` 50/77 safe (65%), LeadOcean
+  `catch_all` 0/13 safe (all Reoon catch_all/unknown), so wave 2 exports verified + untested only. The export's
+  per-address status still returns ~10% unknown/invalid and ~10% rows with no address at all.
+- Day-1 yield (239 rows): 109 passed hygiene + people-state Jev, 62 Reoon-safe (26% of rows): AV 33%, DMC 31%,
+  fit-out 10% (fit-out rows lost to no-email, domain mismatch and Jev `none` on the contact). `--weights
+  av=1,dmc=1,fitout=0.3` sends rows where they buy the most safe leads.
 
 ### Other
 - Cloud sandbox: the local DNS resolver answers NoAnswer for real MX records, so MX uses DNS-over-HTTPS
