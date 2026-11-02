@@ -60,8 +60,13 @@ Always run a step with `--limit 20` (or `export --sample 30`) before scaling.
   proposals/bids for corporate projects). Drop when Jev picks another niche with confidence >= 0.6 or fit < 0.4;
   keep but flag `jev_borderline` when the niche disagrees at lower confidence or fit < 0.6; Jev error -> keep,
   flag `jev_unchecked`. Flags ride in the `source` column.
+- **Site veto (Jev pass 2):** `enrich` re-asks the same Jev questions with the scraped site summary + facts.
+  `build` drops the company (`jev_site_offniche`) when that pass says `none` at confidence >= 0.7 with fit < 0.5,
+  or fit < 0.25. Catches wedding florists, home builders, venues and limo firms that LinkedIn data hid.
 - **Icebreaker validator:** <= 20 words, conf >= 0.7, no dashes/questions/banned filler, and `project_reference`
-  must appear verbatim in the scraped text AND inside the line. Otherwise blank + `template_only`.
+  must appear verbatim in the scraped text AND inside the line. One repair call on format slips (length, dash,
+  filler, reference missing from the line). Otherwise blank + `template_only`. Low confidence is never repaired:
+  a site with only service-line copy stays `template_only` by design.
 
 ## Edge Cases
 ### API limits learned (2026-11-02)
@@ -104,3 +109,9 @@ Always run a step with `--limit 20` (or `export --sample 30`) before scaling.
   e.g. "Ladidadi Events & Incentives" found by AV keywords becomes a DMC lead instead of a reject.
 - Re-running a step only processes new items. To redo a step, delete its cache file (`gate.json`/`jev_cache.json`,
   `enrich.json` + `sites/`, `icebreak.json`).
+
+## Exit Criteria
+- `summary.json` written; every exported row is either in the leads CSV or in `rejects.csv` with a reason.
+- Leads CSV holds only `email_status=verified` work emails on the company domain with a live MX, max 2 per company.
+- Report: counts per niche/metro vs. allocation, rejects by reason, % with icebreaker, LeadOcean rows used,
+  Jev + LLM cost, and why any shortfall against ~3,000 happened (pool sizes, verified yield).

@@ -957,6 +957,28 @@ def summarise_site(data: dict[str, Any]) -> tuple[str, str, str]:
     return summary, site_facts, context
 
 
+def site_gate(out: dict[str, Any], companies: dict[str, str]) -> None:
+    """Second Jev pass on the scraped site summary (a far richer state than a contact headline).
+    Catches e.g. wedding producers that read as 'event production' from LinkedIn data alone."""
+    from execution.modules import jev_client as jev
+    todo = [d for d, v in out.items() if "jev_site" not in v and (v.get("company_summary") or v.get("site_facts"))]
+    if not todo:
+        return
+    states = [{"company_name": companies.get(d, ""), "domain": d,
+               "website_summary": out[d].get("company_summary", ""), "website_facts": out[d].get("site_facts", "")}
+              for d in todo]
+    cost = 0.0
+    for d, res in zip(todo, jev.decide_many(states, jev_questions(), workers=8)):
+        cost += res.cost_usd
+        if not res.error:
+            out[d]["jev_site"] = {"niche": res.choice("niche"), "niche_conf": round(res.confidence("niche"), 3),
+                                  "fit": round(res.noul("fit"), 3)}
+    stats = jload(TMP / "costs.json", {})
+    stats["jev_usd"] = round(stats.get("jev_usd", 0.0) + cost, 6)
+    jsave(TMP / "costs.json", stats)
+    print(f"site gate: {len(todo)} companies, Jev ${cost:.4f}")
+
+
 def cmd_enrich(args: argparse.Namespace) -> None:
     gate = jload(TMP / "gate.json", {})
     kept = gate.get("kept", [])
@@ -994,6 +1016,8 @@ def cmd_enrich(args: argparse.Namespace) -> None:
     with ThreadPoolExecutor(max_workers=16) as pool:
         list(pool.map(work, todo))
     jsave(out_path, out)
+    site_gate(out, companies)
+    jsave(out_path, out)
     src = Counter(v.get("source") or "none" for v in out.values())
     print(f"enrich: {len(out)} companies cached; sources {dict(src)}; "
           f"with facts {sum(1 for v in out.values() if v.get('site_facts'))}")
@@ -1002,7 +1026,8 @@ def cmd_enrich(args: argparse.Namespace) -> None:
 # --------------------------------------------------------------------------------------
 # 6. icebreak
 # --------------------------------------------------------------------------------------
-BANNED = re.compile(r"impressive|came across|i noticed|amazing|incredible|love (what|how)|stumbled|"
+BANNED = re.compile(r"impressive|came across|i noticed|amazing|incredible|love (what|how)|stumbled|distinctive|"
+                    r"one of your favou?rites|standout|"
                     r"hope this|i was impressed|kudos|congrat|awesome|fantastic|stellar|remarkable|"
                     r"passion|journey|delve|testament|game[- ]chang|cutting[- ]edge", re.IGNORECASE)
 ICE_SYSTEM = """You write one cold-email opening line for a B2B prospect. Output JSON only:
@@ -1013,7 +1038,7 @@ Rules:
 - It must name ONE specific, checkable thing (a named project, client, venue, event, destination or program)
   that appears VERBATIM in SITE FACTS or SITE TEXT. Copy that exact phrase into project_reference and use the
   same phrase, unchanged, inside the icebreaker.
-- Just state the observation. No inference about their workload or pitches ("which means", "must be"), no
+- Just state the observation. No evaluative adjectives ("distinctive", "standout") and no inference about their workload or pitches ("which means", "must be"), no
   flattery or filler ("impressive", "came across", "I noticed", "amazing", "love", "congrats"), no questions,
   no em or en dashes, no claims beyond the provided text, no mention of AI or proposals.
 - pain_guess: max 15 words on the proposal/bid-writing pain this firm likely has (internal use only).
@@ -1021,6 +1046,10 @@ Rules:
   copied verbatim; 0.5 when only a generic service line is available; 0 when the text is generic marketing
   copy or empty (then icebreaker "")."""
 _ice_fail: Counter = Counter()
+FIXABLE = {"too_long": "the icebreaker must be 20 words or fewer (aim for 15)",
+           "dash": "no em or en dashes", "banned": "no flattery or filler words",
+           "ref_not_in_line": "project_reference must appear unchanged inside the icebreaker",
+           "question": "no questions"}
 
 
 def _ice_prompt(r: dict[str, Any], e: dict[str, Any]) -> str:
@@ -1060,8 +1089,7 @@ def validate_ice(obj: dict[str, Any] | None, e: dict[str, Any]) -> tuple[dict[st
               "ref_not_in_site": bool(ref) and len(ref) >= 3 and ref.lower() in haystack,
               "ref_not_in_line": bool(ref) and ref.lower() in ice.lower(), "question": "?" not in ice}
     failed = [k for k, v in checks.items() if not v]
-    if failed:
-        _ice_fail[failed[0]] += 1
+    rec["fail"] = failed[0] if failed else ""
     if not failed:
         rec["icebreaker"] = ice
         return rec, "personalized"
@@ -1095,10 +1123,25 @@ def cmd_icebreak(args: argparse.Namespace) -> None:
                 log.warning("icebreak %s: %s", r["_email"], exc.__class__.__name__)
                 text = ""
             rec, status = validate_ice(_parse_json(text), e)
+            calls = [(prompt, text)]
+            if rec.get("fail") in FIXABLE:  # one repair pass for format slips (length, dash, filler)
+                fix = (f"{prompt}\n\nYOUR PREVIOUS ANSWER: {text}\nIt broke this rule: {FIXABLE[rec['fail']]}. "
+                       "Return corrected JSON.")
+                try:
+                    text2 = llm_client.chat_completion(ICE_SYSTEM, fix, model=LLM_MODEL, max_tokens=600)
+                except Exception as exc:  # noqa: BLE001 - provider SDK raises many types; keep first result
+                    log.warning("icebreak repair %s: %s", r["_email"], exc.__class__.__name__)
+                    text2 = ""
+                calls.append((fix, text2))
+                rec2, status2 = validate_ice(_parse_json(text2), e)
+                if status2 == "personalized":
+                    rec, status = rec2, status2
             with lock:
-                tokens["in"] += (len(ICE_SYSTEM) + len(prompt)) // 4
-                tokens["out"] += max(len(text) // 4, 1) + 150  # + low-effort reasoning allowance
-                tokens["calls"] += 1
+                _ice_fail[rec.get("fail") or "ok"] += 1
+                for pr, tx in calls:
+                    tokens["in"] += (len(ICE_SYSTEM) + len(pr)) // 4
+                    tokens["out"] += max(len(tx) // 4, 1) + 150  # + low-effort reasoning allowance
+                    tokens["calls"] += 1
         rec["personalization_status"] = status
         with lock:
             out[r["_email"]] = rec
@@ -1278,6 +1321,12 @@ def clean(s: Any) -> str:
     return re.sub(r"\s+", " ", str(s or "")).replace("—", ", ").replace("–", "-").strip()
 
 
+def name_case(s: Any) -> str:
+    """Title-case only all-lower/all-upper names; keep 'McDonald', 'DeShawn' as given."""
+    v = clean(s)
+    return v.title() if v == v.lower() or v == v.upper() else v
+
+
 def cmd_build(args: argparse.Namespace) -> None:
     gate = jload(TMP / "gate.json", {})
     enrich, ice = jload(TMP / "enrich.json", {}), jload(TMP / "icebreak.json", {})
@@ -1286,9 +1335,15 @@ def cmd_build(args: argparse.Namespace) -> None:
     for r in gate.get("kept", []):
         e, i = enrich.get(r["_company_domain"], {}), ice.get(r["_email"], {})
         flags = r.get("_jev_flags", [])
+        js = e.get("jev_site")
+        # Site-based veto: the website clearly says another business (wedding, residential, leisure, other).
+        if js and ((js["niche"] == "none" and js["niche_conf"] >= 0.7 and js["fit"] < 0.5) or js["fit"] < 0.25):
+            r["reject_reason"] = "jev_site_offniche"
+            rejects.append(r)
+            continue
         rows.append({
-            "email": r["_email"], "first_name": clean(r.get("profile_first_name")).title(),
-            "last_name": clean(r.get("profile_last_name")).title(), "title": clean(r.get("current_job_title")),
+            "email": r["_email"], "first_name": name_case(r.get("profile_first_name")),
+            "last_name": name_case(r.get("profile_last_name")), "title": clean(r.get("current_job_title")),
             "company_name": clean(r.get("current_company_name")), "company_domain": r["_company_domain"],
             "website": clean(r.get("current_company_website")) or f"https://{r['_company_domain']}",
             "niche": r["_niche"], "metro": M[r["_metro"]]["label"], "city": clean(r.get("city")),
