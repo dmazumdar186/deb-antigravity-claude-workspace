@@ -472,8 +472,8 @@ def _rep(step, ts, thread="t1"):
     return {"step": step, "timestamp_email": ts, "thread_id": thread}
 
 
-def _sent(step, ts):
-    return {"step": step, "ue_type": 1, "timestamp_email": ts}
+def _sent(step, ts, thread="t1", camp="c"):
+    return {"step": step, "ue_type": 1, "timestamp_email": ts, "thread_id": thread, "campaign_id": camp}
 
 
 def test_outbound_for_latest_matching_step_before_reply():
@@ -486,9 +486,9 @@ def test_outbound_for_latest_matching_step_before_reply():
 
 def test_attribute_replies_excludes_pre_test_sends_and_counts_unattributed():
     threads = {
-        "old": [_sent("0_0_0", "2026-10-20T01:00:00.000Z")],     # control send before the test
-        "new": [_sent("0_0_0", "2026-11-03T01:00:00.000Z")],     # control send during the test
-        "none": [_sent("0_1_0", "2026-11-03T01:00:00.000Z")],    # no outbound for the reply's step
+        "old": [_sent("0_0_0", "2026-10-20T01:00:00.000Z", "old")],     # control send before the test
+        "new": [_sent("0_0_0", "2026-11-03T01:00:00.000Z", "new")],     # control send during the test
+        "none": [_sent("0_1_0", "2026-11-03T01:00:00.000Z", "none")],   # no outbound for the reply's step
     }
     looked = []
 
@@ -502,7 +502,7 @@ def test_attribute_replies_excludes_pre_test_sends_and_counts_unattributed():
               {"step": "0_0_0", "timestamp_email": "2026-11-04T00:00:00Z"}]
     kept, counts = m.attribute_replies(emails, "2026-11-02", {"0_0": 91, "0_1": 0}, lookup)
     assert [e["thread_id"] for e in kept] == ["new", "x"]                  # slot 0_1 has no pre-test sends: no lookup
-    assert counts == {"pre_test": 1, "unattributed": 4}
+    assert counts == {"pre_test": 1, "unattributed": 4, "budget_exhausted": 1}
     assert "x" not in looked
     # Without a baseline every reply is looked up.
     kept2, _ = m.attribute_replies([_rep("0_0_1", "2026-11-04T00:00:00Z", "new")], "2026-11-02", None, lookup)
@@ -514,18 +514,48 @@ def test_aggregate_after_attribution_does_not_credit_control_with_old_replies():
     emails = [dict(_rep("0_0_0", "2026-11-04T00:00:00Z", "old"), kind="interested"),
               dict(_rep("0_0_1", "2026-11-04T00:00:00Z", "b"), kind="interested")]
     kept, _ = m.attribute_replies(emails, "2026-11-02", {"0_0": 91},
-                                  lambda tid: [_sent("0_0_0", "2026-10-20T00:00:00Z")])
+                                  lambda tid: [_sent("0_0_0", "2026-10-20T00:00:00Z", tid)])
     agg = m.aggregate_metrics(rows, kept, {"0_0": 91})
     assert agg[0][0]["positive"] == 0 and agg[0][1]["positive"] == 1
 
 
 def test_thread_sent_cached_and_budget_bounded(monkeypatch):
-    api = _client([(200, {"items": [_sent("0_0_0", "2026-11-03T00:00:00Z")]}), (200, {"items": []})], monkeypatch)
-    api.thread_budget = 2
-    assert len(api.thread_sent("a")) == 1 and len(api.thread_sent("a")) == 1   # cached: one call
-    assert api.s.calls[0][2] == {"search": "thread:a", "email_type": "sent", "limit": 100}
-    assert api.thread_sent("b") == [] and api.thread_sent("c") is None          # budget spent
+    monkeypatch.setattr(m, "MAX_THREAD_LOOKUPS", 2)
+    api = _client([(200, {"items": [_sent("0_0_0", "2026-11-03T00:00:00Z", "a")]}), (200, {"items": []})], monkeypatch)
+    assert len(api.thread_sent("a", "c", "f")) == 1 and len(api.thread_sent("a", "c", "f")) == 1   # cached: one call
+    assert api.s.calls[0][2] == {"search": "thread:a", "email_type": "sent", "limit": 100, "campaign_id": "c"}
+    assert api.thread_sent("b", "c", "f") == [] and api.thread_sent("x", "c", "f") is None         # budget spent
     assert len(api.s.calls) == 2
+
+
+def test_thread_lookup_post_filter_discards_foreign_thread_and_campaign(monkeypatch):
+    # An ignored `search` would return account-wide sends: only this thread + campaign survive.
+    items = [_sent("0_0_0", "2026-11-03T00:00:00Z", "a", "c"), _sent("0_0_0", "2026-11-03T00:00:00Z", "zz", "c"),
+             _sent("0_0_0", "2026-11-03T00:00:00Z", "a", "other"), {"step": "0_0_0", "ue_type": 1}]
+    api = _client([(200, {"items": items})], monkeypatch)
+    m.STATS.reset()
+    got = api.thread_sent("a", "c", "f")
+    assert got == [items[0]] and m.STATS.thread_items_foreign == 3
+    # Pure path too: a lookup returning only another lead's send (pre-test) cannot attribute the reply.
+    foreign = lambda tid: [_sent("0_0_0", "2026-10-20T00:00:00Z", "zz", "c")]
+    kept, counts = m.attribute_replies([_rep("0_0_0", "2026-11-04T00:00:00Z", "a")], "2026-11-02", {"0_0": 9},
+                                       foreign, campaign_id="c")
+    assert kept == [] and counts == {"pre_test": 0, "unattributed": 1, "budget_exhausted": 0}
+    other_camp = lambda tid: [_sent("0_0_0", "2026-11-03T00:00:00Z", tid, "other")]
+    kept, counts = m.attribute_replies([_rep("0_0_0", "2026-11-04T00:00:00Z", "a")], "2026-11-02", {"0_0": 9},
+                                       other_camp, campaign_id="c")
+    assert kept == [] and counts["unattributed"] == 1
+
+
+def test_thread_budget_is_per_family_and_reset_per_run(monkeypatch):
+    monkeypatch.setattr(m, "MAX_THREAD_LOOKUPS", 1)
+    api = _client([(200, {"items": []})] * 4, monkeypatch)
+    assert api.thread_sent("a", "c1", "big") == [] and api.thread_sent("b", "c1", "big") is None   # big spent
+    assert api.thread_sent("x", "c2", "small") == []                                               # own budget
+    api.reset_lookup_budget()
+    assert api.thread_sent("a", "c1", "big") == []          # cached: no call
+    assert api.thread_sent("b", "c1", "big") == []          # fresh budget after reset
+    assert len(api.s.calls) == 3
 
 
 def test_fetch_snapshot_attributes_and_counts(monkeypatch):
@@ -539,14 +569,18 @@ def test_fetch_snapshot_attributes_and_counts(monkeypatch):
         def received_emails(self, cid, started):
             return [_rep("0_0_0", "2026-11-04T00:00:00Z", "old"), _rep("0_0_1", "2026-11-04T00:00:00Z", "b")]
 
-        def thread_sent(self, tid):
-            return [_sent("0_0_0", "2026-10-20T00:00:00Z")]
+        def thread_sent(self, tid, campaign_id=None, family=""):
+            seen.append((tid, campaign_id, family))
+            return [_sent("0_0_0", "2026-10-20T00:00:00Z", tid, campaign_id)]
 
+    seen = []
     m.STATS.reset()
-    snap = m.fetch_snapshot(Api(), [{"campaign_id": "c", "started": "2026-11-02", "baseline_sent": {"0_0": 5}}])
+    snap = m.fetch_snapshot(Api(), [{"campaign_id": "c", "family": "fam", "started": "2026-11-02",
+                                     "baseline_sent": {"0_0": 5}}])
     c = snap["campaigns"]["c"]
-    assert [e["thread_id"] for e in c["emails"]] == ["b"] and c["attribution"] == {"pre_test": 1, "unattributed": 0}
-    assert m.STATS.replies_pre_test == 1
+    assert [e["thread_id"] for e in c["emails"]] == ["b"]
+    assert c["attribution"] == {"pre_test": 1, "unattributed": 0, "budget_exhausted": 0}
+    assert m.STATS.replies_pre_test == 1 and seen == [("old", "c", "fam")]
 
 
 # 3. grade needs business data and >= 7/9 measurable
@@ -627,12 +661,18 @@ def test_monitor_unexpected_exception_writes_technical_row_if_live_and_reraises(
     with pytest.raises(KeyError):
         m.cmd_monitor(_args(live=True))
     assert written[0]["error"].startswith("KeyError") and "technical" in written[0] and "families" not in written[0]
+    assert written[0]["live"] is True and written[0]["type"] == "monitor"
 
 
 # 6. sync
 def _sync():
     from execution.infrastructure import instantly_copy_sync as sync
     return sync
+
+
+def test_sync_to_html_strips_outer_whitespace():
+    sync = _sync()
+    assert sync.to_html("\n\nHi\n\nBye\n\n") == sync.to_html("Hi\n\nBye") == "<div>Hi</div><div><br /></div><div>Bye</div>"
 
 
 def test_sync_to_html_escapes_and_line_breaks():
@@ -754,3 +794,98 @@ def test_overall_block_labelled_cross_family():
     r = _row("2026-11-09")
     assert r["overall"]["label"] == "cross-family (reporting only)"
     assert "replies_unattributed" in r["technical"] and "replies_pre_test" in r["technical"]
+
+
+# 11. attribution guard: incomplete attribution holds every loser and base-role complaint decision
+def _guard_members(c_unsub=0, ctrl_unsub=0):
+    state = {0: [False, False, False]}
+    cells = {0: {0: {"sent": 300, "positive": 6, "human": 10, "unsub": ctrl_unsub, "auto": 3},
+                 1: {"sent": 300, "positive": 12, "human": 15, "unsub": 0, "auto": 3},
+                 2: {"sent": 300, "positive": 0, "human": 2, "unsub": c_unsub, "auto": 3}}}
+    roles = {0: {"control": 0, "B": 1, "C": 2}}
+    return [{"campaign_id": f"c{i}", "name": f"c{i}", "roles": roles, "state": state, "metrics": cells} for i in range(2)]
+
+
+def test_unattributed_holds_every_loser_action():
+    assert m.decide_family(_guard_members())["action"]["arm"] == "C"            # baseline: C loses
+    d = m.decide_family(_guard_members(), unattributed=1)
+    assert d["action"] is None and d["plan"] is None
+    assert any("role C (loser): attribution incomplete (1 unattributed)" in h for h in d["held"])
+    # control as the would-be loser is held too
+    ctrl_loses = _guard_members()
+    for mm in ctrl_loses:
+        mm["metrics"][0][0]["positive"], mm["metrics"][0][2]["positive"] = 0, 6
+    assert m.decide_family(ctrl_loses)["action"]["arm"] == "control"
+    assert m.decide_family(ctrl_loses, unattributed=2)["action"] is None
+
+
+def test_budget_exhaustion_holds_decisions():
+    d = m.decide_family(_guard_members(), unattributed=0, budget_exhausted=3)
+    assert d["action"] is None and any("thread-lookup budget exhausted for 3" in h for h in d["held"])
+
+
+def test_complaint_on_new_role_proceeds_but_base_role_complaint_held_when_incomplete():
+    d = m.decide_family(_guard_members(c_unsub=5), unattributed=4)
+    assert d["action"]["arm"] == "C" and d["action"]["reason"] == "complaints"
+    d2 = m.decide_family(_guard_members(ctrl_unsub=5), unattributed=4)
+    assert d2["action"] is None
+    assert any("role control (complaints): attribution incomplete (4 unattributed)" in h for h in d2["held"])
+    assert m.decide_family(_guard_members(ctrl_unsub=5))["action"]["arm"] == "control"
+
+
+def test_compute_passes_family_attribution_to_guard():
+    snap, replies = _snapshot()
+    base = m.actions_of(m.compute(snap, replies))
+    snap["campaigns"]["r1"]["attribution"] = {"pre_test": 0, "unattributed": 1, "budget_exhausted": 0}
+    res = m.compute(snap, replies)
+    assert not any(a[0] == "recruitment" for a in m.actions_of(res))
+    assert [a for a in base if a[0] != "recruitment"] == m.actions_of(res)
+    text = "\n".join(m.report_body(res, live=False))
+    rec = text.split("## Family: yoga_fr")[0]
+    if any(a[0] == "recruitment" for a in base):
+        assert "attribution incomplete (1 unattributed)" in rec
+
+
+# 12. per-arm eligibility: warming-up arms neither block nor get disabled
+def _elig_members(ctrl_sent, ctrl_pos=0, c_pos=0):
+    state = {0: [False, False, False]}
+    cells = {0: {0: _cell(ctrl_sent, ctrl_pos, ctrl_pos), 1: _cell(300, 12, 15), 2: _cell(300, c_pos, max(c_pos, 2))}}
+    return [{"campaign_id": "c1", "name": "c1", "roles": {0: {"control": 0, "B": 1, "C": 2}}, "state": state,
+             "metrics": cells}]
+
+
+def test_b_vs_c_decided_while_control_has_zero_sends():
+    d = m.decide_family(_elig_members(0))
+    assert d["action"]["arm"] == "C" and d["action"]["reason"] == "loser"
+    assert (0, "control") not in d["pbest"] and (0, "B") in d["pbest"] and (0, "C") in d["pbest"]
+    lines = m.family_lines("f", {"members": _elig_members(0), "skipped": [], "decision": d}, live=False)
+    assert any("| 1 | control |" in ln and "warming up (0/180)" in ln for ln in lines)
+
+
+def test_control_never_disabled_while_under_180():
+    # Control is clearly worst on raw rates but has 179 sends: B vs C is unclear -> no action, control untouched.
+    d = m.decide_family(_elig_members(179, ctrl_pos=0, c_pos=11))
+    assert d["action"] is None and all(c["arm"] != "control" for c in m.decide_arms(
+        d["pool"]["state"], d["pool"]["cells"])["candidates"])
+    # With a clear leader, the under-180 control is still skipped: the loser is C, not control.
+    d1 = m.decide_family(_elig_members(179, ctrl_pos=0, c_pos=2))
+    assert d1["action"]["arm"] == "C" and (0, "control") not in d1["pbest"]
+    # At 180 control becomes eligible and is the lowest P(best).
+    d2 = m.decide_family(_elig_members(180, ctrl_pos=0, c_pos=2))
+    assert d2["action"]["arm"] == "control"
+
+
+def test_single_eligible_arm_no_decision():
+    d = m.decide_campaign({0: [False, False]}, _cells((500, 15, 20, 0), (179, 0, 0, 0)))
+    assert d["action"] is None and d["pbest"] == {}
+
+
+# 13. scorecard business metrics need >= 50 post-baseline sends
+def test_scorecard_business_metrics_need_50_sends():
+    v = m.scorecard_values(_row("2026-11-09", sent=16), None)          # roles 16 each, totals 48
+    assert all(v[k] is None for k in m.BUSINESS_METRICS)
+    v = m.scorecard_values(_row("2026-11-09", sent=20), None)          # totals 60, roles 20
+    assert v["unsub_rate"] is not None and v["auto_rate"] is not None
+    assert v["pos_rate_best_new"] is None and v["uplift"] is None
+    v = m.scorecard_values(_row("2026-11-09", sent=50), None)
+    assert all(v[k] is not None for k in m.BUSINESS_METRICS)

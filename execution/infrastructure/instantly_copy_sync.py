@@ -64,7 +64,7 @@ def to_html(body: str) -> str:
     Blank line = paragraph (`<div>p</div><div><br /></div>`, last paragraph `<div>p</div>`), a single
     newline inside a paragraph = `<br />`, and & < > are escaped (quotes, accents and « » are not).
     """
-    paras = [html.escape(p, quote=False).replace("\n", "<br />") for p in body.split("\n\n")]
+    paras = [html.escape(p, quote=False).replace("\n", "<br />") for p in body.strip().split("\n\n")]
     return "".join(f"<div>{p}</div><div><br /></div>" for p in paras[:-1]) + f"<div>{paras[-1]}</div>"
 
 

@@ -97,8 +97,9 @@ RETRY_429_S = 20.0
 MAX_429_RETRIES = 4         # retries on 429 and on 500/502/503/504 (same backoff)
 RETRY_STATUSES = (429, 500, 502, 503, 504)
 MAX_PAGES = 200
-# Reply attribution (thread lookups on /emails): at 3.2 s each, 75 lookups ~ 4 min.
-MAX_THREAD_LOOKUPS = 75
+# Reply attribution (thread lookups on /emails): a budget PER FAMILY per run, so one big family
+# cannot starve the others. At 3.2 s each, 40 lookups ~ 2 min per family.
+MAX_THREAD_LOOKUPS = 40
 
 VALIDATE_MIN_CONTACTED = 150
 VALIDATE_RENDERS = 5
@@ -120,6 +121,9 @@ METRIC_KEYS = ("sent", "positive", "human", "unsub", "auto")
 # Roles that are not "new copy" when computing uplift.
 BASE_ROLES = ("control", "old", "legacy")
 ROLE_ORDER = ("control", "old", "legacy", "B", "C", "new")
+# Roles with no pre-test sends: their replies need no thread lookup, so their complaint rate is exact
+# even when attribution is incomplete (the only decision allowed then).
+NEW_ROLES = tuple(r for r in ROLE_ORDER if r not in BASE_ROLES)
 
 
 def utc_today() -> dt.date:
@@ -166,6 +170,8 @@ class RunStats:
     replies_pre_test: int = 0       # excluded: answer an outbound sent before the test started
     replies_unattributed: int = 0   # excluded: answering outbound could not be determined
     thread_lookups: int = 0
+    thread_lookups_refused: int = 0  # lookups skipped because the family's budget was spent
+    thread_items_foreign: int = 0    # lookup items discarded: other thread or other campaign
 
     def reset(self) -> None:
         for k, v in asdict(RunStats()).items():
@@ -417,6 +423,12 @@ def decide_arms(state: dict[int, dict[Any, bool]], metrics: dict[int, dict[Any, 
     state: {step: {arm: disabled}}. Returns {"pbest": {(step, arm): p}, "candidates": [...],
     "action": candidates[0] | None, "held": [str]}. Candidates are ordered complaints first
     (highest rate), then losers (lowest P(best)). The last active arm of a step is never a candidate.
+
+    Loser eligibility is per arm (2026-11-02): an active arm with >= DECISION_MIN_SENT sends since
+    the test start is eligible; P(best) and the loser rule run over eligible arms only, once >= 2
+    are eligible. An arm still below the minimum ("warming up") is never a loser and does not block
+    a decision among the others (Instantly balances variants by lifetime count, so control/old get
+    no sends until the new arms catch up). Complaint safety applies to every active arm as before.
     """
     pbest: dict[tuple[int, Any], float] = {}
     complaint: list[dict[str, Any]] = []
@@ -425,9 +437,9 @@ def decide_arms(state: dict[int, dict[Any, bool]], metrics: dict[int, dict[Any, 
     for s in sorted(state):
         active = [k for k, dis in state[s].items() if not dis]
         cells = metrics.get(s, {})
-        # P(best) only over arms that have sent: an unsent arm's flat prior would read as the
-        # favourite. When the loser rule is eligible (all arms >= 180 sent) this is every active arm.
-        measured = [k for k in active if cells.get(k, {}).get("sent", 0) > 0]
+        # P(best) only over eligible arms (>= DECISION_MIN_SENT sends): an unsent or barely-sent
+        # arm's wide posterior would distort the comparison, and it must never be disabled.
+        measured = [k for k in active if cells.get(k, {}).get("sent", 0) >= DECISION_MIN_SENT]
         metric, ps = "", []
         if len(measured) >= 2:
             metric, arms = step_metric(cells, measured)
@@ -443,8 +455,7 @@ def decide_arms(state: dict[int, dict[Any, bool]], metrics: dict[int, dict[Any, 
                 else:
                     complaint.append({"step": s, "arm": k, "reason": "complaints", "rate": unsub / sent,
                                       "detail": f"{unsub}/{sent} unsub/complaints = {unsub / sent:.2%}"})
-        eligible = len(active) >= 2 and all(cells.get(k, {}).get("sent", 0) >= DECISION_MIN_SENT for k in active)
-        if eligible and ps and max(ps) >= LOSER_BEST_P and min(ps) <= LOSER_WORST_P:
+        if ps and max(ps) >= LOSER_BEST_P and min(ps) <= LOSER_WORST_P:
             i = min(range(len(ps)), key=ps.__getitem__)
             loser.append({"step": s, "arm": measured[i], "reason": "loser", "p": ps[i],
                           "detail": f"P(best) {ps[i]:.2f} on {metric}; leader {max(ps):.2f}"})
@@ -553,17 +564,34 @@ def plan_role_disable(members: list[dict[str, Any]], step: int, role: str) -> di
     return {"targets": targets, "held": held, "already": already}
 
 
-def decide_family(members: list[dict[str, Any]]) -> dict[str, Any]:
+def attribution_incomplete(unattributed: int, budget_exhausted: int) -> str:
+    """'' when every reply was attributed, else the held reason."""
+    if unattributed <= 0 and budget_exhausted <= 0:
+        return ""
+    extra = f", thread-lookup budget exhausted for {budget_exhausted}" if budget_exhausted > 0 else ""
+    return f"attribution incomplete ({unattributed} unattributed{extra})"
+
+
+def decide_family(members: list[dict[str, Any]], unattributed: int = 0, budget_exhausted: int = 0) -> dict[str, Any]:
     """Pool, decide on roles, and plan the (single) role change for the family.
 
     A candidate whose plan has no campaign to change (all already off or all held) is not an
     action; it is reported as held and the next candidate is considered.
+
+    Attribution guard: only base-role (control/old/legacy) replies go through the thread lookup, so
+    an unattributed reply or a spent lookup budget undercounts the base roles only and would make
+    control look like the loser. Then every loser decision and every base-role complaint decision
+    is held for this run; complaint-safety on NEW roles (B/C/new, no lookup needed) still proceeds.
     """
     pool = pool_family(members)
     d = decide_arms(pool["state"], pool["cells"], lambda r: f"role {r}")
     action, plan = None, None
     held = list(d["held"])
+    why = attribution_incomplete(unattributed, budget_exhausted)
     for cand in d["candidates"]:
+        if why and not (cand["reason"] == "complaints" and cand["arm"] in NEW_ROLES):
+            held.append(f"step {cand['step'] + 1} role {cand['arm']} ({cand['reason']}): {why}")
+            continue
         p = plan_role_disable(members, cand["step"], cand["arm"])
         if p["targets"]:
             action, plan = cand, p
@@ -657,9 +685,21 @@ def outbound_for(reply: dict[str, Any], thread_sent: list[dict[str, Any]]) -> dt
     return best
 
 
+def thread_items(items: list[dict[str, Any]] | None, thread_id: str, campaign_id: str | None
+                 ) -> list[dict[str, Any]] | None:
+    """Post-filter a thread lookup: keep only items of exactly this thread (and this campaign when
+    given). Never trust the API filter alone: an ignored `search` returns account-wide sends."""
+    if items is None:
+        return None
+    keep = [i for i in items if isinstance(i, dict) and i.get("thread_id") == thread_id
+            and (campaign_id is None or i.get("campaign_id") == campaign_id)]
+    STATS.thread_items_foreign += len(items) - len(keep)
+    return keep
+
+
 def attribute_replies(emails: list[dict[str, Any]], started: str, baseline: dict[str, Any] | None,
-                      thread_sent: Callable[[str], list[dict[str, Any]] | None]
-                      ) -> tuple[list[dict[str, Any]], dict[str, int]]:
+                      thread_sent: Callable[[str], list[dict[str, Any]] | None],
+                      campaign_id: str | None = None) -> tuple[list[dict[str, Any]], dict[str, int]]:
     """Keep only replies to outbound emails sent on/after `started` (the window `sent` is measured on).
 
     Only the control/old slots had pre-test sends, so counting every reply received since `started`
@@ -667,12 +707,14 @@ def attribute_replies(emails: list[dict[str, Any]], started: str, baseline: dict
     absent while the test has a baseline) is post-test by construction: no lookup. Other replies
     look up their thread's sent emails via `thread_sent(thread_id)`; the caller caches per thread
     and bounds the calls, returning None once its budget is spent. A reply with no step, no thread,
-    no matching outbound, or past the budget is excluded and counted as `unattributed`.
-    Returns (kept emails, {"pre_test": n, "unattributed": n}).
+    no matching outbound, or past the budget is excluded and counted as `unattributed` (budget
+    misses also as `budget_exhausted`). Lookup items are post-filtered to the reply's thread and
+    `campaign_id` (thread_items) before use.
+    Returns (kept emails, {"pre_test": n, "unattributed": n, "budget_exhausted": n}).
     """
     start = dt.datetime.fromisoformat(started).replace(tzinfo=dt.timezone.utc)
     kept: list[dict[str, Any]] = []
-    counts = {"pre_test": 0, "unattributed": 0}
+    counts = {"pre_test": 0, "unattributed": 0, "budget_exhausted": 0}
     for e in emails:
         key = parse_step_key(e.get("step"))
         if key is None:
@@ -682,7 +724,10 @@ def attribute_replies(emails: list[dict[str, Any]], started: str, baseline: dict
             kept.append(e)
             continue
         tid = e.get("thread_id")
-        thread = thread_sent(tid) if tid else None
+        raw = thread_sent(tid) if tid else None
+        if tid and raw is None:
+            counts["budget_exhausted"] += 1
+        thread = thread_items(raw, tid, campaign_id) if tid else None
         sent_at = outbound_for(e, thread) if thread is not None else None
         if sent_at is None:
             counts["unattributed"] += 1
@@ -762,6 +807,8 @@ def ledger_row(families: dict[str, dict[str, Any]], run_seconds: float, *, live:
             "jev_low_conf_share": (stats.low_conf / stats.replies) if stats.replies else 0.0,
             "api_retries": stats.api_retries, "api_errors": stats.api_errors, "decisions_made": decisions,
             "replies_pre_test": stats.replies_pre_test, "replies_unattributed": stats.replies_unattributed,
+            "thread_lookups": stats.thread_lookups, "thread_lookups_refused": stats.thread_lookups_refused,
+            "thread_items_foreign": stats.thread_items_foreign,
             "days_since_start": (today - dt.date.fromisoformat(first)).days,
         },
     }
@@ -786,13 +833,19 @@ def scorecard_values(row: dict[str, Any] | None, validate_row: dict[str, Any] | 
     vals: dict[str, float | None] = {k: None for k, *_ in SCORECARD}
     if row:
         ov = row.get("overall") or {}
-        new_rates = [r["positive_rate"] for name, r in (ov.get("roles") or {}).items()
-                     if name not in BASE_ROLES and r.get("sent") and r.get("positive_rate") is not None]
+        roles = ov.get("roles") or {}
+        new_rates = [r["positive_rate"] for name, r in roles.items()
+                     if name not in BASE_ROLES and (r.get("sent") or 0) >= SCORECARD_MIN_SENT
+                     and r.get("positive_rate") is not None]
         vals["pos_rate_best_new"] = max(new_rates) if new_rates else None
-        vals["uplift"] = ov.get("best_new_vs_control_uplift")
+        best = roles.get(ov.get("best_new_role") or "") or {}
+        ctrl = roles.get("control") or roles.get("old") or {}
+        if (best.get("sent") or 0) >= SCORECARD_MIN_SENT and (ctrl.get("sent") or 0) >= SCORECARD_MIN_SENT:
+            vals["uplift"] = ov.get("best_new_vs_control_uplift")
         tot = ov.get("totals") or {}
-        vals["unsub_rate"] = _rate(tot.get("unsub", 0), tot.get("sent", 0))
-        vals["auto_rate"] = _rate(tot.get("auto", 0), tot.get("sent", 0))
+        if (tot.get("sent") or 0) >= SCORECARD_MIN_SENT:
+            vals["unsub_rate"] = _rate(tot.get("unsub", 0), tot.get("sent", 0))
+            vals["auto_rate"] = _rate(tot.get("auto", 0), tot.get("sent", 0))
         tech = row.get("technical") or {}
         for k in ("jev_low_conf_share", "jev_errors", "api_errors"):
             vals[k] = tech.get(k)
@@ -809,6 +862,7 @@ def metric_met(op: str, value: float | None, target: float) -> bool | None:
 
 
 BUSINESS_METRICS = ("pos_rate_best_new", "uplift", "unsub_rate", "auto_rate")
+SCORECARD_MIN_SENT = 50   # a business metric is measurable only on >= 50 post-baseline sends
 GRADE_MIN_MEASURABLE = 7
 
 
@@ -934,8 +988,12 @@ class Instantly:
         self.s.headers.update({"Authorization": f"Bearer {key}", "User-Agent": USER_AGENT,
                                "Accept": "application/json"})
         self._last_emails = 0.0
-        self._threads: dict[str, list[dict[str, Any]]] = {}
-        self.thread_budget = MAX_THREAD_LOOKUPS
+        self._threads: dict[tuple[str, str | None], list[dict[str, Any]]] = {}
+        self.thread_budget: dict[str, int] = {}   # family -> lookups left this run
+
+    def reset_lookup_budget(self) -> None:
+        """New run: fresh per-family budgets. The per-thread cache is kept (sent history only grows)."""
+        self.thread_budget = {}
 
     def _req(self, method: str, path: str, *, params: Any = None, body: Any = None) -> Any:
         for attempt in range(MAX_429_RETRIES + 1):
@@ -1001,18 +1059,29 @@ class Instantly:
             seen.add(after)
         return out
 
-    def thread_sent(self, thread_id: str) -> list[dict[str, Any]] | None:
-        """Sent emails of one thread (cached per thread). None once the per-client lookup budget is spent."""
-        if thread_id in self._threads:
-            return self._threads[thread_id]
-        if self.thread_budget <= 0:
+    def thread_sent(self, thread_id: str, campaign_id: str | None = None, family: str = "") -> list[dict[str, Any]] | None:
+        """Sent emails of one thread in one campaign (cached per thread+campaign for the client's life).
+
+        `search=thread:<id>` + `campaign_id` verified live 2026-11-02 (every item in the thread and
+        campaign). Items are still post-filtered to this thread and campaign. None once `family`'s
+        per-run budget (MAX_THREAD_LOOKUPS) is spent.
+        """
+        key = (thread_id, campaign_id)
+        if key in self._threads:
+            return self._threads[key]
+        left = self.thread_budget.get(family, MAX_THREAD_LOOKUPS)
+        if left <= 0:
+            STATS.thread_lookups_refused += 1
             return None
-        self.thread_budget -= 1
+        self.thread_budget[family] = left - 1
         STATS.thread_lookups += 1
-        res = self._emails_get({"search": f"thread:{thread_id}", "email_type": "sent", "limit": 100})
-        items = [i for i in (res.get("items") or []) if isinstance(i, dict)]
-        self._threads[thread_id] = items
-        return items
+        params: dict[str, Any] = {"search": f"thread:{thread_id}", "email_type": "sent", "limit": 100}
+        if campaign_id:
+            params["campaign_id"] = campaign_id
+        res = self._emails_get(params)
+        items = thread_items([i for i in (res.get("items") or []) if isinstance(i, dict)], thread_id, campaign_id)
+        self._threads[key] = items or []
+        return self._threads[key]
 
     def paged(self, path: str, params: dict[str, Any]) -> list[dict[str, Any]]:
         out: list[dict[str, Any]] = []
@@ -1131,15 +1200,20 @@ def classify_replies(emails: list[dict[str, Any]]) -> list[dict[str, Any]]:
 def fetch_snapshot(api: Instantly, tests: list[dict[str, Any]]) -> dict[str, Any]:
     """Every Instantly input for one run (campaigns, step analytics, received emails)."""
     camps: dict[str, Any] = {}
+    reset = getattr(api, "reset_lookup_budget", None)
+    if reset:
+        reset()   # each pass (E1/E2 included) gets fresh per-family budgets
     for t in tests:
         cid = t["campaign_id"]
+        fam = t.get("family") or cid
         c = api.campaign(cid)
         entry: dict[str, Any] = {"status": c.get("status"), "sequences": c.get("sequences") or []}
         if c.get("status") == 1:
             entry["step_rows"] = api.step_analytics(cid)
             received = api.received_emails(cid, t["started"])
             entry["emails"], entry["attribution"] = attribute_replies(
-                received, t["started"], t.get("baseline_sent"), api.thread_sent)
+                received, t["started"], t.get("baseline_sent"),
+                lambda tid, cid=cid, fam=fam: api.thread_sent(tid, campaign_id=cid, family=fam), campaign_id=cid)
             STATS.replies_pre_test += entry["attribution"]["pre_test"]
             STATS.replies_unattributed += entry["attribution"]["unattributed"]
         camps[cid] = entry
@@ -1165,7 +1239,8 @@ def compute(snap: dict[str, Any], replies: dict[str, list[dict[str, Any]]]) -> d
     families: dict[str, dict[str, Any]] = {}
     for t in snap["tests"]:
         fam = families.setdefault(t.get("family") or t["campaign_id"],
-                                  {"members": [], "skipped": [], "warnings": [], "unattributed": 0})
+                                  {"members": [], "skipped": [], "warnings": [], "unattributed": 0,
+                                   "budget_exhausted": 0})
         c = snap["campaigns"].get(t["campaign_id"]) or {}
         name = t.get("name") or t["campaign_id"]
         if c.get("status") != 1:
@@ -1174,13 +1249,15 @@ def compute(snap: dict[str, Any], replies: dict[str, list[dict[str, Any]]]) -> d
         if not t.get("baseline_sent"):
             fam["warnings"].append(f"{name}: no baseline_sent, sends are lifetime totals (not windowed to the test)")
         fam["unattributed"] += int((c.get("attribution") or {}).get("unattributed", 0))
+        fam["budget_exhausted"] += int((c.get("attribution") or {}).get("budget_exhausted", 0))
         state = variant_state_of(c.get("sequences") or [])
         fam["members"].append({
             "campaign_id": t["campaign_id"], "name": name, "roles": campaign_roles(t, state), "state": state,
             "metrics": aggregate_metrics(c.get("step_rows") or [], replies.get(t["campaign_id"]) or [], t.get("baseline_sent")),
         })
     for f in families.values():
-        f["decision"] = decide_family(f["members"]) if f["members"] else None
+        f["decision"] = (decide_family(f["members"], f["unattributed"], f["budget_exhausted"])
+                         if f["members"] else None)
     return {"families": families, "started": sorted({t["started"] for t in snap["tests"] if t.get("started")})}
 
 
@@ -1195,6 +1272,16 @@ def actions_of(result: dict[str, Any]) -> list[tuple[Any, ...]]:
     return out
 
 
+def pbest_cell(p: float | None, sent: int, active: bool) -> str:
+    """P(best) table cell: the probability, 'warming up (n/180)' for an active arm below the
+    decision minimum, else '-'."""
+    if p is not None:
+        return f"{p:.2f}"
+    if active and sent < DECISION_MIN_SENT:
+        return f"warming up ({sent}/{DECISION_MIN_SENT})"
+    return "-"
+
+
 def detail_lines(m: dict[str, Any]) -> list[str]:
     d = decide_campaign(m["state"], m["metrics"])
     lines = [f"#### {m['name']} ({m['campaign_id'][:8]})", "",
@@ -1207,7 +1294,7 @@ def detail_lines(m: dict[str, Any]) -> list[str]:
             p = d["pbest"].get((s, v))
             lines.append(f"| {s + 1} | {letter(v)} | {inv.get(v, '-')} | {'no' if dis else 'yes'} | {c.get('sent', 0)} | "
                          f"{c.get('positive', 0)} | {c.get('human', 0)} | {c.get('unsub', 0)} | {c.get('auto', 0)} | "
-                         f"{'-' if p is None else f'{p:.2f}'} |")
+                         f"{pbest_cell(p, c.get('sent', 0), not dis)} |")
     return lines + [""]
 
 
@@ -1230,9 +1317,11 @@ def family_lines(name: str, f: dict[str, Any], *, live: bool, outcomes: list[dic
         for role, c in roles.items():
             p = d["pbest"].get((s, role))
             lines.append(f"| {s + 1} | {role} | {c['n']} | {c['sent']} | {c['positive']} | {c['human']} | {c['unsub']} | "
-                         f"{c['auto']} | {'-' if p is None else f'{p:.2f}'} | {c['active']}/{c['n']} |")
+                         f"{c['auto']} | {pbest_cell(p, c['sent'], c['active'] > 0)} | {c['active']}/{c['n']} |")
     if f.get("unattributed"):
-        lines += ["", f"Unattributed replies (excluded from counts): {f['unattributed']}"]
+        extra = (f" (thread-lookup budget exhausted for {f['budget_exhausted']})"
+                 if f.get("budget_exhausted") else "")
+        lines += ["", f"Unattributed replies (excluded from counts): {f['unattributed']}{extra}"]
     lines += ["", "**Actions**", ""]
     a = d["action"]
     if a is None:
@@ -1292,7 +1381,8 @@ def _write_out(kind: str, text: str) -> None:
 
 
 def _technical_only(today: dt.date, err: str, run_seconds: float) -> dict[str, Any]:
-    return {"type": "monitor", "date": today.isoformat(), "error": err[:200], "run_seconds": round(run_seconds, 1),
+    return {"type": "monitor", "date": today.isoformat(), "live": True, "error": err[:200],
+            "run_seconds": round(run_seconds, 1),
             "technical": {"jev_calls": STATS.jev_calls, "jev_cost_usd": round(STATS.jev_cost_usd, 6),
                           "jev_errors": STATS.jev_errors, "api_retries": STATS.api_retries, "api_errors": STATS.api_errors}}
 
