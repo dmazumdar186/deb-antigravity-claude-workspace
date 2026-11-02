@@ -45,6 +45,11 @@ Reference when onboarding new team members, when inbox capacity changes, when do
 - **Pre-warmed test cancellation**: Cancel the $50/month test domain + inboxes after Milestone 1 validation is complete (~1 month).
 - **Sending volume per inbox**: ~25 emails/inbox/day to maintain reputation. 32 inboxes x 25 = 800/day target.
 
+- **Inbox health audit via API (learned 2026-11-02):** Instantly's 100% warm-up health score only measures its own warm-up network, so never read it as cold-email inbox placement. Use the real signals instead: `GET /api/v2/accounts/analytics/daily` (max 31-day window per call; Oct 2–Nov 1 inclusive = 400) for sends, new leads, bounces and auto-replies per inbox. Use `GET /api/v2/emails?eaccount=` for received mail, which has no NDRs (bounces aren't in unibox); it allows 20 req/min, so sleep 3.2 s and back off on 429. Then sort the replies with Jev. `match_lead_esp=true` means Google and Microsoft senders reach different prospect pools, so don't compare providers directly. With `prioritize_new_leads=false`, follow-ups take the cap and the new-prospect count (the denominator for out-of-office and reply rates) collapses. Out-of-office replies only fire for inboxed mail; this workspace's baseline is ~1.2% per new prospect.
+- **Placement tests:** `POST /api/v2/inbox-placement-tests` (`emails` = sender inboxes, `recipients_labels` from `/email-service-provider-options`) returns 402 once the plan's free tests are used up. Budget credits, or use an external seed tool.
+- **API from Python:** urllib's default User-Agent gets a 403 from Instantly's edge; use `requests`.
+- **Blacklist checks:** query SURBL through Google DoH (`dns.google/resolve`). Cloudflare DoH returns empty answers even for `test.surbl.org`. 127.0.0.64 = SURBL abuse list.
+
 ## Exit Criteria
 
 <!-- TODO: tighten these predicates next time this directive is touched — it is an operational SOP with no executable script, so automated assertions aren't available -->
@@ -58,3 +63,4 @@ Reference when onboarding new team members, when inbox capacity changes, when do
 | Date | Change |
 |------|--------|
 | 2026-04-29 | Created — initial infrastructure SOP for Accessory Masters |
+| 2026-11-02 | Edge cases: Instantly inbox-health audit method (API limits, 402 on placement tests, ESP-match + prioritize-new-leads confounds, SURBL via Google DoH) |
