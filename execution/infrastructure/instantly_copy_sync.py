@@ -45,6 +45,7 @@ from execution.infrastructure.instantly_copy_monitor import (  # noqa: E402, RUF
     ApiError,
     ConfigError,
     campaign_roles,
+    family_policy,
     instantly_client,
     load_config,
     load_json,
@@ -171,7 +172,8 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--copy", default=str(DEFAULT_COPY))
     args = p.parse_args(argv)
     try:
-        tests = load_config(args.config).get("tests") or []
+        cfg = load_config(args.config)
+        tests = cfg.get("tests") or []
         copies = load_copies(args.copy)
     except ConfigError as exc:
         print(f"Config error: {exc}", file=sys.stderr)
@@ -180,6 +182,11 @@ def main(argv: list[str] | None = None) -> int:
     try:
         api = instantly_client()
         for t in tests:
+            if family_policy(cfg.get("families"), t.get("family") or "")["mode"] == "signal":
+                # Signal-only families (e.g. ProdCraft A/B/C subject tests) carry their own copy,
+                # not the copy file's control/B/C/new slots: never synced.
+                print(f"skipped  {t.get('name') or t.get('campaign_id')} (signal-only family, copy not managed here)")
+                continue
             line, ok = sync_one(api, t, copies, args.apply)
             print(line)
             bad += 0 if ok else 1

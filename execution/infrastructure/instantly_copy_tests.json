@@ -1,8 +1,23 @@
 {
   "tag_ids": [
     "ec8efa28-76f4-4bec-b3c0-37867d3fe1e5",
-    "f3f81d5a-0daf-4157-b806-26e863b7178f"
+    "f3f81d5a-0daf-4157-b806-26e863b7178f",
+    "cebb93b4-b98d-4948-bd99-43b0495fa93f"
   ],
+  "families": {
+    "proposal_eventav": {
+      "mode": "signal",
+      "signal_min_sent": 30
+    },
+    "proposal_fitout": {
+      "mode": "signal",
+      "signal_min_sent": 30
+    },
+    "proposal_dmc": {
+      "mode": "signal",
+      "signal_min_sent": 30
+    }
+  },
   "tests": [
     {
       "campaign_id": "e21c42f9-4594-46fb-8461-7f26e70df4cd",
@@ -307,6 +322,500 @@
         "2": {
           "old": 0,
           "new": 1
+        }
+      }
+    },
+    {
+      "campaign_id": "90b14df2-cd5f-41c3-ae04-99fc06d99bcf",
+      "name": "DM_EventAV - US - Personalized - 2 Nov 2026",
+      "family": "proposal_eventav",
+      "started": "2026-11-02",
+      "baseline_sent": {
+        "0_0": 4,
+        "0_1": 4,
+        "0_2": 4,
+        "1_0": 0,
+        "2_0": 0
+      },
+      "roles": {
+        "0": {
+          "A": 0,
+          "B": 1,
+          "C": 2
+        },
+        "1": {
+          "only": 0
+        },
+        "2": {
+          "only": 0
+        }
+      }
+    },
+    {
+      "campaign_id": "39b6fefa-7965-4e45-ae32-6f943126cb08",
+      "name": "DM_EventAV - US - NoPersonalization - 2 Nov 2026",
+      "family": "proposal_eventav",
+      "started": "2026-11-02",
+      "baseline_sent": {
+        "0_0": 0,
+        "0_1": 0,
+        "0_2": 0,
+        "1_0": 0,
+        "2_0": 0
+      },
+      "roles": {
+        "0": {
+          "A": 0,
+          "B": 1,
+          "C": 2
+        },
+        "1": {
+          "only": 0
+        },
+        "2": {
+          "only": 0
+        }
+      }
+    },
+    {
+      "campaign_id": "3c9a5e6c-8216-4755-8af9-d3756c0a78dd",
+      "name": "DM_EventAV - UK - Personalized - 2 Nov 2026",
+      "family": "proposal_eventav",
+      "started": "2026-11-02",
+      "baseline_sent": {
+        "0_0": 0,
+        "0_1": 0,
+        "0_2": 0,
+        "1_0": 0,
+        "2_0": 0
+      },
+      "roles": {
+        "0": {
+          "A": 0,
+          "B": 1,
+          "C": 2
+        },
+        "1": {
+          "only": 0
+        },
+        "2": {
+          "only": 0
+        }
+      }
+    },
+    {
+      "campaign_id": "78ee5203-2245-4dd6-aed3-06c9e331e0d2",
+      "name": "DM_EventAV - UK - NoPersonalization - 2 Nov 2026",
+      "family": "proposal_eventav",
+      "started": "2026-11-02",
+      "baseline_sent": {
+        "0_0": 0,
+        "0_1": 0,
+        "0_2": 0,
+        "1_0": 0,
+        "2_0": 0
+      },
+      "roles": {
+        "0": {
+          "A": 0,
+          "B": 1,
+          "C": 2
+        },
+        "1": {
+          "only": 0
+        },
+        "2": {
+          "only": 0
+        }
+      }
+    },
+    {
+      "campaign_id": "bac5c269-5e14-4e4f-995c-907b602e7912",
+      "name": "DM_EventAV - US - Personalized CatchAll - 2 Nov 2026",
+      "family": "proposal_eventav",
+      "started": "2026-11-02",
+      "baseline_sent": {
+        "0_0": 0,
+        "0_1": 0,
+        "0_2": 0,
+        "1_0": 0,
+        "2_0": 0
+      },
+      "roles": {
+        "0": {
+          "A": 0,
+          "B": 1,
+          "C": 2
+        },
+        "1": {
+          "only": 0
+        },
+        "2": {
+          "only": 0
+        }
+      }
+    },
+    {
+      "campaign_id": "c7adfc7d-2525-45ff-935a-8b343bf41f61",
+      "name": "DM_EventAV - US - NoPersonalization CatchAll - 2 Nov 2026",
+      "family": "proposal_eventav",
+      "started": "2026-11-02",
+      "baseline_sent": {
+        "0_0": 2,
+        "0_1": 2,
+        "0_2": 1,
+        "1_0": 0,
+        "2_0": 0
+      },
+      "roles": {
+        "0": {
+          "A": 0,
+          "B": 1,
+          "C": 2
+        },
+        "1": {
+          "only": 0
+        },
+        "2": {
+          "only": 0
+        }
+      }
+    },
+    {
+      "campaign_id": "d873d5b9-b7d6-4980-bd6f-90fa7cc3ea96",
+      "name": "DM_EventAV - UK - Personalized CatchAll - 2 Nov 2026",
+      "family": "proposal_eventav",
+      "started": "2026-11-02",
+      "baseline_sent": {
+        "0_0": 0,
+        "0_1": 0,
+        "0_2": 0,
+        "1_0": 0,
+        "2_0": 0
+      },
+      "roles": {
+        "0": {
+          "A": 0,
+          "B": 1,
+          "C": 2
+        },
+        "1": {
+          "only": 0
+        },
+        "2": {
+          "only": 0
+        }
+      }
+    },
+    {
+      "campaign_id": "80eccf6b-3c91-44a7-a3f7-b52a255d460a",
+      "name": "DM_Fitout - US - Personalized - 2 Nov 2026",
+      "family": "proposal_fitout",
+      "started": "2026-11-02",
+      "baseline_sent": {
+        "0_0": 4,
+        "0_1": 4,
+        "0_2": 4,
+        "1_0": 0,
+        "2_0": 0
+      },
+      "roles": {
+        "0": {
+          "A": 0,
+          "B": 1,
+          "C": 2
+        },
+        "1": {
+          "only": 0
+        },
+        "2": {
+          "only": 0
+        }
+      }
+    },
+    {
+      "campaign_id": "a8ed6dfa-db56-4a1a-8dd7-160667686539",
+      "name": "DM_Fitout - US - NoPersonalization - 2 Nov 2026",
+      "family": "proposal_fitout",
+      "started": "2026-11-02",
+      "baseline_sent": {
+        "0_0": 3,
+        "0_1": 3,
+        "0_2": 3,
+        "1_0": 0,
+        "2_0": 0
+      },
+      "roles": {
+        "0": {
+          "A": 0,
+          "B": 1,
+          "C": 2
+        },
+        "1": {
+          "only": 0
+        },
+        "2": {
+          "only": 0
+        }
+      }
+    },
+    {
+      "campaign_id": "2cc70df5-24f4-4535-b07c-55780d46d30b",
+      "name": "DM_Fitout - UK - Personalized - 2 Nov 2026",
+      "family": "proposal_fitout",
+      "started": "2026-11-02",
+      "baseline_sent": {
+        "0_0": 0,
+        "0_1": 0,
+        "0_2": 0,
+        "1_0": 0,
+        "2_0": 0
+      },
+      "roles": {
+        "0": {
+          "A": 0,
+          "B": 1,
+          "C": 2
+        },
+        "1": {
+          "only": 0
+        },
+        "2": {
+          "only": 0
+        }
+      }
+    },
+    {
+      "campaign_id": "3db10a28-f276-452a-9d0f-33f7e40f26c1",
+      "name": "DM_Fitout - UK - NoPersonalization - 2 Nov 2026",
+      "family": "proposal_fitout",
+      "started": "2026-11-02",
+      "baseline_sent": {
+        "0_0": 0,
+        "0_1": 0,
+        "0_2": 0,
+        "1_0": 0,
+        "2_0": 0
+      },
+      "roles": {
+        "0": {
+          "A": 0,
+          "B": 1,
+          "C": 2
+        },
+        "1": {
+          "only": 0
+        },
+        "2": {
+          "only": 0
+        }
+      }
+    },
+    {
+      "campaign_id": "2f57b913-785f-4356-ac78-039d4b7618d4",
+      "name": "DM_Fitout - US - Personalized CatchAll - 2 Nov 2026",
+      "family": "proposal_fitout",
+      "started": "2026-11-02",
+      "baseline_sent": {
+        "0_0": 0,
+        "0_1": 0,
+        "0_2": 0,
+        "1_0": 0,
+        "2_0": 0
+      },
+      "roles": {
+        "0": {
+          "A": 0,
+          "B": 1,
+          "C": 2
+        },
+        "1": {
+          "only": 0
+        },
+        "2": {
+          "only": 0
+        }
+      }
+    },
+    {
+      "campaign_id": "667a6260-d380-4791-ac90-51e72edf88ad",
+      "name": "DM_Fitout - US - NoPersonalization CatchAll - 2 Nov 2026",
+      "family": "proposal_fitout",
+      "started": "2026-11-02",
+      "baseline_sent": {
+        "0_0": 2,
+        "0_1": 1,
+        "0_2": 1,
+        "1_0": 0,
+        "2_0": 0
+      },
+      "roles": {
+        "0": {
+          "A": 0,
+          "B": 1,
+          "C": 2
+        },
+        "1": {
+          "only": 0
+        },
+        "2": {
+          "only": 0
+        }
+      }
+    },
+    {
+      "campaign_id": "39045c8f-9d8e-4b7a-8316-9d1891d6a9ff",
+      "name": "DM_DMC - US - Personalized - 2 Nov 2026",
+      "family": "proposal_dmc",
+      "started": "2026-11-02",
+      "baseline_sent": {
+        "0_0": 0,
+        "0_1": 0,
+        "0_2": 0,
+        "1_0": 0,
+        "2_0": 0
+      },
+      "roles": {
+        "0": {
+          "A": 0,
+          "B": 1,
+          "C": 2
+        },
+        "1": {
+          "only": 0
+        },
+        "2": {
+          "only": 0
+        }
+      }
+    },
+    {
+      "campaign_id": "bd5a741d-bc66-4fde-a6fe-b8924bc4eea4",
+      "name": "DM_DMC - US - NoPersonalization - 2 Nov 2026",
+      "family": "proposal_dmc",
+      "started": "2026-11-02",
+      "baseline_sent": {
+        "0_0": 0,
+        "0_1": 0,
+        "0_2": 0,
+        "1_0": 0,
+        "2_0": 0
+      },
+      "roles": {
+        "0": {
+          "A": 0,
+          "B": 1,
+          "C": 2
+        },
+        "1": {
+          "only": 0
+        },
+        "2": {
+          "only": 0
+        }
+      }
+    },
+    {
+      "campaign_id": "5026a4bc-be1c-4b6e-8941-2ab5c43ebc56",
+      "name": "DM_DMC - UK - Personalized - 2 Nov 2026",
+      "family": "proposal_dmc",
+      "started": "2026-11-02",
+      "baseline_sent": {
+        "0_0": 0,
+        "0_1": 0,
+        "0_2": 0,
+        "1_0": 0,
+        "2_0": 0
+      },
+      "roles": {
+        "0": {
+          "A": 0,
+          "B": 1,
+          "C": 2
+        },
+        "1": {
+          "only": 0
+        },
+        "2": {
+          "only": 0
+        }
+      }
+    },
+    {
+      "campaign_id": "920b7a28-f2e7-4a98-93a2-91e2c81ec9d2",
+      "name": "DM_DMC - UK - NoPersonalization - 2 Nov 2026",
+      "family": "proposal_dmc",
+      "started": "2026-11-02",
+      "baseline_sent": {
+        "0_0": 0,
+        "0_1": 0,
+        "0_2": 0,
+        "1_0": 0,
+        "2_0": 0
+      },
+      "roles": {
+        "0": {
+          "A": 0,
+          "B": 1,
+          "C": 2
+        },
+        "1": {
+          "only": 0
+        },
+        "2": {
+          "only": 0
+        }
+      }
+    },
+    {
+      "campaign_id": "ad56c125-5989-4858-b166-7d2674a4ce49",
+      "name": "DM_DMC - US - Personalized CatchAll - 2 Nov 2026",
+      "family": "proposal_dmc",
+      "started": "2026-11-02",
+      "baseline_sent": {
+        "0_0": 2,
+        "0_1": 2,
+        "0_2": 1,
+        "1_0": 0,
+        "2_0": 0
+      },
+      "roles": {
+        "0": {
+          "A": 0,
+          "B": 1,
+          "C": 2
+        },
+        "1": {
+          "only": 0
+        },
+        "2": {
+          "only": 0
+        }
+      }
+    },
+    {
+      "campaign_id": "3f951424-f8dd-44cc-9ef1-a27c65638f84",
+      "name": "DM_DMC - US - NoPersonalization CatchAll - 2 Nov 2026",
+      "family": "proposal_dmc",
+      "started": "2026-11-02",
+      "baseline_sent": {
+        "0_0": 0,
+        "0_1": 0,
+        "0_2": 0,
+        "1_0": 0,
+        "2_0": 0
+      },
+      "roles": {
+        "0": {
+          "A": 0,
+          "B": 1,
+          "C": 2
+        },
+        "1": {
+          "only": 0
+        },
+        "2": {
+          "only": 0
         }
       }
     }

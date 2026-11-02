@@ -889,3 +889,132 @@ def test_scorecard_business_metrics_need_50_sends():
     assert v["pos_rate_best_new"] is None and v["uplift"] is None
     v = m.scorecard_values(_row("2026-11-09", sent=50), None)
     assert all(v[k] is not None for k in m.BUSINESS_METRICS)
+
+
+# 13. signal-only families (ProdCraft Proposal Engine, 2026-11-02): pooled leader reported, never acted on
+ABC = {0: {"A": 0, "B": 1, "C": 2}, 1: {"only": 0}, 2: {"only": 0}}
+ABC_STATE = {0: [False, False, False], 1: [False], 2: [False]}
+
+
+def _abc_member(cid, a, b, c):
+    return {"campaign_id": cid, "name": cid, "roles": ABC, "state": ABC_STATE,
+            "metrics": {0: {0: a, 1: b, 2: c}, 1: {0: _cell(10)}, 2: {0: _cell(5)}}}
+
+
+def test_signal_mode_never_acts_even_with_dominant_arm_and_complaint_spike():
+    # A dominates and C has a complaint spike well past the act-mode thresholds.
+    members = [_abc_member(f"c{i}", _cell(100, 15, 20), _cell(100, 0, 2), _cell(100, 0, 10, 5)) for i in range(3)]
+    act = m.decide_family(members)
+    assert act["action"] is not None   # same data in act mode WOULD act
+    d = m.decide_signal(members, 30)
+    assert d["action"] is None and d["plan"] is None and d["held"] == []
+    assert any(s.startswith("Signal: step 1 role A leading, P(best)=1.00") and "not acted on" in s for s in d["signals"])
+    assert d["alerts"] == ["ALERT (not acted on): step 1 role C unsub rate 5.00% (15/300)"]
+
+
+def test_signal_min_sent_gating():
+    members = [_abc_member("c0", _cell(29, 5, 5), _cell(40, 0, 1), _cell(40, 0, 1))]
+    d = m.decide_signal(members, 30)
+    assert (0, "A") not in d["pbest"] and set(d["pbest"]) == {(0, "B"), (0, "C")}
+    low = m.decide_signal([_abc_member("c0", _cell(29), _cell(29), _cell(40))], 30)
+    assert low["pbest"] == {} and low["signals"][0].startswith("No signal yet: step 1 needs >= 30 sends")
+    # single-role steps (only) never produce a signal line
+    assert all("step 2" not in s and "step 3" not in s for s in low["signals"])
+
+
+def test_signal_pools_across_seven_campaigns():
+    members = [_abc_member(f"e{i}", _cell(5, 1, 1), _cell(6, 0, 1), _cell(7, 0, 0)) for i in range(7)]
+    d = m.decide_signal(members, 30)
+    cells = d["pool"]["cells"][0]
+    assert (cells["A"]["sent"], cells["B"]["sent"], cells["C"]["sent"]) == (35, 42, 49)
+    assert cells["A"]["n"] == 7 and cells["A"]["positive"] == 7 and d["pool"]["cells"][1]["only"]["sent"] == 70
+    assert set(d["pbest"]) == {(0, "A"), (0, "B"), (0, "C")}
+
+
+def _signal_snapshot():
+    roles = {"0": {"A": 0, "B": 1, "C": 2}, "1": {"only": 0}, "2": {"only": 0}}
+    base = {"0_0": 0, "0_1": 0, "0_2": 0, "1_0": 0, "2_0": 0}
+    tests = [{"campaign_id": f"p{i}", "name": f"pc {i}", "family": "proposal_eventav", "started": "2026-11-02",
+              "roles": roles, "baseline_sent": base} for i in range(2)]
+    seq = [{"steps": [{"variants": [{}, {}, {}]}, {"variants": [{}]}, {"variants": [{}]}]}]
+    rows = [{"step": "0", "variant": str(v), "sent": 300} for v in range(3)]
+    camps = {t["campaign_id"]: {"status": 1, "sequences": seq, "step_rows": rows} for t in tests}
+    replies = {"p0": [{"step": "0_0_0", "kind": "interested"}] * 12 + [{"step": "0_0_2", "kind": "unsubscribe_or_complaint"}] * 9,
+               "p1": []}
+    return {"tests": tests, "campaigns": camps}, replies
+
+
+def test_compute_signal_family_no_actions_and_report_labelled():
+    snap, replies = _signal_snapshot()
+    pol = {"proposal_eventav": {"mode": "signal", "signal_min_sent": 30}}
+    res = m.compute(snap, replies, pol)
+    assert m.actions_of(res) == []
+    assert m.actions_of(m.compute(snap, replies)) != []   # same snapshot in default (act) mode acts
+    text = "\n".join(m.report_body(res, live=True, outcomes={}))
+    assert "## Family: proposal_eventav (2 active campaigns) — signal only" in text
+    assert "**Signal only (no actions)**" in text and "**Actions**" not in text and "disable" not in text.lower()
+    assert "Signal: step 1 role A leading" in text and "ALERT (not acted on): step 1 role C unsub rate" in text
+
+
+def test_run_monitor_live_never_patches_signal_family(monkeypatch):
+    snap, replies = _signal_snapshot()
+    monkeypatch.setattr(m, "fetch_snapshot", lambda api, tests: snap)
+    monkeypatch.setattr(m, "classify_snapshot", lambda s: replies)
+    called = []
+    monkeypatch.setattr(m, "apply_role_disable", lambda *a: called.append(a) or [])
+    cfg = {"tests": snap["tests"], "families": {"proposal_eventav": {"mode": "signal"}}}
+    m.run_monitor(object(), cfg, live=True, detail=False)
+    assert called == []
+
+
+def test_act_mode_is_default_and_unchanged():
+    snap, replies = _snapshot()
+    assert m.actions_of(m.compute(snap, replies)) == m.actions_of(m.compute(snap, replies, {"other": {"mode": "signal"}}))
+    assert m.family_policy(None, "x") == {"mode": "act", "signal_min_sent": m.DEFAULT_SIGNAL_MIN_SENT}
+
+
+def test_abc_only_roles_kept_without_lookup_when_baseline_zero():
+    base = {"0_0": 0, "0_1": 0, "0_2": 0, "1_0": 0, "2_0": 0}
+    emails = [_rep("0_0_0", "2026-11-03T10:00:00Z"), _rep("0_0_2", "2026-11-03T10:00:00Z"), _rep("0_1_0", "2026-11-04T10:00:00Z")]
+
+    def boom(tid):
+        raise AssertionError("no thread lookup expected")
+    kept, counts = m.attribute_replies(emails, "2026-11-02", base, boom)
+    assert len(kept) == 3 and counts == {"pre_test": 0, "unattributed": 0, "budget_exhausted": 0}
+    assert {"A", "only"} <= set(m.NEW_ROLES) and not {"A", "only"} & set(m.BASE_ROLES)
+
+
+def test_ledger_signal_family_has_mode_pbest_and_is_excluded_from_overall():
+    act = {"cells": {0: {"control": _cell(1000, 5, 20), "B": _cell(1000, 10, 25)}}}
+    sig = {"cells": {0: {"A": _cell(60, 3, 5), "B": _cell(60, 0, 1), "C": _cell(60, 0, 1)}}}
+    r = m.ledger_row({"recruitment": {"pool": act, "campaigns": 8},
+                      "proposal_dmc": {"pool": sig, "campaigns": 6, "mode": "signal", "pbest": {(0, "A"): 0.91, (0, "B"): 0.05}}},
+                     10.0, live=False, today=m.dt.date(2026, 11, 3), started=["2026-11-02"], decisions=0, stats=m.RunStats())
+    f = r["families"]["proposal_dmc"]
+    assert f["mode"] == "signal" and f["p_best"] == {"s1:A": 0.91, "s1:B": 0.05} and f["roles"]["A"]["sent"] == 60
+    assert r["families"]["recruitment"]["mode"] == "act"
+    assert r["overall"]["totals"]["sent"] == 2000 and "A" not in r["overall"]["roles"]
+
+
+def test_config_families_validated(tmp_path):
+    p = tmp_path / "c.json"
+    p.write_text(json.dumps({"tests": [], "families": {"x": {"mode": "auto"}}}))
+    with pytest.raises(m.ConfigError):
+        m.load_config(p)
+    p.write_text(json.dumps({"tests": [], "families": {"x": {"mode": "signal", "signal_min_sent": 0}}}))
+    with pytest.raises(m.ConfigError):
+        m.load_config(p)
+
+
+def test_committed_config_prodcraft_signal_families():
+    cfg = m.load_config(m.DEFAULT_CONFIG)
+    assert "cebb93b4-b98d-4948-bd99-43b0495fa93f" in cfg["tag_ids"]
+    pc = [t for t in cfg["tests"] if t["family"].startswith("proposal_")]
+    assert len(pc) == 19 and len({t["campaign_id"] for t in pc}) == 19
+    for fam in ("proposal_eventav", "proposal_fitout", "proposal_dmc"):
+        assert m.family_policy(cfg["families"], fam)["mode"] == "signal"
+    for t in pc:
+        assert t["roles"] == {"0": {"A": 0, "B": 1, "C": 2}, "1": {"only": 0}, "2": {"only": 0}}
+        assert set(t["baseline_sent"]) == {"0_0", "0_1", "0_2", "1_0", "2_0"}
+    assert all(m.family_policy(cfg["families"], t["family"])["mode"] == "act"
+               for t in cfg["tests"] if not t["family"].startswith("proposal_"))

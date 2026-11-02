@@ -14,8 +14,8 @@ Usage:
 
 Arguments:
     - --copy: JSON file -- list of {"id","subject","body"} with Instantly spintax ({{RANDOM | a | b}}, {{a|b}})
-    - --config: JSON -- {"tag_ids": [...], "tests": [{"campaign_id","name","family","started","roles","baseline_sent"}]}
-    - --live: monitor only -- apply at most one role disable per family (default is dry run)
+    - --config: JSON -- {"tag_ids": [...], "families": {name: {"mode": "act"|"signal", "signal_min_sent": n}}, "tests": [{"campaign_id","name","family","started","roles","baseline_sent"}]}
+    - --live: monitor only -- apply at most one role disable per act-mode family; signal families never change (default is dry run)
     - --detail: monitor only -- also print the per-campaign variant tables
     - --record: validate / eval -- append a ledger line (the scheduled run); monitor writes one only with --live
 
@@ -91,6 +91,11 @@ LOSER_WORST_P = 0.05
 MC_DRAWS = 20_000
 MC_SEED = 7
 
+# Per-family policy (config `families`): "act" (default) decides and disables; "signal" only reports
+# the pooled leader and would-be complaint alerts for lists too small to reach DECISION_MIN_SENT.
+FAMILY_MODES = ("act", "signal")
+DEFAULT_SIGNAL_MIN_SENT = 30
+
 LOW_CONF = 0.6
 EMAILS_GAP_S = 3.2          # /emails is limited to 20 req/min
 RETRY_429_S = 20.0
@@ -120,7 +125,9 @@ AUTO_KINDS = ("out_of_office", "ticket_autoresponder", "challenge_response", "le
 METRIC_KEYS = ("sent", "positive", "human", "unsub", "auto")
 # Roles that are not "new copy" when computing uplift.
 BASE_ROLES = ("control", "old", "legacy")
-ROLE_ORDER = ("control", "old", "legacy", "B", "C", "new")
+# A/B/C (subject-line arms with no "control") and "only" (single-variant steps) are new-copy roles:
+# their slots carry baseline_sent 0, so their replies need no thread lookup (2026-11-02, ProdCraft).
+ROLE_ORDER = ("control", "old", "legacy", "A", "B", "C", "new", "only")
 # Roles with no pre-test sends: their replies need no thread lookup, so their complaint rate is exact
 # even when attribution is incomplete (the only decision allowed then).
 NEW_ROLES = tuple(r for r in ROLE_ORDER if r not in BASE_ROLES)
@@ -154,7 +161,22 @@ def load_config(path: str | Path) -> dict[str, Any]:
     cfg = load_json(path, "config")
     if not isinstance(cfg, dict) or not isinstance(cfg.get("tests", []), list):
         raise ConfigError(f"config must be a JSON object with a 'tests' list: {path}")
+    fams = cfg.get("families", {})
+    if not isinstance(fams, dict):
+        raise ConfigError(f"config 'families' must be an object of per-family policies: {path}")
+    for name, pol in fams.items():
+        if not isinstance(pol, dict) or pol.get("mode", "act") not in FAMILY_MODES:
+            raise ConfigError(f"config families.{name}: mode must be one of {FAMILY_MODES}: {path}")
+        n = pol.get("signal_min_sent", DEFAULT_SIGNAL_MIN_SENT)
+        if not isinstance(n, int) or isinstance(n, bool) or n < 1:
+            raise ConfigError(f"config families.{name}: signal_min_sent must be a positive integer: {path}")
     return cfg
+
+
+def family_policy(policies: dict[str, Any] | None, name: str) -> dict[str, Any]:
+    """{"mode": "act"|"signal", "signal_min_sent": n}; a family absent from `families` is "act"."""
+    pol = (policies or {}).get(name) or {}
+    return {"mode": pol.get("mode", "act"), "signal_min_sent": int(pol.get("signal_min_sent", DEFAULT_SIGNAL_MIN_SENT))}
 
 
 @dataclass
@@ -603,6 +625,44 @@ def decide_family(members: list[dict[str, Any]], unattributed: int = 0, budget_e
     return {"pool": pool, "pbest": d["pbest"], "action": action, "plan": plan, "held": held}
 
 
+def decide_signal(members: list[dict[str, Any]], min_sent: int = DEFAULT_SIGNAL_MIN_SENT) -> dict[str, Any]:
+    """Signal-only family: pooled P(best) over active roles with >= `min_sent` post-baseline sends.
+
+    NEVER returns an action or a plan (no loser, no complaint disable): lists this small cannot
+    reach DECISION_MIN_SENT, so the leader is a signal for the operator and the complaint rule only
+    raises an alert. Same metric (step_metric) and complaint thresholds as act mode.
+    """
+    pool = pool_family(members)
+    pbest: dict[tuple[int, Any], float] = {}
+    signals: list[str] = []
+    alerts: list[str] = []
+    for s, cells in pool["cells"].items():
+        active = [r for r, dis in pool["state"][s].items() if not dis]
+        for r in active:
+            sent, unsub = cells[r]["sent"], cells[r]["unsub"]
+            if sent >= COMPLAINT_MIN_SENT and unsub / sent > COMPLAINT_MAX_RATE:
+                alerts.append(f"ALERT (not acted on): step {s + 1} role {r} unsub rate {unsub / sent:.2%} "
+                              f"({unsub}/{sent})")
+        if len(active) < 2:
+            continue
+        measured = [r for r in active if cells[r]["sent"] >= min_sent]
+        if len(measured) < 2:
+            signals.append(f"No signal yet: step {s + 1} needs >= {min_sent} sends on >= 2 roles ("
+                           + ", ".join(f"{r} {cells[r]['sent']}" for r in active) + ")")
+            continue
+        metric, arms = step_metric(cells, measured)
+        ps = p_best(arms)
+        for r, p in zip(measured, ps):
+            pbest[(s, r)] = p
+        i = max(range(len(ps)), key=ps.__getitem__)
+        lo, hi = min(n for _, n in arms), max(n for _, n in arms)
+        n_txt = f"{lo}" if lo == hi else f"{lo}-{hi}"
+        signals.append(f"Signal: step {s + 1} role {measured[i]} leading, P(best)={ps[i]:.2f} on {metric} "
+                       f"({n_txt} sends/arm), not acted on — list too small")
+    return {"pool": pool, "pbest": pbest, "action": None, "plan": None, "held": [],
+            "mode": "signal", "signals": signals, "alerts": alerts}
+
+
 # ---- apply (live) ---------------------------------------------------------------------
 
 def apply_role_disable(api: Any, plan: dict[str, list[Any]], step: int) -> list[dict[str, Any]]:
@@ -780,17 +840,24 @@ OVERALL_LABEL = "cross-family (reporting only)"
 
 def ledger_row(families: dict[str, dict[str, Any]], run_seconds: float, *, live: bool, today: dt.date,
                started: list[str], decisions: int, stats: RunStats) -> dict[str, Any]:
-    """One monitor ledger line. `families`: {name: {"pool": pool_family(...), "campaigns": n}}.
+    """One monitor ledger line. `families`: {name: {"pool": pool_family(...), "campaigns": n,
+    "mode": "act"|"signal" (default act), "pbest": {(step, role): p}}}.
 
     `overall` pools step-1 roles by name ACROSS families (control of one family with control of
     another); it feeds the scorecard only and never a decision, so it carries OVERALL_LABEL.
+    Signal-mode families get their own ledger row (role metrics, `p_best`, `mode`) but are left
+    out of `overall`: the scorecard's business metrics stay driven by the act-mode families.
     """
     fam_out: dict[str, Any] = {}
     overall_step0: dict[str, list[dict[str, int]]] = {}
     all_cells: list[dict[str, int]] = []
     for name, f in families.items():
         step0 = f["pool"]["cells"].get(0, {})
-        fam_out[name] = dict(role_block(step0), campaigns=f["campaigns"])
+        mode = f.get("mode", "act")
+        fam_out[name] = dict(role_block(step0), campaigns=f["campaigns"], mode=mode,
+                             p_best={f"s{s + 1}:{r}": round(p, 4) for (s, r), p in sorted((f.get("pbest") or {}).items())})
+        if mode != "act":
+            continue
         for r, c in step0.items():
             overall_step0.setdefault(r, []).append(c)
         for s_cells in f["pool"]["cells"].values():
@@ -1234,8 +1301,11 @@ def classify_snapshot(snap: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
     return out
 
 
-def compute(snap: dict[str, Any], replies: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
-    """Pure: snapshot + classified replies -> {"families": {name: {...}}, "started": [...]}. Families in config order."""
+def compute(snap: dict[str, Any], replies: dict[str, list[dict[str, Any]]],
+            policies: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Pure: snapshot + classified replies -> {"families": {name: {...}}, "started": [...]}. Families in config order.
+
+    `policies` = config `families`; a "signal" family is scored by decide_signal (never an action)."""
     families: dict[str, dict[str, Any]] = {}
     for t in snap["tests"]:
         fam = families.setdefault(t.get("family") or t["campaign_id"],
@@ -1255,9 +1325,15 @@ def compute(snap: dict[str, Any], replies: dict[str, list[dict[str, Any]]]) -> d
             "campaign_id": t["campaign_id"], "name": name, "roles": campaign_roles(t, state), "state": state,
             "metrics": aggregate_metrics(c.get("step_rows") or [], replies.get(t["campaign_id"]) or [], t.get("baseline_sent")),
         })
-    for f in families.values():
-        f["decision"] = (decide_family(f["members"], f["unattributed"], f["budget_exhausted"])
-                         if f["members"] else None)
+    for name, f in families.items():
+        pol = family_policy(policies, name)
+        f["mode"], f["signal_min_sent"] = pol["mode"], pol["signal_min_sent"]
+        if not f["members"]:
+            f["decision"] = None
+        elif pol["mode"] == "signal":
+            f["decision"] = decide_signal(f["members"], pol["signal_min_sent"])
+        else:
+            f["decision"] = decide_family(f["members"], f["unattributed"], f["budget_exhausted"])
     return {"families": families, "started": sorted({t["started"] for t in snap["tests"] if t.get("started")})}
 
 
@@ -1272,13 +1348,13 @@ def actions_of(result: dict[str, Any]) -> list[tuple[Any, ...]]:
     return out
 
 
-def pbest_cell(p: float | None, sent: int, active: bool) -> str:
-    """P(best) table cell: the probability, 'warming up (n/180)' for an active arm below the
-    decision minimum, else '-'."""
+def pbest_cell(p: float | None, sent: int, active: bool, min_sent: int = DECISION_MIN_SENT) -> str:
+    """P(best) table cell: the probability, 'warming up (n/min)' for an active arm below the
+    minimum (DECISION_MIN_SENT, or the family's signal_min_sent), else '-'."""
     if p is not None:
         return f"{p:.2f}"
-    if active and sent < DECISION_MIN_SENT:
-        return f"warming up ({sent}/{DECISION_MIN_SENT})"
+    if active and sent < min_sent:
+        return f"warming up ({sent}/{min_sent})"
     return "-"
 
 
@@ -1301,7 +1377,10 @@ def detail_lines(m: dict[str, Any]) -> list[str]:
 def family_lines(name: str, f: dict[str, Any], *, live: bool, outcomes: list[dict[str, Any]] | None = None,
                  detail: bool = False) -> list[str]:
     members, d = f["members"], f.get("decision")
-    lines = [f"## Family: {name} ({len(members)} active campaign{'s' if len(members) != 1 else ''})", ""]
+    signal = f.get("mode") == "signal"
+    suffix = " — signal only" if signal else ""
+    lines = [f"## Family: {name} ({len(members)} active campaign{'s' if len(members) != 1 else ''}){suffix}", ""]
+    min_sent = int(f.get("signal_min_sent") or DEFAULT_SIGNAL_MIN_SENT) if signal else DECISION_MIN_SENT
     if f["skipped"]:
         lines += [f"Skipped (not active): {', '.join(f['skipped'])}", ""]
     for w in f.get("warnings") or []:
@@ -1317,11 +1396,21 @@ def family_lines(name: str, f: dict[str, Any], *, live: bool, outcomes: list[dic
         for role, c in roles.items():
             p = d["pbest"].get((s, role))
             lines.append(f"| {s + 1} | {role} | {c['n']} | {c['sent']} | {c['positive']} | {c['human']} | {c['unsub']} | "
-                         f"{c['auto']} | {pbest_cell(p, c['sent'], c['active'] > 0)} | {c['active']}/{c['n']} |")
+                         f"{c['auto']} | {pbest_cell(p, c['sent'], c['active'] > 0, min_sent)} | {c['active']}/{c['n']} |")
     if f.get("unattributed"):
         extra = (f" (thread-lookup budget exhausted for {f['budget_exhausted']})"
                  if f.get("budget_exhausted") else "")
         lines += ["", f"Unattributed replies (excluded from counts): {f['unattributed']}{extra}"]
+    if signal:
+        lines += ["", "**Signal only (no actions)**", ""]
+        lines += [f"- {x}" for x in (d.get("signals") or [])] or ["- No comparable roles"]
+        lines += [f"- {x}" for x in d.get("alerts") or []]
+        lines.append("")
+        if detail:
+            lines += ["### Per-campaign detail", ""]
+            for m in members:
+                lines += detail_lines(m)
+        return lines
     lines += ["", "**Actions**", ""]
     a = d["action"]
     if a is None:
@@ -1464,12 +1553,12 @@ def cmd_validate(args: argparse.Namespace) -> int:
 def run_monitor(api: Instantly, cfg: dict[str, Any], *, live: bool, detail: bool) -> tuple[list[str], dict[str, Any]]:
     """One full monitor pass -> (report lines without scorecard/inbox, result)."""
     snap = fetch_snapshot(api, cfg.get("tests") or [])
-    result = compute(snap, classify_snapshot(snap))
+    result = compute(snap, classify_snapshot(snap), cfg.get("families"))
     outcomes: dict[str, list[dict[str, Any]]] = {}
     if live:
         for name, f in result["families"].items():
             d = f.get("decision")
-            if d and d["action"]:
+            if f.get("mode", "act") == "act" and d and d["action"]:
                 outcomes[name] = apply_role_disable(api, d["plan"], d["action"]["step"])
     return report_body(result, live=live, outcomes=outcomes, detail=detail), result
 
@@ -1494,7 +1583,8 @@ def _monitor_once(args: argparse.Namespace, cfg: dict[str, Any], today: dt.date,
     body, result = run_monitor(api, cfg, live=args.live, detail=args.detail)
     inbox = inbox_section(api, cfg.get("tag_ids") or [])
     run_seconds = time.monotonic() - t0
-    fams = {n: {"pool": f["decision"]["pool"], "campaigns": len(f["members"])}
+    fams = {n: {"pool": f["decision"]["pool"], "campaigns": len(f["members"]), "mode": f.get("mode", "act"),
+                "pbest": f["decision"]["pbest"]}
             for n, f in result["families"].items() if f.get("decision")}
     row = ledger_row(fams, run_seconds, live=args.live, today=today, started=result["started"],
                      decisions=len(actions_of(result)), stats=STATS)
@@ -1597,7 +1687,7 @@ def cmd_eval(args: argparse.Namespace) -> int:
     # E1: same snapshot, classification + aggregation + decision twice.
     snap = fetch_snapshot(api, tests)
     r1, r2 = classify_snapshot(snap), classify_snapshot(snap)
-    c1, c2 = compute(snap, r1), compute(snap, r2)
+    c1, c2 = compute(snap, r1, cfg.get("families")), compute(snap, r2, cfg.get("families"))
     rep1 = report_body(c1, live=False, detail=True)
     rep2 = report_body(c2, live=False, detail=True)
     n_mail = sum(len(v) for v in r1.values())
