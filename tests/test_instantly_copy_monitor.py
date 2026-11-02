@@ -161,3 +161,10 @@ def test_flag_inboxes():
 def test_unsent_arm_gets_no_p_best():
     d = m.decide_campaign({0: [False, False, False]}, _cells((282, 0, 0, 0), (187, 1, 1, 0), (0, 0, 0, 0)))
     assert (0, 2) not in d["pbest"] and (0, 0) in d["pbest"] and d["action"] is None
+
+
+def test_aggregate_metrics_subtracts_baseline_sent():
+    rows = [{"step": "0", "variant": "0", "sent": 500}, {"step": "0", "variant": "1", "sent": 40}]
+    agg = m.aggregate_metrics(rows, [], {"0_0": 450, "0_1": 0, "2_0": 9})
+    assert agg[0][0]["sent"] == 50 and agg[0][1]["sent"] == 40
+    assert m.aggregate_metrics(rows, [], {"0_0": 900})[0][0]["sent"] == 0

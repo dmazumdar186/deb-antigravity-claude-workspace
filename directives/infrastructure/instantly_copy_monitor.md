@@ -68,6 +68,10 @@ Never edit a campaign that is not in `tests`. The orchestrator adds a test entry
 
 ## Edge Cases
 
+- **`sent` is lifetime, not windowed (verified 2026-11-02).** `analytics/steps` ignores `start_date` for `sent`, and a variant slot keeps the history of any variant that was deleted from it (Recruitment UK slot B started at 187 sends). Every test in the config carries `baseline_sent` {"step_variant": sends at test start}, which the monitor subtracts. When you add a new test, snapshot the baseline the same day you add the variants.
+- **Schedule:** a daily cloud scheduled task runs `monitor --live` at 05:23 UTC, plus `validate` on Mondays. It runs in a fresh session on branch `claude/ecstatic-curie-n8mzoj`, or `main` once merged. Its push notification is the report itself.
+- **Live test started 2026-11-02:** 11 campaigns (8 recruitment, SMB USA, Web Agency USA, Yoga France). Step 1: A = old copy (control), B = "open for collaborating" subject, C = "idea for…" subject, B and C sharing a new body. Steps 2 and 3: one new variant each. Gate scores were human 0.56–0.70 vs 0.25–0.33 for the old copy.
+
 - Instantly 403s urllib's default User-Agent; the script uses `requests` with a real UA.
 - `/emails` is limited to 20 req/min: 3.2 s between calls; 429 → sleep 20 s, retry up to 4 times. Uses `email_type=received` + `min_timestamp_created` and filters `ue_type == 2` locally.
 - Some received emails have no `step` (and analytics/steps returns a `null` step row): they are not attributable and are ignored.

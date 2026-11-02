@@ -252,8 +252,13 @@ def effective_kind(kind: str, conf: float) -> tuple[str, bool]:
     return (kind or "other"), low
 
 
-def aggregate_metrics(step_rows: list[dict[str, Any]], replies: list[dict[str, Any]]) -> dict[int, dict[int, dict[str, int]]]:
+def aggregate_metrics(step_rows: list[dict[str, Any]], replies: list[dict[str, Any]],
+                      baseline: dict[str, int] | None = None) -> dict[int, dict[int, dict[str, int]]]:
     """Merge analytics/steps rows with classified replies -> {step: {variant: {sent, positive, human, unsub}}}.
+
+    analytics/steps ignores start_date for `sent` (verified 2026-11-02: lifetime totals), so the
+    config stores `baseline_sent` {"step_variant": sent-at-test-start}; it is subtracted (floor 0)
+    so a control arm with months of history is compared on the same window as new arms.
 
     `replies` items: {"step": "0_s_v", "kind": <effective kind>}. Only sequence 0 counts.
     """
@@ -268,6 +273,13 @@ def aggregate_metrics(step_rows: list[dict[str, Any]], replies: list[dict[str, A
         except (TypeError, ValueError):
             continue
         cell(s, v)["sent"] += int(row.get("sent") or 0)
+    for key, base in (baseline or {}).items():
+        try:
+            s, v = (int(x) for x in key.split("_"))
+        except ValueError:
+            continue
+        if s in out and v in out[s]:
+            out[s][v]["sent"] = max(0, out[s][v]["sent"] - int(base))
     for rep in replies:
         key = parse_step_key(rep.get("step"))
         if key is None or key[0] != 0:
@@ -605,7 +617,7 @@ def campaign_section(api: Instantly, test: dict[str, Any], live: bool) -> list[s
     state = variant_state_of(sequences)
     step_rows = api.step_analytics(cid, started)
     replies = classify_replies(api.received_emails(cid, started))
-    metrics = aggregate_metrics(step_rows, replies)
+    metrics = aggregate_metrics(step_rows, replies, test.get("baseline_sent"))
     decision = decide_campaign(state, metrics)
     control = test.get("control_variant")
     lines += ["| Step | Variant | Active | Sent | Positive | Human | Unsub | P(best) |",
