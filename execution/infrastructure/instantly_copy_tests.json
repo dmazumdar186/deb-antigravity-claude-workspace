@@ -10,10 +10,6 @@
       "family": "recruitment",
       "started": "2026-11-02",
       "control_variant": 0,
-      "new_step1_variants": [
-        1,
-        2
-      ],
       "baseline_sent": {
         "2_0": 314,
         "0_1": 187,
@@ -21,6 +17,21 @@
         "2_1": 142,
         "1_0": 302,
         "0_0": 282
+      },
+      "roles": {
+        "0": {
+          "control": 0,
+          "B": 1,
+          "C": 2
+        },
+        "1": {
+          "old": 0,
+          "new": 1
+        },
+        "2": {
+          "old": 0,
+          "new": 1
+        }
       }
     },
     {
@@ -29,14 +40,25 @@
       "family": "recruitment",
       "started": "2026-11-02",
       "control_variant": 0,
-      "new_step1_variants": [
-        1,
-        2
-      ],
       "baseline_sent": {
         "2_0": 66,
         "1_0": 118,
         "0_0": 121
+      },
+      "roles": {
+        "0": {
+          "control": 0,
+          "B": 1,
+          "C": 2
+        },
+        "1": {
+          "old": 0,
+          "new": 1
+        },
+        "2": {
+          "old": 0,
+          "new": 1
+        }
       }
     },
     {
@@ -45,14 +67,25 @@
       "family": "recruitment",
       "started": "2026-11-02",
       "control_variant": 0,
-      "new_step1_variants": [
-        1,
-        2
-      ],
       "baseline_sent": {
         "2_0": 61,
         "1_0": 151,
         "0_0": 178
+      },
+      "roles": {
+        "0": {
+          "control": 0,
+          "B": 1,
+          "C": 2
+        },
+        "1": {
+          "old": 0,
+          "new": 1
+        },
+        "2": {
+          "old": 0,
+          "new": 1
+        }
       }
     },
     {
@@ -61,14 +94,25 @@
       "family": "recruitment",
       "started": "2026-11-02",
       "control_variant": 0,
-      "new_step1_variants": [
-        1,
-        2
-      ],
       "baseline_sent": {
         "2_0": 62,
         "1_0": 151,
         "0_0": 177
+      },
+      "roles": {
+        "0": {
+          "control": 0,
+          "B": 1,
+          "C": 2
+        },
+        "1": {
+          "old": 0,
+          "new": 1
+        },
+        "2": {
+          "old": 0,
+          "new": 1
+        }
       }
     },
     {
@@ -77,14 +121,25 @@
       "family": "recruitment",
       "started": "2026-11-02",
       "control_variant": 0,
-      "new_step1_variants": [
-        1,
-        2
-      ],
       "baseline_sent": {
         "2_0": 24,
         "1_0": 46,
         "0_0": 80
+      },
+      "roles": {
+        "0": {
+          "control": 0,
+          "B": 1,
+          "C": 2
+        },
+        "1": {
+          "old": 0,
+          "new": 1
+        },
+        "2": {
+          "old": 0,
+          "new": 1
+        }
       }
     },
     {
@@ -93,14 +148,25 @@
       "family": "recruitment",
       "started": "2026-11-02",
       "control_variant": 0,
-      "new_step1_variants": [
-        1,
-        2
-      ],
       "baseline_sent": {
         "2_0": 28,
         "1_0": 51,
         "0_0": 91
+      },
+      "roles": {
+        "0": {
+          "control": 0,
+          "B": 1,
+          "C": 2
+        },
+        "1": {
+          "old": 0,
+          "new": 1
+        },
+        "2": {
+          "old": 0,
+          "new": 1
+        }
       }
     },
     {
@@ -109,14 +175,25 @@
       "family": "recruitment",
       "started": "2026-11-02",
       "control_variant": 0,
-      "new_step1_variants": [
-        1,
-        2
-      ],
       "baseline_sent": {
         "2_0": 52,
         "1_0": 70,
         "0_0": 89
+      },
+      "roles": {
+        "0": {
+          "control": 0,
+          "B": 1,
+          "C": 2
+        },
+        "1": {
+          "old": 0,
+          "new": 1
+        },
+        "2": {
+          "old": 0,
+          "new": 1
+        }
       }
     },
     {
@@ -125,10 +202,6 @@
       "family": "recruitment",
       "started": "2026-11-02",
       "control_variant": 0,
-      "new_step1_variants": [
-        2,
-        3
-      ],
       "baseline_sent": {
         "2_0": 169,
         "0_1": 84,
@@ -136,6 +209,24 @@
         "2_1": 20,
         "1_0": 210,
         "0_0": 222
+      },
+      "roles": {
+        "0": {
+          "control": 0,
+          "legacy": 1,
+          "B": 2,
+          "C": 3
+        },
+        "1": {
+          "old": 0,
+          "legacy": 1,
+          "new": 2
+        },
+        "2": {
+          "old": 0,
+          "legacy": 1,
+          "new": 2
+        }
       }
     },
     {
@@ -144,14 +235,25 @@
       "family": "smb",
       "started": "2026-11-02",
       "control_variant": 0,
-      "new_step1_variants": [
-        1,
-        2
-      ],
       "baseline_sent": {
         "2_0": 540,
         "1_0": 619,
         "0_0": 669
+      },
+      "roles": {
+        "0": {
+          "control": 0,
+          "B": 1,
+          "C": 2
+        },
+        "1": {
+          "old": 0,
+          "new": 1
+        },
+        "2": {
+          "old": 0,
+          "new": 1
+        }
       }
     },
     {
@@ -160,14 +262,25 @@
       "family": "webagency",
       "started": "2026-11-02",
       "control_variant": 0,
-      "new_step1_variants": [
-        1,
-        2
-      ],
       "baseline_sent": {
         "2_0": 510,
         "1_0": 570,
         "0_0": 651
+      },
+      "roles": {
+        "0": {
+          "control": 0,
+          "B": 1,
+          "C": 2
+        },
+        "1": {
+          "old": 0,
+          "new": 1
+        },
+        "2": {
+          "old": 0,
+          "new": 1
+        }
       }
     },
     {
@@ -176,14 +289,25 @@
       "family": "yoga_fr",
       "started": "2026-11-02",
       "control_variant": 0,
-      "new_step1_variants": [
-        1,
-        2
-      ],
       "baseline_sent": {
         "2_0": 129,
         "1_0": 185,
         "0_0": 195
+      },
+      "roles": {
+        "0": {
+          "control": 0,
+          "B": 1,
+          "C": 2
+        },
+        "1": {
+          "old": 0,
+          "new": 1
+        },
+        "2": {
+          "old": 0,
+          "new": 1
+        }
       }
     }
   ]
