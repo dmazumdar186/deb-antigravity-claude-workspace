@@ -1268,7 +1268,9 @@ def cmd_topup(args: argparse.Namespace) -> None:
             f.pop(k, None)
         f["domain"] = [d]
         n = lo.count(f).get("total") or 0
-        if n:
+        # > max_per_domain usually means a big employer or a domain LeadOcean maps to another firm
+        # (2026-11-02: one "Atlanta AV" domain returned 190 Crawford & Company insurance rows).
+        if 0 < n <= args.max_per_domain:
             counted.append((n, niche, metro, d))
     counted.sort()  # fewest contacts first: least 2-per-company waste per row spent
     groups: dict[tuple[str, str], list[str]] = defaultdict(list)
@@ -1416,6 +1418,7 @@ def main() -> None:
     t.add_argument("--niches", default="av,fitout")
     t.add_argument("--max-pages", type=int, default=6)
     t.add_argument("--plan-only", action="store_true")
+    t.add_argument("--max-per-domain", type=int, default=8, help="skip domains with more matching people")
     for name in ("gate", "enrich", "icebreak"):
         s = sub.add_parser(name)
         s.add_argument("--limit", type=int, default=0, help="process at most N new items (testing)")

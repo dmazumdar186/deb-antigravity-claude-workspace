@@ -85,6 +85,11 @@ Always run a step with `--limit 20` (or `export --sample 30`) before scaling.
   cap, ~470 non-verified per-address status, 423 email domain != company domain, then Jev dropped ~1,140 off-niche
   rows (breweries, schools, limo firms, hotels matched by "staging"/"corporate events"/"group travel"). ~460 leads
   survived (~11%). Company-first (`topup`) gates on the description before spending export rows.
+- Topup result 2026-11-02: 651 Jev-approved new companies from company search, but only 61 had verified
+  decision-makers; 418 rows bought just 25 leads, because one "Atlanta AV" domain returned 190 Crawford & Company
+  insurance rows (LeadOcean mapped the domain to another employer). `--max-per-domain` (default 8) now skips those.
+- Final 2026-11-02 run: 4,761 rows billed -> 436 leads (AV 199, fit-out 164, DMC 73), 48.9% with an icebreaker.
+  Jev $0.09, Sonnet icebreakers ~$2.51 (estimated). The ceiling is the verified-email pool, not the budget.
 - Company search is fair-use paced once the 5-hour search window is spent: ~1 page/min, so `topup` over
   ~20 metro cells takes ~45 min. Run it in the background.
 - Exports: 5,000 rows/day, `maxRows` 5,000, run one at a time per account (others queue), bill per row written.
