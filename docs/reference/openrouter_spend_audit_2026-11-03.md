@@ -61,3 +61,23 @@ The explicit all-Sonnet `budget` plan is unchanged and remains the opt-in for a 
 **Still unverified until credits exist:** whether OpenRouter returns `usage.cost` where the ledger reads
 it (402 blocks a live call). If not, rows show `cost_usd: null` and the budget guard falls back to the
 token-price estimate — the guard still trips. First live run confirms it.
+
+## Correction after the operator's receipt (OpenRouter activity screenshot, 2026-11-03)
+
+The receipt ($30.17 over 10 models) shows the ranking above was wrong:
+
+| Model | Total | Most likely source (from code + git) |
+|---|---|---|
+| Claude Sonnet 5.5 | $14.82 | `lead_sourcing/leadocean_leads.py` (built 2026-11-02 by a Claude session, `e1f2dad`): one icebreaker call per lead (max_tokens 600) plus a repair call, waves 1+2 on 2026-11-02/03. Matches "started a week ago". |
+| Claude Opus 5.5 | $6.46 | Almost all in one day ($6.43). `model_registry` maps OpenRouter `default` to Opus 5.5; exact job not identifiable without per-call records. |
+| GPT-6.1 Sol Pro | $3.91 | One day. No pin in `execution/`; an ad-hoc run by a session. Not identifiable. |
+| Claude Fable 5.1 | $3.21 | One day. |
+| Jev 1.13 | $1.31 | Router + Jev gates. Jev is only sold through OpenRouter. |
+| Others | $0.46 | Gemini, GLM, GPT small calls. |
+
+**Root cause (process, not code):** Claude sessions building pipelines routed Claude calls through
+OpenRouter because scripts cannot use the Claude Code subscription login and the direct Anthropic API
+balance was zero (`providers.py`: "Default plan under a zero Anthropic balance"). That routing was
+never put to the operator as a money decision. Operator rule, restated 2026-11-03: **OpenRouter only for
+non-Claude models (GPT, GLM, Jev), never for Claude.** Re-pinning Fable→Sonnet (commit 65e6c25) does
+not address the largest line; moving Claude calls off OpenRouter does. Pending operator go-ahead.
