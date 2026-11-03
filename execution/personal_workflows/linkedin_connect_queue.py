@@ -8,7 +8,7 @@ LinkedIn ID). The browser step is done by Cowork on the operator's own logged-in
 
 Subcommands
   consolidate --in a.csv b.csv [...]   merge CSVs into master.csv (idempotent, re-runnable)
-  plan [--limit 25]                     write/print today's queue (re-prints if it already exists)
+  plan [--limit 20]                     write/print today's queue (re-prints if it already exists)
   mark SLUG --status sent|skipped|already_connected|pending|withdrawn|retry [--note ..] [--canonical SLUG2]
                                         --canonical records the slug LinkedIn redirected to, as an alias
   report [--date YYYY-MM-DD] [--out f]  the operator's report: ONE markdown table (first name, name,
@@ -36,10 +36,11 @@ import sys
 from pathlib import Path
 from urllib.parse import unquote
 
-DAILY_CAP = 25
-# No weekly cap (operator order 2026-10-28): 25 a day, every day, Monday to Sunday. The 100/7-day
-# trim that lived here from 2026-10-23 was never asked for and stopped sends on 10-27 and 10-28.
-# LinkedIn's own "weekly invitation limit" dialog is a stop trigger in the runbook, not a number here.
+DAILY_CAP = 20
+# Operator order 2026-11-03: 20 a day on send days only (Mon, Tue, Thu, Fri, Sat; rest Wed and Sun),
+# ~100/week = LinkedIn's observed free-account weekly limit. The send days live in
+# linkedin_connect_send.py (SEND_DAYS); this cap is the one source of truth for both scripts.
+# There is still no rolling weekly trim here; LinkedIn's "weekly invitation limit" dialog is a stop trigger.
 FIELDS = ("slug", "name", "company", "position", "linkedin_url", "source_file")
 LEDGER_FIELDS = ("ts", "date", "slug", "name", "status", "note")
 STATUSES = ("sent", "skipped", "already_connected", "pending", "withdrawn", "retry")

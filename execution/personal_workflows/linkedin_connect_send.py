@@ -1,14 +1,16 @@
 """LinkedIn connection requests from a fixed script: one run per send day, one email table.
 
 description: Send the day's LinkedIn connection requests (20/day, Mon Tue Thu Fri Sat) from a dedicated Chrome profile with Playwright, then email one HTML table.
-inputs: CLI `run [--dry-run] [--headless]`, `login`, `install`, `uninstall`; `--data-dir` (default env LINKEDIN_CONNECT_DIR or <repo>/data/linkedin_connect, holding master.csv / ledger.csv / aliases.csv from linkedin_connect_queue.py); env GMAIL_SMTP_USER, GMAIL_SMTP_APP_PASSWORD, optional LINKEDIN_CONNECT_EMAIL_TO (default GMAIL_SMTP_USER).
-outputs: ledger.csv / aliases.csv / queue_<date>.csv rows via linkedin_connect_queue.py; emailed_<date>.txt marker and send.log in the data dir; one Gmail SMTP email (or .tmp/linkedin_connect_<date>.eml on --dry-run); one Windows scheduled task on `install`.
+inputs: CLI `run [--dry-run]`, `login`; `--data-dir` (default env LINKEDIN_CONNECT_DIR or <repo>/data/linkedin_connect, holding master.csv / ledger.csv / aliases.csv from linkedin_connect_queue.py); env GMAIL_SMTP_USER, GMAIL_SMTP_APP_PASSWORD, optional LINKEDIN_CONNECT_EMAIL_TO (default GMAIL_SMTP_USER).
+outputs: ledger.csv / aliases.csv / queue_<date>.csv rows via linkedin_connect_queue.py; emailed_<date>.txt marker and send.log in the data dir; one Gmail SMTP email (or .tmp/linkedin_connect_<date>.eml on --dry-run).
 
 Directive: directives/personal_workflows/linkedin_connect_send.md. No AI, no Drive, no cloud task:
-the OS scheduler starts `run` once per send day; the queue module owns master, ledger, plan, mark.
+one Windows scheduled task (PowerShell block in the directive) starts `run` once per send day; the queue
+module owns master, ledger, plan, mark and the daily cap (Q.DAILY_CAP).
 
 Exit codes: 0 ok (or silent no-op: rest day / today already emailed), 2 stopped early (LinkedIn
-warning, not logged in, page-load failures, 0 sent while people remained), 3 config error.
+warning, not logged in, failure streak, visit/time limit, 0 sent while people remained), 3 config error
+(no master, no Gmail credentials, Chrome missing, run crashed, email not delivered).
 """
 from __future__ import annotations
 
@@ -22,7 +24,6 @@ import os
 import random
 import re
 import smtplib
-import subprocess
 import sys
 import time
 from dataclasses import dataclass, field
@@ -39,17 +40,18 @@ import linkedin_connect_queue as Q  # noqa: E402  (sibling module: master, ledge
 
 REPO = Path(__file__).resolve().parents[2]
 DEFAULT_DATA_DIR = Path(os.environ.get("LINKEDIN_CONNECT_DIR") or REPO / "data" / "linkedin_connect")
-TZ_NAME = "Europe/Paris"
+EML_DIR = REPO / ".tmp"
 
-# Operator order 2026-11-03: send Mon, Tue, Thu, Fri, Sat; rest Wed and Sun. 20 per send day
-# (= 100/week, LinkedIn's observed weekly invitation limit on a free account).
+# Operator order 2026-11-03: send Mon, Tue, Thu, Fri, Sat; rest Wed and Sun. The per-day cap (20,
+# = 100/week, LinkedIn's observed free-account weekly limit) is Q.DAILY_CAP: one source of truth.
 SEND_DAYS = (0, 1, 3, 4, 5)  # datetime.weekday(): Monday = 0
-DAILY_SEND_CAP = 20
-RUN_AT = "10:00"  # local time of the Windows scheduled task
-TASK_NAME = "LinkedIn connect send"
 GAP_SECONDS = (45, 120)  # random pause between profiles
-MAX_CONSECUTIVE_LOAD_FAILURES = 2
-MAX_PASSES = 5  # re-plan after skips so skipped people are replaced, bounded
+MAX_CONSECUTIVE_LOAD_FAILURES = 2  # two page loads in a row fail -> stop
+MAX_CONSECUTIVE_RETRIES = 3  # three retry outcomes in a row (no Connect / unconfirmed / load) -> stop
+VISIT_FACTOR = 2  # never visit more than 2 x cap profiles in one run
+# Worst case per profile: 120 s gap + 45 s load + 10 s render + 10 s confirm ~ 3 min, x 40 = ~2 h.
+# The budget stops a run before that so it ends well inside the task's 3 h ExecutionTimeLimit.
+RUN_BUDGET_S = 110 * 60
 
 NAV_TIMEOUT_MS = 45_000
 RENDER_TIMEOUT_MS = 10_000
@@ -57,7 +59,7 @@ CONFIRM_TIMEOUT_MS = 10_000
 POLL_MS = 250
 
 SMTP_HOST, SMTP_PORT = "smtp.gmail.com", 587
-DAY_NAMES = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+SMTP_ATTEMPTS, SMTP_RETRY_S = 3, 60
 
 STOP_PATTERNS = (
     (re.compile(r"captcha", re.I), "captcha"),
@@ -84,21 +86,12 @@ log = logging.getLogger("linkedin_connect_send")
 
 # ----------------------------------------------------------------- calendar, cap, email (pure)
 
-def paris_today() -> dt.date:
-    try:
-        from zoneinfo import ZoneInfo
-        return dt.datetime.now(ZoneInfo(TZ_NAME)).date()
-    except Exception as exc:  # no tz database (Windows without tzdata): local date is the honest fallback
-        log.warning("time zone %s unavailable (%s); using the local date", TZ_NAME, exc)
-        return dt.date.today()
-
-
 def is_send_day(day: dt.date) -> bool:
     return day.weekday() in SEND_DAYS
 
 
 def room_left(sent_today: int, cap: int | None = None) -> int:
-    return max(0, (DAILY_SEND_CAP if cap is None else cap) - sent_today)
+    return max(0, (Q.DAILY_CAP if cap is None else cap) - sent_today)
 
 
 def marker_path(data_dir: Path, day: str) -> Path:
@@ -144,13 +137,12 @@ def smtp_config() -> tuple[str, str, str] | None:
     return (user, pw, to) if user and pw else None
 
 
-def deliver(subject: str, body_html: str, day: str, dry_run: bool, eml_dir: Path | None = None) -> bool:
-    """Send via Gmail SMTP (App Password), or write an .eml on --dry-run."""
+def deliver(subject: str, body_html: str, day: str, dry_run: bool) -> bool:
+    """Send via Gmail SMTP (App Password; SMTP_ATTEMPTS tries, SMTP_RETRY_S apart), or write an .eml on --dry-run."""
     if dry_run:
         user, _, to = smtp_config() or ("dry-run@localhost", "", "dry-run@localhost")
-        out_dir = eml_dir or REPO / ".tmp"
-        out_dir.mkdir(parents=True, exist_ok=True)
-        path = out_dir / f"linkedin_connect_{day}.eml"
+        EML_DIR.mkdir(parents=True, exist_ok=True)
+        path = EML_DIR / f"linkedin_connect_{day}.eml"
         path.write_bytes(build_message(subject, body_html, user, to).as_bytes())
         log.info("dry-run: email written to %s", path)
         return True
@@ -159,16 +151,19 @@ def deliver(subject: str, body_html: str, day: str, dry_run: bool, eml_dir: Path
         log.error("GMAIL_SMTP_USER / GMAIL_SMTP_APP_PASSWORD not set; email not sent")
         return False
     user, pw, to = cfg
-    try:
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=30) as smtp:
-            smtp.starttls()
-            smtp.login(user, pw)
-            smtp.send_message(build_message(subject, body_html, user, to))
-    except (smtplib.SMTPException, OSError) as exc:
-        log.error("SMTP send failed: %s", exc)
-        return False
-    log.info("emailed %s: %s", to, subject)
-    return True
+    for attempt in range(1, SMTP_ATTEMPTS + 1):
+        try:
+            with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=30) as smtp:
+                smtp.starttls()
+                smtp.login(user, pw)
+                smtp.send_message(build_message(subject, body_html, user, to))
+            log.info("emailed %s: %s", to, subject)
+            return True
+        except (smtplib.SMTPException, OSError) as exc:
+            log.error("SMTP attempt %d/%d failed: %s", attempt, SMTP_ATTEMPTS, exc)
+        if attempt < SMTP_ATTEMPTS:
+            time.sleep(SMTP_RETRY_S)
+    return False
 
 
 # ----------------------------------------------------------------- page logic (takes a URL)
@@ -203,11 +198,21 @@ def _text(loc) -> str:
 
 
 def detect_stop(page) -> str | None:
+    """Checkpoint URL, or a warning inside a dialog / alert (never body text: a profile's own
+    About section may say "security check" or "restricted")."""
     if CHECKPOINT_URL_RE.search(page.url):
         return "security check"
-    body = _text(page.locator("body"))
+    overlays = page.get_by_role("dialog").or_(page.get_by_role("alertdialog")).or_(page.get_by_role("alert"))
+    texts = []
+    try:
+        for i in range(min(overlays.count(), 10)):
+            if overlays.nth(i).is_visible():
+                texts.append(_text(overlays.nth(i)))
+    except Exception as exc:  # overlay detached mid-check: nothing to read, the next poll re-checks; logged
+        log.debug("overlay check failed: %s", exc)
+    blob = "\n".join(texts)
     for rx, reason in STOP_PATTERNS:
-        if rx.search(body):
+        if rx.search(blob):
             return reason
     return None
 
@@ -277,7 +282,7 @@ def process_profile(page, url: str, slug: str, dry_run: bool = False) -> Outcome
             connect = _connect_in(card) or _connect_in(page.get_by_role("menu"))
     if connect is None:
         page.keyboard.press("Escape")
-        return Outcome("skipped", "no_connect_button", canonical=canon)
+        return Outcome("retry", "no_connect_button", canonical=canon)  # not terminal: try again another day
     if dry_run:
         log.info("%s: dry-run, would click %r", slug, connect.get_attribute("aria-label") or "Connect")
         page.keyboard.press("Escape")
@@ -342,21 +347,26 @@ def plan_queue(store: Q.Store, day: str, limit: int) -> list[dict]:
 def run_day(page, store: Q.Store, day: str, dry_run: bool = False,
             sleep: Callable[[float], None] | None = None) -> DayResult:
     sleep = sleep or time.sleep
-    Q._today = lambda: day  # ledger dates and the plan follow the Europe/Paris send day, same as the gating
+    cap = Q.DAILY_CAP
+    max_visits = VISIT_FACTOR * cap
+    t0 = time.monotonic()
     res = DayResult()
     start_sent = len(Q._sent_on(store.load_ledger(), day))
     seen: set[str] = set()
-    fails = 0
-    for _ in range(MAX_PASSES):
-        done = res.sent_run + len(res.would_send)
-        if room_left(start_sent + done) == 0:
-            break
-        queue = [r for r in plan_queue(store, day, DAILY_SEND_CAP - len(res.would_send)) if r["slug"] not in seen]
+    load_streak = retry_streak = 0
+    while room_left(start_sent + res.sent_run + len(res.would_send)) > 0:
+        queue = [r for r in plan_queue(store, day, cap - len(res.would_send)) if r["slug"] not in seen]
         if not queue:
-            break
+            return res  # nobody left to try today
         for r in queue:
             if room_left(start_sent + res.sent_run + len(res.would_send)) == 0:
-                break
+                return res
+            if res.processed >= max_visits:
+                res.stop = f"{max_visits} profiles visited, cap not reached"
+                return res
+            if time.monotonic() - t0 > RUN_BUDGET_S:
+                res.stop = "time budget reached"
+                return res
             if res.processed:
                 sleep(random.uniform(*GAP_SECONDS))
             seen.add(r["slug"])
@@ -372,9 +382,13 @@ def run_day(page, store: Q.Store, day: str, dry_run: bool = False,
             if out.status and not dry_run:
                 _quiet(Q.cmd_mark, store, r["slug"], out.status, out.note, out.canonical)
                 res.sent_run += out.status == "sent"
-            fails = fails + 1 if out.load_failed else 0
-            if fails >= MAX_CONSECUTIVE_LOAD_FAILURES:
+            load_streak = load_streak + 1 if out.load_failed else 0
+            retry_streak = retry_streak + 1 if out.status == "retry" else 0
+            if load_streak >= MAX_CONSECUTIVE_LOAD_FAILURES:
                 res.stop = "two page-load failures"
+                return res
+            if retry_streak >= MAX_CONSECUTIVE_RETRIES:
+                res.stop = f"{MAX_CONSECUTIVE_RETRIES} profiles in a row without Connect or confirmation"
                 return res
     return res
 
@@ -386,22 +400,27 @@ def remaining_people(store: Q.Store, day: str) -> int:
 
 # ----------------------------------------------------------------- browser
 
-def launch_context(pw, data_dir: Path, headless: bool = False):
-    kw = dict(user_data_dir=str(data_dir / "chrome_profile"), headless=headless, no_viewport=True,
-              args=["--disable-blink-features=AutomationControlled"])
+class ChromeUnavailable(RuntimeError):
+    """Google Chrome is missing or would not start with the job's profile."""
+
+
+def launch_context(pw, data_dir: Path):
     try:
-        return pw.chromium.launch_persistent_context(channel="chrome", **kw)
-    except Exception as exc:  # Google Chrome not installed: bundled Chromium works with the same profile dir
-        log.warning("Chrome channel unavailable (%s); falling back to bundled Chromium", str(exc).splitlines()[0])
-        return pw.chromium.launch_persistent_context(**kw)
+        return pw.chromium.launch_persistent_context(
+            user_data_dir=str(data_dir / "chrome_profile"), channel="chrome", headless=False, no_viewport=True,
+            args=["--disable-blink-features=AutomationControlled"])
+    except Exception as exc:  # re-raised with a clear message; cmd_run turns it into a STOPPED email
+        raise ChromeUnavailable(
+            f"Google Chrome could not start ({str(exc).splitlines()[0]}). Install Chrome, and close any "
+            f"window still using {data_dir / 'chrome_profile'}.") from exc
 
 
 @contextlib.contextmanager
-def open_browser(data_dir: Path, headless: bool = False):
+def open_browser(data_dir: Path):
     """Yield one page of the persistent LinkedIn profile; closes the browser on exit."""
     from playwright.sync_api import sync_playwright
     with sync_playwright() as pw:
-        ctx = launch_context(pw, data_dir, headless)
+        ctx = launch_context(pw, data_dir)
         try:
             yield ctx.pages[0] if ctx.pages else ctx.new_page()
         finally:
@@ -420,9 +439,8 @@ def _setup_logging(data_dir: Path) -> None:
     log.setLevel(logging.INFO)
 
 
-def cmd_run(data_dir: Path, dry_run: bool, headless: bool, today: dt.date | None = None,
-            eml_dir: Path | None = None) -> int:
-    today = today or paris_today()
+def cmd_run(data_dir: Path, dry_run: bool, today: dt.date | None = None) -> int:
+    today = today or dt.date.today()  # local date, same as the queue module's ledger dates
     day = today.isoformat()
     if not is_send_day(today) or marker_path(data_dir, day).exists():
         return 0  # rest day, or today's email already went out: silent no-op
@@ -435,7 +453,7 @@ def cmd_run(data_dir: Path, dry_run: bool, headless: bool, today: dt.date | None
         log.error("GMAIL_SMTP_USER / GMAIL_SMTP_APP_PASSWORD not set; refusing to send without a report path")
         return 3
     log.info("run %s%s: %d already sent today, cap %d", day, " (dry-run)" if dry_run else "",
-             len(Q._sent_on(store.load_ledger(), day)), DAILY_SEND_CAP)
+             len(Q._sent_on(store.load_ledger(), day)), Q.DAILY_CAP)
 
     code, res = 0, DayResult()
     try:
@@ -444,8 +462,11 @@ def cmd_run(data_dir: Path, dry_run: bool, headless: bool, today: dt.date | None
         log.error("playwright not installed: pip install playwright")
         return 3
     try:
-        with open_browser(data_dir, headless) as page:
+        with open_browser(data_dir) as page:
             res = run_day(page, store, day, dry_run)
+    except ChromeUnavailable as exc:
+        log.error("%s", exc)
+        res.stop, code = "Chrome not available", 3
     except Exception as exc:  # browser could not start or the run crashed: still email, loudly
         log.exception("run failed: %s", exc)
         res.stop, code = f"run failed ({type(exc).__name__})", 3
@@ -458,7 +479,7 @@ def cmd_run(data_dir: Path, dry_run: bool, headless: bool, today: dt.date | None
         code = 2
     subject = build_subject(day, len(rows), stop)
     log.info("subject: %s", subject)
-    if not deliver(subject, build_table_html(rows), day, dry_run, eml_dir):
+    if not deliver(subject, build_table_html(rows), day, dry_run):
         return 3
     if not dry_run:
         marker_path(data_dir, day).write_text(subject + "\n", encoding="utf-8")
@@ -469,7 +490,11 @@ def cmd_login(data_dir: Path) -> int:
     from playwright.sync_api import sync_playwright
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     with sync_playwright() as pw:
-        ctx = launch_context(pw, data_dir)
+        try:
+            ctx = launch_context(pw, data_dir)
+        except ChromeUnavailable as exc:
+            print(exc, file=sys.stderr)
+            return 3
         page = ctx.pages[0] if ctx.pages else ctx.new_page()
         page.goto("https://www.linkedin.com/login", timeout=NAV_TIMEOUT_MS)
         print("Log in to LinkedIn in the opened window, then close the window.")
@@ -481,63 +506,6 @@ def cmd_login(data_dir: Path) -> int:
     return 0
 
 
-# ----------------------------------------------------------------- Windows Task Scheduler
-
-def _ps_quote(s: str) -> str:
-    return "'" + s.replace("'", "''") + "'"
-
-
-def build_install_ps(python: str, script: Path, data_dir: Path) -> str:
-    days = ",".join(DAY_NAMES[d] for d in SEND_DAYS)
-    arg = f'"{script}" --data-dir "{data_dir}" run'
-    return "\n".join([
-        f"$a = New-ScheduledTaskAction -Execute {_ps_quote(python)} -Argument {_ps_quote(arg)} "
-        f"-WorkingDirectory {_ps_quote(str(REPO))}",
-        f"$t = New-ScheduledTaskTrigger -Weekly -DaysOfWeek {days} -At {RUN_AT}",
-        "$s = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances IgnoreNew "
-        "-AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Hours 3)",
-        '$p = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\\$env:USERNAME" -LogonType Interactive',
-        f"Register-ScheduledTask -TaskName {_ps_quote(TASK_NAME)} -Action $a -Trigger $t -Settings $s "
-        "-Principal $p -Force | Out-Null",
-        f"Get-ScheduledTask -TaskName {_ps_quote(TASK_NAME)} | Select-Object TaskName,State | Format-List",
-    ])
-
-
-def _powershell(script: str) -> int:
-    if os.name != "nt":
-        print("install/uninstall need Windows (Task Scheduler)", file=sys.stderr)
-        return 3
-    try:
-        p = subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", script],
-                           capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
-    except (OSError, subprocess.TimeoutExpired) as exc:
-        print(f"powershell failed: {exc}", file=sys.stderr)
-        return 3
-    print(p.stdout.strip())
-    if p.returncode:
-        print(p.stderr.strip(), file=sys.stderr)
-        return 3
-    return 0
-
-
-def cmd_install(data_dir: Path) -> int:
-    script = Path(__file__).resolve()
-    rc = _powershell(build_install_ps(sys.executable, script, data_dir.resolve()))
-    if rc == 0:
-        days = ", ".join(DAY_NAMES[d][:3] for d in SEND_DAYS)
-        print(f"registered task {TASK_NAME!r}: {days} at {RUN_AT} local, start when available, "
-              f"only while you are logged on, one instance at a time\n"
-              f"action: {sys.executable} \"{script}\" --data-dir \"{data_dir.resolve()}\" run")
-    return rc
-
-
-def cmd_uninstall() -> int:
-    rc = _powershell(f"Unregister-ScheduledTask -TaskName {_ps_quote(TASK_NAME)} -Confirm:$false")
-    if rc == 0:
-        print(f"removed task {TASK_NAME!r}")
-    return rc
-
-
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--data-dir", type=Path, default=DEFAULT_DATA_DIR,
@@ -545,18 +513,11 @@ def main(argv: list[str] | None = None) -> int:
     sub = ap.add_subparsers(dest="cmd", required=True)
     r = sub.add_parser("run", help="send today's batch and email the table (no-op on rest days)")
     r.add_argument("--dry-run", action="store_true", help="no Connect/Send clicks; email written to .tmp/*.eml")
-    r.add_argument("--headless", action="store_true", help="testing only; the scheduled run is headed")
     sub.add_parser("login", help="open the persistent profile on linkedin.com/login; close the window when done")
-    sub.add_parser("install", help="register the Windows scheduled task")
-    sub.add_parser("uninstall", help="remove the Windows scheduled task")
     a = ap.parse_args(argv)
     if a.cmd == "run":
-        return cmd_run(a.data_dir, a.dry_run, a.headless)
-    if a.cmd == "login":
-        return cmd_login(a.data_dir)
-    if a.cmd == "install":
-        return cmd_install(a.data_dir)
-    return cmd_uninstall()
+        return cmd_run(a.data_dir, a.dry_run)
+    return cmd_login(a.data_dir)
 
 
 if __name__ == "__main__":

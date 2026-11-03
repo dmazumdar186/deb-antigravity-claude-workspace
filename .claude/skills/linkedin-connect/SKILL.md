@@ -1,16 +1,14 @@
 ---
 name: linkedin-connect
-description: Daily LinkedIn connection-request routine (25/day from the operator's logged-in Chrome via Cowork, ledger-tracked, one-table report emailed daily at 20:00 by a cloud task). Triggers on "linkedin connects", "send today's connection requests", /linkedin-connect.
+description: Runs the LinkedIn connection-request script (20/day Mon Tue Thu Fri Sat via Windows Task Scheduler, one table email per run). Triggers on "linkedin connects", "send today's connection requests", /linkedin-connect.
 allowed-tools: Read, Bash, Grep, Glob
 ---
 # LinkedIn Connect
 
-Follow `directives/personal_workflows/linkedin_connect_daily.md` exactly. Summary:
+Follow `directives/personal_workflows/linkedin_connect_send.md`. The routine is a fixed script, not an AI task:
 
-1. State comes from the Google Drive folder `linkedin_connect`, never from git: download every `ledger_*.csv` + `aliases.csv`, `sync` them in, `consolidate --in` every prospect CSV on this machine (skip `*bounce*`), then `lock acquire` (exit 4 → stop silently), `health` (UNHEALTHY → email it, stop), then `plan --shuffle` ("0 to do" → release lock, stop). Script: `execution/personal_workflows/linkedin_connect_queue.py --data-dir data/linkedin_connect`.
-2. In the operator's logged-in Chrome (Claude in Chrome / Cowork only; never from a cloud session): open each profile; Connect is usually inside the **More** menu → **Send without a note**; confirm via the "Invitation sent" alert or `Pending`, then `mark <slug> --status sent` (add `--canonical <slug>` if LinkedIn redirected the URL). Email-required dialog → `skipped --note email_required`, continue. Other states map to `pending` / `already_connected` / `skipped`.
-3. Random 45–120 s between profiles. Stop on the first captcha, limit notice, or restriction message and report it verbatim.
-4. `report` → writes `report_<date>.md` (one table: first name, name, company, position, LinkedIn ID). Upload it to the Drive folder (overwrite same-day). Slots never email it; the 20:00 Europe/Paris cloud task emails the file body, **the table and nothing else**. Counts, skips and status go in the session reply only.
-5. Upload `ledger.csv` to the Drive folder as `ledger_<ISO datetime>.csv` (and `aliases.csv` if changed); Drive is the only state transport. `status` → one line in the session reply: remaining and days left; `lock release`. Nothing under `data/linkedin_connect/` is ever committed.
-
-The script enforces the 25/day cap and refuses duplicate slugs. Never bypass exit 3.
+- `execution/personal_workflows/linkedin_connect_send.py run` is started by one Windows scheduled task at 10:00 on Mon, Tue, Thu, Fri and Sat (rest Wed and Sun). It sends up to 20 invitations (cap = `DAILY_CAP` in `linkedin_connect_queue.py`) from a dedicated Chrome profile, then sends ONE email: subject `LinkedIn connects <date> (<n> sent)` (plus ` — STOPPED: <reason>` if it stopped early), body = one table and nothing else.
+- Do not click LinkedIn buttons yourself, and do not use the old Cowork slots, Drive sync or the 20:00 cloud report task (retired; see the directive).
+- If asked to "send today's connection requests" by hand on the laptop: `python execution/personal_workflows/linkedin_connect_send.py run` (it no-ops on rest days or once today's email went out). `run --dry-run` clicks nothing and writes the email to `.tmp/`. `login` re-logs the Chrome profile in.
+- Prospect lists: `linkedin_connect_queue.py consolidate --in <csvs>`; counts: `linkedin_connect_queue.py status`.
+- Problems: read `data/linkedin_connect/send.log` and the STOPPED reason in the subject; the directive lists every reason and its fix.

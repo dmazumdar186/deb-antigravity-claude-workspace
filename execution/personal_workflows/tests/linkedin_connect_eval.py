@@ -24,6 +24,7 @@ WS = HERE.parents[2]
 SCRIPT = WS / "execution" / "personal_workflows" / "linkedin_connect_queue.py"
 TODAY = dt.date.today().isoformat()
 YESTERDAY = (dt.date.today() - dt.timedelta(days=1)).isoformat()
+CAP = 20  # queue DAILY_CAP (operator order 2026-11-03: 20/day on send days)
 
 
 def run(data_dir: Path, *args: str) -> subprocess.CompletedProcess:
@@ -133,7 +134,7 @@ def c09_cap_25(d):
     seed_master(d, 40)
     r = run(d, "plan", "--limit", "30")
     n = len(list(csv.DictReader((d / f"queue_{TODAY}.csv").open())))
-    return n == 25, f"queued {n}"
+    return n == CAP, f"queued {n}"
 
 
 def c10_limit_zero(d):
@@ -144,9 +145,9 @@ def c10_limit_zero(d):
 
 def c11_26th_refused(d):
     seed_master(d, 30)
-    ledger(d, [(TODAY, f"p{i}", "sent") for i in range(25)])
-    r = run(d, "mark", "p25", "--status", "sent")
-    return r.returncode == 3 and len(ledger_rows(d)) == 25, f"exit {r.returncode}, ledger {len(ledger_rows(d))}"
+    ledger(d, [(TODAY, f"p{i}", "sent") for i in range(CAP)])
+    r = run(d, "mark", f"p{CAP}", "--status", "sent")
+    return r.returncode == 3 and len(ledger_rows(d)) == CAP, f"exit {r.returncode}, ledger {len(ledger_rows(d))}"
 
 
 def c12_duplicate_mark(d):
@@ -171,16 +172,16 @@ def c14_topup_after_skips(d):
         run(d, "mark", f"p{i}", "--status", "skipped")
     run(d, "plan")
     q = [r["slug"] for r in csv.DictReader((d / f"queue_{TODAY}.csv").open())]
-    return len(q) == 25 and not any(s in q for s in [f"p{i}" for i in range(10)]), f"{len(q)} queued, first={q[:3]}"
+    return len(q) == CAP and not any(s in q for s in [f"p{i}" for i in range(10)]), f"{len(q)} queued, first={q[:3]}"
 
 
 def c15_weekly_trim(d):
-    """No weekly cap (operator order 2026-10-28): 150 sent in the last 6 days still plans 25 today."""
+    """No weekly cap in the script (operator order 2026-10-28): 150 sent in the last 6 days still plans CAP today."""
     seed_master(d, 200)
     ledger(d, [((dt.date.today() - dt.timedelta(days=1 + i % 6)).isoformat(), f"p{i}", "sent") for i in range(150)])
     r = run(d, "plan")
     n = len(list(csv.DictReader((d / f"queue_{TODAY}.csv").open())))
-    return n == 25 and "weekly" not in r.stderr, f"queued {n}; {r.stderr.strip()}"
+    return n == CAP and "weekly" not in r.stderr, f"queued {n}; {r.stderr.strip()}"
 
 
 def c16_report_four_fields(d):
@@ -209,7 +210,7 @@ def c18_shuffle_deterministic(d):
     run(d, "plan", "--shuffle"); q1 = [r["slug"] for r in csv.DictReader((d / f"queue_{TODAY}.csv").open())]
     (d / f"queue_{TODAY}.csv").unlink()
     run(d, "plan", "--shuffle"); q2 = [r["slug"] for r in csv.DictReader((d / f"queue_{TODAY}.csv").open())]
-    return q1 == q2 and q1 != [f"p{i}" for i in range(25)], f"same={q1 == q2}, shuffled={q1 != [f'p{i}' for i in range(25)]}"
+    return q1 == q2 and q1 != [f"p{i}" for i in range(CAP)], f"same={q1 == q2}, shuffled={q1 != [f'p{i}' for i in range(CAP)]}"
 
 
 def c19_empty_master(d):
