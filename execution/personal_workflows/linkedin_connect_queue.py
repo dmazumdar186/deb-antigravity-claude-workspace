@@ -47,6 +47,7 @@ STATUSES = ("sent", "skipped", "already_connected", "pending", "withdrawn", "ret
 # Any status but "retry" is terminal: never queue again. "retry" (unconfirmed click, page failed
 # to load) keeps the person out of today's queue and eligible from tomorrow.
 TERMINAL = frozenset(STATUSES) - {"retry"}
+NO_CONNECT_DAYS = 3  # "retry no_connect_button" on this many different days -> skipped no_connect_button_3x
 ENCODINGS = ("utf-8-sig", "cp1252", "latin-1")
 LOCK_TTL_MIN = 120  # a run never legitimately exceeds this; older locks are treated as crashed runs
 
@@ -290,6 +291,11 @@ def cmd_mark(store: Store, slug: str, status: str, note: str, canonical: str | N
         print(f"{slug}: already in ledger with a final status, not marking again")
         return 0
     day = _today()
+    if status == "retry" and note == "no_connect_button":
+        days = {r["date"] for r in ledger if r["slug"] == slug and r["status"] == "retry"
+                and r["note"] == "no_connect_button"} | {day}
+        if len(days) >= NO_CONNECT_DAYS:  # follow-only profile: stop re-trying it forever
+            status, note = "skipped", "no_connect_button_3x"
     if status == "sent" and len(_sent_on(ledger, day)) >= DAILY_CAP:
         print(f"REFUSED: daily cap of {DAILY_CAP} already reached for {day}", file=sys.stderr)
         return 3

@@ -46,8 +46,7 @@ EML_DIR = REPO / ".tmp"
 # = 100/week, LinkedIn's observed free-account weekly limit) is Q.DAILY_CAP: one source of truth.
 SEND_DAYS = (0, 1, 3, 4, 5)  # datetime.weekday(): Monday = 0
 GAP_SECONDS = (45, 120)  # random pause between profiles
-MAX_CONSECUTIVE_LOAD_FAILURES = 2  # two page loads in a row fail -> stop
-MAX_CONSECUTIVE_RETRIES = 3  # three retry outcomes in a row (no Connect / unconfirmed / load) -> stop
+MAX_CONSECUTIVE_RETRIES = 3  # three retry outcomes in a row (no Connect / unconfirmed / page load failed) -> stop
 VISIT_FACTOR = 2  # never visit more than 2 x cap profiles in one run
 # Worst case per profile: 120 s gap + 45 s load + 10 s render + 10 s confirm ~ 3 min, x 40 = ~2 h.
 # The budget stops a run before that so it ends well inside the task's 3 h ExecutionTimeLimit.
@@ -174,7 +173,6 @@ class Outcome:
     note: str = ""
     canonical: str | None = None
     stop: str | None = None  # set = end the day now
-    load_failed: bool = False
     would_send: bool = False
 
 
@@ -252,7 +250,7 @@ def process_profile(page, url: str, slug: str, dry_run: bool = False) -> Outcome
         resp = page.goto(url, wait_until="domcontentloaded", timeout=NAV_TIMEOUT_MS)
     except Exception as exc:  # timeout / net error: a retry for this person, counted toward the stop rule
         log.warning("%s: page load failed: %s", slug, str(exc).splitlines()[0])
-        return Outcome("retry", "page_load_failed", load_failed=True)
+        return Outcome("retry", "page_load_failed")
     try:  # SPA: wait for the header to render a button, or for a 404 / wall / warning text
         page.locator("main button, main [role=button]").or_(page.get_by_text(RENDERED_TEXT_RE)).first.wait_for(
             state="visible", timeout=RENDER_TIMEOUT_MS)
@@ -353,7 +351,7 @@ def run_day(page, store: Q.Store, day: str, dry_run: bool = False,
     res = DayResult()
     start_sent = len(Q._sent_on(store.load_ledger(), day))
     seen: set[str] = set()
-    load_streak = retry_streak = 0
+    retry_streak = 0
     while room_left(start_sent + res.sent_run + len(res.would_send)) > 0:
         queue = [r for r in plan_queue(store, day, cap - len(res.would_send)) if r["slug"] not in seen]
         if not queue:
@@ -382,11 +380,7 @@ def run_day(page, store: Q.Store, day: str, dry_run: bool = False,
             if out.status and not dry_run:
                 _quiet(Q.cmd_mark, store, r["slug"], out.status, out.note, out.canonical)
                 res.sent_run += out.status == "sent"
-            load_streak = load_streak + 1 if out.load_failed else 0
             retry_streak = retry_streak + 1 if out.status == "retry" else 0
-            if load_streak >= MAX_CONSECUTIVE_LOAD_FAILURES:
-                res.stop = "two page-load failures"
-                return res
             if retry_streak >= MAX_CONSECUTIVE_RETRIES:
                 res.stop = f"{MAX_CONSECUTIVE_RETRIES} profiles in a row without Connect or confirmation"
                 return res

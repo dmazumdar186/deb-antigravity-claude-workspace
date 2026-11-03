@@ -129,7 +129,7 @@ def test_dry_run_clicks_nothing(page):
 
 def test_page_load_failure_is_retry(page):
     out = S.process_profile(page, "http://127.0.0.1:9/in/nobody/", "nobody")
-    assert out.status == "retry" and out.load_failed
+    assert (out.status, out.note) == ("retry", "page_load_failed")
 
 
 def test_canonical_slug():
@@ -166,12 +166,27 @@ def test_run_day_stops_on_weekly_limit(page, tmp_path):
     assert res.stop == "weekly invitation limit" and ledger(store) == {}
 
 
-def test_run_day_stops_after_two_consecutive_load_failures(page, tmp_path):
-    store = seed(tmp_path, [("a", "http://127.0.0.1:9/in/a/"), ("b", "http://127.0.0.1:9/in/b/"),
-                            ("c", "http://127.0.0.1:9/in/c/")])
+def test_run_day_stops_after_three_consecutive_retries_incl_load_failures(page, tmp_path):
+    store = seed(tmp_path, [(c, f"http://127.0.0.1:9/in/{c}/") for c in "abcd"])
     res = S.run_day(page, store, "2026-11-02", sleep=lambda s: None)
-    assert res.stop == "two page-load failures" and res.processed == 2
-    assert sorted(v[0] for v in ledger(store).values()) == ["retry", "retry"]
+    assert res.stop == "3 profiles in a row without Connect or confirmation" and res.processed == 3
+    assert sorted(ledger(store).values()) == [("retry", "page_load_failed")] * 3
+
+
+def test_no_connect_button_on_third_day_becomes_final(tmp_path):
+    store = seed(tmp_path, [("f", "follow_only.html"), ("g", "follow_only.html")])
+    for day in ("2026-10-30", "2026-10-31"):
+        store.append_ledger({"ts": f"{day}T10:00:00", "date": day, "slug": "f", "name": "F",
+                             "status": "retry", "note": "no_connect_button"})
+    store.append_ledger({"ts": "2026-10-31T10:00:00", "date": "2026-10-31", "slug": "g", "name": "G",
+                         "status": "retry", "note": "no_connect_button"})
+    S._quiet(Q.cmd_mark, store, "f", "retry", "no_connect_button", None)  # 3rd distinct day -> final
+    S._quiet(Q.cmd_mark, store, "g", "retry", "no_connect_button", None)  # 2nd day -> still retry
+    today = [r for r in store.load_ledger() if r["date"] == "2026-11-02"]
+    assert [(r["slug"], r["status"], r["note"]) for r in today] == [
+        ("f", "skipped", "no_connect_button_3x"), ("g", "retry", "no_connect_button")]
+    assert "f" in Q._blocked(store.load_ledger(), "2026-11-03")
+    assert "g" not in Q._blocked(store.load_ledger(), "2026-11-03")
 
 
 def test_run_day_dry_run_writes_no_ledger(page, tmp_path):
