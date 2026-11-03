@@ -40,8 +40,8 @@ logger = setup_logging("variant_generator", log_dir=ROOT / ".tmp")
 # execution tier — the rule's floor for any LLM call in this workspace.
 # OR 5-series slugs have no minor version: `claude-opus-5`, not `claude-opus-5.0`.
 MODE_TO_MODEL = {
-    "cheap": "anthropic/claude-fable-5.1",
-    "balanced": "anthropic/claude-fable-5.1",
+    "cheap": "anthropic/claude-sonnet-5.5",
+    "balanced": "anthropic/claude-sonnet-5.5",
     "premium": "anthropic/claude-fable-5.1",
 }
 DEFAULT_MODE = "balanced"

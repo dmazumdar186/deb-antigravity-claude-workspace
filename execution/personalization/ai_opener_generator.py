@@ -41,8 +41,8 @@ logger = setup_logging("ai_opener", log_dir=ROOT / ".tmp")
 # Haiku 4.5 banned per ~/.claude/rules/model-tier.md (2026-06-14). "cheap" maps
 # to Sonnet 5 — the rule's floor for user-facing LLM output.
 MODE_TO_MODEL_OPENROUTER = {
-    "cheap": "anthropic/claude-fable-5.1",
-    "balanced": "anthropic/claude-fable-5.1",
+    "cheap": "anthropic/claude-sonnet-5.5",
+    "balanced": "anthropic/claude-sonnet-5.5",
     "premium": "anthropic/claude-fable-5.1",
 }
 MODE_TO_MODEL_ANTHROPIC = {

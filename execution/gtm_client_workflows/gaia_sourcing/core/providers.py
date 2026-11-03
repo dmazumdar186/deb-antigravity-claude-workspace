@@ -112,7 +112,7 @@ PLANS: dict[str, dict[str, tuple[str, str]]] = {
         ROLE_MESSAGE: ("openrouter", "anthropic/claude-fable-5.1"),
     },
     "openrouter": {
-        ROLE_EXTRACT: ("openrouter", "anthropic/claude-fable-5.1"),
+        ROLE_EXTRACT: ("openrouter", "anthropic/claude-sonnet-5.5"),
         ROLE_JUDGE: ("openrouter", "anthropic/claude-fable-5.1"),
         ROLE_MESSAGE: ("openrouter", "anthropic/claude-fable-5.1"),
     },
@@ -121,13 +121,18 @@ PLANS: dict[str, dict[str, tuple[str, str]]] = {
     # L11 client-facing copy and this plan is a downgrade -- but the
     # cost-constraint clause in ~/.claude/rules/model-tier.md is explicit that
     # a smaller model inside budget beats a better one that 402s halfway
-    # through a stage and leaves the deliverable half-built. 2026-09-21: every
-    # plan now pins claude-fable-5.1 (effort low), so "budget" differs from
-    # "openrouter" only by name; kept for CLI back-compat.
+    # through a stage and leaves the deliverable half-built. 2026-11-03 spend
+    # audit: the high-volume EXTRACT role moved to claude-sonnet-5.5 everywhere
+    # (per-row work; that was the $ leak). JUDGE and MESSAGE stay on
+    # claude-fable-5.1 in the default/hybrid/openrouter plans -- downgrading
+    # client-facing copy is an output-contract change the operator must order,
+    # not an audit "hardening". This "budget" plan is the explicit all-Sonnet
+    # opt-in for a thin balance; it is the only plan that puts JUDGE/MESSAGE
+    # on the execution tier.
     "budget": {
-        ROLE_EXTRACT: ("openrouter", "anthropic/claude-fable-5.1"),
-        ROLE_JUDGE: ("openrouter", "anthropic/claude-fable-5.1"),
-        ROLE_MESSAGE: ("openrouter", "anthropic/claude-fable-5.1"),
+        ROLE_EXTRACT: ("openrouter", "anthropic/claude-sonnet-5.5"),
+        ROLE_JUDGE: ("openrouter", "anthropic/claude-sonnet-5.5"),
+        ROLE_MESSAGE: ("openrouter", "anthropic/claude-sonnet-5.5"),
     },
     "anthropic": {
         ROLE_EXTRACT: ("anthropic", "claude-fable-5-1"),

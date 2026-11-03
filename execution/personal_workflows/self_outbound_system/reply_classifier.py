@@ -36,7 +36,7 @@ log = get_logger("reply_classifier")
 # provider. OpenRouter callers use DEFAULT_MODEL_OPENROUTER instead.
 # Both verified against their catalogs on 2026-08-12.
 DEFAULT_MODEL: str = "claude-fable-5-1"
-DEFAULT_MODEL_OPENROUTER: str = "anthropic/claude-fable-5.1"
+DEFAULT_MODEL_OPENROUTER: str = "anthropic/claude-sonnet-5.5"
 
 # OOO / auto-reply patterns. English + French per directive's language gate.
 _OOO_PATTERNS = [

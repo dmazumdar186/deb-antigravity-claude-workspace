@@ -27,12 +27,12 @@ calls. The spend is **Claude Fable/Opus calls routed through OpenRouter** by the
 
 ## Fixes applied (this session)
 
-- [ ] `llm_client.chat()` default model → `anthropic/claude-sonnet-5.5`
-- [ ] Re-pin the four per-row scripts in finding 3 → Sonnet
-- [ ] Per-call cost ledger (`.tmp/llm_ledger.jsonl`, via OpenRouter `usage.include`)
-- [ ] `execution/infrastructure/llm_spend_report.py` + directive (spend by script / model / day)
-- [ ] `LLM_BUDGET_USD` per-process guard, fail-closed
-- [ ] Tests: default model, ledger row, budget trip, 402 not retried
+- [x] `llm_client.chat()` default model → `anthropic/claude-sonnet-5.5`
+- [x] Re-pin the four per-row scripts in finding 3 → Sonnet (OpenRouter slugs only; `premium` --mode and Anthropic-direct pins left on Fable)
+- [x] Per-call cost ledger (`.tmp/llm_ledger.jsonl`, via OpenRouter `usage.include`)
+- [x] `execution/infrastructure/llm_spend_report.py` + directive (spend by script / model / day)
+- [x] `LLM_BUDGET_USD` per-process guard, fail-closed
+- [x] Tests: default model, ledger row, budget trip, 402 not retried
 (Boxes ticked in the commit that lands them.)
 
 ## Operator actions (the only two things code cannot do)
@@ -47,3 +47,17 @@ calls. The spend is **Claude Fable/Opus calls routed through OpenRouter** by the
 `python3 execution/infrastructure/llm_spend_report.py --days 7` after any batch run; the budget guard
 stops a runaway script at $5 by default (`LLM_BUDGET_USD` to change per run); the key cap stops
 everything else. Three layers, each independent.
+
+## Judgement call on finding 3 (orchestrator, 2026-11-03)
+
+The implementer moved `gaia_sourcing` **judge** (adversarial critique) and **message** (copy that goes out
+under the client's name) to Sonnet along with the per-row roles. Reverted those two to Fable in the
+default/hybrid/openrouter plans: the file's own 2026-09-21 comment names Fable as the right model for
+L8/L11, and downgrading client-facing copy is an output-contract change the operator must order — a
+cost audit is not that order. The $ leak was the high-volume **extract** role; it stays on Sonnet.
+The explicit all-Sonnet `budget` plan is unchanged and remains the opt-in for a thin balance.
+**Operator may lower judge/message by word; cost delta is small (low-volume per campaign).**
+
+**Still unverified until credits exist:** whether OpenRouter returns `usage.cost` where the ledger reads
+it (402 blocks a live call). If not, rows show `cost_usd: null` and the budget guard falls back to the
+token-price estimate — the guard still trips. First live run confirms it.

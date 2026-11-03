@@ -158,6 +158,7 @@ Last updated: 2026-11-03
 | `infrastructure/jev_skill_pick.py` | — | — | — |
 | `infrastructure/jev_use_case_finder.py` | Three subcommands. `catalog` loads Jev use cases (--catalog file, else a live | env OPENROUTER_API_KEY (cloud alias OPENROUTER_API_TOEKN); profile markdown files; the | .tmp/jev_use_cases_for_me.md (rank), .tmp/jev_steps_found.md (sessions), |
 | `infrastructure/jev_validate.py` | Loads a question spec + labelled CSV/JSON, runs Jev without the labels, prints a | --spec spec.json {"state_fields": [...], "question": {type, instructions, criteria}, | markdown report on stdout (+ optional files); ledger row caller=jev_validate in |
+| `infrastructure/llm_spend_report.py` | Summarise LLM spend from the llm_client cost ledger, grouped by script, model or day. | --days N (default 7), --by script|model|day (default script), --json, --ledger PATH (default .tmp/llm_ledger.jsonl). | Plain table (calls, prompt/completion tokens, cost_usd, TOTAL line) on stdout, or JSON with --json. |
 | `infrastructure/migrate_local_model_pins.py` | One-shot local follow-up of the 2026-09-01 Fable 5.1 migration. On the | No CLI args. Env: OS / USERPROFILE (Windows detection), HOME. Reads the two | Rewrites the files above (only while the pin still says claude-fable-5); |
 | `infrastructure/print_env_for_cloud.py` | — | — | — |
 | `infrastructure/scan_transcript_attachments.py` | Find Claude Code sessions killed by an oversized attached file ("Prompt is too long"). | — | — |
