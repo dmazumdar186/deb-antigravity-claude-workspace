@@ -39,18 +39,18 @@
     },
     {
       "name": "Believe",
-      "monogram": "Believe",
-      "url": "https://www.believe.com/"
+      "url": "https://www.believe.com/",
+      "logo": "/assets/logos/believe.svg"
     },
     {
       "name": "Legrand",
-      "monogram": "Legrand",
-      "url": "https://www.legrand.fr/"
+      "url": "https://www.legrand.fr/",
+      "logo": "/assets/logos/legrand.svg"
     },
     {
       "name": "Caisse d'Épargne",
-      "monogram": "Caisse d'Épargne",
-      "url": "https://www.caisse-epargne.fr/"
+      "url": "https://www.caisse-epargne.fr/",
+      "logo": "/assets/logos/caisse-epargne.png"
     },
     {
       "name": "Sciences Po",
