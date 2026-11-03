@@ -1,0 +1,82 @@
+[
+ {
+  "id": "recruitment_s1_B",
+  "subject": "{{RANDOM | open for collaborating {{firstName}} | open to collaborating {{firstName}}? | {{firstName}}, open to collaborating?}}",
+  "body": "{{RANDOM | hey | hi}} {{firstName}}, {{RANDOM | i think i'm an introvert | i'd call myself an introvert}}, {{RANDOM | but my close friends say | though my close friends say}} i talk too much, so {{RANDOM | i'll keep this short | i'll keep it brief | i'll make it quick}}.\n\n{{RANDOM | in june i built | this june i built}} a {{RANDOM | sourcing system | candidate sourcing setup}} for a dublin {{RANDOM | agency | recruitment firm}}. {{RANDOM | each consultant got ~15 hours a week back | their consultants got ~15 hours a week back}} and candidate replies went up 2.3x.\n\n{{RANDOM | send me | give me}} one live role and {{RANDOM | i'll send you | you'll get}} 15 screened candidates in {{RANDOM | 48 hours | 2 days}}, {{RANDOM | on me | at no cost}}.\n\n{{RANDOM | worth a shot? | want me to run one? | should i try it?}}"
+ },
+ {
+  "id": "recruitment_s1_C",
+  "subject": "{{RANDOM | idea for {{companyName}}'s open roles | a sourcing idea for {{firstName}} | {{firstName}}, an idea for your open roles}}",
+  "body": "{{RANDOM | hey | hi}} {{firstName}}, {{RANDOM | i think i'm an introvert | i'd call myself an introvert}}, {{RANDOM | but my close friends say | though my close friends say}} i talk too much, so {{RANDOM | i'll keep this short | i'll keep it brief | i'll make it quick}}.\n\n{{RANDOM | in june i built | this june i built}} a {{RANDOM | sourcing system | candidate sourcing setup}} for a dublin {{RANDOM | agency | recruitment firm}}. {{RANDOM | each consultant got ~15 hours a week back | their consultants got ~15 hours a week back}} and candidate replies went up 2.3x.\n\n{{RANDOM | send me | give me}} one live role and {{RANDOM | i'll send you | you'll get}} 15 screened candidates in {{RANDOM | 48 hours | 2 days}}, {{RANDOM | on me | at no cost}}.\n\n{{RANDOM | worth a shot? | want me to run one? | should i try it?}}"
+ },
+ {
+  "id": "recruitment_s2",
+  "subject": "",
+  "body": "{{RANDOM | hey | hi}} {{firstName}}, {{RANDOM | forgot to mention one thing. | one thing i forgot to say.}}\n\n{{RANDOM | you don't need | there's no need for}} a researcher or extra seats for this. you {{RANDOM | send the role | pick the role}}, i {{RANDOM | do the sourcing and screening | handle sourcing and screening}}.\n\n{{RANDOM | worst case | if nothing else}}, you keep the 15 candidates either way.\n\n{{RANDOM | which role should i start with? | got a role you're stuck on?}}"
+ },
+ {
+  "id": "recruitment_s3",
+  "subject": "",
+  "body": "{{RANDOM | hey | hi}} {{firstName}}, {{RANDOM | last one from me. | last email from me.}}\n\n{{RANDOM | still happy to run one role for you | the offer to run one role still stands}}, 15 screened candidates in {{RANDOM | 48 hours | 2 days}}, on me.\n\n{{RANDOM | if the timing's off, no worries. | if it's not the right time, no worries.}}\n\n{{RANDOM | want me to? | should i?}}"
+ },
+ {
+  "id": "smb_s1_B",
+  "subject": "{{RANDOM | open for collaborating {{firstName}} | open to collaborating {{firstName}}? | {{firstName}}, open to collaborating?}}",
+  "body": "{{RANDOM | hey | hi}} {{firstName}}, {{RANDOM | i think i'm an introvert | i'd call myself an introvert}}, {{RANDOM | but my close friends say | though my close friends say}} i talk too much, so {{RANDOM | i'll keep this short | i'll keep it brief | i'll make it quick}}.\n\n{{RANDOM | the owners worth buying from | the best owners to buy from}} {{RANDOM | aren't listed anywhere | never show up on broker lists}}. {{RANDOM | in june i built | this june i built}} a direct-to-owner {{RANDOM | system | engine}} for a texas {{RANDOM | firm | buyer}} that {{RANDOM | gets them | brings them}} 30+ live seller conversations a month, {{RANDOM | zero broker listings | no brokers involved}}.\n\n{{RANDOM | want | should i send}} the first three {{location}} owner profiles {{RANDOM | with the trigger data behind each | and why each might sell}}? {{RANDOM | on me. | no cost.}}"
+ },
+ {
+  "id": "smb_s1_C",
+  "subject": "{{RANDOM | idea for {{firstName}} | a deal flow idea for {{firstName}} | {{firstName}}, an idea for {{location}}}}",
+  "body": "{{RANDOM | hey | hi}} {{firstName}}, {{RANDOM | i think i'm an introvert | i'd call myself an introvert}}, {{RANDOM | but my close friends say | though my close friends say}} i talk too much, so {{RANDOM | i'll keep this short | i'll keep it brief | i'll make it quick}}.\n\n{{RANDOM | the owners worth buying from | the best owners to buy from}} {{RANDOM | aren't listed anywhere | never show up on broker lists}}. {{RANDOM | in june i built | this june i built}} a direct-to-owner {{RANDOM | system | engine}} for a texas {{RANDOM | firm | buyer}} that {{RANDOM | gets them | brings them}} 30+ live seller conversations a month, {{RANDOM | zero broker listings | no brokers involved}}.\n\n{{RANDOM | want | should i send}} the first three {{location}} owner profiles {{RANDOM | with the trigger data behind each | and why each might sell}}? {{RANDOM | on me. | no cost.}}"
+ },
+ {
+  "id": "smb_s2",
+  "subject": "",
+  "body": "{{RANDOM | hey | hi}} {{firstName}}, {{RANDOM | one thing i left out. | quick add.}}\n\n{{RANDOM | one person can only work | a deal team can only work}} ~15 owners a day {{RANDOM | by hand | manually}}. the system {{RANDOM | finds the owners and the reason they might sell | surfaces owners plus the trigger behind each}}, so {{RANDOM | your time goes to | you only spend time on}} {{RANDOM | real conversations | live conversations}}.\n\n{{RANDOM | want me to pull the first three for {{location}}? | should i pull three {{location}} profiles?}}"
+ },
+ {
+  "id": "smb_s3",
+  "subject": "",
+  "body": "{{RANDOM | hey | hi}} {{firstName}}, {{RANDOM | last one from me. | last email from me.}}\n\n{{RANDOM | the three {{location}} owner profiles are still yours if you want them | still happy to send the three {{location}} owner profiles}}, {{RANDOM | on me. | no cost.}}\n\n{{RANDOM | if the timing's off, no worries. | if it's not the right time, no worries.}}\n\n{{RANDOM | want them? | should i send them?}}"
+ },
+ {
+  "id": "webagency_s1_B",
+  "subject": "{{RANDOM | open for collaborating {{firstName}} | open to collaborating {{firstName}}? | {{firstName}}, open to collaborating?}}",
+  "body": "{{RANDOM | hey | hi}} {{firstName}}, {{RANDOM | i think i'm an introvert | i'd call myself an introvert}}, {{RANDOM | but my close friends say | though my close friends say}} i talk too much, so {{RANDOM | i'll keep this short | i'll keep it brief | i'll make it quick}}.\n\n{{RANDOM | i found | i dug up}} three groups of companies that {{RANDOM | will probably need | look like they'll need}} a new site soon. {{RANDOM | mostly old sites at companies that just raised or are hiring. | think old sites at companies that just raised money or are hiring.}}\n\n{{RANDOM | the same digging | doing the same thing}} got a {{RANDOM | texas | houston}} agency $68k in new projects in 43 days {{RANDOM | this june | back in june}}.\n\n{{RANDOM | want the list? | should i send it over? | want me to send it?}}"
+ },
+ {
+  "id": "webagency_s1_C",
+  "subject": "{{RANDOM | 3 segments for {{companyName}} | companies about to need a new site | rebuild-ready companies for {{companyName}}}}",
+  "body": "{{RANDOM | hey | hi}} {{firstName}}, {{RANDOM | i think i'm an introvert | i'd call myself an introvert}}, {{RANDOM | but my close friends say | though my close friends say}} i talk too much, so {{RANDOM | i'll keep this short | i'll keep it brief | i'll make it quick}}.\n\n{{RANDOM | i found | i dug up}} three groups of companies that {{RANDOM | will probably need | look like they'll need}} a new site soon. {{RANDOM | mostly old sites at companies that just raised or are hiring. | think old sites at companies that just raised money or are hiring.}}\n\n{{RANDOM | the same digging | doing the same thing}} got a {{RANDOM | texas | houston}} agency $68k in new projects in 43 days {{RANDOM | this june | back in june}}.\n\n{{RANDOM | want the list? | should i send it over? | want me to send it?}}"
+ },
+ {
+  "id": "webagency_s2",
+  "subject": "",
+  "body": "{{RANDOM | hey | hi}} {{firstName}}, {{RANDOM | quick add. | one thing i left out.}}\n\n{{RANDOM | the three lists are ready | i've got the three lists ready}}. {{RANDOM | each company on them has a reason to redo their site soon | every company on them has a reason to rebuild soon}}, {{RANDOM | and i noted the reason next to each. | with the reason noted next to each.}}\n\n{{RANDOM | want me to send them? | should i send them over?}}"
+ },
+ {
+  "id": "webagency_s3",
+  "subject": "",
+  "body": "{{RANDOM | hey | hi}} {{firstName}}, {{RANDOM | last one from me. | last email from me.}}\n\n{{RANDOM | i know this is a cold email | i get that this is a cold email}}, so {{RANDOM | some doubt is fair | being skeptical makes sense}}.\n\n{{RANDOM | the segments and signals are free either way | the segments are yours either way, no cost}}.\n\n{{RANDOM | if they're useful, we can talk about running the pipeline for you. | if they help, we can talk about the pipeline.}} {{RANDOM | want them? | should i send them?}}"
+ },
+ {
+  "id": "yoga_fr_s1_B",
+  "subject": "{{RANDOM | {{firstName}}, une collaboration ? | une id\u00e9e de collaboration, {{firstName}} | collaborer avec {{companyName}} ?}}",
+  "body": "{{RANDOM | Bonjour | Salut}} {{firstName}}, {{RANDOM | j'ai un temp\u00e9rament plut\u00f4t introverti | j'ai une nature plut\u00f4t introvertie}}, {{RANDOM | mais mes amis proches disent que | pourtant mes amis proches disent que}} je parle trop, {{RANDOM | alors je fais court. | donc je vais faire court.}}\n\n{{RANDOM | j'ai refait | j'ai repens\u00e9}} le site d'un studio de yoga \u00e0 Paris en {{RANDOM | 24 h | une journ\u00e9e}}, avec une r\u00e9servation {{RANDOM | plus simple | simplifi\u00e9e}}. {{RANDOM | 67 jours plus tard | en 67 jours}}, le studio {{RANDOM | avait fait | a fait}} 59,8 k\u20ac de chiffre d'affaires.\n\n{{RANDOM | je peux faire pareil pour | je peux pr\u00e9parer la m\u00eame chose pour}} {{companyName}} {{RANDOM | en 24 h | sous 24 h}}, {{RANDOM | offert | sans engagement}}.\n\n{{RANDOM | je vous l'envoie ? | \u00e7a vous tente ? | je m'y mets ?}}"
+ },
+ {
+  "id": "yoga_fr_s1_C",
+  "subject": "{{RANDOM | une id\u00e9e pour {{firstName}} | une id\u00e9e pour {{companyName}} | {{firstName}}, une id\u00e9e pour vos r\u00e9servations}}",
+  "body": "{{RANDOM | Bonjour | Salut}} {{firstName}}, {{RANDOM | j'ai un temp\u00e9rament plut\u00f4t introverti | j'ai une nature plut\u00f4t introvertie}}, {{RANDOM | mais mes amis proches disent que | pourtant mes amis proches disent que}} je parle trop, {{RANDOM | alors je fais court. | donc je vais faire court.}}\n\n{{RANDOM | j'ai refait | j'ai repens\u00e9}} le site d'un studio de yoga \u00e0 Paris en {{RANDOM | 24 h | une journ\u00e9e}}, avec une r\u00e9servation {{RANDOM | plus simple | simplifi\u00e9e}}. {{RANDOM | 67 jours plus tard | en 67 jours}}, le studio {{RANDOM | avait fait | a fait}} 59,8 k\u20ac de chiffre d'affaires.\n\n{{RANDOM | je peux faire pareil pour | je peux pr\u00e9parer la m\u00eame chose pour}} {{companyName}} {{RANDOM | en 24 h | sous 24 h}}, {{RANDOM | offert | sans engagement}}.\n\n{{RANDOM | je vous l'envoie ? | \u00e7a vous tente ? | je m'y mets ?}}"
+ },
+ {
+  "id": "yoga_fr_s2",
+  "subject": "",
+  "body": "{{RANDOM | Bonjour | Salut}} {{firstName}}, {{RANDOM | petit ajout. | une chose que j'ai oubli\u00e9 de dire.}}\n\n{{RANDOM | pour ce studio, j'ai aussi fait | j'ai aussi cr\u00e9\u00e9 pour ce studio}} 20 posts Instagram {{RANDOM | avec un style coh\u00e9rent | dans le m\u00eame univers visuel}} et un appel \u00e0 l'action par cours.\n\n{{RANDOM | je peux faire pareil pour {{companyName}}. | m\u00eame logique possible pour {{companyName}}.}} {{RANDOM | je vous montre ? | vous voulez voir ?}}"
+ },
+ {
+  "id": "yoga_fr_s3",
+  "subject": "",
+  "body": "{{firstName}}, {{RANDOM | dernier message de ma part, promis. | je ne vous relance plus apr\u00e8s celui-ci, promis.}}\n\n{{RANDOM | si une nouvelle page d'accueil pour {{companyName}} vous tente | si vous voulez voir {{companyName}} avec une nouvelle page d'accueil}}, {{RANDOM | je la pr\u00e9pare gratuitement. | je vous la fais gratuitement.}}\n\n{{RANDOM | si ce n'est pas le bon moment, aucun souci. | pas de souci si le timing ne colle pas.}} {{RANDOM | sinon, un simple \u00ab oui \u00bb suffit. | sinon, r\u00e9pondez \u00ab oui \u00bb et je commence.}}"
+ }
+]
