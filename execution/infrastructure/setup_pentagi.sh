@@ -68,7 +68,12 @@ fi
 
 # ---- prerequisites ----
 have git || die "git not found. Install Git (Windows: Git for Windows / Git Bash / WSL)."
-docker_ok || die "Docker daemon not reachable. Start Docker Desktop (Windows/macOS: enable WSL2 backend) or 'sudo systemctl start docker' (Linux). PentAGI manages containers and needs a running daemon."
+# A dry-run is an offline preview: don't require a live daemon just to print the plan.
+if [ "$DRY_RUN" -eq 1 ]; then
+  docker_ok || log "WARN: Docker daemon not reachable — a real run needs one (Docker Desktop with WSL2, or 'systemctl start docker')."
+else
+  docker_ok || die "Docker daemon not reachable. Start Docker Desktop (Windows/macOS: enable WSL2 backend) or 'sudo systemctl start docker' (Linux). PentAGI manages containers and needs a running daemon."
+fi
 log "Dir: $DIR"
 
 # ---- clone / update ----

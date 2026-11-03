@@ -57,7 +57,8 @@ One idempotent command that clones/updates PentAGI, creates `.env` from `.env.ex
 
 ## Edge cases / learnings
 
-- **Docker daemon required.** The script hard-fails early if `docker info` or `docker compose version` fails. PentAGI needs the Docker socket to spawn sandboxes, so there is no non-Docker path.
+- **Docker daemon required for a real run.** A real `up` hard-fails early if `docker info` or `docker compose version` fails — PentAGI needs the Docker socket to spawn sandboxes, so there is no non-Docker path. **`--dry-run` is exempt:** it only warns if the daemon is unreachable, so you can preview the plan on any machine (verified by `tests/test_infra_setup.sh`).
+- **`--dry-run` is a pure offline preview.** It performs no clone, no network, no file writes, and needs neither Docker nor the LLM key — it just prints what a real run would do.
 - **No cloud sessions.** Do not attempt this inside claude.ai/code — no persistent daemon, no socket, volumes vanish. Operator's machine only.
 - **Sandbox ports are exposed.** Each flow publishes two TCP ports in the `DOCKER_PORTS_BASE` window (default `28000`–`29999`) on `DOCKER_PUBLIC_IP` (`0.0.0.0` by default = every host interface), and Docker routes around `ufw`. Firewall the host (or the `DOCKER-USER` chain) if it is not already isolated. `DOCKER_NETWORK=host` exposes sandbox listeners with no mapping at all.
 - **Secrets only in `.env`.** The script replaces `.env.example` defaults (`salt`, `postgres`, `devpassword`) only when they still hold the default, so re-runs do not churn a hardened `.env`. An existing `.env` is left untouched (no secret regen, no LLM rewrite).
