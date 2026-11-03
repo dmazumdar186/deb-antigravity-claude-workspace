@@ -1,79 +1,216 @@
-# yogaavecjitendra.fr — how to change your website yourself
+# Your website yogaavecjitendra.fr: how to change it yourself
 
-This is your website. You own it completely. No developer is needed for everyday changes.
+This is your website. You own it completely. You do not need a developer to change texts, photos, reviews or logos.
 
-## The 3 things you log in to (all free)
+Read one section when you need it. You do not have to read everything. (Version française : LISEZMOI.md)
 
-| What | Where | What it is for |
-|---|---|---|
-| **The editor** | https://app.pagescms.org | Change photos, videos and text. This is the only one you use day to day. |
-| GitHub | https://github.com | Stores the website files. You log in to the editor with this account. |
-| Cloudflare | https://dash.cloudflare.com | Publishes the website and manages the domain. You rarely need it. |
+---
 
-## Change a photo (2 minutes)
+## 1. What you own and your 3 logins
 
-1. Go to https://app.pagescms.org and click **Sign in with GitHub**.
-2. Open the **yogaavecjitendra** project.
-3. In the left menu click **Media** → folder **images** → **Upload** your new photo.
-   Use JPG files, ideally under 1 MB (resize on your phone first if it is huge).
-4. Click the page you want to change in the left menu (for example **Home (French)**).
-5. Click the photo field (for example *Hero image*) → **Select** → pick your new photo.
-6. Click **Save** at the top.
-7. Wait 2 to 3 minutes. Refresh https://yogaavecjitendra.fr. Done.
+| Login | Address | What it does | How often |
+|---|---|---|---|
+| **The editor** (Pages CMS) | https://app.pagescms.org | Change texts, photos, reviews, logos. | Every time you change something |
+| **GitHub** | https://github.com | Keeps all the files of your website safe (a storage box). You enter the editor with this login. | Only to log in |
+| **Cloudflare** | https://dash.cloudflare.com | Puts your website on the internet. | Almost never |
 
-Each page exists twice: **(French)** and **(English)**. Change both if the photo should change in both languages.
+You also have **GoDaddy** (https://www.godaddy.com), where you pay for the name "yogaavecjitendra.fr". See section 15.
 
-## Change a video
+Write your 3 passwords in a safe place. Turn on the phone code (two-step login) when GitHub asks you.
 
-Same as a photo: **Media** → **videos** → upload an MP4 (keep it under 50 MB), then pick it in the **Video** field of the page. The **Video poster** field is the still image shown before the video plays.
+---
 
-## Change text, prices, schedule, phone number
+## 2. First login
 
-Click the page in the left menu, edit the text boxes, **Save**. The schedule, offers, contact details, press mentions and recommendations each have their own page in the menu.
+1. Open https://app.pagescms.org on a computer (a phone works too, but a computer is easier).
+2. Click **Sign in with GitHub**.
+3. Type your GitHub email and password. If GitHub asks, type the code it sends you.
+4. You see a list of projects. Click **yogaavecjitendra**.
+   If you only see your old projects, the setup is not finished. Send a WhatsApp to Debanjan.
+5. On the left you now see the menu: **Media**, **Home page (French)**, **Home page (English)**, and the other pages.
 
-## Where each photo lives
+**Media** only appears after you open the project (step 4).
 
-| Photo on the site | Page in the editor | Field |
-|---|---|---|
-| Big photo at the top | Home (French) / Home (English) | Hero image |
-| Your portrait | Home | Portrait image |
-| One photo per offer (studio, home, online, corporate) | Offerings | Images → Image |
-| The sliding photo gallery | Schedule | Gallery |
-| Logos of companies | Clients (logos) | Logo |
+---
 
-## Add or remove photos in the gallery
+## 3. How saving works
 
-1. Editor → **Schedule (French)** → scroll to **Gallery**.
-2. **Add a photo:** click **+ Add** at the bottom of the list → in the new row click **Src** → **Select** → choose a photo you uploaded in Media → type a short description in **Alt** (what the photo shows; this is read by Google and by blind visitors).
-3. **Remove a photo:** hover the row → click the trash icon.
-4. **Reorder:** drag the row by its handle.
-5. **Save.** Repeat in **Schedule (English)** so both languages match.
+1. You change something.
+2. You click **Save** (top right).
+3. Wait **3 minutes**.
+4. Open https://yogaavecjitendra.fr and refresh the page (pull down on a phone).
+5. Your change is now live for everyone.
 
-There is no limit on the number of photos. 6 to 12 looks best.
+Every page exists **twice**: **(French)** and **(English)**. If a change must appear in both languages, do it in both.
 
-## Change the background music
+If after 10 minutes you do not see your change, see section 14.
 
-1. To use a different track: **Media** → folder **audio** → **Upload** an MP3 (keep it under 5 MB; use royalty-free music, for example from pixabay.com/music, otherwise the site can be taken down for copyright).
-2. Editor → **Ambient sound (site settings)**:
-   - **Play ambient music**: tick to have music, untick for a silent site.
-   - **Music file (MP3)**: click → **Select** → choose the track.
-   - **Volume (0 to 1)**: 0.2 is soft, 0.5 is the current level, 1 is loudest.
-3. **Save.** The music starts on a visitor's first click or scroll, loops, and the little sound button at the bottom of the page lets them mute it.
+---
 
-The two tracks already there are `bansuri-studio.mp3` (current) and `bansuri-raga-alt.mp3` (a second flute recording); both are licensed for this site (see the `licenses` folder).
+## 4. Change a text
 
-## Things that are OK to know
+1. Open the editor (section 2).
+2. In the left menu, click the page. For example **About page (French)**.
+3. Click in a text box and type.
+4. Click **Save**.
 
-- Every save is kept forever. If you break something, open the same page in the editor, scroll the **History** panel (or go to GitHub → the repository → *Commits*) and restore an earlier version.
-- Changes take 2 to 3 minutes to appear. If after 10 minutes nothing changed: Cloudflare → **Workers & Pages** → **yogaavecjitendra** → **Deployments**. A red deployment means the last save had a problem. Click **Retry**, or undo the last change in the editor.
-- The site shows every review approved so far (file `src/content/reviews-seed.json`, also editable in GitHub). New Google reviews do not appear automatically unless a developer sets up the `cron/` worker.
-- The private statistics dashboard (`/dashboard/`), the "leave a review" form and the newsletter box only work after the optional Cloudflare storage step (a KV namespace bound as `DASHBOARD_KV` plus a `DASHBOARD_PASS` secret; login name `jitendra`). Without it the public site is complete and nothing breaks.
-- Everything from the project is in this repository: `docs/` (SEO and dashboard notes, project history), `deliverables/ads/` (16 ready ad creatives), `data/kv/` (your reviews and, if exported, subscribers and statistics), `cron/` (the Google-review sync worker).
+Some boxes say "Leave as it is if unsure". Those are links. Do not change them unless you know the new address.
 
-## If you ever want a developer
+---
 
-Any web developer can work on this. Tell them: "It is an Astro static site on Cloudflare Pages, edited with Pages CMS. The repository is on my GitHub." That sentence is all they need.
+## 5. Change, add or delete a photo
 
-## Domain renewal
+**Step A: put the photo in your photo library (Media)**
 
-The domain **yogaavecjitendra.fr** is registered in your name at GoDaddy and expires in **July 2028**. Renew it there before that date or the website goes offline.
+1. Left menu: click **Media**.
+2. Open the folder **images** (for company logos: **logos**).
+3. Click **Upload** and choose the photo from your computer or phone.
+   Use JPG photos under 1 MB. If the photo is very big, send it to yourself on WhatsApp first: it becomes smaller.
+
+**Step B: use the photo on a page**
+
+1. Left menu: click the page. For example **Home page (French)**.
+2. Find the photo box (for example **Big photo at the top**).
+3. Click on the photo, then choose your new photo from the list.
+4. In **Photo description**, write a few words about what the photo shows (Google and blind visitors read this).
+5. Click **Save**.
+
+**Delete a photo from a page:** click the small cross or trash icon on the photo, then **Save**.
+
+**Delete a photo from the library:** **Media** → click the 3 dots next to the photo → **Delete**. Do this only if no page uses it any more.
+
+---
+
+## 6. The photo gallery (the photos that slide)
+
+1. Left menu: **Schedule & prices (French)**. Scroll down to **Gallery**.
+2. **Add a photo:** click **Add** at the bottom of the list. In the new row, click **Photo** and choose a photo. Write a **Photo description**.
+3. **Remove a photo:** click the trash icon on that row.
+4. **Change the order:** drag the row up or down.
+5. Click **Save**.
+6. Do the same in **Schedule & prices (English)**.
+
+6 to 12 photos look best.
+
+---
+
+## 7. Add a company logo ("Ils m'ont fait confiance")
+
+1. **Media** → folder **logos** → **Upload** the logo (PNG or SVG, ideally with a transparent background).
+2. Left menu: **Company logos**.
+3. Click **Add** at the bottom of the list.
+4. **Company name:** type the name.
+5. **Logo:** click and choose the logo you uploaded.
+6. **Website link (optional):** the company website, starting with https://. You can leave it empty.
+7. Click **Save**.
+
+To remove a company: click the trash icon on its row, then **Save**.
+
+The short sentence under the logos is in **Home page (French)** and **Home page (English)**, box **Short sentence under the company logos**.
+
+---
+
+## 8. The "Yoga en entreprise" section (yoga for companies)
+
+1. Left menu: **Yoga at work / companies (French)**.
+2. Change the texts: title, introduction, key points, the part for HR managers, the formats, and the contact box at the end.
+3. For lists (key points, formats, paragraphs): **Add** gives a new line, the trash icon removes one.
+4. Click **Save**.
+5. Do the same in **Yoga at work / companies (English)**.
+
+---
+
+## 9. Reviews and star ratings
+
+Left menu: **Reviews (stars and comments)**. There is one list for both languages.
+
+**Add a review**
+1. Click **Add** at the bottom of the list.
+2. **Name of the person:** for example "Marie D."
+3. **Stars (1 to 5):** type a number from 1 to 5.
+4. **Review text:** paste what the person wrote.
+5. **Language of the review:** French or English.
+6. **Where the review comes from:** Google, Superprof, Email, or Other.
+7. **Date of the review:** like 2026-11-03 (year-month-day).
+8. Tick **Real review I received**.
+9. Click **Save**.
+
+**Change a review or its stars:** click on it, change the text or the number of stars, **Save**.
+
+**Delete a review:** click the trash icon on its row, **Save**.
+
+**Put a review at the top:** tick **Show first**, **Save**.
+
+New Google reviews do not appear by themselves. Copy them here when you get one.
+
+---
+
+## 10. Background music
+
+1. New music: **Media** → folder **audio** → **Upload** an MP3 (under 5 MB). Use only free-to-use music (for example from pixabay.com/music), or the site can be blocked for copyright.
+2. Left menu: **Ambient sound (site settings)**.
+3. **Play ambient music:** ticked = music, not ticked = silence.
+4. **Music file (MP3):** choose the music.
+5. **Volume (0 to 1):** 0.2 is soft, 0.5 is medium, 1 is loudest.
+6. Click **Save**.
+
+---
+
+## 11. Undo a mistake
+
+Nothing is ever lost. Every save is kept.
+
+1. Open the page where you made the mistake.
+2. Click **History** (top right of the page).
+3. Find the version from before your mistake (each line has a date and time).
+4. Open it, copy the old text back into the box, and click **Save**.
+
+If you cannot fix it, send a WhatsApp to a developer with the page name and the time of your change.
+
+---
+
+## 12. What NOT to touch
+
+Never open or change these. They are the machine room of the website:
+
+- the folders **functions/**, **cron/**, **src/components**, **src/layouts**
+- the file **.pages.yml** (the settings of the editor itself)
+- the files **package.json** and **package-lock.json** (the list of tools the website needs)
+
+The editor does not show them, so you are safe if you stay in the editor.
+
+---
+
+## 13. Words you may see
+
+- **Commit** = a save. Every **Save** makes one.
+- **Deploy / build** = the 3 minutes when your site is updated on the internet.
+- **Repository / repo** = the storage box on GitHub with all your website files.
+- **JSON** = the text file where your words are stored. The editor writes it for you.
+
+---
+
+## 14. "Something looks broken": checklist
+
+1. Did you wait 3 minutes? Refresh the page again.
+2. Try on another phone or in another browser. Old pages can stay in memory.
+3. Did you change a box that said "Leave as it is if unsure"? Undo it (section 11).
+4. Open Cloudflare (https://dash.cloudflare.com) → **Workers & Pages** → your project → **Deployments**. The top line should be green. If it is red, your last save had a problem: undo your last change (section 11), then **Save** again.
+5. The whole site is gone? Check that the domain is paid at GoDaddy (section 15).
+6. Still broken: contact a developer (section 16).
+
+---
+
+## 15. Your domain name (renew before July 2028)
+
+The name **yogaavecjitendra.fr** is in your name at **GoDaddy**. It is paid until **July 2028**.
+
+- Log in at https://www.godaddy.com → **My Products** → **yogaavecjitendra.fr** → **Renew**.
+- Do it before July 2028, or the website goes offline.
+- Turn on **Auto-renew** so you never forget.
+
+---
+
+## 16. If you hire a developer
+
+Give them this sentence: "It is an Astro static website on Cloudflare Pages, edited with Pages CMS; the files are in my GitHub account, and HANDOVER_SETUP.md explains the setup."

@@ -20,10 +20,20 @@
     "Centre Tapovan"
   ],
   "clients_label": "Ils m'ont fait confiance",
+  "clients_caption": "Séances animées auprès de collaborateurs de différentes organisations, notamment dans le cadre de missions via TrainMe.",
   "clients": [
-    { "name": "TotalEnergies",       "logo": "/assets/logos/totalenergies.svg" },
-    { "name": "SEMMARIS · Rungis",   "logo": "/assets/logos/semmaris-rungis.svg" },
-    { "name": "Emmaüs Solidarité",   "logo": "/assets/logos/emmaus-solidarite.svg" }
+    {
+      "name": "TotalEnergies",
+      "logo": "/assets/logos/totalenergies.svg"
+    },
+    {
+      "name": "SEMMARIS · Rungis",
+      "logo": "/assets/logos/semmaris-rungis.svg"
+    },
+    {
+      "name": "Emmaüs Solidarité",
+      "logo": "/assets/logos/emmaus-solidarite.svg"
+    }
   ],
   "hero_image": "/assets/images/meditation-portrait.jpg",
   "hero_image_alt": "Jitendra en méditation, posture du lotus, dans un parc parisien",

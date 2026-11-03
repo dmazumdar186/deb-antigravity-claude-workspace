@@ -1,4 +1,5 @@
 # Pages CMS configuration - log in at https://app.pagescms.org with GitHub.
+# DO NOT EDIT unless you are a developer: a mistake here breaks the editor.
 media:
   input: public/assets
   output: /assets
@@ -32,7 +33,7 @@ content:
       type: boolean
     - name: file
       label: Music file (MP3)
-      type: image
+      type: file
     - name: volume
       label: Volume (0 to 1)
       type: number
@@ -44,44 +45,50 @@ content:
   format: json
   fields:
   - name: eyebrow
-    label: Eyebrow
+    label: Small text above the title
     type: string
   - name: headline
     label: Headline
     type: string
   - name: subhead
-    label: Subhead
+    label: Text under the headline
     type: text
   - name: primary_cta
-    label: Primary cta
+    label: Main button
     type: object
     fields:
     - name: label
-      label: Label
+      label: Text
       type: string
     - name: action
-      label: Action
+      label: Button link (do not change)
       type: string
+      description: Where the button goes. Leave as it is.
   - name: secondary_cta
-    label: Secondary cta
+    label: Second button
     type: object
     fields:
     - name: label
-      label: Label
+      label: Text
       type: string
     - name: href
-      label: Href
+      label: Link
       type: string
+      description: A web address (https://...). Leave as it is if unsure.
   - name: featured_in_label
-    label: Featured in label
+    label: Title above the press names
     type: string
   - name: featured_in
-    label: Featured in
+    label: Press names
     type: string
     list: true
   - name: clients_label
-    label: Clients label
+    label: Title above the company logos
     type: string
+  - name: clients_caption
+    label: Short sentence under the company logos
+    description: One sentence shown under "Ils m'ont fait confiance" / "They trusted me".
+    type: text
   - name: clients
     label: Clients
     type: object
@@ -94,17 +101,19 @@ content:
       type: image
     list: true
   - name: hero_image
-    label: Hero image
+    label: Big photo at the top
     type: image
   - name: hero_image_alt
-    label: Hero image alt
+    label: Big photo description
     type: string
+    description: A few words saying what the photo shows.
   - name: portrait_image
-    label: Portrait image
+    label: Your portrait photo
     type: image
   - name: portrait_alt
-    label: Portrait alt
+    label: Portrait description
     type: string
+    description: A few words saying what the photo shows.
 - name: hero_en
   label: Home page (English)
   description: Texts and photos of the "Home page" section in English. Edit the French and English versions separately.
@@ -113,44 +122,50 @@ content:
   format: json
   fields:
   - name: eyebrow
-    label: Eyebrow
+    label: Small text above the title
     type: string
   - name: headline
     label: Headline
     type: string
   - name: subhead
-    label: Subhead
+    label: Text under the headline
     type: text
   - name: primary_cta
-    label: Primary cta
+    label: Main button
     type: object
     fields:
     - name: label
-      label: Label
+      label: Text
       type: string
     - name: action
-      label: Action
+      label: Button link (do not change)
       type: string
+      description: Where the button goes. Leave as it is.
   - name: secondary_cta
-    label: Secondary cta
+    label: Second button
     type: object
     fields:
     - name: label
-      label: Label
+      label: Text
       type: string
     - name: href
-      label: Href
+      label: Link
       type: string
+      description: A web address (https://...). Leave as it is if unsure.
   - name: featured_in_label
-    label: Featured in label
+    label: Title above the press names
     type: string
   - name: featured_in
-    label: Featured in
+    label: Press names
     type: string
     list: true
   - name: clients_label
-    label: Clients label
+    label: Title above the company logos
     type: string
+  - name: clients_caption
+    label: Short sentence under the company logos
+    description: One sentence shown under "Ils m'ont fait confiance" / "They trusted me".
+    type: text
   - name: clients
     label: Clients
     type: object
@@ -163,17 +178,19 @@ content:
       type: image
     list: true
   - name: hero_image
-    label: Hero image
+    label: Big photo at the top
     type: image
   - name: hero_image_alt
-    label: Hero image alt
+    label: Big photo description
     type: string
+    description: A few words saying what the photo shows.
   - name: portrait_image
-    label: Portrait image
+    label: Your portrait photo
     type: image
   - name: portrait_alt
-    label: Portrait alt
+    label: Portrait description
     type: string
+    description: A few words saying what the photo shows.
 - name: about_fr
   label: About page (French)
   description: Texts and photos of the "About page" section in French. Edit the French and English versions separately.
@@ -182,7 +199,7 @@ content:
   format: json
   fields:
   - name: eyebrow
-    label: Eyebrow
+    label: Small text above the title
     type: string
   - name: title
     label: Title
@@ -194,23 +211,25 @@ content:
     label: Paragraphs
     type: text
     list: true
+    description: One box per paragraph.
   - name: markers
     label: Markers
     type: object
     fields:
     - name: label
-      label: Label
+      label: Text
       type: string
     - name: value
       label: Value
       type: string
     list: true
   - name: portrait_image
-    label: Portrait image
+    label: Your portrait photo
     type: image
   - name: portrait_alt
-    label: Portrait alt
+    label: Portrait description
     type: string
+    description: A few words saying what the photo shows.
 - name: about_en
   label: About page (English)
   description: Texts and photos of the "About page" section in English. Edit the French and English versions separately.
@@ -219,7 +238,7 @@ content:
   format: json
   fields:
   - name: eyebrow
-    label: Eyebrow
+    label: Small text above the title
     type: string
   - name: title
     label: Title
@@ -231,23 +250,25 @@ content:
     label: Paragraphs
     type: text
     list: true
+    description: One box per paragraph.
   - name: markers
     label: Markers
     type: object
     fields:
     - name: label
-      label: Label
+      label: Text
       type: string
     - name: value
       label: Value
       type: string
     list: true
   - name: portrait_image
-    label: Portrait image
+    label: Your portrait photo
     type: image
   - name: portrait_alt
-    label: Portrait alt
+    label: Portrait description
     type: string
+    description: A few words saying what the photo shows.
 - name: offerings_fr
   label: Offerings / classes (French)
   description: Texts and photos of the "Offerings / classes" section in French. Edit the French and English versions separately.
@@ -256,7 +277,7 @@ content:
   format: json
   fields:
   - name: eyebrow
-    label: Eyebrow
+    label: Small text above the title
     type: string
   - name: title
     label: Title
@@ -269,7 +290,7 @@ content:
     type: object
     fields:
     - name: kicker
-      label: Kicker
+      label: Small text above the title
       type: string
     - name: title
       label: Title
@@ -284,24 +305,27 @@ content:
       label: Image
       type: image
     - name: image_alt
-      label: Image alt
+      label: Photo description
       type: string
+      description: A few words saying what the photo shows.
     - name: video
       label: Video
-      type: image
+      type: file
     - name: video_poster
-      label: Video poster
+      label: Video cover photo
       type: image
+      description: The still photo shown before the video plays.
     - name: images
       label: Images
       type: object
       fields:
       - name: src
-        label: Src
+        label: Photo
         type: image
       - name: alt
-        label: Alt
+        label: Photo description
         type: string
+        description: A few words saying what the photo shows. Google and blind visitors read this.
       list: true
     list: true
 - name: offerings_en
@@ -312,7 +336,7 @@ content:
   format: json
   fields:
   - name: eyebrow
-    label: Eyebrow
+    label: Small text above the title
     type: string
   - name: title
     label: Title
@@ -325,7 +349,7 @@ content:
     type: object
     fields:
     - name: kicker
-      label: Kicker
+      label: Small text above the title
       type: string
     - name: title
       label: Title
@@ -340,26 +364,143 @@ content:
       label: Image
       type: image
     - name: image_alt
-      label: Image alt
+      label: Photo description
       type: string
+      description: A few words saying what the photo shows.
     - name: video
       label: Video
-      type: image
+      type: file
     - name: video_poster
-      label: Video poster
+      label: Video cover photo
       type: image
+      description: The still photo shown before the video plays.
     - name: images
       label: Images
       type: object
       fields:
       - name: src
-        label: Src
+        label: Photo
         type: image
       - name: alt
-        label: Alt
+        label: Photo description
         type: string
+        description: A few words saying what the photo shows. Google and blind visitors read this.
       list: true
     list: true
+- name: corporate_fr
+  label: Yoga at work / companies (French)
+  description: The "Yoga en entreprise" section under the 4 class cards, in French. Edit French and English separately.
+  type: file
+  path: src/content/corporate.fr.json
+  format: json
+  fields:
+  - name: eyebrow
+    label: Small text above the title
+    type: string
+  - name: title
+    label: Title
+    type: string
+  - name: intro
+    label: Introduction
+    type: text
+  - name: formats_line
+    label: One line about formats
+    type: string
+  - name: points
+    label: Key points
+    description: One box per point. Click Add for a new one.
+    type: string
+    list: true
+  - name: hr_title
+    label: 'HR part: title'
+    description: The part written for HR managers.
+    type: string
+  - name: hr_subtitle
+    label: 'HR part: subtitle'
+    type: string
+  - name: hr_body
+    label: 'HR part: paragraphs'
+    description: One box per paragraph.
+    type: text
+    list: true
+  - name: formats_title
+    label: 'Formats: title'
+    type: string
+  - name: formats
+    label: Formats list
+    description: One box per format (for example "Weekly class at your office").
+    type: string
+    list: true
+  - name: cta_title
+    label: 'Contact box: title'
+    type: string
+  - name: cta_body
+    label: 'Contact box: text'
+    type: text
+  - name: cta_label
+    label: 'Contact box: button text'
+    type: string
+  - name: cta_href
+    label: 'Contact box: button link'
+    description: 'Where the button goes, for example #contact or mailto:you@email.com. Leave as it is if unsure.'
+    type: string
+- name: corporate_en
+  label: Yoga at work / companies (English)
+  description: The "Yoga en entreprise" section under the 4 class cards, in English. Edit French and English separately.
+  type: file
+  path: src/content/corporate.en.json
+  format: json
+  fields:
+  - name: eyebrow
+    label: Small text above the title
+    type: string
+  - name: title
+    label: Title
+    type: string
+  - name: intro
+    label: Introduction
+    type: text
+  - name: formats_line
+    label: One line about formats
+    type: string
+  - name: points
+    label: Key points
+    description: One box per point. Click Add for a new one.
+    type: string
+    list: true
+  - name: hr_title
+    label: 'HR part: title'
+    description: The part written for HR managers.
+    type: string
+  - name: hr_subtitle
+    label: 'HR part: subtitle'
+    type: string
+  - name: hr_body
+    label: 'HR part: paragraphs'
+    description: One box per paragraph.
+    type: text
+    list: true
+  - name: formats_title
+    label: 'Formats: title'
+    type: string
+  - name: formats
+    label: Formats list
+    description: One box per format (for example "Weekly class at your office").
+    type: string
+    list: true
+  - name: cta_title
+    label: 'Contact box: title'
+    type: string
+  - name: cta_body
+    label: 'Contact box: text'
+    type: text
+  - name: cta_label
+    label: 'Contact box: button text'
+    type: string
+  - name: cta_href
+    label: 'Contact box: button link'
+    description: 'Where the button goes, for example #contact or mailto:you@email.com. Leave as it is if unsure.'
+    type: string
 - name: schedule_fr
   label: Schedule & prices (French)
   description: Texts and photos of the "Schedule & prices" section in French. Edit the French and English versions separately.
@@ -368,7 +509,7 @@ content:
   format: json
   fields:
   - name: eyebrow
-    label: Eyebrow
+    label: Small text above the title
     type: string
   - name: title
     label: Title
@@ -383,7 +524,7 @@ content:
     label: Location line2
     type: string
   - name: map_link
-    label: Map link
+    label: Google Maps link
     type: string
   - name: map_link_label
     label: Map link label
@@ -395,31 +536,38 @@ content:
   - name: gallery_aria_label
     label: Gallery aria label
     type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: gallery_prev_label
     label: Gallery prev label
     type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: gallery_next_label
     label: Gallery next label
     type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: gallery_pause_label
     label: Gallery pause label
     type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: gallery_play_label
     label: Gallery play label
     type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: gallery_slide_announce
     label: Gallery slide announce
     type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: gallery
     label: Gallery
     type: object
     fields:
     - name: src
-      label: Src
+      label: Photo
       type: image
     - name: alt
-      label: Alt
+      label: Photo description
       type: string
+      description: A few words saying what the photo shows. Google and blind visitors read this.
     list: true
 - name: schedule_en
   label: Schedule & prices (English)
@@ -429,7 +577,7 @@ content:
   format: json
   fields:
   - name: eyebrow
-    label: Eyebrow
+    label: Small text above the title
     type: string
   - name: title
     label: Title
@@ -444,7 +592,7 @@ content:
     label: Location line2
     type: string
   - name: map_link
-    label: Map link
+    label: Google Maps link
     type: string
   - name: map_link_label
     label: Map link label
@@ -456,31 +604,38 @@ content:
   - name: gallery_aria_label
     label: Gallery aria label
     type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: gallery_prev_label
     label: Gallery prev label
     type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: gallery_next_label
     label: Gallery next label
     type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: gallery_pause_label
     label: Gallery pause label
     type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: gallery_play_label
     label: Gallery play label
     type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: gallery_slide_announce
     label: Gallery slide announce
     type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: gallery
     label: Gallery
     type: object
     fields:
     - name: src
-      label: Src
+      label: Photo
       type: image
     - name: alt
-      label: Alt
+      label: Photo description
       type: string
+      description: A few words saying what the photo shows. Google and blind visitors read this.
     list: true
 - name: contact_fr
   label: Contact details (French)
@@ -490,7 +645,7 @@ content:
   format: json
   fields:
   - name: eyebrow
-    label: Eyebrow
+    label: Small text above the title
     type: string
   - name: title
     label: Title
@@ -499,29 +654,31 @@ content:
     label: Subtitle
     type: string
   - name: primary_cta
-    label: Primary cta
+    label: Main button
     type: object
     fields:
     - name: label
-      label: Label
+      label: Text
       type: string
     - name: action
-      label: Action
+      label: Button link (do not change)
       type: string
+      description: Where the button goes. Leave as it is.
   - name: phone_label
     label: Phone label
     type: string
   - name: phone_display
-    label: Phone display
+    label: Phone number as shown
     type: string
   - name: phone_href
-    label: Phone href
+    label: Phone number for the call button
     type: string
+    description: 'Format: tel:+33612345678 (no spaces).'
   - name: email_label
     label: Email label
     type: string
   - name: email_display
-    label: Email display
+    label: Email as shown
     type: string
   - name: address_label
     label: Address label
@@ -533,8 +690,9 @@ content:
     label: Address line2
     type: string
   - name: whatsapp_prefill
-    label: Whatsapp prefill
+    label: WhatsApp ready-made message
     type: string
+    description: The message already typed when a visitor opens WhatsApp.
   - name: desktop_note
     label: Desktop note
     type: string
@@ -546,7 +704,7 @@ content:
   format: json
   fields:
   - name: eyebrow
-    label: Eyebrow
+    label: Small text above the title
     type: string
   - name: title
     label: Title
@@ -555,29 +713,31 @@ content:
     label: Subtitle
     type: string
   - name: primary_cta
-    label: Primary cta
+    label: Main button
     type: object
     fields:
     - name: label
-      label: Label
+      label: Text
       type: string
     - name: action
-      label: Action
+      label: Button link (do not change)
       type: string
+      description: Where the button goes. Leave as it is.
   - name: phone_label
     label: Phone label
     type: string
   - name: phone_display
-    label: Phone display
+    label: Phone number as shown
     type: string
   - name: phone_href
-    label: Phone href
+    label: Phone number for the call button
     type: string
+    description: 'Format: tel:+33612345678 (no spaces).'
   - name: email_label
     label: Email label
     type: string
   - name: email_display
-    label: Email display
+    label: Email as shown
     type: string
   - name: address_label
     label: Address label
@@ -589,8 +749,9 @@ content:
     label: Address line2
     type: string
   - name: whatsapp_prefill
-    label: Whatsapp prefill
+    label: WhatsApp ready-made message
     type: string
+    description: The message already typed when a visitor opens WhatsApp.
   - name: desktop_note
     label: Desktop note
     type: string
@@ -602,7 +763,7 @@ content:
   format: json
   fields:
   - name: eyebrow
-    label: Eyebrow
+    label: Small text above the title
     type: string
   - name: title
     label: Title
@@ -617,11 +778,12 @@ content:
     label: Date
     type: string
   - name: cta_label
-    label: Cta label
+    label: Button text
     type: string
   - name: cta_href
-    label: Cta href
+    label: Button link
     type: string
+    description: 'A web address (https://...) or #contact. Leave as it is if unsure.'
 - name: press_en
   label: Press (English)
   description: Texts and photos of the "Press" section in English. Edit the French and English versions separately.
@@ -630,7 +792,7 @@ content:
   format: json
   fields:
   - name: eyebrow
-    label: Eyebrow
+    label: Small text above the title
     type: string
   - name: title
     label: Title
@@ -645,11 +807,12 @@ content:
     label: Date
     type: string
   - name: cta_label
-    label: Cta label
+    label: Button text
     type: string
   - name: cta_href
-    label: Cta href
+    label: Button link
     type: string
+    description: 'A web address (https://...) or #contact. Leave as it is if unsure.'
 - name: lineage_fr
   label: Lineage / tradition (French)
   description: Texts and photos of the "Lineage / tradition" section in French. Edit the French and English versions separately.
@@ -658,7 +821,7 @@ content:
   format: json
   fields:
   - name: eyebrow
-    label: Eyebrow
+    label: Small text above the title
     type: string
   - name: title
     label: Title
@@ -675,7 +838,7 @@ content:
       label: Devanagari
       type: string
     - name: translit
-      label: Translit
+      label: Transliteration
       type: string
     - name: translation
       label: Translation
@@ -709,7 +872,7 @@ content:
   format: json
   fields:
   - name: eyebrow
-    label: Eyebrow
+    label: Small text above the title
     type: string
   - name: title
     label: Title
@@ -726,7 +889,7 @@ content:
       label: Devanagari
       type: string
     - name: translit
-      label: Translit
+      label: Transliteration
       type: string
     - name: translation
       label: Translation
@@ -760,7 +923,7 @@ content:
   format: json
   fields:
   - name: eyebrow
-    label: Eyebrow
+    label: Small text above the title
     type: string
   - name: title
     label: Title
@@ -787,7 +950,7 @@ content:
   format: json
   fields:
   - name: eyebrow
-    label: Eyebrow
+    label: Small text above the title
     type: string
   - name: title
     label: Title
@@ -807,26 +970,126 @@ content:
       type: string
     list: true
 - name: clients
-  label: Clients (logos)
-  description: Company logos shown in the "They trusted me" carousel, shared by both languages. Upload a logo and type the company name.
+  label: Company logos
+  description: 'The company logos shown on the site (same for French and English). To add one: upload the logo in Media > logos, then click Add, type the company name and pick the logo.'
   type: file
   path: src/content/clients.json
   format: json
   fields:
   - name: clients
-    label: Clients
+    label: Companies
     type: object
     fields:
     - name: name
-      label: Name
+      label: Company name
       type: string
     - name: logo
       label: Logo
       type: image
+      description: Pick the logo from Media > logos. PNG or SVG, transparent background is best.
     - name: url
-      label: Url
+      label: Website link (optional)
+      type: string
+      description: The company website, starting with https://. Can stay empty.
+    - name: monogram
+      label: Short letters if no logo (optional)
+      description: Only used when there is no logo, for example "SP". Can stay empty.
       type: string
     list: true
+- name: reviews
+  label: Reviews (stars and comments)
+  description: Every review shown on the site. Add, change or delete reviews and their stars here. Shared by French and English.
+  type: file
+  path: src/content/reviews-seed.json
+  format: json
+  fields:
+  - name: reviews
+    label: Reviews
+    type: object
+    list: true
+    fields:
+    - name: name
+      label: Name of the person
+      type: string
+    - name: rating
+      label: Stars (1 to 5)
+      description: Type a number from 1 to 5.
+      type: number
+      options:
+        min: 1
+        max: 5
+    - name: body
+      label: Review text
+      type: text
+    - name: lang
+      label: Language of the review
+      type: select
+      options:
+        values:
+        - value: fr
+          label: French
+        - value: en
+          label: English
+    - name: body_fr
+      label: French translation (optional)
+      description: Only if the review is in English and you want a French version. Can stay empty.
+      type: text
+    - name: body_en
+      label: English translation (optional)
+      description: Only if the review is in French and you want an English version. Can stay empty.
+      type: text
+    - name: source
+      label: Where the review comes from
+      type: select
+      options:
+        values:
+        - value: google
+          label: Google
+        - value: superprof
+          label: Superprof
+        - value: email
+          label: Email / message
+        - value: other
+          label: Other
+    - name: source_url
+      label: Link to the original review (optional)
+      type: string
+    - name: submitted_at
+      label: Date of the review
+      description: 'Format: 2026-07-14 (year-month-day).'
+      type: string
+    - name: featured
+      label: Show first
+      description: Tick to put this review at the top.
+      type: boolean
+    - name: verified
+      label: Real review I received
+      description: Leave ticked for real reviews.
+      type: boolean
+    - name: approved_at
+      label: Date added (technical)
+      type: string
+      hidden: true
+    - name: id
+      label: ID (technical)
+      type: string
+      hidden: true
+    - name: google_reviewer_photo
+      label: Google photo (technical)
+      type: string
+      hidden: true
+    - name: google_update_time
+      label: Google date (technical)
+      type: string
+      hidden: true
+    - name: edited_at
+      label: Edited (technical)
+      type: string
+      hidden: true
+    - name: date_backfill_source
+      label: Date source (technical)
+      type: string
+      hidden: true
 - name: i18n_ui_fr
   label: Buttons & menus (French)
   description: Small interface texts (menu, buttons, footer) in French.
@@ -837,33 +1100,42 @@ content:
   - name: lang_toggle_aria
     label: Lang toggle aria
     type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: nav_about
     label: Nav about
     type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: nav_offerings
     label: Nav offerings
     type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: nav_schedule
     label: Nav schedule
     type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: nav_testimonials
     label: Nav testimonials
     type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: nav_press
     label: Nav press
     type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: nav_contact
     label: Nav contact
     type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: book_cta
-    label: Book cta
+    label: Booking button text
     type: string
   - name: audio_on
     label: Audio on
     type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: audio_off
     label: Audio off
     type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: footer_tagline
     label: Footer tagline
     type: string
@@ -878,11 +1150,12 @@ content:
     type: object
     fields:
     - name: label
-      label: Label
+      label: Text
       type: string
     - name: href
-      label: Href
+      label: Link
       type: string
+      description: A web address (https://...). Leave as it is if unsure.
     list: true
 - name: i18n_ui_en
   label: Buttons & menus (English)
@@ -894,33 +1167,42 @@ content:
   - name: lang_toggle_aria
     label: Lang toggle aria
     type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: nav_about
     label: Nav about
     type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: nav_offerings
     label: Nav offerings
     type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: nav_schedule
     label: Nav schedule
     type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: nav_testimonials
     label: Nav testimonials
     type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: nav_press
     label: Nav press
     type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: nav_contact
     label: Nav contact
     type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: book_cta
-    label: Book cta
+    label: Booking button text
     type: string
   - name: audio_on
     label: Audio on
     type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: audio_off
     label: Audio off
     type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: footer_tagline
     label: Footer tagline
     type: string
@@ -935,9 +1217,10 @@ content:
     type: object
     fields:
     - name: label
-      label: Label
+      label: Text
       type: string
     - name: href
-      label: Href
+      label: Link
       type: string
+      description: A web address (https://...). Leave as it is if unsure.
     list: true

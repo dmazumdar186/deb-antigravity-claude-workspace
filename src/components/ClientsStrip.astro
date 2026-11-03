@@ -29,9 +29,10 @@ interface Props {
   lang?: 'fr' | 'en';
   clients: Client[];
   label?: string;
+  caption?: string;
 }
 
-const { lang = 'fr', clients, label } = Astro.props;
+const { lang = 'fr', clients, label, caption } = Astro.props;
 
 function initials(name: string): string {
   return name
@@ -45,6 +46,7 @@ function initials(name: string): string {
 <section class="clients-strip-section" aria-label={label ?? (lang === 'en' ? 'Trusted by' : "Ils m'ont fait confiance")} data-clients-strip>
   <div class="section-inner">
     {label && <p class="cs-label eyebrow" data-reveal>{label}</p>}
+    {caption && <p class="cs-caption" data-reveal>{caption}</p>}
     <ul class="cs-grid" data-reveal>
       {clients.map((c) => (
         <li class="cs-cell">
@@ -85,12 +87,20 @@ function initials(name: string): string {
     text-align: center;
     margin: 0 0 1.75rem;
   }
+  .cs-caption {
+    text-align: center;
+    max-width: 46rem;
+    margin: -1rem auto 2rem;
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--ink-soft, #6b6560);
+  }
   .cs-grid {
     list-style: none;
     padding: 0;
     margin: 0;
     display: grid;
-    grid-template-columns: repeat(8, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 1.5rem 2rem;
     align-items: center;
     justify-items: center;
