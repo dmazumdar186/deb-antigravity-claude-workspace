@@ -2,7 +2,7 @@
 // ClientsStrip.astro — static, all-visible trusted-by band.
 //
 // Replaces ClientsCarousel (2026-08-06). Operator feedback: the carousel
-// hid most of the logos most of the time; with only 8 clients today, a
+// hid most of the logos most of the time; with a dozen clients today, a
 // static all-visible strip reads more honestly and gives each brand its
 // moment. Carousel can come back when the list outgrows one visual row.
 //
@@ -29,9 +29,10 @@ interface Props {
   lang?: 'fr' | 'en';
   clients: Client[];
   label?: string;
+  caption?: string;
 }
 
-const { lang = 'fr', clients, label } = Astro.props;
+const { lang = 'fr', clients, label, caption } = Astro.props;
 
 function initials(name: string): string {
   return name
@@ -45,6 +46,7 @@ function initials(name: string): string {
 <section class="clients-strip-section" aria-label={label ?? (lang === 'en' ? 'Trusted by' : "Ils m'ont fait confiance")} data-clients-strip>
   <div class="section-inner">
     {label && <p class="cs-label eyebrow" data-reveal>{label}</p>}
+    {caption && <p class="cs-caption" data-reveal>{caption}</p>}
     <ul class="cs-grid" data-reveal>
       {clients.map((c) => (
         <li class="cs-cell">
@@ -55,16 +57,16 @@ function initials(name: string): string {
               ) : (
                 <span class="cs-monogram" aria-hidden="true">{c.monogram ?? initials(c.name)}</span>
               )}
-              <span class="cs-sr">{c.name}</span>
+              {!c.logo && <span class="cs-sr">{c.name}</span>}
             </a>
           ) : (
-            <span class="cs-item" aria-label={c.name} title={c.name}>
+            <span class="cs-item" title={c.name}>
               {c.logo ? (
                 <img src={c.logo} alt={c.name} loading="lazy" decoding="async" class="cs-logo" />
               ) : (
                 <span class="cs-monogram" aria-hidden="true">{c.monogram ?? initials(c.name)}</span>
               )}
-              <span class="cs-sr">{c.name}</span>
+              {!c.logo && <span class="cs-sr">{c.name}</span>}
             </span>
           )}
         </li>
@@ -75,7 +77,7 @@ function initials(name: string): string {
 
 <style>
   .clients-strip-section {
-    padding-block: 3.25rem;
+    padding: 3.25rem 1.25rem;
     border-top: 1px solid rgba(46, 42, 38, 0.08);
     border-bottom: 1px solid rgba(46, 42, 38, 0.08);
     background:
@@ -85,12 +87,22 @@ function initials(name: string): string {
     text-align: center;
     margin: 0 0 1.75rem;
   }
+  .cs-label + .cs-caption { margin-top: -1rem; }
+  .cs-caption {
+    text-align: center;
+    max-width: 46rem;
+    margin: 0 auto 2rem;
+    font-size: 15px;
+    line-height: 1.55;
+    text-wrap: pretty;
+    color: var(--ink-soft, #6b6560);
+  }
   .cs-grid {
     list-style: none;
     padding: 0;
     margin: 0;
     display: grid;
-    grid-template-columns: repeat(8, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 1.5rem 2rem;
     align-items: center;
     justify-items: center;
@@ -124,7 +136,7 @@ function initials(name: string): string {
     box-shadow: 0 0 0 2px rgba(192, 91, 62, 0.35);
   }
   .cs-logo {
-    /* Larger than the carousel gave the logos — with only 8 in one row
+    /* Larger than the carousel gave the logos — with 6 per row
        we can spend the vertical space on presence. */
     max-height: 60px;
     max-width: 100%;
@@ -138,6 +150,16 @@ function initials(name: string): string {
   a.cs-item:focus-visible .cs-logo {
     opacity: 1;
     transform: scale(1.04);
+  }
+  /* Per-logo optical balance (2026-11-03 design pass): wide wordmarks and
+     padded PNGs otherwise read too small or too heavy next to their peers. */
+  .cs-logo[src*="fti"]      { max-height: none; width: 150px; }
+  .cs-logo[src*="emmaus"]   { max-height: 46px; }
+  .cs-logo[src*="believe"]  { width: 118px; }
+  @media (max-width: 560px) {
+    .cs-logo[src*="fti"]     { width: 100px; }
+    .cs-logo[src*="believe"] { width: 84px; }
+    .cs-logo[src*="emmaus"]  { max-height: 34px; }
   }
   .cs-monogram {
     display: inline-flex;
@@ -167,14 +189,15 @@ function initials(name: string): string {
     overflow: hidden;
   }
 
-  /* Responsive: 8 desktop → 4 tablet → 2 mobile. All logos remain
+  /* Responsive: 6 desktop → 4 tablet → 3 mobile. All logos remain
      simultaneously visible — no carousel, no hidden pages. */
   @media (max-width: 1100px) {
     .cs-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   }
   @media (max-width: 560px) {
-    .cs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem 1.5rem; }
-    .cs-logo { max-height: 52px; }
-    .clients-strip-section { padding-block: 2.5rem; }
+    .cs-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem 1rem; }
+    .cs-logo { max-height: 40px; }
+    .cs-cell, .cs-item { min-height: 56px; }
+    .clients-strip-section { padding: 2.5rem 1.25rem; }
   }
 </style>

@@ -1,0 +1,103 @@
+---
+// Corporate.astro — "Yoga en entreprise" band shown right below the 4
+// offering cards (client ask, 2026-11-03). Every string lives in
+// src/content/corporate.{fr,en}.json so it is editable in Pages CMS.
+import fr from '../content/corporate.fr.json';
+import en from '../content/corporate.en.json';
+
+const { lang = 'fr' } = Astro.props;
+const t = lang === 'en' ? en : fr;
+// Lists may be emptied or removed in Pages CMS; never let that break the build.
+const points = t.points ?? [];
+const hrBody = t.hr_body ?? [];
+const formats = t.formats ?? [];
+---
+<section id="entreprise" class="section corporate">
+  <div class="section-inner">
+    <div class="corp-grid">
+      <div class="corp-col">
+        <p class="eyebrow mb-4" data-reveal>
+          <span class="breathing-dot"></span>
+          <span>{t.eyebrow}</span>
+        </p>
+        <h2 class="text-4xl md:text-5xl mb-4" data-reveal>{t.title}</h2>
+        <p class="text-lg text-[color:var(--ink-soft)] mb-4" data-reveal>{t.intro}</p>
+        <p class="text-[15px] text-[color:var(--ink-soft)] mb-5" data-reveal>{t.formats_line}</p>
+        {points.length > 0 && (
+          <ul class="corp-list" data-reveal>
+            {points.map((p) => <li>{p}</li>)}
+          </ul>
+        )}
+      </div>
+
+      <div class="card corp-card" data-reveal>
+        <h3 class="font-serif text-2xl mb-2 text-ink-900 leading-snug">{t.hr_title}</h3>
+        <p class="font-serif text-lg mb-4 text-[#A85D37] leading-snug">{t.hr_subtitle}</p>
+        {hrBody.map((para) => (
+          <p class="text-[15px] text-[color:var(--ink-soft)] leading-relaxed mb-3">{para}</p>
+        ))}
+        {formats.length > 0 && (
+          <>
+            <p class="font-medium text-ink-900 mt-4 mb-2">{t.formats_title}</p>
+            <ul class="corp-list corp-list--small">
+              {formats.map((f) => <li>{f}</li>)}
+            </ul>
+          </>
+        )}
+        <div class="corp-cta">
+          <p class="font-medium text-ink-900 mb-1">{t.cta_title}</p>
+          <p class="text-[15px] text-[color:var(--ink-soft)] leading-relaxed mb-3">{t.cta_body}</p>
+          {t.cta_closing && <p class="font-serif text-lg text-ink-900 leading-snug mb-4" style="text-wrap: balance;">{t.cta_closing}</p>}
+          <a href={t.cta_href} class="btn btn-primary">{t.cta_label}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .corporate { padding-top: 0; scroll-margin-top: 96px; }
+  .corporate h2 { text-wrap: balance; }
+  .corp-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    align-items: start;
+  }
+  @media (min-width: 900px) {
+    .corp-grid { grid-template-columns: 5fr 7fr; gap: 3rem; }
+  }
+  .corp-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.6rem;
+  }
+  .corp-list li {
+    position: relative;
+    padding-left: 1.5rem;
+    line-height: 1.5;
+  }
+  .corp-list li::before {
+    content: '';
+    position: absolute;
+    left: 0.15rem;
+    top: 0.62em;
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--terracotta, #c0744a);
+    opacity: 0.85;
+  }
+  .corp-list--small li { font-size: 15px; color: var(--ink-soft, #6b6560); }
+  .corp-card { padding: 1.75rem; }
+  /* Text card, not a link: cancel the global .card hover lift. */
+  .corp-card:hover { transform: none; box-shadow: inherit; }
+  .corp-cta {
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(46, 42, 38, 0.08);
+  }
+  .corp-cta .btn { white-space: normal; text-align: center; line-height: 1.35; }
+</style>

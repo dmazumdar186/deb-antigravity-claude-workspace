@@ -32,3 +32,11 @@ Run the cold email campaign selling the ProdCraft "Proposal Engine" (free 72-hou
 - Spintax must be `{{RANDOM|a|b}}` without spaces around pipes, matching existing campaigns.
 - Campaigns share the 12 inboxes with other active DM_ campaigns; total inbox capacity ~340/day. Catch-all campaigns cap at 5/day.
 - No postal address in the copy: CAN-SPAM (US) requires one; the unsubscribe header is on. Add an address line if the operator provides one.
+
+## v2 (applied 2026-11-03; supersedes the v1 copy rules above)
+- v1 failed the buyer-fit test: proof was website redesigns, not the proposal pain (Jev pain 0.12, fit 0.41). Lesson: the gate must check pain + offer-fit + plain language, not only truth and human tone.
+- Copy: `build_copy_v2.py` -> `copy_v2.json`. Step 1 = playbook pain + dated trigger + done-for-you offer + "want me to send over an example?" + money-back guarantee (halve deck/bid/proposal time over next 5, from playbook section 4) + "lmk and i'll stop". Variant A prospect-first, variant B adds "my friends say i talk too much" (A/B test, not assumed).
+- Gate (Jev, calibrated on Siva's proven winners: human 0.74-0.81, slop 0.45-0.51, plain 0.87-0.91, 82-97 words): human >= 0.70, slop <= ~0.6, pain >= 0.55, fit >= 0.55, plain >= 0.70 (industry words count as plain), step 1 <= ~100 words.
+- Settings with evidence (`.tmp/prodcraft_copy/benchmarks.md`, `siva_analysis.md`): Mon-Fri (Siva sends Fri); US 09:00-13:00 Chicago, UK 08:00-12:00 Isle_of_Man; steps day 0/2/4 (Siva); daily_limit 30 for all incl. catch-all (no evidence for 5/day; pause any campaign above 3% bounce); plain text, tracking off; no signature; lowercase (Siva; confounded).
+- Operator commitments: honour the money-back guarantee; keep one sample per niche (deck, bid/tender proposal, trip proposal) ready to send on "yes".
+- Kill/keep: pause >3% bounce; rewrite if reply < 1% after 500 sends; target >= 0.3% positive per lead (Siva 0.28-0.89%).

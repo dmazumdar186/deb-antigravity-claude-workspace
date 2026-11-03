@@ -2,6 +2,7 @@
   "lang_toggle_aria": "Changer la langue",
   "nav_about": "Le professeur",
   "nav_offerings": "Séances",
+  "nav_corporate": "Entreprises",
   "nav_schedule": "Studio",
   "nav_testimonials": "Avis",
   "nav_press": "Presse",
@@ -13,9 +14,21 @@
   "footer_credit": "Site conçu avec attention · 2026",
   "socials_label": "Sur les réseaux",
   "socials": [
-    { "label": "Instagram",   "href": "https://www.instagram.com/yogaavecjitendra/" },
-    { "label": "LinkedIn",    "href": "https://www.linkedin.com/company/yogaavecjitendra/" },
-    { "label": "MeetUp",      "href": "https://www.meetup.com/paris-hatha-yoga/" },
-    { "label": "Superprof",   "href": "https://www.superprof.fr/hatha-yoga-paris-experience-personnalisee-studio-prive-passy-domicile.html" }
+    {
+      "label": "Instagram",
+      "href": "https://www.instagram.com/yogaavecjitendra/"
+    },
+    {
+      "label": "LinkedIn",
+      "href": "https://www.linkedin.com/company/yogaavecjitendra/"
+    },
+    {
+      "label": "MeetUp",
+      "href": "https://www.meetup.com/paris-hatha-yoga/"
+    },
+    {
+      "label": "Superprof",
+      "href": "https://www.superprof.fr/hatha-yoga-paris-experience-personnalisee-studio-prive-passy-domicile.html"
+    }
   ]
 }

@@ -1,0 +1,165 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Incentive Program · Lisbon, May 2027 — sample</title><style>:root{--accent:#9a4e34;}
+@page { size: 210mm 297mm; margin: 0; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #d9d6cf; }
+body { font-family: Inter, "Helvetica Neue", Arial, sans-serif; color: #16181c; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-feature-settings: "tnum" 1; }
+.page { width: 210mm; height: 297mm; background: #fff; position: relative; overflow: hidden;
+  page-break-after: always; break-after: page; display: flex; flex-direction: column; padding: 0.55in 0.65in 0.4in; }
+.page:last-child { page-break-after: auto; break-after: auto; }
+@media screen { .page { margin: 24px auto; box-shadow: 0 4px 18px rgba(0,0,0,.12); } }
+.hdr { display: flex; justify-content: space-between; align-items: baseline; font-size: 9.5px; letter-spacing: .14em;
+  text-transform: uppercase; color: #6b6f76; border-bottom: 1px solid #e4dfd6; padding-bottom: 8px; margin-bottom: 18px; flex: none; }
+.hdr b { color: #16181c; font-weight: 600; }
+.content { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+.ftr { flex: none; display: flex; justify-content: space-between; font-size: 9px; color: #6b6f76;
+  border-top: 1px solid #e4dfd6; padding-top: 7px; margin-top: 12px; }
+h1 { font-size: 34px; line-height: 1.12; margin: 0 0 10px; font-weight: 650; letter-spacing: -.02em; }
+h2 { font-size: 25px; line-height: 1.2; margin: 0 0 6px; font-weight: 650; letter-spacing: -.01em; }
+h3 { font-size: 14px; margin: 16px 0 7px; font-weight: 650; }
+.kicker { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); font-weight: 650; margin-bottom: 6px; }
+.lede { font-size: 14px; color: #3d4148; line-height: 1.5; margin: 0 0 14px; max-width: 46em; }
+p, li { font-size: 12px; line-height: 1.55; color: #2b2e33; }
+p { margin: 0 0 8px; }
+ul { margin: 0 0 8px; padding-left: 16px; } li { margin-bottom: 5px; }
+.small { font-size: 10.5px; color: #5b6068; }
+.t { width: 100%; border-collapse: collapse; font-size: 11.5px; margin: 4px 0 10px; }
+.t th { text-align: left; font-weight: 600; font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase; color: #5b6068;
+  border-bottom: 1.5px solid #16181c; padding: 5px 6px; }
+.t td { padding: 6.5px 7px; border-bottom: 1px solid #ebe7e0; vertical-align: top; }
+.t .r { text-align: right; white-space: nowrap; } .t .c { text-align: center; } .t .l { text-align: left; }
+.t tr.sub td { font-weight: 600; background: #f7f3ec; }
+.t tr.total td { font-weight: 700; font-size: 12.5px; border-top: 1.5px solid #16181c; border-bottom: none; background: #f7f3ec; }
+.t tr.muted td { color: #6b6f76; }
+.t tr.sec td { font-weight: 650; color: var(--accent); background: #fff; padding-top: 9px; font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase; }
+.gantt th.c { font-size: 8.5px; padding: 4px 1px; } .gantt td { padding: 4px 6px; } .gantt td.g { padding: 0; border-left: 1px solid #f0ece6; }
+.gantt td.g.on { background: var(--accent); background-clip: content-box; padding: 5px 0; }
+.gantt tr.gsub td { font-size: 8px; color: #6b6f76; padding: 2px 0; border-bottom: 1px solid #ebe7e0; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.card { border: 1px solid #e4dfd6; border-radius: 6px; padding: 12px 14px; background: #fff; }
+.card.tint { background: #f7f3ec; border-color: #ece6db; }
+.card h3 { margin-top: 0; }
+.stat .n { font-size: 26px; white-space: nowrap; font-weight: 700; letter-spacing: -.01em; }
+.stat .k { font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: #6b6f76; }
+.builtfrom { border: 1px solid #d8d1c4; border-left: 4px solid var(--accent); background: #f7f3ec; border-radius: 4px; padding: 10px 14px; }
+.bf-label { font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: #6b6f76; font-weight: 650; margin-bottom: 4px; }
+.bf-brief { font-size: 11.5px; line-height: 1.45; color: #2b2e33; font-style: italic; }
+.bf-arrow { font-size: 12.5px; font-weight: 650; color: var(--accent); margin-top: 6px; }
+.cover .content { justify-content: space-between; }
+.cover h1 { font-size: 40px; }
+.meta { display: flex; gap: 40px; font-size: 10.5px; color: #5b6068; }
+.meta > div:last-child { flex: none; }
+.meta b { display: block; color: #16181c; font-size: 12.5px; font-weight: 600; margin-top: 2px; }
+.band { height: 6px; background: var(--accent); margin: -1px 0 0; }
+.sig { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 10px; }
+.sig .line { border-bottom: 1px solid #16181c; height: 30px; margin-bottom: 3px; }
+.sig .lab { font-size: 9px; color: #6b6f76; margin-bottom: 10px; }
+.note { font-size: 9.5px; color: #5b6068; border-left: 2px solid #d8d1c4; padding-left: 8px; margin: 4px 0 8px; }
+.pill { display: inline-block; font-size: 9px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 2px 7px;
+  border-radius: 10px; background: #f7f3ec; color: #3d4148; border: 1px solid #e4dfd6; }
+/* deck */
+.deck .hdr { margin-bottom: 24px; font-size: 11px; } .deck .ftr { font-size: 11px; }
+.deck h1 { font-size: 60px; } .deck h2 { font-size: 38px; margin-bottom: 10px; } .deck .kicker { font-size: 12.5px; margin-bottom: 10px; }
+.deck .lede { font-size: 19px; max-width: 52em; margin-bottom: 20px; } .deck p, .deck li { font-size: 16px; } .deck li { margin-bottom: 6px; }
+.deck .t { font-size: 14.5px; } .deck .t td { padding: 7px 8px; } .deck .t th { font-size: 11px; padding: 7px 8px; }
+.deck .card { padding: 16px 18px; } .deck .card h3 { font-size: 18px; margin-bottom: 8px; } .deck h3 { font-size: 18px; }
+.deck .stat .n { font-size: 32px; } .deck .stat .k { font-size: 11px; } .deck .small { font-size: 13px; }
+.deck .bf-brief { font-size: 14px; } .deck .bf-label { font-size: 11px; } .deck .bf-arrow { font-size: 15px; }
+.deck .meta { font-size: 12.5px; gap: 40px; white-space: nowrap; } .deck .t tr.total td { font-size: 15.5px; } .deck .meta b { font-size: 15px; }
+.deck .gantt td { padding: 6px 8px; font-size: 14px; } .deck .gantt th.c { font-size: 11px; }
+.deck .gantt td.g.on { padding: 6px 0; }
+.deck .stage .el { font-size: 13px; } .deck .stage .lbl { font-size: 12px; }
+.oneliner { font-size: 40px; line-height: 1.3; font-weight: 600; letter-spacing: -.01em; max-width: 24em; margin: 8px 0 24px; }
+.stage { position: relative; border: 1px solid #d8d1c4; border-radius: 6px; background: #f7f3ec; height: 100%; }
+.stage .el { position: absolute; display: flex; align-items: center; justify-content: center; text-align: center;
+  font-size: 10.5px; font-weight: 600; color: #fff; border-radius: 3px; }
+.stage .lbl { position: absolute; font-size: 9.5px; color: #5b6068; text-align: center; }
+.split { display: grid; grid-template-columns: 1.05fr 1fr; gap: 28px; flex: 1; min-height: 0; }
+.itin .day { display: grid; grid-template-columns: 56px 1fr; gap: 10px; border-top: 1px solid #e4dfd6; padding: 10px 0 6px; }
+.itin .day .d { font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: .06em; text-transform: uppercase; }
+.itin .slot { display: grid; grid-template-columns: 74px 1fr; gap: 8px; margin-bottom: 4px; }
+.itin .slot .tm { font-size: 10px; color: #6b6f76; font-weight: 600; padding-top: 1px; }
+.itin .slot p { margin: 0; }
+</style></head><body><section class="page cover "><div class="hdr"><span><b>Saltmarrow Journeys DMC</b></span><span>Incentive Program · Lisbon, May 2027</span></div><div class="content">
+<div>
+  <div class="kicker">Incentive program proposal · prepared for Draxmere Medical</div>
+  <h1>Lisbon, light and tide<br>President's Club 2027</h1>
+  <p class="lede">Four nights in Lisbon for 120 qualifiers: river light, old-town food, a day on the Sintra coast and a gala evening the group will talk about all year.</p>
+</div>
+<div class="grid4">
+  <div class="card tint stat"><div class="k">Guests</div><div class="n">120</div></div>
+  <div class="card tint stat"><div class="k">Dates</div><div class="n">12–16 May</div></div>
+  <div class="card tint stat"><div class="k">Nights</div><div class="n">4</div></div>
+  <div class="card tint stat"><div class="k">From, per person</div><div class="n">€2,605</div></div>
+</div>
+<div class="meta"><div>Prepared for<b>Head of Sales Operations, Draxmere Medical</b></div><div>Prepared by<b>Program Director, Saltmarrow Journeys DMC</b></div><div>Date<b>3 Nov 2026</b></div></div>
+<div class="builtfrom"><div class="bf-label">Built from</div><div class="bf-brief">“Draxmere Medical is rewarding 120 top sales qualifiers with a 4-night incentive trip to Lisbon in May 2027. Mix of culture, food and one wow evening; nothing too sporty. Guests fly in from across Europe and the US. Please send a program, hotel options and a per-person price.”</div><div class="bf-arrow">→ this proposal in one working day</div></div></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>1 / 8</span></div></section><section class="page  "><div class="hdr"><span><b>Saltmarrow Journeys DMC</b></span><span>Incentive Program · Lisbon, May 2027</span></div><div class="content">
+<div class="kicker">01 · Program overview</div>
+<h2>A reward that feels personal, not packaged</h2>
+<p class="lede">Lisbon in May is warm, bright and walkable, with direct flights from most European hubs and from several US gateways. The program balances group moments with free time, so qualifiers feel rewarded, not managed.</p>
+<div class="grid2">
+  <div class="card"><h3>The shape of the trip</h3>
+  <ul><li><b>Day 1</b> · arrive, settle in, welcome dinner with a view over the river.</li>
+  <li><b>Day 2</b> · Lisbon by tram and on foot, long lunch, free afternoon.</li>
+  <li><b>Day 3</b> · Sintra palaces and the Atlantic coast, free evening.</li>
+  <li><b>Day 4</b> · free morning, awards and gala dinner at an exclusive-use venue.</li>
+  <li><b>Day 5</b> · late breakfast and departures.</li></ul></div>
+  <div class="card"><h3>Why it works for a sales group</h3>
+  <ul><li>Two group meals that feel like events, two that feel like a night out with friends.</li>
+  <li>Free time every day, with a concierge desk to book anything extra.</li>
+  <li>The awards moment sits inside the gala, not in a hotel ballroom.</li>
+  <li>Every activity is low-effort physically and works for partners too.</li></ul></div>
+</div>
+<div class="card tint" style="margin-top:14px"><h3>Program at a glance</h3>
+<p style="margin:0">4 group dinners or lunches · 2 guided experiences · 1 gala with entertainment · 8 on-site staff plus a program director · 24/7 hotel hospitality desk · all ground transport included.</p></div></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>2 / 8</span></div></section><section class="page  "><div class="hdr"><span><b>Saltmarrow Journeys DMC</b></span><span>Incentive Program · Lisbon, May 2027</span></div><div class="content">
+<div class="kicker">02 · Itinerary</div>
+<h2>Day by day</h2>
+<div class="itin">
+<div class="day"><div class="d">Day 1 · Wed 12</div><div><h3 style="margin:0 0 6px">Arrivals and welcome</h3><div class="slot"><div class="tm">All day</div><p>Meet-and-greet at Lisbon airport; shared transfers timed to flight banks; welcome desk in the hotel lobby.</p></div><div class="slot"><div class="tm">15:00</div><p>Rooms ready, welcome gift in every room.</p></div><div class="slot"><div class="tm">19:30</div><p>Welcome dinner on a rooftop terrace over the Tagus: Portuguese tasting menu, local wines, a fado trio.</p></div></div></div>
+<div class="day"><div class="d">Day 2 · Thu 13</div><div><h3 style="margin:0 0 6px">Lisbon by tram and on foot</h3><div class="slot"><div class="tm">09:30</div><p>Groups of 20 board private vintage trams through Alfama and Graça with a local guide.</p></div><div class="slot"><div class="tm">11:30</div><p>Walk through the old town; custard tart stop at a historic bakery.</p></div><div class="slot"><div class="tm">13:00</div><p>Long lunch at a riverside restaurant in Belém.</p></div><div class="slot"><div class="tm">15:00</div><p>Free afternoon. Optional: tile-painting workshop, river sailing, or shopping in Chiado.</p></div><div class="slot"><div class="tm">Evening</div><p>Free. Concierge desk books restaurants; suggested list in the guest app.</p></div></div></div>
+</div></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>3 / 8</span></div></section><section class="page  "><div class="hdr"><span><b>Saltmarrow Journeys DMC</b></span><span>Incentive Program · Lisbon, May 2027</span></div><div class="content">
+<div class="kicker">02 · Itinerary, continued</div>
+<div class="itin">
+<div class="day"><div class="d">Day 3 · Fri 14</div><div><h3 style="margin:0 0 6px">Sintra palaces and the Atlantic coast</h3><div class="slot"><div class="tm">09:00</div><p>Coaches to Sintra; guided visit to a hilltop palace and gardens.</p></div><div class="slot"><div class="tm">13:00</div><p>Seafood lunch on the cliffs near Cabo da Roca.</p></div><div class="slot"><div class="tm">15:30</div><p>Coastal drive through Cascais; stop for a walk on the promenade.</p></div><div class="slot"><div class="tm">17:30</div><p>Return to the hotel. Free evening.</p></div></div></div>
+<div class="day"><div class="d">Day 4 · Sat 15</div><div><h3 style="margin:0 0 6px">Free morning, awards and gala</h3><div class="slot"><div class="tm">Morning</div><p>Free. Optional spa slots and a guided food market tour (book via the hospitality desk).</p></div><div class="slot"><div class="tm">18:30</div><p>Coaches to an exclusive-use 18th-century palace venue.</p></div><div class="slot"><div class="tm">19:00</div><p>Cocktails in the garden; arrival photos.</p></div><div class="slot"><div class="tm">20:00</div><p>Gala dinner: four courses, Portuguese wine pairing.</p></div><div class="slot"><div class="tm">21:30</div><p>President's Club awards, hosted by your leadership team; staged and lit by our production partner.</p></div><div class="slot"><div class="tm">22:15</div><p>Live band and late bar until 01:00; shuttle back from 23:00.</p></div></div></div>
+<div class="day"><div class="d">Day 5 · Sun 16</div><div><h3 style="margin:0 0 6px">Departures</h3><div class="slot"><div class="tm">Morning</div><p>Late breakfast; checkout extended to 12:00 for the group.</p></div><div class="slot"><div class="tm">From 08:00</div><p>Shared transfers to the airport timed to flight banks; desk open until the last guest leaves.</p></div></div></div>
+</div>
+<div class="card tint" style="margin-top:12px"><h3>Optional add-ons (priced on request)</h3>
+<p style="margin:0">Pre- or post-stay nights at the group rate · private sunset sailing for the top ten · partner program on day 4 morning · branded gifts from local makers.</p></div></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>4 / 8</span></div></section><section class="page  "><div class="hdr"><span><b>Saltmarrow Journeys DMC</b></span><span>Incentive Program · Lisbon, May 2027</span></div><div class="content">
+<div class="kicker">03 · Hotel options</div>
+<h2>Three ways to stay</h2>
+<p class="lede">All three hold 120 single-occupancy rooms for 12–16 May 2027 at the rates shown, including breakfast and city tax. Named properties are confirmed with the contract; descriptions below are examples of the category.</p>
+<div class="grid3"><div class="card"><div class="kicker">Option A</div><h3>Riverside five-star</h3><p>Five-star on the river, e.g. a waterfront property in the Cais do Sodré area.</p><ul><li>All rooms with river or city view</li><li>Private room for the welcome desk and briefings</li><li>Spa and rooftop pool</li><li>10 minutes on foot to the old town</li></ul><p style="margin:0"><span class="pill">€520 per room night</span></p></div><div class="card"><div class="kicker">Option B</div><h3>Design hotel, Chiado</h3><p>Boutique design hotel in Chiado, e.g. a converted 19th-century building.</p><ul><li>Characterful rooms, smaller footprint</li><li>Whole-hotel buyout possible for 120</li><li>Walking distance to everything in the program</li><li>Rooftop bar for a private hospitality evening</li></ul><p style="margin:0"><span class="pill">€410 per room night</span></p></div><div class="card"><div class="kicker">Option C</div><h3>Coastal resort, Cascais</h3><p>Coastal resort in Cascais, e.g. an ocean-front five-star 30 minutes from Lisbon.</p><ul><li>Sea-view rooms and a large pool deck</li><li>Beach and promenade on the doorstep</li><li>Adds 30–40 minutes of coach time on days 2 and 4</li><li>Best for a slower, resort-style feel</li></ul><p style="margin:0"><span class="pill">€360 per room night</span></p></div></div>
+<p class="note" style="margin-top:12px">Our recommendation: <b>Option A</b>. The river location keeps every transfer short and gives the group a shared view to come back to each evening.</p></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>5 / 8</span></div></section><section class="page  "><div class="hdr"><span><b>Saltmarrow Journeys DMC</b></span><span>Incentive Program · Lisbon, May 2027</span></div><div class="content">
+<div class="kicker">04 · Pricing</div>
+<h2>Per person and total, by hotel option</h2>
+<p class="lede">Illustrative EUR figures, based on 120 guests in single rooms. Everything except the hotel is the same across the three options.</p>
+<table class="t "><colgroup><col style="width:55%"><col style="width:15%"><col style="width:15%"><col style="width:15%"></colgroup><thead><tr><th class="l"></th><th class="r">Option A</th><th class="r">Option B</th><th class="r">Option C</th></tr></thead><tbody><tr class="sec"><td class="l"><b>Per person</b></td><td class="r"></td><td class="r"></td><td class="r"></td></tr><tr class=""><td class="l">Hotel, 4 nights single occupancy, breakfast and city tax</td><td class="r">€2,080</td><td class="r">€1,640</td><td class="r">€1,440</td></tr><tr class=""><td class="l">Arrival and departure transfers (shared, timed to flight banks)</td><td class="r">€78</td><td class="r">€78</td><td class="r">€78</td></tr><tr class=""><td class="l">Welcome dinner with drinks, day 1</td><td class="r">€140</td><td class="r">€140</td><td class="r">€140</td></tr><tr class=""><td class="l">Day 2 city experience: vintage tram, guided walks, lunch</td><td class="r">€165</td><td class="r">€165</td><td class="r">€165</td></tr><tr class=""><td class="l">Day 3 Sintra and coast day: coaches, guides, palace entry, lunch</td><td class="r">€210</td><td class="r">€210</td><td class="r">€210</td></tr><tr class=""><td class="l">Day 4 gala dinner at exclusive-use venue, with entertainment</td><td class="r">€295</td><td class="r">€295</td><td class="r">€295</td></tr><tr class=""><td class="l">Welcome gift and two room drops</td><td class="r">€65</td><td class="r">€65</td><td class="r">€65</td></tr><tr class=""><td class="l">On-site staff and hospitality desk (5 days)</td><td class="r">€92</td><td class="r">€92</td><td class="r">€92</td></tr><tr class=""><td class="l">Program management fee</td><td class="r">€120</td><td class="r">€120</td><td class="r">€120</td></tr><tr class="sub"><td class="l"><b>Total per person</b></td><td class="r"><b>€3,245</b></td><td class="r"><b>€2,805</b></td><td class="r"><b>€2,605</b></td></tr><tr class="total"><td class="l"><b>Program total (120 guests)</b></td><td class="r"><b>€389,400</b></td><td class="r"><b>€336,600</b></td><td class="r"><b>€312,600</b></td></tr></tbody></table>
+<div class="grid2" style="margin-top:6px">
+  <div class="card tint"><p style="margin:0"><b>Group size changes.</b> Per-person prices hold between 110 and 130 guests. Below 110, the gala venue and staffing are re-quoted.</p></div>
+  <div class="card tint"><p style="margin:0"><b>Taxes.</b> Prices include Portuguese VAT where it applies. International flights are not included.</p></div>
+</div></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>6 / 8</span></div></section><section class="page  "><div class="hdr"><span><b>Saltmarrow Journeys DMC</b></span><span>Incentive Program · Lisbon, May 2027</span></div><div class="content">
+<div class="kicker">05 · Inclusions and logistics</div>
+<div class="grid2">
+  <div><h2>Included</h2><ul><li>4 nights' accommodation, single occupancy, with breakfast and city tax</li><li>All airport transfers, timed to flight banks</li><li>Welcome dinner, day 2 lunch, day 3 lunch and gala dinner with drinks as described</li><li>Guides, entrance fees and private trams on day 2</li><li>Gala venue hire, entertainment, awards staging and lighting</li><li>Welcome gift and two room drops</li><li>On-site staff, hospitality desk and guest app</li></ul></div>
+  <div><h2>Not included</h2><ul><li>International flights and travel insurance</li><li>Meals not listed (day 2 and 3 dinners are free evenings)</li><li>Optional activities and spa</li><li>Room service, minibar and personal expenses</li><li>Gratuities to hotel staff beyond the group arrangement</li></ul></div>
+</div>
+<h2 style="margin-top:8px">Logistics</h2>
+<table class="t "><colgroup><col style="width:20%"><col style="width:80%"></colgroup><thead><tr><th class="l">Area</th><th class="l">How we handle it</th></tr></thead><tbody><tr class=""><td class="l">Arrivals</td><td class="l">Flight manifest from you 6 weeks out. Shared transfers in 8- and 49-seat vehicles, grouped by arrival within 60 minutes; private car for anyone arriving outside the banks.</td></tr><tr class=""><td class="l">Staffing</td><td class="l">1 program director plus 8 on-site staff, one per 15 guests. Two staff travel with every coach; one stays at the hotel desk.</td></tr><tr class=""><td class="l">Group movements</td><td class="l">Coaches of 49 seats; three coaches plus one minibus on days 3 and 4. Every coach has a named host and a headcount on board.</td></tr><tr class=""><td class="l">Guest care</td><td class="l">24/7 hotel desk and phone line, guest app with the day's plan, dietary and access needs collected at registration.</td></tr><tr class=""><td class="l">Safety</td><td class="l">Licensed guides and coach operators, insurance certificates on file, a local medical contact on call.</td></tr></tbody></table></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>7 / 8</span></div></section><section class="page  "><div class="hdr"><span><b>Saltmarrow Journeys DMC</b></span><span>Incentive Program · Lisbon, May 2027</span></div><div class="content">
+<div class="kicker">06 · Terms</div>
+<h2>Booking terms</h2>
+<ul>
+<li><b>Validity.</b> This proposal and the hotel rates are held for 21 days from 3 November 2026, subject to availability on signing.</li>
+<li><b>Payment.</b> 30% on signing; 40% 90 days before arrival; 30% 30 days before arrival.</li>
+<li><b>Rooming list.</b> Final names 30 days before arrival. Up to 10% of rooms can be released without charge until 60 days before arrival.</li>
+<li><b>Cancellation.</b> More than 120 days: deposit retained. 120–61 days: 50% of the program total. 60 days or less: 100%.</li>
+<li><b>Changes.</b> Changes after signing are confirmed in writing with any cost before they are made.</li>
+</ul>
+<div class="kicker" style="margin-top:14px">07 · Next steps</div>
+<div class="grid3">
+  <div class="card"><div class="kicker">Step 1</div><h3>Pick a hotel</h3><p>A 30-minute call to agree the option and any program changes.</p></div>
+  <div class="card"><div class="kicker">Step 2</div><h3>Hold the rooms</h3><p>We place a courtesy hold on 120 rooms for 7 days while the contract is signed.</p></div>
+  <div class="card"><div class="kicker">Step 3</div><h3>Sign and launch</h3><p>Signed contract and deposit; we send the guest registration link within 5 working days.</p></div>
+</div>
+<div class="card tint" style="margin-top:12px"><p style="margin:0"><b>Contact.</b> Program Director, Saltmarrow Journeys DMC · programs@saltmarrow.example</p></div></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>8 / 8</span></div></section></body></html>

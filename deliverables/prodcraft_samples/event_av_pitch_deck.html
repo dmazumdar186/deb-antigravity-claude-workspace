@@ -1,0 +1,226 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Sales Kickoff 2027 · Production proposal — sample</title><style>:root{--accent:#2b3a67;}
+@page { size: 13.333in 7.5in; margin: 0; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #d9d6cf; }
+body { font-family: Inter, "Helvetica Neue", Arial, sans-serif; color: #16181c; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-feature-settings: "tnum" 1; }
+.page { width: 13.333in; height: 7.5in; background: #fff; position: relative; overflow: hidden;
+  page-break-after: always; break-after: page; display: flex; flex-direction: column; padding: 0.55in 0.7in 0.38in; }
+.page:last-child { page-break-after: auto; break-after: auto; }
+@media screen { .page { margin: 24px auto; box-shadow: 0 4px 18px rgba(0,0,0,.12); } }
+.hdr { display: flex; justify-content: space-between; align-items: baseline; font-size: 9.5px; letter-spacing: .14em;
+  text-transform: uppercase; color: #6b6f76; border-bottom: 1px solid #e4dfd6; padding-bottom: 8px; margin-bottom: 18px; flex: none; }
+.hdr b { color: #16181c; font-weight: 600; }
+.content { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+.ftr { flex: none; display: flex; justify-content: space-between; font-size: 9px; color: #6b6f76;
+  border-top: 1px solid #e4dfd6; padding-top: 7px; margin-top: 12px; }
+h1 { font-size: 34px; line-height: 1.12; margin: 0 0 10px; font-weight: 650; letter-spacing: -.02em; }
+h2 { font-size: 25px; line-height: 1.2; margin: 0 0 6px; font-weight: 650; letter-spacing: -.01em; }
+h3 { font-size: 14px; margin: 16px 0 7px; font-weight: 650; }
+.kicker { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); font-weight: 650; margin-bottom: 6px; }
+.lede { font-size: 14px; color: #3d4148; line-height: 1.5; margin: 0 0 14px; max-width: 46em; }
+p, li { font-size: 12px; line-height: 1.55; color: #2b2e33; }
+p { margin: 0 0 8px; }
+ul { margin: 0 0 8px; padding-left: 16px; } li { margin-bottom: 5px; }
+.small { font-size: 10.5px; color: #5b6068; }
+.t { width: 100%; border-collapse: collapse; font-size: 11.5px; margin: 4px 0 10px; }
+.t th { text-align: left; font-weight: 600; font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase; color: #5b6068;
+  border-bottom: 1.5px solid #16181c; padding: 5px 6px; }
+.t td { padding: 6.5px 7px; border-bottom: 1px solid #ebe7e0; vertical-align: top; }
+.t .r { text-align: right; white-space: nowrap; } .t .c { text-align: center; } .t .l { text-align: left; }
+.t tr.sub td { font-weight: 600; background: #f7f3ec; }
+.t tr.total td { font-weight: 700; font-size: 12.5px; border-top: 1.5px solid #16181c; border-bottom: none; background: #f7f3ec; }
+.t tr.muted td { color: #6b6f76; }
+.t tr.sec td { font-weight: 650; color: var(--accent); background: #fff; padding-top: 9px; font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase; }
+.gantt th.c { font-size: 8.5px; padding: 4px 1px; } .gantt td { padding: 4px 6px; } .gantt td.g { padding: 0; border-left: 1px solid #f0ece6; }
+.gantt td.g.on { background: var(--accent); background-clip: content-box; padding: 5px 0; }
+.gantt tr.gsub td { font-size: 8px; color: #6b6f76; padding: 2px 0; border-bottom: 1px solid #ebe7e0; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.card { border: 1px solid #e4dfd6; border-radius: 6px; padding: 12px 14px; background: #fff; }
+.card.tint { background: #f7f3ec; border-color: #ece6db; }
+.card h3 { margin-top: 0; }
+.stat .n { font-size: 26px; white-space: nowrap; font-weight: 700; letter-spacing: -.01em; }
+.stat .k { font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: #6b6f76; }
+.builtfrom { border: 1px solid #d8d1c4; border-left: 4px solid var(--accent); background: #f7f3ec; border-radius: 4px; padding: 10px 14px; }
+.bf-label { font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: #6b6f76; font-weight: 650; margin-bottom: 4px; }
+.bf-brief { font-size: 11.5px; line-height: 1.45; color: #2b2e33; font-style: italic; }
+.bf-arrow { font-size: 12.5px; font-weight: 650; color: var(--accent); margin-top: 6px; }
+.cover .content { justify-content: space-between; }
+.cover h1 { font-size: 40px; }
+.meta { display: flex; gap: 40px; font-size: 10.5px; color: #5b6068; }
+.meta > div:last-child { flex: none; }
+.meta b { display: block; color: #16181c; font-size: 12.5px; font-weight: 600; margin-top: 2px; }
+.band { height: 6px; background: var(--accent); margin: -1px 0 0; }
+.sig { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 10px; }
+.sig .line { border-bottom: 1px solid #16181c; height: 30px; margin-bottom: 3px; }
+.sig .lab { font-size: 9px; color: #6b6f76; margin-bottom: 10px; }
+.note { font-size: 9.5px; color: #5b6068; border-left: 2px solid #d8d1c4; padding-left: 8px; margin: 4px 0 8px; }
+.pill { display: inline-block; font-size: 9px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 2px 7px;
+  border-radius: 10px; background: #f7f3ec; color: #3d4148; border: 1px solid #e4dfd6; }
+/* deck */
+.deck .hdr { margin-bottom: 24px; font-size: 11px; } .deck .ftr { font-size: 11px; }
+.deck h1 { font-size: 60px; } .deck h2 { font-size: 38px; margin-bottom: 10px; } .deck .kicker { font-size: 12.5px; margin-bottom: 10px; }
+.deck .lede { font-size: 19px; max-width: 52em; margin-bottom: 20px; } .deck p, .deck li { font-size: 16px; } .deck li { margin-bottom: 6px; }
+.deck .t { font-size: 14.5px; } .deck .t td { padding: 7px 8px; } .deck .t th { font-size: 11px; padding: 7px 8px; }
+.deck .card { padding: 16px 18px; } .deck .card h3 { font-size: 18px; margin-bottom: 8px; } .deck h3 { font-size: 18px; }
+.deck .stat .n { font-size: 32px; } .deck .stat .k { font-size: 11px; } .deck .small { font-size: 13px; }
+.deck .bf-brief { font-size: 14px; } .deck .bf-label { font-size: 11px; } .deck .bf-arrow { font-size: 15px; }
+.deck .meta { font-size: 12.5px; gap: 40px; white-space: nowrap; } .deck .t tr.total td { font-size: 15.5px; } .deck .meta b { font-size: 15px; }
+.deck .gantt td { padding: 6px 8px; font-size: 14px; } .deck .gantt th.c { font-size: 11px; }
+.deck .gantt td.g.on { padding: 6px 0; }
+.deck .stage .el { font-size: 13px; } .deck .stage .lbl { font-size: 12px; }
+.oneliner { font-size: 40px; line-height: 1.3; font-weight: 600; letter-spacing: -.01em; max-width: 24em; margin: 8px 0 24px; }
+.stage { position: relative; border: 1px solid #d8d1c4; border-radius: 6px; background: #f7f3ec; height: 100%; }
+.stage .el { position: absolute; display: flex; align-items: center; justify-content: center; text-align: center;
+  font-size: 10.5px; font-weight: 600; color: #fff; border-radius: 3px; }
+.stage .lbl { position: absolute; font-size: 9.5px; color: #5b6068; text-align: center; }
+.split { display: grid; grid-template-columns: 1.05fr 1fr; gap: 28px; flex: 1; min-height: 0; }
+.itin .day { display: grid; grid-template-columns: 56px 1fr; gap: 10px; border-top: 1px solid #e4dfd6; padding: 10px 0 6px; }
+.itin .day .d { font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: .06em; text-transform: uppercase; }
+.itin .slot { display: grid; grid-template-columns: 74px 1fr; gap: 8px; margin-bottom: 4px; }
+.itin .slot .tm { font-size: 10px; color: #6b6f76; font-weight: 600; padding-top: 1px; }
+.itin .slot p { margin: 0; }
+</style></head><body><section class="page cover deck"><div class="hdr"><span><b>Merrow Lane Live</b></span><span>Sales Kickoff 2027 · Production proposal</span></div><div class="content">
+<div>
+  <div class="kicker">Production proposal · prepared for Velloran Software</div>
+  <h1>Sales Kickoff 2027<br>“Closer Together”</h1>
+  <p class="lede">Three days, 600 sellers, one room that feels like the start of a winning year. Concept, staging, AV and a budget in three tiers.</p>
+  <div class="grid4" style="margin-top:6px">
+    <div class="card tint"><p style="margin:0"><b>Concept</b><br>“Closer Together” and three signature moments</p></div>
+    <div class="card tint"><p style="margin:0"><b>The room</b><br>Stage, LED and seating plan for 600</p></div>
+    <div class="card tint"><p style="margin:0"><b>The show</b><br>Run of show, AV spec, timeline</p></div>
+    <div class="card tint"><p style="margin:0"><b>The money</b><br>Good, better, best budget in USD</p></div>
+  </div>
+</div>
+<div class="grid2" style="align-items:end">
+  <div class="meta"><div>Event<b>12–14 Jan 2027</b></div><div>Location<b>Las Vegas, NV</b></div><div>Attendees<b>600</b></div></div>
+  <div class="builtfrom"><div class="bf-label">Built from</div><div class="bf-brief">“Velloran Software needs its Sales Kickoff 2027 produced: 600 sellers and leaders, Las Vegas, three days in mid-January 2027. One general session room, six breakouts, an awards night. We want it to feel bigger than last year without the budget doubling. Please send concept, staging, AV and a budget range.”</div><div class="bf-arrow">→ this proposal in one working day</div></div>
+</div></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>1 / 11</span></div></section><section class="page  deck"><div class="hdr"><span><b>Merrow Lane Live</b></span><span>Sales Kickoff 2027 · Production proposal</span></div><div class="content">
+<div class="kicker">01 · The brief</div>
+<div class="oneliner">Make 600 sellers leave Las Vegas believing in the 2027 number, in a show that feels bigger than last year without the budget doubling.</div>
+<div class="grid4">
+  <div class="card tint stat"><div class="k">Audience</div><div class="n">600</div><p>Account executives, SEs, managers and the exec team</p></div>
+  <div class="card tint stat"><div class="k">Format</div><div class="n">3 days</div><p>General sessions, 6 breakouts, awards night</p></div>
+  <div class="card tint stat"><div class="k">Dates</div><div class="n">Jan 12–14</div><p>Load-in Jan 10–11, strike night of Jan 14</p></div>
+  <div class="card tint stat"><div class="k">Must land</div><div class="n">1 message</div><p>The 2027 plan, the new product line, and who won 2026</p></div>
+</div>
+<h3 style="margin-top:22px">What success looks like</h3>
+<ul><li>Every seller can repeat the 2027 plan in one sentence by the end of day 1.</li>
+<li>Breakouts run on time with no dead air between sessions.</li><li>Awards night is the moment people post about, not the one they leave early.</li></ul></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>2 / 11</span></div></section><section class="page  deck"><div class="hdr"><span><b>Merrow Lane Live</b></span><span>Sales Kickoff 2027 · Production proposal</span></div><div class="content">
+<div class="kicker">02 · Concept</div>
+<h2>“Closer Together”</h2>
+<p class="lede">A theme that works twice: closer to the customer, and closer as one team after a year of growth through hiring. Everything on stage points the same way, toward the people in the room.</p>
+<div class="grid3">
+  <div class="card"><h3>Look</h3><p>Warm neutrals with one strong blue. Big type, short lines. Every graphic is built to read from the back row.</p></div>
+  <div class="card"><h3>Story arc</h3><p>Day 1: where we are and where we go. Day 2: how we win, deal by deal. Day 3: who made it happen. Each day opens with a 90-second film.</p></div>
+  <div class="card"><h3>Room energy</h3><p>Crescent seating and a thrust bring the stage 20 ft closer to the audience. Walk-in music and lighting change by day.</p></div>
+</div>
+<h3 style="margin-top:18px">Signature moments</h3>
+<div class="grid3">
+  <div class="card tint"><p><b>The number reveal.</b> The 2027 target builds across the full LED wall, region by region, as each sales leader walks on.</p></div>
+  <div class="card tint"><p><b>Customer on stage.</b> A live 12-minute conversation with a customer, shot on three cameras for IMAG.</p></div>
+  <div class="card tint"><p><b>Awards walk.</b> Winners enter through the audience on a lit runway to the thrust.</p></div>
+</div></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>3 / 11</span></div></section><section class="page  deck"><div class="hdr"><span><b>Merrow Lane Live</b></span><span>Sales Kickoff 2027 · Production proposal</span></div><div class="content">
+<div class="kicker">03 · General session look</div>
+<div class="split">
+  <div style="display:flex;flex-direction:column;min-height:0">
+    <h2>One wide, warm stage</h2>
+    <p class="lede">A 56 ft stage with a full-width LED wall as the set itself. No scenic flats to haul; the wall changes the look for every segment.</p>
+    <ul>
+      <li><b>Main LED wall</b> 48 × 13.5 ft, 2.6 mm pitch, carries keynote graphics, films and live camera.</li>
+      <li><b>Two IMAG screens</b> flank the wall so the back rows see faces, not dots.</li>
+      <li><b>Thrust stage</b> 12 × 16 ft for fireside chats and the awards walk.</li>
+      <li><b>Lectern + confidence monitors</b> downstage, plus a countdown clock for every presenter.</li>
+      <li><b>FOH</b> centred two-thirds back, with sightline to the whole stage.</li>
+    </ul>
+    <div class="card tint" style="margin-top:auto"><p style="margin:0"><b>Room assumptions.</b> Ballroom about 30,000 sq ft, 28 ft to the rigging grid, theatre seating for 600 with room for camera risers. Confirmed at the site visit.</p></div>
+  </div>
+  <div style="min-height:0">
+<div class="stage">
+  <div class="lbl" style="top:2%;left:0;right:0">BACK OF HOUSE · video village · green room</div>
+  <div class="el" style="top:8%;left:20%;width:60%;height:10%;background:var(--accent)">MAIN LED WALL · 48 × 13.5 ft</div>
+  <div class="el" style="top:9.5%;left:4%;width:13%;height:7%;background:#5b6068">IMAG L</div>
+  <div class="el" style="top:9.5%;right:4%;width:13%;height:7%;background:#5b6068">IMAG R</div>
+  <div class="el" style="top:20%;left:22%;width:56%;height:12%;background:#16181c">STAGE · 56 × 24 ft · 3 ft high</div>
+  <div class="el" style="top:32%;left:43%;width:14%;height:13%;background:#16181c">THRUST</div>
+  <div class="lbl" style="top:47%;left:0;right:0">600 seats · crescent theatre rows · centre aisle to the thrust</div>
+  <div style="position:absolute;top:53%;left:8%;right:8%;height:28%;display:grid;grid-template-columns:repeat(5,1fr) 6% repeat(5,1fr);grid-auto-rows:1fr;gap:5px">
+    <div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div><div style="background:#d8d1c4;border-radius:2px"></div>
+  </div>
+  <div class="el" style="bottom:4%;left:25%;width:50%;height:8%;background:#5b6068">FOH · audio · lighting · cameras</div>
+</div></div>
+</div></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>4 / 11</span></div></section><section class="page  deck"><div class="hdr"><span><b>Merrow Lane Live</b></span><span>Sales Kickoff 2027 · Production proposal</span></div><div class="content">
+<div class="kicker">04 · Run of show</div>
+<h2>Day 1 skeleton · Tuesday 12 January</h2>
+<table class="t "><colgroup><col style="width:9%"><col style="width:37%"><col style="width:20%"><col style="width:34%"></colgroup><thead><tr><th class="l">Time</th><th class="l">Segment</th><th class="l">Room</th><th class="l">Production notes</th></tr></thead><tbody><tr class=""><td class="l">7:00</td><td class="l">Breakfast and walk-in</td><td class="l">Ballroom foyer</td><td class="l">Walk-in music, loop on LED</td></tr><tr class=""><td class="l">8:30</td><td class="l">Opening film + welcome</td><td class="l">General session</td><td class="l">90-second film, CRO on stage</td></tr><tr class=""><td class="l">8:45</td><td class="l">CEO keynote: the 2027 plan</td><td class="l">General session</td><td class="l">Number reveal, IMAG, 2 lav mics</td></tr><tr class=""><td class="l">9:30</td><td class="l">Product line launch</td><td class="l">General session</td><td class="l">Demo on LED, playback from video village</td></tr><tr class=""><td class="l">10:15</td><td class="l">Break</td><td class="l">Foyer</td><td class="l">Countdown on screens</td></tr><tr class=""><td class="l">10:35</td><td class="l">Customer on stage</td><td class="l">General session</td><td class="l">Thrust, 3 cameras, 2 handhelds</td></tr><tr class=""><td class="l">11:15</td><td class="l">Regional leaders panel</td><td class="l">General session</td><td class="l">4 seats on thrust</td></tr><tr class=""><td class="l">12:00</td><td class="l">Lunch</td><td class="l">Hall B</td><td class="l">Background music</td></tr><tr class=""><td class="l">13:15</td><td class="l">Breakouts, round 1 (6 rooms)</td><td class="l">Breakout level</td><td class="l">Projector + PA per room</td></tr><tr class=""><td class="l">14:30</td><td class="l">Breakouts, round 2</td><td class="l">Breakout level</td><td class="l">Room turns in 15 min</td></tr><tr class=""><td class="l">15:45</td><td class="l">Day 1 close: commitments</td><td class="l">General session</td><td class="l">Live poll on LED</td></tr><tr class=""><td class="l">18:30</td><td class="l">Welcome reception</td><td class="l">Pool terrace</td><td class="l">DJ, uplighting</td></tr></tbody></table>
+<p class="small">Day 2 is deal clinics and enablement in breakouts with a short general session; day 3 morning is the closing general session, evening is awards night. Full show script follows on approval.</p></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>5 / 11</span></div></section><section class="page  deck"><div class="hdr"><span><b>Merrow Lane Live</b></span><span>Sales Kickoff 2027 · Production proposal</span></div><div class="content">
+<div class="kicker">04 · Run of show, continued</div>
+<h2>Days 2 and 3 at a glance</h2>
+<div class="grid2" style="margin-top:6px">
+  <div class="card"><div class="kicker">Wednesday 13 January</div><h3>Day 2 · How we win</h3>
+  <ul><li>8:30 short general session: two customer wins told by the reps who closed them.</li>
+  <li>9:15 to 15:30 deal clinics and enablement in six breakouts, four rounds.</li>
+  <li>Lunch by region, with leaders hosting tables.</li>
+  <li>16:00 product lab in the foyer: demo pods, run by SEs.</li>
+  <li>Evening free; regional dinners booked by the client.</li></ul></div>
+  <div class="card"><div class="kicker">Thursday 14 January</div><h3>Day 3 · Who made it happen</h3>
+  <ul><li>9:00 closing general session: the 2027 plan by region, CEO close.</li>
+  <li>11:30 finish; afternoon free for travel or team time.</li>
+  <li>18:30 awards night: cocktails, dinner for 600, awards walk on the lit runway.</li>
+  <li>21:30 live band and late bar until midnight.</li>
+  <li>Strike begins at 00:30; out of the venue by 08:00.</li></ul></div>
+</div>
+<p class="small" style="margin-top:12px">The general session room flips to awards night between 12:00 and 17:00 on day 3; the stage, LED wall and FOH stay in place.</p></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>6 / 11</span></div></section><section class="page  deck"><div class="hdr"><span><b>Merrow Lane Live</b></span><span>Sales Kickoff 2027 · Production proposal</span></div><div class="content">
+<div class="kicker">05 · AV & staging spec</div>
+<h2>What goes in the room</h2>
+<table class="t "><colgroup><col style="width:12%"><col style="width:20%"><col style="width:68%"></colgroup><thead><tr><th class="l">Area</th><th class="l">Item</th><th class="l">Specification</th></tr></thead><tbody><tr class=""><td class="l">Video</td><td class="l">Main LED wall</td><td class="l">48 × 13.5 ft, 2.6 mm, with processor and spare panels</td></tr><tr class=""><td class="l">Video</td><td class="l">IMAG screens (2)</td><td class="l">16:9 projection 9 × 16 ft, 20K lumen projectors</td></tr><tr class=""><td class="l">Video</td><td class="l">Cameras</td><td class="l">3 broadcast cameras (2 on tripods, 1 handheld), switcher, record</td></tr><tr class=""><td class="l">Video</td><td class="l">Playback</td><td class="l">Redundant playback servers, confidence monitors, countdown clock</td></tr><tr class=""><td class="l">Audio</td><td class="l">PA</td><td class="l">Line array L/R with front fills and delays for 600 seats</td></tr><tr class=""><td class="l">Audio</td><td class="l">Microphones</td><td class="l">8 RF lavalier, 4 RF handheld, 1 lectern mic, audience mic runner</td></tr><tr class=""><td class="l">Lighting</td><td class="l">Stage</td><td class="l">Front and back wash, 24 moving heads, haze, key light for camera</td></tr><tr class=""><td class="l">Lighting</td><td class="l">Room</td><td class="l">Uplighting on room walls, house light control</td></tr><tr class=""><td class="l">Breakouts</td><td class="l">6 rooms</td><td class="l">Projector + screen, 2 mics, small PA, laptop switcher, room tech per 2 rooms</td></tr><tr class=""><td class="l">Staging</td><td class="l">Stage + thrust</td><td class="l">56 × 24 ft at 3 ft, 12 × 16 ft thrust, stairs, skirting, ADA ramp</td></tr><tr class=""><td class="l">Crew</td><td class="l">Show crew</td><td class="l">Producer, stage manager, show caller, A1, V1, L1, camera ops, stagehands</td></tr></tbody></table>
+<p class="small">Spec shown is the “Better” tier. Final quantities confirmed after the venue site visit and rigging plot review.</p></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>7 / 11</span></div></section><section class="page  deck"><div class="hdr"><span><b>Merrow Lane Live</b></span><span>Sales Kickoff 2027 · Production proposal</span></div><div class="content">
+<div class="kicker">06 · Budget</div>
+<h2>Three ways to do it</h2>
+<div style="display:grid;grid-template-columns:2.2fr 1fr;gap:24px">
+  <div><table class="t "><colgroup><col style="width:52%"><col style="width:16%"><col style="width:16%"><col style="width:16%"></colgroup><thead><tr><th class="l">Line</th><th class="r">Good</th><th class="r">Better</th><th class="r">Best</th></tr></thead><tbody><tr class=""><td class="l">Creative & show content (theme, graphics, films)</td><td class="r">$48,000</td><td class="r">$72,000</td><td class="r">$110,000</td></tr><tr class=""><td class="l">Set & staging (stage, thrust, scenic, drape)</td><td class="r">$85,000</td><td class="r">$128,000</td><td class="r">$185,000</td></tr><tr class=""><td class="l">LED & video (main wall, IMAG, cameras, playback)</td><td class="r">$96,000</td><td class="r">$142,000</td><td class="r">$214,000</td></tr><tr class=""><td class="l">Audio (line array, RF mics, monitors)</td><td class="r">$38,000</td><td class="r">$46,000</td><td class="r">$58,000</td></tr><tr class=""><td class="l">Lighting (stage wash, moving lights, room)</td><td class="r">$42,000</td><td class="r">$61,000</td><td class="r">$88,000</td></tr><tr class=""><td class="l">Breakout AV (6 rooms, 3 days)</td><td class="r">$36,000</td><td class="r">$42,000</td><td class="r">$54,000</td></tr><tr class=""><td class="l">Awards night production</td><td class="r">$28,000</td><td class="r">$45,000</td><td class="r">$72,000</td></tr><tr class=""><td class="l">Crew & labor (incl. venue labor estimate)</td><td class="r">$74,000</td><td class="r">$92,000</td><td class="r">$118,000</td></tr><tr class=""><td class="l">Production management & show calling</td><td class="r">$45,000</td><td class="r">$52,000</td><td class="r">$60,000</td></tr><tr class=""><td class="l">Freight, travel & per diems</td><td class="r">$22,000</td><td class="r">$26,000</td><td class="r">$31,000</td></tr><tr class="total"><td class="l"><b>Total production</b></td><td class="r"><b>$514,000</b></td><td class="r"><b>$706,000</b></td><td class="r"><b>$990,000</b></td></tr><tr class="muted"><td class="l">Per attendee (÷ 600)</td><td class="r">$857</td><td class="r">$1,177</td><td class="r">$1,650</td></tr></tbody></table></div>
+  <div>
+    <div class="card tint"><h3>Good</h3><p>Same room, smaller wall, one film, standard awards set.</p></div>
+    <div class="card tint" style="margin-top:8px;border-left:3px solid var(--accent)"><h3>Better · recommended</h3><p>Full-width wall, thrust, three films, lit awards walk.</p></div>
+    <div class="card tint" style="margin-top:8px"><h3>Best</h3><p>Curved wall, kinetic lighting, live-music awards night, extra content.</p></div>
+  </div>
+</div>
+<p class="small">Illustrative USD figures. Excludes venue rental, food and beverage, attendee travel, venue in-house rigging and power fees, and sales tax.</p></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>8 / 11</span></div></section><section class="page  deck"><div class="hdr"><span><b>Merrow Lane Live</b></span><span>Sales Kickoff 2027 · Production proposal</span></div><div class="content">
+<div class="kicker">07 · Production timeline</div>
+<h2>From sign-off to show day</h2>
+<p class="lede" style="margin-bottom:10px">Ten weeks is tight for 600 people in January. The plan below works if the concept and tier are agreed by 20 November.</p>
+<table class='t gantt'><thead><tr><th class='l'>Activity</th><th class='c'>Nov 9</th><th class='c'>Nov 16</th><th class='c'>Nov 23</th><th class='c'>Nov 30</th><th class='c'>Dec 7</th><th class='c'>Dec 14</th><th class='c'>Dec 21</th><th class='c'>Dec 28</th><th class='c'>Jan 4</th><th class='c'>Jan 11</th></tr></thead><tbody><tr><td class='l'>Concept sign-off and budget lock</td><td class='g on'></td><td class='g on'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td></tr><tr><td class='l'>Equipment holds confirmed, crew booked</td><td class='g'></td><td class='g on'></td><td class='g on'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td></tr><tr><td class='l'>Site visit, rigging plot, venue contracts</td><td class='g'></td><td class='g on'></td><td class='g on'></td><td class='g on'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td></tr><tr><td class='l'>Show content: films, graphics, templates</td><td class='g'></td><td class='g'></td><td class='g on'></td><td class='g on'></td><td class='g on'></td><td class='g on'></td><td class='g on'></td><td class='g on'></td><td class='g'></td><td class='g'></td></tr><tr><td class='l'>Speaker briefings and slide deadlines</td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g on'></td><td class='g on'></td><td class='g on'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td></tr><tr><td class='l'>Final run of show and show script</td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g on'></td><td class='g on'></td><td class='g on'></td><td class='g'></td></tr><tr><td class='l'>Load-in, tech and rehearsals (Jan 10–11)</td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g on'></td><td class='g on'></td></tr><tr><td class='l'>Show days (Jan 12–14) and strike</td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g on'></td></tr></tbody></table>
+<div class="grid3" style="margin-top:10px">
+  <div class="card tint"><p style="margin:0"><b>20 Nov</b> · concept and tier approved, deposit received.</p></div>
+  <div class="card tint"><p style="margin:0"><b>11 Dec</b> · all presenter slides in; content locked 23 Dec.</p></div>
+  <div class="card tint"><p style="margin:0"><b>11 Jan</b> · full dress rehearsal with every presenter.</p></div>
+</div></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>9 / 11</span></div></section><section class="page  deck"><div class="hdr"><span><b>Merrow Lane Live</b></span><span>Sales Kickoff 2027 · Production proposal</span></div><div class="content">
+<div class="kicker">08 · Team & how we work</div>
+<h2>One producer, one plan, no surprises</h2>
+<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:4px">
+<div class="card tint"><h3>Executive producer</h3><p style="margin:0">Owns the budget and is your single point of contact from sign-off to wrap.</p></div><div class="card tint"><h3>Show producer</h3><p style="margin:0">Runs content, speakers and rehearsals; writes the show script.</p></div><div class="card tint"><h3>Technical director</h3><p style="margin:0">Owns the AV design, the rigging plot and the venue relationship.</p></div><div class="card tint"><h3>Stage manager + show caller</h3><p style="margin:0">Keep every segment on time and every presenter ready.</p></div><div class="card tint"><h3>Content team</h3><p style="margin:0">Films, show graphics and presenter templates in your brand.</p></div>
+</div>
+<h3 style="margin-top:22px">How we work</h3>
+<div class="grid2">
+  <ul><li>Weekly 30-minute call from sign-off, and a shared tracker with every open decision and its owner.</li>
+  <li>Budget changes shown before they are spent, never after.</li></ul>
+  <ul><li>Every speaker gets one rehearsal slot on the real stage, with a confidence monitor and clock.</li>
+  <li>Wrap report within ten working days of show close, with final costs against budget.</li></ul>
+</div></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>10 / 11</span></div></section><section class="page  deck"><div class="hdr"><span><b>Merrow Lane Live</b></span><span>Sales Kickoff 2027 · Production proposal</span></div><div class="content">
+<div class="kicker">09 · Next steps</div>
+<h2>To hold January 2027 crew and equipment</h2>
+<div class="grid3" style="margin-top:8px">
+  <div class="card"><div class="kicker">Step 1</div><h3>Choose a tier</h3><p>A 45-minute call to walk the budget and agree what moves between tiers.</p></div>
+  <div class="card"><div class="kicker">Step 2</div><h3>Site visit</h3><p>Our technical director meets the venue to confirm rigging, power and load-in times.</p></div>
+  <div class="card"><div class="kicker">Step 3</div><h3>Sign and hold</h3><p>Signed agreement and 30% deposit secure the crew and the LED stock for your dates.</p></div>
+</div>
+<h3 style="margin-top:22px">Decisions we need from you by 20 November</h3>
+<div class="grid4">
+  <div class="card"><p style="margin:0"><b>Tier</b><br>Good, better or best, and any lines to move between them</p></div>
+  <div class="card"><p style="margin:0"><b>Venue contact</b><br>Name at the hotel for rigging, power and load-in</p></div>
+  <div class="card"><p style="margin:0"><b>Speakers</b><br>Confirmed list for the three general sessions</p></div>
+  <div class="card"><p style="margin:0"><b>Awards</b><br>Number of categories and winners walking on</p></div>
+</div>
+<div class="card tint" style="margin-top:16px"><p><b>Validity.</b> Pricing holds for 30 days. January is peak season in Las Vegas; LED and crew availability is confirmed only on deposit.</p>
+<p style="margin:0"><b>Contact.</b> Executive Producer, Merrow Lane Live · producer@merrowlane.example</p></div></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>11 / 11</span></div></section></body></html>
