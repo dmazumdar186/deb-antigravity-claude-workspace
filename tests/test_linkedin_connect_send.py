@@ -1,0 +1,312 @@
+"""Offline tests for execution/personal_workflows/linkedin_connect_send.py.
+
+Page logic runs against local HTML fixtures (tests/fixtures/linkedin/) in Playwright's bundled
+Chromium; nothing touches LinkedIn, SMTP or Task Scheduler.
+"""
+from __future__ import annotations
+
+import contextlib
+import datetime as dt
+import email
+import email.header
+import importlib.util
+import os
+import sys
+from pathlib import Path
+
+import pytest
+
+ROOT = Path(__file__).resolve().parents[1]
+FIX = ROOT / "tests" / "fixtures" / "linkedin"
+_spec = importlib.util.spec_from_file_location(
+    "linkedin_connect_send", ROOT / "execution" / "personal_workflows" / "linkedin_connect_send.py")
+S = importlib.util.module_from_spec(_spec)
+sys.modules["linkedin_connect_send"] = S
+_spec.loader.exec_module(S)
+Q = S.Q
+
+MON, WED, THU, SUN = dt.date(2026, 11, 2), dt.date(2026, 11, 4), dt.date(2026, 11, 5), dt.date(2026, 11, 8)
+
+
+def _chromium_exe() -> str | None:
+    for c in (os.environ.get("LINKEDIN_TEST_CHROMIUM"), "/opt/pw-browsers/chromium"):
+        if c and Path(c).exists():
+            return c
+    return None
+
+
+@pytest.fixture(autouse=True)
+def _restore_queue_today(monkeypatch):
+    monkeypatch.setattr(Q, "_today", Q._today)  # run_day re-points it; undo after each test
+    monkeypatch.setattr(S, "CONFIRM_TIMEOUT_MS", 3_000)
+    monkeypatch.setattr(S, "RENDER_TIMEOUT_MS", 3_000)
+    monkeypatch.setattr(S, "NAV_TIMEOUT_MS", 5_000)
+
+
+@pytest.fixture(scope="module")
+def browser():
+    pw_mod = pytest.importorskip("playwright.sync_api")
+    with pw_mod.sync_playwright() as pw:
+        exe = _chromium_exe()
+        b = pw.chromium.launch(headless=True, **({"executable_path": exe} if exe else {}))
+        yield b
+        b.close()
+
+
+@pytest.fixture
+def page(browser):
+    ctx = browser.new_context()
+    p = ctx.new_page()
+    yield p
+    ctx.close()
+
+
+def url(name: str) -> str:
+    return (FIX / name).as_uri()
+
+
+def seed(data_dir: Path, people: list[tuple[str, str]], sent_today: int = 0, day: str = "2026-11-02") -> Q.Store:
+    """people: (slug, fixture file or raw URL). sent_today: extra already-sent master rows."""
+    rows = [{"slug": s, "name": f"{s.title()} Person", "company": "Acme & Co", "position": "CTO",
+             "linkedin_url": u if "://" in u else url(u), "source_file": "t.csv"} for s, u in people]
+    done = [{"slug": f"done{i}", "name": f"Done {i}", "company": "X", "position": "Y",
+             "linkedin_url": url("connect_header.html"), "source_file": "t.csv"} for i in range(sent_today)]
+    Q.write_csv(data_dir / "master.csv", rows + done, Q.FIELDS)
+    store = Q.Store(data_dir)
+    for r in done:
+        store.append_ledger({"ts": f"{day}T09:00:00", "date": day, "slug": r["slug"], "name": r["name"],
+                             "status": "sent", "note": ""})
+    return store
+
+
+def ledger(store: Q.Store) -> dict[str, tuple[str, str]]:
+    return {r["slug"]: (r["status"], r["note"]) for r in store.load_ledger() if not r["slug"].startswith("done")}
+
+
+# ----------------------------------------------------------------- page states
+
+@pytest.mark.parametrize("fixture,status,note", [
+    ("connect_header.html", "sent", ""),
+    ("connect_more.html", "sent", ""),
+    ("pending.html", "pending", ""),
+    ("first_degree.html", "already_connected", ""),
+    ("follow_only.html", "skipped", "no_connect_button"),
+    ("email_required.html", "skipped", "email_required"),
+    ("not_found.html", "skipped", "profile_gone"),
+    ("no_confirm.html", "retry", "unconfirmed"),
+])
+def test_profile_states(page, fixture, status, note):
+    out = S.process_profile(page, url(fixture), "jane-doe")
+    assert (out.status, out.note, out.stop) == (status, note, None)
+    assert not page.evaluate("window.noteClicked || false"), "never add a note"
+    assert not page.evaluate("window.otherClicked || false"), "never click a sidebar Connect"
+
+
+@pytest.mark.parametrize("fixture,reason", [
+    ("weekly_limit.html", "weekly invitation limit"),
+    ("security_check.html", "security check"),
+    ("logged_out.html", "not logged in"),
+])
+def test_stop_states(page, fixture, reason):
+    out = S.process_profile(page, url(fixture), "jane-doe")
+    assert out.stop == reason and out.status is None
+
+
+def test_more_menu_sends_via_alert_and_pending_flip(page):
+    out = S.process_profile(page, url("connect_more.html"), "jane-doe")
+    assert out.status == "sent"
+    assert page.evaluate("window.connectClicked") == 1 and page.evaluate("window.sendClicked")
+    assert page.get_by_role("button", name=S.PENDING_NAME).count() == 1
+
+
+def test_dry_run_clicks_nothing(page):
+    for fx in ("connect_header.html", "connect_more.html"):
+        out = S.process_profile(page, url(fx), "jane-doe", dry_run=True)
+        assert out.would_send and out.status is None
+        assert not page.evaluate("window.connectClicked || 0")
+
+
+def test_page_load_failure_is_retry(page):
+    out = S.process_profile(page, "http://127.0.0.1:9/in/nobody/", "nobody")
+    assert out.status == "retry" and out.load_failed
+
+
+def test_canonical_slug():
+    assert S.canonical_slug("https://www.linkedin.com/in/karthikachari/", "karthik-achari-54b347198") == "karthikachari"
+    assert S.canonical_slug("https://www.linkedin.com/in/jane-doe/", "jane-doe") is None
+    assert S.canonical_slug("file:///x/connect_header.html", "jane-doe") is None
+
+
+# ----------------------------------------------------------------- the day's loop
+
+def test_run_day_marks_each_outcome_and_sleeps_between(page, tmp_path):
+    store = seed(tmp_path, [("a", "connect_header.html"), ("b", "pending.html"), ("c", "follow_only.html"),
+                            ("d", "email_required.html"), ("e", "first_degree.html")])
+    naps: list[float] = []
+    res = S.run_day(page, store, "2026-11-02", sleep=naps.append)
+    assert res.stop is None and res.sent_run == 1 and res.processed == 5
+    assert ledger(store) == {"a": ("sent", ""), "b": ("pending", ""), "c": ("skipped", "no_connect_button"),
+                             "d": ("skipped", "email_required"), "e": ("already_connected", "")}
+    assert len(naps) == 4 and all(45 <= n <= 120 for n in naps)
+    assert {r["date"] for r in store.load_ledger()} == {"2026-11-02"}
+
+
+def test_run_day_respects_cap_and_replans_after_skips(page, tmp_path):
+    people = [(f"s{i}", "follow_only.html") for i in range(3)] + [(f"c{i}", "connect_header.html") for i in range(4)]
+    store = seed(tmp_path, people, sent_today=18)
+    res = S.run_day(page, store, "2026-11-02", sleep=lambda s: None)
+    assert res.stop is None and res.sent_run == 2
+    assert len(Q._sent_on(store.load_ledger(), "2026-11-02")) == S.DAILY_SEND_CAP
+
+
+def test_run_day_stops_on_weekly_limit(page, tmp_path):
+    store = seed(tmp_path, [("a", "weekly_limit.html")])
+    res = S.run_day(page, store, "2026-11-02", sleep=lambda s: None)
+    assert res.stop == "weekly invitation limit" and ledger(store) == {}
+
+
+def test_run_day_stops_after_two_consecutive_load_failures(page, tmp_path):
+    store = seed(tmp_path, [("a", "http://127.0.0.1:9/in/a/"), ("b", "http://127.0.0.1:9/in/b/"),
+                            ("c", "http://127.0.0.1:9/in/c/")])
+    res = S.run_day(page, store, "2026-11-02", sleep=lambda s: None)
+    assert res.stop == "two page-load failures" and res.processed == 2
+    assert sorted(v[0] for v in ledger(store).values()) == ["retry", "retry"]
+
+
+def test_run_day_dry_run_writes_no_ledger(page, tmp_path):
+    store = seed(tmp_path, [("a", "connect_header.html"), ("b", "connect_more.html"), ("c", "pending.html")])
+    res = S.run_day(page, store, "2026-11-02", dry_run=True, sleep=lambda s: None)
+    assert sorted(r["slug"] for r in res.would_send) == ["a", "b"] and not store.ledger.exists()
+
+
+# ----------------------------------------------------------------- calendar, cap, email
+
+def test_send_days_and_cap_constants():
+    assert [d for d in range(7) if S.is_send_day(MON + dt.timedelta(days=d))] == [0, 1, 3, 4, 5]
+    assert not S.is_send_day(WED) and not S.is_send_day(SUN) and S.is_send_day(THU)
+    assert S.DAILY_SEND_CAP * len(S.SEND_DAYS) == 100
+
+
+def test_room_left():
+    assert S.room_left(0) == 20 and S.room_left(7) == 13 and S.room_left(20) == 0 and S.room_left(25) == 0
+
+
+def test_subject():
+    assert S.build_subject("2026-11-02", 20, None) == "LinkedIn connects 2026-11-02 (20 sent)"
+    assert S.build_subject("2026-11-02", 3, "weekly invitation limit") == \
+        "LinkedIn connects 2026-11-02 (3 sent) — STOPPED: weekly invitation limit"
+
+
+def test_table_html_escapes_and_has_only_the_table():
+    rows = [{"slug": "jo-o", "name": "Jo <b>O'Neil</b>", "company": "A & B", "position": 'Head "of" <x>'}]
+    body = S.build_table_html(rows)
+    assert body.strip().startswith("<table") and body.strip().endswith("</table>")
+    assert "<b>" not in body and "&lt;b&gt;" in body and "A &amp; B" in body and "&quot;of&quot;" in body
+    assert '<a href="https://www.linkedin.com/in/jo-o/">jo-o</a>' in body
+    for h in ("#", "First name", "Name", "Company", "Position", "LinkedIn ID"):
+        assert f">{h}</th>" in body
+    assert ">Jo</td>" in body
+    assert S.build_table_html([]).count("<tr>") == 1
+
+
+def test_install_script_shape(tmp_path):
+    ps = S.build_install_ps(r"C:\Py\python.exe", Path(r"C:\repo\s.py"), tmp_path)
+    assert "-DaysOfWeek Monday,Tuesday,Thursday,Friday,Saturday -At 10:00" in ps
+    assert "-StartWhenAvailable" in ps and "-MultipleInstances IgnoreNew" in ps and "-LogonType Interactive" in ps
+    assert "Register-ScheduledTask -TaskName 'LinkedIn connect send'" in ps and " run'" in ps
+
+
+# ----------------------------------------------------------------- cmd_run end to end
+
+def _patch_browser(monkeypatch, browser):
+    """cmd_run's browser = a fresh context on the shared test Chromium (one sync_playwright per process)."""
+    @contextlib.contextmanager
+    def fake_open(data_dir, headless=False):
+        ctx = browser.new_context()
+        try:
+            yield ctx.new_page()
+        finally:
+            ctx.close()
+    monkeypatch.setattr(S, "open_browser", fake_open)
+    monkeypatch.setattr(S.time, "sleep", lambda s: None)
+
+
+def test_rest_day_is_silent_noop(tmp_path):
+    seed(tmp_path, [("a", "connect_header.html")])
+    before = sorted(p.name for p in tmp_path.iterdir())
+    assert S.cmd_run(tmp_path, dry_run=False, headless=True, today=WED) == 0
+    assert S.cmd_run(tmp_path, dry_run=False, headless=True, today=SUN) == 0
+    assert sorted(p.name for p in tmp_path.iterdir()) == before
+
+
+def test_marker_makes_run_idempotent(tmp_path, monkeypatch):
+    seed(tmp_path, [("a", "connect_header.html")])
+    S.marker_path(tmp_path, "2026-11-02").write_text("x", encoding="utf-8")
+    monkeypatch.setattr(S, "launch_context", lambda *a, **k: pytest.fail("must not launch"))
+    assert S.cmd_run(tmp_path, dry_run=False, headless=True, today=MON) == 0
+
+
+def test_config_errors(tmp_path, monkeypatch):
+    assert S.cmd_run(tmp_path / "empty", dry_run=True, headless=True, today=MON) == 3
+    seed(tmp_path, [("a", "connect_header.html")])
+    monkeypatch.delenv("GMAIL_SMTP_USER", raising=False)
+    monkeypatch.delenv("GMAIL_SMTP_APP_PASSWORD", raising=False)
+    assert S.cmd_run(tmp_path, dry_run=False, headless=True, today=MON) == 3
+
+
+def test_dry_run_writes_eml(tmp_path, monkeypatch, browser):
+    _patch_browser(monkeypatch, browser)
+    seed(tmp_path / "d", [("a", "connect_header.html"), ("b", "follow_only.html")])
+    rc = S.cmd_run(tmp_path / "d", dry_run=True, headless=True, today=MON, eml_dir=tmp_path / "eml")
+    assert rc == 0
+    msg = email.message_from_bytes((tmp_path / "eml" / "linkedin_connect_2026-11-02.eml").read_bytes())
+    assert str(email.header.make_header(email.header.decode_header(msg["Subject"]))) == \
+        "LinkedIn connects 2026-11-02 (1 sent)"
+    assert msg.get_content_type() == "text/html" and not msg.is_multipart()
+    assert "<table" in msg.get_payload(decode=True).decode()
+    assert not S.marker_path(tmp_path / "d", "2026-11-02").exists() and not Q.Store(tmp_path / "d").ledger.exists()
+
+
+class _FakeSMTP:
+    sent: list = []
+
+    def __init__(self, *a, **k): pass
+    def __enter__(self): return self
+    def __exit__(self, *a): return False
+    def starttls(self): pass
+    def login(self, u, p): pass
+    def send_message(self, m): _FakeSMTP.sent.append(m)
+
+
+def test_real_run_sends_one_email_and_writes_marker(tmp_path, monkeypatch, browser):
+    _patch_browser(monkeypatch, browser)
+    monkeypatch.setenv("GMAIL_SMTP_USER", "me@example.com")
+    monkeypatch.setenv("GMAIL_SMTP_APP_PASSWORD", "x")
+    monkeypatch.setattr(S.smtplib, "SMTP", _FakeSMTP)
+    _FakeSMTP.sent = []
+    store = seed(tmp_path, [("a", "connect_header.html"), ("b", "weekly_limit.html")])
+    rc = S.cmd_run(tmp_path, dry_run=False, headless=True, today=MON)
+    sent_rows = Q._sent_on(store.load_ledger(), "2026-11-02")
+    n = len(sent_rows)
+    assert len(_FakeSMTP.sent) == 1
+    subj = _FakeSMTP.sent[0]["Subject"]
+    if n == 1:  # shuffled order: a first -> 1 sent then the limit; b first -> 0 sent
+        assert rc == 2 and "(1 sent) — STOPPED: weekly invitation limit" in subj
+    else:
+        assert rc == 2 and "(0 sent) — STOPPED: weekly invitation limit" in subj
+    assert S.marker_path(tmp_path, "2026-11-02").exists()
+    assert S.cmd_run(tmp_path, dry_run=False, headless=True, today=MON) == 0 and len(_FakeSMTP.sent) == 1
+
+
+def test_zero_sent_while_people_remain_is_stopped(tmp_path, monkeypatch, browser):
+    _patch_browser(monkeypatch, browser)
+    monkeypatch.setenv("GMAIL_SMTP_USER", "me@example.com")
+    monkeypatch.setenv("GMAIL_SMTP_APP_PASSWORD", "x")
+    monkeypatch.setattr(S.smtplib, "SMTP", _FakeSMTP)
+    monkeypatch.setattr(S, "MAX_PASSES", 1)
+    _FakeSMTP.sent = []
+    people = [(f"s{i}", "follow_only.html") for i in range(2)]
+    seed(tmp_path, people)
+    monkeypatch.setattr(S, "DAILY_SEND_CAP", 1)  # queue of 1, the rest remain unseen
+    assert S.cmd_run(tmp_path, dry_run=False, headless=True, today=MON) == 2
+    assert _FakeSMTP.sent[0]["Subject"].endswith("— STOPPED: 0 sent while people remained")

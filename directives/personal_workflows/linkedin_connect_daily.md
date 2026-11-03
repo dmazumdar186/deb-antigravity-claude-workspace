@@ -1,5 +1,7 @@
 # LinkedIn Connect Daily — 25 connection requests/day from the operator's own browser
 
+> **Superseded by linkedin_connect_send.md (2026-11-03).**
+
 > **Status (2026-10-26):** report is one table only; slots cut 8 → 3 (08/12/18 Europe/Paris), all three re-signed with runbook v1.1 at 09:38 Europe/Paris; 24/24 evals pass. A manual fire of the since-deleted 22:00 slot at 08:24 left no email and no Drive snapshot (its run record vanished with the task); the day's batch was re-fired on the 08:00 slot at 09:17. Previous: **(2026-10-23, end of day):** built; audited; 24/24 evals pass. **Day 1 complete: 25/25 sent** (14 in the morning Cowork run, 11 in the afternoon device-linked run), 3 skipped, 2 slug aliases recorded, report emailed, Drive snapshot `ledger_2026-10-23T1452.csv` uploaded, reconcile check tested green. Master now 8,202 people from 19 CSVs (8,955 cross-file duplicates merged).
 > **Runs in Cowork (local), never in a cloud session.** The cloud container has no LinkedIn login and a datacenter IP; a login from there trips LinkedIn's checkpoint. Cowork drives the operator's already-logged-in Chrome via the Claude in Chrome extension.
 > **Risk statement (operator accepted 2026-10-23):** sending invitations with a tool is outside LinkedIn's User Agreement. Mitigation is pace and restraint, not concealment: ≤25/day, human-like gaps, stop on the first warning. No fingerprint spoofing, no proxy rotation, no multiple accounts.
