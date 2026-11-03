@@ -202,6 +202,18 @@ End-of-contract handover: the client (GitHub `kumarjitendra`) gets his own repo,
 - **Handover tree:** orphan branch `handover/yogaavecjitendra` = standalone repo (site source, `.pages.yml` Pages CMS config incl. corporate section, reviews, client logos). Client manual: `README.md` (EN) + `LISEZMOI.md` (FR).
 - **Setup runbook:** `HANDOVER_SETUP.md` on that branch: 30-min screen-share (repo push + ownership transfer, his CF Pages project, GoDaddy nameserver move, Pages CMS login, optional KV/secrets, done checklist). DNS records to recreate in his zone are listed there.
 - **Cutover script:** `execution/personal_workflows/yoga_jitendra_site/scripts/handover_cutover.py` (stdlib). Default dry run; `--status` shows domains + deploy flags; `--apply` removes `yogaavecjitendra.fr` + `www` from the operator's `yoga-jitendra` Pages project and sets `production_deployments_enabled=false`, `preview_deployment_setting=none`. Run `--apply` only after his zone is Active and immediately before he adds the custom domains in his project. Delete the zone from the operator account only after GoDaddy points at his nameservers.
+- **Sequencing (operator-only, not in the client repo):** settle payment first, then the screen-share. Repo transfer and domain cutover are the only steps that move ownership; the live site already showing delivered work is fine and is not rolled back.
+- **Operator-side dependencies to retire after cutover** (nothing below is in the client repo; each keeps running in the operator's accounts until removed):
+
+  | Dependency | Where | After cutover |
+  |---|---|---|
+  | `yoga-jitendra-cron` Worker (daily GBP reviews + GSC/Bing/WA pulls, 06:00 Paris) | operator Cloudflare | Delete. New Google reviews then stop syncing; client adds them in Pages CMS (README §9). |
+  | KV `DASHBOARD_KV` + `YOGA_CRON_WORKER_SECRET` | operator Cloudflare | Delete with the Worker (export first with `cron/dump_kv.py` if wanted). |
+  | `yoga-jitendra` Pages project | operator Cloudflare | After `handover_cutover.py --apply` and one green week on his project, delete. |
+  | Zone `yogaavecjitendra.fr` | operator Cloudflare | Remove once GoDaddy shows his nameservers (HANDOVER_SETUP §3f). |
+  | OAuth app + GSC/GBP refresh tokens, My Business API | Google Cloud project `yoga-jitendra-dashboard` (operator Google account) | Revoke the tokens and delete or archive the project; the dashboard is not handed over. |
+  | Dashboard `/dashboard/` | his repo (code only) | Inert in his project unless he adds KV + `DASHBOARD_PASS` (HANDOVER_SETUP §5, optional). |
+  | GoDaddy domain, ad accounts | client's own logins | Nothing to do; confirm he is registrant / billing owner. |
 
 ## Changelog
 
