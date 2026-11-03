@@ -22,15 +22,18 @@ search-by-meaning, live meters, zero-LLM chatbots).
 ## Level 1 — the router (`/jev on|off|status|test|pick`)
 
 - Hook: `UserPromptSubmit` → `.claude/mods/jev-router-mod` (shell hook archived in `docs/reference/hooks-archive/2026-10-22/`) → `execution/infrastructure/jev_router.py hook`.
-- One Jev call per prompt with two questions: **tier** (tiny / bulk / standard / hard) and **skill**
-  (menu = every `.claude/skills/*/SKILL.md` name + description, plus `none`).
+- One Jev call per prompt with up to three questions: **tier** (tiny / bulk / standard / hard), **skill**
+  (menu = every `.claude/skills/*/SKILL.md` name + description, plus `none`) and **advise** (plugin
+  advisor, below).
 - Injected context (only when confidence ≥ `min_confidence`):
   - tiny, hard → inline on `claude-fable-5-1` (the session model).
   - bulk → one sub-agent on `claude-sonnet-5-5`.
   - standard → one sub-agent on `claude-opus-5-5`.
   - skill match ≥ `skill_min_confidence` → "load `<skill>` first".
   Haiku is banned; the Haiku slot from the video is Sonnet here (operator order 2026-10-06).
-- Config `.claude/jev/config.json` (routes, thresholds, timeout 2.5 s). State `.claude/jev/state.json`.
+- Config `.claude/jev/config.json` (routes, thresholds, timeout 2.5 s; toggles `skill_pick` and `advise`
+  default true; `advisor_min_confidence` 0.6). State `.claude/jev/state.json` (`enabled`, `changed`,
+  `suggested.{session_id}` — key `_` when the hook payload has no session_id).
 - Fail-open: missing key, timeout, HTTP error, bad JSON → no output, prompt untouched. Slash commands,
   `!` shell lines and prompts under 12 chars are never routed.
 - Privacy: when ON, prompt text (≤ 6000 chars) is sent to OpenRouter → TypeSafe. `/jev off` for
