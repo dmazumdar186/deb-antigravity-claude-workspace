@@ -215,7 +215,7 @@ End-of-contract handover: the client (GitHub `kumarjitendra`) gets his own repo,
   | Dashboard `/dashboard/` | his repo (code only) | Inert in his project unless he adds KV + `DASHBOARD_PASS` (HANDOVER_SETUP §5, optional). |
   | GoDaddy domain, ad accounts | client's own logins | Nothing to do; confirm he is registrant / billing owner. |
 
-- **Known open item:** live KV holds one review twice (Google "Vivi E" + moderated "Virginie E"); `scripts/merge_duplicate_review.py --apply` merges them (backups first). Evidence script for the delivery: `tests/yoga_jitendra_handover/final_verify.sh`.
+- **Duplicate review merged 2026-11-03:** live KV held one review twice (Google "Vivi E" + moderated "Virginie E"); `scripts/merge_duplicate_review.py --apply` kept the Google record with the moderated name/text and `edited_at` (the cron skips it as a newer local edit) and deleted the copy. Backups in `.tmp/kv_backup_2026-11-03`. Re-running prints "Nothing to do". Evidence script for the delivery: `tests/yoga_jitendra_handover/final_verify.sh`.
 
 ## Changelog
 
