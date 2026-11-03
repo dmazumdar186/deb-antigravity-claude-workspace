@@ -415,6 +415,9 @@ content:
   - name: cta_body
     label: 'Contact box: text'
     type: text
+  - name: cta_closing
+    label: "Contact box: closing sentence (bold, above the button)"
+    type: text
   - name: cta_label
     label: 'Contact box: button text'
     type: string
@@ -471,6 +474,9 @@ content:
     type: string
   - name: cta_body
     label: 'Contact box: text'
+    type: text
+  - name: cta_closing
+    label: "Contact box: closing sentence (bold, above the button)"
     type: text
   - name: cta_label
     label: 'Contact box: button text'

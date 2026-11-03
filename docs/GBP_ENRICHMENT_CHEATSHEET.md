@@ -1,4 +1,4 @@
-# GBP enrichment cheat-sheet — for Debanjan @ debolshop@gmail.com
+# GBP enrichment cheat-sheet — for Debanjan @ the operator's Google account
 
 Copy-paste-ready values for the Google Business Profile at CID `0xc39304b7fc72d34b` (Yoga avec Jitendra, 22 rue Eugène Manuel 75016 Paris). Go through this once, top-to-bottom, in the GBP dashboard: [business.google.com](https://business.google.com).
 

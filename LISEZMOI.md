@@ -4,7 +4,7 @@ Ce site est à vous. Vous en êtes le seul propriétaire. Vous n'avez pas besoin
 
 Lisez seulement la partie dont vous avez besoin. (English version: README.md)
 
-Les noms des boutons et des pages de l'éditeur sont en anglais : ils sont écrits ici **en gras**, exactement comme à l'écran.
+Les noms des boutons et des pages de l'éditeur sont en anglais : ils sont écrits ici **en gras**, exactement comme à l'écran. Les plus utiles : **Save** = Enregistrer, **Upload** = Envoyer un fichier, **Add an item** = Ajouter une ligne, **Delete** = Supprimer.
 
 ---
 
@@ -19,6 +19,7 @@ Les noms des boutons et des pages de l'éditeur sont en anglais : ils sont écri
 Vous avez aussi **GoDaddy** (https://www.godaddy.com), où vous payez le nom « yogaavecjitendra.fr ». Voir partie 15.
 
 Notez vos 3 mots de passe dans un endroit sûr. Activez le code par téléphone (connexion en deux étapes) quand GitHub le propose.
+Mot de passe GitHub oublié ? Allez sur https://github.com/password_reset et tapez votre e-mail.
 
 ---
 
@@ -28,7 +29,7 @@ Notez vos 3 mots de passe dans un endroit sûr. Activez le code par téléphone 
 2. Cliquez sur **Sign in with GitHub**.
 3. Tapez votre e-mail et mot de passe GitHub. Si GitHub le demande, tapez le code reçu.
 4. Une liste de projets apparaît. Cliquez sur **yogaavecjitendra**.
-   Si vous voyez seulement vos anciens projets, l'installation n'est pas terminée. Envoyez un WhatsApp à Debanjan.
+   Si vous voyez seulement vos anciens projets, l'installation unique (HANDOVER_SETUP.md) n'est pas encore terminée.
 5. À gauche, le menu apparaît : **Media**, **Home page (French)**, **Home page (English)**, et les autres pages.
 
 **Media** apparaît seulement après avoir ouvert le projet (étape 4).
@@ -93,6 +94,8 @@ Chaque langue a sa propre page : modifiez la page française ET la page anglaise
 
 **Supprimer une photo de la photothèque :** **Media** → les 3 points à côté de la photo → **Delete**. Seulement si aucune page ne l'utilise.
 
+**Vidéos :** utilisez une vidéo MP4 de moins de 20 Mo (Cloudflare refuse tout fichier de plus de 25 Mo, et le site ne se met alors pas à jour). Mettez-la dans **Media** → dossier **videos**, puis choisissez-la dans **Offerings / classes** → **Tiles** → ouvrez le cours → **Video**. Vidéo trop lourde : envoyez-la-vous d'abord sur WhatsApp, elle devient plus légère.
+
 ---
 
 ## 6. La galerie de photos (les photos qui défilent)
@@ -120,7 +123,7 @@ Chaque langue a sa propre page : modifiez la page française ET la page anglaise
 
 Pour retirer une entreprise : corbeille sur sa ligne, puis **Save**.
 
-La petite phrase sous les logos est dans **Home page (French)** et **Home page (English)**, case **Short sentence under the company logos**.
+La petite phrase sous les logos est dans **Home page (French)** et **Home page (English)**, case **Short sentence under the title, above the logos**.
 
 ---
 
@@ -210,8 +213,9 @@ L'éditeur ne les montre pas : si vous restez dans l'éditeur, vous ne risquez r
 2. Essayez sur un autre téléphone ou un autre navigateur. Les anciennes pages restent parfois en mémoire.
 3. Avez-vous changé une case « Leave as it is if unsure » ? Annulez (partie 11).
 4. Ouvrez Cloudflare (https://dash.cloudflare.com) → **Workers & Pages** → votre projet → **Deployments**. La ligne du haut doit être verte. Si elle est rouge, votre dernier enregistrement a un problème : annulez votre dernière modification (partie 11), puis **Save**.
-5. Le site a complètement disparu ? Vérifiez que le nom de domaine est payé chez GoDaddy (partie 15).
-6. Toujours cassé : contactez un développeur (partie 16).
+5. Le site n'a pas changé après 10 minutes ? Cloudflare vous envoie un e-mail disant que la mise à jour a échoué. Dans cet e-mail (ou sur la ligne rouge dans Cloudflare **Deployments**), cherchez un message qui commence par **PROBLÈME / PROBLEM** : il donne le nom de la page à corriger (par exemple « Home page (French) »). Ouvrez cette page dans l'éditeur, corrigez-la ou annulez avec l'icône horloge (partie 11), puis cliquez sur **Save**.
+6. Le site a complètement disparu ? Vérifiez que le nom de domaine est payé chez GoDaddy (partie 15).
+7. Toujours cassé : contactez un développeur (partie 16).
 
 ---
 

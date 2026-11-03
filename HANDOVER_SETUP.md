@@ -36,7 +36,12 @@ Order matters. The domain can only be attached to one Pages project at a time, s
    - **Root directory**: leave empty
    - **Environment variables** → **Add variable**: `NODE_VERSION` = `22` (Astro 5 needs Node 18.20.8+ / 20.3+ / 22; pin it so a future image change does not break the build).
 6. **Save and Deploy**. Wait for the green "Success" (2 to 4 min).
+   (Keep `NODE_VERSION` = `22` from step 5; the repo also carries `.nvmrc` = `22`.)
 7. Open `https://yogaavecjitendra.pages.dev` (the exact URL is shown at the top of the project). Check home, FR/EN switch, the corporate section, logos, reviews, gallery.
+
+Build-failure emails (do not skip): Cloudflare dashboard → **Notifications** → **Add** → **Pages** → **Deployment failed** → project `yogaavecjitendra` → his email → **Save**. If a save in the editor breaks the build, he gets an email; the build log shows a `PROBLÈME / PROBLEM` line naming the page to fix (written by `scripts/check_content.mjs`, which runs first in every build). The live site keeps its last good version meanwhile.
+
+Optional, visitor statistics: in his Pages project → **Metrics** → **Web Analytics** → **Enable**. (The site no longer sends statistics to the operator's account.)
 
 ## 3. Move the domain to Jitendra's Cloudflare (20 min including waiting)
 
@@ -95,7 +100,7 @@ Note: after the cutover, new Google reviews no longer sync to the site automatic
 
 ## 5. OPTIONAL: features that need Cloudflare storage
 
-The public site is complete without this. Only these extras need it: the private statistics dashboard (`/dashboard/`), the "leave a review" form, and the newsletter box. Without it they show nothing or a polite error; nothing else breaks.
+The public site is complete without this. Only these extras need it: the private statistics dashboard (`/dashboard/`), the "leave a review" form, and the newsletter box. The review form and the newsletter box are hidden from the site until switched on (step 4); the reviews page then shows the list plus a "leave your review on Google" line. Nothing else breaks.
 
 1. Jitendra's Cloudflare → **Storage & Databases** → **KV** → **Create** namespace `DASHBOARD_KV`; copy its ID.
 2. On GitHub, edit `wrangler.toml` in his repo and add (this file manages bindings; the dashboard binding UI is read-only while it exists):
@@ -105,7 +110,8 @@ The public site is complete without this. Only these extras need it: the private
    id = "<the ID from step 1>"
    ```
 3. Pages project → **Settings** → **Variables and Secrets** → add secret `DASHBOARD_PASS` (dashboard login name is `jitendra`), and `TURNSTILE_SECRET` if the review form's anti-spam is wanted.
-4. **Deployments** → **Retry deployment**. Details: `docs/DASHBOARD_ACTIVATION.md`. Exported data to import is in `data/kv/`.
+4. Only after the KV binding exists: Pages project → **Settings** → **Environment variables** (Variables and Secrets) → add `PUBLIC_ENABLE_REVIEW_FORM` = `1` to show the "leave a review" form, and/or `PUBLIC_ENABLE_NEWSLETTER` = `1` to show the newsletter box. (Without the binding these would show errors to visitors, so leave them unset until step 1-2 are done.)
+5. **Deployments** → **Retry deployment**. Details: `docs/DASHBOARD_ACTIVATION.md`. Exported data to import is in `data/kv/`.
 
 ## 6. Done checklist
 

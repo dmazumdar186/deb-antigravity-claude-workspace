@@ -214,8 +214,8 @@ def check_worker_cron_and_kv() -> list[str]:
         errors.append("yoga_jitendra_cron/wrangler.toml missing [triggers] crons")
     if "DASHBOARD_KV" not in src:
         errors.append("yoga_jitendra_cron/wrangler.toml missing DASHBOARD_KV binding")
-    if "4cdf5cdb6fc14db3b29edcab6c464714" not in src:
-        errors.append("yoga_jitendra_cron/wrangler.toml: KV namespace id must match Pages")
+    if "id =" not in src:
+        errors.append("yoga_jitendra_cron/wrangler.toml: DASHBOARD_KV binding needs a namespace id (same as Pages)")
     idx = worker_root / "src" / "index.js"
     if idx.exists():
         idx_src = idx.read_text(encoding="utf-8")

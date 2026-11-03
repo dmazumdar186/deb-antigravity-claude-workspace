@@ -16,11 +16,11 @@
 # Exit 0 = pass, non-zero = fail.
 #
 # Env:
-#   SITE_URL   default https://yoga-jitendra-cron.debanjan186.workers.dev
+#   SITE_URL   default https://yoga-jitendra-cron.<your-subdomain>.workers.dev
 
 set -u
 
-SITE_URL="${SITE_URL:-https://yoga-jitendra-cron.debanjan186.workers.dev}"
+SITE_URL="${SITE_URL:-https://yoga-jitendra-cron.<your-subdomain>.workers.dev}"
 errors=0
 
 fail() { echo "FAIL: $*" >&2; errors=$((errors + 1)); }

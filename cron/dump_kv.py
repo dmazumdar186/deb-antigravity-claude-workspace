@@ -8,7 +8,7 @@ Env: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID.  Usage: dump_kv.py <out_dir> [
 import json, os, sys, urllib.parse, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 
-NS = "4cdf5cdb6fc14db3b29edcab6c464714"
+NS = os.environ["DASHBOARD_KV_NAMESPACE_ID"]  # your KV namespace id
 TOKEN = os.environ["CLOUDFLARE_API_TOKEN"]
 ACCT = os.environ["CLOUDFLARE_ACCOUNT_ID"]
 BASE = f"https://api.cloudflare.com/client/v4/accounts/{ACCT}/storage/kv/namespaces/{NS}"

@@ -17,6 +17,14 @@ import reviewSourcesData from '../../content/review_sources.json';
 const lang = 'fr';
 const { reviews, count, average_rating } = loadReviews();
 const reviewSources = reviewSourcesData.sources;
+
+// OPTIONAL: the on-site review form needs the DASHBOARD_KV binding. Without
+// PUBLIC_ENABLE_REVIEW_FORM=1 the page keeps the list + sources and shows a
+// short line pointing to the Google review page instead (if one exists).
+const reviewFormEnabled = import.meta.env.PUBLIC_ENABLE_REVIEW_FORM === '1';
+const googleReviewUrl = (reviewSources.find((s: { key?: string; tone?: string; url?: string }) =>
+  (s.key === 'google' || s.tone === 'google') && typeof s.url === 'string' && s.url.startsWith('http')
+) || {}).url || '';
 ---
 <Base
   title="Tous les avis · Yoga avec Jitendra"
@@ -48,9 +56,15 @@ const reviewSources = reviewSourcesData.sources;
 
         <ReviewSources lang={lang} sources={reviewSources} />
 
-        <div id="add" class="reviews-form-block">
-          <ReviewForm lang={lang} compact={false} />
-        </div>
+        {reviewFormEnabled ? (
+          <div id="add" class="reviews-form-block">
+            <ReviewForm lang={lang} compact={false} />
+          </div>
+        ) : googleReviewUrl ? (
+          <p id="add" class="reviews-google-line">
+            Vous avez suivi un cours ? Laissez votre avis sur <a href={googleReviewUrl} target="_blank" rel="noopener">Google</a>.
+          </p>
+        ) : null}
       </div>
     </section>
   </main>
@@ -64,6 +78,15 @@ const reviewSources = reviewSourcesData.sources;
     line-height: 1.55;
     margin: 1rem 0 0;
     font-size: 1.05rem;
+  }
+  .reviews-google-line {
+    margin-top: 3rem;
+    color: var(--ink-soft, #6b6560);
+    font-size: 1rem;
+  }
+  .reviews-google-line a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
   .reviews-form-block {
     margin-top: 4rem;

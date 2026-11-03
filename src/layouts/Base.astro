@@ -208,11 +208,14 @@ const structuredData = {
       (overrides this default) or update the value here. Not included on the
       dashboard route to avoid vanity metrics polluting the public site's
       numbers. */}
-  {!dashboard && (
+  {/* Visitor statistics: only when YOUR Cloudflare Web Analytics token is set
+      (Cloudflare Pages > Settings > Environment variables > PUBLIC_CF_WA_TOKEN).
+      Or simply turn on Web Analytics in your Pages project; it adds itself. */}
+  {!dashboard && import.meta.env.PUBLIC_CF_WA_TOKEN && (
     <script
       defer
       src="https://static.cloudflareinsights.com/beacon.min.js"
-      data-cf-beacon={`{"token": "${import.meta.env.PUBLIC_CF_WA_TOKEN || '9a1473aafbd24daba793995956244a87'}"}`}
+      data-cf-beacon={`{"token": "${import.meta.env.PUBLIC_CF_WA_TOKEN}"}`}
     />
   )}
 </head>
@@ -243,8 +246,11 @@ const structuredData = {
       Component self-suppresses per-visitor for 30 days via localStorage,
       respects DNT + crawler UAs. See src/components/NewsletterPopup.astro
       + docs/gdpr_newsletter_popup_assessment.md. Backend today = KV-only
-      fallback (Brevo swap pending). */}
-  {!dashboard && <NewsletterPopup lang={lang} />}
+      fallback (Brevo swap pending).
+      OPTIONAL: only rendered when the build env sets
+      PUBLIC_ENABLE_NEWSLETTER=1 (needs the DASHBOARD_KV binding, else the
+      /api/newsletter-subscribe Function returns 500). See HANDOVER_SETUP.md §5. */}
+  {!dashboard && import.meta.env.PUBLIC_ENABLE_NEWSLETTER === '1' && <NewsletterPopup lang={lang} />}
 
   <!-- Motion One: fade-up reveals; skipped under prefers-reduced-motion -->
   <script type="module">

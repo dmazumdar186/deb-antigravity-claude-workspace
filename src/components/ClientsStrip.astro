@@ -57,16 +57,16 @@ function initials(name: string): string {
               ) : (
                 <span class="cs-monogram" aria-hidden="true">{c.monogram ?? initials(c.name)}</span>
               )}
-              <span class="cs-sr">{c.name}</span>
+              {!c.logo && <span class="cs-sr">{c.name}</span>}
             </a>
           ) : (
-            <span class="cs-item" aria-label={c.name} title={c.name}>
+            <span class="cs-item" title={c.name}>
               {c.logo ? (
                 <img src={c.logo} alt={c.name} loading="lazy" decoding="async" class="cs-logo" />
               ) : (
                 <span class="cs-monogram" aria-hidden="true">{c.monogram ?? initials(c.name)}</span>
               )}
-              <span class="cs-sr">{c.name}</span>
+              {!c.logo && <span class="cs-sr">{c.name}</span>}
             </span>
           )}
         </li>
@@ -77,7 +77,7 @@ function initials(name: string): string {
 
 <style>
   .clients-strip-section {
-    padding-block: 3.25rem;
+    padding: 3.25rem 1.25rem;
     border-top: 1px solid rgba(46, 42, 38, 0.08);
     border-bottom: 1px solid rgba(46, 42, 38, 0.08);
     background:
@@ -150,6 +150,16 @@ function initials(name: string): string {
     opacity: 1;
     transform: scale(1.04);
   }
+  /* Per-logo optical balance (2026-11-03 design pass): wide wordmarks and
+     padded PNGs otherwise read too small or too heavy next to their peers. */
+  .cs-logo[src*="fti"]      { max-height: none; width: 150px; }
+  .cs-logo[src*="emmaus"]   { max-height: 46px; }
+  .cs-logo[src*="believe"]  { width: 118px; }
+  @media (max-width: 560px) {
+    .cs-logo[src*="fti"]     { width: 100px; }
+    .cs-logo[src*="believe"] { width: 84px; }
+    .cs-logo[src*="emmaus"]  { max-height: 34px; }
+  }
   .cs-monogram {
     display: inline-flex;
     align-items: center;
@@ -178,14 +188,15 @@ function initials(name: string): string {
     overflow: hidden;
   }
 
-  /* Responsive: 6 desktop → 4 tablet → 2 mobile. All logos remain
+  /* Responsive: 6 desktop → 4 tablet → 3 mobile. All logos remain
      simultaneously visible — no carousel, no hidden pages. */
   @media (max-width: 1100px) {
     .cs-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   }
   @media (max-width: 560px) {
-    .cs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem 1.5rem; }
-    .cs-logo { max-height: 52px; }
-    .clients-strip-section { padding-block: 2.5rem; }
+    .cs-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem 1rem; }
+    .cs-logo { max-height: 40px; }
+    .cs-cell, .cs-item { min-height: 56px; }
+    .clients-strip-section { padding: 2.5rem 1.25rem; }
   }
 </style>

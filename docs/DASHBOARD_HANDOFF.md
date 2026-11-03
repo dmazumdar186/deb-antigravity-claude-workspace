@@ -178,7 +178,7 @@ The next context should confirm this split with Debanjan before starting the GLM
 | Source | Access | Cost | Latency | Notes |
 |---|---|---|---|---|
 | Google Search Console | GSC Search Analytics API (OAuth) | Free | ~24h | Debanjan already verified as domain property. Needs OAuth setup in Google Cloud Console for the Worker. |
-| Google Business Profile | Business Profile Performance API v1 | Free | ~24h | Debanjan already has Manager access via debolshop@gmail.com. Needs OAuth setup + one manual approval. |
+| Google Business Profile | Business Profile Performance API v1 | Free | ~24h | Debanjan already has Manager access via the operator's Google account. Needs OAuth setup + one manual approval. |
 | Bing Webmaster Tools | Bing WMT API | Free | ~24h | Already added; needs API key (one dashboard click). |
 | Ahrefs Webmaster Tools | Manual weekly (no API on free tier) | Free | Weekly | Debanjan copies numbers into CF KV via a signed admin route. |
 | Cloudflare Analytics | CF Analytics Engine API | Free | Live | Native — no OAuth. Post-V0.5. |
@@ -194,11 +194,11 @@ The next context should confirm this split with Debanjan before starting the GLM
 
 What's live and usable right now:
 
-- ✅ GSC verified as Domain property (debolshop@gmail.com)
+- ✅ GSC verified as Domain property (the operator's Google account)
 - ✅ GSC sitemap submitted; coverage data expected ~2026-07-13
 - ✅ Ahrefs WMT verified; Site Audit ran; Health Score 86; weekly re-crawl scheduled
 - ✅ Bing WMT added; sitemap submitted; data expected ~2026-07-13
-- ✅ GBP Manager access on debolshop@gmail.com; profile enriched (13 sections)
+- ✅ GBP Manager access on the operator's Google account; profile enriched (13 sections)
 - ✅ Corporate logos + SEO v2.0 live at yogaavecjitendra.fr
 - ✅ UTM tracking on all WhatsApp CTAs
 - ✅ `/merci` + `/en/thanks` conversion pages exist (and are now noindexed per Ahrefs cleanup)
@@ -291,7 +291,7 @@ Modify:
 **Cloudflare-side (one-time, next context asks Debanjan to click):**
 - Enable CF Access on the yoga-jitendra Pages project
 - Create an Access application scoped to `/dashboard/*`
-- Allowlist: `debolshop@gmail.com` + `jitendranitrr13@gmail.com`
+- Allowlist: `the operator's Google account` + `jitendranitrr13@gmail.com`
 - Policy: email magic link, 30-day session
 
 ---

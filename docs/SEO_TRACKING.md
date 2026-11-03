@@ -40,7 +40,7 @@ Baseline log for the v2.0 SEO project. Weekly snapshots + dropped-term log + Ric
 
 ## Touch 2 — GBP Manager access (2026-07-11)
 
-- Jitendra sent Manager invite → Debanjan (`debolshop@gmail.com`) accepted. **DONE.**
+- Jitendra sent Manager invite → Debanjan (`the operator's Google account`) accepted. **DONE.**
 - Enrichment cheat-sheet drafted at `GBP_ENRICHMENT_CHEATSHEET.md` (13 sections).
 - **GBP enrichment DONE by Debanjan same-day (sections 1–11, 13).**
 
@@ -179,5 +179,5 @@ Internal dashboard live at `/dashboard/` (English-only, behind Cloudflare Access
 - Six components: HeroTile, FunnelStrip, MilestoneStrip, NextMoveCard, SelfReportTile, ProvenanceFooter.
 - Single source of truth: `src/content/dashboard-data.json` (hand-edited weekly until V0.1 automation).
 - Monthly self-report form at `/dashboard/self-report/` with a Cloudflare Pages Function (`functions/api/self-report.ts`) persisting to a KV namespace named `DASHBOARD_KV`.
-- Manual owner steps to activate: enable CF Access on the Pages project scoped to `/dashboard/*` and `/api/*`, allowlist debolshop@gmail.com + jitendranitrr13@gmail.com; bind the `DASHBOARD_KV` namespace; set `PUBLIC_CF_WA_TOKEN` env var.
+- Manual owner steps to activate: enable CF Access on the Pages project scoped to `/dashboard/*` and `/api/*`, allowlist the operator's Google account + jitendranitrr13@gmail.com; bind the `DASHBOARD_KV` namespace; set `PUBLIC_CF_WA_TOKEN` env var.
 - Rollback: `git revert <sha> && wrangler pages deploy dist` then disable the Access application in the CF dashboard.

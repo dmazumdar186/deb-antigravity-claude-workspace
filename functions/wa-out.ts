@@ -36,17 +36,40 @@ export interface Env {
   DASHBOARD_KV?: KVNamespace;
 }
 
-// Allowlisted phones per source. All three current site-CTA sources map to
-// Jitendra's WhatsApp (+33 7 58 25 55 83). Add new entries here — never
+// Jitendra's WhatsApp number comes from the CMS-edited contact page
+// (src/content/contact.fr.json -> phone_href, e.g. "tel:+33758255583"), bundled
+// into this Function at build time by esbuild. Changing the phone in Pages CMS
+// therefore also changes where every WhatsApp button lands — no code edit.
+// If the field is missing or malformed we fall back to the known number.
+import contact from "../src/content/contact.fr.json";
+
+const FALLBACK_PHONE = "33758255583";
+
+function phoneFromContact(): string {
+  try {
+    const raw = (contact as { phone_href?: unknown })?.phone_href;
+    if (typeof raw !== "string") return FALLBACK_PHONE;
+    const digits = raw.replace(/\D/g, "");
+    // E.164 numbers are 8-15 digits; anything else is a typo -> fallback.
+    return digits.length >= 8 && digits.length <= 15 ? digits : FALLBACK_PHONE;
+  } catch {
+    return FALLBACK_PHONE;
+  }
+}
+
+const SITE_PHONE = phoneFromContact();
+
+// Allowlisted sources. Every current source maps to Jitendra's WhatsApp
+// (resolved above from the contact page). Add new entries here — never
 // accept a phone from the querystring. Phone digits only, no + prefix
 // (wa.me expects the E.164 number without the leading +).
 const PHONE_BY_SOURCE: Record<string, string> = {
-  hero: "33758255583",
-  contact: "33758255583",
-  topnav: "33758255583",
+  hero: SITE_PHONE,
+  contact: SITE_PHONE,
+  topnav: SITE_PHONE,
   // Dashboard-side CTA — sends the operator a message drafted for review
   // requests, per the "This week's next move" card.
-  next_move_review_request: "33758255583",
+  next_move_review_request: SITE_PHONE,
   // Any future source (footer, floating-CTA, service-page, etc.) MUST be
   // registered here first.
 };

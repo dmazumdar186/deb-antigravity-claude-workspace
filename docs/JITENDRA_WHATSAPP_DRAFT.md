@@ -74,7 +74,7 @@ Send after Touch 1 is answered. Purpose: unblock Phase 3 (Debanjan enriches the 
 >
 > 1. Ouvre https://business.google.com sur ton téléphone (connecté avec le compte Google qui gère ta fiche).
 > 2. Choisis "Yoga avec Jitendra" dans la liste.
-> 3. Menu ⋮ → **Paramètres de fiche → Personnes et accès → Ajouter** ("Add") → tape mon email : `debolshop@gmail.com` → rôle : **Gestionnaire** ("Manager") → Envoyer.
+> 3. Menu ⋮ → **Paramètres de fiche → Personnes et accès → Ajouter** ("Add") → tape mon email : `the operator's Google account` → rôle : **Gestionnaire** ("Manager") → Envoyer.
 >
 > Ça prend 2 min. Tu restes propriétaire — je peux juste éditer/répondre en ton nom. Tu peux me retirer à tout moment.
 
@@ -86,7 +86,7 @@ Send after Touch 1 is answered. Purpose: unblock Phase 3 (Debanjan enriches the 
 >
 > 1. Open https://business.google.com on your phone (signed in with the Google account that owns your listing).
 > 2. Pick "Yoga avec Jitendra" from the list.
-> 3. Menu ⋮ → **Business Profile settings → People and access → Add** → type my email: `debolshop@gmail.com` → role: **Manager** → Send.
+> 3. Menu ⋮ → **Business Profile settings → People and access → Add** → type my email: `the operator's Google account` → role: **Manager** → Send.
 >
 > Takes 2 min. You stay Owner — I can only edit/respond as you. You can remove me anytime.
 

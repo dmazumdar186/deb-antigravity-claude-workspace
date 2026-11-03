@@ -25,7 +25,7 @@
 //
 // KV writes go via `wrangler kv key put --binding=DASHBOARD_KV --remote` from
 // the sibling cron worker's wrangler.toml (which has the binding pinned to
-// namespace id 4cdf5cdb6fc14db3b29edcab6c464714). Requires wrangler CLI to
+// namespace id: your own DASHBOARD_KV id). Requires wrangler CLI to
 // be logged in against the Cloudflare account owning the KV.
 
 import { readFile, writeFile, mkdir } from 'node:fs/promises';

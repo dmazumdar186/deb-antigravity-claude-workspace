@@ -26,7 +26,7 @@ Follow in order. All commands run from the workspace root unless noted.
    - User Type: **External**
    - Publishing status: **Testing** (keep it here — production verification is a follow-up per plan §7.2a)
    - App name: `Yoga avec Jitendra Dashboard`
-   - Add **Test users**: `debolshop@gmail.com` and `jitendranitrr13@gmail.com`
+   - Add **Test users**: `the operator's Google account` and `jitendranitrr13@gmail.com`
    - Scopes: `webmasters.readonly` + `business.manage`
 4. **APIs & Services → Credentials → Create Credentials → OAuth 2.0 Client ID**:
    - Type: **Desktop app** (simpler than Web — no redirect URI to configure)
@@ -60,7 +60,7 @@ py -m pip install google-auth-oauthlib
 py get_google_refresh_token.py
 ```
 
-Two browser windows will open in sequence. Sign in with `debolshop@gmail.com` and approve. The script prints copy-paste-ready `wrangler secret put` commands with the refresh tokens.
+Two browser windows will open in sequence. Sign in with `the operator's Google account` and approve. The script prints copy-paste-ready `wrangler secret put` commands with the refresh tokens.
 
 **Note:** these refresh tokens expire after 7 days (Testing-status OAuth app policy per plan §7.2a — you approved Option A). Re-run this script every ~6 days.
 

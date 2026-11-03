@@ -5,12 +5,14 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
-    "prebuild": "SYNC_REVIEWS_SKIP=1 node scripts/sync_reviews.mjs",
+    "prebuild": "node scripts/check_content.mjs && SYNC_REVIEWS_SKIP=1 node scripts/sync_reviews.mjs",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
     "sync-reviews": "node scripts/sync_reviews.mjs",
-    "seed-reviews": "node scripts/seed_reviews.mjs"
+    "seed-reviews": "node scripts/seed_reviews.mjs",
+    "check-content": "node scripts/check_content.mjs",
+    "test-check-content": "node scripts/test_check_content.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",

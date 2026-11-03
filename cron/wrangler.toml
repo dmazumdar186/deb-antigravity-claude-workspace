@@ -45,7 +45,7 @@ CF_ZONE_HOSTNAME = "yogaavecjitendra.fr"
 # the site was registered with a hostname CF doesn't match by string
 # (e.g. `www.yogaavecjitendra.fr` vs `yogaavecjitendra.fr`). Rotate here
 # if the beacon token is ever regenerated in the CF dashboard.
-CF_WA_SITE_TAG = "9a1473aafbd24daba793995956244a87"
+CF_WA_SITE_TAG = ""  # your Cloudflare Web Analytics site tag (optional)
 
 # Bing WMT site URL — Bing wants the exact form submitted at verification time.
 BING_SITE_URL = "https://yogaavecjitendra.fr/"
@@ -56,10 +56,10 @@ BING_SITE_URL = "https://yogaavecjitendra.fr/"
 # approval is pending. See §7.2b of the plan file.
 GBP_LOCATION_ID = "locations/15110626893429158061"
 
-# GBP account owning the location above (debolshop@gmail.com's profile).
+# GBP account owning the location above (the Google account that manages the profile).
 # Used by the gbp_reviews forward-sync source (the v4 reviews API path
 # needs both account and location resource names).
-GBP_ACCOUNT_ID = "accounts/108615156479975841686"
+GBP_ACCOUNT_ID = ""  # e.g. "accounts/123456789", from Google Business Profile
 
 # KV binding shared with the Pages project. Namespace id was created 2026-07-19
 # via `wrangler kv namespace create DASHBOARD_KV`; do NOT create a new one.

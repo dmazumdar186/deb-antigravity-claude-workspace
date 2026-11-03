@@ -17,6 +17,7 @@ Read one section when you need it. You do not have to read everything. (Version 
 You also have **GoDaddy** (https://www.godaddy.com), where you pay for the name "yogaavecjitendra.fr". See section 15.
 
 Write your 3 passwords in a safe place. Turn on the phone code (two-step login) when GitHub asks you.
+Forgot your GitHub password? Go to https://github.com/password_reset and type your email.
 
 ---
 
@@ -26,7 +27,7 @@ Write your 3 passwords in a safe place. Turn on the phone code (two-step login) 
 2. Click **Sign in with GitHub**.
 3. Type your GitHub email and password. If GitHub asks, type the code it sends you.
 4. You see a list of projects. Click **yogaavecjitendra**.
-   If you only see your old projects, the setup is not finished. Send a WhatsApp to Debanjan.
+   If you only see your old projects, the one-time setup (HANDOVER_SETUP.md) is not finished yet.
 5. On the left you now see the menu: **Media**, **Home page (French)**, **Home page (English)**, and the other pages.
 
 **Media** only appears after you open the project (step 4).
@@ -91,6 +92,8 @@ Each language has its own page: change the French page AND the English page.
 
 **Delete a photo from the library:** **Media** → click the 3 dots next to the photo → **Delete**. Do this only if no page uses it any more.
 
+**Videos:** use an MP4 video under 20 MB (Cloudflare refuses any file over 25 MB, and then the website does not update). Put it in **Media** → folder **videos**, then choose it in **Offerings / classes** → **Tiles** → open the class → **Video**. A bigger video: send it to yourself on WhatsApp first, it becomes smaller.
+
 ---
 
 ## 6. The photo gallery (the photos that slide)
@@ -118,7 +121,7 @@ Each language has its own page: change the French page AND the English page.
 
 To remove a company: click the trash icon on its row, then **Save**.
 
-The short sentence under the logos is in **Home page (French)** and **Home page (English)**, box **Short sentence under the company logos**.
+The short sentence under the logos is in **Home page (French)** and **Home page (English)**, box **Short sentence under the title, above the logos**.
 
 ---
 
@@ -208,8 +211,9 @@ The editor does not show them, so you are safe if you stay in the editor.
 2. Try on another phone or in another browser. Old pages can stay in memory.
 3. Did you change a box that said "Leave as it is if unsure"? Undo it (section 11).
 4. Open Cloudflare (https://dash.cloudflare.com) → **Workers & Pages** → your project → **Deployments**. The top line should be green. If it is red, your last save had a problem: undo your last change (section 11), then **Save** again.
-5. The whole site is gone? Check that the domain is paid at GoDaddy (section 15).
-6. Still broken: contact a developer (section 16).
+5. The website did not change after 10 minutes? Cloudflare sends you an email saying the update failed. In that email (or on the red line in Cloudflare **Deployments**), look for a message starting with **PROBLÈME / PROBLEM**: it names the page to fix (for example "Home page (French)"). Open that page in the editor, fix it or undo it with the clock icon (section 11), then click **Save**.
+6. The whole site is gone? Check that the domain is paid at GoDaddy (section 15).
+7. Still broken: contact a developer (section 16).
 
 ---
 
