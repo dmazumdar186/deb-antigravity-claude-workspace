@@ -368,7 +368,11 @@ def _auto_detect_provider(tier: str) -> str:
             "--tier gemini requires GEMINI_API_KEY (free) or OPENROUTER_API_KEY (paid) in .env"
         )
 
-    # default / premium
+    # default / premium are Claude tiers. Operator decision 2026-11-03: Claude
+    # runs on the subscription (llm_client chain), never OpenRouter, unless
+    # CLAUDE_VIA=openrouter is set explicitly.
+    if os.environ.get("CLAUDE_VIA", "subscription").lower() != "openrouter":
+        return "subscription"
     if has_or:
         return "openrouter"
     if has_anthropic:
@@ -407,6 +411,23 @@ def _call_llm_humanize(
 
     provider = _auto_detect_provider(tier)
     log.info("Provider: %s | Tier: %s", provider, tier)
+
+    # ---------------------------------------------------------------------------
+    # Subscription path (Claude Code CLI chain; no tools, so plain-text reply)
+    # ---------------------------------------------------------------------------
+    if provider == "subscription":
+        try:
+            from execution.modules.llm_client import _claude_cli_completion
+        except ImportError:
+            from llm_client import _claude_cli_completion  # modules/ on sys.path
+        text_out = _claude_cli_completion(
+            system + "\n\nNo tools are available in this call: instead of calling "
+            "submit_humanized, reply with ONLY the rewritten text, nothing else.",
+            user_msg,
+        )
+        if not text_out.strip():
+            raise RuntimeError("Claude subscription returned an empty response")
+        return text_out.strip()
 
     # ---------------------------------------------------------------------------
     # OpenRouter path (OpenAI SDK compat)

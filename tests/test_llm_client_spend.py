@@ -43,6 +43,9 @@ def env(monkeypatch, tmp_path):
     monkeypatch.setattr(llm_client, "_spent_usd", 0.0)
     monkeypatch.setattr(llm_client.time, "sleep", lambda s: None)
     monkeypatch.delenv("LLM_BUDGET_USD", raising=False)
+    # OpenRouter-path tests with Claude models: since 2026-11-03 Claude defaults
+    # to the subscription CLI, so use the CLAUDE_VIA=openrouter escape hatch.
+    monkeypatch.setenv("CLAUDE_VIA", "openrouter")
 
     def install(outcomes):
         fake = FakeClient(outcomes)
@@ -77,7 +80,8 @@ def test_ledger_row_written(env):
 def test_estimate_when_cost_missing(env):
     env.install([_resp(cost=None, pt=1_000_000, ct=0)])
     llm_client.chat_completion("s", "u")
-    assert llm_client._spent_usd == pytest.approx(3.0)
+    # 1M input tokens of Sonnet 5.5 at the published $2/MTok list price.
+    assert llm_client._spent_usd == pytest.approx(2.0)
 
 
 def test_budget_guard_trips_and_stops_calling(env, monkeypatch):

@@ -20,6 +20,14 @@ from dotenv import load_dotenv
 load_dotenv(ROOT / ".env")
 
 
+@pytest.fixture(autouse=True)
+def _openrouter_path(monkeypatch):
+    # These tests exercise the OpenRouter retry path with the default (Claude)
+    # model; since 2026-11-03 Claude defaults to the subscription CLI, so pin
+    # the CLAUDE_VIA=openrouter escape hatch to keep testing the OR path.
+    monkeypatch.setenv("CLAUDE_VIA", "openrouter")
+
+
 class TestRetryLogic:
     """Test the retry behavior in chat_completion()."""
 

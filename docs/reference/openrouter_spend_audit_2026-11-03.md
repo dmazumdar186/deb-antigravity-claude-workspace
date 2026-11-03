@@ -81,3 +81,15 @@ balance was zero (`providers.py`: "Default plan under a zero Anthropic balance")
 never put to the operator as a money decision. Operator rule, restated 2026-11-03: **OpenRouter only for
 non-Claude models (GPT, GLM, Jev), never for Claude.** Re-pinning Fable→Sonnet (commit 65e6c25) does
 not address the largest line; moving Claude calls off OpenRouter does. Pending operator go-ahead.
+
+## Fix applied (operator go-ahead, 2026-11-03)
+
+Claude calls from scripts now run on the Claude subscription via the Claude Code CLI, not OpenRouter.
+`llm_client.chat_completion` routes any `claude` model id to a fixed chain (Opus 5.5 medium ->
+Fable 5.1 low -> Sonnet 5.5 high), moving down only on usage-limit errors; `ClaudeLimitReached` when
+all three are limited. `CLAUDE_VIA=openrouter` is the explicit escape hatch. Ledger rows carry
+`billing: subscription`, `cost_usd: null`, `notional_usd`; the $ guard ignores them. Bypass sites
+moved too: `gaia_sourcing/core/providers.py` (new `subscription` backend for every Claude role in
+every plan, 0 EUR against the ceiling) and `content/humanizer.py`. Still on OpenRouter for Claude:
+`video/youtube_video_analyzer.py --provider openrouter` (images + tool-use; the CLI path is text-only).
+Directive: `directives/infrastructure/llm_client.md`. Tests: `tests/test_claude_subscription_chain.py`.

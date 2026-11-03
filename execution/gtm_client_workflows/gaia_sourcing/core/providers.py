@@ -95,8 +95,8 @@ ROLE_MESSAGE = "message"   # L11: goes out under Gaia's name
 # 2026-09-01: premium moved claude-fable-5 -> claude-fable-5.1 (OR slug; dot form).
 ROUTING: dict[str, tuple[str, str]] = {
     ROLE_EXTRACT: ("gemini", "gemini-2.5-flash"),
-    ROLE_JUDGE: ("openrouter", "anthropic/claude-fable-5.1"),
-    ROLE_MESSAGE: ("openrouter", "anthropic/claude-fable-5.1"),
+    ROLE_JUDGE: ("subscription", "anthropic/claude-fable-5.1"),
+    ROLE_MESSAGE: ("subscription", "anthropic/claude-fable-5.1"),
 }
 
 # Applied by set_plan("anthropic") once the account is funded.
@@ -108,13 +108,13 @@ PLANS: dict[str, dict[str, tuple[str, str]]] = {
     },
     "hybrid": {
         ROLE_EXTRACT: ("gemini", "gemini-2.5-flash"),
-        ROLE_JUDGE: ("openrouter", "anthropic/claude-fable-5.1"),
-        ROLE_MESSAGE: ("openrouter", "anthropic/claude-fable-5.1"),
+        ROLE_JUDGE: ("subscription", "anthropic/claude-fable-5.1"),
+        ROLE_MESSAGE: ("subscription", "anthropic/claude-fable-5.1"),
     },
     "openrouter": {
-        ROLE_EXTRACT: ("openrouter", "anthropic/claude-sonnet-5.5"),
-        ROLE_JUDGE: ("openrouter", "anthropic/claude-fable-5.1"),
-        ROLE_MESSAGE: ("openrouter", "anthropic/claude-fable-5.1"),
+        ROLE_EXTRACT: ("subscription", "anthropic/claude-sonnet-5.5"),
+        ROLE_JUDGE: ("subscription", "anthropic/claude-fable-5.1"),
+        ROLE_MESSAGE: ("subscription", "anthropic/claude-fable-5.1"),
     },
     # Every role on the execution tier, for when the remaining balance will
     # not cover the judgement tier. Fable 5.1 is the right model for L8 tiering and
@@ -130,14 +130,14 @@ PLANS: dict[str, dict[str, tuple[str, str]]] = {
     # opt-in for a thin balance; it is the only plan that puts JUDGE/MESSAGE
     # on the execution tier.
     "budget": {
-        ROLE_EXTRACT: ("openrouter", "anthropic/claude-sonnet-5.5"),
-        ROLE_JUDGE: ("openrouter", "anthropic/claude-sonnet-5.5"),
-        ROLE_MESSAGE: ("openrouter", "anthropic/claude-sonnet-5.5"),
+        ROLE_EXTRACT: ("subscription", "anthropic/claude-sonnet-5.5"),
+        ROLE_JUDGE: ("subscription", "anthropic/claude-sonnet-5.5"),
+        ROLE_MESSAGE: ("subscription", "anthropic/claude-sonnet-5.5"),
     },
     "anthropic": {
-        ROLE_EXTRACT: ("anthropic", "claude-fable-5-1"),
-        ROLE_JUDGE: ("anthropic", "claude-fable-5-1"),
-        ROLE_MESSAGE: ("anthropic", "claude-fable-5-1"),
+        ROLE_EXTRACT: ("subscription", "claude-fable-5-1"),
+        ROLE_JUDGE: ("subscription", "claude-fable-5-1"),
+        ROLE_MESSAGE: ("subscription", "claude-fable-5-1"),
     },
     # 2026-09-11: the direct-API twin of "budget" -- every role on one model --
     # for the tail stages (adversarial, movability, messages) when the
@@ -145,9 +145,9 @@ PLANS: dict[str, dict[str, tuple[str, str]]] = {
     # a deliverable finished on the execution tier beats one that stops at
     # the ceiling with half the cards undrafted.
     "anthropic_budget": {
-        ROLE_EXTRACT: ("anthropic", "claude-fable-5-1"),
-        ROLE_JUDGE: ("anthropic", "claude-fable-5-1"),
-        ROLE_MESSAGE: ("anthropic", "claude-fable-5-1"),
+        ROLE_EXTRACT: ("subscription", "claude-fable-5-1"),
+        ROLE_JUDGE: ("subscription", "claude-fable-5-1"),
+        ROLE_MESSAGE: ("subscription", "claude-fable-5-1"),
     },
 }
 
@@ -430,10 +430,53 @@ def _call_anthropic(
     return None, stats
 
 
+# ---------------------------------------------------------------------------
+# Claude subscription (Claude Code CLI via execution/modules/llm_client.py)
+# ---------------------------------------------------------------------------
+
+
+def _call_subscription(
+    model: str, system: str, user: str, tool: dict, max_tokens: int, temperature: float
+) -> tuple[Optional[dict], dict]:
+    """Operator decision 2026-11-03: Claude runs on the subscription, never
+    OpenRouter. The llm_client chain (opus-5-5/medium -> fable-5-1/low ->
+    sonnet-5-5/high on usage limits) picks the model; `model` is the plan's pin
+    and is only recorded. The CLI runs with no tools, so the tool's schema is
+    put in the prompt and the reply parsed as JSON. max_tokens/temperature
+    cannot be passed to the CLI. Cost is 0 EUR: no money is spent."""
+    try:
+        from execution.modules.llm_client import _claude_cli_completion
+    except ImportError:  # run with execution/ (not the workspace root) on sys.path
+        from modules.llm_client import _claude_cli_completion
+
+    sys_prompt = (
+        system
+        + "\n\nNo tools are available in this call. Return the arguments you would pass to the "
+        + tool["name"] + " tool as ONE JSON object matching this JSON Schema, with no prose and "
+        + "no code fences:\n" + json.dumps(tool["input_schema"], ensure_ascii=False)
+    )
+    text = _claude_cli_completion(sys_prompt, user)
+    stats = {"input_tokens": 0, "output_tokens": 0, "cache_read_tokens": 0, "cache_write_tokens": 0}
+    t = text.strip()
+    if t.startswith("```"):
+        t = t.strip("`")
+        t = t[t.find("{"):] if "{" in t else t
+    start, end = t.find("{"), t.rfind("}")
+    if start < 0 or end <= start:
+        return None, stats
+    try:
+        parsed = json.loads(t[start:end + 1])
+    except json.JSONDecodeError:
+        # Dropped, never repaired (same policy as the Gemini backend).
+        return None, stats
+    return (parsed if isinstance(parsed, dict) else None), stats
+
+
 _BACKENDS = {
     "gemini": _call_gemini,
     "openrouter": _call_openrouter,
     "anthropic": _call_anthropic,
+    "subscription": _call_subscription,
 }
 
 # Per-provider EUR pricing per MTok. Gemini free tier is genuinely 0 within
@@ -455,6 +498,12 @@ PRICE_EUR: dict[str, dict[str, float]] = {
     "claude-opus-5": {"input": 4.60, "output": 23.00, "cache_read": 0.46, "cache_write": 5.75},
     "anthropic/claude-fable-5.1": {"input": 9.20, "output": 46.00, "cache_read": 0.23, "cache_write": 11.50},
     "claude-fable-5-1": {"input": 9.20, "output": 46.00, "cache_read": 0.23, "cache_write": 11.50},
+    # 2026-11-03: Sonnet 5.5 $2 / $10 / $0.20 / $2.50; Opus 5.5 $4 / $20 / $0.20 / $5.00
+    # (claude-api skill price table, cached 2026-10-06), at 0.92 EUR/USD.
+    "anthropic/claude-sonnet-5.5": {"input": 1.84, "output": 9.20, "cache_read": 0.184, "cache_write": 2.30},
+    "claude-sonnet-5-5": {"input": 1.84, "output": 9.20, "cache_read": 0.184, "cache_write": 2.30},
+    "anthropic/claude-opus-5.5": {"input": 3.68, "output": 18.40, "cache_read": 0.184, "cache_write": 4.60},
+    "claude-opus-5-5": {"input": 3.68, "output": 18.40, "cache_read": 0.184, "cache_write": 4.60},
 }
 
 
@@ -552,7 +601,8 @@ def call_role(
             result, stats = backend(model, system, user, tool, max_tokens, temperature)
             if provider == "gemini":
                 _gemini_reward()
-            spent = cost_eur(model, stats)
+            # Subscription calls spend no money: 0 EUR against both ceilings.
+            spent = 0.0 if provider == "subscription" else cost_eur(model, stats)
             total = _record_spend(spent)
             _append_ledger(CONFIG.campaign_id, role, model, spent)
             cumulative = cumulative_spend_eur()
@@ -623,6 +673,8 @@ def call_role(
             # rest of the stage one contained failure at a time".
             raise
         except Exception as exc:
+            if type(exc).__name__ == "ClaudeLimitReached":
+                raise  # every subscription tier is limited; retrying cannot help
             last = exc
             # A 400 is a permanent contract error (bad schema, deprecated
             # parameter). Retrying it three times just triples the latency
