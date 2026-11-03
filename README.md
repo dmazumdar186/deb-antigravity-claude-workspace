@@ -2,7 +2,7 @@
 
 This is your website. You own it completely. You do not need a developer to change texts, photos, reviews or logos.
 
-Read one section when you need it. You do not have to read everything. (Version française : LISEZMOI.md)
+Read one section when you need it. You do not have to read everything. (Version française : LISEZMOI.md. Only 5 minutes? Read QUICK_START.md.)
 
 ---
 
@@ -67,12 +67,24 @@ Some boxes say "Leave as it is if unsure". Those are links. Do not change them u
 3. Click **Upload** and choose the photo from your computer or phone.
    Use JPG photos under 1 MB. If the photo is very big, send it to yourself on WhatsApp first: it becomes smaller.
 
+**Where each photo is (page in the left menu → box to click):**
+
+| Photo on the website | Page in the left menu | Box |
+|---|---|---|
+| Big photo at the top | **Home page (French)** and **Home page (English)** | **Big photo at the top** |
+| Your portrait | **Home page (French)** and **Home page (English)** | **Your portrait photo** |
+| Photo of each class (studio, home, online, company) | **Offerings / classes (French)** and **(English)** | **Tiles** → open the class → **Image**, or **Images** if it has several photos |
+| The photos that slide | **Schedule & prices (French)** and **(English)** | **Gallery** (see section 6) |
+| Company logos | **Company logos** | **Logo** (see section 7) |
+
+Each language has its own page: change the French page AND the English page.
+
 **Step B: use the photo on a page**
 
 1. Left menu: click the page. For example **Home page (French)**.
 2. Find the photo box (for example **Big photo at the top**).
 3. Click on the photo, then choose your new photo from the list.
-4. In **Photo description**, write a few words about what the photo shows (Google and blind visitors read this).
+4. In the description box just under it (for example **Big photo description** or **Photo description**), write a few words about what the photo shows (Google and blind visitors read this).
 5. Click **Save**.
 
 **Delete a photo from a page:** click the small cross or trash icon on the photo, then **Save**.
@@ -84,7 +96,7 @@ Some boxes say "Leave as it is if unsure". Those are links. Do not change them u
 ## 6. The photo gallery (the photos that slide)
 
 1. Left menu: **Schedule & prices (French)**. Scroll down to **Gallery**.
-2. **Add a photo:** click **Add** at the bottom of the list. In the new row, click **Photo** and choose a photo. Write a **Photo description**.
+2. **Add a photo:** click **Add an item** at the bottom of the list. In the new row, click **Photo** and choose a photo. Write a **Photo description**.
 3. **Remove a photo:** click the trash icon on that row.
 4. **Change the order:** drag the row up or down.
 5. Click **Save**.
@@ -98,7 +110,7 @@ Some boxes say "Leave as it is if unsure". Those are links. Do not change them u
 
 1. **Media** → folder **logos** → **Upload** the logo (PNG or SVG, ideally with a transparent background).
 2. Left menu: **Company logos**.
-3. Click **Add** at the bottom of the list.
+3. Click **Add an item** at the bottom of the list.
 4. **Company name:** type the name.
 5. **Logo:** click and choose the logo you uploaded.
 6. **Website link (optional):** the company website, starting with https://. You can leave it empty.
@@ -114,7 +126,7 @@ The short sentence under the logos is in **Home page (French)** and **Home page 
 
 1. Left menu: **Yoga at work / companies (French)**.
 2. Change the texts: title, introduction, key points, the part for HR managers, the formats, and the contact box at the end.
-3. For lists (key points, formats, paragraphs): **Add** gives a new line, the trash icon removes one.
+3. For lists (key points, formats, paragraphs): **Add an item** gives a new line, the trash icon removes one.
 4. Click **Save**.
 5. Do the same in **Yoga at work / companies (English)**.
 
@@ -125,7 +137,7 @@ The short sentence under the logos is in **Home page (French)** and **Home page 
 Left menu: **Reviews (stars and comments)**. There is one list for both languages.
 
 **Add a review**
-1. Click **Add** at the bottom of the list.
+1. Click **Add an item** at the bottom of the list.
 2. **Name of the person:** for example "Marie D."
 3. **Stars (1 to 5):** type a number from 1 to 5.
 4. **Review text:** paste what the person wrote.
@@ -161,7 +173,7 @@ New Google reviews do not appear by themselves. Copy them here when you get one.
 Nothing is ever lost. Every save is kept.
 
 1. Open the page where you made the mistake.
-2. Click **History** (top right of the page).
+2. Click the **clock icon** (top right of the page; it is the History button and appears once the page has been saved at least once).
 3. Find the version from before your mistake (each line has a date and time).
 4. Open it, copy the old text back into the box, and click **Save**.
 

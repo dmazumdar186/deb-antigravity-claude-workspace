@@ -1,5 +1,5 @@
 {
-  "_comment": "Canonical client list rendered by ClientsCarousel.astro. Shared across FR/EN (company names don't translate). Fallback chain per client: `logo` file if present → `monogram` pill (short text). Add a `url` field to link out to the client site if desired. When the operator adds a new client, drop the logo into /public/assets/logos/ and append here — no code changes needed. See src/components/ClientsCarousel.astro.",
+  "_comment": "Company logos shown in the 'Ils m'ont fait confiance' strip (ClientsStrip.astro), shared by FR and EN. Each entry: name, logo (file in /assets/logos/) or monogram (text badge if no logo yet), optional url. Edit in Pages CMS > Company logos.",
   "clients": [
     {
       "name": "TotalEnergies",

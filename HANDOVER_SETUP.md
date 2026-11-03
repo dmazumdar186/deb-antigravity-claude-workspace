@@ -83,6 +83,8 @@ python3 execution/personal_workflows/yoga_jitendra_site/scripts/handover_cutover
 ### 3f. Operator cleanup (later, only after GoDaddy shows his nameservers)
 Operator's Cloudflare → `yogaavecjitendra.fr` → **Overview** → **Remove site from Cloudflare**. Optionally delete the `yoga-jitendra` Pages project and the `yoga-jitendra-cron` Worker once the new site has run fine for a week.
 
+Note: after the cutover, new Google reviews no longer sync to the site automatically (that sync ran on the operator's `yoga-jitendra-cron` Worker). Jitendra adds new reviews himself in the editor (**Reviews**, README section 9).
+
 ## 4. Pages CMS (Jitendra clicks, 5 min)
 
 1. https://app.pagescms.org → **Sign in with GitHub** → authorize Pages CMS.

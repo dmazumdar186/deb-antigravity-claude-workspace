@@ -86,20 +86,9 @@ content:
     label: Title above the company logos
     type: string
   - name: clients_caption
-    label: Short sentence under the company logos
+    label: Short sentence under the title, above the logos
     description: One sentence shown under "Ils m'ont fait confiance" / "They trusted me".
     type: text
-  - name: clients
-    label: Clients
-    type: object
-    fields:
-    - name: name
-      label: Name
-      type: string
-    - name: logo
-      label: Logo
-      type: image
-    list: true
   - name: hero_image
     label: Big photo at the top
     type: image
@@ -163,20 +152,9 @@ content:
     label: Title above the company logos
     type: string
   - name: clients_caption
-    label: Short sentence under the company logos
+    label: Short sentence under the title, above the logos
     description: One sentence shown under "Ils m'ont fait confiance" / "They trusted me".
     type: text
-  - name: clients
-    label: Clients
-    type: object
-    fields:
-    - name: name
-      label: Name
-      type: string
-    - name: logo
-      label: Logo
-      type: image
-    list: true
   - name: hero_image
     label: Big photo at the top
     type: image
@@ -992,7 +970,7 @@ content:
       type: string
       description: The company website, starting with https://. Can stay empty.
     - name: monogram
-      label: Short letters if no logo (optional)
+      label: Text shown if there is no logo (optional)
       description: Only used when there is no logo, for example "SP". Can stay empty.
       type: string
     list: true
@@ -1121,6 +1099,10 @@ content:
     label: Nav press
     type: string
     description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
+  - name: nav_corporate
+    label: Nav corporate (menu link to the company section)
+    type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: nav_contact
     label: Nav contact
     type: string
@@ -1186,6 +1168,10 @@ content:
     description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: nav_press
     label: Nav press
+    type: string
+    description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
+  - name: nav_corporate
+    label: Nav corporate (menu link to the company section)
     type: string
     description: Small technical text (menus, buttons, screen readers). Rarely needs changing.
   - name: nav_contact

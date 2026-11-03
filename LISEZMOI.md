@@ -69,12 +69,24 @@ Certaines cases disent « Leave as it is if unsure » (laissez tel quel en cas d
 3. Cliquez sur **Upload** et choisissez la photo sur votre ordinateur ou téléphone.
    Utilisez des photos JPG de moins de 1 Mo. Si la photo est très lourde, envoyez-la-vous d'abord sur WhatsApp : elle devient plus légère.
 
+**Où se trouve chaque photo (page dans le menu de gauche → case à cliquer) :**
+
+| Photo sur le site | Page dans le menu de gauche | Case |
+|---|---|---|
+| Grande photo en haut | **Home page (French)** et **Home page (English)** | **Big photo at the top** |
+| Votre portrait | **Home page (French)** et **Home page (English)** | **Your portrait photo** |
+| Photo de chaque cours (studio, domicile, en ligne, entreprise) | **Offerings / classes (French)** et **(English)** | **Tiles** → ouvrez le cours → **Image**, ou **Images** s'il y a plusieurs photos |
+| Les photos qui défilent | **Schedule & prices (French)** et **(English)** | **Gallery** (voir section 6) |
+| Logos des entreprises | **Company logos** | **Logo** (voir section 7) |
+
+Chaque langue a sa propre page : modifiez la page française ET la page anglaise.
+
 **Étape B : utiliser la photo sur une page**
 
 1. Menu de gauche : cliquez sur la page. Par exemple **Home page (French)**.
 2. Trouvez la case photo (par exemple **Big photo at the top**, la grande photo du haut).
 3. Cliquez sur la photo, puis choisissez la nouvelle dans la liste.
-4. Dans **Photo description**, écrivez quelques mots sur ce que montre la photo (Google et les personnes aveugles lisent ce texte).
+4. Dans la case de description juste en dessous (par exemple **Big photo description** ou **Photo description**), écrivez quelques mots sur ce que montre la photo (Google et les personnes aveugles lisent ce texte).
 5. Cliquez sur **Save**.
 
 **Retirer une photo d'une page :** cliquez sur la petite croix ou la corbeille sur la photo, puis **Save**.
@@ -86,7 +98,7 @@ Certaines cases disent « Leave as it is if unsure » (laissez tel quel en cas d
 ## 6. La galerie de photos (les photos qui défilent)
 
 1. Menu de gauche : **Schedule & prices (French)**. Descendez jusqu'à **Gallery**.
-2. **Ajouter une photo :** cliquez sur **Add** en bas de la liste. Dans la nouvelle ligne, cliquez sur **Photo** et choisissez une photo. Écrivez une **Photo description**.
+2. **Ajouter une photo :** cliquez sur **Add an item** en bas de la liste. Dans la nouvelle ligne, cliquez sur **Photo** et choisissez une photo. Écrivez une **Photo description**.
 3. **Retirer une photo :** cliquez sur la corbeille de la ligne.
 4. **Changer l'ordre :** faites glisser la ligne vers le haut ou le bas.
 5. Cliquez sur **Save**.
@@ -100,7 +112,7 @@ Certaines cases disent « Leave as it is if unsure » (laissez tel quel en cas d
 
 1. **Media** → dossier **logos** → **Upload** le logo (PNG ou SVG, idéalement avec un fond transparent).
 2. Menu de gauche : **Company logos**.
-3. Cliquez sur **Add** en bas de la liste.
+3. Cliquez sur **Add an item** en bas de la liste.
 4. **Company name :** tapez le nom de l'entreprise.
 5. **Logo :** cliquez et choisissez le logo envoyé.
 6. **Website link (optional) :** le site de l'entreprise, qui commence par https://. Peut rester vide.
@@ -116,7 +128,7 @@ La petite phrase sous les logos est dans **Home page (French)** et **Home page (
 
 1. Menu de gauche : **Yoga at work / companies (French)**.
 2. Changez les textes : titre, introduction, points clés, la partie pour les RH, les formats, et l'encadré de contact à la fin.
-3. Pour les listes (points clés, formats, paragraphes) : **Add** ajoute une ligne, la corbeille en retire une.
+3. Pour les listes (points clés, formats, paragraphes) : **Add an item** ajoute une ligne, la corbeille en retire une.
 4. Cliquez sur **Save**.
 5. Faites pareil dans **Yoga at work / companies (English)**.
 
@@ -127,7 +139,7 @@ La petite phrase sous les logos est dans **Home page (French)** et **Home page (
 Menu de gauche : **Reviews (stars and comments)**. Une seule liste pour les deux langues.
 
 **Ajouter un avis**
-1. Cliquez sur **Add** en bas de la liste.
+1. Cliquez sur **Add an item** en bas de la liste.
 2. **Name of the person :** par exemple « Marie D. »
 3. **Stars (1 to 5) :** tapez un chiffre de 1 à 5.
 4. **Review text :** collez ce que la personne a écrit.
@@ -163,7 +175,7 @@ Les nouveaux avis Google n'apparaissent pas tout seuls. Recopiez-les ici quand v
 Rien n'est jamais perdu. Chaque enregistrement est gardé.
 
 1. Ouvrez la page où vous avez fait l'erreur.
-2. Cliquez sur **History** (en haut à droite de la page).
+2. Cliquez sur l'**icône horloge** (en haut à droite de la page ; c'est le bouton History, visible dès que la page a été enregistrée au moins une fois).
 3. Trouvez la version d'avant l'erreur (chaque ligne a une date et une heure).
 4. Ouvrez-la, recopiez l'ancien texte dans la case, et cliquez sur **Save**.
 
