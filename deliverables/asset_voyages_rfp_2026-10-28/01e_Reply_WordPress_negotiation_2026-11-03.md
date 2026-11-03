@@ -20,7 +20,7 @@ Additional items, available with either option and priced in the proposal: Engli
 
 **Ownership and independence.** ASSET owns the site, its content and data, with administrator access, documentation and handover included; the custom code we write is transferred in full at handover once the final payment is settled. No maintenance contract is required. After handover, security updates are the responsibility of whoever maintains the site, and the proposal says so plainly.
 
-**References and demonstration.** As our questions page said, examples of our work come with the proposal without naming our clients, and we can put you in touch with a client with that client's permission. The concept pages we sent on 28 October show the standard of our work. The administration demonstration, on a staging site with your congress structure and sample data, is the first milestone after signature, and it is also where your team's training begins.
+**References and demonstration.** As a matter of policy we do not name our clients in proposals. The concept pages we sent on 28 October and our own site, prodcraft.fyi, show the standard of our work. The administration demonstration, on a staging site with your congress structure and sample data, is the first milestone after signature, and it is also where your team's training begins.
 
 **Payment.** As in our clarifications: 50% on signature, 50% on acceptance before cutover.
 
