@@ -199,7 +199,7 @@ logged in the wrap-up.
 
 End-of-contract handover: the client (GitHub `kumarjitendra`) gets his own repo, his own Cloudflare Pages project and his own DNS zone; after cutover we never touch the live site again.
 
-- **Handover tree:** orphan branch `handover/yogaavecjitendra` = standalone repo (site source, `.pages.yml` Pages CMS config incl. corporate section, reviews, client logos). Client manual: `README.md` (EN) + `LISEZMOI.md` (FR).
+- **Handover tree:** branch `handover/yogaavecjitendra-final` (clean history, no operator identifiers; the working branch `handover/yogaavecjitendra` keeps the full log) = standalone repo (site source, `.pages.yml` Pages CMS config incl. corporate section, reviews, client logos). Client manual: `README.md` (EN) + `LISEZMOI.md` (FR) + `QUICK_START.md` (both). Content check before every build: `scripts/check_content.mjs` (bilingual error naming the page; 25 MB file guard), regression `scripts/test_check_content.mjs`.
 - **Setup runbook:** `HANDOVER_SETUP.md` on that branch: 30-min screen-share (repo push + ownership transfer, his CF Pages project, GoDaddy nameserver move, Pages CMS login, optional KV/secrets, done checklist). DNS records to recreate in his zone are listed there.
 - **Cutover script:** `execution/personal_workflows/yoga_jitendra_site/scripts/handover_cutover.py` (stdlib). Default dry run; `--status` shows domains + deploy flags; `--apply` removes `yogaavecjitendra.fr` + `www` from the operator's `yoga-jitendra` Pages project and sets `production_deployments_enabled=false`, `preview_deployment_setting=none`. Run `--apply` only after his zone is Active and immediately before he adds the custom domains in his project. Delete the zone from the operator account only after GoDaddy points at his nameservers.
 - **Sequencing (operator-only, not in the client repo):** settle payment first, then the screen-share. Repo transfer and domain cutover are the only steps that move ownership; the live site already showing delivered work is fine and is not rolled back.
@@ -214,6 +214,8 @@ End-of-contract handover: the client (GitHub `kumarjitendra`) gets his own repo,
   | OAuth app + GSC/GBP refresh tokens, My Business API | Google Cloud project `yoga-jitendra-dashboard` (operator Google account) | Revoke the tokens and delete or archive the project; the dashboard is not handed over. |
   | Dashboard `/dashboard/` | his repo (code only) | Inert in his project unless he adds KV + `DASHBOARD_PASS` (HANDOVER_SETUP §5, optional). |
   | GoDaddy domain, ad accounts | client's own logins | Nothing to do; confirm he is registrant / billing owner. |
+
+- **Known open item:** live KV holds one review twice (Google "Vivi E" + moderated "Virginie E"); `scripts/merge_duplicate_review.py --apply` merges them (backups first). Evidence script for the delivery: `tests/yoga_jitendra_handover/final_verify.sh`.
 
 ## Changelog
 
