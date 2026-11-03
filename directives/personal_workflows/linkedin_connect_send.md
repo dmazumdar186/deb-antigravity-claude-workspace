@@ -37,9 +37,20 @@ Constants: queue `DAILY_CAP = 20`; send script `SEND_DAYS = (0, 1, 3, 4, 5)`, `G
 
 ## One-time setup (operator, Windows)
 
-1. `pip install playwright python-dotenv` (Google Chrome must be installed; the script uses Chrome only, so no `playwright install`).
-2. `python execution/personal_workflows/linkedin_connect_send.py login` — log in to LinkedIn in the window that opens, then close it.
-3. In PowerShell, from the repo folder, paste once:
+Every step uses the `py` launcher so installing, logging in and the scheduled task all run the **same**
+Python (python-hardening rule 7: bare `pip`/`python` can resolve to a different install, and the task
+would then fail on `import playwright` before any email exists). The script has no shebang, so
+`py script.py` uses the default interpreter.
+
+0. **Cutover order (do not skip).** Claude disables the old routine first — the three "LinkedIn connect
+   slot" tasks and the 20:00 cloud report task (reversible). Both routines share `data/linkedin_connect/`
+   on the laptop; running both would send on rest days and eat the shared daily cap. No Drive sync is
+   needed: the old slots ran on the laptop and already wrote every send into the local `ledger.csv`
+   (only if a slot ever ran elsewhere, sync the newest Drive snapshot with `linkedin_connect_queue.py sync`).
+1. `py -m pip install playwright python-dotenv` (Google Chrome must be installed; Chrome only, so no `playwright install`).
+2. `py execution/personal_workflows/linkedin_connect_send.py login` — log in to LinkedIn in the window that opens, then close it.
+3. `py execution/personal_workflows/linkedin_connect_send.py run --dry-run` — checks Chrome, login and the email path without sending; the would-be email lands in `.tmp/`.
+4. In PowerShell, from the repo folder, paste once:
 
 ```powershell
 $repo = (Get-Location).Path
@@ -93,7 +104,8 @@ To remove it: `Unregister-ScheduledTask -TaskName "LinkedIn connect send" -Confi
 
 ## Retired
 
-Retired after the first verified run of this script (operator confirms the first real email):
+**Disabled before the first run** (setup step 0); **deleted** only after the first real email is
+confirmed, so they can be re-enabled if the first run fails:
 
 - The three device-bound Claude scheduled tasks "LinkedIn connect slot 08:00 / 12:00 / 18:00".
 - The cloud task "LinkedIn connect: 20:00 daily report".
