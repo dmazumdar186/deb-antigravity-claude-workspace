@@ -32,7 +32,7 @@ const formats = t.formats ?? [];
 
       <div class="card corp-card" data-reveal>
         <h3 class="font-serif text-2xl mb-2 text-ink-900 leading-snug">{t.hr_title}</h3>
-        <p class="font-serif text-lg mb-4 text-[color:var(--terracotta)] leading-snug">{t.hr_subtitle}</p>
+        <p class="font-serif text-lg mb-4 text-[#A85D37] leading-snug">{t.hr_subtitle}</p>
         {hrBody.map((para) => (
           <p class="text-[15px] text-[color:var(--ink-soft)] leading-relaxed mb-3">{para}</p>
         ))}
@@ -46,7 +46,8 @@ const formats = t.formats ?? [];
         )}
         <div class="corp-cta">
           <p class="font-medium text-ink-900 mb-1">{t.cta_title}</p>
-          <p class="text-[15px] text-[color:var(--ink-soft)] leading-relaxed mb-4">{t.cta_body}</p>
+          <p class="text-[15px] text-[color:var(--ink-soft)] leading-relaxed mb-3">{t.cta_body}</p>
+          {t.cta_closing && <p class="font-serif text-lg text-ink-900 leading-snug mb-4">{t.cta_closing}</p>}
           <a href={t.cta_href} class="btn btn-primary">{t.cta_label}</a>
         </div>
       </div>
@@ -81,9 +82,9 @@ const formats = t.formats ?? [];
     content: '';
     position: absolute;
     left: 0.15rem;
-    top: 0.55em;
-    width: 0.5rem;
-    height: 0.5rem;
+    top: 0.62em;
+    width: 6px;
+    height: 6px;
     border-radius: 999px;
     background: var(--terracotta, #c0744a);
     opacity: 0.85;

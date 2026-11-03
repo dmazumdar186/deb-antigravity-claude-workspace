@@ -51,3 +51,14 @@ normal browser and print-to-PDF into this directory, ideally from a
 logged-in Pixabay account (the account download receipt is the strongest
 evidence). Until then, this record plus the in-session JSON-LD captures
 above are the provenance trail.
+
+## Client logos (`public/assets/logos/`)
+
+Shown in the "Ils m'ont fait confiance" strip at the client's own written
+assertion that he led sessions for these organisations' employees, notably
+through TrainMe assignments (client WhatsApp, 2026-11-03, for Believe, Legrand,
+Caisse d'Épargne, Sciences Po; earlier messages for the first eight). Trademarks
+belong to their owners; their display implies no endorsement. Sources of the
+2026-11-03 files: believe.svg = believe.com header logo; legrand.svg = logo.wine
+vector of the Legrand mark; caisse-epargne.png = cropped from Groupe BPCE's
+published brand image; sciences-po.svg = Wikimedia Commons "Logo Sciences Po.svg".
