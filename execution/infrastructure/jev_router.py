@@ -15,6 +15,7 @@ Usage:
     python3 execution/infrastructure/jev_router.py hook        # called by the hook (stdin JSON)
     python3 execution/infrastructure/jev_router.py on|off|status|test
     python3 execution/infrastructure/jev_router.py pick "find the file where the router lives"
+    python3 execution/infrastructure/jev_router.py advise "read this youtube link for me"  # plugin advisor
 
 Tiers (operator order 2026-10-06, Haiku banned):
     tiny     -> answer inline (main model, Fable 5.1)
@@ -46,6 +47,7 @@ from execution.modules import jev_client as jev  # noqa: E402
 JEV_DIR = PROJECT_ROOT / ".claude" / "jev"
 CONFIG_PATH = JEV_DIR / "config.json"
 STATE_PATH = JEV_DIR / "state.json"
+ADVISOR_PATH = JEV_DIR / "advisor.json"
 SKILLS_DIR = PROJECT_ROOT / ".claude" / "skills"
 TMP = PROJECT_ROOT / ".tmp"
 LOG_PATH = TMP / "jev_router_log.jsonl"
@@ -59,6 +61,8 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "max_prompt_chars": 6000,
     "min_prompt_chars": 12,
     "skill_pick": True,
+    "advise": True,
+    "advisor_min_confidence": 0.6,
     "log_keep": 500,
     "routes": {
         "tiny": {"mode": "inline", "model": "claude-fable-5-1"},
@@ -105,7 +109,36 @@ def enabled() -> bool:
 
 def set_enabled(flag: bool) -> None:
     JEV_DIR.mkdir(parents=True, exist_ok=True)
-    STATE_PATH.write_text(json.dumps({"enabled": flag, "changed": int(time.time())}) + "\n", encoding="utf-8")
+    data = _read_json(STATE_PATH, {"enabled": True})
+    data.update({"enabled": flag, "changed": int(time.time())})
+    STATE_PATH.write_text(json.dumps(data) + "\n", encoding="utf-8")
+
+
+# ---------------------------------------------------------------------------------------
+# advisor: per-session dedupe of suggestions
+# ---------------------------------------------------------------------------------------
+
+def _session_key(session_id: str | None) -> str:
+    return session_id or "_"
+
+
+def suggested_caps(session_id: str | None) -> set[str]:
+    """Capabilities already suggested this session (so we never repeat one)."""
+    data = _read_json(STATE_PATH, {"enabled": True})
+    return set((data.get("suggested") or {}).get(_session_key(session_id), []))
+
+
+def mark_suggested(session_id: str | None, cap: str) -> None:
+    JEV_DIR.mkdir(parents=True, exist_ok=True)
+    data = _read_json(STATE_PATH, {"enabled": True})
+    sug = data.get("suggested") or {}
+    key = _session_key(session_id)
+    lst = list(sug.get(key, []))
+    if cap not in lst:
+        lst.append(cap)
+    sug[key] = lst
+    data["suggested"] = sug
+    STATE_PATH.write_text(json.dumps(data) + "\n", encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------------------
@@ -158,14 +191,35 @@ def skills_menu(max_desc: int = 220) -> dict[str, str]:
 
 
 # ---------------------------------------------------------------------------------------
+# advisor menu (plugin advisor)
+# ---------------------------------------------------------------------------------------
+
+def advisor_map() -> dict[str, Any]:
+    """Full advisor.json contents ({} if missing/malformed — fail open)."""
+    return _read_json(ADVISOR_PATH, {})
+
+
+def advisor_menu() -> dict[str, dict[str, Any]]:
+    """name -> entry for every SUGGESTABLE capability (kind skill|service). always-on excluded."""
+    caps = advisor_map().get("capabilities") or {}
+    return {k: v for k, v in caps.items()
+            if isinstance(v, dict) and v.get("kind") in ("skill", "service")}
+
+
+# ---------------------------------------------------------------------------------------
 # the decision
 # ---------------------------------------------------------------------------------------
 
 def classify(prompt: str, cfg: dict[str, Any] | None = None, *, with_skill: bool | None = None,
-             session_id: str | None = None) -> dict[str, Any]:
-    """One Jev call -> {tier, tier_conf, skill, skill_conf, cost, latency_ms, error}."""
+             with_advise: bool | None = None, session_id: str | None = None) -> dict[str, Any]:
+    """One Jev call -> {tier, tier_conf, skill, skill_conf, advise, advise_conf, cost, latency_ms, error}.
+
+    The advisor `choice` rides in the SAME decide() call as tier + skill (one request, no
+    extra latency): "which ONE capability, if any, materially helps THIS prompt?".
+    """
     cfg = cfg or load_config()
     with_skill = cfg.get("skill_pick", True) if with_skill is None else with_skill
+    with_advise = cfg.get("advise", True) if with_advise is None else with_advise
     questions: dict[str, Any] = {
         "tier": jev.choice("How much model capacity does this request to a coding agent need?", TIER_CRITERIA),
     }
@@ -176,6 +230,14 @@ def classify(prompt: str, cfg: dict[str, Any] | None = None, *, with_skill: bool
         questions["skill"] = jev.choice(
             "Which workspace skill should the agent load first for this request? "
             "Pick 'none' unless a skill clearly matches the task.", options)
+    amenu = advisor_menu() if with_advise else {}
+    if amenu:
+        a_options = {"none": "No listed capability would materially help with this prompt."}
+        for k, v in amenu.items():
+            a_options[k] = re.sub(r"\s+", " ", str(v.get("when", "") or k))[:400]
+        questions["advise"] = jev.choice(
+            "Which ONE of these optional capabilities, if any, would MATERIALLY help with THIS "
+            "prompt? Pick 'none' unless one clearly applies — do not reach.", a_options)
     res = jev.decide(
         {"user_prompt": prompt[: int(cfg.get("max_prompt_chars", 6000))]},
         questions,
@@ -189,6 +251,8 @@ def classify(prompt: str, cfg: dict[str, Any] | None = None, *, with_skill: bool
         "tier_probs": res.probabilities("tier"),
         "skill": res.choice("skill", "none") if menu else "none",
         "skill_conf": res.confidence("skill") if menu else 0.0,
+        "advise": res.choice("advise", "none") if amenu else "none",
+        "advise_conf": res.confidence("advise") if amenu else 0.0,
         "cost": res.cost_usd,
         "input_tokens": res.input_tokens,
         "latency_ms": res.latency_ms,
@@ -227,6 +291,28 @@ def routing_context(decision: dict[str, Any], cfg: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def advice_line(decision: dict[str, Any], cfg: dict[str, Any]) -> tuple[str, str] | None:
+    """(capability, '💡 <capability>: <value_add>') if the advisor hit above the gate, else None.
+
+    NON-BLOCKING by design: this is a one-line note for the operator, never a pause.
+    """
+    if decision.get("error"):
+        return None
+    cap = str(decision.get("advise", "none") or "none")
+    if not cap or cap == "none":
+        return None
+    conf = float(decision.get("advise_conf", 0.0))
+    if conf < float(cfg.get("advisor_min_confidence", 0.6)):
+        return None
+    entry = advisor_menu().get(cap)
+    if not entry:
+        return None
+    value = re.sub(r"\s+", " ", str(entry.get("value_add", "") or "")).strip()
+    if not value:
+        return None
+    return cap, f"💡 {cap}: {value}"
+
+
 def _log(row: dict[str, Any], cfg: dict[str, Any]) -> None:
     """Append one routing decision. Trimming happens in `status`, never in the hook path (no races)."""
     try:
@@ -263,15 +349,27 @@ def run_hook(stdin_text: str) -> str:
     cfg = load_config()
     if len(prompt) < int(cfg.get("min_prompt_chars", 12)) or prompt.startswith(_SKIP_PREFIXES):
         return ""
-    decision = classify(prompt, cfg, session_id=str(payload.get("session_id") or "") or None)
+    session_id = str(payload.get("session_id") or "") or None
+    decision = classify(prompt, cfg, session_id=session_id)
     _log({"prompt": prompt[:120], **{k: v for k, v in decision.items() if k != "tier_probs"}}, cfg)
     jev.append_ledger({"caller": "jev_router", "cost": decision["cost"], "input_tokens": decision["input_tokens"],
-                       "latency_ms": decision["latency_ms"], "tier": decision["tier"], "skill": decision["skill"]},
+                       "latency_ms": decision["latency_ms"], "tier": decision["tier"], "skill": decision["skill"],
+                       "advise": decision.get("advise", "none")},
                       TMP / "jev_ledger.jsonl")
     ctx = routing_context(decision, cfg)
-    if not ctx:
+    # Advisor: a single non-blocking 💡 note, deduped once per session per capability.
+    advice = ""
+    hit = advice_line(decision, cfg)
+    if hit:
+        cap, line = hit
+        if cap not in suggested_caps(session_id):
+            mark_suggested(session_id, cap)
+            advice = line
+    parts = [p for p in (advice, ctx) if p]  # advice first so the mod band surfaces it
+    if not parts:
         return ""
-    return json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": ctx}})
+    return json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit",
+                                               "additionalContext": "\n".join(parts)}})
 
 
 # ---------------------------------------------------------------------------------------
@@ -308,6 +406,8 @@ def status_text() -> str:
         f"jev router: {'ON' if enabled() else 'OFF'}  key: {'present' if jev.available() else 'MISSING'}  model: {cfg.get('model')}",
         "routes: " + ", ".join(f"{k}->{v['model']}({v['mode']})" for k, v in cfg["routes"].items()),
         f"skills in menu: {len(skills_menu())}  skill_pick: {cfg.get('skill_pick', True)}",
+        f"advisor capabilities: {len(advisor_menu())}  advise: {cfg.get('advise', True)}  "
+        f"advisor_min_confidence: {cfg.get('advisor_min_confidence', 0.6)}",
         f"decisions logged: {len(rows)}  errors: {errors}  total cost: ${cost:.5f}  "
         f"median latency: {sorted(lat)[len(lat)//2] if lat else 0} ms",
         f"tiers: {tiers}",
@@ -367,6 +467,14 @@ def main(argv: list[str]) -> int:
         d = classify(" ".join(argv[1:]), load_config())
         print(json.dumps(d, indent=2))
         print(routing_context(d, load_config()))
+        return 0
+    if cmd == "advise":
+        cfg = load_config()
+        d = classify(" ".join(argv[1:]), cfg)
+        hit = advice_line(d, cfg)
+        print(json.dumps({"advise": d.get("advise"), "advise_conf": d.get("advise_conf"),
+                          "gate": cfg.get("advisor_min_confidence"), "error": d.get("error")}, indent=2))
+        print(hit[1] if hit else "(no suggestion — below gate or 'none')")
         return 0
     print(__doc__)
     return 2

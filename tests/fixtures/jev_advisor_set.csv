@@ -1,0 +1,19 @@
+id,prompt,label
+1,read this youtube video for me https://youtu.be/abc123 and summarize the top comments,agent-reach
+2,pull the latest comments from this reddit thread https://reddit.com/r/python/comments/xyz,agent-reach
+3,get the subtitles from this bilibili video https://b23.tv/abc and translate them to english,agent-reach
+4,grab the replies on this tweet https://x.com/user/status/999 and tell me the sentiment,agent-reach
+5,make an animated video that explains how quicksort partitions the array step by step,lemo-opuscar
+6,render a short film visualizing how a red-black tree rebalances after an insert,lemo-opuscar
+7,i downloaded a skill folder from github is it safe to install or is it malicious,skill-inspector
+8,scan this plugin directory for anything dangerous before i enable it in my config,skill-inspector
+9,i keep hitting http 429 rate limits on my model calls how can i keep working,freellmapi
+10,we are burning through our model quota fast i want to pool several free providers behind one endpoint,freellmapi
+11,run an authorized penetration test against my own staging server that i control,pentagi
+12,do a vulnerability scan and exploit attempt on a box i own and have written permission to test,pentagi
+13,write a python function that parses a csv file and returns a list of dicts,none
+14,fix the failing unit test in tests/test_parser.py it throws a keyerror,none
+15,refactor this module to use dataclasses instead of plain dicts,none
+16,commit my staged changes and push them to the feature branch,none
+17,add a --limit flag to the sheet categorizer script and a test for it,none
+18,explain the difference between a list and a tuple in python,none

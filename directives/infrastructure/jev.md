@@ -35,6 +35,34 @@ search-by-meaning, live meters, zero-LLM chatbots).
   `!` shell lines and prompts under 12 chars are never routed.
 - Privacy: when ON, prompt text (≤ 6000 chars) is sent to OpenRouter → TypeSafe. `/jev off` for
   confidential work.
+
+### Plugin advisor (so the operator never has to remember which tool to use)
+
+Hybrid surfacing (operator decision): NORMAL suggestions are NON-BLOCKING; ONE risky event blocks.
+
+- **Capability map**: `.claude/jev/advisor.json` — per capability `{kind, when, value_add}`. `kind`
+  `skill`/`service` are suggestable; `always-on` (`ponytail`, `safety-guard`) are documented only,
+  never suggested. `when` is the trigger Jev matches; `value_add` is a ≤90-char operator one-liner.
+  Services (`freellmapi`, `pentagi`) say "Set up …" (not per-prompt installs).
+- **Non-blocking note**: the router's `classify()` carries a third `choice` ("which ONE capability,
+  if any, materially helps THIS prompt? include 'none'") in the SAME Jev call as tier + skill — one
+  request, ~no extra latency. On a hit ≥ `advisor_min_confidence` (config, default 0.6) the hook
+  prepends a single `💡 <capability>: <value_add>` line to `additionalContext`, which the
+  jev-router-mod band surfaces. **Per-session dedupe**: suggested caps are stored in
+  `state.json` (`suggested.{session_id}`); the same capability is never repeated in a session.
+- **Blocking gate (the one risky event)**: `execution/infrastructure/skillspector_gate.py`, a
+  `PreToolUse(Bash)` hook (`.claude/hooks/skillspector-gate.sh`, settings.json). It detects an
+  unvetted skill/plugin install (git clone into/near `.claude/skills`, `cp`/`mv` into
+  `.claude/skills|plugins`, `agent-reach add`, plugin enable), runs `skillspector scan <target>
+  --no-llm -f json`, and on max severity HIGH/CRITICAL emits `permissionDecision=ask` so the
+  operator confirms (the finding is surfaced). Below HIGH → one-line note; unscannable or scan
+  error/timeout/missing binary → fail-open note, never blocks. Tightly scoped: ordinary bash
+  (`ls`, `git commit`, a normal `git clone`) never trips it.
+- **CLI**: `python3 execution/infrastructure/jev_router.py advise "<prompt>"` prints what it would
+  suggest; `python3 execution/infrastructure/skillspector_gate.py check "<cmd>"` prints the gate verdict.
+- **Validation**: labelled set `tests/fixtures/jev_advisor_set.csv` (18 prompts, every capability +
+  clear negatives) + spec `tests/fixtures/jev_advisor_spec.json` (generated from advisor.json). Run
+  with `jev_validate.py --spec … --data … --sweep`. Offline tests: `bash tests/test_jev_advisor.sh`.
 - Cost: ~$0.0001 per prompt (33-skill menu ≈ 2.3k input tokens), ~600 ms. Measured 2026-10-06:
   10 prompts, 6.8 s, $0.00099, all tiers correct, skill picks gmail-label / youtube-outliers /
   gmaps-leads at 0.99.
@@ -91,3 +119,4 @@ All 21 built (1-19 on 2026-10-06/07, #20 2026-10-07, #21 jev-leads 2026-10-16), 
 - 2026-10-07 (session 4): use cases 17-19 (icon picking, self-assembling pages, use-case finder). All 19 done.
 - 2026-10-07 (session 5): #20 from the use-case finder's quick-win list — Jev confidence gate on the audit stack, wired into the Stop hook.
 - 2026-10-16: #21 jev-leads (skill `/jev-leads`, script, directive, playbook): Jev gates for the whole lead pipeline (qualify, signals, hygiene, suppress, replies, inbound, diff).
+- 2026-11-03: plugin advisor added to the router — `.claude/jev/advisor.json` capability map, a third `advise` choice batched into the per-prompt Jev call (non-blocking `💡` note, per-session dedupe, gate `advisor_min_confidence` 0.6), and the SkillSpector `PreToolUse(Bash)` install gate (`skillspector_gate.py`, HIGH/CRITICAL → ask, else fail-open). Tests `tests/test_jev_advisor.sh` (20/20 offline); live accuracy pending OpenRouter credits (402 at build time).

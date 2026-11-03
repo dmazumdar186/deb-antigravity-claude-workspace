@@ -98,6 +98,18 @@
     "commit": "Co-Authored-By: Claude <noreply@anthropic.com>"
   },
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/skillspector-gate.sh\"",
+            "timeout": 100
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write",

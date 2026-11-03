@@ -1,0 +1,20 @@
+{
+  "state_fields": [
+    "prompt"
+  ],
+  "label_field": "label",
+  "id_field": "id",
+  "question_name": "advise",
+  "question": {
+    "type": "choice",
+    "instructions": "Which ONE of these optional capabilities, if any, would MATERIALLY help with THIS prompt? Pick 'none' unless one clearly applies \u2014 do not reach.",
+    "criteria": {
+      "none": "No listed capability would materially help with this prompt.",
+      "agent-reach": "The prompt pastes or names a social/video/forum link (YouTube, Reddit, X/Twitter, Bilibili, Xiaohongshu, GitHub, LinkedIn, V2EX, Instagram) or asks to read, search, scrape, or get subtitles/comments/quotes from one, and the agent's own web tools cannot.",
+      "lemo-opuscar": "The prompt asks to explain, visualize, teach, or animate how code, an algorithm, or a data structure works as a video, film, or animation.",
+      "skill-inspector": "The prompt is about installing, adding, cloning, enabling, or trusting a downloaded skill or plugin, or asks whether a skill/plugin is safe, over-permissioned, or malicious.",
+      "freellmapi": "The prompt mentions hitting LLM rate limits, HTTP 429s, quota or credit exhaustion, model overload, or wanting free or pooled model providers behind one endpoint.",
+      "pentagi": "The prompt asks to run an authorized penetration test, vulnerability scan, exploit, or offensive security assessment against a target the operator owns or has written permission to test."
+    }
+  }
+}

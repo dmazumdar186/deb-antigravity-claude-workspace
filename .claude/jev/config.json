@@ -6,6 +6,8 @@
   "max_prompt_chars": 6000,
   "min_prompt_chars": 12,
   "skill_pick": true,
+  "advise": true,
+  "advisor_min_confidence": 0.6,
   "log_keep": 500,
   "routes": {
     "tiny": {"mode": "inline", "model": "claude-fable-5-1"},

@@ -1,0 +1,41 @@
+{
+  "_doc": "Capability map for the Jev plugin advisor (jev_router.py advise). 'kind' skill/service are suggested per-prompt (NON-BLOCKING one-liner); 'always-on' are documented only, never suggested. 'when' is the trigger Jev matches the prompt against; 'value_add' is the <=90-char operator-facing one-liner. Services say 'Set up' (they are not per-prompt installs). See directives/infrastructure/claude_plugins.md and directives/infrastructure/jev.md.",
+  "advisor_min_confidence": 0.6,
+  "capabilities": {
+    "agent-reach": {
+      "kind": "skill",
+      "when": "The prompt pastes or names a social/video/forum link (YouTube, Reddit, X/Twitter, Bilibili, Xiaohongshu, GitHub, LinkedIn, V2EX, Instagram) or asks to read, search, scrape, or get subtitles/comments/quotes from one, and the agent's own web tools cannot.",
+      "value_add": "Pasted a social/video/forum link? agent-reach reads it (posts, comments, subtitles)."
+    },
+    "lemo-opuscar": {
+      "kind": "skill",
+      "when": "The prompt asks to explain, visualize, teach, or animate how code, an algorithm, or a data structure works as a video, film, or animation.",
+      "value_add": "Explaining how code or an algorithm works? lemo-opuscar renders it as a short film."
+    },
+    "skill-inspector": {
+      "kind": "skill",
+      "when": "The prompt is about installing, adding, cloning, enabling, or trusting a downloaded skill or plugin, or asks whether a skill/plugin is safe, over-permissioned, or malicious.",
+      "value_add": "Installing a downloaded skill/plugin? skill-inspector scans it for malice first."
+    },
+    "freellmapi": {
+      "kind": "service",
+      "when": "The prompt mentions hitting LLM rate limits, HTTP 429s, quota or credit exhaustion, model overload, or wanting free or pooled model providers behind one endpoint.",
+      "value_add": "Hitting model rate limits? Set up FreeLLMAPI to pool free providers behind one endpoint."
+    },
+    "pentagi": {
+      "kind": "service",
+      "when": "The prompt asks to run an authorized penetration test, vulnerability scan, exploit, or offensive security assessment against a target the operator owns or has written permission to test.",
+      "value_add": "Authorized pentest? Set up PentAGI — your machine, targets you own or have permission for."
+    },
+    "ponytail": {
+      "kind": "always-on",
+      "when": "Documented only, never suggested per-prompt: always-on lazy-dev hooks + task band.",
+      "value_add": "Always-on: nudges lazy-dev shortcuts and tracks tasks via hooks; not per-prompt."
+    },
+    "safety-guard": {
+      "kind": "always-on",
+      "when": "Documented only, never suggested per-prompt: always-on destructive-bash guard.",
+      "value_add": "Always-on: rewrites or blocks destructive bash (rm -rf, force-push, DROP)."
+    }
+  }
+}

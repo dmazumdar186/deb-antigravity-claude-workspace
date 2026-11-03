@@ -71,6 +71,26 @@ Scanned every bundled skill with `skillspector scan <dir> -r --no-llm`:
 
 Re-run the scan before upgrading any of these: `skillspector scan <plugin-skills-dir> -r`.
 
+## Plugin advisor (Jev-graded — never remember which tool to use)
+
+The Jev router doubles as a **plugin advisor** so the operator does not have to remember these
+extras exist. Hybrid surfacing (operator decision, 2026-11-03):
+
+- **Non-blocking suggestions** for `agent-reach`, `lemo-opuscar`, `skill-inspector`, `freellmapi`,
+  `pentagi`. On each prompt the router asks Jev one extra `choice` (batched into the existing
+  tier+skill call) "which ONE capability, if any, materially helps THIS prompt?". A hit ≥
+  `advisor_min_confidence` (0.6) surfaces a single `💡 <capability>: <value_add>` line in the
+  jev-router-mod band — never a pause, deduped once per session. `ponytail` + `safety-guard` are
+  always-on and documented, never suggested.
+- **One blocking gate**: `skillspector_gate.py` (`PreToolUse(Bash)`) fires only when a command is
+  about to install/clone an **unvetted** skill or plugin (git clone into `.claude/skills`, `cp`/`mv`
+  into `.claude/skills|plugins`, `agent-reach add`, plugin enable). It scans the target with
+  `skillspector … --no-llm -f json`; HIGH/CRITICAL → `permissionDecision=ask` (operator confirms,
+  finding surfaced); below HIGH or unscannable → fail-open note. This is the same SkillSpector trust
+  check as the manual pre-install scan above, now automatic.
+- Map: `.claude/jev/advisor.json`. Details, CLI (`jev_router.py advise …`,
+  `skillspector_gate.py check …`), and validation: `directives/infrastructure/jev.md`.
+
 ## Privacy / safety notes
 
 - **Agent-Reach is read-only** (search/read/subtitles/quotes/jobs) and never posts, likes or DMs.
