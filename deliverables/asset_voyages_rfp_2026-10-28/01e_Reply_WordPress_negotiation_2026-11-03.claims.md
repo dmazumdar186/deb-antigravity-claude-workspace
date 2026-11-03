@@ -4,7 +4,7 @@ Verifier: independent worker (not the author), 3 Nov 2026. Rule: `.claude/memory
 Sources: `brief` = /tmp/rfp/brief.txt; `23` = D/23_Correspondence_Record_and_Claims.md; `Q-page` = D/site/questions/index.html (text-extracted; cited by section/question); `01`, `01c` = sent emails; `wpf` = D/research/wp_feasibility_2026.md; `18`, `21`, `22` = audit docs.
 Caveat: ASSET's 3 Nov email exists only as the operator summary (23:6, 23:21). Every "your email" row below is checked against that summary, not the original.
 
-**Verdict: FIX** — 2 UNVERIFIED, 1 FALSE-as-worded, 3 contradictions of sent/operator terms.
+**Pass 1 verdict: FIX.** **Pass 2 verdict (revised text, see bottom): FIX — one grammar defect (line 10), two minor wording items; all pass-1 FALSE/UNVERIFIED rows resolved.** Line numbers in the table below are pass-1 numbering.
 
 | # | 01e line | Claim / clause | Source | Status | Note / replacement |
 |---|---|---|---|---|---|
@@ -38,3 +38,25 @@ Caveat: ASSET's 3 Nov email exists only as the operator summary (23:6, 23:21). E
 | 29 | 21 | Admin demo = first milestone after signature, on staging | 22:3 "demos only after signature" | JUDGEMENT (consistent with standing correction) | — |
 | 30 | 23 | "As in our clarifications: 50% on signature, 50% on acceptance before cutover" | 01c:26 | VERIFIED | — |
 | 31 | 25 | Proposal "by Friday 6 November" | 6 Nov 2026 is a Friday; 01:25 / Q-page Q1 / 01c:30 said 24–48 working h after answers or 10 Nov | VERIFIED (earlier than our 10 Nov fallback; meets their ask, 23:74) | Answers are also due 6 Nov: add "on the assumptions on our questions page for anything not yet answered" (23:84) |
+
+## Pass 2 — revised text (3 Nov 2026), line numbers of the revised file
+
+| # | Line | Claim / clause | Source | Status | Note / replacement |
+|---|---|---|---|---|---|
+| 3 | 8 | "management has chosen WordPress" | 23:21, 23:44 | VERIFIED | fixed |
+| 4 | 8 | "any WordPress developer can take over from the documentation and the administrator account" | 01c:15 | JUDGEMENT (unchanged) | Optional: "a WordPress developer of your choice can take over, using the code, the documentation and the accounts held in ASSET's name" |
+| 5–6 | 10 | Budget left to be confirmed; €3,000 first figure | brief 469; 23:146 | VERIFIED | — |
+| A | 10 | "On 31 October we said we would rather not put figures in an email before the proposal" | 01c:30 "I would rather not put figures in an email ahead of the proposal" | VERIFIED | — |
+| 7 | 10 | "comes to more than €3,000 covers" | — (hours removed) | JUDGEMENT; **ungrammatical** | → "comes to more than €3,000." |
+| 9 | 10 | Savings Scan + SmartFees not in original brief | 23:134–135 | VERIFIED (by name) | — |
+| B | 12 | "a figure above your budget"; "€3,000 option is a complete, working site" | 23:21 (max €3,000); — | VERIFIED / JUDGEMENT | — |
+| 14 | 14 | "up to 20 existing pages and 3 legal pages, with light editing" | Q-page Q9 default: "We move up to 20 of today's pages plus 3 legal pages, editing wording only (titles, headings, clarity and typos)" | VERIFIED | — |
+| 15 | 14 | "two revision rounds per design stage and per content stage" | 01c:18; Q-page §07 "two per design stage and two per content stage" | VERIFIED | — |
+| 17 | 14 | "four weeks of settling-in after launch (fixes against the acceptance tests)" | Q-page J6 "Settling in (4 weeks)… fixes of defects against the accepted tests" | VERIFIED | — |
+| 18 | 15 | "with four differences" | text lists five (later phase; procurement page; text as provided; one training session; two weeks settling-in) | FALSE count | → "with these differences" |
+| 23 | 21 | "custom code we write is transferred in full at handover once the final payment is settled" | 01c:15 ("at completion"); 18:77 (IP transfer after balance clears) | VERIFIED | — |
+| 27 | 23 | "As our questions page said, examples of our work come with the proposal without naming our clients, and we can put you in touch with a client with that client's permission." | Q-page §09 live line: "Examples of our work come with the proposal, described without naming our clients; we can put you in touch with a client only with that client's permission." | VERIFIED (faithful paraphrase) | Does not answer their WordPress-references ask; acceptable as no false claim |
+| 26 | 23 | static-platforms sentence | — | removed | fixed |
+| 28 | 23 | "The concept pages we sent on 28 October" | 01:10–20 | VERIFIED | — |
+| 31 | 27 | "by Friday 6 November, on the assumptions on our questions page for anything not yet answered" | 01:25 "Anything not answered by then follows the assumption shown under each question"; Q-page §08 | VERIFIED | Style: → "based on the assumptions shown on our questions page for anything not yet answered" |
+| 11 | 14–15 | "excluding VAT" | 21 L17 | OPEN (operator VAT status) — flagged, not a fail | — |
