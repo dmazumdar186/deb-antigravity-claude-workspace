@@ -1,0 +1,164 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Tender Submission · 22 Calloway Street, Levels 4–5 — sample</title><style>:root{--accent:#2f4f4f;}
+@page { size: 210mm 297mm; margin: 0; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #d9d6cf; }
+body { font-family: Inter, "Helvetica Neue", Arial, sans-serif; color: #16181c; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-feature-settings: "tnum" 1; }
+.page { width: 210mm; height: 297mm; background: #fff; position: relative; overflow: hidden;
+  page-break-after: always; break-after: page; display: flex; flex-direction: column; padding: 0.55in 0.65in 0.4in; }
+.page:last-child { page-break-after: auto; break-after: auto; }
+@media screen { .page { margin: 24px auto; box-shadow: 0 4px 18px rgba(0,0,0,.12); } }
+.hdr { display: flex; justify-content: space-between; align-items: baseline; font-size: 9.5px; letter-spacing: .14em;
+  text-transform: uppercase; color: #6b6f76; border-bottom: 1px solid #e4dfd6; padding-bottom: 8px; margin-bottom: 18px; flex: none; }
+.hdr b { color: #16181c; font-weight: 600; }
+.content { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+.ftr { flex: none; display: flex; justify-content: space-between; font-size: 9px; color: #6b6f76;
+  border-top: 1px solid #e4dfd6; padding-top: 7px; margin-top: 12px; }
+h1 { font-size: 34px; line-height: 1.12; margin: 0 0 10px; font-weight: 650; letter-spacing: -.02em; }
+h2 { font-size: 25px; line-height: 1.2; margin: 0 0 6px; font-weight: 650; letter-spacing: -.01em; }
+h3 { font-size: 14px; margin: 16px 0 7px; font-weight: 650; }
+.kicker { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); font-weight: 650; margin-bottom: 6px; }
+.lede { font-size: 14px; color: #3d4148; line-height: 1.5; margin: 0 0 14px; max-width: 46em; }
+p, li { font-size: 12px; line-height: 1.55; color: #2b2e33; }
+p { margin: 0 0 8px; }
+ul { margin: 0 0 8px; padding-left: 16px; } li { margin-bottom: 5px; }
+.small { font-size: 10.5px; color: #5b6068; }
+.t { width: 100%; border-collapse: collapse; font-size: 11.5px; margin: 4px 0 10px; }
+.t th { text-align: left; font-weight: 600; font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase; color: #5b6068;
+  border-bottom: 1.5px solid #16181c; padding: 5px 6px; }
+.t td { padding: 6.5px 7px; border-bottom: 1px solid #ebe7e0; vertical-align: top; }
+.t .r { text-align: right; white-space: nowrap; } .t .c { text-align: center; } .t .l { text-align: left; }
+.t tr.sub td { font-weight: 600; background: #f7f3ec; }
+.t tr.total td { font-weight: 700; font-size: 12.5px; border-top: 1.5px solid #16181c; border-bottom: none; background: #f7f3ec; }
+.t tr.muted td { color: #6b6f76; }
+.t tr.sec td { font-weight: 650; color: var(--accent); background: #fff; padding-top: 9px; font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase; }
+.gantt th.c { font-size: 8.5px; padding: 4px 1px; } .gantt td { padding: 4px 6px; } .gantt td.g { padding: 0; border-left: 1px solid #f0ece6; }
+.gantt td.g.on { background: var(--accent); background-clip: content-box; padding: 5px 0; }
+.gantt tr.gsub td { font-size: 8px; color: #6b6f76; padding: 2px 0; border-bottom: 1px solid #ebe7e0; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.card { border: 1px solid #e4dfd6; border-radius: 6px; padding: 12px 14px; background: #fff; }
+.card.tint { background: #f7f3ec; border-color: #ece6db; }
+.card h3 { margin-top: 0; }
+.stat .n { font-size: 26px; white-space: nowrap; font-weight: 700; letter-spacing: -.01em; }
+.stat .k { font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: #6b6f76; }
+.builtfrom { border: 1px solid #d8d1c4; border-left: 4px solid var(--accent); background: #f7f3ec; border-radius: 4px; padding: 10px 14px; }
+.bf-label { font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: #6b6f76; font-weight: 650; margin-bottom: 4px; }
+.bf-brief { font-size: 11.5px; line-height: 1.45; color: #2b2e33; font-style: italic; }
+.bf-arrow { font-size: 12.5px; font-weight: 650; color: var(--accent); margin-top: 6px; }
+.cover .content { justify-content: space-between; }
+.cover h1 { font-size: 40px; }
+.meta { display: flex; gap: 40px; font-size: 10.5px; color: #5b6068; }
+.meta > div:last-child { flex: none; }
+.meta b { display: block; color: #16181c; font-size: 12.5px; font-weight: 600; margin-top: 2px; }
+.band { height: 6px; background: var(--accent); margin: -1px 0 0; }
+.sig { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 10px; }
+.sig .line { border-bottom: 1px solid #16181c; height: 30px; margin-bottom: 3px; }
+.sig .lab { font-size: 9px; color: #6b6f76; margin-bottom: 10px; }
+.note { font-size: 9.5px; color: #5b6068; border-left: 2px solid #d8d1c4; padding-left: 8px; margin: 4px 0 8px; }
+.pill { display: inline-block; font-size: 9px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 2px 7px;
+  border-radius: 10px; background: #f7f3ec; color: #3d4148; border: 1px solid #e4dfd6; }
+/* deck */
+.deck .hdr { margin-bottom: 24px; font-size: 11px; } .deck .ftr { font-size: 11px; }
+.deck h1 { font-size: 60px; } .deck h2 { font-size: 38px; margin-bottom: 10px; } .deck .kicker { font-size: 12.5px; margin-bottom: 10px; }
+.deck .lede { font-size: 19px; max-width: 52em; margin-bottom: 20px; } .deck p, .deck li { font-size: 16px; } .deck li { margin-bottom: 6px; }
+.deck .t { font-size: 14.5px; } .deck .t td { padding: 7px 8px; } .deck .t th { font-size: 11px; padding: 7px 8px; }
+.deck .card { padding: 16px 18px; } .deck .card h3 { font-size: 18px; margin-bottom: 8px; } .deck h3 { font-size: 18px; }
+.deck .stat .n { font-size: 32px; } .deck .stat .k { font-size: 11px; } .deck .small { font-size: 13px; }
+.deck .bf-brief { font-size: 14px; } .deck .bf-label { font-size: 11px; } .deck .bf-arrow { font-size: 15px; }
+.deck .meta { font-size: 12.5px; gap: 40px; white-space: nowrap; } .deck .t tr.total td { font-size: 15.5px; } .deck .meta b { font-size: 15px; }
+.deck .gantt td { padding: 6px 8px; font-size: 14px; } .deck .gantt th.c { font-size: 11px; }
+.deck .gantt td.g.on { padding: 6px 0; }
+.deck .stage .el { font-size: 13px; } .deck .stage .lbl { font-size: 12px; }
+.oneliner { font-size: 40px; line-height: 1.3; font-weight: 600; letter-spacing: -.01em; max-width: 24em; margin: 8px 0 24px; }
+.stage { position: relative; border: 1px solid #d8d1c4; border-radius: 6px; background: #f7f3ec; height: 100%; }
+.stage .el { position: absolute; display: flex; align-items: center; justify-content: center; text-align: center;
+  font-size: 10.5px; font-weight: 600; color: #fff; border-radius: 3px; }
+.stage .lbl { position: absolute; font-size: 9.5px; color: #5b6068; text-align: center; }
+.split { display: grid; grid-template-columns: 1.05fr 1fr; gap: 28px; flex: 1; min-height: 0; }
+.itin .day { display: grid; grid-template-columns: 56px 1fr; gap: 10px; border-top: 1px solid #e4dfd6; padding: 10px 0 6px; }
+.itin .day .d { font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: .06em; text-transform: uppercase; }
+.itin .slot { display: grid; grid-template-columns: 74px 1fr; gap: 8px; margin-bottom: 4px; }
+.itin .slot .tm { font-size: 10px; color: #6b6f76; font-weight: 600; padding-top: 1px; }
+.itin .slot p { margin: 0; }
+</style></head><body><section class="page cover "><div class="hdr"><span><b>Ashcombe Rook Interiors Ltd</b></span><span>Tender Submission · 22 Calloway Street, Levels 4–5</span></div><div class="content">
+<div>
+  <div class="kicker">Tender submission · Ref. ARI-T-2611 · 3 November 2026</div>
+  <h1>Cat B fit-out, levels 4–5<br>for Pellwyn Harcourt LLP</h1>
+  <p class="lede">Our priced tender for the 1,300 m² Cat B fit-out, with programme to practical completion on 14 May 2027, preliminaries, provisional sums and the qualifications behind the price.</p>
+</div>
+<div class="grid2">
+  <div class="card tint stat"><div class="k">Tender sum (excl. VAT)</div><div class="n">£1,451,130</div>
+    <p class="small" style="margin:4px 0 0">£1,116 per m² NIA · validity 60 days</p></div>
+  <div class="card tint stat"><div class="k">Contract period</div><div class="n">17 weeks</div>
+    <p class="small" style="margin:4px 0 0">Start on site 18 Jan 2027 · PC 14 May 2027</p></div>
+</div>
+<table class="t "><colgroup><col style="width:30%"><col style="width:70%"></colgroup><thead><tr><th class="l"></th><th class="l"></th></tr></thead><tbody><tr class=""><td class="l">Project</td><td class="l">Cat B office fit-out, levels 4 and 5</td></tr><tr class=""><td class="l">Address</td><td class="l">22 Calloway Street, London EC2 (fictional)</td></tr><tr class=""><td class="l">Area</td><td class="l">1,300 m² NIA across two floors</td></tr><tr class=""><td class="l">Tender documents</td><td class="l">Designer's drawings rev. C, specification and pricing schedule, 9 Oct 2026</td></tr><tr class=""><td class="l">Form of contract</td><td class="l">JCT Minor Works Building Contract 2016, as amended</td></tr><tr class=""><td class="l">Practical completion</td><td class="l">Friday 14 May 2027</td></tr></tbody></table>
+<div class="meta"><div>Submitted to<b>Project Manager, for Pellwyn Harcourt LLP</b></div><div>Submitted by<b>Bid Director, Ashcombe Rook Interiors Ltd</b></div></div>
+<div class="builtfrom"><div class="bf-label">Built from</div><div class="bf-brief">“Pellwyn Harcourt LLP is fitting out levels 4 and 5 of 22 Calloway Street, London EC2 — about 1,300 m² NIA, Cat A complete. Tender pack attached: designer's drawings, specification and pricing schedule. Practical completion needed by May 2027. Return your priced tender with programme and qualifications.”</div><div class="bf-arrow">→ this proposal in one working day</div></div></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>1 / 7</span></div></section><section class="page  "><div class="hdr"><span><b>Ashcombe Rook Interiors Ltd</b></span><span>Tender Submission · 22 Calloway Street, Levels 4–5</span></div><div class="content">
+<div class="kicker">01 · Scope and approach</div>
+<h2>Our understanding of the works</h2>
+<p class="lede">The building is delivered to Cat A: raised floor, suspended ceiling, LED lighting, four-pipe fan coils and a fire alarm system. Our works adapt it to the designer's Cat B layout across both floors.</p>
+<div class="grid2">
+<div>
+<h3>Level 4 · client and meeting floor</h3>
+<ul><li>Reception with feature desk, waiting lounge and glazed client suite of five meeting rooms.</li>
+<li>Main tea point and breakout with banquette seating and joinery.</li>
+<li>Two quiet rooms, wellbeing room and a comms room with dedicated cooling.</li></ul>
+<h3>Level 5 · workplace floor</h3>
+<ul><li>Open-plan desks for 96, with lockers and two focus booths.</li>
+<li>Six partner offices with glazed fronts, two team rooms and a satellite tea point.</li></ul>
+</div>
+<div>
+<h3>Services adaptations</h3>
+<ul><li>Re-position and add fan coil units to suit cellular rooms; extract to tea points.</li>
+<li>Re-circuit lighting with presence detection; feature lighting under PS2.</li>
+<li>Floor boxes to desks and meeting rooms; containment for the client's IT supplier.</li>
+<li>Fire alarm detection and sounders adapted to the new room layout.</li></ul>
+<h3>How we will run it</h3>
+<ul><li>Full-time site manager and a contracts manager visiting twice weekly.</li>
+<li>Logistics agreed with building management: goods lift booking, loading bay slots, noisy works before 08:00 and after 18:00 under PS3.</li>
+<li>Considerate Constructors registration; weekly progress report to the project manager.</li></ul>
+</div>
+</div></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>2 / 7</span></div></section><section class="page  "><div class="hdr"><span><b>Ashcombe Rook Interiors Ltd</b></span><span>Tender Submission · 22 Calloway Street, Levels 4–5</span></div><div class="content">
+<div class="kicker">02 · Tender summary</div>
+<h2>Tender sum by element</h2>
+<p class="lede">Priced against the pricing schedule issued with the tender pack. Illustrative GBP figures. VAT is excluded and charged at the prevailing rate.</p>
+<table class="t "><colgroup><col style="width:8%"><col style="width:72%"><col style="width:20%"></colgroup><thead><tr><th class="l">Item</th><th class="l">Element</th><th class="r">Amount</th></tr></thead><tbody><tr class=""><td class="l">1</td><td class="l">Strip-out of Cat A finishes where affected</td><td class="r">£38,500</td></tr><tr class=""><td class="l">2</td><td class="l">Partitions, drylining and acoustic upgrades</td><td class="r">£142,000</td></tr><tr class=""><td class="l">3</td><td class="l">Glazed partitions and glazed doors</td><td class="r">£126,000</td></tr><tr class=""><td class="l">4</td><td class="l">Internal doors and ironmongery</td><td class="r">£64,800</td></tr><tr class=""><td class="l">5</td><td class="l">Ceiling modifications, rafts and bulkheads</td><td class="r">£72,400</td></tr><tr class=""><td class="l">6</td><td class="l">Floor finishes (carpet tile, LVT, entrance matting)</td><td class="r">£118,600</td></tr><tr class=""><td class="l">7</td><td class="l">Joinery (reception desk, tea points, lockers, booths)</td><td class="r">£164,000</td></tr><tr class=""><td class="l">8</td><td class="l">Decorations and wall finishes</td><td class="r">£46,200</td></tr><tr class=""><td class="l">9</td><td class="l">Mechanical adaptations (FCUs, extract, controls)</td><td class="r">£152,000</td></tr><tr class=""><td class="l">10</td><td class="l">Electrical adaptations (lighting, small power, floor boxes)</td><td class="r">£138,500</td></tr><tr class=""><td class="l">11</td><td class="l">Fire alarm and life-safety adaptations</td><td class="r">£28,700</td></tr><tr class=""><td class="l">12</td><td class="l">Data containment (cabling by client's IT supplier)</td><td class="r">£22,400</td></tr><tr class=""><td class="l">13</td><td class="l">Builder's work in connection with services</td><td class="r">£18,600</td></tr><tr class=""><td class="l">14</td><td class="l">Signage and glazing manifestation</td><td class="r">£9,800</td></tr><tr class="sub"><td class="l"></td><td class="l">Measured works subtotal</td><td class="r">£1,142,500</td></tr><tr class=""><td class="l"></td><td class="l">Preliminaries (17 weeks on site plus lead-in; see section 03)</td><td class="r">£168,000</td></tr><tr class=""><td class="l"></td><td class="l">Overheads and profit (6% on preliminaries and works)</td><td class="r">£78,630</td></tr><tr class=""><td class="l"></td><td class="l">Provisional sums (see section 03)</td><td class="r">£62,000</td></tr><tr class="total"><td class="l"></td><td class="l"><b>Tender sum, excluding VAT</b></td><td class="r"><b>£1,451,130</b></td></tr><tr class="muted"><td class="l"></td><td class="l">Rate per m² NIA (1,300 m²)</td><td class="r">£1,116</td></tr></tbody></table>
+<p class="small">The fully priced pricing schedule is available to the project manager on request.</p></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>3 / 7</span></div></section><section class="page  "><div class="hdr"><span><b>Ashcombe Rook Interiors Ltd</b></span><span>Tender Submission · 22 Calloway Street, Levels 4–5</span></div><div class="content">
+<div class="kicker">03 · Preliminaries and provisional sums</div>
+<h2>Preliminaries</h2>
+<table class="t "><colgroup><col style="width:80%"><col style="width:20%"></colgroup><thead><tr><th class="l">Item</th><th class="r">Amount</th></tr></thead><tbody><tr class=""><td class="l">Site management (site manager full-time, contracts manager part-time)</td><td class="r">£78,400</td></tr><tr class=""><td class="l">Site set-up, welfare, hoarding and floor protection</td><td class="r">£18,600</td></tr><tr class=""><td class="l">Waste management and skips (90% diversion from landfill)</td><td class="r">£16,800</td></tr><tr class=""><td class="l">Goods lift operation, logistics and loading bay management</td><td class="r">£14,200</td></tr><tr class=""><td class="l">Health and safety, CDM compliance, fire safety during works</td><td class="r">£11,500</td></tr><tr class=""><td class="l">Insurances (contractor's all risks, employer's and public liability)</td><td class="r">£12,300</td></tr><tr class=""><td class="l">Final clean, O&amp;M manuals, as-built drawings</td><td class="r">£16,200</td></tr><tr class="total"><td class="l"><b>Preliminaries total</b></td><td class="r"><b>£168,000</b></td></tr></tbody></table>
+<h2 style="margin-top:10px">Provisional sums</h2>
+<p class="lede" style="margin-bottom:6px">Included at the values below, inclusive of overheads and profit, and adjusted against actual cost under the contract.</p>
+<table class="t "><colgroup><col style="width:8%"><col style="width:72%"><col style="width:20%"></colgroup><thead><tr><th class="l">Ref.</th><th class="l">Description</th><th class="r">Amount</th></tr></thead><tbody><tr class=""><td class="l">PS1</td><td class="l">Landlord's surveyor, licence for alterations and approval fees</td><td class="r">£12,000</td></tr><tr class=""><td class="l">PS2</td><td class="l">Feature lighting to reception and client suite</td><td class="r">£25,000</td></tr><tr class=""><td class="l">PS3</td><td class="l">Out-of-hours working required by building management</td><td class="r">£15,000</td></tr><tr class=""><td class="l">PS4</td><td class="l">Making good to Cat A defects found after strip-out</td><td class="r">£10,000</td></tr><tr class="total"><td class="l"></td><td class="l"><b>Provisional sums total</b></td><td class="r"><b>£62,000</b></td></tr></tbody></table></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>4 / 7</span></div></section><section class="page  "><div class="hdr"><span><b>Ashcombe Rook Interiors Ltd</b></span><span>Tender Submission · 22 Calloway Street, Levels 4–5</span></div><div class="content">
+<div class="kicker">04 · Programme</div>
+<h2>17 weeks on site to practical completion</h2>
+<p class="lede">Lead-in from contract award on 4 December 2026. Start on site 18 January 2027. Practical completion Friday 14 May 2027.</p>
+<table class='t gantt'><thead><tr><th class='l'>Activity</th><th class='c'>Dec</th><th class='c'></th><th class='c'>Jan</th><th class='c'></th><th class='c'>Feb</th><th class='c'></th><th class='c'>Mar</th><th class='c'></th><th class='c'>Apr</th><th class='c'></th><th class='c'>May</th><th class='c'></th></tr><tr class='gsub'><td></td><td class='c'>1–15</td><td class='c'>16–31</td><td class='c'>1–15</td><td class='c'>16–31</td><td class='c'>1–14</td><td class='c'>15–28</td><td class='c'>1–15</td><td class='c'>16–31</td><td class='c'>1–15</td><td class='c'>16–30</td><td class='c'>1–15</td><td class='c'>16–31</td></tr></thead><tbody><tr><td class='l'>Contract award, licence for alterations, lead-in</td><td class='g on'></td><td class='g on'></td><td class='g on'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td></tr><tr><td class='l'>Long-lead orders (glazing, joinery, FCUs)</td><td class='g'></td><td class='g on'></td><td class='g on'></td><td class='g on'></td><td class='g on'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td></tr><tr><td class='l'>Start on site, strip-out, setting out</td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g on'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td></tr><tr><td class='l'>Partitions, first-fix M&amp;E</td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g on'></td><td class='g on'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td></tr><tr><td class='l'>Glazed partitions, ceilings, second-fix M&amp;E</td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g on'></td><td class='g on'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td></tr><tr><td class='l'>Joinery install, decorations, floor finishes</td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g on'></td><td class='g on'></td><td class='g'></td><td class='g'></td><td class='g'></td></tr><tr><td class='l'>Testing, commissioning, fire alarm cause and effect</td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g on'></td><td class='g on'></td><td class='g'></td><td class='g'></td></tr><tr><td class='l'>Snagging, cleaning, handover · PC 14 May</td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g on'></td><td class='g on'></td><td class='g'></td></tr><tr><td class='l'>Client furniture and IT (post-PC)</td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g on'></td><td class='g'></td></tr></tbody></table>
+<div class="grid3" style="margin-top:8px">
+  <div class="card tint"><p style="margin:0"><b>Key dates.</b> Award 4 Dec · licence for alterations 15 Jan · start on site 18 Jan · PC 14 May.</p></div>
+  <div class="card tint"><p style="margin:0"><b>Critical path.</b> Glazed partition manufacture (10 weeks) and FCU delivery; ordered on award.</p></div>
+  <div class="card tint"><p style="margin:0"><b>Sequence.</b> Level 5 first, then level 4, so the client suite is finished last and snagged clean.</p></div>
+</div></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>5 / 7</span></div></section><section class="page  "><div class="hdr"><span><b>Ashcombe Rook Interiors Ltd</b></span><span>Tender Submission · 22 Calloway Street, Levels 4–5</span></div><div class="content">
+<div class="kicker">05 · Qualifications and exclusions</div>
+<h2>Qualifications</h2>
+<ol style="padding-left:18px;margin:0 0 6px"><li style="margin-bottom:5px">Our tender is based on the documents listed on the cover. Design development after the tender date is valued as a variation.</li><li style="margin-bottom:5px">The Cat A installation is complete, commissioned and in working order on start on site. Defects in the landlord's works are dealt with under PS4.</li><li style="margin-bottom:5px">Fan coil units are re-used where shown; the number of new units is limited to the 14 shown on the mechanical layouts.</li><li style="margin-bottom:5px">Normal working hours are 08:00–18:00 Monday to Friday. Weekend and out-of-hours work is covered by PS3 only.</li><li style="margin-bottom:5px">The goods lift and loading bay are available for our use for at least 4 hours each working day.</li><li style="margin-bottom:5px">Loose furniture, AV and IT are by the client, installed after practical completion as shown on the programme.</li><li style="margin-bottom:5px">No allowance for asbestos: the building is a recent Cat A shell with a clear refurbishment survey.</li></ol>
+<h2 style="margin-top:8px">Exclusions</h2>
+<ul><li>VAT</li><li>Loose furniture, AV equipment and IT cabling</li><li>Landlord's legal costs and service charge during the works</li><li>Planning or building regulations fees beyond PS1</li><li>Works to landlord areas, risers, toilets and the roof</li><li>Specialist acoustic testing beyond one test per room type</li><li>Liquidated damages above 5% of the contract sum in total</li></ul></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>6 / 7</span></div></section><section class="page  "><div class="hdr"><span><b>Ashcombe Rook Interiors Ltd</b></span><span>Tender Submission · 22 Calloway Street, Levels 4–5</span></div><div class="content">
+<div class="kicker">06 · Tender validity and terms</div>
+<h2>Commercial terms</h2>
+<ul>
+<li><b>Tender validity.</b> 60 days from the return date of 3 November 2026.</li>
+<li><b>Contract.</b> JCT Minor Works Building Contract 2016 with the amendments in the tender pack, save for the qualifications in section 05.</li>
+<li><b>Payment.</b> Monthly valuations; payment 14 days from the due date. Retention 3%, half released at practical completion and half at the end of the 12-month rectification period.</li>
+<li><b>Liquidated damages.</b> Accepted at £2,500 per week, capped at 5% of the contract sum.</li>
+<li><b>Insurance.</b> Contractor's all risks to full reinstatement value of the works; employer's liability £10m; public liability £10m.</li>
+<li><b>Accreditations.</b> Considerate Constructors registered; site manager SMSTS-trained; all operatives hold CSCS cards.</li>
+</ul>
+<div class="kicker" style="margin-top:12px">Form of tender</div>
+<p>We offer to carry out and complete the works described in the tender documents for the sum of <b>£1,451,130</b> excluding VAT, subject to the qualifications above, and to achieve practical completion by 14 May 2027.</p>
+<div class="sig">
+  <div><div class="line"></div><div class="lab">For Ashcombe Rook Interiors Ltd · name, position</div><div class="line"></div><div class="lab">Signature · date</div></div>
+  <div><div class="line"></div><div class="lab">Accepted for Pellwyn Harcourt LLP · name, position</div><div class="line"></div><div class="lab">Signature · date</div></div>
+</div></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>7 / 7</span></div></section></body></html>

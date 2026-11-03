@@ -1,0 +1,167 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Bid Proposal · Tandrevo Logistics, Floors 11–12 — sample</title><style>:root{--accent:#3d4a5c;}
+@page { size: 8.5in 11in; margin: 0; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #d9d6cf; }
+body { font-family: Inter, "Helvetica Neue", Arial, sans-serif; color: #16181c; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-feature-settings: "tnum" 1; }
+.page { width: 8.5in; height: 11in; background: #fff; position: relative; overflow: hidden;
+  page-break-after: always; break-after: page; display: flex; flex-direction: column; padding: 0.55in 0.65in 0.4in; }
+.page:last-child { page-break-after: auto; break-after: auto; }
+@media screen { .page { margin: 24px auto; box-shadow: 0 4px 18px rgba(0,0,0,.12); } }
+.hdr { display: flex; justify-content: space-between; align-items: baseline; font-size: 9.5px; letter-spacing: .14em;
+  text-transform: uppercase; color: #6b6f76; border-bottom: 1px solid #e4dfd6; padding-bottom: 8px; margin-bottom: 18px; flex: none; }
+.hdr b { color: #16181c; font-weight: 600; }
+.content { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+.ftr { flex: none; display: flex; justify-content: space-between; font-size: 9px; color: #6b6f76;
+  border-top: 1px solid #e4dfd6; padding-top: 7px; margin-top: 12px; }
+h1 { font-size: 34px; line-height: 1.12; margin: 0 0 10px; font-weight: 650; letter-spacing: -.02em; }
+h2 { font-size: 25px; line-height: 1.2; margin: 0 0 6px; font-weight: 650; letter-spacing: -.01em; }
+h3 { font-size: 14px; margin: 16px 0 7px; font-weight: 650; }
+.kicker { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); font-weight: 650; margin-bottom: 6px; }
+.lede { font-size: 14px; color: #3d4148; line-height: 1.5; margin: 0 0 14px; max-width: 46em; }
+p, li { font-size: 12px; line-height: 1.55; color: #2b2e33; }
+p { margin: 0 0 8px; }
+ul { margin: 0 0 8px; padding-left: 16px; } li { margin-bottom: 5px; }
+.small { font-size: 10.5px; color: #5b6068; }
+.t { width: 100%; border-collapse: collapse; font-size: 11.5px; margin: 4px 0 10px; }
+.t th { text-align: left; font-weight: 600; font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase; color: #5b6068;
+  border-bottom: 1.5px solid #16181c; padding: 5px 6px; }
+.t td { padding: 6.5px 7px; border-bottom: 1px solid #ebe7e0; vertical-align: top; }
+.t .r { text-align: right; white-space: nowrap; } .t .c { text-align: center; } .t .l { text-align: left; }
+.t tr.sub td { font-weight: 600; background: #f7f3ec; }
+.t tr.total td { font-weight: 700; font-size: 12.5px; border-top: 1.5px solid #16181c; border-bottom: none; background: #f7f3ec; }
+.t tr.muted td { color: #6b6f76; }
+.t tr.sec td { font-weight: 650; color: var(--accent); background: #fff; padding-top: 9px; font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase; }
+.gantt th.c { font-size: 8.5px; padding: 4px 1px; } .gantt td { padding: 4px 6px; } .gantt td.g { padding: 0; border-left: 1px solid #f0ece6; }
+.gantt td.g.on { background: var(--accent); background-clip: content-box; padding: 5px 0; }
+.gantt tr.gsub td { font-size: 8px; color: #6b6f76; padding: 2px 0; border-bottom: 1px solid #ebe7e0; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.card { border: 1px solid #e4dfd6; border-radius: 6px; padding: 12px 14px; background: #fff; }
+.card.tint { background: #f7f3ec; border-color: #ece6db; }
+.card h3 { margin-top: 0; }
+.stat .n { font-size: 26px; white-space: nowrap; font-weight: 700; letter-spacing: -.01em; }
+.stat .k { font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: #6b6f76; }
+.builtfrom { border: 1px solid #d8d1c4; border-left: 4px solid var(--accent); background: #f7f3ec; border-radius: 4px; padding: 10px 14px; }
+.bf-label { font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: #6b6f76; font-weight: 650; margin-bottom: 4px; }
+.bf-brief { font-size: 11.5px; line-height: 1.45; color: #2b2e33; font-style: italic; }
+.bf-arrow { font-size: 12.5px; font-weight: 650; color: var(--accent); margin-top: 6px; }
+.cover .content { justify-content: space-between; }
+.cover h1 { font-size: 40px; }
+.meta { display: flex; gap: 40px; font-size: 10.5px; color: #5b6068; }
+.meta > div:last-child { flex: none; }
+.meta b { display: block; color: #16181c; font-size: 12.5px; font-weight: 600; margin-top: 2px; }
+.band { height: 6px; background: var(--accent); margin: -1px 0 0; }
+.sig { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 10px; }
+.sig .line { border-bottom: 1px solid #16181c; height: 30px; margin-bottom: 3px; }
+.sig .lab { font-size: 9px; color: #6b6f76; margin-bottom: 10px; }
+.note { font-size: 9.5px; color: #5b6068; border-left: 2px solid #d8d1c4; padding-left: 8px; margin: 4px 0 8px; }
+.pill { display: inline-block; font-size: 9px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 2px 7px;
+  border-radius: 10px; background: #f7f3ec; color: #3d4148; border: 1px solid #e4dfd6; }
+/* deck */
+.deck .hdr { margin-bottom: 24px; font-size: 11px; } .deck .ftr { font-size: 11px; }
+.deck h1 { font-size: 60px; } .deck h2 { font-size: 38px; margin-bottom: 10px; } .deck .kicker { font-size: 12.5px; margin-bottom: 10px; }
+.deck .lede { font-size: 19px; max-width: 52em; margin-bottom: 20px; } .deck p, .deck li { font-size: 16px; } .deck li { margin-bottom: 6px; }
+.deck .t { font-size: 14.5px; } .deck .t td { padding: 7px 8px; } .deck .t th { font-size: 11px; padding: 7px 8px; }
+.deck .card { padding: 16px 18px; } .deck .card h3 { font-size: 18px; margin-bottom: 8px; } .deck h3 { font-size: 18px; }
+.deck .stat .n { font-size: 32px; } .deck .stat .k { font-size: 11px; } .deck .small { font-size: 13px; }
+.deck .bf-brief { font-size: 14px; } .deck .bf-label { font-size: 11px; } .deck .bf-arrow { font-size: 15px; }
+.deck .meta { font-size: 12.5px; gap: 40px; white-space: nowrap; } .deck .t tr.total td { font-size: 15.5px; } .deck .meta b { font-size: 15px; }
+.deck .gantt td { padding: 6px 8px; font-size: 14px; } .deck .gantt th.c { font-size: 11px; }
+.deck .gantt td.g.on { padding: 6px 0; }
+.deck .stage .el { font-size: 13px; } .deck .stage .lbl { font-size: 12px; }
+.oneliner { font-size: 40px; line-height: 1.3; font-weight: 600; letter-spacing: -.01em; max-width: 24em; margin: 8px 0 24px; }
+.stage { position: relative; border: 1px solid #d8d1c4; border-radius: 6px; background: #f7f3ec; height: 100%; }
+.stage .el { position: absolute; display: flex; align-items: center; justify-content: center; text-align: center;
+  font-size: 10.5px; font-weight: 600; color: #fff; border-radius: 3px; }
+.stage .lbl { position: absolute; font-size: 9.5px; color: #5b6068; text-align: center; }
+.split { display: grid; grid-template-columns: 1.05fr 1fr; gap: 28px; flex: 1; min-height: 0; }
+.itin .day { display: grid; grid-template-columns: 56px 1fr; gap: 10px; border-top: 1px solid #e4dfd6; padding: 10px 0 6px; }
+.itin .day .d { font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: .06em; text-transform: uppercase; }
+.itin .slot { display: grid; grid-template-columns: 74px 1fr; gap: 8px; margin-bottom: 4px; }
+.itin .slot .tm { font-size: 10px; color: #6b6f76; font-weight: 600; padding-top: 1px; }
+.itin .slot p { margin: 0; }
+</style></head><body><section class="page cover "><div class="hdr"><span><b>Brannick Hale Builders</b></span><span>Bid Proposal · Tandrevo Logistics, Floors 11–12</span></div><div class="content">
+<div>
+  <div class="kicker">Bid proposal · No. BHB-2611-07 · 3 November 2026</div>
+  <h1>Office fit-out, floors 11–12<br>for Tandrevo Logistics</h1>
+  <p class="lede">A complete bid for the 14,000 sq ft interior build-out, with three alternates, a schedule to a 10 May 2027 move-in, and the clarifications behind every number.</p>
+</div>
+<div class="grid2" style="align-items:stretch">
+  <div class="card tint stat"><div class="k">Base bid (GMP)</div><div class="n">$2,358,314</div>
+    <p class="small" style="margin:4px 0 0">$168 per sq ft · valid 45 days</p></div>
+  <div class="card tint stat"><div class="k">Substantial completion</div><div class="n">30 Apr 2027</div>
+    <p class="small" style="margin:4px 0 0">22 weeks from notice to proceed on 30 Nov 2026</p></div>
+</div>
+<table class="t kv"><colgroup><col style="width:28%"><col style="width:72%"></colgroup><thead><tr><th class="l"></th><th class="l"></th></tr></thead><tbody><tr class=""><td class="l">Project</td><td class="l">Tenant interior fit-out, floors 11 and 12</td></tr><tr class=""><td class="l">Address</td><td class="l">400 W Ardmore Place, Chicago, IL (fictional)</td></tr><tr class=""><td class="l">Area</td><td class="l">14,000 sq ft across two floors</td></tr><tr class=""><td class="l">Bid documents</td><td class="l">Architect's CDs dated 14 Oct 2026, Addenda 1–2</td></tr><tr class=""><td class="l">Contract form</td><td class="l">AIA A102 (cost of work plus fee, with GMP)</td></tr><tr class=""><td class="l">Move-in target</td><td class="l">Monday 10 May 2027</td></tr></tbody></table>
+<div class="meta"><div>Prepared for<b>Facilities Director, Tandrevo Logistics</b></div><div>Prepared by<b>Project Executive, Brannick Hale Builders</b></div></div>
+<div class="builtfrom"><div class="bf-label">Built from</div><div class="bf-brief">“Tandrevo Logistics is taking floors 11 and 12 at 400 W Ardmore Place, Chicago, about 14,000 sq ft. Architect's CDs attached (open office, 8 private offices, 4 conference rooms, café). We need to be moved in by May 2027. Please send your bid with alternates and schedule.”</div><div class="bf-arrow">→ this proposal in one working day</div></div></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>1 / 7</span></div></section><section class="page  "><div class="hdr"><span><b>Brannick Hale Builders</b></span><span>Bid Proposal · Tandrevo Logistics, Floors 11–12</span></div><div class="content">
+<div class="kicker">01 · Scope of work</div>
+<h2>What we will build</h2>
+<p class="lede">The work covers a full interior build-out of floors 11 and 12 per the architect's construction documents. Base building core, shell and restrooms are by the landlord and outside this bid.</p>
+<div class="grid2">
+<div>
+<h3>Floor 11 · about 7,200 sq ft</h3>
+<ul><li>Reception and waiting area with feature millwork desk and a glass wall to the café.</li>
+<li>Café and pantry: millwork, solid-surface counters, sink, dishwasher and ice-maker connections.</li>
+<li>Two conference rooms (12 and 8 seats) with acoustic insulation to deck and AV backing.</li>
+<li>Open office for 44 workstations; furniture by owner, power and data poke-throughs by us.</li></ul>
+<h3>Floor 12 · about 6,800 sq ft</h3>
+<ul><li>Eight private offices with glass fronts and sliding doors.</li>
+<li>Boardroom (16 seats) and one 6-seat conference room.</li>
+<li>Open office for 38 workstations, two phone rooms, IDF room with dedicated cooling.</li></ul>
+</div>
+<div>
+<h3>Building systems</h3>
+<ul><li><b>HVAC:</b> extend base-building VAV distribution, 22 new VAV boxes with controls tied to the BAS, supplemental split system for the IDF.</li>
+<li><b>Electrical:</b> new panelboards from the base-building riser, LED lighting with occupancy and daylight controls, floor boxes in conference rooms.</li>
+<li><b>Plumbing:</b> café and pantry fixtures off the existing wet column.</li>
+<li><b>Fire protection:</b> relocate and add heads to suit the new layout; fire alarm devices added per code.</li></ul>
+<h3>Throughout</h3>
+<ul><li>Full-time superintendent on site, daily cleanup, weekly owner meeting and three-week look-ahead.</li>
+<li>Permit expediting with the City of Chicago Department of Buildings.</li>
+<li>Close-out: as-builts, O&amp;M manuals, warranties and a punch list closed within 10 working days.</li></ul>
+</div>
+</div></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>2 / 7</span></div></section><section class="page  "><div class="hdr"><span><b>Brannick Hale Builders</b></span><span>Bid Proposal · Tandrevo Logistics, Floors 11–12</span></div><div class="content">
+<div class="kicker">02 · Price summary</div>
+<h2>Base bid by trade</h2>
+<p class="lede">Every line is based on subcontractor bids received on 28 October 2026, leveled against the CDs. Illustrative USD figures.</p>
+<table class="t "><colgroup><col style="width:8%"><col style="width:72%"><col style="width:20%"></colgroup><thead><tr><th class="l">Div.</th><th class="l">Trade</th><th class="r">Amount</th></tr></thead><tbody><tr class=""><td class="l">02</td><td class="l">Selective demolition</td><td class="r">$68,500</td></tr><tr class=""><td class="l">06</td><td class="l">Carpentry & architectural millwork</td><td class="r">$142,000</td></tr><tr class=""><td class="l">08</td><td class="l">Doors, frames & hardware</td><td class="r">$96,400</td></tr><tr class=""><td class="l">08</td><td class="l">Interior glass & glazing</td><td class="r">$188,000</td></tr><tr class=""><td class="l">09</td><td class="l">Metal framing, drywall & acoustical ceilings</td><td class="r">$412,000</td></tr><tr class=""><td class="l">09</td><td class="l">Flooring (carpet tile, LVT, porcelain tile)</td><td class="r">$164,500</td></tr><tr class=""><td class="l">09</td><td class="l">Painting & wallcovering</td><td class="r">$72,800</td></tr><tr class=""><td class="l">10</td><td class="l">Specialties (toilet accessories, signage, markerboards)</td><td class="r">$21,600</td></tr><tr class=""><td class="l">12</td><td class="l">Window treatments</td><td class="r">$18,900</td></tr><tr class=""><td class="l">21</td><td class="l">Fire protection (sprinkler modifications)</td><td class="r">$58,800</td></tr><tr class=""><td class="l">22</td><td class="l">Plumbing</td><td class="r">$96,000</td></tr><tr class=""><td class="l">23</td><td class="l">HVAC</td><td class="r">$318,000</td></tr><tr class=""><td class="l">26</td><td class="l">Electrical, lighting & low-voltage rough-in</td><td class="r">$352,000</td></tr><tr class=""><td class="l">28</td><td class="l">Fire alarm modifications</td><td class="r">$34,500</td></tr><tr class="sub"><td class="l"></td><td class="l">Trade subtotal</td><td class="r">$2,044,000</td></tr><tr class=""><td class="l">01</td><td class="l">General conditions (22 weeks: supervision, temp facilities, hoisting, cleanup)</td><td class="r">$186,000</td></tr><tr class=""><td class="l"></td><td class="l">Insurance (general liability and builder's risk, 1.2%)</td><td class="r">$26,760</td></tr><tr class=""><td class="l"></td><td class="l">Contractor's fee (4.5%)</td><td class="r">$101,554</td></tr><tr class="total"><td class="l"></td><td class="l"><b>Base bid total (GMP)</b></td><td class="r"><b>$2,358,314</b></td></tr><tr class="muted"><td class="l"></td><td class="l">Cost per sq ft (14,000 sq ft)</td><td class="r">$168</td></tr></tbody></table>
+<p class="small">Permit fees and sales tax on materials are included. Owner contingency is not included and is recommended at 5% of the base bid.</p></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>3 / 7</span></div></section><section class="page  "><div class="hdr"><span><b>Brannick Hale Builders</b></span><span>Bid Proposal · Tandrevo Logistics, Floors 11–12</span></div><div class="content">
+<div class="kicker">03 · Alternates</div>
+<h2>Options you can add or take out</h2>
+<table class="t "><colgroup><col style="width:9%"><col style="width:10%"><col style="width:61%"><col style="width:20%"></colgroup><thead><tr><th class="l">No.</th><th class="l">Type</th><th class="l">Description</th><th class="r">Change to base bid</th></tr></thead><tbody><tr class=""><td class="l">Alt 1</td><td class="l">Add</td><td class="l">Demountable glass-front partitions in lieu of drywall at 8 private offices</td><td class="r">+$46,200</td></tr><tr class=""><td class="l">Alt 2</td><td class="l">Add</td><td class="l">Premium broadloom carpet with cushion in executive suite and boardroom (2,100 sq ft)</td><td class="r">+$18,400</td></tr><tr class=""><td class="l">Alt 3</td><td class="l">Deduct</td><td class="l">Retain and refurbish existing ceiling grid on floor 12; new tile only</td><td class="r">–$31,500</td></tr></tbody></table>
+<p class="small">Base bid with all three alternates accepted: <b>$2,391,414</b>. Alternates are priced independently and can be accepted in any combination within 21 days of the bid date without affecting schedule.</p>
+<div class="kicker" style="margin-top:14px">04 · Exclusions</div>
+<h2>Not included in this bid</h2>
+<ul><li>Furniture, workstations and their installation</li><li>Audio-visual equipment and IT/telecom cabling (rough-in and backing included)</li><li>Security and access control hardware (conduit and back boxes included)</li><li>Landlord base-building work, core restrooms and code upgrades outside the demised premises</li><li>Hazardous material testing or abatement</li><li>Building permit plan review delays beyond 6 weeks</li><li>Overtime or after-hours work except where noted</li><li>Moving, artwork, plants and signage beyond the code-required items</li><li>Utility costs during construction (assumed provided by landlord)</li></ul></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>4 / 7</span></div></section><section class="page  "><div class="hdr"><span><b>Brannick Hale Builders</b></span><span>Bid Proposal · Tandrevo Logistics, Floors 11–12</span></div><div class="content">
+<div class="kicker">05 · Assumptions & clarifications</div>
+<h2>What this price is based on</h2>
+<ol style="padding-left:18px;margin:0"><li style="margin-bottom:7px">Work is based on the architect's CDs dated 14 October 2026 and Addenda 1–2. Changes after that date are priced as change orders.</li><li style="margin-bottom:7px">Normal working hours are 7:00 am to 3:30 pm, Monday to Friday. Core drilling and noisy work after hours is included at 40 hours, as required by the landlord's rules.</li><li style="margin-bottom:7px">The landlord provides one freight elevator for our exclusive use 6:00–7:00 am and 3:30–6:00 pm, and shared use in between.</li><li style="margin-bottom:7px">The base-building HVAC, electrical riser and fire alarm panel have capacity for the design as drawn. Upgrades found needed are not included.</li><li style="margin-bottom:7px">Long-lead items (glass fronts, light fixtures, VAV boxes) are released on notice to proceed. Pricing assumes release by 7 December 2026.</li><li style="margin-bottom:7px">Floor flatness is assumed within the tolerance for the specified flooring. Floor prep is included up to 3,000 sq ft of skim coat.</li><li style="margin-bottom:7px">Allowances: millwork hardware $6,500 and signage $4,000, included in the trade lines above and reconciled at close-out.</li><li style="margin-bottom:7px">Owner-furnished items are delivered and stored by the owner; we coordinate delivery windows.</li><li style="margin-bottom:7px">Unused general conditions and unused allowances are returned to the owner under the GMP.</li></ol>
+<div class="card tint" style="margin-top:12px"><p style="margin:0"><b>Open item for owner decision.</b> Café appliance package: the CDs show owner-furnished appliances. If you would like us to supply them, we will price it as an alternate within 3 working days.</p></div></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>5 / 7</span></div></section><section class="page  "><div class="hdr"><span><b>Brannick Hale Builders</b></span><span>Bid Proposal · Tandrevo Logistics, Floors 11–12</span></div><div class="content">
+<div class="kicker">06 · Schedule</div>
+<h2>22 weeks to substantial completion</h2>
+<p class="lede">Notice to proceed 30 November 2026. Substantial completion 30 April 2027. Ten days of buffer before move-in on 10 May 2027.</p>
+<table class='t gantt'><thead><tr><th class='l'>Activity</th><th class='c'>Dec</th><th class='c'></th><th class='c'>Jan</th><th class='c'></th><th class='c'>Feb</th><th class='c'></th><th class='c'>Mar</th><th class='c'></th><th class='c'>Apr</th><th class='c'></th><th class='c'>May</th><th class='c'></th></tr><tr class='gsub'><td></td><td class='c'>1–15</td><td class='c'>16–31</td><td class='c'>1–15</td><td class='c'>16–31</td><td class='c'>1–14</td><td class='c'>15–28</td><td class='c'>1–15</td><td class='c'>16–31</td><td class='c'>1–15</td><td class='c'>16–30</td><td class='c'>1–15</td><td class='c'>16–31</td></tr></thead><tbody><tr><td class='l'>Notice to proceed, submittals, long-lead release</td><td class='g on'></td><td class='g on'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td></tr><tr><td class='l'>Building permit (review + issue)</td><td class='g on'></td><td class='g on'></td><td class='g on'></td><td class='g on'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td></tr><tr><td class='l'>Selective demolition</td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g on'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td></tr><tr><td class='l'>Framing, MEP rough-in, inspections</td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g on'></td><td class='g on'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td></tr><tr><td class='l'>Drywall, glazing frames, ceiling grid</td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g on'></td><td class='g on'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td></tr><tr><td class='l'>Millwork, doors, finishes, flooring</td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g on'></td><td class='g on'></td><td class='g'></td><td class='g'></td><td class='g'></td></tr><tr><td class='l'>MEP trim, commissioning, fire alarm test</td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g on'></td><td class='g'></td><td class='g'></td><td class='g'></td></tr><tr><td class='l'>Punch list, final inspection, occupancy</td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g on'></td><td class='g'></td><td class='g'></td></tr><tr><td class='l'>Furniture install and IT (owner)</td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g on'></td><td class='g on'></td><td class='g'></td></tr><tr><td class='l'>Move-in (10 May 2027)</td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g'></td><td class='g on'></td><td class='g'></td></tr></tbody></table>
+<div class="grid3" style="margin-top:8px">
+  <div class="card tint"><p style="margin:0"><b>Critical path.</b> Permit issue by 29 January 2027. A two-week slip moves completion by about one week; we recover the rest with a second framing crew.</p></div>
+  <div class="card tint"><p style="margin:0"><b>Long lead.</b> Glass fronts 12 weeks, light fixtures 10 weeks, VAV boxes 8 weeks from release.</p></div>
+  <div class="card tint"><p style="margin:0"><b>Phasing.</b> Both floors run together; floor 12 finishes first so furniture install can start a week early.</p></div>
+</div></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>6 / 7</span></div></section><section class="page  "><div class="hdr"><span><b>Brannick Hale Builders</b></span><span>Bid Proposal · Tandrevo Logistics, Floors 11–12</span></div><div class="content">
+<div class="kicker">07 · Terms & validity</div>
+<h2>Commercial terms</h2>
+<ul>
+<li><b>Validity.</b> This bid is valid for 45 days from 3 November 2026. Subcontractor pricing on glazing and electrical is held to that date only.</li>
+<li><b>Contract.</b> AIA A102 with A201 general conditions, as modified by mutual agreement. GMP $2,358,314 for the base bid plus accepted alternates.</li>
+<li><b>Payment.</b> Monthly progress billing on AIA G702/G703, net 30. Retainage 10% to 50% complete, then 5%, released at substantial completion less punch-list value.</li>
+<li><b>Changes.</b> Priced at cost plus the 4.5% fee and 1.2% insurance, with backup, before work proceeds.</li>
+<li><b>Warranty.</b> One year on workmanship from substantial completion; manufacturer warranties passed through.</li>
+<li><b>Insurance.</b> Certificates naming owner and landlord as additional insured, delivered before mobilization.</li>
+</ul>
+<div class="kicker" style="margin-top:12px">Acceptance</div>
+<p>Signing below accepts the base bid of <b>$2,358,314</b> and the alternates marked, subject to execution of the contract above.</p>
+<table class="t "><colgroup><col style="width:60%"><col style="width:20%"><col style="width:20%"></colgroup><thead><tr><th class="l">Alternate</th><th class="c">Accept</th><th class="c">Decline</th></tr></thead><tbody><tr class=""><td class="l">Alt 1 · Add +$46,200</td><td class="c">☐</td><td class="c">☐</td></tr><tr class=""><td class="l">Alt 2 · Add +$18,400</td><td class="c">☐</td><td class="c">☐</td></tr><tr class=""><td class="l">Alt 3 · Deduct –$31,500</td><td class="c">☐</td><td class="c">☐</td></tr></tbody></table>
+<div class="sig">
+  <div><div class="line"></div><div class="lab">For Tandrevo Logistics · name, title</div><div class="line"></div><div class="lab">Signature · date</div></div>
+  <div><div class="line"></div><div class="lab">For Brannick Hale Builders · name, title</div><div class="line"></div><div class="lab">Signature · date</div></div>
+</div></div><div class="ftr"><span>Sample — fictional client, illustrative figures. Prepared by ProdCraft.</span><span>7 / 7</span></div></section></body></html>
