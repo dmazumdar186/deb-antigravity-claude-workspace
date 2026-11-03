@@ -117,6 +117,8 @@ def main() -> int:
         if not to_remove and not needs_patch:
             print("  nothing to do (already cut over)")
             return 0
+        if needs_patch and not source:
+            raise CloudflareError("project has no git source; refusing to PATCH a fabricated source config")
         if not args.apply:
             print("\nDRY RUN: nothing changed. Re-run with --apply to execute.")
             return 0
