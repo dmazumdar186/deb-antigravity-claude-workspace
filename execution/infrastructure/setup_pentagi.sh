@@ -139,7 +139,7 @@ set_env() {
 replace_default() {
   local key="$1" default="$2" newval="$3"
   [ "$DRY_RUN" -eq 1 ] && { echo "[dry-run] replace default $key if unchanged"; return 0; }
-  local cur; cur=$(grep -E "^${key}=" "$ENV_FILE" | head -1 | sed -E "s/^${key}=//; s/[[:space:]]*#.*$//")
+  local cur; cur=$( { grep -E "^${key}=" "$ENV_FILE" || true; } | head -1 | sed -E "s/^${key}=//; s/[[:space:]]*#.*$//")
   if [ -z "$cur" ] || [ "$cur" = "$default" ]; then set_env "$key" "$newval"; log "Generated random $key"; fi
 }
 
@@ -194,7 +194,7 @@ else
 fi
 
 # ---- health (default web UI https://localhost:8443) ----
-PORT="$(grep -E '^PENTAGI_LISTEN_PORT=' "$ENV_FILE" 2>/dev/null | sed -E 's/^.*=//; s/[[:space:]].*$//')"
+PORT="$( { grep -E '^PENTAGI_LISTEN_PORT=' "$ENV_FILE" 2>/dev/null || true; } | sed -E 's/^.*=//; s/[[:space:]].*$//')"
 PORT="${PORT:-8443}"
 URL="https://localhost:$PORT"
 if [ "$DRY_RUN" -eq 1 ]; then
