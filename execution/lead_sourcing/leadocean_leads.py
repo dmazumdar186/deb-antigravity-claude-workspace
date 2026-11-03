@@ -1322,11 +1322,20 @@ def cmd_icebreak(args: argparse.Namespace) -> None:
             rec, status = validate_ice(None, e)
         else:
             prompt = _ice_prompt(r, e)
-            try:
-                text = llm_client.chat_completion(ICE_SYSTEM, prompt, model=LLM_MODEL, max_tokens=600)
-            except Exception as exc:  # noqa: BLE001 - provider SDK raises many types; log and fall back to template
-                log.warning("icebreak %s: %s", r["_email"], exc.__class__.__name__)
-                text = ""
+            text = None
+            for attempt in range(4):
+                try:
+                    text = llm_client.chat_completion(ICE_SYSTEM, prompt, model=LLM_MODEL, max_tokens=600)
+                    break
+                except Exception as exc:  # noqa: BLE001 - provider SDK raises many types; log, back off, retry
+                    log.warning("icebreak %s: %s (attempt %d)", r["_email"], exc.__class__.__name__, attempt + 1)
+                    time.sleep(5 * 2 ** attempt)
+            if text is None:
+                # 2026-11-03: a burst of OpenRouter APIStatusErrors was cached as template_only for ~1,000
+                # rows. Provider errors now leave the row uncached so a re-run retries it.
+                with lock:
+                    _ice_fail["llm_error"] += 1
+                return
             rec, status = validate_ice(_parse_json(text), e)
             calls = [(prompt, text)]
             if rec.get("fail") in FIXABLE:  # one repair pass for format slips (length, dash, filler)

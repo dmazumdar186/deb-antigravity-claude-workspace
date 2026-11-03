@@ -135,6 +135,18 @@ and output moves to `.tmp/leadocean/wave2/` (wave-1 files are never touched). Or
   fit-out 10% (fit-out rows lost to no-email, domain mismatch and Jev `none` on the contact). `--weights
   av=1,dmc=1,fitout=0.3` sends rows where they buy the most safe leads.
 
+- Wave-2 result (2026-11-03, 5,088 rows over 2 UTC days: 239 + 4,849): 2,508 passed hygiene + Jev, Reoon
+  main 1,378 / catchall 231 / drop 661 -> 27% safe per row (AV 30%, fit-out 25%, DMC 21%). Top rejects:
+  contact-level Jev `none` 525, domain mismatch 377, Reoon invalid 352, LeadOcean unknown 351, duplicate rows 339
+  (domain exports DO repeat rows at volume, ~7%), cap 319, Reoon unknown 303. Wave 1 + 2 = 1,784 safe.
+- Ceiling after wave 2: every Jev-approved company with 1-4 matching decision-makers (incl. the tight recount)
+  is exported. Left: 1,130 approved companies still >4 at owner/founder/C-suite/partner level (fit-out 776,
+  AV 292, DMC 62) and 2,219 unsearched fit-out US companies (cell capped at 40 pages). Free company counts for
+  the same filters: CA 1,142, AU 1,197, IE 198 companies (~0.12 safe leads per searched company).
+- OpenRouter account credit is a hard cap ($30 total on 2026-11-03): at ~$0.004/call it ran out mid-icebreak
+  and returned HTTP 402 `in_flight_budget_exhausted`. `icebreak` now retries provider errors and leaves the row
+  uncached (it used to cache them as `template_only`); re-run `--wave 2 icebreak` then `build` after a top-up.
+
 ### Other
 - Cloud sandbox: the local DNS resolver answers NoAnswer for real MX records, so MX uses DNS-over-HTTPS
   (Google, then Cloudflare). Plain-HTTP fetches time out through the proxy; sites are fetched over HTTPS only.
