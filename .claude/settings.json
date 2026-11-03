@@ -10,7 +10,22 @@
   "autoMemoryEnabled": true,
   "extraKnownMarketplaces": {
     "deb-workspace-mods": {
-      "source": { "source": "github", "repo": "dmazumdar186/deb-antigravity-claude-workspace" }
+      "source": {
+        "source": "github",
+        "repo": "dmazumdar186/deb-antigravity-claude-workspace"
+      }
+    },
+    "lemolab": {
+      "source": {
+        "source": "github",
+        "repo": "lemomo-ai/lemo-opuscar"
+      }
+    },
+    "ponytail": {
+      "source": {
+        "source": "github",
+        "repo": "DietrichGebert/ponytail"
+      }
     }
   },
   "enabledPlugins": {
@@ -20,7 +35,9 @@
     "session-ledger-mod@deb-workspace-mods": true,
     "context-meter@deb-workspace-mods": true,
     "quota-watch@deb-workspace-mods": true,
-    "tool-timing@deb-workspace-mods": true
+    "tool-timing@deb-workspace-mods": true,
+    "lemo-opuscar@lemolab": true,
+    "ponytail@ponytail": true
   },
   "effortLevel": "low",
   "modelSettings": {
