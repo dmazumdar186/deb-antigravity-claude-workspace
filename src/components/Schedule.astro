@@ -1,0 +1,477 @@
+---
+import fr from '../content/schedule.fr.json';
+import en from '../content/schedule.en.json';
+
+const { lang = 'fr' } = Astro.props;
+const t = lang === 'en' ? en : fr;
+---
+<section id="schedule" class="section" style="background: linear-gradient(180deg, transparent, rgba(217, 199, 167, 0.15) 40%, transparent);">
+  <div class="section-inner">
+    <header class="max-w-3xl mb-10">
+      <p class="eyebrow mb-4" data-reveal>
+        <span class="breathing-dot"></span>
+        <span>{t.eyebrow}</span>
+      </p>
+      <h2 class="text-4xl md:text-5xl mb-2" data-reveal>
+        <span>{t.title}</span>
+      </h2>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+      <div class="md:col-span-5" data-reveal>
+        <div class="card">
+          <p class="eyebrow mb-2">
+            <span>{t.location_label}</span>
+          </p>
+          <div class="font-serif text-2xl leading-snug text-ink-900 mb-1">{t.location_line1}</div>
+          <div class="text-[color:var(--ink-soft)] mb-4">{t.location_line2}</div>
+          <a href={t.map_link} target="_blank" rel="noopener noreferrer" class="text-sm text-[color:var(--terracotta)] hover:underline">
+            <span>{t.map_link_label} →</span>
+          </a>
+        </div>
+
+        <ul class="mt-5 space-y-4 text-[15px] leading-relaxed text-[color:var(--ink-soft)]">
+          {t.notes.map((n) => (
+            <li class="flex gap-3">
+              <span class="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[color:var(--terracotta)]"></span>
+              <span>
+                <span>{n}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div class="md:col-span-7" data-reveal>
+        <div
+          class="gallery-carousel"
+          role="region"
+          aria-roledescription="carousel"
+          aria-label={t.gallery_aria_label}
+          tabindex="0"
+        >
+          <button
+            type="button"
+            class="gallery-nav gallery-nav--prev"
+            aria-label={t.gallery_prev_label}
+            data-gallery-prev
+          >
+            <span aria-hidden="true">&larr;</span>
+          </button>
+
+          <div class="gallery-track" data-gallery-track>
+            {t.gallery.map((g, i) => (
+              <figure
+                class="gallery-slide"
+                data-gallery-slide
+                data-index={i}
+                aria-roledescription="slide"
+                aria-label={`${i + 1} / ${t.gallery.length}`}
+              >
+                <div class="frame gallery-frame">
+                  <img
+                    src={g.src}
+                    alt={g.alt}
+                    width="1200"
+                    height="900"
+                    loading="lazy"
+                    decoding="async"
+                    class="w-full h-full"
+                  />
+                </div>
+              </figure>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            class="gallery-nav gallery-nav--next"
+            aria-label={t.gallery_next_label}
+            data-gallery-next
+          >
+            <span aria-hidden="true">&rarr;</span>
+          </button>
+
+          <div class="gallery-dots" role="group" aria-label={t.gallery_aria_label} data-gallery-dots>
+            {t.gallery.map((_, i) => (
+              <button
+                type="button"
+                class="gallery-dot"
+                aria-label={`${i + 1} / ${t.gallery.length}`}
+                aria-current={i === 0 ? 'true' : undefined}
+                data-gallery-dot={i}
+              ></button>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            class="gallery-playpause"
+            aria-label={t.gallery_pause_label}
+            aria-pressed="false"
+            data-gallery-playpause
+            data-label-pause={t.gallery_pause_label}
+            data-label-play={t.gallery_play_label}
+          >
+            <span class="gallery-playpause-icon" aria-hidden="true" data-icon>❚❚</span>
+          </button>
+
+          <div
+            class="sr-only"
+            aria-live="polite"
+            aria-atomic="true"
+            data-gallery-announce
+            data-template={t.gallery_slide_announce}
+          ></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .gallery-carousel {
+    position: relative;
+    isolation: isolate;
+  }
+  .gallery-carousel:focus { outline: none; }
+  .gallery-carousel:focus-visible {
+    outline: 2px solid var(--terracotta);
+    outline-offset: 6px;
+    border-radius: 1.25rem;
+  }
+
+  .gallery-track {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.5rem;
+  }
+  .gallery-track::-webkit-scrollbar { display: none; }
+
+  .gallery-slide {
+    flex: 0 0 100%;
+    scroll-snap-align: center;
+    margin: 0;
+  }
+
+  .gallery-frame {
+    aspect-ratio: 4 / 3;
+    background: rgba(217, 199, 167, 0.18);
+  }
+  @media (min-width: 768px) {
+    .gallery-frame { aspect-ratio: 3 / 2; }
+  }
+  .gallery-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  .gallery-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 999px;
+    background: rgba(251, 247, 238, 0.92);
+    color: var(--ink-900, #2e2a26);
+    border: 1px solid rgba(46, 42, 38, 0.12);
+    box-shadow: 0 12px 28px -16px rgba(46, 42, 38, 0.35);
+    cursor: pointer;
+    font-size: 1.25rem;
+    line-height: 1;
+    transition: transform 0.2s ease, background 0.2s ease;
+  }
+  .gallery-nav:hover { background: rgba(251, 247, 238, 1); transform: translateY(-50%) scale(1.04); }
+  .gallery-nav:focus-visible {
+    outline: 2px solid var(--terracotta);
+    outline-offset: 2px;
+  }
+  .gallery-nav[disabled] {
+    opacity: 0.35;
+    cursor: default;
+  }
+  .gallery-nav[disabled]:hover { transform: translateY(-50%); background: rgba(251, 247, 238, 0.92); }
+  .gallery-nav--prev { left: 0.5rem; }
+  .gallery-nav--next { right: 0.5rem; }
+
+  @media (min-width: 768px) {
+    .gallery-nav { display: inline-flex; }
+    .gallery-nav--prev { left: -1.25rem; }
+    .gallery-nav--next { right: -1.25rem; }
+  }
+
+  .gallery-dots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    justify-content: center;
+    margin-top: 1rem;
+  }
+  .gallery-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    border: 0;
+    background: rgba(46, 42, 38, 0.22);
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+  .gallery-dot:hover { background: rgba(46, 42, 38, 0.4); }
+  .gallery-dot[aria-current="true"] {
+    background: var(--terracotta);
+    transform: scale(1.25);
+  }
+  .gallery-dot:focus-visible {
+    outline: 2px solid var(--terracotta);
+    outline-offset: 2px;
+  }
+
+  /* Persistent pause/play control (WCAG 2.2.2). Sits under the dots so it
+     is always reachable without extra tab stops past the carousel body. */
+  .gallery-playpause {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0.75rem auto 0;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    border: 1px solid rgba(46, 42, 38, 0.18);
+    background: rgba(251, 247, 238, 0.85);
+    color: var(--ink-900, #2e2a26);
+    cursor: pointer;
+    font-size: 0.7rem;
+    line-height: 1;
+    padding: 0;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+  .gallery-playpause:hover { background: rgba(251, 247, 238, 1); }
+  .gallery-playpause:focus-visible {
+    outline: 2px solid var(--terracotta);
+    outline-offset: 2px;
+  }
+  .gallery-dots + .gallery-playpause { display: flex; }
+  .gallery-playpause-icon { display: inline-block; }
+
+  /* Screen-reader-only utility (visually hidden but announced). */
+  .sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0);
+    white-space: nowrap; border: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gallery-track { scroll-behavior: auto; }
+    .gallery-nav:hover { transform: translateY(-50%); }
+    .gallery-dot[aria-current="true"] { transform: none; }
+    .gallery-playpause { display: none; }
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    function initGallery(root) {
+      var track = root.querySelector('[data-gallery-track]');
+      var slides = root.querySelectorAll('[data-gallery-slide]');
+      var dots = root.querySelectorAll('[data-gallery-dot]');
+      var prev = root.querySelector('[data-gallery-prev]');
+      var next = root.querySelector('[data-gallery-next]');
+      var playpause = root.querySelector('[data-gallery-playpause]');
+      var announce = root.querySelector('[data-gallery-announce]');
+      if (!track || slides.length === 0) return;
+
+      var current = 0;
+      var AUTOPLAY_MS = 5000;
+      var RESUME_AFTER_INTERACTION_MS = 8000;
+      var reducedMotion = window.matchMedia
+        && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var autoplayTimer = null;
+      var resumeTimer = null;
+      var isHovering = false;
+      var isFocused = false;
+      var isVisible = !document.hidden;
+      // WCAG 2.2.2: once the user explicitly clicks Pause, autoplay does
+      // NOT auto-resume from hover/focus-out. Only the play button (or a
+      // page reload) can restart it. This is stronger than the hover /
+      // focus / touch pause branches which are temporary courtesies.
+      var userPaused = false;
+
+      function slideWidth() {
+        var first = slides[0];
+        var style = window.getComputedStyle(track);
+        var gap = parseFloat(style.columnGap || style.gap || '0') || 0;
+        return (first ? first.getBoundingClientRect().width : 0) + gap;
+      }
+
+      function scrollToIndex(i, opts) {
+        opts = opts || {};
+        var max = slides.length - 1;
+        // Wrap-around: autoplay loops end -> start; manual nav loops both ways.
+        if (i < 0) i = max;
+        if (i > max) i = 0;
+        var w = slideWidth();
+        var behavior = opts.behavior || (reducedMotion ? 'auto' : 'smooth');
+        track.scrollTo({ left: i * w, behavior: behavior });
+      }
+
+      function setActive(i) {
+        if (i === current) return;
+        current = i;
+        dots.forEach(function (d, di) {
+          if (di === i) d.setAttribute('aria-current', 'true');
+          else d.removeAttribute('aria-current');
+        });
+        // Announce via aria-live so screen-reader users know the slide changed.
+        if (announce) {
+          var tmpl = announce.getAttribute('data-template') || '';
+          announce.textContent = tmpl
+            .replace('{n}', String(i + 1))
+            .replace('{total}', String(slides.length));
+        }
+      }
+
+      function stopAutoplay() {
+        if (autoplayTimer) { clearInterval(autoplayTimer); autoplayTimer = null; }
+        if (resumeTimer) { clearTimeout(resumeTimer); resumeTimer = null; }
+      }
+      function startAutoplay() {
+        if (reducedMotion) return;
+        if (userPaused) return;
+        if (isHovering || isFocused || !isVisible) return;
+        if (slides.length <= 1) return;
+        stopAutoplay();
+        autoplayTimer = setInterval(function () {
+          // Snap back to the first slide without a long sweep when wrapping.
+          if (current >= slides.length - 1) {
+            scrollToIndex(0, { behavior: 'auto' });
+          } else {
+            scrollToIndex(current + 1);
+          }
+        }, AUTOPLAY_MS);
+      }
+      function pauseThenResume() {
+        if (userPaused) return;  // explicit pause wins over hover/focus resume
+        stopAutoplay();
+        resumeTimer = setTimeout(startAutoplay, RESUME_AFTER_INTERACTION_MS);
+      }
+
+      function setUserPaused(paused) {
+        userPaused = paused;
+        if (!playpause) return;
+        var icon = playpause.querySelector('[data-icon]');
+        if (paused) {
+          stopAutoplay();
+          playpause.setAttribute('aria-pressed', 'true');
+          playpause.setAttribute('aria-label', playpause.getAttribute('data-label-play') || 'Play');
+          if (icon) icon.textContent = '▶';
+        } else {
+          playpause.setAttribute('aria-pressed', 'false');
+          playpause.setAttribute('aria-label', playpause.getAttribute('data-label-pause') || 'Pause');
+          if (icon) icon.textContent = '❚❚';
+          startAutoplay();
+        }
+      }
+
+      // IntersectionObserver keeps the active dot in sync with whatever slide
+      // the user swiped/scrolled to (touch, mouse-drag, keyboard-arrow, click).
+      if ('IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function (entries) {
+          var best = null;
+          entries.forEach(function (e) {
+            if (!best || e.intersectionRatio > best.intersectionRatio) best = e;
+          });
+          if (best && best.isIntersecting && best.intersectionRatio > 0.6) {
+            var idx = parseInt(best.target.getAttribute('data-index') || '0', 10);
+            setActive(idx);
+          }
+        }, { root: track, threshold: [0.6, 0.9] });
+        slides.forEach(function (s) { io.observe(s); });
+      }
+
+      if (prev) prev.addEventListener('click', function () {
+        scrollToIndex(current - 1); pauseThenResume();
+      });
+      if (next) next.addEventListener('click', function () {
+        scrollToIndex(current + 1); pauseThenResume();
+      });
+      dots.forEach(function (d, di) {
+        d.addEventListener('click', function () { scrollToIndex(di); pauseThenResume(); });
+      });
+
+      root.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowRight') { e.preventDefault(); scrollToIndex(current + 1); pauseThenResume(); }
+        if (e.key === 'ArrowLeft')  { e.preventDefault(); scrollToIndex(current - 1); pauseThenResume(); }
+        if (e.key === 'Home')       { e.preventDefault(); scrollToIndex(0); pauseThenResume(); }
+        if (e.key === 'End')        { e.preventDefault(); scrollToIndex(slides.length - 1); pauseThenResume(); }
+      });
+
+      // Touch/wheel drags on the track are also a form of user intent — pause.
+      track.addEventListener('touchstart', pauseThenResume, { passive: true });
+      track.addEventListener('wheel', pauseThenResume, { passive: true });
+
+      // Pause on hover / keyboard focus; resume when both clear.
+      root.addEventListener('mouseenter', function () { isHovering = true; stopAutoplay(); });
+      root.addEventListener('mouseleave', function () { isHovering = false; startAutoplay(); });
+      root.addEventListener('focusin',    function () { isFocused = true; stopAutoplay(); });
+      root.addEventListener('focusout',   function () {
+        // Only clear focus flag when focus leaves the whole carousel.
+        setTimeout(function () {
+          if (!root.contains(document.activeElement)) { isFocused = false; startAutoplay(); }
+        }, 0);
+      });
+
+      // Pause when the tab is hidden — no wasted work, no snap-to-first when
+      // the user comes back after a while.
+      document.addEventListener('visibilitychange', function () {
+        isVisible = !document.hidden;
+        if (isVisible) startAutoplay(); else stopAutoplay();
+      });
+
+      // Persistent play/pause toggle (WCAG 2.2.2). Hidden when there's
+      // nothing to autoplay (single slide) or when the user prefers reduced
+      // motion (autoplay is already fully disabled in that mode).
+      if (playpause) {
+        if (reducedMotion || slides.length <= 1) {
+          playpause.hidden = true;
+        } else {
+          playpause.addEventListener('click', function () {
+            setUserPaused(!userPaused);
+          });
+        }
+      }
+
+      // Initial state
+      dots.forEach(function (d, di) {
+        if (di === 0) d.setAttribute('aria-current', 'true');
+        else d.removeAttribute('aria-current');
+      });
+      // Kick off after the first paint so images have laid out.
+      setTimeout(startAutoplay, 1500);
+    }
+
+    function boot() {
+      document.querySelectorAll('.gallery-carousel').forEach(initGallery);
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', boot);
+    } else {
+      boot();
+    }
+  })();
+</script>

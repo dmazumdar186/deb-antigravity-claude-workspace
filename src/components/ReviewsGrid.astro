@@ -1,0 +1,388 @@
+---
+// ReviewsGrid.astro — card grid renderer for approved reviews.
+//
+// Props:
+//   lang       'fr' | 'en'    site language (picks body_fr/body_en)
+//   reviews    Array           pre-loaded review objects (from loadReviews())
+//   initial    number = 6      how many cards to show before "show more"
+//
+// Each card has data-review-card for the acceptance test to count.
+import { pickBody, sourceLabel } from '../lib/reviews.mjs';
+
+const { lang = 'fr', reviews = [], initial = 6 } = Astro.props;
+const total = reviews.length;
+const showToggle = total > initial;
+
+const t = {
+  fr: {
+    more: 'Voir plus',
+    less: 'Voir moins',
+    star_label: (n: number) => `${n} sur 5`,
+    verified: '✓ Vérifié',
+    empty: 'Aucun avis pour le moment. Soyez le premier à en laisser un.',
+    date_unknown: 'Date à confirmer',
+  },
+  en: {
+    more: 'Show more',
+    less: 'Show less',
+    star_label: (n: number) => `${n} out of 5`,
+    verified: '✓ Verified',
+    empty: 'No reviews yet. Be the first to leave one.',
+    date_unknown: 'Date pending verification',
+  },
+}[lang === 'en' ? 'en' : 'fr'];
+
+function stars(n: number): string {
+  const full = '★'.repeat(Math.max(0, Math.min(5, Math.round(n))));
+  const empty = '☆'.repeat(5 - full.length);
+  return full + empty;
+}
+
+function formatDate(iso: string, lng: string): string {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString(lng === 'en' ? 'en-GB' : 'fr-FR', {
+      year: 'numeric',
+      month: 'long',
+    });
+  } catch {
+    return '';
+  }
+}
+
+// 2026-08-04 — falsely-precise > pending-verification > silence.
+// Interim UI while the Google-Maps-scrape backfill lands: unknown-provenance
+// cards omit the date cell entirely (author + rating + body only). The
+// "Date à confirmer" copy read as a soft error to the client; silence reads
+// as a normal editorial choice. Once submitted_at is backfilled by the
+// scrape migration, provenance flips to "provided" and the date returns.
+function formatReviewDate(r: any, lng: string): string {
+  if (r && r.date_provenance === 'unknown') return '';
+  return formatDate(r?.submitted_at || '', lng);
+}
+---
+{total === 0 ? (
+  <p class="text-[color:var(--ink-soft)] italic" data-reveal>{t.empty}</p>
+) : (
+  <div>
+    <div class="reviews-grid" data-reviews-grid data-initial={initial}>
+      {reviews.map((r, i) => (
+        <figure
+          class="card review-card"
+          data-review-card
+          data-review-id={r.id}
+          data-featured={r.featured ? '1' : '0'}
+          data-index={i}
+          data-hidden={i >= initial ? '1' : '0'}
+          data-reveal
+          style={i >= initial ? 'display:none' : ''}
+        >
+          <div class="review-head">
+            <span class="stars" aria-label={t.star_label(r.rating)}>{stars(r.rating)}</span>
+            {r.verified && <span class="review-verified" title={sourceLabel(r.source, lang)}>{t.verified}</span>}
+          </div>
+          <blockquote class="review-body">
+            <span>{pickBody(r, lang)}</span>
+          </blockquote>
+          <figcaption class="review-foot">
+            <div class="review-author">{r.name}</div>
+            <div class="review-meta">
+              <span>{sourceLabel(r.source, lang)}</span>
+              {r.date_provenance !== 'unknown' && (
+                <>
+                  <span aria-hidden="true"> · </span>
+                  <span data-review-date data-provenance={r.date_provenance || 'provided'}>{formatReviewDate(r, lang)}</span>
+                </>
+              )}
+              {r.source_url && (
+                <>
+                  <span aria-hidden="true"> · </span>
+                  <a href={r.source_url} rel="nofollow noopener" target="_blank">↗</a>
+                </>
+              )}
+            </div>
+          </figcaption>
+        </figure>
+      ))}
+    </div>
+
+    {showToggle && (
+      <div class="reviews-more-wrap">
+        <button type="button" class="btn btn-ghost reviews-more" data-reviews-more data-more-label={t.more} data-less-label={t.less}>
+          {t.more}
+          <span class="reviews-more-count">({total - initial})</span>
+        </button>
+      </div>
+    )}
+  </div>
+)}
+
+<style>
+  .reviews-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  @media (min-width: 768px) {
+    .reviews-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
+  }
+  .review-card { display: flex; flex-direction: column; }
+  .review-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+  }
+  .stars {
+    color: var(--terracotta, #c05b3e);
+    font-size: 1.05rem;
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+  .review-verified {
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft, #6b6560);
+    padding: 0.15rem 0.5rem;
+    background: rgba(46, 42, 38, 0.06);
+    border-radius: 999px;
+  }
+  .review-body {
+    font-family: 'Fraunces', 'Georgia', serif;
+    font-size: 1.05rem;
+    line-height: 1.5;
+    margin: 0 0 1.25rem;
+    color: var(--ink-900, #2e2a26);
+  }
+  .review-foot {
+    margin-top: auto;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(46, 42, 38, 0.08);
+  }
+  .review-author {
+    font-weight: 500;
+    color: var(--ink-900, #2e2a26);
+    margin-bottom: 0.15rem;
+  }
+  .review-meta {
+    font-size: 0.85rem;
+    color: var(--ink-soft, #6b6560);
+  }
+  .review-meta a { color: inherit; text-decoration: none; }
+  .review-meta a:hover { text-decoration: underline; }
+  .reviews-more-wrap { display: flex; justify-content: center; margin-top: 1.5rem; }
+  .reviews-more { display: inline-flex; gap: 0.4rem; align-items: center; }
+  .reviews-more-count { color: var(--ink-soft, #6b6560); font-size: 0.9em; }
+</style>
+
+<script>
+  // Live augmentation: the site is SSG but Cloudflare Pages is not git-connected,
+  // so my moderation-approval deploy-hook has nothing to build from. On each
+  // page load we fetch /api/reviews-public (cached 60s at the edge) and append
+  // any approved reviews the server doesn't yet know about. SEO / JSON-LD
+  // stay based on the last SSG snapshot; visitors see live moderator state
+  // within ~500 ms of page load.
+  (function () {
+    var grid = document.querySelector('[data-reviews-grid]');
+    if (!grid) return;
+    var htmlLang = (document.documentElement.getAttribute('lang') || 'fr').toLowerCase();
+    var lang = htmlLang === 'en' ? 'en' : 'fr';
+
+    var SOURCE_LABELS = {
+      fr: { onsite: 'Site', superprof: 'Superprof', meetup: 'Meetup', trainme: 'TrainMe', instagram: 'Instagram', email: 'Recommandation', other: 'Autre' },
+      en: { onsite: 'On-site', superprof: 'Superprof', meetup: 'Meetup', trainme: 'TrainMe', instagram: 'Instagram', email: 'Recommendation', other: 'Other' },
+    };
+    var VERIFIED_LABEL = lang === 'en' ? '✓ Verified' : '✓ Vérifié';
+    var STAR_LABEL = lang === 'en' ? ' out of 5' : ' sur 5';
+    var DATE_UNKNOWN_LABEL = lang === 'en' ? 'Date pending verification' : 'Date à confirmer';
+    // Client-side mirror of the API's SILENT_NOW_WINDOW_MS heuristic. The
+    // API also emits date_provenance directly in the JSON, so this is only
+    // a fallback if a proxy or older worker strips the field.
+    var SILENT_NOW_WINDOW_MS = 60 * 1000;
+    function computeProvenance(r) {
+      if (!r || !r.verified) return 'provided';
+      if (!r.submitted_at || !r.approved_at) return 'provided';
+      var s = Date.parse(r.submitted_at);
+      var a = Date.parse(r.approved_at);
+      if (!isFinite(s) || !isFinite(a)) return 'provided';
+      if (Math.abs(a - s) < SILENT_NOW_WINDOW_MS) return 'unknown';
+      return 'provided';
+    }
+    function reviewDateLabel(r) {
+      var prov = r.date_provenance || computeProvenance(r);
+      // Interim: unknown cards omit the date cell entirely (see Astro
+      // template header). Empty string is the "hide me" signal for
+      // reconcileExistingDates(); buildCard() checks provenance directly.
+      if (prov === 'unknown') return '';
+      return fmtDate(r.submitted_at);
+    }
+
+    function esc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    function stars(n) {
+      var v = Math.max(0, Math.min(5, Math.round(Number(n) || 0)));
+      return '★'.repeat(v) + '☆'.repeat(5 - v);
+    }
+    function fmtDate(iso) {
+      if (!iso) return '';
+      try {
+        return new Date(iso).toLocaleDateString(lang === 'en' ? 'en-GB' : 'fr-FR', { year: 'numeric', month: 'long' });
+      } catch (e) { return ''; }
+    }
+    function pickBody(r) {
+      if (lang === 'en') return r.body_en || r.body || r.body_fr || '';
+      return r.body_fr || r.body || r.body_en || '';
+    }
+    function sourceLabel(source) {
+      var map = SOURCE_LABELS[lang] || SOURCE_LABELS.fr;
+      return map[source] || map.other;
+    }
+    function buildCard(r) {
+      var fig = document.createElement('figure');
+      fig.className = 'card review-card';
+      fig.setAttribute('data-review-card', '');
+      fig.setAttribute('data-review-id', r.id || '');
+      fig.setAttribute('data-featured', r.featured ? '1' : '0');
+      fig.setAttribute('data-hidden', '0');
+      var srcLbl = sourceLabel(r.source);
+      var srcUrl = r.source_url ? '<span aria-hidden="true"> · </span><a href="' + esc(r.source_url) + '" rel="nofollow noopener" target="_blank">↗</a>' : '';
+      var provenance = r.date_provenance || computeProvenance(r);
+      // Unknown-provenance cards omit the date cell entirely (interim UX
+      // until the Google-Maps-scrape backfill lands). See Astro template
+      // header comment for rationale.
+      var dateCell = provenance === 'unknown'
+        ? ''
+        : '<span aria-hidden="true"> · </span><span data-review-date data-provenance="' + esc(provenance) + '">' + esc(reviewDateLabel(r)) + '</span>';
+      fig.innerHTML =
+        '<div class="review-head">' +
+          '<span class="stars" aria-label="' + esc(r.rating + STAR_LABEL) + '">' + stars(r.rating) + '</span>' +
+          (r.verified ? '<span class="review-verified" title="' + esc(srcLbl) + '">' + VERIFIED_LABEL + '</span>' : '') +
+        '</div>' +
+        '<blockquote class="review-body"><span>' + esc(pickBody(r)) + '</span></blockquote>' +
+        '<figcaption class="review-foot">' +
+          '<div class="review-author">' + esc(r.name) + '</div>' +
+          '<div class="review-meta">' +
+            '<span>' + esc(srcLbl) + '</span>' +
+            dateCell +
+            srcUrl +
+          '</div>' +
+        '</figcaption>';
+      return fig;
+    }
+
+    // Also correct any SSG-rendered date cells whose provenance changed
+    // since the last build (e.g. a moderator edited the review date via
+    // the dashboard between builds). Walk existing [data-review-date]
+    // spans and rewrite if the API disagrees with the baked HTML.
+    function reconcileExistingDates(apiById) {
+      var spans = grid.querySelectorAll('[data-review-card] [data-review-date]');
+      spans.forEach(function (span) {
+        var card = span.closest('[data-review-card]');
+        var id = card && card.getAttribute('data-review-id');
+        if (!id) return;
+        var r = apiById[id];
+        if (!r) return;
+        var freshProv = r.date_provenance || computeProvenance(r);
+        if (freshProv === 'unknown') {
+          // Unknown-provenance cards omit the date cell entirely. Remove
+          // both this span and its immediately-preceding separator dot
+          // (the `<span aria-hidden="true"> · </span>` before it).
+          var prev = span.previousSibling;
+          if (prev && prev.nodeType === 1 && prev.getAttribute && prev.getAttribute('aria-hidden') === 'true') {
+            prev.parentNode && prev.parentNode.removeChild(prev);
+          }
+          span.parentNode && span.parentNode.removeChild(span);
+          return;
+        }
+        var freshLabel = reviewDateLabel(r);
+        if (freshLabel && span.textContent !== freshLabel) {
+          span.textContent = freshLabel;
+          span.setAttribute('data-provenance', freshProv);
+        }
+      });
+    }
+
+    var existingIds = new Set();
+    grid.querySelectorAll('[data-review-id]').forEach(function (el) {
+      var id = el.getAttribute('data-review-id');
+      if (id) existingIds.add(id);
+    });
+
+    fetch('/api/reviews-public', { headers: { 'Accept': 'application/json' } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (!data || !Array.isArray(data.reviews)) return;
+        var apiById = {};
+        for (var j = 0; j < data.reviews.length; j++) {
+          if (data.reviews[j] && data.reviews[j].id) apiById[data.reviews[j].id] = data.reviews[j];
+        }
+        // Reconcile SSG-baked date cells against the API's fresh provenance
+        // FIRST, so an existing-in-DOM card doesn't keep an outdated
+        // "juillet 2026" label if provenance flipped since last build.
+        reconcileExistingDates(apiById);
+        var incoming = data.reviews.slice().sort(function (a, b) {
+          if (a.featured !== b.featured) return a.featured ? -1 : 1;
+          var aProv = a.date_provenance || computeProvenance(a);
+          var bProv = b.date_provenance || computeProvenance(b);
+          var ak = (aProv === 'unknown' ? a.approved_at : a.submitted_at) || a.approved_at || '';
+          var bk = (bProv === 'unknown' ? b.approved_at : b.submitted_at) || b.approved_at || '';
+          return bk.localeCompare(ak);
+        });
+        var appended = 0;
+        for (var i = 0; i < incoming.length; i++) {
+          var r = incoming[i];
+          if (!r || !r.id || existingIds.has(r.id)) continue;
+          var card = buildCard(r);
+          // Featured items go to the top; others append at the end.
+          if (r.featured && grid.firstChild) grid.insertBefore(card, grid.firstChild);
+          else grid.appendChild(card);
+          existingIds.add(r.id);
+          appended += 1;
+        }
+        // Update every eyebrow marker the page provides. Includes plural
+        // handling for languages that inflect on count (`review` vs
+        // `reviews`; French `avis` is invariable so lang detection is
+        // enough).
+        document.querySelectorAll('[data-live-review-count]').forEach(function (el) {
+          el.textContent = String(data.count);
+        });
+        document.querySelectorAll('[data-live-review-avg]').forEach(function (el) {
+          if (data.average_rating != null) el.textContent = String(data.average_rating);
+        });
+        document.querySelectorAll('[data-live-reviews-word]').forEach(function (el) {
+          if (lang === 'en') el.textContent = data.count === 1 ? 'review' : 'reviews';
+          else el.textContent = 'avis';
+        });
+        if (appended > 0) {
+          window.dispatchEvent(new CustomEvent('reviewsAugmented', { detail: { appended: appended, total: data.count } }));
+        }
+      })
+      .catch(function () { /* offline / edge blip: silent — SSG cards are enough */ });
+  })();
+
+  // "Show more / show less" toggle: reveals the initially-hidden cards.
+  (function () {
+    function init(grid) {
+      var btn = grid.parentElement && grid.parentElement.querySelector('[data-reviews-more]');
+      if (!btn) return;
+      var expanded = false;
+      var moreLabel = btn.dataset.moreLabel || 'Show more';
+      var lessLabel = btn.dataset.lessLabel || 'Show less';
+      var countEl = btn.querySelector('.reviews-more-count');
+      var hidden = grid.querySelectorAll('[data-hidden="1"]');
+      btn.addEventListener('click', function () {
+        expanded = !expanded;
+        hidden.forEach(function (el) { el.style.display = expanded ? '' : 'none'; });
+        var nodes = Array.prototype.slice.call(btn.childNodes);
+        var textNode = nodes.find(function (n) { return n.nodeType === Node.TEXT_NODE; });
+        if (textNode) textNode.data = (expanded ? lessLabel : moreLabel) + ' ';
+        if (countEl) countEl.style.display = expanded ? 'none' : '';
+      });
+    }
+    document.querySelectorAll('[data-reviews-grid]').forEach(init);
+  })();
+</script>

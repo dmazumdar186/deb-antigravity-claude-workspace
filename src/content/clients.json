@@ -1,0 +1,57 @@
+{
+  "_comment": "Company logos shown in the 'Ils m'ont fait confiance' strip (ClientsStrip.astro), shared by FR and EN. Each entry: name, logo (file in /assets/logos/) or monogram (text badge if no logo yet), optional url. Edit in Pages CMS > Company logos.",
+  "clients": [
+    {
+      "name": "TotalEnergies",
+      "logo": "/assets/logos/totalenergies.svg"
+    },
+    {
+      "name": "SEMMARIS · Rungis",
+      "logo": "/assets/logos/semmaris-rungis.svg"
+    },
+    {
+      "name": "Emmaüs Solidarité",
+      "logo": "/assets/logos/emmaus-solidarite.svg"
+    },
+    {
+      "name": "Chloé",
+      "logo": "/assets/logos/chloe.png",
+      "url": "https://www.chloe.com/"
+    },
+    {
+      "name": "FTI Consulting",
+      "logo": "/assets/logos/fti-consulting.png",
+      "url": "https://www.fticonsulting.com/"
+    },
+    {
+      "name": "FIPAM Group",
+      "logo": "/assets/logos/fipam.png"
+    },
+    {
+      "name": "WeWork",
+      "logo": "/assets/logos/wework.png",
+      "url": "https://www.wework.com/fr-FR/"
+    },
+    {
+      "name": "Sick France",
+      "logo": "/assets/logos/sick.png",
+      "url": "https://www.sick.com/fr/fr/"
+    },
+    {
+      "name": "Believe",
+      "logo": "/assets/logos/believe.svg"
+    },
+    {
+      "name": "Legrand",
+      "logo": "/assets/logos/legrand.svg"
+    },
+    {
+      "name": "Caisse d'Épargne",
+      "logo": "/assets/logos/caisse-epargne.png"
+    },
+    {
+      "name": "Sciences Po",
+      "logo": "/assets/logos/sciences-po.svg"
+    }
+  ]
+}

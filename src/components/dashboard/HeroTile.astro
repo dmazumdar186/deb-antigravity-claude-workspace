@@ -1,0 +1,318 @@
+---
+// HeroTile — one of the three big-number tiles at the top of the dashboard.
+//
+// Slice 2 of the 2026-08-05 UX pass: styles rewritten on top of the
+// .yj-dashboard token layer (dashboard-tokens.css). The DOM contract with
+// the hydration script in dashboard.astro is intentionally preserved:
+//
+//   - .hero-tile[data-tile-key][data-status][data-partial]  — tile shell
+//   - .hero-tile-number-row                                    — replaced on hydrate
+//   - .hero-tile-number-line                                   — reference for caveat insert
+//   - .hero-tile-bignumber[data-metric][.partial]              — primary number
+//   - .hero-tile-delta[data-metric-delta].delta-up|down|neutral — delta chip
+//   - .hero-tile-caveat[data-metric-caveat]                    — 0-with-degraded caveat
+//   - .hero-tile-skeleton                                       — waiting state
+//
+// Keeping those hooks intact means dashboard.astro's ~150-line hydration
+// controller does not need to change. Visual upgrade is CSS-only.
+
+import Sparkline from './Sparkline.astro';
+
+interface Props {
+  eyebrow: string;
+  headline: string;
+  value: string | number | null;
+  status: 'live' | 'waiting';
+  hint?: string;
+  source: string;
+  suffix?: string;
+  metric_key?: 'reach' | 'interest' | 'conversation' | 'subscribers';
+  sparkline?: number[];
+  delta_pct?: number | null;
+  sparkline_color?: string;
+  // 2026-08-04 fix: when live rollup returns value === 0 but at least one of
+  // the tile's needed sources is degraded, we render the number in a muted
+  // style with a truthful caveat naming the still-pending source(s).
+  partial_caveat?: string | null;
+  // 2026-08-06: optional deep-link. When present, the big number becomes
+  // an <a> and a "View →" chip is added to the tile foot. Hydration DOM
+  // contract preserved — the anchor wraps the same span the metrics
+  // hydration script targets by data-metric.
+  href?: string;
+  href_label?: string;
+}
+const {
+  eyebrow,
+  headline,
+  value,
+  status,
+  hint,
+  source,
+  suffix,
+  metric_key,
+  sparkline = [],
+  delta_pct = null,
+  sparkline_color = 'var(--yj-brand)',
+  partial_caveat = null,
+  href,
+  href_label,
+} = Astro.props;
+
+const isLive = status === 'live' && value !== null && value !== undefined;
+const isPartial = isLive && value === 0 && !!partial_caveat;
+
+function formatDelta(pct: number | null): string {
+  if (pct === null || pct === undefined) return '—';
+  const sign = pct > 0 ? '+' : '';
+  return `${sign}${pct.toFixed(1)}%`;
+}
+function deltaArrow(pct: number | null): string {
+  if (pct === null || pct === undefined) return '–';
+  if (pct > 0) return '↗';
+  if (pct < 0) return '↘';
+  return '–';
+}
+const deltaCls = delta_pct === null || delta_pct === undefined
+  ? 'delta-neutral'
+  : delta_pct > 0 ? 'delta-up' : delta_pct < 0 ? 'delta-down' : 'delta-neutral';
+---
+<article
+  class="hero-tile yj-card yj-card--interactive"
+  data-status={status}
+  data-tile-key={metric_key}
+  data-partial={isPartial ? 'true' : undefined}
+  data-href={href || undefined}
+  data-reveal
+>
+  <header class="hero-tile-head">
+    <p class="hero-tile-eyebrow yj-eyebrow">
+      <span class="breathing-dot" aria-hidden="true"></span>
+      <span>{eyebrow}</span>
+    </p>
+    <h3 class="hero-tile-headline yj-title">{headline}</h3>
+  </header>
+
+  <div class="hero-tile-number-row">
+    {isLive ? (
+      <>
+        <div class="hero-tile-number-line">
+          {href ? (
+            <a href={href} class={`hero-tile-bignumber hero-tile-bignumber-link yj-num${isPartial ? ' partial yj-num--muted' : ''}`} data-metric={metric_key} aria-label={`${headline} — view count details`}>
+              {typeof value === 'number' ? value.toLocaleString('en-US') : value}{suffix && <span class="hero-tile-suffix">{suffix}</span>}
+            </a>
+          ) : (
+            <span class={`hero-tile-bignumber yj-num${isPartial ? ' partial yj-num--muted' : ''}`} data-metric={metric_key}>
+              {typeof value === 'number' ? value.toLocaleString('en-US') : value}{suffix && <span class="hero-tile-suffix">{suffix}</span>}
+            </span>
+          )}
+          {metric_key && (
+            <span
+              class={`hero-tile-delta ${deltaCls}`}
+              data-metric-delta={metric_key}
+              aria-label="Change vs previous window"
+            >
+              <span class="hero-tile-delta-arrow" aria-hidden="true">{deltaArrow(delta_pct)}</span>
+              <span class="hero-tile-delta-val">{formatDelta(delta_pct)}</span>
+            </span>
+          )}
+        </div>
+        {isPartial && (
+          <p class="hero-tile-caveat" data-metric-caveat={metric_key}>{partial_caveat}</p>
+        )}
+        {metric_key && sparkline.length > 0 && (
+          <div class="hero-tile-spark-wrap">
+            <Sparkline
+              id={`sparkline-${metric_key}`}
+              data={sparkline}
+              color={sparkline_color}
+              metric_key={metric_key}
+            />
+          </div>
+        )}
+      </>
+    ) : (
+      <div class="hero-tile-skeleton-wrap" role="status" aria-live="polite">
+        <span class="yj-skeleton yj-skeleton--number" aria-hidden="true"></span>
+        <span class="yj-skeleton yj-skeleton--spark" aria-hidden="true"></span>
+        <p class="hero-tile-skeleton-hint yj-caption">{hint}</p>
+      </div>
+    )}
+  </div>
+
+  <footer class="hero-tile-foot">
+    <span class="hero-tile-source-dot" aria-hidden="true"></span>
+    <span class="hero-tile-source-label">{source}</span>
+    {href && (
+      <a href={href} class="hero-tile-view-link" aria-label={`${href_label ?? 'View all'} — ${headline.toLowerCase()}`}>
+        {href_label ?? 'View all'} <span aria-hidden="true">→</span>
+      </a>
+    )}
+  </footer>
+</article>
+
+<style>
+  .hero-tile {
+    padding: var(--yj-space-5) var(--yj-space-5) var(--yj-space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--yj-space-4);
+    min-height: 232px;
+  }
+  .hero-tile-head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--yj-space-2);
+  }
+  .hero-tile-eyebrow {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+  }
+  .hero-tile-headline {
+    margin: 0;
+    color: var(--yj-ink-soft);
+    font-weight: 500;
+  }
+  .hero-tile-number-row {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--yj-space-2);
+  }
+  .hero-tile-number-line {
+    display: flex;
+    align-items: baseline;
+    gap: var(--yj-space-3);
+    flex-wrap: wrap;
+  }
+  /* Preserve the .hero-tile-bignumber class hook the hydration script writes
+     to, but delegate visual to .yj-num. Any per-tile override sits here. */
+  .hero-tile-bignumber {
+    line-height: var(--yj-lh-display);
+  }
+  .hero-tile-bignumber.partial {
+    color: var(--yj-ink-muted);
+  }
+  /* Clickable bignumber (subscribers → /dashboard/subscribers/). Uses a
+     transparent underline so the number's typography is unchanged; the
+     underline crisps on hover so hit-affordance is visible without the
+     "everything is a link" corporate look. */
+  a.hero-tile-bignumber-link {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 6px;
+    transition: text-decoration-color 0.15s ease, color 0.15s ease;
+    cursor: pointer;
+  }
+  a.hero-tile-bignumber-link:hover,
+  a.hero-tile-bignumber-link:focus-visible {
+    text-decoration-color: var(--yj-brand, #c05b3e);
+    outline: none;
+  }
+  a.hero-tile-bignumber-link:focus-visible {
+    text-decoration-color: var(--yj-brand, #c05b3e);
+    outline: 2px solid rgba(192,91,62,0.35);
+    outline-offset: 4px;
+    border-radius: 2px;
+  }
+  .hero-tile-suffix {
+    font-size: 0.55em;
+    margin-left: 0.35rem;
+    color: var(--yj-ink-soft);
+    font-weight: 400;
+  }
+
+  /* Delta chip — retain the .delta-up|down|neutral names for hydration
+     compat, restyle using tokens. Arrow + value share a compact pill. */
+  .hero-tile-delta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-family: var(--yj-font-body);
+    font-size: var(--yj-size-caption);
+    font-weight: 500;
+    padding: 0.25rem 0.6rem;
+    border-radius: var(--yj-radius-pill);
+    letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.3;
+    white-space: nowrap;
+  }
+  .hero-tile-delta-arrow { font-size: 0.85em; line-height: 1; }
+  .hero-tile-delta-val   { line-height: 1; }
+  /* Palette stays honest: sage for up, warm terracotta for down, sand for
+     null/threshold-suppressed. No red — even a drop is not shamed with red
+     per parent-project non-negotiable. Sourced from token semantics. */
+  .delta-up      { background: var(--yj-success-soft); color: var(--yj-success); }
+  .delta-down    { background: var(--yj-danger-soft);  color: var(--yj-danger); }
+  .delta-neutral { background: var(--yj-neutral-soft); color: var(--yj-neutral); }
+
+  .hero-tile-caveat {
+    margin: 0;
+    font-family: var(--yj-font-body);
+    font-size: var(--yj-size-caption);
+    line-height: 1.45;
+    color: var(--yj-ink-soft);
+    max-width: 34ch;
+  }
+  .hero-tile-spark-wrap {
+    margin-top: var(--yj-space-2);
+    /* Sparkline is drawn by ApexCharts into an inner div. Give it a stable
+       height so the tile does not jump when the chart mounts. */
+    min-height: 44px;
+  }
+
+  /* Skeleton stack: shimmer number + shimmer sparkline + hint caption.
+     Reads clearly as "loading" without the alarming dashed-pill of V0.1. */
+  .hero-tile-skeleton-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: var(--yj-space-2);
+  }
+  .hero-tile-skeleton-hint {
+    margin: var(--yj-space-1) 0 0;
+    color: var(--yj-ink-muted);
+  }
+
+  /* Source footer — small, quiet, with a subtle top rule that separates
+     the "what the number is" from the "how we know" without shouting. */
+  .hero-tile-foot {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-top: var(--yj-space-3);
+    border-top: 1px solid var(--yj-border-subtle);
+    font-family: var(--yj-font-body);
+    font-size: var(--yj-size-caption);
+    color: var(--yj-ink-muted);
+    letter-spacing: 0.02em;
+  }
+  .hero-tile-source-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 999px;
+    background: var(--yj-brand);
+    opacity: 0.7;
+    flex-shrink: 0;
+  }
+  .hero-tile-source-label {
+    line-height: 1.3;
+    flex: 1 1 auto;
+  }
+  .hero-tile-view-link {
+    color: var(--yj-brand, #c05b3e);
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.15rem 0.4rem;
+    border-radius: 6px;
+    transition: background 0.15s ease;
+    white-space: nowrap;
+  }
+  .hero-tile-view-link:hover,
+  .hero-tile-view-link:focus-visible {
+    background: rgba(192,91,62,0.10);
+    outline: none;
+  }
+</style>

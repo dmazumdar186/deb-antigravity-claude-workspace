@@ -1,0 +1,4 @@
+# NEVER commit OAuth client secrets or refresh tokens.
+credentials.json
+*token*.json
+*.pickle

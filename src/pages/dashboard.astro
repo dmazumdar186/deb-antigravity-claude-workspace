@@ -1,0 +1,730 @@
+---
+// Intentional monolingual scope: dashboard is English-only per the war-room
+// plan (see C:/Users/deban/.claude/plans/i-asked-this-question-effervescent-allen.md
+// Part 3). Two users (Debanjan + Jitendra), both bilingual, both comfortable
+// reading English. Do NOT add /en/dashboard/ or /fr/dashboard/ without
+// re-evaluating copy shape.
+//
+// V0.1: server-renders from the build-time fallback JSON so first paint is
+// instant, then a client script fetches /api/dashboard-data?range=7d and
+// broadcasts CustomEvent('dashboarddata') so every tile + chart hydrates
+// with the pre-computed rollup from KV. Range pills fire
+// CustomEvent('dashboardrange') → controller re-fetches → broadcasts new
+// rollup. See plan §3.1-3.5 for architecture.
+import Base                from '../layouts/Base.astro';
+import HeroTile            from '../components/dashboard/HeroTile.astro';
+import FunnelStrip         from '../components/dashboard/FunnelStrip.astro';
+import TimeSeriesChart     from '../components/dashboard/TimeSeriesChart.astro';
+import SourceDonut         from '../components/dashboard/SourceDonut.astro';
+import MilestoneStrip      from '../components/dashboard/MilestoneStrip.astro';
+import NextMoveCard        from '../components/dashboard/NextMoveCard.astro';
+import SelfReportTile      from '../components/dashboard/SelfReportTile.astro';
+import ReviewsHub          from '../components/dashboard/ReviewsHub.astro';
+import ProvenanceFooter    from '../components/dashboard/ProvenanceFooter.astro';
+import data                from '../content/dashboard-data.json';
+// Dashboard-scoped design tokens (Slice 1 of 2026-08-05 UX pass). All
+// yj-* CSS custom properties + primitives live here; components consume
+// them via var(--yj-*) instead of hard-coding hexes. Scoped under
+// .yj-dashboard so global.css (public site) is untouched.
+import '../styles/dashboard-tokens.css';
+
+// Milestone/next-move/self-report/provenance sections come from the static
+// content file; those are hand-curated narrative, not machine data. The
+// hero + funnel + charts hydrate from /api/dashboard-data on the client.
+const launch = new Date(data.launch_date + 'T00:00:00');
+const now = new Date();
+const daysSinceLaunch = Math.max(0, Math.floor((now.getTime() - launch.getTime()) / (1000 * 60 * 60 * 24)));
+
+const rangeOptions = [
+  { value: '7d',  label: 'Last 7 days' },
+  { value: '30d', label: 'Last 30 days' },
+  { value: 'all', label: 'Since launch' },
+];
+
+// Initial rollup shape read from the fallback JSON. Same shape as
+// /api/dashboard-data returns, so the frontend has one code path.
+const initial = data.initial_rollup;
+const heroTiles = initial.hero_tiles;
+const funnelStages = initial.funnel.map((s: any) => ({
+  ...s,
+  status: (initial.sources_healthy?.length ?? 0) > 0 ? 'live' : 'waiting',
+  hint: initial.sources_healthy?.length ? undefined : 'waiting for first cron snapshot',
+}));
+
+// Hero-tile status: "live" when the aggregator has a real value; "waiting"
+// when value is null (bootstrap window before first cron fire).
+function heroStatus(v: unknown): 'live' | 'waiting' {
+  return typeof v === 'number' ? 'live' : 'waiting';
+}
+
+// Truthful per-tile hint. Old behavior hardcoded "First data ~24-48h after
+// first cron fire" on every waiting tile — the copy never expired because
+// it was time-agnostic, so a client whose pipeline was never activated saw
+// "24-48h" forever. Now the hint names the actual reason: which source is
+// missing, or "pipeline not yet activated", or last-refresh-N-hours-ago.
+// 2026-08-04: GBP dropped from Interest tile's required sources. Google
+// denied Business Profile API access (case 6-8997000041551) — the tile
+// would perpetually show "GBP still pending" caveat otherwise. GSC + Bing
+// carry the Interest signal; if Google ever approves API access, re-add
+// 'gbp' here + in the JS mirror below + in aggregator.js + in
+// dashboard-data.json's interest.source string.
+const TILE_SOURCES: Record<string, string[]> = {
+  reach:        ['gsc'],
+  interest:     ['gsc', 'bing'],
+  conversation: ['cfwa'],
+  // 2026-08-05 Slice 5: subscribers is locally-sourced (Cloudflare KV via
+  // /api/newsletter-subscribe); the Pages Function serving /api/dashboard-data
+  // always tags 'newsletter' as healthy since KV is a hard binding. Never
+  // "waiting for cron".
+  subscribers:  ['newsletter'],
+};
+const SOURCE_LABELS: Record<string, string> = {
+  gsc:  'Google Search Console',
+  gbp:  'Google Business Profile',
+  bing: 'Bing Webmaster',
+  cfwa: 'Cloudflare Web Analytics',
+  newsletter: 'Newsletter opt-in (site popup)',
+};
+function tileHint(key: string): string {
+  const degraded: string[] = initial.sources_degraded || [];
+  const healthy:  string[] = initial.sources_healthy  || [];
+  const needed = TILE_SOURCES[key] || [];
+  const missing = needed.filter((s) => degraded.includes(s) || !healthy.includes(s));
+  const status: string = (initial as any)._pipeline_status || '';
+  if (status === 'not_activated' || (missing.length === needed.length && needed.length > 0)) {
+    const names = missing.map((s) => SOURCE_LABELS[s] || s.toUpperCase()).join(', ');
+    return `Data source pending activation: ${names}`;
+  }
+  if (missing.length > 0) {
+    const names = missing.map((s) => SOURCE_LABELS[s] || s.toUpperCase()).join(', ');
+    return `Partial: ${names} still pending; rest is live`;
+  }
+  return 'Live';
+}
+
+// 2026-08-04 fix: when the aggregator returns value === 0 for a tile whose
+// needed sources are partially degraded, we want the tile to render "0" in
+// muted style with a truthful caveat naming the still-pending source(s).
+// Only fires when value === 0 AND at least one needed source is missing.
+// A non-zero live number or a fully-healthy zero returns null (no caveat).
+function tileCaveat(key: string, value: unknown): string | null {
+  if (value !== 0) return null;
+  const degraded: string[] = initial.sources_degraded || [];
+  const healthy:  string[] = initial.sources_healthy  || [];
+  const needed = TILE_SOURCES[key] || [];
+  const missing = needed.filter((s) => degraded.includes(s) || !healthy.includes(s));
+  if (missing.length === 0) return null;
+  const names = missing.map((s) => SOURCE_LABELS[s] || s.toUpperCase()).join(', ');
+  return `${names} still pending — real number may be higher`;
+}
+
+// Whole-dashboard status banner. Fires when the pipeline has never written
+// a rollup OR when every source is degraded. Rendered inline so it can be
+// updated via hydration when /api/dashboard-data reveals the real state.
+function bannerText(): string | null {
+  const status: string = (initial as any)._pipeline_status || '';
+  const degraded: string[] = initial.sources_degraded || [];
+  const healthy:  string[] = initial.sources_healthy  || [];
+  if (status === 'not_activated') {
+    return 'Data pipeline not yet activated. See DASHBOARD_ACTIVATION.md for OAuth + secret setup, then POST /run to bootstrap KV.';
+  }
+  if (healthy.length === 0 && degraded.length > 0) {
+    return `All ${degraded.length} data sources are degraded. Check /health on the cron Worker.`;
+  }
+  return null;
+}
+const initialBanner = bannerText();
+---
+<Base
+  title="Dashboard | Yoga avec Jitendra"
+  lang="en"
+  dashboard={true}
+>
+  <header class="dash-topbar">
+    <a href="/en/" class="dash-brand">
+      <span class="breathing-dot" style="margin:0;"></span>
+      <span>Yoga avec Jitendra &middot; Dashboard</span>
+    </a>
+    <a href="/cdn-cgi/access/logout" class="dash-logout">Sign out</a>
+  </header>
+
+  <main class="dash-main yj-dashboard">
+    <section class="dash-intro" data-reveal>
+      <p class="eyebrow">Since launch &middot; day {daysSinceLaunch}</p>
+      <h1 class="dash-h1">The story so far</h1>
+      <p class="dash-lede">
+        Where you are being found, who is clicking, and how many of them tap WhatsApp. Honest about what we do not yet know.
+      </p>
+    </section>
+
+    {/*
+      Banner defaults to hidden — the static fallback JSON always says
+      "all 4 sources degraded" (bootstrap-empty shape), which would flash
+      an alarming "All 4 data sources are degraded" for ~200ms on every
+      load before hydration hides it. Hydration reveals it only if the
+      LIVE rollup actually reports a degraded state. If hydration fails,
+      the fetch error handler sets a "Live data unavailable" message.
+      SSR-time initialBanner is retained as a `data-ssr-banner` attribute
+      so a hard fetch failure can fall back to it if needed.
+    */}
+    <aside
+      class="dash-banner"
+      id="dash-status-banner"
+      role="status"
+      aria-live="polite"
+      hidden
+      data-ssr-banner={initialBanner || ''}
+    >
+      <span class="dash-banner-icon">⚠</span>
+      <span class="dash-banner-text"></span>
+    </aside>
+
+    <section class="dash-hero-grid">
+      <HeroTile
+        eyebrow="Reach"
+        headline={heroTiles.reach.label}
+        value={heroTiles.reach.value}
+        status={heroStatus(heroTiles.reach.value)}
+        hint={tileHint('reach')}
+        source={heroTiles.reach.source}
+        metric_key="reach"
+        sparkline={heroTiles.reach.sparkline || []}
+        delta_pct={heroTiles.reach.delta_pct}
+        partial_caveat={tileCaveat('reach', heroTiles.reach.value)}
+      />
+      <HeroTile
+        eyebrow="Interest"
+        headline={heroTiles.interest.label}
+        value={heroTiles.interest.value}
+        status={heroStatus(heroTiles.interest.value)}
+        hint={tileHint('interest')}
+        source={heroTiles.interest.source}
+        metric_key="interest"
+        sparkline={heroTiles.interest.sparkline || []}
+        delta_pct={heroTiles.interest.delta_pct}
+        partial_caveat={tileCaveat('interest', heroTiles.interest.value)}
+      />
+      <HeroTile
+        eyebrow="Conversation"
+        headline={heroTiles.conversation.label}
+        value={heroTiles.conversation.value}
+        status={heroStatus(heroTiles.conversation.value)}
+        hint={tileHint('conversation')}
+        source={heroTiles.conversation.source}
+        metric_key="conversation"
+        sparkline={heroTiles.conversation.sparkline || []}
+        delta_pct={heroTiles.conversation.delta_pct}
+        partial_caveat={tileCaveat('conversation', heroTiles.conversation.value)}
+      />
+      {/* Subscribers tile (Slice 5 · 2026-08-05). Reads from KV via
+          /api/dashboard-data injection. Always "live" — the source is
+          Cloudflare KV itself, no external dep to wait on. */}
+      {heroTiles.subscribers && (
+        <HeroTile
+          eyebrow="Subscribers"
+          headline={heroTiles.subscribers.label}
+          value={heroTiles.subscribers.value ?? 0}
+          status="live"
+          hint={tileHint('subscribers')}
+          source={heroTiles.subscribers.source}
+          metric_key="subscribers"
+          sparkline={heroTiles.subscribers.sparkline || []}
+          delta_pct={heroTiles.subscribers.delta_pct}
+          partial_caveat={null}
+          href="/dashboard/subscribers/"
+          href_label="Open list"
+        />
+      )}
+    </section>
+
+    <section class="dash-block">
+      <p class="eyebrow"><span class="breathing-dot"></span><span>The funnel</span></p>
+      <h2 class="dash-h2">From search to WhatsApp</h2>
+      <FunnelStrip
+        stages={funnelStages}
+        range="7d"
+        range_options={rangeOptions}
+      />
+    </section>
+
+    <section class="dash-block">
+      <TimeSeriesChart
+        labels={initial.time_series?.labels || []}
+        series={initial.time_series?.series || []}
+      />
+    </section>
+
+    <section class="dash-block">
+      <SourceDonut
+        labels={initial.source_split?.labels || []}
+        values={initial.source_split?.values || []}
+        degraded_source_indices={initial.source_split?.degraded_source_indices || []}
+      />
+    </section>
+
+    <section class="dash-block">
+      <p class="eyebrow"><span class="breathing-dot"></span><span>How the story has moved</span></p>
+      <h2 class="dash-h2">Milestones</h2>
+      <MilestoneStrip milestones={data.milestones} />
+    </section>
+
+    <section class="dash-block">
+      <NextMoveCard
+        title={data.next_move.title}
+        body={data.next_move.body}
+        cta_label={data.next_move.cta_label}
+        cta_href={data.next_move.cta_href}
+      />
+    </section>
+
+    <section class="dash-block">
+      <SelfReportTile
+        history={data.self_report_history}
+        form_href="/dashboard/self-report/"
+      />
+    </section>
+
+    <section class="dash-block">
+      <ReviewsHub />
+    </section>
+
+    <ProvenanceFooter sources={data.provenance.sources} as_of={initial.as_of || data.as_of} />
+  </main>
+
+  <script>
+    // Dashboard hydration controller.
+    // ============================
+    // On page load: fetch /api/dashboard-data?range=7d, broadcast the rollup
+    // via CustomEvent('dashboarddata') so every subscribed component (hero
+    // tiles, funnel, time-series chart, donut, sparklines) updates in place.
+    //
+    // On range-pill click: FunnelStrip emits CustomEvent('dashboardrange');
+    // this controller re-fetches with the new range and re-broadcasts.
+    //
+    // Self-report tile has its own separate hydration script that persists
+    // from V0.01 — do not touch here.
+    //
+    // Auth: /api/dashboard-data is behind the same _middleware.ts Basic-Auth
+    // gate as /dashboard/*. The browser has already sent Basic-Auth for the
+    // page load, so fetch() inherits the credentials via same-origin cookies /
+    // browser credential cache — no explicit Authorization header needed.
+    (function () {
+      let currentRange = '7d';
+      let isFetching = false;
+
+      function fmtNumber(n) {
+        if (n === null || n === undefined) return '—';
+        return Number(n).toLocaleString('en-US');
+      }
+      function fmtDelta(pct) {
+        if (pct === null || pct === undefined) return '—';
+        const sign = pct > 0 ? '+' : '';
+        return `${sign}${Number(pct).toFixed(1)}%`;
+      }
+      function deltaClass(pct) {
+        if (pct === null || pct === undefined) return 'delta-neutral';
+        if (pct > 0) return 'delta-up';
+        if (pct < 0) return 'delta-down';
+        return 'delta-neutral';
+      }
+
+      // Mirrors dashboard.astro's TILE_SOURCES + SOURCE_LABELS + tileCaveat()
+      // so hydration renders the same truthful "0 with degraded source(s)"
+      // caveat that SSR would render. When a tile arrives from the live
+      // rollup with value === 0 AND at least one of its needed sources is
+      // in sources_degraded (or not in sources_healthy), we render "0" in
+      // a muted style and append a caveat line naming the pending sources.
+      // A non-zero value or a fully-healthy zero returns null (no caveat).
+      // 2026-08-04: keep in sync with the SSR TILE_SOURCES above. GBP
+      // dropped from Interest until Google approves API access.
+      const TILE_SOURCES = {
+        reach:        ['gsc'],
+        interest:     ['gsc', 'bing'],
+        conversation: ['cfwa'],
+        subscribers:  ['newsletter'],
+      };
+      const SOURCE_LABELS = {
+        gsc:  'Google Search Console',
+        gbp:  'Google Business Profile',
+        bing: 'Bing Webmaster',
+        cfwa: 'Cloudflare Web Analytics',
+        newsletter: 'Newsletter opt-in (site popup)',
+      };
+      function escapeHtml(s) {
+        return String(s)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+      function tileCaveatText(key, value, rollup) {
+        if (value !== 0) return null;
+        const degraded = (rollup && rollup.sources_degraded) || [];
+        const healthy  = (rollup && rollup.sources_healthy)  || [];
+        const needed   = TILE_SOURCES[key] || [];
+        const missing  = needed.filter(function (s) {
+          return degraded.indexOf(s) !== -1 || healthy.indexOf(s) === -1;
+        });
+        if (missing.length === 0) return null;
+        const names = missing.map(function (s) {
+          return SOURCE_LABELS[s] || s.toUpperCase();
+        }).join(', ');
+        return names + ' still pending — real number may be higher';
+      }
+
+      function updateHeroTiles(heroTiles, rollup) {
+        if (!heroTiles) return;
+        ['reach', 'interest', 'conversation', 'subscribers'].forEach((key) => {
+          const tile = heroTiles[key];
+          if (!tile) return;
+
+          // Look up the tile ARTICLE via its stable data-tile-key attribute
+          // (added in HeroTile.astro). Previous code only queried the
+          // .hero-tile-bignumber [data-metric] hook — which does NOT exist
+          // when SSR rendered the tile in skeleton state (value === null).
+          // That mismatch left the reach + interest tiles stuck on
+          // "Data source pending activation: X" forever, even after the
+          // client rollup returned real live numbers. See git-blame on
+          // this block for the 2026-08-04 fix.
+          const article = document.querySelector(`.hero-tile[data-tile-key="${key}"]`);
+          if (!article) return;
+
+          // Compute caveat state (2026-08-04 fix #2): a zero-value tile with
+          // any pending source should carry the caveat + muted number. In
+          // BOTH branches (skeleton→live upgrade AND already-live refresh)
+          // we must add/remove the caveat + partial class so a transition
+          // (e.g. degraded → healthy or zero → non-zero) reflects truthfully.
+          const caveat  = tileCaveatText(key, tile.value, rollup);
+          const partial = caveat !== null;
+
+          const existingNumberEl = article.querySelector(`[data-metric="${key}"]`);
+          if (existingNumberEl) {
+            // Tile is already in live SSR state (value was a number at build
+            // time). Refresh number + delta + caveat + partial-class in place.
+            existingNumberEl.textContent = fmtNumber(tile.value);
+            if (partial) {
+              existingNumberEl.classList.add('partial');
+            } else {
+              existingNumberEl.classList.remove('partial');
+            }
+            const existingDeltaEl = article.querySelector(`[data-metric-delta="${key}"]`);
+            if (existingDeltaEl) {
+              // Slice 2 (2026-08-05): the delta chip has two spans (arrow
+              // + value). Refresh both, and keep the wrapper's class in
+              // sync so hydration-driven sign changes flip the palette
+              // token (up/down/neutral). If the arrow span is missing
+              // (older SSR snapshot), fall back to plain textContent so
+              // the number still updates.
+              const pct = tile.delta_pct;
+              const arrowGlyph = pct === null || pct === undefined
+                ? '–'
+                : (pct > 0 ? '↗' : (pct < 0 ? '↘' : '–'));
+              const arrowEl = existingDeltaEl.querySelector('.hero-tile-delta-arrow');
+              const valEl   = existingDeltaEl.querySelector('.hero-tile-delta-val');
+              if (arrowEl && valEl) {
+                arrowEl.textContent = arrowGlyph;
+                valEl.textContent = fmtDelta(pct);
+              } else {
+                existingDeltaEl.textContent = fmtDelta(pct);
+              }
+              existingDeltaEl.className = `hero-tile-delta ${deltaClass(tile.delta_pct)}`;
+            }
+            // Reconcile the caveat line: create/update if partial, remove if not.
+            let caveatEl = article.querySelector(`[data-metric-caveat="${key}"]`);
+            if (partial) {
+              if (!caveatEl) {
+                caveatEl = document.createElement('p');
+                caveatEl.className = 'hero-tile-caveat';
+                caveatEl.setAttribute('data-metric-caveat', key);
+                // Insert directly after .hero-tile-number-line so the caveat
+                // hugs the number (before the sparkline, if any).
+                const numberLine = article.querySelector('.hero-tile-number-line');
+                if (numberLine && numberLine.parentNode) {
+                  numberLine.parentNode.insertBefore(caveatEl, numberLine.nextSibling);
+                }
+              }
+              caveatEl.textContent = caveat;
+            } else if (caveatEl && caveatEl.parentNode) {
+              caveatEl.parentNode.removeChild(caveatEl);
+            }
+            if (partial) {
+              article.setAttribute('data-partial', 'true');
+            } else {
+              article.removeAttribute('data-partial');
+            }
+            article.setAttribute('data-status', 'live');
+            return;
+          }
+
+          // Tile is in skeleton state. If the live rollup still has no value
+          // for this metric, keep the skeleton (honest "no data yet").
+          if (tile.value === null || tile.value === undefined) return;
+
+          // Upgrade skeleton → live: replace the .hero-tile-number-row
+          // inner HTML with the live number line. Preserves surrounding
+          // eyebrow / headline / source rows so the tile visually snaps
+          // into place instead of re-flowing.
+          const numberRow = article.querySelector('.hero-tile-number-row');
+          if (!numberRow) return;
+          const dcls = deltaClass(tile.delta_pct);
+          const numberText = fmtNumber(tile.value);
+          const deltaText = fmtDelta(tile.delta_pct);
+          // 2026-08-05 Slice 2: hydration-inserted numbers must carry the
+          // token classes (yj-num, yj-num--muted) so they inherit the same
+          // display typography as the SSR-emitted numbers. Without this,
+          // any tile that was in a skeleton state at SSR (value === null)
+          // upgrades to live with a smaller font than sibling tiles.
+          const bnCls =
+            'hero-tile-bignumber yj-num' + (partial ? ' partial yj-num--muted' : '');
+          const deltaArrow = tile.delta_pct === null || tile.delta_pct === undefined
+            ? '–'
+            : (tile.delta_pct > 0 ? '↗' : (tile.delta_pct < 0 ? '↘' : '–'));
+          // Inline HTML build — numeric/enum values are safe; caveat text
+          // is a joined list of hardcoded SOURCE_LABELS strings (no user
+          // input), but we escapeHtml() defensively to keep this branch
+          // XSS-safe if SOURCE_LABELS ever gains dynamic values.
+          const caveatFragment = partial
+            ? ('<p class="hero-tile-caveat" data-metric-caveat="' + key + '">' + escapeHtml(caveat) + '</p>')
+            : '';
+          // 2026-08-06: preserve the tile's optional deep-link on
+          // skeleton→live hydration. HeroTile.astro exposes data-href on
+          // the <article> when set; we emit an <a> instead of <span> so
+          // clicking the number after hydration still navigates.
+          var hrefAttr = article.getAttribute('data-href');
+          // Mirror the SSR anchor's aria-label so voice-control users get
+          // the same handle whether the tile was server-rendered live or
+          // rebuilt from a skeleton. `tile.label` matches HeroTile.astro's
+          // ${headline} interpolation.
+          var ariaLabelAttr = hrefAttr && tile.label
+            ? ' aria-label="' + escapeHtml(tile.label + ' — view count details') + '"'
+            : '';
+          var numberEl = hrefAttr
+            ? '<a href="' + escapeHtml(hrefAttr) + '" class="' + bnCls + ' hero-tile-bignumber-link" data-metric="' + key + '"' + ariaLabelAttr + '>' + numberText + '</a>'
+            : '<span class="' + bnCls + '" data-metric="' + key + '">' + numberText + '</span>';
+          numberRow.innerHTML =
+            '<div class="hero-tile-number-line">' +
+              numberEl +
+              '<span class="hero-tile-delta ' + dcls + '" data-metric-delta="' + key + '" ' +
+                    'aria-label="Change vs previous window">' +
+                '<span class="hero-tile-delta-arrow" aria-hidden="true">' + deltaArrow + '</span>' +
+                '<span class="hero-tile-delta-val">' + deltaText + '</span>' +
+              '</span>' +
+            '</div>' +
+            caveatFragment;
+          if (partial) {
+            article.setAttribute('data-partial', 'true');
+          } else {
+            article.removeAttribute('data-partial');
+          }
+          article.setAttribute('data-status', 'live');
+        });
+      }
+
+      function setBanner(text) {
+        const el = document.getElementById('dash-status-banner');
+        if (!el) return;
+        const textEl = el.querySelector('.dash-banner-text');
+        if (!text) {
+          if (textEl) textEl.textContent = '';
+          el.hidden = true;
+          return;
+        }
+        if (textEl) textEl.textContent = text;
+        el.hidden = false;
+      }
+
+      function bannerFromRollup(rollup) {
+        // Mirror the server-side bannerText() logic in dashboard.astro so
+        // hydration reflects real pipeline state rather than staying stuck
+        // on the SSR-time snapshot.
+        if (!rollup) return null;
+        const status = rollup._pipeline_status;
+        const degraded = rollup.sources_degraded || [];
+        const healthy = rollup.sources_healthy || [];
+        if (status === 'not_activated') {
+          return 'Data pipeline not yet activated. See DASHBOARD_ACTIVATION.md for OAuth + secret setup, then POST /run to bootstrap KV.';
+        }
+        if (healthy.length === 0 && degraded.length > 0) {
+          return 'All ' + degraded.length + ' data sources are degraded. Check /health on the cron Worker.';
+        }
+        return null;
+      }
+
+      async function fetchAndBroadcast(range) {
+        if (isFetching) return;
+        isFetching = true;
+        try {
+          const resp = await fetch(`/api/dashboard-data?range=${encodeURIComponent(range)}`, {
+            headers: { Accept: 'application/json' },
+            credentials: 'same-origin',
+          });
+          if (!resp.ok) {
+            const msg = `Live data unavailable (HTTP ${resp.status}) — showing last snapshot.`;
+            console.warn(`dashboard fetch failed: ${resp.status}`);
+            setBanner(msg);
+            return;
+          }
+          const rollup = await resp.json();
+          // Update hero tile numbers/deltas directly (charts self-update via
+          // the event bus below). Pass the rollup so tileCaveatText() can
+          // read sources_degraded / sources_healthy for the "0 with pending
+          // source" partial-live rendering.
+          updateHeroTiles(rollup.hero_tiles, rollup);
+          // Broadcast for chart components + FunnelStrip.
+          window.dispatchEvent(new CustomEvent('dashboarddata', { detail: { rollup } }));
+          // Refresh the status banner from live data (may hide it if the
+          // pipeline just came online since SSR).
+          setBanner(bannerFromRollup(rollup));
+        } catch (err) {
+          console.warn('dashboard hydration failed (keeping static values)', err);
+          setBanner('Live data fetch failed (' + (err && err.message ? err.message : 'network') + ') — showing last snapshot.');
+        } finally {
+          isFetching = false;
+        }
+      }
+
+      // Initial hydration on page load.
+      window.addEventListener('DOMContentLoaded', () => {
+        fetchAndBroadcast(currentRange);
+      });
+
+      // Range-pill clicks re-fetch.
+      window.addEventListener('dashboardrange', (ev) => {
+        const range = ev?.detail?.range;
+        if (!range || range === currentRange) return;
+        currentRange = range;
+        fetchAndBroadcast(range);
+      });
+    })();
+  </script>
+
+  {/* Self-report hydration — carried over from V0.01, kept isolated. */}
+  <script is:inline>
+    (function () {
+      fetch('/api/self-report', { headers: { Accept: 'application/json' } })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (payload) {
+          if (!payload || !Array.isArray(payload.history) || payload.history.length === 0) return;
+          var latest = payload.history[payload.history.length - 1];
+          var tile = document.querySelector('.self-report');
+          if (!tile || !latest) return;
+          var vals = tile.querySelectorAll('.report-value');
+          if (vals.length === 3) {
+            vals[0].textContent = String(latest.new_students);
+            vals[1].textContent = String(latest.recurring_students);
+            vals[2].textContent = '€' + String(latest.avg_revenue_eur);
+          }
+        })
+        .catch(function (err) {
+          if (typeof console !== 'undefined' && console.warn) {
+            console.warn('self-report hydration failed, keeping static values', err);
+          }
+        });
+    })();
+  </script>
+</Base>
+
+<style>
+  .dash-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(46, 42, 38, 0.08);
+    background: rgba(244, 237, 225, 0.75);
+    backdrop-filter: blur(8px);
+    position: sticky;
+    top: 0;
+    z-index: 40;
+  }
+  .dash-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--ink);
+    text-decoration: none;
+    font-size: 0.95rem;
+  }
+  .dash-logout {
+    color: var(--ink-soft);
+    text-decoration: none;
+    font-size: 0.85rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: 999px;
+    border: 1px solid rgba(46, 42, 38, 0.14);
+    transition: background 0.2s ease;
+  }
+  .dash-logout:hover {
+    background: rgba(46, 42, 38, 0.04);
+  }
+  .dash-main {
+    max-width: 960px;
+    margin-inline: auto;
+    padding: clamp(2rem, 5vw, 3.5rem) 1.25rem 4rem;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(2rem, 4vw, 3rem);
+  }
+  .dash-intro {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .dash-h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 1.1;
+    margin: 0.35rem 0 0;
+  }
+  .dash-h2 {
+    font-size: clamp(1.4rem, 3vw, 1.7rem);
+    letter-spacing: -0.015em;
+    margin: 0.35rem 0 1.25rem;
+    color: var(--ink);
+  }
+  .dash-lede {
+    color: var(--ink-soft);
+    max-width: 60ch;
+    line-height: 1.55;
+    margin: 0.75rem 0 0;
+  }
+  .dash-hero-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.25rem;
+  }
+  .dash-block {
+    display: flex;
+    flex-direction: column;
+  }
+  .dash-banner {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    padding: 0.85rem 1.15rem;
+    border-radius: 0.75rem;
+    background: rgba(201, 116, 74, 0.12);
+    border: 1px solid rgba(201, 116, 74, 0.35);
+    color: var(--ink);
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+  /* 2026-08-04 fix: `.dash-banner { display: flex }` above has equal
+     specificity to the UA-level `[hidden] { display: none }`, and author
+     sheets win over UA sheets in the cascade. Result: the `hidden`
+     attribute was rendering an empty amber pill (⚠ icon, no text) on
+     every load when hydration returned bannerText === null. This rule
+     restores the hidden semantic and MUST stay whenever `.dash-banner`
+     declares `display`. */
+  .dash-banner[hidden] {
+    display: none !important;
+  }
+  .dash-banner-icon {
+    color: var(--terracotta, #c9744a);
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .dash-banner-text {
+    flex: 1;
+  }
+</style>

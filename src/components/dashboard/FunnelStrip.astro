@@ -1,0 +1,307 @@
+---
+// FunnelStrip — reach → clicks → WhatsApp bar strip with the 7d/30d/all
+// range picker at the top.
+//
+// V0.1: range pills are now real <button>s that emit
+// CustomEvent('dashboardrange', { detail: { range } }) on window. The
+// dashboard controller listens, fetches /api/dashboard-data?range=X,
+// then broadcasts CustomEvent('dashboarddata', { detail: { rollup } })
+// which this component and the charts consume to re-render.
+
+interface Stage {
+  label: string;
+  value: number;
+  source: string;
+  status?: 'live' | 'waiting';
+  hint?: string;
+}
+interface RangeOption {
+  value: string;
+  label: string;
+}
+interface Props {
+  stages: Stage[];
+  range: string;
+  range_options: RangeOption[];
+}
+const { stages, range, range_options } = Astro.props;
+const maxValue = Math.max(1, ...stages.map((s) => s.value));
+---
+<div class="funnel yj-card" data-reveal>
+  <div class="funnel-range" role="tablist" aria-label="Time range">
+    {range_options.map((opt) => (
+      <button
+        type="button"
+        role="tab"
+        class:list={['funnel-range-pill', { 'is-active': opt.value === range }]}
+        aria-pressed={opt.value === range}
+        data-range={opt.value}
+      >
+        {opt.label}
+      </button>
+    ))}
+  </div>
+
+  <ul class="funnel-stages" role="list" data-funnel-max={maxValue}>
+    {stages.map((s, i) => {
+      const isWaiting = s.status === 'waiting';
+      // Store as a 0..1 fraction on a CSS var; the bar uses transform:
+      // scaleX(var(--fill)) so animation stays on the compositor thread
+      // instead of triggering layout thrash on width. Floor at 0.005 so a
+      // zero-value bar still leaves a hair-thin visual footprint.
+      const fill = Math.max(0.005, s.value / maxValue);
+      const prev = i > 0 ? stages[i - 1].value : null;
+      const prevLive = i > 0 ? stages[i - 1].status !== 'waiting' : false;
+      const conv = prev !== null && prev > 0 && prevLive && !isWaiting
+        ? ((s.value / prev) * 100).toFixed(1) + '%'
+        : null;
+      return (
+        <li class="funnel-row" data-funnel-index={i}>
+          <div class="funnel-label-row">
+            <span class="funnel-label">{s.label}</span>
+            {isWaiting ? (
+              <span class="funnel-skeleton" data-funnel-value role="status" aria-label={`${s.label}: ${s.hint ?? 'waiting for data'}`}>
+                <span aria-hidden="true">&#x23F3;</span>
+                <span>{s.hint ?? 'waiting'}</span>
+              </span>
+            ) : (
+              <span class="funnel-value" data-funnel-value aria-label={`${s.label}: ${s.value}`}>{s.value.toLocaleString('en-US')}</span>
+            )}
+          </div>
+          <div class="funnel-bar-track" aria-hidden="true">
+            <div class={`funnel-bar-fill ${isWaiting ? 'is-waiting' : ''}`} data-funnel-bar style={`--fill: ${fill};`}></div>
+          </div>
+          {conv !== null && (
+            <p class="funnel-conv" data-funnel-conv>
+              <span class="funnel-conv-arrow" aria-hidden="true">&#x21B3;</span>
+              <span data-funnel-conv-text>{conv} of {stages[i - 1].label.toLowerCase()} continued here</span>
+            </p>
+          )}
+          <p class="funnel-source">Source: {s.source}</p>
+        </li>
+      );
+    })}
+  </ul>
+</div>
+
+<script>
+  // Range pill click bus. The dashboard controller handles the fetch;
+  // this script only forwards clicks and manages aria-pressed state.
+  const pills = document.querySelectorAll('.funnel-range-pill');
+  pills.forEach((pill) => {
+    pill.addEventListener('click', (e) => {
+      const target = e.currentTarget as HTMLButtonElement;
+      const range = target.getAttribute('data-range');
+      if (!range) return;
+      pills.forEach((p) => {
+        const isActive = p === target;
+        p.classList.toggle('is-active', isActive);
+        p.setAttribute('aria-pressed', String(isActive));
+      });
+      window.dispatchEvent(new CustomEvent('dashboardrange', { detail: { range } }));
+    });
+  });
+
+  // Listen for dashboard-data updates and re-render the funnel bars +
+  // conversion percentages in place (no page reload).
+  window.addEventListener('dashboarddata', (ev) => {
+    const detail = (ev as CustomEvent).detail;
+    const rollup = detail?.rollup;
+    if (!rollup?.funnel) return;
+    const rows = document.querySelectorAll('.funnel-row');
+    const max = Math.max(1, ...rollup.funnel.map((s: any) => s.value || 0));
+    rows.forEach((row, i) => {
+      const stage = rollup.funnel[i];
+      if (!stage) return;
+      const valueEl = row.querySelector('[data-funnel-value]');
+      const barEl = row.querySelector('[data-funnel-bar]') as HTMLElement | null;
+      if (valueEl) {
+        // If previously in "waiting" pill form, replace with a live number span.
+        if (valueEl.classList.contains('funnel-skeleton')) {
+          const live = document.createElement('span');
+          live.className = 'funnel-value';
+          live.setAttribute('data-funnel-value', '');
+          live.setAttribute('aria-label', `${stage.label}: ${stage.value}`);
+          live.textContent = Number(stage.value || 0).toLocaleString('en-US');
+          valueEl.replaceWith(live);
+        } else {
+          valueEl.textContent = Number(stage.value || 0).toLocaleString('en-US');
+        }
+      }
+      if (barEl) {
+        // Same 0.005 floor as SSR path so an updated-to-zero bar keeps
+        // a hair-thin visual footprint. Animates on transform (compositor
+        // thread) not width (layout thrash).
+        const fill = Math.max(0.005, (stage.value || 0) / max);
+        barEl.style.setProperty('--fill', String(fill));
+        barEl.classList.remove('is-waiting');
+      }
+      // Conversion line for stages after the first.
+      if (i > 0) {
+        const prev = rollup.funnel[i - 1];
+        const prevVal = prev?.value || 0;
+        const conv = prevVal > 0 ? ((stage.value / prevVal) * 100).toFixed(1) + '%' : null;
+        const convText = row.querySelector('[data-funnel-conv-text]');
+        if (conv && convText) {
+          convText.textContent = `${conv} of ${prev.label.toLowerCase()} continued here`;
+        }
+      }
+    });
+  });
+</script>
+
+<style>
+  .funnel {
+    padding: var(--yj-space-5);
+  }
+  .funnel-range {
+    display: inline-flex;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    border: 1px solid var(--yj-border-strong);
+    border-radius: var(--yj-radius-pill);
+    margin-bottom: var(--yj-space-5);
+    background: var(--yj-surface-1);
+  }
+  .funnel-range-pill {
+    padding: 0.4rem 0.95rem;
+    border-radius: var(--yj-radius-pill);
+    font-size: var(--yj-size-caption);
+    color: var(--yj-ink-soft);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    font-family: inherit;
+    transition:
+      background var(--yj-dur-fast) var(--yj-ease),
+      color var(--yj-dur-fast) var(--yj-ease);
+  }
+  .funnel-range-pill:hover:not(.is-active) {
+    background: var(--yj-brand-tint);
+    color: var(--yj-ink);
+  }
+  .funnel-range-pill:focus-visible {
+    outline: 2px solid var(--yj-brand);
+    outline-offset: 2px;
+  }
+  .funnel-range-pill.is-active {
+    background: var(--yj-brand);
+    color: var(--yj-surface-1);
+    box-shadow: 0 6px 14px -8px rgba(201, 116, 74, 0.55);
+  }
+  .funnel-stages {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--yj-space-5);
+  }
+  .funnel-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .funnel-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--yj-space-3);
+  }
+  .funnel-label {
+    font-family: var(--yj-font-display);
+    font-weight: 500;
+    font-size: var(--yj-size-title);
+    color: var(--yj-ink);
+    letter-spacing: var(--yj-tracking-title);
+  }
+  .funnel-value {
+    font-family: var(--yj-font-display);
+    font-weight: 500;
+    font-size: 1.55rem;
+    line-height: 1.1;
+    color: var(--yj-brand);
+    font-variant-numeric: tabular-nums;
+  }
+  .funnel-bar-track {
+    height: 12px;
+    background: var(--yj-surface-3);
+    border-radius: var(--yj-radius-pill);
+    overflow: hidden;
+  }
+  .funnel-bar-fill {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg,
+      var(--yj-brand) 0%,
+      rgba(201, 116, 74, 0.72) 100%);
+    border-radius: var(--yj-radius-pill);
+    transform: scaleX(var(--fill, 0));
+    transform-origin: left center;
+    transition: transform var(--yj-dur-slow) var(--yj-ease);
+    will-change: transform;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .funnel-bar-fill { transition: none; }
+  }
+  .funnel-conv {
+    font-family: var(--yj-font-body);
+    font-size: var(--yj-size-caption);
+    color: var(--yj-ink-soft);
+    margin: var(--yj-space-1) 0 0 var(--yj-space-1);
+    font-style: italic;
+  }
+  .funnel-conv-arrow {
+    color: var(--yj-success);
+    margin-right: 0.35rem;
+    font-style: normal;
+  }
+  /* Slice 3 skeleton: shimmering pill replaces the dashed hourglass so
+     the waiting state reads as "loading" not "warning". */
+  .funnel-skeleton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: var(--yj-radius-pill);
+    background: var(--yj-surface-3);
+    color: var(--yj-ink-muted);
+    font-size: var(--yj-size-caption);
+    letter-spacing: 0.02em;
+    position: relative;
+    overflow: hidden;
+  }
+  .funnel-skeleton::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      var(--yj-surface-2) 50%,
+      transparent 100%);
+    background-size: 200% 100%;
+    animation: yj-shimmer 1.6s var(--yj-ease) infinite;
+    opacity: 0.6;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .funnel-skeleton::before { animation: none; }
+  }
+  .funnel-source {
+    font-family: var(--yj-font-body);
+    font-size: var(--yj-size-caption);
+    color: var(--yj-ink-muted);
+    letter-spacing: 0.02em;
+    margin: var(--yj-space-1) 0 0 var(--yj-space-1);
+  }
+  .funnel-bar-fill.is-waiting {
+    background: repeating-linear-gradient(
+      45deg,
+      var(--yj-surface-3),
+      var(--yj-surface-3) 6px,
+      var(--yj-surface-2) 6px,
+      var(--yj-surface-2) 12px
+    );
+  }
+</style>

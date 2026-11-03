@@ -1,0 +1,196 @@
+#!/usr/bin/env node
+// scripts/sync_reviews.mjs — build-time review hydration.
+//
+// Called via `npm run prebuild` before every `astro build`. Fetches the
+// approved review list from /api/reviews-public on the live site and writes
+// src/content/reviews.json for Testimonials.astro / ReviewsGrid.astro /
+// /reviews page to read at render time. On fetch failure (first-ever
+// build, KV outage, offline dev, DNS blip), falls back to the checked-in
+// reviews-seed.json so the build never breaks.
+//
+// The seed file is also the migration source for scripts/seed_reviews.mjs.
+//
+// Env vars:
+//   SYNC_REVIEWS_URL   Override the fetch URL. Default:
+//                      https://yoga-jitendra.pages.dev/api/reviews-public?fresh=1
+//   SYNC_REVIEWS_SKIP  If '1', skip fetch entirely and use only the seed
+//                      (useful for offline / airplane builds).
+
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const PROJECT_ROOT = resolve(__dirname, '..');
+const SEED_PATH = resolve(PROJECT_ROOT, 'src/content/reviews-seed.json');
+const OUT_PATH = resolve(PROJECT_ROOT, 'src/content/reviews.json');
+
+const DEFAULT_URL = 'https://yoga-jitendra.pages.dev/api/reviews-public?fresh=1';
+const FETCH_URL = process.env.SYNC_REVIEWS_URL || DEFAULT_URL;
+const FETCH_TIMEOUT_MS = 8000;
+const SKIP = process.env.SYNC_REVIEWS_SKIP === '1';
+
+function log(msg) {
+  process.stdout.write(`[sync_reviews] ${msg}\n`);
+}
+function warn(msg) {
+  process.stderr.write(`[sync_reviews] WARN: ${msg}\n`);
+}
+
+// Normalize records from either source (KV response OR seed file) into the
+// unified shape Testimonials/ReviewsGrid expects. The seed file carries
+// body_fr + body_en side-by-side; the KV records carry a single `body` in
+// the submitter's language. Downstream code picks based on `lang`.
+function normalizeSeedRecord(r) {
+  return {
+    id: r.id,
+    name: r.name,
+    rating: r.rating,
+    // Store both when available (seed) — downstream can pick per-lang.
+    body: r.body_fr || r.body_en || r.body || '',
+    body_fr: r.body_fr || null,
+    body_en: r.body_en || null,
+    source: r.source,
+    source_url: r.source_url || null,
+    lang: r.lang || 'fr',
+    submitted_at: r.submitted_at,
+    approved_at: r.approved_at || r.submitted_at,
+    featured: !!r.featured,
+    verified: !!r.verified,
+  };
+}
+
+function normalizeKVRecord(r) {
+  return {
+    id: r.id,
+    name: r.name,
+    rating: r.rating,
+    body: r.body || '',
+    body_fr: r.body_fr || null,
+    body_en: r.body_en || null,
+    source: r.source,
+    source_url: r.source_url || null,
+    lang: r.lang || 'fr',
+    submitted_at: r.submitted_at,
+    approved_at: r.approved_at || r.submitted_at,
+    featured: !!r.featured,
+    verified: !!r.verified,
+  };
+}
+
+async function loadSeed() {
+  try {
+    const raw = await readFile(SEED_PATH, 'utf8');
+    const parsed = JSON.parse(raw);
+    const reviews = Array.isArray(parsed.reviews) ? parsed.reviews.map(normalizeSeedRecord) : [];
+    return reviews;
+  } catch (err) {
+    warn(`could not load seed at ${SEED_PATH}: ${err.message}`);
+    return [];
+  }
+}
+
+async function fetchWithTimeout(url, ms) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  try {
+    const resp = await fetch(url, { signal: controller.signal, headers: { Accept: 'application/json' } });
+    return resp;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function fetchLive() {
+  try {
+    const resp = await fetchWithTimeout(FETCH_URL, FETCH_TIMEOUT_MS);
+    if (!resp.ok) {
+      warn(`fetch ${FETCH_URL} returned ${resp.status}`);
+      return null;
+    }
+    const data = await resp.json();
+    if (!data || !Array.isArray(data.reviews)) {
+      warn(`unexpected response shape from ${FETCH_URL}`);
+      return null;
+    }
+    return data.reviews.map(normalizeKVRecord);
+  } catch (err) {
+    warn(`fetch failed: ${err.message}`);
+    return null;
+  }
+}
+
+function computeAggregate(reviews) {
+  if (!reviews.length) return { count: 0, average_rating: null };
+  const total = reviews.reduce((s, r) => s + (Number(r.rating) || 0), 0);
+  return {
+    count: reviews.length,
+    average_rating: Math.round((total / reviews.length) * 10) / 10,
+  };
+}
+
+function sortReviews(reviews) {
+  reviews.sort((a, b) => {
+    if (a.featured !== b.featured) return a.featured ? -1 : 1;
+    // Sort by actual review date (submitted_at), not moderation date. An old
+    // Google review re-imported today must not appear as "newest". Match the
+    // reviews-public.ts server-side sort so build-time and runtime agree.
+    const ak = a.submitted_at || a.approved_at || '';
+    const bk = b.submitted_at || b.approved_at || '';
+    return bk.localeCompare(ak);
+  });
+}
+
+async function main() {
+  const seed = await loadSeed();
+  let source = 'seed';
+  let reviews = seed;
+
+  if (!SKIP) {
+    const live = await fetchLive();
+    if (live && live.length > 0) {
+      // KV is the source of truth: any non-empty live response wins.
+      // Guards against KV wipes (which return 0 items or a fetch error →
+      // fall through to the seed) while letting the first moderated
+      // review appear even before KV catches up to the seed count.
+      reviews = live;
+      source = 'live';
+    } else if (live) {
+      log(`live returned 0 reviews; using seed fallback (${seed.length} items)`);
+    }
+  } else {
+    log('SYNC_REVIEWS_SKIP=1 → seed only');
+  }
+
+  sortReviews(reviews);
+  const agg = computeAggregate(reviews);
+
+  const out = {
+    _generated_at: new Date().toISOString(),
+    _source: source,
+    _fetch_url: SKIP ? null : FETCH_URL,
+    count: agg.count,
+    average_rating: agg.average_rating,
+    reviews,
+  };
+
+  await mkdir(dirname(OUT_PATH), { recursive: true });
+  await writeFile(OUT_PATH, JSON.stringify(out, null, 2) + '\n', 'utf8');
+  log(`wrote ${reviews.length} reviews (${source}) → ${OUT_PATH}`);
+}
+
+main().catch((err) => {
+  warn(`unexpected error: ${err.stack || err.message}`);
+  // Emit an empty-but-well-formed file so the build doesn't crash on read.
+  const fallback = {
+    _generated_at: new Date().toISOString(),
+    _source: 'error',
+    _fetch_url: null,
+    count: 0,
+    average_rating: null,
+    reviews: [],
+  };
+  writeFile(OUT_PATH, JSON.stringify(fallback, null, 2) + '\n', 'utf8').catch(() => {});
+  process.exit(0); // never fail the build
+});

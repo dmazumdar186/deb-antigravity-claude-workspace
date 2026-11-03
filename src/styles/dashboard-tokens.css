@@ -1,0 +1,253 @@
+/* Dashboard design tokens — Slice 1 of the 2026-08-05 UX-first pass.
+
+   Scoped under `.yj-dashboard` so the public site's palette + type ramp
+   in global.css stays untouched. Import into dashboard.astro once; every
+   dashboard component then consumes semantic tokens via var(--yj-*)
+   instead of hard-coding hex literals or magic rgba values.
+
+   Palette is the same terracotta/sage/cream family as the public site
+   — we're re-expressing it as semantic roles so a color change happens
+   in one place. */
+
+.yj-dashboard {
+  /* ----------------------------------------------------------------------
+     COLOR — surfaces
+     Cards, chart backgrounds, and separators. Kept intentionally close
+     to the public site's cream so the dashboard doesn't read as a
+     different product from the marketing site.
+     ---------------------------------------------------------------------- */
+  --yj-surface-1:       #FBF7EE;                 /* card fill                     */
+  --yj-surface-2:       #F4EDE1;                 /* recessed area (chart bg)      */
+  --yj-surface-3:       #EDE3D0;                 /* muted panel (skeleton)        */
+  --yj-border-subtle:   rgba(46, 42, 38, 0.08);  /* card outline                  */
+  --yj-border-strong:   rgba(46, 42, 38, 0.16);  /* input/button outline          */
+  --yj-shadow-card:     0 18px 40px -24px rgba(46, 42, 38, 0.25);
+  --yj-shadow-hover:    0 24px 60px -28px rgba(46, 42, 38, 0.32);
+
+  /* ----------------------------------------------------------------------
+     COLOR — text
+     ink is body copy; ink-soft is meta/caption; ink-muted is disabled/
+     placeholder. Ratios chosen for WCAG AA on --yj-surface-1.
+     ---------------------------------------------------------------------- */
+  --yj-ink:             #2E2A26;
+  --yj-ink-soft:        #4A423B;
+  --yj-ink-muted:       rgba(74, 66, 59, 0.6);
+  --yj-ink-faint:       rgba(74, 66, 59, 0.4);
+
+  /* ----------------------------------------------------------------------
+     COLOR — brand + semantic roles
+     Semantic names decouple meaning from hex. The parent-site rule "no
+     red, even for a drop" is baked in: --yj-danger maps to a warm
+     terracotta shade, not a red. --yj-success is sage (never green
+     traffic-light green). --yj-warn is sand-brown (never yellow).
+     ---------------------------------------------------------------------- */
+  --yj-brand:           #C9744A;                 /* terracotta                    */
+  --yj-brand-hover:     #A85D37;
+  --yj-brand-soft:      rgba(201, 116, 74, 0.14);
+  --yj-brand-tint:      rgba(201, 116, 74, 0.06);
+
+  --yj-success:         #6B7A5A;                 /* sage                          */
+  --yj-success-soft:    rgba(107, 122, 90, 0.18);
+
+  --yj-warn:            #B08040;                 /* deeper sand — visible on cream */
+  --yj-warn-soft:       rgba(217, 199, 167, 0.55);
+
+  /* "danger" is warm terracotta, never red — matches parent-site rule
+     that a downward delta is not shamed. Same hue as brand, deeper
+     saturation to still read as a signal, not a decoration. */
+  --yj-danger:          #A85D37;
+  --yj-danger-soft:     rgba(201, 116, 74, 0.14);
+
+  --yj-neutral:         rgba(74, 66, 59, 0.7);
+  --yj-neutral-soft:    rgba(217, 199, 167, 0.35);
+
+  /* ----------------------------------------------------------------------
+     COLOR — data viz
+     Discrete palette for chart series. Ordered by prominence so the
+     "most important" series lands on --yj-viz-1. Never traffic-light;
+     always brand-aligned. */
+  --yj-viz-1:           #C9744A;   /* terracotta   — impressions / primary */
+  --yj-viz-2:           #6B7A5A;   /* sage         — clicks    / secondary */
+  --yj-viz-3:           #B08040;   /* warm sand    — WA taps   / tertiary  */
+  --yj-viz-4:           #7C9B8E;   /* cool sage    — reserved              */
+  --yj-viz-degraded:    rgba(74, 66, 59, 0.28); /* hatched slice for no-data */
+
+  /* ----------------------------------------------------------------------
+     TYPOGRAPHY — scale
+     display: KPI numbers only. Serif, tabular-nums, tight tracking.
+     title:   card headlines, section titles.
+     body:    inline text.
+     caption: source-of-truth strings, dates, provenance.
+     eyebrow: uppercase micro-labels.
+     Sizes use clamp() for fluid response between 320px and 1280px.
+     ---------------------------------------------------------------------- */
+  --yj-font-display:    'Fraunces', 'Cormorant Garamond', Georgia, serif;
+  --yj-font-body:       'Inter', ui-sans-serif, system-ui, sans-serif;
+  --yj-font-mono:       ui-monospace, 'SF Mono', 'Consolas', monospace;
+
+  --yj-size-display:    clamp(2.6rem, 5.5vw, 3.6rem);   /* ~42-58px  — KPI number */
+  --yj-size-title-lg:   clamp(1.4rem, 2.4vw, 1.75rem);  /* ~22-28px — card head   */
+  --yj-size-title:      clamp(1.05rem, 1.6vw, 1.2rem);  /* ~17-19px — tile head   */
+  --yj-size-body:       0.925rem;                        /* ~15px                  */
+  --yj-size-caption:    0.78rem;                         /* ~12.5px                */
+  --yj-size-eyebrow:    0.72rem;                         /* ~11.5px, uppercase     */
+
+  --yj-lh-display:      1;
+  --yj-lh-title:        1.25;
+  --yj-lh-body:         1.55;
+
+  --yj-tracking-display: -0.02em;
+  --yj-tracking-title:   -0.01em;
+  --yj-tracking-eyebrow:  0.18em;
+
+  /* ----------------------------------------------------------------------
+     SPACING + RADIUS
+     ---------------------------------------------------------------------- */
+  --yj-space-1:         0.25rem;
+  --yj-space-2:         0.5rem;
+  --yj-space-3:         0.75rem;
+  --yj-space-4:         1rem;
+  --yj-space-5:         1.5rem;
+  --yj-space-6:         2rem;
+  --yj-space-8:         3rem;
+
+  --yj-radius-sm:       0.5rem;
+  --yj-radius-md:       0.9rem;
+  --yj-radius-lg:       1.25rem;
+  --yj-radius-pill:     999px;
+
+  /* ----------------------------------------------------------------------
+     MOTION
+     One easing curve for every dashboard motion; consistency > flourish.
+     ---------------------------------------------------------------------- */
+  --yj-ease:            cubic-bezier(0.16, 1, 0.3, 1);
+  --yj-dur-fast:        0.15s;
+  --yj-dur-med:         0.25s;
+  --yj-dur-slow:        0.5s;
+}
+
+/* --------------------------------------------------------------------------
+   Reusable primitives that every dashboard component reaches for.
+   Keeps per-component <style> blocks short and enforces consistency.
+   -------------------------------------------------------------------------- */
+.yj-dashboard .yj-card {
+  background: var(--yj-surface-1);
+  border: 1px solid var(--yj-border-subtle);
+  border-radius: var(--yj-radius-lg);
+  box-shadow: none;
+  transition: transform var(--yj-dur-med) var(--yj-ease),
+              box-shadow var(--yj-dur-med) var(--yj-ease);
+}
+.yj-dashboard .yj-card--interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--yj-shadow-hover);
+}
+
+.yj-dashboard .yj-eyebrow {
+  font-family: var(--yj-font-body);
+  font-size: var(--yj-size-eyebrow);
+  letter-spacing: var(--yj-tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--yj-brand);
+  font-weight: 500;
+}
+
+.yj-dashboard .yj-title {
+  font-family: var(--yj-font-display);
+  font-size: var(--yj-size-title);
+  line-height: var(--yj-lh-title);
+  letter-spacing: var(--yj-tracking-title);
+  color: var(--yj-ink);
+  font-weight: 500;
+}
+
+.yj-dashboard .yj-title-lg {
+  font-family: var(--yj-font-display);
+  font-size: var(--yj-size-title-lg);
+  line-height: var(--yj-lh-title);
+  letter-spacing: var(--yj-tracking-title);
+  color: var(--yj-ink);
+  font-weight: 500;
+}
+
+.yj-dashboard .yj-body {
+  font-family: var(--yj-font-body);
+  font-size: var(--yj-size-body);
+  line-height: var(--yj-lh-body);
+  color: var(--yj-ink-soft);
+}
+
+.yj-dashboard .yj-caption {
+  font-family: var(--yj-font-body);
+  font-size: var(--yj-size-caption);
+  color: var(--yj-ink-muted);
+  letter-spacing: 0.02em;
+}
+
+.yj-dashboard .yj-num {
+  font-family: var(--yj-font-display);
+  font-size: var(--yj-size-display);
+  line-height: var(--yj-lh-display);
+  letter-spacing: var(--yj-tracking-display);
+  color: var(--yj-brand);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+.yj-dashboard .yj-num--muted {
+  color: var(--yj-ink-muted);
+}
+
+/* Semantic chip: role='delta-up/-down/-neutral', 'badge-success/-warn/-brand'.
+   Data attribute drives colour instead of hard-coded class names so the
+   template stays readable. */
+.yj-dashboard .yj-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--yj-font-body);
+  font-size: var(--yj-size-caption);
+  font-weight: 500;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--yj-radius-pill);
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+}
+.yj-dashboard .yj-chip[data-role='up']       { background: var(--yj-success-soft); color: var(--yj-success); }
+.yj-dashboard .yj-chip[data-role='down']     { background: var(--yj-danger-soft);  color: var(--yj-danger); }
+.yj-dashboard .yj-chip[data-role='neutral']  { background: var(--yj-neutral-soft); color: var(--yj-neutral); }
+.yj-dashboard .yj-chip[data-role='brand']    { background: var(--yj-brand-soft);   color: var(--yj-brand); }
+.yj-dashboard .yj-chip[data-role='warn']     { background: var(--yj-warn-soft);    color: var(--yj-warn); }
+.yj-dashboard .yj-chip[data-role='success']  { background: var(--yj-success-soft); color: var(--yj-success); }
+
+/* Skeleton primitive — a shimmering block for any tile in a waiting/loading
+   state. Replaces the ad-hoc dashed-pill skeleton with one consistent shape.
+   Scoped attributes let a single style rule cover any tile shape. */
+.yj-dashboard .yj-skeleton {
+  display: block;
+  background: linear-gradient(
+    90deg,
+    var(--yj-surface-3) 0%,
+    var(--yj-surface-2) 50%,
+    var(--yj-surface-3) 100%
+  );
+  background-size: 200% 100%;
+  animation: yj-shimmer 1.6s var(--yj-ease) infinite;
+  border-radius: var(--yj-radius-sm);
+}
+.yj-dashboard .yj-skeleton--text   { height: 0.9em; width: 100%; }
+.yj-dashboard .yj-skeleton--number { height: 2.4rem; width: 6ch; margin-top: 0.25rem; }
+.yj-dashboard .yj-skeleton--spark  { height: 42px; width: 100%; margin-top: 0.5rem; }
+.yj-dashboard .yj-skeleton--tile   { height: 210px; width: 100%; }
+.yj-dashboard .yj-skeleton--chip   { height: 1.4rem; width: 4rem; border-radius: var(--yj-radius-pill); }
+
+@keyframes yj-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .yj-dashboard .yj-skeleton { animation: none; }
+  .yj-dashboard .yj-card--interactive { transition: none; }
+  .yj-dashboard .yj-card--interactive:hover { transform: none; box-shadow: none; }
+}

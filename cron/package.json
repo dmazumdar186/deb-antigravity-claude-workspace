@@ -1,0 +1,17 @@
+{
+  "name": "yoga-jitendra-cron",
+  "version": "0.1.0",
+  "description": "Scheduled Cloudflare Worker: daily snapshot pipeline for the yoga-jitendra dashboard V0.1 (GSC + GBP + Bing + CF WA -> KV).",
+  "private": true,
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "tail": "wrangler tail",
+    "test:scheduled": "wrangler dev --test-scheduled"
+  },
+  "devDependencies": {
+    "wrangler": "^3.90.0"
+  }
+}
