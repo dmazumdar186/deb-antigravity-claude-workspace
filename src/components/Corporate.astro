@@ -47,7 +47,7 @@ const formats = t.formats ?? [];
         <div class="corp-cta">
           <p class="font-medium text-ink-900 mb-1">{t.cta_title}</p>
           <p class="text-[15px] text-[color:var(--ink-soft)] leading-relaxed mb-3">{t.cta_body}</p>
-          {t.cta_closing && <p class="font-serif text-lg text-ink-900 leading-snug mb-4">{t.cta_closing}</p>}
+          {t.cta_closing && <p class="font-serif text-lg text-ink-900 leading-snug mb-4" style="text-wrap: balance;">{t.cta_closing}</p>}
           <a href={t.cta_href} class="btn btn-primary">{t.cta_label}</a>
         </div>
       </div>
@@ -56,7 +56,8 @@ const formats = t.formats ?? [];
 </section>
 
 <style>
-  .corporate { padding-top: 0; }
+  .corporate { padding-top: 0; scroll-margin-top: 96px; }
+  .corporate h2 { text-wrap: balance; }
   .corp-grid {
     display: grid;
     grid-template-columns: 1fr;
