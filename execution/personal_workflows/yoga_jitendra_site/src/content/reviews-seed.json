@@ -3,18 +3,18 @@
   "reviews": [
     {
       "approved_at": "2026-09-12T04:00:44.594Z",
-      "body": "Super cours de yoga avec Jitendra :) J'ai suivi plusieurs séances avec lui et j'ai beaucoup apprécié son approche. Il prend vraiment le temps d'écouter vos besoins et adapte chaque cours en fonction de vos attentes et de votre niveau. Sa douceur, sa bienveillance et son professionnalisme mettent tout de suite en confiance. Ayant déjà pratiqué le yoga avec différents professeurs, je trouve que sa capacité d'adaptation fait vraiment la différence. Je recommande ses cours sans hésitation :)\n\n(Translated by Google)\nFantastic yoga classes with Jitendra! :) I've taken several sessions with him and I really appreciated his approach. He truly takes the time to listen to your needs and adapts each class to your expectations and level. His gentleness, kindness, and professionalism immediately put you at ease. Having practiced yoga with different teachers, I find that his ability to adapt really makes a difference. I recommend his classes without hesitation! :)",
+      "body": "Super cours de yoga avec Jitendra :) J'ai suivi plusieurs séances avec lui et j'ai beaucoup apprécié son approche. Il prend vraiment le temps d'écouter vos besoins et adapte chaque cours en fonction de vos attentes et de votre niveau. Sa douceur, sa bienveillance et son professionnalisme mettent tout de suite en confiance. Ayant déjà pratiqué le yoga avec différents professeurs, je trouve que sa capacité d'adaptation fait vraiment la différence. Je recommande ses cours sans hésitation :)",
       "body_en": "",
-      "body_fr": "",
-      "featured": false,
+      "body_fr": "Super cours de yoga avec Jitendra :) J'ai suivi plusieurs séances avec lui et j'ai beaucoup apprécié son approche. Il prend vraiment le temps d'écouter vos besoins et adapte chaque cours en fonction de vos attentes et de votre niveau. Sa douceur, sa bienveillance et son professionnalisme mettent tout de suite en confiance. Ayant déjà pratiqué le yoga avec différents professeurs, je trouve que sa capacité d'adaptation fait vraiment la différence. Je recommande ses cours sans hésitation :)",
+      "featured": true,
       "google_reviewer_photo": "https://lh3.googleusercontent.com/a-/ALV-UjWGUKn4eyoP00es7TdDvCW9MGGdvPbwlFK4PW04tFYJcSCdHkil=s120-c-rp-mo-br100",
       "google_update_time": "2026-07-14T15:10:37.612640Z",
       "id": "AbFvOqnQRsddW-ZzcmEMXTzS1SCzp0w8UEN_dgimqWOvStyV-c5uyaehOYh94O5lnRBMFhMIH9Y9pQ",
       "lang": "fr",
-      "name": "Vivi E",
+      "name": "Virginie E",
       "rating": 5,
       "source": "google",
-      "source_url": "",
+      "source_url": "https://share.google/C7slDUpM6WxiMHJc1",
       "submitted_at": "2026-07-14T15:10:37.612640Z",
       "verified": true
     },
@@ -29,21 +29,6 @@
       "source": "superprof",
       "source_url": "https://www.superprof.fr/tableau-de-bord.html/evaluations/avis",
       "submitted_at": "2026-04-01T00:00:00.000Z",
-      "verified": true
-    },
-    {
-      "approved_at": "2026-07-24T14:40:07.097Z",
-      "body": "Super cours de yoga avec Jitendra :) J'ai suivi plusieurs séances avec lui et j'ai beaucoup apprécié son approche. Il prend vraiment le temps d'écouter vos besoins et adapte chaque cours en fonction de vos attentes et de votre niveau. Sa douceur, sa bienveillance et son professionnalisme mettent tout de suite en confiance. Ayant déjà pratiqué le yoga avec différents professeurs, je trouve que sa capacité d'adaptation fait vraiment la différence. Je recommande ses cours sans hésitation :)",
-      "date_backfill_source": "google_maps_scrape_2026-08-04",
-      "edited_at": "2026-09-01T07:43:49.579Z",
-      "featured": true,
-      "id": "59cdf544-4356-4c32-a350-fb9031b52a7a",
-      "lang": "fr",
-      "name": "Virginie E",
-      "rating": 5,
-      "source": "other",
-      "source_url": "https://share.google/C7slDUpM6WxiMHJc1",
-      "submitted_at": "2026-07-14T15:10:37.612Z",
       "verified": true
     },
     {
@@ -154,32 +139,6 @@
       "source": "superprof",
       "source_url": "",
       "submitted_at": "2025-11-02T00:00:00.000Z",
-      "verified": true
-    },
-    {
-      "id": "seed-xavier-2026-01",
-      "name": "Xavier",
-      "rating": 5,
-      "body_fr": "Jitendra est un excellent professeur, attentif et sympathique. Un grand plaisir de reprendre le yoga avec lui.",
-      "body_en": "Jitendra is an excellent teacher — attentive and warm. A real pleasure to return to yoga with him.",
-      "source": "superprof",
-      "source_url": "https://www.superprof.fr/hatha-yoga-paris-experience-personnalisee-studio-prive-passy-domicile.html",
-      "lang": "fr",
-      "submitted_at": "2026-01-15T00:00:00.000Z",
-      "featured": true,
-      "verified": true
-    },
-    {
-      "id": "seed-franck-2025-12",
-      "name": "Franck",
-      "rating": 5,
-      "body_fr": "Sa séance était à la fois agréable, apaisante et motivante. Il sait parfaitement s'adapter au niveau et aux besoins de ses élèves, en expliquant chaque posture avec clarté.",
-      "body_en": "His session was pleasant, calming, and motivating all at once. He adapts perfectly to each student's level and needs, explaining every posture with clarity.",
-      "source": "superprof",
-      "source_url": "https://www.superprof.fr/hatha-yoga-paris-experience-personnalisee-studio-prive-passy-domicile.html",
-      "lang": "fr",
-      "submitted_at": "2025-12-10T00:00:00.000Z",
-      "featured": true,
       "verified": true
     },
     {
