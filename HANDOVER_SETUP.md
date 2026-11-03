@@ -15,7 +15,7 @@ Order matters. The domain can only be attached to one Pages project at a time, s
    ```bash
    cd deb-antigravity-claude-workspace
    git fetch origin handover/yogaavecjitendra
-   git push https://github.com/dmazumdar186/yogaavecjitendra.git origin/handover/yogaavecjitendra:refs/heads/main
+   git push https://github.com/dmazumdar186/yogaavecjitendra.git origin/handover/yogaavecjitendra-final:refs/heads/main
    ```
 3. Check on GitHub: the repo root shows `README.md`, `LISEZMOI.md`, `.pages.yml`, `src/`, `public/`.
 4. Repo **Settings** → **General** → scroll to **Danger Zone** → **Transfer ownership** → **Choose an owner**: `kumarjitendra` → type the repo name to confirm → **I understand, transfer this repository**.
