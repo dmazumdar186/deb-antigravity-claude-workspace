@@ -121,9 +121,11 @@ def _get_client(base_url: str = _OR_BASE_URL):
     if base_url not in _clients:
         from openai import OpenAI
 
-        api_key = os.environ.get("OPENROUTER_API_KEY", "")
+        # Cloud sessions expose the key as OPENROUTER_API_TOEKN (sic); jev_client
+        # already reads both. Found 2026-11-03: every cloud call failed here.
+        api_key = os.environ.get("OPENROUTER_API_KEY") or os.environ.get("OPENROUTER_API_TOEKN", "")
         if not api_key:
-            raise RuntimeError("OPENROUTER_API_KEY not set")
+            raise RuntimeError("OPENROUTER_API_KEY (or OPENROUTER_API_TOEKN) not set")
         _clients[base_url] = OpenAI(api_key=api_key, base_url=base_url)
     return _clients[base_url]
 
