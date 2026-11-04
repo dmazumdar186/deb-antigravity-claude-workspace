@@ -13,19 +13,20 @@ Category map: `directives/README.md` (read first). New script → matching direc
 
 ## Build contract (everything we ship)
 
-1. **Idempotent.** Re-runs converge: upserts on stable IDs, dedupe ledgers, skip-if-done markers, never a double send or charge. Zero-new input is a no-op (no empty email, no blank sheet).
+1. **Idempotent.** Re-runs converge: upserts on stable IDs, dedupe ledgers, skip-if-done markers, never a double send or charge. Zero-new input is a no-op.
 2. **Sandboxed.** Anything that spends, sends, posts or deletes defaults to `--dry-run` / offline `--check`; assert spend 0.00 around it. Live needs an explicit flag, a budget guard and a cost-ledger row. Least privilege; secrets never in code, logs or `.mcp.json`.
-3. **Red-teamed, scaled to blast radius.** Ask "how does it fail?" before "does it work?". Probe: None/empty API replies, hostile input (formula/prompt injection, path traversal), timeouts, rate limits, pagination (page 1 hides rows), Windows vs Linux (paths, encoding), cloud without `.env`. Client-facing or paid work: `pipeline-auditor` plus a live dry run with every keep/reject sample read. Trivial edits: one-line self-check.
-4. **Bounded gates.** Every filter has a floor and a ceiling; every reject carries its evidence quote; any claim about a named third party is a build-time assertion, not a review note.
-5. **Fail loud on delivery, open on advice.** A missed deliverable alerts; optional helpers (Jev, advisors) degrade silently.
+3. **Red-teamed by default.** Every system, outward message or deliverable gets a full adversarial audit (`pipeline-auditor` + parallel lens workers; verdicts only reach the main session). Exempt only pure reads and no-logic edits (typo, format); "looks trivial" is not an exemption. Probe: None/empty replies, hostile input (formula/prompt injection, path traversal), timeouts, rate limits, pagination, re-runs, Windows vs Linux, cloud without `.env`.
+4. **Grounded.** Every name, figure, date, term and quote in outward text (offers, negotiations, emails) traces to a cited source line or is cut; the auditor diffs claims against sources. Long threads: re-read sources, never quote from memory.
+5. **Bounded gates.** Every filter has a floor and a ceiling; every reject carries its evidence quote; any claim about a named third party is a build-time assertion, not a review note.
+6. **Fail loud on delivery, open on advice.** A missed deliverable alerts; helpers (Jev) degrade silently.
 
 ## Debate protocol (pushback by default, cheap by design)
 
 - Every non-trivial idea, the operator's or yours, meets its strongest objection before adoption: **Claim → Objection → Resolution** (keep / amend / drop), ≤ 3 lines.
 - Attack across dimensions: correctness, security, cost/tokens, operator time, reversibility, client perception. Name the dimension that loses.
-- Depth scales with stakes: facts and trivial edits none; reversible choices one line; irreversible, client-facing or paid get `plan-skeptic` / panel lenses as parallel workers.
+- Debate depth scales with stakes (the audit does not): facts none; reversible choices one line; irreversible, client-facing or paid get `plan-skeptic` / panel lenses.
 - Each round shrinks the option set; stop when an objection repeats. Ship the survivor, stated once, not the transcript.
-- Never invent disagreement or fold to please; hold a position until evidence beats it.
+- Never invent disagreement or fold to please; evidence moves positions.
 
 ## Operating principles
 
@@ -43,12 +44,10 @@ Category map: `directives/README.md` (read first). New script → matching direc
 
 Classify / pick / score / gate over N items is a Jev call, never an LLM loop. `/jev off` before confidential prompts. `model_registry.LAST_KNOWN_GOOD`: `bulk`/`default`/`premium`. History: `.claude/SETTINGS_NOTES.md`.
 
-## Token economy (`.claude/rules/token-economy.md`)
+## Token economy (`.claude/rules/token-economy.md`, `always-parallelize.md`)
 
-- The brain never grinds: exploration > 2-3 files, implementation from a plan, fan-out and audit lenses go to workers with a complete brief; they return ≤ 300 words.
-- Independent calls in one batch; long jobs in background, never sleep-poll (`.claude/rules/always-parallelize.md`).
-- Images never enter main context: a worker reads them, returns PASS or defects.
-- Read narrowly, never re-read; keep this prefix byte-stable. LSP for code (`findReferences` before a rename).
+- The brain never grinds: exploration, plan implementation, fan-out and audits go to briefed workers returning ≤ 300 words. Images only via workers.
+- One batch for independent calls; background long jobs, never sleep-poll. LSP for code (`findReferences` before a rename).
 - Agent tiers `.claude/rules/sub-agent-delegation.md`; workflows `.claude/workflows/README.md`; Agent Teams off.
 
 ## Files, secrets, outward identity
