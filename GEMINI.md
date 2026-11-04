@@ -16,16 +16,16 @@ Category map: `directives/README.md` (read first). New script → matching direc
 1. **Idempotent.** Re-runs converge: upserts on stable IDs, dedupe ledgers, skip-if-done markers, never a double send or charge. Zero-new input is a no-op.
 2. **Sandboxed.** Anything that spends, sends, posts or deletes defaults to `--dry-run` / offline `--check`; assert spend 0.00 around it. Live needs an explicit flag, a budget guard and a cost-ledger row. Least privilege; secrets never in code, logs or `.mcp.json`.
 3. **Red-teamed by default.** Every system, outward message or deliverable gets a full adversarial audit (`pipeline-auditor` + parallel lens workers; verdicts only reach the main session). Exempt only pure reads and no-logic edits (typo, format); "looks trivial" is not an exemption. Probe: None/empty replies, hostile input (formula/prompt injection, path traversal), timeouts, rate limits, pagination, re-runs, Windows vs Linux, cloud without `.env`.
-4. **Grounded.** Every name, figure, date, term and quote in outward text (offers, negotiations, emails) traces to a cited source line or is cut; the auditor diffs claims against sources. Long threads: re-read sources, never quote from memory.
+4. **Grounded.** Every name, figure, date, term and quote in outward text (offers, negotiations, emails) traces to a cited source line or is cut; the auditor diffs claims against sources.
 5. **Bounded gates.** Every filter has a floor and a ceiling; every reject carries its evidence quote; any claim about a named third party is a build-time assertion, not a review note.
 6. **Fail loud on delivery, open on advice.** A missed deliverable alerts; helpers (Jev) degrade silently.
 
 ## Debate protocol (pushback by default, cheap by design)
 
 - Every non-trivial idea, the operator's or yours, meets its strongest objection before adoption: **Claim → Objection → Resolution** (keep / amend / drop), ≤ 3 lines.
-- Attack across dimensions: correctness, security, cost/tokens, operator time, reversibility, client perception. Name the dimension that loses.
+- Attack on every axis: correctness, security, cost, operator time, reversibility, client perception.
 - Debate depth scales with stakes (the audit does not): facts none; reversible choices one line; irreversible, client-facing or paid get `plan-skeptic` / panel lenses.
-- Each round shrinks the option set; stop when an objection repeats. Ship the survivor, stated once, not the transcript.
+- Each round shrinks the options; stop when an objection repeats; ship only the survivor.
 - Never invent disagreement or fold to please; evidence moves positions.
 
 ## Operating principles
@@ -44,11 +44,11 @@ Category map: `directives/README.md` (read first). New script → matching direc
 
 Classify / pick / score / gate over N items is a Jev call, never an LLM loop. `/jev off` before confidential prompts. `model_registry.LAST_KNOWN_GOOD`: `bulk`/`default`/`premium`. History: `.claude/SETTINGS_NOTES.md`.
 
-## Token economy (`.claude/rules/token-economy.md`, `always-parallelize.md`)
+## Delegation & tokens (`.claude/rules/token-economy.md`, `always-parallelize.md`)
 
-- The brain never grinds: exploration, plan implementation, fan-out and audits go to briefed workers returning ≤ 300 words. Images only via workers.
-- One batch for independent calls; background long jobs, never sleep-poll. LSP for code (`findReferences` before a rename).
-- Agent tiers `.claude/rules/sub-agent-delegation.md`; workflows `.claude/workflows/README.md`; Agent Teams off.
+- **Decompose, then fan out.** Every task starts as a dependency list; independent units run as parallel sub-agents in one batch (disjoint files, `isolation: worktree` for writers), fully briefed, returning ≤ 300 words. The main session plans, judges, merges; never grinds. Inline only for one step of ≤ 3 tool calls. Images only via workers.
+- Background long jobs, never sleep-poll. LSP for code (`findReferences` before a rename).
+- Tiers `.claude/rules/sub-agent-delegation.md`; workflows `.claude/workflows/README.md`; Agent Teams off.
 
 ## Files, secrets, outward identity
 
@@ -59,7 +59,6 @@ Classify / pick / score / gate over N items is a Jev call, never an LLM loop. `/
 
 ## Pointers
 
-- Webhooks: `directives/add_webhook.md`.
 - Enforcement: once per clone `bash scripts/install_hooks.sh`; hooks run the audit stack; `--no-verify` needs an `**Enforcement bypass**:` line in `HANDOFF.md` (`docs/reference/enforcement.md`).
 - Mobile apps: source `C:\Users\deban\dev\mobile-apps\{slug}`, registry `execution/mobile_apps/registry.json`, EAS builds, `/mobile-app preflight` first. `execution/infrastructure/api-proxy/` is AM-locked: never clone.
 - Cloud: `python3` 3.11, never `py`; no `~/.claude/` layer; push early (`directives/infrastructure/claude_code_web.md`). Local: Python 3.14.
