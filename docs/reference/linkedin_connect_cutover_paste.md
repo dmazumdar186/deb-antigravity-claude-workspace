@@ -15,12 +15,13 @@ Rules: every step is idempotent and safe to re-run. Stop at the first failed gat
    Gate: py -c "import playwright, dotenv" exits 0.
 
 3. Check the email settings. Confirm that .env has non-empty GMAIL_SMTP_USER and GMAIL_SMTP_APP_PASSWORD. Print only whether each one is set, never the values.
-   Gate: both are set. If either is missing, stop and tell me. I will create a Gmail App Password myself.
+   These are the same two values the daily job-search email already uses, so they should already be in .env. If they are not, copy them from wherever the job-search email gets them on this laptop. Only if they exist nowhere, stop and tell me.
+   Gate: both are set.
 
 4. Run the offline tests: py -m pytest tests/test_linkedin_connect_send.py -q
    Gate: all tests pass.
 
-5. Log in to LinkedIn. Run py execution/personal_workflows/linkedin_connect_send.py login and tell me: "Log in to LinkedIn in the window that just opened, then close it." Wait until I say done. If data/linkedin_connect/chrome_profile already exists and I say I am already logged in, skip this step.
+5. Log in to LinkedIn, once. The script uses its own Chrome window because Chrome will not let two programs share the profile I browse with. Run py execution/personal_workflows/linkedin_connect_send.py login and tell me: "Log in to LinkedIn in the window that just opened, then close it." Wait until I say done. If data/linkedin_connect/chrome_profile already exists and I say I am already logged in, skip this step.
 
 6. Dry run, the sandbox gate: py execution/personal_workflows/linkedin_connect_send.py run --dry-run
    This writes nothing to the ledger and sends no email. Wednesday and Sunday are rest days, so on those days it may just exit. In that case report the exit, then go to step 7 anyway.
