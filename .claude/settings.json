@@ -108,6 +108,16 @@
             "timeout": 100
           }
         ]
+      },
+      {
+        "matcher": "mcp__Gmail__send_message|mcp__Gmail__reply|mcp__Gmail__forward|mcp__Gmail__create_draft|mcp__Gmail__update_draft",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/redteam-outward-gate.sh\" pre",
+            "timeout": 30
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -137,6 +147,16 @@
             "type": "command",
             "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/documenter-prompt.sh\" \"$CLAUDE_TOOL_INPUT_FILE_PATH\"",
             "async": true
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__Gmail__create_draft|mcp__Gmail__update_draft",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/redteam-outward-gate.sh\" post",
+            "timeout": 30
           }
         ]
       }
