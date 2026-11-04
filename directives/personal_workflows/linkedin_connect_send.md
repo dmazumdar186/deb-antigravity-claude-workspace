@@ -11,6 +11,7 @@ On each send day (Mon, Tue, Thu, Fri, Sat; rest Wed and Sun) send connection req
 
 | Input | Type | Source |
 |-------|------|--------|
+| 2026-11-04 | Old Cowork slot (already disabled 11-03, fired by hand) was blocked again on the Send click while in `bypassPermissions`: the safety reviewer ignores permission mode, so no prompt or approval change revives the AI-clicking path. Cutover is the only fix; paste-ready laptop prompt with gates (deps, .env, tests, login, dry-run, register): `docs/reference/linkedin_connect_cutover_paste.md`. |
 | `master.csv`, `ledger.csv`, `aliases.csv` | CSV | data dir (default `<repo>/data/linkedin_connect`, env `LINKEDIN_CONNECT_DIR`; gitignored, PII). Built by `linkedin_connect_queue.py consolidate`. |
 | `chrome_profile/` | Chrome user-data dir | data dir; logged in to LinkedIn once with `login`. Dedicated to this job (nothing else is logged in there). |
 | `GMAIL_SMTP_USER` | env (`.env`) | Gmail address that sends the report (same var as job_digest). |
