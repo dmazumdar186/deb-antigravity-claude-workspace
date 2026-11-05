@@ -2783,6 +2783,10 @@ def genuine_prompt(payload: dict, prompt: str) -> bool:
     except (OSError, RuntimeError):
         return False
     line = _WS_RE.sub(" ", prompt).strip().lower()
+    # The last 2 genuine operator prompts: covers a harness that writes the current prompt
+    # before the hook (last entry) and one that writes it after (the operator re-sends the same
+    # line, which then finds the first copy). Tool results, meta and sidechain rows never count.
+    seen = 0
     for raw in reversed(lines):
         try:
             row = json.loads(raw)
@@ -2791,7 +2795,13 @@ def genuine_prompt(payload: dict, prompt: str) -> bool:
         if not isinstance(row, dict) or row.get("type") != "user":
             continue
         text = _user_text(row)
-        return text is not None and line in _WS_RE.sub(" ", text).strip().lower()
+        if text is None:
+            continue
+        if line in _WS_RE.sub(" ", text).strip().lower():
+            return True
+        seen += 1
+        if seen >= 2:
+            break
     return False
 
 
@@ -2808,8 +2818,9 @@ def cmd_prompt_hook(_args: argparse.Namespace) -> int:
         if not genuine_prompt(payload, prompt):
             print(json.dumps({"hookSpecificOutput": {
                 "hookEventName": "UserPromptSubmit",
-                "additionalContext": f"redteam: waiver for {sha12} NOT recorded (no matching "
-                                     "operator prompt in the session transcript)"}},
+                "additionalContext": f"redteam: waiver NOT recorded for {sha12}: waiver not "
+                                     "recorded yet; send the same `redteam waive …` line "
+                                     "once more"}},
                 separators=(",", ":")))
             return EXIT_OK
         nested = nested_claude_depth()

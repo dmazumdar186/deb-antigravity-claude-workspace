@@ -1645,7 +1645,7 @@ def test_waiver_timing_robust(tmp_path, state, capsys):
     # (b) harness writes after the hook: first try refused with a plain instruction ...
     (state / "waivers.jsonl").unlink()
     assert _stdin_main(["prompt-hook"], json.dumps(_prompt_payload(line, [prev, tool]))) == 0
-    out = capsys.readouterr().out
+    out = json.loads(capsys.readouterr().out)["hookSpecificOutput"]["additionalContext"]
     assert "waiver not recorded yet; send the same `redteam waive …` line once more" in out
     assert not (state / "waivers.jsonl").exists()
     # ... the re-send finds the first copy among the last 2 genuine prompts

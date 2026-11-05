@@ -226,7 +226,8 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   (greps/cats of the hook files stay allowed). Only shell-fed heredocs are re-parsed as shell.
   prompt-hook records a waiver only if `transcript_path` is under the transcript root and its
   last `user` row is a genuine operator prompt (not tool_result/isMeta/isSidechain) containing
-  the waive line. **Unverified live:** this assumes the harness writes the prompt to the
-  transcript before UserPromptSubmit fires; if a real waiver is refused, that is why.
+  the waive line. Timing-robust: the line may be in either of the last 2 genuine prompts, so if
+  the harness writes the prompt after the hook, the operator is told "waiver not recorded yet;
+  send the same `redteam waive …` line once more" and the re-send succeeds.
   `xargs <interpreter>` without a named script file denies. This doc avoids literal sender
   patterns so reading it next to an executing command is not denied.
