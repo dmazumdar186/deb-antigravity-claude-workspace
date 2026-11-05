@@ -1,51 +1,51 @@
-# ProdCraft weekly notes · wk 03 — "One role. 158 profiles. Who do you call?"
+# ProdCraft weekly notes · wk 03 — "One senior role. 158 profiles. Who do you call first?"
 
-Format: same as wk 02. 1080×1350 (4:5), ~30 s, 30 fps, code-rendered with lemo-opuscar,
-original score, no voice, no generated footage. Paper / ink / gold editorial look.
+Format: same as wk 02. 1080×1350 (4:5), ~31 s, 30 fps, code-rendered with lemo-opuscar,
+original score from CC0 samples (Versilian Studios), no voice, no generated footage.
+Paper / ink / gold editorial look (dataviz paper palette + swiss-motion kinetic type).
 Audience: recruiters and recruitment-agency owners, any market. Goal: they finish thinking
 "so that's what he builds — I want that on my desk."
 
 Anonymity rules (hard): no client name, no city/country, no sector, no role title, no employer,
-no candidate names. Candidates appear only as "Candidate A / B / C" with a blurred name bar.
-No client feedback quotes. Every figure traces to FACTS.md.
+no candidate names. Candidates appear only as "Candidate A / B / C". No client feedback quotes.
+The delivered client page is not shown. Every figure traces to FACTS.md.
 
-## Beat sheet (on-screen text is verbatim; ⟨⟩ = animation note)
+## Beat sheet (on-screen text verbatim; the red-team draft is the source of truth)
 
 | # | Time | On screen | Motion |
 |---|---|---|---|
-| 1 | 0.0–3.5 | Header: `ProdCraft` · `wk 03`. Headline: **One senior role. 158 profiles. Who do you call?** | ⟨grid of 158 small person-dots, ink outline⟩ |
-| 2 | 3.5–8.0 | Kicker: `the pool, counted` · Funnel rows tick down: `158 profiles assessed` → `594 claims pulled from public sources` → `446 survived the quote check` → `18 passed every hard rule` → `10 on the shortlist`. Pull quote (italic, gold rule): *"A shortlist without a denominator is a claim, not a finding."* | ⟨dots fade out in waves until 10 stay gold⟩ |
-| 3 | 8.0–13.5 | Headline: **Evidence first.** Code card, caption `• from my own build · verbatim`: `validate_claim` (5 lines). Side notes: `quote not found in the source → dropped` · `148 of 594 dropped, not softened` · `the rules are code, not a model` | ⟨one claim card turns red and slides off; next gets ✓ quote matched⟩ |
-| 4 | 13.5–19.0 | Headline: **One row per candidate.** A row: `Candidate A` ⟨blurred bar⟩ · `Tier B` · **Why them** (2 grey placeholder lines) · **Message to send**: three copy chips `LinkedIn note` · `Email` · `Follow-up, a week later`. Small line under email: `privacy notice + STOP line in every email, fixed text` | ⟨chips light in channel order; Candidates B and C stack behind, blurred⟩ |
-| 5 | 19.0–24.0 | Headline: **Nothing sends until you approve it.** Lines: `6 of 10 ready to contact now, listed first` · `professional network first, then email, then the switchboard` | ⟨gold underline sweeps; ✓ approve stamp on row⟩ |
-| 6 | 24.0–28.5 | Payoff: **Your team reads 10 rows instead of 158 profiles.** Then: `I build these for recruiting desks, wired into the tools you already use.` | ⟨huge "10", small "of 158" under it⟩ |
-| 7 | 28.5–31.0 | Outro: empty dot grid returns (loop). Footer credit: `Made in code with lemo-opuscar (MIT)` · `music: original, CC0 samples` | ⟨loop to frame 1⟩ |
+| 1 | 0.0–3.5 | Header `ProdCraft` · `wk 03`. **One senior role. 158 profiles. Who do you call first?** | grid of 158 person-dots |
+| 2 | 3.5–8.0 | `the pool, counted` · `158 profiles assessed` → `594 claims pulled from public sources` → `446 survived the quote check` → `18 passed every hard rule` → `10 on the shortlist` · *"A shortlist without a denominator is a claim, not a finding."* | dots fade in waves until 10 stay gold |
+| 3 | 8.0–13.5 | **Every claim carries a quote. No match, no claim.** Code card `• from my own build · verbatim` (`validate_claim`, 6 lines). Notes: `quote not in the source → claim dropped` · `148 of 594 caught and dropped, not softened` · `the rules are code, not a model` | a claim card turns red and slides off; next gets ✓ |
+| 4 | 13.5–19.0 | **One row per candidate.** `Candidate A · Tier B` (B, C stacked behind) · Why them (placeholder bars) · chips `LinkedIn note` · `Email` · `Follow-up, about a week later` · `privacy notice + STOP line in every email, fixed text` | chips light in channel order |
+| 5 | 19.0–24.0 | **Nothing sends until you approve it.** `verified address + resolved profile → listed first (6 of 10)` · `professional network first, then email, then the switchboard` | gold underline; ✓ approved stamp |
+| 6 | 24.0–28.5 | **Your team reads 10 rows instead of 158 profiles.** · `I build systems like this for recruiting desks, around your roles and your rules.` | huge "10", small "of 158" |
+| 7 | 28.5–31.0 | Empty dot grid returns (loop). Credit: `Made in code with lemo-opuscar (MIT) · music: original, CC0 samples (Versilian Studios)` | loop to frame 1 |
 
-Persistent footer on every frame: `ProdCraft · weekly notes` + page number `03`.
+Footer on every frame: `ProdCraft · weekly notes` + `03`.
 
-## LinkedIn post (draft — goes through /redteam before posting)
+## LinkedIn post
 
 > One senior role. 158 profiles. Who do you call first?
 >
 > That was the starting point of a sourcing system I built for a recruiting team.
 >
-> It reads public sources and pulls out claims about each candidate. Each claim has to come with a quote, and code checks that quote against the source word for word. 148 of 594 claims failed that check and were dropped rather than softened.
+> It reads public sources and pulls out claims about each candidate. Each claim has to come with a quote, and code checks that the quote actually appears in the source. The check caught 148 of 594 claims whose quote wasn't there. They were dropped, not softened.
 >
 > The hard requirements are code, not a model. 18 people passed every one. 10 made the page.
 >
-> The recruiter gets one row per candidate: why them, the evidence, and the messages ready to copy. That's a LinkedIn note, an email with the privacy notice and STOP line built in, and a follow-up for a week later. Nothing goes out until a person approves it.
+> The recruiter gets one row per candidate: why them, the evidence, and the messages ready to copy. That's a LinkedIn note, an email with the privacy notice and STOP line built in, and a follow-up for about a week later. Nothing goes out until a person approves it.
 >
 > So the team reads 10 rows instead of 158 profiles.
 >
-> I build these for recruiting desks and wire them into the tools you already use. If your consultants spend their mornings on research instead of conversations, my DMs are open.
+> I build systems like this for recruiting desks, around your roles and your rules. If your consultants spend their mornings on research instead of conversations, my DMs are open.
 >
-> (Video made in code. Names blurred, client unnamed.)
+> (Video made in code. Candidates anonymised, client unnamed.)
 
-## Why this shape (Claim → Objection → Resolution)
+## Decisions (Claim → Objection → Resolution)
 
-- Claim: lead with 158 → 10. Objection: one engagement's numbers can look cherry-picked. Resolution: keep. They are
-  real, sourced, and the funnel shows the denominator, which is the whole point.
-- Claim: say "saves X hours". Objection: no measured hour figure exists in the source. Resolution: drop; use
-  "10 rows instead of 158 profiles", which is countable.
-- Claim: name the GDPR article. Objection: reads EU-only for a global pitch and hints at the client's market.
-  Resolution: amend to "privacy notice + STOP line".
+- Lead with 158 → 10. Objection: one engagement can look cherry-picked. Resolution: keep; the funnel shows the denominator, which is the point.
+- "Saves X hours". Objection: no measured hour figure in the source. Resolution: drop; "10 rows instead of 158 profiles" is countable.
+- "Wired into the tools you already use". Objection (4/4 lenses): only a dry-run CRM hand-off exists; agency owners will read it as a promise to integrate with their ATS. Resolution: amend to "around your roles and your rules" (per-role brief + hard rules are delivered). Integration is a conversation in the DMs, not a public promise.
+- Name the GDPR article. Objection: reads EU-only and hints at the client's market. Resolution: "privacy notice + STOP line".
+- Keep the code card. Objection (counterparty): recruiters gain nothing from code; a competitor can call it "a string compare". Resolution: keep, with the plain-language headline above it; it is the "built in code, checkable" proof and mirrors wk 02.
