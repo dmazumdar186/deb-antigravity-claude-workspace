@@ -1,0 +1,50 @@
+{
+ "out": [
+  {
+   "story": "skip-link",
+   "W": 390,
+   "pass": true,
+   "note": "first Tab: Aller au contenu (vis true); Enter → BODY#; next Tab → Recherche"
+  },
+  {
+   "story": "S1",
+   "W": 390,
+   "pass": true,
+   "note": "create+publish+edit by keyboard"
+  },
+  {
+   "story": "S2",
+   "W": 390,
+   "pass": true,
+   "note": "filter+open; search vienne → 2 congrès; tabs to first result 21"
+  },
+  {
+   "story": "S3",
+   "W": 390,
+   "pass": false,
+   "note": "no ref: Aller au contenu"
+  },
+  {
+   "story": "S4",
+   "W": 390,
+   "pass": true,
+   "note": "status+assign+note; note shown: true"
+  },
+  {
+   "story": "S5",
+   "W": 390,
+   "pass": true,
+   "note": "request→approve→reveal→hide by keyboard"
+  }
+ ],
+ "noFocus": [
+  "/console/congres/nouveau :: INPUT Date de début * -> none 3px rgb(10, 31, 48)",
+  "/console/congres/nouveau :: INPUT Date de fin * -> none 3px rgb(10, 31, 48)",
+  "/console/congres/nouveau :: INPUT Vérifié le * -> none 3px rgb(10, 31, 48)",
+  "/console/congres/N :: INPUT Date de début * -> none 3px rgb(10, 31, 48)",
+  "/console/congres/N :: INPUT Date de fin * -> none 3px rgb(10, 31, 48)",
+  "/console/congres/N :: INPUT Vérifié le * -> none 3px rgb(10, 31, 48)",
+  "/congres/journees-d-oncologie-digestive-cg-N :: INPUT Date aller * -> none 3px rgb(10, 31, 48)",
+  "/congres/journees-d-oncologie-digestive-cg-N :: INPUT Date retour * -> none 3px rgb(10, 31, 48)"
+ ]
+}

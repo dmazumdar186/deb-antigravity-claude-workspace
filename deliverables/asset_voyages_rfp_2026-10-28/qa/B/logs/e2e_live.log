@@ -68,3 +68,10 @@ Running 75 tests using 1 worker
   ✓  65 tests/x_cross.spec.mjs:14:1 › X1 X2 zero console errors, zero failed and zero third-party requests on every visitor and console screen (16.2s)
   ✓  66 tests/x_cross.spec.mjs:23:1 › X1 strict: a page left alone (no click) has zero failed or aborted requests, ERR_ABORTED included (25.9s)
   ✓  67 tests/x_cross.spec.mjs:49:1 › X3 all data is fictional: titles end « — exemple », e-mails @example.com, codes DEMO-GME-… (10.1s)
+  ✘  68 tests/x_cross.spec.mjs:76:1 › X4 Direction reset restores the seed for this browser only; re-seeding twice creates no duplicates; only Direction can reset; nightly cron is set (28.6s)
+  -  69 tests/x_cross.spec.mjs:109:1 › X5 Hallmark sloplint: zero FAIL on the visitor pages and the console pages
+  -  70 tests/x_cross.spec.mjs:132:1 › X security headers: CSP self only, noindex, nosniff, frame-ancestors none, referrer policy; robots.txt disallows all
+  -  71 tests/x_cross.spec.mjs:148:1 › X session cookie is HttpOnly, Secure, SameSite=Strict; logout invalidates it server-side; brute force is throttled
+  -  72 tests/x_cross.spec.mjs:171:1 › X console at 390 px: no horizontal page overflow, inputs at least 16 px, tap targets at least 44 px
+  -  73 tests/x_cross.spec.mjs:194:1 › X hostile console input: oversized body, wrong content type, unknown routes and methods fail safely
+  ✓  74 tests/z_screens.spec.mjs:11:3 › screens at 1440px (42.4s)
