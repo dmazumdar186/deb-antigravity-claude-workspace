@@ -1476,7 +1476,7 @@ class _ExecFinder:
                 return True
         for word in command_words(outer):  # quoted program: "python3" x.py, "/usr/bin/python3"
             name = re.split(r"[/\\]", word)[-1]
-            if name and _EXEC_WORD_RE.fullmatch(name):
+            if word in ("source", ".", "eval") or (name and _EXEC_WORD_RE.fullmatch(name)):
                 return True
         return False
 
@@ -2229,7 +2229,11 @@ _OUT_REDIR_RE = re.compile(r"(?:\d?>>?|&>>?)\s*(?:&\d|[^\s;&|<>]+)")
 _SEG_OPS = ("&&", "||", ";", "\n")
 
 
-def _split_top(command: str) -> list[str] | None:
+_SINKS = {"tail", "head", "tee", "grep", "egrep", "fgrep", "wc", "less", "cat", "sort", "uniq",
+          "more"}
+
+
+def _split_top(command: str, sinks: list[int] | None = None) -> list[str] | None:
     """Split on unquoted &&, ||, ; and newlines. None if a pipe, background `&`, subshell or
     command substitution appears outside quotes (those are not simple chains)."""
     mask, quote = _unquoted_mask(command, "")
@@ -2254,6 +2258,12 @@ def _split_top(command: str) -> list[str] | None:
                 continue
             redirect_amp = ch == "&" and (command[i + 1:i + 2] == ">"
                                           or command[i - 1:i] == ">")  # 2>&1, &>f
+            if ch == "|" and sinks is not None and command[i + 1:i + 2] != "&":
+                segs.append("".join(cur))
+                cur = []
+                sinks.append(len([x for x in segs if x.strip()]))  # index of the sink segment
+                i += 1
+                continue
             if (ch in "|&`(" and not redirect_amp) or command.startswith("$(", i):
                 return None
         cur.append(ch)
@@ -2269,9 +2279,18 @@ def chain_allowed(command: str, cwd: Path) -> bool:
     command = command.replace("\\\n", " ")
     if split_heredocs(command)[1]:
         return False
-    segs = _split_top(command)
+    sink_idx: list[int] = []
+    segs = _split_top(command, sink_idx)
     if not segs:
         return False
+    for k in sink_idx:
+        if k >= len(segs):
+            return False
+        sink = segs[k]
+        words = command_words(sink)
+        if (len(words) != 1 or re.split(r"[/\\]", words[0])[-1] not in _SINKS
+                or _EXEC_RE.search(sink) or "<" in sink):
+            return False  # a pipe may only feed a read-only sink
     start_cwd, rest, tracked = cwd, [], 0
     for seg in segs:
         m = re.fullmatch(r"(?:cd|pushd)\s+(\"[^\"]+\"|'[^']+'|\S+)", seg)
@@ -2302,9 +2321,43 @@ def bash_decision(ti: dict, cwd_raw: Any) -> str | None:
     return _bash_decision(command, cwd_raw)
 
 
-def _bash_decision(command: str, cwd_raw: Any, allow_tracked: bool = True) -> str | None:
+_HOOK_WRAPPER = "redteam-outward-gate" ".sh"
+_HOOK_SUB_RE = re.compile(r"redteam_gate(?:\.py)?['\"]?\s+(?:hook|post-hook|subagent-hook|"
+                          r"prompt-hook)\b")
+_HOOK_ENV_RE = re.compile(r"(?:^|[\s;&|(])(?:export\s+|env\s+(?:-\S+\s+)*)?REDTEAM_HOOK=")
+
+
+def hook_path_error(outer: str) -> str | None:
+    """Hook entry points are harness-only. Commands that merely name them (git add, grep,
+    commit messages) stay allowed: only an invocation counts, and quoted text only when the
+    command executes something (bash -c "...")."""
+    text = outer if _EXEC_RE.search(outer) else _QUOTED_RE.sub(" ", outer)
+    invoked = any(re.split(r"[/\\]", w)[-1] == _HOOK_WRAPPER for w in command_words(outer))
+    if not invoked and _EXEC_RE.search(outer):
+        invoked = bool(re.search(r"(?:^|[\s;&|(\"'])(?:\S*/)?(?:ba|z|da)?sh\s+(?:-\S+\s+)*"
+                                 r"['\"]?\S*" + re.escape(_HOOK_WRAPPER), text))
+    if invoked or _HOOK_SUB_RE.search(text) or _HOOK_ENV_RE.search(text):
+        return ("redteam gate: hook paths are harness-only (the hook wrapper, redteam_gate.py "
+                "hook subcommands and REDTEAM_HOOK are run by the harness, not from Bash).")
+    return None
+
+
+def _bash_decision(command: str, cwd_raw: Any, allow_tracked: bool = True,
+                   depth: int = 0) -> str | None:
     outer, docs = split_heredocs(command)
     cwd = Path(cwd_raw) if isinstance(cwd_raw, str) and cwd_raw else Path.cwd()
+    he = hook_path_error(outer)
+    if he:
+        return he
+    # Heredoc bodies fed to a program are commands/code themselves: resolve them like the
+    # outer text (bounded recursion).
+    for opener, body in docs:
+        if _EXEC_RE.search(opener) or "source" in opener or re.search(r"(?:^|\s)\.\s", opener):
+            if depth >= 3:
+                return f"redteam gate: heredocs nested too deep to scan. {BASH_DENY}"
+            r = _bash_decision(body, str(cwd), allow_tracked=False, depth=depth + 1)
+            if r:
+                return r
     try:
         nw = _nested_waiver(command, outer, cwd)
     except ScanLimit as exc:

