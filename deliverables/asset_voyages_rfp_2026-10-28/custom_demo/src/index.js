@@ -40,7 +40,7 @@ async function route(req, env) {
   if (path === '/demande/confirmation' && m === 'GET') return confirmation(req, env);
   if (path === '/console' || path.startsWith('/console/')) return consoleRoute(req, env, path);
   if (m !== 'GET' && m !== 'HEAD') return new Response('Méthode non autorisée', { status: 405, headers: { allow: 'GET' } });
-  return htmlResponse(errorPage({ status: 404, title: 'Page introuvable', text: 'Cette adresse ne correspond à aucune page. Le catalogue des congrès est sur la page d’accueil.' }), 404);
+  return htmlResponse(errorPage({ status: 404, title: 'Page introuvable', text: 'Cette adresse ne correspond à aucune page du site.' }), 404);
 }
 
 export default {

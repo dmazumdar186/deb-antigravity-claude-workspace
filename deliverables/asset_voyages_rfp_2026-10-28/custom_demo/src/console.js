@@ -58,13 +58,16 @@ export async function loginPost(req, env) {
   const tok = await checkFormToken(env, 'login', form.get('_token'));
   if (!tok.ok || !sameOrigin(req)) return loginGet(req, env, { error: 'Le formulaire a expiré : rechargez la page et réessayez.', status: 403 });
   const ip = await ipHash(env, req);
-  if (await rateBlocked(env, 'login:' + ip, 10)) return loginGet(req, env, { error: 'Trop d’essais. Réessayez dans un quart d’heure.', status: 429 });
   const username = clean(form.get('username'), 40).toLowerCase();
+  // Throttle: 10 failures per account per connection, 50 per connection overall, 15 minutes.
+  const kUser = `login:${ip}:${username.slice(0, 40)}`; const kIp = `login:${ip}`;
+  if (await rateBlocked(env, kUser, 10) || await rateBlocked(env, kIp, 50)) return loginGet(req, env, { error: 'Trop d’essais. Réessayez dans un quart d’heure.', status: 429 });
   const password = String(form.get('password') || '').slice(0, 200);
   const u = await env.DB.prepare('SELECT * FROM users WHERE username = ?').bind(username).first();
   const ok = u ? safeEqual(await hashPassword(password, u.pw_salt, u.pw_iter), u.pw_hash) : false;
   if (!ok) {
-    await rateHit(env, 'login:' + ip, 10, 900);
+    await rateHit(env, kUser, 10, 900);
+    await rateHit(env, kIp, 50, 900);
     return loginGet(req, env, { error: 'Identifiant ou mot de passe incorrect.', status: 401 });
   }
   const token = randomToken(32);
@@ -501,7 +504,7 @@ async function gmeCard(ctx, c, { context = 'list', revealed = null, reqError = '
   const meta = g ? html`<dl class="facts facts--tight">
       <div><dt>Statut</dt><dd>${pill(GME_KIND[g.status], GME_STATUS[g.status])}</dd></div>
       <div><dt>Validité</dt><dd>${g.valid_from || g.valid_to ? `${g.valid_from ? frNumDate(g.valid_from) : '…'} au ${g.valid_to ? frNumDate(g.valid_to) : '…'}` : 'À préciser'}</dd></div>
-      <div><dt>Justificatif</dt><dd>${g.evidence || '—'}</dd></div>
+      <div><dt>Justificatif</dt><dd>${g.evidence || 'Aucun'}</dd></div>
     </dl>` : '';
   let action = '';
   if (g && g.has_code) {
@@ -623,7 +626,7 @@ async function gmeAccess(ctx) {
     </section>
     ${past.length ? html`<section aria-labelledby="h-o"><h2 class="h2" id="h-o">Décisions passées</h2>
       <div class="wrap" role="region" aria-label="Décisions passées" tabindex="0"><table class="tbl"><thead><tr><th scope="col">Demandeur</th><th scope="col">Congrès</th><th scope="col">Motif</th><th scope="col">Décision</th><th scope="col">Par</th><th scope="col">Le</th></tr></thead>
-      <tbody>${past.map((r) => html`<tr><td>${r.display_name}</td><td class="wide">${r.title}</td><td class="wide">${r.reason}</td><td>${label(r)}</td><td>${r.decider || '—'}</td><td>${frDateTime(r.decided_at)}</td></tr>`)}</tbody></table></div></section>` : ''}`;
+      <tbody>${past.map((r) => html`<tr><td>${r.display_name}</td><td class="wide">${r.title}</td><td class="wide">${r.reason}</td><td>${label(r)}</td><td>${r.decider || 'Direction'}</td><td>${frDateTime(r.decided_at)}</td></tr>`)}</tbody></table></div></section>` : ''}`;
   return page(ctx, 'Accès GM&E', 'acces', body);
 }
 

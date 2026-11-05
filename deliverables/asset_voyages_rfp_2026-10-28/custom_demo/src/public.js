@@ -66,7 +66,7 @@ export async function catalogue(req, env) {
 <section class="cat">
   <header class="cat__head">
     <h1 class="display">Trouver son congrès. Demander son vol.</h1>
-    <p class="lead">Chaque fiche indique sa source officielle et sa date de vérification ; la demande de vol se fait depuis la fiche.</p>
+    <p class="lead">Sources officielles vérifiées, demande de vol depuis chaque fiche.</p>
   </header>
   <div class="cat__grid">
     <form class="filters" method="get" action="/" role="search" aria-label="Filtrer les congrès">

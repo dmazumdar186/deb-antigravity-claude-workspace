@@ -122,15 +122,15 @@ export function frDateTime(iso) {
 }
 export function frRange(start, end) {
   const a = parts(start); const b = parts(end);
-  if (a.y === b.y && a.m === b.m) return a.d === b.d ? frDate(start) : `${a.d}–${b.d} ${MOIS[a.m - 1]} ${a.y}`;
-  if (a.y === b.y) return `${a.d} ${MOIS[a.m - 1]} – ${b.d} ${MOIS[b.m - 1]} ${b.y}`;
-  return `${frDate(start)} – ${frDate(end)}`;
+  if (a.y === b.y && a.m === b.m) return a.d === b.d ? frDate(start) : `${a.d} au ${b.d} ${MOIS[a.m - 1]} ${a.y}`;
+  if (a.y === b.y) return `${a.d} ${MOIS[a.m - 1]} au ${b.d} ${MOIS[b.m - 1]} ${b.y}`;
+  return `${frDate(start)} au ${frDate(end)}`;
 }
 export function rangeParts(start, end) {
-  // For the catalogue date block: big day span, small month/year line.
+  // For the catalogue date block: big day span, small month and year line.
   const a = parts(start); const b = parts(end);
-  const days = a.m === b.m ? (a.d === b.d ? `${a.d}` : `${a.d}–${b.d}`) : `${a.d} – ${b.d}`;
-  const months = a.m === b.m ? `${MOIS_LONG[a.m - 1]} ${a.y}` : `${MOIS[a.m - 1]} – ${MOIS[b.m - 1]} ${b.y}`;
+  const days = a.d === b.d && a.m === b.m ? `${a.d}` : `${a.d} au ${b.d}`;
+  const months = a.m === b.m ? `${MOIS_LONG[a.m - 1]} ${a.y}` : `${MOIS[a.m - 1]} à ${MOIS[b.m - 1]} ${b.y}`;
   return { days, months };
 }
 
