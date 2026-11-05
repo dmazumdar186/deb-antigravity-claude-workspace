@@ -754,7 +754,7 @@ def test_bash_senders(tmp_path, state, capsys, monkeypatch):
     _git(repo, "commit", "-q", "-m", "init")
     assert _bash("python3 pipe/digest.py --live", capsys, repo) is None
     assert _bash(f"cd {repo} && python3 -u pipe/digest.py", capsys, tmp_path) is None
-    assert _deny_reason(_bash("python3 pipe/digest.py; echo done", capsys, repo))
+    assert _bash("python3 pipe/digest.py; echo done", capsys, repo) is None  # chain ok (2026-11-05)
     _write(repo / "tmp_send.py", f"import {SMTP}\n")
     assert "tmp_send.py" in _deny_reason(_bash("python3 tmp_send.py", capsys, repo))
     _write(repo / "pipe" / "digest.py", f"import {SMTP}  # edited\n")
@@ -1382,3 +1382,42 @@ def test_unresolvable_tilde_user_and_find_exec(tmp_path, state, capsys):
     for i in range(rg.MAX_ARG_FILES + 2):
         _write(tmp_path / "big" / f"f{i}.py", "print(1)\n")
     assert "more than" in _deny_reason(_bash("find big -exec python3 {} \\;", capsys, tmp_path))
+
+
+# ------------------------------------------------------------------ seventh audit (2026-11-05)
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_tracked_pipeline_ordinary_forms_allowed(tmp_path, state, capsys, monkeypatch):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _git(repo, "init", "-q")
+    monkeypatch.setattr(rg, "REPO_ROOT", repo)
+    _write(repo / "pipe" / "digest.py", f"import {SMTP}\n")
+    _git(repo, "add", ".")
+    _git(repo, "commit", "-q", "-m", "init")
+    _write(repo / "evil.py", f"import {SMTP}\n")
+    for cmd in ("python3 pipe/digest.py > out.log", "python3 pipe/digest.py >> out.log 2>&1",
+                "python3 pipe/digest.py 2>/dev/null", "python3 pipe/digest.py &> out.log",
+                "python3 pipe/digest.py \\\n  --live --limit 5",
+                "timeout 300 python3 pipe/digest.py --live", "DRY=0 python3 pipe/digest.py",
+                "python3 pipe/digest.py && echo done", "python3 pipe/digest.py; true; ls",
+                f"cd {repo} && python3 pipe/digest.py > out.log 2>&1 && echo ok"):
+        assert _bash(cmd, capsys, repo) is None, cmd
+    for cmd in ("python3 pipe/digest.py && python3 evil.py", "python3 pipe/digest.py | tee x",
+                "python3 pipe/digest.py < evil.py", "python3 pipe/digest.py & python3 evil.py",
+                "python3 pipe/digest.py; python3 -c 'import " + SMTP + "'"):
+        assert _deny_reason(_bash(cmd, capsys, repo)), cmd
+
+
+def test_calendar_metadata_keys_not_text(tmp_path, state, capsys):
+    cal = "mcp__Google_Calendar__"
+    desc = "Agenda: scope review with Marc."
+    _record_text(tmp_path, desc, capsys, extra=["--subject", "Kickoff", "--to", "marc@client.com"])
+    ti = {"summary": "Kickoff", "description": desc, "attendees": ["marc@client.com"],
+          "recurrence": ["RRULE:FREQ=WEEKLY;COUNT=4"],
+          "conferenceData": {"createRequest": {"requestId": "abc"}},
+          "reminders": {"useDefault": False, "overrides": [{"method": "popup", "minutes": 10}]},
+          "colorId": "5", "visibility": "private", "transparency": "opaque",
+          "sendUpdates": "all", "guestsCanModify": False, "guestsCanInviteOthers": False,
+          "guestsCanSeeOtherGuests": True}
+    assert _hook({"tool_name": cal + "create_event", "tool_input": ti}, capsys) is None

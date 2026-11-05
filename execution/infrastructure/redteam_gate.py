@@ -77,7 +77,9 @@ CAL_META = {"calendarId", "eventId", "start", "end", "startTime", "endTime", "ti
             "availability", "eventType", "visibility", "allDay", "addGoogleMeetUrl",
             "googleMeetUrl", "guestPermissions", "overrideReminders", "useDefaultReminders",
             "recurrenceData", "workingLocationProperties", "removedAttachmentFileUrls",
-            "attachments", "addedAttachments"}
+            "attachments", "addedAttachments", "recurrence", "conferenceData", "reminders",
+            "transparency", "guestsCanInviteOthers", "guestsCanModify",
+            "guestsCanSeeOtherGuests", "guestsCanSeeGuests"}
 DENY_SUFFIX = ("Run /redteam on this exact text and envelope (ground + 4 redteam-lens subagents + "
                "record --subject/--to/--cc/--bcc/--attachments) first.")
 BASH_DENY = ("Outward email is written via /redteam and sent through the Gmail tool, or sent by a "
@@ -1824,8 +1826,15 @@ def tracked_script_run(command: str, cwd: Path) -> bool:
     except ValueError:
         return False
     i = 0
-    while i < len(toks) and re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*=.*", toks[i]):
-        i += 1
+    while i < len(toks):
+        if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*=.*", toks[i]):
+            i += 1
+        elif toks[i] == "timeout" and i + 1 < len(toks):
+            i += 2
+            while i < len(toks) and toks[i - 1].startswith("-") and toks[i].startswith("-"):
+                i += 1  # timeout -k 5 30: flags then the duration
+        else:
+            break
     if i >= len(toks):
         return False
     interp = re.sub(r"\.exe$", "", Path(toks[i]).name.lower())
@@ -2082,6 +2091,72 @@ def _bash_hit(command: str, outer: str, docs: list[tuple[str, str]], cwd: Path,
     return None
 
 
+_OUT_REDIR_RE = re.compile(r"(?:\d?>>?|&>>?)\s*(?:&\d|[^\s;&|<>]+)")
+_SEG_OPS = ("&&", "||", ";", "\n")
+
+
+def _split_top(command: str) -> list[str] | None:
+    """Split on unquoted &&, ||, ; and newlines. None if a pipe, background `&`, subshell or
+    command substitution appears outside quotes (those are not simple chains)."""
+    mask, quote = _unquoted_mask(command, "")
+    if quote:
+        return None
+    segs: list[str] = []
+    cur: list[str] = []
+    i = 0
+    while i < len(command):
+        ch = command[i]
+        if mask[i]:
+            two = command[i:i + 2]
+            if two in ("&&", "||"):
+                segs.append("".join(cur))
+                cur = []
+                i += 2
+                continue
+            if ch in ";\n":
+                segs.append("".join(cur))
+                cur = []
+                i += 1
+                continue
+            redirect_amp = ch == "&" and (command[i + 1:i + 2] == ">"
+                                          or command[i - 1:i] == ">")  # 2>&1, &>f
+            if (ch in "|&`(" and not redirect_amp) or command.startswith("$(", i):
+                return None
+        cur.append(ch)
+        i += 1
+    segs.append("".join(cur))
+    return [x.strip() for x in segs if x.strip()]
+
+
+def chain_allowed(command: str, cwd: Path) -> bool:
+    """True if every segment of a simple chain is allowed on its own: a tracked, unmodified
+    script run (output redirects and `timeout`/env prefixes ok) or a segment the scan allows.
+    Stdin redirects keep the normal rules (the scan of the `<` source decides)."""
+    command = command.replace("\\\n", " ")
+    if split_heredocs(command)[1]:
+        return False
+    segs = _split_top(command)
+    if not segs:
+        return False
+    start_cwd, rest, tracked = cwd, [], 0
+    for seg in segs:
+        m = re.fullmatch(r"(?:cd|pushd)\s+(\"[^\"]+\"|'[^']+'|\S+)", seg)
+        if m:
+            cwd = (cwd / _xuser(Path(m.group(1).strip("\"'")))).resolve()
+            rest.append(seg)  # keep for context (relative paths in the remainder)
+            continue
+        bare = _OUT_REDIR_RE.sub(" ", seg).strip()
+        if "<" not in bare and tracked_script_run(bare, cwd):
+            tracked += 1
+            continue
+        rest.append(seg)
+    if not tracked:
+        return False
+    # Everything that is not a tracked run is scanned together, so context such as
+    # `F=x.py; python3 $F` or `cd d && python3 s.py` is kept.
+    return _bash_decision("\n".join(rest), str(start_cwd), allow_tracked=False) is None
+
+
 def bash_decision(ti: dict, cwd_raw: Any) -> str | None:
     """Deny inline email senders. Only commands that execute something are scanned; pure file
     writes, reads, greps and commits pass untouched (see directive: limits)."""
@@ -2090,6 +2165,10 @@ def bash_decision(ti: dict, cwd_raw: Any) -> str | None:
         return None
     if not isinstance(command, str):
         raise TypeError("Bash command is not a string")
+    return _bash_decision(command, cwd_raw)
+
+
+def _bash_decision(command: str, cwd_raw: Any, allow_tracked: bool = True) -> str | None:
     outer, docs = split_heredocs(command)
     cwd = Path(cwd_raw) if isinstance(cwd_raw, str) and cwd_raw else Path.cwd()
     try:
@@ -2120,7 +2199,8 @@ def bash_decision(ti: dict, cwd_raw: Any) -> str | None:
         hit = _bash_hit(command, outer, docs, cwd, vars_, bases, pp, expanded)
     except ScanLimit as exc:
         return f"redteam gate: {exc}; the gate cannot vouch for a command that runs code. {BASH_DENY}"
-    if hit is None or tracked_script_run(command, cwd):
+    if hit is None or (allow_tracked and (tracked_script_run(command, cwd)
+                                          or chain_allowed(command, cwd))):
         return None
     return f"redteam gate: Bash command sends email inline ({hit}). {BASH_DENY}"
 

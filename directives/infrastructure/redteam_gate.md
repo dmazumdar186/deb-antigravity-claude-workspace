@@ -198,3 +198,7 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   every listed SDK/host has a test. `make -C/--directory/-f/--file` resolved; `~user` that does
   not resolve stays literal; `find ROOT [-name P] -exec|-execdir <interpreter>` scans matching
   files under ROOT (fail closed past 64).
+- 2026-11-05 (seventh audit, FP): tracked pipeline runs allow output redirects, `\`-newline,
+  `timeout N`/env prefixes and `&&`/`||`/`;` chains: tracked segments are dropped and the rest
+  is scanned together (pipes, background `&`, heredocs, `$(`, stdin `<` keep normal rules).
+  Calendar recurrence/conferenceData/reminders/transparency/guestsCan* are metadata.
