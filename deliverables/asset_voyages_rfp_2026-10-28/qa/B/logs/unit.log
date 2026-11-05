@@ -1,0 +1,160 @@
+TAP version 13
+# Subtest: UNIT-B-001 passengers boundaries 0/1/50/51/abc
+ok 1 - UNIT-B-001 passengers boundaries 0/1/50/51/abc
+  ---
+  duration_ms: 2.504345
+  type: 'test'
+  ...
+# Subtest: UNIT-B-002 date_out: today ok, day before rejected, +730 ok, +731 rejected
+ok 2 - UNIT-B-002 date_out: today ok, day before rejected, +730 ok, +731 rejected
+  ---
+  duration_ms: 1.240387
+  type: 'test'
+  ...
+# Subtest: UNIT-B-003 return: same day ok, day before outbound rejected, past rejected
+ok 3 - UNIT-B-003 return: same day ok, day before outbound rejected, past rejected
+  ---
+  duration_ms: 0.26526
+  type: 'test'
+  ...
+# Subtest: UNIT-B-004 email valid/invalid + length 254 boundary
+ok 4 - UNIT-B-004 email valid/invalid + length 254 boundary
+  ---
+  duration_ms: 0.298434
+  type: 'test'
+  ...
+# Subtest: UNIT-B-005 consent required
+ok 5 - UNIT-B-005 consent required
+  ---
+  duration_ms: 0.161791
+  type: 'test'
+  ...
+# Subtest: UNIT-B-006 required fields and max lengths (name 120/121, phone 30/31, message 2000/2001)
+ok 6 - UNIT-B-006 required fields and max lengths (name 120/121, phone 30/31, message 2000/2001)
+  ---
+  duration_ms: 0.383194
+  type: 'test'
+  ...
+# Subtest: UNIT-B-007 valid enquiry has no errors; control chars stripped
+ok 7 - UNIT-B-007 valid enquiry has no errors; control chars stripped
+  ---
+  duration_ms: 0.938206
+  type: 'test'
+  ...
+# Subtest: UNIT-B-008 csvCell neutralises = + - @ tab CR, escapes quotes, null
+ok 8 - UNIT-B-008 csvCell neutralises = + - @ tab CR, escapes quotes, null
+  ---
+  duration_ms: 0.3417
+  type: 'test'
+  ...
+# Subtest: UNIT-B-009 esc/html escape & < > " ' and raw passthrough, arrays, null
+ok 9 - UNIT-B-009 esc/html escape & < > " ' and raw passthrough, arrays, null
+  ---
+  duration_ms: 0.735902
+  type: 'test'
+  ...
+# Subtest: UNIT-B-010 AES-GCM round trip, unique IV, tamper and wrong key fail
+ok 10 - UNIT-B-010 AES-GCM round trip, unique IV, tamper and wrong key fail
+  ---
+  duration_ms: 18.198644
+  type: 'test'
+  ...
+# Subtest: UNIT-B-011 keys(): missing / short key rejected
+ok 11 - UNIT-B-011 keys(): missing / short key rejected
+  ---
+  duration_ms: 0.724676
+  type: 'test'
+  ...
+# Subtest: UNIT-B-012 PBKDF2 hash deterministic; differs by salt and password
+ok 12 - UNIT-B-012 PBKDF2 hash deterministic; differs by salt and password
+  ---
+  duration_ms: 20.049321
+  type: 'test'
+  ...
+# Subtest: UNIT-B-013 safeEqual
+ok 13 - UNIT-B-013 safeEqual
+  ---
+  duration_ms: 0.249195
+  type: 'test'
+  ...
+# Subtest: UNIT-B-014 form tokens: valid, tampered, too fast, expired, garbage
+ok 14 - UNIT-B-014 form tokens: valid, tampered, too fast, expired, garbage
+  ---
+  duration_ms: 3.79254
+  type: 'test'
+  ...
+# Subtest: UNIT-B-015 isIsoDate / addDays boundaries
+ok 15 - UNIT-B-015 isIsoDate / addDays boundaries
+  ---
+  duration_ms: 0.28069
+  type: 'test'
+  ...
+# Subtest: UNIT-B-016 French date formatting and ranges
+ok 16 - UNIT-B-016 French date formatting and ranges
+  ---
+  duration_ms: 0.358924
+  type: 'test'
+  ...
+# Subtest: UNIT-B-017 norm/slugify accent-insensitive
+ok 17 - UNIT-B-017 norm/slugify accent-insensitive
+  ---
+  duration_ms: 0.614326
+  type: 'test'
+  ...
+# Subtest: UNIT-B-018 clean() trims, strips control chars, truncates to max+1 (so >max is detectable)
+ok 18 - UNIT-B-018 clean() trims, strips control chars, truncates to max+1 (so >max is detectable)
+  ---
+  duration_ms: 0.111772
+  type: 'test'
+  ...
+# Subtest: UNIT-B-019 reference numbering: seed congress refs and slugs unique, slug round-trip
+ok 19 - UNIT-B-019 reference numbering: seed congress refs and slugs unique, slug round-trip
+  ---
+  duration_ms: 0.573701
+  type: 'test'
+  ...
+# Subtest: UNIT-B-020 fictional data (X3): titles end « — exemple », seed codes DEMO-GME-, enquiry emails example.com
+ok 20 - UNIT-B-020 fictional data (X3): titles end « — exemple », seed codes DEMO-GME-, enquiry emails example.com
+  ---
+  duration_ms: 0.226611
+  type: 'test'
+  ...
+# Subtest: UNIT-B-021 notificationFor never contains a GM&E code and builds console link
+ok 21 - UNIT-B-021 notificationFor never contains a GM&E code and builds console link
+  ---
+  duration_ms: 0.340047
+  type: 'test'
+  ...
+# Subtest: UNIT-B-022 status labels cover the 5-state pipeline; sandbox id validator
+ok 22 - UNIT-B-022 status labels cover the 5-state pipeline; sandbox id validator
+  ---
+  duration_ms: 0.371005
+  type: 'test'
+  ...
+# Subtest: UNIT-B-023 cookie parsing and sameOrigin
+ok 23 - UNIT-B-023 cookie parsing and sameOrigin
+  ---
+  duration_ms: 21.410284
+  type: 'test'
+  ...
+# Subtest: UNIT-B-024 readForm: content-type 415, size 413 on both sides of 32 KiB
+ok 24 - UNIT-B-024 readForm: content-type 415, size 413 on both sides of 32 KiB
+  ---
+  duration_ms: 5.086531
+  type: 'test'
+  ...
+# Subtest: UNIT-B-025 rateHit counter logic (in-memory D1 stub): allows up to limit, blocks limit+1, window reset
+ok 25 - UNIT-B-025 rateHit counter logic (in-memory D1 stub): allows up to limit, blocks limit+1, window reset
+  ---
+  duration_ms: 0.464036
+  type: 'test'
+  ...
+1..25
+# tests 25
+# suites 0
+# pass 25
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 161.819551

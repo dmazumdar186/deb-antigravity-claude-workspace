@@ -1,0 +1,28 @@
+
+Running 75 tests using 1 worker
+
+  ✓   1 tests/fix_round1.spec.mjs:22:1 › FIX-1 isolation: a browser that publishes, defaces, edits URLs, adds enquiries and approves access changes nothing for anyone else (17.6s)
+  ✓   2 tests/fix_round1.spec.mjs:70:1 › FIX-2 « Réinitialiser la démo » resets only the caller’s sandbox; the login page says the sandbox is private (14.5s)
+  -   3 tests/fix_round1.spec.mjs:88:1 › FIX-3 nightly cron purges sandboxes older than 24 h and leaves recent ones
+  ✓   4 tests/fix_round1.spec.mjs:109:1 › FIX-4 official website must be https (4.9s)
+  ✓   5 tests/fix_round1.spec.mjs:118:1 › FIX-5 a code can only be shown or requested when vérifié or approuvé; détecté and expiré have no form and refuse the POST (7.7s)
+  -   6 tests/fix_round1.spec.mjs:151:1 › FIX-6a production mode (ACCOUNT_LOCKOUT=on): 40 parallel guesses from 40 addresses and browsers, at most 30 are checked; atomic counter
+  ✓   7 tests/fix_round1.spec.mjs:162:1 › FIX-6b demo mode (ACCOUNT_LOCKOUT=off): a flood on « direction » from one browser is capped at 10 checks and never stops another browser logging in (2.5s)
+  ✓   8 tests/fix_round1.spec.mjs:176:1 › FIX-7 a forged (no CSRF) reveal or request writes nothing, not even a journal row (5.7s)
+  ✓   9 tests/fix_round1.spec.mjs:191:1 › FIX-8 typed text in the dark enquiry panel is ink on white; placeholders reach 4.5:1 (1.6s)
+  ✓  10 tests/fix_round1.spec.mjs:206:1 › FIX-9 dates read jj/mm/aaaa or « 28 au 30 janv. 2027 »; the notification e-mail uses jj/mm/aaaa and a full URL (9.8s)
+  ✓  11 tests/fix_round1.spec.mjs:227:1 › FIX-10 skip link only appears on keyboard focus; after an error or a redirect focus moves to the message (7.9s)
+  ✓  12 tests/fix_round1.spec.mjs:243:1 › FIX-11 FIX-12 at 390 px the console menu wraps with the active tab visible, and table rows become cards with every field labelled (4.7s)
+  ✓  13 tests/fix_round1.spec.mjs:269:1 › FIX-13 the audit trail names a person: history, approvals and the access journal (10.7s)
+  ✓  14 tests/fix_round1.spec.mjs:287:1 › FIX-14 FIX-15 the prefilled congress is plain text, not truncated, and « — exemple » never breaks from its title (1.6s)
+  ✓  15 tests/fix_round1.spec.mjs:302:1 › FIX-16 dashboard tiles use the plural when the count is above one (2.2s)
+  ✓  16 tests/fix_round1.spec.mjs:308:1 › FIX-17 at 390 px a cross-month congress reads « 29 sept. au 2 oct. 2027 » (1.1s)
+  ✓  17 tests/fix_round1.spec.mjs:317:1 › FIX-18 the no-result state offers « Nous écrire » (701ms)
+  ✓  18 tests/fix_round1.spec.mjs:324:1 › FIX-19 after a reveal « Masquer le code » hides it again (3.8s)
+  ✓  19 tests/fix_round1.spec.mjs:334:1 › FIX-20 status badges have room around their text (2.0s)
+  ✓  20 tests/fix_round1.spec.mjs:345:1 › FIX-21 (D1) Discipline and Pays come from managed lists; Direction adds a value; duplicates and free text are refused (7.9s)
+  ✓  21 tests/fix_round1.spec.mjs:371:1 › FIX-22 (D2) the sidebar groups the GM&E items under « Codes GM&E »: Codes, Demandes d’accès, Journal (3.9s)
+  ✓  22 tests/fix_round1.spec.mjs:381:1 › FIX-23 FIX-24 (D3, D4) failed enquiry: 200 page, top banner lists each error as a link to its field, focus on the banner, visible on a phone (9.6s)
+  ✓  23 tests/fix_round1.spec.mjs:401:1 › FIX-24 (D4) a failed congress save re-renders with 200 and the linked summary (2.5s)
+  ✓  24 tests/fix_round1.spec.mjs:410:1 › FIX-25 (D5) ten enquiries in ten minutes are accepted per browser; the eleventh gets a clear French message, never a silent no-op (53.2s)
+  ✓  25 tests/fix_round1.spec.mjs:436:1 › FIX-26 (D6) the date line reads « 29 sept. au 2 oct. 2027 » on desktop and phone (2.3s)
