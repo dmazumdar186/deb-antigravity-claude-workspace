@@ -1,15 +1,16 @@
 // S3: flight enquiry from a congress page.
-import { test, expect, resetDemo, login, fillEnquiry, postEnquiry, SLUG, d1Count } from './helpers.mjs';
+import { test, expect, login, fillEnquiry, postEnquiry, SLUG, d1Count, sbxOf } from './helpers.mjs';
 
 test.describe.configure({ mode: 'serial' });
-test.beforeEach(async ({ browser }) => { await resetDemo(browser); });
+// Each Playwright context is a fresh private sandbox, so every test starts from the seed.
 
-const countEnquiries = async (browser) => {
-  const ctx = await browser.newContext(); const p = await ctx.newPage();
+// Visitor and staff share one browser here (one private sandbox): a second tab logs in to count.
+const countEnquiries = async (page) => {
+  const p = await page.context().newPage();
   await login(p, 'direction');
   await p.goto('/console/demandes');
   const n = parseInt((await p.locator('.chips .chip').first().textContent()).match(/\((\d+)\)/)[1], 10);
-  await ctx.close();
+  await p.close();
   return n;
 };
 
@@ -19,10 +20,10 @@ test('S3-F1 every field is present and the congress is prefilled', async ({ page
   await expect(page.locator('label[for="f-company"]')).toContainText('(facultatif)');
   await expect(page.locator('#f-consent')).toBeVisible();
   await expect(page.locator('label[for="f-consent"]')).toContainText('J’accepte');
-  await expect(page.getByLabel('Congrès', { exact: true })).toHaveValue(/cardiologie/);
+  await expect(page.locator('[data-congress]')).toContainText('Congrès européen de cardiologie');
 });
 
-test('S3-F2 S3-F3 S3-E1 valid submission in 1 click: stored, linked to the congress, reference shown, team notified', async ({ page, browser }) => {
+test('S3-F2 S3-F3 S3-E1 valid submission in 1 click: stored, linked to the congress, reference shown, team notified', async ({ page }) => {
   await page.goto(`/congres/${SLUG.onco}`);
   await fillEnquiry(page, { out: '2027-01-27', back: '2027-01-31', name: 'Claire Dubois (exemple)' });
   await page.waitForTimeout(3100); // a human takes longer than the minimum fill time
@@ -35,7 +36,7 @@ test('S3-F2 S3-F3 S3-E1 valid submission in 1 click: stored, linked to the congr
   expect(ref).toBe('DV-2026-0007');
   await expect(page.locator('.thanks')).toContainText('Journées d’oncologie digestive — exemple');
   // server-side: the console holds it, linked to the congress; the notification log has the e-mail
-  const ctx = await browser.newContext(); const admin = await ctx.newPage();
+  const admin = await page.context().newPage();
   await login(admin, 'equipe');
   await admin.goto('/console/demandes?q=' + ref);
   await expect(admin.locator('tbody tr')).toHaveCount(1);
@@ -45,11 +46,12 @@ test('S3-F2 S3-F3 S3-E1 valid submission in 1 click: stored, linked to the congr
   await expect(mail).toContainText(`Nouvelle demande ${ref}`);
   await expect(mail).toContainText('Claire Dubois (exemple)');
   await expect(mail).toContainText('Envoi simulé à equipe.congres@example.com');
-  await ctx.close();
+  await admin.close();
 });
 
-test('S3-F4 reloading the confirmation page or replaying the POST creates no second enquiry', async ({ page, browser, request }) => {
-  const before = await countEnquiries(browser);
+test('S3-F4 reloading the confirmation page or replaying the POST creates no second enquiry', async ({ page }) => {
+  const request = page.request;
+  const before = await countEnquiries(page);
   const first = await postEnquiry(request, SLUG.cardio, { name: 'Rejeu (exemple)' });
   expect(first.res.status()).toBe(303);
   const loc = first.res.headers().location;
@@ -61,7 +63,7 @@ test('S3-F4 reloading the confirmation page or replaying the POST creates no sec
   const replay = await postEnquiry(request, SLUG.cardio, { name: 'Rejeu (exemple)' }, { token: first.token, wait: 0 });
   expect(replay.res.status()).toBe(303);
   expect(replay.res.headers().location).toBe(loc);
-  expect(await countEnquiries(browser)).toBe(before + 1);
+  expect(await countEnquiries(page)).toBe(before + 1);
   // a forged or unsigned confirmation link reveals nothing
   const forged = await (await request.get('/demande/confirmation?ref=DV-2026-0001')).text();
   expect(forged).not.toContain('DV-2026-0001');
@@ -90,8 +92,9 @@ test('S3-E1 errors appear next to each field in plain French and keep what was t
   await expect(page.locator('[data-ref]')).toHaveText(/DV-2026-\d{4}/);
 });
 
-test('S3-H1 rejected with a message: passengers 0, 51, abc; return before outbound; past dates; bad email; missing consent', async ({ browser, request }) => {
-  const before = await countEnquiries(browser);
+test('S3-H1 rejected with a message: passengers 0, 51, abc; return before outbound; past dates; bad email; missing consent', async ({ page }) => {
+  const request = page.request;
+  const before = await countEnquiries(page);
   const cases = [
     [{ passengers: '0' }, 'entre 1 et 50'], [{ passengers: '51' }, 'entre 1 et 50'], [{ passengers: 'abc' }, 'entre 1 et 50'], [{ passengers: '-3' }, 'entre 1 et 50'], [{ passengers: '2.5' }, 'entre 1 et 50'],
     [{ date_out: '2027-08-30', date_back: '2027-08-20' }, 'date retour doit être'], [{ date_out: '2025-01-10', date_back: '2025-01-12' }, 'ne peut pas être passée'],
@@ -122,11 +125,12 @@ test('S3-H1 rejected with a message: passengers 0, 51, abc; return before outbou
   // oversized body
   const big = await request.post('/demande', { form: { message: 'x'.repeat(40000) }, maxRedirects: 0 });
   expect(big.status()).toBe(413);
-  expect(await countEnquiries(browser)).toBe(before);
+  expect(await countEnquiries(page)).toBe(before);
 });
 
-test('S3-H2 honeypot or too-fast form is not stored; rapid repeats from one address are rate-limited', async ({ browser, request }) => {
-  const before = await countEnquiries(browser);
+test('S3-H2 honeypot or too-fast form is not stored; rapid repeats from one address are rate-limited', async ({ page }) => {
+  const request = page.request;
+  const before = await countEnquiries(page);
   const hp = await postEnquiry(request, SLUG.cardio, { website: 'http://spam.example' });
   expect(hp.res.status()).toBe(303);
   expect(hp.res.headers().location).toBe('/demande/confirmation');
@@ -137,7 +141,7 @@ test('S3-H2 honeypot or too-fast form is not stored; rapid repeats from one addr
   expect(forged.res.status()).toBe(403);
   const noToken = await request.post('/demande', { form: { congress: '101', name: 'x' }, maxRedirects: 0 });
   expect(noToken.status()).toBe(403);
-  expect(await countEnquiries(browser)).toBe(before);
+  expect(await countEnquiries(page)).toBe(before);
   // rate limit: 5 accepted per 10 minutes per connection, the 6th is refused
   const toks = [];
   for (let i = 0; i < 6; i++) toks.push(/name="_token" value="([^"]+)"/.exec(await (await request.get(`/congres/${SLUG.cardio}`)).text())[1]);
@@ -147,10 +151,10 @@ test('S3-H2 honeypot or too-fast form is not stored; rapid repeats from one addr
   for (let i = 0; i < 6; i++) { last = await postEnquiry(request, SLUG.cardio, { name: `Rafale ${i} (exemple)` }, { wait: 0, token: toks[i] }); statuses.push(last.res.status()); }
   expect(statuses).toEqual([303, 303, 303, 303, 303, 429]);
   expect(last.text).toContain('Trop de demandes');
-  expect(await countEnquiries(browser)).toBe(before + 5);
+  expect(await countEnquiries(page)).toBe(before + 5);
 });
 
-test('S3-H3 script or HTML in any field is stored and shown as text only; SQL-ish text is inert', async ({ page, browser }) => {
+test('S3-H3 script or HTML in any field is stored and shown as text only; SQL-ish text is inert', async ({ page }) => {
   let dialogs = 0;
   page.on('dialog', () => { dialogs++; });
   const evil = '<img src=x onerror=alert(1)><script>alert(2)</script>';
@@ -159,7 +163,7 @@ test('S3-H3 script or HTML in any field is stored and shown as text only; SQL-is
   await page.waitForTimeout(3100);
   await page.getByRole('button', { name: 'Envoyer la demande' }).click();
   const ref = (await page.locator('[data-ref]').textContent()).trim();
-  const ctx = await browser.newContext(); const admin = await ctx.newPage();
+  const admin = await page.context().newPage();
   let adminDialogs = 0; admin.on('dialog', (d) => { adminDialogs++; d.dismiss(); });
   await login(admin, 'equipe');
   await admin.goto('/console/demandes');
@@ -174,6 +178,6 @@ test('S3-H3 script or HTML in any field is stored and shown as text only; SQL-is
   await expect(admin.locator('.feed')).toContainText(evil);
   expect(adminDialogs).toBe(0);
   expect(dialogs).toBe(0);
-  await ctx.close();
-  expect(d1Count('SELECT COUNT(*) AS n FROM enquiries')[0].n).toBe(7);
+  await admin.close();
+  expect(d1Count(`SELECT COUNT(*) AS n FROM enquiries WHERE sbx = '${await sbxOf(page)}'`)[0].n).toBe(7);
 });

@@ -185,17 +185,14 @@ export function redirect(location, headers = {}) {
 }
 
 // ---------- rate limit (fixed window, stored in D1) ----------
+// One atomic statement: insert or increment (restarting the window when it has expired), then read the new count.
 export async function rateHit(env, key, limit, windowSec) {
   const now = Math.floor(Date.now() / 1000);
-  const row = await env.DB.prepare('SELECT count, reset_at FROM rate_limits WHERE key = ?').bind(key).first();
-  if (!row || row.reset_at <= now) {
-    await env.DB.prepare('INSERT INTO rate_limits (key, count, reset_at) VALUES (?, 1, ?) ON CONFLICT(key) DO UPDATE SET count = 1, reset_at = excluded.reset_at')
-      .bind(key, now + windowSec).run();
-    return true;
-  }
-  if (row.count >= limit) return false;
-  await env.DB.prepare('UPDATE rate_limits SET count = count + 1 WHERE key = ?').bind(key).run();
-  return true;
+  const row = await env.DB.prepare(`INSERT INTO rate_limits (key, count, reset_at) VALUES (?1, 1, ?2 + ?3)
+    ON CONFLICT(key) DO UPDATE SET count = CASE WHEN reset_at <= ?2 THEN 1 ELSE count + 1 END,
+      reset_at = CASE WHEN reset_at <= ?2 THEN ?2 + ?3 ELSE reset_at END
+    RETURNING count`).bind(key, now, windowSec).first();
+  return row.count <= limit;
 }
 export async function rateBlocked(env, key, limit) {
   const now = Math.floor(Date.now() / 1000);

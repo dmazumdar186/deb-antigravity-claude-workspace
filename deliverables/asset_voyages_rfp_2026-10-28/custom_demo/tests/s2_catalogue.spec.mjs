@@ -1,12 +1,12 @@
 // S2: public catalogue, search, filters, details page.
-import { test, expect, resetDemo, login, SLUG } from './helpers.mjs';
+import { test, expect, login, logout, SLUG, CTX } from './helpers.mjs';
 
 test.describe.configure({ mode: 'serial' });
-test.beforeAll(async ({ browser }) => { await resetDemo(browser); });
+// Each Playwright context is a fresh private sandbox, so every test starts from the seed.
 
 const SEEDED = ['CG-0101', 'CG-0102', 'CG-0103', 'CG-0104', 'CG-0105', 'CG-0106', 'CG-0107', 'CG-0108', 'CG-0109', 'CG-0110', 'CG-0111', 'CG-0112'];
 
-test('S2-F1 all 12 published upcoming congresses listed; past and draft ones are not', async ({ page, browser }) => {
+test('S2-F1 all 12 published upcoming congresses listed; past and draft ones are not', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('.bar__n')).toHaveText('12 congrès');
   const hrefs = [];
@@ -17,8 +17,8 @@ test('S2-F1 all 12 published upcoming congresses listed; past and draft ones are
   expect(hrefs).toHaveLength(12);
   for (const ref of SEEDED) expect(hrefs.some((h) => h.endsWith(ref.toLowerCase()))).toBeTruthy();
   expect(hrefs.some((h) => h.endsWith('cg-0113'))).toBeFalsy(); // seeded draft
-  // a past published congress (created through the console) is hidden
-  const ctx = await browser.newContext(); const admin = await ctx.newPage();
+  // a past published congress (created through the console, in this same browser's sandbox) is hidden
+  const admin = page;
   await login(admin, 'direction');
   await admin.goto('/console/congres/nouveau');
   await admin.getByLabel('Titre').fill('Congrès passé — exemple');
@@ -32,7 +32,7 @@ test('S2-F1 all 12 published upcoming congresses listed; past and draft ones are
   await admin.getByLabel('Vérifié le').fill('2026-02-01');
   await admin.getByRole('button', { name: 'Publier' }).click();
   await expect(admin.getByText('Congrès créé.')).toBeVisible();
-  await ctx.close();
+  await logout(admin);
   await page.goto('/?q=passe');
   await expect(page.locator('.row')).toHaveCount(0);
   await page.goto('/');
@@ -93,17 +93,17 @@ test('S2-F5 details page shows every fact and the enquiry form prefilled with th
   await page.goto(`/congres/${SLUG.cardio}`);
   await expect(page.locator('h1')).toHaveText('Congrès européen de cardiologie — exemple');
   const facts = page.locator('.facts');
-  for (const [k, v] of [['Dates', 'Du 27 août 2027 au 30 août 2027'], ['Ville', 'Madrid'], ['Pays', 'Espagne'], ['Discipline', 'Cardiologie'], ['Lieu', 'Centre de congrès de Madrid — exemple'], ['Site officiel', 'www.example.org/congres/cg-0101'], ['Vérifié le', '12 oct. 2026']]) {
+  for (const [k, v] of [['Dates', '27 au 30 août 2027'], ['Ville', 'Madrid'], ['Pays', 'Espagne'], ['Discipline', 'Cardiologie'], ['Lieu', 'Centre de congrès de Madrid — exemple'], ['Site officiel', 'www.example.org/congres/cg-0101'], ['Vérifié le', '12/10/2026']]) {
     await expect(facts.locator('div', { has: page.locator('dt', { hasText: new RegExp(`^${k}$`) }) }).locator('dd')).toContainText(v);
   }
-  await expect(page.getByLabel('Congrès', { exact: true })).toHaveValue(/Congrès européen de cardiologie — exemple/);
+  await expect(page.locator('[data-congress]')).toHaveText(/Congrès européen de cardiologie\s— exemple, 27 au 30 août 2027/);
   await expect(page.locator('input[name="congress"]')).toHaveValue('101');
   // GM&E mention only when approved: CG-0101 code is only « Détecté »
   await expect(page.locator('.gme-note')).toHaveCount(0);
 });
 
 test('S2-F6 works with JavaScript off (server-rendered GET form)', async ({ browser }) => {
-  const ctx = await browser.newContext({ javaScriptEnabled: false });
+  const ctx = await browser.newContext({ ...CTX, javaScriptEnabled: false });
   const page = await ctx.newPage();
   await page.goto('/');
   await page.getByLabel('Recherche').fill('lyon');
@@ -127,7 +127,7 @@ test('S2-E1 find Cardiologie congresses and open one in 2 clicks', async ({ page
 });
 
 test('S2-E2 at 390 px: no horizontal scroll, inputs at least 16 px, tap targets at least 44 px', async ({ browser }) => {
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
+  const ctx = await browser.newContext({ ...CTX, viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
   const page = await ctx.newPage();
   for (const url of ['/', '/?q=zzz', '/?page=2', `/congres/${SLUG.onco}`, `/congres/${SLUG.cardio}`, '/console/connexion', '/page-inconnue']) {
     await page.goto(url);

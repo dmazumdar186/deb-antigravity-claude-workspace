@@ -43,7 +43,7 @@ res('S1-F2',adminOk&&pubOk,`admin=${adminOk} public=${pubOk}`);res('S1-E2',editC
 // S1-H1 validation via UI (bypass browser validation)
 const edit=U+'/console/congres/'+id;
 async function badSave(o){await p.goto(edit);await p.evaluate(()=>document.querySelectorAll('form').forEach(f=>f.noValidate=true));await fill(o);await p.getByRole('button',{name:'Enregistrer',exact:true}).click();await p.waitForLoadState();
- const msg=(await txt(p)).match(/[^\n]*(fin|adresse|URL|lien|invalide|doit)[^\n]*/i);await p.goto(edit);return {msg:msg&&msg[0],end:await p.inputValue('[name=end_date]'),url:await p.inputValue('[name=official_url]')}}
+ const msg=[await p.evaluate(()=>[...document.querySelectorAll('.error,.field-error,[role=alert],.alert,.notice,.flash,[id$=-err],[id$=-error]')].map(e=>e.innerText.trim()).filter(Boolean).join(' / ').slice(0,120))];await p.goto(edit);return {msg:msg&&msg[0],end:await p.inputValue('[name=end_date]'),url:await p.inputValue('[name=official_url]')}}
 let r1=await badSave({end_date:'2027-09-01'});let r2=await badSave({official_url:'javascript:alert(1)'});
 res('S1-H1(validation)',r1.end==='2027-09-12'&&r2.url==='https://www.example.org/qa'&&r1.msg&&r2.msg,`endBefore:msg=${r1.msg} stored=${r1.end}; badUrl:msg=${r2.msg} stored=${r2.url}`);
 // S1-H2 no csrf
@@ -96,13 +96,13 @@ res('S2-H1',lr.status()<500&&(await V.evaluate(()=>window.__y))===undefined&&!(a
 // ================= S3
 await V.goto(U+'/congres/congres-europeen-de-cardiologie-cg-0101');const fields=await V.locator('form[action="/demande"] [name]').evaluateAll(a=>a.map(e=>e.name));
 res('S3-F1',['name','email','phone','company','departure_city','date_out','date_back','passengers','message','consent','congress'].every(f=>fields.includes(f)),fields.join(','));
-const form=async(o,P=V)=>{await P.goto(U+'/congres/congres-europeen-de-cardiologie-cg-0101');await P.waitForTimeout(3500);for(const[k,v]of Object.entries(o)){if(k==='consent'){if(v)await P.check('#f-consent')}else await P.fill(`[name=${k}]`,v)}clicks=0;await click(P,P.getByRole('button',{name:'Envoyer la demande'}));return txt(P)};
+const form=async(o,P=V)=>{await P.goto(U+'/congres/congres-europeen-de-cardiologie-cg-0101');await P.waitForTimeout(3500);for(const[k,v]of Object.entries(o)){if(k==='consent'){if(v)await P.check('#f-consent')}else await P.locator(`[name=${k}]`).evaluate((e,v)=>e.value=v,v)}clicks=0;await click(P,P.getByRole('button',{name:'Envoyer la demande'}));return txt(P)};
 const good={name:'Zoé QA'+T+' (exemple)',email:`qa${T}@example.com`,phone:'0102030405',departure_city:'Toulouse',passengers:'3',message:'<b>bold</b><script>window.__z=1</script>',consent:true};
 const ok=await form(good);const ref=ok.match(/DV-2026-\d{4}/)?.[0];const oneClick=clicks;
-res('S3-F2',!!ref,'ref='+ref+' url='+V.url());
+res('S3-F2',!!ref,'ref='+ref+' url='+V.url()+' page='+ok.replace(/\s+/g,' ').slice(150,700));if(!ref){console.log(JSON.stringify(R));process.exit(2)}
 await V.reload();await V.waitForLoadState();
 // errors
-const errCase=async(o,lab)=>{const t=await form({...good,email:`e${lab}${T}@example.com`,...o});return {lab,stored:/DV-2026-\d{4}/.test(t),msg:(t.match(/[^\n]*(passager|date|e-mail|adresse|consent|accept|retour|valide)[^\n]*/i)||[''])[0].slice(0,70)}};
+const errCase=async(o,lab)=>{const t=await form({...good,email:`e${lab}${T}@example.com`,...o});return {lab,stored:/DV-2026-\d{4}/.test(t),msg:(await V.evaluate(()=>[...document.querySelectorAll('.error,.field-error,[role=alert],.alert,.form__error,[id$=-err],[id$=-error]')].map(e=>e.innerText.trim()).filter(Boolean).join(' / '))).slice(0,110)}};
 const H=[];for(const [o,l] of [[{passengers:'0'},'p0'],[{passengers:'51'},'p51'],[{passengers:'abc'},'pabc'],[{date_out:'2027-08-30',date_back:'2027-08-20'},'ret'],[{date_out:'2025-01-01'},'past'],[{email:'pas-un-email'},'mail'],[{consent:false},'consent']]){
  if(l==='pabc'){await V.goto(U+'/congres/congres-europeen-de-cardiologie-cg-0101');}
  H.push(await errCase(o,l).catch(e=>({lab:l,err:e.message.slice(0,60)})))}

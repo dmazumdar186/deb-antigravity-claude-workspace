@@ -1,8 +1,8 @@
 // S1: create and edit a congress.
-import { test, expect, login, logout, resetDemo, csrfOf } from './helpers.mjs';
+import { test, expect, login, logout, csrfOf } from './helpers.mjs';
 
 test.describe.configure({ mode: 'serial' });
-test.beforeAll(async ({ browser }) => { await resetDemo(browser); });
+// Each Playwright context is a fresh private sandbox, so every test starts from the seed.
 
 const NEW = { title: 'Congrès de test S1 — exemple', disc: 'Hématologie', venue: 'Centre de test — exemple', city: 'Nice', country: 'France', start: '2027-07-05', end: '2027-07-07', url: 'https://www.example.org/test-s1', ver: '2026-11-01' };
 async function fillCongress(page, v) {
@@ -36,7 +36,7 @@ test('S1-F1 S1-E1 create and publish a congress with every field, in 3 clicks fr
   // server is the judge: the public catalogue lists it with all the details
   await page.goto('/?q=test+s1');
   await page.getByRole('link', { name: /Congrès de test S1/ }).click();
-  for (const t of ['Nice', 'France', 'Hématologie', 'Centre de test — exemple', 'www.example.org/test-s1', '1 nov. 2026', 'Du 5 juil. 2027 au 7 juil. 2027']) await expect(page.locator('.facts')).toContainText(t);
+  for (const t of ['Nice', 'France', 'Hématologie', 'Centre de test — exemple', 'www.example.org/test-s1', '01/11/2026', '5 au 7 juil. 2027']) await expect(page.locator('.facts')).toContainText(t);
 });
 
 test('S1-F2 S1-E2 edit an existing congress in 3 clicks; new value in admin and on the public page', async ({ page }) => {

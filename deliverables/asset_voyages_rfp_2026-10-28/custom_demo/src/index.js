@@ -1,7 +1,9 @@
 // ASSET Voyages, option B demo: one Cloudflare Worker, D1 database, static assets, daily cron reset.
-import { htmlResponse } from './lib.js';
+import { htmlResponse, getCookie, randomToken, ipHash } from './lib.js';
 import { errorPage } from './views.js';
-import { ensureReady, resetDemo } from './data.js';
+import { ensureReady, nightly, validSbx, effectiveSbx } from './data.js';
+
+const SBX_COOKIE = '__Host-av_sbx';
 import { catalogue, congressPage, submitEnquiry, confirmation } from './public.js';
 import { consoleRoute } from './console.js';
 
@@ -32,7 +34,6 @@ async function route(req, env) {
     if (res.ok && (path.startsWith('/assets/fonts/') || url.searchParams.has('v'))) out.headers.set('cache-control', 'public, max-age=31536000, immutable');
     return out;
   }
-  await ensureReady(env);
   if (path === '/' && (m === 'GET' || m === 'HEAD')) return catalogue(req, env);
   let mm;
   if ((mm = /^\/congres\/([a-z0-9-]{1,120})\/?$/.exec(path)) && (m === 'GET' || m === 'HEAD')) return congressPage(req, env, mm[1]);
@@ -46,15 +47,35 @@ async function route(req, env) {
 export default {
   async fetch(req, env) {
     let res;
+    let newSbx = null;
     try {
-      res = await route(req, env);
+      const path = new URL(req.url).pathname;
+      if (path.startsWith('/assets/') || path === '/robots.txt' || path === '/favicon.ico') {
+        res = await route(req, env);
+      } else {
+        await ensureReady(env);
+        // Per-browser sandbox: an HttpOnly cookie names this browser's private copy of the demo data.
+        const fromCookie = getCookie(req, SBX_COOKIE);
+        const sbx = validSbx(fromCookie) ? fromCookie : (newSbx = randomToken(18));
+        const scoped = Object.create(env);
+        scoped.SBX = sbx;
+        scoped.SBX_EFF = newSbx ? '' : await effectiveSbx(env, sbx);
+        scoped.IP_HASH = await ipHash(env, req);
+        res = await route(req, scoped);
+      }
     } catch (err) {
-      console.error('request failed', err && err.message);
-      res = htmlResponse(errorPage({ status: 500, title: 'Erreur temporaire', text: 'Le service n’a pas pu répondre. Réessayez dans un instant ; rien n’a été enregistré en double.' }), 500);
+      if (err && err.code === 'SBX_LIMIT') {
+        res = htmlResponse(errorPage({ status: 429, title: 'Trop d’essais', text: 'Trop de bacs à sable de démonstration ont été créés récemment. Réessayez un peu plus tard.' }), 429);
+      } else {
+        console.error('request failed', err && err.message);
+        res = htmlResponse(errorPage({ status: 500, title: 'Erreur temporaire', text: 'Le service n’a pas pu répondre. Réessayez dans un instant ; rien n’a été enregistré en double.' }), 500);
+      }
     }
-    return secure(res);
+    const out = secure(res);
+    if (newSbx) out.headers.append('set-cookie', `${SBX_COOKIE}=${newSbx}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=172800`);
+    return out;
   },
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(resetDemo(env, { keepSessions: false }));
+    ctx.waitUntil(nightly(env));
   },
 };

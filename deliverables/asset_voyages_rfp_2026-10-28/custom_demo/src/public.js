@@ -1,14 +1,15 @@
 // Visitor side: catalogue, congress page, flight enquiry. Server-rendered, works without JavaScript.
 import {
-  html, raw, today, addDays, isIsoDate, frRange, frDate, rangeParts, norm, clean, MOIS_LONG,
+  html, raw, today, addDays, isIsoDate, frRange, frNumDate, rangeParts, norm, clean, MOIS_LONG,
   readForm, makeFormToken, checkFormToken, ipHash, rateHit, redirect, htmlResponse, nowIso, hmac, safeEqual,
 } from './lib.js';
 import { publicPage, field, errorPage } from './views.js';
-import { notificationFor, TEAM_INBOX } from './data.js';
+import { notificationFor, TEAM_INBOX, materialize, baseUrl } from './data.js';
 
 const PER_PAGE = 9;
 const MIN_FILL_MS = 3000;
-export const ENQ_LIMIT = 5; // accepted enquiries per IP hash per window
+export const ENQ_LIMIT = 5; // accepted enquiries per IP hash and sandbox per window
+export const ENQ_IP_LIMIT = 30; // accepted enquiries per IP hash per window, all sandboxes together
 export const ENQ_WINDOW = 600;
 
 function catalogueQuery(sp) {
@@ -36,14 +37,14 @@ export async function catalogue(req, env) {
   const url = new URL(req.url);
   const f = catalogueQuery(url.searchParams);
   const t = today();
-  const base = `FROM congresses WHERE status = 'publie' AND end_date >= ?`;
-  const all = (await env.DB.prepare(`SELECT discipline, country, substr(start_date,1,7) AS ym ${base}`).bind(t).all()).results || [];
+  const base = `FROM congresses WHERE sbx = ? AND status = 'publie' AND end_date >= ?`;
+  const all = (await env.DB.prepare(`SELECT discipline, country, substr(start_date,1,7) AS ym ${base}`).bind(env.SBX_EFF, t).all()).results || [];
   const uniq = (k) => [...new Set(all.map((r) => r[k]))].sort((a, b) => a.localeCompare(b, 'fr'));
   const disciplines = uniq('discipline');
   const countries = uniq('country');
   const months = [...new Set(all.map((r) => r.ym))].sort();
 
-  let where = base; const binds = [t];
+  let where = base; const binds = [env.SBX_EFF, t];
   for (const word of norm(f.q).split(/\s+/).filter(Boolean).slice(0, 8)) {
     where += ' AND instr(search_text, ?) > 0'; // instr: no LIKE pattern limits, no wildcard escaping
     binds.push(word);
@@ -87,12 +88,13 @@ export async function catalogue(req, env) {
       <p class="bar" aria-live="polite"><span class="bar__n">${total === 0 ? 'Aucun congrès trouvé' : `${total} congrès${filtered ? (total > 1 ? ' trouvés' : ' trouvé') : ''}`}</span><span>Triés par date</span></p>
       ${rows.length ? html`<ol class="rows">${rows.map((r) => { const rp = rangeParts(r.start_date, r.end_date); return html`
         <li class="row"><a class="row__a" href="/congres/${r.slug}">
-          <span class="row__date"><span class="row__days">${rp.days}</span><span class="row__months">${rp.months}</span></span>
+          <span class="row__date" aria-hidden="true"><span class="row__days">${rp.days}</span><span class="row__months">${rp.months}</span></span>
+          <span class="row__line">${frRange(r.start_date, r.end_date)}</span>
           <span class="row__main"><span class="row__t">${r.title}</span><span class="row__d">${r.discipline}</span></span>
           <span class="row__place">${r.city}, ${r.country}</span>
           <span class="row__go">Voir la fiche</span>
         </a></li>`; })}</ol>`
-      : html`<div class="empty" role="status"><h2 class="h2">Aucun congrès ne correspond.</h2><p>Essayez un autre mot, une autre discipline ou un autre mois. Un congrès absent du catalogue ? Nos conseillers le cherchent pour vous.</p><p><a class="btn btn--line" href="/">Réinitialiser la recherche</a></p></div>`}
+      : html`<div class="empty" role="status"><h2 class="h2">Aucun congrès ne correspond.</h2><p>Essayez un autre mot, une autre discipline ou un autre mois. Un congrès absent du catalogue ? Nos conseillers le cherchent pour vous.</p><p class="empty__act"><a class="btn btn--line" href="/">Réinitialiser la recherche</a><a class="btn btn--line" href="mailto:congres@example.com?subject=Recherche%20d%E2%80%99un%20congr%C3%A8s">Nous écrire</a></p></div>`}
       ${pages > 1 ? html`<nav class="pager" aria-label="Pages du catalogue">
         ${page > 1 ? html`<a class="pager__step" href="${qs(f, { page: page - 1 })}" rel="prev">Page précédente</a>` : ''}
         <ol>${Array.from({ length: pages }, (_, i) => i + 1).map((n) => html`<li><a href="${qs(f, { page: n })}"${n === page ? raw(' aria-current="page"') : ''} aria-label="Page ${n}">${n}</a></li>`)}</ol>
@@ -106,7 +108,7 @@ export async function catalogue(req, env) {
 
 async function loadPublicCongress(env, where, bind) {
   return env.DB.prepare(`SELECT c.*, g.status AS gme_status, g.valid_from AS gme_from, g.valid_to AS gme_to
-    FROM congresses c LEFT JOIN gme_codes g ON g.congress_id = c.id WHERE c.status = 'publie' AND ${where}`).bind(bind).first();
+    FROM congresses c LEFT JOIN gme_codes g ON g.congress_id = c.id AND g.sbx = c.sbx WHERE c.sbx = ? AND c.status = 'publie' AND ${where}`).bind(env.SBX_EFF, bind).first();
 }
 export const gmeOnSale = (c, t = today()) => c.gme_status === 'approuve' && (!c.gme_from || c.gme_from <= t) && (!c.gme_to || c.gme_to >= t);
 
@@ -128,13 +130,13 @@ export async function congressPage(req, env, slug, { values, errors, notice, sta
       <p class="lead cg__when">${frRange(c.start_date, c.end_date)}, ${c.city} (${c.country})</p>
       ${gmeOnSale(c, t) ? html`<p class="gme-note">Tarif congrès négocié disponible : appliqué à votre devis.</p>` : ''}
       <dl class="facts">
-        <div><dt>Dates</dt><dd>Du ${frDate(c.start_date)} au ${frDate(c.end_date)}</dd></div>
+        <div><dt>Dates</dt><dd>${frRange(c.start_date, c.end_date)}</dd></div>
         <div><dt>Ville</dt><dd>${c.city}</dd></div>
         <div><dt>Pays</dt><dd>${c.country}</dd></div>
         <div><dt>Discipline</dt><dd>${c.discipline}</dd></div>
         <div><dt>Lieu</dt><dd>${c.venue}</dd></div>
         <div><dt>Site officiel</dt><dd><a href="${c.official_url}" rel="noopener noreferrer nofollow" class="lnk">${c.official_url.replace(/^https?:\/\//, '')}</a></dd></div>
-        <div><dt>Vérifié le</dt><dd>${frDate(c.verified_on)}</dd></div>
+        <div><dt>Vérifié le</dt><dd>${frNumDate(c.verified_on)}</dd></div>
         <div><dt>Référence</dt><dd>${c.ref}</dd></div>
       </dl>
       <div class="prose"><p>${c.description}</p></div>
@@ -143,12 +145,12 @@ export async function congressPage(req, env, slug, { values, errors, notice, sta
       <h2 class="h2" id="dem-h">Demander un devis de vol</h2>
       ${past ? html`<p>Ce congrès est terminé : la demande de vol n’est plus ouverte.</p>` : html`
       <p class="aside__lead">Un conseiller ASSET prépare votre devis au départ de la ville de votre choix.</p>
-      ${notice ? html`<p class="alert" role="alert">${notice}</p>` : ''}
-      ${errCount ? html`<p class="alert" role="alert" id="form-errors" tabindex="-1">${errCount > 1 ? `${errCount} champs à corriger` : 'Un champ à corriger'} : les messages sont sous chaque champ.</p>` : ''}
+      ${notice ? html`<p class="alert" role="alert" tabindex="-1" data-focus>${notice}</p>` : ''}
+      ${errCount ? html`<p class="alert" role="alert" id="form-errors" tabindex="-1" data-focus>${errCount > 1 ? `${errCount} champs à corriger` : 'Un champ à corriger'} : les messages sont sous chaque champ.</p>` : ''}
       <form class="form" method="post" action="/demande" novalidate>
         <input type="hidden" name="_token" value="${token}">
         <input type="hidden" name="congress" value="${c.id}">
-        <div class="field field--full"><label for="f-cg">Congrès</label><input id="f-cg" value="${c.title}, ${frRange(c.start_date, c.end_date)}" readonly aria-readonly="true" tabindex="-1"></div>
+        <div class="field field--full form__cg"><p class="form__cg-l">Congrès</p><p class="form__cg-v" data-congress>${c.title}, ${frRange(c.start_date, c.end_date)}</p></div>
         ${field({ id: 'f-name', name: 'name', label: 'Nom et prénom', value: v.name, required: true, error: e.name, attrs: 'autocomplete="name" maxlength="120"', full: true })}
         ${field({ id: 'f-email', name: 'email', label: 'E-mail', type: 'email', value: v.email, required: true, error: e.email, attrs: 'autocomplete="email" maxlength="254" inputmode="email"' })}
         ${field({ id: 'f-phone', name: 'phone', label: 'Téléphone', type: 'tel', value: v.phone, required: true, error: e.phone, attrs: 'autocomplete="tel" maxlength="30"' })}
@@ -228,27 +230,28 @@ export async function submitEnquiry(req, env) {
   if (!tok.ok) return congressPage(req, env, c, { values: v, errors: e, notice: 'Le formulaire a expiré. Vérifiez vos informations puis renvoyez-le.', status: 400 });
   if (Object.keys(e).length) return congressPage(req, env, c, { values: v, errors: e, status: 422 });
 
-  const ip = await ipHash(env, req);
-  if (!(await rateHit(env, 'enq:' + ip, ENQ_LIMIT, ENQ_WINDOW))) {
+  const ip = env.IP_HASH || await ipHash(env, req);
+  const sid = await materialize(env); // this browser's private sandbox
+  if (!(await rateHit(env, `enq:${ip}:${sid}`, ENQ_LIMIT, ENQ_WINDOW)) || !(await rateHit(env, `enq:${ip}`, ENQ_IP_LIMIT, ENQ_WINDOW))) {
     return congressPage(req, env, c, { values: v, errors: {}, notice: 'Trop de demandes envoyées depuis cette connexion. Merci de réessayer dans quelques minutes ou d’appeler l’agence.', status: 429 });
   }
   const now = nowIso();
   let row;
   try {
-    row = await env.DB.prepare(`INSERT INTO enquiries (ref, congress_id, name, email, phone, company, departure_city, date_out, date_back, passengers, message, consent_at, status, form_nonce, ip_hash, created_at, updated_at)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?, 'nouvelle', ?,?,?,?) RETURNING id`)
-      .bind('tmp-' + tok.nonce, c.id, v.name, v.email, v.phone, v.company, v.departure_city, v.date_out, v.date_back, +v.passengers, v.message, now, tok.nonce, ip, now, now).first();
+    row = await env.DB.prepare(`INSERT INTO enquiries (sbx, id, ref, congress_id, name, email, phone, company, departure_city, date_out, date_back, passengers, message, consent_at, status, form_nonce, ip_hash, created_at, updated_at)
+      VALUES (?1, (SELECT COALESCE(MAX(id), 0) + 1 FROM enquiries WHERE sbx = ?1), ?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13, 'nouvelle', ?14,?15,?16,?17) RETURNING id`)
+      .bind(sid, 'tmp-' + tok.nonce, c.id, v.name, v.email, v.phone, v.company, v.departure_city, v.date_out, v.date_back, +v.passengers, v.message, now, tok.nonce, ip, now, now).first();
   } catch (err) {
     const prior = await env.DB.prepare('SELECT ref FROM enquiries WHERE form_nonce = ?').bind(tok.nonce).first();
     if (prior) return redirect(await confirmUrl(env, prior.ref));
     throw err;
   }
   const ref = `DV-${now.slice(0, 4)}-${String(row.id).padStart(4, '0')}`;
-  const n = notificationFor({ id: row.id, ref, ...v, passengers: +v.passengers }, c);
+  const n = notificationFor({ id: row.id, ref, ...v, passengers: +v.passengers }, c, baseUrl(env));
   await env.DB.batch([
-    env.DB.prepare('UPDATE enquiries SET ref = ? WHERE id = ?').bind(ref, row.id),
-    env.DB.prepare(`INSERT INTO enquiry_events (enquiry_id, at, user_id, kind, from_val, to_val) VALUES (?, ?, NULL, 'creation', NULL, 'nouvelle')`).bind(row.id, now),
-    env.DB.prepare('INSERT INTO notifications (enquiry_id, at, to_addr, subject, body) VALUES (?,?,?,?,?)').bind(row.id, now, TEAM_INBOX, n.subject, n.body),
+    env.DB.prepare('UPDATE enquiries SET ref = ? WHERE sbx = ? AND id = ?').bind(ref, sid, row.id),
+    env.DB.prepare(`INSERT INTO enquiry_events (sbx, enquiry_id, at, user_id, kind, from_val, to_val) VALUES (?, ?, ?, NULL, 'creation', NULL, 'nouvelle')`).bind(sid, row.id, now),
+    env.DB.prepare('INSERT INTO notifications (sbx, enquiry_id, at, to_addr, subject, body) VALUES (?,?,?,?,?,?)').bind(sid, row.id, now, TEAM_INBOX, n.subject, n.body),
   ]);
   return redirect(await confirmUrl(env, ref));
 }
@@ -262,10 +265,10 @@ export async function confirmation(req, env) {
   const sp = new URL(req.url).searchParams;
   const ref = sp.get('ref') || '';
   const row = /^DV-\d{4}-\d{4,6}$/.test(ref) && safeEqual(sp.get('k') || '', await confirmSig(env, ref))
-    ? await env.DB.prepare('SELECT e.ref, c.title, c.slug FROM enquiries e JOIN congresses c ON c.id = e.congress_id WHERE e.ref = ?').bind(ref).first()
+    ? await env.DB.prepare('SELECT e.ref, c.title, c.slug FROM enquiries e JOIN congresses c ON c.id = e.congress_id AND c.sbx = e.sbx WHERE e.sbx = ? AND e.ref = ?').bind(env.SBX_EFF, ref).first()
     : null;
   const body = html`<section class="thanks">
-    <h1 class="display">Merci, votre demande est enregistrée.</h1>
+    <h1 class="display" tabindex="-1" data-focus>Merci, votre demande est enregistrée.</h1>
     ${row ? html`<p class="lead">Votre référence</p><p class="ref" data-ref>${row.ref}</p>
       <p>Demande de devis vol pour <a class="lnk" href="/congres/${row.slug}">${row.title}</a>. Un conseiller ASSET vous recontacte avec une proposition ; gardez cette référence pour tout échange.</p>`
       : html`<p class="lead">Un conseiller ASSET vous recontacte avec une proposition.</p>`}

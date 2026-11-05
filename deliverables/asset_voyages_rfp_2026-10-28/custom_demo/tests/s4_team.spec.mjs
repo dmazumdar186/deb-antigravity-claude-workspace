@@ -1,21 +1,25 @@
 // S4: the team receives, views, tracks the enquiry and updates its status.
-import { test, expect, resetDemo, login, logout, csrfOf, fillEnquiry, SLUG } from './helpers.mjs';
+import { test, expect, login, logout, csrfOf, fillEnquiry, SLUG, newPage, assertClean } from './helpers.mjs';
 
 test.describe.configure({ mode: 'serial' });
 let REF;
+// The visitor and the team use one browser: one private sandbox shared by this file's tests.
+let shared;
 
 test.beforeAll(async ({ browser }) => {
-  await resetDemo(browser);
-  const ctx = await browser.newContext(); const page = await ctx.newPage();
+  shared = await newPage(browser);
+  const page = shared.page;
   await page.goto(`/congres/${SLUG.radio}`);
   await fillEnquiry(page, { name: 'Sophie Bernard (exemple)', email: 'sophie.bernard@example.com', city: 'Strasbourg', out: '2027-02-23', back: '2027-03-01', pax: '4' });
   await page.waitForTimeout(3100);
   await page.getByRole('button', { name: 'Envoyer la demande' }).click();
   REF = (await page.locator('[data-ref]').textContent()).trim();
-  await ctx.close();
 });
+test.afterEach(() => assertClean(shared.problems));
+test.afterAll(async () => { await shared.ctx.close(); });
 
-test('S4-F1 the visitor enquiry appears in Demandes with every column and status Nouvelle', async ({ page }) => {
+test('S4-F1 the visitor enquiry appears in Demandes with every column and status Nouvelle', async () => {
+  const page = shared.page;
   await login(page, 'equipe');
   await page.getByRole('navigation', { name: 'Console' }).getByRole('link', { name: /Demandes/ }).click();
   const heads = await page.locator('thead th').allTextContents();
@@ -26,7 +30,8 @@ test('S4-F1 the visitor enquiry appears in Demandes with every column and status
   await expect(row.locator('td').nth(1)).toHaveText(/\d{2}\/\d{2}\/\d{4}/);
 });
 
-test('S4-F2 filter by status and search by name or reference', async ({ page }) => {
+test('S4-F2 filter by status and search by name or reference', async () => {
+  const page = shared.page;
   await login(page, 'equipe');
   await page.goto('/console/demandes');
   await page.getByRole('link', { name: /^Gagnée \(1\)$/ }).click();
@@ -47,7 +52,8 @@ test('S4-F2 filter by status and search by name or reference', async ({ page }) 
   await expect(page.getByText('Aucune demande ne correspond.')).toBeVisible();
 });
 
-test('S4-E1 from the dashboard, open the newest enquiry and change its status in 2 clicks; home counts update', async ({ page }) => {
+test('S4-E1 from the dashboard, open the newest enquiry and change its status in 2 clicks; home counts update', async () => {
+  const page = shared.page;
   await login(page, 'equipe');
   const newBefore = +(await page.locator('[data-count="nouvelle"] b').textContent());
   const qualBefore = +(await page.locator('[data-count="qualifiee"] b').textContent());
@@ -62,7 +68,8 @@ test('S4-E1 from the dashboard, open the newest enquiry and change its status in
   await expect(page.locator('[data-count="qualifiee"] b')).toHaveText(String(qualBefore + 1));
 });
 
-test('S4-F3 S4-F4 statuses saved through the whole path, owner assigned, notes saved; history is append-only with who, when, from and to', async ({ page }) => {
+test('S4-F3 S4-F4 statuses saved through the whole path, owner assigned, notes saved; history is append-only with who, when, from and to', async () => {
+  const page = shared.page;
   await login(page, 'equipe');
   await page.goto('/console/demandes?q=' + REF);
   await page.getByRole('link', { name: REF }).click();
@@ -70,9 +77,9 @@ test('S4-F3 S4-F4 statuses saved through the whole path, owner assigned, notes s
     await page.getByRole('button', { name: s }).click();
     await expect(page.locator('.head .st')).toHaveText(s);
   }
-  await page.getByLabel('Attribuer à').selectOption({ label: 'Équipe ASSET' });
+  await page.getByLabel('Attribuer à').selectOption({ label: 'Karim Benali, Équipe' });
   await page.getByRole('button', { name: 'Attribuer', exact: true }).click();
-  await expect(page.locator('#h-o + p')).toHaveText('Équipe ASSET');
+  await expect(page.locator('#h-o + p')).toHaveText('Karim Benali, Équipe');
   await page.getByLabel('Visible uniquement par l’équipe').fill('Client rappelé, préfère un vol direct.');
   await page.getByRole('button', { name: 'Ajouter la note' }).click();
   const hist = page.locator('.hist li');
@@ -83,9 +90,9 @@ test('S4-F3 S4-F4 statuses saved through the whole path, owner assigned, notes s
   expect(joined).toContain('Statut : Qualifiée vers Devis envoyé');
   expect(joined).toContain('Statut : Devis envoyé vers Gagnée');
   expect(joined).toContain('Statut : Gagnée vers Perdue');
-  expect(joined).toContain('Responsable : aucun vers Équipe ASSET');
+  expect(joined).toContain('Responsable : aucun vers Karim Benali, Équipe');
   expect(joined).toContain('Client rappelé, préfère un vol direct.');
-  for (const l of lines.slice(1)) { expect(l).toContain('Équipe ASSET'); expect(l).toMatch(/\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}/); }
+  for (const l of lines.slice(1)) { expect(l).toContain('Karim Benali, Équipe'); expect(l).toMatch(/\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}/); }
   // no edit or delete control on history; the database refuses updates
   expect(await page.locator('#historique button, #historique form, #historique input').count()).toBe(0);
   // re-sending the same status is a no-op (idempotent), not a new history line
@@ -102,9 +109,10 @@ test('S4-F3 S4-F4 statuses saved through the whole path, owner assigned, notes s
   expect(await badOwner.text()).toContain('Responsable inconnu');
 });
 
-test('S4-F5 CSV export holds the enquiries and neutralises =, +, - and @ at the start of a cell', async ({ page, browser }) => {
+test('S4-F5 CSV export holds the enquiries and neutralises =, +, - and @ at the start of a cell', async () => {
+  const page = shared.page;
   // enquiries whose name starts with each dangerous character
-  const ctx = await browser.newContext(); const v = await ctx.newPage();
+  const v = page;
   const names = ['=cmd|\' /C calc\'!A0', '+SUM(1;2)', '-2+3', '@SUM(A1)'];
   for (const n of names) {
     await v.goto(`/congres/${SLUG.cardio}`);
@@ -113,7 +121,6 @@ test('S4-F5 CSV export holds the enquiries and neutralises =, +, - and @ at the 
     await v.getByRole('button', { name: 'Envoyer la demande' }).click();
     await expect(v.locator('[data-ref]')).toBeVisible();
   }
-  await ctx.close();
   await login(page, 'equipe');
   await page.goto('/console/demandes');
   const [dl] = await Promise.all([page.waitForEvent('download'), page.getByRole('link', { name: /Exporter/ }).click()]);

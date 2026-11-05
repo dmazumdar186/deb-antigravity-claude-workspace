@@ -125,17 +125,32 @@ test('S5-F4 + S5-E1 equipe reveals in <= 2 clicks; reveal logged; journal is Dir
 });
 
 test('S5-F3 revoke at once; S5-H1 reveal after revocation, without nonce or without permission is refused and logged', async ({ browser }) => {
+	// Equipe opens the page while the grant is active and keeps the (valid, session-bound) reveal form.
+	const { ctx, page } = await asRole(browser, 'equipe');
+	await page.goto('/wp-admin/admin.php?page=asset-gme');
+	const form = row(page, NEURO).locator('form', { has: page.locator('button', { hasText: 'Révéler' }) });
+	const body = new URLSearchParams({
+		asset_gme_action: 'reveal',
+		congres_id: await form.locator('input[name=congres_id]').inputValue(),
+		asset_nonce: await form.locator('input[name=asset_nonce]').inputValue(),
+		_wp_http_referer: '/wp-admin/admin.php?page=asset-gme',
+	}).toString();
+
 	const d = await asRole(browser, 'direction');
 	await d.page.goto('/wp-admin/admin.php?page=asset-gme-acces');
 	await d.page.locator('table.asset-access-history tr', { hasText: NEURO }).first().locator('button', { hasText: 'Révoquer' }).click();
 	await expect(d.page.locator('.notice-success')).toContainText('révoqué');
 
-	const { ctx, page } = await asRole(browser, 'equipe');
-	// Replay of the captured reveal POST after revocation.
-	let r = await page.request.post('/wp-admin/admin.php?page=asset-gme', { data: readState().revealBody, headers: { 'content-type': 'application/x-www-form-urlencoded' } });
+	// Same-session replay after revocation: valid nonce, no grant -> refused.
+	let r = await page.request.post('/wp-admin/admin.php?page=asset-gme', { data: body, headers: { 'content-type': 'application/x-www-form-urlencoded' } });
 	let html = await r.text();
 	expect(html).toContain('aucune autorisation active');
 	assertNoSecrets(html, 'replayed reveal');
+	// Replay of the reveal captured in an earlier session (nonce bound to that session) -> refused.
+	r = await page.request.post('/wp-admin/admin.php?page=asset-gme', { data: readState().revealBody, headers: { 'content-type': 'application/x-www-form-urlencoded' } });
+	html = await r.text();
+	expect(html).toMatch(/aucune autorisation active|jeton de sécurité invalide/);
+	assertNoSecrets(html, 'old-session replay');
 	// UI no longer offers reveal.
 	await page.goto('/wp-admin/admin.php?page=asset-gme');
 	expect(await row(page, NEURO).locator('button', { hasText: 'Révéler' }).count()).toBe(0);
@@ -154,7 +169,7 @@ test('S5-F3 revoke at once; S5-H1 reveal after revocation, without nonce or with
 	await k.ctx.close();
 	// Logged.
 	await d.page.goto('/wp-admin/admin.php?page=asset-gme-journal');
-	expect(await d.page.locator('tr[data-action="reveal_refused"]').count()).toBeGreaterThanOrEqual(2);
+	expect(await d.page.locator('tr[data-action="reveal_refused"]').count()).toBeGreaterThanOrEqual(3);
 	await expect(d.page.locator('tr[data-action="revoke"]').first()).toContainText(NEURO);
 	await d.ctx.close();
 });

@@ -9,6 +9,8 @@ A small but real platform covering the five functions ASSET asked every candidat
 
 One Cloudflare Worker answers every request. It builds each page on the server, so the site works with JavaScript turned off; a 1 KB script only adds comforts such as filters that apply as soon as you pick one. The data lives in one D1 database (SQLite). The fonts, the stylesheet and the script are served as static files. Every night at 03:00 UTC a scheduled trigger puts the sandbox back to its starting state.
 
+**Private sandbox per browser.** On its first visit each browser receives an HttpOnly cookie that names its own sandbox. Until that browser changes something, it reads the shared seed. Its first change copies the seed into its own sandbox (copy-on-write), and from then on it only reads and writes there. Every write is tagged with the sandbox: congresses and edits to them, enquiries, statuses, notes, notifications, GM&E requests, approvals and journal rows. Other visitors never see another browser's changes, so publishing, defacing or approving with the shared demo logins only affects the browser that did it. « Réinitialiser la démo » deletes the caller's sandbox only. The nightly cron deletes sandboxes older than 24 h and rebuilds the seed. Sandbox creation is capped at 150 per IP hash per hour and 1,500 a day overall, which keeps the demo inside the D1 free write quota.
+
 ```
  visitor / staff browser
           |  HTTPS (security headers on every response)
@@ -34,7 +36,7 @@ Source: `src/index.js` (routing, headers, cron), `src/public.js` (catalogue, con
 - **Roles checked on the server for every route and every POST.** `direction` does everything, including GM&E codes and access decisions. `equipe` handles congresses and enquiries; GM&E codes stay masked until Direction grants access. `contributeur` drafts congresses and submits them for review but cannot publish, and has no access to enquiries or codes.
 - **Passwords** are stored as PBKDF2-SHA256 hashes (WebCrypto, per-user salt). **Sessions** use a random token whose SHA-256 is stored server-side, in a cookie `__Host-av_session` marked HttpOnly, Secure, SameSite=Strict, 8 h. Logging out deletes the session on the server.
 - **CSRF**: every console POST needs the session's token and a same-origin `Origin`. The anonymous forms (enquiry, login) carry a signed token (HMAC) that also enforces the minimum fill time and blocks replay.
-- **Login throttling**: 10 failures per account per connection, 50 per connection, 15 minutes.
+- **Login throttling** (atomic): each attempt on an account increments a counter in one `INSERT … ON CONFLICT … RETURNING` before the password is checked, with 10 per account per connection; there is also a limit of 50 failures per connection, and both windows last 15 minutes. A successful login clears the account counter.
 - **Enquiry form**: all validation happens on the server (dates, past dates, return on or after outbound, e-mail, passengers 1 to 50, lengths, consent). It also has a honeypot, a 3-second minimum fill time and a limit of 5 accepted enquiries per 10 minutes per IP hash (stored in D1). It uses POST-redirect-GET. The confirmation link is signed, so references cannot be enumerated.
 - **GM&E codes** sit in their own table, encrypted with AES-GCM (random IV, key from the `GME_KEY` Worker secret, never in code or in the repo). A code is only shown in response to a server-checked POST. Each display and each refused attempt is written to the « Journal d'accès », which only Direction can read. Access is granted for 24 h and can be revoked at once. Public pages only ever say « Tarif congrès négocié disponible : appliqué à votre devis » for an approved, in-date code. No route returns a code.
 - **Headers**: CSP `default-src 'self'` with no third-party source, `frame-ancestors 'none'`, `X-Robots-Tag: noindex, nofollow`, `robots.txt` set to disallow everything, nosniff, `Referrer-Policy: same-origin`, HSTS. Every interpolated value is HTML-escaped by default. The CSV export is UTF-8 with a BOM and `;` separators; a cell starting with `= + - @` or a tab is prefixed with `'`.
@@ -66,11 +68,12 @@ Every test name starts with the gate ID it proves from `../21_Acceptance_Gates_5
 | `s3_enquiry.spec.mjs` | S3-F1, S3-F2, S3-F3, S3-F4, S3-E1, S3-H1, S3-H2, S3-H3 | 7/7 pass | 7/7 pass |
 | `s4_team.spec.mjs` | S4-F1 to S4-F6, S4-E1, S4-H1 | 7/7 pass | 7/7 pass |
 | `s5_gme.spec.mjs` | S5-F1 to S5-F5, S5-E1, S5-H1, S5-L1 (crawl), S5-L2 | 11/11 pass | 11/11 pass |
+| `fix_round1.spec.mjs` | FIX-1 to FIX-20 (eye review + adversarial findings, see below) | 18/18 pass | pending redeploy |
 | `x_cross.spec.mjs` | X1, X1 strict, X2, X3, X4, X5, security headers, cookie and logout replay, console at 390 px, hostile console input | 9/9 pass | 9/9 pass |
 | `z_screens.spec.mjs` | screenshots for X6 | 2/2 pass | 2/2 pass |
-| **Total** | | **50/50 pass** | **50/50 pass** |
+| **Total** | | **68/68 pass** | 50/50 before the fix round; re-run pending |
 
-Both full runs (local `wrangler dev`, then live deploy b48a4877) passed 49/49. « X1 strict » was added afterwards and run on its own, passing locally and live, which brings the totals to 50.
+Fix round 1, local: 68/68. Before the fix round, both full runs (local `wrangler dev`, then live deploy b48a4877) passed 49/49. « X1 strict » was added afterwards and run on its own, passing locally and live, which brings the totals to 50.
 
 Click budgets measured: S1-E1 3 (budget 4), S1-E2 3 (3), S2-E1 2 (2), S3-E1 1, S4-E1 2 (3), S5-E1 2, 2 and 2 (2 each).
 
@@ -84,6 +87,7 @@ Screenshots (`deviceScaleFactor` 1) go to `screens/NN-name-1440.png` and `screen
 
 - **0 FAIL, 0 REFLEX, 0 WARN** on both sets.
 - **Stamp** `copy: verbatim`: the seeded titles and venues end with « — exemple », which acceptance gate X3 requires, so the gate 19 dash shows as a NOTE on those data strings only. Our own copy contains no em or en dash: date ranges read « 27 au 30 août 2027 ».
+- **Dismissed F7**: at phone width each console table row becomes a card, which is the same row restacked rather than a new container.
 - **Dismissed 3**, on the record in the stamp: the orange left rule on notices, the sandbox line and the to-do links is the concept console's own banner device, kept so the real console matches what the client already saw.
 - **No small-caps waiver needed**: labels, table heads and tags are Inter in sentence case, untracked (gates 54/67 are clean), unlike the concept site's mono capitals.
 - The render tier did not run: it needs `puppeteer-core`, which is not installed here. Responsiveness, tap targets and input sizes are covered by the Playwright gates instead.
@@ -101,7 +105,24 @@ Screenshots (`deviceScaleFactor` 1) go to `screens/NN-name-1440.png` and `screen
 
 ## Known limits of the demo
 
-- The three demo accounts and their password are public by design (sandbox). Anyone can change data until the next reset.
+- The three demo accounts and their password are public by design. Changes only ever reach the browser that made them.
 - PBKDF2 uses 25,000 iterations so a login stays within the free plan's CPU budget; production would raise it.
-- One shared reset: two visitors testing at the same time see each other's changes.
+- Each browser has its own private sandbox: a colleague on another computer will not see your test enquiry. To show the whole journey, play visitor and staff in the same browser.
 - E-mail is simulated: the « Notifications » screen shows the exact message that would be sent to the team.
+
+## Fix round 1 (eye review + adversarial pass)
+
+| Test | Finding fixed |
+|---|---|
+| FIX-1, FIX-2, FIX-3 | Shared mutable sandbox replaced by a private sandbox per browser (copy-on-write); the reset and the nightly purge only touch the caller's or expired sandboxes |
+| FIX-4 | Official website must be `https://` |
+| FIX-5 | Codes can be shown or requested only when « Vérifié » or « Approuvé pour la vente »; « Détecté » and « Expiré » show a short explanation instead of a form |
+| FIX-6 | Atomic login throttle keyed by IP hash and username |
+| FIX-7 | CSRF is checked before any write: a forged reveal leaves no journal row |
+| FIX-8 | Ink text in the dark enquiry panel; placeholders at 4.5:1 or better |
+| FIX-9 | Dates as jj/mm/aaaa or « 28 au 30 janv. 2027 »; the notification e-mail uses jj/mm/aaaa and a full https link |
+| FIX-10 | Skip link only on keyboard focus; focus moves to the message after a redirect or an error |
+| FIX-11, FIX-12 | At 390 px the console menu wraps, and table rows become labelled cards |
+| FIX-13 | Fictional named users (Hélène Martin, Karim Benali, Julie Roux) in history, approvals and the journal |
+| FIX-14, FIX-15 | Prefilled congress shown as plain text; a non-breaking space before « — exemple » |
+| FIX-16 to FIX-20 | Plural tile labels, the mobile date line, « Nous écrire » in the no-result state, « Masquer le code », padding on badges |

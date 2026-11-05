@@ -1,12 +1,12 @@
 // Cross-cutting gates: X1/X2 (also enforced on every test by the fixture), X3 fictional data, X4 reset + cron, X5 Hallmark,
 // security headers, console responsiveness at 390 px, hostile console input.
-import { test, expect, resetDemo, login, csrfOf, SLUG, ROOT, LIVE, BASE, d1Count } from './helpers.mjs';
+import { test, expect, resetSandbox, login, csrfOf, SLUG, ROOT, LIVE, BASE, d1Count, sbxOf, CTX } from './helpers.mjs';
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync, copyFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 
 test.describe.configure({ mode: 'serial' });
-test.beforeAll(async ({ browser }) => { await resetDemo(browser); });
+// Each Playwright context is a fresh private sandbox, so every test starts from the seed.
 
 const PUBLIC = ['/', '/?q=zzz', '/?page=2', `/congres/${SLUG.onco}`, `/congres/${SLUG.cardio}`, '/console/connexion', '/page-inconnue'];
 const CONSOLE = ['/console', '/console/congres', '/console/congres/nouveau', '/console/congres/112', '/console/demandes', '/console/demandes/6', '/console/notifications', '/console/gme', '/console/gme/acces', '/console/gme/journal'];
@@ -23,7 +23,7 @@ test('X1 X2 zero console errors, zero failed and zero third-party requests on ev
 test('X1 strict: a page left alone (no click) has zero failed or aborted requests, ERR_ABORTED included', async ({ browser }) => {
   // The shared fixture tolerates ERR_ABORTED only because test clicks cancel in-flight loads. Here nothing is clicked,
   // so every request, aborted ones included, must complete with a status below 400.
-  const ctx = await browser.newContext();
+  const ctx = await browser.newContext(CTX);
   const page = await ctx.newPage();
   const bad = [];
   let total = 0;
@@ -50,7 +50,7 @@ test('X3 all data is fictional: titles end « — exemple », e-mails @example.c
   const titles = [];
   for (const p of ['/', '/?page=2']) { await page.goto(p); titles.push(...await page.locator('.row__t').allTextContents()); }
   expect(titles).toHaveLength(12);
-  for (const t of titles) expect(t).toMatch(/ — exemple$/);
+  for (const t of titles) expect(t).toMatch(/\u00a0— exemple$/); // non-breaking space keeps « — exemple » with its title
   await login(page, 'direction');
   await page.goto('/console/demandes');
   const contacts = await page.locator('tbody tr').count();
@@ -63,7 +63,7 @@ test('X3 all data is fictional: titles end « — exemple », e-mails @example.c
   // every revealed code follows the dummy pattern
   await page.goto('/console/gme');
   const ids = await page.locator('form[action$="/afficher"]').evaluateAll((fs) => fs.map((f) => f.getAttribute('action').split('/')[3]));
-  expect(ids.length).toBe(5);
+  expect(ids.length).toBe(3); // the three checked codes (vérifié or approuvé); détecté and expiré cannot be shown
   for (const id of ids) {
     await page.goto('/console/gme');
     await page.locator(`form[action="/console/gme/${id}/afficher"] button`).click();
@@ -73,18 +73,23 @@ test('X3 all data is fictional: titles end « — exemple », e-mails @example.c
   await expect(page.locator('footer')).toContainText('sont des exemples');
 });
 
-test('X4 Direction reset restores the seed; re-seeding twice creates no duplicates; only Direction can reset; nightly cron is set', async ({ page, browser }) => {
+test('X4 Direction reset restores the seed for this browser only; re-seeding twice creates no duplicates; only Direction can reset; nightly cron is set', async ({ page }) => {
   await login(page, 'equipe');
   await page.goto('/console/demandes/1');
   await page.getByRole('button', { name: 'Perdue' }).click();
+  const sbx = await sbxOf(page);
   const csrf = await csrfOf(page);
   const denied = await page.request.post('/console/reinitialiser', { form: { _csrf: csrf }, headers: { origin: new URL(page.url()).origin } });
   expect(denied.status()).toBe(403);
   await expect(page.locator('form[action="/console/reinitialiser"]')).toHaveCount(0);
-  await resetDemo(browser);
-  await resetDemo(browser);
-  const counts = d1Count(`SELECT (SELECT COUNT(*) FROM congresses) AS c, (SELECT COUNT(*) FROM enquiries) AS e, (SELECT COUNT(*) FROM gme_codes) AS g, (SELECT COUNT(*) FROM users) AS u, (SELECT COUNT(*) FROM gme_requests) AS r, (SELECT COUNT(*) FROM notifications) AS n, (SELECT COUNT(DISTINCT ref) FROM congresses) AS cr`)[0];
-  expect(counts).toEqual({ c: 13, e: 6, g: 5, u: 3, r: 1, n: 6, cr: 13 });
+  expect(d1Count(`SELECT COUNT(*) AS n FROM enquiries WHERE sbx = '${sbx}'`)[0].n).toBe(6);
+  await resetSandbox(page);
+  await resetSandbox(page);
+  // the browser's sandbox is gone, the shared seed is intact and has no duplicates
+  const mine = d1Count(`SELECT (SELECT COUNT(*) FROM sandboxes WHERE id = '${sbx}') AS s, (SELECT COUNT(*) FROM enquiries WHERE sbx = '${sbx}') AS e`)[0];
+  expect(mine).toEqual({ s: 0, e: 0 });
+  const seedCount = () => d1Count(`SELECT (SELECT COUNT(*) FROM congresses WHERE sbx = '') AS c, (SELECT COUNT(*) FROM enquiries WHERE sbx = '') AS e, (SELECT COUNT(*) FROM gme_codes WHERE sbx = '') AS g, (SELECT COUNT(*) FROM users) AS u, (SELECT COUNT(*) FROM gme_requests WHERE sbx = '') AS r, (SELECT COUNT(*) FROM notifications WHERE sbx = '') AS n, (SELECT COUNT(DISTINCT ref) FROM congresses WHERE sbx = '') AS cr`)[0];
+  expect(seedCount()).toEqual({ c: 13, e: 6, g: 5, u: 3, r: 1, n: 6, cr: 13 });
   await page.goto('/console/demandes/1');
   await expect(page.locator('.head .st')).toHaveText('Gagnée');
   // cron trigger registered (03:00 UTC daily) and the scheduled handler converges to the same seed
@@ -93,8 +98,8 @@ test('X4 Direction reset restores the seed; re-seeding twice creates no duplicat
   if (!LIVE) {
     const r = await page.request.get('/cdn-cgi/handler/scheduled?cron=0+3+*+*+*');
     expect(r.status()).toBe(200);
-    const after = d1Count('SELECT COUNT(*) AS e FROM enquiries')[0].e;
-    expect(after).toBe(6);
+    await expect.poll(() => seedCount().e).toBe(6);
+    expect(seedCount()).toEqual({ c: 13, e: 6, g: 5, u: 3, r: 1, n: 6, cr: 13 });
   } else {
     const out = execFileSync('curl', ['-s', `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/workers/scripts/asset-voyages-demo/schedules`, '-H', `Authorization: Bearer ${process.env.CLOUDFLARE_API_TOKEN}`], { encoding: 'utf8' });
     expect(JSON.parse(out).result.schedules.map((s) => s.cron)).toContain('0 3 * * *');
@@ -164,8 +169,7 @@ test('X session cookie is HttpOnly, Secure, SameSite=Strict; logout invalidates 
 });
 
 test('X console at 390 px: no horizontal page overflow, inputs at least 16 px, tap targets at least 44 px', async ({ browser }) => {
-  await resetDemo(browser); // clears the login throttle
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
+  const ctx = await browser.newContext({ ...CTX, viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
   const page = await ctx.newPage();
   await login(page, 'direction');
   for (const url of CONSOLE) {

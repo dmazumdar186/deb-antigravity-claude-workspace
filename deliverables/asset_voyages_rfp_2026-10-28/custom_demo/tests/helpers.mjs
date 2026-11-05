@@ -18,40 +18,62 @@ export const SLUG = {
   draft: 'journees-de-rhumatologie-cg-0113',
 };
 
+// Watches one page for console errors, failed sub-resources and third-party requests (X1, X2).
+export function watchPage(page) {
+  const origin = new URL(BASE).origin;
+  const problems = { console: [], failed: [], thirdParty: [], docErrors: new Set() };
+  page.on('response', (r) => {
+    if (r.request().resourceType() === 'document') { if (r.status() >= 400) problems.docErrors.add(r.url()); return; }
+    if (r.status() >= 400) problems.failed.push(`${r.url()} HTTP ${r.status()}`); // a sub-resource the server failed to deliver
+  });
+  page.on('console', (m) => {
+    if (m.type() !== 'error') return;
+    const u = m.location()?.url || '';
+    // A deliberate 4xx page (hostile tests) is not a page defect.
+    if (/Failed to load resource/.test(m.text()) && problems.docErrors.has(u)) return;
+    problems.console.push(`${m.text()} @ ${u}`);
+  });
+  page.on('pageerror', (e) => problems.console.push('pageerror: ' + e.message));
+  page.on('requestfailed', (r) => {
+    const f = r.failure()?.errorText || '';
+    // ERR_ABORTED is Chromium cancelling an in-flight load because the test clicked on (or a download began):
+    // not a delivery failure. « X1 strict » covers pages left alone, aborted loads included.
+    if (/ERR_ABORTED|NS_BINDING_ABORTED/.test(f)) return;
+    if (r.url().endsWith('.csv') || r.url().includes('export.csv')) return;
+    problems.failed.push(`${r.url()} ${f}`);
+  });
+  page.on('request', (r) => {
+    const u = r.url();
+    if (u.startsWith('data:') || u.startsWith('blob:') || u.startsWith('about:')) return;
+    if (new URL(u).origin !== origin) problems.thirdParty.push(u);
+  });
+  page.on('dialog', (d) => d.accept().catch(() => {}));
+  return problems;
+}
+export function assertClean(problems) {
+  expect(problems.console, 'X1 console errors').toEqual([]);
+  expect(problems.failed, 'X1 failed requests').toEqual([]);
+  expect(problems.thirdParty, 'X2 third-party requests').toEqual([]);
+  problems.console.length = 0; problems.failed.length = 0; problems.thirdParty.length = 0;
+}
+// A browser context with the same settings as the config (French locale, Paris time): one context = one private sandbox.
+export const CTX = { baseURL: BASE, locale: 'fr-FR', timezoneId: 'Europe/Paris', deviceScaleFactor: 1, viewport: { width: 1440, height: 900 } };
+export async function newPage(browser, extra = {}) {
+  const ctx = await browser.newContext({ ...CTX, ...extra });
+  const page = await ctx.newPage();
+  const problems = watchPage(page);
+  return { ctx, page, problems };
+}
+export async function sbxOf(page) {
+  if (!(await page.context().cookies()).some((c) => c.name === '__Host-av_sbx')) await page.request.get('/robots.txt').then(() => page.request.get('/'));
+  return (await page.context().cookies()).find((c) => c.name === '__Host-av_sbx').value;
+}
+
 export const test = base.extend({
   watch: [async ({ page }, use) => {
-    const origin = new URL(BASE).origin;
-    const problems = { console: [], failed: [], thirdParty: [], docErrors: new Set() };
-    page.on('response', (r) => {
-      if (r.request().resourceType() === 'document') { if (r.status() >= 400) problems.docErrors.add(r.url()); return; }
-      if (r.status() >= 400) problems.failed.push(`${r.url()} HTTP ${r.status()}`); // a sub-resource the server failed to deliver
-    });
-    page.on('console', (m) => {
-      if (m.type() !== 'error') return;
-      const u = m.location()?.url || '';
-      // A deliberate 4xx page (hostile tests) is not a page defect.
-      if (/Failed to load resource/.test(m.text()) && problems.docErrors.has(u)) return;
-      problems.console.push(`${m.text()} @ ${u}`);
-    });
-    page.on('pageerror', (e) => problems.console.push('pageerror: ' + e.message));
-    page.on('requestfailed', (r) => {
-      const f = r.failure()?.errorText || '';
-      // ERR_ABORTED is Chromium cancelling an in-flight load because the page navigated on (a fast click) or a download began:
-      // not a delivery failure. Real failures (DNS, reset, 4xx/5xx on sub-resources) are still counted.
-      if (/ERR_ABORTED|NS_BINDING_ABORTED/.test(f)) return;
-      if (r.url().endsWith('.csv') || r.url().includes('export.csv')) return;
-      problems.failed.push(`${r.url()} ${f}`);
-    });
-    page.on('request', (r) => {
-      const u = r.url();
-      if (u.startsWith('data:') || u.startsWith('blob:') || u.startsWith('about:')) return;
-      if (new URL(u).origin !== origin) problems.thirdParty.push(u);
-    });
-    page.on('dialog', (d) => d.accept());
+    const problems = watchPage(page);
     await use(problems);
-    expect(problems.console, 'X1 console errors').toEqual([]);
-    expect(problems.failed, 'X1 failed requests').toEqual([]);
-    expect(problems.thirdParty, 'X2 third-party requests').toEqual([]);
+    assertClean(problems);
   }, { auto: true }],
 });
 export { expect };
@@ -73,15 +95,11 @@ export async function logout(page) {
   await expect(page).toHaveURL(/connexion/);
 }
 
-// Restores the seed through the real Direction button (X4).
-export async function resetDemo(browser) {
-  const ctx = await browser.newContext({ baseURL: BASE });
-  const page = await ctx.newPage();
-  page.on('dialog', (d) => d.accept());
+// Restores the seed for THIS browser's sandbox through the real Direction button (X4). Other browsers are untouched.
+export async function resetSandbox(page) {
   await login(page, 'direction');
   await page.getByRole('button', { name: 'Réinitialiser la démo' }).click();
-  await expect(page.getByText('La démonstration a été réinitialisée')).toBeVisible();
-  await ctx.close();
+  await expect(page.getByText('La démonstration a été réinitialisée').first()).toBeVisible();
 }
 
 export const csrfOf = async (page) => page.locator('input[name="_csrf"]').first().inputValue();
@@ -118,7 +136,7 @@ export async function postEnquiry(request, slug, fields, { wait = 3100, token } 
     date_out: '2027-08-26', date_back: '2027-08-31', passengers: '2', message: '', consent: '1', website: '', ...fields,
   };
   for (const k of Object.keys(form)) if (form[k] === undefined) delete form[k];
-  const res = await request.post('/demande', { form, maxRedirects: 0 });
+  const res = await request.post('/demande', { form, maxRedirects: 0, headers: { origin: new URL(BASE).origin } });
   return { res, token: tok, text: await res.text() };
 }
 

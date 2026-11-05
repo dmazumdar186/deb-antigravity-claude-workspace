@@ -1,5 +1,5 @@
 // Screenshots of the key visitor and console screens at 1440 and 390 (deviceScaleFactor 1) for the eye review (X6).
-import { test, expect, resetDemo, login, fillEnquiry, SLUG, ROOT } from './helpers.mjs';
+import { test, expect, login, fillEnquiry, SLUG, ROOT, CTX } from './helpers.mjs';
 import { join } from 'node:path';
 import { mkdirSync } from 'node:fs';
 
@@ -9,10 +9,10 @@ mkdirSync(OUT, { recursive: true });
 
 for (const [w, h] of [[1440, 900], [390, 844]]) {
   test(`screens at ${w}px`, async ({ browser }) => {
-    await resetDemo(browser);
-    const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 1, isMobile: w < 500, hasTouch: w < 500 });
+    const ctx = await browser.newContext({ ...CTX, viewport: { width: w, height: h }, deviceScaleFactor: 1, isMobile: w < 500, hasTouch: w < 500 });
     const page = await ctx.newPage();
     page.on('dialog', (d) => d.accept());
+    // the screens are taken in one browser, so every step lands in that browser's private sandbox
     const shot = async (name) => { await page.evaluate(() => document.fonts.ready); await page.screenshot({ path: join(OUT, `${name}-${w}.png`), fullPage: true }); };
     await page.goto('/'); await shot('01-catalogue');
     await page.goto('/?discipline=Cardiologie'); await shot('02-catalogue-cardiologie');
@@ -63,6 +63,5 @@ for (const [w, h] of [[1440, 900], [390, 844]]) {
     await login(page, 'contributeur');
     await page.goto('/console/congres/nouveau'); await shot('22-congres-nouveau-contributeur');
     await ctx.close();
-    await resetDemo(browser);
   });
 }

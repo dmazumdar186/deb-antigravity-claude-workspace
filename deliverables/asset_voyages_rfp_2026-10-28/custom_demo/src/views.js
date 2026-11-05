@@ -2,7 +2,7 @@
 import { html, raw } from './lib.js';
 
 // Bump when app.css or app.js change: assets are cached for a year under a versioned URL.
-export const ASSET_V = '2';
+export const ASSET_V = '3';
 
 const head = (title, description) => html`<html lang="fr"><head>
 <meta charset="utf-8">
@@ -66,7 +66,7 @@ export function consolePage({ title, user, csrf, current, body, badges = {} }) {
     <a href="/">Voir le site public</a>
   </nav>
   <main id="main" class="cmain">
-    <p class="sandbox">Bac à sable : données fictives, aucun e-mail réel n’est envoyé.</p>
+    <p class="sandbox">Bac à sable privé : données fictives, vos essais ne sont visibles que dans ce navigateur, aucun e-mail réel n’est envoyé.</p>
     ${body}
   </main>
 </div>
@@ -81,8 +81,9 @@ export function loginPage({ token, error, next, notice }) {
   <div class="login__card">
     <a class="brand brand--ink" href="/">ASSET <span>Voyages</span></a>
     <h1 class="h1">Espace équipe</h1>
-    ${notice ? html`<p class="ok" role="status">${notice}</p>` : ''}
-    ${error ? html`<p class="alert" role="alert">${error}</p>` : ''}
+    <p class="private">Votre bac à sable est privé : vos essais ne sont visibles que dans ce navigateur.</p>
+    ${notice ? html`<p class="ok" role="status" tabindex="-1" data-focus>${notice}</p>` : ''}
+    ${error ? html`<p class="alert" role="alert" tabindex="-1" data-focus>${error}</p>` : ''}
     <form method="post" action="/console/connexion" class="stack">
       <input type="hidden" name="_token" value="${token}">
       <input type="hidden" name="next" value="${next || ''}">
@@ -95,9 +96,9 @@ export function loginPage({ token, error, next, notice }) {
     <h2 id="demo-h" class="h3">Comptes de démonstration</h2>
     <p>Mot de passe pour les trois comptes : <code>demo-asset</code> (bac à sable).</p>
     <dl class="accounts">
-      <div><dt><code>direction</code></dt><dd>Direction ASSET : tout, y compris les codes GM&amp;E et les autorisations.</dd></div>
-      <div><dt><code>equipe</code></dt><dd>Équipe ASSET : congrès et demandes ; codes GM&amp;E masqués, accès sur demande.</dd></div>
-      <div><dt><code>contributeur</code></dt><dd>Prépare des brouillons et les soumet à relecture, sans publier.</dd></div>
+      <div><dt><code>direction</code></dt><dd>Hélène Martin, Direction ASSET : tout, y compris les codes GM&amp;E et les autorisations.</dd></div>
+      <div><dt><code>equipe</code></dt><dd>Karim Benali, Équipe ASSET : congrès et demandes ; codes GM&amp;E masqués, accès sur demande.</dd></div>
+      <div><dt><code>contributeur</code></dt><dd>Julie Roux, contributrice : prépare des brouillons et les soumet à relecture, sans publier.</dd></div>
     </dl>
   </aside>
 </main>
@@ -105,7 +106,7 @@ export function loginPage({ token, error, next, notice }) {
 }
 
 export function errorPage({ status, title, text, user, csrf, back = '/' }) {
-  const body = html`<section class="msg"><h1 class="h1">${title}</h1><p>${text}</p><p><a class="btn btn--line" href="${back}">Revenir</a></p></section>`;
+  const body = html`<section class="msg"><h1 class="h1" tabindex="-1" data-focus>${title}</h1><p>${text}</p><p><a class="btn btn--line" href="${back}">Revenir</a></p></section>`;
   if (user) return consolePage({ title, user, csrf, current: '', body });
   return publicPage({ title: `${title} | ASSET Voyages`, body, current: '' });
 }

@@ -17,3 +17,6 @@ database_id = "b66464ee-8255-44c7-a6b0-55ef7285a9b2"
 # Daily sandbox reset, 03:00 UTC (free tier: cron triggers are included).
 [triggers]
 crons = ["0 3 * * *"]
+
+[vars]
+PUBLIC_URL = "https://asset-voyages-demo.debanjan186.workers.dev"

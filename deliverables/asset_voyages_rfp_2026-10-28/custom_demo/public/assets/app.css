@@ -1,6 +1,7 @@
 /* Hallmark · v2.0.0 · theme: ASSET concept (by request: the client's concept-site tokens, paper, ink, navy, orange; EB Garamond + Inter) · genre: editorial · shape: Index-First catalogue + app screen console · job: enquire · hero: Settled, headline and the search on the first screen · nav: ink bar, wordmark left, two links right · footer: a mast, wordmark over two links · posture: restrained · copy: verbatim (seeded congress titles and venues end « — exemple », required by acceptance gate X3; our own copy carries no dash) · signature: the catalogue rows, each led by its set dates */
 /* Hallmark · pre-emit critique: P4 H4 E4 S4 R5 V4 · weakest: S, a catalogue is familiar by design; the set date column and the ink enquiry panel carry it */
 /* Hallmark · dismissed 3 · the orange left rule on notices, the sandbox line and the to-do links is the client concept console's own banner device, kept so both consoles read as one product */
+/* Hallmark · dismissed F7 · console tables turn each row into a card at phone width (eye review fix 5), so the sixth box is the same table row restacked, not a new container */
 
 @font-face{font-family:"EB Garamond";src:url(/assets/fonts/EBGaramond.woff2) format("woff2");font-weight:400 800;font-style:normal;font-display:swap}
 @font-face{font-family:"EB Garamond";src:url(/assets/fonts/EBGaramond-Italic.woff2) format("woff2");font-weight:400;font-style:italic;font-display:swap}
@@ -9,7 +10,7 @@
 :root{
   --paper:#F2EEE5;--paper2:#E9E3D6;--card:#FFFDF8;--ink:#0A1F30;--navy:#0D3048;--or:#EF760D;--or-ink:#9A4705;--or-soft:#F7A35C;
   --on-ink:#FBF8F2;--on-ink-muted:rgb(251 248 242 / .8);--on-ink-rule:rgb(251 248 242 / .22);
-  --muted:rgb(10 31 48 / .74);--rule:rgb(10 31 48 / .16);--rule-strong:rgb(10 31 48 / .34);--hover:rgb(255 255 255 / .6);--shadow:rgb(10 31 48 / .08);
+  --muted:rgb(10 31 48 / .74);--placeholder:#5B6670;--rule:rgb(10 31 48 / .16);--rule-strong:rgb(10 31 48 / .34);--hover:rgb(255 255 255 / .6);--shadow:rgb(10 31 48 / .08);
   --st-new-bg:#FDE7D3;--st-new:#7A3A04;--st-wip-bg:#E1ECF0;--st-wip:#0D3048;--st-done-bg:#E2F0D6;--st-done:#2F5212;
   --st-rev-bg:#FFF1C9;--st-rev:#6B4E00;--st-draft-bg:#ECE9E2;--st-draft:#4A4740;--st-lost-bg:#F6E0DC;--st-lost:#7D2A1C;
   --serif:"EB Garamond",Georgia,"Times New Roman",serif;--sans:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;--mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
@@ -29,7 +30,8 @@ button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--or);outline-offset:3px}
 .sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .skip{position:fixed;left:16px;top:-80px;z-index:100;background:var(--ink);color:var(--on-ink);padding:12px 16px;border-radius:var(--r1)}
-.skip:focus{top:16px}
+.skip:focus-visible{top:16px}
+[tabindex="-1"]:focus{outline:none}
 code{font:500 .92em/1 var(--mono);background:var(--paper2);padding:4px 8px;border-radius:var(--r1)}
 q{quotes:"« " " »"}
 
@@ -61,12 +63,19 @@ q{quotes:"« " " »"}
 /* fields */
 .field{display:grid;gap:8px;min-width:0;align-content:start}
 .field label,.disc legend{font:600 15px/1.3 var(--sans);color:var(--ink)}
-.field input,.field select,.field textarea{width:100%;min-height:48px;padding:12px 12px;border:1px solid var(--rule-strong);border-radius:var(--r1);background:var(--card);font-size:16px;line-height:1.4;transition:border-color var(--dur-micro) ease}
+.field input,.field select,.field textarea{width:100%;min-height:48px;padding:12px 12px;border:1px solid var(--rule-strong);border-radius:var(--r1);background:var(--card);color:var(--ink);font-size:16px;line-height:1.4;transition:border-color var(--dur-micro) ease}
 .field input:hover,.field select:hover,.field textarea:hover{border-color:var(--ink)}
 .field input:focus-visible,.field select:focus-visible,.field textarea:focus-visible{outline:2px solid var(--or);outline-offset:0;border-color:var(--or)}
 .field input:disabled,.field textarea:disabled{opacity:.6;cursor:not-allowed}
 .field input[readonly]{background:var(--paper2);cursor:default}
 .field textarea{resize:vertical;min-height:96px}
+.field ::placeholder{color:var(--placeholder);opacity:1}
+.form__cg{gap:4px}
+.form__cg-l{font:600 15px/1.3 var(--sans)}
+.form__cg-v{padding:12px 16px;background:var(--navy);border:1px solid var(--on-ink-rule);border-radius:var(--r1);color:var(--on-ink);overflow-wrap:break-word}
+.private{font-size:15px;padding:8px 12px;background:var(--paper);border-radius:var(--r1)}
+.empty__act{display:flex;flex-wrap:wrap;gap:12px}
+.row__line{display:none}
 .field--full{grid-column:1/-1}
 .field--err input,.field--err select,.field--err textarea{border-color:var(--or-ink);border-width:2px}
 .req{color:var(--or-ink)}
@@ -204,7 +213,8 @@ main{display:block}
 .tbl td.num{font-variant-numeric:tabular-nums;text-align:right}
 .tbl a{font-weight:600;display:inline-flex;align-items:center;min-height:44px;min-width:44px;margin:-12px 0}
 .tbl tbody tr:last-child td{border-bottom:0}
-.st{display:inline-block;padding:4px 12px;border-radius:var(--pill);font-size:13px;font-weight:600;white-space:nowrap}
+.st{display:inline-block;padding:4px 12px;border-radius:var(--pill);font-size:13px;line-height:20px;font-weight:600;white-space:nowrap;vertical-align:middle}
+.facts dd .st,.head .st{margin:0}
 .st--new{background:var(--st-new-bg);color:var(--st-new)}.st--wip{background:var(--st-wip-bg);color:var(--st-wip)}.st--done,.st--pub{background:var(--st-done-bg);color:var(--st-done)}
 .st--rev{background:var(--st-rev-bg);color:var(--st-rev)}.st--draft,.st--arch{background:var(--st-draft-bg);color:var(--st-draft)}.st--lost{background:var(--st-lost-bg);color:var(--st-lost)}
 .edit{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:20px;align-items:start}
@@ -258,8 +268,8 @@ main{display:block}
   .cat__grid,.cg__grid{grid-template-columns:minmax(0,1fr)}
   .filters,.cg__aside{position:static}
   .shell{grid-template-columns:minmax(0,1fr);min-height:0}
-  .side{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--rule);padding:8px 12px;gap:4px}
-  .side a{flex:none;white-space:nowrap}
+  .side{flex-direction:row;flex-wrap:wrap;border-right:0;border-bottom:1px solid var(--rule);padding:8px 12px;gap:4px}
+  .side a{flex:none;white-space:nowrap;border:1px solid var(--rule)}
   .side a:last-child{margin-top:0}
   .login{grid-template-columns:minmax(0,1fr)}
 }
@@ -268,12 +278,24 @@ main{display:block}
   .top__note{order:3;width:100%;font-size:13px}
   .top__nav{margin-left:auto}
   .foot__in{grid-template-columns:minmax(0,1fr)}
-  .row__a{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"d p" "t t";gap:8px 16px;padding:20px 4px}
-  .row__date{grid-area:d;display:flex;align-items:baseline;gap:8px}
+  .row__a{grid-template-columns:minmax(0,1fr);grid-template-areas:"d" "t" "p";gap:4px;padding:20px 4px}
   .row__days{font-size:24px}
   .row__main{grid-area:t}
-  .row__place{grid-area:p;text-align:right;color:var(--muted)}
+  .row__place{grid-area:p;color:var(--muted)}
   .row__go{display:none}
+  .row__date{display:none}
+  .row__line{display:block;grid-area:d;font-size:15px;font-weight:600}
+  .wrap{overflow:visible;border:0;background:transparent}
+  .tbl,.tbl tbody,.tbl tr,.tbl td{display:block;width:100%}
+  .tbl thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  .tbl tr{background:var(--card);border:1px solid var(--rule);border-radius:var(--r2);padding:8px 16px;margin-bottom:12px}
+  .tbl td{display:grid;grid-template-columns:112px minmax(0,1fr);gap:12px;padding:8px 0;border-bottom:1px solid var(--rule);white-space:normal}
+  .tbl td::before{content:attr(data-label);color:var(--muted);font-size:14px}
+  .tbl td.wide{min-width:0}
+  .tbl td.num{text-align:left}
+  .tbl tbody tr:last-child td{border-bottom:1px solid var(--rule)}
+  .tbl tr td:last-child,.tbl tbody tr:last-child td:last-child{border-bottom:0}
+  .tbl a{margin:0}
   .row__t{font-size:22px}
   .facts>div,.facts--tight>div{grid-template-columns:minmax(0,1fr);gap:4px}
   .cg__aside .form,.card.form{grid-template-columns:minmax(0,1fr)}

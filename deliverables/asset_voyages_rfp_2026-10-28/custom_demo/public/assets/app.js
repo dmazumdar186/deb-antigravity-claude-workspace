@@ -17,8 +17,9 @@
     });
   }
   // After a failed submission, move focus to the summary so screen readers hear it.
-  var errs = document.getElementById('form-errors');
-  if (errs) errs.focus();
+  // After a redirect or a validation error, move focus to the message (or the page heading) so it is announced.
+  var focusTarget = document.querySelector('[data-focus]');
+  if (focusTarget) focusTarget.focus({ preventScroll: false });
   // Prevent double submission.
   document.querySelectorAll('form[method="post"]').forEach(function (f) {
     f.addEventListener('submit', function (e) {
