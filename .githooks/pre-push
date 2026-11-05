@@ -29,6 +29,22 @@ elif command -v python >/dev/null 2>&1; then
 elif command -v python3 >/dev/null 2>&1; then
     PY=python3
 else
+    PY=""
+fi
+
+# Audit gate (2026-11-05, CLAUDE.md build contract item 3) runs FIRST and unconditionally:
+# updates of refs/heads/main need a signed pipeline-auditor PASS for the exact tree; the step
+# fails CLOSED for main when python or audit_gate.py is missing. Git's ref list is on stdin.
+# See directives/infrastructure/audit_gate.md.
+HOOK_DIR=$(cd "$(dirname "$0")" && pwd)
+AUDIT_STEP="$HOOK_DIR/pre-push.d/audit-gate"
+if [ -f "$AUDIT_STEP" ]; then
+    sh "$AUDIT_STEP" "$PY" || exit 1
+else
+    echo "[pre-push] $AUDIT_STEP missing — audit gate not run." >&2
+fi
+
+if [ -z "$PY" ]; then
     echo "[pre-push] python not on PATH — cannot run workspace_sast.py. Skipping check." >&2
     exit 0
 fi

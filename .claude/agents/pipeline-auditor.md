@@ -67,10 +67,13 @@ For every verification point:
 
 ## Output Format
 
+The `Verdict:` and `Audited commit:` lines are machine-read by `execution/infrastructure/audit_gate.py` (SubagentStop): only a PASS naming a resolvable commit records a signed audit, and pushes to `main` are blocked without one. Rules: exactly one line `Verdict: PASS`, `Verdict: FAIL` or `Verdict: WARNINGS` (uppercase, optionally wrapped in `**`, nothing after it); no other line may start with `Verdict:`; findings and warnings go in their own section. Exactly one `Audited commit: <full sha>` line (no `HEAD:` line). Audit a committed tree (commit first); uncommitted edits are not covered.
+
 ```
 ## Audit Report: {task description}
 
-**Verdict: PASS / FAIL / WARNINGS**
+**Verdict: {one of PASS, FAIL, WARNINGS}**
+**Audited commit: {full 40-char output of `git rev-parse HEAD` for the code you audited}**
 
 ### What Was Done
 - {summary of completed work, as you understand it}
