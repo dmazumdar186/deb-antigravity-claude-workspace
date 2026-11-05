@@ -10,6 +10,7 @@ Operator decision 2026-11-05: "from now on make such LinkedIn videos to post eve
 - `deliverables/linkedin_videos/<slug>_<YYYY-MM-DD>/`: `prodcraft-wkNN-<slug>.mp4` (1080×1350, 30 fps, ~30 s,
   original score, no voice), `SCRIPT.md` (beats + post text + decisions), `FACTS.md` (every on-screen claim → source line),
   `film_src/` (index.html, main.js, mix.py, fonts.css).
+  Not committed (regenerate before re-rendering): the woff2 font files referenced by `fonts/fonts.css` and `events.json` (written by the render step); `film_src/` alone does not reproduce the film.
 - One line to the operator: episode number, title, path, gate status. The operator posts by hand; we never post.
 
 ## Inputs

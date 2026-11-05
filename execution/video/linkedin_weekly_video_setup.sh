@@ -22,7 +22,8 @@ if [ ! -x "$T/ffmpeg7/bin/ffmpeg" ]; then
   ln -sf "$("$T/ffmpeg7/v/bin/python" -c 'import imageio_ffmpeg;print(imageio_ffmpeg.get_ffmpeg_exe())')" "$T/ffmpeg7/bin/ffmpeg"
 fi
 
-CHROME=$(ls -d /opt/pw-browsers/chromium_headless_shell-*/chrome-headless-shell-linux64/chrome-headless-shell 2>/dev/null | head -1)
+CHROME=$(ls -d /opt/pw-browsers/chromium_headless_shell-*/chrome-headless-shell-linux64/chrome-headless-shell 2>/dev/null | head -1 || true)
+[ -n "$CHROME" ] || { echo "error: no Playwright chromium headless shell under /opt/pw-browsers (cloud container only; Windows not supported)" >&2; exit 1; }
 cat > "$T/lemo_env.sh" <<EOF
 export PATH=$T/ffmpeg7/bin:\$PATH
 export PLAYWRIGHT_CHROME=$CHROME

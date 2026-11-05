@@ -2,13 +2,15 @@
 # Usage: .venv/bin/python mix.py <lemo-opuscar root> <film dir>   -> <film dir>/out/mix.wav
 # Instruments: VSCO 2 CE + VCSL only (both CC0, Versilian Studios). No piano, no voice.
 import sys, json
+if len(sys.argv) != 3:
+    sys.exit('usage: mix.py <lemo-opuscar root> <film dir>')
 sys.path.insert(0, sys.argv[1])
 import numpy as np, soundfile as sf
 from core.audio import sampler as S, sfx
 from core.audio.sfx import SR, add
 
 FILM = sys.argv[2]
-meta = json.load(open(FILM + '/events.json'))
+meta = json.load(open(FILM + '/events.json', encoding='utf-8'))
 DUR, EV = meta['dur'], meta['ev']
 S.seed(3)
 B = 60 / 90                       # 90 bpm, calm
