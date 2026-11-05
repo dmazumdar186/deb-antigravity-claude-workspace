@@ -1543,9 +1543,9 @@ _LOOKUPS = {"which", "whereis", "type", "hash", "whatis", "apropos"}
 def _is_lookup(toks: list[str]) -> bool:
     """True if this simple command (from its program word on) is a read-only lookup:
     `which x`, `type -a x`, `command -v x` / `command -V x` (bare `command x` runs x)."""
-    if not toks:
-        return False
-    name = re.split(r"[/\\]", toks[0])[-1].lower()
+    if not toks or "/" in toks[0] or "\\" in toks[0]:
+        return False  # `./qa/which` is a script that happens to share the name
+    name = toks[0].lower()
     if name in _LOOKUPS:
         return True
     return name == "command" and len(toks) > 1 and toks[1] in ("-v", "-V")
@@ -3276,12 +3276,30 @@ def mask_test_literals(text: str) -> str:
     calls) and literals naming an endpoint (URL, host, @scope/pkg, smtp) stay scanned."""
     def sub(m: re.Match) -> str:
         lit = m.group(0)
-        return lit if _ENDPOINT_LIT_RE.search(lit) else lit[0] + " " * (len(lit) - 2) + lit[-1]
+        if _ENDPOINT_LIT_RE.search(lit):
+            return lit
+        if sender_hit(lit.lower(), lit) and not (
+                _SELECTOR_POS_RE.search(text, max(0, m.start() - 80), m.start())
+                and not re.search(r"\s", lit[1:-1])):
+            return lit  # a sender word outside selector/form-value position may be a call
+        return lit[0] + " " * (len(lit) - 2) + lit[-1]
     return _LITERAL_RE.sub(sub, text)
 
 
+# Selector / form-value position: first argument of a Playwright, Cypress, Selenium or DOM
+# locator call, or the value argument of fill/type (`page.fill('#to', 'x')`).
+_SELECTOR_POS_RE = re.compile(
+    r"(?:\.(?:click|dblclick|tap|hover|focus|check|uncheck|fill|type|press|presssequentially|"
+    r"selectoption|setinputfiles|locator|waitforselector|queryselector(?:all)?|getby\w+|"
+    r"\$\$?eval|\$\$?|find_elements?|get|contains|find)|\bby\.\w+|\$)\s*\(\s*"
+    r"(?:(?:'[^'\n]*'|\"[^\"\n]*\")\s*,\s*)?\Z", re.I)
+# False while the command runs something through a shell: a test-suffixed file run by
+# `bash qa/x.mjs` is shell code, where a quoted string can be a command.
+_MASK_OK = [True]
+
+
 def _test_body(path: str | Path, body: str) -> str:
-    return mask_test_literals(body) if is_test_path(path) else body
+    return mask_test_literals(body) if _MASK_OK[0] and is_test_path(path) else body
 
 
 def _scan_file(p: Path, label: str) -> str | None:
@@ -3493,6 +3511,20 @@ def code_env_error(outer: str, cwd: Path) -> str | None:
 def _bash_hit(command: str, outer: str, docs: list[tuple[str, str]], cwd: Path,
               vars_: dict[str, str], bases: list[Path], pp: list[Path],
               expanded: str) -> str | None:
+    # Test-file literal masking is off when anything runs through a shell (`bash qa/x.mjs`).
+    _MASK_OK[0] = not any(
+        re.split(r"[/\\]", w)[-1].lower() in ("sh", "bash", "zsh", "dash", "ksh", "busybox",
+                                               "source", ".", "eval")
+        for w in command_words(expanded) + [w for o, _b in docs for w in command_words(o)])
+    try:
+        return _bash_hit_inner(command, outer, docs, cwd, vars_, bases, pp, expanded)
+    finally:
+        _MASK_OK[0] = True
+
+
+def _bash_hit_inner(command: str, outer: str, docs: list[tuple[str, str]], cwd: Path,
+                    vars_: dict[str, str], bases: list[Path], pp: list[Path],
+                    expanded: str) -> str | None:
     mh = mailer_hit(expanded)
     if mh:
         return mh
@@ -3569,7 +3601,7 @@ def _heredoc_scan_text(opener: str, body: str) -> str:
     words = [re.split(r"[/\\]", w)[-1] for w in command_words(head)]
     if targets and words and all(is_test_path(t) for t in targets) and \
             all(w in ("cat", "tee") for w in words):
-        return mask_test_literals(body)
+        return mask_test_literals(body) if _MASK_OK[0] else body
     return body
 
 
@@ -3712,9 +3744,27 @@ def _shell_children_hit(p: Path, cwd: Path) -> str | None:
     body = _safe_read(p)
     if not body:
         return None
-    if not p.suffix and body.startswith("#!") and not re.match(
-            r"#!\s*\S*/(?:env\s+(?:-\S+\s+)*)?(?:ba|z|da|k)?sh\b", body):
-        return None  # a node/python console script (`#!/usr/bin/env node`), not shell
+    sb = re.match(r"#![ \t]*(\S+)((?:[ \t]+\S+)*)", body) if not p.suffix else None
+    if sb:
+        words = [re.split(r"[/\\]", sb.group(1))[-1]] + sb.group(2).split()
+        while words and (words[0] == "env" or words[0].startswith("-")
+                         or re.fullmatch(r"[A-Za-z_]\w*=\S*", words[0])):
+            words.pop(0)
+        if words and re.fullmatch(r"(?:node|nodejs|deno|bun|tsx|ts-node|python(?:3(?:\.\d+)?)?|"
+                                  r"ruby|perl|php)", words[0]):
+            # A node/python console script (playwright): its text was scanned by the caller;
+            # here follow only its relative require/import targets, not shell parsing.
+            for rel in re.findall(r"(?:require\s*\(\s*|\bfrom\s+|\bimport\s*\(?\s*)['\"]"
+                                  r"(\.{1,2}/[^'\"]+)['\"]", body)[:20]:
+                base = (p.parent / rel)
+                for q in (base, *(Path(str(base) + s) for s in
+                                  (".js", ".mjs", ".cjs", ".ts", "/index.js"))):
+                    if q.is_file():
+                        hit = _scan_file(q, f"{rel} (from {p})")
+                        if hit:
+                            return hit
+                        break
+            return None
     try:
         for q, tok in _arg_files(_non_reader_text(body), [p.parent, cwd])[:20]:
             hit = _scan_file(q, f"{tok} (from {p})")

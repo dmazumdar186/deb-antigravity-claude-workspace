@@ -129,8 +129,20 @@ merely mention the gate or ledgers are no longer blocked (removed 2026-11-05: fa
     - Still scanned: code (imports, SDK send calls such as a transport's send-mail method) and
       literals that name an endpoint (`://`, a host such as `x.com/`, `@scope/pkg`, `smtp`,
       `.googleapis.`).
+    - A literal that itself hits the sender scan stays visible. This covers
+      `execSync('<send-mail> -t')`, `t['<sendMail>']` and `subprocess.run(['<send-mail>'])`.
+      The one exception is a whitespace-free literal in selector or form-value position: the
+      first argument of `.click/.fill/.locator/.getBy*/.querySelector/cy.get/By.*/$(…)`, or
+      the value argument of `fill/type`.
     - Not masked: a body piped into a program (`cat <<EOF | node`, `| tee f | node`), shell
       files (`qa/x.sh`, where a quoted string can be a command) and non-test paths.
+    - Masking is off for the whole command when anything runs through a shell (`sh`, `bash`,
+      `zsh`, `dash`, `ksh`, `busybox`, `source`, `.` or `eval`, e.g. `bash qa/x.mjs`).
+  - Lookups match bare names only: `./qa/which` is a script and is scanned.
+  - The shell child scan is skipped only for a known non-shell interpreter: node, python,
+    ruby, perl, php, deno, bun or tsx, found after `env`, its flags and `VAR=` assignments.
+    Busybox and `env FOO=1 bash` shebangs stay shell. Node and python children are followed
+    through their relative `require`/`import` targets.
   - The "dangerous rm" message is not this gate: it comes from `.claude/mods/safety-guard-mod`,
     which blocks quoted dangerous text on purpose.
 - **Bash, non-email channels** (same scan surfaces, same tracked-pipeline trust; patterns in

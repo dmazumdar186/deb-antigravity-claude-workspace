@@ -2618,5 +2618,40 @@ def test_mask_test_literals_unit():
     assert rg.is_test_path("qa/A/x.mjs") and rg.is_test_path("a/b.spec.ts")
     assert rg.is_test_path("tests\\test_x.py") and not rg.is_test_path("execution/x/send.py")
     assert not rg.is_test_path("qa/run.sh") and not rg.is_test_path("tests/fixture.txt")
-    masked = rg.mask_test_literals(f"click('#{_SE}'); t.{_SM}(x); f('https://a.io/x')")
-    assert _SE not in masked and f"t.{_SM}(" in masked and "https://a.io/x" in masked
+    masked = rg.mask_test_literals(
+        f"page.click('#{_SE}'); t.{_SM}(x); f('https://a.io/x'); run('{_SE}')")
+    assert f"page.click('#{_SE}')" not in masked and f"t.{_SM}(" in masked and "https://a.io/x" in masked
+    assert f"run('{_SE}')" in masked  # a sender word outside selector position stays
+
+
+def test_false_positive_guards_audit_bypasses_stay_denied(tmp_path, state, capsys):
+    """Adversarial audit of the false-positive guards (2026-11-05): each was old-deny."""
+    sm, smp, se = "send" "Mail", "send" "mail", "send" "-email"
+    files = {
+        "qa/t_literal.mjs": f"t['{sm}']({{ to: 'x' }});\n",
+        "qa/t_exec.mjs": f"execSync('{smp} -t < msg.txt');\n",
+        "tests/test_sub.py": f"import subprocess\nsubprocess.run(['{smp}', '-t'], input=b'x')\n",
+        "tests/test_ga.py": f"import os\nos.system('aws ses {se} --to a@b.co')\n",
+        "qa/x.spec.ts": f"t['{sm}']();\n",
+    }
+    for rel, body in files.items():
+        _write(tmp_path / rel, body)
+        run = "python3" if rel.endswith(".py") else "node"
+        assert _deny_reason(_bash(f"{run} {rel}", capsys, tmp_path)), rel
+    for cmd in (f"cat > qa/x.py <<'EOF'\nimport os; os.system('{smp} -t < msg')\nEOF\npython3 qa/x.py",
+                f"cat > qa/y.mjs <<'EOF'\nconst c = 'x';\nnode -e \"{smp} -t\"\nEOF\nbash qa/y.mjs",
+                f"cat <<'EOF' | tee qa/z.mjs\nsh -c '{smp} -t < m'\nEOF\nsh qa/z.mjs",
+                f"cat > qa\\w.spec.ts <<'EOF'\nt['{sm}']()\nEOF\nnpx playwright test"):
+        assert _deny_reason(_bash(cmd, capsys, tmp_path)), cmd
+    # a script path that merely shares a lookup's name is still a script
+    _write(tmp_path / "send.py", f"import {SMTP}\n")
+    for name in ("which", "type"):
+        _write(tmp_path / "qa" / name, "#!/bin/bash\npython3 send.py\n").chmod(0o755)
+        assert _deny_reason(_bash(f"./qa/{name} x", capsys, tmp_path)), name
+    # shell shebangs with busybox / env assignments, and node children, are still followed
+    for name, shebang in (("bb", "#!/bin/busybox sh"), ("envsh", "#!/usr/bin/env FOO=1 bash")):
+        _write(tmp_path / "bin" / name, f"{shebang}\npython3 send.py\n").chmod(0o755)
+        assert _deny_reason(_bash(f"./bin/{name}", capsys, tmp_path)), name
+    _write(tmp_path / "lib" / "mailer.js", f"require('nodemailer').createTransport().{sm}({{}});\n")
+    _write(tmp_path / "bin" / "tool", "#!/usr/bin/env node\nrequire('../lib/mailer.js');\n").chmod(0o755)
+    assert _deny_reason(_bash("./bin/tool", capsys, tmp_path))
