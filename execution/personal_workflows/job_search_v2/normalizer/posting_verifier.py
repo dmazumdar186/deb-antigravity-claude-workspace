@@ -722,9 +722,7 @@ def _is_listing_redirect(final_url: str) -> bool:
     path_and_query = parts.path + ("?" + parts.query if parts.query else "")
     if _LISTING_PATH_RE.search(path_and_query):
         return True
-    if parts.path in ("", "/"):
-        return True
-    return False
+    return parts.path in ("", "/")
 
 
 # ---------------------------------------------------------------------------

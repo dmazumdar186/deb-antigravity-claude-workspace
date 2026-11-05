@@ -344,7 +344,8 @@ def main():
     (out / "captions.md").write_text(f"# {title} LinkedIn banners — captions + links\n\nImages on LinkedIn are not clickable. Put the links in the post text or first comment; the QR on every banner opens the booking page; the PDF carousel keeps the links clickable.\n\n" + "\n".join(captions))
     grid = "".join(f'<figure><img src="png/{i:02d}_{v["slug"]}.png"><figcaption>{i:02d} · {v["slug"]}</figcaption></figure>' for i, v in enumerate(VARIANTS, 1))
     (out / "review.html").write_text(f"<!doctype html><meta charset='utf-8'><title>{title} banners</title><style>body{{font-family:Geist,system-ui;background:#f7f3ec;margin:0;padding:32px}}main{{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:28px}}img{{width:100%;border-radius:10px;box-shadow:0 12px 40px rgba(0,0,0,.14)}}figure{{margin:0}}figcaption{{font-family:monospace;margin-top:8px;color:#3d4148}}</style><h1>{title} · LinkedIn banners · {dt.date.today()}</h1><p><a href='carousel.pdf'>carousel.pdf (clickable links)</a> · <a href='captions.md'>captions.md</a></p><main>{grid}</main>")
-    json.dump({"links": LINKS, "variants": VARIANTS}, open(out / "manifest.json", "w"), indent=1, ensure_ascii=False)
+    with open(out / "manifest.json", "w") as fh:
+        json.dump({"links": LINKS, "variants": VARIANTS}, fh, indent=1, ensure_ascii=False)
     print("wrote", out)
 
 

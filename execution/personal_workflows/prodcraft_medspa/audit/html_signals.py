@@ -7,6 +7,7 @@ outputs: Pure functions over an HTML string — no filesystem or network side ef
 
 from __future__ import annotations
 
+import sys
 import re
 from datetime import datetime, timezone
 from html.parser import HTMLParser
@@ -91,7 +92,9 @@ def site_text(html: str) -> str:
     parser = _VisibleTextParser()
     try:
         parser.feed(html)
-    except Exception:  # noqa: BLE001 — malformed HTML must never crash the audit; return what we got
+    except Exception as _exc:  # noqa: BLE001 — malformed HTML must never crash the audit; return what we got
+        # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
+        print(f"[html_signals] swallowed {type(_exc).__name__}: {_exc}", file=sys.stderr)
         pass
     text = " ".join(parser.chunks)
     text = re.sub(r"\s+", " ", text).strip()

@@ -27,6 +27,7 @@ makes `cohen_kappa` meaningful.
 
 from __future__ import annotations
 
+import sys
 import json
 import threading
 from datetime import datetime, timezone
@@ -76,9 +77,8 @@ def append_label(label: Label, path: Path = LABELS_PATH) -> None:
     """Append one label. Never overwrites -- two labellers append to the
     same file (or their own files, then get compared via cohen_kappa)."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    with _WRITE_LOCK:
-        with path.open("a", encoding="utf-8") as fh:
-            fh.write(label.model_dump_json() + "\n")
+    with _WRITE_LOCK, path.open("a", encoding="utf-8") as fh:
+        fh.write(label.model_dump_json() + "\n")
 
 
 def load_labels(path: Path = LABELS_PATH) -> list[Label]:
@@ -92,10 +92,12 @@ def load_labels(path: Path = LABELS_PATH) -> list[Label]:
             continue
         try:
             out.append(Label(**json.loads(line)))
-        except Exception:
+        except Exception as _exc:
             # A malformed line must not take down the whole scorecard; it is
             # simply not counted as a label. Nothing here can silently
             # fabricate ground truth, so skipping is safe.
+            # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
+            print(f"[labels] swallowed {type(_exc).__name__}: {_exc}", file=sys.stderr)
             continue
     return out
 

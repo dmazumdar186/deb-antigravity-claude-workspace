@@ -7,6 +7,7 @@ outputs: PNG files under .tmp/prodcraft_medspa/screenshots/ and (Supabase store)
 
 from __future__ import annotations
 
+import sys
 import os
 import re
 from dataclasses import dataclass
@@ -62,7 +63,9 @@ def _cta_above_fold(page) -> bool:  # noqa: ANN001 — playwright Page, optional
             box = el.bounding_box()
             if box and box["y"] < MOBILE_VIEWPORT["height"] and box["y"] >= -box["height"]:
                 return True
-        except Exception:  # noqa: BLE001 — a single stale/detached element must not abort the check
+        except Exception as _exc:  # noqa: BLE001 — a single stale/detached element must not abort the check
+            # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
+            print(f"[screenshots] swallowed {type(_exc).__name__}: {_exc}", file=sys.stderr)
             continue
     return False
 

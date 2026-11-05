@@ -441,7 +441,9 @@ def load_ocr_doc_ids() -> set[str]:
             continue
         try:
             rec = json.loads(line)
-        except Exception:
+        except Exception as _exc:
+            # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
+            print(f"[render] swallowed {type(_exc).__name__}: {_exc}", file=sys.stderr)
             continue  # a torn line loses one document, never the store
         if rec.get("text_source") == "ocr" and rec.get("doc_id"):
             out.add(rec["doc_id"])

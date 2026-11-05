@@ -12,6 +12,7 @@ text. Nothing in this module is trusted.
 
 from __future__ import annotations
 
+import sys
 import hashlib
 import re
 from typing import Optional
@@ -499,9 +500,11 @@ def extract_from_document(
                     confidence=raw.get("confidence", "inferred"),
                 )
             )
-        except Exception:
+        except Exception as _exc:
             # A malformed item is dropped, never repaired. Repairing an
             # LLM's structural error is how invented data enters a pipeline.
+            # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
+            print(f"[extract] swallowed {type(_exc).__name__}: {_exc}", file=sys.stderr)
             continue
 
     hints = {
@@ -724,7 +727,9 @@ def extract_directory(
                         confidence=raw.get("confidence", "inferred"),
                     )
                 )
-            except Exception:
+            except Exception as _exc:
+                # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
+                print(f"[extract] swallowed {type(_exc).__name__}: {_exc}", file=sys.stderr)
                 continue  # malformed item dropped, never repaired
 
         # Turn the firm-default location into real, quoted evidence when the

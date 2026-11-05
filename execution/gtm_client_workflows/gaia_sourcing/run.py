@@ -1860,9 +1860,7 @@ def stage_deepen_near_misses(force: bool = False) -> None:
         # a search-snippet person: a 300-character snippet routinely omits
         # the profile's location line. Deepening it is allowed only for the
         # latter (2026-09-11 third cut: Kate FitzGerald, Seckin Cetinkaya).
-        if "located_ie" in failed and sources.get(pid) != "search_snippet":
-            return False
-        return True
+        return not ("located_ie" in failed and sources.get(pid) != "search_snippet")
 
     ranked = sorted(
         (-g["n_claims"], pid) for pid, g in gate_out.items()

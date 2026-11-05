@@ -280,7 +280,8 @@ def crawl_site(key: str, max_jobs: int, concurrency: int, sleep_s: float, out_di
     home = fetch(base + "/", sleep_s)
     if not home and os.path.exists(cfg["snapshot"]):
         LOG.warning("using homepage snapshot %s", cfg["snapshot"])
-        home = open(cfg["snapshot"], encoding="utf-8", errors="ignore").read()
+        with open(cfg["snapshot"], encoding="utf-8", errors="ignore") as fh:
+            home = fh.read()
     if not home:
         raise SystemExit("cannot fetch homepage for " + key)
     facets = parse_facets(home, base)
@@ -499,7 +500,10 @@ def download_client_logos(key: str, page: str, base: str, assets_dir: str, sleep
     cdir = os.path.join(assets_dir, "clients")
     os.makedirs(cdir, exist_ok=True)
     manifest_path = os.path.join(assets_dir, "logos.json")
-    manifest = json.load(open(manifest_path)) if os.path.exists(manifest_path) else {}
+    manifest = {}
+    if os.path.exists(manifest_path):
+        with open(manifest_path) as fh:
+            manifest = json.load(fh)
     today = time.strftime("%Y-%m-%d")
     written = []
     for item in logos:
@@ -571,7 +575,10 @@ def refresh_clients(key: str, assets_dir: str, sleep_s: float, out_dir: str) -> 
 def download_logos(key: str, home: str, employers: list, base: str, assets_dir: str, sleep_s: float) -> None:
     os.makedirs(assets_dir, exist_ok=True)
     manifest_path = os.path.join(assets_dir, "logos.json")
-    manifest = json.load(open(manifest_path)) if os.path.exists(manifest_path) else {}
+    manifest = {}
+    if os.path.exists(manifest_path):
+        with open(manifest_path) as fh:
+            manifest = json.load(fh)
     targets = []
     for src in re.findall(r'<img[^>]*src="([^"]+)"', home):
         if re.search(r"logo|bcorp|b-corp|corp", src, re.I) and "clientlogos" not in src and "banners" not in src:

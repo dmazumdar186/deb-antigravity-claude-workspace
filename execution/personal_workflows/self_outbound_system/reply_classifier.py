@@ -117,18 +117,17 @@ def classify(body: str, dry_run: bool = True, llm: str = "sonnet") -> dict:
         }
 
     hot_hits = _matches_any(text, _HOT_PATTERNS)
-    if hot_hits:
+    if hot_hits and dry_run:
         # Hot pattern is a strong signal but keep confidence just under 1.0 —
         # LLM might disagree, e.g. "call me at 555-1234 to remove me" reads
         # like negative in context. In live mode we'd still LLM-verify.
-        if dry_run:
-            return {
-                "class": "hot",
-                "confidence": 0.90,
-                "explanation": "deterministic phone / meeting-request pattern matched",
-                "detected_intent_signals": hot_hits,
-                "cost_eur_estimate": 0.0,
-            }
+        return {
+            "class": "hot",
+            "confidence": 0.90,
+            "explanation": "deterministic phone / meeting-request pattern matched",
+            "detected_intent_signals": hot_hits,
+            "cost_eur_estimate": 0.0,
+        }
 
     if dry_run:
         # LLM stub — return neutral with low confidence + mock explanation.

@@ -274,10 +274,9 @@ def director_call(
     """Return [{id, title, start_t, end_t, visual_metaphor, beats: [{phrase, phrase_start_t, phrase_end_t, visual_action, pedagogical_purpose}, ...]}, ...]"""
     # Build a compact narration map with timestamps for the director.
     timed_lines = []
-    cursor = 0
     line_buf: list[dict] = []
     line_start = words[0]["start"] if words else 0
-    for w in words:
+    for cursor, w in enumerate(words):
         line_buf.append(w)
         if w["w"].endswith((".", "!", "?")) or len(line_buf) >= 14:
             line_text = " ".join(x["w"] for x in line_buf)
@@ -285,7 +284,6 @@ def director_call(
             line_buf = []
             if cursor + 1 < len(words):
                 line_start = words[min(cursor + 1, len(words) - 1)]["start"]
-        cursor += 1
     if line_buf:
         line_text = " ".join(x["w"] for x in line_buf)
         timed_lines.append(f"  [{line_start:5.1f}-{line_buf[-1]['end']:5.1f}s] {line_text}")
@@ -744,6 +742,8 @@ if __name__ == "__main__":
     try:
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
         sys.stderr.reconfigure(encoding="utf-8", errors="replace")
-    except Exception:  # noqa: BLE001 - best-effort UTF-8 on Windows
+    except Exception as _exc:  # noqa: BLE001 - best-effort UTF-8 on Windows
+        # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
+        print(f"[prodcraft_creative_plan_gen] swallowed {type(_exc).__name__}: {_exc}", file=sys.stderr)
         pass
     sys.exit(main())

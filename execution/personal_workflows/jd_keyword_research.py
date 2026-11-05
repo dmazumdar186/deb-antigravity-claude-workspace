@@ -118,15 +118,7 @@ LEXICON: dict[str, list[str]] = {
 }
 
 # ── Stopwords for the emergent-term frequency pass (FR + EN) ───────────────────
-_STOP = set("""
-a an and are as at be by for from has have in into is it its of on or that the to with we you
-your our their this these those will can our us not but they he she them who what which when how
-role team teams work working job jobs company companies experience years year skills ability
-looking join build building help make new all more your you will about across per within via
-d de la le les des du un une et en pour dans sur au aux avec ou nous vous votre notre leur ce
-cette ces qui que quoi dont est sont être avoir plus poste équipe équipes entreprise expérience
-ans compétences capacité rejoindre aider faire nouveau tous chez sein afin ainsi
-""".split())
+_STOP = set(["a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "has", "have", "in", "into", "is", "it", "its", "of", "on", "or", "that", "the", "to", "with", "we", "you", "your", "our", "their", "this", "these", "those", "will", "can", "our", "us", "not", "but", "they", "he", "she", "them", "who", "what", "which", "when", "how", "role", "team", "teams", "work", "working", "job", "jobs", "company", "companies", "experience", "years", "year", "skills", "ability", "looking", "join", "build", "building", "help", "make", "new", "all", "more", "your", "you", "will", "about", "across", "per", "within", "via", "d", "de", "la", "le", "les", "des", "du", "un", "une", "et", "en", "pour", "dans", "sur", "au", "aux", "avec", "ou", "nous", "vous", "votre", "notre", "leur", "ce", "cette", "ces", "qui", "que", "quoi", "dont", "est", "sont", "être", "avoir", "plus", "poste", "équipe", "équipes", "entreprise", "expérience", "ans", "compétences", "capacité", "rejoindre", "aider", "faire", "nouveau", "tous", "chez", "sein", "afin", "ainsi"])
 
 _WORD_RE = re.compile(r"[a-zàâäçéèêëîïôöùûüœ]+", re.IGNORECASE)
 

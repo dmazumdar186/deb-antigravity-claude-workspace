@@ -64,7 +64,9 @@ def _build_smtp_config(override: "dict | None" = None) -> dict:
             base["port"] = int(smtp_cfg["port"])
         if "use_tls" in smtp_cfg:
             base["use_tls"] = bool(smtp_cfg["use_tls"])
-    except Exception:
+    except Exception as _exc:
+        # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
+        print(f"[gmail_send_digest] swallowed {type(_exc).__name__}: {_exc}", file=sys.stderr)
         pass  # Config file missing or malformed — rely on env / defaults
 
     # Layer 2: environment variables

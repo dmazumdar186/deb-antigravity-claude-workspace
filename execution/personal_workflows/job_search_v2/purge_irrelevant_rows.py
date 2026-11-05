@@ -592,7 +592,9 @@ def reverify_rows(sp, tabs: list[str] | None = None, dry_run: bool = False, *,
         if browser_cm is not None:
             try:
                 browser_cm.__exit__(None, None, None)
-            except Exception:  # noqa: BLE001 — teardown must never mask the sweep result
+            except Exception as _exc:  # noqa: BLE001 — teardown must never mask the sweep result
+                # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
+                logger.debug("swallowed %s: %s", type(_exc).__name__, _exc)
                 pass
     return stats
 

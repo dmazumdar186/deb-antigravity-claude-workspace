@@ -33,7 +33,9 @@ from pathlib import Path
 try:
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
-except Exception:
+except Exception as _exc:
+    # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
+    print(f"[humanizer] swallowed {type(_exc).__name__}: {_exc}", file=sys.stderr)
     pass
 
 from dotenv import load_dotenv

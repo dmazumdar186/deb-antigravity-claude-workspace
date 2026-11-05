@@ -90,9 +90,7 @@ def _is_own_outbound_message(msg: dict, *, profile_email: str, sender_email: str
     from_header = _header(msg.get("payload", {}).get("headers", []), "From").lower()
     if profile_email and profile_email in from_header:
         return True
-    if sender_email and sender_email.strip().lower() in from_header:
-        return True
-    return False
+    return bool(sender_email and sender_email.strip().lower() in from_header)
 
 
 def search_replies(

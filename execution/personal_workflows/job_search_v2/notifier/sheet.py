@@ -519,7 +519,9 @@ def _open_sheet(spreadsheet_id: str | None, service_account_path: Path | None):
             # Older gspread — patch session directly.
             try:
                 client.session.request = _timeout_wrap(client.session.request, 60)
-            except Exception:  # noqa: BLE001 — best effort
+            except Exception as _exc:  # noqa: BLE001 — best effort
+                # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
+                logger.debug("swallowed %s: %s", type(_exc).__name__, _exc)
                 pass
         return client.open_by_key(spreadsheet_id), None
     except Exception as exc:  # noqa: BLE001 — auth or open failure
