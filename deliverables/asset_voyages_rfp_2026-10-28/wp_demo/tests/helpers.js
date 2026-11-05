@@ -38,6 +38,7 @@ async function login(page, role) {
 	await page.fill('#user_login', user);
 	await page.fill('#user_pass', pass);
 	await Promise.all([page.waitForURL(/wp-admin/), page.click('#wp-submit')]);
+	await page.waitForLoadState('load');
 }
 
 async function asRole(browser, role, opts = {}) {

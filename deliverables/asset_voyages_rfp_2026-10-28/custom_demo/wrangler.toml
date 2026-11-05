@@ -20,3 +20,5 @@ crons = ["0 3 * * *"]
 
 [vars]
 PUBLIC_URL = "https://asset-voyages-demo.debanjan186.workers.dev"
+# "off" for the public demo (shared accounts must never be locked for other visitors); "on" in production.
+ACCOUNT_LOCKOUT = "off"

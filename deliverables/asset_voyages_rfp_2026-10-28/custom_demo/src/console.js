@@ -74,14 +74,18 @@ export async function loginPost(req, env) {
   const ip = await ipHash(env, req);
   const username = clean(form.get('username'), 40).toLowerCase();
   // Throttle: 10 failures per account per connection, 50 per connection overall, 15 minutes.
-  // The per-account counter is incremented atomically BEFORE the password check (attempts, not failures), so parallel
-  // guesses cannot slip past it; a successful login clears it.
-  const kUser = `login:${ip}:${username.slice(0, 40)}`; const kIp = `login:${ip}`;
+  // Throttle, all counters incremented atomically BEFORE the password check (attempts, not failures); a success clears them.
+  // Demo mode (ACCOUNT_LOCKOUT=off): keyed per browser sandbox + account (10) and per IP + account (50). A flood from one
+  // browser or one address never locks the shared demo accounts for other visitors.
+  // Production mode (ACCOUNT_LOCKOUT=on): per IP + account drops to 10 and an account-wide ceiling (30, any IP) is added.
+  const lockout = env.ACCOUNT_LOCKOUT === 'on';
+  const u40 = username.slice(0, 40);
+  const kSbx = `login-sbx:${env.SBX || 'none'}:${u40}`; const kUser = `login:${ip}:${u40}`; const kAcct = `login-account:${u40}`; const kIp = `login:${ip}`;
   const tooMany = () => loginGet(req, env, { error: 'Trop d’essais. Réessayez dans un quart d’heure.', status: 429 });
   if (await rateBlocked(env, kIp, 50)) return tooMany();
-  // A second per-account counter ignores the IP, so guesses spread over many addresses still hit a ceiling (30 per 15 min).
-  const kAcct = `login-account:${username.slice(0, 40)}`;
-  if (!(await rateHit(env, kUser, 10, 900)) || !(await rateHit(env, kAcct, 30, 900))) return tooMany();
+  if (!(await rateHit(env, kSbx, 10, 900))) return tooMany();
+  if (!(await rateHit(env, kUser, lockout ? 10 : 50, 900))) return tooMany();
+  if (lockout && !(await rateHit(env, kAcct, 30, 900))) return tooMany();
   const password = String(form.get('password') || '').slice(0, 200);
   const u = await env.DB.prepare('SELECT * FROM users WHERE username = ?').bind(username).first();
   const ok = u ? safeEqual(await hashPassword(password, u.pw_salt, u.pw_iter), u.pw_hash) : false;
@@ -89,7 +93,7 @@ export async function loginPost(req, env) {
     await rateHit(env, kIp, 50, 900);
     return loginGet(req, env, { error: 'Identifiant ou mot de passe incorrect.', status: 401 });
   }
-  await env.DB.prepare('DELETE FROM rate_limits WHERE key IN (?, ?)').bind(kUser, kAcct).run();
+  await env.DB.prepare('DELETE FROM rate_limits WHERE key IN (?, ?, ?)').bind(kSbx, kUser, kAcct).run();
   const token = randomToken(32);
   await env.DB.prepare('INSERT INTO sessions (id, user_id, csrf, created_at, expires_at) VALUES (?,?,?,?,?)')
     .bind(await sha256hex(token), u.id, randomToken(24), nowIso(), Math.floor(Date.now() / 1000) + SESSION_TTL).run();

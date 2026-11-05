@@ -36,7 +36,7 @@ Source: `src/index.js` (routing, headers, cron), `src/public.js` (catalogue, con
 - **Roles checked on the server for every route and every POST.** `direction` does everything, including GM&E codes and access decisions. `equipe` handles congresses and enquiries; GM&E codes stay masked until Direction grants access. `contributeur` drafts congresses and submits them for review but cannot publish, and has no access to enquiries or codes.
 - **Passwords** are stored as PBKDF2-SHA256 hashes (WebCrypto, per-user salt). **Sessions** use a random token whose SHA-256 is stored server-side, in a cookie `__Host-av_session` marked HttpOnly, Secure, SameSite=Strict, 8 h. Logging out deletes the session on the server.
 - **CSRF**: every console POST needs the session's token and a same-origin `Origin`. The anonymous forms (enquiry, login) carry a signed token (HMAC) that also enforces the minimum fill time and blocks replay.
-- **Login throttling** (atomic): each attempt on an account increments a counter in one `INSERT … ON CONFLICT … RETURNING` before the password is checked, with 10 per account per connection and 30 per account across all connections (guesses spread over many IPs still hit a ceiling; in return, someone could lock a shared demo account for 15 minutes, which in production Cloudflare Access 2FA in front of `/console` avoids); there is also a limit of 50 failures per connection, and both windows last 15 minutes. A successful login clears the account counter.
+- **Login throttling** (atomic): every attempt increments its counters in one `INSERT … ON CONFLICT … RETURNING` before the password is checked, and a successful login clears them. The `ACCOUNT_LOCKOUT` variable in `wrangler.toml` picks the mode. **Demo (`off`, deployed):** 10 attempts per browser sandbox and account, 50 per IP and account, and 50 failures per IP, all over 15 minutes. A flood from one browser or one address never locks the shared demo accounts for other visitors, so Veena can always log in. **Production (`on`):** 10 per IP and account, plus 30 per account from any IP (guesses spread over many addresses hit a ceiling). In production, staff log in behind Cloudflare Access with 2FA, so account lockout is a second line of defence.
 - **Enquiry form**: all validation happens on the server (dates, past dates, return on or after outbound, e-mail, passengers 1 to 50, lengths, consent). It also has a honeypot, a 3-second minimum fill time and a limit of 10 accepted enquiries per 10 minutes per browser and IP hash, and 60 per IP hash for a whole office (stored in D1). A refused submission always shows a French message saying the enquiry was not sent. It uses POST-redirect-GET. The confirmation link is signed, so references cannot be enumerated.
 - **GM&E codes** sit in their own table, encrypted with AES-GCM (random IV, key from the `GME_KEY` Worker secret, never in code or in the repo). A code is only shown in response to a server-checked POST. Each display and each refused attempt is written to the « Journal d'accès », which only Direction can read. Access is granted for 24 h and can be revoked at once. Public pages only ever say « Tarif congrès négocié disponible : appliqué à votre devis » for an approved, in-date code. No route returns a code.
 - **Headers**: CSP `default-src 'self'` with no third-party source, `frame-ancestors 'none'`, `X-Robots-Tag: noindex, nofollow`, `robots.txt` set to disallow everything, nosniff, `Referrer-Policy: same-origin`, HSTS. Every interpolated value is HTML-escaped by default. The CSV export is UTF-8 with a BOM and `;` separators; a cell starting with `= + - @` or a tab is prefixed with `'`.
@@ -68,12 +68,12 @@ Every test name starts with the gate ID it proves from `../21_Acceptance_Gates_5
 | `s3_enquiry.spec.mjs` | S3-F1, S3-F2, S3-F3, S3-F4, S3-E1, S3-H1, S3-H2, S3-H3 | 7/7 pass | 7/7 pass |
 | `s4_team.spec.mjs` | S4-F1 to S4-F6, S4-E1, S4-H1 | 7/7 pass | 7/7 pass |
 | `s5_gme.spec.mjs` | S5-F1 to S5-F5, S5-E1, S5-H1, S5-L1 (crawl), S5-L2 | 11/11 pass | 11/11 pass |
-| `fix_round1.spec.mjs` | FIX-1 to FIX-26 (eye review, adversarial and blind-QA findings, see below) | 24/24 pass | pending redeploy |
+| `fix_round1.spec.mjs` | FIX-1 to FIX-26 (eye review, adversarial and blind-QA findings, see below; FIX-6 split into 6a production mode and 6b demo mode) | 25/25 pass | pending redeploy |
 | `x_cross.spec.mjs` | X1, X1 strict, X2, X3, X4, X5, security headers, cookie and logout replay, console at 390 px, hostile console input | 9/9 pass | 9/9 pass |
 | `z_screens.spec.mjs` | screenshots for X6 | 2/2 pass | 2/2 pass |
-| **Total** | | **74/74 pass** | 50/50 before the fix round; re-run pending |
+| **Total** | | **75/75 pass** | 50/50 before the fix round; re-run pending |
 
-Fix round 1, local: 74/74. Before the fix round, both full runs (local `wrangler dev`, then live deploy b48a4877) passed 49/49. « X1 strict » was added afterwards and run on its own, passing locally and live, which brings the totals to 50.
+Fix round 1, local: 75/75. FIX-6a uses a second local server with `--var ACCOUNT_LOCKOUT:on --port 8788`; it is skipped live, as is FIX-3 (cron trigger). Before the fix round, both full runs (local `wrangler dev`, then live deploy b48a4877) passed 49/49. « X1 strict » was added afterwards and run on its own, passing locally and live, which brings the totals to 50.
 
 Click budgets measured: S1-E1 3 (budget 4), S1-E2 3 (3), S2-E1 2 (2), S3-E1 1, S4-E1 2 (3), S5-E1 2, 2 and 2 (2 each).
 
@@ -117,7 +117,7 @@ Screenshots (`deviceScaleFactor` 1) go to `screens/NN-name-1440.png` and `screen
 | FIX-1, FIX-2, FIX-3 | Shared mutable sandbox replaced by a private sandbox per browser (copy-on-write); the reset and the nightly purge only touch the caller's or expired sandboxes |
 | FIX-4 | Official website must be `https://` |
 | FIX-5 | Codes can be shown or requested only when « Vérifié » or « Approuvé pour la vente »; « Détecté » and « Expiré » show a short explanation instead of a form |
-| FIX-6 | Atomic login throttle keyed by IP hash and username |
+| FIX-6a, FIX-6b | Atomic login throttle. Demo mode: per browser sandbox and per IP, with no account-wide lock. Production mode (`ACCOUNT_LOCKOUT=on`): adds an account-wide ceiling. Found live: the proxy spread parallel guesses over 7 IPs |
 | FIX-7 | CSRF is checked before any write: a forged reveal leaves no journal row |
 | FIX-8 | Ink text in the dark enquiry panel; placeholders at 4.5:1 or better |
 | FIX-9 | Dates as jj/mm/aaaa or « 28 au 30 janv. 2027 »; the notification e-mail uses jj/mm/aaaa and a full https link |

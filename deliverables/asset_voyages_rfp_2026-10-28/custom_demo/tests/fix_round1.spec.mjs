@@ -137,20 +137,40 @@ test('FIX-5 a code can only be shown or requested when vérifié or approuvé; d
   }
 });
 
-test('FIX-6 login throttle is atomic: 40 parallel wrong passwords for one account, at most 30 are even checked, whatever the source IPs', async ({ page }) => {
+// FIX-6: login throttle. Demo mode (ACCOUNT_LOCKOUT=off, the deployed setting) must never lock a shared account for other
+// visitors; production mode (on) adds an account-wide ceiling. Local runs check both modes (a second dev server on :8788
+// runs with ACCOUNT_LOCKOUT=on); live runs check the demo mode.
+const LOCKOUT_ON_URL = process.env.LOCKOUT_ON_URL || 'http://localhost:8788';
+async function attempt(base, user, ip) {
+  const headers = ip ? { 'cf-connecting-ip': ip } : {};
+  const tok = /name="_token" value="([^"]+)"/.exec(await (await fetch(base + '/console/connexion', { headers })).text())[1];
+  const r = await fetch(base + '/console/connexion', { method: 'POST', redirect: 'manual', headers: { ...headers, 'content-type': 'application/x-www-form-urlencoded', origin: base }, body: new URLSearchParams({ _token: tok, username: user, password: 'faux' }) });
+  return r.status;
+}
+
+test('FIX-6a production mode (ACCOUNT_LOCKOUT=on): 40 parallel guesses from 40 addresses and browsers, at most 30 are checked; atomic counter', async () => {
+  test.skip(LIVE, 'production mode is exercised on the local runtime only');
+  const user = 'cible' + Date.now();
+  const codes = await Promise.all(Array.from({ length: 40 }, (_, i) => attempt(LOCKOUT_ON_URL, user, `10.1.${Math.floor(i / 200)}.${i + 1}`)));
+  expect(codes.filter((c) => c === 401).length).toBeLessThanOrEqual(30);
+  expect(codes.filter((c) => c === 429).length).toBeGreaterThanOrEqual(10);
+  // the same spread attack in demo mode is not locked account-wide (documented trade-off: shared demo accounts stay usable)
+  const demo = await Promise.all(Array.from({ length: 40 }, (_, i) => attempt(new URL(BASE).origin, user, `10.2.0.${i + 1}`)));
+  expect(demo.filter((c) => c === 401).length).toBe(40);
+});
+
+test('FIX-6b demo mode (ACCOUNT_LOCKOUT=off): a flood on « direction » from one browser is capped at 10 checks and never stops another browser logging in', async ({ page, browser }) => {
+  await sbxOf(page); // the flooding browser has its sandbox cookie
   const html = await (await page.request.get('/console/connexion')).text();
   const tok = /name="_token" value="([^"]+)"/.exec(html)[1];
-  const user = 'intrus' + Date.now();
   const origin = new URL(BASE).origin;
-  const res = await Promise.all(Array.from({ length: 40 }, (_, i) => page.request.post('/console/connexion', { form: { _token: tok, username: user, password: 'faux' + i }, headers: { origin }, maxRedirects: 0 })));
+  const res = await Promise.all(Array.from({ length: 40 }, (_, i) => page.request.post('/console/connexion', { form: { _token: tok, username: 'direction', password: 'faux' + i }, headers: { origin }, maxRedirects: 0 })));
   const codes = res.map((r) => r.status());
-  // 10 per account and IP (all the local runs come from one IP), 30 per account across every IP (the live proxy spreads requests)
-  expect(codes.filter((c) => c === 401).length).toBeLessThanOrEqual(LIVE ? 30 : 10);
-  expect(codes.filter((c) => c === 429).length).toBeGreaterThanOrEqual(10);
-  // no lost update: the account counter saw every attempt that reached it
-  const acct = d1Count(`SELECT count FROM rate_limits WHERE key = 'login-account:${user}'`)[0].count;
-  expect(acct).toBeGreaterThanOrEqual(codes.filter((c) => c === 401).length);
-  await login(page, 'equipe'); // other accounts unaffected
+  expect(codes.filter((c) => c === 401).length).toBeLessThanOrEqual(10);
+  expect(codes.filter((c) => c === 429).length).toBeGreaterThanOrEqual(30);
+  const other = await newPage(browser);
+  await login(other.page, 'direction'); // Veena's browser is not locked out
+  assertClean(other.problems); await other.ctx.close();
 });
 
 test('FIX-7 a forged (no CSRF) reveal or request writes nothing, not even a journal row', async ({ page }) => {

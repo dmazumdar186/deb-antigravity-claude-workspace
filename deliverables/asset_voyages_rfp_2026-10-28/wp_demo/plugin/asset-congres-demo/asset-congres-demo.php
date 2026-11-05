@@ -65,6 +65,24 @@ add_action(
 	}
 );
 
+/**
+ * Staff land on the dashboard after login (WordPress sends users without edit_posts to their profile).
+ *
+ * @param string           $redirect_to Destination.
+ * @param string           $requested   Requested destination.
+ * @param WP_User|WP_Error $user        User.
+ * @return string
+ */
+function asset_cd_login_redirect( $redirect_to, $requested, $user ) {
+	if ( $user instanceof WP_User && array_intersect( array( 'asset_direction', 'asset_equipe', 'asset_contributeur' ), (array) $user->roles ) ) {
+		if ( '' === $requested || str_contains( (string) $redirect_to, 'profile.php' ) || admin_url() === $requested ) {
+			return admin_url();
+		}
+	}
+	return $redirect_to;
+}
+add_filter( 'login_redirect', 'asset_cd_login_redirect', 10, 3 );
+
 Asset_CD_Congres::init();
 Asset_CD_Catalogue::init();
 Asset_CD_Demandes::init();
