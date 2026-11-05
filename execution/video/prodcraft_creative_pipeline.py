@@ -251,6 +251,8 @@ if __name__ == "__main__":
     try:
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
         sys.stderr.reconfigure(encoding="utf-8", errors="replace")
-    except Exception:  # noqa: BLE001
+    except Exception as _exc:  # noqa: BLE001
+        # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
+        print(f"[prodcraft_creative_pipeline] swallowed {type(_exc).__name__} (message omitted: may carry user data)", file=sys.stderr)
         pass
     sys.exit(main())

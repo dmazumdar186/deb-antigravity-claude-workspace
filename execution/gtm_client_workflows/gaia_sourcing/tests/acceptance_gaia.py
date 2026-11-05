@@ -305,7 +305,9 @@ def main() -> int:
                 continue
             try:
                 rec = json.loads(line)
-            except Exception:
+            except Exception as _exc:
+                # Swallow is safe: best-effort per-item step; this item is skipped and the loop continues.
+                print(f"[acceptance_gaia] swallowed {type(_exc).__name__} (message omitted: may carry user data)", file=sys.stderr)
                 continue
             if rec.get("text_source") == "ocr" and rec["doc_id"] in cited_doc_ids:
                 ocr_ids.add(rec["doc_id"])

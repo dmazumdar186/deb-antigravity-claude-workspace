@@ -102,9 +102,7 @@ def lint(
     # missing a street number, not suspiciously short — sender_address_is_valid), and in the
     # signature block.
     address_valid, _address_reason = sender_address_is_valid(sender_physical_address)
-    if not address_valid:
-        violations.append("can_spam:3")
-    elif sender_physical_address not in body:
+    if not address_valid or sender_physical_address not in body:
         violations.append("can_spam:3")
 
     # Rule 4 — opt-out line present, verbatim.

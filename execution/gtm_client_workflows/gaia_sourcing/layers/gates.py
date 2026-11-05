@@ -104,9 +104,7 @@ def _passes_chartered_ie(blob: str) -> bool:
         return True
     if _CENG_RE.search(blob) and _IE_CHARTER_CO_TOKEN_RE.search(blob):
         return True
-    if _CHARTERED_ENGINEER_PHRASE_RE.search(blob) and _IE_CHARTER_CO_TOKEN_RE.search(blob):
-        return True
-    return False
+    return bool(_CHARTERED_ENGINEER_PHRASE_RE.search(blob) and _IE_CHARTER_CO_TOKEN_RE.search(blob))
 
 # UK/other-jurisdiction chartership is NOT Engineers Ireland chartership.
 # Flagged rather than silently accepted -- the adversarial pass reads this.

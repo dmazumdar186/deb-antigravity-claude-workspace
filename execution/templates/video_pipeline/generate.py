@@ -38,7 +38,9 @@ from pathlib import Path
 try:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
-except Exception:  # noqa: BLE001
+except Exception as _exc:  # noqa: BLE001
+    # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
+    print(f"[generate] swallowed {type(_exc).__name__} (message omitted: may carry user data)", file=sys.stderr)
     pass
 
 from dotenv import load_dotenv

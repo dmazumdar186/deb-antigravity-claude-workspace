@@ -40,6 +40,7 @@ exact requirement Role 2 is gated on.
 from __future__ import annotations
 
 import json
+import sys
 import re
 from dataclasses import dataclass
 from typing import Iterable, Optional
@@ -260,9 +261,7 @@ def witness_statements(case_no: str) -> list[ACPDoc]:
         titled_as_evidence = _is_person_document(d.filename)
         # Inside an oral-hearing folder, a resolvable personal name is enough:
         # ACP does not consistently title these "Witness Statement".
-        if in_oh_folder and d.person_hint:
-            keep.append(d)
-        elif titled_as_evidence and d.person_hint:
+        if in_oh_folder and d.person_hint or titled_as_evidence and d.person_hint:
             keep.append(d)
     return keep
 
@@ -312,7 +311,9 @@ def discover_cases_serper(queries: Iterable[str], per_query: int = 20) -> list[s
             if r.status_code != 200:
                 continue
             payload = r.json()
-        except Exception:
+        except Exception as _exc:
+            # Swallow is safe: best-effort per-item step; this item is skipped and the loop continues.
+            print(f"[acp] swallowed {type(_exc).__name__} (message omitted: may carry user data)", file=sys.stderr)
             continue
         for item in payload.get("organic", []):
             link = item.get("link", "")

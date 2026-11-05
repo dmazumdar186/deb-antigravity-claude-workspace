@@ -72,8 +72,7 @@ def fetch_profile(handle: str, tenant_slug: str, max_posts: int) -> None:
     )
 
     captions: list[dict] = []
-    count = 0
-    for post in profile.get_posts():
+    for count, post in enumerate(profile.get_posts()):
         if count >= max_posts:
             break
         shortcode = post.shortcode
@@ -100,8 +99,7 @@ def fetch_profile(handle: str, tenant_slug: str, max_posts: int) -> None:
             "likes": post.likes,
         }
         captions.append(item)
-        count += 1
-        print(f"  [{count}/{max_posts}] {shortcode} ({post.date_utc:%Y-%m-%d}): "
+        print(f"  [{count + 1}/{max_posts}] {shortcode} ({post.date_utc:%Y-%m-%d}): "
               f"{caption_text[:80].strip()!r}...", file=sys.stderr)
 
     captions_file = out_dir / "captions.json"

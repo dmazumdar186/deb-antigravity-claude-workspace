@@ -98,7 +98,9 @@ def _get_browser():
             logger.warning("render_local: browser launch failed (%s)", type(exc).__name__)
             try:
                 pw.stop()  # type: ignore[possibly-undefined]
-            except Exception:
+            except Exception as _exc:
+                # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
+                logger.debug("swallowed %s (message omitted: may carry user data)", type(_exc).__name__)
                 pass
             _STATE["unavailable"] = True
             return None
@@ -115,14 +117,18 @@ def _close_browser() -> None:
         if browser is not None:
             try:
                 browser.close()
-            except Exception:
+            except Exception as _exc:
                 # Best-effort cleanup at interpreter exit; nothing downstream
                 # depends on this succeeding.
+                # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
+                logger.debug("swallowed %s (message omitted: may carry user data)", type(_exc).__name__)
                 pass
         if pw is not None:
             try:
                 pw.stop()
-            except Exception:
+            except Exception as _exc:
+                # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
+                logger.debug("swallowed %s (message omitted: may carry user data)", type(_exc).__name__)
                 pass
         _STATE["browser"] = None
         _STATE["playwright"] = None
@@ -153,10 +159,12 @@ def render_page_text(
         page.wait_for_timeout(wait_ms)
         try:
             page.wait_for_load_state("networkidle", timeout=10000)
-        except Exception:
+        except Exception as _exc:
             # Some directories keep a long-poll or analytics beacon open
             # forever; networkidle never fires and that's fine -- the
             # domcontentloaded + fixed wait above already got the content.
+            # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
+            logger.debug("swallowed %s (message omitted: may carry user data)", type(_exc).__name__)
             pass
 
         # Lazy-loaded directories (infinite scroll, "load more on scroll")
@@ -164,7 +172,9 @@ def render_page_text(
         try:
             page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
             page.wait_for_timeout(300)
-        except Exception:
+        except Exception as _exc:
+            # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
+            logger.debug("swallowed %s (message omitted: may carry user data)", type(_exc).__name__)
             pass
 
         text = page.evaluate("document.body.innerText")
@@ -177,5 +187,7 @@ def render_page_text(
         if page is not None:
             try:
                 page.close()
-            except Exception:
+            except Exception as _exc:
+                # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
+                logger.debug("swallowed %s (message omitted: may carry user data)", type(_exc).__name__)
                 pass

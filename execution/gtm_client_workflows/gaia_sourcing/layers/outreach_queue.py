@@ -108,9 +108,8 @@ def _queue_path(campaign_id: Optional[str] = None, queue_path: Optional[Path] = 
 def _audit(record: dict, audit_path: Optional[Path] = None) -> None:
     p = Path(audit_path) if audit_path else DEFAULT_AUDIT_PATH
     p.parent.mkdir(parents=True, exist_ok=True)
-    with _LOCK:
-        with p.open("a", encoding="utf-8") as fh:
-            fh.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
+    with _LOCK, p.open("a", encoding="utf-8") as fh:
+        fh.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
 
 
 def _load_locked(path: Path) -> dict[str, dict]:

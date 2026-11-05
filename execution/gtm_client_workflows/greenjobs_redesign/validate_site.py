@@ -372,9 +372,8 @@ def validate(site: Path, jobs_by_edition: dict[str, list[dict[str, Any]]], data_
                             fails.append(f"{rel}: JobPosting baseSalary must carry a currency code and a numeric value")
                     if "validThrough" in ld and not re.match(r"^\d{4}-\d{2}-\d{2}", str(ld["validThrough"])):
                         fails.append(f"{rel}: JobPosting validThrough is not a date")
-        if re.match(r"^(ie|uk)/(?!for-keith/)[^/]+/index\.html$", rel) or re.match(r"^(ie|uk)/index\.html$", rel) or re.match(r"^(ie|uk)/guides/", rel):
-            if 'rel="canonical"' not in raw:
-                fails.append(f"{rel}: no canonical link")
+        if (re.match(r"^(ie|uk)/(?!for-keith/)[^/]+/index\.html$", rel) or re.match(r"^(ie|uk)/index\.html$", rel) or re.match(r"^(ie|uk)/guides/", rel)) and 'rel="canonical"' not in raw:
+            fails.append(f"{rel}: no canonical link")
         if re.match(r"^(ie|uk)/index\.html$", rel) and "data-landscape" not in raw:
             fails.append(f"{rel}: home page has no hero landscape host")
         _check_seo_links(doc, rel, site, fails)

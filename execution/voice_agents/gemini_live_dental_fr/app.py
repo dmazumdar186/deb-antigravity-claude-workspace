@@ -28,6 +28,7 @@ outputs:
 
 from __future__ import annotations
 
+import sys
 import asyncio
 import base64
 import hashlib
@@ -378,7 +379,9 @@ def fastapi_app():
             try:
                 await websocket.send_json({"type": "error", "detail": str(exc)[:300]})
                 await websocket.close()
-            except Exception:
+            except Exception as _exc:
+                # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
+                print(f"[app] swallowed {type(_exc).__name__} (message omitted: may carry user data)", file=sys.stderr)
                 pass
 
     return api

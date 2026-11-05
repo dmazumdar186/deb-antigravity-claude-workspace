@@ -455,9 +455,8 @@ class RecruitCRMClient:
     # -- transport -----------------------------------------------------------
 
     def _audit(self, record: dict) -> None:
-        with self._lock:
-            with self.audit_path.open("a", encoding="utf-8") as fh:
-                fh.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
+        with self._lock, self.audit_path.open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
 
     def _http(
         self, method: str, path: str, *, params: Optional[dict] = None,

@@ -19,6 +19,7 @@ Roles, not model names, are what callers ask for.
 
 from __future__ import annotations
 
+import sys
 import json
 import threading
 import time
@@ -52,9 +53,8 @@ def _append_ledger(campaign_id: str, role: str, model: str, cost_eur: float) -> 
     }
     try:
         LEDGER_PATH.parent.mkdir(parents=True, exist_ok=True)
-        with _LEDGER_LOCK:
-            with LEDGER_PATH.open("a", encoding="utf-8") as fh:
-                fh.write(json.dumps(record, ensure_ascii=False) + "\n")
+        with _LEDGER_LOCK, LEDGER_PATH.open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(record, ensure_ascii=False) + "\n")
     except OSError as exc:
         # A read-only/full filesystem must not fail the call that already
         # happened and already spent real money -- but a silent ledger gap
@@ -659,7 +659,9 @@ def call_role(
             body = b""
             try:
                 body = exc.read()[:300]
-            except Exception:
+            except Exception as _exc:
+                # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
+                print(f"[providers] swallowed {type(_exc).__name__} (message omitted: may carry user data)", file=sys.stderr)
                 pass  # error body is diagnostic only; absence must not mask `exc`
             raise RuntimeError(
                 "LLM " + provider + "/" + model + " HTTP " + str(code) + ": "

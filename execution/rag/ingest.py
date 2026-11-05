@@ -29,7 +29,9 @@ from pathlib import Path
 try:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
-except Exception:  # noqa: BLE001 - reconfigure is best-effort; some streams don't support it
+except Exception as _exc:  # noqa: BLE001 - reconfigure is best-effort; some streams don't support it
+    # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
+    print(f"[ingest] swallowed {type(_exc).__name__} (message omitted: may carry user data)", file=sys.stderr)
     pass
 
 from dotenv import load_dotenv
