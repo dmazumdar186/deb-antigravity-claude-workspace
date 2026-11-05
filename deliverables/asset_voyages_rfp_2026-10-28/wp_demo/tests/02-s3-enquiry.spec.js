@@ -173,7 +173,7 @@ test('S3-H3 script/HTML in any field is stored and shown as text only', async ({
 	let dialog = false;
 	admin.on('dialog', async (d) => { dialog = true; await d.dismiss(); });
 	await admin.goto('/wp-admin/admin.php?page=asset-demandes&s=' + ref);
-	await admin.locator('a.row-title', { hasText: ref }).click();
+	await admin.goto(await admin.locator('a.row-title', { hasText: ref }).first().getAttribute('href'));
 	const kv = admin.locator('.asset-kv');
 	await expect(kv).toContainText('Zoé');
 	await expect(kv).toContainText('Gras');

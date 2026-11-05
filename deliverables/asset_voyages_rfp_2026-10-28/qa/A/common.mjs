@@ -19,11 +19,16 @@ export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export async function login(page, role) {
   const [user, pass] = USERS[role];
-  await page.goto(BASE + '/wp-login.php');
-  await page.fill('#user_login', user);
-  await page.fill('#user_pass', pass);
-  await Promise.all([page.waitForURL(/wp-admin/, { timeout: 60000 }), page.click('#wp-submit')]);
-  await page.waitForLoadState('load');
+  for (let attempt = 1; attempt <= 4; attempt++) { // cold Playground can be slow on first logins
+    try {
+      await page.goto(BASE + '/wp-login.php', { timeout: 120000 });
+      await page.fill('#user_login', user);
+      await page.fill('#user_pass', pass);
+      await Promise.all([page.waitForURL(/wp-admin/, { timeout: 120000 }), page.click('#wp-submit')]);
+      await page.waitForLoadState('load');
+      return;
+    } catch (e) { if (attempt === 4) throw e; await sleep(5000); }
+  }
 }
 
 export async function asRole(browser, role, opts = {}) {

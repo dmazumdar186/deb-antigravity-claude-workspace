@@ -111,6 +111,7 @@ test('FIX-A-3 approve / refuse / revoke use separate nonces', async ({ browser }
 	if (await row.locator('textarea').count()) {
 		await row.locator('textarea').fill('Test des jetons séparés (FIX-A-3).');
 		await row.locator('button', { hasText: 'Demander' }).click();
+		await expect(eq.page.locator('.notice-success')).toBeVisible();
 	}
 	await eq.ctx.close();
 	const { ctx, page } = await asRole(browser, 'direction');

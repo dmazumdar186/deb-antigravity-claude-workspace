@@ -84,7 +84,7 @@ test('X3 all data fictional: titles end « — exemple », emails @example.com, 
 	for (let i = 0; i < n; i++) {
 		const btn = page.locator('table.asset-gme-table tbody tr').nth(i).locator('button', { hasText: 'Révéler' });
 		if (!(await btn.count())) continue; // expired code: closed to everyone
-		await btn.click();
+		await Promise.all([page.waitForNavigation(), btn.click()]);
 		await expect(page.locator('code.asset-revealed')).toHaveText(/^DEMO-GME-[A-Z0-9]{4}$/);
 		revealed += 1;
 	}

@@ -51,6 +51,7 @@ test('S4-E1 from admin home, open the newest enquiry and change its status in <=
 	const qualifiee = await widgetCount(page, 'Qualifiée');
 	const c = clickCounter();
 	await c.click(page.locator('#asset_cd_demandes .asset-latest-link'));
+	await page.waitForURL(/action=view/);
 	const ref = (await page.locator('h1').innerText()).match(/DV-2026-\d{4}/)[0];
 	c.n += 1; await page.selectOption('#asset-statut', 'qualifiee');
 	await c.click(page.locator('#submit'));
@@ -68,7 +69,7 @@ test('S4-F3 status flow saved, owner assigned, internal note saved', async ({ br
 	const { ctx, page } = await asRole(browser, 'equipe');
 	const ref = readState().newRef;
 	await page.goto('/wp-admin/admin.php?page=asset-demandes&s=' + ref);
-	await page.locator('a.row-title', { hasText: ref }).click();
+	await page.goto(await page.locator('a.row-title', { hasText: ref }).first().getAttribute('href'));
 	const detail = page.url();
 	for (const s of ['qualifiee', 'devis_envoye', 'gagnee']) {
 		await page.selectOption('#asset-statut', s);
@@ -83,7 +84,7 @@ test('S4-F3 status flow saved, owner assigned, internal note saved', async ({ br
 	await expect(page.locator('.asset-history')).toContainText('devis groupe envoyé');
 	// Perdue path on another enquiry.
 	await page.goto('/wp-admin/admin.php?page=asset-demandes&s=DV-2026-0005');
-	await page.locator('a.row-title', { hasText: 'DV-2026-0005' }).click();
+	await page.goto(await page.locator('a.row-title', { hasText: 'DV-2026-0005' }).first().getAttribute('href'));
 	await page.selectOption('#asset-statut', 'perdue');
 	await page.click('#submit');
 	await expect(page.locator('#asset-statut')).toHaveValue('perdue');
@@ -94,7 +95,7 @@ test('S4-F4 history is append-only: who, when, from → to; no edit or delete co
 	const { ctx, page } = await asRole(browser, 'equipe');
 	const ref = readState().newRef;
 	await page.goto('/wp-admin/admin.php?page=asset-demandes&s=' + ref);
-	await page.locator('a.row-title', { hasText: ref }).click();
+	await page.goto(await page.locator('a.row-title', { hasText: ref }).first().getAttribute('href'));
 	const h = page.locator('table.asset-history tbody tr');
 	expect(await h.count()).toBeGreaterThanOrEqual(6);
 	const text = await page.locator('table.asset-history').innerText();
