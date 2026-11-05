@@ -20,7 +20,7 @@ HMAC-signed `pipeline-auditor` PASS for that exact code (git tree).
 1. Commit the work. Spawn `pipeline-auditor` on it.
 2. Its report must contain exactly one `Verdict:` value, `PASS`, and `Audited commit: <sha>`
    (format in `.claude/agents/pipeline-auditor.md`). WARNINGS / FAIL never record; PASS with LOW notes
-   records only if the verdict line itself says PASS.
+   records only if the single verdict line is exactly PASS (no `/`, no "(with warnings)", no second Verdict line); `**Verdict**: PASS` is accepted. The SubagentHandback report wins over a preamble last message.
 3. The hook accepts only agent type `pipeline-auditor` (or `<plugin>:pipeline-auditor`) with a
    harness transcript `agent-<agent_id>.jsonl` under the transcript root; the report is read from
    `last_assistant_message` or the transcript (incl. `SubagentHandback` input.message).
@@ -32,7 +32,7 @@ changed since is exempt. Exit 1 lists unaudited files; exit 2 unknown commit. Un
 rows are ignored.
 
 Exempt paths ("pure reads and no-logic edits"), deliberately minimal: `docs/**/*.md`,
-`.claude/notes/**`, `HANDOFF.md`, `.claude/jev/state.json`. Directives, rules, agent files and
+`.claude/notes/**/*.md`, `HANDOFF.md`, `.claude/jev/state.json`. Directives, rules, agent files and
 CLAUDE.md are behaviour and are NOT exempt even though they are Markdown.
 
 ## Enforcement

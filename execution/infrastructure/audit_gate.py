@@ -35,12 +35,15 @@ AUDITOR_AGENT = "pipeline-auditor"
 AUDITS = "audits.jsonl"
 # Pure reads and no-logic edits (CLAUDE.md item 3 exemption). Deliberately minimal: directives,
 # agent files, rules and CLAUDE.md change behaviour, so they are NOT exempt even though they are .md.
-EXEMPT = ("docs/*.md", "docs/**/*.md", ".claude/notes/*", ".claude/notes/**",
+EXEMPT = ("docs/*.md", "docs/**/*.md", ".claude/notes/*.md", ".claude/notes/**/*.md",
           "HANDOFF.md", ".claude/jev/state.json")
 
-_VERDICT_RE = re.compile(r"^[\s>*_#-]*verdict\s*[:\-]\s*\**\s*([A-Za-z]+)", re.I | re.M)
-_COMMIT_RE = re.compile(r"^[\s>*_#-]*(?:audited\s+commit|head(?:\s+commit)?)\s*[:=]\s*\**\s*`?"
-                        r"([0-9a-f]{7,40})\b", re.I | re.M)
+# Any line labelled Verdict (plain, **Verdict:**, **Verdict**:, list/quote/heading prefixes).
+_VERDICT_LINE_RE = re.compile(r"^[\s>#*_-]*\**\s*verdict\s*\**\s*:(.*)$", re.I | re.M)
+# The only accepted value: exactly PASS, optionally wrapped in ** (nothing else on the line).
+_PASS_VALUE_RE = re.compile(r"[\s*]*PASS[\s*]*")
+_COMMIT_RE = re.compile(r"^[\s>#*_-]*\**\s*(?:audited\s+commit|head(?:\s+commit)?)\s*\**\s*[:=]"
+                        r"\s*\**\s*`?([0-9a-f]{7,40})`?\s*\**\s*$", re.I | re.M)
 
 
 def audit_dir() -> Path:
@@ -63,12 +66,29 @@ def is_auditor(agent_type: Any) -> bool:
 
 
 def parse_report(text: str) -> tuple[str | None, str | None]:
-    """(verdict, commit-ish). verdict is None unless exactly one distinct value is stated."""
-    verdicts = {m.group(1).upper() for m in _VERDICT_RE.finditer(text)}
+    """(verdict, commit-ish). verdict is "PASS" only when there is exactly one Verdict line and its
+    value is exactly PASS (no "/", no "(with warnings)"); otherwise the raw value or None."""
+    values = [m.group(1).strip() for m in _VERDICT_LINE_RE.finditer(text)]
     commits = {m.group(1).lower() for m in _COMMIT_RE.finditer(text)}
-    verdict = verdicts.pop() if len(verdicts) == 1 else None
     commit = commits.pop() if len(commits) == 1 else None
-    return verdict, commit
+    if len(values) != 1:
+        return None, commit
+    v = values[0]
+    return ("PASS" if _PASS_VALUE_RE.fullmatch(v) and "/" not in v else v), commit
+
+
+def report_text(payload: dict) -> tuple[str, str]:
+    """Final report: whichever of the transcript (incl. SubagentHandback) and last_assistant_message
+    carries a Verdict line, transcript first. Requires the harness transcript (agent-<id>.jsonl)."""
+    tp = rg.agent_transcript(payload)
+    if tp is None:
+        return "", ""
+    cands = [(rg.transcript_final_text(tp, str(payload["agent_id"]), False), "agent_transcript_path"),
+             (rg._content_text(payload.get("last_assistant_message")), "last_assistant_message")]
+    for text, origin in cands:
+        if _VERDICT_LINE_RE.search(text or ""):
+            return text, origin
+    return "", ""
 
 
 def cmd_subagent_hook(_args: argparse.Namespace) -> int:
@@ -76,7 +96,7 @@ def cmd_subagent_hook(_args: argparse.Namespace) -> int:
         payload = json.loads(sys.stdin.read() or "{}")
         if not isinstance(payload, dict) or not is_auditor(payload.get("agent_type")):
             return 0
-        text, origin = rg.subagent_final_text(payload)  # enforces agent-<id>.jsonl under root
+        text, origin = report_text(payload)
         if not text.strip():
             return 0
         verdict, commitish = parse_report(text)

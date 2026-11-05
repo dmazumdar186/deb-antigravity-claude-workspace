@@ -216,3 +216,66 @@ def test_prepush_step_blocks_main_only(tmp_path, repo, monkeypatch):
     run_hook(monkeypatch, payload(tmp_path, repo, report("PASS", sha)))
     r = _sh(["sh", str(STEP), sys.executable], line, env, cwd=ROOT)
     assert r.returncode == 0, r.stderr
+
+
+@pytest.mark.parametrize("text,want", [
+    ("**Verdict: PASS**", True), ("Verdict: PASS", True), ("**Verdict**: PASS", True),
+    ("- **Verdict:** **PASS**", True),
+    ("**Verdict: PASS / FAIL / WARNINGS**", False), ("Verdict: PASS (with warnings)", False),
+    ("Verdict: FAIL\nVerdict: PASS", False), ("Verdict: PASS\nVerdict: PASS", False),
+    ("Verdict: WARNINGS", False),
+])
+def test_verdict_strictness(text, want):
+    assert (ag.parse_report(text)[0] == "PASS") is want
+
+
+@pytest.mark.parametrize("line", ["**Audited commit**: abcdef1234", "**Audited commit: abcdef1234**",
+                                  "Audited commit: `abcdef1234`", "HEAD: abcdef1234"])
+def test_commit_forms(line):
+    assert ag.parse_report(line)[1] == "abcdef1234"
+
+
+def test_notes_exempt_md_only():
+    assert ag.is_exempt(".claude/notes/general.md")
+    assert not ag.is_exempt(".claude/notes/run.py")
+
+
+def test_handback_preferred_over_preamble(tmp_path, repo, monkeypatch):
+    sha = git(repo, "rev-parse", "HEAD")
+    p = payload(tmp_path, repo, report("PASS", sha))
+    p["last_assistant_message"] = "Wrapping up the audit now."
+    run_hook(monkeypatch, p)
+    assert ledger(tmp_path)[0]["text_from"] == "agent_transcript_path"
+
+
+def test_prepush_last_line_without_newline(tmp_path, repo):
+    sha = git(repo, "rev-parse", "HEAD")
+    env = dict(os.environ, GIT_DIR=str(repo / ".git"))
+    r = _sh(["sh", str(STEP), sys.executable], f"refs/heads/x {sha} refs/heads/main {'0' * 40}",
+            env, cwd=ROOT)
+    assert r.returncode == 1 and "PUSH BLOCKED" in r.stderr
+
+
+def test_prepush_fails_closed_without_python(tmp_path, repo):
+    sha = git(repo, "rev-parse", "HEAD")
+    env = dict(os.environ, GIT_DIR=str(repo / ".git"))
+    line = f"refs/heads/x {sha} refs/heads/main {'0' * 40}\n"
+    r = _sh(["sh", str(STEP), ""], line, env, cwd=ROOT)
+    assert r.returncode == 1 and "fail closed" in r.stderr
+    r = _sh(["sh", str(STEP), ""], line.replace("heads/main", "heads/f"), env, cwd=ROOT)
+    assert r.returncode == 0
+
+
+def test_full_prepush_blocks_main_when_sast_missing(tmp_path, repo):
+    """The audit step runs before (and regardless of) the SAST early exits."""
+    hooks = repo / ".githooks"
+    (hooks / "pre-push.d").mkdir(parents=True)
+    (hooks / "pre-push").write_text((ROOT / ".githooks" / "pre-push").read_text())
+    (hooks / "pre-push.d" / "audit-gate").write_text(STEP.read_text())
+    sha = commit(repo, {"x.txt": "1\n"})  # no workspace_sast.py, no audit_gate.py in this repo
+    line = f"refs/heads/x {sha} refs/heads/main {'0' * 40}\n"
+    r = _sh(["sh", str(hooks / "pre-push")], line, dict(os.environ), cwd=repo)
+    assert r.returncode == 1 and "fail closed" in r.stderr
+    r = _sh(["sh", str(hooks / "pre-push")], line.replace("heads/main", "heads/f"),
+            dict(os.environ), cwd=repo)
+    assert r.returncode == 0
