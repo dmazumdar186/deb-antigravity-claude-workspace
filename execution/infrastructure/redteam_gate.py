@@ -1042,9 +1042,8 @@ def envelope_error(row: dict, ti: dict) -> str | None:
     if row.get("waived") is True:
         return None
     subj = ti.get("subject")
-    if _present(subj):
-        if not isinstance(subj, str) or row.get("subject_sha") != sha_of(subj):
-            return "subject differs from the recorded --subject"
+    if _present(subj) and (not isinstance(subj, str) or row.get("subject_sha") != sha_of(subj)):
+        return "subject differs from the recorded --subject"
     for key in ("to", "cc", "bcc"):
         if not _present(ti.get(key)):
             continue
