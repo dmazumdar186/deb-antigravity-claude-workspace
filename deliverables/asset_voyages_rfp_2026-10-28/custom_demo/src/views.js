@@ -1,5 +1,6 @@
 // Page shells and small form helpers. Plain French, no JavaScript required.
 import { html, raw } from './lib.js';
+import { DEMO_BUSY } from './data.js';
 
 // Bump when app.css or app.js change: assets are cached for a year under a versioned URL.
 export const ASSET_V = '3';
@@ -18,7 +19,7 @@ const head = (title, description) => html`<html lang="fr"><head>
 <script src="/assets/app.js?v=${ASSET_V}" defer></script>
 </head>`;
 
-export function publicPage({ title, description = 'Démonstration ASSET Voyages : catalogue des congrès et demande de devis vol. Données fictives.', body, current = 'cat' }) {
+export function publicPage({ title, description = 'Démonstration ASSET Voyages : catalogue des congrès et demande de devis vol. Données fictives.', body, current = 'cat', busy = false }) {
   return html`${head(title, description)}
 <body class="pub">
 <a class="skip" href="#main">Aller au contenu</a>
@@ -30,7 +31,7 @@ export function publicPage({ title, description = 'Démonstration ASSET Voyages 
     <a href="/console">Espace équipe</a>
   </nav>
 </header>
-<main id="main">${body}</main>
+<main id="main">${busy ? html`<p class="busy" role="status" tabindex="-1" data-focus>${DEMO_BUSY}</p>` : ''}${body}</main>
 <footer class="foot">
   <div class="foot__in">
     <p class="foot__brand">ASSET <span>Voyages</span></p>
@@ -52,7 +53,7 @@ const NAV = [
   { key: 'journal', href: '/console/gme/journal', label: 'Journal', aria: 'Journal d’accès GM&E', roles: ['direction'], sub: true },
 ];
 
-export function consolePage({ title, user, csrf, current, body, badges = {} }) {
+export function consolePage({ title, user, csrf, current, body, badges = {}, busy = false }) {
   return html`${head(title + ' | Console ASSET', 'Console ASSET (démonstration) : congrès, demandes et codes GM&E.')}
 <body class="con">
 <a class="skip" href="#main">Aller au contenu</a>
@@ -67,6 +68,7 @@ export function consolePage({ title, user, csrf, current, body, badges = {} }) {
     <a href="/">Voir le site public</a>
   </nav>
   <main id="main" class="cmain">
+    ${busy ? html`<p class="busy" role="status" tabindex="-1" data-focus>${DEMO_BUSY}</p>` : ''}
     <p class="sandbox">Bac à sable privé : données fictives, vos essais ne sont visibles que dans ce navigateur, aucun e-mail réel n’est envoyé.</p>
     ${body}
   </main>

@@ -3,7 +3,7 @@ import { encryptCode, hashPassword, newSalt, slugify, norm, PBKDF2_ITER, nowIso,
 
 // Schema v2: every demo row carries `sbx`. '' is the shared seed (read-only for visitors); any other value is one
 // browser's private sandbox, created on that browser's first write as a full copy of the seed (copy-on-write).
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 export const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT NOT NULL)`,
   `CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT UNIQUE NOT NULL, display_name TEXT NOT NULL, role TEXT NOT NULL CHECK (role IN ('direction','equipe','contributeur')), pw_hash TEXT NOT NULL, pw_salt TEXT NOT NULL, pw_iter INTEGER NOT NULL)`,
@@ -22,6 +22,11 @@ export const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS gme_access_log (id INTEGER PRIMARY KEY, sbx TEXT NOT NULL DEFAULT '', at TEXT NOT NULL, user_id INTEGER NOT NULL, congress_id INTEGER NOT NULL, result TEXT NOT NULL)`,
   // Managed lists for the congress form (Direction adds values), so a typo cannot create a duplicate filter.
   `CREATE TABLE IF NOT EXISTS options (sbx TEXT NOT NULL DEFAULT '', kind TEXT NOT NULL CHECK (kind IN ('discipline','pays')), value TEXT NOT NULL, norm TEXT NOT NULL, PRIMARY KEY (sbx, kind, norm))`,
+  // Indexes on sbx so a reset or the nightly purge never scans whole log tables.
+  `CREATE INDEX IF NOT EXISTS idx_cev_sbx ON congress_events (sbx, congress_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_eev_sbx ON enquiry_events (sbx, enquiry_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_not_sbx ON notifications (sbx)`,
+  `CREATE INDEX IF NOT EXISTS idx_log_sbx ON gme_access_log (sbx)`,
   `CREATE TABLE IF NOT EXISTS rate_limits (key TEXT PRIMARY KEY, count INTEGER NOT NULL, reset_at INTEGER NOT NULL)`,
 ];
 const DATA_TABLES = ['options', 'congress_events', 'enquiry_events', 'notifications', 'enquiries', 'gme_access_log', 'gme_requests', 'gme_codes', 'congresses'];
@@ -46,7 +51,8 @@ export const USERS = [
 export const DEMO_PASSWORD = 'demo-asset';
 
 const FICTION = 'Fiche d’exemple pour la démonstration : congrès, lieu et site officiel sont fictifs.';
-export const nbsp = (t) => String(t).replace(/ +— /g, '\u00a0— ');
+// Non-breaking spaces on both sides of the dash: « — exemple » never breaks from its title nor leaves « exemple » alone.
+export const nbsp = (t) => String(t).replace(/[ \u00a0]+—[ \u00a0]+/g, '\u00a0—\u00a0');
 const C = (n, title, discipline, city, country, start, end, venue, blurb, status = 'publie') => ({
   id: n, ref: `CG-0${n}`, title: nbsp(title), discipline, city, country, start, end, venue: nbsp(venue), status,
   description: `${blurb} ${FICTION}`,
@@ -139,22 +145,28 @@ export async function effectiveSbx(env, id) {
   const row = await env.DB.prepare('SELECT id FROM sandboxes WHERE id = ?').bind(id).first();
   return row ? id : '';
 }
-// New sandboxes: 150 per IP hash per hour, 1,500 per day overall. Each copy writes about 100 rows, so the daily cap keeps
-// the demo inside the D1 free-plan write quota (100,000 rows a day) even under abuse.
-export const SBX_CREATE_LIMIT = 150;
-export const SBX_DAILY_LIMIT = 1500;
+// Sandbox budget (D1 free plan: 100,000 rows written a day; index entries count as writes).
+// One copy of the seed writes SANDBOX_ROWS rows (measured, incl. index entries, see README); we keep 30,000 rows a day
+// for real use (enquiries, edits, throttle counters, the nightly reseed), so (100,000 - 30,000) / SANDBOX_ROWS new
+// sandboxes a day overall, and 20 per IP a day. Beyond either cap the visitor keeps browsing the read-only seed with a
+// calm banner; nothing is refused with a bare 429.
+export const SANDBOX_ROWS = 175;
+export const SBX_IP_DAILY = 20;
+export const SBX_DAILY_LIMIT = Math.floor((100000 - 30000) / SANDBOX_ROWS); // 400
+export const DEMO_BUSY = 'Démo très demandée : vous pouvez parcourir, les essais reprennent dans quelques minutes.';
 // Copy-on-write: the first write of a browser copies the seed into its own sandbox. Returns the sandbox id.
 export async function materialize(env) {
   if (env.SBX_EFF) return env.SBX_EFF;
   const id = env.SBX;
   if (!validSbx(id)) throw new Error('no sandbox id');
   const db = env.DB;
-  if ((env.IP_HASH && !(await rateHit(env, 'sbx:' + env.IP_HASH, SBX_CREATE_LIMIT, 3600))) || !(await rateHit(env, 'sbx:all', SBX_DAILY_LIMIT, 86400))) {
+  if ((env.IP_HASH && !(await rateHit(env, 'sbx-ip:' + env.IP_HASH, SBX_IP_DAILY, 86400))) || !(await rateHit(env, 'sbx:all', SBX_DAILY_LIMIT, 86400))) {
     throw Object.assign(new Error('sandbox limit'), { code: 'SBX_LIMIT' });
   }
   const ins = await db.prepare('INSERT OR IGNORE INTO sandboxes (id, created_at) VALUES (?, ?)').bind(id, nowIso()).run();
   if (ins.meta && ins.meta.changes) {
-    await db.batch(Object.entries(COPY_COLS).map(([t, cols]) => db.prepare(`INSERT INTO ${t} (sbx, ${cols}) SELECT ?, ${cols} FROM ${t} WHERE sbx = ''`).bind(id)));
+    // INSERT OR IGNORE: a row already written under this id (a parallel first write, or an orphan) never makes the copy fail.
+    await db.batch(Object.entries(COPY_COLS).map(([t, cols]) => db.prepare(`INSERT OR IGNORE INTO ${t} (sbx, ${cols}) SELECT ?, ${cols} FROM ${t} WHERE sbx = ''`).bind(id)));
   }
   env.SBX_EFF = id;
   return id;
@@ -176,6 +188,8 @@ export async function nightly(env) {
   const cutoff = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
   await deleteSandboxes(env, 'created_at < ?', [cutoff]);
   await env.DB.batch([
+    // orphans: rows tagged with a sandbox that no longer exists (e.g. a write that raced a reset)
+    ...DATA_TABLES.map((t) => env.DB.prepare(`DELETE FROM ${t} WHERE sbx <> '' AND sbx NOT IN (SELECT id FROM sandboxes)`)),
     env.DB.prepare('DELETE FROM sessions WHERE expires_at < ?').bind(Math.floor(Date.now() / 1000)),
     env.DB.prepare('DELETE FROM rate_limits WHERE reset_at < ?').bind(Math.floor(Date.now() / 1000)),
   ]);

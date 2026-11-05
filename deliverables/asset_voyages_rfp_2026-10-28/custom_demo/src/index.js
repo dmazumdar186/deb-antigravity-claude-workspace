@@ -65,7 +65,11 @@ export default {
       }
     } catch (err) {
       if (err && err.code === 'SBX_LIMIT') {
-        res = htmlResponse(errorPage({ status: 429, title: 'Trop d’essais', text: 'Trop de bacs à sable de démonstration ont été créés récemment. Réessayez un peu plus tard.' }), 429);
+        // Sandbox caps reached: back to the same page, read-only seed, with a calm banner (never a bare 429).
+        const ref = req.headers.get('referer');
+        let back = '/';
+        try { const u = new URL(ref); if (u.origin === new URL(req.url).origin) back = u.pathname; } catch { back = '/'; }
+        res = new Response(null, { status: 303, headers: { location: `${back}?demo=complet` } });
       } else {
         console.error('request failed', err && err.message);
         res = htmlResponse(errorPage({ status: 500, title: 'Erreur temporaire', text: 'Le service n’a pas pu répondre. Réessayez dans un instant ; rien n’a été enregistré en double.' }), 500);

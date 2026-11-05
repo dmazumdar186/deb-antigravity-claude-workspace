@@ -1,0 +1,122 @@
+[
+ {
+  "story": "S2+S3",
+  "label": "chip Cardiologie",
+  "tabs": 12,
+  "focus": "A# Cardiologie",
+  "focusVisible": true
+ },
+ {
+  "story": "S2+S3",
+  "label": "first card link",
+  "tabs": 24,
+  "focus": "A# Congrès européen de cardiologie — exemple",
+  "focusVisible": true
+ },
+ {
+  "story": "S2+S3",
+  "label": "field Nom et prénom",
+  "tabs": 6,
+  "focus": "INPUT#asset-q-nom nom",
+  "focusVisible": true
+ },
+ {
+  "story": "S2+S3",
+  "label": "consent checkbox",
+  "tabs": 5,
+  "focus": "INPUT#asset-q-consentement 1",
+  "focusVisible": true
+ },
+ {
+  "story": "S2+S3",
+  "label": "Envoyer ma demande",
+  "tabs": 1,
+  "focus": "BUTTON# Envoyer ma demande",
+  "focusVisible": true
+ },
+ {
+  "story": "S2+S3",
+  "label": "STORY RESULT",
+  "result": "FAIL no reference; Merci de corriger les points suivants : Indiquez une date aller valide. Indiquez une date retour valide. Le nombre de passagers doit êtr"
+ },
+ {
+  "story": "S1",
+  "label": "menu Congrès",
+  "tabs": 7,
+  "focus": "A# Congrès",
+  "focusVisible": true
+ },
+ {
+  "story": "S1",
+  "label": "Ajouter un congrès",
+  "tabs": 9,
+  "focus": "A# Ajouter un congrès",
+  "focusVisible": true
+ },
+ {
+  "story": "S1",
+  "label": "Date de début (from title)",
+  "tabs": 22,
+  "focus": "INPUT#asset-field-asset_start asset_meta[_asset_start]",
+  "focusVisible": true
+ },
+ {
+  "story": "S1",
+  "label": "Publier (forward)",
+  "tabs": 59,
+  "focus": "INPUT#publish Publier",
+  "focusVisible": true
+ },
+ {
+  "story": "S1",
+  "label": "STORY RESULT",
+  "result": "FAIL no notice; page says:  Connexion perdue. L’enregistrement a été désactivé jusqu’à votre reconnexion. Cette publication est sauvegardée dans votre navi"
+ },
+ {
+  "story": "S5",
+  "label": "menu Accès GM&E",
+  "tabs": 15,
+  "focus": "A# Accès GM&E",
+  "focusVisible": true
+ },
+ {
+  "story": "S5",
+  "label": "first reason textarea",
+  "tabs": 23,
+  "focus": "TEXTAREA#asset-reason-5 reason",
+  "focusVisible": true
+ },
+ {
+  "story": "S5",
+  "label": "Demander l’accès",
+  "tabs": 1,
+  "focus": "BUTTON# Demander l’accès",
+  "focusVisible": true
+ },
+ {
+  "story": "S5",
+  "label": "Approuver (24 h) in widget",
+  "tabs": 44,
+  "focus": "BUTTON# Approuver (24 h)",
+  "focusVisible": true
+ },
+ {
+  "story": "S5",
+  "label": "menu Accès GM&E (2)",
+  "tabs": 15,
+  "focus": "A# Accès GM&E",
+  "focusVisible": true
+ },
+ {
+  "story": "S5",
+  "label": "Révéler le code",
+  "tabs": 23,
+  "focus": "BUTTON# Révéler le code",
+  "focusVisible": true
+ },
+ {
+  "story": "S5",
+  "label": "STORY RESULT",
+  "result": "PASS"
+ }
+]

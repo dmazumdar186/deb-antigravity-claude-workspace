@@ -44,7 +44,7 @@ function labelTables(markup) {
 }
 function page(ctx, title, current, body, status = 200) {
   body = raw(labelTables(String(body)));
-  return htmlResponse(consolePage({ title, user: ctx.user, csrf: ctx.csrf, current, body, badges: ctx.badges }), status, NO_STORE);
+  return htmlResponse(consolePage({ title, user: ctx.user, csrf: ctx.csrf, current, body, badges: ctx.badges, busy: ctx.url.searchParams.get('demo') === 'complet' }), status, NO_STORE);
 }
 function deny(ctx, text = 'Votre rôle ne donne pas accès à cette page.', status = 403) {
   return htmlResponse(errorPage({ status, title: 'Accès refusé', text, user: ctx.user, csrf: ctx.csrf, back: '/console' }), status, NO_STORE);
