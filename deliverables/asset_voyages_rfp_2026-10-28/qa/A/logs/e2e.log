@@ -47,3 +47,41 @@ Running 46 tests using 1 worker
   -  42 07-cross.spec.js:63:1 › X3 all data fictional: titles end « — exemple », emails @example.com, codes DEMO-GME-…
   -  43 07-cross.spec.js:90:1 › X4 re-seeding is idempotent (no duplicates)
   ✓  44 08-screens.spec.js:9:1 › Screens: visitor (23.6s)
+  ✓  45 08-screens.spec.js:29:1 › Screens: admin (51.9s)
+  ✓  46 99-s3-ratelimit.spec.js:5:1 › S3-H2 rapid repeat submissions from one address are rate-limited (35.9s)
+
+
+  1) 07-cross.spec.js:16:1 › X1 zero console errors and zero failed requests on every tested screen 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 4
+
+    - Array []
+    + Array [
+    +   "visitor HTTP 404: http://127.0.0.1:9400/congres/x",
+    +   "visitor console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    + ]
+
+      43 | 		await ctx.close();
+      44 | 	}
+    > 45 | 	expect(problems).toEqual([]);
+         | 	                 ^
+      46 | });
+      47 |
+      48 | test('X2 visitor pages load no third-party scripts or requests', async ({ browser }) => {
+        at /home/user/deb-antigravity-claude-workspace/deliverables/asset_voyages_rfp_2026-10-28/wp_demo/tests/07-cross.spec.js:45:19
+
+    Error Context: ../.tmp/test-output/07-cross-X1-zero-console-e-477af-ests-on-every-tested-screen/error-context.md
+
+  Slow test file: 06-leak.spec.js (14.1m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  1 failed
+    07-cross.spec.js:16:1 › X1 zero console errors and zero failed requests on every tested screen ─
+  3 did not run
+  42 passed (25.6m)
+
+real	26m4.260s
+user	0m56.827s
+sys	0m19.581s

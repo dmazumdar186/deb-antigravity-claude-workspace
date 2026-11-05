@@ -45,6 +45,9 @@ test('S2-F2 keyword search on title, city and discipline, accent-insensitive', a
     await page.goto('/');
     await page.getByLabel('Recherche').fill(q);
     await page.getByRole('button', { name: 'Rechercher' }).click();
+    // FIX2-6: wait for the results page itself; reading the rows straight after the click raced the navigation
+    await page.waitForURL((u) => new URL(u).searchParams.get('q') === q);
+    await expect(page.locator('#q')).toHaveValue(q);
     const got = await page.locator('.row__a').evaluateAll((as) => as.map((a) => a.getAttribute('href').slice(-7).toUpperCase()));
     expect(got.sort(), `query ${q}`).toEqual(refs.sort());
   }

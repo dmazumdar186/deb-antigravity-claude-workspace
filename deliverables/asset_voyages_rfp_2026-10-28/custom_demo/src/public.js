@@ -4,7 +4,7 @@ import {
   readForm, makeFormToken, checkFormToken, ipHash, rateHit, redirect, htmlResponse, nowIso, hmac, safeEqual,
 } from './lib.js';
 import { publicPage, field, errorPage, errorSummary } from './views.js';
-import { notificationFor, TEAM_INBOX, materialize, baseUrl } from './data.js';
+import { notificationFor, TEAM_INBOX, materialize, baseUrl, DEMO_BUSY } from './data.js';
 
 const PER_PAGE = 9;
 const MIN_FILL_MS = 3000;
@@ -29,7 +29,7 @@ function qs(f, over = {}) {
   if (v.mois) p.set('mois', v.mois);
   if (v.page && v.page > 1) p.set('page', String(v.page));
   const s = p.toString();
-  return s ? `/?${s}` : '/';
+  return s ? `/?${s}#resultats` : '/#resultats';
 }
 const monthLabel = (ym) => { const [y, m] = ym.split('-').map(Number); return `${MOIS_LONG[m - 1]} ${y}`; };
 
@@ -70,7 +70,7 @@ export async function catalogue(req, env) {
     <p class="lead">Sources officielles vérifiées, demande de vol depuis chaque fiche.</p>
   </header>
   <div class="cat__grid">
-    <form class="filters" method="get" action="/" role="search" aria-label="Filtrer les congrès">
+    <form class="filters" method="get" action="/#resultats" role="search" aria-label="Filtrer les congrès">
       <div class="field"><label for="q">Recherche</label><input id="q" name="q" type="search" value="${f.q}" placeholder="Nom, ville ou discipline" maxlength="200" enterkeyhint="search" autocomplete="off"></div>
       ${f.d ? html`<input type="hidden" name="discipline" value="${f.d}">` : ''}
       <div class="field"><label for="pays">Pays</label><select id="pays" name="pays" data-autosubmit>
@@ -84,7 +84,7 @@ export async function catalogue(req, env) {
         <ul class="chips">${chip('Toutes', '')}${disciplines.map((d) => chip(d, d))}</ul>
       </fieldset>
     </form>
-    <div class="list">
+    <div class="list" id="resultats" tabindex="-1">
       <p class="bar" aria-live="polite"><span class="bar__n">${total === 0 ? 'Aucun congrès trouvé' : `${total} congrès${filtered ? (total > 1 ? ' trouvés' : ' trouvé') : ''}`}</span><span>Triés par date</span></p>
       ${rows.length ? html`<ol class="rows">${rows.map((r) => { const rp = rangeParts(r.start_date, r.end_date); return html`
         <li class="row"><a class="row__a" href="/congres/${r.slug}">
@@ -103,7 +103,7 @@ export async function catalogue(req, env) {
     </div>
   </div>
 </section>`;
-  return htmlResponse(publicPage({ title: 'Catalogue des congrès | ASSET Voyages', body }), 200, { 'cache-control': 'no-cache' });
+  return htmlResponse(publicPage({ title: 'Catalogue des congrès | ASSET Voyages', body, busy: url.searchParams.get('demo') === 'complet' }), 200, { 'cache-control': 'no-cache' });
 }
 
 async function loadPublicCongress(env, where, bind) {
@@ -174,7 +174,7 @@ export async function congressPage(req, env, slug, { values, errors, notice, sta
     </aside>
   </div>
 </article>`;
-  return htmlResponse(publicPage({ title: `${c.title} | ASSET Voyages`, description: `${c.title} : ${frRange(c.start_date, c.end_date)}, ${c.city}. Demande de devis vol.`, body }), status, { 'cache-control': 'no-store' });
+  return htmlResponse(publicPage({ busy: new URL(req.url).searchParams.get('demo') === 'complet', title: `${c.title} | ASSET Voyages`, description: `${c.title} : ${frRange(c.start_date, c.end_date)}, ${c.city}. Demande de devis vol.`, body }), status, { 'cache-control': 'no-store' });
 }
 
 const EMAIL_RE = /^[^\s@<>()",;:]{1,64}@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$/;
@@ -234,7 +234,11 @@ export async function submitEnquiry(req, env) {
   if (Object.keys(e).length) return congressPage(req, env, c, { values: v, errors: e, status: 200 });
 
   const ip = env.IP_HASH || await ipHash(env, req);
-  const sid = await materialize(env); // this browser's private sandbox
+  let sid;
+  try { sid = await materialize(env); } catch (err) { // this browser's private sandbox; caps reached: keep what was typed, explain calmly
+    if (err && err.code === 'SBX_LIMIT') return congressPage(req, env, c, { values: v, errors: {}, notice: `Votre demande n’a pas été envoyée. ${DEMO_BUSY}`, status: 200 });
+    throw err;
+  }
   // Per browser (whatever IP it comes from: mobile networks and proxies change it) and per IP (a whole office).
   if (!(await rateHit(env, `enq-sbx:${sid}`, ENQ_LIMIT, ENQ_WINDOW)) || !(await rateHit(env, `enq:${ip}`, ENQ_IP_LIMIT, ENQ_WINDOW))) {
     return congressPage(req, env, c, { values: v, errors: {}, notice: 'Votre demande n’a pas été envoyée : trop de demandes depuis ce navigateur en 10 minutes. Réessayez dans quelques minutes ou appelez l’agence au 01 00 00 00 00 (numéro d’exemple).', status: 200 });

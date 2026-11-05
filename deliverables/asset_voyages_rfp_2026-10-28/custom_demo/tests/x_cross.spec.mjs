@@ -50,7 +50,7 @@ test('X3 all data is fictional: titles end « — exemple », e-mails @example.c
   const titles = [];
   for (const p of ['/', '/?page=2']) { await page.goto(p); titles.push(...await page.locator('.row__t').allTextContents()); }
   expect(titles).toHaveLength(12);
-  for (const t of titles) expect(t).toMatch(/\u00a0— exemple$/); // non-breaking space keeps « — exemple » with its title
+  for (const t of titles) expect(t).toMatch(/\u00a0—\u00a0exemple$/); // non-breaking spaces keep « — exemple » with its title
   await login(page, 'direction');
   await page.goto('/console/demandes');
   const contacts = await page.locator('tbody tr').count();

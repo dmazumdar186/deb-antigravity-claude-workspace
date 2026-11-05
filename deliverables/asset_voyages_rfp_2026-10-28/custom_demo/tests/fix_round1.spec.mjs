@@ -261,7 +261,7 @@ test('FIX-11 FIX-12 at 390 px the console menu wraps with the active tab visible
     return { display: getComputedStyle(tr).display, labels: tds.map((td) => getComputedStyle(td, '::before').content), right: tr.getBoundingClientRect().right };
   });
   expect(card.display).toBe('block');
-  expect(card.labels).toEqual(['"Réf."', '"Reçue"', '"Congrès"', '"Contact"', '"Départ"', '"Dates"', '"Passagers"', '"Statut"', '"Responsable"']);
+  expect(card.labels).toEqual(['"Réf."', '"Statut"', '"Reçue"', '"Congrès"', '"Contact"', '"Voyage"', '"Responsable"']);
   expect(card.right).toBeLessThanOrEqual(390);
   assertClean(P.problems); await P.ctx.close();
 });
@@ -294,7 +294,7 @@ test('FIX-14 FIX-15 the prefilled congress is plain text, not truncated, and « 
     expect(await el.evaluate((e) => e.scrollWidth <= e.clientWidth)).toBe(true);
     const html = await P.page.content();
     expect(html).not.toMatch(/digestive — exemple/);
-    expect(html).toContain('digestive&nbsp;— exemple');
+    expect(html).toContain('digestive&nbsp;—&nbsp;exemple');
     assertClean(P.problems); await P.ctx.close();
   }
 });
@@ -372,10 +372,10 @@ test('FIX-22 (D2) the sidebar groups the GM&E items under « Codes GM&E »: Code
   await login(page, 'direction');
   const side = page.getByRole('navigation', { name: 'Console' });
   await expect(side.locator('.side__h')).toHaveText('Codes GM&E');
-  await expect(side.locator('a.side__sub')).toHaveText(['Codes', /^Demandes d’accès/, 'Journal']);
+  await expect(side.locator('a.side__sub')).toHaveText([/^Codes/, /^Demandes d’accès/, /^Journal/]);
   await logout(page);
   await login(page, 'equipe');
-  await expect(page.getByRole('navigation', { name: 'Console' }).locator('a.side__sub')).toHaveText(['Codes']);
+  await expect(page.getByRole('navigation', { name: 'Console' }).locator('a.side__sub')).toHaveText([/^Codes/]);
 });
 
 test('FIX-23 FIX-24 (D3, D4) failed enquiry: 200 page, top banner lists each error as a link to its field, focus on the banner, visible on a phone', async ({ browser }) => {

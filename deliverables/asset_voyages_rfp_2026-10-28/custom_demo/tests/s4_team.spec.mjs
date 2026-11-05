@@ -23,11 +23,11 @@ test('S4-F1 the visitor enquiry appears in Demandes with every column and status
   await login(page, 'equipe');
   await page.getByRole('navigation', { name: 'Console' }).getByRole('link', { name: /Demandes/ }).click();
   const heads = await page.locator('thead th').allTextContents();
-  expect(heads).toEqual(['Réf.', 'Reçue', 'Congrès', 'Contact', 'Départ', 'Dates', 'Passagers', 'Statut', 'Responsable']);
+  expect(heads).toEqual(['Réf.', 'Statut', 'Reçue', 'Congrès', 'Contact', 'Voyage', 'Responsable']); // Voyage = departure city, dates, passengers
   const row = page.locator('tbody tr', { hasText: REF });
   await expect(row).toHaveCount(1);
-  for (const t of [REF, 'Congrès européen de radiologie — exemple', 'Sophie Bernard (exemple)', 'Strasbourg', '23/02/2027 au 01/03/2027', '4', 'Nouvelle', 'À attribuer']) await expect(row).toContainText(t);
-  await expect(row.locator('td').nth(1)).toHaveText(/\d{2}\/\d{2}\/\d{4}/);
+  for (const t of [REF, 'Congrès européen de radiologie — exemple', 'Sophie Bernard (exemple)', 'Départ de Strasbourg', '23/02/2027 au 01/03/2027', '4 passagers', 'Nouvelle', 'À attribuer']) await expect(row).toContainText(t);
+  await expect(row.locator('td').nth(2)).toHaveText(/\d{2}\/\d{2}\/\d{4}/);
 });
 
 test('S4-F2 filter by status and search by name or reference', async () => {

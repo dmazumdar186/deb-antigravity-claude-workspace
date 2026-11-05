@@ -3,7 +3,7 @@ import { html, raw } from './lib.js';
 import { DEMO_BUSY } from './data.js';
 
 // Bump when app.css or app.js change: assets are cached for a year under a versioned URL.
-export const ASSET_V = '3';
+export const ASSET_V = '4';
 
 const head = (title, description) => html`<html lang="fr"><head>
 <meta charset="utf-8">
@@ -48,9 +48,9 @@ const NAV = [
   { key: 'dem', href: '/console/demandes', label: 'Demandes', roles: ['direction', 'equipe'] },
   { key: 'notif', href: '/console/notifications', label: 'Notifications', roles: ['direction', 'equipe'] },
   { group: 'Codes GM&E', roles: ['direction', 'equipe'] },
-  { key: 'gme', href: '/console/gme', label: 'Codes', aria: 'Codes GM&E', roles: ['direction', 'equipe'], sub: true },
-  { key: 'acces', href: '/console/gme/acces', label: 'Demandes d’accès', aria: 'Demandes d’accès GM&E', roles: ['direction'], sub: true },
-  { key: 'journal', href: '/console/gme/journal', label: 'Journal', aria: 'Journal d’accès GM&E', roles: ['direction'], sub: true },
+  { key: 'gme', href: '/console/gme', label: 'Codes', srSuffix: ' GM&E', roles: ['direction', 'equipe'], sub: true },
+  { key: 'acces', href: '/console/gme/acces', label: 'Demandes d’accès', srSuffix: ' GM&E', roles: ['direction'], sub: true },
+  { key: 'journal', href: '/console/gme/journal', label: 'Journal', srSuffix: ' d’accès GM&E', roles: ['direction'], sub: true },
 ];
 
 export function consolePage({ title, user, csrf, current, body, badges = {}, busy = false }) {
@@ -64,7 +64,7 @@ export function consolePage({ title, user, csrf, current, body, badges = {}, bus
 </header>
 <div class="shell">
   <nav class="side" aria-label="Console">
-    ${NAV.filter((n) => n.roles.includes(user.role)).map((n) => n.group ? html`<p class="side__h" aria-hidden="true">${n.group}</p>` : html`<a href="${n.href}"${n.sub ? raw(' class="side__sub"') : ''}${n.key === current ? raw(' aria-current="page"') : ''}${n.aria ? html` aria-label="${n.aria}${badges[n.key] ? `, ${badges[n.key]} en attente` : ''}"` : ''}>${n.label}${badges[n.key] ? html` <span class="count" aria-hidden="true">${badges[n.key]}</span>` : ''}</a>`)}
+    ${NAV.filter((n) => n.roles.includes(user.role)).map((n) => n.group ? html`<p class="side__h" aria-hidden="true">${n.group}</p>` : html`<a href="${n.href}"${n.sub ? raw(' class="side__sub"') : ''}${n.key === current ? raw(' aria-current="page"') : ''}>${n.label}${n.srSuffix ? html`<span class="sr">${n.srSuffix}</span>` : ''}${badges[n.key] ? html` <span class="count">${badges[n.key]}</span><span class="sr"> en attente</span>` : ''}</a>`)}
     <a href="/">Voir le site public</a>
   </nav>
   <main id="main" class="cmain">

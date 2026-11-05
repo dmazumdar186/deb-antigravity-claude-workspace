@@ -1,6 +1,6 @@
 // Staff console: sessions, roles, congresses, enquiries, notifications, GM&E codes and their authorisation.
 import {
-  html, raw, today, nowIso, isIsoDate, frRange, frNumDate, frDateTime, clean, norm, slugify,
+  html, raw, esc, today, nowIso, isIsoDate, frRange, frNumDate, frDateTime, clean, norm, slugify,
   readForm, sameOrigin, makeFormToken, checkFormToken, ipHash, rateHit, rateBlocked, redirect, htmlResponse,
   getCookie, sha256hex, randomToken, safeEqual, hashPassword, encryptCode, decryptCode, csvCell,
 } from './lib.js';
@@ -18,7 +18,10 @@ const ALL = ['direction', 'equipe', 'contributeur'];
 const ST_KIND = { nouvelle: 'new', qualifiee: 'wip', devis: 'wip', gagnee: 'done', perdue: 'lost' };
 const CG_KIND = { brouillon: 'draft', a_relire: 'rev', publie: 'pub', archive: 'arch' };
 const GME_KIND = { detecte: 'draft', verifie: 'rev', approuve: 'pub', expire: 'arch' };
+const CG_PLURAL = { brouillon: 'Brouillons', a_relire: 'À relire', publie: 'Publiés', archive: 'Archivés' };
 const NO_STORE = { 'cache-control': 'no-store, private' };
+const nw = (t) => html`<span class="nw">${t}</span>`;
+
 
 // ---------------------------------------------------------------- sessions
 async function getSession(req, env) {
@@ -38,7 +41,8 @@ function labelTables(markup) {
     return tbl.replace(/<tr>([\s\S]*?)<\/tr>/g, (tr, inner) => {
       if (inner.includes('<th scope="col">')) return tr;
       let i = 0;
-      return '<tr>' + inner.replace(/<td(?=[\s>])/g, () => `<td data-label="${heads[i++] || ''}"`) + '</tr>';
+      // the cell content is wrapped once so a multi-line value stays in the value column of a phone card
+      return '<tr>' + inner.replace(/<td([^>]*)>([\s\S]*?)<\/td>/g, (m, attrs, content) => `<td data-label="${heads[i++] || ''}"${attrs}><span class="v">${content}</span></td>`) + '</tr>';
     });
   });
 }
@@ -82,7 +86,9 @@ export async function loginPost(req, env) {
   const u40 = username.slice(0, 40);
   const kSbx = `login-sbx:${env.SBX || 'none'}:${u40}`; const kUser = `login:${ip}:${u40}`; const kAcct = `login-account:${u40}`; const kIp = `login:${ip}`;
   const tooMany = () => loginGet(req, env, { error: 'Trop d’essais. Réessayez dans un quart d’heure.', status: 429 });
-  if (await rateBlocked(env, kIp, 50)) return tooMany();
+  // Per IP: incremented first, atomically (a parallel burst over many usernames cannot slip past); a success gives its
+  // attempt back below, so only failures accumulate.
+  if (!(await rateHit(env, kIp, 50, 900))) return tooMany();
   if (!(await rateHit(env, kSbx, 10, 900))) return tooMany();
   if (!(await rateHit(env, kUser, lockout ? 10 : 50, 900))) return tooMany();
   if (lockout && !(await rateHit(env, kAcct, 30, 900))) return tooMany();
@@ -90,10 +96,12 @@ export async function loginPost(req, env) {
   const u = await env.DB.prepare('SELECT * FROM users WHERE username = ?').bind(username).first();
   const ok = u ? safeEqual(await hashPassword(password, u.pw_salt, u.pw_iter), u.pw_hash) : false;
   if (!ok) {
-    await rateHit(env, kIp, 50, 900);
     return loginGet(req, env, { error: 'Identifiant ou mot de passe incorrect.', status: 401 });
   }
-  await env.DB.prepare('DELETE FROM rate_limits WHERE key IN (?, ?, ?)').bind(kSbx, kUser, kAcct).run();
+  await env.DB.batch([
+    env.DB.prepare('DELETE FROM rate_limits WHERE key IN (?, ?, ?)').bind(kSbx, kUser, kAcct),
+    env.DB.prepare('UPDATE rate_limits SET count = MAX(count - 1, 0) WHERE key = ?').bind(kIp),
+  ]);
   const token = randomToken(32);
   await env.DB.prepare('INSERT INTO sessions (id, user_id, csrf, created_at, expires_at) VALUES (?,?,?,?,?)')
     .bind(await sha256hex(token), u.id, randomToken(24), nowIso(), Math.floor(Date.now() / 1000) + SESSION_TTL).run();
@@ -171,7 +179,7 @@ async function dashboard(ctx) {
   if (user.role === 'contributeur') {
     body = html`<h1 class="h1">Tableau de bord</h1>${notice}
       <p class="intro">Vous préparez les fiches congrès. La publication sur le site est faite par l’équipe ou la Direction.</p>
-      <div class="tiles">${['brouillon', 'a_relire', 'publie'].map((s) => html`<a class="tile" href="/console/congres?statut=${s}"><b>${cgCounts[s] || 0}</b><span>${CG_STATUS[s].toLowerCase()}${s === 'publie' ? '' : ''}</span></a>`)}</div>
+      <div class="tiles">${['brouillon', 'a_relire', 'publie'].map((s) => html`<a class="tile" href="/console/congres?statut=${s}"><b>${cgCounts[s] || 0}</b><span>${(cgCounts[s] || 0) > 1 ? CG_PLURAL[s] : CG_STATUS[s]}</span></a>`)}</div>
       <p class="actions"><a class="btn" href="/console/congres/nouveau">Nouveau congrès</a></p>`;
     return page(ctx, 'Tableau de bord', 'dash', body);
   }
@@ -192,7 +200,7 @@ async function dashboard(ctx) {
     </section>
     <div class="cols">
       <section aria-labelledby="h-new"><h2 class="h2" id="h-new">Dernières demandes</h2>
-        <ul class="feed">${latest.map((e) => html`<li><a href="/console/demandes/${e.id}"><b>${e.ref}</b> ${e.name}</a><span>${e.title}</span><span>${frDateTime(e.created_at)} ${pill(ST_KIND[e.status], STATUS_LABELS[e.status])}</span></li>`)}</ul>
+        <ul class="feed">${latest.map((e) => html`<li><a href="/console/demandes/${e.id}"><b class="nw">${e.ref}</b> ${e.name}</a><span>${e.title}</span><span>${frDateTime(e.created_at)} ${pill(ST_KIND[e.status], STATUS_LABELS[e.status])}</span></li>`)}</ul>
         <p><a class="lnk" href="/console/demandes">Toutes les demandes</a></p>
       </section>
       <section aria-labelledby="h-todo"><h2 class="h2" id="h-todo">À traiter</h2>
@@ -311,7 +319,7 @@ async function congressForm(ctx, id, { values, errors, status = 200, notice } = 
   const gmePanel = c && STAFF.includes(user.role) ? await gmeCard(ctx, c, { context: 'congress' }) : '';
   const body = html`<nav class="crumbs" aria-label="Fil d’Ariane"><a href="/console/congres">Congrès</a><span aria-hidden="true">/</span><span>${c ? c.ref : 'Nouveau'}</span></nav>
     <div class="head"><h1 class="h1">${c ? c.title : 'Nouveau congrès'}</h1>${c ? html`<p>${pill(CG_KIND[stat], CG_STATUS[stat])}${stat === 'publie' ? html` <a class="lnk" href="/congres/${c.slug}">Voir la fiche publique</a>` : ''}</p>` : ''}</div>
-    ${saved ? html`<p class="ok" role="status" tabindex="-1" data-focus>${saved === 'cree' ? 'Congrès créé.' : 'Modifications enregistrées.'}${stat === 'publie' ? ' La fiche publique est à jour.' : ''}</p>` : ''}
+    ${saved ? html`<p class="ok" role="status" tabindex="-1" data-focus>${savedMessage(saved, stat)}</p>` : ''}
     ${notice ? html`<p class="alert" role="alert" tabindex="-1" data-focus>${notice}</p>` : ''}
     ${listMsg ? html`<p class="${listMsg[0]}" role="status" tabindex="-1" data-focus>${listMsg[1]}</p>` : ''}
     ${errorSummary(e, CG_LABELS, CG_IDS)}
@@ -354,6 +362,14 @@ async function congressForm(ctx, id, { values, errors, status = 200, notice } = 
   return page(ctx, c ? c.title : 'Nouveau congrès', 'cg', body, status);
 }
 
+function savedMessage(code, stat) {
+  const created = code.startsWith('cree');
+  const action = code.replace(/^cree-?/, '');
+  const what = { review: 'Soumis à relecture.', publish: 'Publié : la fiche est en ligne.', archive: 'Archivé : la fiche n’est plus sur le site.', draft: 'Repassé en brouillon : la fiche n’est plus sur le site.' }[action];
+  if (created) return `Congrès créé. ${what || (stat === 'brouillon' ? 'Enregistré comme brouillon.' : '')}`.trim();
+  if (what) return what;
+  return `Modifications enregistrées.${stat === 'publie' ? ' La fiche publique est à jour.' : ''}`;
+}
 async function congressSave(ctx, id) {
   const { env, user, form } = ctx;
   const action = form.get('action') || 'save';
@@ -389,13 +405,13 @@ async function congressSave(ctx, id) {
       env.DB.prepare(`INSERT INTO congress_events (sbx, congress_id, at, user_id, kind, from_val, to_val) VALUES (?,?,?,?,'creation',NULL,?)`).bind(env.SBX_EFF, nid, now, user.id, 'brouillon'),
       ...(to !== 'brouillon' ? [env.DB.prepare(`INSERT INTO congress_events (sbx, congress_id, at, user_id, kind, from_val, to_val) VALUES (?,?,?,?,'statut','brouillon',?)`).bind(env.SBX_EFF, nid, now, user.id, to)] : []),
     ]);
-    return redirect(`/console/congres/${nid}?ok=cree`);
+    return redirect(`/console/congres/${nid}?ok=cree-${action}`);
   }
   const stmts = [env.DB.prepare(`UPDATE congresses SET title=?, discipline=?, city=?, country=?, start_date=?, end_date=?, venue=?, official_url=?, verified_on=?, description=?, status=?, search_text=?, updated_at=?, updated_by=? WHERE sbx=? AND id=?`)
     .bind(v.title, v.discipline, v.city, v.country, v.start_date, v.end_date, v.venue, v.official_url, v.verified_on, v.description, to, search, now, user.id, env.SBX_EFF, id)];
   if (to !== from) stmts.push(env.DB.prepare(`INSERT INTO congress_events (sbx, congress_id, at, user_id, kind, from_val, to_val) VALUES (?,?,?,?,'statut',?,?)`).bind(env.SBX_EFF, id, now, user.id, from, to));
   await env.DB.batch(stmts);
-  return redirect(`/console/congres/${id}?ok=1`);
+  return redirect(`/console/congres/${id}?ok=${action}`);
 }
 
 // ---------------------------------------------------------------- enquiries
@@ -426,8 +442,8 @@ async function enquiryList(ctx) {
     </form>
     <p class="bar" aria-live="polite">${rows.length} demande${rows.length > 1 ? 's' : ''}</p>
     ${rows.length ? html`<div class="wrap" role="region" aria-label="Liste des demandes" tabindex="0"><table class="tbl">
-      <thead><tr><th scope="col">Réf.</th><th scope="col">Reçue</th><th scope="col">Congrès</th><th scope="col">Contact</th><th scope="col">Départ</th><th scope="col">Dates</th><th scope="col">Passagers</th><th scope="col">Statut</th><th scope="col">Responsable</th></tr></thead>
-      <tbody>${rows.map((r) => html`<tr><td><a href="/console/demandes/${r.id}">${r.ref}</a></td><td>${frDateTime(r.created_at)}</td><td class="wide">${r.cg_title}</td><td>${r.name}<br><span class="quiet">${r.company || r.email}</span></td><td>${r.departure_city}</td><td>${frNumDate(r.date_out)} au ${frNumDate(r.date_back)}</td><td class="num">${r.passengers}</td><td>${pill(ST_KIND[r.status], STATUS_LABELS[r.status])}</td><td>${r.owner_name || html`<span class="quiet">À attribuer</span>`}</td></tr>`)}</tbody>
+      <thead><tr><th scope="col">Réf.</th><th scope="col">Statut</th><th scope="col">Reçue</th><th scope="col">Congrès</th><th scope="col">Contact</th><th scope="col">Voyage</th><th scope="col">Responsable</th></tr></thead>
+      <tbody>${rows.map((r) => html`<tr><td><a href="/console/demandes/${r.id}" class="nw">${r.ref}</a></td><td>${pill(ST_KIND[r.status], STATUS_LABELS[r.status])}</td><td>${frDateTime(r.created_at)}</td><td class="wide">${r.cg_title}</td><td class="wide">${r.name}<br><span class="quiet">${r.company || r.email}</span></td><td class="wide">Départ de ${r.departure_city}<br>${nw(`${frNumDate(r.date_out)} au ${frNumDate(r.date_back)}`)}<br>${r.passengers} passager${r.passengers > 1 ? 's' : ''}</td><td>${r.owner_name || html`<span class="quiet">À attribuer</span>`}</td></tr>`)}</tbody>
     </table></div>` : html`<div class="empty"><p>Aucune demande ne correspond.</p><p><a class="lnk" href="/console/demandes">Voir toutes les demandes</a></p></div>`}`;
   return page(ctx, 'Demandes', 'dem', body);
 }
@@ -464,7 +480,7 @@ async function enquiryDetail(ctx, id, { notice } = {}) {
   };
   const body = html`<nav class="crumbs" aria-label="Fil d’Ariane"><a href="/console/demandes">Demandes</a><span aria-hidden="true">/</span><span>${r.ref}</span></nav>
     <div class="head"><h1 class="h1">${r.ref}</h1><p>${pill(ST_KIND[r.status], STATUS_LABELS[r.status])}</p></div>
-    ${ok ? html`<p class="ok" role="status" tabindex="-1" data-focus>Enregistré.</p>` : ''}
+    ${ok ? html`<p class="ok" role="status" tabindex="-1" data-focus>${ok.startsWith('statut-') && STATUS_LABELS[ok.slice(7)] ? `Statut mis à jour : ${STATUS_LABELS[ok.slice(7)]}.` : ok === 'responsable' ? `Responsable : ${r.owner_name || 'personne'}.` : ok === 'note' ? 'Note ajoutée à l’historique.' : 'Enregistré.'}</p>` : ''}
     ${notice ? html`<p class="alert" role="alert" tabindex="-1" data-focus>${notice}</p>` : ''}
     <form method="post" action="/console/demandes/${r.id}" class="card status-bar">
       ${csrfInput(ctx.csrf)}<input type="hidden" name="action" value="status">
@@ -474,10 +490,10 @@ async function enquiryDetail(ctx, id, { notice } = {}) {
     <div class="edit">
       <section class="card" aria-labelledby="h-c"><h2 class="h3" id="h-c">Demande de devis vol</h2>
         <dl class="facts facts--tight">
-          <div><dt>Congrès</dt><dd>${r.cg_title} (${r.cg_ref})</dd></div>
+          <div><dt>Congrès</dt><dd>${r.cg_title} (${nw(r.cg_ref)})</dd></div>
           <div><dt>Nom</dt><dd>${r.name}</dd></div>
           <div><dt>E-mail</dt><dd><a class="lnk" href="mailto:${r.email}">${r.email}</a></dd></div>
-          <div><dt>Téléphone</dt><dd>${r.phone}</dd></div>
+          <div><dt>Téléphone</dt><dd>${nw(r.phone)}</dd></div>
           <div><dt>Société</dt><dd>${r.company || html`<span class="quiet">Non renseignée</span>`}</dd></div>
           <div><dt>Ville de départ</dt><dd>${r.departure_city}</dd></div>
           <div><dt>Aller</dt><dd>${frNumDate(r.date_out)}</dd></div>
@@ -538,14 +554,22 @@ async function enquiryAction(ctx, id) {
   } else {
     return enquiryDetail(ctx, id, { notice: 'Action inconnue : rien n’a été modifié.' });
   }
-  return redirect(`/console/demandes/${id}?ok=1`);
+  const okq = action === 'status' ? `statut-${form.get('to')}` : action === 'owner' ? 'responsable' : 'note';
+  return redirect(`/console/demandes/${id}?ok=${okq}`);
 }
 
+// Mail text for display: references and phone numbers never break; URLs only break after a slash.
+function mailBody(text) {
+  return raw(esc(text)
+    .replace(/(?:DV|CG)-\d{4}(?:-\d{4})?/g, (m) => `<span class="nw">${m}</span>`)
+    .replace(/\b0\d(?: \d\d){4}\b/g, (m) => `<span class="nw">${m}</span>`)
+    .replace(/(https?:\/\/\S+)/g, (m) => m.replace(/\//g, '/<wbr>')));
+}
 async function notifications(ctx) {
   const rows = (await ctx.env.DB.prepare(`SELECT n.*, e.ref FROM notifications n JOIN enquiries e ON e.id = n.enquiry_id AND e.sbx = n.sbx WHERE n.sbx = ? ORDER BY n.at DESC, n.id DESC LIMIT 100`).bind(ctx.env.SBX_EFF).all()).results || [];
   const body = html`<h1 class="h1">Notifications</h1>
     <p class="intro">Le message que l’équipe recevrait à chaque nouvelle demande. Dans la démonstration, aucun e-mail n’est réellement envoyé : il est seulement consigné ici.</p>
-    <ol class="mails">${rows.map((n) => html`<li class="card mail"><h2 class="h4">${n.subject}</h2><p class="quiet">Envoi simulé à ${n.to_addr}, le ${frDateTime(n.at)}</p><pre>${n.body}</pre><p><a class="lnk" href="/console/demandes/${n.enquiry_id}">Ouvrir ${n.ref}</a></p></li>`)}</ol>`;
+    <ol class="mails">${rows.map((n) => html`<li class="card mail"><h2 class="h4">${n.subject}</h2><p class="quiet">Envoi simulé à ${n.to_addr}, le ${frDateTime(n.at)}</p><pre>${mailBody(n.body)}</pre><p><a class="lnk" href="/console/demandes/${n.enquiry_id}">Ouvrir ${n.ref}</a></p></li>`)}</ol>`;
   return page(ctx, 'Notifications', 'notif', body);
 }
 
@@ -568,7 +592,7 @@ async function gmeCard(ctx, c, { context = 'list', revealed = null, reqError = '
   const pending = !isDir && g ? await env.DB.prepare(`SELECT id FROM gme_requests WHERE sbx = ? AND congress_id = ? AND user_id = ? AND status = 'en_attente'`).bind(env.SBX_EFF, c.id, user.id).first() : null;
   const codeLine = revealed
     ? html`<p class="code code--on" data-revealed><span class="sr">Code : </span>${revealed}</p><p class="quiet">Affichage enregistré dans le journal d’accès.</p><p><a class="btn btn--line" href="/console/gme#gme-${c.id}">Masquer le code</a></p>`
-    : html`<p class="code" aria-label="Code masqué">${MASK}</p>`;
+    : html`<p class="code"><span aria-hidden="true">${MASK}</span><span class="sr">Code masqué</span></p>`;
   const meta = g ? html`<dl class="facts facts--tight">
       <div><dt>Statut</dt><dd>${pill(GME_KIND[g.status], GME_STATUS[g.status])}</dd></div>
       <div><dt>Validité</dt><dd>${g.valid_from || g.valid_to ? `${g.valid_from ? frNumDate(g.valid_from) : '…'} au ${g.valid_to ? frNumDate(g.valid_to) : '…'}` : 'À préciser'}</dd></div>
@@ -589,7 +613,7 @@ async function gmeCard(ctx, c, { context = 'list', revealed = null, reqError = '
         <button class="btn btn--line" type="submit">Demander l’accès</button></form>`;
     }
   }
-  const manage = isDir && context === 'congress' ? html`<details class="manage"${g ? '' : raw(' open')}><summary>${g ? 'Modifier le code GM&E' : 'Ajouter un code GM&E'}</summary>
+  const manage = isDir && context === 'congress' ? html`<details class="manage"${g ? '' : raw(' open')}><summary class="btn btn--line">${g ? 'Modifier le code GM&E' : 'Ajouter un code GM&E'}</summary>
     <form method="post" action="/console/congres/${c.id}/gme" class="stack" novalidate>${csrfInput(ctx.csrf)}
       ${field({ id: 'g-code', name: 'code', label: g ? 'Nouveau code (laisser vide pour garder l’actuel)' : 'Code', attrs: 'maxlength="40" autocomplete="off" spellcheck="false" autocapitalize="characters"', required: !g })}
       ${select({ id: 'g-st', name: 'status', label: 'Statut', value: g?.status || 'detecte', options: Object.entries(GME_STATUS) })}
@@ -733,7 +757,7 @@ async function gmeJournal(ctx) {
   const body = html`<h1 class="h1">Journal d’accès</h1>
     <p class="intro">Chaque affichage d’un code GM&amp;E, et chaque tentative refusée, est enregistré ici. Réservé à la Direction.</p>
     ${rows.length ? html`<div class="wrap" role="region" aria-label="Journal d’accès" tabindex="0"><table class="tbl"><thead><tr><th scope="col">Quand</th><th scope="col">Qui</th><th scope="col">Congrès</th><th scope="col">Résultat</th></tr></thead>
-    <tbody>${rows.map((l) => html`<tr><td>${frDateTime(l.at)}</td><td>${l.display_name}</td><td class="wide">${l.title} (${l.ref})</td><td>${l.result === 'affiche' ? pill('pub', res.affiche) : pill('lost', res[l.result] || l.result)}</td></tr>`)}</tbody></table></div>`
+    <tbody>${rows.map((l) => html`<tr><td>${frDateTime(l.at)}</td><td>${l.display_name}</td><td class="wide">${l.title} (${nw(l.ref)})</td><td>${l.result === 'affiche' ? pill('pub', res.affiche) : pill('lost', res[l.result] || l.result)}</td></tr>`)}</tbody></table></div>`
     : html`<p class="quiet">Aucun affichage enregistré pour l’instant.</p>`}`;
   return page(ctx, 'Journal d’accès', 'journal', body);
 }

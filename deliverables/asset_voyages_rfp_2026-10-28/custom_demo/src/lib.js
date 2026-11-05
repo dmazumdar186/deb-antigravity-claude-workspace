@@ -130,7 +130,7 @@ export function rangeParts(start, end) {
   // Catalogue date block: big day span over the month and year; read together they form the date line.
   const a = parts(start); const b = parts(end);
   if (a.m === b.m && a.y === b.y) return { days: a.d === b.d ? `${a.d}` : `${a.d} au ${b.d}`, months: `${MOIS_LONG[a.m - 1]} ${a.y}`, cross: false };
-  return { days: `${a.d} ${MOIS[a.m - 1]} au ${b.d} ${MOIS[b.m - 1]}`, months: `${b.y}`, cross: true };
+  return { days: `${a.d}\u00a0${MOIS[a.m - 1]} au ${b.d}\u00a0${MOIS[b.m - 1]}`, months: `${b.y}`, cross: true };
 }
 
 // ---------- text ----------
