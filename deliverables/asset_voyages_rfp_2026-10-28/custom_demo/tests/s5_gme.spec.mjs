@@ -34,6 +34,7 @@ test('S5-F2 S5-E1 equipe sees masked codes and requests access with a required r
   await login(page, 'equipe');
   let clicks = 0;
   await nav(page, 'Codes GM&E').click(); clicks++;
+  await expect(page.locator('h1')).toHaveText('Codes GM&E'); // the new page, not the one being left
   noCode(await page.content(), 'equipe GM&E page');
   await expect(card(page, ONCO).locator('.code [aria-hidden="true"]')).toHaveText('•••• •••• ••••');
   // reason is required
@@ -71,6 +72,7 @@ test('S5-F4 S5-E1 equipe reveals in 2 clicks after approval; every reveal is log
   await login(page, 'equipe');
   let clicks = 0;
   await nav(page, 'Codes GM&E').click(); clicks++;
+  await expect(page.locator('h1')).toHaveText('Codes GM&E'); // the new page, not the one being left
   noCode(await page.content(), 'equipe GM&E page before reveal');
   await card(page, ONCO).getByRole('button', { name: 'Afficher le code' }).click(); clicks++;
   expect(clicks).toBe(2);

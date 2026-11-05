@@ -22,6 +22,7 @@ test('S4-F1 the visitor enquiry appears in Demandes with every column and status
   const page = shared.page;
   await login(page, 'equipe');
   await page.getByRole('navigation', { name: 'Console' }).getByRole('link', { name: /Demandes/ }).click();
+  await expect(page.locator('h1')).toHaveText('Demandes');
   const heads = await page.locator('thead th').allTextContents();
   expect(heads).toEqual(['Réf.', 'Statut', 'Reçue', 'Congrès', 'Contact', 'Voyage', 'Responsable']); // Voyage = departure city, dates, passengers
   const row = page.locator('tbody tr', { hasText: REF });
@@ -82,6 +83,7 @@ test('S4-F3 S4-F4 statuses saved through the whole path, owner assigned, notes s
   await expect(page.locator('#h-o + p')).toHaveText('Karim Benali, Équipe');
   await page.getByLabel('Visible uniquement par l’équipe').fill('Client rappelé, préfère un vol direct.');
   await page.getByRole('button', { name: 'Ajouter la note' }).click();
+  await expect(page.locator('.ok')).toHaveText('Note ajoutée à l’historique.'); // wait for the reloaded page, never read mid-navigation
   const hist = page.locator('.hist li');
   const lines = await hist.allTextContents();
   const joined = lines.join('\n');

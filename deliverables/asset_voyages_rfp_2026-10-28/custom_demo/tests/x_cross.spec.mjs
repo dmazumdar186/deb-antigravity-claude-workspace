@@ -82,14 +82,14 @@ test('X4 Direction reset restores the seed for this browser only; re-seeding twi
   const denied = await page.request.post('/console/reinitialiser', { form: { _csrf: csrf }, headers: { origin: new URL(page.url()).origin } });
   expect(denied.status()).toBe(403);
   await expect(page.locator('form[action="/console/reinitialiser"]')).toHaveCount(0);
-  expect(d1Count(`SELECT COUNT(*) AS n FROM enquiries WHERE sbx = '${sbx}'`)[0].n).toBe(6);
+  expect(d1Count(`SELECT COUNT(*) AS n FROM enquiries WHERE sbx = '${sbx}'`)[0].n).toBe(1); // row-level copy-on-write: only the changed enquiry
   await resetSandbox(page);
   await resetSandbox(page);
   // the browser's sandbox is gone, the shared seed is intact and has no duplicates
   const mine = d1Count(`SELECT (SELECT COUNT(*) FROM sandboxes WHERE id = '${sbx}') AS s, (SELECT COUNT(*) FROM enquiries WHERE sbx = '${sbx}') AS e`)[0];
   expect(mine).toEqual({ s: 0, e: 0 });
-  const seedCount = () => d1Count(`SELECT (SELECT COUNT(*) FROM congresses WHERE sbx = '') AS c, (SELECT COUNT(*) FROM enquiries WHERE sbx = '') AS e, (SELECT COUNT(*) FROM gme_codes WHERE sbx = '') AS g, (SELECT COUNT(*) FROM users) AS u, (SELECT COUNT(*) FROM gme_requests WHERE sbx = '') AS r, (SELECT COUNT(*) FROM notifications WHERE sbx = '') AS n, (SELECT COUNT(DISTINCT ref) FROM congresses WHERE sbx = '') AS cr`)[0];
-  expect(seedCount()).toEqual({ c: 13, e: 6, g: 5, u: 3, r: 1, n: 6, cr: 13 });
+  const seedCount = () => d1Count(`SELECT (SELECT COUNT(*) FROM congresses WHERE sbx = '') AS c, (SELECT COUNT(*) FROM enquiries WHERE sbx = '') AS e, (SELECT COUNT(*) FROM gme_codes WHERE sbx = '') AS g, (SELECT COUNT(*) FROM users) AS u, (SELECT COUNT(*) FROM gme_requests WHERE sbx = '') AS r, (SELECT COUNT(DISTINCT ref) FROM congresses WHERE sbx = '') AS cr`)[0];
+  expect(seedCount()).toEqual({ c: 13, e: 6, g: 5, u: 3, r: 1, cr: 13 });
   await page.goto('/console/demandes/1');
   await expect(page.locator('.head .st')).toHaveText('Gagnée');
   // cron trigger registered (03:00 UTC daily) and the scheduled handler converges to the same seed
@@ -99,7 +99,7 @@ test('X4 Direction reset restores the seed for this browser only; re-seeding twi
     const r = await page.request.get('/cdn-cgi/handler/scheduled?cron=0+3+*+*+*');
     expect(r.status()).toBe(200);
     await expect.poll(() => seedCount().e).toBe(6);
-    expect(seedCount()).toEqual({ c: 13, e: 6, g: 5, u: 3, r: 1, n: 6, cr: 13 });
+    expect(seedCount()).toEqual({ c: 13, e: 6, g: 5, u: 3, r: 1, cr: 13 });
   } else {
     const out = execFileSync('curl', ['-s', `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/workers/scripts/asset-voyages-demo/schedules`, '-H', `Authorization: Bearer ${process.env.CLOUDFLARE_API_TOKEN}`], { encoding: 'utf8' });
     expect(JSON.parse(out).result.schedules.map((s) => s.cron)).toContain('0 3 * * *');

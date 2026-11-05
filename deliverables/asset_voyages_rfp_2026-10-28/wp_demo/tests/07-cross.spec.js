@@ -37,7 +37,7 @@ test('X1 zero console errors and zero failed requests on every tested screen', a
 		for (const u of urls) { await page.goto(u); await page.waitForLoadState('networkidle'); }
 		if (role === 'equipe') {
 			await page.goto('/wp-admin/admin.php?page=asset-demandes');
-			await page.locator('a.row-title').first().click();
+			await page.goto(await page.locator('a.row-title').first().getAttribute('href'));
 			await page.waitForLoadState('networkidle');
 		}
 		await ctx.close();

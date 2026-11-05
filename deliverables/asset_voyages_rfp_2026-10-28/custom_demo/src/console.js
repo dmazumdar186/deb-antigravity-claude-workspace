@@ -2,10 +2,10 @@
 import {
   html, raw, esc, today, nowIso, isIsoDate, frRange, frNumDate, frDateTime, clean, norm, slugify,
   readForm, sameOrigin, makeFormToken, checkFormToken, ipHash, rateHit, rateBlocked, redirect, htmlResponse,
-  getCookie, sha256hex, randomToken, safeEqual, hashPassword, encryptCode, decryptCode, csvCell,
+  getCookie, sha256hex, randomToken, safeEqual, hmac, b64url, unb64, hashPassword, encryptCode, decryptCode, csvCell,
 } from './lib.js';
 import { consolePage, loginPage, errorPage, field, select, pill, csrfInput, errorSummary } from './views.js';
-import { STATUS_LABELS, STATUS_PLURAL, CG_STATUS, GME_STATUS, congressSearch, congressSlug, resetSandbox, materialize, nbsp } from './data.js';
+import { STATUS_LABELS, STATUS_PLURAL, CG_STATUS, GME_STATUS, congressSearch, congressSlug, resetSandbox, materialize, nbsp, T, cow, upsertRow, eventId, notificationFor, baseUrl, TEAM_INBOX } from './data.js';
 
 export const COOKIE = '__Host-av_session';
 const SESSION_TTL = 8 * 3600;
@@ -24,13 +24,23 @@ const nw = (t) => html`<span class="nw">${t}</span>`;
 
 
 // ---------------------------------------------------------------- sessions
+// Stateless signed session: the cookie carries {user, csrf, expiry, nonce} and an HMAC; logging in writes nothing.
+// Logging out writes the nonce to `revoked`, so a copied cookie is refused server-side afterwards.
+async function makeSession(env, userId) {
+  const payload = b64url(new TextEncoder().encode(JSON.stringify({ u: userId, c: randomToken(24), e: Math.floor(Date.now() / 1000) + SESSION_TTL, n: randomToken(16) })));
+  return `${payload}.${await hmac(env, 'session|' + payload)}`;
+}
 async function getSession(req, env) {
   const tok = getCookie(req, COOKIE);
-  if (!tok || tok.length > 100) return null;
-  const id = await sha256hex(tok);
-  const row = await env.DB.prepare(`SELECT s.csrf, s.expires_at, u.id, u.username, u.display_name, u.role FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.id = ?`).bind(id).first();
-  if (!row || row.expires_at < Math.floor(Date.now() / 1000)) return null;
-  return { sid: id, csrf: row.csrf, user: { id: row.id, username: row.username, display_name: row.display_name, role: row.role } };
+  if (!tok || tok.length > 400) return null;
+  const [payload, sig] = tok.split('.');
+  if (!payload || !sig || !safeEqual(sig, await hmac(env, 'session|' + payload))) return null;
+  let p;
+  try { p = JSON.parse(new TextDecoder().decode(unb64(payload.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(payload.length / 4) * 4, '=')))); } catch { return null; }
+  if (!p || !Number.isInteger(p.u) || typeof p.c !== 'string' || typeof p.n !== 'string' || !(p.e > Math.floor(Date.now() / 1000))) return null;
+  const row = await env.DB.prepare(`SELECT u.id, u.username, u.display_name, u.role, (SELECT 1 FROM revoked r WHERE r.n = ?) AS gone FROM users u WHERE u.id = ?`).bind(p.n, p.u).first();
+  if (!row || row.gone) return null;
+  return { sid: p.n, exp: p.e, csrf: p.c, user: { id: row.id, username: row.username, display_name: row.display_name, role: row.role } };
 }
 const cookie = (val, maxAge) => `${COOKIE}=${val}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${maxAge}`;
 
@@ -56,8 +66,8 @@ function deny(ctx, text = 'Votre rôle ne donne pas accès à cette page.', stat
 async function badges(env, user) {
   if (!STAFF.includes(user.role)) return {};
   const r = await env.DB.batch([
-    env.DB.prepare(`SELECT COUNT(*) AS n FROM enquiries WHERE sbx = ? AND status = 'nouvelle'`).bind(env.SBX_EFF),
-    env.DB.prepare(`SELECT COUNT(*) AS n FROM gme_requests WHERE sbx = ? AND status = 'en_attente'`).bind(env.SBX_EFF),
+    env.DB.prepare(`SELECT COUNT(*) AS n FROM ${T(env, 'enquiries')} WHERE 1=1 AND status = 'nouvelle'`),
+    env.DB.prepare(`SELECT COUNT(*) AS n FROM ${T(env, 'gme_requests')} WHERE 1=1 AND status = 'en_attente'`),
   ]);
   return { dem: r[0].results[0].n, acces: user.role === 'direction' ? r[1].results[0].n : 0 };
 }
@@ -77,37 +87,30 @@ export async function loginPost(req, env) {
   if (!tok.ok || !sameOrigin(req)) return loginGet(req, env, { error: 'Le formulaire a expiré : rechargez la page et réessayez.', status: 403 });
   const ip = await ipHash(env, req);
   const username = clean(form.get('username'), 40).toLowerCase();
-  // Throttle, all counters incremented atomically BEFORE the password check (attempts, not failures); a success clears them.
-  // Demo mode (ACCOUNT_LOCKOUT=off): keyed per browser sandbox + account (10) and per IP + account (50). A flood from one
-  // browser or one address never locks the shared demo accounts for other visitors.
-  // Production mode (ACCOUNT_LOCKOUT=on): per IP + account drops to 10 and an account-wide ceiling (30, any IP) is added.
+  // Throttle, atomic increments before the password check (one INSERT … ON CONFLICT … RETURNING each):
+  // - per IP, every account (50 attempts / 15 min): stops a burst over many usernames (the test-suite key skips it);
+  // - per browser sandbox + account (10 / 15 min): a flood from one browser stops there and never reaches the counters
+  //   other visitors share;
+  // - per IP + account: 50 wrong passwords / 15 min, counted on failure in demo mode; in production mode
+  //   (ACCOUNT_LOCKOUT=on) it is 10 attempts, incremented first, plus 30 per account from any IP.
+  // A successful login writes only the counters it touched (two rows at most) and no session row.
   const lockout = env.ACCOUNT_LOCKOUT === 'on';
   const u40 = username.slice(0, 40);
   const kSbx = `login-sbx:${env.SBX || 'none'}:${u40}`; const kUser = `login:${ip}:${u40}`; const kAcct = `login-account:${u40}`; const kIp = `login:${ip}`;
   const tooMany = () => loginGet(req, env, { error: 'Trop d’essais. Réessayez dans un quart d’heure.', status: 429 });
-  // Per IP: incremented first, atomically (a parallel burst over many usernames cannot slip past). An attempt that never
-  // reaches the password check (refused by a narrower counter) or that succeeds gives its slot back, so the per-IP budget
-  // counts real wrong-password guesses only and a flood from one browser cannot lock its colleagues behind the same IP.
-  const giveBack = () => env.DB.prepare('UPDATE rate_limits SET count = MAX(count - 1, 0) WHERE key = ?').bind(kIp).run();
-  // The test-suite key (see wrangler.toml) skips per-IP budgets only; per-browser and per-account counters still apply.
-  if (!env.TEST_RUN && !(await rateHit(env, kIp, 50, 900))) { await giveBack(); return tooMany(); }
-  if (!(await rateHit(env, kSbx, 10, 900)) || !(await rateHit(env, kUser, lockout ? 10 : 50, 900)) || (lockout && !(await rateHit(env, kAcct, 30, 900)))) {
-    if (!env.TEST_RUN) await giveBack();
-    return tooMany();
-  }
+  if (!env.TEST_RUN && !(await rateHit(env, kIp, 50, 900))) return tooMany();
+  if (!(await rateHit(env, kSbx, 10, 900))) return tooMany();
+  if (lockout) {
+    if (!(await rateHit(env, kUser, 10, 900)) || !(await rateHit(env, kAcct, 30, 900))) return tooMany();
+  } else if (await rateBlocked(env, kUser, 50)) return tooMany();
   const password = String(form.get('password') || '').slice(0, 200);
   const u = await env.DB.prepare('SELECT * FROM users WHERE username = ?').bind(username).first();
   const ok = u ? safeEqual(await hashPassword(password, u.pw_salt, u.pw_iter), u.pw_hash) : false;
   if (!ok) {
+    if (!lockout) await rateHit(env, kUser, 50, 900);
     return loginGet(req, env, { error: 'Identifiant ou mot de passe incorrect.', status: 401 });
   }
-  await env.DB.batch([
-    env.DB.prepare('DELETE FROM rate_limits WHERE key IN (?, ?, ?)').bind(kSbx, kUser, kAcct),
-    ...(env.TEST_RUN ? [] : [env.DB.prepare('UPDATE rate_limits SET count = MAX(count - 1, 0) WHERE key = ?').bind(kIp)]),
-  ]);
-  const token = randomToken(32);
-  await env.DB.prepare('INSERT INTO sessions (id, user_id, csrf, created_at, expires_at) VALUES (?,?,?,?,?)')
-    .bind(await sha256hex(token), u.id, randomToken(24), nowIso(), Math.floor(Date.now() / 1000) + SESSION_TTL).run();
+  const token = await makeSession(env, u.id);
   const next = form.get('next');
   const dest = /^\/console(\/[A-Za-z0-9/_.-]*)?(\?[A-Za-z0-9=&_.%-]*)?$/.test(next) && !next.includes('//') ? next : '/console';
   return redirect(dest, { 'set-cookie': cookie(token, SESSION_TTL) });
@@ -141,7 +144,7 @@ export async function consoleRoute(req, env, path) {
   let m;
 
   if (path === '/console/deconnexion' && method === 'POST') {
-    await env.DB.prepare('DELETE FROM sessions WHERE id = ?').bind(s.sid).run();
+    await env.DB.prepare('INSERT OR IGNORE INTO revoked (n, exp) VALUES (?, ?)').bind(s.sid, s.exp).run();
     return redirect('/console/connexion?sortie=1', { 'set-cookie': cookie('', 0) });
   }
   if (path === '/console' || path === '/console/') return method === 'GET' ? dashboard(ctx) : notFound(ctx);
@@ -177,7 +180,7 @@ const notFound = (ctx) => htmlResponse(errorPage({ status: 404, title: 'Page int
 async function dashboard(ctx) {
   const { env, user } = ctx;
   const notice = ctx.url.searchParams.get('reinit') ? html`<p class="ok" role="status" tabindex="-1" data-focus>La démonstration a été réinitialisée : données d’exemple restaurées.</p>` : '';
-  const cgCounts = Object.fromEntries(((await env.DB.prepare('SELECT status, COUNT(*) AS n FROM congresses WHERE sbx = ? GROUP BY status').bind(env.SBX_EFF).all()).results || []).map((r) => [r.status, r.n]));
+  const cgCounts = Object.fromEntries(((await env.DB.prepare(`SELECT status, COUNT(*) AS n FROM ${T(env, 'congresses')} WHERE 1=1 GROUP BY status`).all()).results || []).map((r) => [r.status, r.n]));
   let body;
   if (user.role === 'contributeur') {
     body = html`<h1 class="h1">Tableau de bord</h1>${notice}
@@ -186,11 +189,11 @@ async function dashboard(ctx) {
       <p class="actions"><a class="btn" href="/console/congres/nouveau">Nouveau congrès</a></p>`;
     return page(ctx, 'Tableau de bord', 'dash', body);
   }
-  const counts = Object.fromEntries(((await env.DB.prepare('SELECT status, COUNT(*) AS n FROM enquiries WHERE sbx = ? GROUP BY status').bind(env.SBX_EFF).all()).results || []).map((r) => [r.status, r.n]));
-  const latest = (await env.DB.prepare(`SELECT e.id, e.ref, e.name, e.status, e.created_at, c.title FROM enquiries e JOIN congresses c ON c.id = e.congress_id AND c.sbx = e.sbx WHERE e.sbx = ? ORDER BY e.created_at DESC, e.id DESC LIMIT 5`).bind(env.SBX_EFF).all()).results || [];
-  const unassigned = (await env.DB.prepare(`SELECT COUNT(*) AS n FROM enquiries WHERE sbx = ? AND status = 'nouvelle' AND owner_id IS NULL`).bind(env.SBX_EFF).first()).n;
-  const pendingReq = (await env.DB.prepare(`SELECT COUNT(*) AS n FROM gme_requests WHERE sbx = ? AND status = 'en_attente'`).bind(env.SBX_EFF).first()).n;
-  const verified = (await env.DB.prepare(`SELECT COUNT(*) AS n FROM gme_codes WHERE sbx = ? AND status = 'verifie'`).bind(env.SBX_EFF).first()).n;
+  const counts = Object.fromEntries(((await env.DB.prepare(`SELECT status, COUNT(*) AS n FROM ${T(env, 'enquiries')} WHERE 1=1 GROUP BY status`).all()).results || []).map((r) => [r.status, r.n]));
+  const latest = (await env.DB.prepare(`SELECT e.id, e.ref, e.name, e.status, e.created_at, c.title FROM ${T(env, 'enquiries')} e JOIN ${T(env, 'congresses')} c ON c.id = e.congress_id WHERE 1=1 ORDER BY e.created_at DESC, e.id DESC LIMIT 5`).all()).results || [];
+  const unassigned = (await env.DB.prepare(`SELECT COUNT(*) AS n FROM ${T(env, 'enquiries')} WHERE 1=1 AND status = 'nouvelle' AND owner_id IS NULL`).first()).n;
+  const pendingReq = (await env.DB.prepare(`SELECT COUNT(*) AS n FROM ${T(env, 'gme_requests')} WHERE 1=1 AND status = 'en_attente'`).first()).n;
+  const verified = (await env.DB.prepare(`SELECT COUNT(*) AS n FROM ${T(env, 'gme_codes')} WHERE 1=1 AND status = 'verifie'`).first()).n;
   const todo = [];
   if (unassigned) todo.push(html`<li><a href="/console/demandes?statut=nouvelle">${unassigned} nouvelle${unassigned > 1 ? 's' : ''} demande${unassigned > 1 ? 's' : ''} sans responsable</a></li>`);
   if (cgCounts.a_relire) todo.push(html`<li><a href="/console/congres?statut=a_relire">${cgCounts.a_relire} congrès à relire avant publication</a></li>`);
@@ -221,7 +224,7 @@ async function congressList(ctx) {
   const { env, user } = ctx;
   const st = ctx.url.searchParams.get('statut');
   const valid = CG_STATUS[st] ? st : '';
-  const rows = (await env.DB.prepare(`SELECT c.id, c.ref, c.title, c.city, c.country, c.start_date, c.end_date, c.status, c.verified_on, g.status AS gme FROM congresses c LEFT JOIN gme_codes g ON g.congress_id = c.id AND g.sbx = c.sbx WHERE c.sbx = ? ${valid ? 'AND c.status = ?' : ''} ORDER BY c.start_date, c.id`).bind(env.SBX_EFF, ...(valid ? [valid] : [])).all()).results || [];
+  const rows = (await env.DB.prepare(`SELECT c.id, c.ref, c.title, c.city, c.country, c.start_date, c.end_date, c.status, c.verified_on, g.status AS gme FROM ${T(env, 'congresses')} c LEFT JOIN ${T(env, 'gme_codes')} g ON g.congress_id = c.id WHERE 1=1 ${valid ? 'AND c.status = ?' : ''} ORDER BY c.start_date, c.id`).bind(...(valid ? [valid] : [])).all()).results || [];
   const showGme = STAFF.includes(user.role);
   const body = html`<div class="head"><h1 class="h1">Congrès</h1><a class="btn" href="/console/congres/nouveau">Nouveau congrès</a></div>
     <nav class="chips" aria-label="Filtrer par statut"><a class="chip" href="/console/congres"${!valid ? raw(' aria-current="true"') : ''}>Tous</a>${Object.entries(CG_STATUS).map(([k, l]) => html`<a class="chip" href="/console/congres?statut=${k}"${valid === k ? raw(' aria-current="true"') : ''}>${l}</a>`)}</nav>
@@ -272,7 +275,7 @@ function allowedActions(role, status) {
 const CG_LABELS = { title: 'Titre', discipline: 'Discipline', venue: 'Lieu', city: 'Ville', country: 'Pays', start_date: 'Date de début', end_date: 'Date de fin', official_url: 'Site officiel', verified_on: 'Vérifié le', description: 'Description' };
 const CG_IDS = { title: 'c-title', discipline: 'c-disc', venue: 'c-venue', city: 'c-city', country: 'c-country', start_date: 'c-start', end_date: 'c-end', official_url: 'c-url', verified_on: 'c-ver', description: 'c-desc' };
 async function loadOptions(env) {
-  const rows = (await env.DB.prepare('SELECT kind, value FROM options WHERE sbx = ? ORDER BY value').bind(env.SBX_EFF).all()).results || [];
+  const rows = (await env.DB.prepare(`SELECT kind, value FROM ${T(env, 'options')} WHERE 1=1 ORDER BY value`).all()).results || [];
   const out = { discipline: [], pays: [] };
   for (const r of rows) out[r.kind].push(r.value);
   for (const k of Object.keys(out)) out[k].sort((a, b) => a.localeCompare(b, 'fr'));
@@ -291,7 +294,7 @@ async function addOption(ctx) {
   const value = clean(form.get('value'), 60).replace(/\s+/g, ' ');
   const n = norm(value);
   if (value.length < 2 || value.length > 60 || !/^[\p{L}][\p{L}\p{M}' ’.-]*(?: [\p{L}\p{M}' ’.-]+)*$/u.test(value)) return redirect(`${back}?liste=invalide`);
-  const exists = await env.DB.prepare('SELECT value FROM options WHERE sbx = ? AND kind = ? AND norm = ?').bind(env.SBX_EFF, kind, n).first();
+  const exists = await env.DB.prepare(`SELECT value FROM ${T(env, 'options')} WHERE 1=1 AND kind = ? AND norm = ?`).bind(kind, n).first();
   if (exists) return redirect(`${back}?liste=existe`);
   const pretty = value.charAt(0).toUpperCase() + value.slice(1);
   await env.DB.prepare('INSERT INTO options (sbx, kind, value, norm) VALUES (?,?,?,?)').bind(env.SBX_EFF, kind, pretty, n).run();
@@ -302,7 +305,7 @@ async function congressForm(ctx, id, { values, errors, status = 200, notice } = 
   const { env, user } = ctx;
   let c = null;
   if (id) {
-    c = await env.DB.prepare('SELECT * FROM congresses WHERE sbx = ? AND id = ?').bind(env.SBX_EFF, id).first();
+    c = await env.DB.prepare(`SELECT * FROM ${T(env, 'congresses')} WHERE 1=1 AND id = ?`).bind(id).first();
     if (!c) return notFound(ctx);
   }
   const v = values || c || { verified_on: today() };
@@ -313,7 +316,8 @@ async function congressForm(ctx, id, { values, errors, status = 200, notice } = 
   const actions = c ? allowedActions(user.role, stat) : (STAFF.includes(user.role) ? ['publish'] : ['review']);
   const saved = ctx.url.searchParams.get('ok');
   const listMsg = { ajoute: ['ok', 'Valeur ajoutée à la liste.'], existe: ['alert', 'Cette valeur existe déjà dans la liste (accents et majuscules ignorés).'], invalide: ['alert', 'Valeur refusée : 2 à 60 lettres.'] }[ctx.url.searchParams.get('liste')];
-  const history = c ? (await env.DB.prepare(`SELECT ev.*, u.display_name FROM congress_events ev LEFT JOIN users u ON u.id = ev.user_id WHERE ev.sbx = ? AND congress_id = ? ORDER BY ev.id DESC LIMIT 12`).bind(env.SBX_EFF, id).all()).results || [] : [];
+  const history = c ? (await env.DB.prepare(`SELECT ev.*, u.display_name FROM ${T(env, 'congress_events')} ev LEFT JOIN users u ON u.id = ev.user_id WHERE 1=1 AND congress_id = ? ORDER BY ev.id DESC LIMIT 12`).bind(id).all()).results || [] : [];
+  if (c) history.push({ kind: 'creation', at: c.created_at, display_name: (await env.DB.prepare('SELECT display_name FROM users WHERE id = ?').bind(c.created_by || 0).first())?.display_name });
   const f = (o) => field({ ...o, value: v[o.name], error: e[o.name], required: o.optional ? false : true, attrs: (o.attrs || '') + (editable ? '' : ' disabled') });
   const primary = !c ? (STAFF.includes(user.role) ? 'publish' : 'save') : 'save';
   const secondaries = !c ? (STAFF.includes(user.role) ? ['save'] : ['review']) : actions;
@@ -378,7 +382,7 @@ async function congressSave(ctx, id) {
   const action = form.get('action') || 'save';
   if (!TRANSITIONS[action]) return deny(ctx, 'Action inconnue. Rien n’a été modifié.', 400);
   let c = null;
-  if (id) { c = await env.DB.prepare('SELECT * FROM congresses WHERE sbx = ? AND id = ?').bind(env.SBX_EFF, id).first(); if (!c) return notFound(ctx); }
+  if (id) { c = await env.DB.prepare(`SELECT * FROM ${T(env, 'congresses')} WHERE 1=1 AND id = ?`).bind(id).first(); if (!c) return notFound(ctx); }
   const from = c ? c.status : 'brouillon';
   if (c && !canEditCongress(user.role, from)) return deny(ctx, 'Ce congrès est publié : seules l’équipe et la Direction peuvent le modifier. Rien n’a été modifié.');
   const t = TRANSITIONS[action];
@@ -399,20 +403,19 @@ async function congressSave(ctx, id) {
   const now = nowIso();
   const search = congressSearch({ ...v, ref: c?.ref || '' });
   if (!c) {
-    const maxId = (await env.DB.prepare('SELECT COALESCE(MAX(id), 100) AS m FROM congresses WHERE sbx = ?').bind(env.SBX_EFF).first()).m;
+    const maxId = (await env.DB.prepare(`SELECT COALESCE(MAX(id), 100) AS m FROM ${T(env, 'congresses')} WHERE 1=1`).first()).m;
     const nid = maxId + 1;
     const ref = `CG-${String(nid).padStart(4, '0')}`;
     await env.DB.batch([
-      env.DB.prepare(`INSERT INTO congresses (sbx, id, ref, slug, title, discipline, city, country, start_date, end_date, venue, official_url, verified_on, description, status, search_text, created_at, updated_at, updated_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
-        .bind(env.SBX_EFF, nid, ref, congressSlug(v.title, ref) || `congres-${ref.toLowerCase()}`, v.title, v.discipline, v.city, v.country, v.start_date, v.end_date, v.venue, v.official_url, v.verified_on, v.description, to, norm(search + ' ' + ref), now, now, user.id),
-      env.DB.prepare(`INSERT INTO congress_events (sbx, congress_id, at, user_id, kind, from_val, to_val) VALUES (?,?,?,?,'creation',NULL,?)`).bind(env.SBX_EFF, nid, now, user.id, 'brouillon'),
-      ...(to !== 'brouillon' ? [env.DB.prepare(`INSERT INTO congress_events (sbx, congress_id, at, user_id, kind, from_val, to_val) VALUES (?,?,?,?,'statut','brouillon',?)`).bind(env.SBX_EFF, nid, now, user.id, to)] : []),
+      env.DB.prepare(`INSERT INTO congresses (sbx, id, ref, slug, title, discipline, city, country, start_date, end_date, venue, official_url, verified_on, description, status, search_text, created_at, created_by, updated_at, updated_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+        .bind(env.SBX_EFF, nid, ref, congressSlug(v.title, ref) || `congres-${ref.toLowerCase()}`, v.title, v.discipline, v.city, v.country, v.start_date, v.end_date, v.venue, v.official_url, v.verified_on, v.description, to, norm(search + ' ' + ref), now, user.id, now, user.id),
+      // the creation line of the history is derived from created_at / created_by (no row written)
+      ...(to !== 'brouillon' ? [env.DB.prepare(`INSERT INTO congress_events (sbx, congress_id, id, at, user_id, kind, from_val, to_val) VALUES (?,?,?,?,?,'statut','brouillon',?)`).bind(env.SBX_EFF, nid, eventId(now), now, user.id, to)] : []),
     ]);
     return redirect(`/console/congres/${nid}?ok=cree-${action}`);
   }
-  const stmts = [env.DB.prepare(`UPDATE congresses SET title=?, discipline=?, city=?, country=?, start_date=?, end_date=?, venue=?, official_url=?, verified_on=?, description=?, status=?, search_text=?, updated_at=?, updated_by=? WHERE sbx=? AND id=?`)
-    .bind(v.title, v.discipline, v.city, v.country, v.start_date, v.end_date, v.venue, v.official_url, v.verified_on, v.description, to, search, now, user.id, env.SBX_EFF, id)];
-  if (to !== from) stmts.push(env.DB.prepare(`INSERT INTO congress_events (sbx, congress_id, at, user_id, kind, from_val, to_val) VALUES (?,?,?,?,'statut',?,?)`).bind(env.SBX_EFF, id, now, user.id, from, to));
+  const stmts = [upsertRow(env, 'congresses', { ...c, ...v, status: to, search_text: search, updated_at: now, updated_by: user.id })];
+  if (to !== from) stmts.push(env.DB.prepare(`INSERT INTO congress_events (sbx, congress_id, id, at, user_id, kind, from_val, to_val) VALUES (?,?,?,?,?,'statut',?,?)`).bind(env.SBX_EFF, id, eventId(now), now, user.id, from, to));
   await env.DB.batch(stmts);
   return redirect(`/console/congres/${id}?ok=${action}`);
 }
@@ -424,16 +427,16 @@ function enquiryFilter(ctx) {
   const q = clean(sp.get('q'), 100).slice(0, 100);
   return { statut, q };
 }
-const ENQ_SELECT = `SELECT e.*, c.title AS cg_title, c.ref AS cg_ref, u.display_name AS owner_name FROM enquiries e JOIN congresses c ON c.id = e.congress_id AND c.sbx = e.sbx LEFT JOIN users u ON u.id = e.owner_id WHERE e.sbx = ?`;
+const enqSelect = (env) => `SELECT e.*, c.title AS cg_title, c.ref AS cg_ref, u.display_name AS owner_name FROM ${T(env, 'enquiries')} e JOIN ${T(env, 'congresses')} c ON c.id = e.congress_id LEFT JOIN users u ON u.id = e.owner_id WHERE 1=1`;
 
 async function enquiryList(ctx) {
   const { env } = ctx;
   const f = enquiryFilter(ctx);
   // Accent-insensitive name search: compare against a normalised copy in JS for names stored with accents.
-  const rowsAll = (await env.DB.prepare(`${ENQ_SELECT} ${f.statut ? 'AND e.status = ?' : ''} ORDER BY e.created_at DESC, e.id DESC LIMIT 500`).bind(env.SBX_EFF, ...(f.statut ? [f.statut] : [])).all()).results || [];
+  const rowsAll = (await env.DB.prepare(`${enqSelect(env)} ${f.statut ? 'AND e.status = ?' : ''} ORDER BY e.created_at DESC, e.id DESC LIMIT 500`).bind(...(f.statut ? [f.statut] : [])).all()).results || [];
   const words = norm(f.q).split(/\s+/).filter(Boolean);
   const rows = rowsAll.filter((r) => words.every((w) => norm([r.ref, r.name, r.email, r.company, r.departure_city, r.cg_title, r.cg_ref].join(' ')).includes(w)));
-  const counts = Object.fromEntries(((await env.DB.prepare('SELECT status, COUNT(*) AS n FROM enquiries WHERE sbx = ? GROUP BY status').bind(env.SBX_EFF).all()).results || []).map((r) => [r.status, r.n]));
+  const counts = Object.fromEntries(((await env.DB.prepare(`SELECT status, COUNT(*) AS n FROM ${T(env, 'enquiries')} WHERE 1=1 GROUP BY status`).all()).results || []).map((r) => [r.status, r.n]));
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
   const exportQs = new URLSearchParams({ ...(f.statut ? { statut: f.statut } : {}), ...(f.q ? { q: f.q } : {}) }).toString();
   const body = html`<div class="head"><h1 class="h1">Demandes</h1><a class="btn btn--line" href="/console/demandes/export.csv${exportQs ? '?' + exportQs : ''}" download>Exporter (tableur CSV)</a></div>
@@ -454,7 +457,7 @@ async function enquiryList(ctx) {
 async function enquiryCsv(ctx) {
   const { env } = ctx;
   const f = enquiryFilter(ctx);
-  const all = (await env.DB.prepare(`${ENQ_SELECT} ${f.statut ? 'AND e.status = ?' : ''} ORDER BY e.created_at DESC, e.id DESC LIMIT 5000`).bind(env.SBX_EFF, ...(f.statut ? [f.statut] : [])).all()).results || [];
+  const all = (await env.DB.prepare(`${enqSelect(env)} ${f.statut ? 'AND e.status = ?' : ''} ORDER BY e.created_at DESC, e.id DESC LIMIT 5000`).bind(...(f.statut ? [f.statut] : [])).all()).results || [];
   const words = norm(f.q).split(/\s+/).filter(Boolean);
   const rows = all.filter((r) => words.every((w) => norm([r.ref, r.name, r.email, r.company, r.departure_city, r.cg_title, r.cg_ref].join(' ')).includes(w)));
   const head = ['Référence', 'Reçue le', 'Congrès', 'Réf. congrès', 'Nom', 'E-mail', 'Téléphone', 'Société', 'Ville de départ', 'Aller', 'Retour', 'Passagers', 'Statut', 'Responsable', 'Message'];
@@ -469,11 +472,12 @@ async function enquiryCsv(ctx) {
 
 async function enquiryDetail(ctx, id, { notice } = {}) {
   const { env, user } = ctx;
-  const r = await env.DB.prepare(`${ENQ_SELECT} AND e.id = ?`).bind(env.SBX_EFF, id).first();
+  const r = await env.DB.prepare(`${enqSelect(env)} AND e.id = ?`).bind(id).first();
   if (!r) return notFound(ctx);
   const staff = (await env.DB.prepare(`SELECT id, display_name FROM users WHERE role IN ('direction','equipe') ORDER BY id`).all()).results || [];
   const names = Object.fromEntries(staff.map((u) => [String(u.id), u.display_name]));
-  const events = (await env.DB.prepare(`SELECT ev.*, u.display_name FROM enquiry_events ev LEFT JOIN users u ON u.id = ev.user_id WHERE ev.sbx = ? AND enquiry_id = ? ORDER BY ev.at ASC, ev.id ASC`).bind(env.SBX_EFF, id).all()).results || [];
+  const events = (await env.DB.prepare(`SELECT ev.*, u.display_name FROM ${T(env, 'enquiry_events')} ev LEFT JOIN users u ON u.id = ev.user_id WHERE 1=1 AND enquiry_id = ? ORDER BY ev.at ASC, ev.id ASC`).bind(id).all()).results || [];
+  events.unshift({ kind: 'creation', at: r.created_at, display_name: null }); // derived from the enquiry itself
   const ok = ctx.url.searchParams.get('ok');
   const evText = (ev) => {
     if (ev.kind === 'creation') return 'Demande reçue depuis le site';
@@ -531,15 +535,15 @@ async function enquiryDetail(ctx, id, { notice } = {}) {
 
 async function enquiryAction(ctx, id) {
   const { env, user, form } = ctx;
-  const r = await env.DB.prepare('SELECT * FROM enquiries WHERE sbx = ? AND id = ?').bind(env.SBX_EFF, id).first();
+  const r = await env.DB.prepare(`SELECT * FROM ${T(env, 'enquiries')} WHERE 1=1 AND id = ?`).bind(id).first();
   if (!r) return notFound(ctx);
   const now = nowIso();
   const action = form.get('action');
-  const ev = (kind, from, to) => env.DB.prepare('INSERT INTO enquiry_events (sbx, enquiry_id, at, user_id, kind, from_val, to_val) VALUES (?,?,?,?,?,?,?)').bind(env.SBX_EFF, id, now, user.id, kind, from, to);
+  const ev = (kind, from, to) => env.DB.prepare('INSERT INTO enquiry_events (sbx, enquiry_id, id, at, user_id, kind, from_val, to_val) VALUES (?,?,?,?,?,?,?,?)').bind(env.SBX_EFF, id, eventId(now), now, user.id, kind, from, to);
   if (action === 'status') {
     const to = form.get('to');
     if (!STATUS_LABELS[to]) return enquiryDetail(ctx, id, { notice: 'Statut inconnu : rien n’a été modifié.' });
-    if (to !== r.status) await env.DB.batch([env.DB.prepare('UPDATE enquiries SET status = ?, updated_at = ? WHERE sbx = ? AND id = ?').bind(to, now, env.SBX_EFF, id), ev('statut', r.status, to)]);
+    if (to !== r.status) await env.DB.batch([upsertRow(env, 'enquiries', { ...r, status: to, updated_at: now }), ev('statut', r.status, to)]);
   } else if (action === 'owner') {
     const raw = form.get('owner');
     let owner = null;
@@ -548,12 +552,12 @@ async function enquiryAction(ctx, id) {
       if (!u) return enquiryDetail(ctx, id, { notice: 'Responsable inconnu : rien n’a été modifié.' });
       owner = u.id;
     }
-    if (owner !== r.owner_id) await env.DB.batch([env.DB.prepare('UPDATE enquiries SET owner_id = ?, updated_at = ? WHERE sbx = ? AND id = ?').bind(owner, now, env.SBX_EFF, id), ev('responsable', r.owner_id == null ? null : String(r.owner_id), owner == null ? null : String(owner))]);
+    if (owner !== r.owner_id) await env.DB.batch([upsertRow(env, 'enquiries', { ...r, owner_id: owner, updated_at: now }), ev('responsable', r.owner_id == null ? null : String(r.owner_id), owner == null ? null : String(owner))]);
   } else if (action === 'note') {
     const note = clean(form.get('note'), 2000);
     if (!note) return enquiryDetail(ctx, id, { notice: 'La note est vide : rien n’a été ajouté.' });
     if (note.length > 2000) return enquiryDetail(ctx, id, { notice: 'Note trop longue (2 000 caractères au maximum).' });
-    await env.DB.batch([env.DB.prepare('UPDATE enquiries SET updated_at = ? WHERE sbx = ? AND id = ?').bind(now, env.SBX_EFF, id), ev('note', null, note)]);
+    await env.DB.batch([ev('note', null, note)]); // a note only appends to the history: no copy of the enquiry needed
   } else {
     return enquiryDetail(ctx, id, { notice: 'Action inconnue : rien n’a été modifié.' });
   }
@@ -569,7 +573,10 @@ function mailBody(text) {
     .replace(/(https?:\/\/\S+)/g, (m) => m.replace(/\//g, '/<wbr>')));
 }
 async function notifications(ctx) {
-  const rows = (await ctx.env.DB.prepare(`SELECT n.*, e.ref FROM notifications n JOIN enquiries e ON e.id = n.enquiry_id AND e.sbx = n.sbx WHERE n.sbx = ? ORDER BY n.at DESC, n.id DESC LIMIT 100`).bind(ctx.env.SBX_EFF).all()).results || [];
+  // The team e-mail of each enquiry is derived from the enquiry (no row written per notification).
+  const list = (await ctx.env.DB.prepare(`SELECT e.*, c.title AS cg_title, c.ref AS cg_ref FROM ${T(ctx.env, 'enquiries')} e JOIN ${T(ctx.env, 'congresses')} c ON c.id = e.congress_id ORDER BY e.created_at DESC, e.id DESC LIMIT 100`).all()).results || [];
+  const base = baseUrl(ctx.env);
+  const rows = list.map((e) => { const n = notificationFor(e, { title: e.cg_title, ref: e.cg_ref }, base); return { ...n, at: e.created_at, to_addr: TEAM_INBOX, enquiry_id: e.id, ref: e.ref }; });
   const body = html`<h1 class="h1">Notifications</h1>
     <p class="intro">Le message que l’équipe recevrait à chaque nouvelle demande. Dans la démonstration, aucun e-mail n’est réellement envoyé : il est seulement consigné ici.</p>
     <ol class="mails">${rows.map((n) => html`<li class="card mail"><h2 class="h4">${n.subject}</h2><p class="quiet">Envoi simulé à ${n.to_addr}, le ${frDateTime(n.at)}</p><pre>${mailBody(n.body)}</pre><p><a class="lnk" href="/console/demandes/${n.enquiry_id}">Ouvrir ${n.ref}</a></p></li>`)}</ol>`;
@@ -578,21 +585,22 @@ async function notifications(ctx) {
 
 // ---------------------------------------------------------------- GM&E
 async function activeGrant(env, userId, congressId) {
-  return env.DB.prepare(`SELECT * FROM gme_requests WHERE sbx = ? AND congress_id = ? AND user_id = ? AND status = 'approuvee' AND expires_at > ? ORDER BY id DESC LIMIT 1`).bind(env.SBX_EFF, congressId, userId, nowIso()).first();
+  return env.DB.prepare(`SELECT * FROM ${T(env, 'gme_requests')} WHERE 1=1 AND congress_id = ? AND user_id = ? AND status = 'approuvee' AND expires_at > ? ORDER BY id DESC LIMIT 1`).bind(congressId, userId, nowIso()).first();
 }
 async function logAccess(env, userId, congressId, result) {
   if (!Number.isFinite(congressId)) return;
-  await env.DB.prepare('INSERT INTO gme_access_log (sbx, at, user_id, congress_id, result) VALUES (?,?,?,?,?)').bind(env.SBX_EFF, nowIso(), userId, congressId, result).run();
+  const at = nowIso();
+  await env.DB.prepare('INSERT INTO gme_access_log (sbx, id, at, user_id, congress_id, result) VALUES (?,?,?,?,?,?)').bind(env.SBX_EFF, eventId(at), at, userId, congressId, result).run();
 }
 
 async function gmeCard(ctx, c, { context = 'list', revealed = null, reqError = '', reqValue = '' } = {}) {
   const { env, user } = ctx;
-  const g = await env.DB.prepare('SELECT congress_id, status, valid_from, valid_to, evidence, updated_at, (code_enc IS NOT NULL) AS has_code FROM gme_codes WHERE sbx = ? AND congress_id = ?').bind(env.SBX_EFF, c.id).first();
+  const g = await env.DB.prepare(`SELECT congress_id, status, valid_from, valid_to, evidence, updated_at, (code_enc IS NOT NULL) AS has_code FROM ${T(env, 'gme_codes')} WHERE 1=1 AND congress_id = ?`).bind(c.id).first();
   const isDir = user.role === 'direction';
   const title = context === 'congress' ? html`<h2 class="h3">Code GM&amp;E</h2>` : html`<h2 class="h3"><a href="/console/congres/${c.id}">${c.title}</a></h2>`;
   if (!g && !isDir) return context === 'congress' ? html`<section class="card gme">${title}<p class="quiet">Aucun code GM&amp;E pour ce congrès.</p></section>` : '';
   const grant = !isDir && g ? await activeGrant(env, user.id, c.id) : null;
-  const pending = !isDir && g ? await env.DB.prepare(`SELECT id FROM gme_requests WHERE sbx = ? AND congress_id = ? AND user_id = ? AND status = 'en_attente'`).bind(env.SBX_EFF, c.id, user.id).first() : null;
+  const pending = !isDir && g ? await env.DB.prepare(`SELECT id FROM ${T(env, 'gme_requests')} WHERE 1=1 AND congress_id = ? AND user_id = ? AND status = 'en_attente'`).bind(c.id, user.id).first() : null;
   const codeLine = revealed
     ? html`<p class="code code--on" data-revealed><span class="sr">Code : </span>${revealed}</p><p class="quiet">Affichage enregistré dans le journal d’accès.</p><p><a class="btn btn--line" href="/console/gme#gme-${c.id}">Masquer le code</a></p>`
     : html`<p class="code"><span aria-hidden="true">${MASK}</span><span class="sr">Code masqué</span></p>`;
@@ -630,7 +638,7 @@ async function gmeCard(ctx, c, { context = 'list', revealed = null, reqError = '
 
 async function gmeList(ctx, { revealFor = null, revealed = null, reqFor = null, reqError = '', reqValue = '', notice = '', status = 200 } = {}) {
   const { env, user } = ctx;
-  const rows = (await env.DB.prepare(`SELECT c.id, c.title, c.ref FROM gme_codes g JOIN congresses c ON c.id = g.congress_id AND c.sbx = g.sbx WHERE g.sbx = ? ORDER BY CASE g.status WHEN 'approuve' THEN 0 WHEN 'verifie' THEN 1 WHEN 'detecte' THEN 2 ELSE 3 END, c.start_date`).bind(env.SBX_EFF).all()).results || [];
+  const rows = (await env.DB.prepare(`SELECT c.id, c.title, c.ref FROM ${T(env, 'gme_codes')} g JOIN ${T(env, 'congresses')} c ON c.id = g.congress_id WHERE 1=1 ORDER BY CASE g.status WHEN 'approuve' THEN 0 WHEN 'verifie' THEN 1 WHEN 'detecte' THEN 2 ELSE 3 END, c.start_date`).all()).results || [];
   const cards = [];
   for (const c of rows) cards.push(await gmeCard(ctx, c, { revealed: revealFor === c.id ? revealed : null, reqError: reqFor === c.id ? reqError : '', reqValue: reqFor === c.id ? reqValue : '' }));
   const ok = ctx.url.searchParams.get('ok');
@@ -647,20 +655,20 @@ async function gmeList(ctx, { revealFor = null, revealed = null, reqFor = null, 
 async function gmeRequest(ctx, cid) {
   const { env, user, form } = ctx;
   if (user.role !== 'equipe') return deny(ctx, 'La Direction voit déjà les codes : aucune demande nécessaire.');
-  const g = await env.DB.prepare(`SELECT congress_id, status FROM gme_codes WHERE sbx = ? AND congress_id = ? AND code_enc IS NOT NULL`).bind(env.SBX_EFF, cid).first();
+  const g = await env.DB.prepare(`SELECT congress_id, status FROM ${T(env, 'gme_codes')} WHERE 1=1 AND congress_id = ? AND code_enc IS NOT NULL`).bind(cid).first();
   if (!g) return notFound(ctx);
   if (!REVEALABLE.includes(g.status)) return deny(ctx, 'Ce code n’est pas vérifié ou a expiré : aucune demande d’accès possible.');
   const reason = clean(form.get('reason'), 500);
   if (reason.length < 5) return gmeList(ctx, { reqFor: cid, reqValue: reason, reqError: 'Indiquez le motif de la demande (au moins 5 caractères).', status: 200 });
   if (reason.length > 500) return gmeList(ctx, { reqFor: cid, reqValue: reason.slice(0, 500), reqError: '500 caractères au maximum.', status: 200 });
-  const pending = await env.DB.prepare(`SELECT id FROM gme_requests WHERE sbx = ? AND congress_id = ? AND user_id = ? AND status = 'en_attente'`).bind(env.SBX_EFF, cid, user.id).first();
-  if (!pending) await env.DB.prepare(`INSERT INTO gme_requests (sbx, id, congress_id, user_id, reason, status, created_at) VALUES (?1, (SELECT COALESCE(MAX(id), 0) + 1 FROM gme_requests WHERE sbx = ?1), ?2, ?3, ?4, 'en_attente', ?5)`).bind(env.SBX_EFF, cid, user.id, reason, nowIso()).run();
+  const pending = await env.DB.prepare(`SELECT id FROM ${T(env, 'gme_requests')} WHERE 1=1 AND congress_id = ? AND user_id = ? AND status = 'en_attente'`).bind(cid, user.id).first();
+  if (!pending) await env.DB.prepare(`INSERT INTO gme_requests (sbx, id, congress_id, user_id, reason, status, created_at) VALUES (?1, (SELECT COALESCE(MAX(id), 0) + 1 FROM ${T(env, 'gme_requests')}), ?2, ?3, ?4, 'en_attente', ?5)`).bind(env.SBX_EFF, cid, user.id, reason, nowIso()).run();
   return redirect('/console/gme?ok=demande');
 }
 
 async function gmeReveal(ctx, cid) {
   const { env, user } = ctx;
-  const c = await env.DB.prepare('SELECT c.id, c.title, g.status AS gme_status FROM congresses c JOIN gme_codes g ON g.congress_id = c.id AND g.sbx = c.sbx WHERE c.sbx = ? AND c.id = ? AND g.code_enc IS NOT NULL').bind(env.SBX_EFF, cid).first();
+  const c = await env.DB.prepare(`SELECT c.id, c.title, g.status AS gme_status FROM ${T(env, 'congresses')} c JOIN ${T(env, 'gme_codes')} g ON g.congress_id = c.id WHERE 1=1 AND c.id = ? AND g.code_enc IS NOT NULL`).bind(cid).first();
   if (!c) return notFound(ctx);
   if (!REVEALABLE.includes(c.gme_status)) {
     await logAccess(env, user.id, cid, 'refuse_statut');
@@ -672,7 +680,7 @@ async function gmeReveal(ctx, cid) {
     await logAccess(env, user.id, cid, 'refuse');
     return deny(ctx, user.role === 'equipe' ? 'Accès refusé : aucune autorisation active pour ce code (jamais accordée, révoquée ou expirée). La tentative est enregistrée.' : 'Votre rôle ne permet pas de voir les codes GM&E.');
   }
-  const enc = (await env.DB.prepare('SELECT code_enc FROM gme_codes WHERE sbx = ? AND congress_id = ?').bind(env.SBX_EFF, cid).first()).code_enc;
+  const enc = (await env.DB.prepare(`SELECT code_enc FROM ${T(env, 'gme_codes')} WHERE 1=1 AND congress_id = ?`).bind(cid).first()).code_enc;
   const code = await decryptCode(env, enc);
   await logAccess(env, user.id, cid, 'affiche');
   return gmeList(ctx, { revealFor: cid, revealed: code });
@@ -680,9 +688,9 @@ async function gmeReveal(ctx, cid) {
 
 async function gmeSave(ctx, cid) {
   const { env, user, form } = ctx;
-  const c = await env.DB.prepare('SELECT * FROM congresses WHERE sbx = ? AND id = ?').bind(env.SBX_EFF, cid).first();
+  const c = await env.DB.prepare(`SELECT * FROM ${T(env, 'congresses')} WHERE 1=1 AND id = ?`).bind(cid).first();
   if (!c) return notFound(ctx);
-  const g = await env.DB.prepare('SELECT congress_id FROM gme_codes WHERE sbx = ? AND congress_id = ?').bind(env.SBX_EFF, cid).first();
+  const g = await env.DB.prepare(`SELECT * FROM ${T(env, 'gme_codes')} WHERE 1=1 AND congress_id = ?`).bind(cid).first();
   const code = clean(form.get('code'), 40).toUpperCase();
   const status = form.get('status');
   const from = clean(form.get('valid_from'), 10); const to = clean(form.get('valid_to'), 10);
@@ -697,10 +705,10 @@ async function gmeSave(ctx, cid) {
   if (err) return congressForm(ctx, cid, { notice: `Code GM&E non enregistré : ${err}`, status: 200 });
   const now = nowIso();
   if (g) {
-    if (code) await env.DB.prepare('UPDATE gme_codes SET code_enc=?, status=?, valid_from=?, valid_to=?, evidence=?, updated_at=?, updated_by=? WHERE sbx=? AND congress_id=?').bind(await encryptCode(env, code), status, from || null, to || null, evidence, now, user.id, env.SBX_EFF, cid).run();
-    else await env.DB.prepare('UPDATE gme_codes SET status=?, valid_from=?, valid_to=?, evidence=?, updated_at=?, updated_by=? WHERE sbx=? AND congress_id=?').bind(status, from || null, to || null, evidence, now, user.id, env.SBX_EFF, cid).run();
+    // one written row: the new version of the code record (the sandbox's copy, or a first copy of the seed record)
+    await upsertRow(env, 'gme_codes', { ...g, code_enc: code ? await encryptCode(env, code) : g.code_enc, status, valid_from: from || null, valid_to: to || null, evidence, updated_at: now, updated_by: user.id }).run();
   } else {
-    await env.DB.prepare('INSERT INTO gme_codes (sbx, congress_id, code_enc, status, valid_from, valid_to, evidence, updated_at, updated_by) VALUES (?,?,?,?,?,?,?,?,?)').bind(env.SBX_EFF, cid, await encryptCode(env, code), status, from || null, to || null, evidence, now, user.id).run();
+    await upsertRow(env, 'gme_codes', { congress_id: cid, code_enc: await encryptCode(env, code), status, valid_from: from || null, valid_to: to || null, evidence, updated_at: now, updated_by: user.id }).run();
   }
   return redirect(`/console/congres/${cid}?ok=1`);
 }
@@ -708,10 +716,10 @@ async function gmeSave(ctx, cid) {
 async function gmeAccess(ctx) {
   const { env } = ctx;
   const now = nowIso();
-  const q = (where) => env.DB.prepare(`SELECT r.*, u.display_name, c.title, c.ref, d.display_name AS decider FROM gme_requests r JOIN users u ON u.id = r.user_id JOIN congresses c ON c.id = r.congress_id AND c.sbx = r.sbx LEFT JOIN users d ON d.id = r.decided_by WHERE r.sbx = ?1 AND (${where}) ORDER BY r.id DESC LIMIT 50`);
-  const pending = (await q(`r.status = 'en_attente'`).bind(env.SBX_EFF).all()).results || [];
-  const active = (await q(`r.status = 'approuvee' AND r.expires_at > ?2`).bind(env.SBX_EFF, now).all()).results || [];
-  const past = (await q(`r.status IN ('refusee','revoquee') OR (r.status = 'approuvee' AND r.expires_at <= ?2)`).bind(env.SBX_EFF, now).all()).results || [];
+  const q = (where) => env.DB.prepare(`SELECT r.*, u.display_name, c.title, c.ref, d.display_name AS decider FROM ${T(env, 'gme_requests')} r JOIN users u ON u.id = r.user_id JOIN ${T(env, 'congresses')} c ON c.id = r.congress_id LEFT JOIN users d ON d.id = r.decided_by WHERE (${where}) ORDER BY r.id DESC LIMIT 50`);
+  const pending = (await q(`r.status = 'en_attente'`).all()).results || [];
+  const active = (await q(`r.status = 'approuvee' AND r.expires_at > ?`).bind(now).all()).results || [];
+  const past = (await q(`r.status IN ('refusee','revoquee') OR (r.status = 'approuvee' AND r.expires_at <= ?)`).bind(now).all()).results || [];
   const label = (r) => r.status === 'refusee' ? 'Refusée' : r.status === 'revoquee' ? 'Révoquée' : 'Expirée';
   const ok = ctx.url.searchParams.get('ok');
   const msg = { approuvee: 'Accès accordé pour 24 heures.', refusee: 'Demande refusée.', revoquee: 'Accès révoqué immédiatement.' }[ok];
@@ -734,28 +742,28 @@ async function gmeAccess(ctx) {
 
 async function gmeDecide(ctx, rid) {
   const { env, user, form } = ctx;
-  const r = await env.DB.prepare('SELECT * FROM gme_requests WHERE sbx = ? AND id = ?').bind(env.SBX_EFF, rid).first();
+  const r = await env.DB.prepare(`SELECT * FROM ${T(env, 'gme_requests')} WHERE 1=1 AND id = ?`).bind(rid).first();
   if (!r) return notFound(ctx);
   const d = form.get('decision');
   const now = new Date();
   if (d === 'approuver' && r.status === 'en_attente') {
     const exp = new Date(now.getTime() + GRANT_HOURS * 3600 * 1000).toISOString();
-    await env.DB.prepare(`UPDATE gme_requests SET status='approuvee', decided_at=?, decided_by=?, expires_at=? WHERE sbx=? AND id=? AND status='en_attente'`).bind(now.toISOString(), user.id, exp, env.SBX_EFF, rid).run();
+    await upsertRow(env, 'gme_requests', { ...r, status: 'approuvee', decided_at: now.toISOString(), decided_by: user.id, expires_at: exp }).run();
     return redirect('/console/gme/acces?ok=approuvee');
   }
   if (d === 'refuser' && r.status === 'en_attente') {
-    await env.DB.prepare(`UPDATE gme_requests SET status='refusee', decided_at=?, decided_by=? WHERE sbx=? AND id=? AND status='en_attente'`).bind(now.toISOString(), user.id, env.SBX_EFF, rid).run();
+    await upsertRow(env, 'gme_requests', { ...r, status: 'refusee', decided_at: now.toISOString(), decided_by: user.id }).run();
     return redirect('/console/gme/acces?ok=refusee');
   }
   if (d === 'revoquer' && r.status === 'approuvee') {
-    await env.DB.prepare(`UPDATE gme_requests SET status='revoquee', decided_at=?, decided_by=? WHERE sbx=? AND id=? AND status='approuvee'`).bind(now.toISOString(), user.id, env.SBX_EFF, rid).run();
+    await upsertRow(env, 'gme_requests', { ...r, status: 'revoquee', decided_at: now.toISOString(), decided_by: user.id }).run();
     return redirect('/console/gme/acces?ok=revoquee');
   }
   return redirect('/console/gme/acces');
 }
 
 async function gmeJournal(ctx) {
-  const rows = (await ctx.env.DB.prepare(`SELECT l.*, u.display_name, c.title, c.ref FROM gme_access_log l JOIN users u ON u.id = l.user_id JOIN congresses c ON c.id = l.congress_id AND c.sbx = l.sbx WHERE l.sbx = ? ORDER BY l.id DESC LIMIT 200`).bind(ctx.env.SBX_EFF).all()).results || [];
+  const rows = (await ctx.env.DB.prepare(`SELECT l.*, u.display_name, c.title, c.ref FROM ${T(ctx.env, 'gme_access_log')} l JOIN users u ON u.id = l.user_id JOIN ${T(ctx.env, 'congresses')} c ON c.id = l.congress_id WHERE 1=1 ORDER BY l.id DESC LIMIT 200`).all()).results || [];
   const res = { affiche: 'Code affiché', refuse: 'Refusé : aucune autorisation', refuse_statut: 'Refusé : code non vérifié ou expiré' };
   const body = html`<h1 class="h1">Journal d’accès</h1>
     <p class="intro">Chaque affichage d’un code GM&amp;E, et chaque tentative refusée, est enregistré ici. Réservé à la Direction.</p>

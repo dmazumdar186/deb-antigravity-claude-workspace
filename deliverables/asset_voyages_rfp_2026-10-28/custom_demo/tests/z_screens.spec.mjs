@@ -38,6 +38,7 @@ for (const [w, h] of [[1440, 900], [390, 844]]) {
     await page.getByRole('button', { name: 'Qualifiée' }).click();
     await page.getByLabel('Visible uniquement par l’équipe').fill('Rappel prévu demain matin.');
     await page.getByRole('button', { name: 'Ajouter la note' }).click();
+  await expect(page.locator('.ok')).toHaveText('Note ajoutée à l’historique.'); // wait for the reloaded page, never read mid-navigation
     await shot('11-demande-historique');
     await page.goto('/console/notifications'); await shot('12-notifications');
     await page.goto('/console/gme'); await shot('13-gme-equipe-masque');

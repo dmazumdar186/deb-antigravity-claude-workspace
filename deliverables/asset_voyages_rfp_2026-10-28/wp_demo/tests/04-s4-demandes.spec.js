@@ -148,7 +148,7 @@ test('S4-H1 logged-out and contributor users cannot read or change enquiries', a
 	// Find a real id via the equipe account, then try to change it as contributor.
 	const eq = await asRole(browser, 'equipe');
 	await eq.page.goto('/wp-admin/admin.php?page=asset-demandes&s=DV-2026-0002');
-	await eq.page.locator('a.row-title').first().click();
+	await eq.page.goto(await eq.page.locator('a.row-title').first().getAttribute('href'));
 	const id = new URL(eq.page.url()).searchParams.get('id');
 	const before = await eq.page.locator('#asset-statut').inputValue();
 	r = await page.request.post('/wp-admin/admin-post.php', { form: { action: 'asset_demande_update', id, statut: 'perdue', asset_nonce: 'forged' } });

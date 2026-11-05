@@ -1,0 +1,31 @@
+{
+  "seed": 20261105,
+  "role": "equipe",
+  "action": 88,
+  "problems": [
+    "pageerror Transition was aborted because of invalid state. ViewTransition opt-in disabled"
+  ],
+  "last20": [
+    "click BUTTON \"Replier le menu\" ",
+    "click BUTTON \"Afficher ou masquer le panneau\" ",
+    "click BUTTON \"Options de l’écran\" ",
+    "click BUTTON \"\" ",
+    "resize 663x679",
+    "submit form",
+    "back/forward",
+    "click A \"Voir toutes les demandes\" http://127.0.0.1:9403/wp-admin/admin.php?page=asset-demandes",
+    "type len=25 \"; DROP TABLE wp_posts;--",
+    "click A \"ASSET Voyages — démonstration\" http://127.0.0.1:9403/",
+    "click A \"Congrès d’ophtalmologie de Paris — exemple\" http://127.0.0.1:9403/congres/congres-dophtalmologie-de-paris-exemple/",
+    "click A \"1\nPerdue\" http://127.0.0.1:9403/wp-admin/admin.php?page=asset-demandes&statut=perdue",
+    "type len=11 99999999999",
+    "click A \"Qualifiée (1)\" http://127.0.0.1:9403/wp-admin/admin.php?page=asset-demandes&statut=qualifiee",
+    "type len=31 <script>window.__pwn=1</script>",
+    "type len=1 0",
+    "click BUTTON \"Afficher plus de détails\" ",
+    "click A \"À propos de WordPress\" http://127.0.0.1:9403/wp-admin/about.php",
+    "click A \"ASSET Voyages — démonstration\" http://127.0.0.1:9403/",
+    "back/forward"
+  ],
+  "url": "http://127.0.0.1:9403/wp-admin/about.php"
+}

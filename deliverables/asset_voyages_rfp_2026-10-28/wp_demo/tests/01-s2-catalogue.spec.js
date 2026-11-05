@@ -38,10 +38,10 @@ test('S2-F2 keyword search: title, city, discipline, accent-insensitive', async 
 test('S2-F3 filters alone and combined, result count, no-result message and reset', async ({ page }) => {
 	await page.goto('/');
 	await page.selectOption('#asset-f-discipline', 'oncologie');
-	await page.click('.asset-filters button[type=submit]');
+	await Promise.all([page.waitForNavigation(), page.click('.asset-filters button[type=submit]')]);
 	expect(await count(page)).toBe(2);
 	await page.selectOption('#asset-f-pays', 'france');
-	await page.click('.asset-filters button[type=submit]');
+	await Promise.all([page.waitForNavigation(), page.click('.asset-filters button[type=submit]')]);
 	expect(await count(page)).toBe(1);
 	await expect(cards(page).first()).toContainText('Marseille');
 	await page.goto('/?pays=france');
@@ -53,7 +53,7 @@ test('S2-F3 filters alone and combined, result count, no-result message and rese
 	await page.goto('/?q=zzzzzz');
 	expect(await count(page)).toBe(0);
 	await expect(page.locator('.asset-empty')).toContainText('Aucun congrès ne correspond');
-	await page.click('.asset-filters .asset-link'); // Réinitialiser
+	await Promise.all([page.waitForNavigation(), page.click('.asset-filters .asset-link')]); // Réinitialiser
 	expect(await count(page)).toBe(12);
 });
 
@@ -64,7 +64,7 @@ test('S2-F4 pagination works and keeps active filters', async ({ page }) => {
 	const href = await next.getAttribute('href');
 	expect(href).toContain('passes=1');
 	expect(href).toContain('tri=date_desc');
-	await next.click();
+	await Promise.all([page.waitForNavigation(), next.click()]);
 	await expect(cards(page)).toHaveCount(4);
 	await expect(page.locator('#asset-f-passes')).toBeChecked();
 	await expect(page.locator('#asset-f-tri')).toHaveValue('date_desc');
@@ -86,7 +86,7 @@ test('S2-F6 works with JavaScript off (server-rendered GET form)', async ({ brow
 	const page = await ctx.newPage();
 	await page.goto('/');
 	await page.fill('#asset-f-q', 'oncologie');
-	await page.click('.asset-filters button[type=submit]');
+	await Promise.all([page.waitForNavigation(), page.click('.asset-filters button[type=submit]')]);
 	expect(page.url()).toContain('q=oncologie');
 	expect(await count(page)).toBe(2);
 	await ctx.close();
@@ -130,7 +130,8 @@ test('S2-E2 at 390 px: no horizontal scroll, inputs >= 16 px, tap targets >= 44 
 	}
 	// Details page + form.
 	await page.goto('/?q=madrid');
-	await page.locator('.asset-card h2 a').first().click();
+	await page.goto(await page.locator('.asset-card h2 a').first().getAttribute('href'));
+	await page.waitForSelector('.asset-form button');
 	const r = await page.evaluate(() => ({
 		sw: document.documentElement.scrollWidth,
 		small: [...document.querySelectorAll('.asset-form input:not([type=hidden]):not([type=checkbox]), .asset-form textarea')].filter((e) => !e.closest('.asset-hp') && parseFloat(getComputedStyle(e).fontSize) < 16).length,

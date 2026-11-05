@@ -182,14 +182,14 @@ test('S5-F5 public pages say only « Tarif congrès négocié disponible », nev
 	const page = await anon.newPage();
 	await page.goto('/?q=madrid');
 	await expect(page.locator('.asset-card__offer')).toHaveText('Tarif congrès négocié disponible');
-	await page.locator('.asset-card h2 a').first().click();
+	await page.goto(await page.locator('.asset-card h2 a').first().getAttribute('href'));
 	await expect(page.locator('.asset-offer')).toHaveText('Tarif congrès négocié disponible : appliqué à votre devis');
 	assertNoSecrets(await page.content(), 'approved congress page');
 	// Verified-but-not-approved (Berlin) and expired (Londres) show nothing.
 	for (const q of ['berlin', 'londres', 'milan']) {
 		await page.goto('/?q=' + q);
 		expect(await page.locator('.asset-card__offer').count(), q).toBe(0);
-		await page.locator('.asset-card h2 a').first().click();
+		await page.goto(await page.locator('.asset-card h2 a').first().getAttribute('href'));
 		expect(await page.locator('.asset-offer').count(), q).toBe(0);
 	}
 	await anon.close();

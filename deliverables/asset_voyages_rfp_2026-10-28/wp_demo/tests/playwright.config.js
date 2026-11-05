@@ -4,7 +4,7 @@ const { defineConfig } = require('playwright/test');
 module.exports = defineConfig({
 	testDir: __dirname,
 	// The screenshot run is separate (fresh seed): SHOTS=1 selects screens.spec.js only.
-	testMatch: process.env.SHOTS ? /screens\.spec\.js$/ : /\d\d-.*\.spec\.js$/,
+	testMatch: process.env.SHOTS ? /(^|[\\/])screens\.spec\.js$/ : /(^|[\\/])\d\d-[^\\/]*\.spec\.js$/,
 	workers: 1,
 	fullyParallel: false,
 	timeout: 180000,

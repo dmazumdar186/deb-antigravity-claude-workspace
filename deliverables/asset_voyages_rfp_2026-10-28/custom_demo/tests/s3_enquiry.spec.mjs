@@ -181,5 +181,5 @@ test('S3-H3 script or HTML in any field is stored and shown as text only; SQL-is
   expect(adminDialogs).toBe(0);
   expect(dialogs).toBe(0);
   await admin.close();
-  expect(d1Count(`SELECT COUNT(*) AS n FROM enquiries WHERE sbx = '${await sbxOf(page)}'`)[0].n).toBe(7);
+  expect(d1Count(`SELECT COUNT(*) AS n FROM enquiries WHERE sbx = '${await sbxOf(page)}'`)[0].n).toBe(1); // the new enquiry only; the 6 seeded ones stay shared
 });

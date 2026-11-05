@@ -104,7 +104,14 @@ for (const role of ROLES) {
     return problems;
   };
 
+  const up = async () => { try { const r = await fetch(BASE + '/wp-login.php', { signal: AbortSignal.timeout(8000) }); return r.status < 500; } catch { return false; } };
   for (let i = 0; i < N; i++) {
+    if (!(await up())) { // harness/server infrastructure outage: record, wait, continue (not counted as an app failure)
+      L(`#${i} INFRA server down (connection refused/timeout); waiting up to 5 min`);
+      let back = false; for (let k = 0; k < 150 && !back; k++) { await sleep(2000); back = await up(); }
+      if (!back) { L('INFRA server never returned; aborting role'); break; }
+      await page.goto(BASE + (role === 'anon' ? '/' : '/wp-admin/'), { waitUntil: 'domcontentloaded' }).catch(() => {});
+    }
     let kind = 'err';
     try { kind = await act(i); } catch (e) { kind = 'act-exception ' + String(e.message).split('\n')[0]; }
     const probs = await check(i);

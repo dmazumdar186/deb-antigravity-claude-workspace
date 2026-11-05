@@ -94,7 +94,7 @@ test('FIX-A-2 login throttle per IP + username (10 / 15 min) and one generic err
 		expect(html).toContain('identifiant ou mot de passe incorrect');
 		expect(html).not.toMatch(/n’est pas enregistré|pas inscrit|contributeur<\/strong>|pour l’identifiant/);
 	}
-	for (let i = 0; i < 9; i++) await tryLogin('qa-throttle', 'x');
+	for (let i = 0; i < 10; i++) await tryLogin('qa-throttle', 'x'); // 10 allowed, the 11th is refused
 	const blocked = await tryLogin('qa-throttle', 'x');
 	expect(blocked).toContain('trop de tentatives');
 	// No global lockout: another username from the same address still logs in.
@@ -207,7 +207,7 @@ test('FIX-A-11 bundled theme: clean header/footer, no Twenty Twenty-Five leftove
 		expect(await page.locator('nav ul > :not(li)').count()).toBe(0);
 		expect(await page.locator('.wp-block-navigation').count()).toBe(0);
 	}
-	await page.locator('.asset-card h2 a').first().click();
+	await page.goto(await page.locator('.asset-card h2 a').first().getAttribute('href'));
 	const text = await page.locator('body').innerText();
 	expect(text).not.toMatch(/Écrit par|Plus de publications|PLUS DE PUBLICATIONS/);
 	expect(await page.locator('.wp-block-post-author, .wp-block-post-terms, .wp-block-post-date, .wp-block-query').count()).toBe(0);
@@ -262,7 +262,7 @@ test('FIX-A-12 keyboard only: create and publish a congress (Tab / type / Enter)
 test('FIX-A-13 dates in jj/mm/aaaa, Europe/Paris time, never ISO or UTC (enquiry detail, history, journal, CSV)', async ({ browser }) => {
 	const { ctx, page } = await asRole(browser, 'equipe');
 	await page.goto('/wp-admin/admin.php?page=asset-demandes&s=DV-2026-0001');
-	await page.locator('a.row-title').first().click();
+	await page.goto(await page.locator('a.row-title').first().getAttribute('href'));
 	const detail = await page.locator('#wpbody-content').innerText();
 	expect(detail).toMatch(/Reçue le\s+\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}/);
 	expect(detail).toContain('14/10/2027');
@@ -279,14 +279,14 @@ test('FIX-A-13 dates in jj/mm/aaaa, Europe/Paris time, never ISO or UTC (enquiry
 	const visitor = await browser.newContext();
 	const vp = await visitor.newPage();
 	await vp.goto('/?q=lisbonne');
-	await vp.locator('.asset-card h2 a').first().click();
+	await vp.goto(await vp.locator('.asset-card h2 a').first().getAttribute('href'));
 	const tokens = await formTokens(vp);
 	await vp.waitForTimeout(FILL_WAIT);
 	const r = await postEnquiry(vp, tokens, validEnquiry({ nom: 'Horloge Paris', email: 'horloge@example.com', date_aller: '2027-04-12', date_retour: '2027-04-15' }));
 	const ref = r.html.match(/DV-2026-\d{4}/)[0];
 	await visitor.close();
 	await page.goto('/wp-admin/admin.php?page=asset-demandes&s=' + ref);
-	await page.locator('a.row-title').first().click();
+	await page.goto(await page.locator('a.row-title').first().getAttribute('href'));
 	const got = (await page.locator('.asset-kv').innerText()).match(/Reçue le\s+(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2})/).slice(1).map(Number);
 	const paris = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
 	const shown = new Date(got[2], got[1] - 1, got[0], got[3], got[4]);
@@ -303,8 +303,9 @@ test('FIX-A-14 admin screens fit 390 px (no horizontal overflow)', async ({ brow
 		expect(sw, u).toBeLessThanOrEqual(390);
 	}
 	await page.goto('/wp-admin/admin.php?page=asset-demandes');
-	await page.locator('a.row-title').first().click();
-	expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+	await page.goto(await page.locator('a.row-title').first().getAttribute('href'));
+	await page.waitForSelector('.asset-history');
+	expect(await page.evaluate(() => document.documentElement.scrollWidth), 'detail').toBeLessThanOrEqual(390);
 	await ctx.close();
 });
 
@@ -360,9 +361,10 @@ test('FIX-A-17 minor UX defects: actionable rows only, unbroken reference, conse
 	const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, locale: 'fr-FR' });
 	const page = await ctx.newPage();
 	await page.goto('/?q=madrid');
-	await page.locator('.asset-card h2 a').first().click();
+	await page.goto(await page.locator('.asset-card h2 a').first().getAttribute('href'));
 	await page.waitForTimeout(FILL_WAIT);
 	await page.click('.asset-form button[type=submit]');
+	await page.waitForSelector('#asset-q-consentement-err');
 	const geo = await page.evaluate(() => {
 		const box = document.getElementById('asset-q-consentement').getBoundingClientRect();
 		const label = document.querySelector('label[for="asset-q-consentement"]').getBoundingClientRect();

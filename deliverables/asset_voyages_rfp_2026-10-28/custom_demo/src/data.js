@@ -1,47 +1,42 @@
 // Schema, seed and reset. Everything here is fictional demo data.
 import { encryptCode, hashPassword, newSalt, slugify, norm, PBKDF2_ITER, nowIso, addDays, today, rateHit } from './lib.js';
 
-// Schema v2: every demo row carries `sbx`. '' is the shared seed (read-only for visitors); any other value is one
-// browser's private sandbox, created on that browser's first write as a full copy of the seed (copy-on-write).
-export const SCHEMA_VERSION = 4;
+// Schema v6: every demo row carries `sbx`. '' is the shared seed; any other value is one browser's private sandbox.
+// Row-level copy-on-write (see T() and cow() below): a sandbox only holds the rows that browser created or changed.
+// Write budget: keyed tables are WITHOUT ROWID (the primary key is the table: one written row per insert, no extra
+// autoindex), log tables are clustered on (sbx, parent, id), notifications and creation events are derived on read.
+export const SCHEMA_VERSION = 7;
 export const SCHEMA = [
-  `CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT NOT NULL)`,
+  `CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT NOT NULL) WITHOUT ROWID`,
   `CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT UNIQUE NOT NULL, display_name TEXT NOT NULL, role TEXT NOT NULL CHECK (role IN ('direction','equipe','contributeur')), pw_hash TEXT NOT NULL, pw_salt TEXT NOT NULL, pw_iter INTEGER NOT NULL)`,
-  `CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY, user_id INTEGER NOT NULL, csrf TEXT NOT NULL, created_at TEXT NOT NULL, expires_at INTEGER NOT NULL)`,
-  `CREATE TABLE IF NOT EXISTS sandboxes (id TEXT PRIMARY KEY, created_at TEXT NOT NULL)`,
-  `CREATE TABLE IF NOT EXISTS congresses (sbx TEXT NOT NULL DEFAULT '', id INTEGER NOT NULL, ref TEXT NOT NULL, slug TEXT NOT NULL, title TEXT NOT NULL, discipline TEXT NOT NULL, city TEXT NOT NULL, country TEXT NOT NULL, start_date TEXT NOT NULL, end_date TEXT NOT NULL, venue TEXT NOT NULL, official_url TEXT NOT NULL, verified_on TEXT NOT NULL, description TEXT NOT NULL DEFAULT '', status TEXT NOT NULL CHECK (status IN ('brouillon','a_relire','publie','archive')), search_text TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, updated_by INTEGER, PRIMARY KEY (sbx, id), UNIQUE (sbx, ref), UNIQUE (sbx, slug))`,
-  `CREATE INDEX IF NOT EXISTS idx_cg_pub ON congresses (sbx, status, end_date, start_date)`,
-  `CREATE TABLE IF NOT EXISTS congress_events (id INTEGER PRIMARY KEY, sbx TEXT NOT NULL DEFAULT '', congress_id INTEGER NOT NULL, at TEXT NOT NULL, user_id INTEGER, kind TEXT NOT NULL, from_val TEXT, to_val TEXT)`,
-  `CREATE TABLE IF NOT EXISTS enquiries (sbx TEXT NOT NULL DEFAULT '', id INTEGER NOT NULL, ref TEXT NOT NULL, congress_id INTEGER NOT NULL, name TEXT NOT NULL, email TEXT NOT NULL, phone TEXT NOT NULL, company TEXT NOT NULL DEFAULT '', departure_city TEXT NOT NULL, date_out TEXT NOT NULL, date_back TEXT NOT NULL, passengers INTEGER NOT NULL, message TEXT NOT NULL DEFAULT '', consent_at TEXT NOT NULL, status TEXT NOT NULL CHECK (status IN ('nouvelle','qualifiee','devis','gagnee','perdue')), owner_id INTEGER, form_nonce TEXT UNIQUE, ip_hash TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, PRIMARY KEY (sbx, id), UNIQUE (sbx, ref))`,
-  `CREATE TABLE IF NOT EXISTS enquiry_events (id INTEGER PRIMARY KEY, sbx TEXT NOT NULL DEFAULT '', enquiry_id INTEGER NOT NULL, at TEXT NOT NULL, user_id INTEGER, kind TEXT NOT NULL CHECK (kind IN ('creation','statut','responsable','note')), from_val TEXT, to_val TEXT)`,
+  // Sessions are signed cookies; only logged-out session nonces are stored, until their expiry.
+  `CREATE TABLE IF NOT EXISTS revoked (n TEXT PRIMARY KEY, exp INTEGER NOT NULL) WITHOUT ROWID`,
+  `CREATE TABLE IF NOT EXISTS sandboxes (id TEXT PRIMARY KEY, created_at TEXT NOT NULL) WITHOUT ROWID`,
+  `CREATE TABLE IF NOT EXISTS congresses (sbx TEXT NOT NULL DEFAULT '', id INTEGER NOT NULL, ref TEXT NOT NULL, slug TEXT NOT NULL, title TEXT NOT NULL, discipline TEXT NOT NULL, city TEXT NOT NULL, country TEXT NOT NULL, start_date TEXT NOT NULL, end_date TEXT NOT NULL, venue TEXT NOT NULL, official_url TEXT NOT NULL, verified_on TEXT NOT NULL, description TEXT NOT NULL DEFAULT '', status TEXT NOT NULL CHECK (status IN ('brouillon','a_relire','publie','archive')), search_text TEXT NOT NULL, created_at TEXT NOT NULL, created_by INTEGER, updated_at TEXT NOT NULL, updated_by INTEGER, PRIMARY KEY (sbx, id)) WITHOUT ROWID`,
+  `CREATE TABLE IF NOT EXISTS congress_events (sbx TEXT NOT NULL DEFAULT '', congress_id INTEGER NOT NULL, id TEXT NOT NULL, at TEXT NOT NULL, user_id INTEGER, kind TEXT NOT NULL, from_val TEXT, to_val TEXT, PRIMARY KEY (sbx, congress_id, id)) WITHOUT ROWID`,
+  `CREATE TABLE IF NOT EXISTS enquiries (sbx TEXT NOT NULL DEFAULT '', id INTEGER NOT NULL, ref TEXT NOT NULL, congress_id INTEGER NOT NULL, name TEXT NOT NULL, email TEXT NOT NULL, phone TEXT NOT NULL, company TEXT NOT NULL DEFAULT '', departure_city TEXT NOT NULL, date_out TEXT NOT NULL, date_back TEXT NOT NULL, passengers INTEGER NOT NULL, message TEXT NOT NULL DEFAULT '', consent_at TEXT NOT NULL, status TEXT NOT NULL CHECK (status IN ('nouvelle','qualifiee','devis','gagnee','perdue')), owner_id INTEGER, form_nonce TEXT UNIQUE, ip_hash TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, PRIMARY KEY (sbx, id)) WITHOUT ROWID`,
+  `CREATE TABLE IF NOT EXISTS enquiry_events (sbx TEXT NOT NULL DEFAULT '', enquiry_id INTEGER NOT NULL, id TEXT NOT NULL, at TEXT NOT NULL, user_id INTEGER, kind TEXT NOT NULL CHECK (kind IN ('statut','responsable','note')), from_val TEXT, to_val TEXT, PRIMARY KEY (sbx, enquiry_id, id)) WITHOUT ROWID`,
   // Append-only at the database level: history rows can never be edited (only a whole sandbox is ever deleted).
   `CREATE TRIGGER IF NOT EXISTS enquiry_events_no_update BEFORE UPDATE ON enquiry_events BEGIN SELECT RAISE(ABORT, 'append-only'); END`,
-  `CREATE TABLE IF NOT EXISTS notifications (id INTEGER PRIMARY KEY, sbx TEXT NOT NULL DEFAULT '', enquiry_id INTEGER NOT NULL, at TEXT NOT NULL, to_addr TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL)`,
-  `CREATE TABLE IF NOT EXISTS gme_codes (sbx TEXT NOT NULL DEFAULT '', congress_id INTEGER NOT NULL, code_enc TEXT, status TEXT NOT NULL CHECK (status IN ('detecte','verifie','approuve','expire')), valid_from TEXT, valid_to TEXT, evidence TEXT NOT NULL DEFAULT '', updated_at TEXT NOT NULL, updated_by INTEGER, PRIMARY KEY (sbx, congress_id))`,
-  `CREATE TABLE IF NOT EXISTS gme_requests (sbx TEXT NOT NULL DEFAULT '', id INTEGER NOT NULL, congress_id INTEGER NOT NULL, user_id INTEGER NOT NULL, reason TEXT NOT NULL, status TEXT NOT NULL CHECK (status IN ('en_attente','approuvee','refusee','revoquee')), created_at TEXT NOT NULL, decided_at TEXT, decided_by INTEGER, expires_at TEXT, PRIMARY KEY (sbx, id))`,
-  `CREATE TABLE IF NOT EXISTS gme_access_log (id INTEGER PRIMARY KEY, sbx TEXT NOT NULL DEFAULT '', at TEXT NOT NULL, user_id INTEGER NOT NULL, congress_id INTEGER NOT NULL, result TEXT NOT NULL)`,
+  `CREATE TABLE IF NOT EXISTS gme_codes (sbx TEXT NOT NULL DEFAULT '', congress_id INTEGER NOT NULL, code_enc TEXT, status TEXT NOT NULL CHECK (status IN ('detecte','verifie','approuve','expire')), valid_from TEXT, valid_to TEXT, evidence TEXT NOT NULL DEFAULT '', updated_at TEXT NOT NULL, updated_by INTEGER, PRIMARY KEY (sbx, congress_id)) WITHOUT ROWID`,
+  `CREATE TABLE IF NOT EXISTS gme_requests (sbx TEXT NOT NULL DEFAULT '', id INTEGER NOT NULL, congress_id INTEGER NOT NULL, user_id INTEGER NOT NULL, reason TEXT NOT NULL, status TEXT NOT NULL CHECK (status IN ('en_attente','approuvee','refusee','revoquee')), created_at TEXT NOT NULL, decided_at TEXT, decided_by INTEGER, expires_at TEXT, PRIMARY KEY (sbx, id)) WITHOUT ROWID`,
+  `CREATE TABLE IF NOT EXISTS gme_access_log (sbx TEXT NOT NULL DEFAULT '', id TEXT NOT NULL, at TEXT NOT NULL, user_id INTEGER NOT NULL, congress_id INTEGER NOT NULL, result TEXT NOT NULL, PRIMARY KEY (sbx, id)) WITHOUT ROWID`,
   // Managed lists for the congress form (Direction adds values), so a typo cannot create a duplicate filter.
-  `CREATE TABLE IF NOT EXISTS options (sbx TEXT NOT NULL DEFAULT '', kind TEXT NOT NULL CHECK (kind IN ('discipline','pays')), value TEXT NOT NULL, norm TEXT NOT NULL, PRIMARY KEY (sbx, kind, norm))`,
-  // Indexes on sbx so a reset or the nightly purge never scans whole log tables.
-  `CREATE INDEX IF NOT EXISTS idx_cev_sbx ON congress_events (sbx, congress_id)`,
-  `CREATE INDEX IF NOT EXISTS idx_eev_sbx ON enquiry_events (sbx, enquiry_id)`,
-  `CREATE INDEX IF NOT EXISTS idx_not_sbx ON notifications (sbx)`,
-  `CREATE INDEX IF NOT EXISTS idx_log_sbx ON gme_access_log (sbx)`,
-  `CREATE TABLE IF NOT EXISTS rate_limits (key TEXT PRIMARY KEY, count INTEGER NOT NULL, reset_at INTEGER NOT NULL)`,
+  `CREATE TABLE IF NOT EXISTS options (sbx TEXT NOT NULL DEFAULT '', kind TEXT NOT NULL CHECK (kind IN ('discipline','pays')), value TEXT NOT NULL, norm TEXT NOT NULL, PRIMARY KEY (sbx, kind, norm)) WITHOUT ROWID`,
+  `CREATE TABLE IF NOT EXISTS rate_limits (key TEXT PRIMARY KEY, count INTEGER NOT NULL, reset_at INTEGER NOT NULL) WITHOUT ROWID`,
 ];
-const DATA_TABLES = ['options', 'congress_events', 'enquiry_events', 'notifications', 'enquiries', 'gme_access_log', 'gme_requests', 'gme_codes', 'congresses'];
-// Columns copied from the seed into a new sandbox (row ids of log tables are not copied).
+const DATA_TABLES = ['options', 'congress_events', 'enquiry_events', 'enquiries', 'gme_access_log', 'gme_requests', 'gme_codes', 'congresses'];
+// Columns copied when a seed row is first changed in a sandbox (cow).
 const COPY_COLS = {
-  options: 'kind, value, norm',
-  congresses: 'id, ref, slug, title, discipline, city, country, start_date, end_date, venue, official_url, verified_on, description, status, search_text, created_at, updated_at, updated_by',
-  congress_events: 'congress_id, at, user_id, kind, from_val, to_val',
+  congresses: 'id, ref, slug, title, discipline, city, country, start_date, end_date, venue, official_url, verified_on, description, status, search_text, created_at, created_by, updated_at, updated_by',
   enquiries: 'id, ref, congress_id, name, email, phone, company, departure_city, date_out, date_back, passengers, message, consent_at, status, owner_id, created_at, updated_at',
-  enquiry_events: 'enquiry_id, at, user_id, kind, from_val, to_val',
-  notifications: 'enquiry_id, at, to_addr, subject, body',
   gme_codes: 'congress_id, code_enc, status, valid_from, valid_to, evidence, updated_at, updated_by',
   gme_requests: 'id, congress_id, user_id, reason, status, created_at, decided_at, decided_by, expires_at',
 };
-const DROP_OLD = ['options', 'congress_events', 'enquiry_events', 'notifications', 'enquiries', 'gme_access_log', 'gme_requests', 'gme_codes', 'congresses', 'sandboxes'];
+// Event and log ids: time first, so ordering by id is chronological.
+let evSeq = 0;
+export const eventId = (at = nowIso()) => `${at}-${(evSeq = (evSeq + 1) % 1e6).toString(36).padStart(4, '0')}${Math.random().toString(36).slice(2, 6)}`;
+const DROP_OLD = ['options', 'congress_events', 'enquiry_events', 'notifications', 'enquiries', 'gme_access_log', 'gme_requests', 'gme_codes', 'congresses', 'sandboxes', 'sessions', 'revoked', 'rate_limits', 'meta'];
 
 export const USERS = [
   { id: 1, username: 'direction', display_name: 'Hélène Martin, Direction', role: 'direction' },
@@ -145,16 +140,49 @@ export async function effectiveSbx(env, id) {
   const row = await env.DB.prepare('SELECT id FROM sandboxes WHERE id = ?').bind(id).first();
   return row ? id : '';
 }
-// Sandbox budget (D1 free plan: 100,000 rows written a day; index entries count as writes).
-// One copy of the seed writes SANDBOX_ROWS rows (measured, incl. index entries, see README); we keep 30,000 rows a day
-// for real use (enquiries, edits, throttle counters, the nightly reseed), so (100,000 - 30,000) / SANDBOX_ROWS new
-// sandboxes a day overall, and 20 per IP a day. Beyond either cap the visitor keeps browsing the read-only seed with a
-// calm banner; nothing is refused with a bare 429.
-export const SANDBOX_ROWS = 215;
+// Row-level copy-on-write. A browser's sandbox writes nothing until its first write; then only the rows it touches are
+// written under its id (an edited congress is copied once, a new enquiry is inserted). Reads overlay the sandbox rows on
+// the shared seed: for keyed tables a sandbox row hides the seed row with the same key; log tables are a plain union.
+const OVERLAY_KEYS = { congresses: ['id'], enquiries: ['id'], gme_codes: ['congress_id'], gme_requests: ['id'] };
+const UNION_TABLES = new Set(['congress_events', 'enquiry_events', 'gme_access_log', 'options']);
+// The sandbox id is inlined as a literal: validSbx() guarantees [A-Za-z0-9_-]{16,40}, so it cannot carry SQL.
+export function T(env, table) {
+  const sid = env.SBX_EFF;
+  if (!sid) return `(SELECT * FROM ${table} WHERE sbx = '')`;
+  if (!validSbx(sid)) throw new Error('bad sandbox id');
+  if (UNION_TABLES.has(table)) return `(SELECT * FROM ${table} WHERE sbx IN ('', '${sid}'))`;
+  const keys = OVERLAY_KEYS[table];
+  if (!keys) throw new Error('no overlay for ' + table);
+  const same = keys.map((k) => `o.${k} = s.${k}`).join(' AND ');
+  return `(SELECT * FROM ${table} WHERE sbx = '${sid}' UNION ALL SELECT * FROM ${table} s WHERE s.sbx = '' AND NOT EXISTS (SELECT 1 FROM ${table} o WHERE o.sbx = '${sid}' AND ${same}))`;
+}
+// Copy one seed row into the sandbox before it is changed (no-op when the sandbox already has its own copy).
+export function cow(env, table, keyVals) {
+  const keys = OVERLAY_KEYS[table];
+  const cols = COPY_COLS[table];
+  const where = keys.map((k) => `${k} = ?`).join(' AND ');
+  return env.DB.prepare(`INSERT OR IGNORE INTO ${table} (sbx, ${cols}) SELECT ?, ${cols} FROM ${table} WHERE sbx = '' AND ${where}`).bind(env.SBX_EFF, ...keyVals);
+}
+
+// Change a row in the browser's sandbox in ONE written row: insert the full new version, or update the sandbox's own copy.
+export function upsertRow(env, table, row) {
+  const cols = COPY_COLS[table].split(', ');
+  const keys = OVERLAY_KEYS[table];
+  const set = cols.filter((c) => !keys.includes(c)).map((c) => `${c} = excluded.${c}`).join(', ');
+  return env.DB.prepare(`INSERT INTO ${table} (sbx, ${cols.join(', ')}) VALUES (?, ${cols.map(() => '?').join(', ')}) ON CONFLICT (sbx, ${keys.join(', ')}) DO UPDATE SET ${set}`)
+    .bind(env.SBX_EFF, ...cols.map((c) => (row[c] === undefined ? null : row[c])));
+}
+
+// Sandbox budget (D1 free plan: 100,000 rows written a day; index entries and deletes count as written rows).
+// A sandbox costs only what its session writes: FIX3-1 measures the full S1-S5 journey (4 logins, a new and an edited
+// congress, an enquiry, 3 follow-up changes, a GM&E request, approval and reveal) at 29 rows; we budget 30.
+// RESERVED_ROWS covers the bounded nightly purge and reseed (about 9,400 rows, see nightly()).
+export const ROWS_PER_SESSION = 30;
+export const RESERVED_ROWS = 10000;
 export const SBX_IP_DAILY = 20;
-export const SBX_DAILY_LIMIT = Math.floor((100000 - 30000) / SANDBOX_ROWS); // 325
+export const SBX_DAILY_LIMIT = Math.floor((100000 - RESERVED_ROWS) / ROWS_PER_SESSION); // 3,000
 export const DEMO_BUSY = 'Démo très demandée : vous pouvez parcourir, les essais reprennent dans quelques minutes.';
-// Copy-on-write: the first write of a browser copies the seed into its own sandbox. Returns the sandbox id.
+// First write of a browser: register its sandbox (one row, caps checked). Nothing is copied here. Returns the id.
 export async function materialize(env) {
   if (env.SBX_EFF) return env.SBX_EFF;
   const id = env.SBX;
@@ -163,11 +191,7 @@ export async function materialize(env) {
   if ((env.IP_HASH && !env.TEST_RUN && !(await rateHit(env, 'sbx-ip:' + env.IP_HASH, SBX_IP_DAILY, 86400))) || !(await rateHit(env, 'sbx:all', SBX_DAILY_LIMIT, 86400))) {
     throw Object.assign(new Error('sandbox limit'), { code: 'SBX_LIMIT' });
   }
-  const ins = await db.prepare('INSERT OR IGNORE INTO sandboxes (id, created_at) VALUES (?, ?)').bind(id, nowIso()).run();
-  if (ins.meta && ins.meta.changes) {
-    // INSERT OR IGNORE: a row already written under this id (a parallel first write, or an orphan) never makes the copy fail.
-    await db.batch(Object.entries(COPY_COLS).map(([t, cols]) => db.prepare(`INSERT OR IGNORE INTO ${t} (sbx, ${cols}) SELECT ?, ${cols} FROM ${t} WHERE sbx = ''`).bind(id)));
-  }
+  await db.prepare('INSERT OR IGNORE INTO sandboxes (id, created_at) VALUES (?, ?)').bind(id, nowIso()).run();
   env.SBX_EFF = id;
   return id;
 }
@@ -182,16 +206,24 @@ export async function resetSandbox(env) {
   if (validSbx(env.SBX)) await deleteSandboxes(env, 'id = ?', [env.SBX]);
   env.SBX_EFF = '';
 }
-// Nightly cron: drop sandboxes older than 24 h, expired sessions and old throttle rows, and rebuild the shared seed.
+// Nightly cron, bounded so it fits the reserved write budget (deleted rows count as written rows on D1):
+// the oldest 300 sandboxes past 24 h, orphans of up to 50 vanished sandboxes, 1,000 expired logouts, 3,000 expired
+// throttle rows, then the shared seed is rebuilt (about 150 rows). On a busy day the rest waits for the next nights;
+// it only costs storage, never visibility (nobody else can read another browser's rows).
+export const PURGE_SANDBOXES = 300;
 export async function nightly(env) {
   await ensureReady(env);
+  const db = env.DB;
   const cutoff = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
-  await deleteSandboxes(env, 'created_at < ?', [cutoff]);
-  await env.DB.batch([
+  const now = Math.floor(Date.now() / 1000);
+  const expired = `SELECT id FROM sandboxes WHERE created_at < ?1 ORDER BY created_at LIMIT ${PURGE_SANDBOXES}`;
+  await db.batch([
+    ...DATA_TABLES.map((t) => db.prepare(`DELETE FROM ${t} WHERE sbx IN (${expired})`).bind(cutoff)),
+    db.prepare(`DELETE FROM sandboxes WHERE id IN (${expired})`).bind(cutoff),
     // orphans: rows tagged with a sandbox that no longer exists (e.g. a write that raced a reset)
-    ...DATA_TABLES.map((t) => env.DB.prepare(`DELETE FROM ${t} WHERE sbx <> '' AND sbx NOT IN (SELECT id FROM sandboxes)`)),
-    env.DB.prepare('DELETE FROM sessions WHERE expires_at < ?').bind(Math.floor(Date.now() / 1000)),
-    env.DB.prepare('DELETE FROM rate_limits WHERE reset_at < ?').bind(Math.floor(Date.now() / 1000)),
+    ...DATA_TABLES.map((t) => db.prepare(`DELETE FROM ${t} WHERE sbx IN (SELECT DISTINCT sbx FROM ${t} WHERE sbx <> '' AND sbx NOT IN (SELECT id FROM sandboxes) LIMIT 50)`)),
+    db.prepare('DELETE FROM revoked WHERE n IN (SELECT n FROM revoked WHERE exp < ? LIMIT 1000)').bind(now),
+    db.prepare('DELETE FROM rate_limits WHERE key IN (SELECT key FROM rate_limits WHERE reset_at < ? LIMIT 3000)').bind(now),
   ]);
   await seedShared(env);
 }
@@ -220,28 +252,24 @@ export async function seedShared(env) {
   const lists = { discipline: new Set([...CONGRESSES.map((c) => c.discipline), ...EXTRA_DISCIPLINES]), pays: new Set([...CONGRESSES.map((c) => c.country), ...EXTRA_PAYS]) };
   for (const [kind, set] of Object.entries(lists)) for (const value of set) stmts.push(db.prepare(`INSERT INTO options (sbx, kind, value, norm) VALUES ('',?,?,?)`).bind(kind, value, norm(value)));
   for (const c of CONGRESSES) {
-    stmts.push(db.prepare(`INSERT INTO congresses (sbx, id, ref, slug, title, discipline, city, country, start_date, end_date, venue, official_url, verified_on, description, status, search_text, created_at, updated_at, updated_by)
-      VALUES ('',?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1)`).bind(c.id, c.ref, congressSlug(c.title, c.ref), c.title, c.discipline, c.city, c.country, c.start, c.end, c.venue,
+    stmts.push(db.prepare(`INSERT INTO congresses (sbx, id, ref, slug, title, discipline, city, country, start_date, end_date, venue, official_url, verified_on, description, status, search_text, created_at, created_by, updated_at, updated_by)
+      VALUES ('',?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1,?,1)`).bind(c.id, c.ref, congressSlug(c.title, c.ref), c.title, c.discipline, c.city, c.country, c.start, c.end, c.venue,
       `https://www.example.org/congres/${c.ref.toLowerCase()}`, '2026-10-12', c.description, c.status, congressSearch(c), '2026-10-01T09:00:00Z', '2026-10-12T09:00:00Z'));
   }
   for (const g of GME_SEED) {
     stmts.push(db.prepare(`INSERT INTO gme_codes (sbx, congress_id, code_enc, status, valid_from, valid_to, evidence, updated_at, updated_by) VALUES ('',?,?,?,?,?,?,?,1)`)
       .bind(g.congress_id, await encryptCode(env, g.code), g.status, g.valid_from, g.valid_to, g.evidence, '2026-10-12T09:00:00Z'));
   }
-  const byId = Object.fromEntries(CONGRESSES.map((c) => [c.id, c]));
   for (const e of ENQUIRIES) {
     const ref = `DV-2026-${String(e.id).padStart(4, '0')}`;
     stmts.push(db.prepare(`INSERT INTO enquiries (sbx, id, ref, congress_id, name, email, phone, company, departure_city, date_out, date_back, passengers, message, consent_at, status, owner_id, created_at, updated_at)
       VALUES ('',?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(e.id, ref, e.cg, e.name, e.email, e.phone, e.company, e.city, e.out, e.back, e.pax, e.msg, e.created, e.status, e.owner, e.created, e.created));
-    const ev = (at, user, kind, from, to) => stmts.push(db.prepare(`INSERT INTO enquiry_events (sbx, enquiry_id, at, user_id, kind, from_val, to_val) VALUES ('',?,?,?,?,?,?)`).bind(e.id, at, user, kind, from, to));
-    ev(e.created, null, 'creation', null, 'nouvelle');
+    const ev = (at, user, kind, from, to) => stmts.push(db.prepare(`INSERT INTO enquiry_events (sbx, enquiry_id, id, at, user_id, kind, from_val, to_val) VALUES ('',?,?,?,?,?,?,?)`).bind(e.id, eventId(at), at, user, kind, from, to));
     let t = new Date(e.created).getTime();
     const step = () => new Date((t += 3 * 3600 * 1000)).toISOString();
     if (e.owner) ev(step(), 1, 'responsable', null, String(e.owner));
     const target = e.status === 'gagnee' || e.status === 'perdue' ? [...PATH, e.status] : PATH.slice(0, PATH.indexOf(e.status) + 1);
     for (let i = 1; i < target.length; i++) ev(step(), e.owner || 1, 'statut', target[i - 1], target[i]);
-    const n = notificationFor({ ...e, ref, departure_city: e.city, date_out: e.out, date_back: e.back, passengers: e.pax }, byId[e.cg], base);
-    stmts.push(db.prepare(`INSERT INTO notifications (sbx, enquiry_id, at, to_addr, subject, body) VALUES ('',?,?,?,?,?)`).bind(e.id, e.created, TEAM_INBOX, n.subject, n.body));
   }
   stmts.push(db.prepare(`INSERT INTO gme_requests (sbx, id, congress_id, user_id, reason, status, created_at) VALUES ('', 1, 103, 2, ?, 'en_attente', ?)`)
     .bind('Préparer le devis de M. Martin (DV-2026-0002), deux places.', '2026-11-04T09:30:00Z'));

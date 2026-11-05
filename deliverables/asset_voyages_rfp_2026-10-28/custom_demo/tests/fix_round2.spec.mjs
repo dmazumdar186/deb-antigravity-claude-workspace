@@ -38,7 +38,7 @@ test('FIX2-1 FIX2-2 (ADV-B-009/010) at most 20 new sandboxes per IP a day; beyon
   assertClean(P.problems); await P.ctx.close();
   // the global cap is computed from the D1 free write budget (see README)
   const data = (await import('node:fs')).readFileSync(`${ROOT}/src/data.js`, 'utf8');
-  expect(data).toMatch(/SBX_DAILY_LIMIT = Math\.floor\(\(100000 - 30000\) \/ SANDBOX_ROWS\)/);
+  expect(data).toMatch(/SBX_DAILY_LIMIT = Math\.floor\(\(100000 - RESERVED_ROWS\) \/ ROWS_PER_SESSION\)/);
 });
 
 test('FIX2-3 (ADV-B-011) the per-IP login counter is incremented first and atomically: 60 parallel failures over 60 usernames, at most 50 checked', async () => {
@@ -54,24 +54,24 @@ test('FIX2-3 (ADV-B-011) the per-IP login counter is incremented first and atomi
   expect(codes.filter((c) => c === 429).length).toBeGreaterThanOrEqual(10);
 });
 
-test('FIX2-4 (ADV-B-012) the nightly purge removes orphan rows; a copy over leftover rows never collides', async ({ browser, page }) => {
+test('FIX2-4 (ADV-B-012) the nightly purge removes orphan rows; a first write over a leftover row never collides', async ({ page }) => {
   local('FIX2-4');
   const orphan = 'orphan' + Date.now().toString(36).padEnd(14, 'x');
-  sqlLocal(`INSERT INTO notifications (sbx, enquiry_id, at, to_addr, subject, body) VALUES ('${orphan}', 1, '2026-01-01', 'x@example.com', 'orpheline', 'x')`);
-  // leftover row under a live browser's id before its first write: the copy must not fail on the primary key
+  sqlLocal(`INSERT INTO enquiry_events (sbx, enquiry_id, id, at, user_id, kind, from_val, to_val) VALUES ('${orphan}', 1, '2026-01-01-x', '2026-01-01', 1, 'note', NULL, 'orpheline')`);
+  // a leftover row under a browser's id before its sandbox exists (a write that raced a reset): the first write upserts
   const sbx = await sbxOf(page);
-  sqlLocal(`INSERT INTO enquiries (sbx, id, ref, congress_id, name, email, phone, departure_city, date_out, date_back, passengers, consent_at, status, created_at, updated_at) VALUES ('${sbx}', 1, 'DV-2026-0001', 101, 'Restante (exemple)', 'r@example.com', '0100000000', 'Lille', '2027-08-26', '2027-08-31', 1, '2026-01-01', 'nouvelle', '2026-01-01', '2026-01-01')`);
+  sqlLocal(`INSERT INTO enquiries (sbx, id, ref, congress_id, name, email, phone, departure_city, date_out, date_back, passengers, consent_at, status, created_at, updated_at) VALUES ('${sbx}', 2, 'DV-2026-0002', 103, 'Restante (exemple)', 'r@example.com', '0100000000', 'Lille', '2027-08-26', '2027-08-31', 1, '2026-01-01', 'nouvelle', '2026-01-01', '2026-01-01')`);
   await login(page, 'equipe');
   await page.goto('/console/demandes/2');
   await page.getByRole('button', { name: 'Perdue' }).click();
   await expect(page.locator('.ok')).toHaveText('Statut mis à jour : Perdue.');
-  expect(d1Count(`SELECT COUNT(*) AS n FROM enquiries WHERE sbx = '${sbx}'`)[0].n).toBe(6);
+  expect(d1Count(`SELECT COUNT(*) AS n FROM enquiries WHERE sbx = '${sbx}'`)[0].n).toBe(1);
   expect((await page.request.get('/cdn-cgi/handler/scheduled?cron=0+3+*+*+*')).status()).toBe(200);
-  await expect.poll(() => d1Count(`SELECT COUNT(*) AS n FROM notifications WHERE sbx = '${orphan}'`)[0].n).toBe(0);
-  expect(d1Count(`SELECT COUNT(*) AS n FROM enquiries WHERE sbx = '${sbx}'`)[0].n).toBe(6); // live sandboxes untouched
+  await expect.poll(() => d1Count(`SELECT COUNT(*) AS n FROM enquiry_events WHERE sbx = '${orphan}'`)[0].n).toBe(0);
+  expect(d1Count(`SELECT COUNT(*) AS n FROM enquiries WHERE sbx = '${sbx}'`)[0].n).toBe(1); // live sandboxes untouched
 });
 
-test('FIX2-5 (X4 flake) reset is fast and idempotent: five resets in a row, each answered in under 3 s with the banner; sbx indexes exist', async ({ page }) => {
+test('FIX2-5 (X4 flake) reset is fast and idempotent: five resets in a row, each answered in under 3 s with the banner; tables clustered on sbx', async ({ page }) => {
   // Root cause of the live X4 failure: the page body was « upstream request failed », the agent egress proxy's own error
   // text (the Worker never emits it). The reset itself is idempotent; the indexes keep it a few milliseconds at any data size.
   await login(page, 'direction');
@@ -82,8 +82,9 @@ test('FIX2-5 (X4 flake) reset is fast and idempotent: five resets in a row, each
     await expect(page.getByText('La démonstration a été réinitialisée')).toBeVisible();
     expect(Date.now() - t0).toBeLessThan(3000);
   }
-  const idx = d1Count(`SELECT COUNT(*) AS n FROM sqlite_master WHERE type = 'index' AND name IN ('idx_cev_sbx','idx_eev_sbx','idx_not_sbx','idx_log_sbx')`)[0].n;
-  expect(idx).toBe(4);
+  // every sandbox-scoped table is clustered on its sandbox id (WITHOUT ROWID, primary key starting with sbx)
+  const clustered = d1Count(`SELECT COUNT(*) AS n FROM sqlite_master WHERE type = 'table' AND name IN ('congresses','enquiries','enquiry_events','congress_events','gme_codes','gme_requests','gme_access_log','options') AND sql LIKE '%PRIMARY KEY (sbx,%' AND sql LIKE '%WITHOUT ROWID%'`)[0].n;
+  expect(clustered).toBe(8);
 });
 
 test('FIX2-6 (S2-F2 flake) search is deterministic while sandboxes are being copied: 30 parallel « sommet rh » searches all find CG-0109', async ({ browser }) => {
@@ -209,6 +210,7 @@ test('FIX2-12 cosmetics: unbroken password, refs, phones and dates; contact stay
   await fillEnquiry(C.page);
   await C.page.waitForTimeout(3100);
   await C.page.getByRole('button', { name: 'Envoyer la demande' }).click();
+  await expect(C.page.locator('[data-ref]')).toBeVisible();
   const gap = await C.page.evaluate(() => { const h = document.querySelector('.thanks h1').getBoundingClientRect(); const l = document.querySelector('.thanks .lead').getBoundingClientRect(); return l.top - h.bottom; });
   expect(gap).toBeGreaterThanOrEqual(32);
   expect(await C.page.locator('.thanks p .lnk').evaluate((e) => getComputedStyle(e).display)).toBe('inline');

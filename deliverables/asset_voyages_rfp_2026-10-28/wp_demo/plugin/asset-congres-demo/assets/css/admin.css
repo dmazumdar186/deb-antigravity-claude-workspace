@@ -157,6 +157,7 @@
 }
 
 .asset-search {
+	clear: both;
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;

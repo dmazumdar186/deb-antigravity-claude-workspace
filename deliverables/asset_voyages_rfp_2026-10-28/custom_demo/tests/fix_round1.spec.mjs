@@ -100,7 +100,7 @@ test('FIX-3 nightly cron purges sandboxes older than 24 h and leaves recent ones
   expect((await page.request.get('/cdn-cgi/handler/scheduled?cron=0+3+*+*+*')).status()).toBe(200);
   await expect.poll(() => d1Count(`SELECT COUNT(*) AS n FROM enquiries WHERE sbx = '${oldSbx}'`)[0].n).toBe(0);
   expect(d1Count(`SELECT COUNT(*) AS n FROM sandboxes WHERE id = '${oldSbx}'`)[0].n).toBe(0);
-  expect(d1Count(`SELECT COUNT(*) AS n FROM enquiries WHERE sbx = '${newSbx}'`)[0].n).toBe(6);
+  expect(d1Count(`SELECT COUNT(*) AS n FROM enquiries WHERE sbx = '${newSbx}'`)[0].n).toBe(1);
   await page.goto('/console/demandes/1'); // the purged browser falls back to the seed
   await expect(page.locator('.head .st')).toHaveText('Gagnée');
   assertClean(fresh.problems); await fresh.ctx.close();

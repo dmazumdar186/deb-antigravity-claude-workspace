@@ -4,7 +4,7 @@ import {
   readForm, makeFormToken, checkFormToken, ipHash, rateHit, redirect, htmlResponse, nowIso, hmac, safeEqual,
 } from './lib.js';
 import { publicPage, field, errorPage, errorSummary } from './views.js';
-import { notificationFor, TEAM_INBOX, materialize, baseUrl, DEMO_BUSY } from './data.js';
+import { notificationFor, TEAM_INBOX, materialize, baseUrl, DEMO_BUSY, T } from './data.js';
 
 const PER_PAGE = 9;
 const MIN_FILL_MS = 3000;
@@ -37,14 +37,14 @@ export async function catalogue(req, env) {
   const url = new URL(req.url);
   const f = catalogueQuery(url.searchParams);
   const t = today();
-  const base = `FROM congresses WHERE sbx = ? AND status = 'publie' AND end_date >= ?`;
-  const all = (await env.DB.prepare(`SELECT discipline, country, substr(start_date,1,7) AS ym ${base}`).bind(env.SBX_EFF, t).all()).results || [];
+  const base = `FROM ${T(env, 'congresses')} WHERE status = 'publie' AND end_date >= ?`;
+  const all = (await env.DB.prepare(`SELECT discipline, country, substr(start_date,1,7) AS ym ${base}`).bind(t).all()).results || [];
   const uniq = (k) => [...new Set(all.map((r) => r[k]))].sort((a, b) => a.localeCompare(b, 'fr'));
   const disciplines = uniq('discipline');
   const countries = uniq('country');
   const months = [...new Set(all.map((r) => r.ym))].sort();
 
-  let where = base; const binds = [env.SBX_EFF, t];
+  let where = base; const binds = [t];
   for (const word of norm(f.q).split(/\s+/).filter(Boolean).slice(0, 8)) {
     where += ' AND instr(search_text, ?) > 0'; // instr: no LIKE pattern limits, no wildcard escaping
     binds.push(word);
@@ -108,7 +108,7 @@ export async function catalogue(req, env) {
 
 async function loadPublicCongress(env, where, bind) {
   return env.DB.prepare(`SELECT c.*, g.status AS gme_status, g.valid_from AS gme_from, g.valid_to AS gme_to
-    FROM congresses c LEFT JOIN gme_codes g ON g.congress_id = c.id AND g.sbx = c.sbx WHERE c.sbx = ? AND c.status = 'publie' AND ${where}`).bind(env.SBX_EFF, bind).first();
+    FROM ${T(env, 'congresses')} c LEFT JOIN ${T(env, 'gme_codes')} g ON g.congress_id = c.id WHERE c.status = 'publie' AND ${where}`).bind(bind).first();
 }
 export const gmeOnSale = (c, t = today()) => c.gme_status === 'approuve' && (!c.gme_from || c.gme_from <= t) && (!c.gme_to || c.gme_to >= t);
 
@@ -246,21 +246,18 @@ export async function submitEnquiry(req, env) {
   const now = nowIso();
   let row;
   try {
+    // One INSERT computes the next id over the overlay and writes the final reference (no temporary ref, no second write).
     row = await env.DB.prepare(`INSERT INTO enquiries (sbx, id, ref, congress_id, name, email, phone, company, departure_city, date_out, date_back, passengers, message, consent_at, status, form_nonce, ip_hash, created_at, updated_at)
-      VALUES (?1, (SELECT COALESCE(MAX(id), 0) + 1 FROM enquiries WHERE sbx = ?1), ?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13, 'nouvelle', ?14,?15,?16,?17) RETURNING id`)
-      .bind(sid, 'tmp-' + tok.nonce, c.id, v.name, v.email, v.phone, v.company, v.departure_city, v.date_out, v.date_back, +v.passengers, v.message, now, tok.nonce, ip, now, now).first();
+      SELECT ?1, n, 'DV-' || ?2 || '-' || printf('%04d', n), ?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13, 'nouvelle', ?14,?15,?16,?17
+      FROM (SELECT COALESCE(MAX(id), 0) + 1 AS n FROM ${T(env, 'enquiries')}) RETURNING id, ref`)
+      .bind(sid, now.slice(0, 4), c.id, v.name, v.email, v.phone, v.company, v.departure_city, v.date_out, v.date_back, +v.passengers, v.message, now, tok.nonce, ip, now, now).first();
   } catch (err) {
     const prior = await env.DB.prepare('SELECT ref FROM enquiries WHERE form_nonce = ?').bind(tok.nonce).first();
     if (prior) return redirect(await confirmUrl(env, prior.ref));
     throw err;
   }
-  const ref = `DV-${now.slice(0, 4)}-${String(row.id).padStart(4, '0')}`;
-  const n = notificationFor({ id: row.id, ref, ...v, passengers: +v.passengers }, c, baseUrl(env));
-  await env.DB.batch([
-    env.DB.prepare('UPDATE enquiries SET ref = ? WHERE sbx = ? AND id = ?').bind(ref, sid, row.id),
-    env.DB.prepare(`INSERT INTO enquiry_events (sbx, enquiry_id, at, user_id, kind, from_val, to_val) VALUES (?, ?, ?, NULL, 'creation', NULL, 'nouvelle')`).bind(sid, row.id, now),
-    env.DB.prepare('INSERT INTO notifications (sbx, enquiry_id, at, to_addr, subject, body) VALUES (?,?,?,?,?,?)').bind(sid, row.id, now, TEAM_INBOX, n.subject, n.body),
-  ]);
+  const ref = row.ref;
+  // The history's creation line and the team notification are derived from this row: one written row per enquiry.
   return redirect(await confirmUrl(env, ref));
 }
 
@@ -273,7 +270,7 @@ export async function confirmation(req, env) {
   const sp = new URL(req.url).searchParams;
   const ref = sp.get('ref') || '';
   const row = /^DV-\d{4}-\d{4,6}$/.test(ref) && safeEqual(sp.get('k') || '', await confirmSig(env, ref))
-    ? await env.DB.prepare('SELECT e.ref, c.title, c.slug FROM enquiries e JOIN congresses c ON c.id = e.congress_id AND c.sbx = e.sbx WHERE e.sbx = ? AND e.ref = ?').bind(env.SBX_EFF, ref).first()
+    ? await env.DB.prepare(`SELECT e.ref, c.title, c.slug FROM ${T(env, 'enquiries')} e JOIN ${T(env, 'congresses')} c ON c.id = e.congress_id WHERE 1=1 AND e.ref = ?`).bind(ref).first()
     : null;
   const body = html`<section class="thanks">
     <h1 class="display" tabindex="-1" data-focus>Merci, votre demande est enregistrée.</h1>

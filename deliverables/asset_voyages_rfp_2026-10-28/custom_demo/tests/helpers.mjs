@@ -145,7 +145,7 @@ export async function postEnquiry(request, slug, fields, { wait = 3100, token } 
 // D1 dump through wrangler (local state or the remote database).
 export function d1Dump() {
   const out = execFileSync('npx', ['wrangler', 'd1', 'execute', 'asset-voyages-demo', LIVE ? '--remote' : '--local', '--json', '--command',
-    'SELECT * FROM gme_codes; SELECT * FROM gme_access_log; SELECT * FROM gme_requests; SELECT * FROM notifications; SELECT * FROM enquiry_events; SELECT * FROM enquiries; SELECT * FROM congresses'], { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] });
+    'SELECT * FROM gme_codes; SELECT * FROM gme_access_log; SELECT * FROM gme_requests; SELECT * FROM enquiry_events; SELECT * FROM enquiries; SELECT * FROM congresses'], { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] });
   return out;
 }
 export function d1Count(sql) {

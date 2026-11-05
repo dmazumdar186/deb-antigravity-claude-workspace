@@ -121,8 +121,10 @@ class Asset_CD_Gme_Admin {
 	 * @param string $key Key.
 	 */
 	private static function notice( $key ) {
+		static $shown = array();
 		$all = self::messages();
-		if ( isset( $all[ $key ] ) ) {
+		if ( isset( $all[ $key ] ) && ! isset( $shown[ $key ] ) ) {
+			$shown[ $key ] = true;
 			printf( '<div class="notice notice-%1$s asset-notice-%3$s"><p>%2$s</p></div>', esc_attr( $all[ $key ][0] ), esc_html( $all[ $key ][1] ), esc_attr( $key ) );
 		}
 	}
