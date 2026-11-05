@@ -2484,3 +2484,49 @@ def test_ninth_audit_sender_and_gh(tmp_path, state, capsys):
                 "gh repo create x --public", "gh api -X PATCH repos/o/r -f description='Client X'"):
         assert _deny_reason(_bash(cmd, capsys)), cmd
     assert _bash("gh repo edit --visibility private", capsys) is None
+
+
+
+def test_huge_commands_fast_and_bounded(state, capsys):
+    import time as _t
+    n = 300_000
+    t0 = _t.time()
+    assert "too large" in _deny_reason(_bash("python3 " + "a/" * (n // 2), capsys))
+    assert "too large" in _deny_reason(_bash("bash -c '" + "x " * (n // 2) + "'", capsys))
+    for cmd in ("echo " + "a/" * (n // 2) + " > f.txt", "cat " + "x" * n,
+                "ls " + "$a" * (n // 2)):
+        assert _bash(cmd, capsys) is None
+    assert _t.time() - t0 < 5
+    t0 = _t.time()
+    rg.hook_text_hit("a/" * 150_000)
+    assert _t.time() - t0 < 1
+
+
+def test_time_budget_denies_exec_allows_plain(state, capsys, monkeypatch):
+    import time as _t
+
+    def slow(*_a, **_k):
+        _t.sleep(3)
+    monkeypatch.setattr(rg, "_bash_decision", slow)
+    monkeypatch.setattr(rg, "BASH_BUDGET_S", 0.2)
+    assert "exceeded" in _deny_reason(_bash("python3 x.py", capsys))
+    assert _bash("ls -la", capsys) is None
+
+
+def test_copy_then_run_sender_scan(tmp_path, state, capsys):
+    _write(tmp_path / "src.py", "import smtp" "lib\n")
+    for cmd in ("cp src.py run.py && python3 run.py", "mv src.py run2.py; python3 run2.py",
+                "cat src.py > run3.py && python3 run3.py",
+                "cat src.py | tee run4.py >/dev/null && python3 run4.py"):
+        assert _deny_reason(_bash(cmd, capsys, cwd=tmp_path)), cmd
+
+
+def test_outward_mcp_unparseable_inputs(state, capsys):
+    for name, ti in (("mcp__Gmail__send_message", {"to": None, "body": "x"}),
+                     ("mcp__Gmail__send_message", {"to": [1, 2], "body": "x"}),
+                     ("mcp__Gmail__send_message", {"to": "a@b.co", "body": None}),
+                     ("mcp__Gmail__send_message", {"to": "a@b.co", "body": 42}),
+                     ("mcp__slack__send_message", {"channel": "c", "text": None}),
+                     ("mcp__x__send_dm", {"recipients": [{"id": 3}], "text": "x"})):
+        assert "unparseable" in _deny_reason(_mcp(name, ti, capsys)) or \
+            "null" in _deny_reason(_mcp(name, ti, capsys)), (name, ti)

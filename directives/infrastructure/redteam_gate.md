@@ -384,6 +384,17 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   running b count as write-then-run; `sh wrap.sh` scans files wrap.sh runs (one level);
   `builtin` is a wrapper. gh: `repo edit|create` to public denies (waiver); `gh api` writes to
   `repos/o/r`, `user/repos`, `orgs/o/repos` gate their text fields.
+- 2026-11-05 (channels tenth audit): Bash commands over 64,000 chars are not parsed: they
+  deny when any token is an exec word, a deploy/gh/httpie program, a command-string runner
+  (eval/source/make/xargs/find/env/…), a path-invoked program, or names the hook/gate; other
+  big literals (echo/cat/git commit) pass. A 5 s SIGALRM budget (POSIX) denies a command that
+  runs code when the scan overruns; the hook-text regexes run only on literal-anchored windows
+  (was quadratic on long `a/a/…` tokens). Files written then run in the same command (cp/mv/
+  install/ln, `cat a > b`, `… | tee b`, heredoc/echo redirects) are sender-scanned too. Outward
+  MCP inputs with null values, non-string recipients or numeric text fields deny (unparseable).
+- Residual (outside the gate's lexicon; covered only by the build-contract audit): publishing
+  via aws s3/cloudfront, firebase deploy, gcloud (app deploy, storage), fly deploy, eas
+  submit/update, scp/rsync to a server, ssh remote exec, docker push, GitHub Pages pushes.
 - Out of scope (documented): `-c 'import deploy'`-style helper modules, shell-escaped or split
   literals, browser/Playwright UI sends (LinkedIn UI automation included); the hook gates API
   endpoints, and tracked repo automation stays trusted.

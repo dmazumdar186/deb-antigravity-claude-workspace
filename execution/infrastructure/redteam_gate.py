@@ -1294,7 +1294,32 @@ def _check_fields(where: str, fields: list[tuple[str, str, bool]], ti: dict, led
     return None
 
 
+_ADDR_KEYS_ALL = {"to", "cc", "bcc", "recipients", "recipient", "emailaddress", "emails",
+                  "email", "attendees"}
+
+
+def unparseable_input(ti: dict, meta: set[str]) -> str | None:
+    """Outward tool input that the text/recipient checks cannot read: None values, recipient
+    fields that are not strings/lists of strings or {email}, and non-text scalars in text slots."""
+    for k, v in ti.items():
+        if v is None:
+            return f"{k} is null (unparseable outward input; omit it or give a value)"
+        lk = str(k).lower()
+        if lk in _ADDR_KEYS_ALL:
+            items = v if isinstance(v, list) else [v]
+            if not all(isinstance(x, str) or (isinstance(x, dict) and isinstance(
+                    x.get("email"), str)) for x in items):
+                return f"{k} has a non-string recipient (unparseable)"
+        elif k not in meta and isinstance(v, (int, float)) and not isinstance(v, bool) \
+                and lk in ("body", "text", "message", "content", "htmlbody", "subject"):
+            return f"{k} is not text (unparseable outward input)"
+    return None
+
+
 def gmail_decision(action: str, ti: dict, state: Path) -> str | None:
+    bad = unparseable_input(ti, GMAIL_META)
+    if bad:
+        return f"{action}: {bad}"
     fields = text_fields(ti, GMAIL_META)
     ledger = Ledger(state)
     if fields:
@@ -2534,6 +2559,12 @@ def pending_writes(outer: str, docs: list[tuple[str, str]], cwd: Path) -> dict[s
             toks = shlex.split(seg)
         except ValueError:
             continue
+        if toks[:1] == ["tee"]:
+            srcs = re.findall(r"(?:^|[\s;&|])cat\s+([^\s|;&<>]+)", outer)
+            body = "\n".join(_safe_read(cwd / x) for x in srcs[:10])
+            for t in toks[1:]:
+                if not t.startswith("-"):
+                    out[os.path.realpath(cwd / t)] = body
         if toks[:1] in (["cp"], ["install"], ["mv"], ["ln"]):
             ops = [t for t in toks[1:] if not t.startswith("-")]
             if len(ops) == 2:
@@ -3434,6 +3465,11 @@ def _bash_hit(command: str, outer: str, docs: list[tuple[str, str]], cwd: Path,
         hit = _scan_file(mf, str(mf))
         if hit:
             return hit
+    for wpath, wtext in list(_PENDING_WRITES.items())[:20]:
+        hit = sender_hit(wtext.lower(), wtext) or (
+            f"harness-only hook path: {hook_text_hit(wtext)}" if hook_text_hit(wtext) else None)
+        if hit:
+            return f"{hit} in {wpath} (written then run by this command)"
     hit = find_exec_hit(expanded, bases)
     if hit:
         return hit
@@ -3562,11 +3598,17 @@ _HOOK_SH_CALL_RE = re.compile(r"(?:^|[\s;&|(\"'`])(?:\S*/)?(?:(?:ba|z|da)?sh\s+(
 def hook_text_hit(text: str) -> str | None:
     """Hook entry points in code/command text: a hook subcommand of redteam_gate.py, a
     REDTEAM_HOOK assignment, or a call of the hook wrapper with a mode."""
-    for rx, label in ((_HOOK_SUB_RE, "gate hook subcommand"),
-                      (_HOOK_ENV_RE, "REDTEAM_HOOK assignment"),
-                      (_HOOK_SH_CALL_RE, "hook wrapper call")):
-        if rx.search(text):
-            return label
+    low = text.lower()
+    # literal prefilters keep this linear: the regexes only run when their anchor is present
+    if "redteam_gate" in low and _HOOK_SUB_RE.search(text):
+        return "gate hook subcommand"
+    if "redteam" "_hook=" in low and _HOOK_ENV_RE.search(text):
+        return "REDTEAM_HOOK assignment"
+    if _HOOK_WRAPPER in text:
+        for m in re.finditer(re.escape(_HOOK_WRAPPER), text):
+            window = text[max(0, m.start() - 300):m.end() + 40]
+            if _HOOK_SH_CALL_RE.search(window):
+                return "hook wrapper call"
     return None
 
 
@@ -3739,6 +3781,45 @@ _RISKY_PROG_RE = re.compile(r"(?:^|[\s;&|(`])(?:\S*/)?(?:wrangler|vercel|netlify
                             r"https|xh)\b")
 
 
+MAX_BASH_CHARS = 64_000
+# Programs that run other text (shells, eval, source, make, xargs, find -exec …) in a big command.
+_CMD_STRING_RE_BIG = re.compile(r"(?:^|[\s;&|(`])(?:\S*/)?(?:eval|source|\.|make|gmake|xargs|"
+                                r"find|tmux|screen|su|at|batch|script|awk|gawk|env|builtin|"
+                                r"exec|command)(?=\s|$)")
+BASH_BUDGET_S = 5.0
+
+
+class _BudgetExceeded(Exception):
+    pass
+
+
+class _time_budget:
+    """SIGALRM-based budget where available (POSIX main thread); elsewhere a no-op (the size
+    cap still bounds the work)."""
+
+    def __init__(self, seconds: float) -> None:
+        self.seconds = seconds
+        self.armed = False
+
+    def __enter__(self) -> "_time_budget":
+        import signal
+        import threading
+        if hasattr(signal, "setitimer") and threading.current_thread() is threading.main_thread():
+            def _raise(_sig: int, _frm: Any) -> None:
+                raise _BudgetExceeded()
+            self.prev = signal.signal(signal.SIGALRM, _raise)
+            signal.setitimer(signal.ITIMER_REAL, self.seconds)
+            self.armed = True
+        return self
+
+    def __exit__(self, *_exc: Any) -> bool:
+        if self.armed:
+            import signal
+            signal.setitimer(signal.ITIMER_REAL, 0)
+            signal.signal(signal.SIGALRM, self.prev)
+        return False
+
+
 def hook_decision(payload: dict, state: Path) -> str | None:
     """Return a full deny reason, or None to allow."""
     name = payload.get("tool_name") or ""
@@ -3750,8 +3831,27 @@ def hook_decision(payload: dict, state: Path) -> str | None:
     if not isinstance(ti, dict):
         raise TypeError("tool_input is not an object")
     if name == "Bash":
+        cmd0 = ti.get("command") if isinstance(ti.get("command"), str) else ""
+        if len(cmd0) > MAX_BASH_CHARS:
+            # Too large to parse within the hook timeout: deny anything that may run code,
+            # deploy, post or touch the hook; a pure write/read of a big literal passes.
+            bare_tokens = {re.split(r"[/\\]", t.strip("<>\"'"))[-1] for t in cmd0.split()}
+            if (any(t and _EXEC_WORD_RE.fullmatch(t) for t in bare_tokens)
+                    or _RISKY_PROG_RE.search(cmd0) or _HOOK_WRAPPER in cmd0
+                    or "redteam" in cmd0.lower() or "/" in cmd0.split(None, 1)[0]
+                    or _CMD_STRING_RE_BIG.search(cmd0)):
+                return (f"redteam gate: command is {len(cmd0)} chars (> {MAX_BASH_CHARS}) and "
+                        f"may run code; too large to scan. Write it to a file and run that, or "
+                        f"split it.")
+            return None
         try:
-            return bash_decision(ti, payload.get("cwd"))
+            with _time_budget(BASH_BUDGET_S):
+                return bash_decision(ti, payload.get("cwd"))
+        except _BudgetExceeded:
+            if _EXEC_RE.search(cmd0) or _RISKY_PROG_RE.search(cmd0):
+                return (f"redteam gate: scan exceeded {BASH_BUDGET_S:g} s on a command that runs "
+                        f"code; simplify or split it.")
+            return None
         except Exception as exc:  # noqa: BLE001 - see below; logged to stderr
             # Keep sessions unbrickable, but never fail open on a command that may send.
             cmd = ti.get("command") if isinstance(ti.get("command"), str) else ""
@@ -3915,6 +4015,9 @@ def _mcp_id_key(action: str, key: str) -> bool:
 def mcp_outward_decision(kind: str, action: str, ti: dict, state: Path) -> str | None:
     """share: text = message-like field (if any); recipients must be within one passed record's
     --to/--cc/--bcc. post/send/publish: every non-metadata text field must be passed."""
+    bad = unparseable_input(ti, MCP_META)
+    if bad:
+        return f"{action}: {bad}"
     ledger = Ledger(state)
     fields = text_fields(ti, MCP_META, skip=())
     if kind == "share":
