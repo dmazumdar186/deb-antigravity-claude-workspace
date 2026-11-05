@@ -1,0 +1,21 @@
+{
+ "seed": 20261105,
+ "results": [
+  {
+   "role": "anon",
+   "fails": []
+  },
+  {
+   "role": "contributeur",
+   "fails": []
+  },
+  {
+   "role": "equipe",
+   "fails": []
+  },
+  {
+   "role": "direction",
+   "fails": []
+  }
+ ]
+}

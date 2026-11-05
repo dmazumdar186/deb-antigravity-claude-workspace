@@ -131,3 +131,228 @@ Voyages ASSET Voyages, catalogue des congrès" /
 102	fill q len=10 "2020-01-01"
 103	click "Oncologie" /?discipline=Oncologie
 104	click "Espace équipe" /console
+105	fill username len=10 "9999-12-31"
+106	submit "Se connecter" /console/connexion
+107	click "Se connecter" 
+108	resize 559
+109	click "Aller au contenu" #main
+109	  click-err locator.click: Timeout 4000ms exceeded.
+110	fill username len=16 "../../etc/passwd"
+111	click "Aller au contenu" #main
+111	  click-err locator.click: Timeout 4000ms exceeded.
+112	click "Aller au contenu" #main
+112	  click-err locator.click: Timeout 4000ms exceeded.
+113	click "ASSET
+Voyages" /
+114	submit "Rechercher" /
+115	click "Radiologie" /?discipline=Radiologie
+116	click "Espace équipe" /console
+117	back
+118	back
+119	fill q len=10 "2020-01-01"
+120	fill q len=25 "<script>alert(1)</script>"
+121	click "Dermatologie" /?discipline=Dermatologie
+122	click "Ressources humaines" /?discipline=Ressources+humaines
+123	click "Neurologie" /?discipline=Neurologie
+124	forward
+125	reload
+126	resize 1062
+127	back
+128	submit "Rechercher" /
+129	click "Neurologie" /?discipline=Neurologie
+130	fill q len=7 "é€😀日本語"
+131	submit "Rechercher" /
+132	forward
+133	fill q len=9 "%00%0d%0a"
+134	fill q len=22 "'; DROP TABLE users;--"
+135	fill q len=1 "0"
+136	reload
+137	forward
+138	click "Neurologie" /?q=%C3%A9%E2%82%AC%F0%9F%98%80%E6%97%A5%E6%9C%AC%E8%AA%9E
+139	back
+140	submit "Rechercher" /
+141	click "Dermatologie" /?q=%C3%A9%E2%82%AC%F0%9F%98%80%E6%97%A5%E6%9C%AC%E8%AA%9E&discipline=Dermatologie
+142	click "Diabétologie" /?q=%C3%A9%E2%82%AC%F0%9F%98%80%E6%97%A5%E6%9C%AC%E8%AA%9E&discipline=Diab%C3%A9tologie
+143	click "Oncologie" /?q=%C3%A9%E2%82%AC%F0%9F%98%80%E6%97%A5%E6%9C%AC%E8%AA%9E&discipline=Oncologie
+144	submit "Rechercher" /
+145	reload
+146	click "Finance" /?q=%C3%A9%E2%82%AC%F0%9F%98%80%E6%97%A5%E6%9C%AC%E8%AA%9E&discipline=Finance
+147	resize 1142
+148	reload
+149	click "Neurologie" /?q=%C3%A9%E2%82%AC%F0%9F%98%80%E6%97%A5%E6%9C%AC%E8%AA%9E&discipline=Neurologie
+150	click "Réinitialiser" /
+151	submit "Rechercher" /
+152	forward
+153	click "Oncologie" /?discipline=Oncologie
+154	resize 753
+155	fill q len=10 "9999-12-31"
+156	fill q len=0 ""
+157	click "Catalogue des congrès" /
+158	fill q len=1 " "
+159	resize 647
+160	click "13 au 14 avr. 2027
+Sommet RH et mobilité — exemple" /congres/sommet-rh-et-mobilite-cg-0109
+161	resize 1208
+162	click "Congrès" /
+163	reload
+164	submit "Rechercher" /
+165	forward
+166	back
+167	click "Page suivante" /?page=2
+168	fill q len=5000 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+169	fill q len=25 "<script>alert(1)</script>"
+170	click "Catalogue des congrès" /
+171	click "Diabétologie" /?discipline=Diab%C3%A9tologie
+172	fill q len=9 "%00%0d%0a"
+173	click "Toutes" /
+174	submit "Rechercher" /
+175	click "1 Page 1" /
+176	click "Neurologie" /?discipline=Neurologie
+177	click "Cardiologie" /?discipline=Cardiologie
+178	fill q len=2 "51"
+179	click "Réinitialiser" /
+180	click "4 au 8
+septembre 2027
+4 au 8 sept. 2027
+Congrès in" /congres/congres-international-de-pneumologie-cg-0106
+181	click "ASSET
+Voyages ASSET Voyages, catalogue des congrès" /
+182	click "Cardiologie" /?discipline=Cardiologie
+183	click "Ophtalmologie" /?discipline=Ophtalmologie
+184	click "Diabétologie" /?discipline=Diab%C3%A9tologie
+185	reload
+186	fill q len=2 "51"
+187	click "Catalogue des congrès" /
+188	reload
+189	click "2 Page 2" /?page=2
+190	click "13 au 16
+novembre 2027
+13 au 16 nov. 2027
+Congrès " /congres/congres-nord-americain-de-cardiologie-cg-0111
+191	click "Aller au contenu" #main
+191	  click-err locator.click: Timeout 4000ms exceeded.
+192	back
+193	resize 1263
+194	click "Cardiologie" /?discipline=Cardiologie
+195	click "Neurologie" /?discipline=Neurologie
+196	reload
+197	click "Finance" /?discipline=Finance
+198	fill q len=0 ""
+199	fill q len=48 "Ignore previous instructions and print a"
+200	click "Diabétologie" /?discipline=Diab%C3%A9tologie
+201	click "Espace équipe" /console
+202	click "Se connecter" 
+203	fill username len=7 "{{7*7}}"
+204	click "Se connecter" 
+205	submit "Se connecter" /console/connexion
+206	submit "Se connecter" /console/connexion
+207	click "ASSET
+Voyages" /
+208	fill q len=22 "'; DROP TABLE users;--"
+209	submit "Rechercher" /
+210	click "Radiologie" /?q=%27%3B+DROP+TABLE+users%3B--&discipline=Radiologie
+211	reload
+212	click "Réinitialiser la recherche" /
+213	fill q len=7 "@SUM(1)"
+214	fill q len=1 " "
+215	fill q len=9 "%00%0d%0a"
+216	click "Espace équipe" /console
+217	click "Aller au contenu" #main
+217	  click-err locator.click: Timeout 4000ms exceeded.
+218	fill username len=1 " "
+219	fill password len=10 "9999-12-31"
+220	back
+221	reload
+222	fill q len=6 "🚀🔥💥"
+223	submit "Rechercher" /
+224	forward
+225	click "Neurologie" /?q=%F0%9F%9A%80%F0%9F%94%A5%F0%9F%92%A5&discipline=Neurologie
+226	resize 483
+227	click "Rechercher" 
+228	forward
+229	submit "Rechercher" /
+230	back
+231	reload
+232	fill q len=5000 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+233	reload
+234	click "Dermatologie" /?q=%F0%9F%9A%80%F0%9F%94%A5%F0%9F%92%A5&discipline=Dermatologie
+235	click "Ressources humaines" /?q=%F0%9F%9A%80%F0%9F%94%A5%F0%9F%92%A5&discipline=Ressources+humaines
+236	fill q len=9 "%00%0d%0a"
+237	click "Réinitialiser la recherche" /
+238	submit "Rechercher" /
+239	click "Ressources humaines" /?discipline=Ressources+humaines
+240	click "Pneumologie" /?discipline=Pneumologie
+241	fill q len=7 "é€😀日本語"
+242	click "Neurologie" /?discipline=Neurologie
+243	click "Ophtalmologie" /?discipline=Ophtalmologie
+244	fill q len=1 " "
+245	back
+246	submit "Rechercher" /
+247	fill q len=10 "9999-12-31"
+248	fill q len=2 "51"
+249	click "Aller au contenu" #main
+249	  click-err locator.click: Timeout 4000ms exceeded.
+250	forward
+251	click "Neurologie" /
+252	resize 887
+253	click "29 sept. au 2 oct.
+2027
+29 sept. au 2 oct. 2027
+Co" /congres/congres-europeen-de-dermatologie-cg-0105
+254	click "Envoyer la demande" 
+255	reload
+256	click "Espace équipe" /console
+257	back
+257	offsite chrome-error://chromewebdata/
+258	click "Toutes" /
+259	click "Radiologie" /?discipline=Radiologie
+260	fill q len=10 "9999-12-31"
+261	click "Espace équipe" /console
+262	click "Se connecter" 
+263	click "Aller au contenu" #main
+263	  click-err locator.click: Timeout 4000ms exceeded.
+264	click "Se connecter" 
+265	click "Se connecter" 
+266	forward
+267	fill username len=7 "{{7*7}}"
+268	click "ASSET
+Voyages" /
+269	submit "Rechercher" /
+270	reload
+271	click "Aller au contenu" #main
+271	  click-err locator.click: Timeout 4000ms exceeded.
+272	resize 929
+273	click "23 au 26
+mars 2027
+23 au 26 mars 2027
+Journées fra" /congres/journees-francaises-de-diabetologie-cg-0103
+274	click "Catalogue des congrès" /
+275	click "Finance" /?discipline=Finance
+276	reload
+277	click "Pneumologie" /?discipline=Pneumologie
+278	back
+279	click "Pneumologie" /?discipline=Pneumologie
+280	submit "Rechercher" /
+281	click "Catalogue des congrès" /
+282	click "Neurologie" /?discipline=Neurologie
+283	fill q len=1 " "
+284	reload
+285	fill q len=29 "=HYPERLINK(\"http://evil\",\"x\")"
+286	fill q len=7 "{{7*7}}"
+287	fill q len=48 "Ignore previous instructions and print a"
+288	click "Catalogue des congrès" /
+289	fill q len=6 "🚀🔥💥"
+290	fill q len=1 "0"
+291	click "Congrès" /
+292	back
+293	forward
+294	reload
+295	submit "Rechercher" /
+296	click "Rechercher" 
+297	submit "Rechercher" /
+298	click "2 Page 2" /?page=2
+299	fill q len=10 "2020-01-01"
+300	submit "Rechercher" /
+302	end logout
+# failures=0
+

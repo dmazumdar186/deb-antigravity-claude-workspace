@@ -28,7 +28,7 @@
   "id": "1.4",
   "desc": "Visitor side: catalogue search finds the new congress",
   "status": "PASS",
-  "obs": "Congrès UAT 21149",
+  "obs": "Congrès UAT 69491",
   "shot": "evidence/uat-390-1.4.png"
  },
  {
@@ -75,8 +75,8 @@
   "W": 390,
   "id": "1.10",
   "desc": "Direction: draft is « À relire » and can be published",
-  "status": "FAIL",
-  "obs": "ERROR locator.click: Timeout 30000ms exceeded.",
+  "status": "PASS",
+  "obs": "Brouillon UAT 69491",
   "shot": "evidence/uat-390-1.10.png"
  },
  {
@@ -204,7 +204,7 @@
   "id": "4.1",
   "desc": "« Tableau de bord »: the newest item in « Dernières demandes » is the new reference; note the « Nouvelles » count",
   "status": "PASS",
-  "obs": "first=DV-2026-0007 Veena UAT 21149 (exemple); Nouvelles=3",
+  "obs": "first=DV-2026-0007 Veena UAT 69491 (exemple); Nouvelles=3",
   "shot": "evidence/uat-390-4.1.png"
  },
  {
