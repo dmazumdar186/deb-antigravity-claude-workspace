@@ -1821,3 +1821,37 @@ def test_mcp_generic_post_gated(tmp_path, state, capsys):
 def test_mcp_outward_fail_closed_flag():
     assert rg._is_outward({"tool_name": "mcp__Google_Drive__share_file"}, "")
     assert not rg._is_outward({"tool_name": "mcp__Google_Drive__get_file_permissions"}, "")
+
+
+def _deploy_repo(tmp_path, monkeypatch):
+    root = tmp_path / "ws"
+    proj = root / "sites" / "client"
+    _write(proj / "src" / "index.md", "hi\n")
+    _write(proj / "package.json", json.dumps({"scripts": {
+        "deploy": "npm run build && wrangler pages deploy dist --project-name x",
+        "ship": "wrangler pages deploy ../../tmpout"}}))
+    _write(proj / ".gitignore", "dist/\n")
+    for args in (["init", "-q"], ["add", "-A"],
+                 ["-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "x"]):
+        subprocess.run(["git", "-C", str(root), *args], check=True, capture_output=True)
+    _write(proj / "dist" / "index.html", "<p>hi</p>")
+    monkeypatch.setattr(rg, "REPO_ROOT", root)
+    return proj
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_deploy_gitignored_build_output_of_clean_project(tmp_path, state, capsys, monkeypatch):
+    proj = _deploy_repo(tmp_path, monkeypatch)
+    for cmd in ("npx wrangler pages deploy dist --project-name x", "npm run deploy"):
+        assert _bash(cmd, capsys, cwd=proj) is None, cmd
+    _write(proj / "src" / "draft.md", "uncommitted\n")
+    for cmd in ("npx wrangler pages deploy dist --project-name x", "npm run deploy",
+                "pnpm run deploy", "yarn run deploy"):
+        assert "uncommitted" in _deny_reason(_bash(cmd, capsys, cwd=proj)), cmd
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_deploy_package_script_untracked_dir_denied(tmp_path, state, capsys, monkeypatch):
+    proj = _deploy_repo(tmp_path, monkeypatch)
+    _write(proj.parent.parent / "tmpout" / "index.html", "<p>x</p>")
+    assert "package.json script ship" in _deny_reason(_bash("npm run ship", capsys, cwd=proj))

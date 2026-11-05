@@ -1882,9 +1882,21 @@ def _deploy_target(tool: str, argv: list[str]) -> tuple[bool, str | None]:
     return False, None
 
 
-def deploy_error(outer: str, cwd: Path) -> str | None:
-    """Deny production deploys of pages whose source dir is not committed + clean."""
+def deploy_error(outer: str, cwd: Path, depth: int = 0) -> str | None:
+    """Deny production deploys of pages whose source dir is not committed + clean (or is
+    gitignored build output of a clean project). `npm|pnpm|yarn run X` scripts are followed."""
     import shlex
+    if depth < 3:
+        bases = [cwd] + [cwd / c.strip("\"'") for c in re.findall(r"\bcd\s+([^\s;&|]+)", outer)]
+        try:
+            pkg = _package_scripts(outer, bases)
+        except ScanLimit as exc:
+            return f"redteam gate: {exc}. {DEPLOY_DENY}"
+        for label, body in pkg:
+            base = next((b for b in bases if (b / "package.json").is_file()), cwd)
+            err = deploy_error(body, base, depth + 1)
+            if err:
+                return err.replace("redteam gate: ", f"redteam gate: {label}: ", 1)
     for m in _DEPLOY_RE.finditer(outer):
         try:
             argv = shlex.split(m.group("args"))
@@ -1917,6 +1929,8 @@ def dir_committed_error(target: Path) -> str | None:
     if not real.is_relative_to(root) or real == root:
         return "not a committed subdirectory of this workspace"
     rel = str(real.relative_to(root))
+    if _git_ok(root, "check-ignore", "-q", "--", rel):
+        return _build_output_error(real, root)
     try:
         ls = subprocess.run(["git", "-C", str(root), "ls-files", "--", rel], capture_output=True, encoding="utf-8", errors="replace",
                             text=True, timeout=10)
@@ -1931,6 +1945,41 @@ def dir_committed_error(target: Path) -> str | None:
              if not any(sk in ln[3:] for sk in _DEPLOY_SKIP_DIRS)]
     if dirty:
         return "uncommitted/untracked/ignored files: " + ", ".join(dirty[:3])
+    return None
+
+
+_PROJECT_MARKERS = ("package.json", "wrangler.toml", "wrangler.json", "wrangler.jsonc",
+                    "vercel.json", "netlify.toml")
+
+
+def _build_output_error(real: Path, root: Path) -> str | None:
+    """Gitignored build output (dist/, build/, out/, .vercel/output): allowed when its project
+    subfolder (nearest ancestor with a project marker, else the parent) is a workspace
+    subfolder with tracked files and no modified/untracked non-ignored files."""
+    import subprocess
+    proj = real.parent
+    for anc in [real.parent, *real.parent.parents]:
+        if anc == root or not anc.is_relative_to(root):
+            break
+        if any((anc / mk).is_file() for mk in _PROJECT_MARKERS):
+            proj = anc
+            break
+    if proj == root or not proj.is_relative_to(root):
+        return "gitignored output outside a committed project subfolder"
+    rel = str(proj.relative_to(root))
+    try:
+        ls = subprocess.run(["git", "-C", str(root), "ls-files", "--", rel], capture_output=True,
+                            text=True, encoding="utf-8", errors="replace", timeout=10)
+        st = subprocess.run(["git", "-C", str(root), "status", "--porcelain",
+                             "--untracked-files=all", "--", rel], capture_output=True, text=True,
+                            encoding="utf-8", errors="replace", timeout=10)
+    except (OSError, subprocess.SubprocessError) as exc:
+        return f"git check failed ({type(exc).__name__})"
+    if ls.returncode or st.returncode or not ls.stdout.strip():
+        return f"build output's project {rel} has no tracked files"
+    dirty = [ln[3:] for ln in st.stdout.splitlines()]
+    if dirty:
+        return f"build output's project {rel} has uncommitted files: " + ", ".join(dirty[:3])
     return None
 
 

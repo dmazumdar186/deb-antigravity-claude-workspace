@@ -120,7 +120,10 @@ merely mention the gate or ledgers are no longer blocked (removed 2026-11-05: fa
 - **Deploys** (`wrangler pages deploy|publish`, `wrangler deploy`, `vercel --prod`, `netlify
   deploy --prod`, incl. via npx/pnpm/yarn/bunx and `cd X &&`): denied unless the deployed dir
   is a workspace subdirectory (never the root) with tracked files and no modified, untracked or
-  ignored files (node_modules/.wrangler/.vercel/.netlify skipped). Page text is covered by the
+  ignored files (node_modules/.wrangler/.vercel/.netlify skipped), or is gitignored build output
+  (dist/, build/, out/, .vercel/output) whose project subfolder (nearest package.json/wrangler/
+  vercel/netlify config, never the root) has tracked files and no modified/untracked files.
+  `npm|pnpm|yarn|bun run X` follows the package.json script (3 levels). Page text is covered by the
   build-contract audit; this only stops deploying uncommitted content. Expansions deny.
 - **MCP share** (any server; name contains share/permission, not get_/list_/search_/read_/
   resolve_/download_/delete_/remove_/revoke_/...): a message-like field (message/emailMessage/
@@ -172,8 +175,8 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   (`conversations.list`, `/v2/me`) pass. Repo LinkedIn automation (connect/DM scripts under
   `execution/`) stays trusted only when run tracked + unmodified, like every pipeline.
 - Deploys: the gate only proves the deployed dir is committed; it does not read the pages.
-  Gitignored build output (`dist/`) counts as uncommitted, so commit the built dir or deploy a
-  committed source dir. Deploys via `npm run deploy` / package scripts are not parsed.
+  Ignored build output is trusted as a product of the committed project; a build step that pulls
+  in uncommitted files from outside that project is not detected.
 - MCP post/share: a Slack-style `channel`/Drive `permissionId`/`chatSpaceId` audience has no
   address to check, so it needs the passed text to be operator-waived.
 
