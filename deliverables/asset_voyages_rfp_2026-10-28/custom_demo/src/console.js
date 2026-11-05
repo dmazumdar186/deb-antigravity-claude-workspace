@@ -79,7 +79,9 @@ export async function loginPost(req, env) {
   const kUser = `login:${ip}:${username.slice(0, 40)}`; const kIp = `login:${ip}`;
   const tooMany = () => loginGet(req, env, { error: 'Trop d’essais. Réessayez dans un quart d’heure.', status: 429 });
   if (await rateBlocked(env, kIp, 50)) return tooMany();
-  if (!(await rateHit(env, kUser, 10, 900))) return tooMany();
+  // A second per-account counter ignores the IP, so guesses spread over many addresses still hit a ceiling (30 per 15 min).
+  const kAcct = `login-account:${username.slice(0, 40)}`;
+  if (!(await rateHit(env, kUser, 10, 900)) || !(await rateHit(env, kAcct, 30, 900))) return tooMany();
   const password = String(form.get('password') || '').slice(0, 200);
   const u = await env.DB.prepare('SELECT * FROM users WHERE username = ?').bind(username).first();
   const ok = u ? safeEqual(await hashPassword(password, u.pw_salt, u.pw_iter), u.pw_hash) : false;
@@ -87,7 +89,7 @@ export async function loginPost(req, env) {
     await rateHit(env, kIp, 50, 900);
     return loginGet(req, env, { error: 'Identifiant ou mot de passe incorrect.', status: 401 });
   }
-  await env.DB.prepare('DELETE FROM rate_limits WHERE key = ?').bind(kUser).run();
+  await env.DB.prepare('DELETE FROM rate_limits WHERE key IN (?, ?)').bind(kUser, kAcct).run();
   const token = randomToken(32);
   await env.DB.prepare('INSERT INTO sessions (id, user_id, csrf, created_at, expires_at) VALUES (?,?,?,?,?)')
     .bind(await sha256hex(token), u.id, randomToken(24), nowIso(), Math.floor(Date.now() / 1000) + SESSION_TTL).run();

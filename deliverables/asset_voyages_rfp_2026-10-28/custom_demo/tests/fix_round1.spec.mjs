@@ -3,7 +3,7 @@ import { test, expect, login, logout, csrfOf, fillEnquiry, SLUG, CODES, LIVE, BA
 import { execFileSync } from 'node:child_process';
 import { ROOT } from './helpers.mjs';
 
-test.describe.configure({ mode: 'serial' });
+// Independent tests: one failure does not skip the others.
 const nav = (page, name) => page.getByRole('navigation', { name: 'Console' }).getByRole('link', { name });
 async function createCongress(page, v) {
   await page.goto('/console/congres/nouveau');
@@ -137,15 +137,19 @@ test('FIX-5 a code can only be shown or requested when vérifié or approuvé; d
   }
 });
 
-test('FIX-6 login throttle is atomic: 15 parallel wrong passwords for one account, at most 10 are even checked', async ({ page }) => {
+test('FIX-6 login throttle is atomic: 40 parallel wrong passwords for one account, at most 30 are even checked, whatever the source IPs', async ({ page }) => {
   const html = await (await page.request.get('/console/connexion')).text();
   const tok = /name="_token" value="([^"]+)"/.exec(html)[1];
   const user = 'intrus' + Date.now();
   const origin = new URL(BASE).origin;
-  const res = await Promise.all(Array.from({ length: 15 }, (_, i) => page.request.post('/console/connexion', { form: { _token: tok, username: user, password: 'faux' + i }, headers: { origin }, maxRedirects: 0 })));
+  const res = await Promise.all(Array.from({ length: 40 }, (_, i) => page.request.post('/console/connexion', { form: { _token: tok, username: user, password: 'faux' + i }, headers: { origin }, maxRedirects: 0 })));
   const codes = res.map((r) => r.status());
-  expect(codes.filter((c) => c === 401).length).toBeLessThanOrEqual(10);
-  expect(codes.filter((c) => c === 429).length).toBeGreaterThanOrEqual(5);
+  // 10 per account and IP (all the local runs come from one IP), 30 per account across every IP (the live proxy spreads requests)
+  expect(codes.filter((c) => c === 401).length).toBeLessThanOrEqual(LIVE ? 30 : 10);
+  expect(codes.filter((c) => c === 429).length).toBeGreaterThanOrEqual(10);
+  // no lost update: the account counter saw every attempt that reached it
+  const acct = d1Count(`SELECT count FROM rate_limits WHERE key = 'login-account:${user}'`)[0].count;
+  expect(acct).toBeGreaterThanOrEqual(codes.filter((c) => c === 401).length);
   await login(page, 'equipe'); // other accounts unaffected
 });
 
