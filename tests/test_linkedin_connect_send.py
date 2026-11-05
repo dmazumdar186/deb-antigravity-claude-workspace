@@ -356,7 +356,7 @@ def test_visit_limit_and_time_budget(page, tmp_path, monkeypatch):
 
 def test_worst_case_run_fits_task_limit():
     per_profile = S.GAP_SECONDS[1] + (S.NAV_TIMEOUT_MS + S.RENDER_TIMEOUT_MS + S.CONFIRM_TIMEOUT_MS) / 1000
-    assert S.RUN_BUDGET_S + per_profile + S.SMTP_ATTEMPTS * (30 + S.SMTP_RETRY_S) < 3 * 3600
+    assert S.RUN_BUDGET_S + per_profile + 90 + S.SMTP_ATTEMPTS * (4 * 30 + S.SMTP_RETRY_S) < 3 * 3600  # 90 s Chrome start; 4 socket ops x 30 s per SMTP try
 
 
 class _FlakySMTP(_FakeSMTP):
@@ -549,4 +549,20 @@ def test_unsendable_people_never_stop_the_day_and_20_still_go_out(page, tmp_path
 
 def test_visit_ceiling_and_budget_constants():
     assert S.VISIT_FACTOR * Q.DAILY_CAP == 100 and S.MAX_CONSECUTIVE_RETRIES == 5
-    assert S.SEND_LOCK_TTL_MIN * 60 > S.RUN_BUDGET_S + S.SMTP_ATTEMPTS * (30 + S.SMTP_RETRY_S)
+    assert S.SEND_LOCK_TTL_MIN * 60 > S.RUN_BUDGET_S + 300 + S.SMTP_ATTEMPTS * (4 * 30 + S.SMTP_RETRY_S)
+
+
+def test_covered_connect_button_is_this_persons_retry_not_a_crash(page, monkeypatch):
+    monkeypatch.setattr(S, "CLICK_TIMEOUT_MS", 800)
+    page.set_content("<main><section><h1>A</h1><button aria-label='Invite A to connect'>Connect</button>"
+                     "<div style='position:fixed;inset:0;background:#fff'></div></section></main>")
+    page.goto = lambda *a, **k: None
+    out = S.process_profile(page, "https://www.linkedin.com/in/a/", "a")
+    assert (out.status, out.note, out.stop) == ("retry", "click_failed", None)
+
+
+def test_email_input_dialog_is_skipped_whatever_its_wording(page):
+    page.set_content("<main><section><h1>A</h1></section></main><div role='dialog'><p>To verify this member "
+                     "knows you, type their address</p><input type='email'><button disabled>Send</button></div>")
+    out = S._finish_invite(page, S.top_card(page), "a", None)
+    assert (out.status, out.note) == ("skipped", "email_required")

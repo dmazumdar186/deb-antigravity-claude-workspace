@@ -77,7 +77,8 @@ STOP_PATTERNS = (
     (re.compile(r"restricted your account|account (?:has been |is )?restricted", re.I), "account restricted"),
 )
 GONE_RE = re.compile(r"this page doesn[’']t exist|page not found|profile is not available", re.I)
-EMAIL_REQUIRED_RE = re.compile(r"enter (?:their|the member[’']s) email", re.I)
+EMAIL_REQUIRED_RE = re.compile(r"enter (?:their |the member[’']s |an |the |your contact[’']s )?email", re.I)
+CLICK_TIMEOUT_MS = 5_000  # a covered / detached button fails fast and becomes this person's retry
 FIRST_DEGREE_RE = re.compile(r"1st degree connection|·\s*1st\b", re.I)
 LOGIN_URL_RE = re.compile(r"linkedin\.com/(?:login|authwall|uas/login|signup)", re.I)
 CHECKPOINT_URL_RE = re.compile(r"linkedin\.com/checkpoint/", re.I)
@@ -266,7 +267,16 @@ def process_profile(page, url: str, slug: str, dry_run: bool = False) -> Outcome
             state="visible", timeout=RENDER_TIMEOUT_MS)
     except Exception as exc:  # nothing rendered in time; the checks below classify what is there
         log.debug("%s: render wait ended: %s", slug, str(exc).splitlines()[0])
+    try:
+        return _act(page, resp, slug, dry_run)
+    except Exception as exc:  # one person's overlay / detached button / odd dialog never ends the day
+        log.warning("%s: action failed: %s", slug, str(exc).splitlines()[0] if str(exc) else type(exc).__name__)
+        with contextlib.suppress(Exception):
+            page.keyboard.press("Escape")
+        return Outcome("retry", "click_failed")
 
+
+def _act(page, resp, slug: str, dry_run: bool) -> Outcome:
     if stop := detect_stop(page):
         return Outcome(stop=stop)
     if is_logged_out(page):
@@ -285,7 +295,7 @@ def process_profile(page, url: str, slug: str, dry_run: bool = False) -> Outcome
     if connect is None:
         more = _first_visible(card.get_by_role("button", name=MORE_NAME))
         if more is not None:
-            more.click()
+            more.click(timeout=CLICK_TIMEOUT_MS)
             page.wait_for_timeout(600)
             connect = _connect_in(card) or _connect_in(page.get_by_role("menu"))
     if connect is None:
@@ -295,7 +305,7 @@ def process_profile(page, url: str, slug: str, dry_run: bool = False) -> Outcome
         log.info("%s: dry-run, would click %r", slug, connect.get_attribute("aria-label") or "Connect")
         page.keyboard.press("Escape")
         return Outcome(note="would_send", canonical=canon, would_send=True)
-    connect.click()
+    connect.click(timeout=CLICK_TIMEOUT_MS)
     return _finish_invite(page, card, slug, canon)
 
 
@@ -310,14 +320,14 @@ def _finish_invite(page, card, slug: str, canon: str | None) -> Outcome:
             return Outcome("sent", canonical=canon)
         dlg = _first_visible(page.get_by_role("dialog"))
         if dlg is not None:
-            if EMAIL_REQUIRED_RE.search(_text(dlg)):
+            if EMAIL_REQUIRED_RE.search(_text(dlg)) or _first_visible(dlg.locator("input[type=email]")):
                 page.keyboard.press("Escape")
                 return Outcome("skipped", "email_required", canonical=canon)
             if not clicked_send:
                 btn = _first_visible(dlg.get_by_role("button", name=SEND_NO_NOTE)) or \
                     _first_visible(dlg.get_by_role("button", name=SEND_PLAIN))
                 if btn is not None:
-                    btn.click()
+                    btn.click(timeout=CLICK_TIMEOUT_MS)
                     clicked_send = True
         page.wait_for_timeout(POLL_MS)
     log.warning("%s: no confirmation after the click", slug)

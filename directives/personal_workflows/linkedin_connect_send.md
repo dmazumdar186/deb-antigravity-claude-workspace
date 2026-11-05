@@ -73,7 +73,7 @@ empty list; each of those sends a STOPPED subject.
 
 1. Today's local date (same as the queue module's ledger dates). Not a send day, or `emailed_<date>.txt` exists → exit 0 silently.
 2. (Real run) no Gmail credentials → log, exit 3 (the only silent failure; the alert below catches it). No `master.csv` or Playwright not importable → email `STOPPED: no master list` / `STOPPED: playwright not installed`, no marker (a rerun after the fix still sends today), exit 3.
-   Another run holds `send.lock` (exclusive create, < 120 min old; older = crashed run, taken over) or the retired routine's `run.lock` → exit 0 without sending; `send.lock` is deleted on every exit path.
+   Another run holds `send.lock` (exclusive create, < 190 min old; older = crashed run, taken over) or the retired routine's `run.lock` → exit 0 without sending; `send.lock` is deleted on every exit path.
 3. Plan up to 20 − already sent today with `cmd_plan` (shuffled, seeded by date; same queue file as before).
 4. Launch the persistent profile in Google Chrome (`channel="chrome"`, headed). Chrome missing or the profile in use → email `STOPPED: Chrome not available`, exit 3.
 5. For each person: open the profile URL, wait for the header to render, then decide (first match wins):
@@ -83,7 +83,7 @@ empty list; each of those sends a STOPPED subject.
    3. 404 / "This page doesn't exist" → `skipped profile_gone`.
    4. Header shows `Pending` → `pending`. 1st-degree badge → `already_connected`.
    5. `Connect` in the header, else open `More` and look for `Connect` in the menu. Neither → `retry no_connect_button` (not final: a markup change must not burn people).
-   6. Click Connect. Dialog asking for the member's email → Escape, `skipped email_required` (continue). Otherwise click **Send without a note** (or a plain `Send`; never "Add a note").
+   6. Click Connect. Dialog asking for the member's email (its text, or any email input in it) → Escape, `skipped email_required` (continue). Any click that fails (overlay, detached button; 5 s timeout) or other per-person error → `retry click_failed`, next person. Otherwise click **Send without a note** (or a plain `Send`; never "Add a note").
    7. Confirmed by the alert "Invitation sent…" or the header flipping to `Pending` → `sent`. No confirmation in 10 s → `retry` (eligible tomorrow).
    8. Page failed to load → `retry`. Five `retry` outcomes in a row (no Connect / unconfirmed / page load failed) → **stop** (`5 profiles in a row without Connect or confirmation`).
    9. Redirected to another `/in/` slug → the mark carries `--canonical`, so the alias is recorded.
