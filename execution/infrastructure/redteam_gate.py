@@ -1717,7 +1717,6 @@ _OUTWARD_SIMPLE = (
     ("discordapp.com/api/web" "hooks", "Discord webhook"),
     ("webhook.office" ".com", "Teams webhook"),
     ("logic.azure" ".com", "Teams workflow webhook"),
-    ("chat.google" "apis.com", "Google Chat API"),
     ("api.lem" "list.com", "lemlist API"),
     ("api.twitter.com/2/tw" "eets", "X/Twitter post"),
     ("api.x.com/2/tw" "eets", "X/Twitter post"),
@@ -1735,13 +1734,11 @@ _OUTWARD_RES = (
     (re.compile(r"api\.instan" r"tly\.ai/api/v\d/(?:campaigns?/[\w-]+/(?:activate|resume|launch)|"
                 r"campaign/launch|leads?(?:/(?:add|bulk))?\b|emails/(?:reply|send|forward))"),
      "Instantly campaign/leads API"),
-    (re.compile(r"graph\.facebook\.com/[\w./-]*(?:/feed|/media_publish|/messages|/photos|/videos)"),
-     "Meta Graph post/message"),
+    (re.compile(r"graph\.facebook\.com/[\w./-]*/media_publish"), "Meta Graph publish"),
     (re.compile(r"api\.telegram\.org/bot[^\s/]*/send\w+"), "Telegram send"),
-    (re.compile(r"api\.twilio\.com/[\w./-]*/messages"), "Twilio message"),
-    (re.compile(r"discord(?:app)?\.com/api/(?:v\d+/)?channels/\d+/messages"), "Discord message"),
-    (re.compile(r"graph\.microsoft\.com/[\w./-]*(?:chats|channels|teams)/[\w./-]*messages"),
-     "MS Graph Teams message"),
+
+    (re.compile(r"\bbot\s*\.\s*send_?(?:message|photo|document|video|audio)\s*\("),
+     "Telegram bot send"),
     (re.compile(r"\bcreate_tweet\s*\(|\bupdate_status\s*\(|\.v2\s*\.\s*tweet\s*\("), "X/Twitter SDK post"),
 )
 
@@ -1749,11 +1746,32 @@ _OUTWARD_RES = (
 _PORT_RE = re.compile(r"(\.[a-z]{2,}):\d{1,5}(?=[/\s'\"]|$)")
 _TWILIO_CALL_RE = re.compile(r"\bmessages\s*\.\s*create\s*\(")
 _DISCORD_PY_RE = re.compile(r"\b(?:channel|ctx|user|member|thread|dm)\s*\.\s*send\s*\(")
-_DISCORD_CTX_RE = re.compile(r"\bimport\s+discord\b|\bfrom\s+discord\b|require\(['\"]discord")
+_DISCORD_CTX_RE = re.compile(r"\bimport\s+discord\b|\bfrom\s+['\"]?discord|require\(['\"]discord|"
+                             r"import\s*\(\s*['\"]discord")
+
+
+# Endpoints that are also readable by GET: a hit needs a write signal in the same text.
+_WRITE_ENDPOINT_RES = (
+    (re.compile(r"discord(?:app)?\.com/api/(?:v\d+/)?channels/\d+/messages"), "Discord message"),
+    (re.compile(r"graph\.microsoft\.com/[\w./-]*(?:chats|channels|teams)/[\w./-]*messages"),
+     "MS Graph Teams message"),
+    (re.compile(r"chat\.google" r"apis\.com/v\d+/spaces/[\w./-]*messages"), "Google Chat API"),
+    (re.compile(r"api\.twilio\.com/[\w./-]*/messages"), "Twilio message"),
+    (re.compile(r"graph\.facebook\.com/[\w./-]*(?:/feed|/messages|/photos|/videos)"),
+     "Meta Graph post/message"),
+)
+_WRITE_SIGNAL_RE = re.compile(
+    r"(?:-x|--request)\s*['\"]?(?:post|put|patch)\b|(?:^|\s)(?:-d|-f|--form|--json|--data[\w-]*)"
+    r"(?:\s|=|$)|\b(?:http|https|xh|xhs)\s+(?:-\S+\s+)*(?:post|put|patch)\b|"
+    r"\.(?:post|put|patch|create)\s*\(|method\s*[:=]\s*['\"](?:post|put|patch)|"
+    r"\b(?:http|https|xh|xhs)\s+(?:-\S+\s+)*\S+\s+[^\s=]+:?=")
 
 
 def outward_api_hit(low: str) -> str | None:
     low = _PORT_RE.sub(r"\1", low)
+    for rx, label in _WRITE_ENDPOINT_RES:
+        if rx.search(low) and _WRITE_SIGNAL_RE.search(low):
+            return label
     if "twil" "io" in low and _TWILIO_CALL_RE.search(low):
         return "Twilio messages.cre" "ate("
     if _DISCORD_CTX_RE.search(low) and _DISCORD_PY_RE.search(low):
@@ -1852,46 +1870,11 @@ _DEPLOY_VAL_FLAGS = {"--project-name", "--branch", "--commit-hash", "--commit-me
                      "--dir", "-d", "--cwd", "--output-dir"}
 _VERCEL_NON_DEPLOY = {"ls", "list", "logs", "env", "pull", "link", "login", "whoami", "inspect",
                       "domains", "dns", "project", "projects", "teams", "help", "dev", "build",
-                      "rm", "remove", "alias", "certs", "secrets", "switch"}
+                      "rm", "remove", "alias", "certs", "secrets", "switch", "git", "rollback", "init",
+                      "open", "redeploy-help"}
 _DEPLOY_SKIP_DIRS = ("node_modules/", ".wrangler/", ".vercel/", ".netlify/")
 DEPLOY_DENY = ("Client pages deploy only from committed content: commit the source dir (page "
                "text is covered by the build-contract audit), then deploy that clean dir.")
-
-
-def _deploy_target(tool: str, argv: list[str]) -> tuple[bool, str | None]:
-    """(is_production_deploy, explicit_dir or None for cwd)."""
-    pos: list[str] = []
-    named: dict[str, str] = {}
-    flags: set[str] = set()
-    i = 0
-    while i < len(argv):
-        a = argv[i]
-        if a.startswith("-"):
-            k, eq, v = a.partition("=")
-            flags.add(k)
-            if eq:
-                named[k] = v
-            elif k in _DEPLOY_VAL_FLAGS and i + 1 < len(argv):
-                named[k] = argv[i + 1]
-                i += 1
-        else:
-            pos.append(a)
-        i += 1
-    if tool == "wrangler":
-        if pos[:2] in (["pages", "deploy"], ["pages", "publish"]):
-            return True, pos[2] if len(pos) > 2 else named.get("--output-dir")
-        if pos[:1] in (["deploy"], ["publish"]):
-            return True, None
-        return False, None
-    if tool == "vercel":
-        if pos and pos[0] in _VERCEL_NON_DEPLOY:
-            return False, None
-        prod = bool(flags & {"--prod", "--production"}) or named.get("--target") == "production"
-        rest = [x for x in pos if x != "deploy"]
-        return prod, named.get("--cwd") or (rest[0] if rest else None)
-    if pos[:1] == ["deploy"] and flags & {"--prod", "-p", "--production"}:
-        return True, named.get("--dir") or named.get("-d")
-    return False, None
 
 
 def split_simple_commands(text: str) -> list[str]:
@@ -1989,6 +1972,8 @@ def _deploy_target(tool: str, argv: list[str]) -> tuple[bool, str | None]:
         else:
             pos.append(a)
         i += 1
+    if "--dry-run" in flags:
+        return False, None
     if tool == "wrangler":
         if pos[:2] in (["pages", "deploy"], ["pages", "publish"]):
             return True, pos[2] if len(pos) > 2 else named.get("--output-dir")
@@ -2013,6 +1998,35 @@ def _deploy_target(tool: str, argv: list[str]) -> tuple[bool, str | None]:
 
 
 _HTTPIE = {"http", "https", "xh", "xhs", "httpie"}
+_SCRIPT_SUFFIXES = {".py", ".js", ".mjs", ".cjs", ".ts", ".sh", ".bash", ".rb", ".pl", ".php"}
+_PIPE_SH_RE = re.compile(r"\|\s*(?:\S*/)?(?:ba|z|da|k)?sh\b")
+# A script file that both names a deploy and executes a subprocess is a deploy.
+_DEPLOY_LEX_RE = re.compile(
+    r"\bwrangler\b['\"\s,]+(?:pages['\"\s,]+(?:deploy|publish|deployment)|deploy|publish|"
+    r"versions['\"\s,]+(?:deploy|upload))"
+    r"|\bvercel\b[^\n]{0,80}?(?:--prod|['\"\s,]promote\b|['\"\s,]deploy\b)"
+    r"|\b(?:netlify|ntl)\b['\"\s,]+deploy\b[^\n]{0,80}?--prod")
+_SPAWN_RE = re.compile(r"subprocess|os\.system|popen|execsync|execfilesync|spawn|child_process|"
+                       r"\bexeca\b|\bsystem\s*\(|\$\(|`")
+
+
+def script_deploy_error(text: str, where: Path, proj: Path | None = None) -> str | None:
+    low = text.lower()
+    m = None
+    if where.suffix.lower() in (".sh", ".bash", "", ".mk", ".zsh", ".ps1", ".bat", ".cmd"):
+        m = _DEPLOY_LEX_RE.search(low)
+    else:
+        # code files: the deploy words must sit within 3 lines after a spawn call
+        lines = low.splitlines()
+        for i, ln in enumerate(lines):
+            if _SPAWN_RE.search(ln):
+                m = _DEPLOY_LEX_RE.search("\n".join(lines[i:i + 4]))
+                if m:
+                    break
+    if not m:
+        return None
+    why = project_clean_error(proj or where.parent)
+    return f"deploy call ({m.group(0)[:40]}) in {where}: {why}" if why else None
 
 
 def deploy_error(outer: str, cwd: Path, depth: int = 0) -> str | None:
@@ -2031,6 +2045,32 @@ def deploy_error(outer: str, cwd: Path, depth: int = 0) -> str | None:
             continue
         prog = argv[0]
         low = prog.lower()
+        name = re.split(r"[/\\]", low)[-1]
+        if depth < 3 and name in ("bash", "sh", "zsh", "dash", "ksh") and "-c" in argv:
+            k = argv.index("-c")
+            if k + 1 < len(argv):
+                err = deploy_error(argv[k + 1], base, depth + 1)
+                if err:
+                    return err
+            continue
+        if depth < 3 and name == "eval":
+            err = deploy_error(" ".join(argv[1:]), base, depth + 1)
+            if err:
+                return err
+            continue
+        if depth < 3 and name in ("echo", "printf") and _PIPE_SH_RE.search(outer):
+            err = deploy_error(" ".join(argv[1:]).replace("\\n", "\n"), base, depth + 1)
+            if err:
+                return err
+            continue
+        if depth < 3 and name in ("make", "gmake"):
+            for mf in makefiles(" ".join(argv), [base]):
+                text = _read_limited(mf, str(mf))
+                if text:
+                    err = deploy_error(text, mf.parent, depth + 1)
+                    if err:
+                        return err
+            continue
         if low == "cd":
             nxt = argv[1] if len(argv) > 1 else ""
             base = (base / nxt) if nxt and not any(c in nxt for c in "$`~") else base
@@ -2053,6 +2093,20 @@ def deploy_error(outer: str, cwd: Path, depth: int = 0) -> str | None:
             continue
         tool = _tool_name(prog)
         if not tool:
+            # scripts run by this command (trusted or not) that call a deploy: the cwd
+            # project must be clean, since the deploy publishes it
+            for tok in argv[:6]:
+                if tok.startswith("-") or len(tok) > 300:
+                    continue
+                fp = base / tok
+                try:
+                    if fp.suffix.lower() in _SCRIPT_SUFFIXES and fp.is_file():
+                        text = _read_limited(fp, str(fp))
+                        err = script_deploy_error(text, fp, base) if text else None
+                        if err:
+                            return f"redteam gate: {err}. {DEPLOY_DENY}"
+                except (OSError, ScanLimit):
+                    continue
             continue
         is_deploy, d = _deploy_target(tool, argv[1:])
         if not is_deploy:
@@ -2067,7 +2121,7 @@ def deploy_error(outer: str, cwd: Path, depth: int = 0) -> str | None:
 
 
 def project_clean_error(proj: Path) -> str | None:
-    """No explicit dir (wrangler deploy, vercel promote, versions deploy): the cwd project
+    """No explicit dir (a worker deploy, a promote, a versions deploy): the cwd project
     must be a workspace subfolder with tracked files and no modified/untracked files."""
     try:
         real = Path(os.path.realpath(proj))
@@ -2386,6 +2440,10 @@ def _scan_file(p: Path, label: str) -> str | None:
         hk = hook_text_hit(text)
         if hk:
             hit = f"harness-only hook path: {hk}"
+    if not hit and text is not None:
+        de = script_deploy_error(text, p)
+        if de:
+            return de
     return f"{hit} in {label}" if hit else None
 
 
@@ -2798,6 +2856,9 @@ def _bash_decision(command: str, cwd_raw: Any, allow_tracked: bool = True,
     if nw:
         return nw
     de = deploy_error(outer, cwd)
+    if not de and ("$" in outer or "`" in outer):
+        v0 = {m.group(1): m.group(2).strip("\"'") for m in _ASSIGN_RE.finditer(outer)}
+        de = deploy_error(_expand(outer, v0, cwd), cwd)
     if de:
         return de
     if not _EXEC_RE.search(outer) and not direct_scripts(outer, command_context(outer, cwd)[1]):
@@ -2861,7 +2922,8 @@ MCP_READ_PREFIXES = ("get_", "list_", "search_", "read_", "resolve_", "download_
                      "describe_", "find_", "query_", "lookup_", "check_", "count_", "export_",
                      "delete_", "remove_", "revoke_", "unshare", "trash_", "untrash_")
 _MCP_SHARE_RE = re.compile(r"share|permission", re.I)
-_MCP_POST_RE = re.compile(r"post_message|send_|publish", re.I)
+_MCP_POST_RE = re.compile(r"post_message|send_|publish|reply_to_thread|create_post|post_tweet|"
+                          r"tweet|create_message|send_dm|comment|schedule_message", re.I)
 # Recipient keys parsed as email addresses; target keys are non-address audiences.
 MCP_ADDR_KEYS = ("emailAddress", "emailAddresses", "email", "emails", "recipient", "recipients",
                  "to", "cc", "bcc", "users", "members", "invitees")

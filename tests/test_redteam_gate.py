@@ -1928,3 +1928,64 @@ def test_outward_gap_channels_denied(cmd, state, capsys):
 ])
 def test_outward_gap_false_positives(cmd, state, capsys):
     assert _bash(cmd.replace("|", ""), capsys) is None, cmd
+
+
+_INDIRECT_DEPLOYS = [
+    "bash -c 'npx wrang~ler pages deploy dist'",
+    "sh -c \"wrang~ler deploy\"",
+    "eval 'wrang~ler deploy'",
+    "W=wrang~ler; $W deploy",
+    "echo 'wrang~ler deploy' | sh",
+    "make ship",
+    "npm run push",
+    "python3 dep.py",
+]
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_indirect_deploys_follow_project_cleanliness(tmp_path, state, capsys, monkeypatch):
+    proj = _deploy_repo(tmp_path, monkeypatch)
+    _write(proj / "Makefile", "ship:\n\tnpx wrang" "ler pages deploy dist\n")
+    pj = json.loads((proj / "package.json").read_text())
+    pj["scripts"]["push"] = "make ship"
+    _write(proj / "package.json", json.dumps(pj))
+    _write(proj / "dep.py", "import subprocess\nsubprocess.run(['wrang" "ler', 'deploy'])\n")
+    for args in (["add", "-A"], ["-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "y"]):
+        subprocess.run(["git", "-C", str(rg.REPO_ROOT), *args], check=True, capture_output=True)
+    for cmd in _INDIRECT_DEPLOYS:
+        assert _bash(cmd.replace("~", ""), capsys, cwd=proj) is None, cmd
+    _write(proj / "src" / "draft.md", "uncommitted\n")
+    for cmd in _INDIRECT_DEPLOYS:
+        res = _bash(cmd.replace("~", ""), capsys, cwd=proj)
+        assert res is not None, cmd
+        assert _deny_reason(res)
+    for cmd in ("npx wrang~ler deploy --dry-run", "vercel git connect", "vercel rollback",
+                "vercel init", "vercel open", "vercel env ls", "vercel logs x", "vercel inspect x"):
+        assert _bash(cmd.replace("~", ""), capsys, cwd=proj) is None, cmd
+
+
+@pytest.mark.parametrize("cmd,deny", [
+    ("curl -s 'https://disc|ord.com/api/v10/channels/1/messages?limit=5'", False),
+    ("curl -s https://api.twi|lio.com/2010-04-01/Accounts/A/Messages.json", False),
+    ("curl -s https://chat.google|apis.com/v1/spaces/S/messages?pageSize=1", False),
+    ("http https://chat.google|apis.com/v1/spaces/S/messages", False),
+    ("curl -s https://chat.google|apis.com/v1/spaces/S/messages --json '{}'", True),
+    ("http POST https://disc|ord.com/api/channels/1/messages content=hi", True),
+    ("https disc|ord.com/api/channels/1/messages content=hi", True),
+    ("curl --request PATCH https://disc|ord.com/api/channels/1/messages/2", True),
+    ("node -e \"import('disc|ord.js').then(()=>channel.se|nd('x'))\"", True),
+    ("node --input-type=module -e \"import {Client} from 'disc|ord.js'; ctx.se|nd('x')\"", True),
+    ("python3 -c \"bot.send|_message(chat_id=1, text='x')\"", True),
+])
+def test_write_signal_and_sdk_contexts(cmd, deny, state, capsys):
+    res = _bash(cmd.replace("|", ""), capsys)
+    assert (res is not None) == deny, cmd
+
+
+def test_mcp_more_post_verbs():
+    k = rg.mcp_outward_kind
+    for n in ("reply_to_thread", "create_post", "post_tweet", "tweet", "create_message",
+              "send_dm", "create_comment", "add_issue_comment", "schedule_message"):
+        assert k(f"mcp__srv__{n}") == "post", n
+    for n in ("get_comments", "list_messages", "search_tweets", "read_thread"):
+        assert k(f"mcp__srv__{n}") is None, n

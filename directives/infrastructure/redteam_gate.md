@@ -280,3 +280,14 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   host:port forms normalised; Discord channel messages, MS Graph Teams/chat messages, Slack
   me-message and v2 file upload, discord.py sends (with discord import), httpie/xh calls added.
   Posts with public visibility need a waiver. Settings matcher case-insensitive.
+- 2026-11-05 (channels re-audit): deploy detection also runs on `sh|bash -c` strings, `eval`,
+  `$VAR` expansion, `echo|printf … | sh`, Makefile recipes (`make X`, incl. from package
+  scripts) and on script files the command runs (a spawn call within 3 lines of deploy words;
+  tracked scripts included, since the deploy publishes the cwd project, which must be clean).
+  `--dry-run` and vercel git/rollback/init/open/env/logs/ls/inspect are not deploys.
+  Read-capable endpoints (Discord channel messages, MS Graph messages, Google Chat spaces,
+  Twilio Messages, Meta Graph feed/messages) need a write signal (POST/PUT/PATCH, -d/--data/-F/
+  --json, httpie key=value, `.post(`/`.create(`); a GET passes. discord.js ESM/dynamic import
+  context and Telegram `bot.send_*(` added. MCP post verbs add reply_to_thread, create_post,
+  tweet, create_message, send_dm, comment (incl. GitHub issue/PR comments), schedule_message.
+  Wrapper read-exclusion matches the tool segment after the server only.
