@@ -29,7 +29,7 @@ async function route(req, env) {
   if (path.startsWith('/assets/') || path === '/robots.txt' || path === '/favicon.ico') {
     const res = await env.ASSETS.fetch(req);
     const out = new Response(res.body, res);
-    if (path.startsWith('/assets/fonts/')) out.headers.set('cache-control', 'public, max-age=31536000, immutable');
+    if (res.ok && (path.startsWith('/assets/fonts/') || url.searchParams.has('v'))) out.headers.set('cache-control', 'public, max-age=31536000, immutable');
     return out;
   }
   await ensureReady(env);

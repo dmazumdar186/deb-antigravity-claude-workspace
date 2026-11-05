@@ -1,6 +1,9 @@
 // Page shells and small form helpers. Plain French, no JavaScript required.
 import { html, raw } from './lib.js';
 
+// Bump when app.css or app.js change: assets are cached for a year under a versioned URL.
+export const ASSET_V = '2';
+
 const head = (title, description) => html`<html lang="fr"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -11,8 +14,8 @@ const head = (title, description) => html`<html lang="fr"><head>
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="preload" href="/assets/fonts/EBGaramond.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/Inter.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/app.css">
-<script src="/assets/app.js" defer></script>
+<link rel="stylesheet" href="/assets/app.css?v=${ASSET_V}">
+<script src="/assets/app.js?v=${ASSET_V}" defer></script>
 </head>`;
 
 export function publicPage({ title, description = 'Démonstration ASSET Voyages : catalogue des congrès et demande de devis vol. Données fictives.', body, current = 'cat' }) {

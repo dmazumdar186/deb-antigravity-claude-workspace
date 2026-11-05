@@ -81,7 +81,7 @@ test('X5 Hallmark sloplint: zero FAIL on the visitor pages and the console pages
   mkdirSync(join(dir, 'pub'), { recursive: true }); mkdirSync(join(dir, 'con'), { recursive: true });
   copyFileSync(join(ROOT, 'public/assets/app.css'), join(dir, 'app.css'));
   const save = async (sub, name, url) => {
-    const html = (await (await page.request.get(url)).text()).replace('href="/assets/app.css"', 'href="../app.css"');
+    const html = (await (await page.request.get(url)).text()).replace(/href="\/assets\/app\.css[^"]*"/, 'href="../app.css"');
     writeFileSync(join(dir, sub, name + '.html'), html);
   };
   for (const [i, u] of PUBLIC.entries()) await save('pub', `p${i}`, u);

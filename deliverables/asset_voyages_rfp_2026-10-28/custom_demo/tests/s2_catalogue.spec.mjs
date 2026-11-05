@@ -54,6 +54,7 @@ test('S2-F3 discipline, country and month filters alone and combined, count show
   await page.goto('/');
   await page.locator('.chips').getByRole('link', { name: 'Cardiologie' }).click();
   await expect(page.locator('.bar__n')).toHaveText('2 congrès trouvés');
+  await page.waitForLoadState('load'); // the enhancement script that auto-submits is loaded (without it, the Rechercher button does the same)
   await page.getByLabel('Pays').selectOption('Espagne'); // auto-submits
   await expect(page).toHaveURL(/pays=Espagne/);
   await expect(page.locator('.bar__n')).toHaveText('1 congrès trouvé');
@@ -64,6 +65,7 @@ test('S2-F3 discipline, country and month filters alone and combined, count show
   await page.goto('/');
   await page.getByLabel('Pays').selectOption('Autriche');
   await expect(page.locator('.bar__n')).toHaveText('2 congrès trouvés');
+  await page.waitForLoadState('load');
   await page.getByLabel('Mois').selectOption('2027-06');
   await expect(page.locator('.bar__n')).toHaveText('1 congrès trouvé');
   await page.locator('.chips').getByRole('link', { name: 'Oncologie' }).click();

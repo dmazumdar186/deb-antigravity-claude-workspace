@@ -22,7 +22,10 @@ export const test = base.extend({
   watch: [async ({ page }, use) => {
     const origin = new URL(BASE).origin;
     const problems = { console: [], failed: [], thirdParty: [], docErrors: new Set() };
-    page.on('response', (r) => { if (r.request().resourceType() === 'document' && r.status() >= 400) problems.docErrors.add(r.url()); });
+    page.on('response', (r) => {
+      if (r.request().resourceType() === 'document') { if (r.status() >= 400) problems.docErrors.add(r.url()); return; }
+      if (r.status() >= 400) problems.failed.push(`${r.url()} HTTP ${r.status()}`); // a sub-resource the server failed to deliver
+    });
     page.on('console', (m) => {
       if (m.type() !== 'error') return;
       const u = m.location()?.url || '';
@@ -33,7 +36,9 @@ export const test = base.extend({
     page.on('pageerror', (e) => problems.console.push('pageerror: ' + e.message));
     page.on('requestfailed', (r) => {
       const f = r.failure()?.errorText || '';
-      if (/ERR_ABORTED|NS_BINDING_ABORTED/.test(f) && r.resourceType() === 'document') return; // downloads / superseded navigations
+      // ERR_ABORTED is Chromium cancelling an in-flight load because the page navigated on (a fast click) or a download began:
+      // not a delivery failure. Real failures (DNS, reset, 4xx/5xx on sub-resources) are still counted.
+      if (/ERR_ABORTED|NS_BINDING_ABORTED/.test(f)) return;
       if (r.url().endsWith('.csv') || r.url().includes('export.csv')) return;
       problems.failed.push(`${r.url()} ${f}`);
     });

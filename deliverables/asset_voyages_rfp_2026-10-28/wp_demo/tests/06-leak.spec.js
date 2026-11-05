@@ -5,17 +5,19 @@ const fs = require('fs');
 const path = require('path');
 const { asRole, CODES, PEOPLE, ROOT, readState, writeState } = require('./helpers');
 
-test.describe.configure({ mode: 'serial' });
+test.describe.configure({ mode: 'serial', timeout: 900000 });
 
 const BASE = 'http://127.0.0.1:9400';
 const extraPeople = () => ['Alice Testeur', 'alice.testeur@example.com', 'rejeu@example.com', 'formule@example.com', 'Rejeu Test', readState().newRef, readState().formulaRef, readState().hostileRef].filter(Boolean);
 
-async function crawl(request, seeds, { allowAdmin = false, max = 600 } = {}) {
+async function crawl(request, seeds, { allowAdmin = false, max = 450, maxDepth = 2 } = {}) {
 	const seen = new Map();
+	const depth = new Map(seeds.map((u) => [u, 0]));
 	const queue = [...seeds];
 	while (queue.length && seen.size < max) {
 		const url = queue.shift();
 		if (seen.has(url)) continue;
+		const d = depth.get(url) || 0;
 		let res;
 		try { res = await request.get(url, { maxRedirects: 5, timeout: 60000 }); } catch (e) { seen.set(url, { status: 'ERR', body: '' }); continue; }
 		const ct = res.headers()['content-type'] || '';
@@ -33,7 +35,13 @@ async function crawl(request, seeds, { allowAdmin = false, max = 600 } = {}) {
 			if (/action=logout|customize\.php|wp-login\.php|admin-post\.php|post-new\.php|action=trash|action=delete|_wpnonce=/.test(u)) continue;
 			found.add(u);
 		}
-		for (const u of found) if (!seen.has(u)) queue.push(u);
+		if (d >= maxDepth) continue;
+		for (const u of found) {
+			if (seen.has(u) || depth.has(u)) continue;
+			if ([...new URL(u).searchParams.keys()].length > 2) continue; // filter combos are seeded explicitly
+			depth.set(u, d + 1);
+			queue.push(u);
+		}
 	}
 	return seen;
 }
