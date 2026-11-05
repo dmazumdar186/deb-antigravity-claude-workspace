@@ -1812,6 +1812,32 @@ def resolve_module(mod: str, cwd: Path, extra: Iterable[Path] = ()) -> Path | No
     return None
 
 
+_FLAG_WITH_VALUE = {"-k", "--kill-after", "-s", "--signal", "-n", "--adjustment", "-c",
+                    "--class", "-p", "-u", "-g", "-i", "-o", "-e", "-C", "--chdir", "-S"}
+_PREFIX_WRAPPERS = {"timeout", "nice", "stdbuf", "env", "ionice", "nohup", "time", "command",
+                    "exec"}
+
+
+def skip_prefix(toks: list[str]) -> int:
+    """Index of the program word after env assignments and wrapper words with their flags
+    (`timeout -k 5 --signal=KILL 30`, `nice -n 5`, `stdbuf -oL`, `env -i A=1`)."""
+    i = 0
+    while i < len(toks):
+        t = toks[i]
+        if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*=.*", t, re.S):
+            i += 1
+            continue
+        if t in _PREFIX_WRAPPERS:
+            i += 1
+            while i < len(toks) and toks[i].startswith("-") and toks[i] != "-":
+                i += 2 if toks[i] in _FLAG_WITH_VALUE else 1
+            if t == "timeout" and i < len(toks) and re.fullmatch(r"[\d.]+[smhd]?", toks[i]):
+                i += 1
+            continue
+        break
+    return i
+
+
 def tracked_script_run(command: str, cwd: Path) -> bool:
     """True if the command only runs a committed, unmodified script or `-m` module."""
     import shlex
@@ -1825,16 +1851,7 @@ def tracked_script_run(command: str, cwd: Path) -> bool:
         toks = shlex.split(command)
     except ValueError:
         return False
-    i = 0
-    while i < len(toks):
-        if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*=.*", toks[i]):
-            i += 1
-        elif toks[i] == "timeout" and i + 1 < len(toks):
-            i += 2
-            while i < len(toks) and toks[i - 1].startswith("-") and toks[i].startswith("-"):
-                i += 1  # timeout -k 5 30: flags then the duration
-        else:
-            break
+    i = skip_prefix(toks)
     if i >= len(toks):
         return False
     interp = re.sub(r"\.exe$", "", Path(toks[i]).name.lower())
@@ -2046,6 +2063,80 @@ def _nested_waiver(command: str, outer: str, cwd: Path) -> str | None:
     return None
 
 
+# Environment variables that make an interpreter (or the loader) run extra code.
+CODE_ENV = ("PYTHONPATH", "PYTHONSTARTUP", "PYTHONHOME", "PYTHONUSERBASE", "BASH_ENV", "ENV",
+            "NODE_OPTIONS", "NODE_PATH", "LD_PRELOAD", "LD_LIBRARY_PATH", "RUBYOPT", "RUBYLIB",
+            "PERL5OPT", "PERL5LIB", "PHP_INI_SCAN_DIR")
+_CODE_ENV_RE = re.compile(r"(?:^|[\s;&|(])(?:export\s+|env\s+(?:-\S+\s+)*)?(" + "|".join(CODE_ENV)
+                          + r")=(\"[^\"]*\"|'[^']*'|[^\s;&|)]*)")
+_DIR_HOOK_FILES = ("sitecustomize.py", "usercustomize.py")
+
+
+def _env_paths(name: str, value: str) -> list[str]:
+    if name in ("NODE_OPTIONS", "RUBYOPT", "PERL5OPT"):
+        import shlex
+        try:
+            toks = shlex.split(value)
+        except ValueError:
+            toks = value.split()
+        out: list[str] = []
+        for i, t in enumerate(toks):
+            m = re.fullmatch(r"(?:--require|--import|--loader|--experimental-loader|-r)=?(.*)", t)
+            if m:
+                v = m.group(1) or (toks[i + 1] if i + 1 < len(toks) else "")
+                if v:
+                    out.append(v)
+            elif name != "NODE_OPTIONS" and re.fullmatch(r"-[rIM]\S+", t):
+                out.append(t[2:])  # ruby -rlib / -Idir, perl -Mmod
+        return out
+    seps = r"[\s:]" if name == "LD_PRELOAD" else re.escape(os.pathsep)
+    return [x for x in re.split(seps, value) if x]
+
+
+def code_env_error(outer: str, cwd: Path) -> str | None:
+    """Deny code-loading env vars set in the command unless each value is a tracked, unmodified
+    workspace path, or a file/dir the scan clears."""
+    vars_ = dict(os.environ)
+    for m in _CODE_ENV_RE.finditer(outer):
+        name, raw = m.group(1), m.group(2).strip("\"'")
+        value = _expand(raw, {**vars_, **{k: v for k, v in vars_.items()}}, cwd)
+        if not value:
+            continue
+        if "$" in value or "`" in value:
+            return f"{name}={raw[:40]} cannot be resolved"
+        for item in _env_paths(name, value):
+            p = _xuser(Path(item))
+            p = p if p.is_absolute() else cwd / p
+            if name in ("LD_PRELOAD", "LD_LIBRARY_PATH"):
+                return f"{name} loads native code ({item[:40]})"
+            if not p.exists():
+                if name in ("RUBYOPT", "PERL5OPT", "NODE_OPTIONS"):
+                    continue  # a library name (-rjson), not a path
+                return f"{name} path {item[:40]} does not exist"
+            if p.is_file():
+                if git_clean(p):
+                    continue
+                if _is_binary(p):
+                    return f"{name} loads binary {item[:40]}"
+                hit = _scan_file(p, f"{name} file {item[:40]}")
+                if hit:
+                    return f"sends email inline ({hit})"
+                continue
+            files = [p / f for f in _DIR_HOOK_FILES] + sorted(p.glob("*.pth"))[:MAX_ARG_FILES]
+            for f in files:
+                if f.is_file() and not git_clean(f):
+                    hit = _scan_file(f, f"{name} dir file {f.name}")
+                    if hit:
+                        return f"sends email inline ({hit})"
+                    if f.suffix == ".pth" and re.search(r"(?m)^\s*import\b",
+                                                        f.read_text(errors="replace")):
+                        return f"{name} dir {item[:40]} has an executable .pth ({f.name})"
+                    if f.name in _DIR_HOOK_FILES:
+                        return f"{name} dir {item[:40]} injects {f.name}"
+        vars_[name] = value
+    return None
+
+
 def _bash_hit(command: str, outer: str, docs: list[tuple[str, str]], cwd: Path,
               vars_: dict[str, str], bases: list[Path], pp: list[Path],
               expanded: str) -> str | None:
@@ -2190,6 +2281,9 @@ def _bash_decision(command: str, cwd_raw: Any, allow_tracked: bool = True) -> st
             return None
         if not _EXEC_RE.search(_expand(outer, vars0, cwd)):
             return None  # nothing runs (P=python3; $P x.py is caught via the expansion)
+    err = code_env_error(outer, cwd)
+    if err:
+        return f"redteam gate: {err}. {BASH_DENY}"
     if _B64_PIPE_RE.search(outer):
         return (f"redteam gate: Bash pipes base64-decoded data into an interpreter "
                 f"(unscannable). {BASH_DENY}")

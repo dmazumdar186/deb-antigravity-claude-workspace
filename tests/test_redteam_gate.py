@@ -1421,3 +1421,69 @@ def test_calendar_metadata_keys_not_text(tmp_path, state, capsys):
           "sendUpdates": "all", "guestsCanModify": False, "guestsCanInviteOthers": False,
           "guestsCanSeeOtherGuests": True}
     assert _hook({"tool_name": cal + "create_event", "tool_input": ti}, capsys) is None
+
+
+# ------------------------------------------------------------------ eighth audit (2026-11-05)
+
+@pytest.fixture()
+def tracked_repo(tmp_path, monkeypatch):
+    if shutil.which("git") is None:
+        pytest.skip("git not available")
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _git(repo, "init", "-q")
+    monkeypatch.setattr(rg, "REPO_ROOT", repo)
+    _write(repo / "pipe" / "run.py", "print('ok')\n")
+    _write(repo / "pipe" / "run.sh", "echo ok\n")
+    _write(repo / "pipe" / "run.js", "console.log(1)\n")
+    _write(repo / "lib" / "helper.py", "X = 1\n")
+    _git(repo, "add", ".")
+    _git(repo, "commit", "-q", "-m", "init")
+    return repo
+
+
+def _env_cases(tmp_path):
+    x = tmp_path / "x"
+    _write(x / "sitecustomize.py", "import os\n")
+    _write(x / "evil.pth", "import os; os.system('x')\n")
+    _write(tmp_path / "e.sh", f"python3 -c 'import {SMTP}'\n")
+    _write(tmp_path / "hook.js", "require('https').request('https://api.re" "send.com/emails')\n")
+    _write(tmp_path / "start.py", f"import {SMTP}\n")
+    _write(tmp_path / "evil.so", "\x7fELF")
+    return {
+        "PYTHONPATH": f"PYTHONPATH={x} python3 pipe/run.py",
+        "PYTHONSTARTUP": f"PYTHONSTARTUP={tmp_path}/start.py python3 pipe/run.py",
+        "PYTHONHOME": f"PYTHONHOME={tmp_path}/nonexistent python3 pipe/run.py",
+        "PYTHONUSERBASE": f"PYTHONUSERBASE={x} python3 pipe/run.py",
+        "BASH_ENV": f"BASH_ENV={tmp_path}/e.sh bash pipe/run.sh",
+        "ENV": f"ENV={tmp_path}/e.sh sh pipe/run.sh",
+        "NODE_OPTIONS": f"NODE_OPTIONS='--require {tmp_path}/hook.js' node pipe/run.js",
+        "NODE_PATH": f"NODE_PATH={tmp_path}/nonexistent node pipe/run.js",
+        "LD_PRELOAD": f"LD_PRELOAD={tmp_path}/evil.so python3 pipe/run.py",
+        "LD_LIBRARY_PATH": f"LD_LIBRARY_PATH={tmp_path} python3 pipe/run.py",
+        "RUBYOPT": f"RUBYOPT=-r{tmp_path}/start.py ruby -e 1",
+        "RUBYLIB": f"RUBYLIB={tmp_path}/nonexistent ruby -e 1",
+        "PERL5OPT": f"PERL5OPT=-M{tmp_path}/start.py perl -e 1",
+        "PERL5LIB": f"PERL5LIB={tmp_path}/nonexistent perl -e 1",
+        "PHP_INI_SCAN_DIR": f"PHP_INI_SCAN_DIR={tmp_path}/nonexistent php -v",
+    }
+
+
+@pytest.mark.parametrize("name", list(rg.CODE_ENV) if hasattr(rg, "CODE_ENV") else [])
+def test_code_loading_env_denied(name, tracked_repo, tmp_path, state, capsys):
+    cmd = _env_cases(tmp_path)[name]
+    for variant in (cmd, "env " + cmd, cmd.replace(" ", "; ", 1).replace(name + "=",
+                                                                        "export " + name + "=")):
+        assert _deny_reason(_bash(variant, capsys, tracked_repo)), variant
+
+
+def test_code_env_benign_and_prefix_wrappers(tracked_repo, state, capsys):
+    for cmd in ("PYTHONPATH=lib python3 pipe/run.py", "PYTHONPATH=. python3 pipe/run.py",
+                "NODE_OPTIONS=--max-old-space-size=4096 node pipe/run.js",
+                "RUBYOPT=-rjson ruby -e 1", "echo PYTHONPATH=/tmp/x > notes.txt",
+                "timeout -k 5 30 python3 pipe/run.py", "timeout --signal=KILL 30 python3 pipe/run.py",
+                "nice -n 5 python3 pipe/run.py", "stdbuf -oL python3 pipe/run.py",
+                "ionice -c 3 python3 pipe/run.py", "env -i HOME=/root python3 pipe/run.py"):
+        assert _bash(cmd, capsys, tracked_repo) is None, cmd
+    assert rg.skip_prefix(["timeout", "-k", "5", "--signal=KILL", "30", "python3", "x.py"]) == 5
+    assert rg.skip_prefix(["nice", "-n", "5", "stdbuf", "-oL", "python3"]) == 5

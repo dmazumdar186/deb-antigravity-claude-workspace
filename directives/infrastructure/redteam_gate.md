@@ -202,3 +202,10 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   `timeout N`/env prefixes and `&&`/`||`/`;` chains: tracked segments are dropped and the rest
   is scanned together (pipes, background `&`, heredocs, `$(`, stdin `<` keep normal rules).
   Calendar recurrence/conferenceData/reminders/transparency/guestsCan* are metadata.
+- 2026-11-05 (eighth audit): code-loading env vars set in any executing command (prefix,
+  `env`, `export`) — PYTHONPATH/STARTUP/HOME/USERBASE, BASH_ENV, ENV, NODE_OPTIONS
+  (--require/--import/--loader), NODE_PATH, LD_PRELOAD, LD_LIBRARY_PATH, RUBYOPT/RUBYLIB,
+  PERL5OPT/PERL5LIB, PHP_INI_SCAN_DIR — must resolve to tracked/unmodified or scan-clean paths;
+  dirs with untracked sitecustomize/usercustomize or importing .pth, missing paths, `$VAR`
+  values and any LD_* deny. Prefix skip handles `timeout -k 5 --signal=KILL 30`, nice/stdbuf/
+  ionice/env flags. Env inherited from the session (not set in the command) is out of scope.
