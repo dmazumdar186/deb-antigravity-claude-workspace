@@ -503,8 +503,8 @@ def extract_from_document(
         except Exception as _exc:
             # A malformed item is dropped, never repaired. Repairing an
             # LLM's structural error is how invented data enters a pipeline.
-            # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
-            print(f"[extract] swallowed {type(_exc).__name__}: {_exc}", file=sys.stderr)
+            # Swallow is safe: best-effort per-item step; this item is skipped and the loop continues.
+            print(f"[extract] swallowed {type(_exc).__name__} (message omitted: may carry user data)", file=sys.stderr)
             continue
 
     hints = {
@@ -728,8 +728,8 @@ def extract_directory(
                     )
                 )
             except Exception as _exc:
-                # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
-                print(f"[extract] swallowed {type(_exc).__name__}: {_exc}", file=sys.stderr)
+                # Swallow is safe: best-effort per-item step; this item is skipped and the loop continues.
+                print(f"[extract] swallowed {type(_exc).__name__} (message omitted: may carry user data)", file=sys.stderr)
                 continue  # malformed item dropped, never repaired
 
         # Turn the firm-default location into real, quoted evidence when the

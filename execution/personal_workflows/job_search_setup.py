@@ -152,7 +152,7 @@ def _check_sheets_api(verbose: bool) -> tuple[bool, str, object]:
                     sa_email = _key_data.get("client_email", "unknown")
             except Exception as _exc:  # noqa: BLE001 — fallback to generic message is safe
                 # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
-                print(f"[job_search_setup] swallowed {type(_exc).__name__}: {_exc}", file=sys.stderr)
+                print(f"[job_search_setup] swallowed {type(_exc).__name__} (message omitted: may carry user data)", file=sys.stderr)
                 pass
             hint = f"403 Forbidden — share the spreadsheet with {sa_email} (Editor)"
         elif "404" in hint or "not found" in hint.lower():

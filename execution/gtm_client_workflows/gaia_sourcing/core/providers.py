@@ -661,7 +661,7 @@ def call_role(
                 body = exc.read()[:300]
             except Exception as _exc:
                 # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
-                print(f"[providers] swallowed {type(_exc).__name__}: {_exc}", file=sys.stderr)
+                print(f"[providers] swallowed {type(_exc).__name__} (message omitted: may carry user data)", file=sys.stderr)
                 pass  # error body is diagnostic only; absence must not mask `exc`
             raise RuntimeError(
                 "LLM " + provider + "/" + model + " HTTP " + str(code) + ": "

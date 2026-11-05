@@ -96,8 +96,8 @@ def load_labels(path: Path = LABELS_PATH) -> list[Label]:
             # A malformed line must not take down the whole scorecard; it is
             # simply not counted as a label. Nothing here can silently
             # fabricate ground truth, so skipping is safe.
-            # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
-            print(f"[labels] swallowed {type(_exc).__name__}: {_exc}", file=sys.stderr)
+            # Swallow is safe: best-effort per-item step; this item is skipped and the loop continues.
+            print(f"[labels] swallowed {type(_exc).__name__} (message omitted: may carry user data)", file=sys.stderr)
             continue
     return out
 

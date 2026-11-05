@@ -241,8 +241,8 @@ def recut(extract: dict, validate: dict, spec: JobSpec, overrides: dict) -> dict
         try:
             person = Person(**{k: v for k, v in rec.items() if k in person_fields})
         except Exception as _exc:
-            # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
-            print(f"[recut] swallowed {type(_exc).__name__}: {_exc}", file=sys.stderr)
+            # Swallow is safe: best-effort per-item step; this item is skipped and the loop continues.
+            print(f"[recut] swallowed {type(_exc).__name__} (message omitted: may carry user data)", file=sys.stderr)
             continue
         pclaims = by_person.get(pid, [])
         results = gates_layer.run_gates(person, pclaims, working_spec)

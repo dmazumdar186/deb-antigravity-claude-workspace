@@ -94,8 +94,8 @@ def render_page(
                         page.wait_for_timeout(500)
                         break
                 except Exception as _exc:  # noqa: BLE001 — selector miss is normal
-                    # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
-                    logger.debug("swallowed %s: %s", type(_exc).__name__, _exc)
+                    # Swallow is safe: best-effort per-item step; this item is skipped and the loop continues.
+                    logger.debug("swallowed %s (message omitted: may carry user data)", type(_exc).__name__)
                     continue
 
             # 2. Wait for at least one content selector to be visible.
@@ -107,8 +107,8 @@ def render_page(
                     logger.info("playwright_helpers: content selector %s appeared", sel)
                     break
                 except Exception as _exc:  # noqa: BLE001 — selector miss continues to next
-                    # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
-                    logger.debug("swallowed %s: %s", type(_exc).__name__, _exc)
+                    # Swallow is safe: best-effort per-item step; this item is skipped and the loop continues.
+                    logger.debug("swallowed %s (message omitted: may carry user data)", type(_exc).__name__)
                     continue
 
             if not content_seen and wait_selectors:
@@ -120,7 +120,7 @@ def render_page(
                 page.wait_for_load_state("networkidle", timeout=10000)
             except Exception as _exc:  # noqa: BLE001 — networkidle is best-effort
                 # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
-                logger.debug("swallowed %s: %s", type(_exc).__name__, _exc)
+                logger.debug("swallowed %s (message omitted: may carry user data)", type(_exc).__name__)
                 pass
             page.wait_for_timeout(extra_wait_ms)
 

@@ -64,8 +64,8 @@ def _cta_above_fold(page) -> bool:  # noqa: ANN001 — playwright Page, optional
             if box and box["y"] < MOBILE_VIEWPORT["height"] and box["y"] >= -box["height"]:
                 return True
         except Exception as _exc:  # noqa: BLE001 — a single stale/detached element must not abort the check
-            # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
-            print(f"[screenshots] swallowed {type(_exc).__name__}: {_exc}", file=sys.stderr)
+            # Swallow is safe: best-effort per-item step; this item is skipped and the loop continues.
+            print(f"[screenshots] swallowed {type(_exc).__name__} (message omitted: may carry user data)", file=sys.stderr)
             continue
     return False
 

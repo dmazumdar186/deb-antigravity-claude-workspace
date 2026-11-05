@@ -51,8 +51,8 @@ def _fetch_live(business: dict, ctx: StepContext) -> str:
             if resp.status_code == 200:
                 pages.append(resp.text)
         except Exception as _exc:  # noqa: BLE001 — a missing subpage is a normal case, not an error
-            # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
-            print(f"[contact_page] swallowed {type(_exc).__name__}: {_exc}", file=sys.stderr)
+            # Swallow is safe: best-effort per-item step; this item is skipped and the loop continues.
+            print(f"[contact_page] swallowed {type(_exc).__name__} (message omitted: may carry user data)", file=sys.stderr)
             continue
     return "\n".join(pages)
 

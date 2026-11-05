@@ -308,7 +308,7 @@ def fetch_via_imap(
             imap.logout()
         except Exception as _exc:  # noqa: BLE001 — best-effort cleanup
             # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
-            logger.debug("swallowed %s: %s", type(_exc).__name__, _exc)
+            logger.debug("swallowed %s (message omitted: may carry user data)", type(_exc).__name__)
             pass
 
     logger.info("jobgether_gmail [imap]: emitted %d jobs", len(jobs))

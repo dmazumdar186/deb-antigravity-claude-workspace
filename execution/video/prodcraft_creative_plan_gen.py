@@ -744,6 +744,6 @@ if __name__ == "__main__":
         sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     except Exception as _exc:  # noqa: BLE001 - best-effort UTF-8 on Windows
         # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
-        print(f"[prodcraft_creative_plan_gen] swallowed {type(_exc).__name__}: {_exc}", file=sys.stderr)
+        print(f"[prodcraft_creative_plan_gen] swallowed {type(_exc).__name__} (message omitted: may carry user data)", file=sys.stderr)
         pass
     sys.exit(main())

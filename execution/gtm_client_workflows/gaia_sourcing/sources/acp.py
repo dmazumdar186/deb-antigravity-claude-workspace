@@ -312,8 +312,8 @@ def discover_cases_serper(queries: Iterable[str], per_query: int = 20) -> list[s
                 continue
             payload = r.json()
         except Exception as _exc:
-            # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
-            print(f"[acp] swallowed {type(_exc).__name__}: {_exc}", file=sys.stderr)
+            # Swallow is safe: best-effort per-item step; this item is skipped and the loop continues.
+            print(f"[acp] swallowed {type(_exc).__name__} (message omitted: may carry user data)", file=sys.stderr)
             continue
         for item in payload.get("organic", []):
             link = item.get("link", "")

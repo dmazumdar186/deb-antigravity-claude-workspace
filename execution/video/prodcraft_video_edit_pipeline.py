@@ -522,7 +522,7 @@ def main() -> int:
                 append_run_log(args.out.resolve(), "error", {"code": e.code, "message": str(e)})
         except Exception as _exc:  # noqa: BLE001 -- audit-log write is best-effort; main error already surfaced.
             # Swallow is safe: best-effort step; failure is non-fatal and the caller proceeds.
-            print(f"[prodcraft_video_edit_pipeline] swallowed {type(_exc).__name__}: {_exc}", file=sys.stderr)
+            print(f"[prodcraft_video_edit_pipeline] swallowed {type(_exc).__name__} (message omitted: may carry user data)", file=sys.stderr)
             pass
         # Machine-readable exit code lookup for tests + orchestrators.
         return 2
