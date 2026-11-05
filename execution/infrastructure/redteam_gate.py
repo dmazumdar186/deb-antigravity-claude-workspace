@@ -1524,6 +1524,8 @@ def command_words(outer: str) -> list[str]:
         i = 0
         while i < len(toks):
             t = toks[i]
+            if _is_lookup(toks[i:]):
+                break  # `command -v x` / `which x` name x, they do not run it
             if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*=.*", t, re.S) or t.lower() in _WRAPPERS or (
                     i > 0 and (t.startswith("-") or re.fullmatch(r"[\d.]+[smhd]?", t))):
                 i += 1
@@ -1532,6 +1534,21 @@ def command_words(outer: str) -> list[str]:
         if i < len(toks):
             out.append(toks[i])
     return out
+
+
+# Read-only lookups: they print where/what a program is and never execute their arguments.
+_LOOKUPS = {"which", "whereis", "type", "hash", "whatis", "apropos"}
+
+
+def _is_lookup(toks: list[str]) -> bool:
+    """True if this simple command (from its program word on) is a read-only lookup:
+    `which x`, `type -a x`, `command -v x` / `command -V x` (bare `command x` runs x)."""
+    if not toks:
+        return False
+    name = re.split(r"[/\\]", toks[0])[-1].lower()
+    if name in _LOOKUPS:
+        return True
+    return name == "command" and len(toks) > 1 and toks[1] in ("-v", "-V")
 
 
 def _xuser(p: Path) -> Path:
@@ -1649,6 +1666,8 @@ def direct_scripts(outer: str, bases: list[Path], path_only: bool | None = False
     for w in command_words(outer):
         if not w or w.startswith("$") or _EXEC_WORD_RE.fullmatch(re.split(r"[/\\]", w)[-1]):
             continue
+        if _is_lookup([w]) or w == "command":
+            continue  # read-only lookup: its own script (/usr/bin/which) is not code we run
         cands: list[Path] = []
         p = _xuser(Path(w))
         if p.is_absolute():
@@ -3228,8 +3247,47 @@ def _read_limited(p: Path, label: str) -> str | None:
         return None
 
 
+# Test files (browser/QA tests, pytest files): their string literals are form values, CSS
+# selectors and fixtures ('button#send', 'input[name=email]', '=HYPERLINK()'), not code.
+_TEST_PATH_RE = re.compile(
+    r"(?:^|[/\\])(?:qa|tests?|e2e|__tests__|specs?|playwright|cypress)[/\\]"
+    r"|\.(?:spec|test|e2e)\.[A-Za-z0-9]+$|(?:^|[/\\])test_[^/\\]*\.py$|_test\.py$", re.I)
+# One-line string literals ('...', "...", `...` without ${}); multi-line ones stay scanned.
+_LITERAL_RE = re.compile(r"'(?:[^'\\\n]|\\.)*'|\"(?:[^\"\\\n]|\\.)*\"|`[^`$\n]*`")
+# A literal that names an endpoint or package stays scanned: URLs, hosts, scoped packages.
+_ENDPOINT_LIT_RE = re.compile(r"://|@[\w.-]+/|\b[a-z0-9-]+\.(?:com|net|io|ai|so|org|dev|app|co)"
+                              r"(?:[/:'\"`]|$)|smtp|\.googleapis\.", re.I)
+
+
+# Only JS/TS/Python test code: in a shell script a quoted string can itself be a command.
+_TEST_CODE_SUFFIXES = (".js", ".mjs", ".cjs", ".jsx", ".ts", ".mts", ".cts", ".tsx", ".py")
+
+
+def is_test_path(path: str | Path) -> bool:
+    """True for JS/TS/Python files under qa/, tests/, e2e/ … or named *.spec.*, *.test.*,
+    test_*.py."""
+    s = str(path).replace("\\", "/")
+    return s.lower().endswith(_TEST_CODE_SUFFIXES) and bool(_TEST_PATH_RE.search(s))
+
+
+def mask_test_literals(text: str) -> str:
+    """Blank plain one-line string literals of a test file (selectors, form values, fixture
+    words) so 'email'/'send'/'mail' inside them is not read as a send. Code (imports, SDK send
+    calls) and literals naming an endpoint (URL, host, @scope/pkg, smtp) stay scanned."""
+    def sub(m: re.Match) -> str:
+        lit = m.group(0)
+        return lit if _ENDPOINT_LIT_RE.search(lit) else lit[0] + " " * (len(lit) - 2) + lit[-1]
+    return _LITERAL_RE.sub(sub, text)
+
+
+def _test_body(path: str | Path, body: str) -> str:
+    return mask_test_literals(body) if is_test_path(path) else body
+
+
 def _scan_file(p: Path, label: str) -> str | None:
     text = _read_limited(p, label)
+    if text is not None:
+        text = _test_body(p, text)
     hit = sender_hit(text) if text is not None else None
     if not hit and text is not None and p.suffix.lower() in (".php", ".phtml") and \
             _PHP_MAIL_RE.search(text):
@@ -3440,7 +3498,10 @@ def _bash_hit(command: str, outer: str, docs: list[tuple[str, str]], cwd: Path,
         return mh
     # The command runs something, so every heredoc body counts (a body written to z.py and
     # run later in the same command is code, not a fixture).
-    scan = _PIP_INSTALL_RE.sub(" ", "\n".join([expanded] + [body for _o, body in docs]))
+    # A body redirected into a test file (`cat > qa/x.spec.mjs <<EOF`) is scanned with its plain
+    # string literals blanked (selectors and form values are not sends).
+    scan = _PIP_INSTALL_RE.sub(" ", "\n".join([expanded] + [_heredoc_scan_text(o, body)
+                                                           for o, body in docs]))
     hit = sender_hit(scan.lower(), scan)
     if hit:
         return hit
@@ -3465,6 +3526,7 @@ def _bash_hit(command: str, outer: str, docs: list[tuple[str, str]], cwd: Path,
         if hit:
             return hit
     for wpath, wtext in list(_PENDING_WRITES.items())[:20]:
+        wtext = _test_body(wpath, wtext)
         hit = sender_hit(wtext.lower(), wtext) or (
             f"harness-only hook path: {hook_text_hit(wtext)}" if hook_text_hit(wtext) else None)
         if hit:
@@ -3484,6 +3546,31 @@ def _bash_hit(command: str, outer: str, docs: list[tuple[str, str]], cwd: Path,
         if hit:
             return hit
     return None
+
+
+def _heredoc_scan_text(opener: str, body: str) -> str:
+    """The heredoc body text to scan: literal-masked when the opener only writes it (cat/tee)
+    and every file it writes is a test file; otherwise the body as-is."""
+    # Only the simple command that carries the `<<` (`mkdir -p qa && cat > qa/x <<EOF`).
+    pos = opener.find("<<")
+    start = max(opener.rfind(sep, 0, pos) for sep in ("&&", "||", ";", "|", "\n"))
+    if start >= 0 and opener[start] == "|" and opener[start:start + 2] != "||":
+        return body  # a pipe feeds this writer: not a plain write
+    opener = opener[start + 1:].lstrip("&|") if start >= 0 else opener
+    tail = opener.split("<<", 1)[1] if "<<" in opener else ""
+    tail = re.sub(r"^\s*-?\s*['\"]?[A-Za-z_][\w-]*['\"]?", " ", tail)
+    if "|" in tail and not re.fullmatch(r"[^|]*\|\s*tee\s+[^|;&]*", tail):
+        return body  # the body is piped into a program, not only written
+    targets = [m.group(1) for m in _WRITE_TARGET_RE.finditer(opener)]
+    head = opener.split("<<")[0]
+    m = re.search(r"\btee\s+(?:-\S+\s+)*([^\s;&|<>]+)", opener)
+    if m:
+        targets.append(m.group(1))
+    words = [re.split(r"[/\\]", w)[-1] for w in command_words(head)]
+    if targets and words and all(is_test_path(t) for t in targets) and \
+            all(w in ("cat", "tee") for w in words):
+        return mask_test_literals(body)
+    return body
 
 
 _OUT_REDIR_RE = re.compile(r"(?:\d?>>?|&>>?)\s*(?:&\d|[^\s;&|<>]+)")
@@ -3625,6 +3712,9 @@ def _shell_children_hit(p: Path, cwd: Path) -> str | None:
     body = _safe_read(p)
     if not body:
         return None
+    if not p.suffix and body.startswith("#!") and not re.match(
+            r"#!\s*\S*/(?:env\s+(?:-\S+\s+)*)?(?:ba|z|da|k)?sh\b", body):
+        return None  # a node/python console script (`#!/usr/bin/env node`), not shell
     try:
         for q, tok in _arg_files(_non_reader_text(body), [p.parent, cwd])[:20]:
             hit = _scan_file(q, f"{tok} (from {p})")
@@ -3650,6 +3740,11 @@ def _non_reader_text(text: str) -> str:
             continue
         if argv and re.split(r"[/\\]", argv[0])[-1].lower() in _HOOK_READERS - {"pytest"}:
             continue
+        try:
+            if _is_lookup(shlex.split(seg)):
+                continue
+        except ValueError:
+            pass
         keep.append(seg)
     return "\n".join(keep)
 

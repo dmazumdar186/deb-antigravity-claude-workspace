@@ -2530,3 +2530,93 @@ def test_outward_mcp_unparseable_inputs(state, capsys):
                      ("mcp__x__send_dm", {"recipients": [{"id": 3}], "text": "x"})):
         assert "unparseable" in _deny_reason(_mcp(name, ti, capsys)) or \
             "null" in _deny_reason(_mcp(name, ti, capsys)), (name, ti)
+
+
+# ------------------------------------------- false positives from the 2026-11-05 session
+
+def _fake_path(tmp_path, monkeypatch) -> Path:
+    """A PATH holding a shell `which` that names more files than the gate scans (like Debian's
+    /usr/bin/which) and an extensionless node console script `playwright`."""
+    bin_ = tmp_path / "bin"
+    for i in range(rg.MAX_ARG_FILES + 5):
+        _write(bin_ / f"f{i}.sh", "echo hi\n")
+    names = " ".join(str(bin_ / f"f{i}.sh") for i in range(rg.MAX_ARG_FILES + 5))
+    for name in ("which", "whereis"):
+        _write(bin_ / name, f"#!/bin/sh\nset -e\nfor f in {names}; do test -f \"$f\"; done\n")
+        (bin_ / name).chmod(0o755)
+    _write(bin_ / "playwright", "#!/usr/bin/env node\nrequire('./cli.js');\n" + " ".join(
+        f"require('{bin_ / f'f{i}.sh'}');" for i in range(rg.MAX_ARG_FILES + 5)) + "\n")
+    (bin_ / "playwright").chmod(0o755)
+    monkeypatch.setenv("PATH", str(bin_) + os.pathsep + os.environ.get("PATH", ""))
+    return bin_
+
+
+def test_readonly_lookups_not_scanned_as_scripts(tmp_path, state, capsys, monkeypatch):
+    _fake_path(tmp_path, monkeypatch)
+    for cmd in ("which php mysql node npm docker git", "command -v playwright node",
+                "command -V playwright", "type -a node playwright", "whereis php",
+                "which playwright && command -v node", "npx playwright --version",
+                "ls node_modules/.bin/playwright; which playwright"):
+        assert _bash(cmd, capsys, tmp_path) is None, cmd
+
+
+def test_readonly_lookups_keep_true_positives(tmp_path, state, capsys, monkeypatch):
+    _fake_path(tmp_path, monkeypatch)
+    _write(tmp_path / "send.py", f"import {SMTP}\n")
+    for cmd in ("which python3 && python3 send.py", "command python3 send.py",
+                f"command -v node; python3 -c 'import {SMTP}'", "type sh; sh -c 'python3 send.py'"):
+        assert _deny_reason(_bash(cmd, capsys, tmp_path)), cmd
+
+
+_SM = "send" "Mail"
+_SE = "send" "-email"
+_PW_BODY = (
+    "import { test } from '@playwright/test';\n"
+    "test('monkey', async ({ page }) => {\n"
+    "  await page.fill('input[name=email]', 'a@b.co');\n"
+    "  await page.fill('#msg', '=HYPERLINK(\"http://evil\")');\n"
+    f"  await page.click('button#{_SE}');\n"
+    f"  await page.click('[data-action=\"{_SM}\"]');\n"
+    "  await page.fill('#cmd', 'rm -rf /; mail -s x a@b.co');\n"
+    "});\n")
+
+
+def test_heredoc_test_files_with_form_words_allowed(tmp_path, state, capsys):
+    for target in ("qa/A/monkey_A.mjs", "tests/e2e/form.spec.ts", "e2e/form.test.js",
+                   "checkout.spec.mjs"):
+        for tail in ("", "\nnpx playwright test", f"\nnode {target}"):
+            cmd = f"mkdir -p qa/A && cat > {target} <<'EOF'\n{_PW_BODY}EOF{tail}"
+            assert _bash(cmd, capsys, tmp_path) is None, (target, tail)
+    assert _bash(f"cat <<'EOF' | tee qa/x.spec.mjs\n{_PW_BODY}EOF\nnpx playwright test",
+                 capsys, tmp_path) is None
+    # an existing test file run later is scanned the same way
+    _write(tmp_path / "qa" / "B" / "monkey_B.mjs", _PW_BODY)
+    assert _bash("node qa/B/monkey_B.mjs", capsys, tmp_path) is None
+
+
+def test_heredoc_test_files_keep_true_positives(tmp_path, state, capsys):
+    sg = "api.send" "grid.com"
+    bodies = (f"const t = nodemailer.createTransport({{}});\nawait t.{_SM}({{ to: 'x' }});\n",
+              f"import {SMTP}\n",
+              f"await fetch('https://{sg}/v3/mail/send', {{ method: 'POST' }});\n",
+              "import sg from '@sendgrid/" "mail';\n",
+              f"page.goto('smtp" "://relay.example.com');\n")
+    for body in bodies:
+        for target in ("qa/s.mjs", "tests/test_x.py"):
+            cmd = f"cat > {target} <<'EOF'\n{body}EOF\nnode {target}"
+            assert _deny_reason(_bash(cmd, capsys, tmp_path)), (body, target)
+    # not a test path, or the body is fed to a program: no masking
+    for cmd in (f"cat > tool.mjs <<'EOF'\n{_PW_BODY}EOF\nnode tool.mjs",
+                f"cat <<'EOF' | tee qa/x.mjs | node\n{_PW_BODY}EOF",
+                f"cat <<'EOF' | node\n{_PW_BODY}EOF",
+                f"node <<'EOF'\n{_PW_BODY}EOF",
+                f"cat > qa/x.sh <<'EOF' && bash qa/x.sh\n{_PW_BODY}EOF"):
+        assert _deny_reason(_bash(cmd, capsys, tmp_path)), cmd
+
+
+def test_mask_test_literals_unit():
+    assert rg.is_test_path("qa/A/x.mjs") and rg.is_test_path("a/b.spec.ts")
+    assert rg.is_test_path("tests\\test_x.py") and not rg.is_test_path("execution/x/send.py")
+    assert not rg.is_test_path("qa/run.sh") and not rg.is_test_path("tests/fixture.txt")
+    masked = rg.mask_test_literals(f"click('#{_SE}'); t.{_SM}(x); f('https://a.io/x')")
+    assert _SE not in masked and f"t.{_SM}(" in masked and "https://a.io/x" in masked

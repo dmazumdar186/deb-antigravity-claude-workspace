@@ -110,6 +110,29 @@ merely mention the gate or ledgers are no longer blocked (removed 2026-11-05: fa
   runs a git-tracked, unmodified `.py`/`.sh` or `-m` module (optional leading `cd X &&`, no `-c`,
   heredoc, pipes or chaining). Ordinary commands cost ~80 ms (no git call). A crash on Bash allows
   (wrapper); Gmail/Calendar fail closed.
+- **Bash, false-positive guards** (2026-11-05):
+  - Read-only lookups (`which`, `whereis`, `type`, `hash`, `whatis`, `apropos`, `command -v|-V`)
+    only name programs. Neither the lookup's own script (Debian's `/usr/bin/which` is a shell
+    script) nor its arguments are resolved as code it runs. Bare `command x` still runs x and is
+    scanned.
+  - A PATH console script with no extension is opened for the one-level child scan only when its
+    shebang names a shell. `#!/usr/bin/env node` CLIs (playwright) are scanned as text, never
+    parsed as shell.
+  - Test code is masked before the sender scan. This covers JS/TS/Python files (`.js .mjs .cjs
+    .jsx .ts .mts .cts .tsx .py`) under `qa/ tests/ test/ e2e/ __tests__/ spec(s)/ playwright/
+    cypress/`, or named `*.spec.* *.test.* *.e2e.* test_*.py *_test.py`. In the scanned text,
+    plain one-line string literals are blanked: selectors, form values and fixtures such as
+    `input[name=email]`, a send button id or `=HYPERLINK()`.
+    - The rule applies to heredoc bodies only when the heredoc's own simple command is a pure
+      `cat`/`tee` write and every target is a test file. It also applies to such files when
+      they are written then run, or already exist and are run.
+    - Still scanned: code (imports, SDK send calls such as a transport's send-mail method) and
+      literals that name an endpoint (`://`, a host such as `x.com/`, `@scope/pkg`, `smtp`,
+      `.googleapis.`).
+    - Not masked: a body piped into a program (`cat <<EOF | node`, `| tee f | node`), shell
+      files (`qa/x.sh`, where a quoted string can be a command) and non-test paths.
+  - The "dangerous rm" message is not this gate: it comes from `.claude/mods/safety-guard-mod`,
+    which blocks quoted dangerous text on purpose.
 - **Bash, non-email channels** (same scan surfaces, same tracked-pipeline trust; patterns in
   `_OUTWARD_SIMPLE`/`_OUTWARD_RES`): Slack webhooks + chat post/ephemeral/schedule/update
   methods, file uploads and the Python/Node SDK post-message calls;
@@ -392,6 +415,13 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   (was quadratic on long `a/a/…` tokens). Files written then run in the same command (cp/mv/
   install/ln, `cat a > b`, `… | tee b`, heredoc/echo redirects) are sender-scanned too. Outward
   MCP inputs with null values, non-string recipients or numeric text fields deny (unparseable).
+- 2026-11-05 (false positives): three kinds of legitimate command were being denied as inline
+  sends: `which php … git`, `command -v playwright` / `npx playwright --version`, and
+  `cat > qa/A/monkey_A.mjs <<'EOF'` Playwright monkey tests. All three now pass: read-only
+  lookups are skipped, non-shell console scripts are not parsed as shell, and test-file string
+  literals are masked (see Hook rules, "false-positive guards"). Tests:
+  `test_readonly_lookups_*`, `test_heredoc_test_files_*`, `test_mask_test_literals_unit`. The
+  true-positive tests in the same group stay denied.
 - Residual (outside the gate's lexicon; covered only by the build-contract audit): publishing
   via aws s3/cloudfront, firebase deploy, gcloud (app deploy, storage), fly deploy, eas
   submit/update, scp/rsync to a server, ssh remote exec, docker push, GitHub Pages pushes.
