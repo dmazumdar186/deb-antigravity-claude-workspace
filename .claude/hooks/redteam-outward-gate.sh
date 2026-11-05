@@ -55,7 +55,8 @@ fi
 # harness-internal or its tool segment starts with a read verb / local action.
 if printf '%s' "$INPUT" | grep -Eiq '"tool_name"[[:space:]]*:[[:space:]]*"mcp__' \
    && ! printf '%s' "$INPUT" | grep -Eiq '"tool_name"[[:space:]]*:[[:space:]]*"mcp__(claude-code-remote|ccd_session)__' \
-   && ! printf '%s' "$INPUT" | grep -Eiq '"tool_name"[[:space:]]*:[[:space:]]*"mcp__([^"_]|_[^"_])*__(get|list|search|read|fetch|download|query|resolve|describe|view|count|check|suggest|lookup|find|delete|trash|untrash|label|unlabel|mark|unmark|archive|apply_|remove|revoke|unshare)'; then
+   && ! { printf '%s' "$INPUT" | grep -Eq '"tool_name"[[:space:]]*:[[:space:]]*"mcp__([^"_]|_[^"_])*__(get|list|search|read|fetch|download|query|resolve|describe|view|count|check|suggest|lookup|find|delete|trash|untrash|label|unlabel|mark|unmark|archive|apply|remove|revoke|unshare)(_|[A-Z]|")' \
+          && ! printf '%s' "$INPUT" | grep -Eiq '"tool_name"[[:space:]]*:[[:space:]]*"mcp__([^"_]|_[^"_])*__[^"]*(send|post|share|publish|reply|forward|comment|tweet|message|create|update|write|invite|upload|schedule|_and_|_then_|And[A-Z]|Then[A-Z])'; }; then
   OUTWARD=1
 fi
 

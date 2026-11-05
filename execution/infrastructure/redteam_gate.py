@@ -2053,6 +2053,8 @@ def _deploy_target(tool: str, argv: list[str]) -> tuple[bool, str | None]:
         else:
             pos.append(a)
         i += 1
+    if flags & {"--help", "-h"} or pos[:1] == ["help"]:
+        return False, None
     if "--dry-run" in flags and str(named.get("--dry-run", "true")).lower() not in (
             "false", "0", "no", "off"):
         return False, None
@@ -2083,6 +2085,10 @@ _HTTPIE = {"http", "https", "xh", "xhs", "httpie"}
 _SCRIPT_SUFFIXES = {".py", ".js", ".mjs", ".cjs", ".ts", ".sh", ".bash", ".rb", ".pl", ".php"}
 _PIPE_SH_RE = re.compile(r"\|\s*(?:\S*/)?(?:(?:ba|z|da|k)?sh|at|batch)\b")
 _DEPLOY_SUBST_RE = re.compile(r"\$\(([^()]*)\)|`([^`]*)`")
+_PIPE_INTERP_RE = re.compile(r"\|\s*(?:\S*/)?(?:python(?:3(?:\.\d+)?)?|node|ruby|perl|php|deno|bun)"
+                             r"\b")
+_SH_STRING_RE = re.compile(r"(?:^|['\"\s])(?:\S*/)?(?:ba|z|da|k)?sh\s+(?:-\S+\s+)*"
+                           r"([\w./-]+\.(?:sh|bash))\b")
 _CMD_STRING_PROGS = {"tmux", "screen", "su", "at", "batch", "sg", "runuser", "nsenter",
                      "firejail", "systemd-run"}
 # A script file that both names a deploy and executes a subprocess is a deploy.
@@ -2188,6 +2194,9 @@ def deploy_error(outer: str, cwd: Path, depth: int = 0) -> str | None:
             if err:
                 return err
             continue
+        if name in _SHELLS and any(re.fullmatch(r"-[a-z]*n[a-z]*", a) for a in argv[1:]) \
+                and not any(re.fullmatch(r"-[a-z]*c[a-z]*", a) for a in argv[1:]):
+            continue  # `bash -n f`: syntax check, nothing runs
         if depth < 3 and name in _SHELLS:
             cflag = next((n for n, a in enumerate(argv[1:], 1)
                           if re.fullmatch(r"-[a-z]*c[a-z]*", a, re.I)), None)
@@ -2221,13 +2230,26 @@ def deploy_error(outer: str, cwd: Path, depth: int = 0) -> str | None:
                     return f"redteam gate: {err}. {DEPLOY_DENY}"
             continue
         if depth < 3 and name == "find":
+            names = [argv[n + 1] for n, a in enumerate(argv[:-1]) if a in ("-name", "-iname")]
+            roots = [a for a in argv[1:] if not a.startswith("-")][:1] or ["."]
             for k, a in enumerate(argv):
                 if a in ("-exec", "-execdir", "-ok", "-okdir"):
                     end = next((n for n in range(k + 1, len(argv)) if argv[n] in (";", "+")),
                                len(argv))
-                    err = deploy_error(" ".join(argv[k + 1:end]), base, depth + 1)
-                    if err:
-                        return err
+                    cmd = argv[k + 1:end]
+                    hits: list[str] = []
+                    if "{}" in cmd:
+                        for pat in names or ["*"]:
+                            try:
+                                hits += [str(x) for x in sorted((base / roots[0]).rglob(pat))[:20]]
+                            except (OSError, ValueError):
+                                continue
+                    import shlex as _sh
+                    for h in hits[:20] or [None]:
+                        line = " ".join(_sh.quote(c.replace("{}", h)) if h else c for c in cmd)
+                        err = deploy_error(line, base, depth + 1)
+                        if err:
+                            return err
             continue
         if depth < 3 and name == "script" and any(re.fullmatch(r"-[a-z]*c[a-z]*", a)
                                                   for a in argv[1:]):
@@ -2266,10 +2288,21 @@ def deploy_error(outer: str, cwd: Path, depth: int = 0) -> str | None:
             if err:
                 return err
             continue
-        if depth < 3 and name in ("cat", "tail", "head") and _PIPE_SH_RE.search(outer):
+        if depth < 3 and name in ("cat", "tail", "head") and (
+                _PIPE_SH_RE.search(outer) or _PIPE_INTERP_RE.search(outer)):
+            shell = bool(_PIPE_SH_RE.search(outer))
             for fa in argv[1:]:
-                if not fa.startswith("-"):
-                    err = _exec_file_deploy(base / fa, base, depth, force_shell=True)
+                if not fa.startswith("-") and not fa.lstrip("+").isdigit():
+                    fp = base / fa
+                    if shell:
+                        err = _exec_file_deploy(fp, base, depth, force_shell=True)
+                    else:
+                        try:
+                            txt = _read_limited(fp, str(fp)) if fp.is_file() else None
+                        except (OSError, ScanLimit):
+                            txt = None
+                        e2 = script_deploy_error(txt, Path("piped.py"), base) if txt else None
+                        err = f"redteam gate: {e2}. {DEPLOY_DENY}" if e2 else None
                     if err:
                         return err
             continue
@@ -2326,7 +2359,7 @@ def deploy_error(outer: str, cwd: Path, depth: int = 0) -> str | None:
     return None
 
 
-_SHELLS = {"bash", "sh", "zsh", "dash", "ksh"}
+_SHELLS = {"bash", "sh", "zsh", "dash", "ksh", "ash", "mksh", "yash", "hush"}
 _INTERPS = re.compile(r"python(?:3(?:\.\d+)?)?(?:\.exe)?|py|node|deno|bun|ruby|perl|php|tsx|ts-node|"
                       r"pwsh|powershell")
 
@@ -2516,7 +2549,8 @@ def _exec_file_deploy(fp: Path, base: Path, depth: int, force_shell: bool = Fals
         return None
     if pend is None and depth < 3 and fp.suffix.lower() not in ("", ".sh", ".bash", ".zsh"):
         # code that launches a shell script: treat as running that script
-        for lit in re.findall(r"['\"]([\w./-]+\.(?:sh|bash))['\"]", text)[:10]:
+        for lit in (re.findall(r"['\"]([\w./-]+\.(?:sh|bash))['\"]", text)
+                    + _SH_STRING_RE.findall(text))[:10]:
             for b in (fp.parent, base, Path(os.path.realpath(REPO_ROOT))):
                 if (b / lit).is_file():
                     err = _exec_file_deploy(b / lit, base, depth + 1)
@@ -2549,7 +2583,8 @@ def _interp_deploy(argv: list[str], name: str, base: Path, depth: int) -> str | 
                 err = script_deploy_error(code, Path("inline.py"), base)
                 if err:
                     return f"redteam gate: {err}. {DEPLOY_DENY}"
-                for f in re.findall(r"['\"]([\w./-]+\.(?:sh|bash))['\"]", code):
+                for f in (re.findall(r"['\"]([\w./-]+\.(?:sh|bash))['\"]", code)
+                          + _SH_STRING_RE.findall(code)):
                     e2 = _exec_file_deploy(base / f, base, depth)
                     if e2:
                         return e2
@@ -2561,7 +2596,9 @@ def _interp_deploy(argv: list[str], name: str, base: Path, depth: int) -> str | 
             if a == "-":
                 return None  # stdin: heredoc bodies are scanned by the caller
             if a == "-m":
-                return None
+                mod = argv[n + 1] if n + 1 < len(argv) else ""
+                mp = resolve_module(mod, base, []) if mod else None
+                return _exec_file_deploy(mp, base, depth) if mp else None
             if a.startswith("-"):
                 continue
             return _exec_file_deploy(base / a, base, depth)
@@ -2599,6 +2636,11 @@ _GH_TEXT_FLAGS = {
     ("repo", "create"): {"--description": "description", "-d": "description"},
     ("repo", "edit"): {"--description": "description", "-d": "description"},
     ("gist", "create"): {"--desc": "description", "-d": "description"},
+    ("workflow", "run"): {"-f": "kv", "--raw-field": "kv", "-F": "kv", "--field": "kv"},
+    ("label", "create"): {"--description": "description", "-d": "description"},
+    ("label", "edit"): {"--description": "description", "-d": "description"},
+    ("project", "item-create"): {"--title": "title", "--body": "body"},
+    ("project", "create"): {"--title": "title"},
 }
 _GH_GLOBAL_VAL = {"-R", "--repo", "--hostname"}
 _GH_API_OUTWARD_RE = re.compile(r"(?:^|/)(?:issues|pulls|comments|reviews|releases|discussions|"
@@ -2642,6 +2684,27 @@ def _gh_api_error(rest: list[str]) -> str | None:
             path = a
         i += 1
     if path is None:
+        return None
+    is_gql = path.rstrip("/").endswith("graphql")
+    if is_gql:
+        blob = []
+        for _k, v2 in fields:
+            if v2.startswith("@"):
+                try:
+                    v2 = Path(v2[1:]).read_text(encoding="utf-8", errors="replace")
+                except OSError:
+                    return f"redteam gate: gh api graphql field file {v2[1:]} unreadable"
+            blob.append(v2)
+        if inp is not None:
+            if inp == "-":
+                return "redteam gate: gh api graphql --input - (stdin) is unverifiable"
+            try:
+                blob.append(Path(inp).read_text(encoding="utf-8", errors="replace"))
+            except OSError:
+                return f"redteam gate: gh api --input {inp} unreadable"
+        if re.search(r"\bmutation\b", " ".join(blob), re.I):
+            return ("redteam gate: gh api graphql mutation (outward write; use gh issue/pr "
+                    "commands with red-teamed text, or ask the operator to waive)")
         return None
     if inp is not None:
         if inp == "-":
@@ -2717,6 +2780,10 @@ def gh_text_error(argv: list[str]) -> str | None:
                 except OSError:
                     return f"redteam gate: gh {' '.join(sub)} text file {v} unreadable"
                 texts.append(("body", v))
+            elif flags[k] == "kv":
+                fk, _e, fv = v.partition("=")
+                if not _MCP_ID_KEY_RE.search(fk):
+                    texts.append((fk, fv))
             else:
                 texts.append((flags[k], v))
         i += 1
@@ -3529,9 +3596,6 @@ def hook_decision(payload: dict, state: Path) -> str | None:
 
 
 # --------------------------------------------------------- generic MCP share / post / send
-MCP_READ_PREFIXES = ("get", "list", "search", "read", "resolve", "download", "fetch",
-                     "describe", "find", "query", "lookup", "check", "count", "export",
-                     "delete", "remove", "revoke", "unshare", "trash", "untrash")  # = hook .sh
 _MCP_SHARE_RE = re.compile(r"share|permission", re.I)
 _MCP_POST_RE = re.compile(r"post_message|postmessage|send_|publish|reply_to_thread|create_post|"
                           r"post_tweet|tweet|create_message|send_dm|comment|schedule_message|"
@@ -3542,11 +3606,23 @@ MCP_NOT_OUTWARD = ("push_files", "create_or_update_file", "delete_file", "create
                    "update_file", "copy_file", "run_secret_scanning", "guide", "create_branch",
                    "fork_repository")
 MCP_HARNESS_SERVERS = {"claude-code-remote", "ccd_session"}
-MCP_READ_VERBS = ("get", "list", "search", "read", "fetch", "download", "query", "resolve",
-                  "describe", "view", "count", "check", "suggest", "lookup", "find")
+MCP_READ_VERBS = {"get", "list", "search", "read", "fetch", "download", "query", "resolve",
+                  "describe", "view", "count", "check", "suggest", "lookup", "find"}
 # Local/no-text mailbox and storage actions (nothing reaches another person).
-MCP_LOCAL_PREFIXES = ("delete", "trash", "untrash", "label", "unlabel", "mark", "unmark",
-                      "archive", "apply_", "remove", "revoke", "unshare")
+MCP_LOCAL_VERBS = {"delete", "trash", "untrash", "label", "unlabel", "mark", "unmark",
+                   "archive", "apply", "remove", "revoke", "unshare"}
+# Any of these words anywhere in the tool name makes it outward, whatever its first verb.
+MCP_OUTWARD_WORDS = {"send", "post", "share", "publish", "reply", "forward", "comment", "tweet",
+                     "message", "create", "update", "write", "invite", "upload", "schedule",
+                     "and", "then"}
+
+
+def mcp_name_words(seg: str) -> list[str]:
+    """snake_case and camelCase words of a tool-name segment, lowercased."""
+    out: list[str] = []
+    for part in re.split(r"[_\-.\s]+", seg):
+        out += [w.lower() for w in re.findall(r"[A-Z]+(?![a-z])|[A-Z]?[a-z0-9]+", part)]
+    return [w for w in out if w]
 # Outward post/send tools: every string field is text EXCEPT these id/target/enum keys.
 _MCP_ID_KEY_RE = re.compile(
     r"(?:^|_)ids?$|[a-z]Ids?$|^(?:owner|repo|repository|org|organization|number|issue_number|"
@@ -3593,10 +3669,24 @@ def mcp_outward_kind(name: str) -> str | None:
     parts = name.split("__")
     if len(parts) < 3 or parts[1].lower() in MCP_HARNESS_SERVERS:
         return None
-    low = parts[-1].lower()
-    if low.startswith(MCP_READ_VERBS) or low.endswith("_read") or low in MCP_NOT_OUTWARD \
-            or low.startswith(MCP_LOCAL_PREFIXES) or "label" in low:
+    seg = parts[-1]
+    low = seg.lower()
+    if low in MCP_NOT_OUTWARD:
         return None
+    words = mcp_name_words(seg)
+    outward_word = any(w in MCP_OUTWARD_WORDS or w.rstrip("s") in MCP_OUTWARD_WORDS
+                       for w in words)
+    if len(words) == 1 and not outward_word:
+        w = words[0]
+        verb = next((v for v in MCP_READ_VERBS | MCP_LOCAL_VERBS if w.startswith(v)), None)
+        if verb and not any(o in w[len(verb):] for o in MCP_OUTWARD_WORDS - {"and"}):
+            return None  # getpermissions, listfiles
+    readish = bool(words) and (words[0] in MCP_READ_VERBS or words[-1] == "read"
+                               or words[0] in MCP_LOCAL_VERBS)
+    if readish and not outward_word:
+        return None
+    if readish:
+        return "post"  # read verb + outward word (resolve_share_link): text rule decides
     if _MCP_SHARE_RE.search(low):
         return "share"
     return "post"  # structural: every other MCP tool is outward (ids/enums-only calls pass)
@@ -3611,7 +3701,8 @@ def _mcp_recipients(ti: dict) -> tuple[set[str], list[str], list[str]]:
             a, b = parse_addrs(ti[k])
             addrs |= a
             bad += b
-    tkeys = {k.lower() for k in MCP_TARGET_KEYS} | {"channel_name", "channelname"}
+    tkeys = {k.lower() for k in MCP_TARGET_KEYS} | {"channel_name", "channelname"} | \
+        _USER_TARGET_KEYS
     for k, v in ti.items():
         if isinstance(k, str) and k.lower() in tkeys and _present(v):
             targets.append(f"{k}={str(v)[:40]}")
@@ -3623,6 +3714,19 @@ def _mcp_recipients(ti: dict) -> tuple[set[str], list[str], list[str]]:
     return addrs, bad, targets
 
 
+_RELEASE_TEXT_KEYS = {"name", "tag_name", "tagname"}
+_USER_TARGET_KEYS = {"user", "username", "handle", "screen_name", "screenname"}
+
+
+def _mcp_id_key(action: str, key: str) -> bool:
+    lk = key.lower()
+    if "release" in action.lower() and lk in _RELEASE_TEXT_KEYS:
+        return False
+    if lk in _USER_TARGET_KEYS:
+        return True  # handled as a target below
+    return bool(_MCP_ID_KEY_RE.search(key))
+
+
 def mcp_outward_decision(kind: str, action: str, ti: dict, state: Path) -> str | None:
     """share: text = message-like field (if any); recipients must be within one passed record's
     --to/--cc/--bcc. post/send/publish: every non-metadata text field must be passed."""
@@ -3632,7 +3736,7 @@ def mcp_outward_decision(kind: str, action: str, ti: dict, state: Path) -> str |
         fields = [f for f in fields if f[0] in MCP_SHARE_TEXT_KEYS]
     else:
         fields = [f for f in text_fields(ti, set(MCP_TARGET_KEYS) | set(MCP_ADDR_KEYS), skip=())
-                  if not _MCP_ID_KEY_RE.search(f[0])
+                  if not _mcp_id_key(action, f[0])
                   and f[0].lower() not in {k.lower() for k in MCP_TARGET_KEYS}]
     addrs, bad, targets = _mcp_recipients(ti)
     if bad:

@@ -1776,7 +1776,7 @@ def test_mcp_outward_kind_classification():
     assert k("mcp__slack__chat_post_message") == "post"
     assert k("mcp__x__publish_post") == "post"
     assert k("mcp__tg__send_photo") == "post"
-    for read in ("mcp__Google_Drive__get_file_permissions", "mcp__Wispr_Flow__resolve_share_link",
+    for read in ("mcp__Google_Drive__get_file_permissions",
                  "mcp__drive__list_permissions", "mcp__drive__delete_permission",
                  "mcp__Google_Drive__read_file_content", "mcp__github__get_me", "Bash",
                  "mcp__Google_Drive__search_files"):
@@ -1987,7 +1987,7 @@ def test_mcp_more_post_verbs():
     for n in ("reply_to_thread", "create_post", "post_tweet", "tweet", "create_message",
               "send_dm", "create_comment", "add_issue_comment", "schedule_message"):
         assert k(f"mcp__srv__{n}") == "post", n
-    for n in ("get_comments", "list_messages", "search_tweets", "read_thread"):
+    for n in ("read_thread", "list_issues", "search_files"):
         assert k(f"mcp__srv__{n}") is None, n
 
 
@@ -2310,9 +2310,9 @@ def test_sixth_audit_channels(cmd, state, capsys):
 def test_structural_mcp_rule(tmp_path, state, capsys):
     k = rg.mcp_outward_kind
     for n in ("mcp__Claude_Docs__read", "mcp__Claude_Docs__guide", "mcp__Wispr_Flow__get_meeting",
-              "mcp__Wispr_Flow__resolve_share_link", "mcp__Google_Drive__search_files",
+              "mcp__Google_Drive__search_files",
               "mcp__Google_Drive__get_file_permissions", "mcp__Google_Drive__create_file",
-              "mcp__Gmail__label_message", "mcp__Gmail__create_label", "mcp__Gmail__trash_thread",
+              "mcp__Gmail__trash_thread", "mcp__Gmail__unlabel_thread",
               "mcp__Google_Calendar__delete_event", "mcp__Google_Calendar__suggest_time",
               "mcp__github__issue_read", "mcp__github__pull_request_read",
               "mcp__github__push_files", "mcp__claude-code-remote__send_message",
@@ -2331,3 +2331,58 @@ def test_structural_mcp_rule(tmp_path, state, capsys):
                                                  capsys))
     assert _mcp("mcp__claude-code-remote__send_message", {"message": "anything"}, capsys) is None
     assert rg._is_outward({"tool_name": "mcp__acme__notify"}, "")
+
+
+
+def test_mcp_anchored_read_verbs(tmp_path, state, capsys):
+    k = rg.mcp_outward_kind
+    for n in ("get_then_send_message", "getAndPublish", "list_and_send", "readAndReply",
+              "fetch_post", "check_and_invite", "mark_and_forward", "labelThenShare_x",
+              "getter_send", "gettweet"):
+        assert k(f"mcp__srv__{n}") is not None, n
+    for n in ("getItems", "listFiles", "get_file", "fetchPage", "pull_request_read",
+              "getpermissions", "unlabel_thread", "trash_file"):
+        assert k(f"mcp__srv__{n}") is None, n
+    # read verb + outward word: gated by the text rule, ids-only passes
+    assert k("mcp__Wispr_Flow__resolve_share_link") == "post"
+    assert _mcp("mcp__Wispr_Flow__resolve_share_link", {"url": "https://x/y"}, capsys) is None
+    assert _mcp("mcp__Gmail__label_message", {"messageId": "1", "labelIds": ["a"]},
+                capsys) is None
+    assert "has not passed" in _deny_reason(_mcp("mcp__srv__get_then_send_message",
+                                                 {"body": "Hi Marc"}, capsys))
+
+
+def test_gh_graphql_and_more_gh_text(tmp_path, state, capsys):
+    q = _write(tmp_path / "q.graphql", "mutation { addComment(input: {}) { x } }")
+    for cmd in (f"gh api graphql -F query=@{q}", f"gh api graphql --input {q}",
+                f"gh api /graphql -f query='mutation {{ x }}'",
+                "gh api graphql -F query=@/nonexistent/q",
+                "gh workflow run deploy.yml -f message='Hello client'",
+                "gh label create urgent --description 'Client escalation'",
+                "gh project item-create 1 --title 'Call Marc'",
+                "echo 3 | xargs -I{} gh pr comment {} -b 'Looks good'",
+                "gh release create v1 --title 'Big launch'"):
+        assert _deny_reason(_bash(cmd, capsys)), cmd
+    assert _mcp("mcp__github__create_release", {"owner": "o", "repo": "r",
+                                                "tag_name": "v1"}, capsys) is not None
+    assert rg._mcp_recipients({"username": "marc"})[2] == ["username=marc"]
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_seventh_audit_deploy_forms(tmp_path, state, capsys, monkeypatch):
+    proj = _deploy_repo(tmp_path, monkeypatch)
+    _write(proj / "dep1.sh", "npx wrang" "ler deploy\n")
+    _write(proj / "launch.py", "import os\nos.system('bash dep1.sh')\n")
+    _write(proj / "launch.js", "require('child_process').execSync('bash dep1.sh')\n")
+    _write(proj / "depmod.py", "import subprocess\nsubprocess.run(['wrang" "ler', 'deploy'])\n")
+    for args in (["add", "-A"], ["-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "y"]):
+        subprocess.run(["git", "-C", str(rg.REPO_ROOT), *args], check=True, capture_output=True)
+    _write(proj / "src" / "draft.md", "uncommitted\n")
+    for cmd in ("find . -name dep1.sh -exec bash {} ';'", "python3 launch.py", "node launch.js",
+                "python3 -m depmod", "cat depmod.py PIPE python3", "env bash dep1.sh",
+                "busybox ash dep1.sh", "python3 -c \"import os; os.system('bash dep1.sh')\""):
+        c = cmd.replace("PIPE", "|")
+        assert _bash(c, capsys, cwd=proj) is not None, cmd
+    for cmd in ("npx wrang~ler deploy --help", "wrang~ler pages deploy -h", "vercel --help",
+                "bash -n dep1.sh", "sh -n dep1.sh"):
+        assert _bash(cmd.replace("~", ""), capsys, cwd=proj) is None, cmd

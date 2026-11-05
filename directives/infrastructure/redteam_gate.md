@@ -349,6 +349,18 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   `system(`, `find -exec`, glob/brace script paths, python/node launching a `.sh` (treated as
   running it). Channels: Slack SDK schedule/update/me-message/api_call, node files upload,
   Telegram `Bot(...)`/`bot.api` sends, Telethon, MS Graph reply/forward/send and send-mail.
+- 2026-11-05 (channels seventh audit): MCP read/local verbs must be the WHOLE first word of
+  the tool segment (snake or camelCase; single lowercase words like `getpermissions` by
+  prefix), and any outward word anywhere (send post share publish reply forward comment tweet
+  message create update write invite upload schedule and then; plurals too) makes the tool
+  outward; a read verb + outward word (`resolve_share_link`, `label_message`) is gated by the
+  text rule, so id/URL-only calls pass. Release `name`/`tag_name` are text; `user`/`username`/
+  `handle` are audiences (waiver). gh: graphql mutations via `-F query=@file`/`--input`/any
+  `/graphql` path (unreadable denies); `gh workflow run -f`, `gh label create|edit
+  --description`, `gh project item-create --title`; `xargs gh …` parsed. Deploy: `find -exec
+  bash {}` (resolved via -name), `os.system`/`execSync` strings running `bash <script>`,
+  `python3 -m mod`, `cat f | python3`, `env bash`, ash/mksh/busybox; `--help`/`-h` and
+  `bash -n` are not deploys.
 - Out of scope (documented): `-c 'import deploy'`-style helper modules, shell-escaped or split
   literals, browser/Playwright UI sends (LinkedIn UI automation included); the hook gates API
   endpoints, and tracked repo automation stays trusted.
