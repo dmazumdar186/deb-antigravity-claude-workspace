@@ -303,4 +303,5 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   expansions are covered. Write signals add `-d@f`/`-d'…'`, `--data-*`, `--form*`, `-T`,
   `--upload-file`, wget `--post-*`/`--method`, `.request('POST'`, `Request(data=`, fetch
   `method:'POST'`. MCP read prefixes need no underscore (`getpermissions`), same as the hook.
-  Limit: curl `-f` (fail) is indistinguishable from `-F` after lowercasing and counts as a write.
+  Flags are matched case-sensitively on command text (`-F` form = write, `-f`/`--fail` not);
+  in scanned files (lowercased) `-f` still counts as a write.

@@ -1678,7 +1678,7 @@ _B64_PIPE_RE = re.compile(
 _HEREDOC_RE = re.compile(r"<<(-?)\s*(['\"]?)([A-Za-z_][\w-]*)\2")
 
 
-def sender_hit(low: str) -> str | None:
+def sender_hit(low: str, raw: str | None = None) -> str | None:
     for pat in _SENDER_SIMPLE:
         if pat in low:
             return pat
@@ -1695,7 +1695,7 @@ def sender_hit(low: str) -> str | None:
         return "SES send" "_email("
     if "mail" "gun" in low and _MAILGUN_CALL_RE.search(low):
         return "Mailgun messages.cre" "ate("
-    return outward_api_hit(low)
+    return outward_api_hit(low, raw)
 
 
 # Non-email outward channels (chat, social, SMS, LinkedIn, cold-email tools). Send endpoints and
@@ -1762,7 +1762,7 @@ _WRITE_ENDPOINT_RES = (
 )
 _WRITE_SIGNAL_RE = re.compile(
     r"(?:-x|--request|--method)[\s=]*['\"]?(?:post|put|patch)\b"
-    r"|(?:^|\s)-[dft](?![a-z-])|(?:^|\s)--(?:data|form)[\w-]*|(?:^|\s)--(?:json|upload-file|"
+    r"|(?:^|\s)-[dt](?![a-z-])|(?:^|\s)--(?:data|form)[\w-]*|(?:^|\s)--(?:json|upload-file|"
     r"post-data|post-file)\b"
     r"|\b(?:http|https|xh|xhs)\s+(?:-\S+\s+)*(?:post|put|patch)\b"
     r"|\.(?:post|put|patch|create)\s*\(|\.request\s*\(\s*['\"](?:post|put|patch)"
@@ -1770,10 +1770,17 @@ _WRITE_SIGNAL_RE = re.compile(
     r"|\b(?:http|https|xh|xhs)\s+(?:-\S+\s+)*\S+\s+[^\s=]+:?=")
 
 
-def outward_api_hit(low: str) -> str | None:
+# Flags are case-sensitive: curl -F (form, a write) vs -f/--fail (not). With the raw text the
+# check is exact; on lowercased-only input (scanned files) -f stays a write (fail safe).
+_FORM_FLAG_RE = re.compile(r"(?:^|\s)-F(?![A-Za-z-])")
+_F_FLAG_LOW_RE = re.compile(r"(?:^|\s)-f(?![a-z-])")
+
+
+def outward_api_hit(low: str, raw: str | None = None) -> str | None:
     low = _PORT_RE.sub(r"\1", low)
     for rx, label in _WRITE_ENDPOINT_RES:
-        if rx.search(low) and _WRITE_SIGNAL_RE.search(low):
+        if rx.search(low) and (_WRITE_SIGNAL_RE.search(low) or (
+                _FORM_FLAG_RE.search(raw) if raw is not None else _F_FLAG_LOW_RE.search(low))):
             return label
     if "twil" "io" in low and _TWILIO_CALL_RE.search(low):
         return "Twilio messages.cre" "ate("
@@ -2112,7 +2119,7 @@ def deploy_error(outer: str, cwd: Path, depth: int = 0) -> str | None:
             base = (base / nxt) if nxt and not any(c in nxt for c in "$`~") else base
             continue
         if name in _HTTPIE:
-            hit = sender_hit(seg.lower())
+            hit = sender_hit(seg.lower(), seg)
             if hit:
                 return f"redteam gate: Bash command sends outward via httpie ({hit}). {BASH_DENY}"
             continue
@@ -2762,11 +2769,11 @@ def _bash_hit(command: str, outer: str, docs: list[tuple[str, str]], cwd: Path,
     # The command runs something, so every heredoc body counts (a body written to z.py and
     # run later in the same command is code, not a fixture).
     scan = _PIP_INSTALL_RE.sub(" ", "\n".join([expanded] + [body for _o, body in docs]))
-    hit = sender_hit(scan.lower())
+    hit = sender_hit(scan.lower(), scan)
     if hit:
         return hit
     for label, body in _package_scripts(expanded, bases):
-        hit = sender_hit(body.lower()) or (
+        hit = sender_hit(body.lower(), body) or (
             f"harness-only hook path: {hook_text_hit(body)}" if hook_text_hit(body) else None)
         if hit:
             return f"{hit} in {label}"

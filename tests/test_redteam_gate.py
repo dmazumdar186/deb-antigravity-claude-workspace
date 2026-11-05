@@ -2061,3 +2061,13 @@ def test_write_signal_forms(cmd, state, capsys):
 def test_getpermissions_is_read():
     assert rg.mcp_outward_kind("mcp__drive__getpermissions") is None
     assert rg.mcp_outward_kind("mcp__drive__getPermissions") is None
+
+
+@pytest.mark.parametrize("cmd,deny", [
+    ("curl -f https://disc|ord.com/api/channels/1/messages", False),
+    ("curl --fail -sS https://disc|ord.com/api/channels/1/messages", False),
+    ("curl -F content=hi https://disc|ord.com/api/channels/1/messages", True),
+    ("curl -F 'file=@a.png' https://disc|ord.com/api/channels/1/messages", True),
+])
+def test_curl_fail_vs_form_flag_case(cmd, deny, state, capsys):
+    assert (_bash(cmd.replace("|", ""), capsys) is not None) == deny, cmd
