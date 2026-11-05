@@ -1248,3 +1248,67 @@ def test_substitutions_vars_braces_and_pip(tmp_path, state, capsys):
     for cmd in ("pip install yag" "mail", "python3 -m pip install yag" "mail sendgrid",
                 "uv pip install yag" "mail", "python3 a.py"):
         assert _bash(cmd, capsys, tmp_path) is None, cmd
+
+
+# ------------------------------------------------------------------ fifth audit (2026-11-05)
+
+def test_direct_script_exec_scanned(tmp_path, state, capsys, monkeypatch):
+    s = _write(tmp_path / "send.py", f"#!/usr/bin/env python3\nimport {SMTP}\n")
+    s.chmod(0o755)
+    _write(tmp_path / "bin" / "notify", f"#!/bin/sh\ncurl smtp" f"s://x -T m\n").chmod(0o755)
+    monkeypatch.setenv("PATH", f"{tmp_path / 'bin'}{os.pathsep}{os.environ['PATH']}")
+    for cmd in ("./send.py", f"{s}", "chmod +x send.py && send.py",
+                "notify", "FOO=1 ./send.py"):
+        assert _deny_reason(_bash(cmd, capsys, tmp_path)), cmd
+    _write(tmp_path / "ok.sh", "#!/bin/sh\necho hi\n").chmod(0o755)
+    assert _bash("./ok.sh", capsys, tmp_path) is None
+    assert _bash("ls -la && git status", capsys, tmp_path) is None
+
+
+@pytest.mark.parametrize("cmd", ["uv run send.py", "pdm run send.py", "poetry run send.py",
+                                 "hatch run send.py", "pipx run send.py", "ipython send.py",
+                                 "make deploy"])
+def test_more_project_runners(cmd, tmp_path, state, capsys):
+    _write(tmp_path / "send.py", f"import {SMTP}\n")
+    _write(tmp_path / "Makefile", f"deploy:\n\tcurl smtp" "s://x -T m\n")
+    assert _deny_reason(_bash(cmd, capsys, tmp_path)), cmd
+
+
+def test_pytest_not_an_exec_word(tmp_path, state, capsys):
+    _write(tmp_path / "test_x.py", f"import {SMTP}\n")
+    assert _bash("pytest test_x.py -q", capsys, tmp_path) is None
+
+
+@pytest.mark.parametrize("code", [
+    "svc.users().messages()\n    .se" "nd(userId='me')",
+    "svc.users().drafts() . se" "nd(x)",
+    "gmail.users.messages\n  .se" "nd({})",
+    "require('@sendgrid/" "mail')",
+    "api.send_transac" "_email(x)",
+    "https://www.googleapis.com/upload" "/gmail/v1/users/me/messages/send",
+    "Net::" "SMTP.start('h')",
+])
+def test_multiline_and_extra_sender_literals(code, tmp_path, state, capsys):
+    _write(tmp_path / "s.txt", code)
+    assert _deny_reason(_bash("node s.txt", capsys, tmp_path)), code
+
+
+def test_php_mail_and_quoted_interpreter(tmp_path, state, capsys):
+    _write(tmp_path / "m.php", "<?php mail('x@y.z', 's', 'b');")
+    _write(tmp_path / "s.py", f"import {SMTP}\n")
+    _write(tmp_path / "notes.txt", "remember to check mail() later")
+    assert _deny_reason(_bash("php m.php", capsys, tmp_path))
+    assert _deny_reason(_bash("php -r \"mail('x@y.z','s','b');\"", capsys, tmp_path))
+    assert _bash("python3 -c 'print(1)' notes.txt", capsys, tmp_path) is None
+    for cmd in ('"python3" s.py', '"/usr/bin/python3" s.py', "'python3' s.py"):
+        assert _deny_reason(_bash(cmd, capsys, tmp_path)), cmd
+
+
+def test_calendar_quick_add_gated(tmp_path, state, capsys):
+    cal = "mcp__Google_Calendar__"
+    assert _deny_reason(_hook({"tool_name": cal + "quick_add_event",
+                               "tool_input": {"text": "Lunch with eve@rival.com tomorrow"}}, capsys))
+    text = "Kickoff with Marc tomorrow 10am"
+    _record_text(tmp_path, text, capsys, source="Kickoff with Marc.\n")
+    assert _hook({"tool_name": cal + "quick_add_event", "tool_input": {"text": text}},
+                 capsys) is None

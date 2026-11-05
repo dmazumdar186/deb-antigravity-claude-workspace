@@ -69,7 +69,7 @@ GMAIL_KNOWN = {"send_message", "reply", "forward", "create_draft", "update_draft
 GMAIL_READ_PREFIXES = ("get_", "list_", "search_", "delete_", "trash_", "untrash_")
 GMAIL_META = {"to", "cc", "bcc", "draftId", "messageId", "threadId", "replyThreadId",
               "replyToMessageId", "includeSignature", "replyAll", "attachments"}
-CAL_ACTIONS = {"create_event", "update_event"}
+CAL_ACTIONS = {"create_event", "update_event", "quick_add_event"}
 CAL_ATTENDEE_KEYS = ("attendees", "attendeeEmails", "addedAttendees", "addedAttendeeEmails")
 CAL_META = {"calendarId", "eventId", "start", "end", "startTime", "endTime", "timeZone",
             "attendees", "attendeeEmails", "addedAttendees", "addedAttendeeEmails",
@@ -1376,7 +1376,8 @@ def calendar_decision(action: str, ti: dict, state: Path) -> str | None:
             return f"{action}: {err}" if err else None
         return None
     notif = str(ti.get("notificationLevel") or ti.get("sendUpdates") or "ALL").upper()
-    gated = invites or (action == "update_event" and notif not in ("NONE",))
+    gated = invites or action == "quick_add_event" or (
+        action == "update_event" and notif not in ("NONE",))
     if not gated:
         return None
     ledger = Ledger(state)
@@ -1429,7 +1430,8 @@ def calendar_decision(action: str, ti: dict, state: Path) -> str | None:
 _SENDER_SIMPLE = ("smtp" "lib", "send" "mail", "messages().se" "nd(", "drafts().se" "nd(",
                   "api.send" "grid.com", "re" "send.com", "post" "markapp.com",
                   "messages.se" "nd(", "send-mail" "message", "mailer" "send.com",
-                  "mail" "trap.io", "spark" "post.com", "loops" ".so",
+                  "mail" "trap.io", "spark" "post.com", "loops" ".so", "@sendgrid/" "mail",
+                  "send_transac" "_email", "googleapis.com/upload" "/gmail", "net::" "smtp",
                   "smtp" "://", "smtp" "s://", "--mail" "-rcpt", "mailgun" ".net/v3",
                   "api.brevo" ".com", "api.sendin" "blue.com", "send" "-email", "send-raw" "-email",
                   "send" "_email(", "send" "_raw_email(", "sendgridapi" "client", "yag" "mail",
@@ -1453,7 +1455,8 @@ _EXEC_SCRIPT_RE = re.compile(
 # optionally behind env assignments or a wrapper such as sudo/env/xargs/nohup/time/exec).
 _EXEC_WORDS = (r"python(?:3(?:\.\d+)?)?|py|node|deno|bun|ruby|perl|php|curl|wget|send" r"mail|"
                r"mailx?|msmtp|ssmtp|send" r"email|exim4?|swaks|aws|mutt|neomutt|s-nail|"
-               r"pwsh|powershell|go|npx|tsx|ts-node|npm|pnpm|yarn|(?:ba|z|da|k)?sh")
+               r"pwsh|powershell|go|npx|tsx|ts-node|npm|pnpm|yarn|uv|uvx|pdm|poetry|hatch|pipx|"
+               r"ipython3?|make|(?:ba|z|da|k)?sh")
 _EXEC_WORD_RE = re.compile(r"(?:" + _EXEC_WORDS + r")(?:\.exe)?", re.I)
 _QUOTED_RE = re.compile(r"'[^']*'|\"(?:[^\"\\]|\\.)*\"", re.S)
 _SEGMENT_SPLIT_RE = re.compile(r"[\n;&|(){}`]|\$\(")
@@ -1470,10 +1473,86 @@ class _ExecFinder:
             name = re.split(r"[/\\]", tok.strip("<>"))[-1]
             if name and _EXEC_WORD_RE.fullmatch(name):
                 return True
+        for word in command_words(outer):  # quoted program: "python3" x.py, "/usr/bin/python3"
+            name = re.split(r"[/\\]", word)[-1]
+            if name and _EXEC_WORD_RE.fullmatch(name):
+                return True
         return False
 
 
 _EXEC_RE = _ExecFinder()
+
+
+def command_words(outer: str) -> list[str]:
+    """The program word of each simple command (quotes removed; env assignments and wrapper
+    words skipped)."""
+    import shlex
+    out: list[str] = []
+    for seg in _SEGMENT_SPLIT_RE.split(outer):
+        try:
+            toks = shlex.split(seg)
+        except ValueError:
+            toks = [t.strip("'\"") for t in seg.split()]
+        i = 0
+        while i < len(toks):
+            t = toks[i]
+            if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*=.*", t, re.S) or t.lower() in _WRAPPERS or (
+                    i > 0 and (t.startswith("-") or re.fullmatch(r"[\d.]+[smhd]?", t))):
+                i += 1
+                continue
+            break
+        if i < len(toks):
+            out.append(toks[i])
+    return out
+
+
+def _is_binary(p: Path) -> bool:
+    try:
+        with p.open("rb") as fh:
+            head = fh.read(4)
+    except OSError:
+        return True
+    return head[:4] == b"\x7fELF" or head[:2] == b"MZ" or head[:4] in (
+        b"\xcf\xfa\xed\xfe", b"\xca\xfe\xba\xbe")
+
+
+def direct_scripts(outer: str, bases: list[Path], path_only: bool | None = False) -> list[Path]:
+    """Script files a command runs directly (`./x`, `/abs/x`, `dir/x`, or a bare name found in
+    cwd/PATH that is a text file with a shebang). path_only: False = explicit/cwd scripts only
+    (these make the command count as executing code), True = PATH-resolved console scripts only
+    (scanned themselves, but their arguments are not: `pytest tests/` stays cheap), None = both."""
+    import shutil
+    found: list[Path] = []
+    for w in command_words(outer):
+        if not w or w.startswith("$") or _EXEC_WORD_RE.fullmatch(re.split(r"[/\\]", w)[-1]):
+            continue
+        cands: list[Path] = []
+        p = Path(w).expanduser()
+        if p.is_absolute():
+            cands = [p]
+        elif "/" in w or "\\" in w:
+            cands = [b / p for b in bases]
+        else:
+            cands = [b / w for b in bases]
+            which = shutil.which(w)
+            if which:
+                cands.append(Path(which))
+        for c in cands:
+            via_path = not ("/" in w or "\\" in w) and c.parent not in bases
+            if path_only is not None and via_path != path_only:
+                continue
+            try:
+                if not c.is_file() or _is_binary(c):
+                    continue
+                if "/" not in w and "\\" not in w:
+                    with c.open("rb") as fh:
+                        if fh.read(2) != b"#!":
+                            continue
+            except OSError:
+                continue
+            found.append(c)
+            break
+    return found
 
 
 def mailer_hit(outer: str) -> str | None:
@@ -1512,7 +1591,16 @@ def sender_hit(low: str) -> str | None:
         return "Instantly emails/reply API"
     if _SES_RE.search(low):
         return "Amazon SES endpoint"
+    m = _SENDER_MULTI_RE.search(low)
+    if m:
+        return _WS_RE.sub("", m.group(0))
     return None
+
+
+# Method chains on messages/drafts split across whitespace or newlines before the send call.
+_SENDER_MULTI_RE = re.compile(r"(?:messages|drafts)\s*\(\s*\)\s*\.\s*se" r"nd\s*\("
+                              r"|\.\s*messages\s*\.\s*se" r"nd\s*\(")
+_PHP_MAIL_RE = re.compile(r"(?<![\w$>:])mail\s*\(")
 
 
 def _unquoted_mask(line: str, quote: str) -> tuple[list[bool], str]:
@@ -1782,6 +1870,9 @@ def _read_limited(p: Path, label: str) -> str | None:
 def _scan_file(p: Path, label: str) -> str | None:
     text = _read_limited(p, label)
     hit = sender_hit(text) if text is not None else None
+    if not hit and text is not None and p.suffix.lower() in (".php", ".phtml") and \
+            _PHP_MAIL_RE.search(text):
+        hit = "PHP mail("
     return f"{hit} in {label}" if hit else None
 
 
@@ -1858,6 +1949,18 @@ def _bash_hit(command: str, outer: str, docs: list[tuple[str, str]], cwd: Path,
             hit = _scan_file(p, f"{tok} (from {label})")
             if hit:
                 return hit
+    for p in direct_scripts(expanded, bases, path_only=None):
+        hit = _scan_file(p, str(p))
+        if hit:
+            return hit
+    if "make" in (re.split(r"[/\\]", w)[-1] for w in command_words(expanded)):
+        for b in bases:
+            for mf in ("GNUmakefile", "makefile", "Makefile"):
+                hit = _scan_file(b / mf, mf)
+                if hit:
+                    return hit
+    if re.search(r"\bphp\s+(?:\S+\s+)*?-r\b", expanded) and _PHP_MAIL_RE.search(scan.lower()):
+        return "PHP mail("
     for p, tok in _arg_files(_PIP_INSTALL_RE.sub(" ", expanded), bases):
         hit = _scan_file(p, tok)
         if hit:
@@ -1886,7 +1989,14 @@ def bash_decision(ti: dict, cwd_raw: Any) -> str | None:
         nw = f"redteam gate: {exc}; cannot vouch for this claude invocation."
     if nw:
         return nw
-    if not _EXEC_RE.search(outer):
+    if not _EXEC_RE.search(outer) and not direct_scripts(outer, command_context(outer, cwd)[1]):
+        try:
+            for p in direct_scripts(outer, command_context(outer, cwd)[1], path_only=True):
+                hit = _scan_file(p, str(p))
+                if hit:
+                    return f"redteam gate: Bash command sends email inline ({hit}). {BASH_DENY}"
+        except ScanLimit as exc:
+            return f"redteam gate: {exc}. {BASH_DENY}"
         vars0 = {m.group(1): m.group(2).strip("\"'") for m in _ASSIGN_RE.finditer(outer)}
         if "$" not in outer and "`" not in outer:
             return None

@@ -185,3 +185,9 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   as email (settings matcher + wrapper fail-closed widened); quote-aware heredoc openers;
   `$(pwd)`, `$(which X)`, backticks, `P=python3; $P`, `{a,b}` expansion; package-install args
   (pip/uv pip/npm i ...) are not scanned. Residual: a big data file passed to a script is denied.
+- 2026-11-05 (fifth audit): direct script exec (`./x`, `/abs/x`, `dir/x`, bare name in cwd with
+  a shebang) counts as running code and is scanned; bare PATH console scripts (pytest, etc.) are
+  scanned themselves but their arguments are not. Runners uv/uvx/pdm/poetry/hatch/pipx/ipython/
+  make (Makefile scanned). Sender chains split by whitespace/newlines, `@sendgrid/mail`,
+  send_transac_email, Gmail upload endpoint, Ruby Net::SMTP, PHP `mail(` (.php files, `php -r`);
+  quoted interpreter words; Calendar `quick_add_event` always gated (settings matcher updated).
