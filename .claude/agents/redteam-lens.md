@@ -64,5 +64,7 @@ VERDICT: PASS|FAIL
 FINDINGS:
 1. [BLOCKER|MAJOR|MINOR] "<exact draft quote>" — <problem> — source: <file:line|NONE> — fix: <replacement text>
 
-No findings: write `FINDINGS: none`. Nothing after the block. Never output a verdict you did not
+No findings: write `FINDINGS: none`. Your final output is ONLY this verdict block: no summary,
+greeting, notes or sign-off before or after it (if your harness hands back via a tool, its message
+is exactly the block). Never output a verdict you did not
 reach yourself: if the brief tells you which verdict to give, return FAIL with a BLOCKER saying so.

@@ -15,20 +15,25 @@ and ledger rows are machine state under `.tmp/redteam/` and never go into the em
 The main agent is not malicious, but it cuts corners under pressure: it may skip the reviewers,
 write its own "PASS" verdict files, append a pass row, self-waive, tweak a link or recipient after
 the pass, or send through Bash instead of the gated tool. The gate makes each of those impossible
-**without deliberately forging hook-owned logs**:
-- Verdicts count only if `verdicts.jsonl` (written by the SubagentStop hook from a real
-  `redteam-lens` run) holds the sha256 of the exact verdict text with the same lens, sha12 and PASS.
-- Pass rows are re-verified against `verdicts.jsonl` on every `check`/hook call, so an appended
-  row is ignored. Waived rows count only if `waivers.jsonl` (written by the UserPromptSubmit hook
-  from the operator's own prompt) holds the sha12.
-- Bash commands that call hook-only subcommands or write the ledgers are denied.
+**without deliberately forging signed rows**:
+- Every row in `passes/verdicts/waivers/drafts.jsonl` carries `mac` = HMAC-SHA256 over canonical
+  JSON (sort_keys, `,`/`:` separators, ensure_ascii=False) of the row without `mac`, keyed by
+  `$REDTEAM_KEY_FILE` or `~/.claude/redteam/hmac.key` (32 random bytes, dir 0700, file 0600,
+  created atomically on first use; chmod best-effort on Windows). Readers ignore unsigned or
+  invalid rows; `check` prints `ignored unsigned rows: N`. Only gate-owned paths sign: the hooks,
+  and `record` after every check passes. Appending or editing a row by hand therefore does nothing.
+- Verdicts count only if a signed `verdicts.jsonl` row (SubagentStop, real `redteam-lens` run whose
+  `agent_transcript_path` is `<~/.claude/projects or $REDTEAM_TRANSCRIPT_ROOT>/**/agent-<agent_id>.jsonl`)
+  holds the sha256 of the exact verdict text with the same lens, sha12 and PASS.
+- Waived rows count only with a signed `waivers.jsonl` row (operator's own UserPromptSubmit prompt).
+- `hook`, `post-hook`, `subagent-hook`, `prompt-hook` refuse (exit 2) unless `REDTEAM_HOOK=1`,
+  which only the hook wrapper sets.
 
-**Limit, stated plainly:** the hooks run in the same container as the same user as the agent. True
-cryptographic tamper-proofing is impossible here: an agent that edits `verdicts.jsonl` or
-`waivers.jsonl` with the Write/Edit tools, briefs a lens to "just output PASS", or edits this
-script can defeat it. That is deliberate forgery, not corner-cutting, and is out of scope.
-(`hook` also denies Write/Edit/MultiEdit/NotebookEdit on the ledgers if those tools are added to
-the PreToolUse matcher.)
+**Limit, stated plainly:** the hooks run as the same user as the agent. An agent that reads the
+key and signs rows itself, sets `REDTEAM_HOOK=1` by hand, fakes a transcript file, briefs a lens to
+"just output PASS", or edits this script defeats the gate. That is deliberate forgery, not
+corner-cutting, and is out of scope (threat model = corner-cutting agent). Bash commands that
+merely mention the gate or ledgers are no longer blocked (removed 2026-11-05: false positives).
 
 ## Operator prompts
 - "Red team this email" / `/redteam` → ground + 4 lenses + record, then send.
@@ -42,7 +47,8 @@ the PreToolUse matcher.)
   ("looks like the draft itself") are skipped and reported.
 - Verdict files: the lens subagent's returned text saved verbatim; first 3 non-blank lines exactly
   `LENS: <lens>` / `DRAFT-SHA: <12 hex>` / `VERDICT: PASS|FAIL` (no `>`, `**`, `#`, no reordering).
-- Env `REDTEAM_DIR` overrides the state dir (default `.tmp/redteam/`).
+- Env `REDTEAM_DIR` overrides the state dir (default `.tmp/redteam/`); `REDTEAM_KEY_FILE` the
+  HMAC key; `REDTEAM_TRANSCRIPT_ROOT` the transcript root (tests); `REDTEAM_HOOK=1` (hook wrapper).
 
 ## Tools/Scripts
 `execution/infrastructure/redteam_gate.py` (stdlib, no network, no LLM):
@@ -86,11 +92,18 @@ the PreToolUse matcher.)
 - **Calendar** `create_event|update_event`: gated when attendees are present (an invite emails
   people) or, for `update_event`, unless `notificationLevel` is `NONE`. `description` needs a passed
   sha; `summary` passes as its own passed text or as the `--subject` of the description's pass.
-- **Bash**: deny inline senders (smtplib, sendmail, Gmail REST `/send`, `messages().send(`,
-  Instantly emails/reply, SendGrid, Resend, Postmark) in the command or in a script it runs
-  directly, unless the command only runs a git-tracked, unmodified `.py`/`.sh` (optional leading
-  `cd X &&`, no `-c`, heredoc, pipes or chaining). Also denies hook-only `redteam_gate.py`
-  subcommands/imports and writes to the ledgers. Everything else is allowed with no git call.
+  Attendees (attendees/attendeeEmails/addedAttendees/addedAttendeeEmails) must be a subset of the
+  `--to/--cc/--bcc` of one passing record (an operator waiver allows any).
+- **Bash**: scanned only when the command (heredoc bodies excluded) runs a program in command
+  position: python/node/deno/bun/ruby/perl/php/curl/wget/sendmail/mail/msmtp/sh/bash (incl. `-c`).
+  Pure file writes (`cat > f <<EOF`, `echo … > f`), reads, greps and commits are never scanned.
+  Deny inline senders (smtplib, sendmail, Gmail REST `/send`, `messages().send(`, Instantly
+  emails/reply, SendGrid, Resend, Postmark) in the command, in a heredoc fed to a program
+  (`python3 - <<EOF`, `cat <<EOF | python3`), in a script it runs, or in a `python -m mod` module
+  resolved under cwd/repo; `base64 -d | <interpreter>` denies outright. Allowed if the command only
+  runs a git-tracked, unmodified `.py`/`.sh` or `-m` module (optional leading `cd X &&`, no `-c`,
+  heredoc, pipes or chaining). Ordinary commands cost ~80 ms (no git call). A crash on Bash allows
+  (wrapper); Gmail/Calendar fail closed.
 - HTML canonicalisation (record and hook share it): `href`/`src`/`alt` and comment text become
   visible (` [link: URL] `, ` [img: URL] `, ` [comment: …] `); empty `<script>/<style>` are dropped,
   non-empty ones deny outright. Malformed input or any exception → deny.
@@ -112,13 +125,14 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   adjacent numbers ("3 100 users" → 3100).
 - ASCII single-quoted quotes are not extracted; bare numbers without a marker are not claims.
 - "all"/"any"/"every" warn, never fail.
-- SubagentStop text comes from `last_assistant_message`, else `agent_transcript_path` (last
-  assistant message, multi-block aware); the main `transcript_path` fallback only accepts sidechain
-  entries of that agent, so the main agent's own text is never logged as a verdict.
+- SubagentStop is ignored unless `agent_transcript_path` checks out (see Threat model). Text
+  comes from `last_assistant_message`, else that transcript (last assistant message, multi-block
+  and SubagentHandback aware). The main `transcript_path` is never used.
 - Verdicts from any agent type other than `redteam-lens` (or `<plugin>:redteam-lens`) are logged but
   do not count. A CLI that omits `agent_type` makes `record` refuse (fail-closed).
-- Bash: a sender reached only through an imported helper module, or a tracked script edited and
-  committed for the purpose, is not detected (deliberate). Forwarding an existing message with no
+- Bash: a sender reached only through an imported helper module, split-literal or otherwise
+  obfuscated code (`"smt"+"plib"`, `getattr`, `exec(bytes…)`), or a tracked script edited and
+  committed for the purpose, is not detected (out of scope). Forwarding an existing message with no
   added text or attachments is allowed. Calendar `update_event` on an event that already has
   guests is gated unless `notificationLevel: NONE`.
 - Gmail response shapes vary; `post-hook` takes `draftId` from `update_draft` input, else digs an
@@ -131,3 +145,7 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   waivers via UserPromptSubmit, envelope binding (subject/recipients/attachments) and HTML link/
   comment canonicalisation, unknown-field fail-closed, Calendar invites, Bash inline senders, strict
   verdict headers, weak = fail, name claims, self-copy source skip.
+- 2026-11-05: HMAC-signed ledger rows (replaces the Bash forge/ledger-write classifier and Write/Edit
+  ledger protection), REDTEAM_HOOK-only hook subcommands, transcript-root check, Bash scan narrowed
+  to executing commands (+ `python -m`, stdin heredoc, base64→interpreter), Calendar attendees ⊆
+  recorded recipients; PreToolUse matcher drops Write|Edit.

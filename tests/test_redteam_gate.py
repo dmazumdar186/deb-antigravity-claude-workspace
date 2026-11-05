@@ -29,11 +29,27 @@ HOOK_SH = ROOT / ".claude" / "hooks" / "redteam-outward-gate.sh"
 AV_SOURCE = "# Asset Voyages costs\nUptimeRobot Solo + AI ≈ €30/month; SMS ≈ €3\n"
 
 
+@pytest.fixture(autouse=True)
+def _isolated(tmp_path, monkeypatch):
+    """Temp HMAC key + transcript root; never touch ~/.claude."""
+    monkeypatch.setenv("REDTEAM_KEY_FILE", str(tmp_path / "keys" / "hmac.key"))
+    monkeypatch.setenv("REDTEAM_TRANSCRIPT_ROOT", str(tmp_path / "projects"))
+    monkeypatch.setenv("REDTEAM_HOOK", "1")
+    monkeypatch.setenv("REDTEAM_DIR", str(tmp_path / "state"))
+
+
 @pytest.fixture()
 def state(tmp_path, monkeypatch):
     sd = tmp_path / "state"
     monkeypatch.setenv("REDTEAM_DIR", str(sd))
     return sd
+
+
+def _agent_transcript(agent_id: str, lines: list[dict] | None = None) -> str:
+    p = Path(os.environ["REDTEAM_TRANSCRIPT_ROOT"]) / "proj" / "subagents" / f"agent-{agent_id}.jsonl"
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text("".join(json.dumps(x) + "\n" for x in (lines or [])), encoding="utf-8")
+    return str(p)
 
 
 def _write(p: Path, text: str) -> Path:
@@ -64,6 +80,7 @@ def _verdict_text(lens: str, sha: str, verdict: str = "PASS") -> str:
 
 def _log_lens(text: str, agent_type: str = "redteam-lens", **extra) -> None:
     payload = {"hook_event_name": "SubagentStop", "agent_id": "a1", "agent_type": agent_type,
+               "agent_transcript_path": _agent_transcript("a1"),
                "last_assistant_message": text, **extra}
     assert _stdin_main(["subagent-hook"], json.dumps(payload)) == 0
 
@@ -464,7 +481,8 @@ def test_shell_wrapper_fail_closed_on_garbage(tmp_path):
     assert res["hookSpecificOutput"]["permissionDecision"] == "deny"
     # missing script -> still deny
     env["CLAUDE_PROJECT_DIR"] = str(tmp_path)
-    out = subprocess.run(["bash", str(HOOK_SH), "pre"], input="{}", capture_output=True,
+    out = subprocess.run(["bash", str(HOOK_SH), "pre"], input=json.dumps(
+        {"tool_name": GM + "send_message", "tool_input": {}}), capture_output=True,
                          text=True, encoding="utf-8", errors="replace", env=env)
     assert json.loads(out.stdout)["hookSpecificOutput"]["permissionDecision"] == "deny"
     # post mode never blocks
@@ -509,7 +527,6 @@ def test_subagent_hook_from_transcript_file(tmp_path, state, capsys):
     for lens in rg.LENSES:
         text = _verdict_text(lens, sha12)
         head, rest = text.split("VERDICT", 1)
-        tr = tmp_path / f"agent-{lens}.jsonl"
         lines = [
             {"type": "user", "message": {"role": "user", "content": "brief"}},
             {"type": "assistant", "agentId": "a9", "isSidechain": True,
@@ -522,9 +539,9 @@ def test_subagent_hook_from_transcript_file(tmp_path, state, capsys):
              "message": {"id": "m2", "role": "assistant",
                          "content": [{"type": "text", "text": "VERDICT" + rest}]}},
         ]
-        tr.write_text("\n".join(json.dumps(x) for x in lines) + "\n", encoding="utf-8")
+        tr = _agent_transcript("a9", lines)
         payload = {"agent_id": "a9", "agent_type": "redteam-lens",
-                   "agent_transcript_path": str(tr), "transcript_path": str(tmp_path / "main")}
+                   "agent_transcript_path": tr, "transcript_path": str(tmp_path / "main")}
         assert _stdin_main(["subagent-hook"], json.dumps(payload)) == 0
         paths.append(str(_write(tmp_path / "v" / f"{lens}.md", text)))
     rows = rg._read_jsonl(state / "verdicts.jsonl")
@@ -541,7 +558,6 @@ def test_subagent_hook_reads_handback_tool_call(tmp_path, state, capsys):
     paths = []
     for lens in rg.LENSES:
         text = _verdict_text(lens, sha12)
-        tr = tmp_path / f"hb-{lens}.jsonl"
         lines = [
             {"type": "user", "message": {"role": "user", "content": "brief"}},
             {"type": "assistant", "message": {"id": "m1", "role": "assistant", "content": [
@@ -549,9 +565,9 @@ def test_subagent_hook_reads_handback_tool_call(tmp_path, state, capsys):
             {"type": "user", "message": {"role": "user", "content": [
                 {"type": "tool_result", "content": "delivered"}]}},
         ]
-        tr.write_text("\n".join(json.dumps(x) for x in lines) + "\n", encoding="utf-8")
+        tr = _agent_transcript("a7", lines)
         payload = {"agent_id": "a7", "agent_type": "redteam-lens",
-                   "agent_transcript_path": str(tr), "transcript_path": str(tmp_path / "main")}
+                   "agent_transcript_path": tr, "transcript_path": str(tmp_path / "main")}
         assert _stdin_main(["subagent-hook"], json.dumps(payload)) == 0
         paths.append(str(_write(tmp_path / "hb" / f"{lens}.md", text)))
     assert len(rg._read_jsonl(state / "verdicts.jsonl")) == 4
@@ -681,8 +697,15 @@ def test_calendar_invites(tmp_path, state, capsys):
     inv = dict(ti, attendees=[{"email": "marc@client.com"}])
     assert "description" in _deny_reason(
         _hook({"tool_name": cal + "create_event", "tool_input": inv}, capsys))
-    _record_text(tmp_path, ti["description"], capsys, extra=["--subject", "Kickoff"])
+    _record_text(tmp_path, ti["description"], capsys,
+                 extra=["--subject", "Kickoff", "--to", "marc@client.com"])
     assert _hook({"tool_name": cal + "create_event", "tool_input": inv}, capsys) is None
+    extra = dict(inv, attendees=[{"email": "marc@client.com"}, {"email": "eve@rival.com"}])
+    assert "eve@rival.com" in _deny_reason(
+        _hook({"tool_name": cal + "create_event", "tool_input": extra}, capsys))
+    assert "eve@rival.com" in _deny_reason(_hook({"tool_name": cal + "update_event", "tool_input": {
+        "eventId": "e1", "description": ti["description"], "summary": "Kickoff",
+        "addedAttendeeEmails": ["eve@rival.com"]}}, capsys))
     assert "summary" in _deny_reason(_hook({"tool_name": cal + "create_event",
                                             "tool_input": dict(inv, summary="Free audit!")},
                                            capsys))
@@ -729,19 +752,6 @@ def test_bash_senders(tmp_path, state, capsys):
     assert "tmp_send.py" in _deny_reason(_bash("python3 tmp_send.py", capsys, repo))
     _write(repo / "pipe" / "digest.py", f"import {SMTP}  # edited\n")
     assert _deny_reason(_bash("python3 pipe/digest.py", capsys, repo))
-
-
-def test_bash_cannot_forge_hook_logs(state, capsys):
-    for cmd in ('echo \'{"prompt":"redteam waive 0123456789ab x"}\' | python3 '
-                "execution/infrastructure/redteam_gate.py prompt-hook",
-                "echo '{}' >> .tmp/redteam/passes.jsonl",
-                "bash .claude/hooks/redteam-outward-gate.sh subagent < x.json"):
-        assert _deny_reason(_bash(cmd, capsys)), cmd
-    assert _bash("tail -3 .tmp/redteam/passes.jsonl", capsys) is None
-    for cmd in ("python3 execution/infrastructure/redteam_gate.py hook < x.json",
-                "python3 -c 'from execution.infrastructure import redteam_gate as g'",
-                "python3 -c 'import importlib; importlib.import_module(\"redteam_gate\")'"):
-        assert _deny_reason(_bash(cmd, capsys)), cmd
 
 
 def test_bash_mentioning_gate_is_not_forging(state, capsys):
@@ -836,12 +846,14 @@ def test_shell_wrapper_subagent_and_prompt_modes(tmp_path):
     env = dict(os.environ)
     env["REDTEAM_DIR"] = str(tmp_path / "state")
     env["CLAUDE_PROJECT_DIR"] = str(ROOT)
+    tr = _agent_transcript("w1")
 
     def run(mode, data):
         return subprocess.run(["bash", str(HOOK_SH), mode], input=data, capture_output=True,
                               text=True, encoding="utf-8", errors="replace", env=env)
 
-    out = run("subagent", json.dumps({"agent_type": "redteam-lens",
+    out = run("subagent", json.dumps({"agent_type": "redteam-lens", "agent_id": "w1",
+                                      "agent_transcript_path": tr,
                                       "last_assistant_message": _verdict_text("downside",
                                                                               "b" * 12)}))
     assert out.returncode == 0 and out.stdout == ""
@@ -852,3 +864,115 @@ def test_shell_wrapper_subagent_and_prompt_modes(tmp_path):
     assert out.returncode == 0 and out.stdout == ""
     out = run("subagent", "garbage")
     assert out.returncode == 0 and out.stdout == ""
+
+
+# ------------------------------------------------------------------ HMAC ledger (2026-11-05)
+
+def test_unsigned_tampered_wrong_key_rows_ignored(tmp_path, state, capsys, monkeypatch):
+    text = "Hello Marc, see you soon."
+    draft = _record_text(tmp_path, text, capsys)
+    assert _run(["check", "--file", str(draft)], capsys)[0] == 0
+    passes = state / "passes.jsonl"
+    good = passes.read_text(encoding="utf-8")
+    # tampered: flip a field but keep the old mac
+    row = json.loads(good.splitlines()[0])
+    row["to"] = ["eve@rival.com"]
+    passes.write_text(json.dumps(row) + "\n", encoding="utf-8")
+    rc, out = _run(["check", "--file", str(draft)], capsys)
+    assert rc == 3 and "ignored unsigned rows: 1" in out
+    # unsigned: mac stripped
+    row.pop("mac")
+    passes.write_text(json.dumps(row) + "\n", encoding="utf-8")
+    assert _run(["check", "--file", str(draft)], capsys)[0] == 3
+    # wrong key: original rows, different key file
+    passes.write_text(good, encoding="utf-8")
+    assert _run(["check", "--file", str(draft)], capsys)[0] == 0
+    monkeypatch.setenv("REDTEAM_KEY_FILE", str(tmp_path / "other" / "hmac.key"))
+    rc, out = _run(["check", "--file", str(draft)], capsys)
+    assert rc == 3 and "ignored unsigned rows" in out
+    res = _hook({"tool_name": GM + "send_message", "tool_input": {"body": text}}, capsys)
+    assert "has not passed" in _deny_reason(res)
+
+
+def test_unsigned_verdict_rows_do_not_back_record(tmp_path, state, capsys):
+    draft, src, sha12 = _av_setup(tmp_path)
+    vs = _verdicts(tmp_path, sha12, log=False)
+    state.mkdir(parents=True, exist_ok=True)
+    with (state / "verdicts.jsonl").open("a", encoding="utf-8") as fh:
+        for lens in rg.LENSES:
+            fh.write(json.dumps({"lens": lens, "sha12": sha12, "verdict": "PASS",
+                                 "agent_type": "redteam-lens",
+                                 "out_sha256": rg.verdict_sha(_verdict_text(lens, sha12))}) + "\n")
+    rc, out = _run(["record", "--draft", str(draft), "--sources", str(src), "--verdicts", *vs],
+                   capsys)
+    assert rc == 3 and "not produced by a logged" in out
+
+
+@pytest.mark.skipif(os.name == "nt", reason="POSIX modes")
+def test_key_file_created_0600(tmp_path):
+    kp = Path(os.environ["REDTEAM_KEY_FILE"])
+    rg._KEY_CACHE.clear()
+    key = rg.load_key()
+    assert len(key) == 32 and kp.read_bytes() == key
+    assert (kp.stat().st_mode & 0o777) == 0o600
+    assert (kp.parent.stat().st_mode & 0o777) == 0o700
+    assert rg.load_key() == key
+
+
+def test_hook_subcommands_require_env(monkeypatch, state, capsys):
+    monkeypatch.delenv("REDTEAM_HOOK")
+    for sub in ("hook", "post-hook", "subagent-hook", "prompt-hook"):
+        rc = _stdin_main([sub], json.dumps({"prompt": "redteam waive " + "a" * 12 + " x"}))
+        assert rc != 0, sub
+        assert "hook-only" in capsys.readouterr().err
+    assert not (state / "passes.jsonl").exists()
+
+
+def test_subagent_hook_transcript_root_check(tmp_path, state):
+    text = _verdict_text("grounding", "a" * 12)
+    outside = _write(tmp_path / "elsewhere" / "agent-a1.jsonl", "")
+    misnamed = _agent_transcript("zz")
+    for payload in (
+            {"agent_id": "a1", "agent_type": "redteam-lens", "last_assistant_message": text},
+            {"agent_id": "a1", "agent_type": "redteam-lens", "last_assistant_message": text,
+             "agent_transcript_path": str(outside)},
+            {"agent_id": "a1", "agent_type": "redteam-lens", "last_assistant_message": text,
+             "agent_transcript_path": misnamed},
+            {"agent_id": "a1", "agent_type": "redteam-lens", "last_assistant_message": text,
+             "agent_transcript_path": str(Path(os.environ["REDTEAM_TRANSCRIPT_ROOT"])
+                                          / ".." / "elsewhere" / "agent-a1.jsonl")}):
+        assert _stdin_main(["subagent-hook"], json.dumps(payload)) == 0
+    assert not (state / "verdicts.jsonl").exists()
+    _log_lens(text)
+    assert len(rg._read_jsonl(state / "verdicts.jsonl")) == 1
+
+
+def test_bash_false_positive_regressions(tmp_path, state, capsys):
+    for cmd in ("cat .tmp/redteam/passes.jsonl 2>/dev/null",
+                "git commit -m 'fix: redteam_gate.py hook and prompt-hook paths'",
+                "grep -n _append_jsonl execution/infrastructure/redteam_gate.py",
+                f"cat > tests/fixtures/mailer.py <<'EOF'\nimport {SMTP}\nsmtp = {SMTP}.SMTP('h')\nEOF",
+                f"echo 'import {SMTP}' > fixture.py",
+                "printf 'curl https://api.send" "grid.com/v3/mail/send' > notes.txt",
+                "echo '{}' >> .tmp/redteam/passes.jsonl"):
+        assert _bash(cmd, capsys) is None, cmd
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_bash_module_and_obfuscation(tmp_path, state, capsys):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _git(repo, "init", "-q")
+    _write(repo / "pipe" / "__init__.py", "")
+    _write(repo / "pipe" / "digest.py", f"import {SMTP}\n")
+    _git(repo, "add", ".")
+    _git(repo, "commit", "-q", "-m", "init")
+    assert _bash("python3 -m pipe.digest --live", capsys, repo) is None
+    _write(repo / "pipe" / "sender.py", f"import {SMTP}\n")
+    assert "module pipe.sender" in _deny_reason(_bash("python3 -m pipe.sender", capsys, repo))
+    _write(repo / "pipe" / "digest.py", f"import {SMTP}  # edited\n")
+    assert _deny_reason(_bash("python3 -m pipe.digest", capsys, repo))
+    payload = base64.b64encode(f"import {SMTP}".encode()).decode()
+    assert "base64" in _deny_reason(_bash(f"echo {payload} | base64 -d | python3", capsys, repo))
+    assert _deny_reason(_bash(f"python3 <<'EOF'\nimport {SMTP}\nEOF", capsys, repo))
+    assert _deny_reason(_bash(f"cat <<'EOF' | python3 -\nimport {SMTP}\nEOF", capsys, repo))

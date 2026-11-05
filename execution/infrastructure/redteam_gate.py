@@ -1,8 +1,8 @@
 """Red-team gate for outward text: deterministic layer (claim grounding, pass ledger, hooks).
 
-description: Deterministic red-team gate for outward text: grounds draft claims against sources, records 4-lens passes bound to logged lens runs, gates Gmail/Calendar/Bash senders (fail-closed).
-inputs: CLI subcommands sha|ground|record|check|waive|hook|post-hook|subagent-hook|prompt-hook (--draft, --sources, --verdicts, --subject, --to, --cc, --bcc, --attachments, --file); hook JSON on stdin; env REDTEAM_DIR.
-outputs: stdout claim table/JSON/sha12; .tmp/redteam/{ground/<sha12>.json, passes.jsonl, verdicts.jsonl, waivers.jsonl, drafts.jsonl}; PreToolUse deny JSON; UserPromptSubmit additionalContext JSON. Exit 0 ok, 1 ungrounded/weak, 2 usage, 3 refused/not passed.
+description: Deterministic red-team gate for outward text: grounds draft claims against sources, records HMAC-signed 4-lens passes bound to logged lens runs, gates Gmail/Calendar/Bash senders.
+inputs: CLI subcommands sha|ground|record|check|waive|hook|post-hook|subagent-hook|prompt-hook (--draft, --sources, --verdicts, --subject, --to, --cc, --bcc, --attachments, --file); hook JSON on stdin; env REDTEAM_DIR, REDTEAM_KEY_FILE, REDTEAM_HOOK (=1 for hook-only subcommands), REDTEAM_TRANSCRIPT_ROOT.
+outputs: stdout claim table/JSON/sha12; .tmp/redteam/{ground/<sha12>.json, passes.jsonl, verdicts.jsonl, waivers.jsonl, drafts.jsonl} (every row HMAC-signed); ~/.claude/redteam/hmac.key (created 0600 on first use); PreToolUse deny JSON; UserPromptSubmit additionalContext JSON. Exit 0 ok, 1 ungrounded/weak, 2 usage, 3 refused/not passed.
 
 Details
 -------
@@ -14,13 +14,17 @@ subagents; this script does what can be done deterministically:
   link/img URLs, alt text and comments become visible text; a non-empty <script>/<style> refuses.
 * ground: money / percent / number+unit / date / quote / name claims plus overclaim words, checked
   lexically against sources. `weak` and `ungrounded` both fail.
+* Ledger rows carry `mac` = HMAC-SHA256 (key file, see key_path) over canonical JSON of the row;
+  readers ignore unsigned/invalid rows. Only hooks and a successful `record` sign.
+* hook/post-hook/subagent-hook/prompt-hook refuse unless REDTEAM_HOOK=1 (set by the hook script).
 * subagent-hook (SubagentStop): logs every strict LENS/DRAFT-SHA/VERDICT header produced by a
-  subagent to the hook-owned verdicts.jsonl (with the sha256 of the normalised output).
+  subagent whose agent_transcript_path is <transcript root>/**/agent-<agent_id>.jsonl.
 * record: zero ungrounded/weak claims + four PASS verdict files whose normalised sha256 is in
   verdicts.jsonl (lens + sha12 + PASS, agent_type redteam-lens). Binds subject/recipients/attachments.
 * prompt-hook (UserPromptSubmit): `redteam waive <sha12> <reason>` typed by the operator is the
   only waiver path. The `waive` subcommand only prints how to waive (exit 2).
-* hook (PreToolUse): Gmail send/reply/forward/draft, Calendar invites, Bash inline senders.
+* hook (PreToolUse): Gmail send/reply/forward/draft, Calendar invites (attendees within the
+  recorded recipients), Bash inline senders (only commands that execute something are scanned).
 * post-hook (PostToolUse): Gmail draft id -> text sha map.
 
 Threat model and limits: directives/infrastructure/redteam_gate.md.
@@ -30,6 +34,7 @@ from __future__ import annotations
 import argparse
 import bisect
 import hashlib
+import hmac
 import html
 import json
 import os
@@ -57,7 +62,8 @@ REASON_EXCERPT_CHARS = 60
 SELF_COPY_SHARE = 0.6
 
 PASSES, VERDICTS, WAIVERS, DRAFTS = "passes.jsonl", "verdicts.jsonl", "waivers.jsonl", "drafts.jsonl"
-HOOK_OWNED = (PASSES, VERDICTS, WAIVERS, DRAFTS)
+HOOK_CMDS = {"hook", "post-hook", "subagent-hook", "prompt-hook"}
+KEY_BYTES = 32
 
 GMAIL_KNOWN = {"send_message", "reply", "forward", "create_draft", "update_draft"}
 GMAIL_READ_PREFIXES = ("get_", "list_", "search_", "delete_", "trash_", "untrash_")
@@ -100,6 +106,81 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
+def key_path() -> Path:
+    env = os.environ.get("REDTEAM_KEY_FILE", "").strip()
+    return Path(env).expanduser() if env else Path.home() / ".claude" / "redteam" / "hmac.key"
+
+
+_KEY_CACHE: dict[str, bytes] = {}
+
+
+def _chmod(p: Path, mode: int) -> None:
+    try:
+        os.chmod(p, mode)
+    except OSError as exc:  # best-effort (Windows ACLs ignore POSIX modes); the key still works
+        print(f"redteam: chmod {p.name} failed ({type(exc).__name__})", file=sys.stderr)
+
+
+def load_key() -> bytes:
+    """HMAC key; created atomically (dir 0700, file 0600) on first use."""
+    kp = key_path()
+    cached = _KEY_CACHE.get(str(kp))
+    if cached:
+        return cached
+    if not kp.is_file():
+        kp.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+        _chmod(kp.parent, 0o700)
+        tmp = kp.with_name(f".{kp.name}.{os.getpid()}.tmp")
+        fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_BINARY", 0), 0o600)
+        try:
+            os.write(fd, os.urandom(KEY_BYTES))
+        finally:
+            os.close(fd)
+        _chmod(tmp, 0o600)
+        try:
+            os.link(tmp, kp)  # fails if another process won the race: then use its key
+        except FileExistsError:
+            pass
+        except OSError:
+            if not kp.exists():
+                os.replace(tmp, kp)
+        finally:
+            if tmp.exists():
+                tmp.unlink()
+    key = kp.read_bytes()
+    if len(key) < KEY_BYTES:
+        raise UsageError(f"redteam HMAC key {kp} is shorter than {KEY_BYTES} bytes")
+    _KEY_CACHE[str(kp)] = key
+    return key
+
+
+def _canonical(row: dict) -> bytes:
+    body = {k: v for k, v in row.items() if k != "mac"}
+    return json.dumps(body, sort_keys=True, separators=(",", ":"),
+                      ensure_ascii=False).encode("utf-8")
+
+
+def sign_row(row: dict) -> dict:
+    out = {k: v for k, v in row.items() if k != "mac"}
+    out["mac"] = hmac.new(load_key(), _canonical(out), hashlib.sha256).hexdigest()
+    return out
+
+
+def row_signed(row: dict) -> bool:
+    mac = row.get("mac")
+    if not isinstance(mac, str):
+        return False
+    good = hmac.new(load_key(), _canonical(row), hashlib.sha256).hexdigest()
+    return hmac.compare_digest(mac, good)
+
+
+def read_signed(path: Path) -> tuple[list[dict], int]:
+    """(rows with a valid HMAC, count of unsigned/invalid rows ignored)."""
+    rows = _read_jsonl(path)
+    good = [r for r in rows if row_signed(r)]
+    return good, len(rows) - len(good)
+
+
 def _read_jsonl(path: Path) -> list[dict]:
     rows: list[dict] = []
     if not path.is_file():
@@ -122,7 +203,7 @@ def _read_jsonl(path: Path) -> list[dict]:
 def _append_jsonl(path: Path, row: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as fh:
-        fh.write(json.dumps(row, ensure_ascii=False) + "\n")
+        fh.write(json.dumps(sign_row(row), ensure_ascii=False) + "\n")
 
 
 def _sha256(data: str | bytes) -> str:
@@ -138,16 +219,19 @@ def _is_lens_agent(agent_type: Any) -> bool:
 
 
 class Ledger:
-    """Pass rows that are backed by hook-owned logs (verdicts.jsonl / waivers.jsonl)."""
+    """HMAC-signed pass rows backed by signed hook logs (verdicts.jsonl / waivers.jsonl)."""
 
     def __init__(self, state: Path) -> None:
         self.verdicts: dict[str, list[dict]] = {}
-        for r in _read_jsonl(state / VERDICTS):
+        vrows, n1 = read_signed(state / VERDICTS)
+        wrows, n2 = read_signed(state / WAIVERS)
+        self.all_rows, n3 = read_signed(state / PASSES)
+        self.ignored = n1 + n2 + n3
+        for r in vrows:
             if isinstance(r.get("out_sha256"), str):
                 self.verdicts.setdefault(r["out_sha256"], []).append(r)
-        self.waived12 = {str(r.get("sha12")) for r in _read_jsonl(state / WAIVERS)
+        self.waived12 = {str(r.get("sha12")) for r in wrows
                          if _SHA12_RE.fullmatch(str(r.get("sha12")))}
-        self.all_rows = _read_jsonl(state / PASSES)
         self.rows = [r for r in self.all_rows if self.row_valid(r)]
 
     def verdict_ok(self, out_sha: Any, lens: str, sha12: str) -> bool:
@@ -1114,6 +1198,8 @@ def cmd_check(args: argparse.Namespace) -> int:
         print(str(exc), file=sys.stderr)
         return EXIT_USAGE
     ledger = Ledger(state_dir())
+    if ledger.ignored:
+        print(f"ignored unsigned rows: {ledger.ignored}")
     rows = ledger.rows_for(sha)
     if rows:
         print(f"PASSED {sha[:12]}" + (" (waived)" if rows[0].get("waived") else ""))
@@ -1160,7 +1246,7 @@ def text_fields(tool_input: dict, meta: set[str], skip: Iterable[str] = ("subjec
 
 def latest_draft_row(state: Path, draft_id: str) -> dict | None:
     row = None
-    for r in _read_jsonl(state / DRAFTS):
+    for r in read_signed(state / DRAFTS)[0]:
         if str(r.get("draft_id")) == draft_id:
             row = r
     return row
@@ -1225,6 +1311,29 @@ def gmail_decision(action: str, ti: dict, state: Path) -> str | None:
     return f"{action} has no body text to vet"
 
 
+def attendee_error(ti: dict, rows: list[dict]) -> str | None:
+    """Attendees must be a subset of --to/--cc/--bcc of one passing record (waiver: any)."""
+    wanted: set[str] = set()
+    for k in CAL_ATTENDEE_KEYS:
+        if _present(ti.get(k)):
+            addrs, bad = parse_addrs(ti[k])
+            if bad:
+                return f"{k} has unparseable attendee(s): {', '.join(bad[:3])}"
+            wanted |= addrs
+    if not wanted:
+        return None
+    best: list[str] = sorted(wanted)
+    for r in rows:
+        if r.get("waived") is True:
+            return None
+        allowed = {str(a).lower() for k in ("to", "cc", "bcc") for a in (r.get(k) or [])}
+        extra = sorted(wanted - allowed)
+        if not extra:
+            return None
+        best = min(best, extra, key=len)
+    return ("attendee(s) not recorded with --to/--cc/--bcc: " + ", ".join(best[:5]))
+
+
 def calendar_decision(action: str, ti: dict, state: Path) -> str | None:
     invites = any(_present(ti.get(k)) for k in CAL_ATTENDEE_KEYS)
     fields = text_fields(ti, CAL_META, skip=())
@@ -1252,17 +1361,23 @@ def calendar_decision(action: str, ti: dict, state: Path) -> str | None:
         elif key != "summary":
             others.append((key, raw, is_html))
     summ = ti.get("summary")
+    summ_rows: list[dict] = []
     if isinstance(summ, str) and summ.strip():
         ssha = sha_of(summ)
-        ok = bool(ledger.rows_for(ssha)) or any(
+        summ_rows = ledger.rows_for(ssha)
+        ok = bool(summ_rows) or any(
             r.get("waived") is True or r.get("subject_sha") == ssha for r in desc_rows)
         if not ok:
             return _not_passed(f"{action}.summary", normalise(summ), ssha) + (
                 " (record the description with --subject \"<summary>\", or red-team the summary)")
+    if invites:
+        err = attendee_error(ti, desc_rows or summ_rows)
+        if err:
+            return f"{action}: {err}"
     return _check_fields(action, others, ti, ledger, envelope=False)
 
 
-# Literals are split so this file does not match its own patterns when it is run.
+# Literals are split so this file does not match its own patterns when it is scanned.
 _SENDER_SIMPLE = ("smtp" "lib", "send" "mail", "messages().se" "nd(", "api.send" "grid.com",
                   "api.re" "send.com", "api.post" "markapp.com")
 _GMAIL_API = "gmail.googleapis" ".com"
@@ -1272,15 +1387,20 @@ _EXEC_SCRIPT_RE = re.compile(
     r"(?:^|[\s;&|(])(?:\S*/)?(?:python(?:3(?:\.\d+)?)?|py|bash|sh|node)(?:\.exe)?\s+"
     r"(?:-[\w.]+\s+)*([^\s;&|<>]+\.(?:py|sh|js|mjs))(?=\s|$|[;&|])"
     r"|(?:^|[\s;&|(])(\.{0,2}/[^\s;&|<>]+\.(?:py|sh))(?=\s|$|[;&|])", re.I)
-_STATE_WRITE_RE = re.compile(r">|\btee\b|\bsed\s+-i|\bcp\b|\bmv\b|\brm\b|\btruncate\b|\bdd\b|"
-                             r"write|open\(|\btouch\b")
-# Narrow on purpose: match an actual invocation of a hook-only subcommand or an import of the
-# module, not any command that merely mentions the file (a commit message or a `git add` path).
-_GATE_FORGE_RE = re.compile(
-    r"redteam_gate(?:\.py)?['\"]?\s+(?:hook|post-hook|subagent-hook|prompt-hook)\b"
-    r"|(?:\bimport|\bfrom)\s+[\w.]*redteam_gate\b|import_module\([^)]*redteam_gate"
-    r"|_append_jsonl")
-_HOOK_SH_RE = re.compile(r"redteam-outward-gate\.sh['\"]?\s+(?:pre|post|subagent|prompt)\b")
+# A program that executes code or sends mail, in command position (start of a simple command,
+# optionally behind env assignments or a wrapper such as sudo/env/xargs/nohup/time/exec).
+_EXEC_WORDS = (r"python(?:3(?:\.\d+)?)?|py|node|deno|bun|ruby|perl|php|curl|wget|send" r"mail|"
+               r"mailx?|msmtp|(?:ba|z|da|k)?sh")
+_EXEC_RE = re.compile(
+    r"(?:^|[\n;&|(`{]|\$\()\s*(?:(?:sudo|env|exec|xargs|nohup|time|command|nice)\s+(?:-\S+\s+)*)*"
+    r"(?:[A-Za-z_][A-Za-z0-9_]*=\S*\s+)*(?:\S*[/\\])?(?:" + _EXEC_WORDS + r")(?:\.exe)?(?=[\s;&|)]|$)",
+    re.I)
+_PY_MOD_RE = re.compile(r"(?:^|[\s;&|(])(?:\S*/)?python(?:3(?:\.\d+)?)?(?:\.exe)?\s+"
+                        r"(?:-[A-Za-z]+\s+)*-m\s*([A-Za-z_][\w.]*)", re.I)
+_B64_PIPE_RE = re.compile(
+    r"base64\s+(?:\S+\s+)*?(?:-d|-D|--decode)\b[^\n]*\|\s*(?:\S*/)?(?:" + _EXEC_WORDS + r")\b",
+    re.I)
+_HEREDOC_RE = re.compile(r"<<(-?)\s*(['\"]?)([A-Za-z_][\w-]*)\2")
 
 
 def sender_hit(low: str) -> str | None:
@@ -1294,6 +1414,29 @@ def sender_hit(low: str) -> str | None:
     return None
 
 
+def split_heredocs(command: str) -> tuple[str, list[tuple[str, str]]]:
+    """(command text without heredoc bodies, [(opener line, body)])."""
+    lines = command.split("\n")
+    outer: list[str] = []
+    docs: list[tuple[str, str]] = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        outer.append(line)
+        i += 1
+        for m in _HEREDOC_RE.finditer(line):
+            strip_tabs, delim = m.group(1) == "-", m.group(3)
+            body: list[str] = []
+            while i < len(lines):
+                cur = lines[i].lstrip("\t") if strip_tabs else lines[i]
+                i += 1
+                if cur == delim:
+                    break
+                body.append(lines[i - 1])
+            docs.append((line, "\n".join(body)))
+    return "\n".join(outer), docs
+
+
 def _git_ok(cwd: Path, *args: str) -> bool:
     import subprocess
     try:
@@ -1305,8 +1448,25 @@ def _git_ok(cwd: Path, *args: str) -> bool:
     return r.returncode == 0
 
 
+def git_clean(path: Path) -> bool:
+    """True if the file is git-tracked and identical to HEAD."""
+    cwd = path.parent
+    return (_git_ok(cwd, "ls-files", "--error-unmatch", "--", str(path))
+            and _git_ok(cwd, "diff", "--quiet", "HEAD", "--", str(path)))
+
+
+def resolve_module(mod: str, cwd: Path) -> Path | None:
+    """Repo file a `python -m mod` would run (cwd first, then the repo root), or None."""
+    rel = Path(*mod.split("."))
+    for base in (cwd, REPO_ROOT):
+        for cand in (base / rel.with_suffix(".py"), base / rel / "__main__.py"):
+            if cand.is_file():
+                return cand.resolve()
+    return None
+
+
 def tracked_script_run(command: str, cwd: Path) -> bool:
-    """True if the command only runs a committed, unmodified script (no inline code)."""
+    """True if the command only runs a committed, unmodified script or `-m` module."""
     import shlex
     m = re.match(r"^\s*cd\s+(\"[^\"]+\"|'[^']+'|\S+)\s*&&\s*", command)
     if m:
@@ -1331,6 +1491,9 @@ def tracked_script_run(command: str, cwd: Path) -> bool:
     i += 1
     while i < len(toks) and toks[i].startswith("-"):
         flag = toks[i]
+        if is_py and flag == "-m" and i + 1 < len(toks):
+            path = resolve_module(toks[i + 1], cwd)
+            return path is not None and git_clean(path)
         if not is_py or not (flag in {"-u", "-B", "-E", "-s", "-I", "-O", "-OO"}
                              or re.fullmatch(r"-\d+(?:\.\d+)?", flag)):
             return False
@@ -1341,53 +1504,51 @@ def tracked_script_run(command: str, cwd: Path) -> bool:
     if not script.endswith(".py" if is_py else ".sh"):
         return False
     path = (cwd / script).resolve()
-    if not path.is_file():
-        return False
-    return (_git_ok(cwd, "ls-files", "--error-unmatch", "--", str(path))
-            and _git_ok(cwd, "diff", "--quiet", "HEAD", "--", str(path)))
+    return path.is_file() and git_clean(path)
+
+
+def _scan_file(p: Path, label: str) -> str | None:
+    try:
+        if p.is_file() and p.stat().st_size <= MAX_SCAN_BYTES:
+            hit = sender_hit(p.read_text(encoding="utf-8", errors="replace").lower())
+            return f"{hit} in {label}" if hit else None
+    except OSError as exc:
+        print(f"redteam: could not scan {label} ({type(exc).__name__})", file=sys.stderr)
+    return None
 
 
 def bash_decision(ti: dict, cwd_raw: Any) -> str | None:
+    """Deny inline email senders. Only commands that execute something are scanned; pure file
+    writes, reads, greps and commits pass untouched (see directive: limits)."""
     command = ti.get("command")
     if not isinstance(command, str):
         raise TypeError("Bash command is not a string")
-    low = command.lower()
-    if _GATE_FORGE_RE.search(low):
-        return ("redteam gate: hook-owned redteam_gate.py subcommands and imports are not "
-                "agent-callable (verdicts come from SubagentStop, waivers from the operator).")
-    if _HOOK_SH_RE.search(low):
-        return "redteam gate: the outward-gate hook script is not agent-callable."
-    if any(n in low for n in HOOK_OWNED) and _STATE_WRITE_RE.search(low):
-        return ("redteam gate: red-team ledgers (passes/verdicts/waivers/drafts.jsonl) are "
-                "hook-owned; read them, never write them.")
+    outer, docs = split_heredocs(command)
+    if not _EXEC_RE.search(outer):
+        return None
+    if _B64_PIPE_RE.search(outer):
+        return (f"redteam gate: Bash pipes base64-decoded data into an interpreter "
+                f"(unscannable). {BASH_DENY}")
     cwd = Path(cwd_raw) if isinstance(cwd_raw, str) and cwd_raw else Path.cwd()
-    hit = sender_hit(low)
+    # Heredoc bodies count only when their opener line feeds a program (python3 - <<EOF).
+    scan = "\n".join([outer] + [body for opener, body in docs if _EXEC_RE.search(opener)])
+    hit = sender_hit(scan.lower())
     if hit is None:
-        for m in _EXEC_SCRIPT_RE.finditer(command):
+        for m in _EXEC_SCRIPT_RE.finditer(outer):
             tok = m.group(1) or m.group(2)
             p = Path(tok).expanduser()
-            p = p if p.is_absolute() else cwd / p
-            try:
-                if p.is_file() and p.stat().st_size <= MAX_SCAN_BYTES:
-                    hit = sender_hit(p.read_text(encoding="utf-8", errors="replace").lower())
-            except OSError as exc:
-                print(f"redteam: could not scan {tok} ({type(exc).__name__})", file=sys.stderr)
+            hit = _scan_file(p if p.is_absolute() else cwd / p, tok)
             if hit:
-                hit = f"{hit} in {tok}"
+                break
+    if hit is None:
+        for m in _PY_MOD_RE.finditer(outer):
+            mp = resolve_module(m.group(1), cwd)
+            hit = _scan_file(mp, f"module {m.group(1)}") if mp else None
+            if hit:
                 break
     if hit is None or tracked_script_run(command, cwd):
         return None
     return f"redteam gate: Bash command sends email inline ({hit}). {BASH_DENY}"
-
-
-def file_tool_decision(ti: dict, state: Path) -> str | None:
-    fp = ti.get("file_path") or ti.get("notebook_path")
-    if not isinstance(fp, str):
-        return None
-    p = Path(fp).resolve()
-    if p.name in HOOK_OWNED and p.is_relative_to(state.resolve()):
-        return f"redteam gate: {p.name} is hook-owned; never write it."
-    return None
 
 
 def hook_decision(payload: dict, state: Path) -> str | None:
@@ -1402,8 +1563,6 @@ def hook_decision(payload: dict, state: Path) -> str | None:
         raise TypeError("tool_input is not an object")
     if name == "Bash":
         return bash_decision(ti, payload.get("cwd"))
-    if name in ("Write", "Edit", "MultiEdit", "NotebookEdit"):
-        return file_tool_decision(ti, state)
     action = gmail_action(name)
     if action is not None:
         reason = gmail_decision(action, ti, state)
@@ -1575,18 +1734,36 @@ def transcript_final_text(path: Path, agent_id: str, main_transcript: bool) -> s
     return last_text
 
 
+def transcript_root() -> Path:
+    env = os.environ.get("REDTEAM_TRANSCRIPT_ROOT", "").strip()
+    return Path(env).expanduser() if env else Path.home() / ".claude" / "projects"
+
+
+def agent_transcript(payload: dict) -> Path | None:
+    """The subagent's own transcript, only if it lives under the transcript root and is named
+    agent-<agent_id>.jsonl (a SubagentStop payload the harness wrote); else None."""
+    aid, p = payload.get("agent_id"), payload.get("agent_transcript_path")
+    if not (isinstance(aid, str) and re.fullmatch(r"[\w-]{1,128}", aid)
+            and isinstance(p, str) and p):
+        return None
+    try:
+        rp = Path(p).expanduser().resolve()
+        root = transcript_root().resolve()
+    except OSError:
+        return None
+    if rp.name != f"agent-{aid}.jsonl" or not rp.is_relative_to(root) or not rp.is_file():
+        return None
+    return rp
+
+
 def subagent_final_text(payload: dict) -> tuple[str, str]:
-    lam = payload.get("last_assistant_message")
-    text = _content_text(lam)
+    tp = agent_transcript(payload)
+    if tp is None:
+        return "", ""
+    text = _content_text(payload.get("last_assistant_message"))
     if text.strip():
         return text, "last_assistant_message"
-    agent_id = str(payload.get("agent_id") or "")
-    for key, main in (("agent_transcript_path", False), ("transcript_path", True)):
-        p = payload.get(key)
-        if isinstance(p, str) and p:
-            text = transcript_final_text(Path(p).expanduser(), agent_id, main)
-            return text, key
-    return "", ""
+    return transcript_final_text(tp, str(payload["agent_id"]), False), "agent_transcript_path"
 
 
 def cmd_subagent_hook(_args: argparse.Namespace) -> int:
@@ -1604,8 +1781,7 @@ def cmd_subagent_hook(_args: argparse.Namespace) -> int:
             "lens": v["lens"], "sha12": v["sha"], "verdict": v["verdict"],
             "out_sha256": verdict_sha(text), "agent_id": str(payload.get("agent_id") or ""),
             "agent_type": str(payload.get("agent_type") or ""),
-            "transcript_path": str(payload.get("agent_transcript_path")
-                                   or payload.get("transcript_path") or ""),
+            "transcript_path": str(payload.get("agent_transcript_path") or ""),
             "text_from": origin, "ts": _now()})
     except Exception as exc:  # SubagentStop must never block; a missing row only makes record
         # refuse (fail-closed), so logging is enough.
@@ -1702,6 +1878,11 @@ def main(argv: list[str] | None = None) -> int:
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8", errors="replace")
     args = build_parser().parse_args(argv)
+    if args.cmd in HOOK_CMDS and os.environ.get("REDTEAM_HOOK") != "1":
+        print(f"redteam: `{args.cmd}` is hook-only (run by .claude/hooks/redteam-outward-gate.sh "
+              "with REDTEAM_HOOK=1); verdicts come from SubagentStop, waivers from the operator.",
+              file=sys.stderr)
+        return EXIT_USAGE
     return args.func(args)
 
 
