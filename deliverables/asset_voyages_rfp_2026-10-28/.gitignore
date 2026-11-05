@@ -3,3 +3,6 @@ node_modules/
 .dev.vars
 *.zip
 !site/demo-wordpress/*.zip
+*.cj
+*.har
+storage_state*.json
