@@ -31,7 +31,10 @@ HMAC-signed `pipeline-auditor` PASS for that exact code (git tree).
 Exit 0 when a signed PASS row has the commit's tree, or a PASS commit is an ancestor and every path
 changed since is exempt, or it is a 2-parent merge whose parents are both covered (recursively,
 depth ≤ 64) and a clean `git merge-tree --write-tree p1 p2` reproduces its tree exactly (no manual
-change, no conflict resolution). Octopus merges, conflicted merges and git < 2.38 deny. Exit 1 lists unaudited files; exit 2 unknown commit. Unsigned or tampered
+change, no conflict resolution). Octopus merges, conflicted merges and git < 2.38 deny. Results are
+memoized per sha, only the 8 nearest audited ancestors are tried per commit, and a hard budget
+(2,000 git calls or 20 s) denies with "history too complex; run pipeline-auditor on this commit".
+Symlinks (mode 120000) are never exempt. Exit 1 lists unaudited files; exit 2 unknown commit. Unsigned or tampered
 rows are ignored.
 
 Exempt paths ("pure reads and no-logic edits"), deliberately minimal: `docs/**/*.md`,

@@ -25,6 +25,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import Any
 
@@ -141,46 +142,108 @@ def merge_tree_supported(repo: str | Path) -> bool:
     return bool(m) and (int(m.group(1)), int(m.group(2))) >= (2, 38)
 
 
-def _merge_ok(repo: str | Path, sha: str, tree: str, rows: list[dict], depth: int) -> bool:
+MAX_GIT_CALLS = 2000
+MAX_ANCESTOR_ROWS = 8  # nearest audited ancestors tried per commit
+MAX_SECONDS = 20.0
+TOO_COMPLEX = "history too complex for the audit gate; run pipeline-auditor on this commit"
+
+
+class TooComplex(Exception):
+    pass
+
+
+class _Ctx:
+    """One check run: memo by sha, signed rows precomputed once, hard git-call/time budget."""
+
+    def __init__(self, repo: str | Path, rows: list[dict]) -> None:
+        self.repo = repo
+        self.trees = {r["tree_sha"] for r in rows}
+        self.commits = sorted({r["commit"] for r in rows})
+        self.memo: dict[str, tuple[bool, list[str]]] = {}
+        self.calls = 0
+        self.deadline = time.monotonic() + MAX_SECONDS
+        self._mt: bool | None = None
+
+    def git(self, *args: str) -> str | None:
+        self.calls += 1
+        if self.calls > MAX_GIT_CALLS or time.monotonic() > self.deadline:
+            raise TooComplex(TOO_COMPLEX)
+        return _git(self.repo, *args)
+
+    def merge_tree_ok(self) -> bool:
+        if self._mt is None:
+            self._mt = merge_tree_supported(self.repo)
+        return self._mt
+
+
+def _changed_unexempt(ctx: _Ctx, base: str, sha: str) -> list[str] | None:
+    """Non-exempt paths changed base..sha (symlinks, mode 120000, are never exempt)."""
+    raw = ctx.git("diff", "--raw", "-z", "--no-renames", "--no-abbrev", base, sha)
+    if raw is None:
+        return None
+    parts = raw.split("\0")
+    bad: list[str] = []
+    for meta, path in zip(parts[0::2], parts[1::2]):
+        modes = meta.lstrip(":").split()[:2]
+        if path and ("120000" in modes or not is_exempt(path)):
+            bad.append(path)
+    return sorted(bad)
+
+
+def _merge_ok(ctx: _Ctx, sha: str, tree: str, depth: int) -> bool:
     """A 2-parent merge is covered when both parents are covered and the merge introduced no
     manual change: a clean `git merge-tree --write-tree p1 p2` reproduces its tree exactly."""
-    parents = (_git(repo, "rev-list", "--parents", "-n", "1", sha) or "").split()[1:]
-    if len(parents) != 2 or depth >= MAX_MERGE_DEPTH or not merge_tree_supported(repo):
+    parents = (ctx.git("rev-list", "--parents", "-n", "1", sha) or "").split()[1:]
+    if len(parents) != 2 or depth >= MAX_MERGE_DEPTH or not ctx.merge_tree_ok():
         return False  # octopus / root / too deep / old git: deny
-    auto = _git(repo, "merge-tree", "--write-tree", parents[0], parents[1])  # None on conflict
+    auto = ctx.git("merge-tree", "--write-tree", parents[0], parents[1])  # None on conflict
     if not auto or auto.splitlines()[0].strip() != tree:
         return False
-    return all(_check(p, repo, rows, depth + 1)[0] for p in parents)
+    return all(_check(ctx, p, depth + 1)[0] for p in parents)
 
 
 def check(commit: str, repo: str | Path = ".") -> tuple[bool, list[str]]:
     """(ok, unaudited files for the closest audited ancestor, or all files if none)."""
-    return _check(commit, repo, pass_rows(), 0)
-
-
-def _check(commit: str, repo: str | Path, rows: list[dict], depth: int) -> tuple[bool, list[str]]:
+    ctx = _Ctx(repo, pass_rows())
     sha = _git(repo, "rev-parse", "--verify", "--quiet", f"{commit}^{{commit}}")
     if not sha:
         raise rg.UsageError(f"unknown commit {commit}")
-    tree = _git(repo, "rev-parse", f"{sha}^{{tree}}")
-    if any(r["tree_sha"] == tree for r in rows):
-        return True, []
-    if _merge_ok(repo, sha, tree or "", rows, depth):
+    try:
+        return _check(ctx, sha, 0)
+    except TooComplex as exc:
+        return False, [str(exc)]
+
+
+def _check(ctx: _Ctx, sha: str, depth: int) -> tuple[bool, list[str]]:
+    if sha in ctx.memo:
+        return ctx.memo[sha]
+    ctx.memo[sha] = (False, ["(cycle)"])  # provisional; commits cannot really cycle
+    res = _check_uncached(ctx, sha, depth)
+    ctx.memo[sha] = res
+    return res
+
+
+def _check_uncached(ctx: _Ctx, sha: str, depth: int) -> tuple[bool, list[str]]:
+    tree = ctx.git("rev-parse", f"{sha}^{{tree}}") or ""
+    if tree in ctx.trees:
         return True, []
     best: list[str] | None = None
-    for r in rows:
-        if _git(repo, "merge-base", "--is-ancestor", r["commit"], sha) is None:
+    # One rev-list per sha; audited ancestors in topological order, nearest first, capped.
+    row_set = set(ctx.commits)
+    order = (ctx.git("rev-list", "--topo-order", sha) or "").split()
+    nearest = [c for c in order if c in row_set][:MAX_ANCESTOR_ROWS]
+    for c in nearest:
+        bad = _changed_unexempt(ctx, c, sha)
+        if bad is None:
             continue
-        diff = _git(repo, "diff", "--name-only", "--no-renames", r["commit"], sha)
-        if diff is None:
-            continue
-        bad = [p for p in diff.splitlines() if p and not is_exempt(p)]
         if not bad:
             return True, []
         if best is None or len(bad) < len(best):
             best = bad
+    if _merge_ok(ctx, sha, tree, depth):
+        return True, []
     if best is None:
-        best = [p for p in (_git(repo, "ls-tree", "-r", "--name-only", sha) or "").splitlines()
+        best = [p for p in (ctx.git("ls-tree", "-r", "--name-only", sha) or "").splitlines()
                 if not is_exempt(p)]
         best = best[:50] + ([f"... (no audited ancestor; {len(best)} files)"] if len(best) > 50
                             else [])

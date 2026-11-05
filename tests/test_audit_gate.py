@@ -11,6 +11,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -336,3 +337,47 @@ def test_full_prepush_blocks_main_when_sast_missing(tmp_path, repo):
     r = _sh(["sh", str(hooks / "pre-push")], line.replace("heads/main", "heads/f"),
             dict(os.environ), cwd=repo)
     assert r.returncode == 0
+
+
+def _side_audited_merges(tmp_path, repo, monkeypatch, n, main_side=True):
+    base = git(repo, "rev-parse", "HEAD")
+    for i in range(n):
+        git(repo, "checkout", "-qb", f"s{i}", *([] if main_side else [base]))
+        s = commit(repo, {f"execution/s{i}.py": f"s={i}\n"})
+        git(repo, "checkout", "-q", "-")
+        t = commit(repo, {f"execution/t{i}.py": f"t={i}\n"}) if main_side else s
+        for c in (s, t):
+            run_hook(monkeypatch, payload(tmp_path, repo, report("PASS", c), aid=f"a{c[:10]}"))
+        git(repo, "merge", "-q", "--no-ff", "-m", f"m{i}", f"s{i}")
+    return git(repo, "rev-parse", "HEAD")
+
+
+def test_ladder_depth16_fast(tmp_path, repo, monkeypatch):
+    m = _side_audited_merges(tmp_path, repo, monkeypatch, 16)
+    t0 = time.monotonic()
+    ag.check(m, repo)
+    assert time.monotonic() - t0 < 5
+
+
+def test_merge_chain_66_fast_and_bounded(tmp_path, repo, monkeypatch):
+    m = _side_audited_merges(tmp_path, repo, monkeypatch, 66, main_side=False)
+    t0 = time.monotonic()
+    ok, bad = ag.check(m, repo)
+    assert time.monotonic() - t0 < 5 and ok is False and bad
+
+
+def test_budget_exhaustion_denies_with_message(tmp_path, repo, monkeypatch):
+    m, _ = _merge_setup(tmp_path, repo, monkeypatch)
+    monkeypatch.setattr(ag, "MAX_GIT_CALLS", 2)
+    ok, bad = ag.check(m, repo)
+    assert ok is False and "too complex" in bad[0]
+
+
+def test_symlink_never_exempt(tmp_path, repo, monkeypatch):
+    sha = git(repo, "rev-parse", "HEAD")
+    run_hook(monkeypatch, payload(tmp_path, repo, report("PASS", sha)))
+    (repo / "docs").mkdir()
+    os.symlink("../execution/a.py", repo / "docs" / "link.md")
+    s2 = commit(repo, {})
+    ok, bad = ag.check(s2, repo)
+    assert not ok and bad == ["docs/link.md"]
