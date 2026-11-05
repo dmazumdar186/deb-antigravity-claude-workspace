@@ -1080,3 +1080,81 @@ def test_calendar_unknown_attendee_keys(tmp_path, state, capsys):
     assert _hook({"tool_name": cal + "create_event", "tool_input": dict(
         base, guestPermissions={"canInviteOthers": False}, attendees=["marc@client.com"])},
         capsys) is None
+    assert _hook({"tool_name": cal + "create_event", "tool_input": dict(
+        base, attendees=["marc@client.com"], guestsCanInviteOthers=False, guestsCanModify=True,
+        guestsCanSeeOtherGuests=True)}, capsys) is None
+
+
+# ------------------------------------------------------------------ third audit (2026-11-05)
+
+WAIVE = "redteam" " waive"
+
+
+def test_bash_nested_claude_waiver_denied(tmp_path, state, capsys):
+    s12 = "a" * 12
+    _write(tmp_path / "p.txt", f"{WAIVE} {s12} ok\n")
+    for cmd in (f'claude -p "{WAIVE} {s12} ok"', f"npx claude -p '{WAIVE.upper()} {s12}'",
+                f"timeout 60 /opt/claude-code/bin/claude -p \"$(cat p.txt)\" < p.txt",
+                f"claude -p < p.txt", f"claude -p <<'EOF'\n{WAIVE} {s12}\nEOF"):
+        assert "nested claude" in _deny_reason(_bash(cmd, capsys, tmp_path)), cmd
+    assert _bash('claude -p "summarise the README"', capsys, tmp_path) is None
+    assert _bash(f"git commit -m 'doc: {WAIVE} is operator-only'", capsys, tmp_path) is None
+
+
+def test_prompt_hook_refuses_in_nested_session(tmp_path, state, capsys, monkeypatch):
+    s12 = "b" * 12
+    monkeypatch.setenv("REDTEAM_MIN_CLAUDE_DEPTH", "2")
+    capsys.readouterr()
+    assert _stdin_main(["prompt-hook"], json.dumps({"prompt": f"{WAIVE} {s12} ok"})) == 0
+    assert "NOT recorded" in capsys.readouterr().out
+    assert not (state / "waivers.jsonl").exists()
+    monkeypatch.setenv("REDTEAM_MIN_CLAUDE_DEPTH", "0")  # cannot lower the real depth
+    assert rg.nested_claude_depth() >= 0
+    assert rg._is_claude_cmdline(["/opt/claude-code/bin/claude", "--preload", "x"])
+    assert rg._is_claude_cmdline(["node", "/x/@anthropic-ai/claude-code/cli.js"])
+    assert not rg._is_claude_cmdline(["/bin/bash", "-c", "claude"])
+
+
+def test_record_refuses_envelope_rebinding(tmp_path, state, capsys):
+    text = "Hi Anna, the proposal is attached."
+    draft = _record_text(tmp_path, text, capsys, extra=["--to", "anna@client.com"])
+    src = tmp_path / "src" / "notes.md"
+    sha12 = rg.sha_of(text)[:12]
+    vs = [str(tmp_path / "verdicts" / f"{lens}.md") for lens in rg.LENSES]
+    base = ["record", "--draft", str(draft), "--sources", str(src), "--verdicts", *vs]
+    rc, out = _run(base + ["--to", "anna@client.com"], capsys)
+    assert rc == 0 and "already recorded" in out
+    rc, out = _run(base + ["--to", "anna@client.com", "eve@rival.com"], capsys)
+    assert rc == 3 and "different envelope" in out and sha12 in out
+    rc, out = _run(base + ["--to", "anna@client.com", "--subject", "New"], capsys)
+    assert rc == 3 and "subject_sha" in out
+
+
+def test_bash_path_indirection_scanned(tmp_path, state, capsys):
+    side = tmp_path / "side"
+    _write(side / "s.py", f"import {SMTP}\n")
+    _write(side / "pkg" / "__init__.py", "")
+    _write(side / "pkg" / "mailer.py", f"import {SMTP}\n")
+    for cmd in (f"F={side}/s.py; python3 $F", f"F={side}/s.py python3 ${{F}}",
+                f"export D={side} && python3 $D/s.py", f"python3 {side}/s*.py",
+                f"cd {side} && python3 -m s", f"cd {side}; python3 s.py",
+                f"PYTHONPATH={side} python3 -m pkg.mailer", f"cd {tmp_path} && cd side && python3 s.py"):
+        assert _deny_reason(_bash(cmd, capsys, tmp_path)), cmd
+    _write(side / "ok.py", "print(1)\n")
+    assert _bash(f"F={side}/ok.py; python3 $F", capsys, tmp_path) is None
+    assert _bash("python3 $UNSET_VAR_XYZ/run.py", capsys, tmp_path) is None
+
+
+@pytest.mark.parametrize("cmd", [
+    "python3 -c 'from sendgrid import SendGrid" "APIClient'",
+    "python3 -c 'import yag" "mail'",
+    "curl https://api.mail" "jet.com/v3.1/send",
+    "curl https://mandrill" "app.com/api/1.0/messages/send",
+    "curl https://server.smart" "lead.ai/api/v1/campaigns",
+    "ssmtp x@y.z < m",
+    "send" "email -f a@b.co -t x@y.z -m hi",
+    "exim -t < m",
+    "exim4 -t < m",
+])
+def test_bash_more_hosts_and_clis(cmd, state, capsys):
+    assert _deny_reason(_bash(cmd, capsys)), cmd

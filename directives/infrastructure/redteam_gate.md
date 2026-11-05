@@ -160,3 +160,13 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   any attendee/guest/invitee key triggers the attendee-subset rule (invites with no vetted text
   deny); Mailgun/Brevo/Sendinblue/SES hosts and `aws ses|sesv2 send-email` are senders. Limit: a
   command that executes something and names any file containing a sender literal is denied.
+- 2026-11-05 (third audit): nested-CLI waiver forgery closed twice: Bash denies any `claude`
+  invocation whose text, heredoc or file args contain `redteam waive`; prompt-hook refuses to sign
+  when /proc ancestry shows ≥ 2 Claude CLI processes (env markers like CLAUDECODE are inherited by
+  both top-level hooks and children, so they do not distinguish). Residual: on Windows/macOS (no
+  /proc) only the Bash rule applies; a waiver smuggled via an obfuscated prompt file still needs
+  the ancestry check. `record` refuses re-binding a recorded sha to a different envelope. Bash file
+  scan expands `$VAR`/`${VAR}` (command assignments + env), globs, `cd` targets and PYTHONPATH for
+  `-m`; unresolvable `$VAR` paths are allowed (no file to scan). Senders added: SendGrid SDK,
+  yagmail, Mailjet, Mandrill, Smartlead, ssmtp/sendemail/exim. Boolean `guestsCan*` keys are not
+  attendee keys.

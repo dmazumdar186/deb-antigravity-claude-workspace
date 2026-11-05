@@ -1168,10 +1168,17 @@ def cmd_record(args: argparse.Namespace) -> int:
             print(f"- {r}")
         return EXIT_REFUSED
     for r in ledger.rows:
-        if r.get("sha256") == result["sha256"] and not r.get("waived") and all(
-                r.get(k) == env[k] for k in env):
+        if r.get("sha256") != result["sha256"] or r.get("waived"):
+            continue
+        if all(r.get(k) == env[k] for k in env):
             print(f"already recorded: {sha12} {result['draft']}")
             return EXIT_OK
+        diff = [k for k in env if r.get(k) != env[k]]
+        print(f"REFUSED {sha12} {result['draft']}")
+        print(f"- already recorded with a different envelope ({', '.join(diff)}); a pass is bound "
+              "to one subject/recipients/attachments set. Change the wording and re-run the lenses "
+              "for a new envelope.")
+        return EXIT_REFUSED
     s = result["summary"]
     _append_jsonl(state / PASSES, {
         "sha256": result["sha256"], "sha12": sha12, "draft": result["draft"],
@@ -1347,7 +1354,8 @@ def attendee_keys(ti: dict) -> list[str]:
     """Known attendee keys plus any unknown attendee/guest/invitee-like key (not removals)."""
     return [k for k in ti if (k in CAL_ATTENDEE_KEYS
                               or (k not in CAL_META and _ATTENDEE_KEY_RE.search(k)))
-            and not k.lower().startswith("removed") and _present(ti.get(k))]
+            and not k.lower().startswith("removed") and _present(ti.get(k))
+            and (k in CAL_ATTENDEE_KEYS or isinstance(ti.get(k), (list, dict, str)))]
 
 
 def calendar_decision(action: str, ti: dict, state: Path) -> str | None:
@@ -1414,10 +1422,12 @@ _SENDER_SIMPLE = ("smtp" "lib", "send" "mail", "messages().se" "nd(", "drafts().
                   "api.send" "grid.com", "api.re" "send.com", "api.post" "markapp.com",
                   "smtp" "://", "smtp" "s://", "--mail" "-rcpt", "mailgun" ".net/v3",
                   "api.brevo" ".com", "api.sendin" "blue.com", "send" "-email", "send-raw" "-email",
-                  "send" "_email(", "send" "_raw_email(")
+                  "send" "_email(", "send" "_raw_email(", "sendgridapi" "client", "yag" "mail",
+                  "api.mail" "jet.com", "mandrill" "app.com", "smart" "lead.ai")
 _SES_RE = re.compile(r"email(?:-smtp)?\.[a-z0-9-]+\.amazon" r"aws\.com")
 # Mail programs: a hit when they are the program a simple command runs.
-_MAILERS = {"mail", "mailx", "msmtp", "swaks", "mutt", "send" "mail", "s-nail", "neomutt"}
+_MAILERS = {"mail", "mailx", "msmtp", "swaks", "mutt", "send" "mail", "s-nail", "neomutt",
+            "ssmtp", "send" "email", "exim", "exim4"}
 # Wrappers that run the next word as the program (their own flags/numeric args are skipped).
 _WRAPPERS = {"sudo", "env", "exec", "xargs", "nohup", "time", "timeout", "nice", "watch",
              "command", "stdbuf", "ionice", "npx", "pipx", "uv", "uvx", "poetry", "pdm",
@@ -1432,7 +1442,7 @@ _EXEC_SCRIPT_RE = re.compile(
 # A program that executes code or sends mail, in command position (start of a simple command,
 # optionally behind env assignments or a wrapper such as sudo/env/xargs/nohup/time/exec).
 _EXEC_WORDS = (r"python(?:3(?:\.\d+)?)?|py|node|deno|bun|ruby|perl|php|curl|wget|send" r"mail|"
-               r"mailx?|msmtp|swaks|aws|mutt|neomutt|s-nail|(?:ba|z|da|k)?sh")
+               r"mailx?|msmtp|ssmtp|send" r"email|exim4?|swaks|aws|mutt|neomutt|s-nail|(?:ba|z|da|k)?sh")
 _EXEC_WORD_RE = re.compile(r"(?:" + _EXEC_WORDS + r")(?:\.exe)?", re.I)
 _QUOTED_RE = re.compile(r"'[^']*'|\"(?:[^\"\\]|\\.)*\"", re.S)
 _SEGMENT_SPLIT_RE = re.compile(r"[\n;&|(){}`]|\$\(")
@@ -1535,10 +1545,11 @@ def git_clean(path: Path) -> bool:
             and _git_ok(cwd, "diff", "--quiet", "HEAD", "--", str(path)))
 
 
-def resolve_module(mod: str, cwd: Path) -> Path | None:
-    """Repo file a `python -m mod` would run (cwd first, then the repo root), or None."""
+def resolve_module(mod: str, cwd: Path, extra: Iterable[Path] = ()) -> Path | None:
+    """File a `python -m mod` would run (cwd, extra bases such as `cd` targets and PYTHONPATH
+    entries, then the repo root), or None."""
     rel = Path(*mod.split("."))
-    for base in (cwd, REPO_ROOT):
+    for base in (cwd, *extra, REPO_ROOT):
         for cand in (base / rel.with_suffix(".py"), base / rel / "__main__.py"):
             if cand.is_file():
                 return cand.resolve()
@@ -1603,6 +1614,9 @@ def _arg_tokens(text: str, depth: int = 0) -> list[str]:
     out: list[str] = []
     for t in toks:
         t = t.strip("'\"")
+        m = re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*=(.+)", t)
+        if m:
+            t = m.group(1)  # FOO=/tmp/s.py: the value may itself be a script path
         if not t or t.startswith("-") or set(t) <= set(";&|<>()"):
             continue
         if any(c.isspace() for c in t) and depth < 2:
@@ -1610,6 +1624,48 @@ def _arg_tokens(text: str, depth: int = 0) -> list[str]:
         elif len(out) < MAX_ARG_FILES:
             out.append(t)
     return out[:MAX_ARG_FILES]
+
+
+_ASSIGN_RE = re.compile(r"(?:^|[\s;&|(])(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)="
+                        r"(\"[^\"]*\"|'[^']*'|[^\s;&|)]*)")
+_CD_RE = re.compile(r"(?:^|[\s;&|(])(?:cd|pushd)\s+(\"[^\"]+\"|'[^']+'|[^\s;&|)]+)")
+_VAR_RE = re.compile(r"\$(?:\{([A-Za-z_][A-Za-z0-9_]*)\}|([A-Za-z_][A-Za-z0-9_]*))")
+
+
+def _expand(tok: str, vars_: dict[str, str]) -> str:
+    return _VAR_RE.sub(lambda m: vars_.get(m.group(1) or m.group(2), m.group(0)), tok)
+
+
+def _candidate_files(tok: str, bases: list[Path]) -> list[Path]:
+    import glob
+    p = Path(tok).expanduser()
+    roots = [p] if p.is_absolute() else [b / p for b in bases]
+    out: list[Path] = []
+    for r in roots:
+        s = str(r)
+        if any(c in s for c in "*?["):
+            out.extend(Path(g) for g in glob.glob(s)[:MAX_ARG_FILES])
+        else:
+            out.append(r)
+    return out
+
+
+def command_context(outer: str, cwd: Path) -> tuple[dict[str, str], list[Path], list[Path]]:
+    """(variables, base dirs for relative paths, PYTHONPATH dirs) seen in the command."""
+    vars_ = dict(os.environ)
+    for m in _ASSIGN_RE.finditer(outer):
+        vars_[m.group(1)] = _expand(m.group(2).strip("\"'"), vars_)
+    bases = [cwd]
+    for m in _CD_RE.finditer(outer):
+        d = Path(_expand(m.group(1).strip("\"'"), vars_)).expanduser()
+        bases.append(d if d.is_absolute() else bases[-1] / d)
+    pp = [Path(x) for x in vars_.get("PYTHONPATH", "").split(os.pathsep) if x]
+    pp = [x if x.is_absolute() else cwd / x for x in pp]
+    return vars_, bases, pp
+
+
+_CLAUDE_RE = re.compile(r"(?:^|[\s;&|(`/\\])claude(?:\.exe|\.cmd|\.js)?(?=[\s;&|)]|$)", re.I)
+_WAIVE_TEXT = "redteam" " waive"
 
 
 def _scan_file(p: Path, label: str) -> str | None:
@@ -1631,6 +1687,22 @@ def bash_decision(ti: dict, cwd_raw: Any) -> str | None:
     if not isinstance(command, str):
         raise TypeError("Bash command is not a string")
     outer, docs = split_heredocs(command)
+    cwd = Path(cwd_raw) if isinstance(cwd_raw, str) and cwd_raw else Path.cwd()
+    if _CLAUDE_RE.search(_QUOTED_RE.sub(" ", outer)):
+        # A nested `claude -p "redteam waive ..."` would fire the UserPromptSubmit waiver hook in a
+        # child session: never let an agent-run command carry the operator's waiver phrase.
+        texts = [command.lower()]
+        vars_, bases, _pp = command_context(outer, cwd)
+        for tok in _arg_tokens(_expand(outer, vars_)):
+            for p in _candidate_files(tok, bases):
+                try:
+                    if p.is_file() and p.stat().st_size <= MAX_SCAN_BYTES:
+                        texts.append(p.read_text(encoding="utf-8", errors="replace").lower())
+                except OSError as exc:
+                    print(f"redteam: could not scan {tok} ({type(exc).__name__})", file=sys.stderr)
+        if any(_WAIVE_TEXT in t for t in texts):
+            return ("redteam gate: a nested claude session cannot carry `redteam waive`; waivers "
+                    "are typed by the operator in their own session.")
     if not _EXEC_RE.search(outer):
         return None
     mh = mailer_hit(outer)
@@ -1639,23 +1711,30 @@ def bash_decision(ti: dict, cwd_raw: Any) -> str | None:
     if _B64_PIPE_RE.search(outer):
         return (f"redteam gate: Bash pipes base64-decoded data into an interpreter "
                 f"(unscannable). {BASH_DENY}")
-    cwd = Path(cwd_raw) if isinstance(cwd_raw, str) and cwd_raw else Path.cwd()
     # The command runs something, so every heredoc body counts (a body written to z.py and
     # run later in the same command is code, not a fixture).
     scan = "\n".join([outer] + [body for _opener, body in docs])
     hit = sender_hit(scan.lower())
     if hit is None:
-        for tok in _arg_tokens(outer):
-            p = Path(tok).expanduser()
-            hit = _scan_file(p if p.is_absolute() else cwd / p, tok)
+        vars_, bases, pp = command_context(outer, cwd)
+        expanded = _expand(outer, vars_)
+        seen: set[Path] = set()
+        for tok in _arg_tokens(expanded):
+            for p in _candidate_files(tok, bases):
+                if p in seen or len(seen) >= MAX_ARG_FILES:
+                    continue
+                seen.add(p)
+                hit = _scan_file(p, tok)
+                if hit:
+                    break
             if hit:
                 break
-    if hit is None:
-        for m in _PY_MOD_RE.finditer(outer):
-            mp = resolve_module(m.group(1), cwd)
-            hit = _scan_file(mp, f"module {m.group(1)}") if mp else None
-            if hit:
-                break
+        if hit is None:
+            for m in _PY_MOD_RE.finditer(expanded):
+                mp = resolve_module(m.group(1), cwd, [*bases[1:], *pp])
+                hit = _scan_file(mp, f"module {m.group(1)}") if mp else None
+                if hit:
+                    break
     if hit is None or tracked_script_run(command, cwd):
         return None
     return f"redteam gate: Bash command sends email inline ({hit}). {BASH_DENY}"
@@ -1921,6 +2000,41 @@ def cmd_subagent_hook(_args: argparse.Namespace) -> int:
 _WAIVE_RE = re.compile(r"^\s*redteam waive ([0-9a-f]{12})\b\s*(.*)", re.I | re.S)
 
 
+def _is_claude_cmdline(argv: list[str]) -> bool:
+    if not argv:
+        return False
+    if re.fullmatch(r"claude(?:\.exe)?", re.split(r"[/\\]", argv[0])[-1], re.I):
+        return True
+    # node-launched CLI: `node .../@anthropic-ai/claude-code/cli.js`
+    return (re.split(r"[/\\]", argv[0])[-1].lower().startswith("node") and len(argv) > 1
+            and "claude-code" in argv[1])
+
+
+def nested_claude_depth(pid: int | None = None) -> int:
+    """Number of Claude CLI processes among this process's ancestors (Linux /proc). A top-level
+    session's hook sees 1; a `claude -p` started from that session's Bash sees 2. Returns 0 when
+    /proc is unavailable (Windows/macOS: rely on the Bash rule). Test hook: REDTEAM_MIN_CLAUDE_DEPTH
+    can only raise the result, never lower it."""
+    floor = os.environ.get("REDTEAM_MIN_CLAUDE_DEPTH", "")
+    floor_n = int(floor) if floor.isdigit() else 0
+    pid = os.getpid() if pid is None else pid
+    depth, hops = 0, 0
+    while pid > 1 and hops < 64:
+        hops += 1
+        try:
+            argv = Path(f"/proc/{pid}/cmdline").read_bytes().split(b"\0")
+            stat = Path(f"/proc/{pid}/stat").read_text()
+        except OSError:
+            break
+        if _is_claude_cmdline([a.decode("utf-8", "replace") for a in argv if a]):
+            depth += 1
+        try:
+            pid = int(stat.rsplit(")", 1)[1].split()[1])
+        except (IndexError, ValueError):
+            break
+    return max(depth, floor_n)
+
+
 def cmd_prompt_hook(_args: argparse.Namespace) -> int:
     try:
         payload = json.loads(_read_stdin())
@@ -1931,6 +2045,14 @@ def cmd_prompt_hook(_args: argparse.Namespace) -> int:
         if not m:
             return EXIT_OK
         sha12 = m.group(1).lower()
+        nested = nested_claude_depth()
+        if nested >= 2:
+            print(json.dumps({"hookSpecificOutput": {
+                "hookEventName": "UserPromptSubmit",
+                "additionalContext": f"redteam: waiver for {sha12} NOT recorded (nested Claude "
+                                     "session; the operator must type it in their own session)"}},
+                separators=(",", ":")))
+            return EXIT_OK
         reason = _WS_RE.sub(" ", m.group(2)).strip()[:500] or "(no reason given)"
         ts = _now()
         state = state_dir()
