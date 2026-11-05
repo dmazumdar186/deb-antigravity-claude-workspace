@@ -1694,6 +1694,60 @@ def sender_hit(low: str) -> str | None:
         return "SES send" "_email("
     if "mail" "gun" in low and _MAILGUN_CALL_RE.search(low):
         return "Mailgun messages.cre" "ate("
+    return outward_api_hit(low)
+
+
+# Non-email outward channels (chat, social, SMS, LinkedIn, cold-email tools). Send endpoints and
+# SDK send calls only: reads (conversations.list, GET /me, ...) do not match. Split literals.
+_OUTWARD_SIMPLE = (
+    ("hooks.sla" "ck.com", "Slack webhook"),
+    ("slack.com/api/chat.post" "message", "Slack chat.postMessage"),
+    ("slack.com/api/chat.post" "ephemeral", "Slack chat.postEphemeral"),
+    ("slack.com/api/chat.schedule" "message", "Slack chat.scheduleMessage"),
+    ("slack.com/api/chat.up" "date", "Slack chat.update"),
+    ("slack.com/api/files.up" "load", "Slack files.upload"),
+    ("slack.com/api/files.complete" "uploadexternal", "Slack files upload"),
+    ("chat_post" "message", "Slack chat_post" "Message"),
+    ("chat_post" "ephemeral", "Slack chat_post" "Ephemeral"),
+    ("chat_schedule" "_message", "Slack chat_scheduleMessage"),
+    ("discord.com/api/web" "hooks", "Discord webhook"),
+    ("discordapp.com/api/web" "hooks", "Discord webhook"),
+    ("webhook.office" ".com", "Teams webhook"),
+    ("logic.azure" ".com", "Teams workflow webhook"),
+    ("chat.google" "apis.com", "Google Chat API"),
+    ("api.lem" "list.com", "lemlist API"),
+    ("api.twitter.com/2/tw" "eets", "X/Twitter post"),
+    ("api.x.com/2/tw" "eets", "X/Twitter post"),
+    ("api.twitter.com/1.1/statuses/up" "date", "X/Twitter post"),
+    ("api.twitter.com/2/dm_" "conversations", "X/Twitter DM"),
+    ("api.x.com/2/dm_" "conversations", "X/Twitter DM"),
+)
+_OUTWARD_RES = (
+    (re.compile(r"\.chat\s*\.\s*post(?:message|ephemeral)\s*\(|\bchat\s*\.\s*schedulemessage\s*\("),
+     "Slack chat.postMessage SDK"),
+    (re.compile(r"api\.linked" r"in\.com/[\w./-]*(?:ugcposts|/posts|/messages|/shares|invitations|"
+                r"/socialactions)"), "LinkedIn API post/message"),
+    (re.compile(r"linked" r"in\.com/voyager/api/[\w./-]*(?:messaging|invitation|normin"
+                r"vitations|contentcreation|feed/shares|ugcposts)"), "LinkedIn voyager send"),
+    (re.compile(r"api\.instan" r"tly\.ai/api/v\d/(?:campaigns?/[\w-]+/(?:activate|resume|launch)|"
+                r"campaign/launch|leads?(?:/(?:add|bulk))?\b|emails/(?:reply|send|forward))"),
+     "Instantly campaign/leads API"),
+    (re.compile(r"graph\.facebook\.com/[\w./-]*(?:/feed|/media_publish|/messages|/photos|/videos)"),
+     "Meta Graph post/message"),
+    (re.compile(r"api\.telegram\.org/bot[^\s/]*/send\w+"), "Telegram send"),
+    (re.compile(r"api\.twilio\.com/[\w./-]*/messages"), "Twilio message"),
+    (re.compile(r"\bmessages\s*\.\s*create\s*\([^)]*\b(?:to|body|from_)\s*="), "Twilio messages.create"),
+    (re.compile(r"\bcreate_tweet\s*\(|\bupdate_status\s*\(|\.v2\s*\.\s*tweet\s*\("), "X/Twitter SDK post"),
+)
+
+
+def outward_api_hit(low: str) -> str | None:
+    for pat, label in _OUTWARD_SIMPLE:
+        if pat in low:
+            return label
+    for rx, label in _OUTWARD_RES:
+        if rx.search(low):
+            return label
     return None
 
 
@@ -1772,6 +1826,112 @@ def split_heredocs(command: str) -> tuple[str, list[tuple[str, str]]]:
                 body.append(lines[i - 1])
             docs.append((line, "\n".join(body)))
     return "\n".join(outer), docs
+
+
+# ------------------------------------------------------------------ client-visible deploys
+_DEPLOY_RE = re.compile(
+    r"(?:^|[;&|(\n])\s*(?:cd\s+(?P<cd>[^\s;&|]+)\s*&&\s*)?(?:[A-Za-z_]\w*=\S*\s+)*"
+    r"(?:(?:npx|bunx|pnpx)\s+(?:-y\s+|--yes\s+)?|(?:pnpm|yarn)\s+(?:dlx\s+|exec\s+)?|"
+    r"npm\s+exec\s+(?:--\s+)?)?(?:\S*/)?(?P<tool>wrangler|vercel|netlify)\b(?P<args>[^;&|\n]*)")
+_DEPLOY_VAL_FLAGS = {"--project-name", "--branch", "--commit-hash", "--commit-message", "--env",
+                     "-e", "-c", "--config", "--name", "--compatibility-date", "--scope",
+                     "--token", "-t", "--site", "-s", "--auth", "--alias", "-a", "--message",
+                     "-m", "--functions", "-f", "--build-env", "--meta", "--regions", "--target",
+                     "--dir", "-d", "--cwd", "--output-dir"}
+_VERCEL_NON_DEPLOY = {"ls", "list", "logs", "env", "pull", "link", "login", "whoami", "inspect",
+                      "domains", "dns", "project", "projects", "teams", "help", "dev", "build",
+                      "rm", "remove", "alias", "certs", "secrets", "switch", "promote"}
+_DEPLOY_SKIP_DIRS = ("node_modules/", ".wrangler/", ".vercel/", ".netlify/")
+DEPLOY_DENY = ("Client pages deploy only from committed content: commit the source dir (page "
+               "text is covered by the build-contract audit), then deploy that clean dir.")
+
+
+def _deploy_target(tool: str, argv: list[str]) -> tuple[bool, str | None]:
+    """(is_production_deploy, explicit_dir or None for cwd)."""
+    pos: list[str] = []
+    named: dict[str, str] = {}
+    flags: set[str] = set()
+    i = 0
+    while i < len(argv):
+        a = argv[i]
+        if a.startswith("-"):
+            k, eq, v = a.partition("=")
+            flags.add(k)
+            if eq:
+                named[k] = v
+            elif k in _DEPLOY_VAL_FLAGS and i + 1 < len(argv):
+                named[k] = argv[i + 1]
+                i += 1
+        else:
+            pos.append(a)
+        i += 1
+    if tool == "wrangler":
+        if pos[:2] in (["pages", "deploy"], ["pages", "publish"]):
+            return True, pos[2] if len(pos) > 2 else named.get("--output-dir")
+        if pos[:1] in (["deploy"], ["publish"]):
+            return True, None
+        return False, None
+    if tool == "vercel":
+        if pos and pos[0] in _VERCEL_NON_DEPLOY:
+            return False, None
+        prod = bool(flags & {"--prod", "--production"}) or named.get("--target") == "production"
+        rest = [x for x in pos if x != "deploy"]
+        return prod, named.get("--cwd") or (rest[0] if rest else None)
+    if pos[:1] == ["deploy"] and flags & {"--prod", "-p", "--production"}:
+        return True, named.get("--dir") or named.get("-d")
+    return False, None
+
+
+def deploy_error(outer: str, cwd: Path) -> str | None:
+    """Deny production deploys of pages whose source dir is not committed + clean."""
+    import shlex
+    for m in _DEPLOY_RE.finditer(outer):
+        try:
+            argv = shlex.split(m.group("args"))
+        except ValueError:
+            return f"redteam gate: unparseable {m.group('tool')} deploy command. {DEPLOY_DENY}"
+        prod, d = _deploy_target(m.group("tool"), argv)
+        if not prod:
+            continue
+        base = cwd
+        if m.group("cd"):
+            base = cwd / m.group("cd").strip("\"'")
+        target = (base / d) if d else base
+        if any(c in str(target) for c in "$`~*?"):
+            return f"redteam gate: deploy dir {target} uses expansion (unverifiable). {DEPLOY_DENY}"
+        why = dir_committed_error(target)
+        if why:
+            return f"redteam gate: {m.group('tool')} deploy of {target}: {why}. {DEPLOY_DENY}"
+    return None
+
+
+def dir_committed_error(target: Path) -> str | None:
+    import subprocess
+    try:
+        real = Path(os.path.realpath(target))
+        root = Path(os.path.realpath(REPO_ROOT))
+    except OSError:
+        return "path unresolvable"
+    if not real.is_dir():
+        return "not a directory"
+    if not real.is_relative_to(root) or real == root:
+        return "not a committed subdirectory of this workspace"
+    rel = str(real.relative_to(root))
+    try:
+        ls = subprocess.run(["git", "-C", str(root), "ls-files", "--", rel], capture_output=True, encoding="utf-8", errors="replace",
+                            text=True, timeout=10)
+        st = subprocess.run(["git", "-C", str(root), "status", "--porcelain", "--ignored",
+                             "--untracked-files=all", "--", rel], capture_output=True, text=True, encoding="utf-8", errors="replace",
+                            timeout=10)
+    except (OSError, subprocess.SubprocessError) as exc:
+        return f"git check failed ({type(exc).__name__})"
+    if ls.returncode or st.returncode or not ls.stdout.strip():
+        return "no tracked files (uncommitted content)"
+    dirty = [ln[3:] for ln in st.stdout.splitlines()
+             if not any(sk in ln[3:] for sk in _DEPLOY_SKIP_DIRS)]
+    if dirty:
+        return "uncommitted/untracked/ignored files: " + ", ".join(dirty[:3])
+    return None
 
 
 def _git_ok(cwd: Path, *args: str) -> bool:
@@ -2421,6 +2581,9 @@ def _bash_decision(command: str, cwd_raw: Any, allow_tracked: bool = True,
         nw = f"redteam gate: {exc}; cannot vouch for this claude invocation."
     if nw:
         return nw
+    de = deploy_error(outer, cwd)
+    if de:
+        return de
     if not _EXEC_RE.search(outer) and not direct_scripts(outer, command_context(outer, cwd)[1]):
         try:
             for p in direct_scripts(outer, command_context(outer, cwd)[1], path_only=True):
@@ -2469,9 +2632,100 @@ def hook_decision(payload: dict, state: Path) -> str | None:
         reason = gmail_decision(action, ti, state)
     elif "calendar" in name.lower() and name.rsplit("__", 1)[-1] in CAL_ACTIONS:
         reason = calendar_decision(name.rsplit("__", 1)[-1], ti, state)
+    elif mcp_outward_kind(name):
+        reason = mcp_outward_decision(mcp_outward_kind(name) or "", name.rsplit("__", 1)[-1],
+                                      ti, state)
     else:
         return None
     return f"redteam gate: {reason}. {DENY_SUFFIX}" if reason else None
+
+
+# --------------------------------------------------------- generic MCP share / post / send
+MCP_READ_PREFIXES = ("get_", "list_", "search_", "read_", "resolve_", "download_", "fetch_",
+                     "describe_", "find_", "query_", "lookup_", "check_", "count_", "export_",
+                     "delete_", "remove_", "revoke_", "unshare", "trash_", "untrash_")
+_MCP_SHARE_RE = re.compile(r"share|permission", re.I)
+_MCP_POST_RE = re.compile(r"post_message|send_|publish", re.I)
+# Recipient keys parsed as email addresses; target keys are non-address audiences.
+MCP_ADDR_KEYS = ("emailAddress", "emailAddresses", "email", "emails", "recipient", "recipients",
+                 "to", "cc", "bcc", "users", "members", "invitees")
+MCP_TARGET_KEYS = ("chatSpaceId", "permissionId", "domain", "channel", "channelId", "channel_id",
+                   "chat_id", "chatId", "spaceId", "space", "audience", "webhook_url",
+                   "conversationId")
+MCP_META = set(MCP_ADDR_KEYS) | set(MCP_TARGET_KEYS) | {
+    "fileId", "file_id", "role", "type", "expirationTime", "sendNotificationEmail",
+    "transferOwnership", "allowFileDiscovery", "supportsAllDrives", "id", "ids", "messageId",
+    "draftId", "postId", "pageId", "documentId", "parentId", "folderId", "visibility",
+    "mimeType", "scheduled_at", "unfurl_links", "unfurl_media", "reply_broadcast", "thread_ts",
+    "threadId"}
+MCP_SHARE_TEXT_KEYS = ("message", "emailMessage", "note", "text")
+
+
+def mcp_outward_kind(name: str) -> str | None:
+    """'share' | 'post' for MCP tools that publish/share/send outward; None for reads.
+    Gmail/Calendar are routed earlier; this covers every other server."""
+    if not isinstance(name, str) or not name.startswith("mcp__"):
+        return None
+    low = name.rsplit("__", 1)[-1].lower()
+    if low.startswith(MCP_READ_PREFIXES):
+        return None
+    if _MCP_SHARE_RE.search(low):
+        return "share"
+    if _MCP_POST_RE.search(low):
+        return "post"
+    return None
+
+
+def _mcp_recipients(ti: dict) -> tuple[set[str], list[str], list[str]]:
+    addrs: set[str] = set()
+    bad: list[str] = []
+    targets: list[str] = []
+    for k in MCP_ADDR_KEYS:
+        if _present(ti.get(k)):
+            a, b = parse_addrs(ti[k])
+            addrs |= a
+            bad += b
+    for k in MCP_TARGET_KEYS:
+        if _present(ti.get(k)):
+            targets.append(f"{k}={str(ti[k])[:40]}")
+    if str(ti.get("type", "")).lower() in ("anyone", "domain"):
+        targets.append(f"type={ti['type']}")
+    return addrs, bad, targets
+
+
+def mcp_outward_decision(kind: str, action: str, ti: dict, state: Path) -> str | None:
+    """share: text = message-like field (if any); recipients must be within one passed record's
+    --to/--cc/--bcc. post/send/publish: every non-metadata text field must be passed."""
+    ledger = Ledger(state)
+    fields = text_fields(ti, MCP_META, skip=())
+    if kind == "share":
+        fields = [f for f in fields if f[0] in MCP_SHARE_TEXT_KEYS]
+    addrs, bad, targets = _mcp_recipients(ti)
+    if bad:
+        return f"{action}: unparseable recipient(s): {', '.join(bad[:3])}"
+    if fields:
+        err = _check_fields(action, fields, ti, ledger, envelope=False)
+        if err:
+            return err
+        _k, raw, h = fields[0]
+        rows = ledger.rows_for(_sha256(normalise(raw, h)))
+    elif kind == "post":
+        return f"{action}: no outward text found to verify (outward MCP call denied by default)"
+    else:
+        rows = [r for r in ledger.rows if r.get("waived") is not True]
+    if any(r.get("waived") is True for r in rows):
+        return None
+    if targets:
+        return (f"{action}: non-address audience ({', '.join(targets[:3])}) needs a red-teamed "
+                f"message waived by the operator, or address recipients")
+    if not addrs:
+        return None if kind == "post" else f"{action}: no recipient could be read"
+    for r in rows:
+        allowed = {str(a).lower() for k in ("to", "cc", "bcc") for a in (r.get(k) or [])}
+        if addrs <= allowed:
+            return None
+    return (f"{action}: recipient(s) not recorded with --to/--cc/--bcc of a passed record: "
+            + ", ".join(sorted(addrs)[:5]))
 
 
 def _emit_deny(reason: str) -> None:
@@ -2492,7 +2746,8 @@ def _is_outward(payload: Any, raw: str) -> bool:
     if isinstance(name, str):
         low = name.lower()
         return low.startswith("mcp__") and ("gmail" in low or "calendar" in low
-                                            or bool(_MAIL_TOOL_RE.search(low)))
+                                            or bool(_MAIL_TOOL_RE.search(low))
+                                            or mcp_outward_kind(name) is not None)
     return bool(_OUTWARD_RAW_RE.search(raw) or re.search(
         r'"tool_name"\s*:\s*"mcp__[^"]*(?:send_email|send_message|create_draft)', raw, re.I))
 

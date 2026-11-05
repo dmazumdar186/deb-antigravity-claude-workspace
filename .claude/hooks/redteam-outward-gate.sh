@@ -2,7 +2,8 @@
 # .claude/hooks/redteam-outward-gate.sh
 #
 # Red-team gate for outward text. Usage: redteam-outward-gate.sh pre|post|subagent|prompt
-#   pre      -> PreToolUse (Gmail send/reply/forward/drafts, Calendar create/update_event, Bash):
+#   pre      -> PreToolUse (Gmail send/reply/forward/drafts, Calendar create/update_event,
+#               MCP share/permission/post/send/publish tools, Bash):
 #               redteam_gate.py hook. FAIL-CLOSED for OUTWARD tools only (Gmail/Calendar):
 #               missing python/script or a crash denies them. For Bash and any other tool a
 #               crash ALLOWS and logs to stderr, so a broken gate can never brick a session.
@@ -48,6 +49,11 @@ esac
 
 OUTWARD=0
 if printf '%s' "$INPUT" | grep -Eq '"tool_name"[[:space:]]*:[[:space:]]*"mcp__[^"]*([Gg]mail|[Cc]alendar|send_email|send_message|create_draft)'; then
+  OUTWARD=1
+fi
+# Share/permission/post/send/publish MCP tools (any server) fail closed too, except reads.
+if printf '%s' "$INPUT" | grep -Eq '"tool_name"[[:space:]]*:[[:space:]]*"mcp__[^"]*__[^"]*([Ss]hare|[Pp]ermission|post_message|send_|[Pp]ublish)' \
+   && ! printf '%s' "$INPUT" | grep -Eq '"tool_name"[[:space:]]*:[[:space:]]*"mcp__[^"]*__(get|list|search|read|resolve|download|fetch|describe|find|query|lookup|check|count|export|delete|remove|revoke|unshare|trash|untrash)_?'; then
   OUTWARD=1
 fi
 

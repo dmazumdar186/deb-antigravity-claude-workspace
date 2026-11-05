@@ -110,6 +110,27 @@ merely mention the gate or ledgers are no longer blocked (removed 2026-11-05: fa
   runs a git-tracked, unmodified `.py`/`.sh` or `-m` module (optional leading `cd X &&`, no `-c`,
   heredoc, pipes or chaining). Ordinary commands cost ~80 ms (no git call). A crash on Bash allows
   (wrapper); Gmail/Calendar fail closed.
+- **Bash, non-email channels** (same scan surfaces, same tracked-pipeline trust; patterns in
+  `_OUTWARD_SIMPLE`/`_OUTWARD_RES`): Slack webhooks + chat post/ephemeral/schedule/update
+  methods, file uploads and the Python/Node SDK post-message calls;
+  Discord webhooks; Teams office-webhook / Logic Apps hosts; Google Chat API; LinkedIn REST
+  ugcPosts/posts/messages/shares/invitations and voyager messaging/invitation endpoints; Instantly campaign activate/launch, leads add, emails send/reply; lemlist API;
+  Smartlead (email list); X/Twitter `2/tweets`, DMs, tweepy-style SDK calls; Meta Graph
+  feed/media_publish/messages (incl. WhatsApp); Telegram `bot*/send*`; Twilio Messages.
+- **Deploys** (`wrangler pages deploy|publish`, `wrangler deploy`, `vercel --prod`, `netlify
+  deploy --prod`, incl. via npx/pnpm/yarn/bunx and `cd X &&`): denied unless the deployed dir
+  is a workspace subdirectory (never the root) with tracked files and no modified, untracked or
+  ignored files (node_modules/.wrangler/.vercel/.netlify skipped). Page text is covered by the
+  build-contract audit; this only stops deploying uncommitted content. Expansions deny.
+- **MCP share** (any server; name contains share/permission, not get_/list_/search_/read_/
+  resolve_/download_/delete_/remove_/revoke_/...): a message-like field (message/emailMessage/
+  note/text) must be passed; recipients (emailAddress/recipients/to/...) must be a subset of
+  one passed record's `--to/--cc/--bcc` (that text's record, or any record if no text);
+  non-address audiences (permissionId e.g. anyoneWithLink, chatSpaceId, domain) need a waived
+  text; no recipient denies.
+- **MCP post/send/publish** (name contains post_message/send_/publish, same read exclusions):
+  every non-metadata text field must be passed; no text denies; address recipients as above;
+  channel/space audiences need a waiver. These tools fail closed in the wrapper.
 - HTML canonicalisation (record and hook share it): `href`/`src`/`alt` and comment text become
   visible (` [link: URL] `, ` [img: URL] `, ` [comment: …] `); empty `<script>/<style>` are dropped,
   non-empty ones deny outright. Malformed input or any exception → deny.
@@ -143,7 +164,18 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   guests is gated unless `notificationLevel: NONE`.
 - Gmail response shapes vary; `post-hook` takes `draftId` from `update_draft` input, else digs an
   id from the response. No id → no row → a later send-by-draftId is denied.
-- Skill-gated only (no hook): LinkedIn, Slack, docs, decks, and text handed to the operator in chat.
+- Skill-gated only (no hook): docs/decks content, text handed to the operator in chat, and
+  outward channels reached only through an MCP tool whose name lacks share/permission/
+  post_message/send_/publish (or a Bash sender not in the literal lists below).
+- Non-email Bash channels match send endpoints only, lexically: Graph `/feed|/photos|/videos`
+  and Instantly `/leads` also match a GET of those paths (fail safe); Slack/LinkedIn/X reads
+  (`conversations.list`, `/v2/me`) pass. Repo LinkedIn automation (connect/DM scripts under
+  `execution/`) stays trusted only when run tracked + unmodified, like every pipeline.
+- Deploys: the gate only proves the deployed dir is committed; it does not read the pages.
+  Gitignored build output (`dist/`) counts as uncommitted, so commit the built dir or deploy a
+  committed source dir. Deploys via `npm run deploy` / package scripts are not parsed.
+- MCP post/share: a Slack-style `channel`/Drive `permissionId`/`chatSpaceId` audience has no
+  address to check, so it needs the passed text to be operator-waived.
 
 ## Changelog
 - 2026-11-04: created (deterministic layer of the mandatory outward-text red-team gate).
@@ -231,3 +263,7 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   send the same `redteam waive …` line once more" and the re-send succeeds.
   `xargs <interpreter>` without a named script file denies. This doc avoids literal sender
   patterns so reading it next to an executing command is not denied.
+- 2026-11-05 (channels): gate extended beyond email/calendar: Bash chat/social/SMS/LinkedIn/
+  cold-email send endpoints and SDK calls, production deploys only from committed dirs, MCP
+  share/permission and post_message/send_/publish tools (recipient ⊆ recorded pass; fail closed
+  in the wrapper; settings matcher widened). Reads and non-prod deploys stay allowed.

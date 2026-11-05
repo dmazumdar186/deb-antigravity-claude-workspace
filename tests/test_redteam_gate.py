@@ -1672,3 +1672,152 @@ def test_python_heredoc_body_not_parsed_as_shell(tmp_path, state, capsys):
     _write(tmp_path / "big.bin.txt", "x" * (rg.MAX_SCAN_BYTES + 10))
     assert _bash("python3 - <<'EOF'\nimport glob\nprint(glob.glob('*'))\nEOF", capsys,
                  tmp_path) is None
+
+
+# ------------------------------------------------- non-email outward channels (2026-11-05)
+
+_OUTWARD_SENDS = [
+    "curl -X POST https://hoo|ks.slack.co|m/services/T0/B0/xyz -d '{\"text\":\"hi\"}'",
+    "curl -s https://sla|ck.co|m/api/chat|.postMessage -d channel=C1 -d text=hi",
+    "python3 -c \"from slack_sdk import WebClient; WebClient('t').chat|_postMessage(channel='c', text='x')\"",
+    "node -e \"client.chat|.postMessage({channel:'c', text:'x'})\"",
+    "curl -H 'Content-Type: application/json' https://dis|cord.co|m/api/webhooks/1/abc -d '{}'",
+    "curl https://acm|e.webhook.office.co|m/webhookb2/abc -d '{}'",
+    "curl -X POST 'https://cha|t.googleapis.co|m/v1/spaces/AAA/messages?key=k' -d '{}'",
+    "curl -X POST https://api|.linkedin.co|m/v2/ugcPosts -d '{}'",
+    "curl -X POST https://api|.linkedin.co|m/rest/posts -d '{}'",
+    "curl -X POST https://www|.linkedin.co|m/voyager/api/messaging/conversations -d '{}'",
+    "curl -X POST https://api|.instan|tly.ai/api/v2/campaigns/abc/activate",
+    "curl -X POST https://api|.instan|tly.ai/api/v2/leads -d '{}'",
+    "curl -X POST https://api|.lemlist.co|m/api/campaigns/c/leads/x@y.com",
+    "curl -X POST https://ser|ver.smart|lead.ai/api/v1/campaigns/1/leads",
+    "curl -X POST https://api|.twitter.co|m/2/tweets -d '{}'",
+    "curl -X POST https://api|.x.co|m/2/tweets -d '{}'",
+    "curl -X POST https://gra|ph.facebook.co|m/v19.0/123/feed -d message=hi",
+    "curl -X POST https://gra|ph.facebook.co|m/v19.0/123/media_publish",
+    "curl -X POST https://gra|ph.facebook.co|m/v19.0/PHONE_ID/messages -d '{}'",
+    "curl https://api|.telegram.org/bot123:abc/sendMessage -d chat_id=1 -d text=hi",
+    "curl -X POST https://api|.twilio.co|m/2010-04-01/Accounts/AC1/Messages.json -d Body=hi",
+]
+
+
+@pytest.mark.parametrize("cmd", _OUTWARD_SENDS)
+def test_bash_outward_channels_denied(cmd, state, capsys):
+    cmd = cmd.replace("|", "")  # split so this file never matches the gate
+    assert "redteam gate" in _deny_reason(_bash(cmd, capsys)), cmd
+
+
+def test_bash_outward_channels_in_untracked_script(tmp_path, state, capsys):
+    script = _write(tmp_path / "post.py", "import requests\nrequests.post('https://hooks.slack"
+                    ".com/services/x', json={'text': 'hi'})\n")
+    assert _deny_reason(_bash(f"python3 {script}", capsys, cwd=tmp_path))
+
+
+@pytest.mark.parametrize("cmd", [
+    "curl -s https://sla|ck.co|m/api/conversations.list -H 'Authorization: Bearer x'",
+    "curl -s https://sla|ck.co|m/api/auth.test",
+    "curl -s https://api|.linkedin.co|m/v2/me",
+    "curl -s https://api|.twitter.co|m/2/users/me",
+    "curl -s https://api|.telegram.org/bot123:abc/getUpdates",
+    "grep -rn 'hooks.|slack.com' execution/",
+    "rg chat|_postMessage execution/",
+    "git log --grep 'wrangler pages deploy'",
+    "echo 'run vercel --prod later' > notes.txt",
+    "npx wrangler pages project list",
+    "npx wrangler dev",
+    "vercel ls",
+    "vercel deploy",
+    "netlify deploy --dir .tmp/site",
+    "netlify status",
+])
+def test_outward_channel_false_positives_allowed(cmd, state, capsys):
+    cmd = cmd.replace("|", "")
+    assert _bash(cmd, capsys) is None, cmd
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+@pytest.mark.parametrize("tmpl", [
+    "npx wrangler pages deploy {d} --project-name x",
+    "wrangler pages deploy {d}",
+    "cd {d} && npx wrangler deploy",
+    "vercel --prod {d}",
+    "vercel deploy {d} --prod",
+    "netlify deploy --prod --dir {d}",
+    "npm run build && npx wrangler pages deploy {d}",
+])
+def test_deploy_uncommitted_dir_denied(tmpl, tmp_path, state, capsys):
+    site = tmp_path / "site"
+    _write(site / "index.html", "<p>hi</p>")
+    assert "committed" in _deny_reason(_bash(tmpl.format(d=site), capsys, cwd=tmp_path))
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_deploy_committed_dir_allowed_and_dirty_denied(tmp_path, state, capsys):
+    clean = "directives/subagent"
+    r = subprocess.run(["git", "-C", str(rg.REPO_ROOT), "status", "--porcelain", "--ignored",
+                        "--", clean], capture_output=True, text=True, encoding="utf-8",
+                       errors="replace")
+    if r.stdout.strip():
+        pytest.skip("fixture dir dirty in this checkout")
+    root = str(rg.REPO_ROOT)
+    assert _bash(f"npx wrangler pages deploy {clean} --project-name x", capsys,
+                 cwd=Path(root)) is None
+    assert _deny_reason(_bash("npx wrangler pages deploy $DIR", capsys, cwd=Path(root)))
+    assert _deny_reason(_bash("wrangler pages deploy .", capsys, cwd=Path(root)))
+
+
+def _mcp(name, ti, capsys):
+    return _hook({"tool_name": name, "tool_input": ti}, capsys)
+
+
+def test_mcp_outward_kind_classification():
+    k = rg.mcp_outward_kind
+    assert k("mcp__Google_Drive__share_file") == "share"
+    assert k("mcp__drive__create_permission") == "share"
+    assert k("mcp__slack__chat_post_message") == "post"
+    assert k("mcp__x__publish_post") == "post"
+    assert k("mcp__tg__send_photo") == "post"
+    for read in ("mcp__Google_Drive__get_file_permissions", "mcp__Wispr_Flow__resolve_share_link",
+                 "mcp__drive__list_permissions", "mcp__drive__delete_permission",
+                 "mcp__Google_Drive__read_file_content", "mcp__github__get_me", "Bash",
+                 "mcp__Google_Drive__search_files"):
+        assert k(read) is None, read
+
+
+def test_mcp_share_requires_recorded_recipient(tmp_path, state, capsys):
+    name = "mcp__Google_Drive__share_file"
+    ti = {"fileId": "f1", "role": "reader", "emailAddress": "marc@client.com"}
+    assert "recipient" in _deny_reason(_mcp(name, ti, capsys))
+    _record_text(tmp_path, "Hi Marc, the deck is shared.\n", capsys,
+                 extra=["--to", "marc@client.com"])
+    assert _mcp(name, ti, capsys) is None
+    assert _deny_reason(_mcp(name, dict(ti, emailAddress="eve@rival.com"), capsys))
+    assert _deny_reason(_mcp(name, {"fileId": "f1", "role": "reader",
+                                    "permissionId": "anyoneWithLink"}, capsys))
+    assert _deny_reason(_mcp(name, {"fileId": "f1", "role": "reader"}, capsys))
+
+
+def test_mcp_share_message_must_be_passed(tmp_path, state, capsys):
+    name = "mcp__Google_Drive__share_file"
+    _record_text(tmp_path, "Hi Marc, the deck is shared.\n", capsys,
+                 extra=["--to", "marc@client.com"])
+    ti = {"fileId": "f1", "role": "reader", "emailAddress": "marc@client.com",
+          "message": "Something unreviewed"}
+    assert "has not passed" in _deny_reason(_mcp(name, ti, capsys))
+    assert _mcp(name, dict(ti, message="Hi Marc, the deck is shared.\n"), capsys) is None
+
+
+def test_mcp_generic_post_gated(tmp_path, state, capsys):
+    name = "mcp__slack__chat_post_message"
+    ti = {"channel_id": "C1", "text": "Launch is live"}
+    assert "has not passed" in _deny_reason(_mcp(name, ti, capsys))
+    assert _deny_reason(_mcp("mcp__x__publish_post", {"id": "1"}, capsys))
+    _record_text(tmp_path, "Launch is live", capsys)
+    # a channel audience is non-address: needs an operator waiver even with passed text
+    assert "audience" in _deny_reason(_mcp(name, ti, capsys))
+    assert _mcp("mcp__x__publish_post", {"text": "Launch is live"}, capsys) is None
+
+
+def test_mcp_outward_fail_closed_flag():
+    assert rg._is_outward({"tool_name": "mcp__Google_Drive__share_file"}, "")
+    assert not rg._is_outward({"tool_name": "mcp__Google_Drive__get_file_permissions"}, "")
