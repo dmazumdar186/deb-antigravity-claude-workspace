@@ -10,7 +10,7 @@ Run the cold email campaign selling the ProdCraft "Proposal Engine" (free 72-hou
 
 ## Tools/Scripts
 - `execution/lead_sourcing/prodcraft_campaign/build_copy.py`: builds the 4 copy sets (EventAV, FitoutUS, FitoutUK, DMC) into `copy.json` and gates them with Jev.
-- `execution/lead_sourcing/prodcraft_campaign/launch.py`: creates draft campaigns, uploads leads (`skip_if_in_workspace`), tags them; `--activate` starts them. Idempotent via `.tmp/prodcraft_copy/launch_state.json`.
+- `execution/lead_sourcing/prodcraft_campaign/launch.py`: default prints the plan only (campaign, file, lead count, pending steps; no Instantly call, no key needed). `--apply` creates draft campaigns, uploads leads (`skip_if_in_workspace`), tags them; `--apply --activate` also starts them (`--activate` alone is rejected). `--only-first` limits to the first campaign. Idempotent via `.tmp/prodcraft_copy/launch_state.json`.
 
 ## Outputs
 - 19 Instantly campaigns named `DM_{Niche} - {US|UK} - {Personalized|NoPersonalization}[ CatchAll] - 2 Nov 2026`, tagged `Deb_Oct 6 26`.
@@ -18,7 +18,7 @@ Run the cold email campaign selling the ProdCraft "Proposal Engine" (free 72-hou
 ## Steps
 1. Edit copy in `build_copy.py`; run it; every template must score Jev `human` >= 0.75 and `slop` <= 0.25 (the playbook Section 7 control scores 0.37 / 0.72).
 2. Re-run `reoon_verify.py` if leads are older than 7 days.
-3. Run `launch.py` (drafts), read back the campaigns, then `launch.py --activate`.
+3. Run `launch.py` (plan only) and check it, then `launch.py --apply` (drafts), read back the campaigns, then `launch.py --apply --activate`.
 
 ## Copy rules (operator, 2026-11-02)
 - Voice: Siva's best performers since Sept 2026 (personality opener, one hard proof, tiny ask, risk in a PS; lowercase; no signature).

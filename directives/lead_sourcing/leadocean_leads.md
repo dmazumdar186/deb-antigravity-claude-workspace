@@ -51,6 +51,7 @@ and output moves to `.tmp/leadocean/wave2/` (wave-1 files are never touched). Or
   email_verified_date, jev_niche_conf, jev_fit_score, company_summary, site_facts, project_reference, icebreaker,
   personalization_status, source.
 - `.tmp/leadocean/rejects.csv`, `.tmp/leadocean/summary.json`. Lead data is never committed.
+- Every CSV writer passes rows through `pipeline_utils.csv_safe_row` at write time: a string cell starting with `= + - @ TAB CR` gets a leading `'` (formula-injection guard). In-memory data, dedupe and logic use the raw values; a phone-like `+1 ...` cell also gets the `'`.
 
 ## Steps
 1. `count` — size every niche x metro for free; read `unsupported` and adjust filters until it is empty.

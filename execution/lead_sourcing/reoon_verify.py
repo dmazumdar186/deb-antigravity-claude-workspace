@@ -4,11 +4,16 @@ description: Reads a CSV, verifies each unique email with Reoon's single-verify 
              SMTP-level), caches results per email, and writes the CSV back out with reoon_status,
              reoon_score, reoon_catch_all, reoon_safe and a send_bucket column:
              main (safe, score >= 90) | catchall (catch_all) | drop (everything else).
-inputs: --src CSV with an `email` column; env REOON_API_KEY (or REOON_TOKEN) or .env.
-outputs: --out CSV; cache .tmp/reoon/cache.jsonl (one row per verified email).
+             Default is a dry count (no API call, no credits): how many emails would be verified.
+             --live spends credits, capped by --max-verify (default 500).
+inputs: --src CSV with an `email` column; --live; --max-verify N; env REOON_API_KEY (or REOON_TOKEN) or .env
+        (key needed only for --live / --balance).
+outputs: dry run: stdout count only. --live: --out CSV (formula-safe cells); cache .tmp/reoon/cache.jsonl
+         (one row per verified email); one JSON row per live run in .tmp/reoon_ledger.jsonl.
 
 Usage:
-    python3 execution/lead_sourcing/reoon_verify.py --src leads.csv --out leads_verified.csv
+    python3 execution/lead_sourcing/reoon_verify.py --src leads.csv                       # dry count, free
+    python3 execution/lead_sourcing/reoon_verify.py --src leads.csv --out leads_verified.csv --live [--max-verify 500]
     python3 execution/lead_sourcing/reoon_verify.py --balance
 
 See also: directives/lead_sourcing/reoon_verify.md
@@ -17,6 +22,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import datetime as dt
 import json
 import os
 import sys
@@ -28,7 +34,13 @@ from pathlib import Path
 import requests
 
 ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+from execution.modules.pipeline_utils import csv_safe_row  # noqa: E402
+
 CACHE = ROOT / ".tmp" / "reoon" / "cache.jsonl"
+LEDGER = ROOT / ".tmp" / "reoon_ledger.jsonl"
+CREDITS_PER_EMAIL = 1  # power mode spends one instant credit per verified email
 API = "https://emailverifier.reoon.com/api/v1"
 _LOCK = threading.Lock()
 
@@ -89,37 +101,71 @@ def bucket(res: dict) -> str:
     return "drop"
 
 
-def main() -> None:
-    ap = argparse.ArgumentParser()
+def append_ledger(row: dict) -> None:
+    LEDGER.parent.mkdir(parents=True, exist_ok=True)
+    with open(LEDGER, "a", encoding="utf-8") as fh:
+        fh.write(json.dumps(row) + "\n")
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description="Reoon power-mode verify. Dry count by default; --live spends credits.")
     ap.add_argument("--src", type=Path)
     ap.add_argument("--out", type=Path)
     ap.add_argument("--workers", type=int, default=8)
-    ap.add_argument("--balance", action="store_true")
-    a = ap.parse_args()
-    key = api_key()
+    ap.add_argument("--balance", action="store_true", help="print account balance (free call)")
+    ap.add_argument("--live", action="store_true", help="actually verify (spends one credit per uncached email)")
+    ap.add_argument("--max-verify", type=int, default=500, help="ceiling on emails verified per live run")
+    a = ap.parse_args(argv)
     if a.balance:
-        r = requests.get(f"{API}/check-account-balance/", params={"key": key}, timeout=20)
+        r = requests.get(f"{API}/check-account-balance/", params={"key": api_key()}, timeout=20)
         print(r.text)
-        return
-    if not a.src or not a.out:
-        ap.error("--src and --out are required")
+        return 0
+    if not a.src:
+        ap.error("--src is required")
+    if a.max_verify < 1:
+        ap.error("--max-verify must be >= 1")
+    if a.live and not a.out:
+        ap.error("--out is required with --live")
     with open(a.src, encoding="utf-8", newline="") as f:
         rows = list(csv.DictReader(f))
+    if not rows:
+        print(f"{a.src}: no rows; nothing to do")
+        return 0
     cache = load_cache()
-    todo = sorted({r["email"].strip().lower() for r in rows if r.get("email")} - set(cache))
-    print(f"{len(rows)} rows, {len(todo)} emails to verify ({len(cache)} cached)")
+    pending = sorted({r["email"].strip().lower() for r in rows if r.get("email")} - set(cache))
+    todo = pending[: a.max_verify]
+    over = len(pending) - len(todo)
+    print(f"{len(rows)} rows, {len(pending)} uncached emails ({len(cache)} cached); "
+          f"{len(todo)} to verify under --max-verify {a.max_verify}, est. {len(todo) * CREDITS_PER_EMAIL} credits")
+    if over:
+        print(f"WARNING: {over} uncached emails exceed --max-verify {a.max_verify}; they stay unverified "
+              f"(bucket drop) until a re-run", file=sys.stderr)
+    if not a.live:
+        print("DRY RUN: no Reoon calls made, 0 credits spent. Re-run with --live --out <csv> to verify.")
+        return 0
+
+    key = api_key()
     CACHE.parent.mkdir(parents=True, exist_ok=True)
+    errors = 0
 
     def work(email: str) -> None:
+        nonlocal errors
         res = verify_one(email, key)
         with _LOCK:
             cache[email] = res
             if res["status"] != "error":
                 with open(CACHE, "a", encoding="utf-8") as fh:
                     fh.write(json.dumps(res) + "\n")
+            else:
+                errors += 1
 
-    with ThreadPoolExecutor(max_workers=a.workers) as ex:
-        list(ex.map(work, todo))
+    try:
+        with ThreadPoolExecutor(max_workers=a.workers) as ex:
+            list(ex.map(work, todo))
+    finally:
+        append_ledger({"ts": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"), "src": str(a.src),
+                       "n_verified": len(todo), "n_errors": errors,
+                       "credits_est": len(todo) * CREDITS_PER_EMAIL})
 
     fields = list(rows[0].keys()) + ["reoon_status", "reoon_score", "reoon_catch_all", "reoon_safe", "send_bucket"]
     counts: dict[str, int] = {}
@@ -131,11 +177,17 @@ def main() -> None:
             res = cache.get(r.get("email", "").strip().lower(), {})
             b = bucket(res) if res else "drop"
             counts[b] = counts.get(b, 0) + 1
-            w.writerow({**r, "reoon_status": res.get("status", ""), "reoon_score": res.get("score", ""),
-                        "reoon_catch_all": res.get("catch_all", ""), "reoon_safe": res.get("safe", ""),
-                        "send_bucket": b})
+            w.writerow(csv_safe_row({**r, "reoon_status": res.get("status", ""), "reoon_score": res.get("score", ""),
+                                     "reoon_catch_all": res.get("catch_all", ""), "reoon_safe": res.get("safe", ""),
+                                     "send_bucket": b}))
     print("buckets:", counts)
+    if errors:
+        print(f"WARNING: {errors} emails errored (not cached; re-run retries them)", file=sys.stderr)
+    if over:
+        print(f"INCOMPLETE: {over} emails not verified (over --max-verify); exit 3", file=sys.stderr)
+        return 3
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

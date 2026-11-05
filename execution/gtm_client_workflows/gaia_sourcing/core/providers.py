@@ -230,12 +230,8 @@ def _call_gemini(
             time.sleep(wait)
         _GEMINI_LAST = time.time()
 
-    url = (
-        "https://generativelanguage.googleapis.com/v1beta/models/"
-        + model
-        + ":generateContent?key="
-        + secret("GEMINI_API_KEY")
-    )
+    # Key goes in the x-goog-api-key header, never the query string (proxy/access logs).
+    url = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent"
     payload = {
         "systemInstruction": {"parts": [{"text": system}]},
         "contents": [{"role": "user", "parts": [{"text": user}]}],
@@ -246,7 +242,11 @@ def _call_gemini(
             "responseSchema": _to_gemini_schema(tool["input_schema"]),
         },
     }
-    data = _post_json(url, payload, {"Content-Type": "application/json"})
+    data = _post_json(
+        url,
+        payload,
+        {"Content-Type": "application/json", "x-goog-api-key": secret("GEMINI_API_KEY")},
+    )
     usage = data.get("usageMetadata", {})
     stats = {
         "input_tokens": usage.get("promptTokenCount", 0),

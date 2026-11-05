@@ -45,7 +45,8 @@ def render(t, v, rng):
         if not m: break
         t = t[:m.start()] + rng.choice([o.strip() for o in m.group(1).split('|')]) + t[m.end():]
     for k, val in v.items(): t = t.replace("{{%s}}" % k, val)
-    assert "{{" not in t, t
+    if "{{" in t:
+        raise ValueError(f"unrendered placeholder in outward copy: {t[:200]}")
     return t
 SAMPLE = {"firstName": "Sarah", "companyName": "Northlight Productions", "project_reference": "the Kraken ScreamFest launch"}
 Q = {"human": jev.noul("Does this cold email read like one real person typed it quickly by hand?",

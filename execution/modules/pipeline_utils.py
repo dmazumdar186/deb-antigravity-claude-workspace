@@ -133,6 +133,28 @@ def export_csv(leads: list[dict], filepath: str | Path, columns: list[str]) -> P
     return path
 
 
+CSV_FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
+
+
+def csv_safe_cell(value):
+    """CSV formula-injection guard for the write boundary only.
+
+    Excel / Google Sheets evaluate a cell starting with = + - @ TAB CR as a formula.
+    A string cell with such a leading char gets a leading apostrophe so it reads as text.
+    Non-strings (ints, floats, bools, None) pass through unchanged. Side effect: legit
+    strings such as phone numbers "+1 555 ..." also get the apostrophe (fine for CSV-for-Sheets).
+    Idempotent: an already-prefixed cell starts with "'" and is left alone.
+    """
+    if isinstance(value, str) and value and value[0] in CSV_FORMULA_PREFIXES:
+        return "'" + value
+    return value
+
+
+def csv_safe_row(row: dict) -> dict:
+    """Return a copy of `row` with every cell passed through csv_safe_cell (input not mutated)."""
+    return {k: csv_safe_cell(v) for k, v in row.items()}
+
+
 def normalize_domain(url_or_domain: str) -> str:
     """Extract and normalize a domain from a URL or bare domain string."""
     if not url_or_domain:

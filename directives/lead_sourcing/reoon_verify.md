@@ -8,21 +8,26 @@ Independently verify every email in a leads CSV before it goes to Instantly, so 
 
 ```bash
 python3 execution/lead_sourcing/reoon_verify.py --balance
-python3 execution/lead_sourcing/reoon_verify.py --src leads.csv --out leads_verified.csv [--workers 8]
+python3 execution/lead_sourcing/reoon_verify.py --src leads.csv                       # dry count: no calls, 0 credits
+python3 execution/lead_sourcing/reoon_verify.py --src leads.csv --out leads_verified.csv --live [--max-verify 500] [--workers 8]
 ```
+
+Default is a dry count (sandboxed per build contract #2): prints how many uncached emails would be verified and the estimated credits, then exits 0 without any API call. `--live` spends credits. `--max-verify N` (default 500) caps emails verified per live run; anything over the cap stays unverified (bucket `drop` in `--out`), is reported on stderr, and the run exits 3 so a re-run picks it up from the cache.
 
 ## Inputs
 - `--src` CSV with an `email` column (any other columns pass through untouched).
-- Env `REOON_API_KEY` or `REOON_TOKEN` (falls back to `.env`).
+- Env `REOON_API_KEY` or `REOON_TOKEN` (falls back to `.env`); needed only for `--live` / `--balance`.
 
 ## Outputs
 - `--out` CSV = input + `reoon_status`, `reoon_score`, `reoon_catch_all`, `reoon_safe`, `send_bucket`.
 - `send_bucket`: `main` (status safe, score >= 90, not role) | `catchall` (separate low-volume campaign, <= 10% of daily volume, stop above 2% bounce) | `drop`.
 - Cache `.tmp/reoon/cache.jsonl`: one row per email; re-runs only verify new emails. Errors are not cached, so a re-run retries them.
+- Ledger `.tmp/reoon_ledger.jsonl`: one JSON row per live run (`ts`, `src`, `n_verified`, `n_errors`, `credits_est`).
+- `--out` cells starting with `= + - @ TAB CR` get a leading `'` (CSV formula-injection guard; phone-like `+1 ...` values get it too).
 
 ## Steps
-1. Check credits: `--balance` (one instant credit per new email).
-2. Run `--src <leads.csv> --out <leads_verified.csv>`.
+1. Check credits: `--balance` (one instant credit per new email), and run the dry count (`--src <leads.csv>`).
+2. Run `--src <leads.csv> --out <leads_verified.csv> --live` (raise `--max-verify` only if the balance covers it).
 3. Load only `send_bucket=main` rows into the main Instantly campaigns.
 4. Load `send_bucket=catchall` rows into a separate low-volume campaign on 2 dedicated inboxes.
 5. Delete `drop` rows; never send to them.

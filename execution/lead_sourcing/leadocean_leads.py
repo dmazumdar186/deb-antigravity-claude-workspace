@@ -48,6 +48,8 @@ from dotenv import load_dotenv
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT))
 load_dotenv(ROOT / ".env")
+
+from execution.modules.pipeline_utils import csv_safe_row  # noqa: E402  (needs ROOT on sys.path)
 # Cloud sessions expose the OpenRouter key under a misspelt alias; llm_client reads only the canonical name.
 if not os.environ.get("OPENROUTER_API_KEY") and os.environ.get("OPENROUTER_API_TOEKN"):
     os.environ["OPENROUTER_API_KEY"] = os.environ["OPENROUTER_API_TOEKN"]
@@ -1728,7 +1730,7 @@ def write_campaign_split(rows: list[dict[str, Any]], outdir: Path) -> dict[str, 
         with open(path, "w", newline="", encoding="utf-8") as fh:
             w = csv.DictWriter(fh, fieldnames=SPLIT_COLS, extrasaction="ignore")
             w.writeheader()
-            w.writerows(items)
+            w.writerows(csv_safe_row(r) for r in items)
         if bucket == "review":
             index.append({"file": name, "bucket": "review", "niche": "mixed", "country": "Other",
                           "personalization": "mixed", "leads": len(items), "send_window": "manual / skip"})
@@ -1740,7 +1742,7 @@ def write_campaign_split(rows: list[dict[str, Any]], outdir: Path) -> dict[str, 
         w = csv.DictWriter(fh, fieldnames=["file", "bucket", "niche", "country", "personalization", "leads",
                                            "send_window"])
         w.writeheader()
-        w.writerows(index)
+        w.writerows(csv_safe_row(r) for r in index)
     return {i["file"]: i["leads"] for i in index}
 
 
@@ -1777,24 +1779,24 @@ def cmd_build(args: argparse.Namespace) -> None:
     with open(out, "w", newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(fh, fieldnames=OUT_COLS, extrasaction="ignore")
         w.writeheader()
-        w.writerows(rows)
+        w.writerows(csv_safe_row(r) for r in rows)
     with open(TMP / "rejects.csv", "w", newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(fh, fieldnames=REJECT_COLS)
         w.writeheader()
         for r in rejects:
-            w.writerow({"email": r.get("_email", ""), "first_name": r.get("profile_first_name", ""),
+            w.writerow(csv_safe_row({"email": r.get("_email", ""), "first_name": r.get("profile_first_name", ""),
                         "last_name": r.get("profile_last_name", ""), "title": r.get("current_job_title", ""),
                         "company_name": r.get("current_company_name", ""),
                         "company_domain": r.get("_company_domain", ""), "niche": r.get("_niche", ""),
                         "metro": M.get(r.get("_metro", ""), {}).get("label", ""),
                         "email_status": r.get("_email_status", ""), "reject_reason": r.get("reject_reason", ""),
-                        "linkedin_url": r.get("profile_url", "")})
+                        "linkedin_url": r.get("profile_url", "")}))
     split = {}
     if WAVE == 2:
         with open(TMP / "prodcraft_leads_wave2_reoon.csv", "w", newline="", encoding="utf-8") as fh:
             w = csv.DictWriter(fh, fieldnames=OUT_COLS + REOON_COLS)
             w.writeheader()
-            w.writerows(reoon_rows)
+            w.writerows(csv_safe_row(r) for r in reoon_rows)
         split = write_campaign_split(reoon_rows, TMP / "campaigns_by_country")
     per_niche = Counter(r["niche"] for r in rows)
     per_metro: dict[str, Counter] = defaultdict(Counter)
