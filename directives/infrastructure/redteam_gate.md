@@ -154,3 +154,9 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   smtp(s)://, --mail-rcpt, drafts().send( are sender hits; hook crash denies only Gmail/Calendar
   (Bash/other exit 1 → allowed), null command allows; Calendar `location` gated (own pass or
   verbatim inside the passed description).
+- 2026-11-05 (re-audit): when a command executes anything, every heredoc body and every existing
+  file named as an unquoted word or redirect source (any suffix, recursing into `sh -c` strings,
+  ≤ 40 words) is scanned; dict recipients/attendees without a parseable `email` are unparseable;
+  any attendee/guest/invitee key triggers the attendee-subset rule (invites with no vetted text
+  deny); Mailgun/Brevo/Sendinblue/SES hosts and `aws ses|sesv2 send-email` are senders. Limit: a
+  command that executes something and names any file containing a sender literal is denied.

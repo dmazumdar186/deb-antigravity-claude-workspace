@@ -994,7 +994,11 @@ def parse_addrs(value: Any) -> tuple[set[str], list[str]]:
     bad: list[str] = []
     for it in items:
         if isinstance(it, dict):
-            it = it.get("email", "")
+            em = it.get("email")
+            if not isinstance(em, str) or not _EMAIL_RE.search(em):
+                bad.append(json.dumps(it, ensure_ascii=False, sort_keys=True)[:40])
+                continue
+            it = em
         if not isinstance(it, str):
             bad.append(str(it)[:40])
             continue
@@ -1311,17 +1315,22 @@ def gmail_decision(action: str, ti: dict, state: Path) -> str | None:
     return f"{action} has no body text to vet"
 
 
+_ATTENDEE_KEY_RE = re.compile(r"attendee|guest|invitee", re.I)
+
+
 def attendee_error(ti: dict, rows: list[dict]) -> str | None:
     """Attendees must be a subset of --to/--cc/--bcc of one passing record (waiver: any)."""
     wanted: set[str] = set()
-    for k in CAL_ATTENDEE_KEYS:
-        if _present(ti.get(k)):
-            addrs, bad = parse_addrs(ti[k])
-            if bad:
-                return f"{k} has unparseable attendee(s): {', '.join(bad[:3])}"
-            wanted |= addrs
-    if not wanted:
+    keys = attendee_keys(ti)
+    for k in keys:
+        addrs, bad = parse_addrs(ti[k])
+        if bad:
+            return f"{k} has unparseable attendee(s): {', '.join(bad[:3])}"
+        wanted |= addrs
+    if not keys:
         return None
+    if not wanted:
+        return f"{', '.join(keys)} present but no attendee address could be read"
     best: list[str] = sorted(wanted)
     for r in rows:
         if r.get("waived") is True:
@@ -1334,10 +1343,21 @@ def attendee_error(ti: dict, rows: list[dict]) -> str | None:
     return ("attendee(s) not recorded with --to/--cc/--bcc: " + ", ".join(best[:5]))
 
 
+def attendee_keys(ti: dict) -> list[str]:
+    """Known attendee keys plus any unknown attendee/guest/invitee-like key (not removals)."""
+    return [k for k in ti if (k in CAL_ATTENDEE_KEYS
+                              or (k not in CAL_META and _ATTENDEE_KEY_RE.search(k)))
+            and not k.lower().startswith("removed") and _present(ti.get(k))]
+
+
 def calendar_decision(action: str, ti: dict, state: Path) -> str | None:
-    invites = any(_present(ti.get(k)) for k in CAL_ATTENDEE_KEYS)
-    fields = text_fields(ti, CAL_META, skip=())
+    akeys = attendee_keys(ti)
+    invites = bool(akeys)
+    fields = text_fields(ti, CAL_META | set(akeys), skip=())
     if not fields:
+        if invites:  # an invite with no vetted text cannot be bound to a passing record
+            err = attendee_error(ti, [])
+            return f"{action}: {err}" if err else None
         return None
     notif = str(ti.get("notificationLevel") or ti.get("sendUpdates") or "ALL").upper()
     gated = invites or (action == "update_event" and notif not in ("NONE",))
@@ -1392,7 +1412,10 @@ def calendar_decision(action: str, ti: dict, state: Path) -> str | None:
 # Literals are split so this file does not match its own patterns when it is scanned.
 _SENDER_SIMPLE = ("smtp" "lib", "send" "mail", "messages().se" "nd(", "drafts().se" "nd(",
                   "api.send" "grid.com", "api.re" "send.com", "api.post" "markapp.com",
-                  "smtp" "://", "smtp" "s://", "--mail" "-rcpt")
+                  "smtp" "://", "smtp" "s://", "--mail" "-rcpt", "mailgun" ".net/v3",
+                  "api.brevo" ".com", "api.sendin" "blue.com", "send" "-email", "send-raw" "-email",
+                  "send" "_email(", "send" "_raw_email(")
+_SES_RE = re.compile(r"email(?:-smtp)?\.[a-z0-9-]+\.amazon" r"aws\.com")
 # Mail programs: a hit when they are the program a simple command runs.
 _MAILERS = {"mail", "mailx", "msmtp", "swaks", "mutt", "send" "mail", "s-nail", "neomutt"}
 # Wrappers that run the next word as the program (their own flags/numeric args are skipped).
@@ -1409,7 +1432,7 @@ _EXEC_SCRIPT_RE = re.compile(
 # A program that executes code or sends mail, in command position (start of a simple command,
 # optionally behind env assignments or a wrapper such as sudo/env/xargs/nohup/time/exec).
 _EXEC_WORDS = (r"python(?:3(?:\.\d+)?)?|py|node|deno|bun|ruby|perl|php|curl|wget|send" r"mail|"
-               r"mailx?|msmtp|swaks|mutt|neomutt|s-nail|(?:ba|z|da|k)?sh")
+               r"mailx?|msmtp|swaks|aws|mutt|neomutt|s-nail|(?:ba|z|da|k)?sh")
 _EXEC_WORD_RE = re.compile(r"(?:" + _EXEC_WORDS + r")(?:\.exe)?", re.I)
 _QUOTED_RE = re.compile(r"'[^']*'|\"(?:[^\"\\]|\\.)*\"", re.S)
 _SEGMENT_SPLIT_RE = re.compile(r"[\n;&|(){}`]|\$\(")
@@ -1466,6 +1489,8 @@ def sender_hit(low: str) -> str | None:
         return "Gmail REST /send"
     if _INSTANTLY_API in low and ("/emails" in low or "/reply" in low):
         return "Instantly emails/reply API"
+    if _SES_RE.search(low):
+        return "Amazon SES endpoint"
     return None
 
 
@@ -1562,6 +1587,31 @@ def tracked_script_run(command: str, cwd: Path) -> bool:
     return path.is_file() and git_clean(path)
 
 
+MAX_ARG_FILES = 40
+
+
+def _arg_tokens(text: str, depth: int = 0) -> list[str]:
+    """Unquoted words of a command (redirect sources included), recursing into quoted
+    `sh -c "..."`-style strings; every one that names an existing file gets scanned."""
+    import shlex
+    try:
+        lex = shlex.shlex(text, posix=True, punctuation_chars=";&|<>()")
+        lex.whitespace_split = True
+        toks = list(lex)
+    except ValueError:
+        toks = text.split()
+    out: list[str] = []
+    for t in toks:
+        t = t.strip("'\"")
+        if not t or t.startswith("-") or set(t) <= set(";&|<>()"):
+            continue
+        if any(c.isspace() for c in t) and depth < 2:
+            out.extend(_arg_tokens(t, depth + 1))
+        elif len(out) < MAX_ARG_FILES:
+            out.append(t)
+    return out[:MAX_ARG_FILES]
+
+
 def _scan_file(p: Path, label: str) -> str | None:
     try:
         if p.is_file() and p.stat().st_size <= MAX_SCAN_BYTES:
@@ -1590,12 +1640,12 @@ def bash_decision(ti: dict, cwd_raw: Any) -> str | None:
         return (f"redteam gate: Bash pipes base64-decoded data into an interpreter "
                 f"(unscannable). {BASH_DENY}")
     cwd = Path(cwd_raw) if isinstance(cwd_raw, str) and cwd_raw else Path.cwd()
-    # Heredoc bodies count only when their opener line feeds a program (python3 - <<EOF).
-    scan = "\n".join([outer] + [body for opener, body in docs if _EXEC_RE.search(opener)])
+    # The command runs something, so every heredoc body counts (a body written to z.py and
+    # run later in the same command is code, not a fixture).
+    scan = "\n".join([outer] + [body for _opener, body in docs])
     hit = sender_hit(scan.lower())
     if hit is None:
-        for m in _EXEC_SCRIPT_RE.finditer(outer):
-            tok = m.group(1) or m.group(2)
+        for tok in _arg_tokens(outer):
             p = Path(tok).expanduser()
             hit = _scan_file(p if p.is_absolute() else cwd / p, tok)
             if hit:

@@ -991,8 +991,13 @@ def test_bash_module_and_obfuscation(tmp_path, state, capsys):
     "msmtp x@y.z < m",
     "swaks --to x@y.z --server smtp.example.com",
     "mutt -s hi x@y.z < body.txt",
-    "curl --url smtps://smtp.gmail.com:465 --mail-rcpt x@y.z -T m.txt",
-    "curl smtp://localhost:25 -T m.txt",
+    "curl --url smtp" "s://smtp.gmail.com:465 --mail" "-rcpt x@y.z -T m.txt",
+    "curl smtp" "://localhost:25 -T m.txt",
+    "curl -X POST https://api.mailgun" ".net/v3/d/messages",
+    "curl https://api.brevo" ".com/v3/smtp/email",
+    "aws ses send" "-email --from a@b.co",
+    "aws sesv2 send" "-email --from-email-address a@b.co",
+    "curl https://email.eu-west-1.amazon" "aws.com/",
     'python3 -c "svc.users().drafts().se' 'nd(userId=\'me\', body=b).execute()"',
     "timeout 30 python3 -c 'import " + "smtp" "lib" "'",
     "poetry run python -c 'import " + "smtp" "lib" "'",
@@ -1026,3 +1031,52 @@ def test_calendar_location_gated(tmp_path, state, capsys):
         ti, location="Free audit worth 5k, reply now")}, capsys))
     assert _hook({"tool_name": cal + "create_event", "tool_input": {
         "summary": "Solo", "location": "Anywhere"}}, capsys) is None
+
+
+# ------------------------------------------------------------------ re-audit (2026-11-05)
+
+def test_bash_write_then_run_denied(tmp_path, state, capsys):
+    cmd = f"cat > z.py <<'EOF'\nimport {SMTP}\nEOF\npython3 z.py"
+    assert _deny_reason(_bash(cmd, capsys, tmp_path))
+    # pure fixture write (no exec) still allowed
+    assert _bash(f"cat > z.py <<'EOF'\nimport {SMTP}\nEOF", capsys, tmp_path) is None
+
+
+def test_bash_any_file_argument_scanned(tmp_path, state, capsys):
+    _write(tmp_path / "s.py", f"import {SMTP}\n")
+    _write(tmp_path / "s.pyw", f"import {SMTP}\n")
+    _write(tmp_path / "sendit", f"import {SMTP}\n")
+    for cmd in ('python3 "s.py"', "python3 s.pyw", "python3 sendit", "python3 < s.py",
+                'sh -c "python3 s.py"', "bash -c 'cd . && python3 sendit'"):
+        assert _deny_reason(_bash(cmd, capsys, tmp_path)), cmd
+    _write(tmp_path / "ok.py", "print(1)\n")
+    assert _bash('python3 "ok.py"', capsys, tmp_path) is None
+
+
+def test_dict_recipient_without_email_unparseable(tmp_path, state, capsys):
+    addrs, bad = rg.parse_addrs([{"address": "x@y.z"}, {"displayName": "Eve"}, {"email": "a@b.co"}])
+    assert addrs == {"a@b.co"} and len(bad) == 2
+    text = "Hello Marc, see you soon."
+    _record_text(tmp_path, text, capsys, extra=["--to", "marc@x.co"])
+    res = _hook({"tool_name": GM + "send_message", "tool_input": {
+        "to": [{"address": "eve@rival.com"}], "body": text}}, capsys)
+    assert "unparseable" in _deny_reason(res)
+
+
+def test_calendar_unknown_attendee_keys(tmp_path, state, capsys):
+    cal = "mcp__Google_Calendar__"
+    desc = "Agenda: scope review with Marc."
+    _record_text(tmp_path, desc, capsys, extra=["--subject", "Kickoff", "--to", "marc@client.com"])
+    base = {"summary": "Kickoff", "description": desc}
+    assert _hook({"tool_name": cal + "create_event", "tool_input": dict(
+        base, guests=["marc@client.com"])}, capsys) is None
+    assert "eve@rival.com" in _deny_reason(_hook({"tool_name": cal + "create_event",
+                                                  "tool_input": dict(base, guests=["eve@rival.com"])},
+                                                 capsys))
+    assert _deny_reason(_hook({"tool_name": cal + "create_event", "tool_input": {
+        "startTime": "2026-11-10T10:00:00", "invitees": ["eve@rival.com"]}}, capsys))
+    assert _deny_reason(_hook({"tool_name": cal + "create_event", "tool_input": dict(
+        base, attendees=[{"displayName": "Eve"}])}, capsys))
+    assert _hook({"tool_name": cal + "create_event", "tool_input": dict(
+        base, guestPermissions={"canInviteOthers": False}, attendees=["marc@client.com"])},
+        capsys) is None
