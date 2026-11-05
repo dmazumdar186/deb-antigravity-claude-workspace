@@ -11,7 +11,7 @@ const browser = await launch();
 // Find one congress URL.
 const probe = await browser.newPage();
 await probe.goto(BASE + '/?q=madrid', { waitUntil: 'load', timeout: 90000 });
-const congressPath = new URL(await probe.locator('.asset-card h3 a').first().getAttribute('href'), BASE).pathname;
+const congressPath = new URL(await probe.locator('.asset-card__title a').first().getAttribute('href'), BASE).pathname;
 await probe.close();
 const PAGES = { catalogue: '/', congress: congressPath };
 const SLOW4G = { offline: false, downloadThroughput: (1.6 * 1024 * 1024) / 8, uploadThroughput: (750 * 1024) / 8, latency: 150 };

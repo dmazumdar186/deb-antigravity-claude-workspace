@@ -14,7 +14,7 @@ async function step(id, name, fn) {
   catch (e) { rec(id, name, false, String(e.message).split('\n')[0]); }
 }
 const assert = (c, m) => { if (!c) throw new Error(m); };
-const PII = /@example\.com|DV-2026-\d{4}/;
+const PII = /[\w.+-]+@example\.com|DV-2026-\d{4}/;
 const ref = `INT-${Date.now()}`;
 
 const browser = await launch();
@@ -62,7 +62,7 @@ await step('INT-A-004', 'anon public catalogue GET 200 with no PII or code', asy
   const r = await A(anon, '/');
   const b = await r.text();
   assert(r.status() === 200, 'status ' + r.status());
-  assert(!/DEMO-GME-/.test(b) && !/@example\.com/.test(b), 'leak');
+  assert(!/DEMO-GME-/.test(b) && !/[\w.+-]+@example\.com/.test(b), 'leak');
   return '200';
 });
 
@@ -70,7 +70,7 @@ await step('INT-A-004', 'anon public catalogue GET 200 with no PII or code', asy
 let tokens, madridUrl;
 const openForm = async (page) => {
   await page.goto('/?q=madrid');
-  await page.locator('.asset-card h3 a').first().click();
+  await page.locator('.asset-card__title a').first().click();
   await page.waitForSelector('form.asset-form', { timeout: 30000 });
   madridUrl = page.url();
   return page.evaluate(() => {
@@ -198,7 +198,7 @@ for (const [screen, url] of Object.entries(SCREENS)) {
       const r = await A(ctx, url);
       got[role] = r.status();
       const body = await r.text();
-      if (got[role] !== 200) assert(!/DEMO-GME-|@example\.com/.test(body), `${role} denial body leaks`);
+      if (got[role] !== 200) assert(!/DEMO-GME-|[\w.+-]+@example\.com/.test(body), `${role} denial body leaks`);
     }
     const bad = Object.keys(got).filter((r) => got[r] !== EXPECT[screen][r]);
     assert(!bad.length, 'mismatch ' + bad.map((r) => `${r}:${got[r]}(want ${EXPECT[screen][r]})`).join(' '));

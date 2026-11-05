@@ -1,31 +1,31 @@
 {
   "seed": 20261105,
   "role": "contributeur",
-  "action": 59,
+  "action": 50,
   "problems": [
     "pageerror Transition was aborted because of invalid state. ViewTransition opt-in disabled"
   ],
   "last20": [
-    "submit form",
-    "click A \"Aller à la barre d’outils\" #wp-toolbar",
+    "type len=37 =HYPERLINK(\"http://evil.example\",\"x\")",
+    "type len=2 -1",
     "back/forward",
-    "click A \"Ctrl + K\nOuvrir la palette de commandes\" #",
-    "type len=11 99999999999",
-    "type len=19 Élodie Ñandú 日本語 😀",
-    "type len=31 <script>window.__pwn=1</script>",
-    "click INPUT \"Enregistrer le brouillon\" ",
-    "submit form",
-    "type len=10 2027-13-45",
-    "click A \"Prévisualiser la publication\" http://127.0.0.1:9403/?post_type=asset_congres&p=27&preview=true",
-    "click A \"Voir le congrès\" http://127.0.0.1:9403/?post_type=asset_congres&p=27&preview=true",
-    "click BUTTON \"Modifier\" ",
+    "click A \"Voir la publication\" http://127.0.0.1:9404/?post_type=asset_congres&p=33",
+    "click A \"Créer\" http://127.0.0.1:9404/wp-admin/post-new.php?post_type=asset_congres",
+    "resize 1063x943",
     "back/forward",
-    "click A \"Aller au contenu principal\" #wpbody-content",
-    "click A \"ASSET Voyages — démonstration\" http://127.0.0.1:9403/",
-    "click A \"Congrès européen de cardiologie — exemple\" http://127.0.0.1:9403/congres/congres-europeen-de-cardiologie-exemple/",
+    "resize 1342x963",
     "click BUTTON \"Monter\" ",
-    "click A \"ASSET Voyages — démonstration\" http://127.0.0.1:9403/",
-    "submit form"
+    "resize 618x719",
+    "click A \"À propos de WordPress\" http://127.0.0.1:9404/wp-admin/about.php",
+    "resize 565x772",
+    "click A \"Menu\" #",
+    "click A \"Menu\" #",
+    "click A \"Aller sur l’accueil\" http://127.0.0.1:9404/wp-admin/",
+    "click A \"Menu\" #",
+    "resize 858x622",
+    "click BUTTON \"Monter\" ",
+    "click A \"ASSET Voyages — démonstration\" http://127.0.0.1:9404/",
+    "click A \"À propos de WordPress\" http://127.0.0.1:9404/wp-admin/about.php"
   ],
-  "url": "http://127.0.0.1:9403/?s="
+  "url": "http://127.0.0.1:9404/wp-admin/about.php"
 }

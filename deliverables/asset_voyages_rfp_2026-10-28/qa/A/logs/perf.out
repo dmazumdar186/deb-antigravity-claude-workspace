@@ -1,13 +1,16 @@
-node:internal/modules/run_main:123
-    triggerUncaughtException(
-    ^
-
-locator.getAttribute: Target page, context or browser has been closed
-Call log:
-[2m  - waiting for locator('.asset-card h3 a').first()[22m
-
-    at /home/user/deb-antigravity-claude-workspace/deliverables/asset_voyages_rfp_2026-10-28/qa/A/perf_A.mjs:14:78 {
-  log: [ "  - waiting for locator('.asset-card h3 a').first()" ]
-}
-
-Node.js v22.23.4
+PERF desktop catalogue / runs=[{"ttfb":955,"lcp":1016,"cls":0},{"ttfb":1018,"lcp":1080,"cls":0},{"ttfb":977,"lcp":1044,"cls":0}] median ttfb=977ms lcp=1044ms cls=0.0000
+PERF desktop congress /congres/congres-europeen-de-cardiologie-exemple/ runs=[{"ttfb":891,"lcp":952,"cls":0},{"ttfb":929,"lcp":980,"cls":0},{"ttfb":889,"lcp":968,"cls":0}] median ttfb=891ms lcp=968ms cls=0.0000
+PERF mobile catalogue / runs=[{"ttfb":1006,"lcp":1440,"cls":0},{"ttfb":957,"lcp":1372,"cls":0},{"ttfb":995,"lcp":1412,"cls":0}] median ttfb=995ms lcp=1412ms cls=0.0000
+PERF mobile congress /congres/congres-europeen-de-cardiologie-exemple/ runs=[{"ttfb":958,"lcp":1408,"cls":0},{"ttfb":859,"lcp":1276,"cls":0},{"ttfb":1042,"lcp":1488,"cls":0}] median ttfb=958ms lcp=1408ms cls=0.0000
+CONC 30 concurrent GET / : p50=12511ms p95=13158ms max=13159ms non200=0
+PASS LCP<=2500 desktop/catalogue 1044ms
+PASS CLS<=0.1 desktop/catalogue 0.0000
+PASS LCP<=2500 desktop/congress 968ms
+PASS CLS<=0.1 desktop/congress 0.0000
+PASS LCP<=2500 mobile/catalogue 1412ms
+PASS CLS<=0.1 mobile/catalogue 0.0000
+PASS LCP<=2500 mobile/congress 1408ms
+PASS CLS<=0.1 mobile/congress 0.0000
+FAIL p95<=800 concurrent 13158ms
+PASS concurrent non-200 count 0
+NOTE local Playground CLI (PHP-wasm + SQLite, 3 workers, 4 vCPU) is slower than real hosting; numbers are as measured.
