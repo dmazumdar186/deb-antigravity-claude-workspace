@@ -1790,8 +1790,27 @@ _FORM_FLAG_RE = re.compile(r"(?:^|\s)-F(?![A-Za-z-])")
 _F_FLAG_LOW_RE = re.compile(r"(?:^|\s)-f(?![a-z-])")
 
 
+_EXTRA_SEND_RES = (
+    (re.compile(r"\bchat_(?:schedule" r"message|up" r"date|me" r"message)\s*\("), "Slack SDK chat call"),
+    (re.compile(r"\bapi_call\s*\(\s*['\"]chat\.(?:post|update|schedule|me)"), "Slack api_call"),
+    (re.compile(r"\.\s*files\s*\.\s*upload(?:v2)?\s*\("), "Slack files.upload"),
+    (re.compile(r"\bbot\s*\([^)]*\)\s*\.\s*(?:send_?\w+|forward_?\w+|copy_?\w+)\s*\("),
+     "Telegram Bot().send"),
+    (re.compile(r"\bbot\s*\.\s*api\s*\.\s*(?:send\w+|forward\w+|copy\w+)\s*\("), "Telegram bot.api"),
+    (re.compile(r"graph\.microsoft\.com/[\w./-]*/messages/[\w=+-]+/(?:reply|replyall|forward|"
+                r"send)\b|graph\.microsoft\.com/[\w./-]*/send" r"mail\b"), "MS Graph mail send"),
+)
+
+
 def outward_api_hit(low: str, raw: str | None = None) -> str | None:
     low = _PORT_RE.sub(r"\1", low)
+    if "api.github" ".com/graphql" in low and "mutation" in low:
+        return "GitHub GraphQL mutation"
+    if "tele" "thon" in low and re.search(r"\.\s*send_(?:message|file)\s*\(", low):
+        return "Telethon send"
+    for rx, label in _EXTRA_SEND_RES:
+        if rx.search(low):
+            return label
     for rx, label in _WRITE_ENDPOINT_RES:
         if rx.search(low) and (_WRITE_SIGNAL_RE.search(low) or (
                 _FORM_FLAG_RE.search(raw) if raw is not None else _F_FLAG_LOW_RE.search(low))):
@@ -1907,7 +1926,7 @@ def split_simple_commands(text: str) -> list[str]:
     cur: list[str] = []
     quote = ""
     esc = False
-    for ch in text:
+    for idx, ch in enumerate(text):
         if esc:
             cur.append(ch)
             esc = False
@@ -1925,6 +1944,11 @@ def split_simple_commands(text: str) -> list[str]:
             quote = ch
             cur.append(ch)
             continue
+        if ch in "{}" and not (
+                (ch == "{" and (idx + 1 >= len(text) or text[idx + 1].isspace()))
+                or (ch == "}" and (idx == 0 or text[idx - 1] in " \t;\n"))):
+            cur.append(ch)  # brace expansion ({a,b}, ${x}), not a command group
+            continue
         if ch in "\n;&|(){}`":
             out.append("".join(cur))
             cur = []
@@ -1937,7 +1961,8 @@ def split_simple_commands(text: str) -> list[str]:
 _RUNNERS = {"npx", "pnpx", "bunx"}
 _DEPLOY_TOOLS = {"wrangler": "wrangler", "vercel": "vercel", "netlify": "netlify",
                  "ntl": "netlify", "vc": "vercel"}
-_DEPLOY_WRAPPERS = {"setsid", "unbuffer", "doas", "corepack", "chronic", "caffeinate"}
+_DEPLOY_WRAPPERS = {"setsid", "unbuffer", "doas", "corepack", "chronic", "caffeinate",
+                    "busybox", "toybox"}
 _PKG_VAL_FLAGS = {"--filter", "-F", "-C", "--dir", "--cwd", "-w", "--workspace", "--prefix"}
 _PKG_MANAGERS = {"npm", "pnpm", "yarn", "bun"}
 
@@ -2157,6 +2182,12 @@ def deploy_error(outer: str, cwd: Path, depth: int = 0) -> str | None:
                 prog = argv[0]
                 low = prog.lower()
                 name = re.split(r"[/\\]", low)[-1]
+        if depth < 3 and name in _SHELLS and "<<<" in argv:
+            k = argv.index("<<<")
+            err = deploy_error(argv[k + 1], base, depth + 1) if k + 1 < len(argv) else None
+            if err:
+                return err
+            continue
         if depth < 3 and name in _SHELLS:
             cflag = next((n for n, a in enumerate(argv[1:], 1)
                           if re.fullmatch(r"-[a-z]*c[a-z]*", a, re.I)), None)
@@ -2167,13 +2198,40 @@ def deploy_error(outer: str, cwd: Path, depth: int = 0) -> str | None:
                     return err
                 continue
             fi = next((n for n, a in enumerate(argv[1:], 1) if not a.startswith("-")), None)
-            err = (_exec_file_deploy(base / argv[fi], base, depth, args=argv[fi + 1:])
-                   if fi else None)
+            err = None
+            for fp in (_glob_paths(base, argv[fi]) if fi else []):
+                err = err or _exec_file_deploy(fp, base, depth, args=argv[fi + 1:])
             if err:
                 return err
             continue
-        if depth < 3 and name == "script" and "-c" in argv:
-            k = argv.index("-c")
+        if depth < 3 and "<<<" in argv:
+            k = argv.index("<<<")
+            if k + 1 < len(argv) and (name in _SHELLS or _INTERPS.fullmatch(name)):
+                txt = argv[k + 1]
+                err = (deploy_error(txt, base, depth + 1) if name in _SHELLS else
+                       script_deploy_error(txt, Path("inline.py"), base))
+                if err:
+                    return err if err.startswith("redteam gate") else \
+                        f"redteam gate: {err}. {DEPLOY_DENY}"
+            continue
+        if depth < 3 and name in ("awk", "gawk", "mawk", "nawk"):
+            for a in argv[1:]:
+                err = script_deploy_error(a, Path("inline.awk"), base)
+                if err:
+                    return f"redteam gate: {err}. {DEPLOY_DENY}"
+            continue
+        if depth < 3 and name == "find":
+            for k, a in enumerate(argv):
+                if a in ("-exec", "-execdir", "-ok", "-okdir"):
+                    end = next((n for n in range(k + 1, len(argv)) if argv[n] in (";", "+")),
+                               len(argv))
+                    err = deploy_error(" ".join(argv[k + 1:end]), base, depth + 1)
+                    if err:
+                        return err
+            continue
+        if depth < 3 and name == "script" and any(re.fullmatch(r"-[a-z]*c[a-z]*", a)
+                                                  for a in argv[1:]):
+            k = next(n for n, a in enumerate(argv) if n and re.fullmatch(r"-[a-z]*c[a-z]*", a))
             err = deploy_error(argv[k + 1], base, depth + 1) if k + 1 < len(argv) else None
             if err:
                 return err
@@ -2349,6 +2407,56 @@ def _bind_positional(text: str, args: list[str], base: Path) -> str:
     return text
 
 
+_PENDING_WRITES: dict[str, str] = {}
+_WRITE_TARGET_RE = re.compile(r"(?<![<>&\d])>>?\s*['\"]?([^\s;&|<>'\"]+)")
+
+
+def _brace_expand(pat: str) -> list[str]:
+    m = re.search(r"\{([^{}]*,[^{}]*)\}", pat)
+    if not m:
+        return [pat]
+    out: list[str] = []
+    for alt in m.group(1).split(",")[:20]:
+        out += _brace_expand(pat[:m.start()] + alt + pat[m.end():])
+    return out
+
+
+def _glob_paths(base: Path, pat: str) -> list[Path]:
+    out: list[Path] = []
+    for p in _brace_expand(pat):
+        if any(c in p for c in "*?["):
+            try:
+                out += sorted(base.glob(p))[:20] if not os.path.isabs(p) else \
+                    [Path(x) for x in sorted(__import__("glob").glob(p))[:20]]
+            except (ValueError, OSError):
+                continue
+        else:
+            out.append(base / p)
+    return out
+
+
+def pending_writes(outer: str, docs: list[tuple[str, str]], cwd: Path) -> dict[str, str]:
+    """Files this command writes before running them: heredoc bodies redirected to a file and
+    `echo|printf … > f`. Keyed by resolved path."""
+    import shlex
+    out: dict[str, str] = {}
+    for opener, body in docs:
+        for m in _WRITE_TARGET_RE.finditer(opener):
+            out[os.path.realpath(cwd / m.group(1))] = body
+    for seg in split_simple_commands(outer):
+        m = _WRITE_TARGET_RE.search(seg)
+        if not m:
+            continue
+        try:
+            toks = shlex.split(seg[:m.start()])
+        except ValueError:
+            continue
+        if toks[:1] in (["echo"], ["printf"]):
+            key = os.path.realpath(cwd / m.group(1))
+            out[key] = out.get(key, "") + "\n" + " ".join(toks[1:]).replace("\\n", "\n")
+    return out
+
+
 _PATH_LIT_RE = re.compile(r"(?<![\w$.-])((?:\.{1,2}/)?[\w.-]+(?:/[\w.-]+)+)/?")
 
 
@@ -2394,25 +2502,38 @@ def _exec_file_deploy(fp: Path, base: Path, depth: int, force_shell: bool = Fals
                       args: list[str] | None = None) -> str | None:
     """A file this command EXECUTES: shell files are re-parsed as commands; code files are
     checked for a spawned deploy. The project checked is the script's own project folder."""
+    pend = _PENDING_WRITES.get(os.path.realpath(fp))
     try:
-        if not fp.is_file():
+        if pend is not None:
+            text = pend.lower()
+        elif not fp.is_file():
             return None
-        text = _read_limited(fp, str(fp))
+        else:
+            text = _read_limited(fp, str(fp))
     except (OSError, ScanLimit):
         return None
     if not text:
         return None
+    if pend is None and depth < 3 and fp.suffix.lower() not in ("", ".sh", ".bash", ".zsh"):
+        # code that launches a shell script: treat as running that script
+        for lit in re.findall(r"['\"]([\w./-]+\.(?:sh|bash))['\"]", text)[:10]:
+            for b in (fp.parent, base, Path(os.path.realpath(REPO_ROOT))):
+                if (b / lit).is_file():
+                    err = _exec_file_deploy(b / lit, base, depth + 1)
+                    if err:
+                        return err
+                    break
     if force_shell or fp.suffix.lower() in ("", ".sh", ".bash", ".zsh"):
         bound = _bind_positional(text, args or [], base)
         sbase = _script_project(fp) if not force_shell else base
         err = deploy_error(bound, sbase, depth + 1)
-        if err and "uses expansion" in err and git_clean(fp):
+        if err and "uses expansion" in err and pend is None and git_clean(fp):
             # tracked + clean script whose deploy dir is not resolvable from its args: the
             # project of the path args it was given (else the script's own folder) must be clean
             err = _unresolved_target_error(fp, bound, args or [], base, sbase)
         if err:
             return err
-        if git_clean(fp):
+        if pend is None and git_clean(fp):
             return None  # tracked script, its commands were checked above
     err = script_deploy_error(text, fp, _script_project(fp))
     return f"redteam gate: {err}. {DEPLOY_DENY}" if err else None
@@ -2428,6 +2549,10 @@ def _interp_deploy(argv: list[str], name: str, base: Path, depth: int) -> str | 
                 err = script_deploy_error(code, Path("inline.py"), base)
                 if err:
                     return f"redteam gate: {err}. {DEPLOY_DENY}"
+                for f in re.findall(r"['\"]([\w./-]+\.(?:sh|bash))['\"]", code):
+                    e2 = _exec_file_deploy(base / f, base, depth)
+                    if e2:
+                        return e2
                 for f in re.findall(r"open\s*\(\s*['\"]([^'\"]+)['\"]", code):
                     e2 = _exec_file_deploy(base / f, base, depth)
                     if e2:
@@ -2446,48 +2571,156 @@ def _interp_deploy(argv: list[str], name: str, base: Path, depth: int) -> str | 
     return None
 
 
-_GH_TEXT_SUBCMDS = {("issue", "comment"), ("issue", "create"), ("issue", "edit"),
-                    ("pr", "comment"), ("pr", "create"), ("pr", "review"), ("pr", "edit"),
-                    ("release", "create"), ("release", "edit"), ("discussion", "comment")}
-_GH_TEXT_FLAGS = {"--body": "body", "-b": "body", "--title": "title", "-t": "title",
-                  "--notes": "notes", "-n": "notes"}
-_GH_FILE_FLAGS = {"--body-file", "-F", "--notes-file"}
+_GH_TEXT_FLAGS = {
+    ("issue", "comment"): {"--body": "body", "-b": "body", "--body-file": "@", "-F": "@"},
+    ("issue", "create"): {"--body": "body", "-b": "body", "--title": "title", "-t": "title",
+                          "--body-file": "@", "-F": "@"},
+    ("issue", "edit"): {"--body": "body", "-b": "body", "--title": "title", "-t": "title",
+                        "--body-file": "@", "-F": "@"},
+    ("issue", "close"): {"--comment": "comment", "-c": "comment"},
+    ("issue", "reopen"): {"--comment": "comment", "-c": "comment"},
+    ("pr", "comment"): {"--body": "body", "-b": "body", "--body-file": "@", "-F": "@"},
+    ("pr", "create"): {"--body": "body", "-b": "body", "--title": "title", "-t": "title",
+                       "--body-file": "@", "-F": "@"},
+    ("pr", "edit"): {"--body": "body", "-b": "body", "--title": "title", "-t": "title",
+                     "--body-file": "@", "-F": "@"},
+    ("pr", "review"): {"--body": "body", "-b": "body", "--body-file": "@", "-F": "@"},
+    ("pr", "close"): {"--comment": "comment", "-c": "comment"},
+    ("pr", "reopen"): {"--comment": "comment", "-c": "comment"},
+    ("pr", "merge"): {"--body": "body", "-b": "body", "--subject": "subject", "-t": "subject",
+                      "--body-file": "@", "-F": "@"},
+    ("release", "create"): {"--notes": "notes", "-n": "notes", "--title": "title", "-t": "title",
+                            "--notes-file": "@", "-F": "@"},
+    ("release", "edit"): {"--notes": "notes", "-n": "notes", "--title": "title", "-t": "title",
+                          "--notes-file": "@", "-F": "@"},
+    ("discussion", "create"): {"--body": "body", "-b": "body", "--title": "title", "-t": "title",
+                               "--body-file": "@", "-F": "@"},
+    ("discussion", "comment"): {"--body": "body", "-b": "body", "--body-file": "@", "-F": "@"},
+    ("repo", "create"): {"--description": "description", "-d": "description"},
+    ("repo", "edit"): {"--description": "description", "-d": "description"},
+    ("gist", "create"): {"--desc": "description", "-d": "description"},
+}
+_GH_GLOBAL_VAL = {"-R", "--repo", "--hostname"}
+_GH_API_OUTWARD_RE = re.compile(r"(?:^|/)(?:issues|pulls|comments|reviews|releases|discussions|"
+                                r"gists)(?:/|$)")
 
 
-def gh_text_error(argv: list[str]) -> str | None:
-    """`gh issue|pr comment|create|review|edit --body/--title/--body-file`: like MCP posts,
-    every given text must be a passed red-team text; no text (--fill, --approve) passes."""
-    pos = [a for a in argv[1:3] if not a.startswith("-")]
-    if tuple(pos[:2]) not in _GH_TEXT_SUBCMDS:
-        return None
-    texts: list[tuple[str, str]] = []
-    i = 1
-    while i < len(argv):
-        a = argv[i]
-        k, eq, v = a.partition("=")
-        if k in _GH_TEXT_FLAGS or k in _GH_FILE_FLAGS:
-            if not eq:
-                v = argv[i + 1] if i + 1 < len(argv) else ""
-                i += 1
-            if k in _GH_FILE_FLAGS:
-                if v == "-":
-                    return f"redteam gate: gh {' '.join(pos)} reads text from stdin (unverifiable)"
-                try:
-                    v = Path(v).read_text(encoding="utf-8", errors="replace")
-                except OSError:
-                    return f"redteam gate: gh {' '.join(pos)} text file {v} unreadable"
-            texts.append((_GH_TEXT_FLAGS.get(k, "body"), v))
-        i += 1
+def _gh_texts_error(where: str, texts: list[tuple[str, str]]) -> str | None:
     ledger = Ledger(state_dir())
     for key, raw in texts:
-        if not raw.strip():
+        if not raw or not raw.strip():
             continue
         norm = normalise(raw)
         sha = _sha256(norm)
         if not ledger.rows_for(sha):
-            return (f"redteam gate: {_not_passed('gh ' + ' '.join(pos) + '.' + key, norm, sha)}. "
-                    f"{DENY_SUFFIX}")
+            return f"redteam gate: {_not_passed(where + '.' + key, norm, sha)}. {DENY_SUFFIX}"
     return None
+
+
+def _gh_api_error(rest: list[str]) -> str | None:
+    method = None
+    fields: list[tuple[str, str]] = []
+    inp = None
+    path = None
+    i = 0
+    while i < len(rest):
+        a = rest[i]
+        k, eq, v = a.partition("=") if a.startswith("--") else (a[:2], "", a[2:]) \
+            if a.startswith("-") and len(a) > 2 else (a, "", "")
+        if a.startswith("-"):
+            if not eq and not v:
+                v = rest[i + 1] if i + 1 < len(rest) else ""
+                i += 1
+            if k in ("-X", "--method"):
+                method = v.upper()
+            elif k in ("-f", "-F", "--field", "--raw-field"):
+                fk, _e, fv = v.partition("=")
+                fields.append((fk, fv))
+            elif k == "--input":
+                inp = v
+        elif path is None:
+            path = a
+        i += 1
+    if path is None:
+        return None
+    if inp is not None:
+        if inp == "-":
+            return "redteam gate: gh api --input - (stdin) is unverifiable"
+        try:
+            data = json.loads(Path(inp).read_text(encoding="utf-8", errors="replace"))
+        except (OSError, ValueError):
+            return f"redteam gate: gh api --input {inp} unreadable"
+        if isinstance(data, dict):
+            fields += [(str(k2), v2 if isinstance(v2, str) else json.dumps(v2))
+                       for k2, v2 in data.items()]
+    eff = method or ("POST" if fields or inp is not None else "GET")
+    if path.strip("/") == "graphql":
+        blob = " ".join(v2 for _k, v2 in fields).lower()
+        if "mutation" in blob:
+            return ("redteam gate: gh api graphql mutation (outward write; use gh issue/pr "
+                    "commands with red-teamed text, or ask the operator to waive)")
+        return None
+    if eff not in ("POST", "PATCH", "PUT") or not _GH_API_OUTWARD_RE.search(path):
+        return None
+    texts = [(fk, fv) for fk, fv in fields if fv.startswith("@") is False
+             and not _MCP_ID_KEY_RE.search(fk)]
+    for fk, fv in fields:
+        if fv.startswith("@"):
+            try:
+                texts.append((fk, Path(fv[1:]).read_text(encoding="utf-8", errors="replace")))
+            except OSError:
+                return f"redteam gate: gh api field file {fv[1:]} unreadable"
+    return _gh_texts_error(f"gh api {path}", texts)
+
+
+def gh_text_error(argv: list[str]) -> str | None:
+    """`gh` outward text: issue/pr/release/discussion/repo subcommands with body/title/comment/
+    subject/notes/description flags (incl. attached short forms) and `gh api` writes to
+    issues/pulls/comments/reviews/releases/discussions; graphql mutations deny."""
+    rest: list[str] = []
+    i = 1
+    while i < len(argv):
+        a = argv[i]
+        if a in _GH_GLOBAL_VAL:
+            i += 2
+            continue
+        if a.split("=")[0] in _GH_GLOBAL_VAL or (a.startswith("-R") and len(a) > 2):
+            i += 1
+            continue
+        rest = argv[i:]
+        break
+    if not rest:
+        return None
+    if rest[0] == "api":
+        return _gh_api_error(rest[1:])
+    sub = tuple(rest[:2])
+    flags = _GH_TEXT_FLAGS.get(sub)  # type: ignore[arg-type]
+    if not flags:
+        return None
+    texts: list[tuple[str, str]] = []
+    i = 2
+    while i < len(rest):
+        a = rest[i]
+        k, eq, v = a.partition("=")
+        if not eq and a.startswith("-") and not a.startswith("--") and len(a) > 2 \
+                and a[:2] in flags:
+            k, eq, v = a[:2], "=", a[2:]
+        if k in flags:
+            if not eq:
+                v = rest[i + 1] if i + 1 < len(rest) else ""
+                i += 1
+            if flags[k] == "@":
+                if v == "-":
+                    return f"redteam gate: gh {' '.join(sub)} reads text from stdin (unverifiable)"
+                try:
+                    v = Path(v).read_text(encoding="utf-8", errors="replace")
+                except OSError:
+                    return f"redteam gate: gh {' '.join(sub)} text file {v} unreadable"
+                texts.append(("body", v))
+            else:
+                texts.append((flags[k], v))
+        i += 1
+    return _gh_texts_error("gh " + " ".join(sub), texts)
 
 
 def project_clean_error(proj: Path) -> str | None:
@@ -3223,6 +3456,8 @@ def _bash_decision(command: str, cwd_raw: Any, allow_tracked: bool = True,
         nw = f"redteam gate: {exc}; cannot vouch for this claude invocation."
     if nw:
         return nw
+    _PENDING_WRITES.clear()
+    _PENDING_WRITES.update(pending_writes(outer, docs, cwd))
     de = deploy_error(outer, cwd)
     if not de and _EXEC_RE.search(outer):
         for opener, body in docs:
@@ -3303,7 +3538,15 @@ _MCP_POST_RE = re.compile(r"post_message|postmessage|send_|publish|reply_to_thre
                           r"files_upload|create_issue|update_issue|create_pull_request|"
                           r"pull_request_review_write", re.I)
 # Repo content pushes are code (covered by the build-contract audit), not outward text.
-MCP_NOT_OUTWARD = ("push_files", "create_or_update_file", "delete_file")
+MCP_NOT_OUTWARD = ("push_files", "create_or_update_file", "delete_file", "create_file",
+                   "update_file", "copy_file", "run_secret_scanning", "guide", "create_branch",
+                   "fork_repository")
+MCP_HARNESS_SERVERS = {"claude-code-remote", "ccd_session"}
+MCP_READ_VERBS = ("get", "list", "search", "read", "fetch", "download", "query", "resolve",
+                  "describe", "view", "count", "check", "suggest", "lookup", "find")
+# Local/no-text mailbox and storage actions (nothing reaches another person).
+MCP_LOCAL_PREFIXES = ("delete", "trash", "untrash", "label", "unlabel", "mark", "unmark",
+                      "archive", "apply_", "remove", "revoke", "unshare")
 # Outward post/send tools: every string field is text EXCEPT these id/target/enum keys.
 _MCP_ID_KEY_RE = re.compile(
     r"(?:^|_)ids?$|[a-z]Ids?$|^(?:owner|repo|repository|org|organization|number|issue_number|"
@@ -3315,7 +3558,11 @@ _MCP_ID_KEY_RE = re.compile(
     r"reply_broadcast|mrkdwn|icon_emoji|icon_url|as_user|parse|link_names|scheduled_at|"
     r"post_at|subject_type|position|in_reply_to|reply_to_tweet_id|quote_tweet_id|media_ids|"
     r"subjecttype|startside|startline|statereason|merge_method|mergemethod|commitid|"
-    r"pullnumber|issuenumber|reviewers?|commit_title_hidden|expected_head_sha)$",
+    r"pullnumber|issuenumber|reviewers?|commit_title_hidden|expected_head_sha|inputs|"
+    r"from_branch|ref|tag|tag_name|name|key|url|uri|slug|dir|mode|format|scope|kind|level|"
+    r"sort|order|direction|query|q|engine|answering|opid|verbose|container|calendarid|"
+    r"timezone|start|end|starttime|endtime|response|sendupdates|notificationlevel)$"
+    r"|(?:Id|Ids|Sha|Ref|Name|Number|Branch|Path|Url|Type|Mode|Method|State|Side|Line)$",
     re.I)
 # Recipient keys parsed as email addresses; target keys are non-address audiences.
 MCP_ADDR_KEYS = ("emailAddress", "emailAddresses", "email", "emails", "recipient", "recipients",
@@ -3343,14 +3590,16 @@ def mcp_outward_kind(name: str) -> str | None:
     Gmail/Calendar are routed earlier; this covers every other server."""
     if not isinstance(name, str) or not name.startswith("mcp__"):
         return None
-    low = name.rsplit("__", 1)[-1].lower()
-    if low.startswith(MCP_READ_PREFIXES) or low in MCP_NOT_OUTWARD:
+    parts = name.split("__")
+    if len(parts) < 3 or parts[1].lower() in MCP_HARNESS_SERVERS:
+        return None
+    low = parts[-1].lower()
+    if low.startswith(MCP_READ_VERBS) or low.endswith("_read") or low in MCP_NOT_OUTWARD \
+            or low.startswith(MCP_LOCAL_PREFIXES) or "label" in low:
         return None
     if _MCP_SHARE_RE.search(low):
         return "share"
-    if _MCP_POST_RE.search(low):
-        return "post"
-    return None
+    return "post"  # structural: every other MCP tool is outward (ids/enums-only calls pass)
 
 
 def _mcp_recipients(ti: dict) -> tuple[set[str], list[str], list[str]]:

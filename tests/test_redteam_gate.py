@@ -2242,3 +2242,92 @@ def test_gh_cli_text_gated(tmp_path, state, capsys):
     assert _bash("gh pr comment 3 --body 'Looks good'", capsys) is None
     f = _write(tmp_path / "b.md", "Looks good")
     assert _bash(f"gh pr comment 3 --body-file {f}", capsys) is None
+
+
+
+def test_gh_global_flags_api_and_more_subcommands(tmp_path, state, capsys):
+    for cmd in ("gh -R o/r pr comment 3 --body 'Looks good'",
+                "gh --repo o/r issue comment 3 -b'Looks good'",
+                "gh --hostname h issue create -tTitle -bBody",
+                "gh issue close 3 --comment 'Closing this'",
+                "gh pr reopen 3 -c 'Reopening'", "gh pr merge 3 --squash --body 'merge text'",
+                "gh pr merge 3 --subject 'Ship v2'", "gh discussion create --title T --body B",
+                "gh repo create acme --description 'Client site'",
+                "gh api repos/o/r/issues/1/comments -f body='hi there'",
+                "gh api -X PATCH repos/o/r/issues/1 -f title='New title'",
+                "gh api repos/o/r/pulls -F title=T -F body=B",
+                "gh api --method POST repos/o/r/releases --raw-field body=notes"):
+        assert "has not passed" in _deny_reason(_bash(cmd, capsys)), cmd
+    assert "mutation" in _deny_reason(_bash(
+        "gh api graphql -f query='mutation { addComment(input:{}) { clientMutationId } }'", capsys))
+    assert _deny_reason(_bash("curl -X POST https://api.git|hub.com/graphql -d "
+                              "'{\"query\":\"mutation { x }\"}'".replace("|", ""), capsys))
+    for cmd in ("gh api repos/o/r/issues", "gh api graphql -f query='query { viewer { login } }'",
+                "gh -R o/r pr list", "gh api -X POST repos/o/r/actions/workflows/1/dispatches",
+                "gh pr merge 3 --squash", "gh issue close 3", "gh repo view o/r"):
+        assert _bash(cmd, capsys) is None, cmd
+    _record_text(tmp_path, "Looks good", capsys)
+    assert _bash("gh -R o/r pr comment 3 -b'Looks good'", capsys) is None
+    assert _bash("gh api repos/o/r/issues/1/comments -f body='Looks good' -f owner=o",
+                 capsys) is None
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_write_then_run_and_more_exec_forms(tmp_path, state, capsys, monkeypatch):
+    proj = _deploy_repo(tmp_path, monkeypatch)
+    _write(proj / "dep1.sh", "npx wrang" "ler deploy\n")
+    _write(proj / "launch.py", "import subprocess\nsubprocess.run(['bash', 'dep1.sh'])\n")
+    for args in (["add", "-A"], ["-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "y"]):
+        subprocess.run(["git", "-C", str(rg.REPO_ROOT), *args], check=True, capture_output=True)
+    _write(proj / "src" / "draft.md", "uncommitted\n")
+    for cmd in ("cat > d.sh <<'EOF'\nwrang~ler deploy\nEOF\nbash d.sh",
+                "echo 'wrang~ler deploy' > d2.sh && sh d2.sh",
+                "printf 'wrang~ler deploy\\n' PIPE bash", "bash <<< 'wrang~ler deploy'",
+                "script -qc 'wrang~ler deploy' /dev/null", "busybox sh -c 'wrang~ler deploy'",
+                "awk 'BEGIN{system(\"wrang~ler deploy\")}'",
+                "find . -maxdepth 0 -exec wrang~ler deploy ';'",
+                "bash dep*.sh", "bash {dep1,nope}.sh", "python3 launch.py",
+                "python3 -c \"import subprocess; subprocess.run(['bash','dep1.sh'])\""):
+        c = cmd.replace("PIPE", "|").replace("~", "")
+        assert _bash(c, capsys, cwd=proj) is not None, cmd
+
+
+@pytest.mark.parametrize("cmd", [
+    "python3 -c \"c.chat_schedule|Message(channel='c', text='x', post_at=1)\"",
+    "python3 -c \"c.chat_up|date(channel='c', ts='1', text='x')\"",
+    "python3 -c \"c.chat_me|Message(channel='c', text='x')\"",
+    "python3 -c \"c.api_call('chat|.post|Message', json={})\"",
+    "node -e \"web.files.up|load({channels:'c'})\"", "node -e \"web.files.up|loadV2({})\"",
+    "python3 -c \"Bot(token).send|_message(1, 'x')\"", "node -e \"bot.api.send|Message(1, 'x')\"",
+    "python3 -c \"import tele|thon; client.send|_message('me', 'x')\"",
+    "curl -X POST https://graph.micro|soft.com/v1.0/me/messages/AAMk=/reply -d '{}'",
+    "curl -X POST https://graph.micro|soft.com/v1.0/me/send|Mail -d '{}'",
+])
+def test_sixth_audit_channels(cmd, state, capsys):
+    assert _deny_reason(_bash(cmd.replace("|", ""), capsys)), cmd
+
+
+def test_structural_mcp_rule(tmp_path, state, capsys):
+    k = rg.mcp_outward_kind
+    for n in ("mcp__Claude_Docs__read", "mcp__Claude_Docs__guide", "mcp__Wispr_Flow__get_meeting",
+              "mcp__Wispr_Flow__resolve_share_link", "mcp__Google_Drive__search_files",
+              "mcp__Google_Drive__get_file_permissions", "mcp__Google_Drive__create_file",
+              "mcp__Gmail__label_message", "mcp__Gmail__create_label", "mcp__Gmail__trash_thread",
+              "mcp__Google_Calendar__delete_event", "mcp__Google_Calendar__suggest_time",
+              "mcp__github__issue_read", "mcp__github__pull_request_read",
+              "mcp__github__push_files", "mcp__claude-code-remote__send_message",
+              "mcp__ccd_session__spawn_task", "mcp__x__view_thing", "mcp__x__count_rows"):
+        assert k(n) is None, n
+    for n in ("mcp__github__merge_pull_request", "mcp__github__issue_write",
+              "mcp__Claude_Docs__batch", "mcp__acme__do_anything", "mcp__x__notify"):
+        assert k(n) == "post", n
+    # outward tool with only ids/enums passes; any free string must pass red-team
+    assert _mcp("mcp__github__merge_pull_request", {"owner": "o", "repo": "r", "pullNumber": 1,
+                                                    "merge_method": "squash"}, capsys) is None
+    assert "commit_message" in _deny_reason(_mcp(
+        "mcp__github__merge_pull_request", {"owner": "o", "repo": "r", "pullNumber": 1,
+                                            "commit_message": "Ship it to the client"}, capsys))
+    assert "has not passed" in _deny_reason(_mcp("mcp__acme__notify", {"note_v9": "Hi Marc"},
+                                                 capsys))
+    assert _mcp("mcp__claude-code-remote__send_message", {"message": "anything"}, capsys) is None
+    assert rg._is_outward({"tool_name": "mcp__acme__notify"}, "")

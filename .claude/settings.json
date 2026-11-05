@@ -110,7 +110,7 @@
         ]
       },
       {
-        "matcher": "mcp__.*([Gg]mail|send_email|send_message|create_draft).*|mcp__.*[Cc]alendar.*__(create_event|update_event|quick_add_event)|mcp__.*__.*([Ss][Hh][Aa][Rr][Ee]|[Pp][Ee][Rr][Mm][Ii][Ss][Ss][Ii][Oo][Nn]|[Pp][Oo][Ss][Tt]_[Mm][Ee][Ss][Ss][Aa][Gg][Ee]|[Pp][Oo][Ss][Tt][Mm][Ee][Ss][Ss][Aa][Gg][Ee]|[Ss][Ee][Nn][Dd]_|[Pp][Uu][Bb][Ll][Ii][Ss][Hh]|[Rr][Ee][Pp][Ll][Yy]_[Tt][Oo]_[Tt][Hh][Rr][Ee][Aa][Dd]|[Cc][Rr][Ee][Aa][Tt][Ee]_[Pp][Oo][Ss][Tt]|[Tt][Ww][Ee][Ee][Tt]|[Cc][Rr][Ee][Aa][Tt][Ee]_[Mm][Ee][Ss][Ss][Aa][Gg][Ee]|[Ss][Ee][Nn][Dd]_[Dd][Mm]|[Cc][Oo][Mm][Mm][Ee][Nn][Tt]|[Ss][Cc][Hh][Ee][Dd][Uu][Ll][Ee]_[Mm][Ee][Ss][Ss][Aa][Gg][Ee]|[Ff][Ii][Ll][Ee][Ss]_[Uu][Pp][Ll][Oo][Aa][Dd]|[Cc][Rr][Ee][Aa][Tt][Ee]_[Ii][Ss][Ss][Uu][Ee]|[Uu][Pp][Dd][Aa][Tt][Ee]_[Ii][Ss][Ss][Uu][Ee]|[Cc][Rr][Ee][Aa][Tt][Ee]_[Pp][Uu][Ll][Ll]_[Rr][Ee][Qq][Uu][Ee][Ss][Tt]|[Pp][Uu][Ll][Ll]_[Rr][Ee][Qq][Uu][Ee][Ss][Tt]_[Rr][Ee][Vv][Ii][Ee][Ww]_[Ww][Rr][Ii][Tt][Ee]).*|Bash",
+        "matcher": "mcp__.*|Bash",
         "hooks": [
           {
             "type": "command",

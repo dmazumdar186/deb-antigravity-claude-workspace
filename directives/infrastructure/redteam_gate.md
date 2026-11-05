@@ -312,8 +312,8 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   "exec(open(f).read())"`, `sh < f`, `python3 - < f`, array-literal spawns
   (`spawnSync('wrangler',['pages','deploy'])`). Runners: `vc`, `npx -p pkg bin`,
   `pnpm --filter x exec`, `yarn|bun run <bin>`, corepack, `env -C dir`, setsid/flock/unbuffer/
-  doas/`script -c`. Channels: versioned Discord webhooks, Slack WebhookClient/IncomingWebhook
-  `.send(`, Instagram/Threads publish, Telegram forward/copy, Outlook webhooks. MCP outward
+  doas/`script -c`. Channels: versioned Discord webhooks, Slack webhook-client
+  sends, Instagram/Threads publish, Telegram forward/copy, Outlook webhooks. MCP outward
   tools: every string field is text except an id/target/enum key list (`channel_name`/
   `Channel` are audiences needing a waiver); kinds add postMessage, files_upload,
   create/update_issue, create_pull_request, pull_request_review_write; push_files/
@@ -327,9 +327,28 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   `$PWD`/`$(pwd)`/`` `pwd` `` in script paths resolve for the sender scan too. MCP id/enum keys
   add camelCase review/issue fields; tools with only ids/enums (approve, close) pass. Channels:
   Telegram media-group/forward/copy and `bot.telegram.sendMessage`, Outlook 365 webhooks, Slack
-  `files_upload(`/AsyncWebhookClient, GitHub REST comments/issues/pulls/reviews/releases.
+  file-upload SDK calls / async webhook clients, GitHub REST comments/issues/pulls/reviews/releases.
   `gh issue|pr|release|discussion comment|create|review|edit` with `--body/-b/--title/-t/
   --notes/--body-file`: every given text must be passed (`--fill`/`--approve` need none).
+- 2026-11-05 (channels sixth audit): **structural MCP rule** — every `mcp__*` tool routes to
+  the gate (settings matcher `mcp__.*|Bash`) and is outward unless its tool segment starts with
+  a read verb (get list search read fetch download query resolve describe view count check
+  suggest lookup find, or ends `_read`), is a local action (delete trash untrash label unlabel
+  mark unmark archive apply_ remove revoke unshare; any `*label*`), is repo/storage content
+  (push_files, create_or_update_file, create/update/copy_file, create_branch, fork_repository,
+  run_secret_scanning, guide), or belongs to harness servers `claude-code-remote`/`ccd_session`.
+  Outward tools with only id/enum fields pass; every other string field must be passed text
+  (so Claude_Docs batch/update content and calendar RSVP comments need a pass). Drive
+  create/update of a file that is already shared is a known gap (sharing itself is gated).
+  The wrapper fails closed on the same rule. gh: global `-R/--repo/--hostname`, `gh api`
+  writes (explicit -X/--method or implicit POST via -f/-F/--field/--raw-field/--input) to
+  issues/pulls/comments/reviews/releases/discussions/gists check every non-id field; graphql
+  mutations (gh api or curl) deny; close/reopen `--comment`, merge `--body/--subject`,
+  discussion create, repo/gist `--description`, attached short flags (`-bx`). Deploy:
+  write-then-run (heredoc/`echo >` file then run it), `<<<`, `script -qc`, busybox, awk
+  `system(`, `find -exec`, glob/brace script paths, python/node launching a `.sh` (treated as
+  running it). Channels: Slack SDK schedule/update/me-message/api_call, node files upload,
+  Telegram `Bot(...)`/`bot.api` sends, Telethon, MS Graph reply/forward/send and send-mail.
 - Out of scope (documented): `-c 'import deploy'`-style helper modules, shell-escaped or split
   literals, browser/Playwright UI sends (LinkedIn UI automation included); the hook gates API
   endpoints, and tracked repo automation stays trusted.

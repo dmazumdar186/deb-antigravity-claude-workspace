@@ -3,7 +3,7 @@
 #
 # Red-team gate for outward text. Usage: redteam-outward-gate.sh pre|post|subagent|prompt
 #   pre      -> PreToolUse (Gmail send/reply/forward/drafts, Calendar create/update_event,
-#               MCP share/permission/post/send/publish tools, Bash):
+#               every other MCP tool (the gate decides; reads pass), Bash):
 #               redteam_gate.py hook. FAIL-CLOSED for OUTWARD tools only (Gmail/Calendar):
 #               missing python/script or a crash denies them. For Bash and any other tool a
 #               crash ALLOWS and logs to stderr, so a broken gate can never brick a session.
@@ -51,9 +51,11 @@ OUTWARD=0
 if printf '%s' "$INPUT" | grep -Eq '"tool_name"[[:space:]]*:[[:space:]]*"mcp__[^"]*([Gg]mail|[Cc]alendar|send_email|send_message|create_draft)'; then
   OUTWARD=1
 fi
-# Share/permission/post/send/publish MCP tools (any server) fail closed too, except reads.
-if printf '%s' "$INPUT" | grep -Eiq '"tool_name"[[:space:]]*:[[:space:]]*"mcp__[^"]*__[^"]*(share|permission|post_message|postmessage|send_|publish|reply_to_thread|create_post|tweet|create_message|send_dm|comment|schedule_message|files_upload|create_issue|update_issue|create_pull_request|pull_request_review_write)' \
-   && ! printf '%s' "$INPUT" | grep -Eiq '"tool_name"[[:space:]]*:[[:space:]]*"mcp__([^"_]|_[^"_])*__(get|list|search|read|resolve|download|fetch|describe|find|query|lookup|check|count|export|delete|remove|revoke|unshare|trash|untrash)_?'; then
+# Structural rule (mirrors mcp_outward_kind): every MCP tool fails closed unless it is
+# harness-internal or its tool segment starts with a read verb / local action.
+if printf '%s' "$INPUT" | grep -Eiq '"tool_name"[[:space:]]*:[[:space:]]*"mcp__' \
+   && ! printf '%s' "$INPUT" | grep -Eiq '"tool_name"[[:space:]]*:[[:space:]]*"mcp__(claude-code-remote|ccd_session)__' \
+   && ! printf '%s' "$INPUT" | grep -Eiq '"tool_name"[[:space:]]*:[[:space:]]*"mcp__([^"_]|_[^"_])*__(get|list|search|read|fetch|download|query|resolve|describe|view|count|check|suggest|lookup|find|delete|trash|untrash|label|unlabel|mark|unmark|archive|apply_|remove|revoke|unshare)'; then
   OUTWARD=1
 fi
 
