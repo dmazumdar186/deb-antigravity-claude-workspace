@@ -8,7 +8,7 @@ import { notificationFor, TEAM_INBOX, materialize, baseUrl } from './data.js';
 
 const PER_PAGE = 9;
 const MIN_FILL_MS = 3000;
-export const ENQ_LIMIT = 10; // accepted enquiries per browser sandbox and IP hash per 10 minutes
+export const ENQ_LIMIT = 10; // accepted enquiries per browser sandbox per 10 minutes, whatever its IP
 export const ENQ_IP_LIMIT = 60; // accepted enquiries per IP hash per 10 minutes, all browsers together (an office behind one IP)
 export const ENQ_WINDOW = 600;
 
@@ -235,7 +235,8 @@ export async function submitEnquiry(req, env) {
 
   const ip = env.IP_HASH || await ipHash(env, req);
   const sid = await materialize(env); // this browser's private sandbox
-  if (!(await rateHit(env, `enq:${ip}:${sid}`, ENQ_LIMIT, ENQ_WINDOW)) || !(await rateHit(env, `enq:${ip}`, ENQ_IP_LIMIT, ENQ_WINDOW))) {
+  // Per browser (whatever IP it comes from: mobile networks and proxies change it) and per IP (a whole office).
+  if (!(await rateHit(env, `enq-sbx:${sid}`, ENQ_LIMIT, ENQ_WINDOW)) || !(await rateHit(env, `enq:${ip}`, ENQ_IP_LIMIT, ENQ_WINDOW))) {
     return congressPage(req, env, c, { values: v, errors: {}, notice: 'Votre demande n’a pas été envoyée : trop de demandes depuis ce navigateur en 10 minutes. Réessayez dans quelques minutes ou appelez l’agence au 01 00 00 00 00 (numéro d’exemple).', status: 200 });
   }
   const now = nowIso();
