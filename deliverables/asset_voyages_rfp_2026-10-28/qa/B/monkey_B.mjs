@@ -17,7 +17,7 @@ for (const role of roles) {
   const rnd = mulberry(SEED + role.length * 7 + role.charCodeAt(0)); const pick = (a) => a[Math.floor(rnd() * a.length)];
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: 'fr-FR' });
   const page = await ctx.newPage(); page.setDefaultTimeout(5000);
-  const fails = []; const hist = []; const a4xx = new Set(); let step = 0, prevReveal = false, curReveal = false, loggedIn = false;
+  const fails = []; const hist = []; const a4xx = new Set(); let step = 0, prevReveal = false, curReveal = false, loggedIn = false, grantApproved = false, pendingApprove = false;
   const fail = (k, m) => fails.push({ step, k, m: String(m).slice(0, 300) });
   page.on('response', (r) => { const s = r.status(); if (s >= 500) fail('5xx', `${s} ${r.url()}`); if (s >= 400) a4xx.add(r.url()); });
   page.on('pageerror', (e) => fail('pageerror', e.message));
@@ -47,6 +47,7 @@ for (const role of roles) {
       if (!ok.length) return note('click: none');
       const [e, t, h] = pick(ok); note(`click "${t.slice(0, 50)}" ${h || ''}`);
       if (/Afficher le code/i.test(t)) curReveal = true;
+      if (/Approuver/i.test(t)) pendingApprove = true;
       await e.click({ timeout: 4000 }).catch((x) => note('  click-err ' + x.message.split('\n')[0]));
     } else if (r < 0.65) {
       const ins = await page.locator('input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=file]):not([type=submit]), textarea').filter({ visible: true }).all();
@@ -59,6 +60,8 @@ for (const role of roles) {
       const f = pick(fs); const b = f.locator('[type=submit], button').first(); const t = ((await b.innerText().catch(() => '')) || '').trim();
       if (LOGOUT.test(t) || LOGOUT.test((await f.getAttribute('action').catch(() => '')) || '')) return note('submit skipped logout');
       note(`submit "${t.slice(0, 40)}" ${(await f.getAttribute('action').catch(() => '')) || ''}`);
+      if (/Afficher le code/i.test(t)) curReveal = true;
+      if (/Approuver/i.test(t)) pendingApprove = true;
       await b.click({ timeout: 4000 }).catch((x) => note('  submit-err ' + x.message.split('\n')[0]));
     } else if (r < 0.84) { note('back'); await page.goBack({ timeout: 5000 }).catch(() => {});
     } else if (r < 0.89) { note('forward'); await page.goForward({ timeout: 5000 }).catch(() => {});
@@ -73,17 +76,30 @@ for (const role of roles) {
       if (!new URL(page.url()).origin.startsWith(origin)) { note('offsite ' + page.url()); await page.goto(BASE + '/'); }
       const txt = await page.evaluate(() => document.body ? document.body.innerText : '');
       const html = await page.evaluate(() => document.documentElement.outerHTML.replace(/<input[^>]*>/g, ''));
-      const mayShow = prevReveal && (role === 'direction' || role === 'equipe');
-      if (/DEMO-GME-/.test(txt + html) && !mayShow) fail('code-leak', page.url());
+      // form field values (input incl. hidden, textarea) are scanned too: a code must never sit in a field value
+      const vals = await page.evaluate(() => [...document.querySelectorAll('input, textarea')].map((e) => `${e.name || e.id}=${e.value}`).join('\n'));
+      if (pendingApprove) { if (/Accès accordé/.test(txt)) grantApproved = true; pendingApprove = false; }
+      // reveal exception: right after « Afficher le code », and only for direction logged in, or equipe after a grant approved in this run
+      const mayShow = prevReveal && loggedIn && (role === 'direction' || (role === 'equipe' && grantApproved));
+      if (/DEMO-GME-/.test(vals)) fail('code-leak-field', `${page.url()} ${(vals.match(/[^\n]*DEMO-GME-[^\n]*/) || [''])[0].slice(0, 80)}`);
+      else if (/DEMO-GME-/.test(txt + html) && !mayShow) fail('code-leak', page.url());
       const nav = await page.locator('nav a, a[href]').filter({ visible: true }).count();
       if (nav === 0) fail('dead-end', page.url());
     } catch (e) { note('check-exc ' + e.message.split('\n')[0]); }
   }
   // logout last
   if (loggedIn) { step++; note('end logout'); await page.request.post(BASE + '/console/deconnexion').catch(() => {}); }
+  // reset this context's private sandbox through the Direction button (not a test step)
+  try {
+    await page.goto(BASE + '/console/connexion');
+    if (/connexion/.test(page.url())) { await page.fill('input[name=username]', 'direction'); await page.fill('input[name=password]', 'demo-asset'); await Promise.all([page.waitForURL(/\/console(?!\/connexion)/), page.click('form [type=submit]')]); }
+    page.removeAllListeners('dialog'); page.on('dialog', (d) => d.accept().catch(() => {}));
+    await page.goto(BASE + '/console'); await page.getByRole('button', { name: 'Réinitialiser la démo' }).click();
+    await page.getByText('La démonstration a été réinitialisée').first().waitFor({ timeout: 8000 }); appendFileSync(logf, '# sandbox reset ok\n');
+  } catch (e) { appendFileSync(logf, '# sandbox reset FAILED ' + e.message.split('\n')[0] + '\n'); }
   appendFileSync(logf, `# failures=${fails.length}\n` + fails.map((f) => `# FAIL step=${f.step} ${f.k} ${f.m}`).join('\n') + '\n');
   if (fails.length) writeFileSync(`${LOGS}monkey_${role}.replay.txt`, `SEED=${SEED} node qa/B/monkey_B.mjs ${role}\nfailures:\n${fails.map((f) => `step ${f.step} ${f.k} ${f.m}`).join('\n')}\nlast 20 actions:\n${hist.slice(-20).join('\n')}\n`);
-  results.push({ role, fails }); console.log(role, 'failures', fails.length, fails.slice(0, 5));
+  results.push({ role, fails, grantApproved }); console.log(role, 'failures', fails.length, fails.slice(0, 5));
   await ctx.close();
 }
 await browser.close();

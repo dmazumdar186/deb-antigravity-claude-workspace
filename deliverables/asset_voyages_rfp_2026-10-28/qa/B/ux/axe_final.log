@@ -1,0 +1,4 @@
+sandbox reset ok
+sandbox reset ok
+screens 60 violations 0
+incomplete ids: [ 'color-contrast' ]

@@ -1,0 +1,9 @@
+fields ['_csrf', 'city', 'country', 'description', 'discipline', 'end_date', 'official_url', 'start_date', 'title', 'venue', 'verified_on']
+edit 303 /console/congres/101?ok=save
+PASS A sees own edit
+PASS A public page shows own edit
+PASS B does not see A edit
+PASS anon public does not see A edit
+PASS A edit survives B reset
+PASS A reset restores seed title
+REQUESTS 16
