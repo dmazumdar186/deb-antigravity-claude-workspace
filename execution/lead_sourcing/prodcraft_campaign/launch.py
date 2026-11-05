@@ -65,8 +65,13 @@ def payload(p):
             'prioritize_new_leads': True, 'insert_unsubscribe_header': True, 'match_lead_esp': True, 'stop_for_company': True,
             'allow_risky_contacts': False, 'disable_bounce_protect': False}
 
+def unguard(v):
+    """Undo pipeline_utils.csv_safe_cell (a "'" added before = + - @ TAB CR) so Instantly gets the real value."""
+    return v[1:] if isinstance(v, str) and len(v) > 1 and v[0] == "'" and v[1] in '=+-@\t\r' else v
+
 def leads(f):
-    rows = list(csv.DictReader(open(f, encoding='utf-8')))
+    with open(f, encoding='utf-8', newline='') as fh:
+        rows = [{k: unguard(v) for k, v in r.items()} for r in csv.DictReader(fh)]
     return [{'email': r['email'], 'first_name': r['first_name'], 'last_name': r['last_name'], 'company_name': r['company_name'],
              'website': r['website'], 'custom_variables': {'project_reference': r['project_reference'], 'title': r['title'], 'city': r['city']}} for r in rows]
 
