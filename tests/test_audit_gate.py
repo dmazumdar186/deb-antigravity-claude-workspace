@@ -230,9 +230,66 @@ def test_verdict_strictness(text, want):
 
 
 @pytest.mark.parametrize("line", ["**Audited commit**: abcdef1234", "**Audited commit: abcdef1234**",
-                                  "Audited commit: `abcdef1234`", "HEAD: abcdef1234"])
+                                  "Audited commit: `abcdef1234`"])
 def test_commit_forms(line):
     assert ag.parse_report(line)[1] == "abcdef1234"
+
+
+def test_head_lines_ignored_and_prefix_equal_shas_merge():
+    full = "abcdef1234" + "0" * 30
+    text = f"HEAD: 1111111111\nAudited commit: abcdef1234\n**Audited commit**: {full}\n"
+    assert ag.parse_report(text)[1] == full
+    assert ag.parse_report("Audited commit: abcdef1\nAudited commit: 1234567")[1] is None
+
+
+def _merge_setup(tmp_path, repo, monkeypatch, conflict=False, manual=False):
+    base = git(repo, "rev-parse", "HEAD")
+    git(repo, "checkout", "-qb", "feat")
+    a = commit(repo, {"execution/a.py": "print('feat')\n" if conflict else "print(1)\n",
+                      "execution/f.py": "f=1\n"})
+    git(repo, "checkout", "-q", "-")
+    b = commit(repo, {"execution/a.py": "print('main')\n" if conflict else "print(1)\n",
+                      "execution/m.py": "m=1\n"})
+    for s in (a, b):
+        run_hook(monkeypatch, payload(tmp_path, repo, report("PASS", s), aid=f"a{s[:8]}"))
+    if conflict:
+        subprocess.run(["git", "-C", str(repo), "merge", "-q", "feat"], capture_output=True)
+        commit(repo, {"execution/a.py": "print('both')\n"})
+    else:
+        git(repo, "merge", "-q", "--no-ff", "--no-commit", "feat")
+        if manual:
+            (repo / "execution" / "evil.py").write_text("x=1\n")
+            git(repo, "add", "-A")
+        git(repo, "commit", "-qm", "merge")
+    return git(repo, "rev-parse", "HEAD"), base
+
+
+def test_clean_merge_of_audited_parents_passes(tmp_path, repo, monkeypatch):
+    m, _ = _merge_setup(tmp_path, repo, monkeypatch)
+    assert ag.check(m, repo) == (True, [])
+
+
+def test_merge_with_manual_change_denied(tmp_path, repo, monkeypatch):
+    m, _ = _merge_setup(tmp_path, repo, monkeypatch, manual=True)
+    assert ag.check(m, repo)[0] is False
+
+
+def test_conflicted_merge_denied(tmp_path, repo, monkeypatch):
+    m, _ = _merge_setup(tmp_path, repo, monkeypatch, conflict=True)
+    assert ag.check(m, repo)[0] is False
+
+
+def test_merge_with_unaudited_parent_denied(tmp_path, repo, monkeypatch):
+    m, _ = _merge_setup(tmp_path, repo, monkeypatch)
+    (tmp_path / "audits" / "audits.jsonl").write_text(
+        (tmp_path / "audits" / "audits.jsonl").read_text().splitlines()[0] + "\n")
+    assert ag.check(m, repo)[0] is False
+
+
+def test_merge_denied_on_old_git(tmp_path, repo, monkeypatch):
+    m, _ = _merge_setup(tmp_path, repo, monkeypatch)
+    monkeypatch.setattr(ag, "merge_tree_supported", lambda _r: False)
+    assert ag.check(m, repo)[0] is False
 
 
 def test_notes_exempt_md_only():

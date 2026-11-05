@@ -14,11 +14,12 @@ HMAC-signed `pipeline-auditor` PASS for that exact code (git tree).
 ## Tools/Scripts
 - `execution/infrastructure/audit_gate.py`
 - `.claude/hooks/audit-gate.sh` (SubagentStop wrapper, fails OPEN: never blocks, stderr only)
-- `.githooks/pre-push.d/audit-gate` (called from `.githooks/pre-push` after SAST)
+- `.githooks/pre-push.d/audit-gate` (called from `.githooks/pre-push` FIRST, before SAST and its early exits; fails closed for main when python or `audit_gate.py` is missing)
 
 ## Steps (how a PASS is recorded)
 1. Commit the work. Spawn `pipeline-auditor` on it.
-2. Its report must contain exactly one `Verdict:` value, `PASS`, and `Audited commit: <sha>`
+2. Its report must contain exactly one `Verdict:` line, value `PASS`, and `Audited commit: <sha>`
+   (only that label counts; `HEAD:` lines are ignored; repeated prefix-equal shas are one commit)
    (format in `.claude/agents/pipeline-auditor.md`). WARNINGS / FAIL never record; PASS with LOW notes
    records only if the single verdict line is exactly PASS (no `/`, no "(with warnings)", no second Verdict line); `**Verdict**: PASS` is accepted. The SubagentHandback report wins over a preamble last message.
 3. The hook accepts only agent type `pipeline-auditor` (or `<plugin>:pipeline-auditor`) with a
@@ -28,7 +29,9 @@ HMAC-signed `pipeline-auditor` PASS for that exact code (git tree).
 
 ## check
 Exit 0 when a signed PASS row has the commit's tree, or a PASS commit is an ancestor and every path
-changed since is exempt. Exit 1 lists unaudited files; exit 2 unknown commit. Unsigned or tampered
+changed since is exempt, or it is a 2-parent merge whose parents are both covered (recursively,
+depth ≤ 64) and a clean `git merge-tree --write-tree p1 p2` reproduces its tree exactly (no manual
+change, no conflict resolution). Octopus merges, conflicted merges and git < 2.38 deny. Exit 1 lists unaudited files; exit 2 unknown commit. Unsigned or tampered
 rows are ignored.
 
 Exempt paths ("pure reads and no-logic edits"), deliberately minimal: `docs/**/*.md`,
@@ -50,9 +53,12 @@ settings.json (SubagentStop):
   auditor read). Uncommitted edits are never covered.
 - The ledger and key are per-machine (`~/.claude`): a cloud clone or another machine has no rows, so
   its pushes to main block until audited there.
-- Merge commits get a new tree: re-audit, unless the merge only adds exempt paths over an audited
-  ancestor.
-- Server-side bypass (GitHub web merge, `--no-verify`) is outside the hook; pair with branch rules.
+- Merges: see check. A later exempt-only commit on top of an unrecorded (merge-rule) merge is not
+  covered by the ancestor rule; audit the merge itself.
+- Known bypasses, same class as `--no-verify` (log a `**Enforcement bypass**:` line if used):
+  GitHub web merges; `git -c core.hooksPath= push` (or any hooksPath change); editing the
+  working-tree `audit_gate.py` / `.githooks/*` before pushing (the hook runs the checkout's copy).
+  Pair with server-side branch protection for a true wall.
 
 ## Outputs
 Signed rows in `$AUDIT_DIR/audits.jsonl`; `check` exit code + unaudited file list on stdout.

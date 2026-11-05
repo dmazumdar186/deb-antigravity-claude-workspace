@@ -42,7 +42,7 @@ EXEMPT = ("docs/*.md", "docs/**/*.md", ".claude/notes/*.md", ".claude/notes/**/*
 _VERDICT_LINE_RE = re.compile(r"^[\s>#*_-]*\**\s*verdict\s*\**\s*:(.*)$", re.I | re.M)
 # The only accepted value: exactly PASS, optionally wrapped in ** (nothing else on the line).
 _PASS_VALUE_RE = re.compile(r"[\s*]*PASS[\s*]*")
-_COMMIT_RE = re.compile(r"^[\s>#*_-]*\**\s*(?:audited\s+commit|head(?:\s+commit)?)\s*\**\s*[:=]"
+_COMMIT_RE = re.compile(r"^[\s>#*_-]*\**\s*audited\s+commit\s*\**\s*[:=]"
                         r"\s*\**\s*`?([0-9a-f]{7,40})`?\s*\**\s*$", re.I | re.M)
 
 
@@ -69,8 +69,10 @@ def parse_report(text: str) -> tuple[str | None, str | None]:
     """(verdict, commit-ish). verdict is "PASS" only when there is exactly one Verdict line and its
     value is exactly PASS (no "/", no "(with warnings)"); otherwise the raw value or None."""
     values = [m.group(1).strip() for m in _VERDICT_LINE_RE.finditer(text)]
-    commits = {m.group(1).lower() for m in _COMMIT_RE.finditer(text)}
-    commit = commits.pop() if len(commits) == 1 else None
+    commits = sorted({m.group(1).lower() for m in _COMMIT_RE.finditer(text)}, key=len)
+    # Prefix-equal shas name the same commit; anything else is ambiguous.
+    commit = (commits[-1] if commits and all(commits[-1].startswith(c) for c in commits)
+              else None)
     if len(values) != 1:
         return None, commit
     v = values[0]
@@ -130,14 +132,40 @@ def pass_rows() -> list[dict]:
             and isinstance(r.get("commit"), str)]
 
 
+MAX_MERGE_DEPTH = 64
+
+
+def merge_tree_supported(repo: str | Path) -> bool:
+    out = _git(repo, "version") or ""
+    m = re.search(r"(\d+)\.(\d+)", out)
+    return bool(m) and (int(m.group(1)), int(m.group(2))) >= (2, 38)
+
+
+def _merge_ok(repo: str | Path, sha: str, tree: str, rows: list[dict], depth: int) -> bool:
+    """A 2-parent merge is covered when both parents are covered and the merge introduced no
+    manual change: a clean `git merge-tree --write-tree p1 p2` reproduces its tree exactly."""
+    parents = (_git(repo, "rev-list", "--parents", "-n", "1", sha) or "").split()[1:]
+    if len(parents) != 2 or depth >= MAX_MERGE_DEPTH or not merge_tree_supported(repo):
+        return False  # octopus / root / too deep / old git: deny
+    auto = _git(repo, "merge-tree", "--write-tree", parents[0], parents[1])  # None on conflict
+    if not auto or auto.splitlines()[0].strip() != tree:
+        return False
+    return all(_check(p, repo, rows, depth + 1)[0] for p in parents)
+
+
 def check(commit: str, repo: str | Path = ".") -> tuple[bool, list[str]]:
     """(ok, unaudited files for the closest audited ancestor, or all files if none)."""
+    return _check(commit, repo, pass_rows(), 0)
+
+
+def _check(commit: str, repo: str | Path, rows: list[dict], depth: int) -> tuple[bool, list[str]]:
     sha = _git(repo, "rev-parse", "--verify", "--quiet", f"{commit}^{{commit}}")
     if not sha:
         raise rg.UsageError(f"unknown commit {commit}")
     tree = _git(repo, "rev-parse", f"{sha}^{{tree}}")
-    rows = pass_rows()
     if any(r["tree_sha"] == tree for r in rows):
+        return True, []
+    if _merge_ok(repo, sha, tree or "", rows, depth):
         return True, []
     best: list[str] | None = None
     for r in rows:
