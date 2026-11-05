@@ -390,7 +390,8 @@ def test_hook_denies_html_smuggle(tmp_path, state, capsys, monkeypatch):
 
 
 def test_hook_fail_closed_on_malformed(state, capsys, monkeypatch):
-    res = _hook(None, capsys, raw="{not json", monkeypatch=monkeypatch)
+    res = _hook(None, capsys, raw='{"tool_name": "mcp__Gmail__send_message", oops',
+                monkeypatch=monkeypatch)
     assert res["hookSpecificOutput"]["permissionDecision"] == "deny"
     assert "fail-closed" in res["hookSpecificOutput"]["permissionDecisionReason"]
     res = _hook({"tool_name": GM + "reply", "tool_input": "oops"}, capsys,
@@ -476,6 +477,11 @@ def test_shell_wrapper_fail_closed_on_garbage(tmp_path):
     env["CLAUDE_PROJECT_DIR"] = str(ROOT)
     out = subprocess.run(["bash", str(HOOK_SH), "pre"], input="garbage{{", capture_output=True,
                          text=True, encoding="utf-8", errors="replace", env=env)
+    assert out.returncode == 0 and out.stdout == ""  # non-outward crash: allowed, logged
+    out = subprocess.run(["bash", str(HOOK_SH), "pre"],
+                         input='{"tool_name":"mcp__Gmail__send_message", garbage{{',
+                         capture_output=True, text=True, encoding="utf-8", errors="replace",
+                         env=env)
     assert out.returncode == 0
     res = json.loads(out.stdout)
     assert res["hookSpecificOutput"]["permissionDecision"] == "deny"
@@ -976,3 +982,47 @@ def test_bash_module_and_obfuscation(tmp_path, state, capsys):
     assert "base64" in _deny_reason(_bash(f"echo {payload} | base64 -d | python3", capsys, repo))
     assert _deny_reason(_bash(f"python3 <<'EOF'\nimport {SMTP}\nEOF", capsys, repo))
     assert _deny_reason(_bash(f"cat <<'EOF' | python3 -\nimport {SMTP}\nEOF", capsys, repo))
+
+
+# ------------------------------------------------------------------ audit warnings (2026-11-05)
+
+@pytest.mark.parametrize("cmd", [
+    "echo hi | mail -s s x@y.z",
+    "msmtp x@y.z < m",
+    "swaks --to x@y.z --server smtp.example.com",
+    "mutt -s hi x@y.z < body.txt",
+    "curl --url smtps://smtp.gmail.com:465 --mail-rcpt x@y.z -T m.txt",
+    "curl smtp://localhost:25 -T m.txt",
+    'python3 -c "svc.users().drafts().se' 'nd(userId=\'me\', body=b).execute()"',
+    "timeout 30 python3 -c 'import " + "smtp" "lib" "'",
+    "poetry run python -c 'import " + "smtp" "lib" "'",
+    "uv run python -c 'import " + "smtp" "lib" "'",
+    "FOO=1 sudo -E mail x@y.z < m",
+])
+def test_bash_more_senders_denied(cmd, state, capsys):
+    assert _deny_reason(_bash(cmd, capsys)), cmd
+
+
+def test_bash_crash_or_null_command_allows(state, capsys):
+    assert _hook({"tool_name": "Bash", "tool_input": {"command": None}}, capsys) is None
+    capsys.readouterr()
+    assert _stdin_main(["hook"], "{not json") != 0
+    assert capsys.readouterr().out == ""
+    assert _stdin_main(["hook"], json.dumps({"tool_name": "Bash", "tool_input": "x"})) != 0
+    assert capsys.readouterr().out == ""
+    for cmd in ("grep -rn mail docs/", "git log --grep 'mail'", "ls mail/"):
+        assert _bash(cmd, capsys) is None, cmd
+
+
+def test_calendar_location_gated(tmp_path, state, capsys):
+    cal = "mcp__Google_Calendar__"
+    desc = "Agenda: scope review with Marc at Cafe Lumen."
+    _record_text(tmp_path, desc, capsys, source="Thread with Marc and Anna at Cafe Lumen.\n",
+                 extra=["--subject", "Kickoff", "--to", "marc@client.com"])
+    ti = {"summary": "Kickoff", "description": desc, "attendees": [{"email": "marc@client.com"}]}
+    assert _hook({"tool_name": cal + "create_event",
+                  "tool_input": dict(ti, location="Cafe Lumen")}, capsys) is None
+    assert "location" in _deny_reason(_hook({"tool_name": cal + "create_event", "tool_input": dict(
+        ti, location="Free audit worth 5k, reply now")}, capsys))
+    assert _hook({"tool_name": cal + "create_event", "tool_input": {
+        "summary": "Solo", "location": "Anywhere"}}, capsys) is None

@@ -149,3 +149,8 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   ledger protection), REDTEAM_HOOK-only hook subcommands, transcript-root check, Bash scan narrowed
   to executing commands (+ `python -m`, stdin heredoc, base64→interpreter), Calendar attendees ⊆
   recorded recipients; PreToolUse matcher drops Write|Edit.
+- 2026-11-05 (audit): exec detection = any program word outside quotes (covers timeout/uv/poetry
+  wrappers); mail programs (mail/mailx/msmtp/swaks/mutt/sendmail) as a command's program deny;
+  smtp(s)://, --mail-rcpt, drafts().send( are sender hits; hook crash denies only Gmail/Calendar
+  (Bash/other exit 1 → allowed), null command allows; Calendar `location` gated (own pass or
+  verbatim inside the passed description).

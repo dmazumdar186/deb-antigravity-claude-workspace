@@ -73,7 +73,7 @@ CAL_ACTIONS = {"create_event", "update_event"}
 CAL_ATTENDEE_KEYS = ("attendees", "attendeeEmails", "addedAttendees", "addedAttendeeEmails")
 CAL_META = {"calendarId", "eventId", "start", "end", "startTime", "endTime", "timeZone",
             "attendees", "attendeeEmails", "addedAttendees", "addedAttendeeEmails",
-            "removedAttendeeEmails", "sendUpdates", "notificationLevel", "colorId", "location",
+            "removedAttendeeEmails", "sendUpdates", "notificationLevel", "colorId",
             "availability", "eventType", "visibility", "allDay", "addGoogleMeetUrl",
             "googleMeetUrl", "guestPermissions", "overrideReminders", "useDefaultReminders",
             "recurrenceData", "workingLocationProperties", "removedAttachmentFileUrls",
@@ -1374,12 +1374,31 @@ def calendar_decision(action: str, ti: dict, state: Path) -> str | None:
         err = attendee_error(ti, desc_rows or summ_rows)
         if err:
             return f"{action}: {err}"
+    # location is outward text too: it passes as its own passed text, or verbatim inside the
+    # passed description (normalised substring).
+    loc = next(((k, r, h) for k, r, h in others if k == "location"), None)
+    if loc is not None:
+        others = [f for f in others if f[0] != "location"]
+        lnorm = normalise(loc[1])
+        desc = ti.get("description")
+        in_desc = bool(desc_rows) and isinstance(desc, str) and lnorm in normalise(
+            desc, any(k == "description" and h for k, _, h in fields))
+        if not in_desc and not ledger.rows_for(_sha256(lnorm)):
+            return _not_passed(f"{action}.location", lnorm, _sha256(lnorm)) + (
+                " (put the location verbatim in the red-teamed description)")
     return _check_fields(action, others, ti, ledger, envelope=False)
 
 
 # Literals are split so this file does not match its own patterns when it is scanned.
-_SENDER_SIMPLE = ("smtp" "lib", "send" "mail", "messages().se" "nd(", "api.send" "grid.com",
-                  "api.re" "send.com", "api.post" "markapp.com")
+_SENDER_SIMPLE = ("smtp" "lib", "send" "mail", "messages().se" "nd(", "drafts().se" "nd(",
+                  "api.send" "grid.com", "api.re" "send.com", "api.post" "markapp.com",
+                  "smtp" "://", "smtp" "s://", "--mail" "-rcpt")
+# Mail programs: a hit when they are the program a simple command runs.
+_MAILERS = {"mail", "mailx", "msmtp", "swaks", "mutt", "send" "mail", "s-nail", "neomutt"}
+# Wrappers that run the next word as the program (their own flags/numeric args are skipped).
+_WRAPPERS = {"sudo", "env", "exec", "xargs", "nohup", "time", "timeout", "nice", "watch",
+             "command", "stdbuf", "ionice", "npx", "pipx", "uv", "uvx", "poetry", "pdm",
+             "hatch", "pipenv", "conda", "rye", "run", "-m"}
 _GMAIL_API = "gmail.googleapis" ".com"
 _INSTANTLY_API = "api.instan" "tly.ai"
 # The script a command executes directly: `python3 [flags] x.py`, `bash x.sh`, `./x.py`.
@@ -1390,11 +1409,47 @@ _EXEC_SCRIPT_RE = re.compile(
 # A program that executes code or sends mail, in command position (start of a simple command,
 # optionally behind env assignments or a wrapper such as sudo/env/xargs/nohup/time/exec).
 _EXEC_WORDS = (r"python(?:3(?:\.\d+)?)?|py|node|deno|bun|ruby|perl|php|curl|wget|send" r"mail|"
-               r"mailx?|msmtp|(?:ba|z|da|k)?sh")
-_EXEC_RE = re.compile(
-    r"(?:^|[\n;&|(`{]|\$\()\s*(?:(?:sudo|env|exec|xargs|nohup|time|command|nice)\s+(?:-\S+\s+)*)*"
-    r"(?:[A-Za-z_][A-Za-z0-9_]*=\S*\s+)*(?:\S*[/\\])?(?:" + _EXEC_WORDS + r")(?:\.exe)?(?=[\s;&|)]|$)",
-    re.I)
+               r"mailx?|msmtp|swaks|mutt|neomutt|s-nail|(?:ba|z|da|k)?sh")
+_EXEC_WORD_RE = re.compile(r"(?:" + _EXEC_WORDS + r")(?:\.exe)?", re.I)
+_QUOTED_RE = re.compile(r"'[^']*'|\"(?:[^\"\\]|\\.)*\"", re.S)
+_SEGMENT_SPLIT_RE = re.compile(r"[\n;&|(){}`]|\$\(")
+
+
+class _ExecFinder:
+    """Exec detection on the command with quoted strings removed: a program word anywhere in a
+    simple command (so `timeout 30 python3`, `uv run python`, `poetry run python` count), while
+    quoted text (commit messages, echo/printf payloads) never does."""
+
+    def search(self, outer: str) -> bool:
+        bare = _QUOTED_RE.sub(" ", outer)
+        for tok in bare.split():
+            name = re.split(r"[/\\]", tok.strip("<>"))[-1]
+            if name and _EXEC_WORD_RE.fullmatch(name):
+                return True
+        return False
+
+
+_EXEC_RE = _ExecFinder()
+
+
+def mailer_hit(outer: str) -> str | None:
+    """A mail program run as the program of a simple command (behind env/wrappers)."""
+    bare = _QUOTED_RE.sub(" ''", outer)
+    for seg in _SEGMENT_SPLIT_RE.split(bare):
+        toks = seg.split()
+        i = 0
+        while i < len(toks):
+            t = toks[i]
+            if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*=.*", t) or t.lower() in _WRAPPERS or (
+                    i > 0 and (t.startswith("-") or re.fullmatch(r"[\d.]+[smhd]?", t))):
+                i += 1
+                continue
+            break
+        if i < len(toks):
+            name = re.sub(r"\.exe$", "", re.split(r"[/\\]", toks[i])[-1].lower())
+            if name in _MAILERS:
+                return f"mail program {name}"
+    return None
 _PY_MOD_RE = re.compile(r"(?:^|[\s;&|(])(?:\S*/)?python(?:3(?:\.\d+)?)?(?:\.exe)?\s+"
                         r"(?:-[A-Za-z]+\s+)*-m\s*([A-Za-z_][\w.]*)", re.I)
 _B64_PIPE_RE = re.compile(
@@ -1521,11 +1576,16 @@ def bash_decision(ti: dict, cwd_raw: Any) -> str | None:
     """Deny inline email senders. Only commands that execute something are scanned; pure file
     writes, reads, greps and commits pass untouched (see directive: limits)."""
     command = ti.get("command")
+    if command is None:
+        return None
     if not isinstance(command, str):
         raise TypeError("Bash command is not a string")
     outer, docs = split_heredocs(command)
     if not _EXEC_RE.search(outer):
         return None
+    mh = mailer_hit(outer)
+    if mh:
+        return f"redteam gate: Bash command sends email inline ({mh}). {BASH_DENY}"
     if _B64_PIPE_RE.search(outer):
         return (f"redteam gate: Bash pipes base64-decoded data into an interpreter "
                 f"(unscannable). {BASH_DENY}")
@@ -1583,15 +1643,32 @@ def _read_stdin() -> str:
     return sys.stdin.buffer.read().decode("utf-8", errors="replace")
 
 
+_OUTWARD_RAW_RE = re.compile(r'"tool_name"\s*:\s*"mcp__[^"]*(?:gmail|calendar)', re.I)
+
+
+def _is_outward(payload: Any, raw: str) -> bool:
+    name = payload.get("tool_name") if isinstance(payload, dict) else None
+    if isinstance(name, str):
+        low = name.lower()
+        return low.startswith("mcp__") and ("gmail" in low or "calendar" in low)
+    return bool(_OUTWARD_RAW_RE.search(raw))
+
+
 def cmd_hook(_args: argparse.Namespace) -> int:
+    raw, payload = "", None
     try:
-        payload = json.loads(_read_stdin())
+        raw = _read_stdin()
+        payload = json.loads(raw)
         if not isinstance(payload, dict):
             raise TypeError("hook payload is not an object")
         reason = hook_decision(payload, state_dir())
-    except Exception as exc:  # fail-closed: any error denies the action
-        _emit_deny(f"redteam gate error (fail-closed): {type(exc).__name__}")
-        return EXIT_OK
+    except Exception as exc:  # fail-closed for outward tools only; Bash/other: exit 1 (allow)
+        if _is_outward(payload, raw):
+            _emit_deny(f"redteam gate error (fail-closed): {type(exc).__name__}")
+            return EXIT_OK
+        print(f"redteam gate error (non-outward tool allowed): {type(exc).__name__}",
+              file=sys.stderr)
+        return EXIT_UNGROUNDED
     if reason:
         _emit_deny(reason)
     return EXIT_OK
