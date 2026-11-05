@@ -15,9 +15,10 @@
 | Tier A / evidence tiers | render/render.py:43-46 |
 | LinkedIn note · Email · Follow-up, about a week later | delivered shortlist page (gaia-resourcing.pages.dev), row copy buttons |
 | privacy notice + STOP line, fixed text | layers/messages.py:1-8; shortlist page l.176-178 |
-| Nothing sends until you approve it | gaia_sourcing.md:38-40 (I7); radar_final_spec.md:17 |
 | ready-to-contact rows first: verified address, resolved profile | shortlist page l.165 (count not shown) |
 | professional network first, then email, then the switchboard | shortlist page l.165 |
-| 10 rows, and can see where the other 148 went | derived (158 − 10); pool map lists why-excluded counts, pool_map_role1.md:14-21 |
+| 10 rows, with the full funnel from 158 next to them | pool map delivered with the page: pool_map_role1.md:1-21 |
+| anything inferred is labelled as inferred | shortlist page ("Inferred, not directly stated" label) |
+| Drafts wait for your approval. Nothing sends on its own. | gaia_sourcing.md:36-38 (I7) |
 | around your roles and your rules | per-role Brief Contract + hard gates (gaia_sourcing.md:10-13, 33-34) |
 | lemo-opuscar (MIT) · CC0 samples (Versilian Studios) | lemo-opuscar LICENSE; core/audio/sampler.py:181-182 (vsco2ce, vcsl = CC0 1.0) |
