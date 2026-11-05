@@ -1,0 +1,100 @@
+[
+ {
+  "gate": "S1-E1",
+  "budget": 4,
+  "clicks": 3,
+  "path": "Congrès → Nouveau congrès → Publier",
+  "ok": true,
+  "note": "2 dropdown choices (Discipline, Pays) counted as filling"
+ },
+ {
+  "gate": "S1-E2",
+  "budget": 3,
+  "clicks": 3,
+  "path": "Congrès → congress title → Enregistrer",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "gate": "S1-contrib (info)",
+  "budget": 4,
+  "clicks": 2,
+  "path": "Nouveau congrès (home) → Soumettre à relecture",
+  "ok": true,
+  "note": "Vous pouvez enregistrer et soumettre à relecture. La publication est faite par l’équipe ou la Direction."
+ },
+ {
+  "gate": "S2-E1",
+  "budget": 2,
+  "clicks": 2,
+  "path": "Cardiologie → open first result",
+  "ok": true,
+  "note": "count shown: 2 congrès"
+ },
+ {
+  "gate": "S2-E2 geometry",
+  "W": 1440,
+  "hs": false,
+  "inputs": [
+   16,
+   16,
+   16
+  ],
+  "small": []
+ },
+ {
+  "gate": "S3-E1 error recovery",
+  "emailMsg": [
+   "E-mail : Cette adresse e-mail n’est pas valide (exemple : prenom.nom@societe.fr).",
+   "E-mail *",
+   "Cette adresse e-mail n’est pas valide (exemple : prenom.nom@societe.fr)."
+  ],
+  "kept": "Testeur UX (exemple)",
+  "consentKept": true,
+  "focused": "Un champ à corriger ; rien n’a été enregistré.\n\nE-mail : Cette adresse e-mail n’est pas valide (exemple : prenom.nom@soc"
+ },
+ {
+  "gate": "S3-E1",
+  "budget": 1,
+  "clicks": 1,
+  "path": "Envoyer",
+  "ok": true,
+  "note": "ref DV-2026-0007; consent kept after error: true"
+ },
+ {
+  "gate": "S4-E1",
+  "budget": 3,
+  "clicks": 2,
+  "path": "newest enquiry → Qualifiée",
+  "ok": true,
+  "note": "newest=DV-2026-0007 Testeur UX (exemple); Nouvelles 3→2; msg: Enregistré."
+ },
+ {
+  "gate": "S5-E1 equipe request",
+  "budget": 2,
+  "clicks": 2,
+  "path": "Codes → Demander l’accès",
+  "ok": true,
+  "note": "Demande envoyée à la Direction."
+ },
+ {
+  "gate": "S5-E1 direction approve",
+  "budget": 2,
+  "clicks": 2,
+  "path": "À traiter: demande d’accès → Approuver pour 24 h",
+  "ok": true,
+  "note": "first pending shown: Demandes en attente Karim Benali, Équipe demande l’accès au code de Journées d’oncologie digestive — exemple Le 05/11/2026 21:41. Motif : Devis groupe pour un client (test UX) "
+ },
+ {
+  "gate": "S5-E1 equipe reveal",
+  "budget": 2,
+  "clicks": 2,
+  "path": "Codes → Afficher le code",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "gate": "console errors S5",
+  "errs": []
+ }
+]
