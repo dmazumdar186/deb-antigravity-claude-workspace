@@ -1,0 +1,13 @@
+{
+  "name": "asset-voyages-demo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --local --port 8787",
+    "deploy": "wrangler deploy",
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "wrangler": "^4"
+  }
+}
