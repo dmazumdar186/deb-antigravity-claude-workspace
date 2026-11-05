@@ -160,7 +160,7 @@ export async function materialize(env) {
   const id = env.SBX;
   if (!validSbx(id)) throw new Error('no sandbox id');
   const db = env.DB;
-  if ((env.IP_HASH && !(await rateHit(env, 'sbx-ip:' + env.IP_HASH, SBX_IP_DAILY, 86400))) || !(await rateHit(env, 'sbx:all', SBX_DAILY_LIMIT, 86400))) {
+  if ((env.IP_HASH && !env.TEST_RUN && !(await rateHit(env, 'sbx-ip:' + env.IP_HASH, SBX_IP_DAILY, 86400))) || !(await rateHit(env, 'sbx:all', SBX_DAILY_LIMIT, 86400))) {
     throw Object.assign(new Error('sandbox limit'), { code: 'SBX_LIMIT' });
   }
   const ins = await db.prepare('INSERT OR IGNORE INTO sandboxes (id, created_at) VALUES (?, ?)').bind(id, nowIso()).run();

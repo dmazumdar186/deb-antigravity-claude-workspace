@@ -1,5 +1,5 @@
 // ASSET Voyages, option B demo: one Cloudflare Worker, D1 database, static assets, daily cron reset.
-import { htmlResponse, getCookie, randomToken, ipHash } from './lib.js';
+import { htmlResponse, getCookie, randomToken, ipHash, sha256hex, safeEqual } from './lib.js';
 import { errorPage } from './views.js';
 import { ensureReady, nightly, validSbx, effectiveSbx } from './data.js';
 
@@ -61,6 +61,8 @@ export default {
         scoped.SBX = sbx;
         scoped.SBX_EFF = newSbx ? '' : await effectiveSbx(env, sbx);
         scoped.IP_HASH = await ipHash(env, req);
+        const testKey = req.headers.get('x-demo-test');
+        scoped.TEST_RUN = !!(testKey && env.DEMO_TEST_KEY_SHA256 && safeEqual(await sha256hex(testKey), env.DEMO_TEST_KEY_SHA256));
         res = await route(req, scoped);
       }
     } catch (err) {

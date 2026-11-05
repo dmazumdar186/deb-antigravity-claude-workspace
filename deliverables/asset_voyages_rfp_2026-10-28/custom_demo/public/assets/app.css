@@ -176,6 +176,7 @@ main{display:block}
 .thanks .lead{margin-top:16px}
 .thanks p .lnk{display:inline;min-height:0;line-height:inherit}
 .nw{white-space:nowrap}
+.brk{overflow-wrap:anywhere}
 .busy{padding:12px 16px;border-left:3px solid var(--navy);background:var(--card);font-weight:600;margin:16px 0}
 #resultats{scroll-margin-top:16px}
 .ref{font:500 clamp(44px,7vw,88px)/1 var(--serif);font-variant-numeric:tabular-nums lining-nums;letter-spacing:-.01em;color:var(--ink);border-bottom:3px solid var(--or);justify-self:start;padding-bottom:8px}
@@ -223,7 +224,7 @@ main{display:block}
 .tbl th,.tbl td{text-align:left;vertical-align:top;padding:12px 12px;border-bottom:1px solid var(--rule)}
 .tbl th{white-space:nowrap}
 .tbl thead th{font-size:14px;font-weight:600;color:var(--muted);background:var(--paper)}
-.tbl td.wide{min-width:160px}
+.tbl td.wide{min-width:120px}
 .tbl td.num{font-variant-numeric:tabular-nums;text-align:right}
 .tbl a{font-weight:600;display:inline-flex;align-items:center;min-height:44px;min-width:44px;margin:-12px 0}
 .tbl tbody tr:last-child td{border-bottom:0}
@@ -281,7 +282,7 @@ main{display:block}
 .accounts dd{color:var(--on-ink-muted);font-size:15px}
 
 @media (max-width:1100px){.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}.edit,.cols{grid-template-columns:minmax(0,1fr)}}
-@media (max-width:1100px){
+@media (max-width:1320px){
   /* below this width the console tables would not fit: each row becomes a labelled card, never a hidden scroll */
   .wrap{overflow:visible;border:0;background:transparent}
   .tbl,.tbl tbody,.tbl tr,.tbl td{display:block;width:100%}

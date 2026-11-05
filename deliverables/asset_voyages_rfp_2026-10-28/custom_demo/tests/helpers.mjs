@@ -57,7 +57,9 @@ export function assertClean(problems) {
   problems.console.length = 0; problems.failed.length = 0; problems.thirdParty.length = 0;
 }
 // A browser context with the same settings as the config (French locale, Paris time): one context = one private sandbox.
-export const CTX = { baseURL: BASE, locale: 'fr-FR', timezoneId: 'Europe/Paris', deviceScaleFactor: 1, viewport: { width: 1440, height: 900 } };
+import { TEST_KEY } from '../playwright.config.mjs';
+export { TEST_KEY };
+export const CTX = { baseURL: BASE, extraHTTPHeaders: TEST_KEY ? { 'x-demo-test': TEST_KEY } : {}, locale: 'fr-FR', timezoneId: 'Europe/Paris', deviceScaleFactor: 1, viewport: { width: 1440, height: 900 } };
 export async function newPage(browser, extra = {}) {
   const ctx = await browser.newContext({ ...CTX, ...extra });
   const page = await ctx.newPage();

@@ -1,0 +1,16 @@
+PERF desktop catalogue / runs=[{"ttfb":1063,"lcp":1140,"cls":0},{"ttfb":1180,"lcp":1268,"cls":0},{"ttfb":1261,"lcp":1360,"cls":0}] median ttfb=1180ms lcp=1268ms cls=0.0000
+PERF desktop congress /congres/congres-europeen-de-cardiologie-exemple/ runs=[{"ttfb":1011,"lcp":1120,"cls":0},{"ttfb":1095,"lcp":1188,"cls":0},{"ttfb":993,"lcp":1060,"cls":0}] median ttfb=1011ms lcp=1120ms cls=0.0000
+PERF mobile catalogue / runs=[{"ttfb":1174,"lcp":1760,"cls":0},{"ttfb":1020,"lcp":1608,"cls":0},{"ttfb":1157,"lcp":1760,"cls":0}] median ttfb=1157ms lcp=1760ms cls=0.0000
+PERF mobile congress /congres/congres-europeen-de-cardiologie-exemple/ runs=[{"ttfb":1047,"lcp":1668,"cls":0},{"ttfb":1116,"lcp":1752,"cls":0},{"ttfb":1075,"lcp":1696,"cls":0}] median ttfb=1075ms lcp=1696ms cls=0.0000
+CONC 30 concurrent GET / : p50=19885ms p95=20206ms max=20208ms non200=0
+PASS LCP<=2500 desktop/catalogue 1268ms
+PASS CLS<=0.1 desktop/catalogue 0.0000
+PASS LCP<=2500 desktop/congress 1120ms
+PASS CLS<=0.1 desktop/congress 0.0000
+PASS LCP<=2500 mobile/catalogue 1760ms
+PASS CLS<=0.1 mobile/catalogue 0.0000
+PASS LCP<=2500 mobile/congress 1696ms
+PASS CLS<=0.1 mobile/congress 0.0000
+FAIL p95<=800 concurrent 20206ms
+PASS concurrent non-200 count 0
+NOTE local Playground CLI (PHP-wasm + SQLite, 3 workers, 4 vCPU) is slower than real hosting; numbers are as measured.

@@ -99,7 +99,7 @@ test('S2-F5 details page shows every fact and the enquiry form prefilled with th
   for (const [k, v] of [['Dates', '27 au 30 août 2027'], ['Ville', 'Madrid'], ['Pays', 'Espagne'], ['Discipline', 'Cardiologie'], ['Lieu', 'Centre de congrès de Madrid — exemple'], ['Site officiel', 'www.example.org/congres/cg-0101'], ['Vérifié le', '12/10/2026']]) {
     await expect(facts.locator('div', { has: page.locator('dt', { hasText: new RegExp(`^${k}$`) }) }).locator('dd')).toContainText(v);
   }
-  await expect(page.locator('[data-congress]')).toHaveText(/Congrès européen de cardiologie\s— exemple, 27 au 30 août 2027/);
+  await expect(page.locator('[data-congress]')).toHaveText(/Congrès européen de cardiologie\s—\sexemple, 27 au 30 août 2027/);
   await expect(page.locator('input[name="congress"]')).toHaveValue('101');
   // GM&E mention only when approved: CG-0101 code is only « Détecté »
   await expect(page.locator('.gme-note')).toHaveCount(0);

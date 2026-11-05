@@ -59,7 +59,7 @@ test('X3 all data is fictional: titles end « — exemple », e-mails @example.c
   const emails = [...csv.matchAll(/[\w.+-]+@[\w.-]+/g)].map((m) => m[0]);
   expect(emails.length).toBeGreaterThanOrEqual(6);
   for (const e of emails) expect(e).toMatch(/@example\.com$/);
-  for (const name of await page.locator('tbody tr td:nth-child(4)').allTextContents()) expect(name).toContain('(exemple)');
+  for (const name of await page.locator('tbody tr td[data-label="Contact"]').allTextContents()) expect(name).toContain('(exemple)');
   // every revealed code follows the dummy pattern
   await page.goto('/console/gme');
   const ids = await page.locator('form[action$="/afficher"]').evaluateAll((fs) => fs.map((f) => f.getAttribute('action').split('/')[3]));

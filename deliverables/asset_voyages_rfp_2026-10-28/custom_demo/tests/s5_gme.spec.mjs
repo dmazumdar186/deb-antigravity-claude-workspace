@@ -35,7 +35,7 @@ test('S5-F2 S5-E1 equipe sees masked codes and requests access with a required r
   let clicks = 0;
   await nav(page, 'Codes GM&E').click(); clicks++;
   noCode(await page.content(), 'equipe GM&E page');
-  await expect(card(page, ONCO).locator('.code')).toHaveText('•••• •••• ••••');
+  await expect(card(page, ONCO).locator('.code [aria-hidden="true"]')).toHaveText('•••• •••• ••••');
   // reason is required
   await card(page, ONCO).getByRole('button', { name: 'Demander l’accès' }).click();
   await expect(card(page, ONCO).locator('.err')).toHaveText(/Indiquez le motif/);

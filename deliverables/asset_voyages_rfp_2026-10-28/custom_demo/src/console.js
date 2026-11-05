@@ -77,7 +77,6 @@ export async function loginPost(req, env) {
   if (!tok.ok || !sameOrigin(req)) return loginGet(req, env, { error: 'Le formulaire a expiré : rechargez la page et réessayez.', status: 403 });
   const ip = await ipHash(env, req);
   const username = clean(form.get('username'), 40).toLowerCase();
-  // Throttle: 10 failures per account per connection, 50 per connection overall, 15 minutes.
   // Throttle, all counters incremented atomically BEFORE the password check (attempts, not failures); a success clears them.
   // Demo mode (ACCOUNT_LOCKOUT=off): keyed per browser sandbox + account (10) and per IP + account (50). A flood from one
   // browser or one address never locks the shared demo accounts for other visitors.
@@ -86,12 +85,15 @@ export async function loginPost(req, env) {
   const u40 = username.slice(0, 40);
   const kSbx = `login-sbx:${env.SBX || 'none'}:${u40}`; const kUser = `login:${ip}:${u40}`; const kAcct = `login-account:${u40}`; const kIp = `login:${ip}`;
   const tooMany = () => loginGet(req, env, { error: 'Trop d’essais. Réessayez dans un quart d’heure.', status: 429 });
-  // Per IP: incremented first, atomically (a parallel burst over many usernames cannot slip past); a success gives its
-  // attempt back below, so only failures accumulate.
-  if (!(await rateHit(env, kIp, 50, 900))) return tooMany();
-  if (!(await rateHit(env, kSbx, 10, 900))) return tooMany();
-  if (!(await rateHit(env, kUser, lockout ? 10 : 50, 900))) return tooMany();
-  if (lockout && !(await rateHit(env, kAcct, 30, 900))) return tooMany();
+  // Per IP: incremented first, atomically (a parallel burst over many usernames cannot slip past). An attempt that never
+  // reaches the password check (refused by a narrower counter) or that succeeds gives its slot back, so the per-IP budget
+  // counts real wrong-password guesses only and a flood from one browser cannot lock its colleagues behind the same IP.
+  const giveBack = () => env.DB.prepare('UPDATE rate_limits SET count = MAX(count - 1, 0) WHERE key = ?').bind(kIp).run();
+  if (!(await rateHit(env, kIp, 50, 900))) { await giveBack(); return tooMany(); }
+  if (!(await rateHit(env, kSbx, 10, 900)) || !(await rateHit(env, kUser, lockout ? 10 : 50, 900)) || (lockout && !(await rateHit(env, kAcct, 30, 900)))) {
+    await giveBack();
+    return tooMany();
+  }
   const password = String(form.get('password') || '').slice(0, 200);
   const u = await env.DB.prepare('SELECT * FROM users WHERE username = ?').bind(username).first();
   const ok = u ? safeEqual(await hashPassword(password, u.pw_salt, u.pw_iter), u.pw_hash) : false;
@@ -443,7 +445,7 @@ async function enquiryList(ctx) {
     <p class="bar" aria-live="polite">${rows.length} demande${rows.length > 1 ? 's' : ''}</p>
     ${rows.length ? html`<div class="wrap" role="region" aria-label="Liste des demandes" tabindex="0"><table class="tbl">
       <thead><tr><th scope="col">Réf.</th><th scope="col">Statut</th><th scope="col">Reçue</th><th scope="col">Congrès</th><th scope="col">Contact</th><th scope="col">Voyage</th><th scope="col">Responsable</th></tr></thead>
-      <tbody>${rows.map((r) => html`<tr><td><a href="/console/demandes/${r.id}" class="nw">${r.ref}</a></td><td>${pill(ST_KIND[r.status], STATUS_LABELS[r.status])}</td><td>${frDateTime(r.created_at)}</td><td class="wide">${r.cg_title}</td><td class="wide">${r.name}<br><span class="quiet">${r.company || r.email}</span></td><td class="wide">Départ de ${r.departure_city}<br>${nw(`${frNumDate(r.date_out)} au ${frNumDate(r.date_back)}`)}<br>${r.passengers} passager${r.passengers > 1 ? 's' : ''}</td><td>${r.owner_name || html`<span class="quiet">À attribuer</span>`}</td></tr>`)}</tbody>
+      <tbody>${rows.map((r) => html`<tr><td><a href="/console/demandes/${r.id}" class="nw">${r.ref}</a></td><td>${pill(ST_KIND[r.status], STATUS_LABELS[r.status])}</td><td>${frDateTime(r.created_at)}</td><td class="wide">${r.cg_title}</td><td class="wide">${r.name}<br><span class="quiet brk">${r.company || r.email}</span></td><td class="wide">Départ de ${r.departure_city}<br>${nw(frNumDate(r.date_out))} au ${nw(frNumDate(r.date_back))}<br>${r.passengers} passager${r.passengers > 1 ? 's' : ''}</td><td>${r.owner_name || html`<span class="quiet">À attribuer</span>`}</td></tr>`)}</tbody>
     </table></div>` : html`<div class="empty"><p>Aucune demande ne correspond.</p><p><a class="lnk" href="/console/demandes">Voir toutes les demandes</a></p></div>`}`;
   return page(ctx, 'Demandes', 'dem', body);
 }
