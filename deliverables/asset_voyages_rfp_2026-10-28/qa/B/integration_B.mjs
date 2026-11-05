@@ -6,7 +6,7 @@ class Browser {
   async req(path, { method = 'GET', form, headers = {} } = {}) {
     const h = { ...headers, cookie: Object.entries(this.jar).map(([k, v]) => `${k}=${v}`).join('; ') };
     let body;
-    if (form) { h['content-type'] = 'application/x-www-form-urlencoded'; body = new URLSearchParams(form).toString(); h.origin = BASE; }
+    if (form) { h['content-type'] = 'application/x-www-form-urlencoded'; body = new URLSearchParams(form).toString(); h.origin = headers.origin || BASE; }
     const r = await fetch(BASE + path, { method, headers: h, body, redirect: 'manual' });
     for (const sc of r.headers.getSetCookie?.() || []) { const [kv] = sc.split(';'); const i = kv.indexOf('='); const v = kv.slice(i + 1); if (/Max-Age=0/i.test(sc) || v === '') delete this.jar[kv.slice(0, i)]; else this.jar[kv.slice(0, i)] = v; }
     const text = r.status >= 300 && r.status < 400 ? '' : await r.text();
@@ -14,6 +14,7 @@ class Browser {
   }
   async follow(path, opt) { let r = await this.req(path, opt); let n = 0; while (r.loc && n++ < 5) r = await this.req(r.loc); return r; }
   async login(user) {
+    delete this.jar['__Host-av_session'];
     const g = await this.req('/console/connexion');
     const tok = /name="_token" value="([^"]+)"/.exec(g.text)[1];
     const r = await this.req('/console/connexion', { method: 'POST', form: { _token: tok, username: user, password: 'demo-asset' } });
@@ -163,7 +164,7 @@ await t('INT-B-020', 'reset restores seed: Direction reset removes sandbox edits
   const dr = globalThis.__dr; const r = await dr.post('/console/reinitialiser', {}); ok(r.status === 303, 'reset ' + r.status);
   const dr2 = await new Browser(); dr2.jar = { ...dr.jar }; await dr2.login('direction'); const pg = (await dr2.req('/congres/' + SLUG)).text; ok(pg.includes('Madrid') && !pg.includes('Séville'), 'not restored');
   const cat = (await dr2.req('/')).text; ok(!cat.includes('QA Draft'), 'draft survived reset'); const r2 = await dr2.post('/console/reinitialiser', {}); ok(r2.status === 303, 'second reset');
-  const n1 = new Set([...(await dr2.req('/')).text.matchAll(/\/congres\/[a-z0-9-]+/g)].map((m) => m[0])).size; ok(n1 === 12, 'catalogue count ' + n1); const l = (await dr2.req('/console/demandes')).text; ok(!l.includes(ref), 'enquiries survived reset'); return 'catalogue ' + n1;
+  const lk = async (u) => [...(await dr2.req(u)).text.matchAll(/\/congres\/[a-z0-9-]+/g)].map((m) => m[0]); const n1 = new Set([...(await lk('/')), ...(await lk('/?page=2'))]).size; ok(n1 === 12, 'catalogue count ' + n1); const l = (await dr2.req('/console/demandes')).text; ok(!l.includes(ref), 'enquiries survived reset'); return 'catalogue ' + n1;
 });
 await t('INT-B-021', 'security headers + cookie flags + error pages leak nothing', async () => {
   const B = new Browser(); const r = await B.req('/'); const h = r.headers; for (const k of ['content-security-policy', 'x-content-type-options', 'x-frame-options', 'strict-transport-security', 'referrer-policy']) ok(h.get(k), 'missing ' + k);

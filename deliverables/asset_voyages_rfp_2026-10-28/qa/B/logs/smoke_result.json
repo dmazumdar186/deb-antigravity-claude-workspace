@@ -1,0 +1,38 @@
+{
+ "base": "http://localhost:8799",
+ "secs": 3.727,
+ "res": [
+  {
+   "name": "catalogue 200 with 12 congresses",
+   "ok": true
+  },
+  {
+   "name": "congress page 200",
+   "ok": true
+  },
+  {
+   "name": "console login page 200",
+   "ok": true
+  },
+  {
+   "name": "static asset + robots 200",
+   "ok": true
+  },
+  {
+   "name": "login contributeur",
+   "ok": true
+  },
+  {
+   "name": "login equipe",
+   "ok": true
+  },
+  {
+   "name": "login direction",
+   "ok": true
+  },
+  {
+   "name": "enquiry submitted and appears in Demandes (as equipe)",
+   "ok": true
+  }
+ ]
+}

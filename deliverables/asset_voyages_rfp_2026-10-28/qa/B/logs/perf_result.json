@@ -1,0 +1,247 @@
+{
+ "base": "https://asset-voyages-demo.debanjan186.workers.dev",
+ "pages": [
+  {
+   "profile": "desktop1440",
+   "page": "/",
+   "ttfb_ms": 485,
+   "lcp_ms": 1032,
+   "cls": 0,
+   "weight_kb": 127,
+   "requests": 5,
+   "runs": [
+    {
+     "ttfb": 835.2999999988824,
+     "load": 1475.7999999988824,
+     "lcp": 1524,
+     "cls": 0,
+     "kb": 36,
+     "reqs": 5
+    },
+    {
+     "ttfb": 484.90000000037253,
+     "load": 1073.9000000003725,
+     "lcp": 1032,
+     "cls": 0,
+     "kb": 127,
+     "reqs": 5
+    },
+    {
+     "ttfb": 266.5,
+     "load": 1339.5999999996275,
+     "lcp": 808,
+     "cls": 0,
+     "kb": 127,
+     "reqs": 5
+    }
+   ]
+  },
+  {
+   "profile": "desktop1440",
+   "page": "/?discipline=Cardiologie",
+   "ttfb_ms": 526,
+   "lcp_ms": 904,
+   "cls": 0,
+   "weight_kb": 123,
+   "requests": 5,
+   "runs": [
+    {
+     "ttfb": 525.9000000003725,
+     "load": 1034.800000000745,
+     "lcp": 876,
+     "cls": 0,
+     "kb": 123,
+     "reqs": 5
+    },
+    {
+     "ttfb": 314.7999999988824,
+     "load": 878.2999999988824,
+     "lcp": 904,
+     "cls": 0,
+     "kb": 123,
+     "reqs": 5
+    },
+    {
+     "ttfb": 532.4000000003725,
+     "load": 1468,
+     "lcp": 1132,
+     "cls": 0.0018630192258230454,
+     "kb": 123,
+     "reqs": 5
+    }
+   ]
+  },
+  {
+   "profile": "desktop1440",
+   "page": "/congres/congres-europeen-de-cardiologie-cg-0101",
+   "ttfb_ms": 236,
+   "lcp_ms": 700,
+   "cls": 0,
+   "weight_kb": 124,
+   "requests": 5,
+   "runs": [
+    {
+     "ttfb": 236.09999999962747,
+     "load": 968,
+     "lcp": 700,
+     "cls": 0,
+     "kb": 124,
+     "reqs": 5
+    },
+    {
+     "ttfb": 225,
+     "load": 717.8000000007451,
+     "lcp": 592,
+     "cls": 0,
+     "kb": 124,
+     "reqs": 5
+    },
+    {
+     "ttfb": 825.1999999992549,
+     "load": 1696.5999999996275,
+     "lcp": 1308,
+     "cls": 0,
+     "kb": 124,
+     "reqs": 5
+    }
+   ]
+  },
+  {
+   "profile": "pixel7_slow4g",
+   "page": "/",
+   "ttfb_ms": 497,
+   "lcp_ms": 1144,
+   "cls": 0.0009,
+   "weight_kb": 127,
+   "requests": 5,
+   "runs": [
+    {
+     "ttfb": 556.5,
+     "load": 1496.800000000745,
+     "lcp": 1384,
+     "cls": 0,
+     "kb": 127,
+     "reqs": 5
+    },
+    {
+     "ttfb": 497.1000000014901,
+     "load": 1377.800000000745,
+     "lcp": 1144,
+     "cls": 0.000869692884501892,
+     "kb": 125,
+     "reqs": 5
+    },
+    {
+     "ttfb": 237.69999999925494,
+     "load": 1194.5999999996275,
+     "lcp": 1000,
+     "cls": 0.000869692884501892,
+     "kb": 127,
+     "reqs": 5
+    }
+   ]
+  },
+  {
+   "profile": "pixel7_slow4g",
+   "page": "/?discipline=Cardiologie",
+   "ttfb_ms": 465,
+   "lcp_ms": 1188,
+   "cls": 0,
+   "weight_kb": 123,
+   "requests": 5,
+   "runs": [
+    {
+     "ttfb": 268.19999999925494,
+     "load": 1446,
+     "lcp": 972,
+     "cls": 0,
+     "kb": 123,
+     "reqs": 5
+    },
+    {
+     "ttfb": 506,
+     "load": 1473.2999999988824,
+     "lcp": 1264,
+     "cls": 0,
+     "kb": 121,
+     "reqs": 5
+    },
+    {
+     "ttfb": 464.69999999925494,
+     "load": 1611.800000000745,
+     "lcp": 1188,
+     "cls": 0.000869692884501892,
+     "kb": 123,
+     "reqs": 5
+    }
+   ]
+  },
+  {
+   "profile": "pixel7_slow4g",
+   "page": "/congres/congres-europeen-de-cardiologie-cg-0101",
+   "ttfb_ms": 320,
+   "lcp_ms": 968,
+   "cls": 0,
+   "weight_kb": 124,
+   "requests": 5,
+   "runs": [
+    {
+     "ttfb": 233.90000000037253,
+     "load": 1200.1000000014901,
+     "lcp": 956,
+     "cls": 0,
+     "kb": 124,
+     "reqs": 5
+    },
+    {
+     "ttfb": 319.90000000037253,
+     "load": 1217,
+     "lcp": 968,
+     "cls": 0.0006113844496120159,
+     "kb": 124,
+     "reqs": 5
+    },
+    {
+     "ttfb": 341.59999999962747,
+     "load": 1208.199999999255,
+     "lcp": 988,
+     "cls": 0,
+     "kb": 124,
+     "reqs": 5
+    }
+   ]
+  }
+ ],
+ "concurrent": {
+  "n": 30,
+  "p50_ms": 263,
+  "p95_ms": 302,
+  "max_ms": 314,
+  "codes": {
+   "200": 30
+  },
+  "wall_ms": 369
+ },
+ "console": {
+  "/console": {
+   "status": 200,
+   "median_ms": 305,
+   "max_ms": 315
+  },
+  "/console/demandes": {
+   "status": 200,
+   "median_ms": 162,
+   "max_ms": 274
+  },
+  "/console/congres": {
+   "status": 200,
+   "median_ms": 136,
+   "max_ms": 152
+  },
+  "/console/gme": {
+   "status": 200,
+   "median_ms": 531,
+   "max_ms": 554
+  }
+ }
+}

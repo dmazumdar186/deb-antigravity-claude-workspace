@@ -1,1 +1,26 @@
 PASS INT-B-001 valid enquiry POST -> 303 to signed confirmation with DV-ref DV-2026-0007
+PASS INT-B-002 reloading the confirmation / replaying the same token does not create a 2nd row distinct refs 8
+PASS INT-B-003 new enquiry visible to equipe in Demandes with status Nouvelle, linked to congress; notification logged enq id 7
+PASS INT-B-004 status change writes history (who/from/to); owner + note saved 
+PASS INT-B-005 history cannot be edited via any route (POST history/event actions refused, no unknown-action write) delete_event 200, bogus 200
+PASS INT-B-006 CSV export: formula neutralised, no codes text/csv; charset=utf-8
+PASS INT-B-007 sandbox isolation: second browser does not see first browser's enquiry 
+PASS INT-B-008 authz: logged out / contributeur refused on enquiries (GET+POST), equipe refused direction pages /console/demandes:403 /console/demandes/export.csv:403 /console/demandes/1:403 /console/gme:403 /console/gme/acces:403 /console/gme/journal:403 /console/notifications:403 | /console/gme/acces:403 /console/gme/journal:403
+PASS INT-B-009 CSRF: console POST without _csrf or with foreign origin changes nothing 403/403
+PASS INT-B-010 public enquiry POST without a valid token: 403, nothing stored; honeypot: 303 but nothing stored; too fast: not stored ok
+PASS INT-B-011 server validation: passengers 0/51/abc, return<out, past date, bad email, no consent all re-render 200 with message, nothing stored 200,200,200,200,200,200,200
+PASS INT-B-012 stored XSS: script in every field shown as text only on console 
+PASS INT-B-013 GM&E: equipe sees masked code, no plaintext in console HTML 
+PASS INT-B-014 GM&E: reveal without grant refused + logged; request without reason refused; with reason pending 
+PASS INT-B-015 GM&E: direction approves; equipe reveals code (log row); journal Direction only; then revoke -> reveal refused 
+PASS INT-B-016 GM&E: reveal refused for expiré (105) and détecté (101) even for Direction path; reveal needs CSRF 
+PASS INT-B-017 public leak: crawl catalogue, pages, robots, sitemap, 404, search; no DEMO-GME- anywhere 15 urls
+PASS INT-B-018 draft congress (113) 404 publicly and absent from catalogue; past not listed; 12 listed unique links 9
+PASS INT-B-019 edit seed record copies it (copy-on-write): editing city in sandbox shows publicly in sandbox, original untouched for others; contributeur cannot publish, draft hidden 
+PASS INT-B-020 reset restores seed: Direction reset removes sandbox edits, re-reset idempotent (no duplicates); non-direction refused catalogue 12
+PASS INT-B-021 security headers + cookie flags + error pages leak nothing headers ok
+PASS INT-B-022 search: accent-insensitive, XSS escaped, 5000-char query no error, filters combine long 200
+PASS INT-B-023 login: wrong password 401 generic, throttle 429 after 10 attempts per sandbox, other sandbox unaffected 401,401,401,401,401,401,401,401,401,401,429,429
+PASS INT-B-024 session: logout invalidates, open redirect via next refused 
+
+SUMMARY 24/24 pass

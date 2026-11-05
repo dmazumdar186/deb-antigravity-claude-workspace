@@ -1,0 +1,146 @@
+[
+ {
+  "id": "INT-B-001",
+  "desc": "valid enquiry POST -> 303 to signed confirmation with DV-ref",
+  "ok": true,
+  "ev": "DV-2026-0007"
+ },
+ {
+  "id": "INT-B-002",
+  "desc": "reloading the confirmation / replaying the same token does not create a 2nd row",
+  "ok": true,
+  "ev": "distinct refs 8"
+ },
+ {
+  "id": "INT-B-003",
+  "desc": "new enquiry visible to equipe in Demandes with status Nouvelle, linked to congress; notification logged",
+  "ok": true,
+  "ev": "enq id 7"
+ },
+ {
+  "id": "INT-B-004",
+  "desc": "status change writes history (who/from/to); owner + note saved",
+  "ok": true,
+  "ev": ""
+ },
+ {
+  "id": "INT-B-005",
+  "desc": "history cannot be edited via any route (POST history/event actions refused, no unknown-action write)",
+  "ok": true,
+  "ev": "delete_event 200, bogus 200"
+ },
+ {
+  "id": "INT-B-006",
+  "desc": "CSV export: formula neutralised, no codes",
+  "ok": true,
+  "ev": "text/csv; charset=utf-8"
+ },
+ {
+  "id": "INT-B-007",
+  "desc": "sandbox isolation: second browser does not see first browser's enquiry",
+  "ok": true,
+  "ev": ""
+ },
+ {
+  "id": "INT-B-008",
+  "desc": "authz: logged out / contributeur refused on enquiries (GET+POST), equipe refused direction pages",
+  "ok": true,
+  "ev": "/console/demandes:403 /console/demandes/export.csv:403 /console/demandes/1:403 /console/gme:403 /console/gme/acces:403 /console/gme/journal:403 /console/notifications:403 | /console/gme/acces:403 /console/gme/journal:403"
+ },
+ {
+  "id": "INT-B-009",
+  "desc": "CSRF: console POST without _csrf or with foreign origin changes nothing",
+  "ok": true,
+  "ev": "403/403"
+ },
+ {
+  "id": "INT-B-010",
+  "desc": "public enquiry POST without a valid token: 403, nothing stored; honeypot: 303 but nothing stored; too fast: not stored",
+  "ok": true,
+  "ev": "ok"
+ },
+ {
+  "id": "INT-B-011",
+  "desc": "server validation: passengers 0/51/abc, return<out, past date, bad email, no consent all re-render 200 with message, nothing stored",
+  "ok": true,
+  "ev": "200,200,200,200,200,200,200"
+ },
+ {
+  "id": "INT-B-012",
+  "desc": "stored XSS: script in every field shown as text only on console",
+  "ok": true,
+  "ev": ""
+ },
+ {
+  "id": "INT-B-013",
+  "desc": "GM&E: equipe sees masked code, no plaintext in console HTML",
+  "ok": true,
+  "ev": ""
+ },
+ {
+  "id": "INT-B-014",
+  "desc": "GM&E: reveal without grant refused + logged; request without reason refused; with reason pending",
+  "ok": true,
+  "ev": ""
+ },
+ {
+  "id": "INT-B-015",
+  "desc": "GM&E: direction approves; equipe reveals code (log row); journal Direction only; then revoke -> reveal refused",
+  "ok": true,
+  "ev": ""
+ },
+ {
+  "id": "INT-B-016",
+  "desc": "GM&E: reveal refused for expiré (105) and détecté (101) even for Direction path; reveal needs CSRF",
+  "ok": true,
+  "ev": ""
+ },
+ {
+  "id": "INT-B-017",
+  "desc": "public leak: crawl catalogue, pages, robots, sitemap, 404, search; no DEMO-GME- anywhere",
+  "ok": true,
+  "ev": "15 urls"
+ },
+ {
+  "id": "INT-B-018",
+  "desc": "draft congress (113) 404 publicly and absent from catalogue; past not listed; 12 listed",
+  "ok": true,
+  "ev": "unique links 9"
+ },
+ {
+  "id": "INT-B-019",
+  "desc": "edit seed record copies it (copy-on-write): editing city in sandbox shows publicly in sandbox, original untouched for others; contributeur cannot publish, draft hidden",
+  "ok": true,
+  "ev": ""
+ },
+ {
+  "id": "INT-B-020",
+  "desc": "reset restores seed: Direction reset removes sandbox edits, re-reset idempotent (no duplicates); non-direction refused",
+  "ok": true,
+  "ev": "catalogue 12"
+ },
+ {
+  "id": "INT-B-021",
+  "desc": "security headers + cookie flags + error pages leak nothing",
+  "ok": true,
+  "ev": "headers ok"
+ },
+ {
+  "id": "INT-B-022",
+  "desc": "search: accent-insensitive, XSS escaped, 5000-char query no error, filters combine",
+  "ok": true,
+  "ev": "long 200"
+ },
+ {
+  "id": "INT-B-023",
+  "desc": "login: wrong password 401 generic, throttle 429 after 10 attempts per sandbox, other sandbox unaffected",
+  "ok": true,
+  "ev": "401,401,401,401,401,401,401,401,401,401,429,429"
+ },
+ {
+  "id": "INT-B-024",
+  "desc": "session: logout invalidates, open redirect via next refused",
+  "ok": true,
+  "ev": ""
+ }
+]

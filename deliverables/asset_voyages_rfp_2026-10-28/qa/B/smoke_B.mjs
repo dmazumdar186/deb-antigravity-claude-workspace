@@ -11,7 +11,7 @@ async function req(path, { method = 'GET', form } = {}) {
 }
 const chk = async (name, fn) => { try { const e = await fn(); res.push({ name, ok: true }); console.log('PASS', name, e || ''); } catch (e) { res.push({ name, ok: false, err: e.message }); console.log('FAIL', name, e.message); } };
 const ok = (c, m) => { if (!c) throw new Error(m); };
-await chk('catalogue 200 with 12 congresses', async () => { const r = await req('/'); ok(r.status === 200, r.status); const n = new Set([...r.text.matchAll(/\/congres\/[a-z0-9-]+/g)].map((m) => m[0])).size; ok(n === 12, 'n=' + n); return n; });
+await chk('catalogue 200 with 12 congresses', async () => { const r = await req('/'); const r2 = await req('/?page=2'); ok(r.status === 200 && r2.status === 200, r.status); const n = new Set([...r.text.matchAll(/\/congres\/[a-z0-9-]+/g), ...r2.text.matchAll(/\/congres\/[a-z0-9-]+/g)].map((m) => m[0])).size; ok(n === 12, 'n=' + n); return n; });
 await chk('congress page 200', async () => { const r = await req('/congres/congres-europeen-de-cardiologie-cg-0101'); ok(r.status === 200 && /name="_token"/.test(r.text), r.status); });
 await chk('console login page 200', async () => { const r = await req('/console/connexion'); ok(r.status === 200, r.status); });
 await chk('static asset + robots 200', async () => { const r = await req('/robots.txt'); ok(r.status === 200, r.status); });

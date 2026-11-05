@@ -1,0 +1,9 @@
+PASS catalogue 200 with 12 congresses 12
+PASS congress page 200 
+PASS console login page 200 
+PASS static asset + robots 200 
+PASS login contributeur 
+PASS login equipe 
+PASS login direction 
+PASS enquiry submitted and appears in Demandes (as equipe) DV-2026-0007
+SMOKE 8/8 in 7.1s

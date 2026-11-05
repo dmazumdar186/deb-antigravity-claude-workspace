@@ -66,7 +66,61 @@ Site language: the `setSiteLanguage: fr_FR` step works with the local CLI (trans
 
 Run the full suite with `tests/run_all.sh`. It starts a fresh server, runs every spec in order with one worker, then stops the server. Playwright and Chromium were preinstalled; `tests/node_modules/playwright` is a symlink to the global install. Each test name starts with the acceptance gate ID from `../21_Acceptance_Gates_5_Stories.md`.
 
-RESULTS_PLACEHOLDER
+Latest full run (fresh Playground, WordPress 7.1.4, PHP 8.3, 5 Nov 2026): Tests: **46 passed / 0 failed or not run** out of 46 (Playwright, Chromium, 1 worker).
+
+Suites: functional (S1-S5), leak (`06-leak`: logged-out crawl of 330+ URLs, including pages, filter combinations, every congress, feeds, sitemaps, search and every argument-free REST route + admin-ajax; a second crawl as `equipe` without a grant covers ~400 URLs; plus a raw scan of the SQLite file), hostile input (H gates: script/HTML, formula injection, 5,000-char inputs, passengers 0/51/abc/2.5, reversed and past dates, missing or forged nonce, forged timestamp, honeypot, replayed submit, replayed reveal after revocation, rate limit), cross-cutting X1-X4, and screenshots. Click counts for the E gates are recorded as test annotations.
+
+
+| Gate | Result | Evidence |
+|---|---|---|
+| S1-F1 | PASS | 1 test(s); clicks=3 |
+| S1-F2 | PASS | 1 test(s); clicks=3 |
+| S1-F3 | PASS | 1 test(s) |
+| S1-E1 | PASS | 1 test(s); clicks=3 |
+| S1-E2 | PASS | 1 test(s); clicks=3 |
+| S1-H1 | PASS | 1 test(s) |
+| S1-H2 | PASS | 1 test(s) |
+| S2-F1 | PASS | 1 test(s) |
+| S2-F2 | PASS | 1 test(s) |
+| S2-F3 | PASS | 1 test(s) |
+| S2-F4 | PASS | 1 test(s) |
+| S2-F5 | PASS | 1 test(s) |
+| S2-F6 | PASS | 1 test(s) |
+| S2-E1 | PASS | 1 test(s); clicks=2 |
+| S2-E2 | PASS | 1 test(s) |
+| S2-H1 | PASS | 1 test(s) |
+| S3-F1 | PASS | 1 test(s) |
+| S3-F2 | PASS | 1 test(s) |
+| S3-F3 | PASS | 1 test(s) |
+| S3-F4 | PASS | 1 test(s) |
+| S3-E1 | PASS | 1 test(s) |
+| S3-H1 | PASS | 1 test(s) |
+| S3-H2 | PASS | 2 test(s); accepted-before-block=6 |
+| S3-H3 | PASS | 1 test(s) |
+| S4-F1 | PASS | 1 test(s) |
+| S4-F2 | PASS | 1 test(s) |
+| S4-F3 | PASS | 1 test(s) |
+| S4-F4 | PASS | 1 test(s) |
+| S4-F5 | PASS | 1 test(s) |
+| S4-F6 | PASS | 1 test(s); urls=330 |
+| S4-E1 | PASS | 1 test(s); clicks=3 |
+| S4-H1 | PASS | 1 test(s) |
+| S5-F1 | PASS | 2 test(s) |
+| S5-F2 | PASS | 1 test(s); clicks=2 |
+| S5-F3 | PASS | 2 test(s); clicks=1 |
+| S5-F4 | PASS | 1 test(s); clicks=2 |
+| S5-F5 | PASS | 1 test(s) |
+| S5-E1 | PASS | 3 test(s); clicks=2; clicks=1; clicks=2 |
+| S5-H1 | PASS | 1 test(s) |
+| S5-L1 | PASS | 2 test(s); urls=330; urls=398 |
+| S5-L2 | PASS | 1 test(s) |
+| X1 | PASS | 1 test(s) |
+| X2 | PASS | 1 test(s) |
+| X3 | PASS | 1 test(s) |
+| X4 | PASS | 1 test(s) |
+
+X5-X7 (Hallmark gate on the hub page, eye review, hub-page traces) belong to the hub page and to the QA agent, not to this plugin suite.
+
 
 ## Working in the demo vs needs development for production
 
