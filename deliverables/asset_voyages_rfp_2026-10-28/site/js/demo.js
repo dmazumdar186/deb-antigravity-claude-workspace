@@ -44,19 +44,19 @@
       if (a === current) return;
       if (current) current.removeAttribute('aria-current');
       current = a;
-      if (a) {
-        a.setAttribute('aria-current', 'true');
-        if (strip && strip.scrollWidth > strip.clientWidth) {
-          const x = a.offsetLeft - (strip.clientWidth - a.offsetWidth) / 2;
-          strip.scrollTo({ left: Math.max(0, x), behavior: reduce ? 'auto' : 'smooth' });
-        }
+      if (a) a.setAttribute('aria-current', 'true');
+      if (strip && strip.scrollWidth > strip.clientWidth) {
+        // keep the marked link in view; with nothing marked (top of page) the strip starts at its first link
+        const x = a ? a.offsetLeft - strip.offsetLeft - (strip.clientWidth - a.offsetWidth) / 2 : 0;
+        strip.scrollTo({ left: Math.max(0, x), behavior: reduce || !a ? 'auto' : 'smooth' });
       }
     };
     const update = () => {
       const atEnd = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
       const line = Math.min(160, window.innerHeight * 0.3);
-      const passed = sections.filter((s) => s.getBoundingClientRect().top <= line);
-      const top = atEnd ? sections[sections.length - 1] : passed[passed.length - 1];
+      const passed = sections.filter((s) => !s.hidden && s.getBoundingClientRect().top <= line);
+      const shown = sections.filter((s) => !s.hidden);
+      const top = atEnd ? shown[shown.length - 1] : passed[passed.length - 1];
       mark(top ? byId.get(top.id) : null);
     };
     const io = new IntersectionObserver((entries) => {
@@ -65,6 +65,18 @@
     let tick = 0;
     window.addEventListener('scroll', () => { if (!tick) tick = requestAnimationFrame(() => { tick = 0; update(); }); }, { passive: true });
     sections.forEach((s) => io.observe(s));
+    if (strip) {
+      // edge fade: tells a phone reader more sections sit off-screen
+      const edges = () => {
+        const max = strip.scrollWidth - strip.clientWidth;
+        const l = strip.scrollLeft > 4, r = max - strip.scrollLeft > 4;
+        if (l && r) strip.dataset.more = 'both'; else if (r) strip.dataset.more = 'right'; else if (l) strip.dataset.more = 'left'; else delete strip.dataset.more;
+      };
+      strip.scrollLeft = 0;
+      strip.addEventListener('scroll', edges, { passive: true });
+      window.addEventListener('resize', edges);
+      edges();
+    }
   }
 
   // ---- the one reveal: the GM&E access path draws itself once ----
@@ -85,7 +97,7 @@
     }
   }
 
-  // ---- recordings: shown only when the file is announced in media/manifest.json ----
+  // ---- recordings: the section stays hidden until a file is announced in media/manifest.json ----
   const recs = [...document.querySelectorAll('[data-rec]')];
   const fail = (fig, msg) => {
     const v = fig.querySelector('video');
@@ -117,7 +129,15 @@
   if (recs.length && window.fetch) {
     fetch('media/manifest.json', { cache: 'no-store' })
       .then((r) => (r.ok ? r.json() : {}))
-      .then((m) => recs.forEach((fig) => { if (m && m[fig.dataset.rec] === true) mount(fig); }))
+      .then((m) => {
+        const ready = recs.filter((fig) => m && m[fig.dataset.rec] === true);
+        if (!ready.length) return;
+        ready.forEach((fig) => { fig.hidden = false; mount(fig); });
+        const sec = document.querySelector('[data-recs]'), nav = document.querySelector('[data-rec-nav]');
+        if (sec) sec.hidden = false;
+        if (nav) nav.hidden = false;
+        if (ready.length === 1) sec.classList.add('recs--one');
+      })
       .catch(() => {});
   }
 })();

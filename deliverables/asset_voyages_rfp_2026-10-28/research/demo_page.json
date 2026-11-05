@@ -1,8 +1,8 @@
 {
  "url": "http://localhost:8794/demo/",
- "date": "2026-11-05T18:12:01.621Z",
- "pass": 34,
- "total": 34,
+ "date": "2026-11-05T18:18:14.828Z",
+ "pass": 50,
+ "total": 50,
  "results": [
   {
    "name": "desktop: headline, sentence and primary action above the fold at 1440x900",
@@ -30,7 +30,7 @@
    "info": ""
   },
   {
-   "name": "sticky strip lists the eight sections in page order",
+   "name": "sticky strip lists the eight sections in page order (recordings link hidden until a recording exists)",
    "ok": true,
    "info": "#options,#try,#recordings,#compare,#built,#codes,#plan,#slot"
   },
@@ -80,22 +80,22 @@
   {
    "name": "desktop: #compare heading lands below the sticky strip, strip marks it",
    "ok": true,
-   "info": "{\"top\":173.296875,\"strip\":57,\"cur\":\"#compare\"}"
+   "info": "{\"top\":173.578125,\"strip\":57,\"cur\":\"#compare\"}"
   },
   {
    "name": "desktop: #slot heading lands below the sticky strip, strip marks it",
    "ok": true,
-   "info": "{\"top\":173.921875,\"strip\":57,\"cur\":\"#slot\"}"
+   "info": "{\"top\":173.421875,\"strip\":57,\"cur\":\"#slot\"}"
   },
   {
-   "name": "recordings: manifest says not ready, so both slots show the designed fallback (no video, no 404)",
+   "name": "recordings: manifest keys false, so the section and its strip link stay hidden (no video, no 404)",
    "ok": true,
-   "info": "[{\"v\":false,\"empty\":true},{\"v\":false,\"empty\":true}]"
+   "info": "{\"sec\":true,\"nav\":true,\"video\":false}"
   },
   {
    "name": "WCAG AA contrast on every visible text element",
    "ok": true,
-   "info": "checked 286"
+   "info": "checked 268"
   },
   {
    "name": "print: strip hidden, both options of every task printed, wide diagram, PDF written",
@@ -115,7 +115,7 @@
   {
    "name": "390: all text 16 px or more (diagram text included, as rendered)",
    "ok": true,
-   "info": "{\"bad\":[],\"svgMin\":16.9990234375}"
+   "info": "{\"bad\":[],\"svgMin\":17}"
   },
   {
    "name": "390: every button, slot, strip link and switch is at least 44 px",
@@ -130,7 +130,7 @@
   {
    "name": "390: #plan heading lands below the sticky strip",
    "ok": true,
-   "info": "{\"top\":128.96875,\"strip\":57}"
+   "info": "{\"top\":129.03125,\"strip\":57}"
   },
   {
    "name": "390: the diagram switches to its vertical drawing",
@@ -138,7 +138,7 @@
    "info": "{\"wide\":\"none\",\"tall\":\"block\"}"
   },
   {
-   "name": "recordings: a file announced but missing falls back to the message; a present file plays in the slot",
+   "name": "recordings: once announced, section and strip link appear; a missing file falls back to the message; a present file plays",
    "ok": true,
    "info": "{\"wp-walkthrough\":{\"v\":false,\"ready\":0,\"empty\":true,\"msg\":\"This recording could not be loaded just now.\"},\"custom-walkthrough\":{\"v\":true,\"ready\":4,\"empty\":false,\"msg\":\"The recording for Option B will appear here.\"}}"
   },
@@ -148,14 +148,14 @@
    "info": "{\"armed\":false,\"sb\":\"auto\",\"off\":\"0px\"}"
   },
   {
-   "name": "JS off 1440: every section, both options of all 5 tasks, demo links, diagram, fallbacks, table; no overflow",
+   "name": "JS off 1440: every section, both options of all 5 tasks, demo links, diagram, table, recordings hidden; no overflow",
    "ok": true,
-   "info": "{\"sections\":true,\"opts\":10,\"sw\":true,\"path\":\"none\",\"rec\":true,\"links\":true,\"rows\":11,\"sw0\":true}"
+   "info": "{\"recHidden\":true,\"sections\":true,\"opts\":10,\"sw\":true,\"path\":\"none\",\"links\":true,\"rows\":11,\"sw0\":true}"
   },
   {
-   "name": "JS off 390: every section, both options of all 5 tasks, demo links, diagram, fallbacks, table; no overflow",
+   "name": "JS off 390: every section, both options of all 5 tasks, demo links, diagram, table, recordings hidden; no overflow",
    "ok": true,
-   "info": "{\"sections\":true,\"opts\":10,\"sw\":true,\"path\":\"none\",\"rec\":true,\"links\":true,\"rows\":11,\"sw0\":true}"
+   "info": "{\"recHidden\":true,\"sections\":true,\"opts\":10,\"sw\":true,\"path\":\"none\",\"links\":true,\"rows\":11,\"sw0\":true}"
   },
   {
    "name": "/: link to /demo/ present, no overflow at 390",
@@ -171,6 +171,85 @@
    "name": "/questions/: link to /demo/ present, no overflow at 390",
    "ok": true,
    "info": "{\"link\":true,\"sw\":390,\"W\":390,\"hdr\":true}"
+  },
+  {
+   "name": "diagram 320: every label ≥ 4.5:1 on its box, no text touching or crossing a box edge, protected store above the public line",
+   "ok": true,
+   "info": "{\"low\":[],\"clip\":[],\"order\":true}"
+  },
+  {
+   "name": "strip 320: starts at its first link after a full scroll down and back, with a right-edge fade",
+   "ok": true,
+   "info": "{\"left\":0,\"more\":\"right\"}"
+  },
+  {
+   "name": "diagram 390: every label ≥ 4.5:1 on its box, no text touching or crossing a box edge, protected store above the public line",
+   "ok": true,
+   "info": "{\"low\":[],\"clip\":[],\"order\":true}"
+  },
+  {
+   "name": "A/B switch shown on the phone",
+   "ok": true,
+   "info": "grid"
+  },
+  {
+   "name": "timeline 390: bars start on their week tick (week 1, 5, 10, after launch)",
+   "ok": true,
+   "info": "{\"lab\":[35,null,204,null],\"bars\":[35,54,110,204,242,261,280],\"track\":35,\"col\":18.823529411764707}"
+  },
+  {
+   "name": "strip 390: starts at its first link after a full scroll down and back, with a right-edge fade",
+   "ok": true,
+   "info": "{\"left\":0,\"more\":\"right\"}"
+  },
+  {
+   "name": "diagram 1000: every label ≥ 4.5:1 on its box, no text touching or crossing a box edge, protected store above the public line",
+   "ok": true,
+   "info": "{\"low\":[],\"clip\":[],\"order\":true}"
+  },
+  {
+   "name": "diagram 1001: every label ≥ 4.5:1 on its box, no text touching or crossing a box edge, protected store above the public line",
+   "ok": true,
+   "info": "{\"low\":[],\"clip\":[],\"order\":true}"
+  },
+  {
+   "name": "diagram 1440: every label ≥ 4.5:1 on its box, no text touching or crossing a box edge, protected store above the public line",
+   "ok": true,
+   "info": "{\"low\":[],\"clip\":[],\"order\":true}"
+  },
+  {
+   "name": "A/B switch hidden at desktop (both columns already show)",
+   "ok": true,
+   "info": "none"
+  },
+  {
+   "name": "timeline 1440: bars start on their week tick (week 1, 5, 10, after launch)",
+   "ok": true,
+   "info": "{\"lab\":[617,761,942,1086],\"bars\":[617,653,761,942,1014,1050,1086],\"track\":617,\"col\":36.126838235294116}"
+  },
+  {
+   "name": "diagram 1920: every label ≥ 4.5:1 on its box, no text touching or crossing a box edge, protected store above the public line",
+   "ok": true,
+   "info": "{\"low\":[],\"clip\":[],\"order\":true}"
+  },
+  {
+   "name": "strip 390: fresh load starts at scrollLeft 0",
+   "ok": true,
+   "info": "0"
+  },
+  {
+   "name": "French quotes: every « and » bound to its word by a no-break space (no line starts with » or ends with «)",
+   "ok": true,
+   "info": "{\"n\":8,\"bad\":[]}"
+  },
+  {
+   "name": "footer: the \"Unlisted page\" note is gone",
+   "ok": true
+  },
+  {
+   "name": "set_demo_urls.sh: one command updates demo.js and every Option B href, is idempotent, refuses a non-https value",
+   "ok": true,
+   "info": "CUSTOM_URL: https://asset-voyages-demo.REPLACE.workers.dev/ -> https://asset-voyages-demo.example.workers.dev/; 5 href fallback(s) updated"
   }
  ]
 }

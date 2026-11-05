@@ -282,7 +282,8 @@ All 34 fixes applied; log `13_Round2_Fix_Log.md`. `01b_20_Questions_source.md` r
 
 ## Demos hub `/demo/` (2026-11-05, not deployed)
 - Files: `site/demo/index.html`, `site/css/demo.css`, `site/js/demo.js`, `site/demo/media/manifest.json`. Discreet links added: index footer « Les deux démos », pour-asset bottom links, questions footer (header navs had no room at 390 px; console header has no nav).
-- Demo URLs: the four constants at the top of `site/js/demo.js`; the same hrefs are no-JS fallbacks in `demo/index.html` (swap both, e.g. `sed -i 's/REPLACE/<sub>/'`).
-- Recordings: drop `wp-walkthrough.mp4/.jpg` and `custom-walkthrough.mp4/.jpg` into `site/demo/media/`, then set the matching key to `true` in `manifest.json`. A key set true with a missing file falls back to a message.
+- Demo URLs: `bash research/set_demo_urls.sh https://<worker-host>/` updates CUSTOM_URL in `site/js/demo.js` and every Option B href fallback in `demo/index.html` (idempotent, https only).
+- Recordings: drop `wp-walkthrough.mp4/.jpg` and `custom-walkthrough.mp4/.jpg` into `site/demo/media/`, then set the matching key to `true` in `manifest.json`. While every key is false the Recordings section and its strip link stay hidden (also with JS off); a key set true with a missing file shows a message.
 - Step labels for Option B and the GM&E screens are written generically; re-check against the finished demos.
-- Gates: `research/demo_page.mjs` 34/34; Hallmark gate on `site/demo` PASS, 0 FAIL, 0 REFLEX, no waivers (render tier not run). Whole-site gate is BLOCKED by pre-existing pages (built before Hallmark), not touched.
+- Eye review round 1 (NOT SHIP) fixed: diagram contrast/clipping/store placement, nbsp in « », switch desktop-hidden, timeline ticks, strip scroll + fade, footer note removed.
+- Gates: `research/demo_page.mjs` 50/50; Hallmark gate on `site/demo` PASS, 0 FAIL, 0 REFLEX, no waivers (render tier not run). Whole-site gate is BLOCKED by pre-existing pages (built before Hallmark), not touched.

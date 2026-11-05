@@ -27,7 +27,7 @@
   <div class="container mini__in">
     <a href="#options">The two demos</a>
     <a href="#try">Try it</a>
-    <a href="#recordings">Recordings</a>
+    <a href="#recordings" data-rec-nav hidden>Recordings</a>
     <a href="#compare">What works</a>
     <a href="#built">How each is built</a>
     <a href="#codes">GM&amp;E codes</a>
@@ -120,8 +120,8 @@
           <p class="task__which">Option A: WordPress</p>
           <ol class="steps">
             <li><a data-demo="WP_ADMIN_URL" href="https://playground.wordpress.net/?blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json" target="_blank" rel="noopener">Open the admin</a>. You are already signed in.</li>
-            <li>In the left-hand menu, choose « Congrès », then « Ajouter un congrès ».</li>
-            <li>Fill in the name, dates, city and discipline, then publish. To change one, open it from « Tous les congrès ».</li>
+            <li>In the left-hand menu, choose «&nbsp;Congrès&nbsp;», then «&nbsp;Ajouter un congrès&nbsp;».</li>
+            <li>Fill in the name, dates, city and discipline, then publish. To change one, open it from «&nbsp;Tous les congrès&nbsp;».</li>
           </ol>
           <p class="task__tip">Sign in as <code class="cred">contributeur</code> instead and your congress waits for review before it goes live.</p>
         </div>
@@ -166,7 +166,7 @@
         <div class="task__opt task__opt--a">
           <p class="task__which">Option A: WordPress</p>
           <ol class="steps">
-            <li>On a congress details page, find « Demander un devis vol ».</li>
+            <li>On a congress details page, find «&nbsp;Demander un devis vol&nbsp;».</li>
             <li>Enter your contact details, departure city, travel dates and number of passengers.</li>
             <li>Send it. You receive a reference number on screen.</li>
           </ol>
@@ -191,9 +191,9 @@
         <div class="task__opt task__opt--a">
           <p class="task__which">Option A: WordPress</p>
           <ol class="steps">
-            <li>In the admin, open « Demandes ». Your enquiry from task 3 is at the top.</li>
-            <li>Open it and change its status, for example from « Nouvelle » to « Qualifiée ». Each change is kept in its history.</li>
-            <li>Export the list as a spreadsheet file (CSV). « Journal des notifications » shows the message your team would have received.</li>
+            <li>In the admin, open «&nbsp;Demandes&nbsp;». Your enquiry from task 3 is at the top.</li>
+            <li>Open it and change its status, for example from «&nbsp;Nouvelle&nbsp;» to «&nbsp;Qualifiée&nbsp;». Each change is kept in its history.</li>
+            <li>Export the list as a spreadsheet file (CSV). «&nbsp;Journal des notifications&nbsp;» shows the message your team would have received.</li>
           </ol>
         </div>
         <div class="task__opt task__opt--b">
@@ -236,14 +236,14 @@
 </section>
 
 <!-- 4. Recordings -->
-<section class="recs" id="recordings" aria-labelledby="recs-title">
+<section class="recs" id="recordings" aria-labelledby="recs-title" data-recs hidden>
   <div class="container">
     <div class="intro">
-      <h2 id="recs-title"><span class="n">3</span> Prefer to watch first?</h2>
+      <h2 id="recs-title">Prefer to watch first?</h2>
       <p>Two short recordings walk through the same five tasks, one per option.</p>
     </div>
     <div class="recs__grid">
-      <figure class="rec" data-rec="wp-walkthrough">
+      <figure class="rec" data-rec="wp-walkthrough" hidden>
         <div class="rec__frame" data-rec-frame>
           <div class="rec__empty" data-rec-empty>
             <p class="rec__state" data-rec-msg>The recording for Option A will appear here.</p>
@@ -252,7 +252,7 @@
         </div>
         <figcaption>Option A, WordPress: the five tasks from start to finish.</figcaption>
       </figure>
-      <figure class="rec" data-rec="custom-walkthrough">
+      <figure class="rec" data-rec="custom-walkthrough" hidden>
         <div class="rec__frame" data-rec-frame>
           <div class="rec__empty" data-rec-empty>
             <p class="rec__state" data-rec-msg>The recording for Option B will appear here.</p>
@@ -269,7 +269,7 @@
 <section class="compare" id="compare" aria-labelledby="compare-title">
   <div class="container">
     <div class="intro">
-      <h2 id="compare-title"><span class="n">4</span> What works today, and what we would build</h2>
+      <h2 id="compare-title"><span class="n">3</span> What works today, and what we would build</h2>
       <p>“Works in the demo” means you can try it now. “Built during the project” means it is part of the work after approval; where it helps, the demo shows a stand-in.</p>
     </div>
     <table class="cmp">
@@ -321,7 +321,7 @@
 <section class="built" id="built" aria-labelledby="built-title">
   <div class="container">
     <div class="intro">
-      <h2 id="built-title"><span class="n">5</span> How each one is built, in plain words</h2>
+      <h2 id="built-title"><span class="n">4</span> How each one is built, in plain words</h2>
     </div>
     <div class="built__grid">
       <div class="built__col">
@@ -361,44 +361,36 @@
 <section class="codes" id="codes" aria-labelledby="codes-title">
   <div class="container">
     <div class="intro">
-      <h2 id="codes-title"><span class="n">6</span> How the GM&amp;E codes stay protected</h2>
+      <h2 id="codes-title"><span class="n">5</span> How the GM&amp;E codes stay protected</h2>
       <p>The same path in both options. Only a named team member, with Direction’s approval, ever sees a code, and only for 24 hours.</p>
     </div>
 
     <figure class="flow" data-flow>
-      <svg class="flow__wide" viewBox="0 0 1040 420" role="img" aria-labelledby="fw-t fw-d">
+      <svg class="flow__wide" viewBox="0 0 1100 510" role="img" aria-labelledby="fw-t fw-d">
         <title id="fw-t">The access path for a GM&amp;E code</title>
-        <desc id="fw-d">1. A team member opens a congress and sees the code hidden. 2. They ask for access and give a reason. 3. Direction approves for 24 hours, or refuses. 4. The code is shown to that team member. 5. The access is recorded, every time. Visitors and search engines see only that a negotiated congress fare is available, never the code. Codes are encrypted where they are stored.</desc>
-        <path class="flow__track" d="M96 96 H944"/>
-        <path class="flow__path" pathLength="1" d="M96 96 H944"/>
-        <g class="flow__node" data-i="1"><rect x="8" y="40" width="176" height="112" rx="10"/><text x="24" y="74" class="flow__num">1</text><text x="24" y="104" class="flow__t">Team member</text><text x="24" y="130" class="flow__s">sees the code hidden</text></g>
-        <g class="flow__node" data-i="2"><rect x="224" y="40" width="176" height="112" rx="10"/><text x="240" y="74" class="flow__num">2</text><text x="240" y="104" class="flow__t">Asks for access</text><text x="240" y="130" class="flow__s">and gives a reason</text></g>
-        <g class="flow__node flow__node--dir" data-i="3"><rect x="440" y="40" width="176" height="112" rx="10"/><text x="456" y="74" class="flow__num">3</text><text x="456" y="104" class="flow__t">Direction</text><text x="456" y="130" class="flow__s">approves for 24 h,</text><text x="456" y="148" class="flow__s">or refuses</text></g>
-        <g class="flow__node" data-i="4"><rect x="656" y="40" width="176" height="112" rx="10"/><text x="672" y="74" class="flow__num">4</text><text x="672" y="104" class="flow__t">Code shown</text><text x="672" y="130" class="flow__s">to that person only</text></g>
-        <g class="flow__node flow__node--log" data-i="5"><rect x="856" y="40" width="176" height="112" rx="10"/><text x="872" y="74" class="flow__num">5</text><text x="872" y="104" class="flow__t">Access recorded</text><text x="872" y="130" class="flow__s">who, when, which</text><text x="872" y="148" class="flow__s">code, every time</text></g>
-        <path class="flow__arrow" d="M206 90 l10 6 l-10 6z"/><path class="flow__arrow" d="M422 90 l10 6 l-10 6z"/><path class="flow__arrow" d="M638 90 l10 6 l-10 6z"/><path class="flow__arrow" d="M846 90 l10 6 l-10 6z"/>
-        <line class="flow__wall" x1="8" y1="210" x2="1032" y2="210"/>
-        <text x="8" y="196" class="flow__s">Above the line: your team only</text>
-        <text x="8" y="238" class="flow__s">Below the line: the public site</text>
-        <g class="flow__pub"><rect x="8" y="262" width="496" height="112" rx="10"/><text x="24" y="296" class="flow__t">Visitors and search engines</text><text x="24" y="324" class="flow__s">see only “negotiated congress fare available”.</text><text x="24" y="350" class="flow__s">The code never reaches the public site.</text></g>
-        <g class="flow__vault"><rect x="536" y="262" width="496" height="112" rx="10"/><text x="552" y="296" class="flow__t">Where the codes are stored</text><text x="552" y="324" class="flow__s">Encrypted, so a copy of the data alone</text><text x="552" y="350" class="flow__s">does not reveal them.</text></g>
+        <desc id="fw-d">1. A team member opens a congress and sees the code hidden. 2. They ask for access and give a reason. 3. Direction approves for 24 hours, or refuses. 4. The code is shown to that team member only. 5. The access is recorded, every time. The codes sit in a protected store on the team side, encrypted. Visitors and search engines, on the public side, see only that a negotiated congress fare is available, never the code.</desc>
+        <path class="flow__track" d="M103 102 H991"/>
+        <path class="flow__path" pathLength="1" d="M103 102 H991"/>
+        <g class="flow__node" data-i="1"><rect x="8" y="24" width="190" height="156" rx="10"/><text x="26" y="60" class="flow__num">1</text><text x="26" y="92" class="flow__t">Team member</text><text x="26" y="122" class="flow__s">sees the code</text><text x="26" y="146" class="flow__s">hidden</text></g><g class="flow__node" data-i="2"><rect x="230" y="24" width="190" height="156" rx="10"/><text x="248" y="60" class="flow__num">2</text><text x="248" y="92" class="flow__t">Asks for access</text><text x="248" y="122" class="flow__s">and gives</text><text x="248" y="146" class="flow__s">a reason</text></g><g class="flow__node flow__node--dir" data-i="3"><rect x="452" y="24" width="190" height="156" rx="10"/><text x="470" y="60" class="flow__num">3</text><text x="470" y="92" class="flow__t">Direction</text><text x="470" y="122" class="flow__s">approves for 24 h,</text><text x="470" y="146" class="flow__s">or refuses</text></g><g class="flow__node" data-i="4"><rect x="674" y="24" width="190" height="156" rx="10"/><text x="692" y="60" class="flow__num">4</text><text x="692" y="92" class="flow__t">Code shown</text><text x="692" y="122" class="flow__s">to that person</text><text x="692" y="146" class="flow__s">only</text></g><g class="flow__node flow__node--log" data-i="5"><rect x="896" y="24" width="190" height="156" rx="10"/><text x="914" y="60" class="flow__num">5</text><text x="914" y="92" class="flow__t">Access recorded</text><text x="914" y="122" class="flow__s">who, when, which</text><text x="914" y="146" class="flow__s">code, every time</text></g>
+        <path class="flow__arrow" d="M208 96 l10 6 l-10 6z"/><path class="flow__arrow" d="M430 96 l10 6 l-10 6z"/><path class="flow__arrow" d="M652 96 l10 6 l-10 6z"/><path class="flow__arrow" d="M874 96 l10 6 l-10 6z"/>
+        <g class="flow__vault"><rect x="8" y="204" width="1084" height="100" rx="10"/><text x="26" y="242" class="flow__t">Protected store, on your team’s side</text><text x="26" y="274" class="flow__s">The codes are encrypted where they are stored, so a copy of the data alone does not reveal them.</text></g>
+        <text x="8" y="340" class="flow__s flow__lab">Above the line: your team only</text>
+        <line class="flow__wall" x1="8" y1="356" x2="1092" y2="356"/>
+        <text x="8" y="384" class="flow__s flow__lab">Below the line: the public site</text>
+        <g class="flow__pub"><rect x="8" y="402" width="1084" height="100" rx="10"/><text x="26" y="440" class="flow__t">Visitors and search engines</text><text x="26" y="472" class="flow__s">see only “negotiated congress fare available”. The code never reaches the public site.</text></g>
       </svg>
-      <svg class="flow__tall" viewBox="0 0 360 980" role="img" aria-labelledby="ft-t ft-d">
+      <svg class="flow__tall" viewBox="0 0 360 1010" role="img" aria-labelledby="ft-t ft-d">
         <title id="ft-t">The access path for a GM&amp;E code</title>
-        <desc id="ft-d">1. A team member opens a congress and sees the code hidden. 2. They ask for access and give a reason. 3. Direction approves for 24 hours, or refuses. 4. The code is shown to that team member. 5. The access is recorded, every time. Visitors and search engines see only that a negotiated congress fare is available, never the code. Codes are encrypted where they are stored.</desc>
-        <path class="flow__track" d="M36 40 V560"/>
-        <path class="flow__path" pathLength="1" d="M36 40 V560"/>
-        <g class="flow__node" data-i="1"><rect x="56" y="4" width="300" height="92" rx="10"/><text x="74" y="40" class="flow__t">1. Team member</text><text x="74" y="70" class="flow__s">sees the code hidden</text></g>
-        <g class="flow__node" data-i="2"><rect x="56" y="116" width="300" height="92" rx="10"/><text x="74" y="152" class="flow__t">2. Asks for access</text><text x="74" y="182" class="flow__s">and gives a reason</text></g>
-        <g class="flow__node flow__node--dir" data-i="3"><rect x="56" y="228" width="300" height="92" rx="10"/><text x="74" y="264" class="flow__t">3. Direction</text><text x="74" y="294" class="flow__s">approves for 24 h, or refuses</text></g>
-        <g class="flow__node" data-i="4"><rect x="56" y="340" width="300" height="92" rx="10"/><text x="74" y="376" class="flow__t">4. Code shown</text><text x="74" y="406" class="flow__s">to that person only</text></g>
-        <g class="flow__node flow__node--log" data-i="5"><rect x="56" y="452" width="300" height="108" rx="10"/><text x="74" y="488" class="flow__t">5. Access recorded</text><text x="74" y="518" class="flow__s">who, when, which code,</text><text x="74" y="542" class="flow__s">every time</text></g>
-        <circle class="flow__dot" cx="36" cy="50" r="7"/><circle class="flow__dot" cx="36" cy="162" r="7"/><circle class="flow__dot" cx="36" cy="274" r="7"/><circle class="flow__dot" cx="36" cy="386" r="7"/><circle class="flow__dot" cx="36" cy="506" r="7"/>
-        <line class="flow__wall" x1="4" y1="610" x2="356" y2="610"/>
-        <text x="4" y="596" class="flow__s">Above: your team only</text>
-        <text x="4" y="638" class="flow__s">Below: the public site</text>
-        <g class="flow__pub"><rect x="4" y="660" width="352" height="140" rx="10"/><text x="20" y="696" class="flow__t">Visitors and search engines</text><text x="20" y="726" class="flow__s">see only “negotiated congress</text><text x="20" y="750" class="flow__s">fare available”. The code never</text><text x="20" y="774" class="flow__s">reaches the public site.</text></g>
-        <g class="flow__vault"><rect x="4" y="824" width="352" height="140" rx="10"/><text x="20" y="860" class="flow__t">Where the codes are stored</text><text x="20" y="890" class="flow__s">Encrypted, so a copy of the</text><text x="20" y="914" class="flow__s">data alone does not reveal</text><text x="20" y="938" class="flow__s">them.</text></g>
+        <desc id="ft-d">1. A team member opens a congress and sees the code hidden. 2. They ask for access and give a reason. 3. Direction approves for 24 hours, or refuses. 4. The code is shown to that team member only. 5. The access is recorded, every time. The codes sit in a protected store on the team side, encrypted. Visitors and search engines, on the public side, see only that a negotiated congress fare is available, never the code.</desc>
+        <path class="flow__track" d="M36 54 V518"/>
+        <path class="flow__path" pathLength="1" d="M36 54 V518"/>
+        <g class="flow__node" data-i="1"><rect x="56" y="4" width="300" height="100" rx="10"/><text x="74" y="38" class="flow__t">1. Team member</text><text x="74" y="66" class="flow__s">sees the code</text><text x="74" y="90" class="flow__s">hidden</text></g><g class="flow__node" data-i="2"><rect x="56" y="120" width="300" height="100" rx="10"/><text x="74" y="154" class="flow__t">2. Asks for access</text><text x="74" y="182" class="flow__s">and gives</text><text x="74" y="206" class="flow__s">a reason</text></g><g class="flow__node flow__node--dir" data-i="3"><rect x="56" y="236" width="300" height="100" rx="10"/><text x="74" y="270" class="flow__t">3. Direction</text><text x="74" y="298" class="flow__s">approves for 24 h,</text><text x="74" y="322" class="flow__s">or refuses</text></g><g class="flow__node" data-i="4"><rect x="56" y="352" width="300" height="100" rx="10"/><text x="74" y="386" class="flow__t">4. Code shown</text><text x="74" y="414" class="flow__s">to that person</text><text x="74" y="438" class="flow__s">only</text></g><g class="flow__node flow__node--log" data-i="5"><rect x="56" y="468" width="300" height="100" rx="10"/><text x="74" y="502" class="flow__t">5. Access recorded</text><text x="74" y="530" class="flow__s">who, when, which</text><text x="74" y="554" class="flow__s">code, every time</text></g>
+        <circle class="flow__dot" cx="36" cy="54" r="7"/><circle class="flow__dot" cx="36" cy="170" r="7"/><circle class="flow__dot" cx="36" cy="286" r="7"/><circle class="flow__dot" cx="36" cy="402" r="7"/><circle class="flow__dot" cx="36" cy="518" r="7"/>
+        <g class="flow__vault"><rect x="4" y="600" width="352" height="150" rx="10"/><text x="20" y="636" class="flow__t">Protected store</text><text x="20" y="666" class="flow__s">on your team’s side. The codes</text><text x="20" y="690" class="flow__s">are encrypted where they are</text><text x="20" y="714" class="flow__s">stored.</text></g>
+        <text x="4" y="782" class="flow__s flow__lab">Above: your team only</text>
+        <line class="flow__wall" x1="4" y1="798" x2="356" y2="798"/>
+        <text x="4" y="826" class="flow__s flow__lab">Below: the public site</text>
+        <g class="flow__pub"><rect x="4" y="844" width="352" height="150" rx="10"/><text x="20" y="880" class="flow__t">Visitors and search engines</text><text x="20" y="910" class="flow__s">see only “negotiated congress</text><text x="20" y="934" class="flow__s">fare available”. The code never</text><text x="20" y="958" class="flow__s">reaches the public site.</text></g>
       </svg>
       <figcaption>Every request, decision and display is kept in a record that Direction can read.</figcaption>
     </figure>
@@ -409,13 +401,13 @@
 <section class="plan" id="plan" aria-labelledby="plan-title">
   <div class="container">
     <div class="intro">
-      <h2 id="plan-title"><span class="n">7</span> Milestones</h2>
+      <h2 id="plan-title"><span class="n">6</span> Milestones</h2>
       <p>Counted from your approval and receipt of the required content. The plan is the same for both options.</p>
     </div>
     <div class="gantt">
       <div class="gantt__scale" aria-hidden="true">
         <span class="gantt__pad"></span>
-        <div class="gantt__weeks"><span>Week 1</span><span>Week 5</span><span>Week 10</span><span>Week 13</span><span>After launch</span></div>
+        <div class="gantt__weeks"><span>Week 1</span><span>Week 5</span><span>Week 10</span><span>After launch</span></div>
       </div>
       <ol class="gantt__rows">
         <li class="g" data-from="1" data-to="2">
@@ -456,7 +448,7 @@
 <section class="slot" id="slot" aria-labelledby="slot-title">
   <div class="container slot__in">
     <div class="intro">
-      <h2 id="slot-title"><span class="n">8</span> A 20 to 30 minute demonstration</h2>
+      <h2 id="slot-title"><span class="n">7</span> A 20 to 30 minute demonstration</h2>
       <p>We walk you through both options and answer your questions. Pick a time below and your email opens with it filled in. All times are Paris time.</p>
     </div>
     <ul class="days">
@@ -481,7 +473,6 @@
     <div class="foot__fine">
       <p>All congresses, people, enquiries and codes in these demos are fictional. The concept and the demos are illustrations: only the signed proposal defines what is included.</p>
       <p class="foot__links">Earlier pages: <a href="../">the concept</a>, <a href="../pour-asset/">the note for ASSET</a> (in French), <a href="../console/">the Console mock-up</a>, <a href="../questions/">our questions</a>.</p>
-      <p>Unlisted page: hidden from search engines; anyone with the link can open it.</p>
     </div>
   </div>
 </footer>

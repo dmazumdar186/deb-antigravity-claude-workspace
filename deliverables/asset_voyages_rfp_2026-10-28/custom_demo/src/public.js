@@ -45,8 +45,8 @@ export async function catalogue(req, env) {
 
   let where = base; const binds = [t];
   for (const word of norm(f.q).split(/\s+/).filter(Boolean).slice(0, 8)) {
-    where += ` AND search_text LIKE ? ESCAPE '\\'`;
-    binds.push('%' + word.replace(/[\\%_]/g, (c) => '\\' + c) + '%');
+    where += ' AND instr(search_text, ?) > 0'; // instr: no LIKE pattern limits, no wildcard escaping
+    binds.push(word);
   }
   if (f.d) { where += ' AND discipline = ?'; binds.push(f.d); }
   if (f.pays) { where += ' AND country = ?'; binds.push(f.pays); }
@@ -69,7 +69,7 @@ export async function catalogue(req, env) {
     <p class="lead">Chaque fiche indique sa source officielle et sa date de vérification ; la demande de vol se fait depuis la fiche.</p>
   </header>
   <div class="cat__grid">
-    <form class="filters" method="get" action="/" role="search" aria-label="Rechercher et filtrer les congrès">
+    <form class="filters" method="get" action="/" role="search" aria-label="Filtrer les congrès">
       <div class="field"><label for="q">Recherche</label><input id="q" name="q" type="search" value="${f.q}" placeholder="Nom, ville ou discipline" maxlength="200" enterkeyhint="search" autocomplete="off"></div>
       ${f.d ? html`<input type="hidden" name="discipline" value="${f.d}">` : ''}
       <div class="field"><label for="pays">Pays</label><select id="pays" name="pays" data-autosubmit>
@@ -84,7 +84,7 @@ export async function catalogue(req, env) {
       </fieldset>
     </form>
     <div class="list">
-      <p class="bar" aria-live="polite"><span class="bar__n">${total} congrès${filtered ? (total > 1 ? ' trouvés' : ' trouvé') : ''}</span><span>Triés par date</span></p>
+      <p class="bar" aria-live="polite"><span class="bar__n">${total === 0 ? 'Aucun congrès trouvé' : `${total} congrès${filtered ? (total > 1 ? ' trouvés' : ' trouvé') : ''}`}</span><span>Triés par date</span></p>
       ${rows.length ? html`<ol class="rows">${rows.map((r) => { const rp = rangeParts(r.start_date, r.end_date); return html`
         <li class="row"><a class="row__a" href="/congres/${r.slug}">
           <span class="row__date"><span class="row__days">${rp.days}</span><span class="row__months">${rp.months}</span></span>

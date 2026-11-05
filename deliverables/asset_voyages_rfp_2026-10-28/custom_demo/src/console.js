@@ -246,7 +246,7 @@ async function congressForm(ctx, id, { values, errors, status = 200, notice } = 
   const f = (o) => field({ ...o, value: v[o.name], error: e[o.name], required: o.optional ? false : true, attrs: (o.attrs || '') + (editable ? '' : ' disabled') });
   const primary = !c ? (STAFF.includes(user.role) ? 'publish' : 'save') : 'save';
   const secondaries = !c ? (STAFF.includes(user.role) ? ['save'] : ['review']) : actions;
-  const btnLabel = (k) => (!c && k === 'save') ? 'Enregistrer en brouillon' : (k === 'publish' && stat === 'archive') ? 'Republier' : TRANSITIONS[k].label;
+  const btnLabel = (k) => (!c && k === 'save') ? 'Enregistrer le brouillon' : (k === 'publish' && stat === 'archive') ? 'Republier' : TRANSITIONS[k].label;
 
   const gmePanel = c && STAFF.includes(user.role) ? await gmeCard(ctx, c, { context: 'congress' }) : '';
   const body = html`<nav class="crumbs" aria-label="Fil d’Ariane"><a href="/console/congres">Congrès</a><span aria-hidden="true">/</span><span>${c ? c.ref : 'Nouveau'}</span></nav>
@@ -332,14 +332,7 @@ function enquiryFilter(ctx) {
   const sp = ctx.url.searchParams;
   const statut = STATUS_LABELS[sp.get('statut')] ? sp.get('statut') : '';
   const q = clean(sp.get('q'), 100).slice(0, 100);
-  let where = 'WHERE 1=1'; const binds = [];
-  if (statut) { where += ' AND e.status = ?'; binds.push(statut); }
-  for (const w of norm(q).split(/\s+/).filter(Boolean).slice(0, 6)) {
-    where += ` AND (lower(e.ref) LIKE ? ESCAPE '\\' OR lower(e.name) LIKE ? ESCAPE '\\' OR lower(e.email) LIKE ? ESCAPE '\\' OR lower(e.company) LIKE ? ESCAPE '\\' OR lower(e.departure_city) LIKE ? ESCAPE '\\' OR c.search_text LIKE ? ESCAPE '\\')`;
-    const like = '%' + w.replace(/[\\%_]/g, (x) => '\\' + x) + '%';
-    binds.push(like, like, like, like, like, like);
-  }
-  return { statut, q, where, binds };
+  return { statut, q };
 }
 const ENQ_SELECT = `SELECT e.*, c.title AS cg_title, c.ref AS cg_ref, u.display_name AS owner_name FROM enquiries e JOIN congresses c ON c.id = e.congress_id LEFT JOIN users u ON u.id = e.owner_id`;
 

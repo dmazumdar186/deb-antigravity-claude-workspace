@@ -2,7 +2,7 @@
 /* demo_page.mjs — functional checks for the demos hub (/demo/), served with the real _headers CSP.
    usage: node research/serve_csp.mjs site 8794 &  node research/demo_page.mjs http://localhost:8794/
    outputs: research/demo_page.json and research/demo_screens/*.png (+ demo.pdf); exit 0 only on N/N. */
-import { createRequire } from 'node:module'; import { writeFileSync, readFileSync, mkdirSync } from 'node:fs';
+import { createRequire } from 'node:module'; import { writeFileSync, readFileSync, mkdirSync, mkdtempSync, cpSync } from 'node:fs'; import { execFileSync } from 'node:child_process'; import { tmpdir } from 'node:os';
 const base = (process.argv[2] || 'http://localhost:8794/').replace(/\/?$/, '/');
 const url = base + 'demo/';
 const SITE = new URL('../site/', import.meta.url).pathname;
@@ -14,8 +14,8 @@ const R = []; const t = (name, ok, info) => { R.push({ name, ok: !!ok, info }); 
 const URLS = {
   WP_VISITOR_URL: 'https://playground.wordpress.net/?blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-visitor.json',
   WP_ADMIN_URL: 'https://playground.wordpress.net/?blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json',
-  CUSTOM_URL: 'https://asset-voyages-demo.REPLACE.workers.dev/',
-  CUSTOM_CONSOLE_URL: 'https://asset-voyages-demo.REPLACE.workers.dev/console',
+  CUSTOM_URL: (readFileSync(SITE + 'js/demo.js', 'utf8').match(/const CUSTOM_URL = '([^']+)'/) || [])[1],
+  get CUSTOM_CONSOLE_URL() { return this.CUSTOM_URL + 'console'; },
 };
 const MAILTO = 'mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot';
 const b = await chromium.launch();
@@ -41,7 +41,7 @@ const ov1 = await overflow(p); t('desktop 1440: no horizontal overflow', ov1.sw 
 const anchors = await p.evaluate(() => [...document.querySelectorAll('a[href^="#"]')].map((a) => a.getAttribute('href')).filter((h) => h.length > 1 && !document.getElementById(h.slice(1))));
 t('every in-page anchor resolves to an element', anchors.length === 0, anchors.join(','));
 const navIds = await p.evaluate(() => [...document.querySelectorAll('[data-mini] a')].map((a) => a.getAttribute('href')));
-t('sticky strip lists the eight sections in page order', navIds.join() === '#options,#try,#recordings,#compare,#built,#codes,#plan,#slot' && await p.evaluate((ids) => { const ys = ids.map((h) => document.querySelector(h).getBoundingClientRect().top); return ys.every((y, i) => i === 0 || y > ys[i - 1]); }, navIds), navIds.join());
+t('sticky strip lists the eight sections in page order (recordings link hidden until a recording exists)', navIds.join() === '#options,#try,#recordings,#compare,#built,#codes,#plan,#slot' && await p.evaluate((ids) => { const ys = ids.map((h) => document.querySelector(h)).filter((e) => !e.hidden).map((e) => e.getBoundingClientRect().top); return ys.every((y, i) => i === 0 || y > ys[i - 1]); }, navIds), navIds.join());
 // relative page links resolve (media files are optional and checked separately)
 const rel = await p.evaluate(() => [...new Set([...document.querySelectorAll('a[href]')].map((a) => a.getAttribute('href')).filter((h) => !/^(#|https?:|mailto:)/.test(h) && !/^media\//.test(h)))]);
 const relBad = []; for (const h of rel) { const r = await fetch(new URL(h, url)); if (r.status !== 200) relBad.push(h + ':' + r.status); }
@@ -50,7 +50,7 @@ t('relative links to the concept pages resolve (200)', relBad.length === 0 && re
 const js = readFileSync(SITE + 'js/demo.js', 'utf8'); const html = readFileSync(SITE + 'demo/index.html', 'utf8');
 const constOk = js.includes(`const WP_VISITOR_URL = '${URLS.WP_VISITOR_URL}'`) && js.includes(`const WP_ADMIN_URL = '${URLS.WP_ADMIN_URL}'`) && js.includes(`const CUSTOM_URL = '${URLS.CUSTOM_URL}'`) && js.includes("const CUSTOM_CONSOLE_URL = CUSTOM_URL + 'console'");
 const live = await p.evaluate(() => [...document.querySelectorAll('a[data-demo]')].map((a) => [a.dataset.demo, a.getAttribute('href'), a.target, a.rel]));
-const liveOk = live.length >= 8 && live.every(([k, h, tg, rl]) => h === ({ WP_VISITOR_URL: 'https://playground.wordpress.net/?blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-visitor.json', WP_ADMIN_URL: 'https://playground.wordpress.net/?blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json', CUSTOM_URL: 'https://asset-voyages-demo.REPLACE.workers.dev/', CUSTOM_CONSOLE_URL: 'https://asset-voyages-demo.REPLACE.workers.dev/console' })[k] && tg === '_blank' && /noopener/.test(rl));
+const liveOk = live.length >= 8 && live.every(([k, h, tg, rl]) => h === URLS[k] && tg === '_blank' && /noopener/.test(rl));
 const staticOk = Object.values(URLS).every((u) => html.includes(`href="${u}"`));
 t('demo constants: four URLs defined once in demo.js, applied to every demo link, same hrefs in the HTML for no-JS', constOk && liveOk && staticOk, `links=${live.length}`);
 const cards = await p.evaluate(() => [...document.querySelectorAll('.pass')].map((c) => c.querySelectorAll('a.btn').length));
@@ -78,8 +78,8 @@ for (const id of ['#compare', '#slot']) {
   t(`desktop: ${id} heading lands below the sticky strip, strip marks it`, g.top >= g.strip && g.top < 260 && g.cur === id, JSON.stringify(g));
 }
 // recordings: default fallback
-const rec0 = await p.evaluate(() => [...document.querySelectorAll('[data-rec]')].map((f) => ({ v: !!f.querySelector('video'), empty: !f.querySelector('[data-rec-empty]').hidden && f.querySelector('[data-rec-empty]').getBoundingClientRect().height > 40 })));
-t('recordings: manifest says not ready, so both slots show the designed fallback (no video, no 404)', rec0.every((r) => !r.v && r.empty), JSON.stringify(rec0));
+const rec0 = await p.evaluate(() => ({ sec: document.querySelector('#recordings').hidden && getComputedStyle(document.querySelector('#recordings')).display === 'none', nav: getComputedStyle(document.querySelector('[data-rec-nav]')).display === 'none', video: !!document.querySelector('[data-rec] video') }));
+t('recordings: manifest keys false, so the section and its strip link stay hidden (no video, no 404)', rec0.sec && rec0.nav && !rec0.video, JSON.stringify(rec0));
 // contrast of every visible text node against its painted background
 const contrast = await p.evaluate(() => {
   const parse = (c) => { const m = c.match(/rgba?\(([^)]+)\)/); if (!m) return null; const v = m[1].split(/[ ,/]+/).filter(Boolean).map(Number); return { r: v[0], g: v[1], b: v[2], a: v[3] === undefined ? 1 : v[3] }; };
@@ -136,8 +136,9 @@ await p.route('**/demo/media/manifest.json', (r) => r.fulfill({ contentType: 'ap
 const hero = readFileSync(SITE + 'assets/hero.mp4');
 await p.route('**/demo/media/custom-walkthrough.mp4', (r) => r.fulfill({ contentType: 'video/mp4', body: hero }));
 await p.goto(url, { waitUntil: 'load' }); await p.waitForTimeout(2500);
+const rec1s = await p.evaluate(() => ({ sec: !document.querySelector('#recordings').hidden, nav: !document.querySelector('[data-rec-nav]').hidden }));
 const rec1 = await p.evaluate(() => Object.fromEntries([...document.querySelectorAll('[data-rec]')].map((f) => [f.dataset.rec, { v: !!f.querySelector('video'), ready: f.querySelector('video')?.readyState || 0, empty: !f.querySelector('[data-rec-empty]').hidden, msg: f.querySelector('[data-rec-msg]').textContent }])));
-t('recordings: a file announced but missing falls back to the message; a present file plays in the slot', rec1['wp-walkthrough'].empty && !rec1['wp-walkthrough'].v && /could not be loaded/.test(rec1['wp-walkthrough'].msg) && rec1['custom-walkthrough'].v && rec1['custom-walkthrough'].ready >= 1 && !rec1['custom-walkthrough'].empty, JSON.stringify(rec1));
+t('recordings: once announced, section and strip link appear; a missing file falls back to the message; a present file plays', rec1s.sec && rec1s.nav && rec1['wp-walkthrough'].empty && !rec1['wp-walkthrough'].v && /could not be loaded/.test(rec1['wp-walkthrough'].msg) && rec1['custom-walkthrough'].v && rec1['custom-walkthrough'].ready >= 1 && !rec1['custom-walkthrough'].empty, JSON.stringify(rec1));
 await p._ctx.close();
 
 // ================= reduced motion =================
@@ -151,8 +152,8 @@ await p._ctx.close();
 for (const vp of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
   p = await mk({ viewport: vp, javaScriptEnabled: false });
   await p.goto(url, { waitUntil: 'load' }); await p.waitForTimeout(300);
-  const nojs = await p.evaluate(() => ({ sections: ['options', 'try', 'recordings', 'compare', 'built', 'codes', 'plan', 'slot'].every((id) => { const s = document.getElementById(id); return s && s.getBoundingClientRect().height > 100; }), opts: [...document.querySelectorAll('.task__opt')].filter((o) => getComputedStyle(o).display !== 'none').length, sw: document.querySelector('[data-switch]').hidden, path: getComputedStyle(document.querySelector('.flow__path')).strokeDasharray, rec: [...document.querySelectorAll('[data-rec-empty]')].every((e) => e.getBoundingClientRect().height > 40), links: [...document.querySelectorAll('a[data-demo]')].every((a) => /^https:/.test(a.href)), rows: document.querySelectorAll('.cmp tbody tr').length, sw0: document.documentElement.scrollWidth <= innerWidth }));
-  t(`JS off ${vp.width}: every section, both options of all 5 tasks, demo links, diagram, fallbacks, table; no overflow`, nojs.sections && nojs.opts === 10 && nojs.sw && nojs.path === 'none' && nojs.rec && nojs.links && nojs.rows === 11 && nojs.sw0, JSON.stringify(nojs));
+  const nojs = await p.evaluate(() => ({ recHidden: getComputedStyle(document.getElementById('recordings')).display === 'none', sections: ['options', 'try', 'compare', 'built', 'codes', 'plan', 'slot'].every((id) => { const s = document.getElementById(id); return s && s.getBoundingClientRect().height > 100; }), opts: [...document.querySelectorAll('.task__opt')].filter((o) => getComputedStyle(o).display !== 'none').length, sw: document.querySelector('[data-switch]').hidden, path: getComputedStyle(document.querySelector('.flow__path')).strokeDasharray, links: [...document.querySelectorAll('a[data-demo]')].every((a) => /^https:/.test(a.href)), rows: document.querySelectorAll('.cmp tbody tr').length, sw0: document.documentElement.scrollWidth <= innerWidth }));
+  t(`JS off ${vp.width}: every section, both options of all 5 tasks, demo links, diagram, table, recordings hidden; no overflow`, nojs.sections && nojs.opts === 10 && nojs.sw && nojs.path === 'none' && nojs.recHidden && nojs.links && nojs.rows === 11 && nojs.sw0, JSON.stringify(nojs));
   await p._ctx.close();
 }
 
@@ -164,6 +165,62 @@ for (const [path, sel] of [['', '.ftr a[href="demo/"]'], ['pour-asset/', '.doc a
   t(`/${path}: link to /demo/ present, no overflow at 390`, r.link && r.sw <= r.W && r.hdr, JSON.stringify(r));
 }
 await p._ctx.close();
+
+// ================= eye-review regressions (round 1) =================
+const diagramCheck = (p, sel) => p.evaluate((sel) => {
+  const svg = document.querySelector(sel);
+  const parse = (c) => { const m = c.match(/rgba?\(([^)]+)\)/); const v = m[1].split(/[ ,/]+/).filter(Boolean).map(Number); return { r: v[0], g: v[1], b: v[2], a: v[3] === undefined ? 1 : v[3] }; };
+  const lum = ({ r, g, b }) => { const f = (x) => { x /= 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
+  const card = parse(getComputedStyle(svg.closest('.flow')).backgroundColor);
+  const low = [], clip = [];
+  for (const tx of svg.querySelectorAll('text')) {
+    const rect = tx.parentElement.matches('g') ? tx.parentElement.querySelector('rect') : null;
+    const bg = rect ? parse(getComputedStyle(rect).fill) : card; const fg = parse(getComputedStyle(tx).fill);
+    const mix = { r: fg.r * fg.a + bg.r * (1 - fg.a), g: fg.g * fg.a + bg.g * (1 - fg.a), b: fg.b * fg.a + bg.b * (1 - fg.a) };
+    const L1 = lum(mix), L2 = lum(bg); const ratio = (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
+    if (ratio < 4.5) low.push(tx.textContent + ':' + ratio.toFixed(2));
+    if (rect) { const a = tx.getBoundingClientRect(), r = rect.getBoundingClientRect(); const pad = 6 * r.width / rect.width.baseVal.value; if (a.left < r.left + pad || a.right > r.right - pad || a.top < r.top + 2 || a.bottom > r.bottom - pad) clip.push(tx.textContent); }
+  }
+  const y = (q) => svg.querySelector(q).getBBox();
+  const v = y('.flow__vault rect'), w = y('.flow__wall'), pb = y('.flow__pub rect');
+  return { low, clip, order: v.y + v.height < w.y && w.y < pb.y };
+}, sel);
+for (const w of [320, 390, 1000, 1001, 1440, 1920]) {
+  p = await mk({ viewport: { width: w, height: 900 } });
+  await p.goto(url, { waitUntil: 'load' }); await settle(p);
+  const sel = w > 1000 ? '.flow__wide' : '.flow__tall';
+  const d = await diagramCheck(p, sel);
+  t(`diagram ${w}: every label ≥ 4.5:1 on its box, no text touching or crossing a box edge, protected store above the public line`, !d.low.length && !d.clip.length && d.order, JSON.stringify(d));
+  if (w === 1440 || w === 390) {
+    const sw = await p.evaluate(() => getComputedStyle(document.querySelector('[data-switch]')).display);
+    t(`A/B switch ${w === 1440 ? 'hidden at desktop (both columns already show)' : 'shown on the phone'}`, w === 1440 ? sw === 'none' : sw !== 'none', sw);
+  }
+  if (w === 1440 || w === 390) {
+    const g = await p.evaluate(() => { const L = (s) => Math.round(document.querySelector(s).getBoundingClientRect().left); const lab = [...document.querySelectorAll('.gantt__weeks span')].map((e) => getComputedStyle(e).display === 'none' ? null : Math.round(e.getBoundingClientRect().left)); const bars = [...document.querySelectorAll('.g')].map((g) => Math.round(g.querySelector('.g__bar').getBoundingClientRect().left)); const track = document.querySelector('.g__track').getBoundingClientRect(); return { lab, bars, track: Math.round(track.left), col: track.width / 17 }; });
+    const near = (a, b) => a === null || Math.abs(a - b) <= 1;
+    t(`timeline ${w}: bars start on their week tick (week 1, 5, 10, after launch)`, near(g.lab[0], g.bars[0]) && g.bars[0] === g.track && near(g.lab[1], g.bars[2]) && near(g.lab[2], g.bars[3]) && near(g.lab[3], g.bars[6]) && Math.abs(g.bars[1] - (g.track + g.col)) <= 1, JSON.stringify(g));
+  }
+  if (w === 390 || w === 320) {
+    const s0 = await p.evaluate(() => { const s = document.querySelector('.mini__in'); return { left: s.scrollLeft, more: s.dataset.more || '' }; });
+    t(`strip ${w}: starts at its first link after a full scroll down and back, with a right-edge fade`, s0.left === 0 && s0.more === 'right', JSON.stringify(s0));
+  }
+  await p._ctx.close();
+}
+p = await mk({ viewport: { width: 390, height: 844 }, isMobile: true });
+await p.goto(url, { waitUntil: 'load' }); await p.waitForTimeout(300);
+const fresh = await p.evaluate(() => document.querySelector('.mini__in').scrollLeft);
+const guil = await p.evaluate(() => { const t = document.body.textContent; const bad = []; for (let i = 0; i < t.length; i++) { if (t[i] === '«' && t[i + 1] !== ' ') bad.push(t.slice(i, i + 20)); if (t[i] === '»' && t[i - 1] !== ' ') bad.push(t.slice(i - 20, i + 1)); } return { n: (t.match(/«/g) || []).length, bad }; });
+const foot = await p.evaluate(() => /Unlisted page|hidden from search engines/i.test(document.querySelector('footer').innerText));
+await p._ctx.close();
+t('strip 390: fresh load starts at scrollLeft 0', fresh === 0, String(fresh));
+t('French quotes: every « and » bound to its word by a no-break space (no line starts with » or ends with «)', guil.n >= 6 && !guil.bad.length, JSON.stringify(guil));
+t('footer: the "Unlisted page" note is gone', !foot);
+{ const T = mkdtempSync(tmpdir() + '/demo-urls-'); cpSync(SITE + 'js', T + '/js', { recursive: true }); cpSync(SITE + 'demo', T + '/demo', { recursive: true });
+  const out = execFileSync('bash', [new URL('./set_demo_urls.sh', import.meta.url).pathname, 'https://asset-voyages-demo.example.workers.dev', T], { encoding: 'utf8' });
+  const j = readFileSync(T + '/js/demo.js', 'utf8'), h = readFileSync(T + '/demo/index.html', 'utf8');
+  const again = execFileSync('bash', [new URL('./set_demo_urls.sh', import.meta.url).pathname, 'https://asset-voyages-demo.example.workers.dev/', T], { encoding: 'utf8' });
+  let refused = false; try { execFileSync('bash', [new URL('./set_demo_urls.sh', import.meta.url).pathname, 'javascript:alert(1)', T], { stdio: 'pipe' }); } catch { refused = true; }
+  t('set_demo_urls.sh: one command updates demo.js and every Option B href, is idempotent, refuses a non-https value', j.includes("const CUSTOM_URL = 'https://asset-voyages-demo.example.workers.dev/'") && (h.match(/href="https:\/\/asset-voyages-demo\.example\.workers\.dev\/(console)?"/g) || []).length === 5 && !/REPLACE/.test(h) && /already set/.test(again) && refused, out.trim()); }
 
 await b.close();
 const pass = R.filter((r) => r.ok).length;

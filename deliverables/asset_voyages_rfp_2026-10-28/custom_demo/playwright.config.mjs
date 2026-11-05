@@ -16,6 +16,8 @@ export default defineConfig({
     deviceScaleFactor: 1,
     locale: 'fr-FR',
     timezoneId: 'Europe/Paris',
+    actionTimeout: 10_000,
+    navigationTimeout: 20_000,
     trace: 'off',
     screenshot: 'off',
   },
