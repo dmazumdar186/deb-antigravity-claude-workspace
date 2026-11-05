@@ -133,7 +133,7 @@ export async function postEnquiry(request, slug, fields, { wait = 3100, token } 
   if (wait) await new Promise((r) => setTimeout(r, wait));
   const form = {
     _token: tok, congress, name: 'Test Hostile (exemple)', email: 'hostile@example.com', phone: '0123456789', company: '', departure_city: 'Lille',
-    date_out: '2027-08-26', date_back: '2027-08-31', passengers: '2', message: '', consent: '1', website: '', ...fields,
+    date_out: '2027-08-26', date_back: '2027-08-31', passengers: '2', message: '', consent: '1', zx_confirm: '', ...fields,
   };
   for (const k of Object.keys(form)) if (form[k] === undefined) delete form[k];
   const res = await request.post('/demande', { form, maxRedirects: 0, headers: { origin: new URL(BASE).origin } });

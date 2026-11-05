@@ -4,13 +4,13 @@ import { test, expect, login, logout, csrfOf } from './helpers.mjs';
 test.describe.configure({ mode: 'serial' });
 // Each Playwright context is a fresh private sandbox, so every test starts from the seed.
 
-const NEW = { title: 'Congrès de test S1 — exemple', disc: 'Hématologie', venue: 'Centre de test — exemple', city: 'Nice', country: 'France', start: '2027-07-05', end: '2027-07-07', url: 'https://www.example.org/test-s1', ver: '2026-11-01' };
+const NEW = { title: 'Congrès de test S1 — exemple', disc: 'Pneumologie', venue: 'Centre de test — exemple', city: 'Nice', country: 'France', start: '2027-07-05', end: '2027-07-07', url: 'https://www.example.org/test-s1', ver: '2026-11-01' };
 async function fillCongress(page, v) {
   await page.getByLabel('Titre').fill(v.title);
-  await page.getByLabel('Discipline').fill(v.disc);
+  await page.getByRole('combobox', { name: 'Discipline', exact: true }).selectOption(v.disc);
   await page.getByLabel('Lieu').fill(v.venue);
   await page.getByLabel('Ville').fill(v.city);
-  await page.getByLabel('Pays').fill(v.country);
+  await page.getByRole('combobox', { name: 'Pays', exact: true }).selectOption(v.country);
   await page.getByLabel('Date de début').fill(v.start);
   await page.getByLabel('Date de fin').fill(v.end);
   await page.getByLabel('Site officiel').fill(v.url);
@@ -36,7 +36,7 @@ test('S1-F1 S1-E1 create and publish a congress with every field, in 3 clicks fr
   // server is the judge: the public catalogue lists it with all the details
   await page.goto('/?q=test+s1');
   await page.getByRole('link', { name: /Congrès de test S1/ }).click();
-  for (const t of ['Nice', 'France', 'Hématologie', 'Centre de test — exemple', 'www.example.org/test-s1', '01/11/2026', '5 au 7 juil. 2027']) await expect(page.locator('.facts')).toContainText(t);
+  for (const t of ['Nice', 'France', 'Pneumologie', 'Centre de test — exemple', 'www.example.org/test-s1', '01/11/2026', '5 au 7 juil. 2027']) await expect(page.locator('.facts')).toContainText(t);
 });
 
 test('S1-F2 S1-E2 edit an existing congress in 3 clicks; new value in admin and on the public page', async ({ page }) => {
@@ -91,8 +91,9 @@ test('S1-H1 end before start and invalid URL rejected; script in title shown as 
   await page.goto('/console/congres/nouveau');
   await fillCongress(page, { ...NEW, title: '<script>alert(1)</script><b>Gras</b> — exemple', start: '2027-07-10', end: '2027-07-01', url: 'javascript:alert(1)' });
   await page.getByRole('button', { name: 'Publier' }).click();
-  await expect(page.getByText('La date de fin doit être le jour du début ou après.')).toBeVisible();
-  await expect(page.getByText(/Adresse invalide/)).toBeVisible();
+  await expect(page.locator('#c-end-e')).toHaveText('La date de fin doit être le jour du début ou après.');
+  await expect(page.locator('#c-url-e')).toHaveText(/Adresse invalide/);
+  await expect(page.locator('#form-errors')).toContainText('Date de fin : La date de fin doit être le jour du début ou après.');
   await expect(page.getByText('rien n’a été enregistré')).toBeVisible();
   // fix dates and url, keep the hostile title
   await page.getByLabel('Date de fin').fill('2027-07-12');

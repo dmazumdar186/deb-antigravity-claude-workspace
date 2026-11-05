@@ -3,7 +3,7 @@ import { encryptCode, hashPassword, newSalt, slugify, norm, PBKDF2_ITER, nowIso,
 
 // Schema v2: every demo row carries `sbx`. '' is the shared seed (read-only for visitors); any other value is one
 // browser's private sandbox, created on that browser's first write as a full copy of the seed (copy-on-write).
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 export const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT NOT NULL)`,
   `CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT UNIQUE NOT NULL, display_name TEXT NOT NULL, role TEXT NOT NULL CHECK (role IN ('direction','equipe','contributeur')), pw_hash TEXT NOT NULL, pw_salt TEXT NOT NULL, pw_iter INTEGER NOT NULL)`,
@@ -20,11 +20,14 @@ export const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS gme_codes (sbx TEXT NOT NULL DEFAULT '', congress_id INTEGER NOT NULL, code_enc TEXT, status TEXT NOT NULL CHECK (status IN ('detecte','verifie','approuve','expire')), valid_from TEXT, valid_to TEXT, evidence TEXT NOT NULL DEFAULT '', updated_at TEXT NOT NULL, updated_by INTEGER, PRIMARY KEY (sbx, congress_id))`,
   `CREATE TABLE IF NOT EXISTS gme_requests (sbx TEXT NOT NULL DEFAULT '', id INTEGER NOT NULL, congress_id INTEGER NOT NULL, user_id INTEGER NOT NULL, reason TEXT NOT NULL, status TEXT NOT NULL CHECK (status IN ('en_attente','approuvee','refusee','revoquee')), created_at TEXT NOT NULL, decided_at TEXT, decided_by INTEGER, expires_at TEXT, PRIMARY KEY (sbx, id))`,
   `CREATE TABLE IF NOT EXISTS gme_access_log (id INTEGER PRIMARY KEY, sbx TEXT NOT NULL DEFAULT '', at TEXT NOT NULL, user_id INTEGER NOT NULL, congress_id INTEGER NOT NULL, result TEXT NOT NULL)`,
+  // Managed lists for the congress form (Direction adds values), so a typo cannot create a duplicate filter.
+  `CREATE TABLE IF NOT EXISTS options (sbx TEXT NOT NULL DEFAULT '', kind TEXT NOT NULL CHECK (kind IN ('discipline','pays')), value TEXT NOT NULL, norm TEXT NOT NULL, PRIMARY KEY (sbx, kind, norm))`,
   `CREATE TABLE IF NOT EXISTS rate_limits (key TEXT PRIMARY KEY, count INTEGER NOT NULL, reset_at INTEGER NOT NULL)`,
 ];
-const DATA_TABLES = ['congress_events', 'enquiry_events', 'notifications', 'enquiries', 'gme_access_log', 'gme_requests', 'gme_codes', 'congresses'];
+const DATA_TABLES = ['options', 'congress_events', 'enquiry_events', 'notifications', 'enquiries', 'gme_access_log', 'gme_requests', 'gme_codes', 'congresses'];
 // Columns copied from the seed into a new sandbox (row ids of log tables are not copied).
 const COPY_COLS = {
+  options: 'kind, value, norm',
   congresses: 'id, ref, slug, title, discipline, city, country, start_date, end_date, venue, official_url, verified_on, description, status, search_text, created_at, updated_at, updated_by',
   congress_events: 'congress_id, at, user_id, kind, from_val, to_val',
   enquiries: 'id, ref, congress_id, name, email, phone, company, departure_city, date_out, date_back, passengers, message, consent_at, status, owner_id, created_at, updated_at',
@@ -33,7 +36,7 @@ const COPY_COLS = {
   gme_codes: 'congress_id, code_enc, status, valid_from, valid_to, evidence, updated_at, updated_by',
   gme_requests: 'id, congress_id, user_id, reason, status, created_at, decided_at, decided_by, expires_at',
 };
-const DROP_OLD = ['congress_events', 'enquiry_events', 'notifications', 'enquiries', 'gme_access_log', 'gme_requests', 'gme_codes', 'congresses', 'sandboxes'];
+const DROP_OLD = ['options', 'congress_events', 'enquiry_events', 'notifications', 'enquiries', 'gme_access_log', 'gme_requests', 'gme_codes', 'congresses', 'sandboxes'];
 
 export const USERS = [
   { id: 1, username: 'direction', display_name: 'Hélène Martin, Direction', role: 'direction' },
@@ -63,6 +66,8 @@ export const CONGRESSES = [
   C(112, 'Journées d’oncologie digestive — exemple', 'Oncologie', 'Marseille', 'France', '2027-01-28', '2027-01-30', 'Palais du Pharo — exemple', 'Cancers digestifs : diagnostic, traitements et soins de support.'),
   C(113, 'Journées de rhumatologie — exemple', 'Rhumatologie', 'Bordeaux', 'France', '2027-06-10', '2027-06-12', 'Palais des congrès de Bordeaux — exemple', 'Brouillon en préparation, pas encore relu.', 'brouillon'),
 ];
+const EXTRA_DISCIPLINES = ['Gastro-entérologie', 'Pédiatrie', 'Urologie'];
+const EXTRA_PAYS = ['Belgique', 'Suisse', 'Canada', 'Danemark', 'Suède'];
 export const congressSearch = (c) => norm([c.title, c.city, c.discipline, c.country, c.ref].join(' '));
 export const congressSlug = (title, ref) => `${slugify(title.replace(/[\s\u00a0]*—[\s\u00a0]*exemple\s*$/i, ''))}-${ref.toLowerCase()}`;
 
@@ -198,6 +203,8 @@ export async function seedShared(env) {
       stmts.push(db.prepare('INSERT INTO users (id, username, display_name, role, pw_hash, pw_salt, pw_iter) VALUES (?,?,?,?,?,?,?)').bind(u.id, u.username, u.display_name, u.role, hash, salt, PBKDF2_ITER));
     }
   }
+  const lists = { discipline: new Set([...CONGRESSES.map((c) => c.discipline), ...EXTRA_DISCIPLINES]), pays: new Set([...CONGRESSES.map((c) => c.country), ...EXTRA_PAYS]) };
+  for (const [kind, set] of Object.entries(lists)) for (const value of set) stmts.push(db.prepare(`INSERT INTO options (sbx, kind, value, norm) VALUES ('',?,?,?)`).bind(kind, value, norm(value)));
   for (const c of CONGRESSES) {
     stmts.push(db.prepare(`INSERT INTO congresses (sbx, id, ref, slug, title, discipline, city, country, start_date, end_date, venue, official_url, verified_on, description, status, search_text, created_at, updated_at, updated_by)
       VALUES ('',?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1)`).bind(c.id, c.ref, congressSlug(c.title, c.ref), c.title, c.discipline, c.city, c.country, c.start, c.end, c.venue,

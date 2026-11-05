@@ -4,7 +4,7 @@ import {
   readForm, sameOrigin, makeFormToken, checkFormToken, ipHash, rateHit, rateBlocked, redirect, htmlResponse,
   getCookie, sha256hex, randomToken, safeEqual, hashPassword, encryptCode, decryptCode, csvCell,
 } from './lib.js';
-import { consolePage, loginPage, errorPage, field, select, pill, csrfInput } from './views.js';
+import { consolePage, loginPage, errorPage, field, select, pill, csrfInput, errorSummary } from './views.js';
 import { STATUS_LABELS, STATUS_PLURAL, CG_STATUS, GME_STATUS, congressSearch, congressSlug, resetSandbox, materialize, nbsp } from './data.js';
 
 export const COOKIE = '__Host-av_session';
@@ -137,6 +137,7 @@ export async function consoleRoute(req, env, path) {
   if (path === '/console/congres') return congressList(ctx);
   if (path === '/console/congres/nouveau') return method === 'POST' ? congressSave(ctx, null) : congressForm(ctx, null);
   if ((m = /^\/console\/congres\/(\d+)$/.exec(path))) return method === 'POST' ? congressSave(ctx, +m[1]) : congressForm(ctx, +m[1]);
+  if (path === '/console/listes' && method === 'POST') return role === 'direction' ? addOption(ctx) : deny(ctx, 'Seule la Direction complète les listes.');
   if ((m = /^\/console\/congres\/(\d+)\/gme$/.exec(path)) && method === 'POST') return role === 'direction' ? gmeSave(ctx, +m[1]) : deny(ctx);
   // enquiries
   if (!allow(STAFF) && /^\/console\/(demandes|notifications|gme)/.test(path)) return deny(ctx);
@@ -251,6 +252,35 @@ function allowedActions(role, status) {
     && !(role === 'contributeur' && k === 'draft' && status !== 'a_relire')).map(([k]) => k);
 }
 
+const CG_LABELS = { title: 'Titre', discipline: 'Discipline', venue: 'Lieu', city: 'Ville', country: 'Pays', start_date: 'Date de début', end_date: 'Date de fin', official_url: 'Site officiel', verified_on: 'Vérifié le', description: 'Description' };
+const CG_IDS = { title: 'c-title', discipline: 'c-disc', venue: 'c-venue', city: 'c-city', country: 'c-country', start_date: 'c-start', end_date: 'c-end', official_url: 'c-url', verified_on: 'c-ver', description: 'c-desc' };
+async function loadOptions(env) {
+  const rows = (await env.DB.prepare('SELECT kind, value FROM options WHERE sbx = ? ORDER BY value').bind(env.SBX_EFF).all()).results || [];
+  const out = { discipline: [], pays: [] };
+  for (const r of rows) out[r.kind].push(r.value);
+  for (const k of Object.keys(out)) out[k].sort((a, b) => a.localeCompare(b, 'fr'));
+  return out;
+}
+function listSelect(id, name, label, values, value, error, editable) {
+  const opts = [['', 'Choisir dans la liste'], ...values.map((x) => [x, x])];
+  if (value && !values.includes(value)) opts.push([value, `${value} (hors liste)`]);
+  return select({ id, name, label, options: opts, value: value || '', error, required: true, attrs: editable ? '' : 'disabled' });
+}
+async function addOption(ctx) {
+  const { env, form } = ctx;
+  const kind = form.get('kind');
+  const back = /^\d+$/.test(form.get('back')) ? `/console/congres/${form.get('back')}` : '/console/congres/nouveau';
+  if (!['discipline', 'pays'].includes(kind)) return deny(ctx, 'Liste inconnue.', 400);
+  const value = clean(form.get('value'), 60).replace(/\s+/g, ' ');
+  const n = norm(value);
+  if (value.length < 2 || value.length > 60 || !/^[\p{L}][\p{L}\p{M}' ’.-]*(?: [\p{L}\p{M}' ’.-]+)*$/u.test(value)) return redirect(`${back}?liste=invalide`);
+  const exists = await env.DB.prepare('SELECT value FROM options WHERE sbx = ? AND kind = ? AND norm = ?').bind(env.SBX_EFF, kind, n).first();
+  if (exists) return redirect(`${back}?liste=existe`);
+  const pretty = value.charAt(0).toUpperCase() + value.slice(1);
+  await env.DB.prepare('INSERT INTO options (sbx, kind, value, norm) VALUES (?,?,?,?)').bind(env.SBX_EFF, kind, pretty, n).run();
+  return redirect(`${back}?liste=ajoute`);
+}
+
 async function congressForm(ctx, id, { values, errors, status = 200, notice } = {}) {
   const { env, user } = ctx;
   let c = null;
@@ -262,9 +292,10 @@ async function congressForm(ctx, id, { values, errors, status = 200, notice } = 
   const e = errors || {};
   const stat = c ? c.status : 'brouillon';
   const editable = !c || canEditCongress(user.role, stat);
-  const disciplines = ((await env.DB.prepare('SELECT DISTINCT discipline FROM congresses WHERE sbx = ? ORDER BY discipline').bind(env.SBX_EFF).all()).results || []).map((r) => r.discipline);
+  const lists = await loadOptions(env);
   const actions = c ? allowedActions(user.role, stat) : (STAFF.includes(user.role) ? ['publish'] : ['review']);
   const saved = ctx.url.searchParams.get('ok');
+  const listMsg = { ajoute: ['ok', 'Valeur ajoutée à la liste.'], existe: ['alert', 'Cette valeur existe déjà dans la liste (accents et majuscules ignorés).'], invalide: ['alert', 'Valeur refusée : 2 à 60 lettres.'] }[ctx.url.searchParams.get('liste')];
   const history = c ? (await env.DB.prepare(`SELECT ev.*, u.display_name FROM congress_events ev LEFT JOIN users u ON u.id = ev.user_id WHERE ev.sbx = ? AND congress_id = ? ORDER BY ev.id DESC LIMIT 12`).bind(env.SBX_EFF, id).all()).results || [] : [];
   const f = (o) => field({ ...o, value: v[o.name], error: e[o.name], required: o.optional ? false : true, attrs: (o.attrs || '') + (editable ? '' : ' disabled') });
   const primary = !c ? (STAFF.includes(user.role) ? 'publish' : 'save') : 'save';
@@ -276,17 +307,17 @@ async function congressForm(ctx, id, { values, errors, status = 200, notice } = 
     <div class="head"><h1 class="h1">${c ? c.title : 'Nouveau congrès'}</h1>${c ? html`<p>${pill(CG_KIND[stat], CG_STATUS[stat])}${stat === 'publie' ? html` <a class="lnk" href="/congres/${c.slug}">Voir la fiche publique</a>` : ''}</p>` : ''}</div>
     ${saved ? html`<p class="ok" role="status" tabindex="-1" data-focus>${saved === 'cree' ? 'Congrès créé.' : 'Modifications enregistrées.'}${stat === 'publie' ? ' La fiche publique est à jour.' : ''}</p>` : ''}
     ${notice ? html`<p class="alert" role="alert" tabindex="-1" data-focus>${notice}</p>` : ''}
-    ${Object.keys(e).length ? html`<p class="alert" role="alert" tabindex="-1" data-focus>Vérifiez les champs signalés : rien n’a été enregistré.</p>` : ''}
+    ${listMsg ? html`<p class="${listMsg[0]}" role="status" tabindex="-1" data-focus>${listMsg[1]}</p>` : ''}
+    ${errorSummary(e, CG_LABELS, CG_IDS)}
     <div class="edit">
       <form method="post" action="${c ? `/console/congres/${c.id}` : '/console/congres/nouveau'}" class="card form" novalidate>
         ${csrfInput(ctx.csrf)}
         ${!editable ? html`<p class="field--full quiet">Ce congrès est ${CG_STATUS[stat].toLowerCase()} : seules l’équipe et la Direction peuvent le modifier.</p>` : ''}
         ${f({ id: 'c-title', name: 'title', label: 'Titre', attrs: 'maxlength="160"', full: true })}
-        ${f({ id: 'c-disc', name: 'discipline', label: 'Discipline', attrs: 'list="disc-list" maxlength="80"' })}
-        <datalist id="disc-list">${disciplines.map((d) => html`<option value="${d}"></option>`)}</datalist>
+        ${listSelect('c-disc', 'discipline', 'Discipline', lists.discipline, v.discipline, e.discipline, editable)}
         ${f({ id: 'c-venue', name: 'venue', label: 'Lieu', attrs: 'maxlength="160"' })}
         ${f({ id: 'c-city', name: 'city', label: 'Ville', attrs: 'maxlength="80"' })}
-        ${f({ id: 'c-country', name: 'country', label: 'Pays', attrs: 'maxlength="80"' })}
+        ${listSelect('c-country', 'country', 'Pays', lists.pays, v.country, e.country, editable)}
         ${f({ id: 'c-start', name: 'start_date', label: 'Date de début', type: 'date' })}
         ${f({ id: 'c-end', name: 'end_date', label: 'Date de fin', type: 'date' })}
         ${f({ id: 'c-url', name: 'official_url', label: 'Site officiel', type: 'url', hint: 'Adresse complète, par exemple https://www.congres.org', attrs: 'maxlength="300" inputmode="url"' })}
@@ -304,6 +335,13 @@ async function congressForm(ctx, id, { values, errors, status = 200, notice } = 
           <p class="quiet">${user.role === 'contributeur' ? 'Vous pouvez enregistrer et soumettre à relecture. La publication est faite par l’équipe ou la Direction.' : 'Seule une fiche publiée apparaît sur le site public.'}</p>
           ${history.length ? html`<h3 class="h4">Historique</h3><ul class="hist hist--sm">${history.map((h) => html`<li><time>${frDateTime(h.at)}</time> ${h.display_name || 'Système'} : ${h.kind === 'creation' ? 'création' : html`${CG_STATUS[h.from_val] || h.from_val} vers ${CG_STATUS[h.to_val] || h.to_val}`}</li>`)}</ul>` : ''}
         </section>
+        ${user.role === 'direction' ? html`<section class="card" aria-labelledby="h-lists"><h2 class="h3" id="h-lists">Listes du formulaire</h2>
+          <p class="quiet">Discipline et pays se choisissent dans une liste : une faute de frappe ne crée pas de doublon dans les filtres du site.</p>
+          ${[['discipline', 'Ajouter une discipline'], ['pays', 'Ajouter un pays']].map(([kind, label]) => html`<form method="post" action="/console/listes" class="inline">${csrfInput(ctx.csrf)}
+            <input type="hidden" name="kind" value="${kind}"><input type="hidden" name="back" value="${c ? c.id : 'nouveau'}">
+            ${field({ id: `add-${kind}`, name: 'value', label, attrs: 'maxlength="60" autocomplete="off"' })}
+            <button class="btn btn--line" type="submit">Ajouter</button></form>`)}
+        </section>` : ''}
         ${gmePanel}
       </aside>
     </div>`;
@@ -329,7 +367,10 @@ async function congressSave(ctx, id) {
   }
   const { v, e } = congressValidate(form.get);
   v.title = nbsp(v.title); v.venue = nbsp(v.venue);
-  if (Object.keys(e).length) return congressForm(ctx, id, { values: v, errors: e, status: 422 });
+  const lists = await loadOptions(env);
+  if (!e.discipline && !lists.discipline.includes(v.discipline)) e.discipline = 'Choisissez une discipline de la liste.';
+  if (!e.country && !lists.pays.includes(v.country)) e.country = 'Choisissez un pays de la liste.';
+  if (Object.keys(e).length) return congressForm(ctx, id, { values: v, errors: e, status: 200 });
   const now = nowIso();
   const search = congressSearch({ ...v, ref: c?.ref || '' });
   if (!c) {
@@ -577,8 +618,8 @@ async function gmeRequest(ctx, cid) {
   if (!g) return notFound(ctx);
   if (!REVEALABLE.includes(g.status)) return deny(ctx, 'Ce code n’est pas vérifié ou a expiré : aucune demande d’accès possible.');
   const reason = clean(form.get('reason'), 500);
-  if (reason.length < 5) return gmeList(ctx, { reqFor: cid, reqValue: reason, reqError: 'Indiquez le motif de la demande (au moins 5 caractères).', status: 422 });
-  if (reason.length > 500) return gmeList(ctx, { reqFor: cid, reqValue: reason.slice(0, 500), reqError: '500 caractères au maximum.', status: 422 });
+  if (reason.length < 5) return gmeList(ctx, { reqFor: cid, reqValue: reason, reqError: 'Indiquez le motif de la demande (au moins 5 caractères).', status: 200 });
+  if (reason.length > 500) return gmeList(ctx, { reqFor: cid, reqValue: reason.slice(0, 500), reqError: '500 caractères au maximum.', status: 200 });
   const pending = await env.DB.prepare(`SELECT id FROM gme_requests WHERE sbx = ? AND congress_id = ? AND user_id = ? AND status = 'en_attente'`).bind(env.SBX_EFF, cid, user.id).first();
   if (!pending) await env.DB.prepare(`INSERT INTO gme_requests (sbx, id, congress_id, user_id, reason, status, created_at) VALUES (?1, (SELECT COALESCE(MAX(id), 0) + 1 FROM gme_requests WHERE sbx = ?1), ?2, ?3, ?4, 'en_attente', ?5)`).bind(env.SBX_EFF, cid, user.id, reason, nowIso()).run();
   return redirect('/console/gme?ok=demande');
@@ -620,7 +661,7 @@ async function gmeSave(ctx, cid) {
   else if ((from && !isIsoDate(from)) || (to && !isIsoDate(to))) err = 'Dates de validité invalides.';
   else if (from && to && to < from) err = 'La fin de validité doit suivre le début.';
   else if (evidence.length > 1000) err = 'Justificatif trop long.';
-  if (err) return congressForm(ctx, cid, { notice: `Code GM&E non enregistré : ${err}`, status: 422 });
+  if (err) return congressForm(ctx, cid, { notice: `Code GM&E non enregistré : ${err}`, status: 200 });
   const now = nowIso();
   if (g) {
     if (code) await env.DB.prepare('UPDATE gme_codes SET code_enc=?, status=?, valid_from=?, valid_to=?, evidence=?, updated_at=?, updated_by=? WHERE sbx=? AND congress_id=?').bind(await encryptCode(env, code), status, from || null, to || null, evidence, now, user.id, env.SBX_EFF, cid).run();
@@ -642,7 +683,7 @@ async function gmeAccess(ctx) {
   const ok = ctx.url.searchParams.get('ok');
   const msg = { approuvee: 'Accès accordé pour 24 heures.', refusee: 'Demande refusée.', revoquee: 'Accès révoqué immédiatement.' }[ok];
   const btn = (r, act, text, cls = 'btn') => html`<form method="post" action="/console/gme/acces/${r.id}">${csrfInput(ctx.csrf)}<button class="${cls}" type="submit" name="decision" value="${act}">${text}</button></form>`;
-  const body = html`<h1 class="h1">Accès GM&amp;E</h1>
+  const body = html`<h1 class="h1">Demandes d’accès aux codes GM&amp;E</h1>
     ${msg ? html`<p class="ok" role="status" tabindex="-1" data-focus>${msg}</p>` : ''}
     <section aria-labelledby="h-p"><h2 class="h2" id="h-p">Demandes en attente</h2>
       ${pending.length ? html`<ul class="reqs">${pending.map((r) => html`<li class="card req"><div><p><b>${r.display_name}</b> demande l’accès au code de <b>${r.title}</b></p><p class="quiet">Le ${frDateTime(r.created_at)}. Motif : <q>${r.reason}</q></p></div>
@@ -655,7 +696,7 @@ async function gmeAccess(ctx) {
     ${past.length ? html`<section aria-labelledby="h-o"><h2 class="h2" id="h-o">Décisions passées</h2>
       <div class="wrap" role="region" aria-label="Décisions passées" tabindex="0"><table class="tbl"><thead><tr><th scope="col">Demandeur</th><th scope="col">Congrès</th><th scope="col">Motif</th><th scope="col">Décision</th><th scope="col">Par</th><th scope="col">Le</th></tr></thead>
       <tbody>${past.map((r) => html`<tr><td>${r.display_name}</td><td class="wide">${r.title}</td><td class="wide">${r.reason}</td><td>${label(r)}</td><td>${r.decider || 'Direction'}</td><td>${frDateTime(r.decided_at)}</td></tr>`)}</tbody></table></div></section>` : ''}`;
-  return page(ctx, 'Accès GM&E', 'acces', body);
+  return page(ctx, 'Demandes d’accès GM&E', 'acces', body);
 }
 
 async function gmeDecide(ctx, rid) {

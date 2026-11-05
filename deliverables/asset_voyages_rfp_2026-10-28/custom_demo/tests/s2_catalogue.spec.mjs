@@ -22,10 +22,10 @@ test('S2-F1 all 12 published upcoming congresses listed; past and draft ones are
   await login(admin, 'direction');
   await admin.goto('/console/congres/nouveau');
   await admin.getByLabel('Titre').fill('Congrès passé — exemple');
-  await admin.getByLabel('Discipline').fill('Cardiologie');
+  await admin.getByRole('combobox', { name: 'Discipline', exact: true }).selectOption('Cardiologie');
   await admin.getByLabel('Lieu').fill('Salle — exemple');
   await admin.getByLabel('Ville').fill('Rome');
-  await admin.getByLabel('Pays').fill('Italie');
+  await admin.getByRole('combobox', { name: 'Pays', exact: true }).selectOption('Italie');
   await admin.getByLabel('Date de début').fill('2026-03-01');
   await admin.getByLabel('Date de fin').fill('2026-03-03');
   await admin.getByLabel('Site officiel').fill('https://www.example.org/passe');

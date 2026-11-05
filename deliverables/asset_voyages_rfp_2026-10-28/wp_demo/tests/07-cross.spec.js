@@ -8,7 +8,7 @@ const ORIGIN = 'http://127.0.0.1:9400';
 
 function watch(page, bucket, label) {
 	page.on('console', (m) => { if (m.type() === 'error') bucket.push(`${label} console: ${m.text()}`); });
-	page.on('pageerror', (e) => bucket.push(`${label} pageerror: ${e.message}`));
+	page.on('pageerror', (e) => bucket.push(`${label} pageerror on ${page.url()}: ${e.message} :: ${(e.stack || '').split('\n').slice(1, 4).join(' | ')}`));
 	page.on('requestfailed', (r) => bucket.push(`${label} failed: ${r.url()} ${r.failure() && r.failure().errorText}`));
 	page.on('response', (r) => { if (r.status() >= 400) bucket.push(`${label} HTTP ${r.status()}: ${r.url()}`); });
 }

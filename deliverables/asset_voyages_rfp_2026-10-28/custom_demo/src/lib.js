@@ -127,11 +127,10 @@ export function frRange(start, end) {
   return `${frDate(start)} au ${frDate(end)}`;
 }
 export function rangeParts(start, end) {
-  // For the catalogue date block: big day span, small month and year line.
+  // Catalogue date block: big day span over the month and year; read together they form the date line.
   const a = parts(start); const b = parts(end);
-  const days = a.d === b.d && a.m === b.m ? `${a.d}` : `${a.d} au ${b.d}`;
-  const months = a.m === b.m ? `${MOIS_LONG[a.m - 1]} ${a.y}` : `${MOIS[a.m - 1]} à ${MOIS[b.m - 1]} ${b.y}`;
-  return { days, months };
+  if (a.m === b.m && a.y === b.y) return { days: a.d === b.d ? `${a.d}` : `${a.d} au ${b.d}`, months: `${MOIS_LONG[a.m - 1]} ${a.y}`, cross: false };
+  return { days: `${a.d} ${MOIS[a.m - 1]} au ${b.d} ${MOIS[b.m - 1]}`, months: `${b.y}`, cross: true };
 }
 
 // ---------- text ----------

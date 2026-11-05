@@ -52,7 +52,7 @@ test('S5-F3 S5-E1 direction sees pending requests and approves for 24 h in 2 cli
   const page = S.page;
   await login(page, 'direction');
   let clicks = 0;
-  await nav(page, /Accès GM&E/).click(); clicks++;
+  await nav(page, /Demandes d’accès GM&E/).click(); clicks++;
   const req = page.locator('.req', { hasText: ONCO });
   await expect(req).toContainText('Karim Benali, Équipe');
   await expect(req).toContainText('Devis DV-2026-0001, six médecins.');
@@ -99,7 +99,7 @@ test('S5-F4 S5-E1 equipe reveals in 2 clicks after approval; every reveal is log
 test('S5-F3 S5-H1 revocation is immediate: a reveal after revocation is refused, logged, and returns no code', async () => {
   const page = S.page;
   await login(page, 'direction');
-  await nav(page, /Accès GM&E/).click();
+  await nav(page, /Demandes d’accès GM&E/).click();
   await page.locator('.req', { hasText: ONCO }).getByRole('button', { name: 'Révoquer maintenant' }).click();
   await expect(page.getByText('Accès révoqué immédiatement.')).toBeVisible();
   // equipe, with a valid session and CSRF token, tries again right after the revocation

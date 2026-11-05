@@ -107,10 +107,11 @@ test('S3-H1 rejected with a message: passengers 0, 51, abc; return before outbou
   for (const [fields, msg] of cases) {
     const { res, text } = await postEnquiry(request, SLUG.cardio, fields, { wait: 0 });
     // no wait: the token check returns « trop rapide » before validation, so wait once per batch below
-    expect([422, 429]).toContain(res.status());
-    if (res.status() === 422) expect(text, JSON.stringify(fields)).toContain(msg);
+    // D4: every re-render is a 200 page whose content says what happened (here: sent too fast, nothing stored)
+    expect(res.status()).toBe(200);
+    expect(text).toContain('n’a pas été envoyée');
   }
-  // now the same cases with a realistic fill time: every one is a 422 with its French message
+  // now the same cases with a realistic fill time: every one is re-rendered (200) with its French message
   const pageHtml = await (await request.get(`/congres/${SLUG.cardio}`)).text();
   const toks = [];
   for (let i = 0; i < cases.length; i++) toks.push(/name="_token" value="([^"]+)"/.exec(await (await request.get(`/congres/${SLUG.cardio}`)).text())[1]);
@@ -118,7 +119,8 @@ test('S3-H1 rejected with a message: passengers 0, 51, abc; return before outbou
   for (let i = 0; i < cases.length; i++) {
     const [fields, msg] = cases[i];
     const { res, text } = await postEnquiry(request, SLUG.cardio, fields, { wait: 0, token: toks[i] });
-    expect(res.status(), JSON.stringify(fields)).toBe(422);
+    expect(res.status(), JSON.stringify(fields)).toBe(200);
+    expect(text).toContain('rien n’a été enregistré');
     expect(text, JSON.stringify(fields)).toContain(msg);
   }
   expect(pageHtml).toContain('Envoyer la demande');
@@ -131,27 +133,27 @@ test('S3-H1 rejected with a message: passengers 0, 51, abc; return before outbou
 test('S3-H2 honeypot or too-fast form is not stored; rapid repeats from one address are rate-limited', async ({ page }) => {
   const request = page.request;
   const before = await countEnquiries(page);
-  const hp = await postEnquiry(request, SLUG.cardio, { website: 'http://spam.example' });
+  const hp = await postEnquiry(request, SLUG.cardio, { zx_confirm: 'http://spam.example' });
   expect(hp.res.status()).toBe(303);
   expect(hp.res.headers().location).toBe('/demande/confirmation');
   const fast = await postEnquiry(request, SLUG.cardio, {}, { wait: 0 });
-  expect(fast.res.status()).toBe(429);
-  expect(fast.text).toContain('Envoi trop rapide');
+  expect(fast.res.status()).toBe(200);
+  expect(fast.text).toContain('Votre demande n’a pas été envoyée : le formulaire a été validé trop vite');
   const forged = await postEnquiry(request, SLUG.cardio, {}, { wait: 0, token: `${Date.now() - 10000}.abcdefghijkl.forgedforgedforgedforged` });
   expect(forged.res.status()).toBe(403);
   const noToken = await request.post('/demande', { form: { congress: '101', name: 'x' }, maxRedirects: 0 });
   expect(noToken.status()).toBe(403);
   expect(await countEnquiries(page)).toBe(before);
-  // rate limit: 5 accepted per 10 minutes per connection, the 6th is refused
+  // rate limit: 10 accepted per 10 minutes per browser and connection, the 11th is refused with a visible message
   const toks = [];
-  for (let i = 0; i < 6; i++) toks.push(/name="_token" value="([^"]+)"/.exec(await (await request.get(`/congres/${SLUG.cardio}`)).text())[1]);
+  for (let i = 0; i < 11; i++) toks.push(/name="_token" value="([^"]+)"/.exec(await (await request.get(`/congres/${SLUG.cardio}`)).text())[1]);
   await new Promise((r) => setTimeout(r, 3100));
   const statuses = [];
   let last;
-  for (let i = 0; i < 6; i++) { last = await postEnquiry(request, SLUG.cardio, { name: `Rafale ${i} (exemple)` }, { wait: 0, token: toks[i] }); statuses.push(last.res.status()); }
-  expect(statuses).toEqual([303, 303, 303, 303, 303, 429]);
-  expect(last.text).toContain('Trop de demandes');
-  expect(await countEnquiries(page)).toBe(before + 5);
+  for (let i = 0; i < 11; i++) { last = await postEnquiry(request, SLUG.cardio, { name: `Rafale ${i} (exemple)` }, { wait: 0, token: toks[i] }); statuses.push(last.res.status()); }
+  expect(statuses).toEqual([...Array(10).fill(303), 200]);
+  expect(last.text).toContain('Votre demande n’a pas été envoyée : trop de demandes depuis ce navigateur en 10 minutes');
+  expect(await countEnquiries(page)).toBe(before + 10);
 });
 
 test('S3-H3 script or HTML in any field is stored and shown as text only; SQL-ish text is inert', async ({ page }) => {

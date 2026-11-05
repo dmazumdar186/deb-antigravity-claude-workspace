@@ -3,13 +3,13 @@ import {
   html, raw, today, addDays, isIsoDate, frRange, frNumDate, rangeParts, norm, clean, MOIS_LONG,
   readForm, makeFormToken, checkFormToken, ipHash, rateHit, redirect, htmlResponse, nowIso, hmac, safeEqual,
 } from './lib.js';
-import { publicPage, field, errorPage } from './views.js';
+import { publicPage, field, errorPage, errorSummary } from './views.js';
 import { notificationFor, TEAM_INBOX, materialize, baseUrl } from './data.js';
 
 const PER_PAGE = 9;
 const MIN_FILL_MS = 3000;
-export const ENQ_LIMIT = 5; // accepted enquiries per IP hash and sandbox per window
-export const ENQ_IP_LIMIT = 30; // accepted enquiries per IP hash per window, all sandboxes together
+export const ENQ_LIMIT = 10; // accepted enquiries per browser sandbox and IP hash per 10 minutes
+export const ENQ_IP_LIMIT = 60; // accepted enquiries per IP hash per 10 minutes, all browsers together (an office behind one IP)
 export const ENQ_WINDOW = 600;
 
 function catalogueQuery(sp) {
@@ -88,7 +88,7 @@ export async function catalogue(req, env) {
       <p class="bar" aria-live="polite"><span class="bar__n">${total === 0 ? 'Aucun congrès trouvé' : `${total} congrès${filtered ? (total > 1 ? ' trouvés' : ' trouvé') : ''}`}</span><span>Triés par date</span></p>
       ${rows.length ? html`<ol class="rows">${rows.map((r) => { const rp = rangeParts(r.start_date, r.end_date); return html`
         <li class="row"><a class="row__a" href="/congres/${r.slug}">
-          <span class="row__date" aria-hidden="true"><span class="row__days">${rp.days}</span><span class="row__months">${rp.months}</span></span>
+          <span class="row__date" aria-hidden="true"><span class="row__days${rp.cross ? ' row__days--x' : ''}">${rp.days}</span><span class="row__months">${rp.months}</span></span>
           <span class="row__line">${frRange(r.start_date, r.end_date)}</span>
           <span class="row__main"><span class="row__t">${r.title}</span><span class="row__d">${r.discipline}</span></span>
           <span class="row__place">${r.city}, ${r.country}</span>
@@ -112,6 +112,8 @@ async function loadPublicCongress(env, where, bind) {
 }
 export const gmeOnSale = (c, t = today()) => c.gme_status === 'approuve' && (!c.gme_from || c.gme_from <= t) && (!c.gme_to || c.gme_to >= t);
 
+const ENQ_LABELS = { name: 'Nom et prénom', email: 'E-mail', phone: 'Téléphone', company: 'Société', departure_city: 'Ville de départ', date_out: 'Date aller', date_back: 'Date retour', passengers: 'Passagers', message: 'Message', consent: 'Consentement' };
+const ENQ_IDS = { name: 'f-name', email: 'f-email', phone: 'f-phone', company: 'f-company', departure_city: 'f-city', date_out: 'f-out', date_back: 'f-back', passengers: 'f-pax', message: 'f-msg', consent: 'f-consent' };
 export async function congressPage(req, env, slug, { values, errors, notice, status = 200 } = {}) {
   const c = typeof slug === 'object' ? slug : await loadPublicCongress(env, 'c.slug = ?', slug);
   if (!c) return htmlResponse(errorPage({ status: 404, title: 'Congrès introuvable', text: 'Cette fiche n’existe pas ou n’est pas publiée.' }), 404);
@@ -123,6 +125,8 @@ export async function congressPage(req, env, slug, { values, errors, notice, sta
   const errCount = Object.keys(e).length;
   const body = html`
 <article class="cg">
+  ${notice ? html`<p class="alert alert--top" role="alert" tabindex="-1" data-focus>${notice} <a href="#demande">Voir le formulaire</a></p>` : ''}
+  ${errCount ? html`<div class="alert--top">${errorSummary(e, ENQ_LABELS, ENQ_IDS)}</div>` : ''}
   <nav class="crumbs" aria-label="Fil d’Ariane"><a href="/">Catalogue des congrès</a><span aria-hidden="true">/</span><span>${c.ref}</span></nav>
   <div class="cg__grid">
     <div class="cg__main">
@@ -145,8 +149,6 @@ export async function congressPage(req, env, slug, { values, errors, notice, sta
       <h2 class="h2" id="dem-h">Demander un devis de vol</h2>
       ${past ? html`<p>Ce congrès est terminé : la demande de vol n’est plus ouverte.</p>` : html`
       <p class="aside__lead">Un conseiller ASSET prépare votre devis au départ de la ville de votre choix.</p>
-      ${notice ? html`<p class="alert" role="alert" tabindex="-1" data-focus>${notice}</p>` : ''}
-      ${errCount ? html`<p class="alert" role="alert" id="form-errors" tabindex="-1" data-focus>${errCount > 1 ? `${errCount} champs à corriger` : 'Un champ à corriger'} : les messages sont sous chaque champ.</p>` : ''}
       <form class="form" method="post" action="/demande" novalidate>
         <input type="hidden" name="_token" value="${token}">
         <input type="hidden" name="congress" value="${c.id}">
@@ -160,7 +162,7 @@ export async function congressPage(req, env, slug, { values, errors, notice, sta
         ${field({ id: 'f-back', name: 'date_back', label: 'Date retour', type: 'date', value: v.date_back, required: true, error: e.date_back, attrs: `min="${t}"` })}
         ${field({ id: 'f-pax', name: 'passengers', label: 'Passagers', type: 'number', value: v.passengers, required: true, error: e.passengers, hint: 'De 1 à 50 personnes.', attrs: 'min="1" max="50" step="1" inputmode="numeric"' })}
         ${field({ id: 'f-msg', name: 'message', label: 'Message', type: 'textarea', value: v.message, optional: true, error: e.message, attrs: 'rows="3" maxlength="2000"', full: true })}
-        <div class="hp" aria-hidden="true"><label for="f-web">Ne pas remplir ce champ</label><input id="f-web" name="website" tabindex="-1" autocomplete="off"></div>
+        <div class="hp" aria-hidden="true"><label for="f-zx">Laisser vide</label><input id="f-zx" name="zx_confirm" tabindex="-1" autocomplete="off" data-lpignore="true" data-1p-ignore></div>
         <div class="field field--full field--check${e.consent ? ' field--err' : ''}">
           <label class="check" for="f-consent"><input type="checkbox" id="f-consent" name="consent" value="1"${v.consent ? raw(' checked') : ''}${e.consent ? raw(' aria-invalid="true" aria-describedby="f-consent-e"') : ''} required>
           <span>J’accepte qu’ASSET Voyages utilise ces informations pour répondre à ma demande. Elles ne sont ni publiées ni revendues. <span class="req" aria-hidden="true">*</span></span></label>
@@ -221,19 +223,20 @@ export async function submitEnquiry(req, env) {
   const tok = await checkFormToken(env, 'enquiry', form.get('_token'), { minMs: MIN_FILL_MS });
   if (!tok.ok && tok.why === 'invalid') return congressPage(req, env, c, { values: v, errors: {}, notice: 'Le formulaire n’a pas pu être vérifié. Vérifiez vos informations puis renvoyez-le.', status: 403 });
   // Honeypot: answer like a success, store nothing.
-  if (form.get('website')) return redirect('/demande/confirmation');
+  // Honeypot (an unlabelled field hidden with display:none, named so browsers and password managers never autofill it).
+  if (form.get('zx_confirm')) return redirect('/demande/confirmation');
   if (tok.nonce) {
     const prior = await env.DB.prepare('SELECT ref FROM enquiries WHERE form_nonce = ?').bind(tok.nonce).first();
     if (prior) return redirect(await confirmUrl(env, prior.ref));
   }
-  if (!tok.ok && tok.why === 'fast') return congressPage(req, env, c, { values: v, errors: e, notice: 'Envoi trop rapide : relisez le formulaire puis envoyez-le à nouveau.', status: 429 });
-  if (!tok.ok) return congressPage(req, env, c, { values: v, errors: e, notice: 'Le formulaire a expiré. Vérifiez vos informations puis renvoyez-le.', status: 400 });
-  if (Object.keys(e).length) return congressPage(req, env, c, { values: v, errors: e, status: 422 });
+  if (!tok.ok && tok.why === 'fast') return congressPage(req, env, c, { values: v, errors: e, notice: 'Votre demande n’a pas été envoyée : le formulaire a été validé trop vite. Relisez-le puis cliquez de nouveau sur « Envoyer la demande ».', status: 200 });
+  if (!tok.ok) return congressPage(req, env, c, { values: v, errors: e, notice: 'Votre demande n’a pas été envoyée : le formulaire a expiré. Vérifiez vos informations puis renvoyez-le.', status: 200 });
+  if (Object.keys(e).length) return congressPage(req, env, c, { values: v, errors: e, status: 200 });
 
   const ip = env.IP_HASH || await ipHash(env, req);
   const sid = await materialize(env); // this browser's private sandbox
   if (!(await rateHit(env, `enq:${ip}:${sid}`, ENQ_LIMIT, ENQ_WINDOW)) || !(await rateHit(env, `enq:${ip}`, ENQ_IP_LIMIT, ENQ_WINDOW))) {
-    return congressPage(req, env, c, { values: v, errors: {}, notice: 'Trop de demandes envoyées depuis cette connexion. Merci de réessayer dans quelques minutes ou d’appeler l’agence.', status: 429 });
+    return congressPage(req, env, c, { values: v, errors: {}, notice: 'Votre demande n’a pas été envoyée : trop de demandes depuis ce navigateur en 10 minutes. Réessayez dans quelques minutes ou appelez l’agence au 01 00 00 00 00 (numéro d’exemple).', status: 200 });
   }
   const now = nowIso();
   let row;

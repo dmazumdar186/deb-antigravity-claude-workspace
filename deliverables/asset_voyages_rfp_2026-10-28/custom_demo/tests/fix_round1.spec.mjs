@@ -8,10 +8,10 @@ const nav = (page, name) => page.getByRole('navigation', { name: 'Console' }).ge
 async function createCongress(page, v) {
   await page.goto('/console/congres/nouveau');
   await page.getByLabel('Titre').fill(v.title);
-  await page.getByLabel('Discipline').fill('Cardiologie');
+  await page.getByRole('combobox', { name: 'Discipline', exact: true }).selectOption('Cardiologie');
   await page.getByLabel('Lieu').fill('Salle — exemple');
   await page.getByLabel('Ville').fill('Nice');
-  await page.getByLabel('Pays').fill('France');
+  await page.getByRole('combobox', { name: 'Pays', exact: true }).selectOption('France');
   await page.getByLabel('Date de début').fill('2027-07-05');
   await page.getByLabel('Date de fin').fill('2027-07-07');
   await page.getByLabel('Site officiel').fill(v.url || 'https://www.example.org/x');
@@ -109,7 +109,7 @@ test('FIX-3 nightly cron purges sandboxes older than 24 h and leaves recent ones
 test('FIX-4 official website must be https', async ({ page }) => {
   await login(page, 'direction');
   await createCongress(page, { title: 'Test http — exemple', url: 'http://www.example.org/x' });
-  await expect(page.getByText(/Adresse invalide : elle doit commencer par https:\/\//)).toBeVisible();
+  await expect(page.locator('#c-url-e')).toHaveText(/Adresse invalide : elle doit commencer par https:\/\//);
   await page.getByLabel('Site officiel').fill('https://www.example.org/x');
   await page.getByRole('button', { name: 'Publier' }).click();
   await expect(page.getByText('Congrès créé.')).toBeVisible();
@@ -314,4 +314,111 @@ test('FIX-20 status badges have room around their text', async ({ page }) => {
   expect(st.pl).toBeGreaterThanOrEqual(12);
   expect(st.pt).toBeGreaterThanOrEqual(4);
   expect(st.h).toBeGreaterThanOrEqual(26);
+});
+
+// ---- blind QA follow-up (D1 to D6) ----
+
+test('FIX-21 (D1) Discipline and Pays come from managed lists; Direction adds a value; duplicates and free text are refused', async ({ page }) => {
+  await login(page, 'direction');
+  await page.goto('/console/congres/nouveau');
+  expect(await page.getByRole('combobox', { name: 'Discipline', exact: true }).evaluate((e) => e.tagName)).toBe('SELECT');
+  expect(await page.getByRole('combobox', { name: 'Pays', exact: true }).evaluate((e) => e.tagName)).toBe('SELECT');
+  await page.getByLabel('Ajouter une discipline').fill('Hématologie');
+  await page.locator('form[action="/console/listes"]').first().getByRole('button', { name: 'Ajouter' }).click();
+  await expect(page.getByText('Valeur ajoutée à la liste.')).toBeVisible();
+  await page.getByRole('combobox', { name: 'Discipline', exact: true }).selectOption('Hématologie');
+  await page.getByLabel('Ajouter une discipline').fill('hematologie');
+  await page.locator('form[action="/console/listes"]').first().getByRole('button', { name: 'Ajouter' }).click();
+  await expect(page.getByText('Cette valeur existe déjà dans la liste')).toBeVisible();
+  // a forged free-text value is refused server-side
+  await logout(page);
+  await login(page, 'equipe');
+  await page.goto('/console/congres/nouveau');
+  const origin = new URL(page.url()).origin;
+  const csrf = await csrfOf(page);
+  const free = await page.request.post('/console/congres/nouveau', { form: { _csrf: csrf, action: 'publish', title: 'Faute — exemple', discipline: 'Cardiolgie', venue: 'X — exemple', city: 'Nice', country: 'Frnace', start_date: '2027-07-05', end_date: '2027-07-07', official_url: 'https://www.example.org/x', verified_on: '2026-11-01' }, headers: { origin } });
+  const t = await free.text();
+  expect(t).toContain('Choisissez une discipline de la liste.');
+  expect(t).toContain('Choisissez un pays de la liste.');
+  expect((await page.request.post('/console/listes', { form: { _csrf: csrf, kind: 'discipline', value: 'Cardiolgie' }, headers: { origin } })).status()).toBe(403);
+  await expect(page.locator('form[action="/console/listes"]')).toHaveCount(0);
+});
+
+test('FIX-22 (D2) the sidebar groups the GM&E items under « Codes GM&E »: Codes, Demandes d’accès, Journal', async ({ page }) => {
+  await login(page, 'direction');
+  const side = page.getByRole('navigation', { name: 'Console' });
+  await expect(side.locator('.side__h')).toHaveText('Codes GM&E');
+  await expect(side.locator('a.side__sub')).toHaveText(['Codes', /^Demandes d’accès/, 'Journal']);
+  await logout(page);
+  await login(page, 'equipe');
+  await expect(page.getByRole('navigation', { name: 'Console' }).locator('a.side__sub')).toHaveText(['Codes']);
+});
+
+test('FIX-23 FIX-24 (D3, D4) failed enquiry: 200 page, top banner lists each error as a link to its field, focus on the banner, visible on a phone', async ({ browser }) => {
+  for (const w of [1440, 390]) {
+    const P = await newPage(browser, { viewport: { width: w, height: w > 500 ? 900 : 844 }, isMobile: w < 500 });
+    const page = P.page;
+    await page.goto(`/congres/${SLUG.cardio}`);
+    await fillEnquiry(page, { out: '2027-08-30', back: '2027-08-20', email: 'x@y' });
+    await page.waitForTimeout(3100);
+    const [resp] = await Promise.all([page.waitForResponse((r) => r.url().endsWith('/demande')), page.getByRole('button', { name: 'Envoyer la demande' }).click()]);
+    expect(resp.status()).toBe(200);
+    const banner = page.locator('#form-errors');
+    await expect(banner).toBeFocused();
+    await expect(banner).toBeInViewport();
+    await expect(banner.getByRole('link', { name: /^Date retour : La date retour doit être le jour de l’aller ou après\.$/ })).toBeVisible();
+    await expect(banner.getByRole('link', { name: /^E-mail : / })).toBeVisible();
+    await banner.getByRole('link', { name: /^Date retour/ }).click();
+    await expect(page.locator('#f-back')).toBeFocused();
+    assertClean(P.problems); await P.ctx.close();
+  }
+});
+
+test('FIX-24 (D4) a failed congress save re-renders with 200 and the linked summary', async ({ page }) => {
+  await login(page, 'equipe');
+  await page.goto('/console/congres/nouveau');
+  const [resp] = await Promise.all([page.waitForResponse((r) => r.url().endsWith('/console/congres/nouveau') && r.request().method() === 'POST'), page.getByRole('button', { name: 'Publier' }).click()]);
+  expect(resp.status()).toBe(200);
+  await expect(page.locator('#form-errors')).toBeFocused();
+  await expect(page.locator('#form-errors').getByRole('link', { name: 'Titre : Indiquez le titre.' })).toBeVisible();
+});
+
+test('FIX-25 (D5) ten enquiries in ten minutes are accepted per browser; the eleventh gets a clear French message, never a silent no-op', async ({ browser }) => {
+  const A = await newPage(browser);
+  const page = A.page;
+  for (let i = 0; i < 11; i++) {
+    await page.goto(`/congres/${SLUG.cardio}`);
+    await fillEnquiry(page, { name: `Bureau ${i} (exemple)` });
+    await page.waitForTimeout(3100);
+    await page.getByRole('button', { name: 'Envoyer la demande' }).click();
+    if (i < 10) await expect(page.locator('[data-ref]'), `submission ${i + 1}`).toHaveText(/^DV-2026-\d{4}$/);
+  }
+  const msg = page.locator('.alert--top');
+  await expect(msg).toBeFocused();
+  await expect(msg).toBeInViewport();
+  await expect(msg).toContainText('Votre demande n’a pas été envoyée : trop de demandes depuis ce navigateur en 10 minutes');
+  await expect(page.getByLabel('Nom et prénom')).toHaveValue('Bureau 10 (exemple)');
+  // a colleague's browser behind the same IP is not blocked
+  const B = await newPage(browser);
+  await B.page.goto(`/congres/${SLUG.cardio}`);
+  await fillEnquiry(B.page, { name: 'Collègue (exemple)' });
+  await B.page.waitForTimeout(3100);
+  await B.page.getByRole('button', { name: 'Envoyer la demande' }).click();
+  await expect(B.page.locator('[data-ref]')).toHaveText('DV-2026-0007');
+  assertClean(A.problems); assertClean(B.problems);
+  await A.ctx.close(); await B.ctx.close();
+});
+
+test('FIX-26 (D6) the date line reads « 29 sept. au 2 oct. 2027 » on desktop and phone', async ({ browser }) => {
+  for (const w of [1440, 390]) {
+    const P = await newPage(browser, { viewport: { width: w, height: 900 } });
+    await P.page.goto('/?q=dermatologie');
+    const row = P.page.locator('.row__a');
+    await expect(row.locator('.row__line')).toHaveText('29 sept. au 2 oct. 2027'); // read by screen readers at every width
+    if (w > 500) await expect(row.locator('.row__date')).toHaveText('29 sept. au 2 oct.2027');
+    else await expect(row.locator('.row__line')).toBeVisible();
+    await P.page.goto('/?q=madrid');
+    await expect(P.page.locator('.row__line')).toHaveText('27 au 30 août 2027');
+    assertClean(P.problems); await P.ctx.close();
+  }
 });

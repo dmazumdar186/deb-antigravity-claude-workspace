@@ -46,9 +46,10 @@ const NAV = [
   { key: 'cg', href: '/console/congres', label: 'Congrès', roles: ['direction', 'equipe', 'contributeur'] },
   { key: 'dem', href: '/console/demandes', label: 'Demandes', roles: ['direction', 'equipe'] },
   { key: 'notif', href: '/console/notifications', label: 'Notifications', roles: ['direction', 'equipe'] },
-  { key: 'gme', href: '/console/gme', label: 'Codes GM&E', roles: ['direction', 'equipe'] },
-  { key: 'acces', href: '/console/gme/acces', label: 'Accès GM&E', roles: ['direction'] },
-  { key: 'journal', href: '/console/gme/journal', label: 'Journal d’accès', roles: ['direction'] },
+  { group: 'Codes GM&E', roles: ['direction', 'equipe'] },
+  { key: 'gme', href: '/console/gme', label: 'Codes', aria: 'Codes GM&E', roles: ['direction', 'equipe'], sub: true },
+  { key: 'acces', href: '/console/gme/acces', label: 'Demandes d’accès', aria: 'Demandes d’accès GM&E', roles: ['direction'], sub: true },
+  { key: 'journal', href: '/console/gme/journal', label: 'Journal', aria: 'Journal d’accès GM&E', roles: ['direction'], sub: true },
 ];
 
 export function consolePage({ title, user, csrf, current, body, badges = {} }) {
@@ -62,7 +63,7 @@ export function consolePage({ title, user, csrf, current, body, badges = {} }) {
 </header>
 <div class="shell">
   <nav class="side" aria-label="Console">
-    ${NAV.filter((n) => n.roles.includes(user.role)).map((n) => html`<a href="${n.href}"${n.key === current ? raw(' aria-current="page"') : ''}>${n.label}${badges[n.key] ? html` <span class="count" aria-label="${badges[n.key]} en attente">${badges[n.key]}</span>` : ''}</a>`)}
+    ${NAV.filter((n) => n.roles.includes(user.role)).map((n) => n.group ? html`<p class="side__h" aria-hidden="true">${n.group}</p>` : html`<a href="${n.href}"${n.sub ? raw(' class="side__sub"') : ''}${n.key === current ? raw(' aria-current="page"') : ''}${n.aria ? html` aria-label="${n.aria}${badges[n.key] ? `, ${badges[n.key]} en attente` : ''}"` : ''}>${n.label}${badges[n.key] ? html` <span class="count" aria-hidden="true">${badges[n.key]}</span>` : ''}</a>`)}
     <a href="/">Voir le site public</a>
   </nav>
   <main id="main" class="cmain">
@@ -133,6 +134,15 @@ export function select({ id, name, label, options, value = '', error, required =
       ${options.map(([v, l]) => html`<option value="${v}"${String(v) === String(value) ? raw(' selected') : ''}>${l}</option>`)}
     </select>
     ${error ? html`<p class="err" id="${id}-e">${error}</p>` : ''}
+  </div>`;
+}
+// Error summary: one link per field, « Libellé : message », focus lands here after a failed submit.
+export function errorSummary(errors, labels, ids) {
+  const keys = Object.keys(errors);
+  if (!keys.length) return '';
+  return html`<div class="alert alert--list" role="alert" id="form-errors" tabindex="-1" data-focus>
+    <p>${keys.length > 1 ? `${keys.length} champs à corriger` : 'Un champ à corriger'} ; rien n’a été enregistré.</p>
+    <ul>${keys.map((k) => html`<li><a href="#${ids[k] || k}">${labels[k] || k} : ${errors[k]}</a></li>`)}</ul>
   </div>`;
 }
 export const pill = (kind, label) => html`<span class="st st--${kind}">${label}</span>`;
