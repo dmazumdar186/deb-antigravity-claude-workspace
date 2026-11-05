@@ -2386,3 +2386,56 @@ def test_seventh_audit_deploy_forms(tmp_path, state, capsys, monkeypatch):
     for cmd in ("npx wrang~ler deploy --help", "wrang~ler pages deploy -h", "vercel --help",
                 "bash -n dep1.sh", "sh -n dep1.sh"):
         assert _bash(cmd.replace("~", ""), capsys, cwd=proj) is None, cmd
+
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_here_string_does_not_short_circuit(tmp_path, state, capsys, monkeypatch):
+    proj = _deploy_repo(tmp_path, monkeypatch)
+    _write(proj / "src" / "draft.md", "uncommitted\n")
+    for cmd in ("wrang~ler pages deploy dist <<< x", "vercel --prod <<< x",
+                "npx wrang~ler deploy <<< ''"):
+        assert _bash(cmd.replace("~", ""), capsys, cwd=proj) is not None, cmd
+    assert "has not passed" in _deny_reason(_bash("gh pr comment 1 -b hostile <<< ''", capsys))
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_shell_keywords_skipped(tmp_path, state, capsys, monkeypatch):
+    proj = _deploy_repo(tmp_path, monkeypatch)
+    _write(proj / "src" / "draft.md", "uncommitted\n")
+    for cmd in ("for i in 1; do wrang~ler deploy; done", "if true; then wrang~ler deploy; fi",
+                "while false; do :; done; until true; do vercel --prod; done",
+                "! wrang~ler deploy", "{ wrang~ler deploy; }", "if wrang~ler deploy; then :; fi",
+                "for i in 1; do gh pr comment 1 -b hostile; done"):
+        assert _bash(cmd.replace("~", ""), capsys, cwd=proj) is not None, cmd
+
+
+def test_hook_paths_named_not_executed_allowed(state, capsys):
+    hook = ".claude/hooks/redteam-outward-" "gate.sh"
+    for cmd in (f"cat {hook} && python3 -c 'print(1)'", f"git diff {hook}; python3 x.py",
+                f"grep -n pre {hook} && node -e '1'", f"ls -la {hook} && curl -s https://x.org",
+                f"diff {hook} /tmp/old.sh; python3 -V"):
+        assert _bash(cmd, capsys) is None, cmd
+    for cmd in (f"bash {hook} pre", f"sh -c 'bash {hook} pre'", f"cat {hook} | sh",
+                f"source {hook}", f". {hook}"):
+        assert _deny_reason(_bash(cmd, capsys)), cmd
+
+
+def test_gist_invites_and_mcp_ids(tmp_path, state, capsys):
+    f = _write(tmp_path / "note.md", "Hi Marc, here is the plan")
+    for cmd in (f"gh gist create {f}", f"gh gist create --public {f} -d 'Plan'",
+                "gh gist create -", "gh api -X PUT repos/o/r/collaborators/marc",
+                "gh api -X POST orgs/o/invitations -f email=x@y.z",
+                "gh api -X PUT orgs/o/memberships/marc"):
+        assert _deny_reason(_bash(cmd, capsys)), cmd
+    _record_text(tmp_path, "Hi Marc, here is the plan", capsys)
+    assert _bash(f"gh gist create {f}", capsys) is None
+    assert _mcp("mcp__Google_Calendar__move_event", {"calendarId": "a", "eventId": "e",
+                                                     "destination": "b",
+                                                     "destinationCalendarId": "b"},
+                capsys) is None or rg.mcp_outward_kind("mcp__Google_Calendar__move_event") == "post"
+    assert _mcp("mcp__x__move_event", {"eventId": "e", "destination": "cal2"}, capsys) is None
+    assert rg.mcp_outward_kind("mcp__ide__search_replace") is None
+    assert rg.mcp_outward_kind("mcp__team__check_in") == "post"
+    assert "has not passed" in _deny_reason(_mcp("mcp__team__check_in",
+                                                 {"status_text": "Done with Marc"}, capsys))

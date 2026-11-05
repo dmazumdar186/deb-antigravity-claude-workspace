@@ -361,6 +361,18 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   bash {}` (resolved via -name), `os.system`/`execSync` strings running `bash <script>`,
   `python3 -m mod`, `cat f | python3`, `env bash`, ash/mksh/busybox; `--help`/`-h` and
   `bash -n` are not deploys.
+- 2026-11-05 (channels eighth audit): hook paths deny only when a simple command EXECUTES
+  them (program, shell/interpreter/source argument, -c/eval text, a reader piped into a shell,
+  or REDTEAM_HOOK set for something that runs); naming them with cat/git/grep/diff/ls/… next to
+  an unrelated exec is allowed, and files named only by such readers are no longer scanned
+  (supersedes the "only when it executes something" wording above). Here-strings (`<<<`) are
+  stripped and the command is still evaluated (deploys, gh). Shell keywords (for/in/do/done/
+  if/then/elif/else/fi/while/until/!/{/}/time/coproc) are skipped so the real command is
+  checked. `gh gist create` files and `--desc` are outward text; `gh api` writes to
+  collaborators/invitations/memberships deny (a username cannot be on a passed record). MCP:
+  `destination`/calendar ids are ids; `check_in` is outward, `search_replace` a local edit.
+  Residual (documented, not fixed): deno/bun/pwsh inline variants, `printf … | sh` of split
+  text, `curl … | bash` of remote scripts, backslash-newline-split tool names, gh aliases.
 - Out of scope (documented): `-c 'import deploy'`-style helper modules, shell-escaped or split
   literals, browser/Playwright UI sends (LinkedIn UI automation included); the hook gates API
   endpoints, and tracked repo automation stays trusted.

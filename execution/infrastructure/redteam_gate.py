@@ -1976,13 +1976,22 @@ def _tool_name(tok: str) -> str | None:
     return _DEPLOY_TOOLS.get(base)
 
 
+_SHELL_KEYWORDS = {"in", "do", "done", "if", "then", "elif", "else", "fi", "while", "until",
+                   "!", "{", "}", "time", "coproc", "esac", "[[", "]]"}
+
+
 def program_argv(toks: list[str]) -> list[str]:
     """Strip env assignments, wrappers (+ their flags/numbers) and package runners
     (npx/pnpx/bunx, `bun x`, `pnpm|yarn dlx|exec`, `npm exec [--]`, `node <bin>`)."""
     i = 0
+    if toks and toks[0] in ("for", "select", "case", "function"):
+        return []  # loop/case header: its body segments are checked on their own
     while i < len(toks):
         t = toks[i]
         low = t.lower()
+        if t in _SHELL_KEYWORDS:
+            i += 1
+            continue
         if low == "flock":
             i += 1
             while i < len(toks) and toks[i].startswith("-"):
@@ -2188,12 +2197,18 @@ def deploy_error(outer: str, cwd: Path, depth: int = 0) -> str | None:
                 prog = argv[0]
                 low = prog.lower()
                 name = re.split(r"[/\\]", low)[-1]
-        if depth < 3 and name in _SHELLS and "<<<" in argv:
+        if "<<<" in argv:
             k = argv.index("<<<")
-            err = deploy_error(argv[k + 1], base, depth + 1) if k + 1 < len(argv) else None
-            if err:
-                return err
-            continue
+            here = argv[k + 1] if k + 1 < len(argv) else ""
+            if depth < 3 and here and (name in _SHELLS or _INTERPS.fullmatch(name)):
+                err = (deploy_error(here, base, depth + 1) if name in _SHELLS else
+                       script_deploy_error(here, Path("inline.py"), base))
+                if err:
+                    return err if err.startswith("redteam gate") else \
+                        f"redteam gate: {err}. {DEPLOY_DENY}"
+            argv = argv[:k] + argv[k + 2:]  # keep evaluating the command itself
+            if not argv:
+                continue
         if name in _SHELLS and any(re.fullmatch(r"-[a-z]*n[a-z]*", a) for a in argv[1:]) \
                 and not any(re.fullmatch(r"-[a-z]*c[a-z]*", a) for a in argv[1:]):
             continue  # `bash -n f`: syntax check, nothing runs
@@ -2212,16 +2227,6 @@ def deploy_error(outer: str, cwd: Path, depth: int = 0) -> str | None:
                 err = err or _exec_file_deploy(fp, base, depth, args=argv[fi + 1:])
             if err:
                 return err
-            continue
-        if depth < 3 and "<<<" in argv:
-            k = argv.index("<<<")
-            if k + 1 < len(argv) and (name in _SHELLS or _INTERPS.fullmatch(name)):
-                txt = argv[k + 1]
-                err = (deploy_error(txt, base, depth + 1) if name in _SHELLS else
-                       script_deploy_error(txt, Path("inline.py"), base))
-                if err:
-                    return err if err.startswith("redteam gate") else \
-                        f"redteam gate: {err}. {DEPLOY_DENY}"
             continue
         if depth < 3 and name in ("awk", "gawk", "mawk", "nawk"):
             for a in argv[1:]:
@@ -2642,6 +2647,8 @@ _GH_TEXT_FLAGS = {
     ("project", "item-create"): {"--title": "title", "--body": "body"},
     ("project", "create"): {"--title": "title"},
 }
+_GH_API_SHARE_RE = re.compile(r"/(?:collaborators|invitations|memberships|members|outside_"
+                              r"collaborators|teams/[^/]+/repos)(?:/|$)")
 _GH_GLOBAL_VAL = {"-R", "--repo", "--hostname"}
 _GH_API_OUTWARD_RE = re.compile(r"(?:^|/)(?:issues|pulls|comments|reviews|releases|discussions|"
                                 r"gists)(?:/|$)")
@@ -2723,6 +2730,9 @@ def _gh_api_error(rest: list[str]) -> str | None:
             return ("redteam gate: gh api graphql mutation (outward write; use gh issue/pr "
                     "commands with red-teamed text, or ask the operator to waive)")
         return None
+    if eff in ("POST", "PATCH", "PUT") and _GH_API_SHARE_RE.search(path):
+        return (f"redteam gate: gh api {eff} {path} invites/shares access with a GitHub user "
+                f"(no passed record can name a username; ask the operator to waive)")
     if eff not in ("POST", "PATCH", "PUT") or not _GH_API_OUTWARD_RE.search(path):
         return None
     texts = [(fk, fv) for fk, fv in fields if fv.startswith("@") is False
@@ -2757,6 +2767,28 @@ def gh_text_error(argv: list[str]) -> str | None:
     if rest[0] == "api":
         return _gh_api_error(rest[1:])
     sub = tuple(rest[:2])
+    if sub == ("gist", "create"):
+        gtexts: list[tuple[str, str]] = []
+        k = 2
+        while k < len(rest):
+            a = rest[k]
+            if a in ("-d", "--desc", "-f", "--filename"):
+                if a in ("-d", "--desc") and k + 1 < len(rest):
+                    gtexts.append(("description", rest[k + 1]))
+                k += 2
+                continue
+            if a.startswith("--desc="):
+                gtexts.append(("description", a.split("=", 1)[1]))
+            elif a == "-":
+                return "redteam gate: gh gist create from stdin is unverifiable"
+            elif not a.startswith("-"):
+                try:
+                    gtexts.append((f"file {a}", Path(a).read_text(encoding="utf-8",
+                                                                errors="replace")))
+                except OSError:
+                    return f"redteam gate: gh gist create file {a} unreadable"
+            k += 1
+        return _gh_texts_error("gh gist create", gtexts)
     flags = _GH_TEXT_FLAGS.get(sub)  # type: ignore[arg-type]
     if not flags:
         return None
@@ -3338,7 +3370,7 @@ def _bash_hit(command: str, outer: str, docs: list[tuple[str, str]], cwd: Path,
         return hit
     if re.search(r"\bphp\s+(?:\S+\s+)*?-r\b", expanded) and _PHP_MAIL_RE.search(scan.lower()):
         return "PHP mail("
-    for p, tok in _arg_files(_PIP_INSTALL_RE.sub(" ", expanded), bases):
+    for p, tok in _arg_files(_PIP_INSTALL_RE.sub(" ", _non_reader_text(expanded)), bases):
         hit = _scan_file(p, tok)
         if hit:
             return hit
@@ -3469,18 +3501,58 @@ def hook_text_hit(text: str) -> str | None:
     return None
 
 
+_HOOK_READERS = {"cat", "git", "grep", "egrep", "fgrep", "rg", "diff", "ls", "head", "tail",
+                 "less", "more", "wc", "echo", "printf", "stat", "file", "sha256sum", "md5sum",
+                 "cp", "mv", "touch", "chmod", "bat", "nl", "sort", "uniq", "readlink",
+                 "realpath", "dirname", "basename", "test", "[", "shellcheck", "code", "vim",
+                 "nano", "ruff", "black", "pytest", "gh"}
+
+
+def _non_reader_text(text: str) -> str:
+    """Drop simple commands whose program only reads/names files (cat, grep, ls, diff …)
+    unless the command pipes into a shell/interpreter: their file args are not executed."""
+    import shlex
+    if _PIPE_SH_RE.search(text) or _PIPE_INTERP_RE.search(text):
+        return text
+    keep: list[str] = []
+    for seg in split_simple_commands(text):
+        try:
+            argv = program_argv(shlex.split(seg))
+        except ValueError:
+            keep.append(seg)
+            continue
+        if argv and re.split(r"[/\\]", argv[0])[-1].lower() in _HOOK_READERS - {"pytest"}:
+            continue
+        keep.append(seg)
+    return "\n".join(keep)
+
+
 def hook_path_error(outer: str) -> str | None:
-    """Hook entry points are harness-only. Commands that merely name them (git add, grep,
-    commit messages) stay allowed: only an invocation counts, and quoted text only when the
-    command executes something (bash -c "...")."""
+    """Hook entry points are harness-only. Deny only when a simple command EXECUTES them (as
+    the program, an interpreter/shell/source argument, inside -c/eval text, or a reader piped
+    into a shell) or sets REDTEAM_HOOK for something it runs. Merely naming them (cat, git,
+    grep, diff, ls, commit messages) stays allowed even next to an unrelated exec."""
     import shlex
     invoked = any(re.split(r"[/\\]", w)[-1] == _HOOK_WRAPPER for w in command_words(outer))
-    if not invoked and _EXEC_RE.search(outer):
-        try:
-            joined = " ".join(shlex.split(outer))  # quoted env assignment + quoted subcommand
-        except ValueError:
-            joined = outer
-        invoked = any(hook_text_hit(t) for t in (outer, joined))
+    if not invoked:
+        piped_sh = bool(_PIPE_SH_RE.search(outer))
+        for seg in split_simple_commands(outer):
+            try:
+                toks = shlex.split(seg)
+            except ValueError:
+                toks = seg.split()
+            hit = hook_text_hit(seg) or hook_text_hit(" ".join(toks))
+            if not hit:
+                continue
+            argv = program_argv(toks)
+            name = re.split(r"[/\\]", argv[0])[-1].lower() if argv else ""
+            if name in _HOOK_READERS and not (piped_sh and name in ("cat", "echo", "printf",
+                                                                    "head", "tail")):
+                continue
+            if not argv and not _EXEC_RE.search(outer):
+                continue  # a bare assignment with nothing executed
+            invoked = True
+            break
     if invoked:
         return ("redteam gate: hook paths are harness-only (the hook wrapper, redteam_gate.py "
                 "hook subcommands and REDTEAM_HOOK are run by the harness, not from Bash).")
@@ -3605,6 +3677,9 @@ _MCP_POST_RE = re.compile(r"post_message|postmessage|send_|publish|reply_to_thre
 MCP_NOT_OUTWARD = ("push_files", "create_or_update_file", "delete_file", "create_file",
                    "update_file", "copy_file", "run_secret_scanning", "guide", "create_branch",
                    "fork_repository")
+# Explicit decisions for ambiguous verbs: check_in posts a status to others; search_replace
+# is a local text edit (read verb rule).
+MCP_OUTWARD_EXACT = {"check_in", "checkin", "checkIn".lower()}
 MCP_HARNESS_SERVERS = {"claude-code-remote", "ccd_session"}
 MCP_READ_VERBS = {"get", "list", "search", "read", "fetch", "download", "query", "resolve",
                   "describe", "view", "count", "check", "suggest", "lookup", "find"}
@@ -3637,7 +3712,8 @@ _MCP_ID_KEY_RE = re.compile(
     r"pullnumber|issuenumber|reviewers?|commit_title_hidden|expected_head_sha|inputs|"
     r"from_branch|ref|tag|tag_name|name|key|url|uri|slug|dir|mode|format|scope|kind|level|"
     r"sort|order|direction|query|q|engine|answering|opid|verbose|container|calendarid|"
-    r"timezone|start|end|starttime|endtime|response|sendupdates|notificationlevel)$"
+    r"timezone|start|end|starttime|endtime|response|sendupdates|notificationlevel|"
+    r"destination|destinationcalendar|calendar)$"
     r"|(?:Id|Ids|Sha|Ref|Name|Number|Branch|Path|Url|Type|Mode|Method|State|Side|Line)$",
     re.I)
 # Recipient keys parsed as email addresses; target keys are non-address audiences.
@@ -3673,6 +3749,8 @@ def mcp_outward_kind(name: str) -> str | None:
     low = seg.lower()
     if low in MCP_NOT_OUTWARD:
         return None
+    if low in MCP_OUTWARD_EXACT:
+        return "post"
     words = mcp_name_words(seg)
     outward_word = any(w in MCP_OUTWARD_WORDS or w.rstrip("s") in MCP_OUTWARD_WORDS
                        for w in words)
