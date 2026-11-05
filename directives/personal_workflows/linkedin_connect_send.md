@@ -22,7 +22,9 @@ On each send day (Mon, Tue, Thu, Fri, Sat; rest Wed and Sun) send connection req
 | Script | Purpose |
 |--------|---------|
 | `execution/personal_workflows/linkedin_connect_send.py run [--dry-run]` | The whole day: gate, plan, open each profile, act, mark, email, marker. Exit 0 ok / 2 stopped early / 3 config error. |
-| `... login` | Opens the persistent profile on linkedin.com/login; log in, then close the window. |
+| `... login` | Opens the job's Chrome profile on linkedin.com/login; waits (≤ 10 min) for the LinkedIn session cookie and closes the window by itself. |
+| `... setup [--start]` | Windows, re-runnable: checks Gmail creds + master, runs `login` only if the profile has no session, registers the task (`-Force`, never doubled), `--start` fires it now. |
+| `execution/personal_workflows/linkedin_connect_setup.cmd` | Double-click wrapper: `py -m pip install playwright python-dotenv`, then `setup --start`. |
 | `execution/personal_workflows/linkedin_connect_queue.py` | Bookkeeping: `consolidate`, `plan`, `mark`, `status`, `health`. `run` calls its functions directly. Owns `DAILY_CAP = 20` (one source of truth). |
 | Windows Task Scheduler | One task, registered once with the PowerShell block below. |
 
@@ -37,39 +39,31 @@ Constants: queue `DAILY_CAP = 20`; send script `SEND_DAYS = (0, 1, 3, 4, 5)`, `G
 
 ## One-time setup (operator, Windows)
 
-Every step uses the `py` launcher so installing, logging in and the scheduled task all run the **same**
-Python (python-hardening rule 7: bare `pip`/`python` can resolve to a different install, and the task
-would then fail on `import playwright` before any email exists). The script has no shebang, so
-`py script.py` uses the default interpreter.
+**Double-click `execution\personal_workflows\linkedin_connect_setup.cmd`** in the repo folder on the
+laptop. It installs Playwright with the `py` launcher, opens Chrome on the LinkedIn login page if the
+job's profile has no session (sign in; the window closes by itself), registers the task "LinkedIn connect
+send" (Mon Tue Thu Fri Sat 10:00, `StartWhenAvailable`, `IgnoreNew`, 3 h limit, Interactive logon, the
+same Python that ran setup) and starts today's run. Re-running it is safe: an existing session is kept and
+the task is replaced, not doubled. The only operator input is the LinkedIn sign-in (a credential).
 
-0. **Cutover order (do not skip).** Claude disables the old routine first — the three "LinkedIn connect
-   slot" tasks and the 20:00 cloud report task (reversible). Both routines share `data/linkedin_connect/`
-   on the laptop; running both would send on rest days and eat the shared daily cap. No Drive sync is
-   needed: the old slots ran on the laptop and already wrote every send into the local `ledger.csv`
-   (only if a slot ever ran elsewhere, sync the newest Drive snapshot with `linkedin_connect_queue.py sync`).
-1. `py -m pip install playwright python-dotenv` (Google Chrome must be installed; Chrome only, so no `playwright install`).
-2. `py execution/personal_workflows/linkedin_connect_send.py login` — log in to LinkedIn in the window that opens, then close it.
-3. `py execution/personal_workflows/linkedin_connect_send.py run --dry-run` — checks Chrome, login and the email path without sending; the would-be email lands in `.tmp/`.
-4. In PowerShell, from the repo folder, paste once:
+Why a double-click and not Claude: the cloud cannot start a Windows process. The Cowork slot's "device
+shell" is a Linux sandbox with the repo folder mounted (`/sessions/<id>/mnt/...`), and its only browser
+path is Claude-in-Chrome, whose clicks the app's auto-mode reviewer denies (2026-11-05, again, even with
+the task set to bypass permissions). The sandbox can write files into the folder, so it can deliver the
+latest scripts; only Windows can run them.
 
-```powershell
-$repo = (Get-Location).Path
-$py   = (py -c "import sys; print(sys.executable)")
-$a = New-ScheduledTaskAction -Execute $py -Argument "`"$repo\execution\personal_workflows\linkedin_connect_send.py`" run" -WorkingDirectory $repo
-$t = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday,Tuesday,Thursday,Friday,Saturday -At 10:00
-$s = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances IgnoreNew -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Hours 3)
-$p = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" -LogonType Interactive
-Register-ScheduledTask -TaskName "LinkedIn connect send" -Action $a -Trigger $t -Settings $s -Principal $p -Force
-```
+Old routine: the three "LinkedIn connect slot" tasks and the 20:00 cloud report task were disabled on
+11-03 (cutover step 0) and must stay disabled; the 20:00 task is now the missing-report alert below.
 
-To remove it: `Unregister-ScheduledTask -TaskName "LinkedIn connect send" -Confirm:$false`
+To remove the task: `Unregister-ScheduledTask -TaskName "LinkedIn connect send" -Confirm:$false`
 
 `GMAIL_SMTP_USER` and `GMAIL_SMTP_APP_PASSWORD` must be in `.env` (they already are if job_digest emails work).
 
 ## Steps (what `run` does)
 
 1. Today's local date (same as the queue module's ledger dates). Not a send day, or `emailed_<date>.txt` exists → exit 0 silently.
-2. No `master.csv` or (real run) no Gmail credentials → log, exit 3 before opening a browser.
+2. (Real run) no Gmail credentials → log, exit 3 (the only silent failure; the alert below catches it). No `master.csv` or Playwright not importable → email `STOPPED: no master list` / `STOPPED: playwright not installed`, no marker (a rerun after the fix still sends today), exit 3.
+   Another run holds the queue lock (`run.lock`, < 120 min old) → exit 0 without sending; the run takes the lock and releases it on every exit path.
 3. Plan up to 20 − already sent today with `cmd_plan` (shuffled, seeded by date; same queue file as before).
 4. Launch the persistent profile in Google Chrome (`channel="chrome"`, headed). Chrome missing or the profile in use → email `STOPPED: Chrome not available`, exit 3.
 5. For each person: open the profile URL, wait for the header to render, then decide (first match wins):
@@ -89,7 +83,8 @@ To remove it: `Unregister-ScheduledTask -TaskName "LinkedIn connect send" -Confi
 
 ## Edge Cases & Constraints
 
-- **Overlap:** the task uses `MultipleInstances IgnoreNew`; no lock file. A manual `run` while the task runs is not guarded — don't.
+- **Overlap:** the task uses `MultipleInstances IgnoreNew`, and `run` takes the queue's `run.lock`, so a manual `run` (or `setup --start`) while the task runs exits 0 without sending.
+- **Missing report alert:** the cloud scheduled task "LinkedIn connect: missing-report alert" checks Gmail at 15:07 Europe/Paris on send days; no `LinkedIn connects <date>` email by then → it emails `LinkedIn connects <date> — MISSING: no run by 15:00`. Fail loud on delivery: a job that never starts (task missing, PC off, Gmail creds gone) can no longer look like a quiet day.
 - **PC off at 10:00:** `StartWhenAvailable` runs it at the next logon the same day. The task runs only while the operator is logged on (Chrome needs the desktop session). A day the PC never wakes produces no email.
 - **Run crashed:** still emails, subject `STOPPED: run failed (<error type>)`, exit 3. SMTP failing 3 times → no marker, exit 3, details in `send.log`.
 - **Run length:** worst case ~3 min per profile (120 s gap + 45 s load + 10 s render + 10 s confirm); the 110-minute budget plus email retries ends every run well inside the task's 3 h `ExecutionTimeLimit`.
@@ -116,5 +111,6 @@ confirmed, so they can be re-enabled if the first run fails:
 
 | Date | Change |
 |------|--------|
+| 2026-11-05 | Job had never run (setup not done; operator fired the disabled Cowork slot, click denied again). Added `setup [--start]` + `linkedin_connect_setup.cmd` (one double-click), auto-closing login, STOPPED email for missing master/Playwright, queue lock, optional dotenv; 20:00 report task repurposed as the 15:07 missing-report alert. |
 | 2026-11-03 | Review round 1: `no_connect_button` → `retry` + stop after 3 retries in a row; ≤ 2× cap visits and a 110-min budget; SMTP 3 tries; local date (no Europe/Paris layer); Chrome only; install/uninstall moved to a PowerShell block here; cap moved to queue `DAILY_CAP = 20`; stop checks read dialogs/alerts only. |
 | 2026-11-03 | Created. Replaces the Cowork/AI routine: Playwright script + one Windows scheduled task + Gmail SMTP; 20/day on Mon Tue Thu Fri Sat; STOPPED suffix on early stop. |

@@ -10,6 +10,7 @@ import datetime as dt
 import email
 import email.header
 import importlib.util
+import io
 import os
 import sys
 from pathlib import Path
@@ -405,3 +406,59 @@ def test_detect_stop_ignores_profile_body_text(page):
     page.set_content("<main><section><h1>A</h1><p>I run security check audits; weekly invitation limit expert.</p>"
                      "<button aria-label='Invite A to connect'>Connect</button></section></main>")
     assert S.detect_stop(page) is None
+
+
+# ----------------------------------------------------------------- 2026-11-05: loud setup errors, lock, setup task
+
+def test_missing_playwright_emails_stopped_without_marker(tmp_path, monkeypatch):
+    """A job that cannot start the browser must still email (the 11-03..11-05 silent gap)."""
+    seed(tmp_path, [("a", "connect_header.html")])
+    monkeypatch.setenv("GMAIL_SMTP_USER", "me@example.com")
+    monkeypatch.setenv("GMAIL_SMTP_APP_PASSWORD", "x")
+    _FakeSMTP.sent = []
+    monkeypatch.setattr(S.smtplib, "SMTP", _FakeSMTP)
+    import builtins
+    real_import = builtins.__import__
+
+    def no_playwright(name, *a, **k):
+        if name.startswith("playwright"):
+            raise ImportError(name)
+        return real_import(name, *a, **k)
+    monkeypatch.setattr(builtins, "__import__", no_playwright)
+    assert S.cmd_run(tmp_path, dry_run=False, today=MON) == 3
+    assert [m["Subject"] for m in _FakeSMTP.sent] == \
+        ["LinkedIn connects 2026-11-02 (0 sent) — STOPPED: playwright not installed"]
+    assert not S.marker_path(tmp_path, "2026-11-02").exists()  # a rerun after the fix still sends today
+
+
+def test_live_lock_makes_second_run_a_silent_noop(tmp_path, monkeypatch):
+    store = seed(tmp_path, [("a", "connect_header.html")])
+    monkeypatch.setenv("GMAIL_SMTP_USER", "me@example.com")
+    monkeypatch.setenv("GMAIL_SMTP_APP_PASSWORD", "x")
+    with contextlib.redirect_stdout(io.StringIO()):
+        assert Q.cmd_lock(store, "acquire") == 0
+    monkeypatch.setattr(S, "launch_context", lambda *a, **k: pytest.fail("must not launch"))
+    assert S.cmd_run(tmp_path, dry_run=False, today=MON) == 0
+    assert not S.marker_path(tmp_path, "2026-11-02").exists()
+
+
+def test_run_releases_lock(tmp_path, monkeypatch, browser):
+    _patch_browser(monkeypatch, browser)
+    store = seed(tmp_path / "d", [("a", "connect_header.html")])
+    monkeypatch.setattr(S, "EML_DIR", tmp_path / "eml")
+    S.cmd_run(tmp_path / "d", dry_run=True, today=MON)
+    assert Q._lock_age_min(store) is None
+
+
+def test_task_script_quotes_paths_and_is_idempotent():
+    ps = S.task_script(r"C:\Py 3\python.exe", Path(r"C:\it's\send.py"), Path(r"C:\it's"), start=True)
+    assert "-Execute 'C:\\Py 3\\python.exe'" in ps
+    assert "'\"C:\\it''s\\send.py\" run'" in ps and "-WorkingDirectory 'C:\\it''s'" in ps
+    assert "-Force" in ps and ps.endswith("Write-Output 'started'")
+    assert "Monday,Tuesday,Thursday,Friday,Saturday -At 10:00" in ps and "IgnoreNew" in ps
+    assert "Start-ScheduledTask" not in S.task_script("p", Path("s"), Path("r"), start=False)
+
+
+def test_setup_refuses_off_windows(tmp_path, monkeypatch):
+    monkeypatch.setattr(S.os, "name", "posix")
+    assert S.cmd_setup(tmp_path, start=True) == 3

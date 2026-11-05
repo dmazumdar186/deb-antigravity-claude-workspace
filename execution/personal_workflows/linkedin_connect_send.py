@@ -1,7 +1,7 @@
 """LinkedIn connection requests from a fixed script: one run per send day, one email table.
 
 description: Send the day's LinkedIn connection requests (20/day, Mon Tue Thu Fri Sat) from a dedicated Chrome profile with Playwright, then email one HTML table.
-inputs: CLI `run [--dry-run]`, `login`; `--data-dir` (default env LINKEDIN_CONNECT_DIR or <repo>/data/linkedin_connect, holding master.csv / ledger.csv / aliases.csv from linkedin_connect_queue.py); env GMAIL_SMTP_USER, GMAIL_SMTP_APP_PASSWORD, optional LINKEDIN_CONNECT_EMAIL_TO (default GMAIL_SMTP_USER).
+inputs: CLI `run [--dry-run]`, `login`, `setup [--start]` (Windows: login once, register + optionally start the scheduled task); `--data-dir` (default env LINKEDIN_CONNECT_DIR or <repo>/data/linkedin_connect, holding master.csv / ledger.csv / aliases.csv from linkedin_connect_queue.py); env GMAIL_SMTP_USER, GMAIL_SMTP_APP_PASSWORD, optional LINKEDIN_CONNECT_EMAIL_TO (default GMAIL_SMTP_USER).
 outputs: ledger.csv / aliases.csv / queue_<date>.csv rows via linkedin_connect_queue.py; emailed_<date>.txt marker and send.log in the data dir; one Gmail SMTP email (or .tmp/linkedin_connect_<date>.eml on --dry-run).
 
 Directive: directives/personal_workflows/linkedin_connect_send.md. No AI, no Drive, no cloud task:
@@ -10,7 +10,9 @@ module owns master, ledger, plan, mark and the daily cap (Q.DAILY_CAP).
 
 Exit codes: 0 ok (or silent no-op: rest day / today already emailed), 2 stopped early (LinkedIn
 warning, not logged in, failure streak, visit/time limit, 0 sent while people remained), 3 config error
-(no master, no Gmail credentials, Chrome missing, run crashed, email not delivered).
+(no master, no Gmail credentials, playwright or Chrome missing, run crashed, email not delivered). Every
+exit 3 after the Gmail check still emails a STOPPED subject; only missing Gmail credentials cannot.
+A second `run` while another holds the queue lock exits 0 without sending.
 """
 from __future__ import annotations
 
@@ -31,14 +33,16 @@ from email.mime.text import MIMEText
 from pathlib import Path
 from typing import Callable
 
-from dotenv import load_dotenv
-
-load_dotenv()
+REPO = Path(__file__).resolve().parents[2]
+try:  # optional: a missing python-dotenv must not kill the run before it can email (the task runs unattended)
+    from dotenv import load_dotenv
+    load_dotenv(REPO / ".env")
+except ImportError:
+    pass
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import linkedin_connect_queue as Q  # noqa: E402  (sibling module: master, ledger, plan, mark)
 
-REPO = Path(__file__).resolve().parents[2]
 DEFAULT_DATA_DIR = Path(os.environ.get("LINKEDIN_CONNECT_DIR") or REPO / "data" / "linkedin_connect")
 EML_DIR = REPO / ".tmp"
 
@@ -58,6 +62,9 @@ CONFIRM_TIMEOUT_MS = 10_000
 POLL_MS = 250
 
 SMTP_HOST, SMTP_PORT = "smtp.gmail.com", 587
+TASK_NAME = "LinkedIn connect send"  # the one Windows scheduled task (`setup` registers it)
+TASK_TIME = "10:00"
+LOGIN_WAIT_S = 600  # `login` / `setup` wait this long for the operator to sign in, then give up
 SMTP_ATTEMPTS, SMTP_RETRY_S = 3, 60
 
 STOP_PATTERNS = (
@@ -440,21 +447,42 @@ def cmd_run(data_dir: Path, dry_run: bool, today: dt.date | None = None) -> int:
         return 0  # rest day, or today's email already went out: silent no-op
     _setup_logging(data_dir)
     store = Q.Store(data_dir)
-    if not store.master.exists():
-        log.error("no master.csv in %s (run linkedin_connect_queue.py consolidate first)", data_dir)
-        return 3
     if not dry_run and not smtp_config():
         log.error("GMAIL_SMTP_USER / GMAIL_SMTP_APP_PASSWORD not set; refusing to send without a report path")
         return 3
+    if not store.master.exists():
+        log.error("no master.csv in %s (run linkedin_connect_queue.py consolidate first)", data_dir)
+        return _config_stop(day, "no master list", dry_run)
+    try:
+        import playwright.sync_api  # noqa: F401
+    except ImportError:
+        log.error("playwright not installed: py -m pip install playwright")
+        return _config_stop(day, "playwright not installed", dry_run)
+    lock_age = Q._lock_age_min(store)
+    if lock_age is not None and lock_age <= Q.LOCK_TTL_MIN:
+        log.info("another run holds the lock; exiting without sending")
+        return 0
+    with contextlib.redirect_stdout(io.StringIO()):
+        Q.cmd_lock(store, "acquire")
+    try:
+        return _run_locked(data_dir, store, day, dry_run)
+    finally:
+        with contextlib.redirect_stdout(io.StringIO()):
+            Q.cmd_lock(store, "release")
+
+
+def _config_stop(day: str, reason: str, dry_run: bool) -> int:
+    """A setup problem found before the browser opens: email it (no marker, so a rerun after the fix
+    still sends today) instead of exiting silently. Always exit 3."""
+    deliver(build_subject(day, 0, reason), build_table_html([]), day, dry_run)
+    return 3
+
+
+def _run_locked(data_dir: Path, store: Q.Store, day: str, dry_run: bool) -> int:
     log.info("run %s%s: %d already sent today, cap %d", day, " (dry-run)" if dry_run else "",
              len(Q._sent_on(store.load_ledger(), day)), Q.DAILY_CAP)
 
     code, res = 0, DayResult()
-    try:
-        import playwright.sync_api  # noqa: F401
-    except ImportError:
-        log.error("playwright not installed: pip install playwright")
-        return 3
     try:
         with open_browser(data_dir) as page:
             res = run_day(page, store, day, dry_run)
@@ -480,23 +508,100 @@ def cmd_run(data_dir: Path, dry_run: bool, today: dt.date | None = None) -> int:
     return code
 
 
-def cmd_login(data_dir: Path) -> int:
+def _has_session(ctx) -> bool:
+    return any(c.get("name") == "li_at" and c.get("value") for c in ctx.cookies("https://www.linkedin.com"))
+
+
+def ensure_login(data_dir: Path, wait_s: int = LOGIN_WAIT_S) -> bool:
+    """Open the job's Chrome profile; if it has no LinkedIn session, show the login page and wait (up to
+    wait_s) until the operator has signed in, then close the window by itself. True = session present."""
     from playwright.sync_api import sync_playwright
-    logging.basicConfig(level=logging.INFO, format="%(message)s")
     with sync_playwright() as pw:
+        ctx = launch_context(pw, data_dir)
         try:
-            ctx = launch_context(pw, data_dir)
-        except ChromeUnavailable as exc:
-            print(exc, file=sys.stderr)
+            if _has_session(ctx):
+                return True
+            page = ctx.pages[0] if ctx.pages else ctx.new_page()
+            page.goto("https://www.linkedin.com/login", timeout=NAV_TIMEOUT_MS)
+            print("Sign in to LinkedIn in the Chrome window that opened; it closes by itself once you are in.")
+            deadline = time.monotonic() + wait_s
+            while time.monotonic() < deadline:
+                if _has_session(ctx) and "/login" not in page.url and "/checkpoint" not in page.url:
+                    page.wait_for_timeout(3_000)  # let LinkedIn finish writing the session
+                    return True
+                page.wait_for_timeout(2_000)
+            return False
+        except Exception as exc:  # window closed by hand, Chrome crashed: report, never hang
+            print(f"login window closed before sign-in finished ({type(exc).__name__})", file=sys.stderr)
+            return False
+        finally:
+            with contextlib.suppress(Exception):
+                ctx.close()
+
+
+def cmd_login(data_dir: Path) -> int:
+    try:
+        ok = ensure_login(data_dir)
+    except ChromeUnavailable as exc:
+        print(exc, file=sys.stderr)
+        return 3
+    print(f"LinkedIn session {'saved' if ok else 'NOT saved'} in {data_dir / 'chrome_profile'}")
+    return 0 if ok else 3
+
+
+def _ps_quote(value: str) -> str:
+    return "'" + value.replace("'", "''") + "'"  # PowerShell single-quoted literal
+
+
+def task_script(python_exe: str, script: Path, repo: Path, start: bool) -> str:
+    """PowerShell that (re)registers the one scheduled task (idempotent: -Force) and optionally starts it."""
+    action_args = f'"{script}" run'
+    lines = [
+        f"$a = New-ScheduledTaskAction -Execute {_ps_quote(python_exe)} -Argument {_ps_quote(action_args)}"
+        f" -WorkingDirectory {_ps_quote(str(repo))}",
+        f"$t = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday,Tuesday,Thursday,Friday,Saturday -At {TASK_TIME}",
+        "$s = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances IgnoreNew -AllowStartIfOnBatteries"
+        " -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Hours 3)",
+        '$p = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\\$env:USERNAME" -LogonType Interactive',
+        f"Register-ScheduledTask -TaskName {_ps_quote(TASK_NAME)} -Action $a -Trigger $t -Settings $s -Principal $p"
+        " -Force | Out-Null",
+        f"Write-Output ('registered: ' + (Get-ScheduledTask -TaskName {_ps_quote(TASK_NAME)}).State)",
+    ]
+    if start:
+        lines.append(f"Start-ScheduledTask -TaskName {_ps_quote(TASK_NAME)}; Write-Output 'started'")
+    return "; ".join(lines)
+
+
+def cmd_setup(data_dir: Path, start: bool) -> int:
+    """One-time Windows setup: LinkedIn login (only if the profile has no session), register the task,
+    optionally start it now. Re-runnable: an existing session and task are kept/replaced, never doubled."""
+    import subprocess
+    if os.name != "nt":
+        print("setup registers a Windows scheduled task; run it on the Windows laptop", file=sys.stderr)
+        return 3
+    if not smtp_config():
+        print("GMAIL_SMTP_USER / GMAIL_SMTP_APP_PASSWORD missing from .env: the job could not email its report",
+              file=sys.stderr)
+        return 3
+    if not Q.Store(data_dir).master.exists():
+        print(f"no master.csv in {data_dir}", file=sys.stderr)
+        return 3
+    try:
+        if not ensure_login(data_dir):
+            print("No LinkedIn session yet: run this again and sign in within 10 minutes.", file=sys.stderr)
             return 3
-        page = ctx.pages[0] if ctx.pages else ctx.new_page()
-        page.goto("https://www.linkedin.com/login", timeout=NAV_TIMEOUT_MS)
-        print("Log in to LinkedIn in the opened window, then close the window.")
-        try:
-            ctx.wait_for_event("close", timeout=0)
-        except KeyboardInterrupt:
-            ctx.close()
-    print(f"profile saved in {data_dir / 'chrome_profile'}")
+    except ChromeUnavailable as exc:
+        print(exc, file=sys.stderr)
+        return 3
+    print("LinkedIn session: ok")
+    ps = task_script(sys.executable, Path(__file__).resolve(), REPO, start)
+    res = subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", ps],  # noqa: S603,S607 fixed argv; values are constants + _ps_quote()d paths
+                         capture_output=True, text=True, timeout=120)
+    print(res.stdout.strip())
+    if res.returncode != 0:
+        print(res.stderr.strip(), file=sys.stderr)
+        return 3
+    print(f"Task '{TASK_NAME}' runs Mon Tue Thu Fri Sat at {TASK_TIME}; each run emails one table.")
     return 0
 
 
@@ -507,10 +612,14 @@ def main(argv: list[str] | None = None) -> int:
     sub = ap.add_subparsers(dest="cmd", required=True)
     r = sub.add_parser("run", help="send today's batch and email the table (no-op on rest days)")
     r.add_argument("--dry-run", action="store_true", help="no Connect/Send clicks; email written to .tmp/*.eml")
-    sub.add_parser("login", help="open the persistent profile on linkedin.com/login; close the window when done")
+    sub.add_parser("login", help="sign in to LinkedIn in the job's Chrome profile (window closes by itself)")
+    st = sub.add_parser("setup", help="Windows, once: login if needed, register the scheduled task")
+    st.add_argument("--start", action="store_true", help="also start the task now (today's run)")
     a = ap.parse_args(argv)
     if a.cmd == "run":
         return cmd_run(a.data_dir, a.dry_run)
+    if a.cmd == "setup":
+        return cmd_setup(a.data_dir, a.start)
     return cmd_login(a.data_dir)
 
 

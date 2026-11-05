@@ -2,3 +2,5 @@
 # fail on CRLF shebangs (bad interpreter: /bin/bash^M).
 *.sh text eol=lf
 .githooks/* text eol=lf
+# Windows batch files keep their CRLF bytes (the laptop pulls them with `git show`, which emits the blob as stored).
+*.cmd -text
