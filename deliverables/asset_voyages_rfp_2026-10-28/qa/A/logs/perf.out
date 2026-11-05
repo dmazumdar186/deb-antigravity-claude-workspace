@@ -2,13 +2,12 @@ node:internal/modules/run_main:123
     triggerUncaughtException(
     ^
 
-locator.getAttribute: Timeout 30000ms exceeded.
+locator.getAttribute: Target page, context or browser has been closed
 Call log:
 [2m  - waiting for locator('.asset-card h3 a').first()[22m
 
     at /home/user/deb-antigravity-claude-workspace/deliverables/asset_voyages_rfp_2026-10-28/qa/A/perf_A.mjs:14:78 {
-  log: [ "  - waiting for locator('.asset-card h3 a').first()" ],
-  name: 'TimeoutError'
+  log: [ "  - waiting for locator('.asset-card h3 a').first()" ]
 }
 
 Node.js v22.23.4

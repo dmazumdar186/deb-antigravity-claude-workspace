@@ -11,3 +11,5 @@ PASS INT-A-010 matrix demandes: anon=302 contributeur=403 equipe=200 direction=2
 PASS INT-A-011 matrix gme_codes: anon=302 contributeur=403 equipe=200 direction=200 :: {"anon":302,"contributeur":403,"equipe":200,"direction":200}
 PASS INT-A-012 matrix gme_acces: anon=302 contributeur=403 equipe=403 direction=200 :: {"anon":302,"contributeur":403,"equipe":403,"direction":200}
 PASS INT-A-013 matrix gme_journal: anon=302 contributeur=403 equipe=403 direction=200 :: {"anon":302,"contributeur":403,"equipe":403,"direction":200}
+PASS INT-A-014 matrix new_congres: anon=302 contributeur=200 equipe=200 direction=200 :: {"anon":302,"contributeur":200,"equipe":200,"direction":200}
+TOTAL 14 PASS 10 FAIL 4
