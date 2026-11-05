@@ -10,19 +10,9 @@ Anonymity rules (hard): no client name, no city/country, no sector, no role titl
 no candidate names. Candidates appear only as "Candidate A / B / C". No client feedback quotes.
 The delivered client page is not shown. Every figure traces to FACTS.md.
 
-## Beat sheet (on-screen text verbatim; the red-team draft is the source of truth)
+## Beats
 
-| # | Time | On screen | Motion |
-|---|---|---|---|
-| 1 | 0.0–3.5 | Header `ProdCraft` · `wk 03`. **One senior role. 158 profiles. Who do you call first?** | grid of 158 person-dots |
-| 2 | 3.5–8.0 | `the pool, counted` · `158 profiles assessed` → `594 claims pulled from public sources` → `446 survived the quote check` → `18 passed every hard rule in the brief` → `10 on the shortlist, as the brief asked` · *"A shortlist without a denominator is a claim, not a finding."* | dots fade in waves until 10 stay gold |
-| 3 | 8.0–13.5 | **Every factual claim carries a quote. No match, no claim.** Rule card `the rule`: `keep a claim only if its quote is found in the cached source`. Notes: `148 of 594 couldn't be matched · none reached the page` · `the hard rules are code, not a model` · `rule changes → the whole pool is re-cut` | a claim card turns red and slides off; next gets ✓ |
-| 4 | 13.5–19.0 | **One row per candidate.** `Candidate A` (B, C stacked behind) · Why them (placeholder bars) · chips `LinkedIn note` · `Email` · `Follow-up, about a week later` · `privacy notice + STOP line in every email, fixed text` | chips light in channel order |
-| 5 | 19.0–24.0 | **Drafts wait for your approval. Nothing sends on its own.** `ready-to-contact rows first: verified address, resolved profile` · `professional network first, then email, then the switchboard` | gold underline; ✓ approved stamp |
-| 6 | 24.0–28.5 | **Your team reads 10 rows, with the full funnel from 158 next to them.** · `I build systems like this for recruiting desks, around your roles and your rules.` | huge "10", small "of 158" |
-| 7 | 28.5–31.0 | Empty dot grid returns (loop). Credit: `Made in code with lemo-opuscar (MIT) · music: original, CC0 samples (Versilian Studios)` | loop to frame 1 |
-
-Footer on every frame: `ProdCraft · weekly notes` + `03`.
+1. Hook over 158 dots. 2. Funnel 158 → 18 → 10 (dots fade to 10 gold) + denominator quote. 3. Rule card: quote must be found in the cached source; no match → dropped. 4. One row per candidate (Candidate A/B/C, no names), message chips in channel order. 5. "The system drafts. Your team sends." 6. Payoff + offer. 7. Loop to frame 1, credit in footer. Full headline on frame 0 (LinkedIn thumbnail).
 
 ## LinkedIn post
 
@@ -30,17 +20,46 @@ Footer on every frame: `ProdCraft · weekly notes` + `03`.
 >
 > That was the starting point of a sourcing system I built for one recruiting team. The counts are real; the team is not named.
 >
-> It reads public sources and pulls out claims about each candidate. Each factual claim has to come with a quote, and code checks that the quote can be found in the cached source. Of 594 claims the AI proposed, 148 had no quote that matched. That is the AI's error rate, measured instead of guessed, and code caught every one of the 148 before the page was built. They were dropped, not softened. A shortlist without a denominator is a claim, not a finding.
+> It reads public sources and pulls out claims about each candidate. Each factual claim has to come with a quote, and code checks that the quote can be found in the cached source. No match, no claim: it is dropped before the page is built. A shortlist without a denominator is a claim, not a finding.
 >
-> The hard requirements are code, not a model: 18 people passed every rule written into that version of the brief. The brief asked for 10, so 10 made the page. When a rule changes, the code changes and the whole pool is re-cut, not re-argued.
+> The hard requirements are code, not a model. 18 people passed every hard rule in the brief. The brief asked for 10, so 10 made the page.
 >
-> The recruiter gets one row per candidate: why them, the evidence, and the messages ready to copy. That's a LinkedIn note, an email with the privacy notice and STOP line built in, and a follow-up for about a week later. Rows with a verified address and a resolved profile come first. Drafts wait for a consultant's approval; nothing sends on its own.
+> The recruiter gets one row per candidate: why them, the evidence, and the messages ready to copy. That's a LinkedIn note, an email with the privacy notice and STOP line built in, and a follow-up for about a week later. Rows with a verified address and a resolved profile come first. Drafts wait for a consultant's approval. The system drafts; your team sends.
 >
 > So the team reads 10 rows, with the full funnel from 158 next to them.
 >
-> I build systems like this for recruiting desks, around your roles and your rules. If your consultants spend their mornings on research instead of conversations, send me one live brief and I'll tell you what a first cut would look like for it. My DMs are open.
+> I build systems like this for recruiting desks, around your roles and your rules. If your consultants spend their mornings on research instead of conversations, my DMs are open.
 >
 > (Video made in code.)
+
+## On-screen text (final, verbatim)
+
+```
+ProdCraft · wk 03
+One senior role. 158 profiles. Who do you call first?
+the pool, counted
+158 profiles assessed
+18 passed every hard rule in the brief
+10 on the shortlist, as the brief asked
+"A shortlist without a denominator is a claim, not a finding."
+Every factual claim carries a quote. No match, no claim.
+the rule
+keep a claim only if its quote is found in the cached source
+no match → dropped · never reaches the page
+the hard rules are code, not a model
+One row per candidate.
+Candidate A
+Why them
+Message to send: LinkedIn note · Email · Follow-up, about a week later
+privacy notice + STOP line in every email, fixed text
+The system drafts. Your team sends.
+ready-to-contact rows first: verified address, resolved profile
+professional network first, then email, then the switchboard
+Your team reads 10 rows, with the full funnel from 158 next to them.
+I build systems like this for recruiting desks, around your roles and your rules.
+Made in code with lemo-opuscar (MIT) · music: original, CC0 samples (Versilian Studios)
+ProdCraft · weekly notes · 03
+```
 
 ## Decisions (Claim → Objection → Resolution)
 
@@ -51,3 +70,5 @@ Footer on every frame: `ProdCraft · weekly notes` + `03`.
 - Show the validator code, as wk 02 did. Objection (downside BLOCKER, round 2): it was written inside a paid client engagement and no IP terms are on record. Resolution: drop; a plain-language rule card replaces it. wk 02's code came from the operator's own outbound system, so it did not have this problem.
 - Exact funnel counts. Objection (reputation): they echo the client's public page. Resolution: keep the counts (page sends `x-robots-tag: noindex, nofollow, noarchive, nosnippet`, robots.txt disallows all) but drop the page's wording ("6 of 10 ready to contact now").
 - Present 158 → 18 → 10 as the finished answer. Objection (counterparty, round 4): those counts are the first run, which the client sent back as too senior; the client can rebut it. Resolution: say "every rule written into that version of the brief" and make re-cutting the selling point.
+- Publish claim counts (594 → 446, 148 dropped). Objection (rounds 4-5, three lenses): ~25% reads as "AI wrong one time in four", includes missing-source drops, and contradicts the 0.9% drop rate the client was given for a later run. Resolution: drop all claim counts; keep the rule.
+- Concrete CTA ("send me a live brief"). Objection: unbounded free work + confidential briefs over DM. Resolution: "my DMs are open".
