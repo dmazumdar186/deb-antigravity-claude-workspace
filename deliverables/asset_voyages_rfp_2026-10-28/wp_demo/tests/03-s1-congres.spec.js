@@ -50,7 +50,7 @@ test('S1-E2 + S1-F2 edit in <= 3 clicks; new value shows in admin and on the pub
 	expect(c.n).toBeLessThanOrEqual(3);
 	test.info().annotations.push({ type: 'clicks', description: String(c.n) });
 	await page.goto('/wp-admin/edit.php?post_type=asset_congres');
-	await expect(page.locator('tr', { hasText: 'gastro-entérologie' })).toContainText('Toulouse');
+	await expect(page.locator('tr.iedit', { hasText: 'gastro-entérologie' })).toContainText('Toulouse');
 	const pub = await (await browser.newContext()).request.get(readState().newCongresUrl);
 	expect(await pub.text()).toContain('Toulouse');
 	await ctx.close();
@@ -79,6 +79,9 @@ test('S1-F3 contributor drafts and submits for review, cannot publish; draft is 
 	// Direction publishes.
 	const d = await asRole(browser, 'direction');
 	await d.page.goto(`/wp-admin/post.php?post=${id}&action=edit`);
+	// WordPress post lock: the contributor was just editing; Direction takes over (standard WP dialog).
+	const takeOver = d.page.locator('#post-lock-dialog a.button-primary');
+	if (await takeOver.isVisible()) await takeOver.click();
 	await d.page.click('#publish');
 	await expect(d.page.locator('#post-status-display')).toContainText(/Publié/i);
 	r = await anon.request.get(`/?post_type=asset_congres&p=${id}`);

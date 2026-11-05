@@ -35,6 +35,17 @@ class Asset_CD_Gme_Admin {
 		add_action( 'admin_post_asset_gme_decide', array( __CLASS__, 'handle_decide' ) );
 		add_action( 'admin_post_asset_gme_save', array( __CLASS__, 'handle_save' ) );
 		add_action( 'wp_dashboard_setup', array( __CLASS__, 'dashboard' ) );
+		add_action( 'admin_notices', array( __CLASS__, 'dashboard_notice' ) );
+	}
+
+	/**
+	 * Decision feedback on the dashboard (decisions taken from the widget).
+	 */
+	public static function dashboard_notice() {
+		$screen = get_current_screen();
+		if ( $screen && 'dashboard' === $screen->id && current_user_can( 'asset_manage_gme' ) ) {
+			self::notice( self::msg_param() );
+		}
 	}
 
 	/**

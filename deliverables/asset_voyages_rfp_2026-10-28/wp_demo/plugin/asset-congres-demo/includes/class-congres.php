@@ -206,11 +206,11 @@ class Asset_CD_Congres {
 			'<tr><th scope="row"><label for="%1$s">%2$s</label>%6$s</th><td><input type="%3$s" id="%1$s" name="asset_meta[%4$s]" value="%5$s" class="regular-text"%7$s /></td></tr>',
 			esc_attr( $id ),
 			esc_html( $def[0] ),
-			esc_attr( $def[1] ),
+			esc_attr( 'url' === $def[1] ? 'text' : $def[1] ), // URL validated server-side, with a French message.
 			esc_attr( $key ),
 			'url' === $def[1] ? esc_url( $value ) : esc_attr( $value ),
 			$suffix, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped by caller.
-			'url' === $def[1] ? ' placeholder="https://"' : ''
+			'url' === $def[1] ? ' placeholder="https://" inputmode="url" spellcheck="false"' : ''
 		);
 	}
 
