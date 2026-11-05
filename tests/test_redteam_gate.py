@@ -1810,7 +1810,7 @@ def test_mcp_generic_post_gated(tmp_path, state, capsys):
     name = "mcp__slack__chat_post_message"
     ti = {"channel_id": "C1", "text": "Launch is live"}
     assert "has not passed" in _deny_reason(_mcp(name, ti, capsys))
-    assert _deny_reason(_mcp("mcp__x__publish_post", {"id": "1"}, capsys))
+    assert _mcp("mcp__x__publish_post", {"id": "1"}, capsys) is None  # ids only: no text
     _record_text(tmp_path, "Launch is live", capsys)
     # a channel audience is non-address: needs an operator waiver even with passed text
     assert "audience" in _deny_reason(_mcp(name, ti, capsys))
@@ -2144,3 +2144,101 @@ def test_mcp_inverted_text_rule_and_kinds(tmp_path, state, capsys):
     for key in ("channel_name", "Channel"):
         assert "audience" in _deny_reason(_mcp("mcp__slack__chat_post" "Message",
                                                {key: "general", "text": "Ship it"}, capsys))
+
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_gaia_deploy_script_default_target_checked(state, capsys):
+    script = "execution/gtm_client_workflows/gaia_redesign/deploy_cloudflare.sh"
+    site = "deliverables/gaia_redesign_2026-09-17/site"
+    r = subprocess.run(["git", "-C", str(rg.REPO_ROOT), "status", "--porcelain", "--ignored",
+                        "--", site, script], capture_output=True, text=True, encoding="utf-8",
+                       errors="replace")
+    if r.stdout.strip() or not (rg.REPO_ROOT / script).is_file():
+        pytest.skip("fixture dirty/missing in this checkout")
+    assert _bash(f"bash {script}", capsys, cwd=rg.REPO_ROOT) is None
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_tracked_script_literal_target_dirty_denied(tmp_path, state, capsys, monkeypatch):
+    proj = _deploy_repo(tmp_path, monkeypatch)
+    root = rg.REPO_ROOT
+    _write(root / "deliverables" / "acme" / "site" / "index.html", "<p>x</p>")
+    _write(proj / "dep.sh", 'SITE="${1:-$ROOT/deliverables/acme/site}"\n'
+           'npx wrang' 'ler pages deploy "$STAGE" --project-name x\n')
+    _write(proj / "dep2.sh", 'npx wrang' 'ler pages deploy "$STAGE" --project-name x\n')
+    for args in (["add", "-A"], ["-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "y"]):
+        subprocess.run(["git", "-C", str(root), *args], check=True, capture_output=True)
+    assert _bash("bash dep.sh", capsys, cwd=proj) is None
+    assert _bash("bash dep2.sh", capsys, cwd=proj) is None
+    _write(root / "deliverables" / "acme" / "site" / "new.html", "<p>draft</p>")
+    assert "deliverables" in _deny_reason(_bash("bash dep.sh", capsys, cwd=proj))
+    assert "deliverables" in _deny_reason(_bash("bash dep2.sh", capsys, cwd=proj))
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_substitution_and_command_string_deploys(tmp_path, state, capsys, monkeypatch):
+    proj = _deploy_repo(tmp_path, monkeypatch)
+    _write(proj / "cmd.txt", "wrang" "ler deploy\n")
+    _write(proj / "dep.sh", "npx wrang" "ler deploy\n")
+    for args in (["add", "-A"], ["-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "y"]):
+        subprocess.run(["git", "-C", str(rg.REPO_ROOT), *args], check=True, capture_output=True)
+    _write(proj / "src" / "draft.md", "uncommitted\n")
+    for cmd in ("$(echo wrang~ler) deploy", "`echo wrang~ler` deploy", "$(cat cmd.txt)",
+                "echo $(wrang~ler deploy)", "echo dist PIPE xargs -I{} wrang~ler pages deploy {}",
+                "tail -n +1 dep.sh PIPE sh", "head -5 dep.sh PIPE bash",
+                "tmux new -d -s x 'wrang~ler deploy'", "screen -dm wrang~ler deploy",
+                "su -c 'wrang~ler deploy' me", "env -S 'wrang~ler deploy'",
+                "nohup wrang~ler deploy", "echo 'wrang~ler deploy' PIPE at now",
+                "php -r 'system(\"wrang~ler deploy\");'", "perl -e 'system(\"wrang~ler deploy\")'",
+                "ruby -e 'system(\"wrang~ler deploy\")'"):
+        c = cmd.replace("PIPE", "|").replace("~", "")
+        assert _bash(c, capsys, cwd=proj) is not None, cmd
+
+
+def test_sender_pwd_script_paths(tmp_path, state, capsys):
+    _write(tmp_path / "s.py", "import smtp" "lib\n")
+    for cmd in ("python3 $PWD/s.py", "python3 ${PWD}/s.py", "python3 $(pwd)/s.py",
+                "python3 `pwd`/s.py"):
+        assert _bash(cmd, capsys, cwd=tmp_path) is not None, cmd
+
+
+def test_mcp_review_enum_keys_and_id_only_tools(tmp_path, state, capsys):
+    ti = {"owner": "o", "repo": "r", "pullNumber": 3, "method": "submit_pending",
+          "event": "APPROVE", "subjectType": "LINE", "side": "RIGHT", "startSide": "RIGHT",
+          "line": 4, "startLine": 2, "path": "a.py", "commit_id": "abc", "position": 1}
+    assert _mcp("mcp__github__pull_request_review_write", ti, capsys) is None
+    assert _mcp("mcp__github__update_issue", {"owner": "o", "repo": "r", "issue_number": 1,
+                                              "state": "closed", "stateReason": "completed",
+                                              "labels": ["x"], "milestone": "m",
+                                              "assignees": ["a"]}, capsys) is None
+    assert "body" in _deny_reason(_mcp("mcp__github__pull_request_review_write",
+                                       dict(ti, body="LGTM"), capsys))
+
+
+@pytest.mark.parametrize("cmd", [
+    "python3 -c \"bot.send|_media_group(1, m)\"",
+    "python3 -c \"bot.forward|_message(1, 2, 3)\"",
+    "python3 -c \"bot.copy|_message(1, 2, 3)\"",
+    "node -e \"bot.telegram.send|Message(1, 'x')\"",
+    "curl -X POST https://acme.outlook.office3|65.com/webhook/abc -d '{}'",
+    "python3 -c \"client.files_up|load(channels='c', file='f')\"",
+    "python3 -c \"from slack_sdk.webhook.async_client import AsyncWebhookClient as W; W(u).se|nd(text='x')\"",
+    "curl -X POST https://api.git|hub.com/repos/o/r/issues/1/comments -d '{\"body\":\"x\"}'",
+    "curl -X POST https://api.git|hub.com/repos/o/r/pulls -d '{}'",
+])
+def test_fifth_audit_channels(cmd, state, capsys):
+    assert _deny_reason(_bash(cmd.replace("|", ""), capsys)), cmd
+
+
+def test_gh_cli_text_gated(tmp_path, state, capsys):
+    for cmd in ("gh pr comment 3 --body 'Looks good'", "gh issue create --title T --body B",
+                "gh pr review 3 --comment -b 'Nit: rename'", "gh pr create --title 'Ship it' --body x"):
+        assert "has not passed" in _deny_reason(_bash(cmd, capsys)), cmd
+    for cmd in ("gh pr review 3 --approve", "gh pr create --fill", "gh pr list",
+                "gh issue view 3", "gh pr merge 3 --squash"):
+        assert _bash(cmd, capsys) is None, cmd
+    _record_text(tmp_path, "Looks good", capsys)
+    assert _bash("gh pr comment 3 --body 'Looks good'", capsys) is None
+    f = _write(tmp_path / "b.md", "Looks good")
+    assert _bash(f"gh pr comment 3 --body-file {f}", capsys) is None

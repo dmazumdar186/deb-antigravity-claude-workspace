@@ -318,6 +318,18 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   `Channel` are audiences needing a waiver); kinds add postMessage, files_upload,
   create/update_issue, create_pull_request, pull_request_review_write; push_files/
   create_or_update_file are code (build-contract audit), not outward text.
+- 2026-11-05 (channels fifth audit): a tracked deploy script with an unresolvable/default
+  target is checked against every folder it names as a literal (repo-, script- or cwd-relative;
+  `.tmp/` staging skipped) and its path args; with none, its project and all of `deliverables/`
+  must be clean. Deploy detection resolves `$(echo X)`, `$(cat f)`, `$(pwd)` and scans every
+  `$(…)`/backtick body; covers `xargs -I`, `cat|head|tail f | sh`, `| at|batch`, tmux/screen/
+  su/runuser/systemd-run command strings, `env -S`, `php -r`/`perl -e`/`ruby -e` system calls.
+  `$PWD`/`$(pwd)`/`` `pwd` `` in script paths resolve for the sender scan too. MCP id/enum keys
+  add camelCase review/issue fields; tools with only ids/enums (approve, close) pass. Channels:
+  Telegram media-group/forward/copy and `bot.telegram.sendMessage`, Outlook 365 webhooks, Slack
+  `files_upload(`/AsyncWebhookClient, GitHub REST comments/issues/pulls/reviews/releases.
+  `gh issue|pr|release|discussion comment|create|review|edit` with `--body/-b/--title/-t/
+  --notes/--body-file`: every given text must be passed (`--fill`/`--approve` need none).
 - Out of scope (documented): `-c 'import deploy'`-style helper modules, shell-escaped or split
   literals, browser/Playwright UI sends (LinkedIn UI automation included); the hook gates API
   endpoints, and tracked repo automation stays trusted.

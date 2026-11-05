@@ -1703,6 +1703,8 @@ def sender_hit(low: str, raw: str | None = None) -> str | None:
 _OUTWARD_SIMPLE = (
     ("hooks.sla" "ck.com", "Slack webhook"),
     ("outlook.office" ".com/webhook", "Outlook/Teams webhook"),
+    ("outlook.office365" ".com/webhook", "Outlook/Teams webhook"),
+    ("files_up" "load(", "Slack files_upload"),
     ("slack.com/api/chat.post" "message", "Slack chat.postMessage"),
     ("slack.com/api/chat.post" "ephemeral", "Slack chat.postEphemeral"),
     ("slack.com/api/chat.schedule" "message", "Slack chat.scheduleMessage"),
@@ -1739,12 +1741,14 @@ _OUTWARD_RES = (
     (re.compile(r"api\.telegram\.org/bot[^\s/]*/(?:send\w+|forwardmessages?|copymessages?)"),
      "Telegram send"),
     (re.compile(r"discord(?:app)?\.com/api/v\d+/web" r"hooks/"), "Discord webhook"),
-    (re.compile(r"\b(?:webhookclient|incomingwebhook)\b[\s\S]{0,300}?\.\s*send\s*\("),
+    (re.compile(r"\b(?:async)?(?:webhookclient|incomingwebhook)\b[\s\S]{0,300}?\.\s*send\s*\("),
      "Slack webhook SDK send"),
     (re.compile(r"graph\.(?:facebook|instagram)\.com/[\w./-]*/media_publish"), "Meta publish"),
     (re.compile(r"threads\.net/[\w./-]*threads_publish"), "Threads publish"),
 
-    (re.compile(r"\bbot\s*\.\s*send_?(?:message|photo|document|video|audio)\s*\("),
+    (re.compile(r"\bbot\s*\.\s*(?:telegram\s*\.\s*)?(?:send_?(?:message|photo|document|video|"
+                r"audio|media_?group|animation|voice|sticker|poll)|forward_?messages?|"
+                r"copy_?messages?)\s*\("),
      "Telegram bot send"),
     (re.compile(r"\bcreate_tweet\s*\(|\bupdate_status\s*\(|\.v2\s*\.\s*tweet\s*\("), "X/Twitter SDK post"),
 )
@@ -1764,6 +1768,8 @@ _WRITE_ENDPOINT_RES = (
      "MS Graph Teams message"),
     (re.compile(r"chat\.google" r"apis\.com/v\d+/spaces/[\w./-]*messages"), "Google Chat API"),
     (re.compile(r"api\.twilio\.com/[\w./-]*/messages"), "Twilio message"),
+    (re.compile(r"api\.github\.com/repos/[\w./-]*/(?:comments|issues|pulls|reviews|releases)\b"),
+     "GitHub comment/issue/PR API"),
     (re.compile(r"threads\.net/[\w./-]*/threads\b"), "Threads post"),
     (re.compile(r"graph\.facebook\.com/[\w./-]*(?:/feed|/messages|/photos|/videos)"),
      "Meta Graph post/message"),
@@ -1963,8 +1969,16 @@ def program_argv(toks: list[str]) -> list[str]:
             i += 1
             while i < len(toks) and (toks[i].startswith("-") or re.fullmatch(r"[\d.]+[smhd]?",
                                                                               toks[i])):
+                if toks[i] in ("-S", "--split-string") and i + 1 < len(toks) and low == "env":
+                    import shlex
+                    try:
+                        toks = toks[:i] + shlex.split(toks[i + 1]) + toks[i + 2:]
+                    except ValueError:
+                        toks = toks[:i] + toks[i + 1].split() + toks[i + 2:]
+                    break
                 if toks[i] in ("-p", "--package", "-C", "--chdir", "-u", "--unset", "-g",
-                               "-n") and i + 1 < len(toks):
+                               "-n", "-I", "-i", "-L", "-P", "-d", "-E", "-s") and \
+                        i + 1 < len(toks):
                     i += 1
                 i += 1
             continue
@@ -2042,7 +2056,10 @@ def _deploy_target(tool: str, argv: list[str]) -> tuple[bool, str | None]:
 
 _HTTPIE = {"http", "https", "xh", "xhs", "httpie"}
 _SCRIPT_SUFFIXES = {".py", ".js", ".mjs", ".cjs", ".ts", ".sh", ".bash", ".rb", ".pl", ".php"}
-_PIPE_SH_RE = re.compile(r"\|\s*(?:\S*/)?(?:ba|z|da|k)?sh\b")
+_PIPE_SH_RE = re.compile(r"\|\s*(?:\S*/)?(?:(?:ba|z|da|k)?sh|at|batch)\b")
+_DEPLOY_SUBST_RE = re.compile(r"\$\(([^()]*)\)|`([^`]*)`")
+_CMD_STRING_PROGS = {"tmux", "screen", "su", "at", "batch", "sg", "runuser", "nsenter",
+                     "firejail", "systemd-run"}
 # A script file that both names a deploy and executes a subprocess is a deploy.
 _DEPLOY_LEX_RE = re.compile(
     r"\bwrangler\b['\"\s,\[]+(?:pages['\"\s,\[]+(?:deploy|publish|deployment)|deploy|publish|"
@@ -2052,7 +2069,8 @@ _DEPLOY_LEX_RE = re.compile(
     r"|\bvercel\b[^\n]{0,80}?(?:--prod|['\"\s,]promote\b|['\"\s,]deploy\b)"
     r"|\b(?:netlify|ntl)\b['\"\s,]+deploy\b[^\n]{0,80}?--prod")
 _SPAWN_RE = re.compile(r"subprocess|os\.system|popen|execsync|execfilesync|spawn|child_process|"
-                       r"\bexeca\b|\bsystem\s*\(|\$\(|`")
+                       r"\bexeca\b|\bsystem\s*\(|\$\(|`|shell_exec|passthru|proc_open|"
+                       r"\bexec\s*\(|%x\{|\bopen3\b")
 
 
 def script_deploy_error(text: str, where: Path, proj: Path | None = None) -> str | None:
@@ -2080,6 +2098,33 @@ def deploy_error(outer: str, cwd: Path, depth: int = 0) -> str | None:
     (`http`/`https`/`xh`) calls to outward send endpoints (httpie is not an exec word)."""
     import shlex
     base = cwd
+    if depth < 3 and ("$(" in outer or "`" in outer):
+        def _subst(m: re.Match) -> str:
+            inner = m.group(1) if m.group(1) is not None else m.group(2)
+            try:
+                it = shlex.split(inner)
+            except ValueError:
+                it = inner.split()
+            if it[:1] in (["echo"], ["printf"]):
+                return " ".join(it[1:])
+            if it[:1] == ["cat"] and len(it) == 2:
+                try:
+                    return _read_limited(cwd / it[1], it[1]) or ""
+                except (OSError, ScanLimit):
+                    return ""
+            if it[:1] == ["pwd"]:
+                return str(cwd)
+            return m.group(0)
+        for m in _DEPLOY_SUBST_RE.finditer(outer):
+            inner = m.group(1) if m.group(1) is not None else m.group(2)
+            err = deploy_error(inner, cwd, depth + 1)
+            if err:
+                return err
+        sub = _DEPLOY_SUBST_RE.sub(_subst, outer)
+        if sub != outer:
+            err = deploy_error(sub, cwd, depth + 1)
+            if err:
+                return err
     for seg in split_simple_commands(outer):
         try:
             toks = shlex.split(seg)
@@ -2149,7 +2194,21 @@ def deploy_error(outer: str, cwd: Path, depth: int = 0) -> str | None:
             if err:
                 return err
             continue
-        if depth < 3 and name == "cat" and _PIPE_SH_RE.search(outer):
+        if depth < 3 and name in _CMD_STRING_PROGS:
+            for k in range(1, min(len(argv), 12)):
+                if argv[k].startswith("-"):
+                    continue
+                err = deploy_error(" ".join(argv[k:]), base, depth + 1) or (
+                    deploy_error(argv[k], base, depth + 1) if " " in argv[k] else None)
+                if err:
+                    return err
+            continue
+        if depth < 3 and name == "gh":
+            err = gh_text_error(argv)
+            if err:
+                return err
+            continue
+        if depth < 3 and name in ("cat", "tail", "head") and _PIPE_SH_RE.search(outer):
             for fa in argv[1:]:
                 if not fa.startswith("-"):
                     err = _exec_file_deploy(base / fa, base, depth, force_shell=True)
@@ -2290,6 +2349,47 @@ def _bind_positional(text: str, args: list[str], base: Path) -> str:
     return text
 
 
+_PATH_LIT_RE = re.compile(r"(?<![\w$.-])((?:\.{1,2}/)?[\w.-]+(?:/[\w.-]+)+)/?")
+
+
+def _unresolved_target_error(fp: Path, text: str, args: list[str], base: Path,
+                             sbase: Path) -> str | None:
+    """Tracked clean deploy script whose target dir is not resolvable: every folder the script
+    names as a literal (repo- or script-relative) and every path arg must pass the deploy rule;
+    with none, the script's project and the whole deliverables/ tree must be clean."""
+    root = Path(os.path.realpath(REPO_ROOT))
+    cands: list[Path] = []
+    for a in args:
+        if not a.startswith("-") and (base / a).exists():
+            cands.append(base / a)
+    for m in _PATH_LIT_RE.finditer(text):
+        lit = m.group(1)
+        for b in (root, fp.parent, base):
+            c = b / lit
+            try:
+                if c.is_dir() and Path(os.path.realpath(c)).is_relative_to(root) and \
+                        Path(os.path.realpath(c)) != root:
+                    cands.append(c)
+                    break
+            except OSError:
+                continue
+        if len(cands) > 40:
+            break
+    for c in cands:
+        why = dir_committed_error(c) if c.is_dir() else project_clean_error(_script_project(c))
+        if why and "outside a committed project" in why:
+            continue  # scratch (.tmp/ staging): its source is a separate literal/arg
+        if why:
+            return f"redteam gate: deploy from {fp}: target {c}: {why}. {DEPLOY_DENY}"
+    if cands:
+        return None
+    why = project_clean_error(sbase)
+    deliv = root / "deliverables"
+    if not why and deliv.is_dir():
+        why = _project_status_error(deliv, root)
+    return f"redteam gate: deploy from {fp}: {why}. {DEPLOY_DENY}" if why else None
+
+
 def _exec_file_deploy(fp: Path, base: Path, depth: int, force_shell: bool = False,
                       args: list[str] | None = None) -> str | None:
     """A file this command EXECUTES: shell files are re-parsed as commands; code files are
@@ -2309,10 +2409,7 @@ def _exec_file_deploy(fp: Path, base: Path, depth: int, force_shell: bool = Fals
         if err and "uses expansion" in err and git_clean(fp):
             # tracked + clean script whose deploy dir is not resolvable from its args: the
             # project of the path args it was given (else the script's own folder) must be clean
-            paths = [base / a for a in (args or []) if not a.startswith("-") and (base / a).exists()]
-            why = project_clean_error(_script_project(paths[0] / "x") if paths and paths[0].is_dir()
-                                      else (_script_project(paths[0]) if paths else sbase))
-            err = (f"redteam gate: deploy from {fp}: {why}. {DEPLOY_DENY}" if why else None)
+            err = _unresolved_target_error(fp, bound, args or [], base, sbase)
         if err:
             return err
         if git_clean(fp):
@@ -2326,7 +2423,7 @@ def _interp_deploy(argv: list[str], name: str, base: Path, depth: int) -> str | 
     or inline code for a spawned deploy."""
     if _INTERPS.fullmatch(name):
         for n, a in enumerate(argv[1:], 1):
-            if re.fullmatch(r"-[a-z]*[ce]", a, re.I) or a in ("--eval", "--command"):
+            if re.fullmatch(r"-[a-z]*[cer]", a, re.I) or a in ("--eval", "--command"):
                 code = argv[n + 1] if n + 1 < len(argv) else ""
                 err = script_deploy_error(code, Path("inline.py"), base)
                 if err:
@@ -2346,6 +2443,50 @@ def _interp_deploy(argv: list[str], name: str, base: Path, depth: int) -> str | 
         return None
     if "/" in argv[0] or "\\" in argv[0]:
         return _exec_file_deploy(base / argv[0], base, depth, args=argv[1:])
+    return None
+
+
+_GH_TEXT_SUBCMDS = {("issue", "comment"), ("issue", "create"), ("issue", "edit"),
+                    ("pr", "comment"), ("pr", "create"), ("pr", "review"), ("pr", "edit"),
+                    ("release", "create"), ("release", "edit"), ("discussion", "comment")}
+_GH_TEXT_FLAGS = {"--body": "body", "-b": "body", "--title": "title", "-t": "title",
+                  "--notes": "notes", "-n": "notes"}
+_GH_FILE_FLAGS = {"--body-file", "-F", "--notes-file"}
+
+
+def gh_text_error(argv: list[str]) -> str | None:
+    """`gh issue|pr comment|create|review|edit --body/--title/--body-file`: like MCP posts,
+    every given text must be a passed red-team text; no text (--fill, --approve) passes."""
+    pos = [a for a in argv[1:3] if not a.startswith("-")]
+    if tuple(pos[:2]) not in _GH_TEXT_SUBCMDS:
+        return None
+    texts: list[tuple[str, str]] = []
+    i = 1
+    while i < len(argv):
+        a = argv[i]
+        k, eq, v = a.partition("=")
+        if k in _GH_TEXT_FLAGS or k in _GH_FILE_FLAGS:
+            if not eq:
+                v = argv[i + 1] if i + 1 < len(argv) else ""
+                i += 1
+            if k in _GH_FILE_FLAGS:
+                if v == "-":
+                    return f"redteam gate: gh {' '.join(pos)} reads text from stdin (unverifiable)"
+                try:
+                    v = Path(v).read_text(encoding="utf-8", errors="replace")
+                except OSError:
+                    return f"redteam gate: gh {' '.join(pos)} text file {v} unreadable"
+            texts.append((_GH_TEXT_FLAGS.get(k, "body"), v))
+        i += 1
+    ledger = Ledger(state_dir())
+    for key, raw in texts:
+        if not raw.strip():
+            continue
+        norm = normalise(raw)
+        sha = _sha256(norm)
+        if not ledger.rows_for(sha):
+            return (f"redteam gate: {_not_passed('gh ' + ' '.join(pos) + '.' + key, norm, sha)}. "
+                    f"{DENY_SUFFIX}")
     return None
 
 
@@ -3048,8 +3189,10 @@ def hook_path_error(outer: str) -> str | None:
 
 def _bash_decision(command: str, cwd_raw: Any, allow_tracked: bool = True,
                    depth: int = 0) -> str | None:
-    outer, docs = split_heredocs(command)
     cwd = Path(cwd_raw) if isinstance(cwd_raw, str) and cwd_raw else Path.cwd()
+    command = re.sub(r"\$\{PWD\}|\$PWD\b|\$\(\s*pwd\s*\)|`\s*pwd\s*`",
+                     lambda _m: str(cwd), command)
+    outer, docs = split_heredocs(command)
     he = hook_path_error(outer)
     if not he and _EXEC_RE.search(outer):
         for _o, body in docs:
@@ -3170,7 +3313,9 @@ _MCP_ID_KEY_RE = re.compile(
     r"limit|cursor|user|username|handle|to|cc|bcc|recipients?|emails?|emailaddress|role|"
     r"mimetype|filename|file_type|maintainer_can_modify|unfurl_links|unfurl_media|"
     r"reply_broadcast|mrkdwn|icon_emoji|icon_url|as_user|parse|link_names|scheduled_at|"
-    r"post_at|subject_type|position|in_reply_to|reply_to_tweet_id|quote_tweet_id|media_ids)$",
+    r"post_at|subject_type|position|in_reply_to|reply_to_tweet_id|quote_tweet_id|media_ids|"
+    r"subjecttype|startside|startline|statereason|merge_method|mergemethod|commitid|"
+    r"pullnumber|issuenumber|reviewers?|commit_title_hidden|expected_head_sha)$",
     re.I)
 # Recipient keys parsed as email addresses; target keys are non-address audiences.
 MCP_ADDR_KEYS = ("emailAddress", "emailAddresses", "email", "emails", "recipient", "recipients",
@@ -3250,7 +3395,7 @@ def mcp_outward_decision(kind: str, action: str, ti: dict, state: Path) -> str |
         _k, raw, h = fields[0]
         rows = ledger.rows_for(_sha256(normalise(raw, h)))
     elif kind == "post":
-        return f"{action}: no outward text found to verify (outward MCP call denied by default)"
+        rows = []  # only ids/enums (approve a review, close an issue): no outward text
     else:
         rows = [r for r in ledger.rows if r.get("waived") is not True]
     if any(r.get("waived") is True for r in rows):
@@ -3260,6 +3405,8 @@ def mcp_outward_decision(kind: str, action: str, ti: dict, state: Path) -> str |
                 f"message waived by the operator, or address recipients")
     if not addrs:
         return None if kind == "post" else f"{action}: no recipient could be read"
+    if kind == "post" and not fields:
+        return f"{action}: recipients given but no red-teamed text to bind them to"
     for r in rows:
         allowed = {str(a).lower() for k in ("to", "cc", "bcc") for a in (r.get(k) or [])}
         if addrs <= allowed:
