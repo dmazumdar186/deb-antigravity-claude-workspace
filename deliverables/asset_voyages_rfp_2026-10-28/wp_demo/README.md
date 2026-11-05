@@ -5,6 +5,7 @@
 - Visitor demo: `https://playground.wordpress.net/?blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-visitor.json` (logged out, opens on the catalogue)
 - Admin demo: `https://playground.wordpress.net/?blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json` (logged in as `admin`, opens on « Demandes »)
 - Demo accounts (throwaway sandbox password `demo-asset`): `direction` (Direction ASSET), `equipe` (Équipe ASSET), `contributeur` (Contributeur ASSET). Playground's own `admin` / `password` is the administrator.
+- Isolation: the demo links are public, but WordPress Playground runs the whole site (PHP + SQLite) **inside each visitor's own browser tab**. Visitors never share a database, so what one person types (enquiries, access requests, revealed dummy codes) is never seen by anyone else, and no cross-visitor isolation layer is needed. The only shared files are the static `asset-congres-demo.zip` and the two blueprints.
 - Reset: reload the Playground page. Every visit starts from the seed. **Outils → Démo ASSET** re-runs the seed, which is idempotent and creates no duplicates.
 
 ## What each feature does

@@ -76,7 +76,7 @@ add_action(
 function asset_cd_login_redirect( $redirect_to, $requested, $user ) {
 	if ( $user instanceof WP_User && array_intersect( array( 'asset_direction', 'asset_equipe', 'asset_contributeur' ), (array) $user->roles ) ) {
 		if ( '' === $requested || str_contains( (string) $redirect_to, 'profile.php' ) || admin_url() === $requested ) {
-			return admin_url();
+			return admin_url( 'index.php' ); // Not admin_url(): core would re-route that to profile.php.
 		}
 	}
 	return $redirect_to;
