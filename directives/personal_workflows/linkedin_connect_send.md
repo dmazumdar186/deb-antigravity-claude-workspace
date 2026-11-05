@@ -63,7 +63,7 @@ To remove the task: `Unregister-ScheduledTask -TaskName "LinkedIn connect send" 
 
 1. Today's local date (same as the queue module's ledger dates). Not a send day, or `emailed_<date>.txt` exists → exit 0 silently.
 2. (Real run) no Gmail credentials → log, exit 3 (the only silent failure; the alert below catches it). No `master.csv` or Playwright not importable → email `STOPPED: no master list` / `STOPPED: playwright not installed`, no marker (a rerun after the fix still sends today), exit 3.
-   Another run holds the queue lock (`run.lock`, < 120 min old) → exit 0 without sending; the run takes the lock and releases it on every exit path.
+   Another run holds `send.lock` (exclusive create, < 120 min old; older = crashed run, taken over) or the retired routine's `run.lock` → exit 0 without sending; `send.lock` is deleted on every exit path.
 3. Plan up to 20 − already sent today with `cmd_plan` (shuffled, seeded by date; same queue file as before).
 4. Launch the persistent profile in Google Chrome (`channel="chrome"`, headed). Chrome missing or the profile in use → email `STOPPED: Chrome not available`, exit 3.
 5. For each person: open the profile URL, wait for the header to render, then decide (first match wins):
@@ -83,17 +83,18 @@ To remove the task: `Unregister-ScheduledTask -TaskName "LinkedIn connect send" 
 
 ## Edge Cases & Constraints
 
-- **Overlap:** the task uses `MultipleInstances IgnoreNew`, and `run` takes the queue's `run.lock`, so a manual `run` (or `setup --start`) while the task runs exits 0 without sending.
+- **Overlap:** the task uses `MultipleInstances IgnoreNew`, and `run` takes `send.lock` (O_EXCL), so a manual `run` (or `setup --start`) while the task runs exits 0 without sending.
 - **Missing report alert:** the cloud scheduled task "LinkedIn connect: missing-report alert" checks Gmail at 15:07 Europe/Paris on send days; no `LinkedIn connects <date>` email by then → it emails `LinkedIn connects <date> — MISSING: no run by 15:00`. Fail loud on delivery: a job that never starts (task missing, PC off, Gmail creds gone) can no longer look like a quiet day.
 - **PC off at 10:00:** `StartWhenAvailable` runs it at the next logon the same day. The task runs only while the operator is logged on (Chrome needs the desktop session). A day the PC never wakes produces no email.
-- **Run crashed:** still emails, subject `STOPPED: run failed (<error type>)`, exit 3. SMTP failing 3 times → no marker, exit 3, details in `send.log`.
+- **Run crashed:** still emails, subject `STOPPED: run failed (<error type>)`, exit 3, and writes no marker (same for `Chrome not available`), so a rerun after the fix sends the rest of today's batch. SMTP failing 3 times → no marker, exit 3, details in `send.log`.
 - **Run length:** worst case ~3 min per profile (120 s gap + 45 s load + 10 s render + 10 s confirm); the 110-minute budget plus email retries ends every run well inside the task's 3 h `ExecutionTimeLimit`.
 - **`no_connect_button` is `retry`:** a Follow-only profile comes back on a later day; on the 3rd different day `Q.mark` records it as final `skipped no_connect_button_3x`. If LinkedIn moves the Connect button, the run stops after 3 in a row instead of marking hundreds of people final.
 - **Marker:** written only after the email succeeds; rerunning on the same day after that is a no-op. Delete the marker to force a second report.
 - **Cap:** counted from the ledger, so a crashed run resumed the same day only tops up to 20. `Q.mark` refuses a 21st `sent` the same day (exit 3).
 - **Date:** the laptop's local date, for gating and the ledger alike. A long stay in another time zone shifts the 10:00 start with the clock; nothing else changes.
 - **Selectors are accessibility-based** (button names "Connect" / "Invite X to connect", "Pending…", "More actions", dialog "Send without a note", role=alert). The header is scoped to the first `<section>` in `<main>` so "People also viewed" Connect buttons are never clicked. If LinkedIn changes its markup, the symptom is a run of `no_connect_button` skips or `retry`s → check `send.log`, update the regexes at the top of the script and the fixtures in `tests/fixtures/linkedin/`.
-- **Logged out:** the session cookie lives in `chrome_profile/`; if LinkedIn logs the profile out, the email says `STOPPED: not logged in` — rerun `login`.
+- **Logged out:** the session cookie lives in `chrome_profile/`; if LinkedIn logs the profile out, the email says `STOPPED: not logged in` — rerun `login` (or the setup .cmd). `login`/`setup` trust the cookie only after `/feed` loads without a login/authwall/checkpoint bounce, so a revoked cookie still opens the sign-in page.
+- **Python:** `setup` registers the resolved `sys.executable`; it refuses the Microsoft Store Python (`\WindowsApps\`), which Task Scheduler cannot start.
 - The old runbook's "every ~8 profiles, open the feed" detour is not carried over (not in the operator's requirements).
 - Tests: `python -m pytest tests/test_linkedin_connect_send.py` (offline; fixtures driven in Playwright Chromium).
 

@@ -458,17 +458,47 @@ def cmd_run(data_dir: Path, dry_run: bool, today: dt.date | None = None) -> int:
     except ImportError:
         log.error("playwright not installed: py -m pip install playwright")
         return _config_stop(day, "playwright not installed", dry_run)
-    lock_age = Q._lock_age_min(store)
-    if lock_age is not None and lock_age <= Q.LOCK_TTL_MIN:
+    q_age = Q._lock_age_min(store)  # the retired Cowork routine's lock: honour it, never take it
+    if (q_age is not None and q_age <= Q.LOCK_TTL_MIN) or not acquire_lock(data_dir):
         log.info("another run holds the lock; exiting without sending")
         return 0
-    with contextlib.redirect_stdout(io.StringIO()):
-        Q.cmd_lock(store, "acquire")
     try:
         return _run_locked(data_dir, store, day, dry_run)
     finally:
-        with contextlib.redirect_stdout(io.StringIO()):
-            Q.cmd_lock(store, "release")
+        release_lock(data_dir)
+
+
+def _lock_file(data_dir: Path) -> Path:
+    return data_dir / "send.lock"
+
+
+def acquire_lock(data_dir: Path) -> bool:
+    """Exclusive create (O_EXCL), so two runs starting in the same second cannot both pass. A lock older
+    than Q.LOCK_TTL_MIN is a crashed run's and is taken over."""
+    path = _lock_file(data_dir)
+    for _ in range(2):
+        try:
+            fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        except FileExistsError:
+            try:
+                age_min = (time.time() - path.stat().st_mtime) / 60
+            except FileNotFoundError:
+                continue  # released between our two calls: try again
+            if age_min <= Q.LOCK_TTL_MIN:
+                return False
+            log.warning("stale send.lock (%.0f min) from a crashed run, taking over", age_min)
+            with contextlib.suppress(FileNotFoundError):
+                path.unlink()
+            continue
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            fh.write(f"{dt.datetime.now().isoformat(timespec='seconds')}|{os.getpid()}\n")
+        return True
+    return False
+
+
+def release_lock(data_dir: Path) -> None:
+    with contextlib.suppress(FileNotFoundError):
+        _lock_file(data_dir).unlink()
 
 
 def _config_stop(day: str, reason: str, dry_run: bool) -> int:
@@ -503,13 +533,24 @@ def _run_locked(data_dir: Path, store: Q.Store, day: str, dry_run: bool) -> int:
     log.info("subject: %s", subject)
     if not deliver(subject, build_table_html(rows), day, dry_run):
         return 3
-    if not dry_run:
+    if not dry_run and code != 3:  # a setup failure (Chrome missing, crash) must not block a same-day rerun
         marker_path(data_dir, day).write_text(subject + "\n", encoding="utf-8")
     return code
 
 
 def _has_session(ctx) -> bool:
     return any(c.get("name") == "li_at" and c.get("value") for c in ctx.cookies("https://www.linkedin.com"))
+
+
+def _session_works(page) -> bool:
+    """The cookie can outlive the session (LinkedIn revokes it server-side): load the feed and check
+    we were not bounced to login / authwall / checkpoint."""
+    try:
+        page.goto("https://www.linkedin.com/feed/", timeout=NAV_TIMEOUT_MS)
+        page.wait_for_timeout(2_000)
+    except Exception:  # network hiccup: treat as not verified, the login page is shown instead
+        return False
+    return not (LOGIN_URL_RE.search(page.url) or CHECKPOINT_URL_RE.search(page.url) or is_logged_out(page))
 
 
 def ensure_login(data_dir: Path, wait_s: int = LOGIN_WAIT_S) -> bool:
@@ -519,9 +560,9 @@ def ensure_login(data_dir: Path, wait_s: int = LOGIN_WAIT_S) -> bool:
     with sync_playwright() as pw:
         ctx = launch_context(pw, data_dir)
         try:
-            if _has_session(ctx):
-                return True
             page = ctx.pages[0] if ctx.pages else ctx.new_page()
+            if _has_session(ctx) and _session_works(page):
+                return True
             page.goto("https://www.linkedin.com/login", timeout=NAV_TIMEOUT_MS)
             print("Sign in to LinkedIn in the Chrome window that opened; it closes by itself once you are in.")
             deadline = time.monotonic() + wait_s
@@ -586,6 +627,11 @@ def cmd_setup(data_dir: Path, start: bool) -> int:
     if not Q.Store(data_dir).master.exists():
         print(f"no master.csv in {data_dir}", file=sys.stderr)
         return 3
+    python_exe = str(Path(sys.executable).resolve())
+    if "\\WindowsApps\\" in python_exe:
+        print(f"{python_exe} is the Microsoft Store Python, which Task Scheduler cannot start. Install Python "
+              "from python.org (tick 'py launcher'), then run setup again.", file=sys.stderr)
+        return 3
     try:
         if not ensure_login(data_dir):
             print("No LinkedIn session yet: run this again and sign in within 10 minutes.", file=sys.stderr)
@@ -593,10 +639,17 @@ def cmd_setup(data_dir: Path, start: bool) -> int:
     except ChromeUnavailable as exc:
         print(exc, file=sys.stderr)
         return 3
+    except ImportError:
+        print("playwright is not installed: py -m pip install playwright", file=sys.stderr)
+        return 3
     print("LinkedIn session: ok")
-    ps = task_script(sys.executable, Path(__file__).resolve(), REPO, start)
-    res = subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", ps],  # noqa: S603,S607 fixed argv; values are constants + _ps_quote()d paths
-                         capture_output=True, text=True, timeout=120)
+    ps = task_script(python_exe, Path(__file__).resolve(), REPO, start)
+    try:
+        res = subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", ps],  # noqa: S603,S607 fixed argv; values are constants + _ps_quote()d paths
+                             capture_output=True, text=True, timeout=120)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        print(f"could not register the task with PowerShell ({type(exc).__name__}: {exc})", file=sys.stderr)
+        return 3
     print(res.stdout.strip())
     if res.returncode != 0:
         print(res.stderr.strip(), file=sys.stderr)

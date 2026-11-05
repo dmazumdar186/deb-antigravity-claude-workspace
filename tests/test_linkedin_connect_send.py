@@ -447,7 +447,58 @@ def test_run_releases_lock(tmp_path, monkeypatch, browser):
     store = seed(tmp_path / "d", [("a", "connect_header.html")])
     monkeypatch.setattr(S, "EML_DIR", tmp_path / "eml")
     S.cmd_run(tmp_path / "d", dry_run=True, today=MON)
-    assert Q._lock_age_min(store) is None
+    assert not (tmp_path / "d" / "send.lock").exists() and Q._lock_age_min(store) is None
+
+
+def test_send_lock_is_exclusive_and_stale_is_taken_over(tmp_path):
+    assert S.acquire_lock(tmp_path) and not S.acquire_lock(tmp_path)  # second caller loses, no TOCTOU
+    S.release_lock(tmp_path)
+    assert S.acquire_lock(tmp_path)
+    old = S.time.time() - (Q.LOCK_TTL_MIN + 5) * 60
+    os.utime(tmp_path / "send.lock", (old, old))
+    assert S.acquire_lock(tmp_path)  # crashed run's lock taken over
+    S.release_lock(tmp_path)
+    S.release_lock(tmp_path)  # idempotent
+
+
+def test_held_send_lock_makes_run_a_silent_noop(tmp_path, monkeypatch):
+    seed(tmp_path, [("a", "connect_header.html")])
+    monkeypatch.setenv("GMAIL_SMTP_USER", "me@example.com")
+    monkeypatch.setenv("GMAIL_SMTP_APP_PASSWORD", "x")
+    assert S.acquire_lock(tmp_path)
+    monkeypatch.setattr(S, "launch_context", lambda *a, **k: pytest.fail("must not launch"))
+    assert S.cmd_run(tmp_path, dry_run=False, today=MON) == 0
+    assert (tmp_path / "send.lock").exists()  # the other run's lock is left alone
+
+
+def test_chrome_missing_writes_no_marker(tmp_path, monkeypatch):
+    @contextlib.contextmanager
+    def no_chrome(data_dir):
+        raise S.ChromeUnavailable("Google Chrome could not start (not found)")
+        yield  # pragma: no cover
+    monkeypatch.setattr(S, "open_browser", no_chrome)
+    _smtp_env(monkeypatch, _FakeSMTP)
+    seed(tmp_path, [("a", "connect_header.html")])
+    assert S.cmd_run(tmp_path, dry_run=False, today=MON) == 3
+    assert not S.marker_path(tmp_path, "2026-11-02").exists()
+
+
+def test_stale_cookie_is_not_a_session(page):
+    page.set_content("<main><a href='#'>Sign in</a><button>Join now</button></main>")
+    page.goto = lambda *a, **k: None  # stay on the fixture: LinkedIn bounced us to a signed-out page
+    page.wait_for_timeout = lambda *a, **k: None
+    assert S._session_works(page) is False
+
+
+def test_setup_refuses_store_python(tmp_path, monkeypatch):
+    monkeypatch.setattr(S.os, "name", "nt")
+    monkeypatch.setenv("GMAIL_SMTP_USER", "me@example.com")
+    monkeypatch.setenv("GMAIL_SMTP_APP_PASSWORD", "x")
+    seed(tmp_path, [("a", "connect_header.html")])
+    monkeypatch.setattr(S.sys, "executable", r"C:\Users\d\AppData\Local\Microsoft\WindowsApps\python.exe")
+    monkeypatch.setattr(S.Path, "resolve", lambda self: self)
+    monkeypatch.setattr(S, "ensure_login", lambda *a, **k: pytest.fail("must refuse before login"))
+    assert S.cmd_setup(tmp_path, start=True) == 3
 
 
 def test_task_script_quotes_paths_and_is_idempotent():
