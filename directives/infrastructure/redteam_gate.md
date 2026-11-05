@@ -291,3 +291,16 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   context and Telegram `bot.send_*(` added. MCP post verbs add reply_to_thread, create_post,
   tweet, create_message, send_dm, comment (incl. GitHub issue/PR comments), schedule_message.
   Wrapper read-exclusion matches the tool segment after the server only.
+- 2026-11-05 (channels third audit): MCP post/send/comment text is an allow-list of keys
+  (body/text/message/content/comment/title/description/subject/caption/status/note/reply/
+  markdown/html/summary/blocks/attachments/embeds and *_text/*_body forms); ids and handles
+  (owner, repo, issue_number, user_id, tweet_id) are not text. Deploy scans only files the
+  command EXECUTES (interpreter arg, `sh f`, `source f`/`. f`, `./f`, `cat f | sh`,
+  `python3 -c` code) and Makefile recipes of the invoked target (+ prerequisites; pattern
+  rules scan the whole file); a deploy script is checked against its own project folder
+  (nearest project marker, else its directory), never the cwd or the repo root. Combined
+  shell flags (`-lc`, `-ec`, `-euc`), `yarn|pnpm <bin>`, `--dry-run=false` and nested var
+  expansions are covered. Write signals add `-d@f`/`-d'…'`, `--data-*`, `--form*`, `-T`,
+  `--upload-file`, wget `--post-*`/`--method`, `.request('POST'`, `Request(data=`, fetch
+  `method:'POST'`. MCP read prefixes need no underscore (`getpermissions`), same as the hook.
+  Limit: curl `-f` (fail) is indistinguishable from `-F` after lowercasing and counts as a write.

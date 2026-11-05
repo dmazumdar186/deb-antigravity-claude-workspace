@@ -1761,10 +1761,13 @@ _WRITE_ENDPOINT_RES = (
      "Meta Graph post/message"),
 )
 _WRITE_SIGNAL_RE = re.compile(
-    r"(?:-x|--request)\s*['\"]?(?:post|put|patch)\b|(?:^|\s)(?:-d|-f|--form|--json|--data[\w-]*)"
-    r"(?:\s|=|$)|\b(?:http|https|xh|xhs)\s+(?:-\S+\s+)*(?:post|put|patch)\b|"
-    r"\.(?:post|put|patch|create)\s*\(|method\s*[:=]\s*['\"](?:post|put|patch)|"
-    r"\b(?:http|https|xh|xhs)\s+(?:-\S+\s+)*\S+\s+[^\s=]+:?=")
+    r"(?:-x|--request|--method)[\s=]*['\"]?(?:post|put|patch)\b"
+    r"|(?:^|\s)-[dft](?![a-z-])|(?:^|\s)--(?:data|form)[\w-]*|(?:^|\s)--(?:json|upload-file|"
+    r"post-data|post-file)\b"
+    r"|\b(?:http|https|xh|xhs)\s+(?:-\S+\s+)*(?:post|put|patch)\b"
+    r"|\.(?:post|put|patch|create)\s*\(|\.request\s*\(\s*['\"](?:post|put|patch)"
+    r"|method\s*[:=]\s*['\"](?:post|put|patch)|\brequest\s*\([^)]*\bdata\s*="
+    r"|\b(?:http|https|xh|xhs)\s+(?:-\S+\s+)*\S+\s+[^\s=]+:?=")
 
 
 def outward_api_hit(low: str) -> str | None:
@@ -1966,13 +1969,18 @@ def _deploy_target(tool: str, argv: list[str]) -> tuple[bool, str | None]:
             flags.add(k)
             if eq:
                 named[k] = v
+            elif k == "--dry-run" and i + 1 < len(argv) and argv[i + 1].lower() in (
+                    "true", "false", "0", "1", "yes", "no", "on", "off"):
+                named[k] = argv[i + 1]
+                i += 1
             elif k in _DEPLOY_VAL_FLAGS and i + 1 < len(argv):
                 named[k] = argv[i + 1]
                 i += 1
         else:
             pos.append(a)
         i += 1
-    if "--dry-run" in flags:
+    if "--dry-run" in flags and str(named.get("--dry-run", "true")).lower() not in (
+            "false", "0", "no", "off"):
         return False, None
     if tool == "wrangler":
         if pos[:2] in (["pages", "deploy"], ["pages", "publish"]):
@@ -2046,12 +2054,31 @@ def deploy_error(outer: str, cwd: Path, depth: int = 0) -> str | None:
         prog = argv[0]
         low = prog.lower()
         name = re.split(r"[/\\]", low)[-1]
-        if depth < 3 and name in ("bash", "sh", "zsh", "dash", "ksh") and "-c" in argv:
-            k = argv.index("-c")
-            if k + 1 < len(argv):
-                err = deploy_error(argv[k + 1], base, depth + 1)
+        if low in _PKG_MANAGERS and len(argv) > 1:
+            k = 2 if argv[1].lower() in ("exec", "x", "dlx") and len(argv) > 2 else 1
+            if _tool_name(argv[k]):
+                argv = argv[k:]
+                prog = argv[0]
+                low = prog.lower()
+                name = re.split(r"[/\\]", low)[-1]
+        if depth < 3 and name in _SHELLS:
+            cflag = next((n for n, a in enumerate(argv[1:], 1)
+                          if re.fullmatch(r"-[a-z]*c[a-z]*", a, re.I)), None)
+            if cflag is not None:
+                code = next((a for a in argv[cflag + 1:] if not a.startswith("-")), None)
+                err = deploy_error(code, base, depth + 1) if code else None
                 if err:
                     return err
+                continue
+            fa = next((a for a in argv[1:] if not a.startswith("-")), None)
+            err = _exec_file_deploy(base / fa, base, depth) if fa else None
+            if err:
+                return err
+            continue
+        if depth < 3 and name in ("source", "."):
+            err = _exec_file_deploy(base / argv[1], base, depth) if len(argv) > 1 else None
+            if err:
+                return err
             continue
         if depth < 3 and name == "eval":
             err = deploy_error(" ".join(argv[1:]), base, depth + 1)
@@ -2063,11 +2090,20 @@ def deploy_error(outer: str, cwd: Path, depth: int = 0) -> str | None:
             if err:
                 return err
             continue
+        if depth < 3 and name == "cat" and _PIPE_SH_RE.search(outer):
+            for fa in argv[1:]:
+                if not fa.startswith("-"):
+                    err = _exec_file_deploy(base / fa, base, depth, force_shell=True)
+                    if err:
+                        return err
+            continue
         if depth < 3 and name in ("make", "gmake"):
+            targets = [a for a in argv[1:] if not a.startswith("-") and "=" not in a]
             for mf in makefiles(" ".join(argv), [base]):
                 text = _read_limited(mf, str(mf))
                 if text:
-                    err = deploy_error(text, mf.parent, depth + 1)
+                    body = make_recipes(text, targets)
+                    err = deploy_error(body, mf.parent, depth + 1)
                     if err:
                         return err
             continue
@@ -2075,7 +2111,7 @@ def deploy_error(outer: str, cwd: Path, depth: int = 0) -> str | None:
             nxt = argv[1] if len(argv) > 1 else ""
             base = (base / nxt) if nxt and not any(c in nxt for c in "$`~") else base
             continue
-        if re.split(r"[/\\]", low)[-1] in _HTTPIE:
+        if name in _HTTPIE:
             hit = sender_hit(seg.lower())
             if hit:
                 return f"redteam gate: Bash command sends outward via httpie ({hit}). {BASH_DENY}"
@@ -2093,20 +2129,9 @@ def deploy_error(outer: str, cwd: Path, depth: int = 0) -> str | None:
             continue
         tool = _tool_name(prog)
         if not tool:
-            # scripts run by this command (trusted or not) that call a deploy: the cwd
-            # project must be clean, since the deploy publishes it
-            for tok in argv[:6]:
-                if tok.startswith("-") or len(tok) > 300:
-                    continue
-                fp = base / tok
-                try:
-                    if fp.suffix.lower() in _SCRIPT_SUFFIXES and fp.is_file():
-                        text = _read_limited(fp, str(fp))
-                        err = script_deploy_error(text, fp, base) if text else None
-                        if err:
-                            return f"redteam gate: {err}. {DEPLOY_DENY}"
-                except (OSError, ScanLimit):
-                    continue
+            err = _interp_deploy(argv, name, base, depth)
+            if err:
+                return err
             continue
         is_deploy, d = _deploy_target(tool, argv[1:])
         if not is_deploy:
@@ -2117,6 +2142,100 @@ def deploy_error(outer: str, cwd: Path, depth: int = 0) -> str | None:
         why = dir_committed_error(target) if d else project_clean_error(target)
         if why:
             return f"redteam gate: {tool} deploy of {target}: {why}. {DEPLOY_DENY}"
+    return None
+
+
+_SHELLS = {"bash", "sh", "zsh", "dash", "ksh"}
+_INTERPS = re.compile(r"python(?:3(?:\.\d+)?)?(?:\.exe)?|py|node|deno|bun|ruby|perl|php|tsx|ts-node|"
+                      r"pwsh|powershell")
+
+
+def make_recipes(text: str, targets: list[str], depth: int = 0) -> str:
+    """Recipe lines of the invoked targets (first target when none) plus their prerequisites."""
+    rules: dict[str, tuple[list[str], list[str]]] = {}
+    order: list[str] = []
+    cur: list[str] | None = None
+    for line in text.splitlines():
+        if line.startswith("\t"):
+            if cur is not None:
+                cur.append(line[1:])
+            continue
+        m = re.match(r"^([A-Za-z0-9_./%$(){}-][^:=#]*?)\s*::?(?!=)\s*([^=#;]*)(?:;(.*))?$", line)
+        if m:
+            cur = []
+            for t in m.group(1).split():
+                if t not in rules:
+                    rules[t] = ([], cur)
+                    order.append(t)
+                rules[t][0].extend(m.group(2).split())
+            if m.group(3):
+                cur.append(m.group(3))
+        elif line.strip() and not line.startswith("#"):
+            cur = None
+    want = targets or [t for t in order if not t.startswith(".")][:1]
+    out: list[str] = []
+    seen: set[str] = set()
+    stack = list(want)
+    while stack and len(seen) < 50:
+        t = stack.pop()
+        if t in seen:
+            continue
+        seen.add(t)
+        if t in rules:
+            out.extend(rules[t][1])
+            stack.extend(rules[t][0])
+        elif not rules or any("%" in r or "$" in r for r in rules):
+            return text  # unparseable / pattern rules: scan everything (fail safe)
+    return "\n".join(r.lstrip("@-+") for r in out)
+
+
+def _script_project(fp: Path) -> Path:
+    root = Path(os.path.realpath(REPO_ROOT))
+    real = Path(os.path.realpath(fp))
+    for anc in real.parents:
+        if anc == root or not anc.is_relative_to(root):
+            break
+        if any((anc / mk).is_file() for mk in _PROJECT_MARKERS):
+            return anc
+    return real.parent
+
+
+def _exec_file_deploy(fp: Path, base: Path, depth: int, force_shell: bool = False) -> str | None:
+    """A file this command EXECUTES: shell files are re-parsed as commands; code files are
+    checked for a spawned deploy. The project checked is the script's own project folder."""
+    try:
+        if not fp.is_file():
+            return None
+        text = _read_limited(fp, str(fp))
+    except (OSError, ScanLimit):
+        return None
+    if not text:
+        return None
+    if force_shell or fp.suffix.lower() in ("", ".sh", ".bash", ".zsh"):
+        err = deploy_error(text, _script_project(fp) if not force_shell else base, depth + 1)
+        if err:
+            return err
+    err = script_deploy_error(text, fp, _script_project(fp))
+    return f"redteam gate: {err}. {DEPLOY_DENY}" if err else None
+
+
+def _interp_deploy(argv: list[str], name: str, base: Path, depth: int) -> str | None:
+    """`python3 x.py`, `node x.js`, `python3 -c CODE`, `./x.sh`: scan only the executed file
+    or inline code for a spawned deploy."""
+    if _INTERPS.fullmatch(name):
+        for n, a in enumerate(argv[1:], 1):
+            if re.fullmatch(r"-[a-z]*[ce]", a, re.I) or a in ("--eval", "--command"):
+                code = argv[n + 1] if n + 1 < len(argv) else ""
+                err = script_deploy_error(code, Path("inline.py"), base)
+                return f"redteam gate: {err}. {DEPLOY_DENY}" if err else None
+            if a == "-m":
+                return None
+            if a.startswith("-"):
+                continue
+            return _exec_file_deploy(base / a, base, depth)
+        return None
+    if "/" in argv[0] or "\\" in argv[0]:
+        return _exec_file_deploy(base / argv[0], base, depth)
     return None
 
 
@@ -2440,10 +2559,6 @@ def _scan_file(p: Path, label: str) -> str | None:
         hk = hook_text_hit(text)
         if hk:
             hit = f"harness-only hook path: {hk}"
-    if not hit and text is not None:
-        de = script_deploy_error(text, p)
-        if de:
-            return de
     return f"{hit} in {label}" if hit else None
 
 
@@ -2858,7 +2973,8 @@ def _bash_decision(command: str, cwd_raw: Any, allow_tracked: bool = True,
     de = deploy_error(outer, cwd)
     if not de and ("$" in outer or "`" in outer):
         v0 = {m.group(1): m.group(2).strip("\"'") for m in _ASSIGN_RE.finditer(outer)}
-        de = deploy_error(_expand(outer, v0, cwd), cwd)
+        ex = _expand(outer, v0, cwd)
+        de = deploy_error(ex, cwd) or deploy_error(_expand(ex, v0, cwd), cwd)
     if de:
         return de
     if not _EXEC_RE.search(outer) and not direct_scripts(outer, command_context(outer, cwd)[1]):
@@ -2918,9 +3034,9 @@ def hook_decision(payload: dict, state: Path) -> str | None:
 
 
 # --------------------------------------------------------- generic MCP share / post / send
-MCP_READ_PREFIXES = ("get_", "list_", "search_", "read_", "resolve_", "download_", "fetch_",
-                     "describe_", "find_", "query_", "lookup_", "check_", "count_", "export_",
-                     "delete_", "remove_", "revoke_", "unshare", "trash_", "untrash_")
+MCP_READ_PREFIXES = ("get", "list", "search", "read", "resolve", "download", "fetch",
+                     "describe", "find", "query", "lookup", "check", "count", "export",
+                     "delete", "remove", "revoke", "unshare", "trash", "untrash")  # = hook .sh
 _MCP_SHARE_RE = re.compile(r"share|permission", re.I)
 _MCP_POST_RE = re.compile(r"post_message|send_|publish|reply_to_thread|create_post|post_tweet|"
                           r"tweet|create_message|send_dm|comment|schedule_message", re.I)
@@ -2937,6 +3053,12 @@ MCP_META = set(MCP_ADDR_KEYS) | set(MCP_TARGET_KEYS) | {
     "mimeType", "scheduled_at", "unfurl_links", "unfurl_media", "reply_broadcast", "thread_ts",
     "threadId"}
 MCP_SHARE_TEXT_KEYS = ("message", "emailMessage", "note", "text")
+# Post/send/comment tools: only these keys are outward text; ids/handles are targets/metadata.
+_MCP_TEXT_KEY_RE = re.compile(
+    r"^(?:body|text|message|content|comment|title|description|subject|caption|status|note|"
+    r"reply|markdown|html|summary|headline|commentary|blocks|attachments|embeds|post|tweet)"
+    r"(?:_?(?:text|html|markdown|body|md))?$|(?:body|text|message|content|caption|comment)$",
+    re.I)
 
 
 def mcp_outward_kind(name: str) -> str | None:
@@ -2981,6 +3103,8 @@ def mcp_outward_decision(kind: str, action: str, ti: dict, state: Path) -> str |
     fields = text_fields(ti, MCP_META, skip=())
     if kind == "share":
         fields = [f for f in fields if f[0] in MCP_SHARE_TEXT_KEYS]
+    else:
+        fields = [f for f in fields if _MCP_TEXT_KEY_RE.search(f[0])]
     addrs, bad, targets = _mcp_recipients(ti)
     if bad:
         return f"{action}: unparseable recipient(s): {', '.join(bad[:3])}"

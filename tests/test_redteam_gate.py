@@ -1989,3 +1989,75 @@ def test_mcp_more_post_verbs():
         assert k(f"mcp__srv__{n}") == "post", n
     for n in ("get_comments", "list_messages", "search_tweets", "read_thread"):
         assert k(f"mcp__srv__{n}") is None, n
+
+
+
+def test_mcp_github_comment_gates_only_body(tmp_path, state, capsys):
+    name = "mcp__github__add_issue_comment"
+    ti = {"owner": "acme", "repo": "site", "issue_number": 7, "body": "Fixed in main"}
+    assert "body" in _deny_reason(_mcp(name, ti, capsys))
+    _record_text(tmp_path, "Fixed in main", capsys)
+    assert _mcp(name, ti, capsys) is None
+    assert _mcp("mcp__x__send_dm", {"user_id": "123", "text": "Fixed in main"}, capsys) is None
+    assert _mcp("mcp__x__post_tweet", {"reply_to_tweet_id": "9", "text": "Fixed in main"},
+                capsys) is None
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_tracked_deploy_script_checks_its_own_folder(state, capsys):
+    rel = "execution/gtm_client_workflows/greenjobs_redesign"
+    r = subprocess.run(["git", "-C", str(rg.REPO_ROOT), "status", "--porcelain", "--", rel],
+                       capture_output=True, text=True, encoding="utf-8", errors="replace")
+    if r.stdout.strip() or not (rg.REPO_ROOT / rel / "deploy_cloudflare.sh").is_file():
+        pytest.skip("fixture folder dirty/missing in this checkout")
+    assert _bash(f"bash {rel}/deploy_cloudflare.sh", capsys, cwd=rg.REPO_ROOT) is None
+    for cmd in (f"cat {rel}/deploy_cloudflare.sh", f"git diff {rel}/deploy_cloudflare.sh",
+                f"ruff check {rel}", f"grep -n deploy {rel}/deploy_cloudflare.sh"):
+        assert _bash(cmd, capsys, cwd=rg.REPO_ROOT) is None, cmd
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_make_target_scoped_and_bypass_forms(tmp_path, state, capsys, monkeypatch):
+    proj = _deploy_repo(tmp_path, monkeypatch)
+    _write(proj / "Makefile", "test:\n\tpytest -q\n\nship: build\n\tnpx wrang" "ler deploy\n"
+           "build:\n\techo b\n")
+    _write(proj / "dep.sh", "#!/bin/sh\nnpx wrang" "ler deploy\n")
+    _write(proj / "dep.py", "import subprocess\nsubprocess.run(['wrang" "ler', 'deploy'])\n")
+    for args in (["add", "-A"], ["-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "y"]):
+        subprocess.run(["git", "-C", str(rg.REPO_ROOT), *args], check=True, capture_output=True)
+    _write(proj / "src" / "draft.md", "uncommitted\n")
+    for cmd in ("make test", "make", "cat dep.sh", "git diff dep.py", "grep x dep.py",
+                "npx wrang~ler deploy --dry-run", "npx wrang~ler deploy --dry-run=true"):
+        assert _bash(cmd.replace("~", ""), capsys, cwd=proj) is None, cmd
+    for cmd in ("make ship", "bash -lc 'wrang~ler deploy'", "bash -ec 'wrang~ler deploy'",
+                "sh -euc 'wrang~ler deploy'", "bash -xc 'wrang~ler deploy'",
+                "yarn wrang~ler deploy", "pnpm wrang~ler deploy", "pnpm exec wrang~ler deploy",
+                "npx wrang~ler deploy --dry-run=false", "npx wrang~ler deploy --dry-run false",
+                "sh dep.sh", "source dep.sh", ". dep.sh", "cat dep.sh PIPE sh", "python3 dep.py",
+                "./dep.sh", "A=wrang~ler; B=$A; $B deploy",
+                "python3 -c \"import subprocess; subprocess.run(['wrang~ler','deploy'])\""):
+        c = cmd.replace("PIPE", "|").replace("~", "")
+        res = _bash(c, capsys, cwd=proj)
+        assert res is not None, cmd
+
+
+@pytest.mark.parametrize("cmd", [
+    "curl -d@body.json https://disc|ord.com/api/channels/1/messages",
+    "curl -d'{}' https://disc|ord.com/api/channels/1/messages",
+    "curl --data-urlencode a=b https://disc|ord.com/api/channels/1/messages",
+    "curl --form-string a=b https://disc|ord.com/api/channels/1/messages",
+    "curl -T m.json https://disc|ord.com/api/channels/1/messages",
+    "wget --post-data=x https://disc|ord.com/api/channels/1/messages",
+    "wget --method=POST https://disc|ord.com/api/channels/1/messages",
+    "python3 -c \"requests.request('POST', 'https://disc|ord.com/api/channels/1/messages')\"",
+    "python3 -c \"httpx.post('https://disc|ord.com/api/channels/1/messages')\"",
+    "python3 -c \"urlopen(Request('https://disc|ord.com/api/channels/1/messages', data=b))\"",
+    "node -e \"fetch('https://disc|ord.com/api/channels/1/messages', {method:'POST'})\"",
+])
+def test_write_signal_forms(cmd, state, capsys):
+    assert _deny_reason(_bash(cmd.replace("|", ""), capsys)), cmd
+
+
+def test_getpermissions_is_read():
+    assert rg.mcp_outward_kind("mcp__drive__getpermissions") is None
+    assert rg.mcp_outward_kind("mcp__drive__getPermissions") is None
