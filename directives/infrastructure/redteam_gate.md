@@ -110,6 +110,30 @@ merely mention the gate or ledgers are no longer blocked (removed 2026-11-05: fa
   runs a git-tracked, unmodified `.py`/`.sh` or `-m` module (optional leading `cd X &&`, no `-c`,
   heredoc, pipes or chaining). Ordinary commands cost ~80 ms (no git call). A crash on Bash allows
   (wrapper); Gmail/Calendar fail closed.
+- **Bash, non-email channels** (same scan surfaces, same tracked-pipeline trust; patterns in
+  `_OUTWARD_SIMPLE`/`_OUTWARD_RES`): Slack webhooks + chat post/ephemeral/schedule/update
+  methods, file uploads and the Python/Node SDK post-message calls;
+  Discord webhooks; Teams office-webhook / Logic Apps hosts; Google Chat API; LinkedIn REST
+  ugcPosts/posts/messages/shares/invitations and voyager messaging/invitation endpoints; Instantly campaign activate/launch, leads add, emails send/reply; lemlist API;
+  Smartlead (email list); X/Twitter `2/tweets`, DMs, tweepy-style SDK calls; Meta Graph
+  feed/media_publish/messages (incl. WhatsApp); Telegram `bot*/send*`; Twilio Messages.
+- **Deploys** (`wrangler pages deploy|publish`, `wrangler deploy`, `vercel --prod`, `netlify
+  deploy --prod`, incl. via npx/pnpm/yarn/bunx and `cd X &&`): denied unless the deployed dir
+  is a workspace subdirectory (never the root) with tracked files and no modified, untracked or
+  ignored files (node_modules/.wrangler/.vercel/.netlify skipped), or is gitignored build output
+  (dist/, build/, out/, .vercel/output) whose project subfolder (nearest package.json/wrangler/
+  vercel/netlify config, never the root) has tracked files and no modified/untracked files.
+  `npm|pnpm|yarn|bun run X` follows the package.json script (3 levels). Page text is covered by the
+  build-contract audit; this only stops deploying uncommitted content. Expansions deny.
+- **MCP share** (any server; name contains share/permission, not get_/list_/search_/read_/
+  resolve_/download_/delete_/remove_/revoke_/...): a message-like field (message/emailMessage/
+  note/text) must be passed; recipients (emailAddress/recipients/to/...) must be a subset of
+  one passed record's `--to/--cc/--bcc` (that text's record, or any record if no text);
+  non-address audiences (permissionId e.g. anyoneWithLink, chatSpaceId, domain) need a waived
+  text; no recipient denies.
+- **MCP post/send/publish** (name contains post_message/send_/publish, same read exclusions):
+  every non-metadata text field must be passed; no text denies; address recipients as above;
+  channel/space audiences need a waiver. These tools fail closed in the wrapper.
 - HTML canonicalisation (record and hook share it): `href`/`src`/`alt` and comment text become
   visible (` [link: URL] `, ` [img: URL] `, ` [comment: …] `); empty `<script>/<style>` are dropped,
   non-empty ones deny outright. Malformed input or any exception → deny.
@@ -143,7 +167,18 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   guests is gated unless `notificationLevel: NONE`.
 - Gmail response shapes vary; `post-hook` takes `draftId` from `update_draft` input, else digs an
   id from the response. No id → no row → a later send-by-draftId is denied.
-- Skill-gated only (no hook): LinkedIn, Slack, docs, decks, and text handed to the operator in chat.
+- Skill-gated only (no hook): docs/decks content, text handed to the operator in chat, and
+  outward channels reached only through an MCP tool whose name lacks share/permission/
+  post_message/send_/publish (or a Bash sender not in the literal lists below).
+- Non-email Bash channels match send endpoints only, lexically: Graph `/feed|/photos|/videos`
+  and Instantly `/leads` also match a GET of those paths (fail safe); Slack/LinkedIn/X reads
+  (`conversations.list`, `/v2/me`) pass. Repo LinkedIn automation (connect/DM scripts under
+  `execution/`) stays trusted only when run tracked + unmodified, like every pipeline.
+- Deploys: the gate only proves the deployed dir is committed; it does not read the pages.
+  Ignored build output is trusted as a product of the committed project; a build step that pulls
+  in uncommitted files from outside that project is not detected.
+- MCP post/share: a Slack-style `channel`/Drive `permissionId`/`chatSpaceId` audience has no
+  address to check, so it needs the passed text to be operator-waived.
 
 ## Changelog
 - 2026-11-04: created (deterministic layer of the mandatory outward-text red-team gate).
@@ -231,3 +266,135 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   send the same `redteam waive …` line once more" and the re-send succeeds.
   `xargs <interpreter>` without a named script file denies. This doc avoids literal sender
   patterns so reading it next to an executing command is not denied.
+- 2026-11-05 (channels): gate extended beyond email/calendar: Bash chat/social/SMS/LinkedIn/
+  cold-email send endpoints and SDK calls, production deploys only from committed dirs, MCP
+  share/permission and post_message/send_/publish tools (recipient ⊆ recorded pass; fail closed
+  in the wrapper; settings matcher widened). Reads and non-prod deploys stay allowed.
+- 2026-11-05 (channels audit): deploys found per quote-aware simple command through wrappers
+  and runners (timeout/env/nice, npx/pnpx/bunx/`bun x`/`pnpm|yarn dlx|exec`, `tool@ver`,
+  `node …/wrangler.js`), `ntl` alias; wrangler `pages deployment create`, `versions
+  deploy|upload`; vercel bare/`deploy`/`promote`/`alias set` (previews count);
+  netlify `--prod-if-unlocked`. No explicit dir → the cwd project must be committed + clean.
+  Non-mail MCP `send_message` tools route through the share/post rules (only names containing
+  mail, plus any `create_draft`, take the email path). Twilio call needs twilio context;
+  host:port forms normalised; Discord channel messages, MS Graph Teams/chat messages, Slack
+  me-message and v2 file upload, discord.py sends (with discord import), httpie/xh calls added.
+  Posts with public visibility need a waiver. Settings matcher case-insensitive.
+- 2026-11-05 (channels re-audit): deploy detection also runs on `sh|bash -c` strings, `eval`,
+  `$VAR` expansion, `echo|printf … | sh`, Makefile recipes (`make X`, incl. from package
+  scripts) and on script files the command runs (a spawn call within 3 lines of deploy words;
+  tracked scripts included, since the deploy publishes the cwd project, which must be clean).
+  `--dry-run` and vercel git/rollback/init/open/env/logs/ls/inspect are not deploys.
+  Read-capable endpoints (Discord channel messages, MS Graph messages, Google Chat spaces,
+  Twilio Messages, Meta Graph feed/messages) need a write signal (POST/PUT/PATCH, -d/--data/-F/
+  --json, httpie key=value, `.post(`/`.create(`); a GET passes. discord.js ESM/dynamic import
+  context and Telegram `bot.send_*(` added. MCP post verbs add reply_to_thread, create_post,
+  tweet, create_message, send_dm, comment (incl. GitHub issue/PR comments), schedule_message.
+  Wrapper read-exclusion matches the tool segment after the server only.
+- 2026-11-05 (channels third audit): MCP post/send/comment text is an allow-list of keys
+  (body/text/message/content/comment/title/description/subject/caption/status/note/reply/
+  markdown/html/summary/blocks/attachments/embeds and *_text/*_body forms); ids and handles
+  (owner, repo, issue_number, user_id, tweet_id) are not text. Deploy scans only files the
+  command EXECUTES (interpreter arg, `sh f`, `source f`/`. f`, `./f`, `cat f | sh`,
+  `python3 -c` code) and Makefile recipes of the invoked target (+ prerequisites; pattern
+  rules scan the whole file); a deploy script is checked against its own project folder
+  (nearest project marker, else its directory), never the cwd or the repo root. Combined
+  shell flags (`-lc`, `-ec`, `-euc`), `yarn|pnpm <bin>`, `--dry-run=false` and nested var
+  expansions are covered. Write signals add `-d@f`/`-d'…'`, `--data-*`, `--form*`, `-T`,
+  `--upload-file`, wget `--post-*`/`--method`, `.request('POST'`, `Request(data=`, fetch
+  `method:'POST'`. MCP read prefixes need no underscore (`getpermissions`), same as the hook.
+  Flags are matched case-sensitively on command text (`-F` form = write, `-f`/`--fail` not);
+  in scanned files (lowercased) `-f` still counts as a write.
+- 2026-11-05 (channels fourth audit): tracked scripts get the invoking command's positional
+  args bound (`$1`, `${1:?}`, `SITE="$1"`), so `deploy.sh <dir> <proj>` checks `<dir>` by the
+  normal rule; if still unresolvable, a tracked clean script checks the project of its path
+  args (else its own folder). Inline code deploys: python/node heredocs, `python3 -c
+  "exec(open(f).read())"`, `sh < f`, `python3 - < f`, array-literal spawns
+  (`spawnSync('wrangler',['pages','deploy'])`). Runners: `vc`, `npx -p pkg bin`,
+  `pnpm --filter x exec`, `yarn|bun run <bin>`, corepack, `env -C dir`, setsid/flock/unbuffer/
+  doas/`script -c`. Channels: versioned Discord webhooks, Slack webhook-client
+  sends, Instagram/Threads publish, Telegram forward/copy, Outlook webhooks. MCP outward
+  tools: every string field is text except an id/target/enum key list (`channel_name`/
+  `Channel` are audiences needing a waiver); kinds add postMessage, files_upload,
+  create/update_issue, create_pull_request, pull_request_review_write; push_files/
+  create_or_update_file are code (build-contract audit), not outward text.
+- 2026-11-05 (channels fifth audit): a tracked deploy script with an unresolvable/default
+  target is checked against every folder it names as a literal (repo-, script- or cwd-relative;
+  `.tmp/` staging skipped) and its path args; with none, its project and all of `deliverables/`
+  must be clean. Deploy detection resolves `$(echo X)`, `$(cat f)`, `$(pwd)` and scans every
+  `$(…)`/backtick body; covers `xargs -I`, `cat|head|tail f | sh`, `| at|batch`, tmux/screen/
+  su/runuser/systemd-run command strings, `env -S`, `php -r`/`perl -e`/`ruby -e` system calls.
+  `$PWD`/`$(pwd)`/`` `pwd` `` in script paths resolve for the sender scan too. MCP id/enum keys
+  add camelCase review/issue fields; tools with only ids/enums (approve, close) pass. Channels:
+  Telegram media-group/forward/copy and `bot.telegram.sendMessage`, Outlook 365 webhooks, Slack
+  file-upload SDK calls / async webhook clients, GitHub REST comments/issues/pulls/reviews/releases.
+  `gh issue|pr|release|discussion comment|create|review|edit` with `--body/-b/--title/-t/
+  --notes/--body-file`: every given text must be passed (`--fill`/`--approve` need none).
+- 2026-11-05 (channels sixth audit): **structural MCP rule** — every `mcp__*` tool routes to
+  the gate (settings matcher `mcp__.*|Bash`) and is outward unless its tool segment starts with
+  a read verb (get list search read fetch download query resolve describe view count check
+  suggest lookup find, or ends `_read`), is a local action (delete trash untrash label unlabel
+  mark unmark archive apply_ remove revoke unshare; any `*label*`), is repo/storage content
+  (push_files, create_or_update_file, create/update/copy_file, create_branch, fork_repository,
+  run_secret_scanning, guide), or belongs to harness servers `claude-code-remote`/`ccd_session`.
+  Outward tools with only id/enum fields pass; every other string field must be passed text
+  (so Claude_Docs batch/update content and calendar RSVP comments need a pass). Drive
+  create/update of a file that is already shared is a known gap (sharing itself is gated).
+  The wrapper fails closed on the same rule. gh: global `-R/--repo/--hostname`, `gh api`
+  writes (explicit -X/--method or implicit POST via -f/-F/--field/--raw-field/--input) to
+  issues/pulls/comments/reviews/releases/discussions/gists check every non-id field; graphql
+  mutations (gh api or curl) deny; close/reopen `--comment`, merge `--body/--subject`,
+  discussion create, repo/gist `--description`, attached short flags (`-bx`). Deploy:
+  write-then-run (heredoc/`echo >` file then run it), `<<<`, `script -qc`, busybox, awk
+  `system(`, `find -exec`, glob/brace script paths, python/node launching a `.sh` (treated as
+  running it). Channels: Slack SDK schedule/update/me-message/api_call, node files upload,
+  Telegram `Bot(...)`/`bot.api` sends, Telethon, MS Graph reply/forward/send and send-mail.
+- 2026-11-05 (channels seventh audit): MCP read/local verbs must be the WHOLE first word of
+  the tool segment (snake or camelCase; single lowercase words like `getpermissions` by
+  prefix), and any outward word anywhere (send post share publish reply forward comment tweet
+  message create update write invite upload schedule and then; plurals too) makes the tool
+  outward; a read verb + outward word (`resolve_share_link`, `label_message`) is gated by the
+  text rule, so id/URL-only calls pass. Release `name`/`tag_name` are text; `user`/`username`/
+  `handle` are audiences (waiver). gh: graphql mutations via `-F query=@file`/`--input`/any
+  `/graphql` path (unreadable denies); `gh workflow run -f`, `gh label create|edit
+  --description`, `gh project item-create --title`; `xargs gh …` parsed. Deploy: `find -exec
+  bash {}` (resolved via -name), `os.system`/`execSync` strings running `bash <script>`,
+  `python3 -m mod`, `cat f | python3`, `env bash`, ash/mksh/busybox; `--help`/`-h` and
+  `bash -n` are not deploys.
+- 2026-11-05 (channels eighth audit): hook paths deny only when a simple command EXECUTES
+  them (program, shell/interpreter/source argument, -c/eval text, a reader piped into a shell,
+  or REDTEAM_HOOK set for something that runs); naming them with cat/git/grep/diff/ls/… next to
+  an unrelated exec is allowed, and files named only by such readers are no longer scanned
+  (supersedes the "only when it executes something" wording above). Here-strings (`<<<`) are
+  stripped and the command is still evaluated (deploys, gh). Shell keywords (for/in/do/done/
+  if/then/elif/else/fi/while/until/!/{/}/time/coproc) are skipped so the real command is
+  checked. `gh gist create` files and `--desc` are outward text; `gh api` writes to
+  collaborators/invitations/memberships deny (a username cannot be on a passed record). MCP:
+  `destination`/calendar ids are ids; `check_in` is outward, `search_replace` a local edit.
+  Residual (documented, not fixed): deno/bun/pwsh inline variants, `printf … | sh` of split
+  text, `curl … | bash` of remote scripts, backslash-newline-split tool names, gh aliases.
+- 2026-11-05 (channels ninth audit): a scanner exception on Bash no longer fails open: if
+  the command executes something (or runs wrangler/vercel/netlify/gh/httpie) and contains an
+  outward lexeme (send/post/deploy/webhook/gh/mail/script extensions…), it denies with "gate
+  error … rephrase or report"; otherwise it allows (sessions stay unbrickable). Wrappers and
+  interpreters match by basename (`/usr/bin/env python3`); binary/unreadable files are skipped
+  without crashing. Shell option arguments (`-o pipefail`, `-eo pipefail`, `-O opt`) are skipped
+  when finding the script; `for v in …; do … $v; done` loop vars are substituted; `$(echo f)`
+  and backtick echo resolve for both scans; `cp|mv|install|ln a b` and `cat a > b` before
+  running b count as write-then-run; `sh wrap.sh` scans files wrap.sh runs (one level);
+  `builtin` is a wrapper. gh: `repo edit|create` to public denies (waiver); `gh api` writes to
+  `repos/o/r`, `user/repos`, `orgs/o/repos` gate their text fields.
+- 2026-11-05 (channels tenth audit): Bash commands over 64,000 chars are not parsed: they
+  deny when any token is an exec word, a deploy/gh/httpie program, a command-string runner
+  (eval/source/make/xargs/find/env/…), a path-invoked program, or names the hook/gate; other
+  big literals (echo/cat/git commit) pass. A 5 s SIGALRM budget (POSIX) denies a command that
+  runs code when the scan overruns; the hook-text regexes run only on literal-anchored windows
+  (was quadratic on long `a/a/…` tokens). Files written then run in the same command (cp/mv/
+  install/ln, `cat a > b`, `… | tee b`, heredoc/echo redirects) are sender-scanned too. Outward
+  MCP inputs with null values, non-string recipients or numeric text fields deny (unparseable).
+- Residual (outside the gate's lexicon; covered only by the build-contract audit): publishing
+  via aws s3/cloudfront, firebase deploy, gcloud (app deploy, storage), fly deploy, eas
+  submit/update, scp/rsync to a server, ssh remote exec, docker push, GitHub Pages pushes.
+- Out of scope (documented): `-c 'import deploy'`-style helper modules, shell-escaped or split
+  literals, browser/Playwright UI sends (LinkedIn UI automation included); the hook gates API
+  endpoints, and tracked repo automation stays trusted.

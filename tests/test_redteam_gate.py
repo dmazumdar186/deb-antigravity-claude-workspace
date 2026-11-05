@@ -1672,3 +1672,861 @@ def test_python_heredoc_body_not_parsed_as_shell(tmp_path, state, capsys):
     _write(tmp_path / "big.bin.txt", "x" * (rg.MAX_SCAN_BYTES + 10))
     assert _bash("python3 - <<'EOF'\nimport glob\nprint(glob.glob('*'))\nEOF", capsys,
                  tmp_path) is None
+
+
+# ------------------------------------------------- non-email outward channels (2026-11-05)
+
+_OUTWARD_SENDS = [
+    "curl -X POST https://hoo|ks.slack.co|m/services/T0/B0/xyz -d '{\"text\":\"hi\"}'",
+    "curl -s https://sla|ck.co|m/api/chat|.postMessage -d channel=C1 -d text=hi",
+    "python3 -c \"from slack_sdk import WebClient; WebClient('t').chat|_postMessage(channel='c', text='x')\"",
+    "node -e \"client.chat|.postMessage({channel:'c', text:'x'})\"",
+    "curl -H 'Content-Type: application/json' https://dis|cord.co|m/api/webhooks/1/abc -d '{}'",
+    "curl https://acm|e.webhook.office.co|m/webhookb2/abc -d '{}'",
+    "curl -X POST 'https://cha|t.googleapis.co|m/v1/spaces/AAA/messages?key=k' -d '{}'",
+    "curl -X POST https://api|.linkedin.co|m/v2/ugcPosts -d '{}'",
+    "curl -X POST https://api|.linkedin.co|m/rest/posts -d '{}'",
+    "curl -X POST https://www|.linkedin.co|m/voyager/api/messaging/conversations -d '{}'",
+    "curl -X POST https://api|.instan|tly.ai/api/v2/campaigns/abc/activate",
+    "curl -X POST https://api|.instan|tly.ai/api/v2/leads -d '{}'",
+    "curl -X POST https://api|.lemlist.co|m/api/campaigns/c/leads/x@y.com",
+    "curl -X POST https://ser|ver.smart|lead.ai/api/v1/campaigns/1/leads",
+    "curl -X POST https://api|.twitter.co|m/2/tweets -d '{}'",
+    "curl -X POST https://api|.x.co|m/2/tweets -d '{}'",
+    "curl -X POST https://gra|ph.facebook.co|m/v19.0/123/feed -d message=hi",
+    "curl -X POST https://gra|ph.facebook.co|m/v19.0/123/media_publish",
+    "curl -X POST https://gra|ph.facebook.co|m/v19.0/PHONE_ID/messages -d '{}'",
+    "curl https://api|.telegram.org/bot123:abc/sendMessage -d chat_id=1 -d text=hi",
+    "curl -X POST https://api|.twilio.co|m/2010-04-01/Accounts/AC1/Messages.json -d Body=hi",
+]
+
+
+@pytest.mark.parametrize("cmd", _OUTWARD_SENDS)
+def test_bash_outward_channels_denied(cmd, state, capsys):
+    cmd = cmd.replace("|", "")  # split so this file never matches the gate
+    assert "redteam gate" in _deny_reason(_bash(cmd, capsys)), cmd
+
+
+def test_bash_outward_channels_in_untracked_script(tmp_path, state, capsys):
+    script = _write(tmp_path / "post.py", "import requests\nrequests.post('https://hooks.slack"
+                    ".com/services/x', json={'text': 'hi'})\n")
+    assert _deny_reason(_bash(f"python3 {script}", capsys, cwd=tmp_path))
+
+
+@pytest.mark.parametrize("cmd", [
+    "curl -s https://sla|ck.co|m/api/conversations.list -H 'Authorization: Bearer x'",
+    "curl -s https://sla|ck.co|m/api/auth.test",
+    "curl -s https://api|.linkedin.co|m/v2/me",
+    "curl -s https://api|.twitter.co|m/2/users/me",
+    "curl -s https://api|.telegram.org/bot123:abc/getUpdates",
+    "grep -rn 'hooks.|slack.com' execution/",
+    "rg chat|_postMessage execution/",
+    "git log --grep 'wrangler pages deploy'",
+    "echo 'run vercel --prod later' > notes.txt",
+    "npx wrangler pages project list",
+    "npx wrangler dev",
+    "vercel ls",
+    "netlify deploy --dir .tmp/site",
+    "netlify status",
+])
+def test_outward_channel_false_positives_allowed(cmd, state, capsys):
+    cmd = cmd.replace("|", "")
+    assert _bash(cmd, capsys) is None, cmd
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+@pytest.mark.parametrize("tmpl", [
+    "npx wrangler pages deploy {d} --project-name x",
+    "wrangler pages deploy {d}",
+    "cd {d} && npx wrangler deploy",
+    "vercel --prod {d}",
+    "vercel deploy {d} --prod",
+    "netlify deploy --prod --dir {d}",
+    "npm run build && npx wrangler pages deploy {d}",
+])
+def test_deploy_uncommitted_dir_denied(tmpl, tmp_path, state, capsys):
+    site = tmp_path / "site"
+    _write(site / "index.html", "<p>hi</p>")
+    assert "committed" in _deny_reason(_bash(tmpl.format(d=site), capsys, cwd=tmp_path))
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_deploy_committed_dir_allowed_and_dirty_denied(tmp_path, state, capsys):
+    clean = "directives/subagent"
+    r = subprocess.run(["git", "-C", str(rg.REPO_ROOT), "status", "--porcelain", "--ignored",
+                        "--", clean], capture_output=True, text=True, encoding="utf-8",
+                       errors="replace")
+    if r.stdout.strip():
+        pytest.skip("fixture dir dirty in this checkout")
+    root = str(rg.REPO_ROOT)
+    assert _bash(f"npx wrangler pages deploy {clean} --project-name x", capsys,
+                 cwd=Path(root)) is None
+    assert _deny_reason(_bash("npx wrangler pages deploy $DIR", capsys, cwd=Path(root)))
+    assert _deny_reason(_bash("wrangler pages deploy .", capsys, cwd=Path(root)))
+
+
+def _mcp(name, ti, capsys):
+    return _hook({"tool_name": name, "tool_input": ti}, capsys)
+
+
+def test_mcp_outward_kind_classification():
+    k = rg.mcp_outward_kind
+    assert k("mcp__Google_Drive__share_file") == "share"
+    assert k("mcp__drive__create_permission") == "share"
+    assert k("mcp__slack__chat_post_message") == "post"
+    assert k("mcp__x__publish_post") == "post"
+    assert k("mcp__tg__send_photo") == "post"
+    for read in ("mcp__Google_Drive__get_file_permissions",
+                 "mcp__drive__list_permissions", "mcp__drive__delete_permission",
+                 "mcp__Google_Drive__read_file_content", "mcp__github__get_me", "Bash",
+                 "mcp__Google_Drive__search_files"):
+        assert k(read) is None, read
+
+
+def test_mcp_share_requires_recorded_recipient(tmp_path, state, capsys):
+    name = "mcp__Google_Drive__share_file"
+    ti = {"fileId": "f1", "role": "reader", "emailAddress": "marc@client.com"}
+    assert "recipient" in _deny_reason(_mcp(name, ti, capsys))
+    _record_text(tmp_path, "Hi Marc, the deck is shared.\n", capsys,
+                 extra=["--to", "marc@client.com"])
+    assert _mcp(name, ti, capsys) is None
+    assert _deny_reason(_mcp(name, dict(ti, emailAddress="eve@rival.com"), capsys))
+    assert _deny_reason(_mcp(name, {"fileId": "f1", "role": "reader",
+                                    "permissionId": "anyoneWithLink"}, capsys))
+    assert _deny_reason(_mcp(name, {"fileId": "f1", "role": "reader"}, capsys))
+
+
+def test_mcp_share_message_must_be_passed(tmp_path, state, capsys):
+    name = "mcp__Google_Drive__share_file"
+    _record_text(tmp_path, "Hi Marc, the deck is shared.\n", capsys,
+                 extra=["--to", "marc@client.com"])
+    ti = {"fileId": "f1", "role": "reader", "emailAddress": "marc@client.com",
+          "message": "Something unreviewed"}
+    assert "has not passed" in _deny_reason(_mcp(name, ti, capsys))
+    assert _mcp(name, dict(ti, message="Hi Marc, the deck is shared.\n"), capsys) is None
+
+
+def test_mcp_generic_post_gated(tmp_path, state, capsys):
+    name = "mcp__slack__chat_post_message"
+    ti = {"channel_id": "C1", "text": "Launch is live"}
+    assert "has not passed" in _deny_reason(_mcp(name, ti, capsys))
+    assert _mcp("mcp__x__publish_post", {"id": "1"}, capsys) is None  # ids only: no text
+    _record_text(tmp_path, "Launch is live", capsys)
+    # a channel audience is non-address: needs an operator waiver even with passed text
+    assert "audience" in _deny_reason(_mcp(name, ti, capsys))
+    assert _mcp("mcp__x__publish_post", {"text": "Launch is live"}, capsys) is None
+
+
+def test_mcp_outward_fail_closed_flag():
+    assert rg._is_outward({"tool_name": "mcp__Google_Drive__share_file"}, "")
+    assert not rg._is_outward({"tool_name": "mcp__Google_Drive__get_file_permissions"}, "")
+
+
+def _deploy_repo(tmp_path, monkeypatch):
+    root = tmp_path / "ws"
+    proj = root / "sites" / "client"
+    _write(proj / "src" / "index.md", "hi\n")
+    _write(proj / "package.json", json.dumps({"scripts": {
+        "deploy": "npm run build && wrangler pages deploy dist --project-name x",
+        "ship": "wrangler pages deploy ../../tmpout"}}))
+    _write(proj / ".gitignore", "dist/\n")
+    for args in (["init", "-q"], ["add", "-A"],
+                 ["-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "x"]):
+        subprocess.run(["git", "-C", str(root), *args], check=True, capture_output=True)
+    _write(proj / "dist" / "index.html", "<p>hi</p>")
+    monkeypatch.setattr(rg, "REPO_ROOT", root)
+    return proj
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_deploy_gitignored_build_output_of_clean_project(tmp_path, state, capsys, monkeypatch):
+    proj = _deploy_repo(tmp_path, monkeypatch)
+    for cmd in ("npx wrangler pages deploy dist --project-name x", "npm run deploy"):
+        assert _bash(cmd, capsys, cwd=proj) is None, cmd
+    _write(proj / "src" / "draft.md", "uncommitted\n")
+    for cmd in ("npx wrangler pages deploy dist --project-name x", "npm run deploy",
+                "pnpm run deploy", "yarn run deploy"):
+        assert "uncommitted" in _deny_reason(_bash(cmd, capsys, cwd=proj)), cmd
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_deploy_package_script_untracked_dir_denied(tmp_path, state, capsys, monkeypatch):
+    proj = _deploy_repo(tmp_path, monkeypatch)
+    _write(proj.parent.parent / "tmpout" / "index.html", "<p>x</p>")
+    assert "package.json script ship" in _deny_reason(_bash("npm run ship", capsys, cwd=proj))
+
+
+_DEPLOY_FORMS = [
+    "timeout 60 npx wrangler pages deploy dist",
+    "env A=1 nice -n 5 npx -y wrangler@3 pages deploy dist",
+    "bun x wrangler deploy",
+    "bunx wrangler versions deploy",
+    "npx wrangler versions upload",
+    "wrangler pages deployment create dist",
+    "node node_modules/wrangler/bin/wrangler.js deploy",
+    "ntl deploy --prod-if-unlocked",
+    "netlify deploy --prod",
+    "vercel promote https://x.vercel.app",
+    "vercel alias set a.vercel.app b.com",
+    "vercel",
+    "vercel deploy",
+    "pnpm dlx vercel --prod",
+    "yarn exec wrangler deploy",
+    "bun run deploy",
+]
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_deploy_forms_follow_project_cleanliness(tmp_path, state, capsys, monkeypatch):
+    proj = _deploy_repo(tmp_path, monkeypatch)
+    for cmd in _DEPLOY_FORMS:
+        assert _bash(cmd, capsys, cwd=proj) is None, cmd
+    _write(proj / "src" / "draft.md", "uncommitted\n")
+    for cmd in _DEPLOY_FORMS:
+        assert "uncommitted" in _deny_reason(_bash(cmd, capsys, cwd=proj)), cmd
+    for cmd in ("git commit -m 'ship: wrangler pages deploy dist; vercel --prod'",
+                "echo \"npx wrangler deploy && ntl deploy --prod\"",
+                "git log --grep 'npm run deploy'", "vercel --version", "wrangler whoami",
+                "netlify deploy", "vercel ls"):
+        assert _bash(cmd, capsys, cwd=proj) is None, cmd
+
+
+def test_mcp_send_message_routing(tmp_path, state, capsys):
+    _record_text(tmp_path, "Launch is live", capsys)
+    # a non-mail send_message goes through the channel/audience rules, not the email path
+    assert "audience" in _deny_reason(_mcp("mcp__slack__send_message",
+                                           {"channel": "C1", "text": "Launch is live"}, capsys))
+    assert rg.gmail_action("mcp__slack__send_message") is None
+    assert rg.gmail_action("mcp__acme_mail__send_message") == "send_message"
+    assert "audience" in _deny_reason(_mcp(
+        "mcp__li__publish_post", {"text": "Launch is live", "visibility": "PUBLIC"}, capsys))
+
+
+_GAP_SENDS = [
+    "curl -X POST https://disc|ord.com/api/v10/channels/123/messages -d '{}'",
+    "curl -X POST https://graph.micro|soft.com/v1.0/teams/T/channels/C/messages -d '{}'",
+    "curl -X POST https://sla|ck.com:443/api/chat.post|Message -d text=hi",
+    "curl https://sla|ck.com/api/chat.me|Message -d text=hi",
+    "python3 -c \"c.files_upload|_v2(channel='c', file='x')\"",
+    "python3 -c \"import disc|ord; channel.se|nd('hi')\"",
+    "python3 -c \"from twi|lio.rest import Client; Client().messages.cre|ate(to='+1', body='x')\"",
+    "http POST https://hooks.sla|ck.com/services/x text=hi",
+    "xh post https://api.tele|gram.org/bot1:a/sendMessage text=hi",
+]
+
+
+@pytest.mark.parametrize("cmd", _GAP_SENDS)
+def test_outward_gap_channels_denied(cmd, state, capsys):
+    assert _deny_reason(_bash(cmd.replace("|", ""), capsys)), cmd
+
+
+@pytest.mark.parametrize("cmd", [
+    "python3 -c \"db.messages.cre|ate(x)\"",
+    "python3 -c \"queue.send('x')\"",
+    "http GET https://sla|ck.com/api/conversations.list",
+    "git commit -m 'post to hooks.sla|ck.com later'",
+])
+def test_outward_gap_false_positives(cmd, state, capsys):
+    assert _bash(cmd.replace("|", ""), capsys) is None, cmd
+
+
+_INDIRECT_DEPLOYS = [
+    "bash -c 'npx wrang~ler pages deploy dist'",
+    "sh -c \"wrang~ler deploy\"",
+    "eval 'wrang~ler deploy'",
+    "W=wrang~ler; $W deploy",
+    "echo 'wrang~ler deploy' | sh",
+    "make ship",
+    "npm run push",
+    "python3 dep.py",
+]
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_indirect_deploys_follow_project_cleanliness(tmp_path, state, capsys, monkeypatch):
+    proj = _deploy_repo(tmp_path, monkeypatch)
+    _write(proj / "Makefile", "ship:\n\tnpx wrang" "ler pages deploy dist\n")
+    pj = json.loads((proj / "package.json").read_text())
+    pj["scripts"]["push"] = "make ship"
+    _write(proj / "package.json", json.dumps(pj))
+    _write(proj / "dep.py", "import subprocess\nsubprocess.run(['wrang" "ler', 'deploy'])\n")
+    for args in (["add", "-A"], ["-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "y"]):
+        subprocess.run(["git", "-C", str(rg.REPO_ROOT), *args], check=True, capture_output=True)
+    for cmd in _INDIRECT_DEPLOYS:
+        assert _bash(cmd.replace("~", ""), capsys, cwd=proj) is None, cmd
+    _write(proj / "src" / "draft.md", "uncommitted\n")
+    for cmd in _INDIRECT_DEPLOYS:
+        res = _bash(cmd.replace("~", ""), capsys, cwd=proj)
+        assert res is not None, cmd
+        assert _deny_reason(res)
+    for cmd in ("npx wrang~ler deploy --dry-run", "vercel git connect", "vercel rollback",
+                "vercel init", "vercel open", "vercel env ls", "vercel logs x", "vercel inspect x"):
+        assert _bash(cmd.replace("~", ""), capsys, cwd=proj) is None, cmd
+
+
+@pytest.mark.parametrize("cmd,deny", [
+    ("curl -s 'https://disc|ord.com/api/v10/channels/1/messages?limit=5'", False),
+    ("curl -s https://api.twi|lio.com/2010-04-01/Accounts/A/Messages.json", False),
+    ("curl -s https://chat.google|apis.com/v1/spaces/S/messages?pageSize=1", False),
+    ("http https://chat.google|apis.com/v1/spaces/S/messages", False),
+    ("curl -s https://chat.google|apis.com/v1/spaces/S/messages --json '{}'", True),
+    ("http POST https://disc|ord.com/api/channels/1/messages content=hi", True),
+    ("https disc|ord.com/api/channels/1/messages content=hi", True),
+    ("curl --request PATCH https://disc|ord.com/api/channels/1/messages/2", True),
+    ("node -e \"import('disc|ord.js').then(()=>channel.se|nd('x'))\"", True),
+    ("node --input-type=module -e \"import {Client} from 'disc|ord.js'; ctx.se|nd('x')\"", True),
+    ("python3 -c \"bot.send|_message(chat_id=1, text='x')\"", True),
+])
+def test_write_signal_and_sdk_contexts(cmd, deny, state, capsys):
+    res = _bash(cmd.replace("|", ""), capsys)
+    assert (res is not None) == deny, cmd
+
+
+def test_mcp_more_post_verbs():
+    k = rg.mcp_outward_kind
+    for n in ("reply_to_thread", "create_post", "post_tweet", "tweet", "create_message",
+              "send_dm", "create_comment", "add_issue_comment", "schedule_message"):
+        assert k(f"mcp__srv__{n}") == "post", n
+    for n in ("read_thread", "list_issues", "search_files"):
+        assert k(f"mcp__srv__{n}") is None, n
+
+
+
+def test_mcp_github_comment_gates_only_body(tmp_path, state, capsys):
+    name = "mcp__github__add_issue_comment"
+    ti = {"owner": "acme", "repo": "site", "issue_number": 7, "body": "Fixed in main"}
+    assert "body" in _deny_reason(_mcp(name, ti, capsys))
+    _record_text(tmp_path, "Fixed in main", capsys)
+    assert _mcp(name, ti, capsys) is None
+    assert _mcp("mcp__x__send_dm", {"user_id": "123", "text": "Fixed in main"}, capsys) is None
+    assert _mcp("mcp__x__post_tweet", {"reply_to_tweet_id": "9", "text": "Fixed in main"},
+                capsys) is None
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_tracked_deploy_script_checks_its_own_folder(state, capsys):
+    rel = "execution/gtm_client_workflows/greenjobs_redesign"
+    r = subprocess.run(["git", "-C", str(rg.REPO_ROOT), "status", "--porcelain", "--", rel],
+                       capture_output=True, text=True, encoding="utf-8", errors="replace")
+    if r.stdout.strip() or not (rg.REPO_ROOT / rel / "deploy_cloudflare.sh").is_file():
+        pytest.skip("fixture folder dirty/missing in this checkout")
+    assert _bash(f"bash {rel}/deploy_cloudflare.sh", capsys, cwd=rg.REPO_ROOT) is None
+    for cmd in (f"cat {rel}/deploy_cloudflare.sh", f"git diff {rel}/deploy_cloudflare.sh",
+                f"ruff check {rel}", f"grep -n deploy {rel}/deploy_cloudflare.sh"):
+        assert _bash(cmd, capsys, cwd=rg.REPO_ROOT) is None, cmd
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_make_target_scoped_and_bypass_forms(tmp_path, state, capsys, monkeypatch):
+    proj = _deploy_repo(tmp_path, monkeypatch)
+    _write(proj / "Makefile", "test:\n\tpytest -q\n\nship: build\n\tnpx wrang" "ler deploy\n"
+           "build:\n\techo b\n")
+    _write(proj / "dep.sh", "#!/bin/sh\nnpx wrang" "ler deploy\n")
+    _write(proj / "dep.py", "import subprocess\nsubprocess.run(['wrang" "ler', 'deploy'])\n")
+    for args in (["add", "-A"], ["-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "y"]):
+        subprocess.run(["git", "-C", str(rg.REPO_ROOT), *args], check=True, capture_output=True)
+    _write(proj / "src" / "draft.md", "uncommitted\n")
+    for cmd in ("make test", "make", "cat dep.sh", "git diff dep.py", "grep x dep.py",
+                "npx wrang~ler deploy --dry-run", "npx wrang~ler deploy --dry-run=true"):
+        assert _bash(cmd.replace("~", ""), capsys, cwd=proj) is None, cmd
+    for cmd in ("make ship", "bash -lc 'wrang~ler deploy'", "bash -ec 'wrang~ler deploy'",
+                "sh -euc 'wrang~ler deploy'", "bash -xc 'wrang~ler deploy'",
+                "yarn wrang~ler deploy", "pnpm wrang~ler deploy", "pnpm exec wrang~ler deploy",
+                "npx wrang~ler deploy --dry-run=false", "npx wrang~ler deploy --dry-run false",
+                "sh dep.sh", "source dep.sh", ". dep.sh", "cat dep.sh PIPE sh", "python3 dep.py",
+                "./dep.sh", "A=wrang~ler; B=$A; $B deploy",
+                "python3 -c \"import subprocess; subprocess.run(['wrang~ler','deploy'])\""):
+        c = cmd.replace("PIPE", "|").replace("~", "")
+        res = _bash(c, capsys, cwd=proj)
+        assert res is not None, cmd
+
+
+@pytest.mark.parametrize("cmd", [
+    "curl -d@body.json https://disc|ord.com/api/channels/1/messages",
+    "curl -d'{}' https://disc|ord.com/api/channels/1/messages",
+    "curl --data-urlencode a=b https://disc|ord.com/api/channels/1/messages",
+    "curl --form-string a=b https://disc|ord.com/api/channels/1/messages",
+    "curl -T m.json https://disc|ord.com/api/channels/1/messages",
+    "wget --post-data=x https://disc|ord.com/api/channels/1/messages",
+    "wget --method=POST https://disc|ord.com/api/channels/1/messages",
+    "python3 -c \"requests.request('POST', 'https://disc|ord.com/api/channels/1/messages')\"",
+    "python3 -c \"httpx.post('https://disc|ord.com/api/channels/1/messages')\"",
+    "python3 -c \"urlopen(Request('https://disc|ord.com/api/channels/1/messages', data=b))\"",
+    "node -e \"fetch('https://disc|ord.com/api/channels/1/messages', {method:'POST'})\"",
+])
+def test_write_signal_forms(cmd, state, capsys):
+    assert _deny_reason(_bash(cmd.replace("|", ""), capsys)), cmd
+
+
+def test_getpermissions_is_read():
+    assert rg.mcp_outward_kind("mcp__drive__getpermissions") is None
+    assert rg.mcp_outward_kind("mcp__drive__getPermissions") is None
+
+
+@pytest.mark.parametrize("cmd,deny", [
+    ("curl -f https://disc|ord.com/api/channels/1/messages", False),
+    ("curl --fail -sS https://disc|ord.com/api/channels/1/messages", False),
+    ("curl -F content=hi https://disc|ord.com/api/channels/1/messages", True),
+    ("curl -F 'file=@a.png' https://disc|ord.com/api/channels/1/messages", True),
+])
+def test_curl_fail_vs_form_flag_case(cmd, deny, state, capsys):
+    assert (_bash(cmd.replace("|", ""), capsys) is not None) == deny, cmd
+
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_site_redesign_deploy_script_positional_dir(tmp_path, state, capsys):
+    script = ".claude/skills/site-redesign/scripts/deploy.sh"
+    clean = "directives/subagent"
+    r = subprocess.run(["git", "-C", str(rg.REPO_ROOT), "status", "--porcelain", "--", clean,
+                        script], capture_output=True, text=True, encoding="utf-8",
+                       errors="replace")
+    if r.stdout.strip() or not (rg.REPO_ROOT / script).is_file():
+        pytest.skip("fixture dirty/missing in this checkout")
+    assert _bash(f"bash {script} {clean} acme-redesign for-acme/", capsys,
+                 cwd=rg.REPO_ROOT) is None
+    site = tmp_path / "site"
+    _write(site / "index.html", "<p>x</p>")
+    assert "committed" in _deny_reason(_bash(f"bash {script} {site} acme-redesign", capsys,
+                                             cwd=rg.REPO_ROOT))
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_inline_code_and_runner_forms(tmp_path, state, capsys, monkeypatch):
+    proj = _deploy_repo(tmp_path, monkeypatch)
+    _write(proj / "dep.sh", "npx wrang" "ler deploy\n")
+    _write(proj / "dep.py", "import subprocess\nsubprocess.run(['wrang" "ler', 'deploy'])\n")
+    _write(proj / "src" / "draft.md", "uncommitted\n")
+    for cmd in (
+        "python3 - <<'EOF'\nimport subprocess\nsubprocess.run(['wrang~ler','pages','deploy','dist'])\nEOF",
+        "python3 -c \"exec(open('dep.py').read())\"",
+        "node -e \"require('child_process').spawnSync('wrang~ler',['pages','deploy','dist'])\"",
+        "sh < dep.sh", "python3 - < dep.py",
+        "vc --prod", "npx -p wrang~ler wrang~ler deploy", "pnpm --filter x exec wrang~ler deploy",
+        "yarn run wrang~ler deploy", "bun run wrang~ler deploy", "corepack pnpm wrang~ler deploy",
+        "setsid wrang~ler deploy", "flock /tmp/l wrang~ler deploy", "unbuffer wrang~ler deploy",
+        "doas wrang~ler deploy", "sudo -u x wrang~ler deploy", "script -q -c 'wrang~ler deploy' /dev/null",
+    ):
+        assert _bash(cmd.replace("~", ""), capsys, cwd=proj) is not None, cmd
+    assert "uncommitted" in _deny_reason(_bash("env -C sites/client npx wrangler deploy", capsys,
+                                               cwd=rg.REPO_ROOT))
+
+
+@pytest.mark.parametrize("cmd", [
+    "curl -X POST https://disc|ord.com/api/v10/webhooks/1/abc -d '{}'",
+    "python3 -c \"from slack_sdk.webhook import WebhookClient; WebhookClient(u).se|nd(text='x')\"",
+    "node -e \"new IncomingWebhook(u).se|nd({text:'x'})\"",
+    "curl -X POST https://graph.insta|gram.com/v19.0/1/media_publish",
+    "curl -X POST https://graph.thre|ads.net/v1.0/me/threads_publish",
+    "curl -X POST https://graph.thre|ads.net/v1.0/me/threads -d text=hi",
+    "curl https://api.tele|gram.org/bot1:a/forwardMessage -d chat_id=1",
+    "curl https://api.tele|gram.org/bot1:a/copyMessage -d chat_id=1",
+    "curl https://api.tele|gram.org/bot1:a/sendPhoto -F photo=@a.png",
+    "curl -X POST https://outlook.off|ice.com/webhook/abc -d '{}'",
+])
+def test_fourth_audit_channels(cmd, state, capsys):
+    assert _deny_reason(_bash(cmd.replace("|", ""), capsys)), cmd
+
+
+def test_mcp_inverted_text_rule_and_kinds(tmp_path, state, capsys):
+    k = rg.mcp_outward_kind
+    for n in ("chat_post" "Message", "files_upload", "create_issue", "update_issue",
+              "create_pull_request", "pull_request_review_write", "add_comment_to_pending_review"):
+        assert k(f"mcp__srv__{n}") == "post", n
+    for n in ("push_files", "create_or_update_file"):
+        assert k(f"mcp__github__{n}") is None, n
+    # unknown string keys are text now
+    assert "has not passed" in _deny_reason(_mcp("mcp__x__create_post",
+                                                 {"page_id": "1", "headline_v2": "Hi"}, capsys))
+    _record_text(tmp_path, "Ship it", capsys)
+    assert _mcp("mcp__github__create_issue", {"owner": "o", "repo": "r", "title": "Ship it",
+                                              "labels": ["a"]}, capsys) is None
+    for key in ("channel_name", "Channel"):
+        assert "audience" in _deny_reason(_mcp("mcp__slack__chat_post" "Message",
+                                               {key: "general", "text": "Ship it"}, capsys))
+
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_gaia_deploy_script_default_target_checked(state, capsys):
+    script = "execution/gtm_client_workflows/gaia_redesign/deploy_cloudflare.sh"
+    site = "deliverables/gaia_redesign_2026-09-17/site"
+    r = subprocess.run(["git", "-C", str(rg.REPO_ROOT), "status", "--porcelain", "--ignored",
+                        "--", site, script], capture_output=True, text=True, encoding="utf-8",
+                       errors="replace")
+    if r.stdout.strip() or not (rg.REPO_ROOT / script).is_file():
+        pytest.skip("fixture dirty/missing in this checkout")
+    assert _bash(f"bash {script}", capsys, cwd=rg.REPO_ROOT) is None
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_tracked_script_literal_target_dirty_denied(tmp_path, state, capsys, monkeypatch):
+    proj = _deploy_repo(tmp_path, monkeypatch)
+    root = rg.REPO_ROOT
+    _write(root / "deliverables" / "acme" / "site" / "index.html", "<p>x</p>")
+    _write(proj / "dep.sh", 'SITE="${1:-$ROOT/deliverables/acme/site}"\n'
+           'npx wrang' 'ler pages deploy "$STAGE" --project-name x\n')
+    _write(proj / "dep2.sh", 'npx wrang' 'ler pages deploy "$STAGE" --project-name x\n')
+    for args in (["add", "-A"], ["-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "y"]):
+        subprocess.run(["git", "-C", str(root), *args], check=True, capture_output=True)
+    assert _bash("bash dep.sh", capsys, cwd=proj) is None
+    assert _bash("bash dep2.sh", capsys, cwd=proj) is None
+    _write(root / "deliverables" / "acme" / "site" / "new.html", "<p>draft</p>")
+    assert "deliverables" in _deny_reason(_bash("bash dep.sh", capsys, cwd=proj))
+    assert "deliverables" in _deny_reason(_bash("bash dep2.sh", capsys, cwd=proj))
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_substitution_and_command_string_deploys(tmp_path, state, capsys, monkeypatch):
+    proj = _deploy_repo(tmp_path, monkeypatch)
+    _write(proj / "cmd.txt", "wrang" "ler deploy\n")
+    _write(proj / "dep.sh", "npx wrang" "ler deploy\n")
+    for args in (["add", "-A"], ["-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "y"]):
+        subprocess.run(["git", "-C", str(rg.REPO_ROOT), *args], check=True, capture_output=True)
+    _write(proj / "src" / "draft.md", "uncommitted\n")
+    for cmd in ("$(echo wrang~ler) deploy", "`echo wrang~ler` deploy", "$(cat cmd.txt)",
+                "echo $(wrang~ler deploy)", "echo dist PIPE xargs -I{} wrang~ler pages deploy {}",
+                "tail -n +1 dep.sh PIPE sh", "head -5 dep.sh PIPE bash",
+                "tmux new -d -s x 'wrang~ler deploy'", "screen -dm wrang~ler deploy",
+                "su -c 'wrang~ler deploy' me", "env -S 'wrang~ler deploy'",
+                "nohup wrang~ler deploy", "echo 'wrang~ler deploy' PIPE at now",
+                "php -r 'system(\"wrang~ler deploy\");'", "perl -e 'system(\"wrang~ler deploy\")'",
+                "ruby -e 'system(\"wrang~ler deploy\")'"):
+        c = cmd.replace("PIPE", "|").replace("~", "")
+        assert _bash(c, capsys, cwd=proj) is not None, cmd
+
+
+def test_sender_pwd_script_paths(tmp_path, state, capsys):
+    _write(tmp_path / "s.py", "import smtp" "lib\n")
+    for cmd in ("python3 $PWD/s.py", "python3 ${PWD}/s.py", "python3 $(pwd)/s.py",
+                "python3 `pwd`/s.py"):
+        assert _bash(cmd, capsys, cwd=tmp_path) is not None, cmd
+
+
+def test_mcp_review_enum_keys_and_id_only_tools(tmp_path, state, capsys):
+    ti = {"owner": "o", "repo": "r", "pullNumber": 3, "method": "submit_pending",
+          "event": "APPROVE", "subjectType": "LINE", "side": "RIGHT", "startSide": "RIGHT",
+          "line": 4, "startLine": 2, "path": "a.py", "commit_id": "abc", "position": 1}
+    assert _mcp("mcp__github__pull_request_review_write", ti, capsys) is None
+    assert _mcp("mcp__github__update_issue", {"owner": "o", "repo": "r", "issue_number": 1,
+                                              "state": "closed", "stateReason": "completed",
+                                              "labels": ["x"], "milestone": "m",
+                                              "assignees": ["a"]}, capsys) is None
+    assert "body" in _deny_reason(_mcp("mcp__github__pull_request_review_write",
+                                       dict(ti, body="LGTM"), capsys))
+
+
+@pytest.mark.parametrize("cmd", [
+    "python3 -c \"bot.send|_media_group(1, m)\"",
+    "python3 -c \"bot.forward|_message(1, 2, 3)\"",
+    "python3 -c \"bot.copy|_message(1, 2, 3)\"",
+    "node -e \"bot.telegram.send|Message(1, 'x')\"",
+    "curl -X POST https://acme.outlook.office3|65.com/webhook/abc -d '{}'",
+    "python3 -c \"client.files_up|load(channels='c', file='f')\"",
+    "python3 -c \"from slack_sdk.webhook.async_client import AsyncWebhookClient as W; W(u).se|nd(text='x')\"",
+    "curl -X POST https://api.git|hub.com/repos/o/r/issues/1/comments -d '{\"body\":\"x\"}'",
+    "curl -X POST https://api.git|hub.com/repos/o/r/pulls -d '{}'",
+])
+def test_fifth_audit_channels(cmd, state, capsys):
+    assert _deny_reason(_bash(cmd.replace("|", ""), capsys)), cmd
+
+
+def test_gh_cli_text_gated(tmp_path, state, capsys):
+    for cmd in ("gh pr comment 3 --body 'Looks good'", "gh issue create --title T --body B",
+                "gh pr review 3 --comment -b 'Nit: rename'", "gh pr create --title 'Ship it' --body x"):
+        assert "has not passed" in _deny_reason(_bash(cmd, capsys)), cmd
+    for cmd in ("gh pr review 3 --approve", "gh pr create --fill", "gh pr list",
+                "gh issue view 3", "gh pr merge 3 --squash"):
+        assert _bash(cmd, capsys) is None, cmd
+    _record_text(tmp_path, "Looks good", capsys)
+    assert _bash("gh pr comment 3 --body 'Looks good'", capsys) is None
+    f = _write(tmp_path / "b.md", "Looks good")
+    assert _bash(f"gh pr comment 3 --body-file {f}", capsys) is None
+
+
+
+def test_gh_global_flags_api_and_more_subcommands(tmp_path, state, capsys):
+    for cmd in ("gh -R o/r pr comment 3 --body 'Looks good'",
+                "gh --repo o/r issue comment 3 -b'Looks good'",
+                "gh --hostname h issue create -tTitle -bBody",
+                "gh issue close 3 --comment 'Closing this'",
+                "gh pr reopen 3 -c 'Reopening'", "gh pr merge 3 --squash --body 'merge text'",
+                "gh pr merge 3 --subject 'Ship v2'", "gh discussion create --title T --body B",
+                "gh repo create acme --description 'Client site'",
+                "gh api repos/o/r/issues/1/comments -f body='hi there'",
+                "gh api -X PATCH repos/o/r/issues/1 -f title='New title'",
+                "gh api repos/o/r/pulls -F title=T -F body=B",
+                "gh api --method POST repos/o/r/releases --raw-field body=notes"):
+        assert "has not passed" in _deny_reason(_bash(cmd, capsys)), cmd
+    assert "mutation" in _deny_reason(_bash(
+        "gh api graphql -f query='mutation { addComment(input:{}) { clientMutationId } }'", capsys))
+    assert _deny_reason(_bash("curl -X POST https://api.git|hub.com/graphql -d "
+                              "'{\"query\":\"mutation { x }\"}'".replace("|", ""), capsys))
+    for cmd in ("gh api repos/o/r/issues", "gh api graphql -f query='query { viewer { login } }'",
+                "gh -R o/r pr list", "gh api -X POST repos/o/r/actions/workflows/1/dispatches",
+                "gh pr merge 3 --squash", "gh issue close 3", "gh repo view o/r"):
+        assert _bash(cmd, capsys) is None, cmd
+    _record_text(tmp_path, "Looks good", capsys)
+    assert _bash("gh -R o/r pr comment 3 -b'Looks good'", capsys) is None
+    assert _bash("gh api repos/o/r/issues/1/comments -f body='Looks good' -f owner=o",
+                 capsys) is None
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_write_then_run_and_more_exec_forms(tmp_path, state, capsys, monkeypatch):
+    proj = _deploy_repo(tmp_path, monkeypatch)
+    _write(proj / "dep1.sh", "npx wrang" "ler deploy\n")
+    _write(proj / "launch.py", "import subprocess\nsubprocess.run(['bash', 'dep1.sh'])\n")
+    for args in (["add", "-A"], ["-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "y"]):
+        subprocess.run(["git", "-C", str(rg.REPO_ROOT), *args], check=True, capture_output=True)
+    _write(proj / "src" / "draft.md", "uncommitted\n")
+    for cmd in ("cat > d.sh <<'EOF'\nwrang~ler deploy\nEOF\nbash d.sh",
+                "echo 'wrang~ler deploy' > d2.sh && sh d2.sh",
+                "printf 'wrang~ler deploy\\n' PIPE bash", "bash <<< 'wrang~ler deploy'",
+                "script -qc 'wrang~ler deploy' /dev/null", "busybox sh -c 'wrang~ler deploy'",
+                "awk 'BEGIN{system(\"wrang~ler deploy\")}'",
+                "find . -maxdepth 0 -exec wrang~ler deploy ';'",
+                "bash dep*.sh", "bash {dep1,nope}.sh", "python3 launch.py",
+                "python3 -c \"import subprocess; subprocess.run(['bash','dep1.sh'])\""):
+        c = cmd.replace("PIPE", "|").replace("~", "")
+        assert _bash(c, capsys, cwd=proj) is not None, cmd
+
+
+@pytest.mark.parametrize("cmd", [
+    "python3 -c \"c.chat_schedule|Message(channel='c', text='x', post_at=1)\"",
+    "python3 -c \"c.chat_up|date(channel='c', ts='1', text='x')\"",
+    "python3 -c \"c.chat_me|Message(channel='c', text='x')\"",
+    "python3 -c \"c.api_call('chat|.post|Message', json={})\"",
+    "node -e \"web.files.up|load({channels:'c'})\"", "node -e \"web.files.up|loadV2({})\"",
+    "python3 -c \"Bot(token).send|_message(1, 'x')\"", "node -e \"bot.api.send|Message(1, 'x')\"",
+    "python3 -c \"import tele|thon; client.send|_message('me', 'x')\"",
+    "curl -X POST https://graph.micro|soft.com/v1.0/me/messages/AAMk=/reply -d '{}'",
+    "curl -X POST https://graph.micro|soft.com/v1.0/me/send|Mail -d '{}'",
+])
+def test_sixth_audit_channels(cmd, state, capsys):
+    assert _deny_reason(_bash(cmd.replace("|", ""), capsys)), cmd
+
+
+def test_structural_mcp_rule(tmp_path, state, capsys):
+    k = rg.mcp_outward_kind
+    for n in ("mcp__Claude_Docs__read", "mcp__Claude_Docs__guide", "mcp__Wispr_Flow__get_meeting",
+              "mcp__Google_Drive__search_files",
+              "mcp__Google_Drive__get_file_permissions", "mcp__Google_Drive__create_file",
+              "mcp__Gmail__trash_thread", "mcp__Gmail__unlabel_thread",
+              "mcp__Google_Calendar__delete_event", "mcp__Google_Calendar__suggest_time",
+              "mcp__github__issue_read", "mcp__github__pull_request_read",
+              "mcp__github__push_files", "mcp__claude-code-remote__send_message",
+              "mcp__ccd_session__spawn_task", "mcp__x__view_thing", "mcp__x__count_rows"):
+        assert k(n) is None, n
+    for n in ("mcp__github__merge_pull_request", "mcp__github__issue_write",
+              "mcp__Claude_Docs__batch", "mcp__acme__do_anything", "mcp__x__notify"):
+        assert k(n) == "post", n
+    # outward tool with only ids/enums passes; any free string must pass red-team
+    assert _mcp("mcp__github__merge_pull_request", {"owner": "o", "repo": "r", "pullNumber": 1,
+                                                    "merge_method": "squash"}, capsys) is None
+    assert "commit_message" in _deny_reason(_mcp(
+        "mcp__github__merge_pull_request", {"owner": "o", "repo": "r", "pullNumber": 1,
+                                            "commit_message": "Ship it to the client"}, capsys))
+    assert "has not passed" in _deny_reason(_mcp("mcp__acme__notify", {"note_v9": "Hi Marc"},
+                                                 capsys))
+    assert _mcp("mcp__claude-code-remote__send_message", {"message": "anything"}, capsys) is None
+    assert rg._is_outward({"tool_name": "mcp__acme__notify"}, "")
+
+
+
+def test_mcp_anchored_read_verbs(tmp_path, state, capsys):
+    k = rg.mcp_outward_kind
+    for n in ("get_then_send_message", "getAndPublish", "list_and_send", "readAndReply",
+              "fetch_post", "check_and_invite", "mark_and_forward", "labelThenShare_x",
+              "getter_send", "gettweet"):
+        assert k(f"mcp__srv__{n}") is not None, n
+    for n in ("getItems", "listFiles", "get_file", "fetchPage", "pull_request_read",
+              "getpermissions", "unlabel_thread", "trash_file"):
+        assert k(f"mcp__srv__{n}") is None, n
+    # read verb + outward word: gated by the text rule, ids-only passes
+    assert k("mcp__Wispr_Flow__resolve_share_link") == "post"
+    assert _mcp("mcp__Wispr_Flow__resolve_share_link", {"url": "https://x/y"}, capsys) is None
+    assert _mcp("mcp__Gmail__label_message", {"messageId": "1", "labelIds": ["a"]},
+                capsys) is None
+    assert "has not passed" in _deny_reason(_mcp("mcp__srv__get_then_send_message",
+                                                 {"body": "Hi Marc"}, capsys))
+
+
+def test_gh_graphql_and_more_gh_text(tmp_path, state, capsys):
+    q = _write(tmp_path / "q.graphql", "mutation { addComment(input: {}) { x } }")
+    for cmd in (f"gh api graphql -F query=@{q}", f"gh api graphql --input {q}",
+                f"gh api /graphql -f query='mutation {{ x }}'",
+                "gh api graphql -F query=@/nonexistent/q",
+                "gh workflow run deploy.yml -f message='Hello client'",
+                "gh label create urgent --description 'Client escalation'",
+                "gh project item-create 1 --title 'Call Marc'",
+                "echo 3 | xargs -I{} gh pr comment {} -b 'Looks good'",
+                "gh release create v1 --title 'Big launch'"):
+        assert _deny_reason(_bash(cmd, capsys)), cmd
+    assert _mcp("mcp__github__create_release", {"owner": "o", "repo": "r",
+                                                "tag_name": "v1"}, capsys) is not None
+    assert rg._mcp_recipients({"username": "marc"})[2] == ["username=marc"]
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_seventh_audit_deploy_forms(tmp_path, state, capsys, monkeypatch):
+    proj = _deploy_repo(tmp_path, monkeypatch)
+    _write(proj / "dep1.sh", "npx wrang" "ler deploy\n")
+    _write(proj / "launch.py", "import os\nos.system('bash dep1.sh')\n")
+    _write(proj / "launch.js", "require('child_process').execSync('bash dep1.sh')\n")
+    _write(proj / "depmod.py", "import subprocess\nsubprocess.run(['wrang" "ler', 'deploy'])\n")
+    for args in (["add", "-A"], ["-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "y"]):
+        subprocess.run(["git", "-C", str(rg.REPO_ROOT), *args], check=True, capture_output=True)
+    _write(proj / "src" / "draft.md", "uncommitted\n")
+    for cmd in ("find . -name dep1.sh -exec bash {} ';'", "python3 launch.py", "node launch.js",
+                "python3 -m depmod", "cat depmod.py PIPE python3", "env bash dep1.sh",
+                "busybox ash dep1.sh", "python3 -c \"import os; os.system('bash dep1.sh')\""):
+        c = cmd.replace("PIPE", "|")
+        assert _bash(c, capsys, cwd=proj) is not None, cmd
+    for cmd in ("npx wrang~ler deploy --help", "wrang~ler pages deploy -h", "vercel --help",
+                "bash -n dep1.sh", "sh -n dep1.sh"):
+        assert _bash(cmd.replace("~", ""), capsys, cwd=proj) is None, cmd
+
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_here_string_does_not_short_circuit(tmp_path, state, capsys, monkeypatch):
+    proj = _deploy_repo(tmp_path, monkeypatch)
+    _write(proj / "src" / "draft.md", "uncommitted\n")
+    for cmd in ("wrang~ler pages deploy dist <<< x", "vercel --prod <<< x",
+                "npx wrang~ler deploy <<< ''"):
+        assert _bash(cmd.replace("~", ""), capsys, cwd=proj) is not None, cmd
+    assert "has not passed" in _deny_reason(_bash("gh pr comment 1 -b hostile <<< ''", capsys))
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_shell_keywords_skipped(tmp_path, state, capsys, monkeypatch):
+    proj = _deploy_repo(tmp_path, monkeypatch)
+    _write(proj / "src" / "draft.md", "uncommitted\n")
+    for cmd in ("for i in 1; do wrang~ler deploy; done", "if true; then wrang~ler deploy; fi",
+                "while false; do :; done; until true; do vercel --prod; done",
+                "! wrang~ler deploy", "{ wrang~ler deploy; }", "if wrang~ler deploy; then :; fi",
+                "for i in 1; do gh pr comment 1 -b hostile; done"):
+        assert _bash(cmd.replace("~", ""), capsys, cwd=proj) is not None, cmd
+
+
+def test_hook_paths_named_not_executed_allowed(state, capsys):
+    hook = ".claude/hooks/redteam-outward-" "gate.sh"
+    for cmd in (f"cat {hook} && python3 -c 'print(1)'", f"git diff {hook}; python3 x.py",
+                f"grep -n pre {hook} && node -e '1'", f"ls -la {hook} && curl -s https://x.org",
+                f"diff {hook} /tmp/old.sh; python3 -V"):
+        assert _bash(cmd, capsys) is None, cmd
+    for cmd in (f"bash {hook} pre", f"sh -c 'bash {hook} pre'", f"cat {hook} | sh",
+                f"source {hook}", f". {hook}"):
+        assert _deny_reason(_bash(cmd, capsys)), cmd
+
+
+def test_gist_invites_and_mcp_ids(tmp_path, state, capsys):
+    f = _write(tmp_path / "note.md", "Hi Marc, here is the plan")
+    for cmd in (f"gh gist create {f}", f"gh gist create --public {f} -d 'Plan'",
+                "gh gist create -", "gh api -X PUT repos/o/r/collaborators/marc",
+                "gh api -X POST orgs/o/invitations -f email=x@y.z",
+                "gh api -X PUT orgs/o/memberships/marc"):
+        assert _deny_reason(_bash(cmd, capsys)), cmd
+    _record_text(tmp_path, "Hi Marc, here is the plan", capsys)
+    assert _bash(f"gh gist create {f}", capsys) is None
+    assert _mcp("mcp__Google_Calendar__move_event", {"calendarId": "a", "eventId": "e",
+                                                     "destination": "b",
+                                                     "destinationCalendarId": "b"},
+                capsys) is None or rg.mcp_outward_kind("mcp__Google_Calendar__move_event") == "post"
+    assert _mcp("mcp__x__move_event", {"eventId": "e", "destination": "cal2"}, capsys) is None
+    assert rg.mcp_outward_kind("mcp__ide__search_replace") is None
+    assert rg.mcp_outward_kind("mcp__team__check_in") == "post"
+    assert "has not passed" in _deny_reason(_mcp("mcp__team__check_in",
+                                                 {"status_text": "Done with Marc"}, capsys))
+
+
+
+def test_env_absolute_path_and_binary_no_crash(tmp_path, state, capsys):
+    _write(tmp_path / "send.py", "import smtp" "lib\n")
+    assert _deny_reason(_bash("/usr/bin/env python3 send.py", capsys, cwd=tmp_path))
+    (tmp_path / "bin.sh").write_bytes(b"\x00\x01wrang" b"ler deploy\x00")
+    _bash("bash bin.sh", capsys, cwd=tmp_path)  # binary script: no crash (rc 0 asserted)
+
+
+def test_scanner_crash_denies_risky_allows_benign(state, capsys, monkeypatch):
+    def boom(*_a, **_k):
+        raise ValueError("injected")
+    monkeypatch.setattr(rg, "_bash_decision", boom)
+    for cmd in ("python3 send.py", "npx wrang|ler deploy", "gh pr comment 1 -b x",
+                "curl -X POST https://hooks.sla|ck.com/x"):
+        assert "gate error" in _deny_reason(_bash(cmd.replace("|", ""), capsys)), cmd
+    for cmd in ("ls -la", "git status", "python3 -V", "pytest -q"):
+        assert _bash(cmd, capsys) is None, cmd
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_ninth_audit_deploy_forms(tmp_path, state, capsys, monkeypatch):
+    proj = _deploy_repo(tmp_path, monkeypatch)
+    _write(proj / "dep.sh", "npx wrang" "ler deploy\n")
+    _write(proj / "other.sh", "echo hi\n")
+    for args in (["add", "-A"], ["-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "y"]):
+        subprocess.run(["git", "-C", str(rg.REPO_ROOT), *args], check=True, capture_output=True)
+    _write(proj / "src" / "draft.md", "uncommitted\n")
+    for cmd in ("bash -o pipefail dep.sh", "bash -eo pipefail dep.sh", "bash -O extglob dep.sh",
+                "for f in dep.sh; do bash $f; done", "for f in other.sh dep.sh; do sh ${f}; done",
+                "bash $(echo dep.sh)", "cp dep.sh run.sh && bash run.sh",
+                "cat dep.sh > run2.sh && sh run2.sh", "builtin eval 'wrang|ler deploy'"):
+        assert _bash(cmd.replace("|", ""), capsys, cwd=proj) is not None, cmd
+
+
+def test_ninth_audit_sender_and_gh(tmp_path, state, capsys):
+    _write(tmp_path / "send.py", "import smtp" "lib\n")
+    _write(tmp_path / "wrap.sh", "python3 send.py\n")
+    for cmd in ("python3 $(echo send.py)", "python3 `echo send.py`", "sh wrap.sh"):
+        assert _deny_reason(_bash(cmd, capsys, cwd=tmp_path)), cmd
+    for cmd in ("gh repo edit --visibility public", "gh repo edit o/r --visibility=public",
+                "gh repo create x --public", "gh api -X PATCH repos/o/r -f description='Client X'"):
+        assert _deny_reason(_bash(cmd, capsys)), cmd
+    assert _bash("gh repo edit --visibility private", capsys) is None
+
+
+
+def test_huge_commands_fast_and_bounded(state, capsys):
+    import time as _t
+    n = 300_000
+    t0 = _t.time()
+    assert "too large" in _deny_reason(_bash("python3 " + "a/" * (n // 2), capsys))
+    assert "too large" in _deny_reason(_bash("bash -c '" + "x " * (n // 2) + "'", capsys))
+    for cmd in ("echo " + "a/" * (n // 2) + " > f.txt", "cat " + "x" * n,
+                "ls " + "$a" * (n // 2)):
+        assert _bash(cmd, capsys) is None
+    assert _t.time() - t0 < 5
+    t0 = _t.time()
+    rg.hook_text_hit("a/" * 150_000)
+    assert _t.time() - t0 < 1
+
+
+def test_time_budget_denies_exec_allows_plain(state, capsys, monkeypatch):
+    import time as _t
+
+    def slow(*_a, **_k):
+        _t.sleep(3)
+    monkeypatch.setattr(rg, "_bash_decision", slow)
+    monkeypatch.setattr(rg, "BASH_BUDGET_S", 0.2)
+    assert "exceeded" in _deny_reason(_bash("python3 x.py", capsys))
+    assert _bash("ls -la", capsys) is None
+
+
+def test_copy_then_run_sender_scan(tmp_path, state, capsys):
+    _write(tmp_path / "src.py", "import smtp" "lib\n")
+    for cmd in ("cp src.py run.py && python3 run.py", "mv src.py run2.py; python3 run2.py",
+                "cat src.py > run3.py && python3 run3.py",
+                "cat src.py | tee run4.py >/dev/null && python3 run4.py"):
+        assert _deny_reason(_bash(cmd, capsys, cwd=tmp_path)), cmd
+
+
+def test_outward_mcp_unparseable_inputs(state, capsys):
+    for name, ti in (("mcp__Gmail__send_message", {"to": None, "body": "x"}),
+                     ("mcp__Gmail__send_message", {"to": [1, 2], "body": "x"}),
+                     ("mcp__Gmail__send_message", {"to": "a@b.co", "body": None}),
+                     ("mcp__Gmail__send_message", {"to": "a@b.co", "body": 42}),
+                     ("mcp__slack__send_message", {"channel": "c", "text": None}),
+                     ("mcp__x__send_dm", {"recipients": [{"id": 3}], "text": "x"})):
+        assert "unparseable" in _deny_reason(_mcp(name, ti, capsys)) or \
+            "null" in _deny_reason(_mcp(name, ti, capsys)), (name, ti)
