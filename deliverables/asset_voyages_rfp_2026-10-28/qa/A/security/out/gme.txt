@@ -1,0 +1,49 @@
+## equipe forms
+asset_gme_request 5 None None 15f2eb1cac
+asset_gme_request 7 None None 450e6bbbda
+asset_gme_request 9 None None d3b62d0935
+asset_gme_request 13 None None df849593f6
+## 1 equipe reveal w/o grant cid=5 using request nonce
+asset-notice-refused_nonce
+## 2 equipe request (reason empty, then hostile)
+303 http://127.0.0.1:9400/wp-admin/admin.php?page=asset-gme&msg=reason
+303 http://127.0.0.1:9400/wp-admin/admin.php?page=asset-gme&msg=requested
+## direction forms
+asset_gme_decide None 2 approve 760756b578
+asset_gme_decide None 2 refuse 760756b578
+asset_gme_decide None 1 approve 4a1d4cd565
+asset_gme_decide None 1 refuse 4a1d4cd565
+reveal 4 None None c28cd1e8c4
+reveal 5 None None d71e3526ef
+reveal 7 None None 1a9f31f63a
+reveal 9 None None c5c79c7d79
+reveal 13 None None a6203d6e45
+asset_gme_save None None None 222d556b77
+## 3 equipe self-approve rid=2 with its request nonce / with direction nonce
+403
+403
+## 4 nonce cross-decision: direction uses approve nonce to refuse? (same action string)
+asset_gme_decide None 2 approve 760756b578
+asset_gme_decide None 2 refuse 760756b578
+## 5 direction approves
+303 http://127.0.0.1:9400/wp-admin/admin.php?page=asset-gme-acces&msg=approve
+reveal 5 None None 3a310d8cc2
+asset_gme_request 7 None None 450e6bbbda
+asset_gme_request 9 None None d3b62d0935
+asset_gme_request 13 None None df849593f6
+## 6 equipe reveal granted cid=5
+<code class="asset-revealed">DEMO-GME-8TZ2
+## 7 IDOR: reveal nonce of 5 reused for other congresses
+7: asset-notice-refused_nonce
+9: asset-notice-refused_nonce
+13: asset-notice-refused_nonce
+## 8 direction revokes; equipe replays reveal
+revoke rid=
+403
+asset-notice-revealed
+asset-revealed">DEMO-GME-8TZ2
+## 9 replay approve on revoked (state machine)
+303 http://127.0.0.1:9400/wp-admin/admin.php?page=asset-gme&msg=state
+## 10 contributeur reveal / request with equipe nonce
+403
+403

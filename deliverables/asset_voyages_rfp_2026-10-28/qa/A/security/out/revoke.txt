@@ -1,0 +1,4 @@
+revoke rid=2
+303 http://127.0.0.1:9400/wp-admin/admin.php?page=asset-gme-acces&msg=revoke
+equipe still has reveal form: none
+asset-notice-refused

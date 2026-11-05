@@ -1,0 +1,11 @@
+url=http://127.0.0.1:9400/congres/sec-probe-direction-exemple/ cid=46 nonce=ok ts=ok
+-- bypass: pax=0
+303 http://127.0.0.1:9400/congres/sec-probe-direction-exemple/?asset_err=95b48061447cac8cb18f151de8c7734d#devis
+-- bypass: pax[]
+303 http://127.0.0.1:9400/congres/sec-probe-direction-exemple/?asset_err=21fd5f6d38450cb1312015f50ed1e3f1#devis
+-- bypass: no consent
+303 http://127.0.0.1:9400/congres/sec-probe-direction-exemple/?asset_err=7f200ac1284f5656cc7b6173fd8a4c53#devis
+-- bypass: draft congress id
+400
+-- hostile accepted
+303 http://127.0.0.1:9400/congres/sec-probe-direction-exemple/?asset_ok=14a388e6eb7fbe87218bd5a36ca3869b#devis

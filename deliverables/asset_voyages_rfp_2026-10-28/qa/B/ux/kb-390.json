@@ -21,8 +21,8 @@
   {
    "story": "S3",
    "W": 390,
-   "pass": false,
-   "note": "no ref: Aller au contenu"
+   "pass": true,
+   "note": "DV-2026-0007"
   },
   {
    "story": "S4",

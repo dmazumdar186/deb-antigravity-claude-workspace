@@ -1,0 +1,51 @@
+--wpdb
+./includes/class-notifications.php:40:		$wpdb->query( "CREATE TABLE IF NOT EXISTS {$table} ( id bigint(20) unsigned NOT NULL AUTO_INCREMENT, created_at datetime NOT NULL, recipient varchar(190) NOT NULL DEFAULT '', subject varchar(255) NOT NULL DEFAULT '', body text NOT NULL, ref varchar(40) NOT NULL DEFAULT '', delivered tinyint(1) NOT NULL DEFAULT 0, PRIMARY KEY  (id) ) {$charset}" );
+./includes/class-notifications.php:96:		$rows = $wpdb->get_results( "SELECT * FROM {$table} ORDER BY id DESC LIMIT 200" );
+./includes/class-gme.php:67:			$wpdb->query( "CREATE TABLE IF NOT EXISTS {$table} ( {$cols} ) {$c}" );
+./includes/class-gme.php:136:		return (array) $wpdb->get_results( "SELECT id, congres_id, status, valid_from, valid_to, evidence, updated_by, updated_at FROM {$t} ORDER BY id ASC" );
+./includes/class-gme.php:149:		return $wpdb->get_row( $wpdb->prepare( "SELECT id, congres_id, status, valid_from, valid_to, evidence, updated_by, updated_at FROM {$t} WHERE congres_id = %d", $congres_id ) );
+./includes/class-gme.php:204:		$enc = $wpdb->get_var( $wpdb->prepare( "SELECT code_enc FROM {$t} WHERE congres_id = %d", $congres_id ) );
+./includes/class-gme.php:266:		return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$t} WHERE id = %d", $id ) );
+./includes/class-gme.php:280:		return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$t} WHERE user_id = %d AND congres_id = %d ORDER BY id DESC LIMIT 1", $user_id, $congres_id ) );
+./includes/class-gme.php:295:			return (array) $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$t} ORDER BY id DESC LIMIT %d", $limit ) );
+./includes/class-gme.php:298:		return (array) $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$t} WHERE status = %s ORDER BY id DESC LIMIT %d", $status, $limit ) );
+./includes/class-gme.php:453:		return (array) $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$t} ORDER BY id DESC LIMIT %d", $limit ) );
+--handlers
+./includes/class-gme-admin.php:34:		add_action( 'admin_post_asset_gme_request', array( __CLASS__, 'handle_request' ) );
+./includes/class-gme-admin.php:35:		add_action( 'admin_post_asset_gme_decide', array( __CLASS__, 'handle_decide' ) );
+./includes/class-gme-admin.php:36:		add_action( 'admin_post_asset_gme_save', array( __CLASS__, 'handle_save' ) );
+./includes/class-demandes.php:59:		add_action( 'admin_post_nopriv_asset_demande_submit', array( __CLASS__, 'handle_submit' ) );
+./includes/class-demandes.php:60:		add_action( 'admin_post_asset_demande_submit', array( __CLASS__, 'handle_submit' ) );
+./includes/class-demandes-admin.php:26:		add_action( 'admin_post_asset_demande_update', array( __CLASS__, 'handle_update' ) );
+./includes/class-demandes-admin.php:27:		add_action( 'admin_post_asset_demandes_export', array( __CLASS__, 'handle_export' ) );
+./includes/class-seed.php:24:		add_action( 'admin_post_asset_cd_reseed', array( __CLASS__, 'handle_reseed' ) );
+--nonce
+./includes/class-gme-admin.php:78:		if ( ! $cid || ! $nonce || ! wp_verify_nonce( $nonce, 'asset_gme_reveal_' . $cid ) ) {
+./includes/class-gme-admin.php:356:		if ( ! $cid || ! isset( $_POST['asset_nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST[
+./includes/class-gme-admin.php:378:		if ( ! $rid || ! isset( $_POST['asset_nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST[
+./includes/class-gme-admin.php:397:		if ( ! isset( $_POST['asset_nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['asset_non
+./includes/class-demandes.php:426:		if ( ! $nonce || ! wp_verify_nonce( $nonce, 'asset_demande_submit' ) ) {
+./includes/class-demandes-admin.php:344:		if ( ! $id || ! isset( $_POST['asset_nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_P
+./includes/class-demandes-admin.php:396:		if ( ! isset( $_GET['_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_GET['_wpnonce'
+./includes/class-congres.php:272:		if ( ! isset( $_POST['asset_congres_nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['ass
+./includes/class-seed.php:359:		if ( ! isset( $_POST['asset_nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['asset_nonce'] 
+--cap
+./includes/class-gme-admin.php:46:		if ( $screen && 'dashboard' === $screen->id && current_user_can( 'asset_manage_gme' 
+./includes/class-gme-admin.php:208:		if ( ! current_user_can( 'asset_view_gme' ) ) {
+./includes/class-gme-admin.php:212:		$manage = current_user_can( 'asset_manage_gme' );
+./includes/class-gme-admin.php:359:		if ( ! current_user_can( 'asset_view_gme' ) ) {
+./includes/class-gme-admin.php:381:		if ( ! current_user_can( 'asset_manage_gme' ) ) {
+./includes/class-gme-admin.php:400:		if ( ! current_user_can( 'asset_manage_gme' ) ) {
+./includes/class-gme-admin.php:425:		if ( ! current_user_can( 'asset_manage_gme' ) ) {
+./includes/class-gme-admin.php:445:		if ( ! current_user_can( 'asset_manage_gme' ) ) {
+./includes/class-gme-admin.php:476:		if ( current_user_can( 'asset_manage_gme' ) ) {
+./includes/class-demandes-admin.php:190:		if ( ! current_user_can( self::CAP ) ) {
+./includes/class-demandes-admin.php:347:		if ( ! current_user_can( self::CAP ) ) {
+./includes/class-demandes-admin.php:399:		if ( ! current_user_can( self::CAP ) ) {
+./includes/class-demandes-admin.php:429:		if ( current_user_can( self::CAP ) ) {
+./includes/class-notifications.php:90:		if ( ! current_user_can( 'asset_manage_demandes' ) ) {
+./includes/class-congres.php:278:		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+./includes/class-congres.php:318:				if ( current_user_can( 'manage_asset_congres_terms' ) ) {
+./includes/class-seed.php:338:		if ( ! current_user_can( 'manage_options' ) ) {
+./includes/class-seed.php:362:		if ( ! current_user_can( 'manage_options' ) ) {
+--eval/innerHTML

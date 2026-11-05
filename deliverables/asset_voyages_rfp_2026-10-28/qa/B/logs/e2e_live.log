@@ -75,3 +75,39 @@ Running 75 tests using 1 worker
   -  72 tests/x_cross.spec.mjs:171:1 › X console at 390 px: no horizontal page overflow, inputs at least 16 px, tap targets at least 44 px
   -  73 tests/x_cross.spec.mjs:194:1 › X hostile console input: oversized body, wrong content type, unknown routes and methods fail safely
   ✓  74 tests/z_screens.spec.mjs:11:3 › screens at 1440px (42.4s)
+  ✓  75 tests/z_screens.spec.mjs:11:3 › screens at 390px (45.6s)
+
+
+  1) tests/x_cross.spec.mjs:76:1 › X4 Direction reset restores the seed for this browser only; re-seeding twice creates no duplicates; only Direction can reset; nightly cron is set 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText('La démonstration a été réinitialisée').first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByText('La démonstration a été réinitialisée').first() with timeout 10000ms
+      - waiting for getByText('La démonstration a été réinitialisée').first()
+
+
+       at helpers.mjs:102
+
+      100 |   await login(page, 'direction');
+      101 |   await page.getByRole('button', { name: 'Réinitialiser la démo' }).click();
+    > 102 |   await expect(page.getByText('La démonstration a été réinitialisée').first()).toBeVisible();
+          |                                                                                ^
+      103 | }
+      104 |
+      105 | export const csrfOf = async (page) => page.locator('input[name="_csrf"]').first().inputValue();
+        at resetSandbox (/home/user/deb-antigravity-claude-workspace/deliverables/asset_voyages_rfp_2026-10-28/custom_demo/tests/helpers.mjs:102:80)
+        at /home/user/deb-antigravity-claude-workspace/deliverables/asset_voyages_rfp_2026-10-28/custom_demo/tests/x_cross.spec.mjs:87:3
+
+    Error Context: ../../../../../../tmp/pw-live/x_cross-X4-Direction-reset-c73f5-n-reset-nightly-cron-is-set/error-context.md
+
+  1 failed
+    tests/x_cross.spec.mjs:76:1 › X4 Direction reset restores the seed for this browser only; re-seeding twice creates no duplicates; only Direction can reset; nightly cron is set 
+  2 skipped
+  5 did not run
+  67 passed (11.2m)

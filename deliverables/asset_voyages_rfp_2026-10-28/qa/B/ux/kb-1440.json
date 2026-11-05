@@ -15,14 +15,14 @@
   {
    "story": "S2",
    "W": 1440,
-   "pass": false,
-   "note": "not reached by Tab: /\\d{4}.*cardiologie/i on https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Cardiologie"
+   "pass": true,
+   "note": "filter+open; search vienne → 2 congrès; tabs to first result 21"
   },
   {
    "story": "S3",
    "W": 1440,
-   "pass": false,
-   "note": "no ref: Aller au contenu"
+   "pass": true,
+   "note": "DV-2026-0007"
   },
   {
    "story": "S4",
