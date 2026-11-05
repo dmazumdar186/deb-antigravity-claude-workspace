@@ -192,7 +192,7 @@ def _run_semgrep_fallback(files: list[str]) -> list[dict]:
 # .anneal/ is a throwaway audit-worktree created by the anneal tool — its files
 # are snapshots of other repos, not authoritative workspace source, and should
 # never be patched by workspace SAST.
-_SKIP_DIRS_PY = {".venv", "__pycache__", ".tmp", "node_modules", ".git", ".anneal"}
+_SKIP_DIRS_PY = {".venv", "__pycache__", ".tmp", "node_modules", ".git", ".anneal", "worktrees"}  # .claude/worktrees: agent worktree copies of this repo
 # Subagent directives that legitimately skip Exit Criteria
 _SUBAGENT_DIR = WORKSPACE_ROOT / "directives" / "subagent"
 
