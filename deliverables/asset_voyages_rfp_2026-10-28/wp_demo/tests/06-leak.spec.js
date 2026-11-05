@@ -115,7 +115,7 @@ test('S5-L1 crawl as equipe without an active grant (public + reachable admin sc
 });
 
 test('S5-F1 (after reveals) database still holds no plaintext code', async () => {
-	const dir = path.join(ROOT, '.tmp', 'db');
+	const dir = fs.realpathSync(path.join(ROOT, '.tmp', 'db-current'));
 	const files = [];
 	const walk = (d) => { for (const f of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, f.name); if (f.isDirectory()) walk(p); else if (/\.ht\.sqlite/.test(f.name)) files.push(p); } };
 	walk(dir);

@@ -11,7 +11,7 @@ const CARDIO = 'Congrès européen de cardiologie — exemple'; // DEMO-GME-4KQ7
 const row = (page, title) => page.locator('table.asset-gme-table tbody tr', { hasText: title });
 
 function dbFiles() {
-	const dir = path.join(ROOT, '.tmp', 'db');
+	const dir = fs.realpathSync(path.join(ROOT, '.tmp', 'db-current'));
 	const out = [];
 	const walk = (d) => { for (const f of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, f.name); if (f.isDirectory()) walk(p); else if (/\.ht\.sqlite/.test(f.name)) out.push(p); } };
 	walk(dir);
