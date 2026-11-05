@@ -2655,3 +2655,20 @@ def test_false_positive_guards_audit_bypasses_stay_denied(tmp_path, state, capsy
     _write(tmp_path / "lib" / "mailer.js", f"require('nodemailer').createTransport().{sm}({{}});\n")
     _write(tmp_path / "bin" / "tool", "#!/usr/bin/env node\nrequire('../lib/mailer.js');\n").chmod(0o755)
     assert _deny_reason(_bash("./bin/tool", capsys, tmp_path))
+
+
+def test_false_positive_guards_second_audit_stay_denied(tmp_path, state, capsys):
+    """Second audit (2026-11-05): shell-shebang test files, shells inside quoted -e strings,
+    `$(...)` dispatch and `.type(` dispatch keep their sender literals visible."""
+    smp, sm = "send" "mail", "send" "Mail"
+    _write(tmp_path / "qa" / "sh.mjs", f"#!/bin/bash\n$(\"{smp}\") -t < msg\n").chmod(0o755)
+    _write(tmp_path / "qa" / "t_jq.mjs",
+           f"const $ = (x) => cp.execSync(x);\n$(\"{smp}\");\n")
+    _write(tmp_path / "qa" / "t_type.mjs", f"const f = t.type(\"{sm}\");\nt[f]({{}});\n")
+    for cmd in ("./qa/sh.mjs", "node -e \"require('child_process').execSync('bash qa/sh.mjs')\"",
+                "perl -e 'system(\"bash qa/sh.mjs\")'", "node qa/t_jq.mjs", "node qa/t_type.mjs",
+                f"cat > qa/h.mjs <<'EOF'\n#!/bin/sh\n$(\"{smp}\") -t\nEOF\nnode qa/h.mjs"):
+        assert _deny_reason(_bash(cmd, capsys, tmp_path)), cmd
+    # a node-shebang test file with selector words still passes
+    _write(tmp_path / "qa" / "ok.mjs", "#!/usr/bin/env node\n" + _PW_BODY)
+    assert _bash("node qa/ok.mjs", capsys, tmp_path) is None

@@ -3287,19 +3287,34 @@ def mask_test_literals(text: str) -> str:
 
 
 # Selector / form-value position: first argument of a Playwright, Cypress, Selenium or DOM
-# locator call, or the value argument of fill/type (`page.fill('#to', 'x')`).
+# locator call (with a `.` receiver), or the value argument of fill (`page.fill('#to', 'x')`).
 _SELECTOR_POS_RE = re.compile(
-    r"(?:\.(?:click|dblclick|tap|hover|focus|check|uncheck|fill|type|press|presssequentially|"
+    r"(?:\.(?:click|dblclick|tap|hover|focus|check|uncheck|fill|press|presssequentially|"
     r"selectoption|setinputfiles|locator|waitforselector|queryselector(?:all)?|getby\w+|"
-    r"\$\$?eval|\$\$?|find_elements?|get|contains|find)|\bby\.\w+|\$)\s*\(\s*"
+    r"\$\$?eval|\$\$?|find_elements?|get|contains|find)|\bby\.\w+)\s*\(\s*"
     r"(?:(?:'[^'\n]*'|\"[^\"\n]*\")\s*,\s*)?\Z", re.I)
+_SHELL_WORD_RE = re.compile(r"(?<![\w.-])(?:(?:ba|z|da|k|fi|tc|c|a|mk|yash)?sh|busybox|"
+                            r"source|eval|exec[a-z]*|spawn[a-z]*|system|popen)(?![\w-])", re.I)
 # False while the command runs something through a shell: a test-suffixed file run by
 # `bash qa/x.mjs` is shell code, where a quoted string can be a command.
 _MASK_OK = [True]
 
 
+_NON_SHELL_SHEBANG_RE = re.compile(
+    r"#![ \t]*\S*?(?:/env(?:[ \t]+(?:-\S+|[A-Za-z_]\w*=\S*))*[ \t]+)?[ \t]*\S*?"
+    r"(?:node|nodejs|deno|bun|tsx|ts-node|python(?:3(?:\.\d+)?)?)(?:[ \t]|$)", re.M)
+
+
+def _maskable(body: str) -> bool:
+    """Masking is on for this command and the body is not a shell (or unknown) script."""
+    if not _MASK_OK[0]:
+        return False
+    head = body.lstrip("\ufeff")[:200]
+    return not head.startswith("#!") or bool(_NON_SHELL_SHEBANG_RE.match(head))
+
+
 def _test_body(path: str | Path, body: str) -> str:
-    return mask_test_literals(body) if _MASK_OK[0] and is_test_path(path) else body
+    return mask_test_literals(body) if is_test_path(path) and _maskable(body) else body
 
 
 def _scan_file(p: Path, label: str) -> str | None:
@@ -3512,10 +3527,9 @@ def _bash_hit(command: str, outer: str, docs: list[tuple[str, str]], cwd: Path,
               vars_: dict[str, str], bases: list[Path], pp: list[Path],
               expanded: str) -> str | None:
     # Test-file literal masking is off when anything runs through a shell (`bash qa/x.mjs`).
-    _MASK_OK[0] = not any(
-        re.split(r"[/\\]", w)[-1].lower() in ("sh", "bash", "zsh", "dash", "ksh", "busybox",
-                                               "source", ".", "eval")
-        for w in command_words(expanded) + [w for o, _b in docs for w in command_words(o)])
+    # Words inside quoted -e/-c strings count too (`node -e "execSync('bash qa/x.mjs')"`).
+    _MASK_OK[0] = not _SHELL_WORD_RE.search("\n".join([expanded] + [o for o, _b in docs])) \
+        and not any(w in (".", "source") for w in command_words(expanded))
     try:
         return _bash_hit_inner(command, outer, docs, cwd, vars_, bases, pp, expanded)
     finally:
@@ -3601,7 +3615,7 @@ def _heredoc_scan_text(opener: str, body: str) -> str:
     words = [re.split(r"[/\\]", w)[-1] for w in command_words(head)]
     if targets and words and all(is_test_path(t) for t in targets) and \
             all(w in ("cat", "tee") for w in words):
-        return mask_test_literals(body) if _MASK_OK[0] else body
+        return mask_test_literals(body) if _maskable(body) else body
     return body
 
 
