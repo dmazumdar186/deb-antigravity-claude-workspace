@@ -1444,6 +1444,7 @@ _MAILERS = {"mail", "mailx", "msmtp", "swaks", "mutt", "send" "mail", "s-nail", 
             "ssmtp", "send" "email", "exim", "exim4"}
 # Wrappers that run the next word as the program (their own flags/numeric args are skipped).
 _WRAPPERS = {"sudo", "env", "exec", "xargs", "nohup", "time", "timeout", "nice", "watch",
+             "builtin",
              "command", "stdbuf", "ionice", "npx", "pipx", "uv", "uvx", "poetry", "pdm",
              "hatch", "pipenv", "conda", "rye", "run", "-m"}
 _GMAIL_API = "gmail.googleapis" ".com"
@@ -1988,7 +1989,7 @@ def program_argv(toks: list[str]) -> list[str]:
         return []  # loop/case header: its body segments are checked on their own
     while i < len(toks):
         t = toks[i]
-        low = t.lower()
+        low = re.split(r"[/\\]", t)[-1].lower()
         if t in _SHELL_KEYWORDS:
             i += 1
             continue
@@ -2165,7 +2166,23 @@ def deploy_error(outer: str, cwd: Path, depth: int = 0) -> str | None:
             err = deploy_error(sub, cwd, depth + 1)
             if err:
                 return err
+    loop_vars: dict[str, list[str]] = {}
     for seg in split_simple_commands(outer):
+        lm = re.match(r"\s*(?:for|select)\s+([A-Za-z_]\w*)\s+in\s+(.*)$", seg)
+        if lm:
+            try:
+                loop_vars[lm.group(1)] = shlex.split(lm.group(2))[:10]
+            except ValueError:
+                loop_vars[lm.group(1)] = lm.group(2).split()[:10]
+            continue
+        used = [v for v in loop_vars if re.search(r"\$\{?" + v + r"\b", seg)]
+        if used and depth < 3:
+            for item in loop_vars[used[0]]:
+                err = deploy_error(re.sub(r"\$\{" + used[0] + r"\}|\$" + used[0] + r"\b",
+                                          lambda _m, it=item: it, seg), base, depth + 1)
+                if err:
+                    return err
+            continue
         try:
             toks = shlex.split(seg)
         except ValueError:
@@ -2221,7 +2238,7 @@ def deploy_error(outer: str, cwd: Path, depth: int = 0) -> str | None:
                 if err:
                     return err
                 continue
-            fi = next((n for n, a in enumerate(argv[1:], 1) if not a.startswith("-")), None)
+            fi = _shell_script_index(argv)
             err = None
             for fp in (_glob_paths(base, argv[fi]) if fi else []):
                 err = err or _exec_file_deploy(fp, base, depth, args=argv[fi + 1:])
@@ -2364,6 +2381,23 @@ def deploy_error(outer: str, cwd: Path, depth: int = 0) -> str | None:
     return None
 
 
+def _shell_script_index(argv: list[str]) -> int | None:
+    """Index of the script operand of `bash [opts] script args`, skipping option arguments
+    (`-o pipefail`, `-eo pipefail`, `+O extglob`, `--rcfile f`)."""
+    i = 1
+    while i < len(argv):
+        a = argv[i]
+        if a in ("-o", "+o", "-O", "+O", "--rcfile", "--init-file") or \
+                re.fullmatch(r"[-+][A-Za-z]*[oO]", a):
+            i += 2
+            continue
+        if a.startswith(("-", "+")):
+            i += 1
+            continue
+        return i
+    return None
+
+
 _SHELLS = {"bash", "sh", "zsh", "dash", "ksh", "ash", "mksh", "yash", "hush"}
 _INTERPS = re.compile(r"python(?:3(?:\.\d+)?)?(?:\.exe)?|py|node|deno|bun|ruby|perl|php|tsx|ts-node|"
                       r"pwsh|powershell")
@@ -2492,7 +2526,29 @@ def pending_writes(outer: str, docs: list[tuple[str, str]], cwd: Path) -> dict[s
         if toks[:1] in (["echo"], ["printf"]):
             key = os.path.realpath(cwd / m.group(1))
             out[key] = out.get(key, "") + "\n" + " ".join(toks[1:]).replace("\\n", "\n")
+        elif toks[:1] == ["cat"] and len(toks) > 1:
+            src = "\n".join(_safe_read(cwd / t) for t in toks[1:] if not t.startswith("-"))
+            out[os.path.realpath(cwd / m.group(1))] = src
+    for seg in split_simple_commands(outer):
+        try:
+            toks = shlex.split(seg)
+        except ValueError:
+            continue
+        if toks[:1] in (["cp"], ["install"], ["mv"], ["ln"]):
+            ops = [t for t in toks[1:] if not t.startswith("-")]
+            if len(ops) == 2:
+                out[os.path.realpath(cwd / ops[1])] = _safe_read(cwd / ops[0])
     return out
+
+
+def _safe_read(fp: Path) -> str:
+    try:
+        if fp.is_file() and fp.stat().st_size <= MAX_SCAN_BYTES:
+            t = fp.read_text(encoding="utf-8", errors="replace")
+            return "" if "\x00" in t[:8192] else t
+    except (OSError, ValueError, UnicodeError):
+        pass  # unreadable source: nothing to pre-scan (the run itself is still checked)
+    return ""
 
 
 _PATH_LIT_RE = re.compile(r"(?<![\w$.-])((?:\.{1,2}/)?[\w.-]+(?:/[\w.-]+)+)/?")
@@ -2540,7 +2596,10 @@ def _exec_file_deploy(fp: Path, base: Path, depth: int, force_shell: bool = Fals
                       args: list[str] | None = None) -> str | None:
     """A file this command EXECUTES: shell files are re-parsed as commands; code files are
     checked for a spawned deploy. The project checked is the script's own project folder."""
-    pend = _PENDING_WRITES.get(os.path.realpath(fp))
+    try:
+        pend = _PENDING_WRITES.get(os.path.realpath(fp))
+    except (OSError, ValueError):
+        return None
     try:
         if pend is not None:
             text = pend.lower()
@@ -2548,10 +2607,10 @@ def _exec_file_deploy(fp: Path, base: Path, depth: int, force_shell: bool = Fals
             return None
         else:
             text = _read_limited(fp, str(fp))
-    except (OSError, ScanLimit):
+    except (OSError, ScanLimit, ValueError, UnicodeError):
         return None
-    if not text:
-        return None
+    if not text or "\x00" in text[:8192]:
+        return None  # empty or binary
     if pend is None and depth < 3 and fp.suffix.lower() not in ("", ".sh", ".bash", ".zsh"):
         # code that launches a shell script: treat as running that script
         for lit in (re.findall(r"['\"]([\w./-]+\.(?:sh|bash))['\"]", text)
@@ -2651,7 +2710,8 @@ _GH_API_SHARE_RE = re.compile(r"/(?:collaborators|invitations|memberships|member
                               r"collaborators|teams/[^/]+/repos)(?:/|$)")
 _GH_GLOBAL_VAL = {"-R", "--repo", "--hostname"}
 _GH_API_OUTWARD_RE = re.compile(r"(?:^|/)(?:issues|pulls|comments|reviews|releases|discussions|"
-                                r"gists)(?:/|$)")
+                                r"gists)(?:/|$)|^/?repos/[^/]+/[^/]+/?$|^/?user/repos/?$|"
+                                r"^/?orgs/[^/]+/repos/?$")
 
 
 def _gh_texts_error(where: str, texts: list[tuple[str, str]]) -> str | None:
@@ -2767,6 +2827,12 @@ def gh_text_error(argv: list[str]) -> str | None:
     if rest[0] == "api":
         return _gh_api_error(rest[1:])
     sub = tuple(rest[:2])
+    if sub in (("repo", "edit"), ("repo", "create")):
+        vis = [rest[n + 1] for n, a in enumerate(rest[:-1]) if a == "--visibility"] + \
+            [a.split("=", 1)[1] for a in rest if a.startswith("--visibility=")]
+        if "--public" in rest or any(v.lower() == "public" for v in vis):
+            return (f"redteam gate: gh {' '.join(sub)} makes a repo public (publishes its "
+                    f"content); ask the operator to waive")
     if sub == ("gist", "create"):
         gtexts: list[tuple[str, str]] = []
         k = 2
@@ -3361,6 +3427,9 @@ def _bash_hit(command: str, outer: str, docs: list[tuple[str, str]], cwd: Path,
         hit = _scan_file(p, str(p))
         if hit:
             return hit
+        hit = _shell_children_hit(p, cwd)
+        if hit:
+            return hit
     for mf in makefiles(expanded, bases):
         hit = _scan_file(mf, str(mf))
         if hit:
@@ -3371,7 +3440,7 @@ def _bash_hit(command: str, outer: str, docs: list[tuple[str, str]], cwd: Path,
     if re.search(r"\bphp\s+(?:\S+\s+)*?-r\b", expanded) and _PHP_MAIL_RE.search(scan.lower()):
         return "PHP mail("
     for p, tok in _arg_files(_PIP_INSTALL_RE.sub(" ", _non_reader_text(expanded)), bases):
-        hit = _scan_file(p, tok)
+        hit = _scan_file(p, tok) or _shell_children_hit(p, cwd)
         if hit:
             return hit
     for m in _PY_MOD_RE.finditer(expanded):
@@ -3508,6 +3577,23 @@ _HOOK_READERS = {"cat", "git", "grep", "egrep", "fgrep", "rg", "diff", "ls", "he
                  "nano", "ruff", "black", "pytest", "gh"}
 
 
+def _shell_children_hit(p: Path, cwd: Path) -> str | None:
+    """One level down: files a shell script itself runs or names (`sh wrap.sh` -> send.py)."""
+    if p.suffix.lower() not in ("", ".sh", ".bash", ".zsh"):
+        return None
+    body = _safe_read(p)
+    if not body:
+        return None
+    try:
+        for q, tok in _arg_files(_non_reader_text(body), [p.parent, cwd])[:20]:
+            hit = _scan_file(q, f"{tok} (from {p})")
+            if hit:
+                return hit
+    except ScanLimit:
+        return f"script {p} names too many files to vouch for"
+    return None
+
+
 def _non_reader_text(text: str) -> str:
     """Drop simple commands whose program only reads/names files (cat, grep, ls, diff …)
     unless the command pipes into a shell/interpreter: their file args are not executed."""
@@ -3564,6 +3650,9 @@ def _bash_decision(command: str, cwd_raw: Any, allow_tracked: bool = True,
     cwd = Path(cwd_raw) if isinstance(cwd_raw, str) and cwd_raw else Path.cwd()
     command = re.sub(r"\$\{PWD\}|\$PWD\b|\$\(\s*pwd\s*\)|`\s*pwd\s*`",
                      lambda _m: str(cwd), command)
+    command = re.sub(r"\$\(\s*echo\s+([^()`$;|&<>]*?)\s*\)|`\s*echo\s+([^`$;|&<>]*?)\s*`",
+                     lambda m: (m.group(1) if m.group(1) is not None else m.group(2)).strip(),
+                     command)
     outer, docs = split_heredocs(command)
     he = hook_path_error(outer)
     if not he and _EXEC_RE.search(outer):
@@ -3642,6 +3731,14 @@ def _bash_decision(command: str, cwd_raw: Any, allow_tracked: bool = True,
     return f"redteam gate: Bash command sends email inline ({hit}). {BASH_DENY}"
 
 
+_RISKY_RE = re.compile(
+    r"wrangler|vercel|netlify|\bntl\b|\bvc\b|\bgh\b|smtp|\bmail|slack|discord|telegram|"
+    r"twilio|linkedin|instantly|lemlist|smartlead|webhook|graph\.|tweet|\bpost|send|/messages|"
+    r"deploy|publish|\bapi\.|googleapis|\.sh\b|\.py\b|\.js\b|\.mjs\b|\.ts\b")
+_RISKY_PROG_RE = re.compile(r"(?:^|[\s;&|(`])(?:\S*/)?(?:wrangler|vercel|netlify|ntl|vc|gh|http|"
+                            r"https|xh)\b")
+
+
 def hook_decision(payload: dict, state: Path) -> str | None:
     """Return a full deny reason, or None to allow."""
     name = payload.get("tool_name") or ""
@@ -3653,7 +3750,17 @@ def hook_decision(payload: dict, state: Path) -> str | None:
     if not isinstance(ti, dict):
         raise TypeError("tool_input is not an object")
     if name == "Bash":
-        return bash_decision(ti, payload.get("cwd"))
+        try:
+            return bash_decision(ti, payload.get("cwd"))
+        except Exception as exc:  # noqa: BLE001 - see below; logged to stderr
+            # Keep sessions unbrickable, but never fail open on a command that may send.
+            cmd = ti.get("command") if isinstance(ti.get("command"), str) else ""
+            print(f"redteam gate: scanner error {type(exc).__name__}: {exc}", file=sys.stderr)
+            if cmd and (_EXEC_RE.search(cmd) or _RISKY_PROG_RE.search(cmd)) \
+                    and _RISKY_RE.search(cmd.lower()):
+                return (f"redteam gate: gate error ({type(exc).__name__}) on a command that may "
+                        f"send or deploy; rephrase it (simpler form) or report the gate bug.")
+            return None
     action = gmail_action(name)
     if action is not None:
         reason = gmail_decision(action, ti, state)

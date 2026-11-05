@@ -373,6 +373,17 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   `destination`/calendar ids are ids; `check_in` is outward, `search_replace` a local edit.
   Residual (documented, not fixed): deno/bun/pwsh inline variants, `printf … | sh` of split
   text, `curl … | bash` of remote scripts, backslash-newline-split tool names, gh aliases.
+- 2026-11-05 (channels ninth audit): a scanner exception on Bash no longer fails open: if
+  the command executes something (or runs wrangler/vercel/netlify/gh/httpie) and contains an
+  outward lexeme (send/post/deploy/webhook/gh/mail/script extensions…), it denies with "gate
+  error … rephrase or report"; otherwise it allows (sessions stay unbrickable). Wrappers and
+  interpreters match by basename (`/usr/bin/env python3`); binary/unreadable files are skipped
+  without crashing. Shell option arguments (`-o pipefail`, `-eo pipefail`, `-O opt`) are skipped
+  when finding the script; `for v in …; do … $v; done` loop vars are substituted; `$(echo f)`
+  and backtick echo resolve for both scans; `cp|mv|install|ln a b` and `cat a > b` before
+  running b count as write-then-run; `sh wrap.sh` scans files wrap.sh runs (one level);
+  `builtin` is a wrapper. gh: `repo edit|create` to public denies (waiver); `gh api` writes to
+  `repos/o/r`, `user/repos`, `orgs/o/repos` gate their text fields.
 - Out of scope (documented): `-c 'import deploy'`-style helper modules, shell-escaped or split
   literals, browser/Playwright UI sends (LinkedIn UI automation included); the hook gates API
   endpoints, and tracked repo automation stays trusted.

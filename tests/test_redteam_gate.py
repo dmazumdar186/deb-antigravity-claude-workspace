@@ -2439,3 +2439,48 @@ def test_gist_invites_and_mcp_ids(tmp_path, state, capsys):
     assert rg.mcp_outward_kind("mcp__team__check_in") == "post"
     assert "has not passed" in _deny_reason(_mcp("mcp__team__check_in",
                                                  {"status_text": "Done with Marc"}, capsys))
+
+
+
+def test_env_absolute_path_and_binary_no_crash(tmp_path, state, capsys):
+    _write(tmp_path / "send.py", "import smtp" "lib\n")
+    assert _deny_reason(_bash("/usr/bin/env python3 send.py", capsys, cwd=tmp_path))
+    (tmp_path / "bin.sh").write_bytes(b"\x00\x01wrang" b"ler deploy\x00")
+    _bash("bash bin.sh", capsys, cwd=tmp_path)  # binary script: no crash (rc 0 asserted)
+
+
+def test_scanner_crash_denies_risky_allows_benign(state, capsys, monkeypatch):
+    def boom(*_a, **_k):
+        raise ValueError("injected")
+    monkeypatch.setattr(rg, "_bash_decision", boom)
+    for cmd in ("python3 send.py", "npx wrang|ler deploy", "gh pr comment 1 -b x",
+                "curl -X POST https://hooks.sla|ck.com/x"):
+        assert "gate error" in _deny_reason(_bash(cmd.replace("|", ""), capsys)), cmd
+    for cmd in ("ls -la", "git status", "python3 -V", "pytest -q"):
+        assert _bash(cmd, capsys) is None, cmd
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_ninth_audit_deploy_forms(tmp_path, state, capsys, monkeypatch):
+    proj = _deploy_repo(tmp_path, monkeypatch)
+    _write(proj / "dep.sh", "npx wrang" "ler deploy\n")
+    _write(proj / "other.sh", "echo hi\n")
+    for args in (["add", "-A"], ["-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "y"]):
+        subprocess.run(["git", "-C", str(rg.REPO_ROOT), *args], check=True, capture_output=True)
+    _write(proj / "src" / "draft.md", "uncommitted\n")
+    for cmd in ("bash -o pipefail dep.sh", "bash -eo pipefail dep.sh", "bash -O extglob dep.sh",
+                "for f in dep.sh; do bash $f; done", "for f in other.sh dep.sh; do sh ${f}; done",
+                "bash $(echo dep.sh)", "cp dep.sh run.sh && bash run.sh",
+                "cat dep.sh > run2.sh && sh run2.sh", "builtin eval 'wrang|ler deploy'"):
+        assert _bash(cmd.replace("|", ""), capsys, cwd=proj) is not None, cmd
+
+
+def test_ninth_audit_sender_and_gh(tmp_path, state, capsys):
+    _write(tmp_path / "send.py", "import smtp" "lib\n")
+    _write(tmp_path / "wrap.sh", "python3 send.py\n")
+    for cmd in ("python3 $(echo send.py)", "python3 `echo send.py`", "sh wrap.sh"):
+        assert _deny_reason(_bash(cmd, capsys, cwd=tmp_path)), cmd
+    for cmd in ("gh repo edit --visibility public", "gh repo edit o/r --visibility=public",
+                "gh repo create x --public", "gh api -X PATCH repos/o/r -f description='Client X'"):
+        assert _deny_reason(_bash(cmd, capsys)), cmd
+    assert _bash("gh repo edit --visibility private", capsys) is None
