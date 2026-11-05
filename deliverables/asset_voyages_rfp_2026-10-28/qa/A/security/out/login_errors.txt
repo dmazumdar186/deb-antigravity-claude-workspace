@@ -1,0 +1,9 @@
+200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 
+correct after 15 fails: 302 http://127.0.0.1:9400/wp-admin/index.php
+id="login_error" class="notice notice-error">Erreur : ce mot de passe ne correspond pas à l’identifiant direction. <a href="http://127.0.0.1:9400/wp-login.php?action=lostpassw
+%-70s 301 0
+%-70s 200 0
+%-70s 200 0
+%-70s 200 6
+%-70s 404 0
+%-70s 404 0

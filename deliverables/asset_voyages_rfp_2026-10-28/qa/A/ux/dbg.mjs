@@ -1,0 +1,16 @@
+import { chromium, ctx, login } from './lib.mjs';
+const br=await chromium.launch(); const {c,p}=await ctx(br);
+await p.goto('/'); console.log('Recherche:', await p.getByLabel('Recherche').evaluateAll(es=>es.map(e=>e.outerHTML.slice(0,140)+' visible='+!!e.offsetParent)));
+await login(p,'direction'); await p.goto('/wp-admin/post-new.php?post_type=asset_congres');
+console.log('titleLabel', await p.locator('#title-prompt-text').innerText().catch(()=>'none'));
+for (const l of ['Ville','Pays','Discipline','Lieu']) console.log(l, await p.getByLabel(l).evaluateAll(es=>es.map(e=>e.id||e.name)));
+console.log('publish btns', await p.getByRole('button',{name:'Publier',exact:true}).evaluateAll(es=>es.map(e=>e.id+':'+e.offsetParent?.id)));
+await p.fill('#title','Dbg congres — exemple');
+await p.fill('#asset-field-asset_start','2027-06-14'); await p.fill('#asset-field-asset_end','2027-06-16'); await p.fill('#asset-field-asset_city','Lille');
+const ids=await p.$$eval('#asset_congres_details input, #asset_congres_details select',es=>es.map(e=>e.id+'|'+e.type+'|'+(e.labels?.[0]?.innerText||'')));
+console.log(ids.join('\n'));
+await p.locator('#publish').click(); await p.waitForLoadState('load'); console.log('after publish url', p.url(), (await p.locator('#wpbody-content .notice, #message, .asset-save-errors').allInnerTexts()).join(' / ').slice(0,300));
+const d=await p.goto('/wp-admin/admin.php?page=asset-demandes&action=view&id=1'); 
+await p.goto('/wp-admin/admin.php?page=asset-demandes'); const href=await p.locator('a.row-title').first().getAttribute('href'); await p.goto(href);
+console.log('Statut:', await p.getByLabel('Statut').evaluateAll(es=>es.map(e=>e.tagName+'#'+e.id+' '+(e.labels?.[0]?.innerText||'')+' vis='+!!e.offsetParent)));
+await c.close(); await br.close();

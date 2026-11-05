@@ -1,0 +1,22 @@
+== /
+x-powered-by: PHP/8.3.36
+== /wp-login.php
+x-powered-by: PHP/8.3.36
+cache-control: no-cache, must-revalidate, max-age=0, no-store, private
+set-cookie: wordpress_test_cookie=WP%20Cookie%20check; path=/; HttpOnly
+x-frame-options: SAMEORIGIN
+content-security-policy: frame-ancestors 'self';
+referrer-policy: strict-origin-when-cross-origin
+== /wp-json/
+x-powered-by: PHP/8.3.36
+x-content-type-options: nosniff
+== admin (equipe) asset-gme
+cache-control: no-cache, must-revalidate, max-age=0, no-store, private
+referrer-policy: strict-origin-when-cross-origin
+x-frame-options: SAMEORIGIN
+content-security-policy: frame-ancestors 'self';
+== login set-cookie
+set-cookie: wordpress_test_cookie=<redacted>; path=/; HttpOnly
+set-cookie: wordpress_c3fc09f337d5c980a87b2240c2e6f193=<redacted>; path=/wp-content/plugins; HttpOnly
+set-cookie: wordpress_c3fc09f337d5c980a87b2240c2e6f193=<redacted>; path=/wp-admin; HttpOnly
+set-cookie: wordpress_logged_in_c3fc09f337d5c980a87b2240c2e6f193=<redacted>; path=/; HttpOnly

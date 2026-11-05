@@ -1,7 +1,11 @@
-import { chromium, B, ctx, login } from './lib.mjs';
-const br=await chromium.launch(); 
-for (const W of [1440,1280,1024]){ const {p}=await ctx(br,W); await login(p,'equipe');
-for (const u of ['/console/demandes','/console/congres','/console/gme/journal','/console/notifications']){ await p.goto(B+u);
- const r=await p.evaluate(()=>[...document.querySelectorAll('table')].map(t=>{const w=t.closest('.wrap')||t.parentElement; return {ths:[...t.querySelectorAll('th')].map(x=>x.innerText), tw:t.scrollWidth, cw:w.clientWidth, sw:w.scrollWidth, ov:getComputedStyle(w).overflowX, hint:!!w.getAttribute('aria-label')}}));
- console.log(W,u,JSON.stringify(r)); } }
+import { chromium, B, ctx, login, logout } from './lib.mjs';
+const br=await chromium.launch(); const {p}=await ctx(br);
+await p.goto(B+'/?discipline=Cardiologie'); await p.getByLabel('Pays').selectOption({label:'Espagne'}); await p.getByRole('button',{name:'Rechercher'}).click(); console.log('2.5', p.url(), (await p.locator('body').innerText()).match(/\d+ congrès[^\n]*/)?.[0]);
+await login(p,'contributeur'); await p.goto(B+'/console/congres/nouveau'); 
+await p.getByLabel('Titre').fill('Brouillon dbg — exemple'); await p.getByLabel(/^Discipline/).first().selectOption({label:'Cardiologie'}); await p.getByLabel('Lieu').fill('L — exemple'); await p.getByLabel('Ville').fill('Lyon'); await p.getByLabel(/^Pays/).first().selectOption({label:'France'}); await p.getByLabel('Date de début').fill('2027-06-10'); await p.getByLabel('Date de fin').fill('2027-06-12'); await p.getByLabel('Site officiel').fill('https://www.example.org/u'); await p.getByLabel('Vérifié le').fill('2026-11-05');
+await p.getByRole('button',{name:'Soumettre à relecture'}).click(); console.log('after submit url',p.url(), (await p.locator('main').innerText()).slice(0,300));
+await logout(p); await login(p,'direction'); await p.goto(B+'/console'); console.log('dir home', (await p.locator('main').innerText()).match(/[^\n]*relire[^\n]*/g));
+await p.goto(B+'/console/congres'); const chip=p.getByRole('link',{name:'À relire'}); console.log('chip href', await chip.getAttribute('href')); await chip.click(); console.log((await p.locator('tbody').innerText()).slice(0,300));
+await p.getByRole('link',{name:'Brouillon dbg — exemple'}).click(); console.log('buttons', await p.getByRole('button').allInnerTexts());
+await logout(p); await login(p,'equipe'); await p.goto(B+'/console/gme'); const f=p.locator('form').filter({has:p.getByRole('button',{name:'Demander l’accès'})}).first(); await f.getByLabel(/Motif/).evaluate(e=>e.removeAttribute('required')); await f.getByRole('button',{name:'Demander l’accès'}).click(); await p.waitForLoadState(); console.log('5.3', p.url(), (await p.locator('main').innerText()).slice(0,500));
 await br.close();

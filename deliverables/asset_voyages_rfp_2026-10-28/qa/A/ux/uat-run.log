@@ -1,0 +1,5 @@
+S1 1 PASS Logged in as « direction », on « Tableau de bord »: left menu shows « Congrès » | menu: Tableau de bord, Médias, Congrès, Demandes, Accès GM&E, Profil
+S1 2 PASS Click « Congrès », then « Ajouter un congrès » | form open; 5 fields marked « (obligatoire) »
+S1 3 PASS Type the title and fill « Date de début », « Date de fin », « Ville », « Pays », « Discipline », « Lieu », « Site officiel », « Date de vérification » | all fields found by their visible French label
+S1 4 FAIL Click « Publier »; a success notice appears | locator.waitFor: Timeout 60000ms exceeded.
+S1 5 FAIL Visitor view: open the new congress page logged out; title and « Lille » shown | Lille missing

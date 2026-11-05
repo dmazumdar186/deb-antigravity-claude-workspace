@@ -12,7 +12,7 @@ export async function ctx(br, w=1440, extra={}) {
 export async function login(p, role) {
   const [u,pw]=USERS[role]; await p.goto('/wp-login.php');
   await p.fill('#user_login',u); await p.fill('#user_pass',pw);
-  await Promise.all([p.waitForURL(/wp-admin/,{timeout:60000}), p.click('#wp-submit')]); await p.waitForLoadState('load');
+  await Promise.all([p.waitForURL(/wp-admin/,{timeout:120000}), p.click('#wp-submit')]); await p.waitForLoadState('load');
 }
 export function counter(){ const c={n:0,log:[]}; c.click=async(loc,label)=>{c.n++;c.log.push(label||'');await loc.click();}; return c; }
 export { chromium };

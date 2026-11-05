@@ -1,0 +1,386 @@
+[
+ {
+  "W": 1440,
+  "id": "1.1",
+  "desc": "Direction logs in; « Tableau de bord » shows",
+  "status": "PASS",
+  "obs": "Tableau de bord",
+  "shot": "evidence/uat-1440-1.1.png"
+ },
+ {
+  "W": 1440,
+  "id": "1.2",
+  "desc": "« Congrès » → « Nouveau congrès »: form with French labels, required fields marked *",
+  "status": "PASS",
+  "obs": "9 labels with *",
+  "shot": "evidence/uat-1440-1.2.png"
+ },
+ {
+  "W": 1440,
+  "id": "1.3",
+  "desc": "Fill the form, click « Publier » → « Congrès créé. »",
+  "status": "PASS",
+  "obs": "Congrès créé.",
+  "shot": "evidence/uat-1440-1.3.png"
+ },
+ {
+  "W": 1440,
+  "id": "1.4",
+  "desc": "Visitor side: catalogue search finds the new congress",
+  "status": "PASS",
+  "obs": "Congrès UAT 36791",
+  "shot": "evidence/uat-1440-1.4.png"
+ },
+ {
+  "W": 1440,
+  "id": "1.5",
+  "desc": "Edit: « Congrès » → the congress → « Ville » = Marseille → « Enregistrer » → « Modifications enregistrées. »",
+  "status": "PASS",
+  "obs": "Modifications enregistrées.",
+  "shot": "evidence/uat-1440-1.5.png"
+ },
+ {
+  "W": 1440,
+  "id": "1.6",
+  "desc": "« Voir la fiche publique » shows Marseille",
+  "status": "PASS",
+  "obs": "Marseille (France)",
+  "shot": "evidence/uat-1440-1.6.png"
+ },
+ {
+  "W": 1440,
+  "id": "1.7",
+  "desc": "Bad input: end date before start → message, nothing saved",
+  "status": "PASS",
+  "obs": "Date de fin : La date de fin doit être le jour du début ou après.",
+  "shot": "evidence/uat-1440-1.7.png"
+ },
+ {
+  "W": 1440,
+  "id": "1.8",
+  "desc": "Contributor: « Nouveau congrès » → « Soumettre à relecture »; no « Publier » button",
+  "status": "PASS",
+  "obs": "Publier buttons: 0; Vous pouvez enregistrer et soumettre à relecture. La publication est faite par l’équipe ou la Direction.",
+  "shot": "evidence/uat-1440-1.8.png"
+ },
+ {
+  "W": 1440,
+  "id": "1.9",
+  "desc": "Visitor side: the submitted draft is not in the catalogue",
+  "status": "PASS",
+  "obs": "Aucun congrès trouvé",
+  "shot": "evidence/uat-1440-1.9.png"
+ },
+ {
+  "W": 1440,
+  "id": "1.10",
+  "desc": "Direction: draft is « À relire » and can be published",
+  "status": "FAIL",
+  "obs": "ERROR locator.click: Timeout 30000ms exceeded.",
+  "shot": "evidence/uat-1440-1.10.png"
+ },
+ {
+  "W": 1440,
+  "id": "2.1",
+  "desc": "Catalogue shows « 12 congrès »",
+  "status": "PASS",
+  "obs": "12 congrès",
+  "shot": "evidence/uat-1440-2.1.png"
+ },
+ {
+  "W": 1440,
+  "id": "2.2",
+  "desc": "Type « vienne » in « Recherche » → « Rechercher » → Vienne results",
+  "status": "PASS",
+  "obs": "2 congrès trouvés",
+  "shot": "evidence/uat-1440-2.2.png"
+ },
+ {
+  "W": 1440,
+  "id": "2.3",
+  "desc": "« diabetologie » (no accent) finds « Diabétologie »",
+  "status": "PASS",
+  "obs": "Journées françaises de diabétologie",
+  "shot": "evidence/uat-1440-2.3.png"
+ },
+ {
+  "W": 1440,
+  "id": "2.4",
+  "desc": "Click « Réinitialiser », then the « Cardiologie » chip → « 2 congrès trouvés »",
+  "status": "PASS",
+  "obs": "2 congrès trouvés",
+  "shot": "evidence/uat-1440-2.4.png"
+ },
+ {
+  "W": 1440,
+  "id": "2.5",
+  "desc": "Combine: « Pays » = Espagne with Cardiologie → 1 result",
+  "status": "FAIL",
+  "obs": "Aller au contenu ASSET Voyages Démonstration avec des données fictives Congrès Espace équipe Trouver son congrès. Demander son vol. Sourc",
+  "shot": "evidence/uat-1440-2.5.png"
+ },
+ {
+  "W": 1440,
+  "id": "2.6",
+  "desc": "No result (« rhumatologie ») → « Aucun congrès ne correspond. » + « Réinitialiser la recherche » + « Nous écrire »",
+  "status": "PASS",
+  "obs": "no-result state",
+  "shot": "evidence/uat-1440-2.6.png"
+ },
+ {
+  "W": 1440,
+  "id": "2.7",
+  "desc": "« Page suivante » shows page 2 (3 congresses)",
+  "status": "PASS",
+  "obs": "3 rows on page 2",
+  "shot": "evidence/uat-1440-2.7.png"
+ },
+ {
+  "W": 1440,
+  "id": "2.8",
+  "desc": "Open « Voir la fiche » of « Congrès européen de cardiologie »: dates, ville, pays, discipline, lieu, site officiel, vérifié le; form prefilled",
+  "status": "PASS",
+  "obs": "all fields + prefilled congress",
+  "shot": "evidence/uat-1440-2.8.png"
+ },
+ {
+  "W": 1440,
+  "id": "2.9",
+  "desc": "Team side: console « Congrès » filter « Publié » lists the 12 published + nothing extra",
+  "status": "PASS",
+  "obs": "12 rows",
+  "shot": "evidence/uat-1440-2.9.png"
+ },
+ {
+  "W": 1440,
+  "id": "3.1",
+  "desc": "Open a congress page: form fields name, e-mail, téléphone, société (facultatif), ville de départ, dates, passagers, message, consent; congress prefilled",
+  "status": "PASS",
+  "obs": "10/10 fields",
+  "shot": "evidence/uat-1440-3.1.png"
+ },
+ {
+  "W": 1440,
+  "id": "3.2",
+  "desc": "Send with « Passagers » = 0, bad e-mail, no consent → errors in French next to fields; typed text kept",
+  "status": "PASS",
+  "obs": "3 champs à corriger ; rien n’a été enregistré. name kept: true",
+  "shot": "evidence/uat-1440-3.2.png"
+ },
+ {
+  "W": 1440,
+  "id": "3.3",
+  "desc": "Fix the fields, click « Envoyer la demande » once → « Merci, votre demande est enregistrée. » + reference DV-2026-NNNN",
+  "status": "PASS",
+  "obs": "DV-2026-0007",
+  "shot": "evidence/uat-1440-3.3.png"
+ },
+ {
+  "W": 1440,
+  "id": "3.4",
+  "desc": "Reload the confirmation page → same reference, no second enquiry",
+  "status": "PASS",
+  "obs": "after reload: DV-2026-0007",
+  "shot": "evidence/uat-1440-3.4.png"
+ },
+ {
+  "W": 1440,
+  "id": "3.5",
+  "desc": "Team side: equipe → « Notifications » shows « Nouvelle demande <ref> »",
+  "status": "PASS",
+  "obs": "Nouvelle demande DV-2026-0007",
+  "shot": "evidence/uat-1440-3.5.png"
+ },
+ {
+  "W": 1440,
+  "id": "3.6",
+  "desc": "Team side: « Demandes » counts exactly one enquiry with this name",
+  "status": "PASS",
+  "obs": "1 row(s)",
+  "shot": "evidence/uat-1440-3.6.png"
+ },
+ {
+  "W": 1440,
+  "id": "4.1",
+  "desc": "« Tableau de bord »: the newest item in « Dernières demandes » is the new reference; note the « Nouvelles » count",
+  "status": "PASS",
+  "obs": "first=DV-2026-0007 Veena UAT 36791 (exemple); Nouvelles=3",
+  "shot": "evidence/uat-1440-4.1.png"
+ },
+ {
+  "W": 1440,
+  "id": "4.2",
+  "desc": "Click it: details show reference, congress, contact, departure city, dates, passengers, status « Nouvelle »",
+  "status": "PASS",
+  "obs": "all shown",
+  "shot": "evidence/uat-1440-4.2.png"
+ },
+ {
+  "W": 1440,
+  "id": "4.3",
+  "desc": "Click « Qualifiée » → « Enregistré. »; badge reads Qualifiée",
+  "status": "PASS",
+  "obs": "Enregistré.",
+  "shot": "evidence/uat-1440-4.3.png"
+ },
+ {
+  "W": 1440,
+  "id": "4.4",
+  "desc": "« Me l’attribuer » → Responsable = Karim Benali",
+  "status": "PASS",
+  "obs": "Karim Benali, Équipe",
+  "shot": "evidence/uat-1440-4.4.png"
+ },
+ {
+  "W": 1440,
+  "id": "4.5",
+  "desc": "Type a note in « Note interne », click « Ajouter la note » → note appears in « Historique »",
+  "status": "PASS",
+  "obs": "Rappeler la cliente demain (UAT)",
+  "shot": "evidence/uat-1440-4.5.png"
+ },
+ {
+  "W": 1440,
+  "id": "4.6",
+  "desc": "« Devis envoyé » then « Gagnée » → history shows each change with who/when/from→to",
+  "status": "PASS",
+  "obs": "Statut : Nouvelle vers Qualifiée | Statut : Qualifiée vers Devis envoyé | Statut : Devis envoyé vers Gagnée",
+  "shot": "evidence/uat-1440-4.6.png"
+ },
+ {
+  "W": 1440,
+  "id": "4.7",
+  "desc": "History has no edit/delete control",
+  "status": "PASS",
+  "obs": "0 buttons in Historique",
+  "shot": "evidence/uat-1440-4.7.png"
+ },
+ {
+  "W": 1440,
+  "id": "4.8",
+  "desc": "« Tableau de bord »: « Nouvelles » count went down by one",
+  "status": "PASS",
+  "obs": "3→2",
+  "shot": "evidence/uat-1440-4.8.png"
+ },
+ {
+  "W": 1440,
+  "id": "4.9",
+  "desc": "« Demandes » chip « Gagnée » and search by reference both find it",
+  "status": "PASS",
+  "obs": "in Gagnée: true; search rows: 1",
+  "shot": "evidence/uat-1440-4.9.png"
+ },
+ {
+  "W": 1440,
+  "id": "4.10",
+  "desc": "« Exporter (tableur CSV) » downloads a file containing the reference",
+  "status": "PASS",
+  "obs": "demandes-2026-11-05.csv 2 lines",
+  "shot": "evidence/uat-1440-4.10.png"
+ },
+ {
+  "W": 1440,
+  "id": "4.11",
+  "desc": "Visitor side: the enquiry is not public (catalogue search for the name → nothing)",
+  "status": "PASS",
+  "obs": "Aucun congrès trouvé",
+  "shot": "evidence/uat-1440-4.11.png"
+ },
+ {
+  "W": 1440,
+  "id": "4.12",
+  "desc": "Contributor cannot open « Demandes » (direct URL refused)",
+  "status": "PASS",
+  "obs": "HTTP 403 Aller au contenu ASSET Console Julie Roux, Contributrice Se déconnecter Tablea",
+  "shot": "evidence/uat-1440-4.12.png"
+ },
+ {
+  "W": 1440,
+  "id": "5.1",
+  "desc": "Visitor side: congress page says « Tarif congrès négocié disponible » and shows no code",
+  "status": "PASS",
+  "obs": "no code in HTML: true",
+  "shot": "evidence/uat-1440-5.1.png"
+ },
+ {
+  "W": 1440,
+  "id": "5.2",
+  "desc": "equipe → « Codes »: codes masked (•••• •••• ••••), no code in the page",
+  "status": "PASS",
+  "obs": "masked",
+  "shot": "evidence/uat-1440-5.2.png"
+ },
+ {
+  "W": 1440,
+  "id": "5.3",
+  "desc": "Click « Demander l’accès » with an empty « Motif de la demande » → refused, reason required",
+  "status": "PASS",
+  "obs": "Les codes sont masqués. Pour en voir un, demandez l’accès avec un motif : la Direction l’accorde pour 24 heures.",
+  "shot": "evidence/uat-1440-5.3.png"
+ },
+ {
+  "W": 1440,
+  "id": "5.4",
+  "desc": "Type a reason, click « Demander l’accès » → « Demande envoyée à la Direction. »",
+  "status": "PASS",
+  "obs": "Demande envoyée à la Direction.",
+  "shot": "evidence/uat-1440-5.4.png"
+ },
+ {
+  "W": 1440,
+  "id": "5.5",
+  "desc": "Direction: « Tableau de bord » → « … demande(s) d’accès GM&E à décider » → « Approuver pour 24 h » → « Accès accordé pour 24 heures. »",
+  "status": "PASS",
+  "obs": "Accès accordé pour 24 heures.",
+  "shot": "evidence/uat-1440-5.5.png"
+ },
+ {
+  "W": 1440,
+  "id": "5.6",
+  "desc": "equipe → « Codes » → « Afficher le code » → code DEMO-GME-…; « Affichage enregistré dans le journal d’accès »",
+  "status": "PASS",
+  "obs": "DEMO-GME-4821",
+  "shot": "evidence/uat-1440-5.6.png"
+ },
+ {
+  "W": 1440,
+  "id": "5.7",
+  "desc": "« Masquer le code » hides it again",
+  "status": "FAIL",
+  "obs": "ERROR locator.click: Timeout 30000ms exceeded.",
+  "shot": "evidence/uat-1440-5.7.png"
+ },
+ {
+  "W": 1440,
+  "id": "5.8",
+  "desc": "equipe cannot see « Journal » (direct URL refused)",
+  "status": "PASS",
+  "obs": "HTTP 403",
+  "shot": "evidence/uat-1440-5.8.png"
+ },
+ {
+  "W": 1440,
+  "id": "5.9",
+  "desc": "Direction → « Journal »: row Karim Benali, Équipe · congress · « Code affiché »",
+  "status": "PASS",
+  "obs": "Karim Benali, Équipe Journées d’oncologie digestive — exemple (CG-0112) Code affiché",
+  "shot": "evidence/uat-1440-5.9.png"
+ },
+ {
+  "W": 1440,
+  "id": "5.10",
+  "desc": "Direction → « Demandes d’accès » → « Révoquer maintenant » → access gone",
+  "status": "PASS",
+  "obs": "Accès révoqué immédiatement.",
+  "shot": "evidence/uat-1440-5.10.png"
+ },
+ {
+  "W": 1440,
+  "id": "5.11",
+  "desc": "equipe after revocation: « Afficher le code » gone; asking again needs a new request",
+  "status": "PASS",
+  "obs": "Afficher buttons: 0",
+  "shot": "evidence/uat-1440-5.11.png"
+ }
+]

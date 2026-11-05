@@ -1,0 +1,927 @@
+{
+ "steps": [
+  {
+   "story": "S1",
+   "n": 1,
+   "txt": "Logged in as « direction », on « Tableau de bord »: left menu shows « Congrès »",
+   "status": "PASS",
+   "ev": "menu: Tableau de bord, Médias, Congrès, Demandes, Accès GM&E, Profil",
+   "shot": "evidence/uat-S1-01.png"
+  },
+  {
+   "story": "S1",
+   "n": 2,
+   "txt": "Click « Congrès », then « Ajouter un congrès »",
+   "status": "FAIL",
+   "ev": "locator.waitFor: Timeout 30000ms exceeded.",
+   "shot": "evidence/uat-S1-02.png"
+  },
+  {
+   "story": "S1",
+   "n": 3,
+   "txt": "Type the title and fill « Date de début », « Date de fin », « Ville », « Pays », « Discipline », « Lieu », « Site officiel », « Date de vérification »",
+   "status": "PASS",
+   "ev": "all fields found by their visible French label",
+   "shot": "evidence/uat-S1-03.png"
+  },
+  {
+   "story": "S1",
+   "n": 4,
+   "txt": "Click « Publier »; a success notice appears",
+   "status": "FAIL",
+   "ev": "locator.waitFor: Timeout 30000ms exceeded.",
+   "shot": "evidence/uat-S1-04.png"
+  },
+  {
+   "story": "S1",
+   "n": 5,
+   "txt": "Visitor view: open the new congress page logged out; title and « Lille » shown",
+   "status": "FAIL",
+   "ev": "Lille missing"
+  },
+  {
+   "story": "S1",
+   "n": 6,
+   "txt": "Edit: from « Tableau de bord » click « Congrès », click the congress title, change « Ville » to « Roubaix », click « Mettre à jour »",
+   "status": "FAIL",
+   "ev": "locator.click: Timeout 30000ms exceeded.",
+   "shot": "evidence/uat-S1-06.png"
+  },
+  {
+   "story": "S1",
+   "n": 7,
+   "txt": "Visitor view shows « Roubaix » after the edit",
+   "status": "FAIL",
+   "ev": "Roubaix missing"
+  },
+  {
+   "story": "S1",
+   "n": 8,
+   "txt": "Hostile: set « Date de fin » before « Date de début » and save; a French message explains the error",
+   "status": "FAIL",
+   "ev": "locator.click: Timeout 30000ms exceeded.",
+   "shot": "evidence/uat-S1-08.png"
+  },
+  {
+   "story": "S1",
+   "n": 9,
+   "txt": "As « contributeur »: « Congrès » → « Ajouter un congrès »; the main button reads « Soumettre pour relecture », not « Publier »",
+   "status": "PASS",
+   "ev": "button: Soumettre à la relecture; status: En attente de relecture",
+   "shot": "evidence/uat-S1-09.png"
+  },
+  {
+   "story": "S1",
+   "n": 10,
+   "txt": "Submitted draft is absent from the public catalogue",
+   "status": "FAIL",
+   "ev": "locator.fill: Error: strict mode violation: getByLabel('Recherche') resolved to 2 elements:"
+  },
+  {
+   "story": "S2",
+   "n": 1,
+   "txt": "Open the catalogue logged out; heading « Catalogue des congrès » and a result count",
+   "status": "PASS",
+   "ev": "12 congrès trouvés; 9 cards on page 1",
+   "shot": "evidence/uat-S2-01.png"
+  },
+  {
+   "story": "S2",
+   "n": 2,
+   "txt": "Click the « Cardiologie » chip; only cardiology congresses are listed",
+   "status": "PASS",
+   "ev": "2 congrès trouvés",
+   "shot": "evidence/uat-S2-02.png"
+  },
+  {
+   "story": "S2",
+   "n": 3,
+   "txt": "Click the first congress card; the details page opens with « Informations pratiques » and « Demander un devis vol »",
+   "status": "PASS",
+   "ev": "title: Congrès européen de cardiologie — exemple",
+   "shot": "evidence/uat-S2-03.png"
+  },
+  {
+   "story": "S2",
+   "n": 4,
+   "txt": "Horizontal scroll check at this width",
+   "status": "PASS",
+   "ev": "scrollWidth 1440/1440"
+  },
+  {
+   "story": "S2",
+   "n": 5,
+   "txt": "Search « vienne » (lowercase) finds the Vienne congresses",
+   "status": "FAIL",
+   "ev": "locator.fill: Error: strict mode violation: getByLabel('Recherche') resolved to 2 elements:",
+   "shot": "evidence/uat-S2-05.png"
+  },
+  {
+   "story": "S2",
+   "n": 6,
+   "txt": "Search « diabetologie » (no accent) finds « Diabétologie »",
+   "status": "FAIL",
+   "ev": "locator.fill: Error: strict mode violation: getByLabel('Recherche') resolved to 2 elements:",
+   "shot": "evidence/uat-S2-06.png"
+  },
+  {
+   "story": "S2",
+   "n": 7,
+   "txt": "Search « zzzz »: « Aucun congrès ne correspond à votre recherche » with « Voir tous les congrès »; clicking it resets",
+   "status": "FAIL",
+   "ev": "locator.fill: Error: strict mode violation: getByLabel('Recherche') resolved to 2 elements:",
+   "shot": "evidence/uat-S2-07.png"
+  },
+  {
+   "story": "S2",
+   "n": 8,
+   "txt": "Page 2 via « Suivant » after choosing « Pays » = France keeps the filter",
+   "status": "PASS",
+   "ev": "only one page with France filter (fewer than 10 results): pagination not exercised here",
+   "shot": "evidence/uat-S2-08.png"
+  },
+  {
+   "story": "S3",
+   "n": 1,
+   "txt": "On the congress page, form « Demander un devis vol » shows the congress name prefilled and every field label",
+   "status": "PASS",
+   "ev": "?",
+   "shot": "evidence/uat-S3-01.png"
+  },
+  {
+   "story": "S3",
+   "n": 2,
+   "txt": "Click « Envoyer ma demande » with the form empty; errors in French next to each field",
+   "status": "PASS",
+   "ev": "« Merci de corriger les points suivants » + per-field « Indiquez votre nom. » etc.",
+   "shot": "evidence/uat-S3-02.png"
+  },
+  {
+   "story": "S3",
+   "n": 3,
+   "txt": "Fill with 0 passengers and return before outbound; errors shown and typed name kept",
+   "status": "PASS",
+   "ev": "Date retour / La date retour doit être postérieure ou égale à la date aller. / Le nombre de passagers doit être un nombre entier entre 1 et 50.",
+   "shot": "evidence/uat-S3-03.png"
+  },
+  {
+   "story": "S3",
+   "n": 4,
+   "txt": "Correct to 2 passengers and return 30/08/2027, click « Envoyer ma demande » once; confirmation with reference DV-2026-NNNN",
+   "status": "PASS",
+   "ev": "reference DV-2026-0007",
+   "shot": "evidence/uat-S3-04.png"
+  },
+  {
+   "story": "S3",
+   "n": 5,
+   "txt": "Reload the confirmation page; same reference, no second enquiry",
+   "status": "PASS",
+   "ev": "before DV-2026-0007, after reload DV-2026-0007",
+   "shot": "evidence/uat-S3-05.png"
+  },
+  {
+   "story": "S2@390",
+   "n": 1,
+   "txt": "Open the catalogue logged out; heading « Catalogue des congrès » and a result count",
+   "status": "PASS",
+   "ev": "12 congrès trouvés; 9 cards on page 1",
+   "shot": "evidence/uat-S2@390-01.png"
+  },
+  {
+   "story": "S2@390",
+   "n": 2,
+   "txt": "Click the « Cardiologie » chip; only cardiology congresses are listed",
+   "status": "PASS",
+   "ev": "2 congrès trouvés",
+   "shot": "evidence/uat-S2@390-02.png"
+  },
+  {
+   "story": "S2@390",
+   "n": 3,
+   "txt": "Click the first congress card; the details page opens with « Informations pratiques » and « Demander un devis vol »",
+   "status": "PASS",
+   "ev": "title: Congrès européen de cardiologie — exemple",
+   "shot": "evidence/uat-S2@390-03.png"
+  },
+  {
+   "story": "S2@390",
+   "n": 4,
+   "txt": "Horizontal scroll check at this width",
+   "status": "PASS",
+   "ev": "scrollWidth 390/390"
+  },
+  {
+   "story": "S3@390",
+   "n": 1,
+   "txt": "On the congress page, form « Demander un devis vol » shows the congress name prefilled and every field label",
+   "status": "PASS",
+   "ev": "?",
+   "shot": "evidence/uat-S3@390-01.png"
+  },
+  {
+   "story": "S3@390",
+   "n": 2,
+   "txt": "Click « Envoyer ma demande » with the form empty; errors in French next to each field",
+   "status": "PASS",
+   "ev": "« Merci de corriger les points suivants » + per-field « Indiquez votre nom. » etc.",
+   "shot": "evidence/uat-S3@390-02.png"
+  },
+  {
+   "story": "S3@390",
+   "n": 3,
+   "txt": "Fill with 0 passengers and return before outbound; errors shown and typed name kept",
+   "status": "PASS",
+   "ev": "Date retour / La date retour doit être postérieure ou égale à la date aller. / Le nombre de passagers doit être un nombre entier entre 1 et 50.",
+   "shot": "evidence/uat-S3@390-03.png"
+  },
+  {
+   "story": "S3@390",
+   "n": 4,
+   "txt": "Correct to 2 passengers and return 30/08/2027, click « Envoyer ma demande » once; confirmation with reference DV-2026-NNNN",
+   "status": "PASS",
+   "ev": "reference DV-2026-0008",
+   "shot": "evidence/uat-S3@390-04.png"
+  },
+  {
+   "story": "S3@390",
+   "n": 5,
+   "txt": "Reload the confirmation page; same reference, no second enquiry",
+   "status": "PASS",
+   "ev": "before DV-2026-0008, after reload DV-2026-0008",
+   "shot": "evidence/uat-S3@390-05.png"
+  },
+  {
+   "story": "S4",
+   "n": 1,
+   "txt": "As « equipe » on « Tableau de bord »: widget « Demandes de devis par statut » shows counts and « Dernière demande »",
+   "status": "FAIL",
+   "ev": "latest is not DV-2026-0007: Demandes de devis par statut",
+   "shot": "evidence/uat-S4-01.png"
+  },
+  {
+   "story": "S4",
+   "n": 2,
+   "txt": "Click the « Dernière demande » link; detail page shows the enquiry",
+   "status": "FAIL",
+   "ev": "locator.click: Timeout 30000ms exceeded.",
+   "shot": "evidence/uat-S4-02.png"
+  },
+  {
+   "story": "S4",
+   "n": 3,
+   "txt": "Choose « Qualifiée » in « Statut », click « Enregistrer»; success notice",
+   "status": "FAIL",
+   "ev": "locator.selectOption: Error: strict mode violation: getByLabel('Statut') resolved to 2 elements:",
+   "shot": "evidence/uat-S4-03.png"
+  },
+  {
+   "story": "S4",
+   "n": 4,
+   "txt": "« Historique » shows who, when, « Nouvelle → Qualifiée », with no edit/delete control",
+   "status": "FAIL",
+   "ev": "locator.innerText: Timeout 30000ms exceeded.",
+   "shot": "evidence/uat-S4-04.png"
+  },
+  {
+   "story": "S4",
+   "n": 5,
+   "txt": "Back on « Tableau de bord » the « Nouvelle » count went down by 1",
+   "status": "FAIL",
+   "ev": "4→4",
+   "shot": "evidence/uat-S4-05.png"
+  },
+  {
+   "story": "S4",
+   "n": 6,
+   "txt": "« Demandes » list: the row shows reference, date, congress, contact, departure city, dates, passengers, status",
+   "status": "FAIL",
+   "ev": "row DV-2026-0007 05/11/2026 20:57 Journées méditerranéennes d’oncologie — exemple Claire Fictive claire.fictive@example.com Lyon 26/08/2027 → 30/08/2027 2 Nouvelle —",
+   "shot": "evidence/uat-S4-06.png"
+  },
+  {
+   "story": "S4",
+   "n": 7,
+   "txt": "Click « Qualifiée » status view, then search « Claire »; the enquiry is found",
+   "status": "FAIL",
+   "ev": "not found",
+   "shot": "evidence/uat-S4-07.png"
+  },
+  {
+   "story": "S4",
+   "n": 8,
+   "txt": "« Journal des notifications » has an entry for the new reference",
+   "status": "PASS",
+   "ev": "entry found, « Non distribué (pas de SMTP) »",
+   "shot": "evidence/uat-S4-08.png"
+  },
+  {
+   "story": "S5",
+   "n": 1,
+   "txt": "As « equipe »: click « Accès GM&E »; every code shows as dots",
+   "status": "PASS",
+   "ev": "5 masked codes; no DEMO-GME code in HTML",
+   "shot": "evidence/uat-S5-01.png"
+  },
+  {
+   "story": "S5",
+   "n": 2,
+   "txt": "Click « Demander l’accès » on the neurology row with the reason empty; refused with a message",
+   "status": "PASS",
+   "ev": "message: Raison de la demande (obligatoire)",
+   "shot": "evidence/uat-S5-02.png"
+  },
+  {
+   "story": "S5",
+   "n": 3,
+   "txt": "Type a reason and click « Demander l’accès »; « Demande d’accès envoyée »",
+   "status": "PASS",
+   "ev": "Demande d’accès envoyée à la Direction.",
+   "shot": "evidence/uat-S5-03.png"
+  },
+  {
+   "story": "S5",
+   "n": 4,
+   "txt": "As « direction » on « Tableau de bord »: widget « Accès GM&E en attente » lists the request; click « Approuver (24 h) »",
+   "status": "PASS",
+   "ev": "Accès approuvé pour 24 heures.",
+   "shot": "evidence/uat-S5-04.png"
+  },
+  {
+   "story": "S5",
+   "n": 5,
+   "txt": "As « equipe »: « Accès GM&E » → « Révéler le code » on the neurology row; the code appears once",
+   "status": "PASS",
+   "ev": "revealed DEMO-GME-3M••",
+   "shot": "evidence/uat-S5-05.png"
+  },
+  {
+   "story": "S5",
+   "n": 6,
+   "txt": "Reload « Accès GM&E »: the code is masked again",
+   "status": "PASS",
+   "ev": "masked after reload",
+   "shot": "evidence/uat-S5-06.png"
+  },
+  {
+   "story": "S5",
+   "n": 7,
+   "txt": "As « direction »: « Journal GM&E » shows « Code révélé » by Équipe (démo) for neurology, no code text",
+   "status": "PASS",
+   "ev": "05/11/2026 20:59 Équipe (démo) Congrès européen de neurologie — exemple Code révélé ",
+   "shot": "evidence/uat-S5-07.png"
+  },
+  {
+   "story": "S5",
+   "n": 8,
+   "txt": "As « direction »: « Demandes d’accès » → « Révoquer » on the approved request",
+   "status": "PASS",
+   "ev": "Accès révoqué immédiatement.",
+   "shot": "evidence/uat-S5-08.png"
+  },
+  {
+   "story": "S5",
+   "n": 9,
+   "txt": "As « equipe » after revocation: no « Révéler le code » on the neurology row",
+   "status": "PASS",
+   "ev": "row shows: Dernière demande : Révoquée Raison de la demande (obligatoire) Demander l’accès",
+   "shot": "evidence/uat-S5-09.png"
+  },
+  {
+   "story": "S5",
+   "n": 10,
+   "txt": "As « direction »: « Codes GM&E » list (axe) and contributor has no « Accès GM&E » menu",
+   "status": "FAIL",
+   "ev": "page.waitForURL: Timeout 60000ms exceeded."
+  },
+  {
+   "story": "S5",
+   "n": 11,
+   "txt": "Visitor: the neurology congress page says « Tarif congrès négocié disponible » and no DEMO-GME code anywhere in the HTML",
+   "status": "FAIL",
+   "ev": "locator.fill: Error: strict mode violation: getByLabel('Recherche') resolved to 2 elements:"
+  }
+ ],
+ "clicks": {
+  "S1-E1": {
+   "n": 3,
+   "budget": 4,
+   "path": "menu Congrès → Ajouter un congrès → Publier"
+  },
+  "S1-E2": {
+   "n": 3,
+   "budget": 3,
+   "path": "menu Congrès → titre → Mettre à jour"
+  },
+  "S2-E1": {
+   "n": 2,
+   "budget": 2,
+   "path": "chip Cardiologie → card"
+  },
+  "S2-E1@390": {
+   "n": 2,
+   "budget": 2,
+   "path": "chip Cardiologie → card"
+  },
+  "S4-E1": {
+   "n": 2,
+   "budget": 3,
+   "path": "Dernière demande link → Statut select (open+pick counted as 1)",
+   "mouseRealistic": 3
+  },
+  "S5-E1 equipe request": {
+   "n": 2,
+   "budget": 2,
+   "path": "menu Accès GM&E → Demander l’accès",
+   "note": "empty-reason attempt not counted"
+  },
+  "S5-E1 direction approve": {
+   "n": 1,
+   "budget": 2,
+   "path": "Approuver (24 h)"
+  },
+  "S5-E1 equipe reveal": {
+   "n": 2,
+   "budget": 2,
+   "path": "menu Accès GM&E → Révéler le code"
+  }
+ },
+ "axe": [
+  {
+   "screen": "admin dashboard (direction)",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-wp-logo",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-wp-logo\" class=\"menupop\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin dashboard (direction)",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-site-name",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-site-name\" class=\"menupop\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin dashboard (direction)",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-command-palette",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-command-palette\" class=\"hide-if-no-js\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin dashboard (direction)",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-new-content",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-new-content\" class=\"menupop\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin dashboard (direction)",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-my-account",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-my-account\" class=\"menupop with-avatar\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "catalogue",
+   "kind": "front",
+   "id": "heading-order",
+   "impact": "moderate",
+   "help": "Heading levels should only increase by one",
+   "target": ".asset-card:nth-child(1) > h3",
+   "html": "<h3 class=\"asset-card__title\"><a href=\"http://127.0.0.1:9402/congres/journees-mediterraneennes-doncologie-exemple/\">Journées méditerranéennes d’oncologie — exem",
+   "owner": "plugin"
+  },
+  {
+   "screen": "catalogue",
+   "kind": "front",
+   "id": "list",
+   "impact": "serious",
+   "help": "<ul> and <ol> must only directly contain <li>, <script> or <template> elements",
+   "target": ".is-responsive.items-justified-right.wp-block-navigation__container",
+   "html": "<ul class=\"wp-block-navigation__container is-responsive items-justified-right wp-block-navigation\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "catalogue filtered",
+   "kind": "front",
+   "id": "heading-order",
+   "impact": "moderate",
+   "help": "Heading levels should only increase by one",
+   "target": ".asset-card:nth-child(1) > h3",
+   "html": "<h3 class=\"asset-card__title\"><a href=\"http://127.0.0.1:9402/congres/congres-europeen-de-cardiologie-exemple/\">Congrès européen de cardiologie — exemple</a></h3",
+   "owner": "plugin"
+  },
+  {
+   "screen": "catalogue filtered",
+   "kind": "front",
+   "id": "list",
+   "impact": "serious",
+   "help": "<ul> and <ol> must only directly contain <li>, <script> or <template> elements",
+   "target": ".is-responsive.items-justified-right.wp-block-navigation__container",
+   "html": "<ul class=\"wp-block-navigation__container is-responsive items-justified-right wp-block-navigation\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "congress details",
+   "kind": "front",
+   "id": "list",
+   "impact": "serious",
+   "help": "<ul> and <ol> must only directly contain <li>, <script> or <template> elements",
+   "target": ".is-responsive.items-justified-right.wp-block-navigation__container",
+   "html": "<ul class=\"wp-block-navigation__container is-responsive items-justified-right wp-block-navigation\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "enquiry form errors",
+   "kind": "front",
+   "id": "list",
+   "impact": "serious",
+   "help": "<ul> and <ol> must only directly contain <li>, <script> or <template> elements",
+   "target": ".is-responsive.items-justified-right.wp-block-navigation__container",
+   "html": "<ul class=\"wp-block-navigation__container is-responsive items-justified-right wp-block-navigation\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "enquiry confirmation",
+   "kind": "front",
+   "id": "list",
+   "impact": "serious",
+   "help": "<ul> and <ol> must only directly contain <li>, <script> or <template> elements",
+   "target": ".is-responsive.items-justified-right.wp-block-navigation__container",
+   "html": "<ul class=\"wp-block-navigation__container is-responsive items-justified-right wp-block-navigation\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin dashboard (equipe)",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-wp-logo",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-wp-logo\" class=\"menupop\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin dashboard (equipe)",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-site-name",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-site-name\" class=\"menupop\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin dashboard (equipe)",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-command-palette",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-command-palette\" class=\"hide-if-no-js\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin dashboard (equipe)",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-new-content",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-new-content\" class=\"menupop\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin dashboard (equipe)",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-my-account",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-my-account\" class=\"menupop with-avatar\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin enquiry list",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-wp-logo",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-wp-logo\" class=\"menupop\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin enquiry list",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-site-name",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-site-name\" class=\"menupop\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin enquiry list",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-command-palette",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-command-palette\" class=\"hide-if-no-js\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin enquiry list",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-new-content",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-new-content\" class=\"menupop\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin enquiry list",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-my-account",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-my-account\" class=\"menupop with-avatar\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin notification journal",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-wp-logo",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-wp-logo\" class=\"menupop\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin notification journal",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-site-name",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-site-name\" class=\"menupop\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin notification journal",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-command-palette",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-command-palette\" class=\"hide-if-no-js\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin notification journal",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-new-content",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-new-content\" class=\"menupop\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin notification journal",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-my-account",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-my-account\" class=\"menupop with-avatar\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin GM&E (equipe)",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-wp-logo",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-wp-logo\" class=\"menupop\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin GM&E (equipe)",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-site-name",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-site-name\" class=\"menupop\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin GM&E (equipe)",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-command-palette",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-command-palette\" class=\"hide-if-no-js\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin GM&E (equipe)",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-new-content",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-new-content\" class=\"menupop\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin GM&E (equipe)",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-my-account",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-my-account\" class=\"menupop with-avatar\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin GM&E journal",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-wp-logo",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-wp-logo\" class=\"menupop\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin GM&E journal",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-site-name",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-site-name\" class=\"menupop\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin GM&E journal",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-command-palette",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-command-palette\" class=\"hide-if-no-js\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin GM&E journal",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-new-content",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-new-content\" class=\"menupop\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin GM&E journal",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-my-account",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-my-account\" class=\"menupop with-avatar\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin GM&E access requests",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-wp-logo",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-wp-logo\" class=\"menupop\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin GM&E access requests",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-site-name",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-site-name\" class=\"menupop\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin GM&E access requests",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-command-palette",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-command-palette\" class=\"hide-if-no-js\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin GM&E access requests",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-new-content",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-new-content\" class=\"menupop\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin GM&E access requests",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-my-account",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-my-account\" class=\"menupop with-avatar\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin GM&E codes (direction)",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-wp-logo",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-wp-logo\" class=\"menupop\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin GM&E codes (direction)",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-site-name",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-site-name\" class=\"menupop\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin GM&E codes (direction)",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-command-palette",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-command-palette\" class=\"hide-if-no-js\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin GM&E codes (direction)",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-new-content",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-new-content\" class=\"menupop\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin GM&E codes (direction)",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-my-account",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-my-account\" class=\"menupop with-avatar\">",
+   "owner": "core/theme"
+  }
+ ],
+ "notes": [],
+ "consoleErrs": [],
+ "reqFails": [
+  "http://127.0.0.1:9402/wp-includes/js/dist/notices.min.js?ver=c09a068fdab0eb465e14 net::ERR_ABORTED",
+  "http://127.0.0.1:9402/wp-includes/js/dist/block-editor.min.js?ver=37e58da384b2558bd479 net::ERR_ABORTED"
+ ]
+}
