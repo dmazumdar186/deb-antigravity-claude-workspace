@@ -28,7 +28,7 @@ On each send day (Mon, Tue, Thu, Fri, Sat; rest Wed and Sun) send connection req
 | `execution/personal_workflows/linkedin_connect_queue.py` | Bookkeeping: `consolidate`, `plan`, `mark`, `status`, `health`. `run` calls its functions directly. Owns `DAILY_CAP = 20` (one source of truth). |
 | Windows Task Scheduler | One task, registered once with the PowerShell block below. |
 
-Constants: queue `DAILY_CAP = 20`; send script `SEND_DAYS = (0, 1, 3, 4, 5)`, `GAP_SECONDS = (45, 120)`, `MAX_CONSECUTIVE_RETRIES = 3`; queue `NO_CONNECT_DAYS = 3`, `VISIT_FACTOR = 2` (≤ 40 profiles per run), `RUN_BUDGET_S = 110 min`, `SMTP_ATTEMPTS = 3` / `SMTP_RETRY_S = 60`.
+Constants: queue `DAILY_CAP = 20`; send script `SEND_DAYS = (0, 1, 3, 4, 5)`, `GAP_SECONDS = (45, 120)`, `MAX_CONSECUTIVE_RETRIES = 5`, `VISIT_FACTOR = 5` (≤ 100 profiles per run), `RUN_BUDGET_S = 165 min`, `SEND_LOCK_TTL_MIN = 190`; queue `NO_CONNECT_DAYS = 3`, `SMTP_ATTEMPTS = 3` / `SMTP_RETRY_S = 60`.
 
 ## Outputs
 
@@ -59,6 +59,16 @@ To remove the task: `Unregister-ScheduledTask -TaskName "LinkedIn connect send" 
 
 `GMAIL_SMTP_USER` and `GMAIL_SMTP_APP_PASSWORD` must be in `.env` (they already are if job_digest emails work).
 
+## Rule: one unsendable person never ends the day (operator order 2026-11-05)
+
+A person LinkedIn will not let us invite is recorded and the run moves to the next one, until 20 are sent:
+email verification asked → `skipped email_required` (final, never queued again); profile gone →
+`skipped profile_gone` (final); already Pending / 1st-degree → recorded, not counted; Follow-only →
+`retry`, final `skipped no_connect_button_3x` on its 3rd day. The day ends short of 20 only on a LinkedIn
+warning (captcha, security check, weekly limit, restriction), logged out, 5 retry outcomes in a row (the
+markup or the network broke, so continuing would burn people), 100 profiles visited, 165 minutes, or an
+empty list; each of those sends a STOPPED subject.
+
 ## Steps (what `run` does)
 
 1. Today's local date (same as the queue module's ledger dates). Not a send day, or `emailed_<date>.txt` exists → exit 0 silently.
@@ -75,9 +85,9 @@ To remove the task: `Unregister-ScheduledTask -TaskName "LinkedIn connect send" 
    5. `Connect` in the header, else open `More` and look for `Connect` in the menu. Neither → `retry no_connect_button` (not final: a markup change must not burn people).
    6. Click Connect. Dialog asking for the member's email → Escape, `skipped email_required` (continue). Otherwise click **Send without a note** (or a plain `Send`; never "Add a note").
    7. Confirmed by the alert "Invitation sent…" or the header flipping to `Pending` → `sent`. No confirmation in 10 s → `retry` (eligible tomorrow).
-   8. Page failed to load → `retry`. Three `retry` outcomes in a row (no Connect / unconfirmed / page load failed) → **stop** (`3 profiles in a row without Connect or confirmation`).
+   8. Page failed to load → `retry`. Five `retry` outcomes in a row (no Connect / unconfirmed / page load failed) → **stop** (`5 profiles in a row without Connect or confirmation`).
    9. Redirected to another `/in/` slug → the mark carries `--canonical`, so the alias is recorded.
-6. Random 45–120 s pause between profiles. When the queue runs out after skips, re-plan until 20 are sent or nobody is left, but never past 40 profiles (`STOPPED: 40 profiles visited, cap not reached`) or 110 minutes (`STOPPED: time budget reached`).
+6. Random 45–120 s pause between profiles. When the queue runs out after skips, re-plan until 20 are sent or nobody is left, but never past 100 profiles (`STOPPED: 100 profiles visited, cap not reached`) or 165 minutes (`STOPPED: time budget reached`).
 7. Build the subject; if 0 were sent while people remained, the subject says `STOPPED: 0 sent while people remained`.
 8. Send the email (3 attempts, 60 s apart), write the marker, exit (2 if stopped early).
 
@@ -87,8 +97,8 @@ To remove the task: `Unregister-ScheduledTask -TaskName "LinkedIn connect send" 
 - **Missing report alert:** the cloud scheduled task "LinkedIn connect: missing-report alert" checks Gmail at 15:07 Europe/Paris on send days; no `LinkedIn connects <date>` email by then → it emails `LinkedIn connects <date> — MISSING: no run by 15:00`. Fail loud on delivery: a job that never starts (task missing, PC off, Gmail creds gone) can no longer look like a quiet day.
 - **PC off at 10:00:** `StartWhenAvailable` runs it at the next logon the same day. The task runs only while the operator is logged on (Chrome needs the desktop session). A day the PC never wakes produces no email.
 - **Run crashed:** still emails, subject `STOPPED: run failed (<error type>)`, exit 3, and writes no marker (same for `Chrome not available`), so a rerun after the fix sends the rest of today's batch. SMTP failing 3 times → no marker, exit 3, details in `send.log`.
-- **Run length:** worst case ~3 min per profile (120 s gap + 45 s load + 10 s render + 10 s confirm); the 110-minute budget plus email retries ends every run well inside the task's 3 h `ExecutionTimeLimit`.
-- **`no_connect_button` is `retry`:** a Follow-only profile comes back on a later day; on the 3rd different day `Q.mark` records it as final `skipped no_connect_button_3x`. If LinkedIn moves the Connect button, the run stops after 3 in a row instead of marking hundreds of people final.
+- **Run length:** worst case ~3 min per profile (120 s gap + 45 s load + 10 s render + 10 s confirm); the 165-minute budget plus email retries (≤ 5 min) ends every run inside the task's 3 h `ExecutionTimeLimit`.
+- **`no_connect_button` is `retry`:** a Follow-only profile comes back on a later day; on the 3rd different day `Q.mark` records it as final `skipped no_connect_button_3x`. If LinkedIn moves the Connect button, the run stops after 5 in a row instead of marking hundreds of people final.
 - **Marker:** written only after the email succeeds; rerunning on the same day after that is a no-op. Delete the marker to force a second report.
 - **Cap:** counted from the ledger, so a crashed run resumed the same day only tops up to 20. `Q.mark` refuses a 21st `sent` the same day (exit 3).
 - **Date:** the laptop's local date, for gating and the ledger alike. A long stay in another time zone shifts the 10:00 start with the clock; nothing else changes.
@@ -112,6 +122,7 @@ confirmed, so they can be re-enabled if the first run fails:
 
 | Date | Change |
 |------|--------|
+| 2026-11-05 | Operator rule: an unsendable person never ends the day; keep going to 20. Visit ceiling 40 → 100, budget 110 → 165 min, retry streak 3 → 5, send.lock TTL 190 min. |
 | 2026-11-05 | Job had never run (setup not done; operator fired the disabled Cowork slot, click denied again). Added `setup [--start]` + `linkedin_connect_setup.cmd` (one double-click), auto-closing login, STOPPED email for missing master/Playwright, queue lock, optional dotenv; 20:00 report task repurposed as the 15:07 missing-report alert. |
 | 2026-11-03 | Review round 1: `no_connect_button` → `retry` + stop after 3 retries in a row; ≤ 2× cap visits and a 110-min budget; SMTP 3 tries; local date (no Europe/Paris layer); Chrome only; install/uninstall moved to a PowerShell block here; cap moved to queue `DAILY_CAP = 20`; stop checks read dialogs/alerts only. |
 | 2026-11-03 | Created. Replaces the Cowork/AI routine: Playwright script + one Windows scheduled task + Gmail SMTP; 20/day on Mon Tue Thu Fri Sat; STOPPED suffix on early stop. |

@@ -50,11 +50,14 @@ EML_DIR = REPO / ".tmp"
 # = 100/week, LinkedIn's observed free-account weekly limit) is Q.DAILY_CAP: one source of truth.
 SEND_DAYS = (0, 1, 3, 4, 5)  # datetime.weekday(): Monday = 0
 GAP_SECONDS = (45, 120)  # random pause between profiles
-MAX_CONSECUTIVE_RETRIES = 3  # three retry outcomes in a row (no Connect / unconfirmed / page load failed) -> stop
-VISIT_FACTOR = 2  # never visit more than 2 x cap profiles in one run
-# Worst case per profile: 120 s gap + 45 s load + 10 s render + 10 s confirm ~ 3 min, x 40 = ~2 h.
-# The budget stops a run before that so it ends well inside the task's 3 h ExecutionTimeLimit.
-RUN_BUDGET_S = 110 * 60
+# Operator order 2026-11-05: one person who cannot be invited (email asked, Follow-only, gone) never ends the
+# day; the run keeps going until 20 are sent. Only a LinkedIn warning or a broken page/markup stops it.
+MAX_CONSECUTIVE_RETRIES = 5  # five retry outcomes in a row (no Connect / unconfirmed / page load failed) = markup or network broke -> stop
+VISIT_FACTOR = 5  # visit up to 5 x cap profiles to reach the cap (a safety ceiling, not a target)
+# Typical profile ~1.6 min (83 s mean gap + load); 20 sends with a 50% skip rate ~ 65 min. The budget
+# stops a run inside the task's 3 h ExecutionTimeLimit (with email retries) even in the worst case.
+RUN_BUDGET_S = 165 * 60
+SEND_LOCK_TTL_MIN = 190  # > RUN_BUDGET_S + email retries: a live run's lock is never taken over
 
 NAV_TIMEOUT_MS = 45_000
 RENDER_TIMEOUT_MS = 10_000
@@ -474,7 +477,7 @@ def _lock_file(data_dir: Path) -> Path:
 
 def acquire_lock(data_dir: Path) -> bool:
     """Exclusive create (O_EXCL), so two runs starting in the same second cannot both pass. A lock older
-    than Q.LOCK_TTL_MIN is a crashed run's and is taken over."""
+    than SEND_LOCK_TTL_MIN is a crashed run's and is taken over."""
     path = _lock_file(data_dir)
     for _ in range(2):
         try:
@@ -484,7 +487,7 @@ def acquire_lock(data_dir: Path) -> bool:
                 age_min = (time.time() - path.stat().st_mtime) / 60
             except FileNotFoundError:
                 continue  # released between our two calls: try again
-            if age_min <= Q.LOCK_TTL_MIN:
+            if age_min <= SEND_LOCK_TTL_MIN:
                 return False
             log.warning("stale send.lock (%.0f min) from a crashed run, taking over", age_min)
             with contextlib.suppress(OSError):  # OneDrive / antivirus may hold the file briefly
@@ -498,7 +501,7 @@ def acquire_lock(data_dir: Path) -> bool:
 
 def release_lock(data_dir: Path) -> None:
     """Delete the lock only if this process owns it (a stale takeover by another run is left alone).
-    Never raises: a lock that cannot be deleted just expires after Q.LOCK_TTL_MIN."""
+    Never raises: a lock that cannot be deleted just expires after SEND_LOCK_TTL_MIN."""
     path = _lock_file(data_dir)
     with contextlib.suppress(OSError, ValueError, IndexError):
         if int(path.read_text(encoding="utf-8").strip().split("|")[1]) == os.getpid():

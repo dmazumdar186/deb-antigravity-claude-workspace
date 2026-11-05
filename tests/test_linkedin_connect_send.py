@@ -168,10 +168,10 @@ def test_run_day_stops_on_weekly_limit(page, tmp_path):
 
 
 def test_run_day_stops_after_three_consecutive_retries_incl_load_failures(page, tmp_path):
-    store = seed(tmp_path, [(c, f"http://127.0.0.1:9/in/{c}/") for c in "abcd"])
+    store = seed(tmp_path, [(c, f"http://127.0.0.1:9/in/{c}/") for c in "abcdefg"])
     res = S.run_day(page, store, "2026-11-02", sleep=lambda s: None)
-    assert res.stop == "3 profiles in a row without Connect or confirmation" and res.processed == 3
-    assert sorted(ledger(store).values()) == [("retry", "page_load_failed")] * 3
+    assert res.stop == "5 profiles in a row without Connect or confirmation" and res.processed == 5
+    assert sorted(ledger(store).values()) == [("retry", "page_load_failed")] * 5
 
 
 def test_no_connect_button_on_third_day_becomes_final(tmp_path):
@@ -333,13 +333,13 @@ def test_missing_connect_everywhere_stops_after_three(tmp_path, monkeypatch, bro
     _patch_browser(monkeypatch, browser)
     _smtp_env(monkeypatch, _FakeSMTP)
     _FakeSMTP.sent = []
-    store = seed(tmp_path, [(f"f{i}", "follow_only.html") for i in range(6)])
+    store = seed(tmp_path, [(f"f{i}", "follow_only.html") for i in range(8)])
     assert S.cmd_run(tmp_path, dry_run=False, today=MON) == 2
     rows = ledger(store)
-    assert len(rows) == 3 and all(v == ("retry", "no_connect_button") for v in rows.values())
+    assert len(rows) == 5 and all(v == ("retry", "no_connect_button") for v in rows.values())
     assert not any(st == "skipped" for st, _ in rows.values())
     assert _FakeSMTP.sent[0]["Subject"] == \
-        "LinkedIn connects 2026-11-02 (0 sent) — STOPPED: 3 profiles in a row without Connect or confirmation"
+        "LinkedIn connects 2026-11-02 (0 sent) — STOPPED: 5 profiles in a row without Connect or confirmation"
 
 
 def test_visit_limit_and_time_budget(page, tmp_path, monkeypatch):
@@ -454,7 +454,7 @@ def test_send_lock_is_exclusive_and_stale_is_taken_over(tmp_path):
     assert S.acquire_lock(tmp_path) and not S.acquire_lock(tmp_path)  # second caller loses, no TOCTOU
     S.release_lock(tmp_path)
     assert S.acquire_lock(tmp_path)
-    old = S.time.time() - (Q.LOCK_TTL_MIN + 5) * 60
+    old = S.time.time() - (S.SEND_LOCK_TTL_MIN + 5) * 60
     os.utime(tmp_path / "send.lock", (old, old))
     assert S.acquire_lock(tmp_path)  # crashed run's lock taken over
     S.release_lock(tmp_path)
@@ -526,3 +526,27 @@ def test_release_lock_only_deletes_own_lock_and_never_raises(tmp_path, monkeypat
         raise PermissionError(32, "in use")
     monkeypatch.setattr(S.Path, "unlink", locked)
     S.release_lock(tmp_path)  # OneDrive/AV lock: no exception
+
+
+def test_unsendable_people_never_stop_the_day_and_20_still_go_out(page, tmp_path):
+    """Operator order 2026-11-05: email-verification / Follow-only / gone / pending profiles are recorded and
+    skipped; the run moves on until 20 are sent. Interleaved so no 5-in-a-row streak forms."""
+    blockers = ["email_required.html", "follow_only.html", "not_found.html", "pending.html"]
+    people = []
+    for i in range(20):
+        people.append((f"x{i}", blockers[i % 4]))
+        people.append((f"ok{i}", "connect_header.html"))
+    store = seed(tmp_path, people)
+    res = S.run_day(page, store, "2026-11-02", sleep=lambda s: None)
+    rows = ledger(store)
+    assert res.stop is None and res.sent_run == 20
+    assert sum(1 for st, _ in rows.values() if st == "sent") == 20
+    assert all(rows[f"x{i}"][0] in ("skipped", "retry", "pending") for i in range(20) if f"x{i}" in rows)
+    email_skips = [s for s, v in rows.items() if v == ("skipped", "email_required")]
+    assert email_skips
+    assert all(s in Q._blocked(store.load_ledger(), "2026-11-09") for s in email_skips)  # never queued again
+
+
+def test_visit_ceiling_and_budget_constants():
+    assert S.VISIT_FACTOR * Q.DAILY_CAP == 100 and S.MAX_CONSECUTIVE_RETRIES == 5
+    assert S.SEND_LOCK_TTL_MIN * 60 > S.RUN_BUDGET_S + S.SMTP_ATTEMPTS * (30 + S.SMTP_RETRY_S)
