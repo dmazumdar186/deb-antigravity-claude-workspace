@@ -9,7 +9,9 @@ A small but real platform covering the five functions ASSET asked every candidat
 
 One Cloudflare Worker answers every request. It builds each page on the server, so the site works with JavaScript turned off; a 1 KB script only adds comforts such as filters that apply as soon as you pick one. The data lives in one D1 database (SQLite). The fonts, the stylesheet and the script are served as static files. Every night at 03:00 UTC a scheduled trigger puts the sandbox back to its starting state.
 
-**Private sandbox per browser.** On its first visit each browser receives an HttpOnly cookie that names its own sandbox. Until that browser changes something, it reads the shared seed. Its first change copies the seed into its own sandbox (copy-on-write), and from then on it only reads and writes there. Every write is tagged with the sandbox: congresses and edits to them, enquiries, statuses, notes, notifications, GM&E requests, approvals and journal rows. Other visitors never see another browser's changes, so publishing, defacing or approving with the shared demo logins only affects the browser that did it. « Réinitialiser la démo » deletes the caller's sandbox only. The nightly cron deletes sandboxes older than 24 h and rebuilds the seed. Sandbox creation is capped at 150 per IP hash per hour and 1,500 a day overall, which keeps the demo inside the D1 free write quota.
+**Private sandbox per browser.** On its first visit each browser receives an HttpOnly cookie that names its own sandbox. Until that browser changes something, it reads the shared seed. Its first change copies the seed into its own sandbox (copy-on-write), and from then on it only reads and writes there. Every write is tagged with the sandbox: congresses and edits to them, enquiries, statuses, notes, notifications, GM&E requests, approvals and journal rows. Other visitors never see another browser's changes, so publishing, defacing or approving with the shared demo logins only affects the browser that did it. « Réinitialiser la démo » deletes the caller's sandbox only. The nightly cron deletes sandboxes older than 24 h and rebuilds the seed. Sandbox creation is capped (see the budget below). Once a cap is reached, the visitor keeps browsing the read-only seed under a calm banner (« Démo très demandée : vous pouvez parcourir, les essais reprennent dans quelques minutes. »), never a bare 429.
+
+**Sandbox budget, D1 free plan (100,000 rows written a day; every index entry counts as a written row).** One copy of the seed writes 80 table rows (13 congresses, 6 enquiries, 20 history events, 6 notifications, 5 codes, 1 request, 28 list values and the sandbox row) plus 131 index entries, so 211 rows, about 215 with the two throttle counters. We keep 30,000 rows a day for real use (enquiries, edits, throttle counters, the nightly reseed), which leaves (100,000 − 30,000) / 215 = **325 new sandboxes a day overall**, and **20 per IP a day**. Per-browser limits (enquiries, logins) reset when someone drops the cookie, so the per-IP caps are the backstop: 20 sandboxes a day, 60 enquiries per 10 minutes, and 50 wrong passwords per 15 minutes. The test suite sends a key whose SHA-256 is in `wrangler.toml` (the key itself sits only in the gitignored `.dev.vars`), which exempts it from the per-IP caps (sandboxes, enquiries, wrong passwords) but never from the per-browser, per-account or global ones. FIX2-1 and FIX2-3 test the per-IP caps without the key, from spoofed local addresses.
 
 ```
  visitor / staff browser
@@ -69,9 +71,10 @@ Every test name starts with the gate ID it proves from `../21_Acceptance_Gates_5
 | `s4_team.spec.mjs` | S4-F1 to S4-F6, S4-E1, S4-H1 | 7/7 pass | 7/7 pass |
 | `s5_gme.spec.mjs` | S5-F1 to S5-F5, S5-E1, S5-H1, S5-L1 (crawl), S5-L2 | 11/11 pass | 11/11 pass |
 | `fix_round1.spec.mjs` | FIX-1 to FIX-26 (eye review, adversarial and blind-QA findings, see below; FIX-6 split into 6a production mode and 6b demo mode) | 25/25 pass | pending redeploy |
+| `fix_round2.spec.mjs` | FIX2-1 to FIX2-13 (independent battery: security, flakes, UX/a11y/eye, monkey gap) | 11/11 pass (FIX2-1, 2-3 and 2-4 local only) | pending deploy |
 | `x_cross.spec.mjs` | X1, X1 strict, X2, X3, X4, X5, security headers, cookie and logout replay, console at 390 px, hostile console input | 9/9 pass | 9/9 pass |
 | `z_screens.spec.mjs` | screenshots for X6 | 2/2 pass | 2/2 pass |
-| **Total** | | **75/75 pass** | 50/50 before the fix round; re-run pending |
+| **Total** | | **86/86 pass, twice in a row** | 73 pass, 2 skipped by design (version 19d443cb, before fix round 2) |
 
 Fix round 1, local: 75/75. FIX-6a uses a second local server with `--var ACCOUNT_LOCKOUT:on --port 8788`; it is skipped live, as is FIX-3 (cron trigger). Before the fix round, both full runs (local `wrangler dev`, then live deploy b48a4877) passed 49/49. « X1 strict » was added afterwards and run on its own, passing locally and live, which brings the totals to 50.
 
@@ -131,3 +134,19 @@ Screenshots (`deviceScaleFactor` 1) go to `screens/NN-name-1440.png` and `screen
 | FIX-23, FIX-24 (D3, D4) | A banner at the top lists each error as « Champ : message », with a link to the field; focus moves to it, and it is visible on a phone. Failed submissions re-render with status 200 |
 | FIX-25 (D5) | 10 enquiries per 10 minutes per browser (from any IP) and 60 per IP. The 11th shows a visible French message and keeps what was typed. The honeypot field is renamed and hidden with `display:none`, so autofill cannot trip it: this was the likely cause of the silent "no reference" seen in QA |
 | FIX-26 (D6) | The date line reads « 29 sept. au 2 oct. 2027 » at every width, including for screen readers |
+
+## Fix round 2 (independent battery)
+
+| Test | Finding fixed |
+|---|---|
+| FIX2-1, FIX2-2 | ADV-B-009/010: sandbox caps of 20 per IP a day and 325 a day overall (budget arithmetic above); a calm banner instead of a 429; per-IP caps as the backstop |
+| FIX2-3 | ADV-B-011: the per-IP login counter is incremented first and atomically |
+| FIX2-4 | ADV-B-012: the nightly purge removes orphan rows; the seed copy uses INSERT OR IGNORE |
+| FIX2-5 | X4 flake. Root cause: the live page body was « upstream request failed », the agent egress proxy's own error, which the Worker never sends. Reset is idempotent, and indexes on `sbx` keep it at a few milliseconds; five resets in a row each take under 3 s |
+| FIX2-6 | S2-F2 flake. Root cause: the test read the rows before the results page had loaded. The test now waits for the results URL, and 30 parallel searches during 5 sandbox copies all return CG-0109 |
+| FIX2-7 | USAB-B-011: the « Demandes » table fits at 1440 (Statut is column 2, Départ, Dates and Passagers are merged into « Voyage », Contact wraps); below 1320 px each row becomes a card |
+| FIX2-8, FIX2-9 | A11Y-B-001/002: no aria-label on sidebar links (visible text plus hidden text); the masked code uses hidden text |
+| FIX2-10 | EYE-B-011: plurals on the contributor home (« 12 Publiés ») |
+| FIX2-11 | USAB-B-012: filters jump to `#resultats` |
+| FIX2-12 | EYE-B-017 to 025, USAB-B-013: nothing breaks mid-word (password, references, phones, dates); URLs break only after « / »; the contact line stays in its card column; the badge stays in its column; even rhythm on the confirmation; « — exemple » kept on the title's line; one-line sidebar; « Voir le site public » on its own row; the user's name shown at 390; « Modifier le code GM&E » styled as a button; specific status messages |
+| FIX2-13 | Monkey gap: input and textarea values are scanned for `DEMO-GME-` for every role |

@@ -1,0 +1,31 @@
+{
+  "seed": 20261105,
+  "role": "contributeur",
+  "action": 34,
+  "problems": [
+    "pageerror Transition was aborted because of invalid state. Viewport size changed"
+  ],
+  "last20": [
+    "click A \"À propos de WordPress\" http://127.0.0.1:9403/wp-admin/about.php",
+    "resize 413x823",
+    "click BUTTON \"Monter\" ",
+    "click A \"Créer\" http://127.0.0.1:9403/wp-admin/post-new.php?post_type=asset_congres",
+    "back/forward",
+    "click A \"Ctrl + K\nOuvrir la palette de commandes\" #",
+    "click A \"Ctrl + K\nOuvrir la palette de commandes\" #",
+    "click A \"Ctrl + K\nOuvrir la palette de commandes\" #",
+    "click A \"Créer\" http://127.0.0.1:9403/wp-admin/post-new.php?post_type=asset_congres",
+    "type len=19 Élodie Ñandú 日本語 😀",
+    "resize 549x886",
+    "click A \"Créer\" http://127.0.0.1:9403/wp-admin/post-new.php?post_type=asset_congres",
+    "back/forward",
+    "click BUTTON \"Afficher ou masquer le panneau\" ",
+    "click BUTTON \"Monter\" ",
+    "resize 1216x817",
+    "click BUTTON \"Options de l’écran\" ",
+    "click A \"Créer\" http://127.0.0.1:9403/wp-admin/post-new.php?post_type=asset_congres",
+    "resize 1179x620",
+    "type len=11 99999999999"
+  ],
+  "url": "http://127.0.0.1:9403/wp-admin/post-new.php?post_type=asset_congres"
+}

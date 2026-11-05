@@ -185,9 +185,9 @@ class Asset_CD_Demandes {
 				echo '<p><strong>' . esc_html__( 'Merci, votre demande a bien été envoyée.', 'asset-congres-demo' ) . '</strong></p>';
 				if ( $ref ) {
 					/* translators: %s: enquiry reference. */
-					echo '<p>' . wp_kses( sprintf( __( 'Votre référence : %s', 'asset-congres-demo' ), '<span class="asset-ref">' . esc_html( (string) $ref ) . '</span>' ), array( 'span' => array( 'class' => true ) ) ) . '</p>';
+					echo '<p>' . wp_kses( sprintf( __( 'Votre référence : %s', 'asset-congres-demo' ), '<span class="asset-ref">' . esc_html( (string) $ref ) . '</span>' ), array( 'span' => array( 'class' => true ) ) ) . '</p>';
 				}
-				echo '<p>' . esc_html__( 'Un conseiller ASSET vous recontacte avec une proposition (démonstration : aucun e-mail n’est réellement envoyé).', 'asset-congres-demo' ) . '</p>';
+				echo '<p>' . esc_html__( 'Un conseiller ASSET vous recontacte avec une proposition (démonstration : aucun e-mail n’est réellement envoyé).', 'asset-congres-demo' ) . '</p>';
 				echo '</div></section>';
 				return (string) ob_get_clean();
 			}
@@ -206,7 +206,7 @@ class Asset_CD_Demandes {
 		);
 
 		if ( $errors ) {
-			echo '<div class="asset-notice asset-notice--error" role="alert"><p><strong>' . esc_html__( 'Merci de corriger les points suivants :', 'asset-congres-demo' ) . '</strong></p><ul>';
+			echo '<div class="asset-notice asset-notice--error" role="alert"><p><strong>' . esc_html__( 'Merci de corriger les points suivants :', 'asset-congres-demo' ) . '</strong></p><ul>';
 			foreach ( $errors as $field => $msg ) {
 				$field = sanitize_key( (string) $field );
 				$href  = isset( $labels[ $field ] ) || 'consentement' === $field ? '#asset-q-' . $field : '#devis';
@@ -243,7 +243,7 @@ class Asset_CD_Demandes {
 		<p class="asset-quote__for">
 			<?php
 			/* translators: %s: congress title. */
-			echo esc_html( sprintf( __( 'Congrès : %s', 'asset-congres-demo' ), get_the_title( $congres_id ) ) );
+			echo esc_html( sprintf( __( 'Congrès : %s', 'asset-congres-demo' ), get_the_title( $congres_id ) ) );
 			?>
 		</p>
 		<form class="asset-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" novalidate>
@@ -512,14 +512,14 @@ class Asset_CD_Demandes {
 			$clean['telephone'],
 			$clean['societe'] ? $clean['societe'] : '—',
 			$clean['ville_depart'],
-			$clean['date_aller'],
-			$clean['date_retour'],
+			Asset_CD_Ui::date( $clean['date_aller'] ),
+			Asset_CD_Ui::date( $clean['date_retour'] ),
 			(int) $clean['passagers'],
 			$clean['message'] ? $clean['message'] : '—',
 			admin_url( 'admin.php?page=asset-demandes&action=view&id=' . (int) $id )
 		);
 		/* translators: 1: reference, 2: congress. */
-		Asset_CD_Notifications::notify_team( sprintf( __( '[ASSET démo] Nouvelle demande %1$s : %2$s', 'asset-congres-demo' ), $ref, get_the_title( $congres ) ), $body, $ref );
+		Asset_CD_Notifications::notify_team( sprintf( __( '[ASSET démo] Nouvelle demande %1$s : %2$s', 'asset-congres-demo' ), $ref, get_the_title( $congres ) ), $body, $ref );
 
 		self::go( add_query_arg( 'asset_ok', $ok, $back ) . '#devis' );
 	}

@@ -240,7 +240,7 @@ export async function submitEnquiry(req, env) {
     throw err;
   }
   // Per browser (whatever IP it comes from: mobile networks and proxies change it) and per IP (a whole office).
-  if (!(await rateHit(env, `enq-sbx:${sid}`, ENQ_LIMIT, ENQ_WINDOW)) || !(await rateHit(env, `enq:${ip}`, ENQ_IP_LIMIT, ENQ_WINDOW))) {
+  if (!(await rateHit(env, `enq-sbx:${sid}`, ENQ_LIMIT, ENQ_WINDOW)) || (!env.TEST_RUN && !(await rateHit(env, `enq:${ip}`, ENQ_IP_LIMIT, ENQ_WINDOW)))) {
     return congressPage(req, env, c, { values: v, errors: {}, notice: 'Votre demande n’a pas été envoyée : trop de demandes depuis ce navigateur en 10 minutes. Réessayez dans quelques minutes ou appelez l’agence au 01 00 00 00 00 (numéro d’exemple).', status: 200 });
   }
   const now = nowIso();

@@ -150,3 +150,92 @@
 		font-size: 16px;
 	}
 }
+
+.asset-admin .asset-email {
+	word-break: normal;
+	overflow-wrap: normal;
+}
+
+.asset-search {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 0.4rem;
+	margin: 0.5rem 0;
+	max-width: 100%;
+	box-sizing: border-box;
+}
+
+.asset-search input[type="search"] {
+	flex: 0 1 18rem;
+	min-width: 0;
+	max-width: 100%;
+	box-sizing: border-box;
+}
+
+.asset-search .button {
+	flex: none;
+}
+
+.asset-editor-label label {
+	font-size: 1.05em;
+	font-weight: 600;
+}
+
+@media (max-width: 782px) {
+	.asset-search {
+		justify-content: flex-start;
+	}
+
+	.asset-search label {
+		flex-basis: 100%;
+	}
+
+	.asset-search input[type="search"] {
+		flex: 1 1 0;
+	}
+
+	.asset-admin table.asset-stack,
+	.asset-admin table.asset-stack tbody,
+	.asset-admin table.asset-stack tr,
+	.asset-admin table.asset-stack td {
+		display: block;
+		width: auto;
+	}
+
+	.asset-admin table.asset-stack thead {
+		display: none;
+	}
+
+	.asset-admin table.asset-stack tr {
+		padding: 0.5rem 0;
+		border-bottom: 1px solid var(--asset-line);
+	}
+
+	.asset-admin table.asset-stack td {
+		padding: 0.25rem 0.75rem;
+		overflow-wrap: anywhere;
+	}
+
+	.asset-admin table.asset-stack td[data-label]::before {
+		content: attr(data-label);
+		display: block;
+		font-weight: 600;
+		color: var(--asset-muted);
+	}
+
+	.asset-admin .asset-pre {
+		max-width: 100%;
+	}
+
+	.asset-admin .asset-kv th,
+	.asset-admin .asset-kv td {
+		display: block;
+		width: auto;
+	}
+
+	.asset-request-form {
+		max-width: 100%;
+	}
+}

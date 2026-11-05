@@ -2,7 +2,7 @@
 const { test, expect } = require('playwright/test');
 const { asRole, readState, CODES } = require('./helpers');
 
-test.describe.configure({ mode: 'serial' });
+// Independent tests: one failure must not stop the others (no serial mode).
 
 const ORIGIN = 'http://127.0.0.1:9400';
 
@@ -80,10 +80,15 @@ test('X3 all data fictional: titles end « — exemple », emails @example.com, 
 	await page.goto('/wp-admin/admin.php?page=asset-gme');
 	const n = await page.locator('table.asset-gme-table tbody tr').count();
 	expect(n).toBe(5);
+	let revealed = 0;
 	for (let i = 0; i < n; i++) {
-		await page.locator('table.asset-gme-table tbody tr').nth(i).locator('button', { hasText: 'Révéler' }).click();
+		const btn = page.locator('table.asset-gme-table tbody tr').nth(i).locator('button', { hasText: 'Révéler' });
+		if (!(await btn.count())) continue; // expired code: closed to everyone
+		await btn.click();
 		await expect(page.locator('code.asset-revealed')).toHaveText(/^DEMO-GME-[A-Z0-9]{4}$/);
+		revealed += 1;
 	}
+	expect(revealed).toBe(4);
 	await ctx.close();
 });
 

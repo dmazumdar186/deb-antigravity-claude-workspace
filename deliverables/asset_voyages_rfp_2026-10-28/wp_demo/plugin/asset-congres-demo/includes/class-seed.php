@@ -219,14 +219,18 @@ class Asset_CD_Seed {
 					'post_status'  => 'publish',
 					'post_title'   => 'Catalogue des congrès',
 					'post_name'    => 'catalogue-des-congres',
-					'post_content' => "<!-- wp:paragraph -->\n<p>Trouvez votre congrès et demandez un devis vol en quelques secondes. Démonstration ASSET Voyages : données fictives.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:shortcode -->\n[asset_catalogue]\n<!-- /wp:shortcode -->",
+					'post_content' => "<!-- wp:shortcode -->\n[asset_catalogue]\n<!-- /wp:shortcode -->",
 				)
 			);
 			update_option( 'asset_cd_catalogue_page', $page_id, false );
 		}
 		update_option( 'show_on_front', 'page' );
 		update_option( 'page_on_front', $page_id );
-		update_option( 'blogname', 'ASSET Voyages — démo congrès' );
+		update_option( 'blogname', 'ASSET Voyages — démonstration' );
+		update_option( 'timezone_string', 'Europe/Paris' );
+		update_option( 'date_format', 'd/m/Y' );
+		update_option( 'time_format', 'H:i' );
+		update_option( 'start_of_week', 1 );
 		update_option( 'blogdescription', 'Démonstration : congrès, devis vol et codes GM&E fictifs' );
 		update_option( 'asset_cd_notify_email', 'equipe-demo@example.com', false );
 
@@ -241,6 +245,8 @@ class Asset_CD_Seed {
 			wp_delete_comment( $cm->comment_ID, true );
 		}
 
+		self::install_theme();
+
 		if ( '/%postname%/' !== get_option( 'permalink_structure' ) ) {
 			update_option( 'permalink_structure', '/%postname%/' );
 		}
@@ -249,6 +255,35 @@ class Asset_CD_Seed {
 		flush_rewrite_rules( false );
 
 		return $created;
+	}
+
+	/**
+	 * Copies the bundled child theme (theme/asset-demo) into wp-content/themes and activates it
+	 * when Twenty Twenty-Five is available. Idempotent: files are refreshed only when the version changes.
+	 */
+	public static function install_theme() {
+		$src  = ASSET_CD_DIR . 'theme/asset-demo';
+		$dest = trailingslashit( get_theme_root() ) . 'asset-demo';
+		if ( ! is_dir( $src ) || ! wp_get_theme( 'twentytwentyfive' )->exists() ) {
+			return;
+		}
+		$installed = wp_get_theme( 'asset-demo' );
+		if ( ! $installed->exists() || ASSET_CD_VERSION !== $installed->get( 'Version' ) ) {
+			$it = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $src, FilesystemIterator::SKIP_DOTS ), RecursiveIteratorIterator::SELF_FIRST );
+			wp_mkdir_p( $dest );
+			foreach ( $it as $item ) {
+				$target = $dest . '/' . substr( $item->getPathname(), strlen( $src ) + 1 );
+				if ( $item->isDir() ) {
+					wp_mkdir_p( $target );
+				} else {
+					copy( $item->getPathname(), $target );
+				}
+			}
+			wp_clean_themes_cache();
+		}
+		if ( 'asset-demo' !== get_stylesheet() ) {
+			switch_theme( 'asset-demo' );
+		}
 	}
 
 	/**
@@ -343,9 +378,9 @@ class Asset_CD_Seed {
 		if ( isset( $_GET['seeded'] ) ) {
 			$n = absint( $_GET['seeded'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			/* translators: %d: number of created items. */
-			echo '<div class="notice notice-success asset-seeded"><p>' . esc_html( sprintf( __( 'Jeu de données vérifié : %d élément(s) créé(s), aucun doublon.', 'asset-congres-demo' ), $n ) ) . '</p></div>';
+			echo '<div class="notice notice-success asset-seeded"><p>' . esc_html( sprintf( __( 'Jeu de données vérifié : %d élément(s) créé(s), aucun doublon.', 'asset-congres-demo' ), $n ) ) . '</p></div>';
 		}
-		echo '<p>' . esc_html__( 'Relance le jeu de données fictif. L’opération est idempotente : les éléments existants ne sont pas dupliqués. Pour revenir à l’état initial complet, rechargez la page WordPress Playground.', 'asset-congres-demo' ) . '</p>';
+		echo '<p>' . esc_html__( 'Relance le jeu de données fictif. L’opération est idempotente : les éléments existants ne sont pas dupliqués. Pour revenir à l’état initial complet, rechargez la page WordPress Playground.', 'asset-congres-demo' ) . '</p>';
 		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="asset_cd_reseed" />';
 		wp_nonce_field( 'asset_cd_reseed', 'asset_nonce' );
 		submit_button( __( 'Relancer le jeu de données', 'asset-congres-demo' ), 'secondary' );

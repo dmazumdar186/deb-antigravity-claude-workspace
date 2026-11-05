@@ -99,7 +99,8 @@ test('S4-F4 history is append-only: who, when, from → to; no edit or delete co
 	expect(await h.count()).toBeGreaterThanOrEqual(6);
 	const text = await page.locator('table.asset-history').innerText();
 	for (const t of ['Nouvelle → Qualifiée', 'Qualifiée → Devis envoyé', 'Devis envoyé → Gagnée', '— → Équipe (démo)', 'Formulaire public', 'Équipe (démo)']) expect(text).toContain(t);
-	expect(text).toMatch(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/);
+	expect(text).toMatch(/\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}/);
+	expect(text).not.toMatch(/\d{4}-\d{2}-\d{2}|UTC/);
 	expect(await page.locator('table.asset-history input, table.asset-history button, table.asset-history form, table.asset-history a').count()).toBe(0);
 	// No generic editor for the enquiry post type.
 	const id = new URL(page.url()).searchParams.get('id');

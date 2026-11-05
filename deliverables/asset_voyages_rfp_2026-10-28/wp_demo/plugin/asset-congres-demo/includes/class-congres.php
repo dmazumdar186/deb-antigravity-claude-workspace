@@ -188,7 +188,7 @@ class Asset_CD_Congres {
 			printf( '<tr><th scope="row">%s</th><td><code>%s</code></td></tr>', esc_html__( 'Référence interne', 'asset-congres-demo' ), esc_html( $ref ) );
 		}
 		echo '</tbody></table>';
-		echo '<p class="description">' . esc_html__( 'Flux éditorial : brouillon → en attente de relecture → publié. Le rôle Contributeur ASSET peut soumettre mais pas publier.', 'asset-congres-demo' ) . '</p>';
+		echo '<p class="description">' . esc_html__( 'Flux éditorial : brouillon → en attente de relecture → publié. Le rôle Contributeur ASSET peut soumettre mais pas publier.', 'asset-congres-demo' ) . '</p>';
 	}
 
 	/**
@@ -289,14 +289,14 @@ class Asset_CD_Congres {
 			$clean[ $key ] = self::sanitize_field( $def[1], $in );
 			if ( '' !== $in && '' === $clean[ $key ] ) {
 				/* translators: %s: field label. */
-				$errors[] = sprintf( __( '« %s » est invalide et n’a pas été enregistré.', 'asset-congres-demo' ), $def[0] );
+				$errors[] = sprintf( __( '« %s » est invalide et n’a pas été enregistré.', 'asset-congres-demo' ), $def[0] );
 				unset( $clean[ $key ] );
 			}
 		}
 		$start = $clean['_asset_start'] ?? (string) get_post_meta( $post_id, '_asset_start', true );
 		$end   = $clean['_asset_end'] ?? (string) get_post_meta( $post_id, '_asset_end', true );
 		if ( $start && $end && $end < $start ) {
-			$errors[] = __( 'La date de fin doit être postérieure ou égale à la date de début : dates non enregistrées.', 'asset-congres-demo' );
+			$errors[] = __( 'La date de fin doit être postérieure ou égale à la date de début : dates non enregistrées.', 'asset-congres-demo' );
 			unset( $clean['_asset_start'], $clean['_asset_end'] );
 		}
 		foreach ( $clean as $key => $value ) {
@@ -320,7 +320,7 @@ class Asset_CD_Congres {
 					$term = is_wp_error( $made ) ? null : get_term( (int) $made['term_id'], $tax );
 				} else {
 					/* translators: %s: field label. */
-					$errors[] = sprintf( __( '« %s » : choisissez une valeur existante dans la liste.', 'asset-congres-demo' ), $label );
+					$errors[] = sprintf( __( '« %s » : choisissez une valeur existante dans la liste.', 'asset-congres-demo' ), $label );
 				}
 			}
 			if ( $term && ! is_wp_error( $term ) ) {
@@ -350,7 +350,7 @@ class Asset_CD_Congres {
 			);
 			add_action( 'save_post_' . self::POST_TYPE, array( __CLASS__, 'save' ), 10, 2 );
 			/* translators: %s: list of fields. */
-			$errors[] = sprintf( __( 'Champs obligatoires manquants (%s) : le congrès reste en brouillon.', 'asset-congres-demo' ), implode( ', ', $missing ) );
+			$errors[] = sprintf( __( 'Champs obligatoires manquants (%s) : le congrès reste en brouillon.', 'asset-congres-demo' ), implode( ', ', $missing ) );
 		}
 		if ( $errors ) {
 			set_transient( 'asset_cd_notice_' . get_current_user_id(), $errors, 5 * MINUTE_IN_SECONDS );

@@ -23,6 +23,6 @@ PUBLIC_URL = "https://asset-voyages-demo.debanjan186.workers.dev"
 # "off" for the public demo (shared accounts must never be locked for other visitors); "on" in production.
 ACCOUNT_LOCKOUT = "off"
 # SHA-256 of the test-suite key (the key itself lives only in the gitignored .dev.vars / CI env). A request carrying the
-# key in x-demo-test is exempt from the per-IP daily sandbox cap (never from the global cap), so a full test run behind
-# one egress IP does not use up the demo for real visitors from that IP.
+# key in x-demo-test is exempt from the per-IP caps (sandboxes, enquiries, wrong passwords; never per-browser, per-account
+# or global), so a full test run behind one egress IP does not use up the demo for real visitors from that IP.
 DEMO_TEST_KEY_SHA256 = "3e1d9495f8a1499f0e9da658b2bad6233af5b80f1dde6c40dcfa6c14d68bb648"

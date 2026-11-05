@@ -19,6 +19,9 @@ class Asset_CD_Catalogue {
 	 */
 	public static function init() {
 		add_shortcode( 'asset_catalogue', array( __CLASS__, 'shortcode' ) );
+		add_shortcode( 'asset_header', array( __CLASS__, 'header_shortcode' ) );
+		add_shortcode( 'asset_footer', array( __CLASS__, 'footer_shortcode' ) );
+		add_shortcode( 'asset_back_link', array( __CLASS__, 'back_link_shortcode' ) );
 		add_filter( 'the_content', array( __CLASS__, 'single_content' ), 20 );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'assets' ) );
 		add_action( 'init', array( __CLASS__, 'no_third_party' ) );
@@ -40,6 +43,38 @@ class Asset_CD_Catalogue {
 	 */
 	public static function trim_dashboard() {
 		remove_meta_box( 'dashboard_primary', 'dashboard', 'side' );
+	}
+
+	/**
+	 * Site header used by the bundled "asset-demo" theme (plain list navigation).
+	 *
+	 * @return string
+	 */
+	public static function header_shortcode() {
+		$cat  = (int) get_option( 'asset_cd_catalogue_page' );
+		$url  = $cat ? get_permalink( $cat ) : home_url( '/' );
+		$html = '<div class="asset-site-header"><p class="asset-brand"><a href="' . esc_url( home_url( '/' ) ) . '">' . esc_html__( 'ASSET Voyages — démonstration', 'asset-congres-demo' ) . '</a></p>';
+		$html .= '<nav aria-label="' . esc_attr__( 'Navigation principale', 'asset-congres-demo' ) . '"><ul class="asset-nav"><li><a href="' . esc_url( (string) $url ) . '">' . esc_html__( 'Catalogue des congrès', 'asset-congres-demo' ) . '</a></li></ul></nav></div>';
+		return $html;
+	}
+
+	/**
+	 * Link back to the catalogue (404 template).
+	 *
+	 * @return string
+	 */
+	public static function back_link_shortcode() {
+		$cat = (int) get_option( 'asset_cd_catalogue_page' );
+		return '<p><a class="asset-link" href="' . esc_url( $cat ? (string) get_permalink( $cat ) : home_url( '/' ) ) . '">' . esc_html__( 'Retour au catalogue', 'asset-congres-demo' ) . '</a></p>';
+	}
+
+	/**
+	 * Site footer used by the bundled theme: demo notice.
+	 *
+	 * @return string
+	 */
+	public static function footer_shortcode() {
+		return '<div class="asset-site-footer"><p><strong>' . esc_html__( 'Démonstration ASSET Voyages', 'asset-congres-demo' ) . '</strong></p><p>' . esc_html__( 'Toutes les données sont fictives : congrès, personnes, adresses e-mail en @example.com et codes GM&E factices. Aucun e-mail n’est envoyé et aucune réservation n’est enregistrée.', 'asset-congres-demo' ) . '</p></div>';
 	}
 
 	/**
@@ -263,15 +298,20 @@ class Asset_CD_Catalogue {
 	 */
 	public static function shortcode() {
 		$f     = self::read_filters();
-		$base  = get_permalink();
-		$base  = $base ? $base : home_url( '/' );
+		if ( is_post_type_archive( Asset_CD_Congres::POST_TYPE ) ) {
+			$base = (string) get_post_type_archive_link( Asset_CD_Congres::POST_TYPE );
+		} else {
+			$base = is_singular() ? (string) get_permalink() : '';
+		}
+		$base = $base ? $base : home_url( '/' );
 		$query = self::query( $f );
 		$total = (int) $query->found_posts;
 
 		ob_start();
 		?>
 		<div class="asset-cd asset-catalogue alignwide">
-			<p class="asset-demo-flag"><?php esc_html_e( 'Démonstration : tous les congrès ci-dessous sont fictifs.', 'asset-congres-demo' ); ?></p>
+			<p class="asset-intro"><?php esc_html_e( 'Trouvez votre congrès et demandez un devis vol en quelques secondes.', 'asset-congres-demo' ); ?></p>
+			<p class="asset-demo-flag"><?php esc_html_e( 'Démonstration : tous les congrès ci-dessous sont fictifs.', 'asset-congres-demo' ); ?></p>
 			<form class="asset-filters" method="get" action="<?php echo esc_url( $base ); ?>" role="search" aria-label="<?php esc_attr_e( 'Rechercher un congrès', 'asset-congres-demo' ); ?>">
 				<div class="asset-field asset-field--search">
 					<label for="asset-f-q"><?php esc_html_e( 'Recherche', 'asset-congres-demo' ); ?></label>
@@ -287,8 +327,8 @@ class Asset_CD_Catalogue {
 				<div class="asset-field">
 					<label for="asset-f-tri"><?php esc_html_e( 'Trier par', 'asset-congres-demo' ); ?></label>
 					<select id="asset-f-tri" name="tri">
-						<option value="date_asc" <?php selected( $f['tri'], 'date_asc' ); ?>><?php esc_html_e( 'Date (plus proche d’abord)', 'asset-congres-demo' ); ?></option>
-						<option value="date_desc" <?php selected( $f['tri'], 'date_desc' ); ?>><?php esc_html_e( 'Date (plus lointaine d’abord)', 'asset-congres-demo' ); ?></option>
+						<option value="date_asc" <?php selected( $f['tri'], 'date_asc' ); ?>><?php esc_html_e( 'Date croissante', 'asset-congres-demo' ); ?></option>
+						<option value="date_desc" <?php selected( $f['tri'], 'date_desc' ); ?>><?php esc_html_e( 'Date décroissante', 'asset-congres-demo' ); ?></option>
 					</select>
 				</div>
 				<div class="asset-field asset-field--check">
@@ -352,7 +392,7 @@ class Asset_CD_Catalogue {
 			<?php if ( $discipline ) : ?>
 				<p class="asset-tag"><?php echo esc_html( $discipline ); ?></p>
 			<?php endif; ?>
-			<h3 class="asset-card__title"><a href="<?php echo esc_url( get_permalink( $p ) ); ?>"><?php echo esc_html( get_the_title( $p ) ); ?></a></h3>
+			<h2 class="asset-card__title"><a href="<?php echo esc_url( get_permalink( $p ) ); ?>"><?php echo esc_html( get_the_title( $p ) ); ?></a></h2>
 			<p class="asset-card__meta"><?php echo esc_html( Asset_CD_Congres::format_range( $p->ID ) ); ?></p>
 			<p class="asset-card__meta"><?php echo esc_html( trim( $city . ( $pays ? ', ' . $pays : '' ), ', ' ) ); ?></p>
 			<?php if ( Asset_CD_Gme::has_public_offer( $p->ID ) ) : ?>
@@ -459,12 +499,12 @@ class Asset_CD_Catalogue {
 					<p class="asset-source">
 						<?php
 						/* translators: 1: source, 2: verification date. */
-						echo esc_html( sprintf( __( 'Source : %1$s, vérifiée le %2$s.', 'asset-congres-demo' ), $source ? $source : '—', $verified ? Asset_CD_Congres::format_date( $verified ) : '—' ) );
+						echo esc_html( sprintf( __( 'Source : %1$s, vérifiée le %2$s.', 'asset-congres-demo' ), $source ? $source : '—', $verified ? Asset_CD_Congres::format_date( $verified ) : '—' ) );
 						?>
 					</p>
 				<?php endif; ?>
 				<?php if ( Asset_CD_Gme::has_public_offer( $id ) ) : ?>
-					<p class="asset-offer"><?php esc_html_e( 'Tarif congrès négocié disponible : appliqué à votre devis', 'asset-congres-demo' ); ?></p>
+					<p class="asset-offer"><?php esc_html_e( 'Tarif congrès négocié disponible : appliqué à votre devis', 'asset-congres-demo' ); ?></p>
 				<?php endif; ?>
 			</section>
 			<?php echo Asset_CD_Demandes::render_form( $id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped inside. ?>

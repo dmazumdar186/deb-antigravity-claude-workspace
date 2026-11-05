@@ -42,7 +42,7 @@ async function login(page, role) {
 }
 
 async function asRole(browser, role, opts = {}) {
-	const ctx = await browser.newContext({ baseURL: BASE, locale: 'fr-FR', deviceScaleFactor: 1, viewport: { width: 1440, height: 900 }, ...opts });
+	const ctx = await browser.newContext({ baseURL: BASE, locale: 'fr-FR', timezoneId: 'Europe/Paris', deviceScaleFactor: 1, viewport: { width: 1440, height: 900 }, ...opts });
 	const page = await ctx.newPage();
 	if (role) await login(page, role);
 	return { ctx, page };

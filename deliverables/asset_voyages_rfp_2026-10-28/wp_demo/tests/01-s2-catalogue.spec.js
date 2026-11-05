@@ -97,7 +97,7 @@ test('S2-E1 find Cardiologie and open one in <= 2 clicks', async ({ page }) => {
 	const c = clickCounter();
 	await c.click(page.locator('.asset-chip', { hasText: 'Cardiologie' }));
 	await expect(cards(page)).toHaveCount(2);
-	await c.click(cards(page).first().locator('h3 a'));
+	await c.click(cards(page).first().locator('h2 a'));
 	await expect(page.locator('.asset-details')).toContainText('Cardiologie');
 	expect(c.n).toBeLessThanOrEqual(2);
 	test.info().annotations.push({ type: 'clicks', description: String(c.n) });
@@ -130,7 +130,7 @@ test('S2-E2 at 390 px: no horizontal scroll, inputs >= 16 px, tap targets >= 44 
 	}
 	// Details page + form.
 	await page.goto('/?q=madrid');
-	await page.locator('.asset-card h3 a').first().click();
+	await page.locator('.asset-card h2 a').first().click();
 	const r = await page.evaluate(() => ({
 		sw: document.documentElement.scrollWidth,
 		small: [...document.querySelectorAll('.asset-form input:not([type=hidden]):not([type=checkbox]), .asset-form textarea')].filter((e) => !e.closest('.asset-hp') && parseFloat(getComputedStyle(e).fontSize) < 16).length,

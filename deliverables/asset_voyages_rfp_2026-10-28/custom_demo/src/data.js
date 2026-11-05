@@ -150,9 +150,9 @@ export async function effectiveSbx(env, id) {
 // for real use (enquiries, edits, throttle counters, the nightly reseed), so (100,000 - 30,000) / SANDBOX_ROWS new
 // sandboxes a day overall, and 20 per IP a day. Beyond either cap the visitor keeps browsing the read-only seed with a
 // calm banner; nothing is refused with a bare 429.
-export const SANDBOX_ROWS = 175;
+export const SANDBOX_ROWS = 215;
 export const SBX_IP_DAILY = 20;
-export const SBX_DAILY_LIMIT = Math.floor((100000 - 30000) / SANDBOX_ROWS); // 400
+export const SBX_DAILY_LIMIT = Math.floor((100000 - 30000) / SANDBOX_ROWS); // 325
 export const DEMO_BUSY = 'Démo très demandée : vous pouvez parcourir, les essais reprennent dans quelques minutes.';
 // Copy-on-write: the first write of a browser copies the seed into its own sandbox. Returns the sandbox id.
 export async function materialize(env) {

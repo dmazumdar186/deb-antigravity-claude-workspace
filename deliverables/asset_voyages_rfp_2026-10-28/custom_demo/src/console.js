@@ -89,9 +89,10 @@ export async function loginPost(req, env) {
   // reaches the password check (refused by a narrower counter) or that succeeds gives its slot back, so the per-IP budget
   // counts real wrong-password guesses only and a flood from one browser cannot lock its colleagues behind the same IP.
   const giveBack = () => env.DB.prepare('UPDATE rate_limits SET count = MAX(count - 1, 0) WHERE key = ?').bind(kIp).run();
-  if (!(await rateHit(env, kIp, 50, 900))) { await giveBack(); return tooMany(); }
+  // The test-suite key (see wrangler.toml) skips per-IP budgets only; per-browser and per-account counters still apply.
+  if (!env.TEST_RUN && !(await rateHit(env, kIp, 50, 900))) { await giveBack(); return tooMany(); }
   if (!(await rateHit(env, kSbx, 10, 900)) || !(await rateHit(env, kUser, lockout ? 10 : 50, 900)) || (lockout && !(await rateHit(env, kAcct, 30, 900)))) {
-    await giveBack();
+    if (!env.TEST_RUN) await giveBack();
     return tooMany();
   }
   const password = String(form.get('password') || '').slice(0, 200);
@@ -102,7 +103,7 @@ export async function loginPost(req, env) {
   }
   await env.DB.batch([
     env.DB.prepare('DELETE FROM rate_limits WHERE key IN (?, ?, ?)').bind(kSbx, kUser, kAcct),
-    env.DB.prepare('UPDATE rate_limits SET count = MAX(count - 1, 0) WHERE key = ?').bind(kIp),
+    ...(env.TEST_RUN ? [] : [env.DB.prepare('UPDATE rate_limits SET count = MAX(count - 1, 0) WHERE key = ?').bind(kIp)]),
   ]);
   const token = randomToken(32);
   await env.DB.prepare('INSERT INTO sessions (id, user_id, csrf, created_at, expires_at) VALUES (?,?,?,?,?)')

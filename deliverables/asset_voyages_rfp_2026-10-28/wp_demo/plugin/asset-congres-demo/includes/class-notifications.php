@@ -87,6 +87,15 @@ class Asset_CD_Notifications {
 	 * Journal screen.
 	 */
 	public static function render() {
+		ob_start();
+		self::render_body();
+		echo Asset_CD_Ui::stack_tables( (string) ob_get_clean() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- body is escaped.
+	}
+
+	/**
+	 * Journal body.
+	 */
+	private static function render_body() {
 		if ( ! current_user_can( 'asset_manage_demandes' ) ) {
 			wp_die( esc_html__( 'Accès refusé.', 'asset-congres-demo' ), 403 );
 		}
@@ -95,16 +104,16 @@ class Asset_CD_Notifications {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name is internal.
 		$rows = $wpdb->get_results( "SELECT * FROM {$table} ORDER BY id DESC LIMIT 200" );
 		echo '<div class="wrap asset-admin"><h1>' . esc_html__( 'Journal des notifications', 'asset-congres-demo' ) . '</h1>';
-		echo '<p class="description">' . esc_html__( 'Chaque notification envoyée à l’équipe est aussi enregistrée ici. Dans la démonstration (WordPress Playground), aucun serveur SMTP n’est configuré : l’envoi réel apparaît comme « non distribué ».', 'asset-congres-demo' ) . '</p>';
+		echo '<p class="description">' . esc_html__( 'Chaque notification envoyée à l’équipe est aussi enregistrée ici. Dans la démonstration (WordPress Playground), aucun serveur SMTP n’est configuré : l’envoi réel apparaît comme « non distribué ».', 'asset-congres-demo' ) . '</p>';
 		if ( ! $rows ) {
 			echo '<p>' . esc_html__( 'Aucune notification pour le moment.', 'asset-congres-demo' ) . '</p></div>';
 			return;
 		}
-		echo '<table class="widefat striped"><thead><tr><th scope="col">' . esc_html__( 'Date (UTC)', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Destinataire', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Objet', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Contenu', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Distribution', 'asset-congres-demo' ) . '</th></tr></thead><tbody>';
+		echo '<table class="widefat striped asset-notifs asset-stack"><thead><tr><th scope="col">' . esc_html__( 'Date', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Destinataire', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Objet', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Contenu', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Distribution', 'asset-congres-demo' ) . '</th></tr></thead><tbody>';
 		foreach ( $rows as $r ) {
 			printf(
 				'<tr><td>%1$s</td><td>%2$s</td><td>%3$s</td><td><pre class="asset-pre">%4$s</pre></td><td>%5$s</td></tr>',
-				esc_html( $r->created_at ),
+				esc_html( Asset_CD_Ui::datetime( (string) $r->created_at ) ),
 				esc_html( $r->recipient ),
 				esc_html( $r->subject ),
 				esc_html( $r->body ),

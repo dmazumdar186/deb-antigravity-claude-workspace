@@ -3,8 +3,9 @@
  * GM&E codes: encrypted storage (custom table), access grants and audit log.
  *
  * Codes are never stored in post meta, options or exposed through REST.
- * Encryption: libsodium secretbox (XSalsa20-Poly1305). Key: constant ASSET_GME_KEY
- * (64 hex chars or base64 of 32 bytes) or, for the demo only, derived from wp_salt().
+ * Encryption: libsodium XChaCha20-Poly1305 (AEAD), the congress id bound as additional data.
+ * Key: constant ASSET_GME_KEY only (64 hex chars or base64 of 32 bytes). Without a valid key the
+ * plugin fails closed: no code is saved or revealed.
  *
  * @package AssetCongresDemo
  */
@@ -69,48 +70,77 @@ class Asset_CD_Gme {
 	}
 
 	/**
-	 * Encryption key (32 bytes).
+	 * Encryption key (32 bytes) from ASSET_GME_KEY, or null when the constant is missing or malformed.
+	 * There is deliberately no fallback: a key derived from data stored in the database would let a
+	 * database copy alone decrypt every code (fail closed instead).
 	 *
-	 * @return string
-	 */
-	private static function key() {
-		if ( defined( 'ASSET_GME_KEY' ) && is_string( ASSET_GME_KEY ) && '' !== ASSET_GME_KEY ) {
-			$k = ASSET_GME_KEY;
-			if ( 64 === strlen( $k ) && ctype_xdigit( $k ) ) {
-				return sodium_hex2bin( $k );
-			}
-			$b = base64_decode( $k, true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
-			if ( false !== $b && SODIUM_CRYPTO_SECRETBOX_KEYBYTES === strlen( $b ) ) {
-				return $b;
-			}
-		}
-		// Demo fallback: derived from the site's secret salts (never stored).
-		return sodium_crypto_generichash( wp_salt( 'auth' ) . '|asset-gme-v1', '', SODIUM_CRYPTO_SECRETBOX_KEYBYTES );
-	}
-
-	/**
-	 * Encrypts a code.
-	 *
-	 * @param string $plain Plaintext.
-	 * @return string base64(nonce|ciphertext).
-	 */
-	public static function encrypt( $plain ) {
-		$nonce = random_bytes( SODIUM_CRYPTO_SECRETBOX_NONCEBYTES );
-		return base64_encode( $nonce . sodium_crypto_secretbox( $plain, $nonce, self::key() ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
-	}
-
-	/**
-	 * Decrypts a code.
-	 *
-	 * @param string $enc Stored value.
 	 * @return string|null
 	 */
-	public static function decrypt( $enc ) {
-		$raw = base64_decode( (string) $enc, true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
-		if ( false === $raw || strlen( $raw ) <= SODIUM_CRYPTO_SECRETBOX_NONCEBYTES ) {
+	public static function key() {
+		if ( ! defined( 'ASSET_GME_KEY' ) || ! is_string( ASSET_GME_KEY ) ) {
 			return null;
 		}
-		$plain = sodium_crypto_secretbox_open( substr( $raw, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES ), substr( $raw, 0, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES ), self::key() );
+		$k = trim( ASSET_GME_KEY );
+		if ( 64 === strlen( $k ) && ctype_xdigit( $k ) ) {
+			return sodium_hex2bin( $k );
+		}
+		$b = base64_decode( $k, true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
+		if ( false !== $b && SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_KEYBYTES === strlen( $b ) ) {
+			return $b;
+		}
+		return null;
+	}
+
+	/**
+	 * True when a valid key is configured.
+	 *
+	 * @return bool
+	 */
+	public static function key_ok() {
+		return null !== self::key();
+	}
+
+	/**
+	 * Additional authenticated data: binds a ciphertext to its congress.
+	 *
+	 * @param int $congres_id Congress.
+	 * @return string
+	 */
+	private static function aad( $congres_id ) {
+		return 'asset-gme|v2|congres:' . (int) $congres_id;
+	}
+
+	/**
+	 * Encrypts a code for a congress (XChaCha20-Poly1305, congress id as AAD).
+	 *
+	 * @param string $plain      Plaintext.
+	 * @param int    $congres_id Congress.
+	 * @return string|null base64(nonce|ciphertext+tag), null without a valid key.
+	 */
+	public static function encrypt( $plain, $congres_id ) {
+		$key = self::key();
+		if ( null === $key ) {
+			return null;
+		}
+		$nonce = random_bytes( SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES );
+		return base64_encode( $nonce . sodium_crypto_aead_xchacha20poly1305_ietf_encrypt( $plain, self::aad( $congres_id ), $nonce, $key ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+	}
+
+	/**
+	 * Decrypts a code; fails if the key is missing/wrong or the row was moved to another congress.
+	 *
+	 * @param string $enc        Stored value.
+	 * @param int    $congres_id Congress the row belongs to.
+	 * @return string|null
+	 */
+	public static function decrypt( $enc, $congres_id ) {
+		$key = self::key();
+		$raw = base64_decode( (string) $enc, true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
+		$nb  = SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES;
+		if ( null === $key || false === $raw || strlen( $raw ) <= $nb ) {
+			return null;
+		}
+		$plain = sodium_crypto_aead_xchacha20poly1305_ietf_decrypt( substr( $raw, $nb ), self::aad( $congres_id ), substr( $raw, 0, $nb ), $key );
 		return false === $plain ? null : $plain;
 	}
 
@@ -121,7 +151,7 @@ class Asset_CD_Gme {
 	 * @return bool
 	 */
 	public static function valid_code( $code ) {
-		return (bool) preg_match( '/^[A-Z0-9][A-Z0-9-]{3,39}$/', $code );
+		return (bool) is_string( $code ) && preg_match( '/^[A-Z0-9][A-Z0-9-]{3,39}\z/', $code );
 	}
 
 	/**
@@ -172,8 +202,11 @@ class Asset_CD_Gme {
 			'updated_by' => $user_id,
 			'updated_at' => current_time( 'mysql', true ),
 		);
+		if ( ! self::key_ok() ) {
+			return false; // Fail closed: never store a code without the configured key.
+		}
 		if ( null !== $code ) {
-			$data['code_enc'] = self::encrypt( $code );
+			$data['code_enc'] = self::encrypt( $code, (int) $congres_id );
 		}
 		$existing = self::get_by_congres( $congres_id );
 		if ( $existing ) {
@@ -202,7 +235,7 @@ class Asset_CD_Gme {
 		$t = self::table( 'codes' );
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$enc = $wpdb->get_var( $wpdb->prepare( "SELECT code_enc FROM {$t} WHERE congres_id = %d", $congres_id ) );
-		return $enc ? self::decrypt( $enc ) : null;
+		return $enc ? self::decrypt( $enc, (int) $congres_id ) : null;
 	}
 
 	/**
@@ -407,6 +440,16 @@ class Asset_CD_Gme {
 	}
 
 	/**
+	 * Code statuses for which the team may ask for access (verified or approved for sale).
+	 *
+	 * @param string $status Code status.
+	 * @return bool
+	 */
+	public static function requestable_status( $status ) {
+		return in_array( $status, array( 'verifie', 'approuve' ), true );
+	}
+
+	/**
 	 * Server-side reveal permission.
 	 *
 	 * @param int $user_id    User.
@@ -416,6 +459,10 @@ class Asset_CD_Gme {
 	public static function can_reveal( $user_id, $congres_id ) {
 		if ( ! $user_id ) {
 			return false;
+		}
+		$row = self::get_by_congres( $congres_id );
+		if ( ! $row || 'expire' === $row->status ) {
+			return false; // Expired codes are closed to everyone.
 		}
 		if ( user_can( $user_id, 'asset_manage_gme' ) ) {
 			return true;
@@ -433,6 +480,10 @@ class Asset_CD_Gme {
 	public static function reveal( $user_id, $congres_id ) {
 		if ( ! self::can_reveal( $user_id, $congres_id ) ) {
 			self::log( $user_id, $congres_id, 'reveal_refused', __( 'Aucun accès actif', 'asset-congres-demo' ) );
+			return null;
+		}
+		if ( ! self::key_ok() ) {
+			self::log( $user_id, $congres_id, 'reveal_failed', __( 'Clé de chiffrement absente ou invalide', 'asset-congres-demo' ) );
 			return null;
 		}
 		$code = self::plain_code( $congres_id );

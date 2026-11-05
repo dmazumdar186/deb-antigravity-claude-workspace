@@ -30,5 +30,6 @@ if [[ "${1:-}" == "--local" ]]; then
 	mkdir -p .tmp
 	render blueprints/visitor.template.json "$LOCAL_ZIP_URL" .tmp/blueprint-visitor.local.json
 	render blueprints/admin.template.json   "$LOCAL_ZIP_URL" .tmp/blueprint-admin.local.json
+	render blueprints/test-nokey.template.json "$LOCAL_ZIP_URL" .tmp/blueprint-nokey.local.json
 fi
 sha256sum asset-congres-demo.zip

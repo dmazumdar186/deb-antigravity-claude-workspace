@@ -44,6 +44,9 @@ class Asset_CD_Gme_Admin {
 	public static function dashboard_notice() {
 		$screen = get_current_screen();
 		if ( $screen && 'dashboard' === $screen->id && current_user_can( 'asset_manage_gme' ) ) {
+			if ( ! Asset_CD_Gme::key_ok() ) {
+				self::notice( 'nokey' );
+			}
 			self::notice( self::msg_param() );
 		}
 	}
@@ -82,7 +85,7 @@ class Asset_CD_Gme_Admin {
 		}
 		$code = Asset_CD_Gme::reveal( $uid, $cid );
 		if ( null === $code ) {
-			self::$reveal_msg = 'refused';
+			self::$reveal_msg = Asset_CD_Gme::key_ok() || ! Asset_CD_Gme::can_reveal( $uid, $cid ) ? 'refused' : 'nokey';
 			return;
 		}
 		self::$revealed[ $cid ] = $code;
@@ -104,10 +107,11 @@ class Asset_CD_Gme_Admin {
 			'revoke'        => array( 'success', __( 'Accès révoqué immédiatement.', 'asset-congres-demo' ) ),
 			'state'         => array( 'error', __( 'Cette action n’est pas possible dans l’état actuel de la demande.', 'asset-congres-demo' ) ),
 			'saved'         => array( 'success', __( 'Code enregistré (chiffré).', 'asset-congres-demo' ) ),
-			'invalid'       => array( 'error', __( 'Données invalides : vérifiez le congrès, le format du code (lettres majuscules, chiffres, tirets) et les dates.', 'asset-congres-demo' ) ),
+			'invalid'       => array( 'error', __( 'Données invalides : vérifiez le congrès, le format du code (lettres majuscules, chiffres, tirets) et les dates.', 'asset-congres-demo' ) ),
 			'revealed'      => array( 'info', __( 'Code affiché une seule fois. Cette consultation est enregistrée dans le journal GM&E.', 'asset-congres-demo' ) ),
-			'refused'       => array( 'error', __( 'Accès refusé : aucune autorisation active pour ce congrès. La tentative est enregistrée.', 'asset-congres-demo' ) ),
-			'refused_nonce' => array( 'error', __( 'Accès refusé : jeton de sécurité invalide ou expiré. La tentative est enregistrée.', 'asset-congres-demo' ) ),
+			'refused'       => array( 'error', __( 'Accès refusé : aucune autorisation active pour ce congrès. La tentative est enregistrée.', 'asset-congres-demo' ) ),
+			'nokey'         => array( 'error', __( 'Clé de chiffrement GM&E absente ou invalide : l’enregistrement et la révélation des codes sont désactivés. Définissez ASSET_GME_KEY (64 caractères hexadécimaux) dans wp-config.php.', 'asset-congres-demo' ) ),
+			'refused_nonce' => array( 'error', __( 'Accès refusé : jeton de sécurité invalide ou expiré. La tentative est enregistrée.', 'asset-congres-demo' ) ),
 		);
 	}
 
@@ -148,7 +152,7 @@ class Asset_CD_Gme_Admin {
 	 * @return string
 	 */
 	public static function dt( $utc ) {
-		return $utc ? get_date_from_gmt( $utc, 'd/m/Y H:i' ) : '—';
+		return Asset_CD_Ui::datetime( (string) $utc );
 	}
 
 	/**
@@ -176,7 +180,7 @@ class Asset_CD_Gme_Admin {
 				. '<input type="hidden" name="request_id" value="' . esc_attr( (string) $r->id ) . '" />'
 				. '<input type="hidden" name="decision" value="' . esc_attr( $decision ) . '" />'
 				. '<input type="hidden" name="back" value="' . esc_attr( $back ) . '" />'
-				. wp_nonce_field( 'asset_gme_decide_' . $r->id, 'asset_nonce', false, false )
+				. wp_nonce_field( 'asset_gme_' . $decision . '_' . $r->id, 'asset_nonce', false, false )
 				. '<button type="submit" class="' . esc_attr( $b[1] ) . '">' . esc_html( $b[0] ) . '</button></form>';
 		}
 		return $html;
@@ -194,7 +198,7 @@ class Asset_CD_Gme_Admin {
 			echo '<p>' . esc_html__( 'Aucune demande en attente.', 'asset-congres-demo' ) . '</p>';
 			return;
 		}
-		echo '<table class="widefat striped asset-pending"><thead><tr><th scope="col">' . esc_html__( 'Demandeur', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Congrès', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Raison', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Demandée le', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Décision', 'asset-congres-demo' ) . '</th></tr></thead><tbody>';
+		echo '<table class="widefat striped asset-pending asset-stack"><thead><tr><th scope="col">' . esc_html__( 'Demandeur', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Congrès', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Raison', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Demandée le', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Décision', 'asset-congres-demo' ) . '</th></tr></thead><tbody>';
 		foreach ( $pending as $r ) {
 			echo '<tr><td>' . esc_html( Asset_CD_Demandes_Admin::user_label( (int) $r->user_id ) ) . '</td><td>' . esc_html( get_the_title( (int) $r->congres_id ) ) . '</td><td>' . esc_html( $r->reason ) . '</td><td>' . esc_html( self::dt( $r->requested_at ) ) . '</td><td>' . self::decision_forms( $r, $back ) . '</td></tr>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- decision_forms escapes.
 		}
@@ -205,6 +209,15 @@ class Asset_CD_Gme_Admin {
 	 * Main screen: codes list (masked), request/reveal actions, Direction tools.
 	 */
 	public static function render_codes() {
+		ob_start();
+		self::render_codes_body();
+		echo Asset_CD_Ui::stack_tables( (string) ob_get_clean() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- body is escaped; only data-label attributes (esc_attr) are added.
+	}
+
+	/**
+	 * Screen body.
+	 */
+	private static function render_codes_body() {
 		if ( ! current_user_can( 'asset_view_gme' ) ) {
 			wp_die( esc_html__( 'Accès refusé.', 'asset-congres-demo' ), 403 );
 		}
@@ -215,6 +228,9 @@ class Asset_CD_Gme_Admin {
 
 		echo '<div class="wrap asset-admin"><h1>' . esc_html__( 'Accès GM&E', 'asset-congres-demo' ) . '</h1>';
 		echo '<p class="description">' . esc_html__( 'Codes tarifaires Air France-KLM Global Meetings & Events (codes fictifs de démonstration). Ils sont chiffrés, masqués par défaut et chaque consultation est enregistrée.', 'asset-congres-demo' ) . '</p>';
+		if ( ! Asset_CD_Gme::key_ok() && 'nokey' !== self::$reveal_msg ) {
+			self::notice( 'nokey' );
+		}
 		self::notice( self::$reveal_msg ? self::$reveal_msg : self::msg_param() );
 
 		if ( $manage ) {
@@ -225,7 +241,7 @@ class Asset_CD_Gme_Admin {
 		if ( ! $codes ) {
 			echo '<p>' . esc_html__( 'Aucun code enregistré.', 'asset-congres-demo' ) . '</p>';
 		} else {
-			echo '<table class="widefat striped asset-gme-table"><thead><tr><th scope="col">' . esc_html__( 'Congrès', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Code', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Statut', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Validité', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Preuve', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Accès', 'asset-congres-demo' ) . '</th></tr></thead><tbody>';
+			echo '<table class="widefat striped asset-gme-table asset-stack"><thead><tr><th scope="col">' . esc_html__( 'Congrès', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Code', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Statut', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Validité', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Preuve', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Accès', 'asset-congres-demo' ) . '</th></tr></thead><tbody>';
 			foreach ( $codes as $row ) {
 				$cid = (int) $row->congres_id;
 				echo '<tr data-congres="' . esc_attr( (string) $cid ) . '"><td><strong>' . esc_html( get_the_title( $cid ) ) . '</strong></td><td>';
@@ -237,7 +253,7 @@ class Asset_CD_Gme_Admin {
 				echo '</td><td>' . esc_html( $labels[ $row->status ] ?? $row->status ) . '</td>';
 				echo '<td>' . esc_html( ( $row->valid_from ? Asset_CD_Congres::format_date( $row->valid_from ) : '—' ) . ' → ' . ( $row->valid_to ? Asset_CD_Congres::format_date( $row->valid_to ) : '—' ) ) . '</td>';
 				echo '<td>' . esc_html( $row->evidence ) . '</td><td class="asset-gme-actions">';
-				self::row_actions( $uid, $cid, $manage );
+				self::row_actions( $uid, $cid, $manage, (string) $row->status );
 				echo '</td></tr>';
 			}
 			echo '</tbody></table>';
@@ -256,13 +272,20 @@ class Asset_CD_Gme_Admin {
 	 * @param int  $cid    Congress.
 	 * @param bool $manage Direction.
 	 */
-	private static function row_actions( $uid, $cid, $manage ) {
+	private static function row_actions( $uid, $cid, $manage, $status = '' ) {
 		$reveal_form = static function () use ( $cid ) {
 			echo '<form method="post" action="' . esc_url( admin_url( 'admin.php?page=asset-gme' ) ) . '" class="asset-inline-form">';
 			echo '<input type="hidden" name="asset_gme_action" value="reveal" /><input type="hidden" name="congres_id" value="' . esc_attr( (string) $cid ) . '" />';
 			wp_nonce_field( 'asset_gme_reveal_' . $cid, 'asset_nonce' );
 			echo '<button type="submit" class="button button-primary">' . esc_html__( 'Révéler le code', 'asset-congres-demo' ) . '</button></form>';
 		};
+		if ( 'expire' === $status ) {
+			echo '<p class="description asset-no-action">' . esc_html__( 'Code expiré : consultation fermée.', 'asset-congres-demo' ) . '</p>';
+			if ( $manage ) {
+				echo ' <a class="button" href="' . esc_url( admin_url( 'admin.php?page=asset-gme&edit=' . $cid . '#asset-gme-form' ) ) . '">' . esc_html__( 'Modifier', 'asset-congres-demo' ) . '</a>';
+			}
+			return;
+		}
 		if ( $manage ) {
 			$reveal_form();
 			echo ' <a class="button" href="' . esc_url( admin_url( 'admin.php?page=asset-gme&edit=' . $cid . '#asset-gme-form' ) ) . '">' . esc_html__( 'Modifier', 'asset-congres-demo' ) . '</a>';
@@ -275,6 +298,10 @@ class Asset_CD_Gme_Admin {
 			$reveal_form();
 			return;
 		}
+		if ( ! Asset_CD_Gme::requestable_status( $status ) ) {
+			echo '<p class="description asset-no-action">' . esc_html__( 'Code en cours de vérification : pas encore de demande possible.', 'asset-congres-demo' ) . '</p>';
+			return;
+		}
 		$latest = Asset_CD_Gme::latest_request( $uid, $cid );
 		$state  = $latest ? Asset_CD_Gme::effective_status( $latest ) : '';
 		if ( 'pending' === $state ) {
@@ -284,7 +311,7 @@ class Asset_CD_Gme_Admin {
 		if ( $state ) {
 			$labels = Asset_CD_Gme::request_labels();
 			/* translators: %s: request status. */
-			echo '<p class="description">' . esc_html( sprintf( __( 'Dernière demande : %s', 'asset-congres-demo' ), $labels[ $state ] ?? $state ) ) . '</p>';
+			echo '<p class="description">' . esc_html( sprintf( __( 'Dernière demande : %s', 'asset-congres-demo' ), $labels[ $state ] ?? $state ) ) . '</p>';
 		}
 		$fid = 'asset-reason-' . $cid;
 		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" class="asset-request-form">';
@@ -318,14 +345,15 @@ class Asset_CD_Gme_Admin {
 		echo '<table class="form-table" role="presentation"><tbody>';
 		echo '<tr><th scope="row"><label for="asset-gme-congres">' . esc_html__( 'Congrès', 'asset-congres-demo' ) . '</label></th><td><select id="asset-gme-congres" name="congres_id" required>';
 		foreach ( $all as $p ) {
-			echo '<option value="' . esc_attr( (string) $p->ID ) . '"' . selected( $edit, $p->ID, false ) . '>' . esc_html( get_the_title( $p ) ) . '</option>';
+			echo '<option value="' . esc_attr( (string) $p->ID ) . '"' . ( (int) $p->ID === $edit ? ' selected' : '' ) . '>' . esc_html( get_the_title( $p ) ) . '</option>';
 		}
 		echo '</select></td></tr>';
 		$ph = $row ? __( 'Laisser vide pour conserver le code actuel', 'asset-congres-demo' ) : 'DEMO-GME-XXXX';
 		echo '<tr><th scope="row"><label for="asset-gme-code">' . esc_html__( 'Code', 'asset-congres-demo' ) . '</label></th><td><input type="text" id="asset-gme-code" name="code" value="" autocomplete="off" class="regular-text" placeholder="' . esc_attr( $ph ) . '" maxlength="40" /></td></tr>';
 		echo '<tr><th scope="row"><label for="asset-gme-status">' . esc_html__( 'Statut', 'asset-congres-demo' ) . '</label></th><td><select id="asset-gme-status" name="status">';
+		$current_status = $row ? (string) $row->status : 'detecte';
 		foreach ( Asset_CD_Gme::statuses() as $k => $l ) {
-			echo '<option value="' . esc_attr( $k ) . '"' . selected( $row ? $row->status : 'detecte', $k, false ) . '>' . esc_html( $l ) . '</option>';
+			echo '<option value="' . esc_attr( $k ) . '"' . ( $k === $current_status ? ' selected' : '' ) . '>' . esc_html( $l ) . '</option>';
 		}
 		echo '</select></td></tr>';
 		echo '<tr><th scope="row"><label for="asset-gme-from">' . esc_html__( 'Valide du', 'asset-congres-demo' ) . '</label></th><td><input type="date" id="asset-gme-from" name="valid_from" value="' . esc_attr( $row ? $row->valid_from : '' ) . '" /></td></tr>';
@@ -359,7 +387,8 @@ class Asset_CD_Gme_Admin {
 		if ( ! current_user_can( 'asset_view_gme' ) ) {
 			wp_die( esc_html__( 'Accès refusé.', 'asset-congres-demo' ), 403 );
 		}
-		if ( ! Asset_CD_Gme::get_by_congres( $cid ) ) {
+		$code_row = Asset_CD_Gme::get_by_congres( $cid );
+		if ( ! $code_row || ! Asset_CD_Gme::requestable_status( (string) $code_row->status ) ) {
 			self::back( 'asset-gme', 'invalid' );
 		}
 		$reason = isset( $_POST['reason'] ) ? trim( mb_substr( sanitize_textarea_field( wp_unslash( $_POST['reason'] ) ), 0, 500 ) ) : '';
@@ -375,13 +404,14 @@ class Asset_CD_Gme_Admin {
 	 */
 	public static function handle_decide() {
 		$rid = isset( $_POST['request_id'] ) ? absint( $_POST['request_id'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified next.
-		if ( ! $rid || ! isset( $_POST['asset_nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['asset_nonce'] ) ), 'asset_gme_decide_' . $rid ) ) {
+		$decision = isset( $_POST['decision'] ) ? sanitize_key( wp_unslash( $_POST['decision'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- the decision is part of the nonce action, verified next.
+		// One nonce per decision and request: an approve token cannot be replayed as revoke or refuse.
+		if ( ! $rid || ! in_array( $decision, array( 'approve', 'refuse', 'revoke' ), true ) || ! isset( $_POST['asset_nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['asset_nonce'] ) ), 'asset_gme_' . $decision . '_' . $rid ) ) {
 			wp_die( esc_html__( 'Lien expiré ou invalide.', 'asset-congres-demo' ), 403 );
 		}
 		if ( ! current_user_can( 'asset_manage_gme' ) ) {
 			wp_die( esc_html__( 'Accès refusé.', 'asset-congres-demo' ), 403 );
 		}
-		$decision = isset( $_POST['decision'] ) ? sanitize_key( wp_unslash( $_POST['decision'] ) ) : '';
 		$back     = isset( $_POST['back'] ) ? sanitize_key( wp_unslash( $_POST['back'] ) ) : 'asset-gme';
 		if ( ! in_array( $decision, array( 'approve', 'refuse', 'revoke' ), true ) ) {
 			self::back( $back, 'state' );
@@ -399,6 +429,9 @@ class Asset_CD_Gme_Admin {
 		}
 		if ( ! current_user_can( 'asset_manage_gme' ) ) {
 			wp_die( esc_html__( 'Accès refusé.', 'asset-congres-demo' ), 403 );
+		}
+		if ( ! Asset_CD_Gme::key_ok() ) {
+			self::back( 'asset-gme', 'nokey' );
 		}
 		$cid      = isset( $_POST['congres_id'] ) ? absint( $_POST['congres_id'] ) : 0;
 		$code     = isset( $_POST['code'] ) ? strtoupper( trim( sanitize_text_field( wp_unslash( $_POST['code'] ) ) ) ) : '';
@@ -422,6 +455,15 @@ class Asset_CD_Gme_Admin {
 	 * "Demandes d'accès" screen (Direction).
 	 */
 	public static function render_access() {
+		ob_start();
+		self::render_access_body();
+		echo Asset_CD_Ui::stack_tables( (string) ob_get_clean() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- body is escaped; only data-label attributes (esc_attr) are added.
+	}
+
+	/**
+	 * Screen body.
+	 */
+	private static function render_access_body() {
 		if ( ! current_user_can( 'asset_manage_gme' ) ) {
 			wp_die( esc_html__( 'Accès refusé.', 'asset-congres-demo' ), 403 );
 		}
@@ -430,7 +472,7 @@ class Asset_CD_Gme_Admin {
 		self::pending_table( 'asset-gme-acces' );
 		$labels = Asset_CD_Gme::request_labels();
 		echo '<h2>' . esc_html__( 'Historique des demandes', 'asset-congres-demo' ) . '</h2>';
-		echo '<table class="widefat striped asset-access-history"><thead><tr><th scope="col">#</th><th scope="col">' . esc_html__( 'Demandeur', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Congrès', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Raison', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'État', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Décidé par', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Expire le', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Action', 'asset-congres-demo' ) . '</th></tr></thead><tbody>';
+		echo '<table class="widefat striped asset-access-history asset-stack"><thead><tr><th scope="col">#</th><th scope="col">' . esc_html__( 'Demandeur', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Congrès', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Raison', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'État', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Décidé par', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Expire le', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Action', 'asset-congres-demo' ) . '</th></tr></thead><tbody>';
 		foreach ( Asset_CD_Gme::requests() as $r ) {
 			$state = Asset_CD_Gme::effective_status( $r );
 			echo '<tr><td>' . esc_html( (string) $r->id ) . '</td><td>' . esc_html( Asset_CD_Demandes_Admin::user_label( (int) $r->user_id ) ) . '</td><td>' . esc_html( get_the_title( (int) $r->congres_id ) ) . '</td><td>' . esc_html( $r->reason ) . '</td><td>' . esc_html( $labels[ $state ] ?? $state ) . '</td><td>' . esc_html( $r->decided_by ? Asset_CD_Demandes_Admin::user_label( (int) $r->decided_by ) : '—' ) . '</td><td>' . esc_html( 'approved' === $state || 'expired' === $state ? self::dt( $r->expires_at ) : '—' ) . '</td><td>' . self::decision_forms( $r, 'asset-gme-acces' ) . '</td></tr>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- decision_forms escapes.
@@ -442,6 +484,15 @@ class Asset_CD_Gme_Admin {
 	 * Audit log (Direction).
 	 */
 	public static function render_log() {
+		ob_start();
+		self::render_log_body();
+		echo Asset_CD_Ui::stack_tables( (string) ob_get_clean() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- body is escaped; only data-label attributes (esc_attr) are added.
+	}
+
+	/**
+	 * Screen body.
+	 */
+	private static function render_log_body() {
 		if ( ! current_user_can( 'asset_manage_gme' ) ) {
 			wp_die( esc_html__( 'Accès refusé.', 'asset-congres-demo' ), 403 );
 		}
@@ -457,8 +508,8 @@ class Asset_CD_Gme_Admin {
 			'code_update'    => __( 'Code modifié', 'asset-congres-demo' ),
 		);
 		echo '<div class="wrap asset-admin"><h1>' . esc_html__( 'Journal GM&E', 'asset-congres-demo' ) . '</h1>';
-		echo '<p class="description">' . esc_html__( 'Journal d’audit en ajout seul : qui, quel congrès, quand. Les codes eux-mêmes n’y figurent jamais.', 'asset-congres-demo' ) . '</p>';
-		echo '<table class="widefat striped asset-log"><thead><tr><th scope="col">' . esc_html__( 'Date', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Utilisateur', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Congrès', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Action', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Détail', 'asset-congres-demo' ) . '</th></tr></thead><tbody>';
+		echo '<p class="description">' . esc_html__( 'Journal d’audit en ajout seul : qui, quel congrès, quand. Les codes eux-mêmes n’y figurent jamais.', 'asset-congres-demo' ) . '</p>';
+		echo '<table class="widefat striped asset-log asset-stack"><thead><tr><th scope="col">' . esc_html__( 'Date', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Utilisateur', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Congrès', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Action', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Détail', 'asset-congres-demo' ) . '</th></tr></thead><tbody>';
 		$rows = Asset_CD_Gme::log_rows();
 		if ( ! $rows ) {
 			echo '<tr><td colspan="5">' . esc_html__( 'Aucune entrée.', 'asset-congres-demo' ) . '</td></tr>';

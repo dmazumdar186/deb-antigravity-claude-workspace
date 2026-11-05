@@ -1,0 +1,19 @@
+ROLE contributeur seed=20261105 actions=300 failures=174
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:9403/wp-login.php
+Call log:
+[2m  - navigating to "http://127.0.0.1:9403/wp-login.php", waiting until "load"[22m
+
+    at login (/home/user/deb-antigravity-claude-workspace/deliverables/asset_voyages_rfp_2026-10-28/qa/A/common.mjs:22:14)
+    at asRole (/home/user/deb-antigravity-claude-workspace/deliverables/asset_voyages_rfp_2026-10-28/qa/A/common.mjs:32:19)
+    at async file:///home/user/deb-antigravity-claude-workspace/deliverables/asset_voyages_rfp_2026-10-28/qa/A/monkey_A.mjs:31:25 {
+  log: [
+    '  - navigating to "http://127.0.0.1:9403/wp-login.php", waiting until "load"'
+  ],
+  name: 'Error'
+}
+
+Node.js v22.23.4

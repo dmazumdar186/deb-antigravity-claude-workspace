@@ -27,8 +27,87 @@ body {
 
 .asset-cd {
 	font-family: var(--font-sans);
+	font-size: 1rem;
 	color: var(--ink);
 	line-height: 1.5;
+	hyphens: manual;
+	-webkit-hyphens: manual;
+}
+
+/* Site header and footer (bundled asset-demo theme) */
+.asset-header-band {
+	background: var(--navy);
+	color: var(--paper);
+	padding-top: 0.75rem;
+	padding-bottom: 0.75rem;
+}
+
+.asset-site-header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5rem 1.5rem;
+	max-width: 1200px;
+	margin: 0 auto;
+	font-family: var(--font-sans);
+}
+
+.asset-brand {
+	margin: 0;
+	font-weight: 700;
+	font-size: 1.125rem;
+}
+
+.asset-site-header a {
+	display: inline-flex;
+	align-items: center;
+	min-height: 44px;
+	color: var(--paper);
+	text-decoration: none;
+}
+
+.asset-site-header a:hover {
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+
+.asset-nav {
+	display: flex;
+	gap: 1.25rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.asset-footer-band {
+	margin-top: 3rem;
+	padding-top: 1.5rem;
+	padding-bottom: 1.5rem;
+	background: var(--ink);
+	color: var(--paper);
+}
+
+.asset-site-footer {
+	max-width: 1200px;
+	margin: 0 auto;
+	font-family: var(--font-sans);
+	font-size: 0.95rem;
+}
+
+.asset-site-footer p {
+	margin: 0.25rem 0;
+}
+
+.asset-site-header a:focus-visible,
+.asset-site-footer a:focus-visible {
+	outline: 3px solid var(--or);
+	outline-offset: 2px;
+}
+
+.asset-intro {
+	margin: 0 0 0.75rem;
+	font-size: 1.125rem;
 }
 
 .asset-cd.alignwide {
@@ -261,7 +340,7 @@ body {
 
 .asset-card__title {
 	margin: 0.15rem 0 0.25rem;
-	font-size: 1.15rem;
+	font-size: 1.2rem;
 	line-height: 1.3;
 }
 
@@ -283,6 +362,7 @@ body {
 
 .asset-card__meta {
 	margin: 0;
+	font-size: 0.95rem;
 	color: var(--ink-soft);
 }
 
@@ -422,11 +502,18 @@ body {
 }
 
 .asset-form .asset-field--check {
+	flex-wrap: wrap;
 	margin-bottom: 1.25rem;
+}
+
+.asset-form .asset-field--check label {
+	flex: 1 1 0;
+	min-width: 0;
 }
 
 .asset-form .asset-field--check .asset-field-error {
 	flex-basis: 100%;
+	padding-left: calc(22px + 0.6rem);
 }
 
 .asset-field-error {
@@ -481,6 +568,7 @@ body {
 }
 
 .asset-ref {
+	white-space: nowrap;
 	font-weight: 700;
 	font-size: 1.15rem;
 	font-variant-numeric: tabular-nums;

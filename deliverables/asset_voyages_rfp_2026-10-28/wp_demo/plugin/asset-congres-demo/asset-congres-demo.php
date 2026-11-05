@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       ASSET Congrès — démonstration
  * Description:       Démonstration : catalogue de congrès, demandes de devis vol, suivi des demandes et codes GM&E protégés. Données fictives uniquement.
- * Version:           0.1.0
+ * Version:           0.2.0
  * Requires at least: 6.5
  * Requires PHP:      8.1
  * Author:            ProdCraft
@@ -15,11 +15,13 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'ASSET_CD_VERSION', '0.1.0' );
+define( 'ASSET_CD_VERSION', '0.2.0' );
 define( 'ASSET_CD_FILE', __FILE__ );
 define( 'ASSET_CD_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ASSET_CD_URL', plugin_dir_url( __FILE__ ) );
 
+require_once ASSET_CD_DIR . 'includes/class-ui.php';
+require_once ASSET_CD_DIR . 'includes/class-hardening.php';
 require_once ASSET_CD_DIR . 'includes/class-roles.php';
 require_once ASSET_CD_DIR . 'includes/class-congres.php';
 require_once ASSET_CD_DIR . 'includes/class-catalogue.php';
@@ -52,7 +54,7 @@ function asset_cd_deactivate() {
 register_deactivation_hook( __FILE__, 'asset_cd_deactivate' );
 
 add_action(
-	'plugins_loaded',
+	'init',
 	static function () {
 		load_plugin_textdomain( 'asset-congres-demo', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 		// Upgrade path: make sure tables exist even if activation hook did not run.
@@ -62,7 +64,8 @@ add_action(
 			Asset_CD_Notifications::install_table();
 			update_option( 'asset_cd_db_version', ASSET_CD_VERSION, false );
 		}
-	}
+	},
+	1
 );
 
 /**
@@ -83,6 +86,7 @@ function asset_cd_login_redirect( $redirect_to, $requested, $user ) {
 }
 add_filter( 'login_redirect', 'asset_cd_login_redirect', 10, 3 );
 
+Asset_CD_Hardening::init();
 Asset_CD_Congres::init();
 Asset_CD_Catalogue::init();
 Asset_CD_Demandes::init();

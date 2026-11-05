@@ -88,7 +88,10 @@ test('S5-F3 + S5-E1 direction sees pending requests, approves in <= 2 clicks fro
 	// Expiry is 24 h after approval.
 	const exp = await hist.locator('tr', { hasText: NEURO }).first().locator('td').nth(6).innerText();
 	const [d, m, y, hh, mm] = exp.match(/(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2})/).slice(1).map(Number);
-	const diffH = (Date.UTC(y, m - 1, d, hh, mm) - Date.now()) / 3600e3;
+	// Displayed in Europe/Paris: convert back to UTC with the current Paris offset.
+	const now = new Date();
+	const parisOffsetMs = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Paris' })).getTime() - new Date(now.toLocaleString('en-US', { timeZone: 'UTC' })).getTime();
+	const diffH = (Date.UTC(y, m - 1, d, hh, mm) - parisOffsetMs - Date.now()) / 3600e3;
 	expect(diffH).toBeGreaterThan(23);
 	expect(diffH).toBeLessThan(25);
 	await ctx.close();
@@ -179,14 +182,14 @@ test('S5-F5 public pages say only « Tarif congrès négocié disponible », nev
 	const page = await anon.newPage();
 	await page.goto('/?q=madrid');
 	await expect(page.locator('.asset-card__offer')).toHaveText('Tarif congrès négocié disponible');
-	await page.locator('.asset-card h3 a').first().click();
+	await page.locator('.asset-card h2 a').first().click();
 	await expect(page.locator('.asset-offer')).toHaveText('Tarif congrès négocié disponible : appliqué à votre devis');
 	assertNoSecrets(await page.content(), 'approved congress page');
 	// Verified-but-not-approved (Berlin) and expired (Londres) show nothing.
 	for (const q of ['berlin', 'londres', 'milan']) {
 		await page.goto('/?q=' + q);
 		expect(await page.locator('.asset-card__offer').count(), q).toBe(0);
-		await page.locator('.asset-card h3 a').first().click();
+		await page.locator('.asset-card h2 a').first().click();
 		expect(await page.locator('.asset-offer').count(), q).toBe(0);
 	}
 	await anon.close();

@@ -194,11 +194,13 @@ class Asset_CD_Demandes_Admin {
 		$action = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : '';
 		$id     = isset( $_GET['id'] ) ? absint( $_GET['id'] ) : 0;
 		// phpcs:enable
+		ob_start();
 		if ( 'view' === $action && $id ) {
 			self::render_detail( $id );
-			return;
+		} else {
+			self::render_list();
 		}
-		self::render_list();
+		echo Asset_CD_Ui::stack_tables( (string) ob_get_clean() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- body is escaped.
 	}
 
 	/**
@@ -239,7 +241,8 @@ class Asset_CD_Demandes_Admin {
 		if ( $f['statut'] ) {
 			echo '<input type="hidden" name="statut" value="' . esc_attr( $f['statut'] ) . '" />';
 		}
-		$table->search_box( __( 'Rechercher', 'asset-congres-demo' ), 'asset-demandes' );
+		// Visible label and hint (the core search box hides its label on small screens).
+		echo '<p class="asset-search"><label for="asset-demandes-search-input">' . esc_html__( 'Rechercher une demande', 'asset-congres-demo' ) . '</label> <input type="search" id="asset-demandes-search-input" name="s" value="' . esc_attr( $f['s'] ) . '" placeholder="' . esc_attr__( 'Nom, e-mail, société, ville ou référence', 'asset-congres-demo' ) . '" /> <input type="submit" id="search-submit" class="button" value="' . esc_attr__( 'Rechercher', 'asset-congres-demo' ) . '" /></p>';
 		$table->display();
 		echo '</form></div>';
 	}
@@ -271,18 +274,18 @@ class Asset_CD_Demandes_Admin {
 
 		$rows = array(
 			__( 'Référence', 'asset-congres-demo' )         => $m( 'ref' ),
-			__( 'Reçue le (UTC)', 'asset-congres-demo' )    => $post->post_date_gmt,
+			__( 'Reçue le', 'asset-congres-demo' )          => Asset_CD_Ui::datetime( $post->post_date_gmt ),
 			__( 'Congrès', 'asset-congres-demo' )           => $congres ? get_the_title( $congres ) : '—',
 			__( 'Nom', 'asset-congres-demo' )               => $m( 'nom' ),
 			__( 'E-mail', 'asset-congres-demo' )            => $m( 'email' ),
 			__( 'Téléphone', 'asset-congres-demo' )         => $m( 'telephone' ),
 			__( 'Société', 'asset-congres-demo' )           => $m( 'societe' ),
 			__( 'Ville de départ', 'asset-congres-demo' )   => $m( 'ville_depart' ),
-			__( 'Date aller', 'asset-congres-demo' )        => Asset_CD_Congres::format_date( $m( 'date_aller' ) ),
-			__( 'Date retour', 'asset-congres-demo' )       => Asset_CD_Congres::format_date( $m( 'date_retour' ) ),
+			__( 'Date aller', 'asset-congres-demo' )        => Asset_CD_Ui::date( $m( 'date_aller' ) ),
+			__( 'Date retour', 'asset-congres-demo' )       => Asset_CD_Ui::date( $m( 'date_retour' ) ),
 			__( 'Passagers', 'asset-congres-demo' )         => $m( 'passagers' ),
 			__( 'Message', 'asset-congres-demo' )           => $m( 'message' ),
-			__( 'Consentement RGPD', 'asset-congres-demo' ) => $m( 'consent_at' ) ? $m( 'consent_at' ) . ' UTC' : '—',
+			__( 'Consentement RGPD', 'asset-congres-demo' ) => Asset_CD_Ui::datetime( $m( 'consent_at' ) ),
 		);
 		echo '<div class="asset-cols"><div class="asset-panel"><h2>' . esc_html__( 'Détails', 'asset-congres-demo' ) . '</h2><table class="widefat striped asset-kv"><tbody>';
 		foreach ( $rows as $label => $value ) {
@@ -309,8 +312,8 @@ class Asset_CD_Demandes_Admin {
 		echo '</form></div></div>';
 
 		echo '<h2>' . esc_html__( 'Historique', 'asset-congres-demo' ) . '</h2>';
-		echo '<p class="description">' . esc_html__( 'Journal en ajout seul : les entrées ne sont jamais modifiées ni supprimées.', 'asset-congres-demo' ) . '</p>';
-		echo '<table class="widefat striped asset-history"><thead><tr><th scope="col">' . esc_html__( 'Date (UTC)', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Par', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Action', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Détail', 'asset-congres-demo' ) . '</th></tr></thead><tbody>';
+		echo '<p class="description">' . esc_html__( 'Journal en ajout seul : les entrées ne sont jamais modifiées ni supprimées.', 'asset-congres-demo' ) . '</p>';
+		echo '<table class="widefat striped asset-history asset-stack"><thead><tr><th scope="col">' . esc_html__( 'Date', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Par', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Action', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Détail', 'asset-congres-demo' ) . '</th></tr></thead><tbody>';
 		foreach ( array_reverse( Asset_CD_Demandes::history( $id ) ) as $h ) {
 			$type = (string) ( $h['type'] ?? '' );
 			$by   = empty( $h['user'] ) ? __( 'Formulaire public', 'asset-congres-demo' ) : self::user_label( (int) $h['user'] );
@@ -331,7 +334,7 @@ class Asset_CD_Demandes_Admin {
 					$action = __( 'Note interne', 'asset-congres-demo' );
 					$detail = (string) ( $h['note'] ?? '' );
 			}
-			echo '<tr><td>' . esc_html( (string) ( $h['at'] ?? '' ) ) . '</td><td>' . esc_html( $by ) . '</td><td>' . esc_html( $action ) . '</td><td>' . nl2br( esc_html( $detail ) ) . '</td></tr>';
+			echo '<tr><td>' . esc_html( Asset_CD_Ui::datetime( (string) ( $h['at'] ?? '' ) ) ) . '</td><td>' . esc_html( $by ) . '</td><td>' . esc_html( $action ) . '</td><td>' . nl2br( esc_html( $detail ) ) . '</td></tr>';
 		}
 		echo '</tbody></table></div>';
 	}
@@ -408,14 +411,14 @@ class Asset_CD_Demandes_Admin {
 		header( 'X-Content-Type-Options: nosniff' );
 		$out = fopen( 'php://output', 'w' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
 		fwrite( $out, "\xEF\xBB\xBF" ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite -- UTF-8 BOM for Excel.
-		$head = array( 'Référence', 'Reçue le (UTC)', 'Congrès', 'Nom', 'E-mail', 'Téléphone', 'Société', 'Ville de départ', 'Date aller', 'Date retour', 'Passagers', 'Statut', 'Responsable', 'Message' );
+		$head = array( 'Référence', 'Reçue le', 'Congrès', 'Nom', 'E-mail', 'Téléphone', 'Société', 'Ville de départ', 'Date aller', 'Date retour', 'Passagers', 'Statut', 'Responsable', 'Message' );
 		fputcsv( $out, $head, ';', '"', '' );
 		foreach ( $posts as $p ) {
 			$m   = static function ( $k ) use ( $p ) {
 				return (string) get_post_meta( $p->ID, '_asset_' . $k, true );
 			};
 			$cid = (int) $m( 'congres_id' );
-			$row = array( $m( 'ref' ), $p->post_date_gmt, $cid ? get_the_title( $cid ) : '', $m( 'nom' ), $m( 'email' ), $m( 'telephone' ), $m( 'societe' ), $m( 'ville_depart' ), $m( 'date_aller' ), $m( 'date_retour' ), $m( 'passagers' ), self::status_label( $m( 'statut' ) ), (int) $m( 'owner' ) ? self::user_label( (int) $m( 'owner' ) ) : '', $m( 'message' ) );
+			$row = array( $m( 'ref' ), Asset_CD_Ui::datetime( $p->post_date_gmt ), $cid ? get_the_title( $cid ) : '', $m( 'nom' ), $m( 'email' ), $m( 'telephone' ), $m( 'societe' ), $m( 'ville_depart' ), Asset_CD_Ui::date( $m( 'date_aller' ) ), Asset_CD_Ui::date( $m( 'date_retour' ) ), $m( 'passagers' ), self::status_label( $m( 'statut' ) ), (int) $m( 'owner' ) ? self::user_label( (int) $m( 'owner' ) ) : '', $m( 'message' ) );
 			fputcsv( $out, array_map( array( __CLASS__, 'csv_cell' ), $row ), ';', '"', '' );
 		}
 		fclose( $out ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
@@ -440,7 +443,7 @@ class Asset_CD_Demandes_Admin {
 		if ( $latest ) {
 			$l   = $latest[0];
 			$cid = (int) get_post_meta( $l->ID, '_asset_congres_id', true );
-			echo '<p class="asset-widget-latest">' . esc_html__( 'Dernière demande :', 'asset-congres-demo' ) . ' <a class="asset-latest-link" href="' . esc_url( admin_url( 'admin.php?page=asset-demandes&action=view&id=' . $l->ID ) ) . '">' . esc_html( (string) get_post_meta( $l->ID, '_asset_ref', true ) . ' · ' . get_post_meta( $l->ID, '_asset_nom', true ) . ( $cid ? ' · ' . get_the_title( $cid ) : '' ) ) . '</a></p>';
+			echo '<p class="asset-widget-latest">' . esc_html__( 'Dernière demande :', 'asset-congres-demo' ) . ' <a class="asset-latest-link" href="' . esc_url( admin_url( 'admin.php?page=asset-demandes&action=view&id=' . $l->ID ) ) . '">' . esc_html( (string) get_post_meta( $l->ID, '_asset_ref', true ) . ' · ' . get_post_meta( $l->ID, '_asset_nom', true ) . ( $cid ? ' · ' . get_the_title( $cid ) : '' ) ) . '</a></p>';
 		}
 		echo '<ul class="asset-widget">';
 		foreach ( Asset_CD_Demandes::statuses() as $slug => $label ) {
@@ -552,19 +555,19 @@ class Asset_CD_Demandes_List_Table extends WP_List_Table {
 				$url = admin_url( 'admin.php?page=asset-demandes&action=view&id=' . $item->ID );
 				return '<strong><a class="row-title" href="' . esc_url( $url ) . '">' . esc_html( $m( 'ref' ) ) . '</a></strong>';
 			case 'date':
-				return esc_html( get_date_from_gmt( $item->post_date_gmt, 'd/m/Y H:i' ) );
+				return esc_html( Asset_CD_Ui::datetime( $item->post_date_gmt ) );
 			case 'congres':
 				$cid = (int) $m( 'congres_id' );
 				return esc_html( $cid ? get_the_title( $cid ) : '—' );
 			case 'contact':
 				$soc = $m( 'societe' );
-				return esc_html( $m( 'nom' ) ) . '<br /><span class="description">' . esc_html( $m( 'email' ) ) . ( $soc ? ' · ' . esc_html( $soc ) : '' ) . '</span>';
+				return esc_html( $m( 'nom' ) ) . '<br /><span class="description asset-email">' . str_replace( '@', '<wbr>@', esc_html( $m( 'email' ) ) ) . '</span>' . ( $soc ? '<br /><span class="description">' . esc_html( $soc ) . '</span>' : '' );
 			case 'depart':
 				return esc_html( $m( 'ville_depart' ) );
 			case 'dates':
 				$a = $m( 'date_aller' );
 				$r = $m( 'date_retour' );
-				return esc_html( ( $a ? gmdate( 'd/m/Y', (int) strtotime( $a ) ) : '' ) . ' → ' . ( $r ? gmdate( 'd/m/Y', (int) strtotime( $r ) ) : '' ) );
+				return esc_html( Asset_CD_Ui::date( $a ) . ' → ' . Asset_CD_Ui::date( $r ) );
 			case 'passagers':
 				return esc_html( $m( 'passagers' ) );
 			case 'statut':

@@ -92,7 +92,7 @@ for (const role of ROLES) {
     const url = page.url();
     if (!url.startsWith(BASE)) { problems.push('left origin ' + url); await page.goto(BASE + '/', { waitUntil: 'domcontentloaded' }).catch(() => {}); }
     const body = await page.evaluate(() => document.body ? document.body.innerText : '').catch(() => '');
-    if (FATAL.test(html) || FATAL.test(body)) problems.push('PHP error text: ' + (html.match(FATAL) || body.match(FATAL) || [''])[0]);
+    if (FATAL.test(html) || FATAL.test(body)) { const m = html.match(FATAL); const at = m ? html.indexOf(m[0]) : -1; problems.push('PHP error text: ' + (at >= 0 ? html.slice(Math.max(0, at - 40), at + 400).replace(/\s+/g, ' ') : (body.match(FATAL) || [''])[0])); }
     if (status5xx.length) { problems.push('5xx ' + status5xx.join(' | ')); status5xx = []; }
     if (errs.length) { problems.push('pageerror ' + errs.join(' | ')); errs.length = 0; }
     const dom = await page.evaluate(() => {

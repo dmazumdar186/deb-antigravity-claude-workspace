@@ -7,7 +7,7 @@ test.describe.configure({ mode: 'serial' });
 async function openMadrid(page) {
 	const s = readState();
 	await page.goto(s.madridUrl || '/?q=madrid');
-	if (!s.madridUrl) await page.locator('.asset-card h3 a').first().click();
+	if (!s.madridUrl) await page.locator('.asset-card h2 a').first().click();
 }
 
 async function fill(page, d) {
