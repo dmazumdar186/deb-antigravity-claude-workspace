@@ -1,0 +1,218 @@
+"""
+test_audit_gate.py
+description: Unit tests for execution/infrastructure/audit_gate.py, its hook wrapper and pre-push step.
+inputs: none (temp key, ledger, transcript root and git repos; no network, no LLM).
+outputs: pytest results.
+"""
+from __future__ import annotations
+
+import io
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+import pytest
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "execution" / "infrastructure"))
+
+import audit_gate as ag  # noqa: E402
+
+SCRIPT = ROOT / "execution" / "infrastructure" / "audit_gate.py"
+HOOK_SH = ROOT / ".claude" / "hooks" / "audit-gate.sh"
+STEP = ROOT / ".githooks" / "pre-push.d" / "audit-gate"
+
+
+@pytest.fixture(autouse=True)
+def _iso(tmp_path, monkeypatch):
+    monkeypatch.setenv("REDTEAM_KEY_FILE", str(tmp_path / "keys" / "hmac.key"))
+    monkeypatch.setenv("REDTEAM_TRANSCRIPT_ROOT", str(tmp_path / "projects"))
+    monkeypatch.setenv("AUDIT_DIR", str(tmp_path / "audits"))
+    monkeypatch.setenv("AUDIT_HOOK", "1")
+
+
+def git(repo, *a):
+    return subprocess.run(["git", "-C", str(repo), *a], check=True, capture_output=True,
+                          text=True, encoding="utf-8", errors="replace").stdout.strip()
+
+
+@pytest.fixture
+def repo(tmp_path):
+    r = tmp_path / "repo"
+    r.mkdir()
+    git(r, "init", "-q")
+    git(r, "config", "user.email", "t@t")
+    git(r, "config", "user.name", "t")
+    commit(r, {"execution/a.py": "print(1)\n"})
+    return r
+
+
+def commit(r, files):
+    for k, v in files.items():
+        p = r / k
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(v)
+    git(r, "add", "-A")
+    git(r, "commit", "-qm", "c")
+    return git(r, "rev-parse", "HEAD")
+
+
+def payload(tmp_path, repo, report, agent_type="pipeline-auditor", aid="abc123", handback=True):
+    d = tmp_path / "projects" / "x" / "subagents"
+    d.mkdir(parents=True, exist_ok=True)
+    tp = d / f"agent-{aid}.jsonl"
+    content = ([{"type": "tool_use", "name": "SubagentHandback", "input": {"message": report}}]
+               if handback else [{"type": "text", "text": report}])
+    tp.write_text(json.dumps({"type": "assistant", "agentId": aid,
+                              "message": {"role": "assistant", "id": "m1",
+                                          "content": content}}) + "\n")
+    return {"agent_id": aid, "agent_type": agent_type, "agent_transcript_path": str(tp),
+            "cwd": str(repo)}
+
+
+def run_hook(monkeypatch, p):
+    monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(p)))
+    return ag.main(["subagent-hook"])
+
+
+def report(verdict, sha):
+    return f"## Audit Report: x\n\n**Verdict: {verdict}**\n**Audited commit: {sha}**\n"
+
+
+def ledger(tmp_path):
+    f = tmp_path / "audits" / "audits.jsonl"
+    return [json.loads(x) for x in f.read_text().splitlines()] if f.exists() else []
+
+
+def test_pass_recorded_from_handback(tmp_path, repo, monkeypatch):
+    sha = git(repo, "rev-parse", "HEAD")
+    assert run_hook(monkeypatch, payload(tmp_path, repo, report("PASS", sha))) == 0
+    rows = ledger(tmp_path)
+    assert len(rows) == 1 and rows[0]["commit"] == sha
+    assert rows[0]["tree_sha"] == git(repo, "rev-parse", "HEAD^{tree}")
+    assert ag.check(sha, repo) == (True, [])
+
+
+def test_short_sha_and_plain_text(tmp_path, repo, monkeypatch):
+    sha = git(repo, "rev-parse", "HEAD")
+    run_hook(monkeypatch, payload(tmp_path, repo, report("PASS", sha[:10]), handback=False))
+    assert ledger(tmp_path)[0]["commit"] == sha
+
+
+@pytest.mark.parametrize("v", ["WARNINGS", "FAIL"])
+def test_non_pass_ignored(tmp_path, repo, monkeypatch, v):
+    run_hook(monkeypatch, payload(tmp_path, repo, report(v, git(repo, "rev-parse", "HEAD"))))
+    assert ledger(tmp_path) == []
+
+
+def test_mixed_verdicts_ignored(tmp_path, repo, monkeypatch):
+    sha = git(repo, "rev-parse", "HEAD")
+    run_hook(monkeypatch, payload(tmp_path, repo, report("PASS", sha) + "Verdict: FAIL\n"))
+    assert ledger(tmp_path) == []
+
+
+@pytest.mark.parametrize("t", ["general-purpose", "redteam-lens", "", "pipeline-auditor-x"])
+def test_only_pipeline_auditor(tmp_path, repo, monkeypatch, t):
+    run_hook(monkeypatch, payload(tmp_path, repo, report("PASS", git(repo, "rev-parse", "HEAD")),
+                                  agent_type=t))
+    assert ledger(tmp_path) == []
+
+
+def test_plugin_prefixed_auditor(tmp_path, repo, monkeypatch):
+    run_hook(monkeypatch, payload(tmp_path, repo, report("PASS", git(repo, "rev-parse", "HEAD")),
+                                  agent_type="plug:pipeline-auditor"))
+    assert len(ledger(tmp_path)) == 1
+
+
+def test_transcript_outside_root_ignored(tmp_path, repo, monkeypatch):
+    p = payload(tmp_path, repo, report("PASS", git(repo, "rev-parse", "HEAD")))
+    monkeypatch.setenv("REDTEAM_TRANSCRIPT_ROOT", str(tmp_path / "elsewhere"))
+    run_hook(monkeypatch, p)
+    assert ledger(tmp_path) == []
+
+
+def test_missing_commit_or_unknown_sha(tmp_path, repo, monkeypatch):
+    run_hook(monkeypatch, payload(tmp_path, repo, "**Verdict: PASS**\n"))
+    run_hook(monkeypatch, payload(tmp_path, repo, report("PASS", "deadbeef" * 5)))
+    assert ledger(tmp_path) == []
+
+
+def test_tampered_and_unsigned_rows_ignored(tmp_path, repo, monkeypatch):
+    sha = git(repo, "rev-parse", "HEAD")
+    sha2 = commit(repo, {"execution/b.py": "x=2\n"})
+    run_hook(monkeypatch, payload(tmp_path, repo, report("PASS", sha)))
+    f = tmp_path / "audits" / "audits.jsonl"
+    row = json.loads(f.read_text())
+    row["commit"], row["tree_sha"] = sha2, git(repo, "rev-parse", "HEAD^{tree}")
+    unsigned = {k: v for k, v in row.items() if k != "mac"}
+    f.write_text(json.dumps(row) + "\n" + json.dumps(unsigned) + "\n")
+    assert ag.check(sha2, repo)[0] is False
+
+
+def test_exempt_followup_passes_code_change_fails(tmp_path, repo, monkeypatch):
+    sha = git(repo, "rev-parse", "HEAD")
+    run_hook(monkeypatch, payload(tmp_path, repo, report("PASS", sha)))
+    s2 = commit(repo, {"HANDOFF.md": "h\n", "docs/reference/x.md": "d\n",
+                       ".claude/notes/general.md": "n\n", ".claude/jev/state.json": "{}\n"})
+    assert ag.check(s2, repo) == (True, [])
+    s3 = commit(repo, {"execution/a.py": "print(2)\n", "directives/x.md": "y\n"})
+    ok, bad = ag.check(s3, repo)
+    assert not ok and bad == ["directives/x.md", "execution/a.py"]
+
+
+def test_no_audit_lists_files(repo):
+    ok, bad = ag.check("HEAD", repo)
+    assert not ok and "execution/a.py" in bad
+
+
+def test_cli_check_exit_codes(tmp_path, repo):
+    env = dict(os.environ)
+    r = subprocess.run([sys.executable, str(SCRIPT), "check", "HEAD", "--repo", str(repo)],
+                       capture_output=True, text=True, encoding="utf-8", errors="replace", env=env)
+    assert r.returncode == 1 and "execution/a.py" in r.stdout
+    r = subprocess.run([sys.executable, str(SCRIPT), "check", "nope", "--repo", str(repo)],
+                       capture_output=True, text=True, encoding="utf-8", errors="replace", env=env)
+    assert r.returncode == 2
+
+
+def test_hook_refuses_without_env(tmp_path, repo, monkeypatch):
+    monkeypatch.delenv("AUDIT_HOOK")
+    p = payload(tmp_path, repo, report("PASS", git(repo, "rev-parse", "HEAD")))
+    assert run_hook(monkeypatch, p) == 2
+    assert ledger(tmp_path) == []
+
+
+def _sh(cmd, inp, env, cwd=None):
+    return subprocess.run(cmd, input=inp, capture_output=True, text=True, encoding="utf-8",
+                          errors="replace", env=env, cwd=cwd)
+
+
+def test_wrapper_records_and_fails_open(tmp_path, repo):
+    env = dict(os.environ)
+    env.pop("AUDIT_HOOK", None)
+    env["CLAUDE_PROJECT_DIR"] = str(ROOT)
+    p = payload(tmp_path, repo, report("PASS", git(repo, "rev-parse", "HEAD")))
+    r = _sh(["bash", str(HOOK_SH)], json.dumps(p), env)
+    assert r.returncode == 0 and r.stdout == "" and len(ledger(tmp_path)) == 1
+    r = _sh(["bash", str(HOOK_SH)], "not json{", env)
+    assert r.returncode == 0 and r.stdout == ""
+    env["CLAUDE_PROJECT_DIR"] = str(tmp_path / "missing")
+    r = _sh(["bash", str(HOOK_SH)], json.dumps(p), env)
+    assert r.returncode == 0 and r.stdout == "" and "missing" in r.stderr
+
+
+def test_prepush_step_blocks_main_only(tmp_path, repo, monkeypatch):
+    sha = git(repo, "rev-parse", "HEAD")
+    env = dict(os.environ)
+    # The step runs from the workspace root (as pre-push does); GIT_DIR points git at the temp repo.
+    env["GIT_DIR"] = str(repo / ".git")
+    line = f"refs/heads/x {sha} refs/heads/main {'0' * 40}\n"
+    r = _sh(["sh", str(STEP), sys.executable], line, env, cwd=ROOT)
+    assert r.returncode == 1 and "PUSH BLOCKED" in r.stderr
+    r = _sh(["sh", str(STEP), sys.executable], line.replace("heads/main", "heads/feat"), env, ROOT)
+    assert r.returncode == 0
+    run_hook(monkeypatch, payload(tmp_path, repo, report("PASS", sha)))
+    r = _sh(["sh", str(STEP), sys.executable], line, env, cwd=ROOT)
+    assert r.returncode == 0, r.stderr

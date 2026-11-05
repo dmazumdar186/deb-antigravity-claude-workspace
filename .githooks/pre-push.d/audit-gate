@@ -1,0 +1,26 @@
+#!/usr/bin/env sh
+# .githooks/pre-push.d/audit-gate — called by .githooks/pre-push with $1 = python.
+# Reads git's pre-push stdin (<local ref> <local sha> <remote ref> <remote sha>) and blocks any
+# update of refs/heads/main whose sha lacks a signed pipeline-auditor PASS (audit_gate.py check).
+# Bypass: git push --no-verify, with a `**Enforcement bypass**:` line in HANDOFF.md.
+PY="${1:-python3}"
+SCRIPT="execution/infrastructure/audit_gate.py"
+ZERO="0000000000000000000000000000000000000000"
+RC=0
+while read -r LREF LSHA RREF RSHA; do
+    [ "$RREF" = "refs/heads/main" ] || continue
+    [ "$LSHA" = "$ZERO" ] && continue   # deleting main is not a code change
+    if ! OUT=$("$PY" "$SCRIPT" check "$LSHA" 2>&1); then
+        echo "" >&2
+        echo "===========================================================" >&2
+        echo "  PUSH BLOCKED: $LSHA -> main has no signed audit PASS" >&2
+        echo "===========================================================" >&2
+        printf "%s\n" "$OUT" >&2
+        echo "" >&2
+        echo "Run the pipeline-auditor on this commit (report must say 'Verdict: PASS'" >&2
+        echo "and 'Audited commit: <sha>'), then re-push. Emergency bypass: git push" >&2
+        echo "--no-verify + '**Enforcement bypass**: <reason>' in HANDOFF.md." >&2
+        RC=1
+    fi
+done
+exit $RC

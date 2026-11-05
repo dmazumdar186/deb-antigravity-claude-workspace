@@ -62,6 +62,14 @@ if [ "$SAST_RC" -eq 0 ]; then
             echo "[pre-push] freshness reported DEGRADED — advisory only, push continues." >&2
     fi
 
+    # Audit gate (2026-11-05, CLAUDE.md build contract item 3): pushes to main need a signed
+    # pipeline-auditor PASS for the exact tree. See directives/infrastructure/audit_gate.md.
+    AUDIT_STEP=".githooks/pre-push.d/audit-gate"
+    if [ -f "$AUDIT_STEP" ]; then
+        # stdin carries the refs being pushed; hand it to the step.
+        sh "$AUDIT_STEP" "$PY" || exit 1
+    fi
+
     echo "[pre-push] Proceeding with push." >&2
     exit 0
 fi
