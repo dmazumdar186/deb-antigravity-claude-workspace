@@ -2078,11 +2078,10 @@ def _deploy_target(tool: str, argv: list[str]) -> tuple[bool, str | None]:
             flags.add(k)
             if eq:
                 named[k] = v
-            elif k == "--dry-run" and i + 1 < len(argv) and argv[i + 1].lower() in (
-                    "true", "false", "0", "1", "yes", "no", "on", "off"):
-                named[k] = argv[i + 1]
-                i += 1
-            elif k in _DEPLOY_VAL_FLAGS and i + 1 < len(argv):
+            elif i + 1 < len(argv) and (
+                    (k == "--dry-run" and argv[i + 1].lower() in (
+                        "true", "false", "0", "1", "yes", "no", "on", "off"))
+                    or k in _DEPLOY_VAL_FLAGS):
                 named[k] = argv[i + 1]
                 i += 1
         else:
