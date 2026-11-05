@@ -191,3 +191,10 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   make (Makefile scanned). Sender chains split by whitespace/newlines, `@sendgrid/mail`,
   send_transac_email, Gmail upload endpoint, Ruby Net::SMTP, PHP `mail(` (.php files, `php -r`);
   quoted interpreter words; Calendar `quick_add_event` always gated (settings matcher updated).
+- 2026-11-05 (sixth audit): SDK call forms (whitespace-tolerant): Resend `.emails.send(`,
+  Postmark `sendEmail(`/`sendEmailWithTemplate(`, SES `Send(Raw)EmailCommand` and `send_email(`
+  in an ses/sesv2/boto3-ses context, Mailgun `messages.create(` when the file names mailgun,
+  Brevo `sendTransacEmail(`/`send_transac(tional)_email(`, legacy `googleapis.com/gmail/v1`;
+  every listed SDK/host has a test. `make -C/--directory/-f/--file` resolved; `~user` that does
+  not resolve stays literal; `find ROOT [-name P] -exec|-execdir <interpreter>` scans matching
+  files under ROOT (fail closed past 64).

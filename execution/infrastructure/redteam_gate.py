@@ -1506,6 +1506,101 @@ def command_words(outer: str) -> list[str]:
     return out
 
 
+def _xuser(p: Path) -> Path:
+    """expanduser that keeps an unresolvable `~user` path literal instead of raising."""
+    try:
+        return p.expanduser()
+    except RuntimeError:
+        return p
+
+
+_MAKE_RE = re.compile(r"(?:^|[\s;&|(/])g?make(?:\s+(?:\"[^\"]*\"|'[^']*'|[^\s;&|)]+))*")
+
+
+def makefiles(expanded: str, bases: list[Path]) -> list[Path]:
+    """Makefiles a `make` invocation reads: -C/--directory dir, -f/--file/--makefile file."""
+    import shlex
+    out: list[Path] = []
+    for m in _MAKE_RE.finditer(expanded):
+        try:
+            toks = shlex.split(m.group(0))[1:]
+        except ValueError:
+            toks = m.group(0).split()[1:]
+        dirs: list[Path] = []
+        files: list[str] = []
+        i = 0
+        while i < len(toks):
+            t = toks[i]
+            for flag, dest in (("-C", dirs), ("--directory", dirs), ("-f", files), ("--file", files),
+                               ("--makefile", files)):
+                if t == flag and i + 1 < len(toks):
+                    dest.append(Path(toks[i + 1]) if dest is dirs else toks[i + 1])
+                    i += 1
+                    break
+                if t.startswith(flag + "=") or (len(flag) == 2 and t.startswith(flag) and len(t) > 2):
+                    v = t.split("=", 1)[1] if "=" in t else t[2:]
+                    dest.append(Path(v) if dest is dirs else v)
+                    break
+            i += 1
+        roots: list[Path] = []
+        for b in bases:
+            if dirs:
+                for d in dirs:
+                    d = _xuser(d)
+                    b = d if d.is_absolute() else b / d
+                roots.append(b)
+            else:
+                roots.append(b)
+        for r in roots:
+            names = files or ["GNUmakefile", "makefile", "Makefile"]
+            for n in names:
+                fp = _xuser(Path(n))
+                out.append(fp if fp.is_absolute() else r / fp)
+    return out
+
+
+_FIND_EXEC_RE = re.compile(r"(?:^|[\s;&|(])find\s+(.*?)\s-(?:exec|execdir|ok|okdir)\s+(\S+)", re.S)
+
+
+def find_exec_hit(expanded: str, bases: list[Path]) -> str | None:
+    """`find ROOT ... -exec <program> {} ;`: scan files under ROOT (matching -name if given),
+    bounded by MAX_ARG_FILES (fail closed past it)."""
+    import fnmatch
+    import shlex
+    for m in _FIND_EXEC_RE.finditer(expanded):
+        prog = re.split(r"[/\\]", m.group(2).strip("'\""))[-1]
+        if not _EXEC_WORD_RE.fullmatch(prog) and not prog.startswith("."):
+            continue
+        try:
+            args = shlex.split(m.group(1))
+        except ValueError:
+            args = m.group(1).split()
+        roots = [a for a in args if not a.startswith(("-", "(", ")", "!"))][:1] or ["."]
+        pat = None
+        for i, a in enumerate(args):
+            if a in ("-name", "-iname") and i + 1 < len(args):
+                pat = args[i + 1]
+        count = 0
+        for b in bases:
+            rp = _xuser(Path(roots[0]))
+            root = rp if rp.is_absolute() else b / rp
+            if not root.is_dir():
+                continue
+            for dirpath, dirnames, filenames in os.walk(root):
+                dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
+                for fn in filenames:
+                    if pat and not fnmatch.fnmatch(fn, pat):
+                        continue
+                    count += 1
+                    if count > MAX_ARG_FILES:
+                        raise ScanLimit(f"find -exec over more than {MAX_ARG_FILES} files")
+                    hit = _scan_file(Path(dirpath) / fn, fn)
+                    if hit:
+                        return f"{hit} (via find -exec {prog})"
+            break
+    return None
+
+
 def _is_binary(p: Path) -> bool:
     try:
         with p.open("rb") as fh:
@@ -1527,7 +1622,7 @@ def direct_scripts(outer: str, bases: list[Path], path_only: bool | None = False
         if not w or w.startswith("$") or _EXEC_WORD_RE.fullmatch(re.split(r"[/\\]", w)[-1]):
             continue
         cands: list[Path] = []
-        p = Path(w).expanduser()
+        p = _xuser(Path(w))
         if p.is_absolute():
             cands = [p]
         elif "/" in w or "\\" in w:
@@ -1594,12 +1689,25 @@ def sender_hit(low: str) -> str | None:
     m = _SENDER_MULTI_RE.search(low)
     if m:
         return _WS_RE.sub("", m.group(0))
+    if _SES_CALL_RE.search(low) and _SES_CTX_RE.search(low):
+        return "SES send" "_email("
+    if "mail" "gun" in low and _MAILGUN_CALL_RE.search(low):
+        return "Mailgun messages.cre" "ate("
     return None
 
 
-# Method chains on messages/drafts split across whitespace or newlines before the send call.
-_SENDER_MULTI_RE = re.compile(r"(?:messages|drafts)\s*\(\s*\)\s*\.\s*se" r"nd\s*\("
-                              r"|\.\s*messages\s*\.\s*se" r"nd\s*\(")
+# SDK call forms, tolerant of whitespace/newlines inside the chain (lowercased input).
+_SENDER_MULTI_RE = re.compile(
+    r"(?:messages|drafts)\s*\(\s*\)\s*\.\s*se" r"nd\s*\("
+    r"|\.\s*messages\s*\.\s*se" r"nd\s*\("
+    r"|\.\s*emails\s*\.\s*se" r"nd\s*\("                       # Resend py/node
+    r"|\bsend" r"email(?:withtemplate)?\s*\("                    # Postmark
+    r"|\bsend(?:raw)?" r"emailcommand\b"                         # SES JS v3
+    r"|\bsend" r"transacemail\s*\(|\bsend_transac" r"tional_email\s*\("
+    r"|googleapis\.com/gmail" r"/v1")
+_SES_CTX_RE = re.compile(r"client\s*\(\s*['\"]ses(?:v2)?['\"]|\bsesv2\b|\bboto3\b[\s\S]*\bses\b")
+_SES_CALL_RE = re.compile(r"\bsend" r"_email\s*\(")
+_MAILGUN_CALL_RE = re.compile(r"\bmessages\s*\.\s*create\s*\(")
 _PHP_MAIL_RE = re.compile(r"(?<![\w$>:])mail\s*\(")
 
 
@@ -1817,7 +1925,7 @@ def _candidate_files(tok: str, bases: list[Path]) -> list[Path]:
     import glob
     out: list[Path] = []
     for word in _braces(tok):
-        p = Path(word).expanduser()
+        p = _xuser(Path(word))
         for r in ([p] if p.is_absolute() else [b / p for b in bases]):
             s = str(r)
             if any(c in s for c in "*?["):
@@ -1837,7 +1945,7 @@ def command_context(outer: str, cwd: Path) -> tuple[dict[str, str], list[Path], 
         vars_[m.group(1)] = _expand(m.group(2).strip("\"'"), vars_, cwd)
     bases = [cwd]
     for m in _CD_RE.finditer(outer):
-        d = Path(_expand(m.group(1).strip("\"'"), vars_, cwd)).expanduser()
+        d = _xuser(Path(_expand(m.group(1).strip("\"'"), vars_, cwd)))
         bases.append(d if d.is_absolute() else bases[-1] / d)
     pp = [Path(x) for x in vars_.get("PYTHONPATH", "").split(os.pathsep) if x]
     pp = [x if x.is_absolute() else cwd / x for x in pp]
@@ -1953,12 +2061,13 @@ def _bash_hit(command: str, outer: str, docs: list[tuple[str, str]], cwd: Path,
         hit = _scan_file(p, str(p))
         if hit:
             return hit
-    if "make" in (re.split(r"[/\\]", w)[-1] for w in command_words(expanded)):
-        for b in bases:
-            for mf in ("GNUmakefile", "makefile", "Makefile"):
-                hit = _scan_file(b / mf, mf)
-                if hit:
-                    return hit
+    for mf in makefiles(expanded, bases):
+        hit = _scan_file(mf, str(mf))
+        if hit:
+            return hit
+    hit = find_exec_hit(expanded, bases)
+    if hit:
+        return hit
     if re.search(r"\bphp\s+(?:\S+\s+)*?-r\b", expanded) and _PHP_MAIL_RE.search(scan.lower()):
         return "PHP mail("
     for p, tok in _arg_files(_PIP_INSTALL_RE.sub(" ", expanded), bases):
@@ -2233,7 +2342,7 @@ def agent_transcript(payload: dict) -> Path | None:
     try:
         rp = Path(p).expanduser().resolve()
         root = transcript_root().resolve()
-    except OSError:
+    except (OSError, RuntimeError):
         return None
     if rp.name != f"agent-{aid}.jsonl" or not rp.is_relative_to(root) or not rp.is_file():
         return None

@@ -1312,3 +1312,73 @@ def test_calendar_quick_add_gated(tmp_path, state, capsys):
     _record_text(tmp_path, text, capsys, source="Kickoff with Marc.\n")
     assert _hook({"tool_name": cal + "quick_add_event", "tool_input": {"text": text}},
                  capsys) is None
+
+
+# ------------------------------------------------------------------ sixth audit (2026-11-05)
+
+SDK_SENDERS = [
+    "resend.emails\n    .se" "nd({'to': 'x'})",                          # Resend py
+    "await resend.emails.se" "nd({to})",                                 # Resend node
+    "client.send" "Email({To: 'x'})",                                    # Postmark
+    "client.send" "EmailWithTemplate({})",                               # Postmark template
+    "new Send" "EmailCommand(params)",                                   # SES JS v3
+    "new SendRaw" "EmailCommand(params)",
+    "import boto3\nc = boto3.client('ses')\nc.send" "_email(Source='a')",  # SES boto3
+    "c = boto3.client(\"sesv2\")\nc.send" "_email(x)",
+    "mg = Mail" "gun(key)\nmg.messages.cre" "ate('d', data)",               # Mailgun SDK
+    "api.send" "TransacEmail(x)",                                        # Brevo node
+    "api.send" "_transac_email(x)",                                      # Brevo py
+    "client.send" "_transactional_email(x)",
+    "https://www.googleapis.com/gmail" "/v1/users/me/messages/send",     # legacy Gmail host
+    "https://api.send" "grid.com/v3/mail/send", "from sendgrid import SendGrid" "APIClient",
+    "require('@sendgrid/" "mail')", "https://api.mail" "gun.net/v3/x", "https://api.brevo" ".com/v3",
+    "https://api.sendin" "blue.com/v3", "email.us-east-1.amazon" "aws.com",
+    "https://api.post" "markapp.com/email", "https://api.re" "send.com/emails",
+    "https://api.mail" "jet.com/v3.1/send", "https://mandrill" "app.com/api", "yag" "mail.SMTP()",
+    "https://server.smart" "lead.ai/api", "https://api.mailer" "send.com/v1", "https://mail" "trap.io",
+    "https://api.spark" "post.com/api", "https://app.loops" ".so/api/v1/transactional",
+    "https://api.instan" "tly.ai/api/v2/emails/reply", "Send-Mail" "Message -To x",
+]
+
+
+@pytest.mark.parametrize("code", SDK_SENDERS)
+def test_sdk_and_host_senders(code, tmp_path, state, capsys):
+    _write(tmp_path / "s.py", code)
+    assert _deny_reason(_bash("python3 s.py", capsys, tmp_path)), code
+
+
+def test_sdk_words_in_prose_allowed(tmp_path, state, capsys):
+    for cmd in ("git commit -m 'use resend.emails.se" "nd and boto3 ses'",
+                "echo 'client.send" "Email(x)' > notes.md",
+                "grep -rn send" "Email src/"):
+        assert _bash(cmd, capsys, tmp_path) is None, cmd
+    _write(tmp_path / "plain.py", "import boto3\ns3 = boto3.client('s3')\nmailbox.send" "_email = 1\n")
+    assert _bash("python3 plain.py", capsys, tmp_path) is None
+    _write(tmp_path / "gh.py", "issues.create(title='x')\nmessages.cre" "ate(role='user')\n")
+    assert _bash("python3 gh.py", capsys, tmp_path) is None
+
+
+def test_make_dir_and_file_flags(tmp_path, state, capsys):
+    _write(tmp_path / "sub" / "Makefile", f"x:\n\tcurl smtp" "s://h -T m\n")
+    _write(tmp_path / "mk" / "send.mk", f"x:\n\tcurl smtp" "s://h -T m\n")
+    for cmd in ("make -C sub x", "make --directory=sub x", "make -Csub x",
+                "make -f mk/send.mk x", "make --file=mk/send.mk", "make -C mk -f send.mk"):
+        assert _deny_reason(_bash(cmd, capsys, tmp_path)), cmd
+    _write(tmp_path / "ok" / "Makefile", "x:\n\techo hi\n")
+    assert _bash("make -C ok x", capsys, tmp_path) is None
+
+
+def test_unresolvable_tilde_user_and_find_exec(tmp_path, state, capsys):
+    assert _bash("python3 ~nosuchuser_zz/x.py ok.txt", capsys, tmp_path) is None
+    _write(tmp_path / "s.py", f"import {SMTP}\n")
+    assert _deny_reason(_bash("python3 ~nosuchuser_zz/x.py s.py", capsys, tmp_path))
+    _write(tmp_path / "jobs" / "a.py", "print(1)\n")
+    _write(tmp_path / "jobs" / "b.py", f"import {SMTP}\n")
+    assert "find -exec" in _deny_reason(_bash(
+        "find jobs -name '*.py' -exec python3 {} \\;", capsys, tmp_path))
+    assert _deny_reason(_bash("find jobs -execdir python3 {} +", capsys, tmp_path))
+    assert _bash("find jobs -name 'a.py' -exec python3 {} \\;", capsys, tmp_path) is None
+    assert _bash("find jobs -name '*.py' -exec cat {} \\;", capsys, tmp_path) is None
+    for i in range(rg.MAX_ARG_FILES + 2):
+        _write(tmp_path / "big" / f"f{i}.py", "print(1)\n")
+    assert "more than" in _deny_reason(_bash("find big -exec python3 {} \\;", capsys, tmp_path))
