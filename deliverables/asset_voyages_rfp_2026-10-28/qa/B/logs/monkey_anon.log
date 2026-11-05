@@ -305,3 +305,53 @@ Co" /congres/congres-europeen-de-dermatologie-cg-0105
 260	click "Se connecter" 
 261	back
 262	click "Pneumologie" /?discipline=Pneumologie#resultats
+263	fill q len=6 "x@y.fr"
+264	click "Finance" /?discipline=Finance#resultats
+265	click "Dermatologie" /?discipline=Dermatologie#resultats
+266	click "Pneumologie" /?discipline=Pneumologie#resultats
+267	forward
+268	back
+269	submit "Rechercher" /#resultats
+270	click "Diabétologie" /?discipline=Diab%C3%A9tologie#resultats
+271	click "Cardiologie" /?discipline=Cardiologie#resultats
+272	click "Catalogue des congrès" /
+273	fill q len=0 ""
+274	click "29 sept. au 2 oct.
+2027
+29 sept. au 2 oct. 2027
+Co" /congres/congres-europeen-de-dermatologie-cg-0105
+275	forward
+276	click "ASSET
+Voyages ASSET Voyages, catalogue des congrès" /
+277	fill q len=10 "9999-12-31"
+278	fill q len=7 "é€😀日本語"
+279	fill q len=7 "{{7*7}}"
+280	fill q len=6 "🚀🔥💥"
+281	click "Page suivante" /?page=2#resultats
+282	fill q len=29 "=HYPERLINK(\"http://evil\",\"x\")"
+283	fill q len=6 "x@y.fr"
+284	back
+285	forward
+286	fill q len=1 " "
+287	reload
+288	click "Espace équipe" /console
+289	back
+290	click "Catalogue des congrès" /
+291	click "Diabétologie" /?discipline=Diab%C3%A9tologie#resultats
+292	fill q len=2 "51"
+293	back
+294	fill q len=7 "é€😀日本語"
+295	click "Catalogue des congrès" /
+296	click "19 au 22
+juin 2027
+19 au 22 juin 2027
+Congrès mond" /congres/congres-mondial-de-neurologie-cg-0104
+297	click "Aller au contenu" #main
+297	  click-err locator.click: Timeout 4000ms exceeded.
+298	back
+299	click "Diabétologie" /?discipline=Diab%C3%A9tologie#resultats
+300	click "ASSET
+Voyages ASSET Voyages, catalogue des congrès" /
+# sandbox reset ok
+# failures=0
+

@@ -1,5 +1,6 @@
 // Final DOM probe for register rows not visible in a full-page screenshot (USAB-B-012/013, A11Y-B-002, EYE-B-019, date default).
-import { chromium, B, ctx, login } from './lib.mjs';
+import { chromium, B, ctx, login as login0 } from './lib.mjs';
+const login = async (p, who) => { await p.goto(B + '/console/connexion'); if (!p.url().includes('connexion')) { await p.getByRole('button', { name: 'Se déconnecter' }).first().click(); await p.waitForURL(/connexion/); } await login0(p, who); };
 const br = await chromium.launch({ env: { ...process.env, LANG: 'fr_FR.UTF-8', LC_ALL: 'fr_FR.UTF-8' } });
 const out = {};
 const { c, p } = await ctx(br, 390);
