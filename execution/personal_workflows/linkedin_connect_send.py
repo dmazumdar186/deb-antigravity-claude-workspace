@@ -487,7 +487,7 @@ def acquire_lock(data_dir: Path) -> bool:
             if age_min <= Q.LOCK_TTL_MIN:
                 return False
             log.warning("stale send.lock (%.0f min) from a crashed run, taking over", age_min)
-            with contextlib.suppress(FileNotFoundError):
+            with contextlib.suppress(OSError):  # OneDrive / antivirus may hold the file briefly
                 path.unlink()
             continue
         with os.fdopen(fd, "w", encoding="utf-8") as fh:
@@ -497,8 +497,12 @@ def acquire_lock(data_dir: Path) -> bool:
 
 
 def release_lock(data_dir: Path) -> None:
-    with contextlib.suppress(FileNotFoundError):
-        _lock_file(data_dir).unlink()
+    """Delete the lock only if this process owns it (a stale takeover by another run is left alone).
+    Never raises: a lock that cannot be deleted just expires after Q.LOCK_TTL_MIN."""
+    path = _lock_file(data_dir)
+    with contextlib.suppress(OSError, ValueError, IndexError):
+        if int(path.read_text(encoding="utf-8").strip().split("|")[1]) == os.getpid():
+            path.unlink()
 
 
 def _config_stop(day: str, reason: str, dry_run: bool) -> int:

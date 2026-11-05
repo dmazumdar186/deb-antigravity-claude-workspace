@@ -513,3 +513,16 @@ def test_task_script_quotes_paths_and_is_idempotent():
 def test_setup_refuses_off_windows(tmp_path, monkeypatch):
     monkeypatch.setattr(S.os, "name", "posix")
     assert S.cmd_setup(tmp_path, start=True) == 3
+
+
+def test_release_lock_only_deletes_own_lock_and_never_raises(tmp_path, monkeypatch):
+    (tmp_path / "send.lock").write_text("2026-11-05T10:00:00|999999999\n", encoding="utf-8")
+    S.release_lock(tmp_path)
+    assert (tmp_path / "send.lock").exists()  # another run's lock survives
+    (tmp_path / "send.lock").unlink()
+    assert S.acquire_lock(tmp_path)
+
+    def locked(self, *a, **k):
+        raise PermissionError(32, "in use")
+    monkeypatch.setattr(S.Path, "unlink", locked)
+    S.release_lock(tmp_path)  # OneDrive/AV lock: no exception
