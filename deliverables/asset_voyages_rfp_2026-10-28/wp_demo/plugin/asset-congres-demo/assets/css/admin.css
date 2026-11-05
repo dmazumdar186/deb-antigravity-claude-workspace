@@ -1,0 +1,152 @@
+/* ASSET Congrès — démonstration. Admin styles (tokens shared with the public side). */
+:root {
+	--asset-ink: #0A1F30;
+	--asset-navy: #0D3048;
+	--asset-or-ink: #9A4705;
+	--asset-paper: #F2EEE5;
+	--asset-line: #CFC6B4;
+	--asset-ok: #1E5C3A;
+	--asset-ok-bg: #E4F0E7;
+	--asset-err: #9B1C1C;
+	--asset-err-bg: #FBE9E7;
+	--asset-muted: #50575E;
+	--asset-highlight: #FFF8E5;
+	--asset-divider: #F0F0F1;
+}
+
+.asset-admin .asset-cols {
+	display: grid;
+	grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+	gap: 1.5rem;
+	align-items: start;
+}
+
+.asset-admin .asset-panel h2 {
+	margin-top: 0.5rem;
+}
+
+.asset-admin .asset-kv th {
+	width: 35%;
+	font-weight: 600;
+}
+
+.asset-admin .asset-pre {
+	margin: 0;
+	white-space: pre-wrap;
+	font-family: inherit;
+	max-width: 48ch;
+}
+
+.asset-status {
+	display: inline-block;
+	padding: 0.15rem 0.55rem;
+	border-radius: 999px;
+	background: var(--asset-paper);
+	color: var(--asset-ink);
+	border: 1px solid var(--asset-line);
+	white-space: nowrap;
+}
+
+.asset-status--nouvelle { border-color: var(--asset-or-ink); color: var(--asset-or-ink); }
+.asset-status--gagnee { background: var(--asset-ok-bg); color: var(--asset-ok); border-color: var(--asset-ok); }
+.asset-status--perdue { background: var(--asset-err-bg); color: var(--asset-err); border-color: var(--asset-err); }
+
+.asset-masked {
+	font-family: monospace;
+	letter-spacing: 0.1em;
+	color: var(--asset-muted);
+}
+
+.asset-revealed {
+	font-size: 1.05em;
+	padding: 0.2rem 0.4rem;
+	background: var(--asset-highlight);
+	border: 1px solid var(--asset-or-ink);
+}
+
+.asset-inline-form {
+	display: inline-block;
+	margin: 0 0.25rem 0.25rem 0;
+}
+
+.asset-request-form {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
+	max-width: 320px;
+}
+
+.asset-request-form textarea {
+	width: 100%;
+}
+
+.asset-request-form .button {
+	align-self: flex-start;
+}
+
+.asset-btn-danger.button {
+	color: var(--asset-err);
+	border-color: var(--asset-err);
+}
+
+.asset-widget {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+	gap: 0.5rem;
+	margin: 0 0 0.75rem;
+}
+
+.asset-widget li {
+	margin: 0;
+}
+
+.asset-widget a {
+	display: block;
+	padding: 0.5rem 0.6rem;
+	border: 1px solid var(--asset-line);
+	border-radius: 6px;
+	text-decoration: none;
+	color: var(--asset-ink);
+}
+
+.asset-widget__n {
+	display: block;
+	font-size: 1.5rem;
+	font-weight: 700;
+	color: var(--asset-navy);
+}
+
+.asset-widget-latest a {
+	font-weight: 600;
+}
+
+.asset-widget-req {
+	padding: 0.5rem 0;
+	border-bottom: 1px solid var(--asset-divider);
+}
+
+.asset-req {
+	color: var(--asset-err);
+	font-weight: 400;
+}
+
+.asset-admin a:focus-visible,
+.asset-admin button:focus-visible,
+.asset-admin input:focus-visible,
+.asset-admin select:focus-visible,
+.asset-admin textarea:focus-visible {
+	outline: 2px solid var(--asset-or-ink);
+	outline-offset: 2px;
+}
+
+@media (max-width: 782px) {
+	.asset-admin .asset-cols {
+		grid-template-columns: 1fr;
+	}
+
+	.asset-admin input,
+	.asset-admin select,
+	.asset-admin textarea {
+		font-size: 16px;
+	}
+}

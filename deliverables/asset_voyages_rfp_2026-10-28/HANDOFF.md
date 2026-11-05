@@ -279,3 +279,10 @@ Every fix in `08_Audit_Round1_11_Lenses.md` (29) and `09_Audit_Round1_Project_Ex
 
 ## v2.4: audit round 2 fixes (11/12 audits, 2026-10-28)
 All 34 fixes applied; log `13_Round2_Fix_Log.md`. `01b_20_Questions_source.md` renamed `01b_Questions_source.md`. Staff login wording verified against Cloudflare Access Independent MFA docs (28 Oct). Functional 61/61; site_check PASSED 4 pages × 4 contexts; `screens/r2-*` reviewed; redeployed. Not committed.
+
+## Demos hub `/demo/` (2026-11-05, not deployed)
+- Files: `site/demo/index.html`, `site/css/demo.css`, `site/js/demo.js`, `site/demo/media/manifest.json`. Discreet links added: index footer « Les deux démos », pour-asset bottom links, questions footer (header navs had no room at 390 px; console header has no nav).
+- Demo URLs: the four constants at the top of `site/js/demo.js`; the same hrefs are no-JS fallbacks in `demo/index.html` (swap both, e.g. `sed -i 's/REPLACE/<sub>/'`).
+- Recordings: drop `wp-walkthrough.mp4/.jpg` and `custom-walkthrough.mp4/.jpg` into `site/demo/media/`, then set the matching key to `true` in `manifest.json`. A key set true with a missing file falls back to a message.
+- Step labels for Option B and the GM&E screens are written generically; re-check against the finished demos.
+- Gates: `research/demo_page.mjs` 34/34; Hallmark gate on `site/demo` PASS, 0 FAIL, 0 REFLEX, no waivers (render tier not run). Whole-site gate is BLOCKED by pre-existing pages (built before Hallmark), not touched.

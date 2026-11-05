@@ -35,7 +35,8 @@ class Asset_CD_Demandes_Admin {
 	 * @param string $hook Hook suffix.
 	 */
 	public static function assets( $hook ) {
-		if ( str_contains( (string) $hook, 'asset-' ) || 'index.php' === $hook ) {
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		if ( str_contains( (string) $hook, 'asset-' ) || 'index.php' === $hook || ( $screen && Asset_CD_Congres::POST_TYPE === $screen->post_type ) ) {
 			wp_enqueue_style( 'asset-cd-admin', ASSET_CD_URL . 'assets/css/admin.css', array(), ASSET_CD_VERSION );
 		}
 	}
@@ -435,6 +436,12 @@ class Asset_CD_Demandes_Admin {
 	 */
 	public static function render_widget() {
 		$counts = self::counts();
+		$latest = get_posts( self::query_args( array( 'statut' => '', 's' => '', 'orderby' => 'date', 'order' => 'DESC' ), 1 ) + array( 'no_found_rows' => true ) );
+		if ( $latest ) {
+			$l   = $latest[0];
+			$cid = (int) get_post_meta( $l->ID, '_asset_congres_id', true );
+			echo '<p class="asset-widget-latest">' . esc_html__( 'Dernière demande :', 'asset-congres-demo' ) . ' <a class="asset-latest-link" href="' . esc_url( admin_url( 'admin.php?page=asset-demandes&action=view&id=' . $l->ID ) ) . '">' . esc_html( (string) get_post_meta( $l->ID, '_asset_ref', true ) . ' · ' . get_post_meta( $l->ID, '_asset_nom', true ) . ( $cid ? ' · ' . get_the_title( $cid ) : '' ) ) . '</a></p>';
+		}
 		echo '<ul class="asset-widget">';
 		foreach ( Asset_CD_Demandes::statuses() as $slug => $label ) {
 			printf( '<li><a href="%1$s"><span class="asset-widget__n">%2$d</span> %3$s</a></li>', esc_url( admin_url( 'admin.php?page=asset-demandes&statut=' . $slug ) ), (int) $counts[ $slug ], esc_html( $label ) );

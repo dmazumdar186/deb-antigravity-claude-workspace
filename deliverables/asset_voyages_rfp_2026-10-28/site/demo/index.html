@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Two working demos for ASSET Voyages · ProdCraft</title>
+<meta name="description" content="Two free working demos for ASSET Voyages, WordPress and a custom platform, built to the same requirements with fictional data. Try both, then choose.">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#0a1f30">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="preload" href="../assets/fonts/EBGaramond.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/Inter.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../css/demo.css">
+<script src="../js/demo.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the content</a>
+
+<header class="top">
+  <div class="container top__in">
+    <p class="top__who"><strong>ASSET Voyages</strong> <span>demos prepared by ProdCraft</span></p>
+    <a class="top__back" href="../">Back to the concept</a>
+  </div>
+</header>
+
+<nav class="mini" aria-label="Sections of this page" data-mini>
+  <div class="container mini__in">
+    <a href="#options">The two demos</a>
+    <a href="#try">Try it</a>
+    <a href="#recordings">Recordings</a>
+    <a href="#compare">What works</a>
+    <a href="#built">How each is built</a>
+    <a href="#codes">GM&amp;E codes</a>
+    <a href="#plan">Milestones</a>
+    <a href="#slot">Book a demonstration</a>
+  </div>
+</nav>
+
+<main id="main">
+
+<section class="hero" aria-labelledby="hero-title">
+  <div class="container hero__in">
+    <h1 id="hero-title">Two working demos. Try both, choose one.</h1>
+    <p class="hero__lead">Same requirements, fictional data and codes, sandboxes that reset themselves.</p>
+    <p class="hero__act"><a class="btn" href="#options">Open the demos</a> <a class="link-quiet" href="#slot">or book a 20 to 30 minute demonstration</a></p>
+  </div>
+</section>
+
+<!-- 1. Opening + 2. The two options -->
+<section class="options" id="options" aria-labelledby="options-title">
+  <div class="container">
+    <div class="intro">
+      <h2 id="options-title"><span class="n">1</span> Two options, both working</h2>
+      <p>You asked to see how we would handle congresses, flight enquiries and GM&amp;E codes. Rather than describe it, we built it twice, so you can try it yourselves and pick the option that suits ASSET.</p>
+      <p>Both demos are built to the same five requirements from your consultation. Every congress, person, enquiry and code in them is <strong>fictional</strong>. Each demo is a <strong>sandbox</strong>, a safe practice copy: it resets on its own, so nothing you click can break anything.</p>
+    </div>
+
+    <div class="passes">
+      <article class="pass" aria-labelledby="pass-a">
+        <div class="pass__main">
+          <div class="pass__top"><p class="pass__gate">Option A</p><span class="pass__letter" aria-hidden="true">A</span></div>
+          <h3 id="pass-a">WordPress</h3>
+          <p>The system your current site already runs on, with a plugin we wrote for ASSET. It runs inside <strong>WordPress Playground</strong>: a complete WordPress that runs entirely in your browser, with nothing to install.</p>
+          <p class="pass__note">The first start takes about 20 to 40 seconds while it loads. Later starts are quicker.</p>
+        </div>
+        <div class="pass__stub">
+          <a class="btn" data-demo="WP_VISITOR_URL" href="https://playground.wordpress.net/?blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-visitor.json" target="_blank" rel="noopener">Open the visitor site<span class="vh"> of Option A (new tab)</span></a>
+          <a class="btn btn--line" data-demo="WP_ADMIN_URL" href="https://playground.wordpress.net/?blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json" target="_blank" rel="noopener">Open the admin, signed in<span class="vh"> to Option A (new tab)</span></a>
+          <p class="pass__small">The admin link signs you in automatically as administrator.</p>
+        </div>
+      </article>
+
+      <article class="pass pass--b" aria-labelledby="pass-b">
+        <div class="pass__main">
+          <div class="pass__top"><p class="pass__gate">Option B</p><span class="pass__letter" aria-hidden="true">B</span></div>
+          <h3 id="pass-b">Our custom platform</h3>
+          <p>The Console from our earlier concept, made real. Public pages for your visitors, a small console for your team, and a database behind them, running on <strong>Cloudflare</strong>, a global network that serves websites.</p>
+          <p class="pass__note">Opens straight away in your browser, with nothing to install.</p>
+        </div>
+        <div class="pass__stub">
+          <a class="btn" data-demo="CUSTOM_URL" href="https://asset-voyages-demo.REPLACE.workers.dev/" target="_blank" rel="noopener">Open the visitor site<span class="vh"> of Option B (new tab)</span></a>
+          <a class="btn btn--line" data-demo="CUSTOM_CONSOLE_URL" href="https://asset-voyages-demo.REPLACE.workers.dev/console" target="_blank" rel="noopener">Open the team console<span class="vh"> of Option B (new tab)</span></a>
+          <p class="pass__small">The console asks you to sign in with one of the logins below.</p>
+        </div>
+      </article>
+    </div>
+
+    <div class="logins" aria-labelledby="logins-title">
+      <h3 id="logins-title">Demo logins, the same for both options</h3>
+      <p>Password for every user: <code class="cred">demo-asset</code></p>
+      <ul>
+        <li><code class="cred">direction</code> management: approves access to codes and publishes congresses</li>
+        <li><code class="cred">equipe</code> the team: handles flight enquiries</li>
+        <li><code class="cred">contributeur</code> adds and edits congresses, which then wait for review</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 3. Try it in five minutes -->
+<section class="try" id="try" aria-labelledby="try-title">
+  <div class="container">
+    <div class="intro">
+      <h2 id="try-title"><span class="n">2</span> Try it in five minutes</h2>
+      <p>Your five requirements, one task each. Each task shows where to click in Option A and in Option B. Tasks 3 and 4 follow on from each other: send an enquiry as a visitor, then find it as the team.</p>
+    </div>
+
+    <div class="switch" role="group" aria-label="Show the steps for" data-switch hidden>
+      <button type="button" class="switch__b" data-show="a" aria-pressed="true">A: WordPress</button>
+      <button type="button" class="switch__b" data-show="b" aria-pressed="false">B: custom platform</button>
+    </div>
+
+    <ol class="tasks" data-tasks data-view="a">
+      <li class="task" id="task-1">
+        <div class="task__head">
+          <h3><span class="task__n">Task 1</span> Create or edit a congress</h3>
+          <p class="task__side">Your team, in the admin</p>
+        </div>
+        <div class="task__opt task__opt--a">
+          <p class="task__which">Option A: WordPress</p>
+          <ol class="steps">
+            <li><a data-demo="WP_ADMIN_URL" href="https://playground.wordpress.net/?blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json" target="_blank" rel="noopener">Open the admin</a>. You are already signed in.</li>
+            <li>In the left-hand menu, choose « Congrès », then « Ajouter un congrès ».</li>
+            <li>Fill in the name, dates, city and discipline, then publish. To change one, open it from « Tous les congrès ».</li>
+          </ol>
+          <p class="task__tip">Sign in as <code class="cred">contributeur</code> instead and your congress waits for review before it goes live.</p>
+        </div>
+        <div class="task__opt task__opt--b">
+          <p class="task__which">Option B: custom platform</p>
+          <ol class="steps">
+            <li><a data-demo="CUSTOM_CONSOLE_URL" href="https://asset-voyages-demo.REPLACE.workers.dev/console" target="_blank" rel="noopener">Open the team console</a> and sign in as <code class="cred">contributeur</code>.</li>
+            <li>Open the list of congresses and add a new one, or open an existing one to change it.</li>
+            <li>Send it for review. Sign in as <code class="cred">direction</code> to check it and publish it.</li>
+          </ol>
+        </div>
+      </li>
+
+      <li class="task" id="task-2">
+        <div class="task__head">
+          <h3><span class="task__n">Task 2</span> Find a congress in the public catalogue</h3>
+          <p class="task__side">Your visitors, on the public site</p>
+        </div>
+        <div class="task__opt task__opt--a">
+          <p class="task__which">Option A: WordPress</p>
+          <ol class="steps">
+            <li><a data-demo="WP_VISITOR_URL" href="https://playground.wordpress.net/?blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-visitor.json" target="_blank" rel="noopener">Open the visitor site</a> and go to the congress catalogue.</li>
+            <li>Type a word in the search box, or narrow the list by discipline, country or month.</li>
+            <li>Open a congress to see its details page: dates, city, venue and discipline.</li>
+          </ol>
+        </div>
+        <div class="task__opt task__opt--b">
+          <p class="task__which">Option B: custom platform</p>
+          <ol class="steps">
+            <li><a data-demo="CUSTOM_URL" href="https://asset-voyages-demo.REPLACE.workers.dev/" target="_blank" rel="noopener">Open the visitor site</a> and go to the congress catalogue.</li>
+            <li>Type a word in the search box, or narrow the list by discipline, country or month.</li>
+            <li>Open a congress to see its details page: dates, city, venue and discipline.</li>
+          </ol>
+        </div>
+      </li>
+
+      <li class="task" id="task-3">
+        <div class="task__head">
+          <h3><span class="task__n">Task 3</span> Send a flight enquiry</h3>
+          <p class="task__side">Your visitors, on the public site</p>
+        </div>
+        <div class="task__opt task__opt--a">
+          <p class="task__which">Option A: WordPress</p>
+          <ol class="steps">
+            <li>On a congress details page, find « Demander un devis vol ».</li>
+            <li>Enter your contact details, departure city, travel dates and number of passengers.</li>
+            <li>Send it. You receive a reference number on screen.</li>
+          </ol>
+          <p class="task__tip">Try leaving a field empty, or a return date before the outward date: the form says what to correct.</p>
+        </div>
+        <div class="task__opt task__opt--b">
+          <p class="task__which">Option B: custom platform</p>
+          <ol class="steps">
+            <li>On a congress details page, open the flight enquiry form.</li>
+            <li>Enter your contact details, departure city, travel dates and number of passengers.</li>
+            <li>Send it. You receive a reference number on screen.</li>
+          </ol>
+          <p class="task__tip">The same checks apply: the form says what to correct before anything is sent.</p>
+        </div>
+      </li>
+
+      <li class="task" id="task-4">
+        <div class="task__head">
+          <h3><span class="task__n">Task 4</span> Receive, view, track and update enquiries</h3>
+          <p class="task__side">Your team, in the admin</p>
+        </div>
+        <div class="task__opt task__opt--a">
+          <p class="task__which">Option A: WordPress</p>
+          <ol class="steps">
+            <li>In the admin, open « Demandes ». Your enquiry from task 3 is at the top.</li>
+            <li>Open it and change its status, for example from « Nouvelle » to « Qualifiée ». Each change is kept in its history.</li>
+            <li>Export the list as a spreadsheet file (CSV). « Journal des notifications » shows the message your team would have received.</li>
+          </ol>
+        </div>
+        <div class="task__opt task__opt--b">
+          <p class="task__which">Option B: custom platform</p>
+          <ol class="steps">
+            <li><a data-demo="CUSTOM_CONSOLE_URL" href="https://asset-voyages-demo.REPLACE.workers.dev/console" target="_blank" rel="noopener">Open the team console</a>, sign in as <code class="cred">equipe</code> and open the enquiries.</li>
+            <li>Open your enquiry from task 3 and change its status. Each change is kept in its history.</li>
+            <li>Export the list as a spreadsheet file (CSV), and see the log of notifications your team would have received.</li>
+          </ol>
+        </div>
+      </li>
+
+      <li class="task task--codes" id="task-5">
+        <div class="task__head">
+          <h3><span class="task__n">Task 5</span> Protect the GM&amp;E codes</h3>
+          <p class="task__side">Your team and management</p>
+          <p class="task__explain">GM&amp;E codes are the Air France-KLM Global Meetings &amp; Events fare codes for a congress. Your team sees them hidden and asks for access, giving a reason. Direction approves for 24 hours, or refuses. Each time a code is shown, it is recorded. Visitors never see a code, only a line saying that a negotiated congress fare is available.</p>
+        </div>
+        <div class="task__opt task__opt--a">
+          <p class="task__which">Option A: WordPress</p>
+          <ol class="steps">
+            <li>Sign out of the admin, then sign in as <code class="cred">equipe</code>.</li>
+            <li>Open a congress: its code is hidden. Ask for access and give a reason.</li>
+            <li>Sign out, sign in as <code class="cred">direction</code>, and approve for 24 hours or refuse.</li>
+            <li>Sign in as <code class="cred">equipe</code> again: the code is shown, and the access record lists it.</li>
+          </ol>
+        </div>
+        <div class="task__opt task__opt--b">
+          <p class="task__which">Option B: custom platform</p>
+          <ol class="steps">
+            <li>In the team console, sign in as <code class="cred">equipe</code>.</li>
+            <li>Open a congress: its code is hidden. Ask for access and give a reason.</li>
+            <li>Sign out, sign in as <code class="cred">direction</code>, and approve for 24 hours or refuse.</li>
+            <li>Sign in as <code class="cred">equipe</code> again: the code is shown, and the access record lists it.</li>
+          </ol>
+        </div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- 4. Recordings -->
+<section class="recs" id="recordings" aria-labelledby="recs-title">
+  <div class="container">
+    <div class="intro">
+      <h2 id="recs-title"><span class="n">3</span> Prefer to watch first?</h2>
+      <p>Two short recordings walk through the same five tasks, one per option.</p>
+    </div>
+    <div class="recs__grid">
+      <figure class="rec" data-rec="wp-walkthrough">
+        <div class="rec__frame" data-rec-frame>
+          <div class="rec__empty" data-rec-empty>
+            <p class="rec__state" data-rec-msg>The recording for Option A will appear here.</p>
+            <p>Meanwhile, <a href="#try">follow the five tasks</a> or <a href="media/wp-walkthrough.mp4">open the video file directly</a>.</p>
+          </div>
+        </div>
+        <figcaption>Option A, WordPress: the five tasks from start to finish.</figcaption>
+      </figure>
+      <figure class="rec" data-rec="custom-walkthrough">
+        <div class="rec__frame" data-rec-frame>
+          <div class="rec__empty" data-rec-empty>
+            <p class="rec__state" data-rec-msg>The recording for Option B will appear here.</p>
+            <p>Meanwhile, <a href="#try">follow the five tasks</a> or <a href="media/custom-walkthrough.mp4">open the video file directly</a>.</p>
+          </div>
+        </div>
+        <figcaption>Option B, our custom platform: the five tasks from start to finish.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- 5. What works today -->
+<section class="compare" id="compare" aria-labelledby="compare-title">
+  <div class="container">
+    <div class="intro">
+      <h2 id="compare-title"><span class="n">4</span> What works today, and what we would build</h2>
+      <p>“Works in the demo” means you can try it now. “Built during the project” means it is part of the work after approval; where it helps, the demo shows a stand-in.</p>
+    </div>
+    <table class="cmp">
+      <caption class="vh">What works in each demo today, and what is built during the project</caption>
+      <thead>
+        <tr><th scope="col">Function</th><th scope="col">Option A: WordPress</th><th scope="col">Option B: custom platform</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">1. Create and edit congresses</th>
+          <td data-label="Option A"><span class="st st--ok">Works in the demo</span> In the standard WordPress editor, with review before publishing.</td>
+          <td data-label="Option B"><span class="st st--ok">Works in the demo</span> In the team console, with review before publishing.</td></tr>
+        <tr><th scope="row">2. Public catalogue with search, filters and details page</th>
+          <td data-label="Option A"><span class="st st--ok">Works in the demo</span> Search, filters by discipline, country and month, a page per congress.</td>
+          <td data-label="Option B"><span class="st st--ok">Works in the demo</span> Search, filters by discipline, country and month, a page per congress.</td></tr>
+        <tr><th scope="row">3. Flight enquiry form</th>
+          <td data-label="Option A"><span class="st st--ok">Works in the demo</span> Every field is checked before sending; you get a reference.</td>
+          <td data-label="Option B"><span class="st st--ok">Works in the demo</span> Every field is checked before sending; you get a reference.</td></tr>
+        <tr><th scope="row">4. Receive, view, track and update enquiries</th>
+          <td data-label="Option A"><span class="st st--ok">Works in the demo</span> Statuses, history of changes, export to a spreadsheet (CSV).</td>
+          <td data-label="Option B"><span class="st st--ok">Works in the demo</span> Statuses, history of changes, export to a spreadsheet (CSV).</td></tr>
+        <tr><th scope="row">5. GM&amp;E codes protected</th>
+          <td data-label="Option A"><span class="st st--ok">Works in the demo</span> Codes hidden, access asked with a reason, 24-hour approval, a record of every display.</td>
+          <td data-label="Option B"><span class="st st--ok">Works in the demo</span> Codes hidden, access asked with a reason, 24-hour approval, a record of every display.</td></tr>
+        <tr><th scope="row">Email notifications</th>
+          <td data-label="Option A"><span class="st st--build">Built during the project</span> The demo shows a log of the messages instead of sending them.</td>
+          <td data-label="Option B"><span class="st st--build">Built during the project</span> The demo shows a log of the messages instead of sending them.</td></tr>
+        <tr><th scope="row">Importing about 300 congresses from a spreadsheet</th>
+          <td data-label="Option A"><span class="st st--build">Built during the project</span> With duplicate checks, and a trial run first.</td>
+          <td data-label="Option B"><span class="st st--build">Built during the project</span> With duplicate checks, and a trial run first.</td></tr>
+        <tr><th scope="row">English version</th>
+          <td data-label="Option A"><span class="st st--build">Built during the project</span> Pages and congresses in English alongside French.</td>
+          <td data-label="Option B"><span class="st st--build">Built during the project</span> Pages and congresses in English alongside French.</td></tr>
+        <tr><th scope="row">Two-step login for staff</th>
+          <td data-label="Option A"><span class="st st--build">Built during the project</span> A password plus a second check, for every staff account.</td>
+          <td data-label="Option B"><span class="st st--build">Built during the project</span> Staff sign in with a code sent to their email.</td></tr>
+        <tr><th scope="row">Backups and restore</th>
+          <td data-label="Option A"><span class="st st--build">Built during the project</span> Regular backups, and a tested way to restore them.</td>
+          <td data-label="Option B"><span class="st st--build">Built during the project</span> Regular backups, and a tested way to restore them.</td></tr>
+        <tr><th scope="row">Editing all the site’s pages</th>
+          <td data-label="Option A"><span class="st st--ok">Works in the demo</span> The standard WordPress page editor; your current pages are moved over during the project.</td>
+          <td data-label="Option B"><span class="st st--build">Built during the project</span> A page editor added to the team console.</td></tr>
+      </tbody>
+    </table>
+    <p class="aside">For both options, hosting in ASSET’s name is set up during the project.</p>
+  </div>
+</section>
+
+<!-- 6. How each is built -->
+<section class="built" id="built" aria-labelledby="built-title">
+  <div class="container">
+    <div class="intro">
+      <h2 id="built-title"><span class="n">5</span> How each one is built, in plain words</h2>
+    </div>
+    <div class="built__grid">
+      <div class="built__col">
+        <h3>Option A: WordPress</h3>
+        <ul>
+          <li>WordPress, the system your current site already runs on.</li>
+          <li>Our own plugin (an add-on to WordPress), with no page builders and no paid plugins.</li>
+          <li>Your team edits in the standard WordPress editor.</li>
+          <li>Hosted with a European WordPress host, in ASSET’s name.</li>
+          <li>Needs regular updates of WordPress and its plugins.</li>
+        </ul>
+      </div>
+      <div class="built__col">
+        <h3>Option B: our custom platform</h3>
+        <ul>
+          <li>The public pages are prepared in advance and served from Cloudflare’s global network.</li>
+          <li>A small console for your team.</li>
+          <li>The database is kept in the European Union.</li>
+          <li>Staff sign in with a code sent to their email.</li>
+          <li>No plugins to update; the codes are kept in a separate, locked table.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="choose" aria-labelledby="choose-title">
+      <h3 id="choose-title">How to choose</h3>
+      <div class="choose__grid">
+        <p><strong>Choose A</strong> if a familiar editor and the widest choice of future developers matter most.</p>
+        <p><strong>Choose B</strong> if the least upkeep and security designed in from the start matter most.</p>
+      </div>
+      <p class="choose__both"><strong>With either one:</strong> the source code, the data and every account are in ASSET’s name; you can export everything; and you receive documentation.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 7. GM&E codes diagram (signature) -->
+<section class="codes" id="codes" aria-labelledby="codes-title">
+  <div class="container">
+    <div class="intro">
+      <h2 id="codes-title"><span class="n">6</span> How the GM&amp;E codes stay protected</h2>
+      <p>The same path in both options. Only a named team member, with Direction’s approval, ever sees a code, and only for 24 hours.</p>
+    </div>
+
+    <figure class="flow" data-flow>
+      <svg class="flow__wide" viewBox="0 0 1040 420" role="img" aria-labelledby="fw-t fw-d">
+        <title id="fw-t">The access path for a GM&amp;E code</title>
+        <desc id="fw-d">1. A team member opens a congress and sees the code hidden. 2. They ask for access and give a reason. 3. Direction approves for 24 hours, or refuses. 4. The code is shown to that team member. 5. The access is recorded, every time. Visitors and search engines see only that a negotiated congress fare is available, never the code. Codes are encrypted where they are stored.</desc>
+        <path class="flow__track" d="M96 96 H944"/>
+        <path class="flow__path" pathLength="1" d="M96 96 H944"/>
+        <g class="flow__node" data-i="1"><rect x="8" y="40" width="176" height="112" rx="10"/><text x="24" y="74" class="flow__num">1</text><text x="24" y="104" class="flow__t">Team member</text><text x="24" y="130" class="flow__s">sees the code hidden</text></g>
+        <g class="flow__node" data-i="2"><rect x="224" y="40" width="176" height="112" rx="10"/><text x="240" y="74" class="flow__num">2</text><text x="240" y="104" class="flow__t">Asks for access</text><text x="240" y="130" class="flow__s">and gives a reason</text></g>
+        <g class="flow__node flow__node--dir" data-i="3"><rect x="440" y="40" width="176" height="112" rx="10"/><text x="456" y="74" class="flow__num">3</text><text x="456" y="104" class="flow__t">Direction</text><text x="456" y="130" class="flow__s">approves for 24 h,</text><text x="456" y="148" class="flow__s">or refuses</text></g>
+        <g class="flow__node" data-i="4"><rect x="656" y="40" width="176" height="112" rx="10"/><text x="672" y="74" class="flow__num">4</text><text x="672" y="104" class="flow__t">Code shown</text><text x="672" y="130" class="flow__s">to that person only</text></g>
+        <g class="flow__node flow__node--log" data-i="5"><rect x="856" y="40" width="176" height="112" rx="10"/><text x="872" y="74" class="flow__num">5</text><text x="872" y="104" class="flow__t">Access recorded</text><text x="872" y="130" class="flow__s">who, when, which</text><text x="872" y="148" class="flow__s">code, every time</text></g>
+        <path class="flow__arrow" d="M206 90 l10 6 l-10 6z"/><path class="flow__arrow" d="M422 90 l10 6 l-10 6z"/><path class="flow__arrow" d="M638 90 l10 6 l-10 6z"/><path class="flow__arrow" d="M846 90 l10 6 l-10 6z"/>
+        <line class="flow__wall" x1="8" y1="210" x2="1032" y2="210"/>
+        <text x="8" y="196" class="flow__s">Above the line: your team only</text>
+        <text x="8" y="238" class="flow__s">Below the line: the public site</text>
+        <g class="flow__pub"><rect x="8" y="262" width="496" height="112" rx="10"/><text x="24" y="296" class="flow__t">Visitors and search engines</text><text x="24" y="324" class="flow__s">see only “negotiated congress fare available”.</text><text x="24" y="350" class="flow__s">The code never reaches the public site.</text></g>
+        <g class="flow__vault"><rect x="536" y="262" width="496" height="112" rx="10"/><text x="552" y="296" class="flow__t">Where the codes are stored</text><text x="552" y="324" class="flow__s">Encrypted, so a copy of the data alone</text><text x="552" y="350" class="flow__s">does not reveal them.</text></g>
+      </svg>
+      <svg class="flow__tall" viewBox="0 0 360 980" role="img" aria-labelledby="ft-t ft-d">
+        <title id="ft-t">The access path for a GM&amp;E code</title>
+        <desc id="ft-d">1. A team member opens a congress and sees the code hidden. 2. They ask for access and give a reason. 3. Direction approves for 24 hours, or refuses. 4. The code is shown to that team member. 5. The access is recorded, every time. Visitors and search engines see only that a negotiated congress fare is available, never the code. Codes are encrypted where they are stored.</desc>
+        <path class="flow__track" d="M36 40 V560"/>
+        <path class="flow__path" pathLength="1" d="M36 40 V560"/>
+        <g class="flow__node" data-i="1"><rect x="56" y="4" width="300" height="92" rx="10"/><text x="74" y="40" class="flow__t">1. Team member</text><text x="74" y="70" class="flow__s">sees the code hidden</text></g>
+        <g class="flow__node" data-i="2"><rect x="56" y="116" width="300" height="92" rx="10"/><text x="74" y="152" class="flow__t">2. Asks for access</text><text x="74" y="182" class="flow__s">and gives a reason</text></g>
+        <g class="flow__node flow__node--dir" data-i="3"><rect x="56" y="228" width="300" height="92" rx="10"/><text x="74" y="264" class="flow__t">3. Direction</text><text x="74" y="294" class="flow__s">approves for 24 h, or refuses</text></g>
+        <g class="flow__node" data-i="4"><rect x="56" y="340" width="300" height="92" rx="10"/><text x="74" y="376" class="flow__t">4. Code shown</text><text x="74" y="406" class="flow__s">to that person only</text></g>
+        <g class="flow__node flow__node--log" data-i="5"><rect x="56" y="452" width="300" height="108" rx="10"/><text x="74" y="488" class="flow__t">5. Access recorded</text><text x="74" y="518" class="flow__s">who, when, which code,</text><text x="74" y="542" class="flow__s">every time</text></g>
+        <circle class="flow__dot" cx="36" cy="50" r="7"/><circle class="flow__dot" cx="36" cy="162" r="7"/><circle class="flow__dot" cx="36" cy="274" r="7"/><circle class="flow__dot" cx="36" cy="386" r="7"/><circle class="flow__dot" cx="36" cy="506" r="7"/>
+        <line class="flow__wall" x1="4" y1="610" x2="356" y2="610"/>
+        <text x="4" y="596" class="flow__s">Above: your team only</text>
+        <text x="4" y="638" class="flow__s">Below: the public site</text>
+        <g class="flow__pub"><rect x="4" y="660" width="352" height="140" rx="10"/><text x="20" y="696" class="flow__t">Visitors and search engines</text><text x="20" y="726" class="flow__s">see only “negotiated congress</text><text x="20" y="750" class="flow__s">fare available”. The code never</text><text x="20" y="774" class="flow__s">reaches the public site.</text></g>
+        <g class="flow__vault"><rect x="4" y="824" width="352" height="140" rx="10"/><text x="20" y="860" class="flow__t">Where the codes are stored</text><text x="20" y="890" class="flow__s">Encrypted, so a copy of the</text><text x="20" y="914" class="flow__s">data alone does not reveal</text><text x="20" y="938" class="flow__s">them.</text></g>
+      </svg>
+      <figcaption>Every request, decision and display is kept in a record that Direction can read.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- 8. Milestones -->
+<section class="plan" id="plan" aria-labelledby="plan-title">
+  <div class="container">
+    <div class="intro">
+      <h2 id="plan-title"><span class="n">7</span> Milestones</h2>
+      <p>Counted from your approval and receipt of the required content. The plan is the same for both options.</p>
+    </div>
+    <div class="gantt">
+      <div class="gantt__scale" aria-hidden="true">
+        <span class="gantt__pad"></span>
+        <div class="gantt__weeks"><span>Week 1</span><span>Week 5</span><span>Week 10</span><span>Week 13</span><span>After launch</span></div>
+      </div>
+      <ol class="gantt__rows">
+        <li class="g" data-from="1" data-to="2">
+          <div class="g__txt"><h3>Kickoff, access and audit</h3><p class="g__when">Weeks 1 to 2</p><p>An audit of your current site, and one workshop of up to 2 hours.</p></div>
+          <div class="g__track" aria-hidden="true"><span class="g__bar"></span></div>
+        </li>
+        <li class="g" data-from="2" data-to="5">
+          <div class="g__txt"><h3>Design</h3><p class="g__when">Weeks 2 to 5</p><p>Wireframes (page outlines), then desktop and mobile mock-ups, with two rounds of changes at each stage.</p></div>
+          <div class="g__track" aria-hidden="true"><span class="g__bar"></span></div>
+        </li>
+        <li class="g" data-from="5" data-to="10">
+          <div class="g__txt"><h3>Development</h3><p class="g__when">Weeks 5 to 10</p><p>Pages, the congress catalogue, enquiries, GM&amp;E access, and the import of your congress list, with a trial run first.</p></div>
+          <div class="g__track" aria-hidden="true"><span class="g__bar"></span></div>
+        </li>
+        <li class="g" data-from="10" data-to="12">
+          <div class="g__txt"><h3>Testing</h3><p class="g__when">Weeks 10 to 12</p><p>On a private copy of the site, against your acceptance tests T01 to T15, then fixes.</p></div>
+          <div class="g__track" aria-hidden="true"><span class="g__bar"></span></div>
+        </li>
+        <li class="g" data-from="12" data-to="12">
+          <div class="g__txt"><h3>Training</h3><p class="g__when">Week 12</p><p>For your team, with a second session four weeks after launch.</p></div>
+          <div class="g__track" aria-hidden="true"><span class="g__bar"></span><span class="g__bar g__bar--again"></span></div>
+        </li>
+        <li class="g g--launch" data-from="13" data-to="13">
+          <div class="g__txt"><h3>Launch</h3><p class="g__when">Week 13</p><p>After your written acceptance and management’s go-ahead, with old addresses redirected to the new pages.</p></div>
+          <div class="g__track" aria-hidden="true"><span class="g__bar"></span></div>
+        </li>
+        <li class="g" data-from="14" data-to="17">
+          <div class="g__txt"><h3>Stabilisation</h3><p class="g__when">Four weeks after launch</p><p>We watch the new site closely and fix anything that comes up.</p></div>
+          <div class="g__track" aria-hidden="true"><span class="g__bar"></span></div>
+        </li>
+      </ol>
+    </div>
+    <p class="aside">If the year-end holidays fall inside the plan, those weeks are added. The launch date is agreed together.</p>
+  </div>
+</section>
+
+<!-- 9. Demonstration -->
+<section class="slot" id="slot" aria-labelledby="slot-title">
+  <div class="container slot__in">
+    <div class="intro">
+      <h2 id="slot-title"><span class="n">8</span> A 20 to 30 minute demonstration</h2>
+      <p>We walk you through both options and answer your questions. Pick a time below and your email opens with it filled in. All times are Paris time.</p>
+    </div>
+    <ul class="days">
+      <li><p class="day">Thursday 12 November</p><p class="times"><a class="time" href="mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&amp;body=Proposed%20slot%3A%20Thursday%2012%20November%2C%2010%3A00%20(Paris%20time)">10:00</a><a class="time" href="mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&amp;body=Proposed%20slot%3A%20Thursday%2012%20November%2C%2014%3A30%20(Paris%20time)">14:30</a></p></li>
+      <li><p class="day">Friday 13 November</p><p class="times"><a class="time" href="mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&amp;body=Proposed%20slot%3A%20Friday%2013%20November%2C%2010%3A00%20(Paris%20time)">10:00</a></p></li>
+      <li><p class="day">Monday 16 November</p><p class="times"><a class="time" href="mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&amp;body=Proposed%20slot%3A%20Monday%2016%20November%2C%2010%3A00%20(Paris%20time)">10:00</a><a class="time" href="mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&amp;body=Proposed%20slot%3A%20Monday%2016%20November%2C%2014%3A30%20(Paris%20time)">14:30</a></p></li>
+      <li><p class="day">Tuesday 17 November</p><p class="times"><a class="time" href="mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&amp;body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2010%3A00%20(Paris%20time)">10:00</a><a class="time" href="mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&amp;body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2014%3A30%20(Paris%20time)">14:30</a></p></li>
+    </ul>
+    <p class="slot__act"><a class="btn" data-mailto href="mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot">Suggest another time</a></p>
+    <p class="aside">Nothing on this page is chargeable. If you would like a sample built for one of your own congresses, we can do that only if you ask, with the scope, fee and date agreed in writing first.</p>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="container foot__in">
+    <div class="foot__sig">
+      <p class="foot__name">Debanjan</p>
+      <p>Founder, ProdCraft<br><a href="mailto:debanjan@prodcraft.fyi">debanjan@prodcraft.fyi</a></p>
+    </div>
+    <div class="foot__fine">
+      <p>All congresses, people, enquiries and codes in these demos are fictional. The concept and the demos are illustrations: only the signed proposal defines what is included.</p>
+      <p class="foot__links">Earlier pages: <a href="../">the concept</a>, <a href="../pour-asset/">the note for ASSET</a> (in French), <a href="../console/">the Console mock-up</a>, <a href="../questions/">our questions</a>.</p>
+      <p>Unlisted page: hidden from search engines; anyone with the link can open it.</p>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

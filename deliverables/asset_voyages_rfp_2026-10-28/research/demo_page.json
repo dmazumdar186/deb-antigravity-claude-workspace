@@ -1,0 +1,176 @@
+{
+ "url": "http://localhost:8794/demo/",
+ "date": "2026-11-05T18:12:01.621Z",
+ "pass": 34,
+ "total": 34,
+ "results": [
+  {
+   "name": "desktop: headline, sentence and primary action above the fold at 1440x900",
+   "ok": true,
+   "info": "{\"h1\":385,\"btn\":559.375}"
+  },
+  {
+   "name": "desktop: 0 console errors (served with the real _headers CSP)",
+   "ok": true,
+   "info": ""
+  },
+  {
+   "name": "desktop: 0 third-party requests on load",
+   "ok": true,
+   "info": "localhost:8794"
+  },
+  {
+   "name": "desktop 1440: no horizontal overflow",
+   "ok": true,
+   "info": "{\"sw\":1440,\"W\":1440,\"bad\":[]}"
+  },
+  {
+   "name": "every in-page anchor resolves to an element",
+   "ok": true,
+   "info": ""
+  },
+  {
+   "name": "sticky strip lists the eight sections in page order",
+   "ok": true,
+   "info": "#options,#try,#recordings,#compare,#built,#codes,#plan,#slot"
+  },
+  {
+   "name": "relative links to the concept pages resolve (200)",
+   "ok": true,
+   "info": "../,../pour-asset/,../console/,../questions/"
+  },
+  {
+   "name": "demo constants: four URLs defined once in demo.js, applied to every demo link, same hrefs in the HTML for no-JS",
+   "ok": true,
+   "info": "links=9"
+  },
+  {
+   "name": "two option cards, two buttons each",
+   "ok": true,
+   "info": "2,2"
+  },
+  {
+   "name": "logins: direction / equipe / contributeur, password demo-asset; Playground start time stated",
+   "ok": true
+  },
+  {
+   "name": "mailto: main button exact; every slot mails debanjan@prodcraft.fyi with subject \"ASSET – demonstration slot\"",
+   "ok": true,
+   "info": "Thursday 12 November 10:00 14:30 / Friday 13 November 10:00 / Monday 16 November 10:00 14:30 / Tuesday 17 November 10:00 14:30"
+  },
+  {
+   "name": "slots: Thu 12 (10:00, 14:30), Fri 13 (10:00), Mon 16 (10:00, 14:30), Tue 17 (10:00, 14:30)",
+   "ok": true,
+   "info": "Thursday 12 November 10:00 14:30|Friday 13 November 10:00|Monday 16 November 10:00 14:30|Tuesday 17 November 10:00 14:30"
+  },
+  {
+   "name": "comparison: 11 rows, every cell carries one of the two statuses",
+   "ok": true,
+   "info": "11 rows"
+  },
+  {
+   "name": "signature: GM&E access path armed below the fold and fully drawn after scrolling to it",
+   "ok": true,
+   "info": "{\"armed\":true,\"in\":true,\"off\":\"0px\",\"op\":\"1\"}"
+  },
+  {
+   "name": "diagram: role=img with title and full text description",
+   "ok": true
+  },
+  {
+   "name": "desktop: #compare heading lands below the sticky strip, strip marks it",
+   "ok": true,
+   "info": "{\"top\":173.296875,\"strip\":57,\"cur\":\"#compare\"}"
+  },
+  {
+   "name": "desktop: #slot heading lands below the sticky strip, strip marks it",
+   "ok": true,
+   "info": "{\"top\":173.921875,\"strip\":57,\"cur\":\"#slot\"}"
+  },
+  {
+   "name": "recordings: manifest says not ready, so both slots show the designed fallback (no video, no 404)",
+   "ok": true,
+   "info": "[{\"v\":false,\"empty\":true},{\"v\":false,\"empty\":true}]"
+  },
+  {
+   "name": "WCAG AA contrast on every visible text element",
+   "ok": true,
+   "info": "checked 286"
+  },
+  {
+   "name": "print: strip hidden, both options of every task printed, wide diagram, PDF written",
+   "ok": true,
+   "info": "{\"mini\":\"none\",\"optsB\":true,\"wide\":\"block\"}"
+  },
+  {
+   "name": "390: 0 console errors",
+   "ok": true,
+   "info": ""
+  },
+  {
+   "name": "390: no horizontal overflow",
+   "ok": true,
+   "info": "{\"sw\":390,\"W\":390,\"bad\":[]}"
+  },
+  {
+   "name": "390: all text 16 px or more (diagram text included, as rendered)",
+   "ok": true,
+   "info": "{\"bad\":[],\"svgMin\":16.9990234375}"
+  },
+  {
+   "name": "390: every button, slot, strip link and switch is at least 44 px",
+   "ok": true,
+   "info": "[]"
+  },
+  {
+   "name": "390: A/B switch shows one option at a time, aria-pressed follows",
+   "ok": true,
+   "info": "{\"sw\":{\"shown\":true,\"a\":true,\"b\":true},\"sw2\":{\"a\":true,\"b\":true,\"pressed\":\"true\"}}"
+  },
+  {
+   "name": "390: #plan heading lands below the sticky strip",
+   "ok": true,
+   "info": "{\"top\":128.96875,\"strip\":57}"
+  },
+  {
+   "name": "390: the diagram switches to its vertical drawing",
+   "ok": true,
+   "info": "{\"wide\":\"none\",\"tall\":\"block\"}"
+  },
+  {
+   "name": "recordings: a file announced but missing falls back to the message; a present file plays in the slot",
+   "ok": true,
+   "info": "{\"wp-walkthrough\":{\"v\":false,\"ready\":0,\"empty\":true,\"msg\":\"This recording could not be loaded just now.\"},\"custom-walkthrough\":{\"v\":true,\"ready\":4,\"empty\":false,\"msg\":\"The recording for Option B will appear here.\"}}"
+  },
+  {
+   "name": "reduced motion: no reveal (diagram drawn from the start), no smooth scroll",
+   "ok": true,
+   "info": "{\"armed\":false,\"sb\":\"auto\",\"off\":\"0px\"}"
+  },
+  {
+   "name": "JS off 1440: every section, both options of all 5 tasks, demo links, diagram, fallbacks, table; no overflow",
+   "ok": true,
+   "info": "{\"sections\":true,\"opts\":10,\"sw\":true,\"path\":\"none\",\"rec\":true,\"links\":true,\"rows\":11,\"sw0\":true}"
+  },
+  {
+   "name": "JS off 390: every section, both options of all 5 tasks, demo links, diagram, fallbacks, table; no overflow",
+   "ok": true,
+   "info": "{\"sections\":true,\"opts\":10,\"sw\":true,\"path\":\"none\",\"rec\":true,\"links\":true,\"rows\":11,\"sw0\":true}"
+  },
+  {
+   "name": "/: link to /demo/ present, no overflow at 390",
+   "ok": true,
+   "info": "{\"link\":true,\"sw\":390,\"W\":390,\"hdr\":true}"
+  },
+  {
+   "name": "/pour-asset/: link to /demo/ present, no overflow at 390",
+   "ok": true,
+   "info": "{\"link\":true,\"sw\":390,\"W\":390,\"hdr\":true}"
+  },
+  {
+   "name": "/questions/: link to /demo/ present, no overflow at 390",
+   "ok": true,
+   "info": "{\"link\":true,\"sw\":390,\"W\":390,\"hdr\":true}"
+  }
+ ]
+}

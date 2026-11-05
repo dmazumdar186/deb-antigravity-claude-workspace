@@ -282,7 +282,7 @@ class Asset_CD_Demandes {
 				</div>
 			</fieldset>
 			<div class="asset-field asset-field--check">
-				<input type="checkbox" id="asset-q-consentement" name="consentement" value="1" required<?php echo $attr_err( 'consentement' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> />
+				<input type="checkbox" id="asset-q-consentement" name="consentement" value="1" required<?php checked( $val( 'consentement' ), '1' ); ?><?php echo $attr_err( 'consentement' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> />
 				<label for="asset-q-consentement"><?php esc_html_e( 'J’accepte qu’ASSET Voyages utilise ces informations pour traiter ma demande de devis (RGPD). Elles ne sont ni revendues ni utilisées à d’autres fins.', 'asset-congres-demo' ); ?></label>
 				<?php echo $err_line( 'consentement' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			</div>
@@ -369,6 +369,7 @@ class Asset_CD_Demandes {
 		}
 
 		$clean['message'] = sanitize_textarea_field( mb_substr( $get( 'message' ), 0, 2000 ) );
+		$clean['consentement'] = empty( $raw['consentement'] ) ? '' : '1';
 
 		if ( empty( $raw['consentement'] ) ) {
 			$errors['consentement'] = __( 'Votre accord est nécessaire pour traiter la demande.', 'asset-congres-demo' );

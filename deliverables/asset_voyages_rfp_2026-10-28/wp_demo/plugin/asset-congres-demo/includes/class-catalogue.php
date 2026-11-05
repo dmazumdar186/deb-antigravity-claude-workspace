@@ -21,6 +21,25 @@ class Asset_CD_Catalogue {
 		add_shortcode( 'asset_catalogue', array( __CLASS__, 'shortcode' ) );
 		add_filter( 'the_content', array( __CLASS__, 'single_content' ), 20 );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'assets' ) );
+		add_action( 'init', array( __CLASS__, 'no_third_party' ) );
+		add_action( 'wp_dashboard_setup', array( __CLASS__, 'trim_dashboard' ), 20 );
+	}
+
+	/**
+	 * No third-party requests from visitor or admin pages (emoji images come from s.w.org).
+	 */
+	public static function no_third_party() {
+		remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
+		remove_action( 'admin_print_scripts', 'print_emoji_detection_script' );
+		remove_action( 'wp_print_styles', 'print_emoji_styles' );
+		remove_action( 'admin_print_styles', 'print_emoji_styles' );
+	}
+
+	/**
+	 * Removes the WordPress news widget (external feed) from the demo dashboard.
+	 */
+	public static function trim_dashboard() {
+		remove_meta_box( 'dashboard_primary', 'dashboard', 'side' );
 	}
 
 	/**
@@ -251,7 +270,7 @@ class Asset_CD_Catalogue {
 
 		ob_start();
 		?>
-		<div class="asset-cd asset-catalogue">
+		<div class="asset-cd asset-catalogue alignwide">
 			<p class="asset-demo-flag"><?php esc_html_e( 'Démonstration : tous les congrès ci-dessous sont fictifs.', 'asset-congres-demo' ); ?></p>
 			<form class="asset-filters" method="get" action="<?php echo esc_url( $base ); ?>" role="search" aria-label="<?php esc_attr_e( 'Rechercher un congrès', 'asset-congres-demo' ); ?>">
 				<div class="asset-field asset-field--search">
@@ -281,6 +300,15 @@ class Asset_CD_Catalogue {
 					<a class="asset-link" href="<?php echo esc_url( $base ); ?>"><?php esc_html_e( 'Réinitialiser', 'asset-congres-demo' ); ?></a>
 				</div>
 			</form>
+
+			<nav class="asset-chips" aria-label="<?php esc_attr_e( 'Accès rapide par discipline', 'asset-congres-demo' ); ?>">
+				<ul>
+					<?php foreach ( self::term_options( 'asset_discipline' ) as $slug => $name ) : ?>
+						<?php $active = $slug === $f['discipline']; ?>
+						<li><a class="asset-chip<?php echo $active ? ' is-active' : ''; ?>" href="<?php echo esc_url( $active ? remove_query_arg( array( 'discipline', 'pg' ) ) : add_query_arg( 'discipline', rawurlencode( (string) $slug ), remove_query_arg( 'pg' ) ) ); ?>"<?php echo $active ? ' aria-current="true"' : ''; ?>><?php echo esc_html( $name ); ?></a></li>
+					<?php endforeach; ?>
+				</ul>
+			</nav>
 
 			<p class="asset-count" role="status">
 				<?php
@@ -408,7 +436,7 @@ class Asset_CD_Catalogue {
 
 		ob_start();
 		?>
-		<div class="asset-cd asset-single">
+		<div class="asset-cd asset-single alignwide">
 			<?php if ( $cat_id ) : ?>
 				<p><a class="asset-link" href="<?php echo esc_url( get_permalink( $cat_id ) ); ?>"><?php esc_html_e( 'Retour au catalogue', 'asset-congres-demo' ); ?></a></p>
 			<?php endif; ?>

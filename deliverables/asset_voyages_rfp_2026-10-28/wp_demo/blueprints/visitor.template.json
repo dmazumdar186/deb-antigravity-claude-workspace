@@ -1,0 +1,16 @@
+{
+	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
+	"meta": {
+		"title": "ASSET Voyages : démo congrès (visiteur)",
+		"description": "Catalogue de congrès fictifs, recherche, filtres, fiche détail et demande de devis vol. Données fictives.",
+		"author": "ProdCraft"
+	},
+	"landingPage": "/",
+	"preferredVersions": { "php": "8.3", "wp": "latest" },
+	"features": { "networking": true },
+	"steps": [
+		{ "step": "setSiteLanguage", "language": "fr_FR" },
+		{ "step": "installPlugin", "pluginData": { "resource": "url", "url": "__PLUGIN_ZIP_URL__" }, "options": { "activate": true } },
+		{ "step": "runPHP", "code": "<?php require_once '/wordpress/wp-load.php'; asset_congres_demo_seed();" }
+	]
+}

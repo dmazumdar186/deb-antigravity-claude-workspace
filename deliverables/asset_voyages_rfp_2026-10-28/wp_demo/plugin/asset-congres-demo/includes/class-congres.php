@@ -39,6 +39,8 @@ class Asset_CD_Congres {
 		add_filter( 'use_block_editor_for_post_type', array( __CLASS__, 'classic_editor' ), 10, 2 );
 		add_action( 'add_meta_boxes_' . self::POST_TYPE, array( __CLASS__, 'add_meta_box' ) );
 		add_action( 'save_post_' . self::POST_TYPE, array( __CLASS__, 'save' ), 10, 2 );
+		add_filter( 'wp_insert_post_data', array( __CLASS__, 'clean_title' ) );
+		add_action( 'admin_notices', array( __CLASS__, 'admin_notices' ) );
 		add_filter( 'manage_' . self::POST_TYPE . '_posts_columns', array( __CLASS__, 'columns' ) );
 		add_action( 'manage_' . self::POST_TYPE . '_posts_custom_column', array( __CLASS__, 'column' ), 10, 2 );
 	}
@@ -98,6 +100,7 @@ class Asset_CD_Congres {
 				'public'            => true,
 				'hierarchical'      => true,
 				'show_admin_column' => true,
+				'meta_box_cb'       => false,
 				'show_in_rest'      => true,
 				'rewrite'           => array( 'slug' => 'discipline' ),
 				'capabilities'      => $tax_caps,
@@ -116,6 +119,7 @@ class Asset_CD_Congres {
 				'public'            => true,
 				'hierarchical'      => true,
 				'show_admin_column' => true,
+				'meta_box_cb'       => false,
 				'show_in_rest'      => true,
 				'rewrite'           => array( 'slug' => 'pays' ),
 				'capabilities'      => $tax_caps,
@@ -148,18 +152,36 @@ class Asset_CD_Congres {
 	 */
 	public static function render_meta_box( $post ) {
 		wp_nonce_field( 'asset_congres_save', 'asset_congres_nonce' );
+		$req = ' <span class="asset-req">' . esc_html__( '(obligatoire)', 'asset-congres-demo' ) . '</span>';
 		echo '<table class="form-table" role="presentation"><tbody>';
-		foreach ( self::fields() as $key => $def ) {
-			$id    = 'asset-field-' . sanitize_html_class( trim( $key, '_' ) );
-			$value = (string) get_post_meta( $post->ID, $key, true );
-			printf(
-				'<tr><th scope="row"><label for="%1$s">%2$s</label></th><td><input type="%3$s" id="%1$s" name="asset_meta[%4$s]" value="%5$s" class="regular-text" /></td></tr>',
-				esc_attr( $id ),
-				esc_html( $def[0] ),
-				esc_attr( $def[1] ),
-				esc_attr( $key ),
-				'url' === $def[1] ? esc_url( $value ) : esc_attr( $value )
+		$rows = array(
+			'_asset_start' => true,
+			'_asset_end'   => true,
+			'_asset_city'  => true,
+		);
+		$fields = self::fields();
+		foreach ( $rows as $key => $required ) {
+			self::field_row( $post->ID, $key, $fields[ $key ], $required ? $req : '' );
+		}
+		foreach ( self::tax_fields() as $tax => $label ) {
+			$current = self::term_name( $post->ID, $tax );
+			$id      = 'asset-field-' . $tax;
+			printf( '<tr><th scope="row"><label for="%1$s">%2$s</label>%3$s</th><td><input type="text" id="%1$s" name="asset_tax[%4$s]" value="%5$s" list="%1$s-list" class="regular-text" autocomplete="off" /><datalist id="%1$s-list">', esc_attr( $id ), esc_html( $label ), $req, esc_attr( $tax ), esc_attr( $current ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $req is escaped.
+			$terms = get_terms(
+				array(
+					'taxonomy'   => $tax,
+					'hide_empty' => false,
+				)
 			);
+			if ( is_array( $terms ) ) {
+				foreach ( $terms as $t ) {
+					echo '<option value="' . esc_attr( $t->name ) . '"></option>';
+				}
+			}
+			echo '</datalist></td></tr>';
+		}
+		foreach ( array( '_asset_venue', '_asset_url', '_asset_source', '_asset_verified' ) as $key ) {
+			self::field_row( $post->ID, $key, $fields[ $key ], '' );
 		}
 		$ref = (string) get_post_meta( $post->ID, '_asset_ref', true );
 		if ( $ref ) {
@@ -170,19 +192,57 @@ class Asset_CD_Congres {
 	}
 
 	/**
-	 * Sanitises a single field value.
+	 * One meta field row.
+	 *
+	 * @param int    $post_id Post ID.
+	 * @param string $key     Meta key.
+	 * @param array  $def     [label, type].
+	 * @param string $suffix  Escaped label suffix.
+	 */
+	private static function field_row( $post_id, $key, $def, $suffix ) {
+		$id    = 'asset-field-' . sanitize_html_class( trim( $key, '_' ) );
+		$value = (string) get_post_meta( $post_id, $key, true );
+		printf(
+			'<tr><th scope="row"><label for="%1$s">%2$s</label>%6$s</th><td><input type="%3$s" id="%1$s" name="asset_meta[%4$s]" value="%5$s" class="regular-text"%7$s /></td></tr>',
+			esc_attr( $id ),
+			esc_html( $def[0] ),
+			esc_attr( $def[1] ),
+			esc_attr( $key ),
+			'url' === $def[1] ? esc_url( $value ) : esc_attr( $value ),
+			$suffix, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped by caller.
+			'url' === $def[1] ? ' placeholder="https://"' : ''
+		);
+	}
+
+	/**
+	 * Taxonomy fields typed in the meta box.
+	 *
+	 * @return array<string,string>
+	 */
+	public static function tax_fields() {
+		return array(
+			'asset_pays'       => __( 'Pays', 'asset-congres-demo' ),
+			'asset_discipline' => __( 'Discipline', 'asset-congres-demo' ),
+		);
+	}
+
+	/**
+	 * Sanitises a single field value ('' when invalid).
 	 *
 	 * @param string $type  Field type.
 	 * @param string $value Raw value.
 	 * @return string
 	 */
 	public static function sanitize_field( $type, $value ) {
-		$value = (string) $value;
+		$value = trim( (string) $value );
 		switch ( $type ) {
 			case 'date':
 				$d = DateTimeImmutable::createFromFormat( '!Y-m-d', $value );
 				return ( $d && $d->format( 'Y-m-d' ) === $value ) ? $value : '';
 			case 'url':
+				if ( ! filter_var( $value, FILTER_VALIDATE_URL ) || ! in_array( strtolower( (string) wp_parse_url( $value, PHP_URL_SCHEME ) ), array( 'http', 'https' ), true ) ) {
+					return '';
+				}
 				return esc_url_raw( $value, array( 'http', 'https' ) );
 			default:
 				return mb_substr( sanitize_text_field( $value ), 0, 200 );
@@ -190,7 +250,20 @@ class Asset_CD_Congres {
 	}
 
 	/**
-	 * Saves meta.
+	 * Plain-text congress titles (HTML is never kept in titles).
+	 *
+	 * @param array $data Post data (slashed).
+	 * @return array
+	 */
+	public static function clean_title( $data ) {
+		if ( isset( $data['post_type'] ) && self::POST_TYPE === $data['post_type'] && isset( $data['post_title'] ) ) {
+			$data['post_title'] = wp_slash( sanitize_text_field( wp_unslash( $data['post_title'] ) ) );
+		}
+		return $data;
+	}
+
+	/**
+	 * Saves meta and taxonomy fields, rejecting invalid values with a message.
 	 *
 	 * @param int     $post_id Post ID.
 	 * @param WP_Post $post    Post.
@@ -205,19 +278,104 @@ class Asset_CD_Congres {
 		if ( ! current_user_can( 'edit_post', $post_id ) ) {
 			return;
 		}
-		$raw = isset( $_POST['asset_meta'] ) && is_array( $_POST['asset_meta'] ) ? wp_unslash( $_POST['asset_meta'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitised per field below.
+		$raw    = isset( $_POST['asset_meta'] ) && is_array( $_POST['asset_meta'] ) ? wp_unslash( $_POST['asset_meta'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitised per field below.
+		$errors = array();
+		$clean  = array();
 		foreach ( self::fields() as $key => $def ) {
 			if ( ! array_key_exists( $key, $raw ) ) {
 				continue;
 			}
-			$clean = self::sanitize_field( $def[1], is_scalar( $raw[ $key ] ) ? $raw[ $key ] : '' );
-			update_post_meta( $post_id, $key, $clean );
+			$in            = is_scalar( $raw[ $key ] ) ? trim( (string) $raw[ $key ] ) : '';
+			$clean[ $key ] = self::sanitize_field( $def[1], $in );
+			if ( '' !== $in && '' === $clean[ $key ] ) {
+				/* translators: %s: field label. */
+				$errors[] = sprintf( __( '« %s » est invalide et n’a pas été enregistré.', 'asset-congres-demo' ), $def[0] );
+				unset( $clean[ $key ] );
+			}
 		}
-		$start = (string) get_post_meta( $post_id, '_asset_start', true );
-		$end   = (string) get_post_meta( $post_id, '_asset_end', true );
-		if ( $start && ( ! $end || $end < $start ) ) {
-			update_post_meta( $post_id, '_asset_end', $start );
+		$start = $clean['_asset_start'] ?? (string) get_post_meta( $post_id, '_asset_start', true );
+		$end   = $clean['_asset_end'] ?? (string) get_post_meta( $post_id, '_asset_end', true );
+		if ( $start && $end && $end < $start ) {
+			$errors[] = __( 'La date de fin doit être postérieure ou égale à la date de début : dates non enregistrées.', 'asset-congres-demo' );
+			unset( $clean['_asset_start'], $clean['_asset_end'] );
 		}
+		foreach ( $clean as $key => $value ) {
+			update_post_meta( $post_id, $key, $value );
+		}
+
+		$tax_raw = isset( $_POST['asset_tax'] ) && is_array( $_POST['asset_tax'] ) ? wp_unslash( $_POST['asset_tax'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitised below.
+		foreach ( self::tax_fields() as $tax => $label ) {
+			if ( ! isset( $tax_raw[ $tax ] ) || ! is_scalar( $tax_raw[ $tax ] ) ) {
+				continue;
+			}
+			$name = mb_substr( sanitize_text_field( (string) $tax_raw[ $tax ] ), 0, 100 );
+			if ( '' === $name ) {
+				wp_set_object_terms( $post_id, array(), $tax );
+				continue;
+			}
+			$term = get_term_by( 'name', $name, $tax );
+			if ( ! $term ) {
+				if ( current_user_can( 'manage_asset_congres_terms' ) ) {
+					$made = wp_insert_term( $name, $tax );
+					$term = is_wp_error( $made ) ? null : get_term( (int) $made['term_id'], $tax );
+				} else {
+					/* translators: %s: field label. */
+					$errors[] = sprintf( __( '« %s » : choisissez une valeur existante dans la liste.', 'asset-congres-demo' ), $label );
+				}
+			}
+			if ( $term && ! is_wp_error( $term ) ) {
+				wp_set_object_terms( $post_id, array( (int) $term->term_id ), $tax );
+			}
+		}
+
+		// Required fields: a published congress must be complete, otherwise it stays a draft.
+		$missing = array();
+		foreach ( array( '_asset_start', '_asset_end', '_asset_city' ) as $key ) {
+			if ( '' === (string) get_post_meta( $post_id, $key, true ) ) {
+				$missing[] = self::fields()[ $key ][0];
+			}
+		}
+		foreach ( self::tax_fields() as $tax => $label ) {
+			if ( '' === self::term_name( $post_id, $tax ) ) {
+				$missing[] = $label;
+			}
+		}
+		if ( $missing && in_array( $post->post_status, array( 'publish', 'future' ), true ) ) {
+			remove_action( 'save_post_' . self::POST_TYPE, array( __CLASS__, 'save' ), 10 );
+			wp_update_post(
+				array(
+					'ID'          => $post_id,
+					'post_status' => 'draft',
+				)
+			);
+			add_action( 'save_post_' . self::POST_TYPE, array( __CLASS__, 'save' ), 10, 2 );
+			/* translators: %s: list of fields. */
+			$errors[] = sprintf( __( 'Champs obligatoires manquants (%s) : le congrès reste en brouillon.', 'asset-congres-demo' ), implode( ', ', $missing ) );
+		}
+		if ( $errors ) {
+			set_transient( 'asset_cd_notice_' . get_current_user_id(), $errors, 5 * MINUTE_IN_SECONDS );
+		}
+	}
+
+	/**
+	 * Shows save errors on the edit screen.
+	 */
+	public static function admin_notices() {
+		$screen = get_current_screen();
+		if ( ! $screen || self::POST_TYPE !== $screen->post_type ) {
+			return;
+		}
+		$key    = 'asset_cd_notice_' . get_current_user_id();
+		$errors = get_transient( $key );
+		if ( ! is_array( $errors ) || ! $errors ) {
+			return;
+		}
+		delete_transient( $key );
+		echo '<div class="notice notice-error asset-save-errors" role="alert"><ul>';
+		foreach ( $errors as $e ) {
+			echo '<li>' . esc_html( (string) $e ) . '</li>';
+		}
+		echo '</ul></div>';
 	}
 
 	/**
