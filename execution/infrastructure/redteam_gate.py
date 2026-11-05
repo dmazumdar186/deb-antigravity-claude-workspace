@@ -16,7 +16,7 @@ subagents; this script does what can be done deterministically:
   lexically against sources. `weak` and `ungrounded` both fail.
 * Ledger rows carry `mac` = HMAC-SHA256 (key file, see key_path) over canonical JSON of the row;
   readers ignore unsigned/invalid rows. Only hooks and a successful `record` sign.
-* hook/post-hook/subagent-hook/prompt-hook refuse unless REDTEAM_HOOK=1 (set by the hook script).
+* hook/post-hook/subagent-hook/prompt-hook refuse unless env REDTEAM_HOOK is 1 (set by the hook script).
 * subagent-hook (SubagentStop): logs every strict LENS/DRAFT-SHA/VERDICT header produced by a
   subagent whose agent_transcript_path is <transcript root>/**/agent-<agent_id>.jsonl.
 * record: zero ungrounded/weak claims + four PASS verdict files whose normalised sha256 is in
@@ -2006,6 +2006,10 @@ def _scan_file(p: Path, label: str) -> str | None:
     if not hit and text is not None and p.suffix.lower() in (".php", ".phtml") and \
             _PHP_MAIL_RE.search(text):
         hit = "PHP mail("
+    if not hit and text is not None:
+        hk = hook_text_hit(text)
+        if hk:
+            hit = f"harness-only hook path: {hk}"
     return f"{hit} in {label}" if hit else None
 
 
@@ -2130,6 +2134,26 @@ def _dir_tracked_clean(p: Path) -> bool:
     return r.returncode == 0 and not r.stdout.strip() and tracked
 
 
+_XARGS_RE = re.compile(r"(?:^|[\s;&|(])xargs\b((?:\s+-\S+(?:\s+(?!-)[^\s|;&]+)?)*?)\s+"
+                       r"(?:\S*/)?(" + _EXEC_WORDS + r")(?:\.exe)?(?=[\s|;&)]|$)([^|;&\n]*)", re.I)
+
+
+def xargs_error(outer: str, cwd: Path) -> str | None:
+    """`xargs <interpreter>` runs code from its input: allowed only when the interpreter is
+    given a named script file (which the normal scan reads)."""
+    import shlex
+    for m in _XARGS_RE.finditer(_QUOTED_RE.sub(" ''", outer)):
+        try:
+            rest = shlex.split(m.group(3))
+        except ValueError:
+            rest = m.group(3).split()
+        script = next((t for t in rest if not t.startswith("-")), None)
+        sp = _xuser(Path(script)) if script else None
+        if sp is None or "-c" in rest or not (sp if sp.is_absolute() else cwd / sp).is_file():
+            return f"xargs feeds input to {m.group(2)} (unscannable)"
+    return None
+
+
 def code_env_error(outer: str, cwd: Path) -> str | None:
     """Deny code-loading env vars set in the command unless each value is a tracked, unmodified
     workspace path, or a file/dir the scan clears."""
@@ -2193,7 +2217,8 @@ def _bash_hit(command: str, outer: str, docs: list[tuple[str, str]], cwd: Path,
     if hit:
         return hit
     for label, body in _package_scripts(expanded, bases):
-        hit = sender_hit(body.lower())
+        hit = sender_hit(body.lower()) or (
+            f"harness-only hook path: {hook_text_hit(body)}" if hook_text_hit(body) else None)
         if hit:
             return f"{hit} in {label}"
         for p, tok in _arg_files(_expand(body, vars_, cwd), bases):
@@ -2323,20 +2348,40 @@ def bash_decision(ti: dict, cwd_raw: Any) -> str | None:
 
 _HOOK_WRAPPER = "redteam-outward-gate" ".sh"
 _HOOK_SUB_RE = re.compile(r"redteam_gate(?:\.py)?['\"]?\s+(?:hook|post-hook|subagent-hook|"
-                          r"prompt-hook)\b")
-_HOOK_ENV_RE = re.compile(r"(?:^|[\s;&|(])(?:export\s+|env\s+(?:-\S+\s+)*)?REDTEAM_HOOK=")
+                          r"prompt-hook)\b", re.I)
+_HOOK_ENV_RE = re.compile(r"(?:^|[\s;&|(\"'])(?:export\s+|env\s+(?:-\S+\s+)*)?REDTEAM" r"_HOOK=",
+                          re.I)
+
+
+_HOOK_SH_CALL_RE = re.compile(r"(?:^|[\s;&|(\"'`])(?:\S*/)?(?:(?:ba|z|da)?sh\s+(?:-\S+\s+)*['\"]?)?"
+                              r"\S*" + re.escape(_HOOK_WRAPPER) + r"['\"]?\s+(?:pre|post|subagent|"
+                              r"prompt)\b")
+
+
+def hook_text_hit(text: str) -> str | None:
+    """Hook entry points in code/command text: a hook subcommand of redteam_gate.py, a
+    REDTEAM_HOOK assignment, or a call of the hook wrapper with a mode."""
+    for rx, label in ((_HOOK_SUB_RE, "gate hook subcommand"),
+                      (_HOOK_ENV_RE, "REDTEAM_HOOK assignment"),
+                      (_HOOK_SH_CALL_RE, "hook wrapper call")):
+        if rx.search(text):
+            return label
+    return None
 
 
 def hook_path_error(outer: str) -> str | None:
     """Hook entry points are harness-only. Commands that merely name them (git add, grep,
     commit messages) stay allowed: only an invocation counts, and quoted text only when the
     command executes something (bash -c "...")."""
-    text = outer if _EXEC_RE.search(outer) else _QUOTED_RE.sub(" ", outer)
+    import shlex
     invoked = any(re.split(r"[/\\]", w)[-1] == _HOOK_WRAPPER for w in command_words(outer))
     if not invoked and _EXEC_RE.search(outer):
-        invoked = bool(re.search(r"(?:^|[\s;&|(\"'])(?:\S*/)?(?:ba|z|da)?sh\s+(?:-\S+\s+)*"
-                                 r"['\"]?\S*" + re.escape(_HOOK_WRAPPER), text))
-    if invoked or _HOOK_SUB_RE.search(text) or _HOOK_ENV_RE.search(text):
+        try:
+            joined = " ".join(shlex.split(outer))  # quoted env assignment + quoted subcommand
+        except ValueError:
+            joined = outer
+        invoked = any(hook_text_hit(t) for t in (outer, joined))
+    if invoked:
         return ("redteam gate: hook paths are harness-only (the hook wrapper, redteam_gate.py "
                 "hook subcommands and REDTEAM_HOOK are run by the harness, not from Bash).")
     return None
@@ -2347,12 +2392,24 @@ def _bash_decision(command: str, cwd_raw: Any, allow_tracked: bool = True,
     outer, docs = split_heredocs(command)
     cwd = Path(cwd_raw) if isinstance(cwd_raw, str) and cwd_raw else Path.cwd()
     he = hook_path_error(outer)
+    if not he and _EXEC_RE.search(outer):
+        for _o, body in docs:
+            hk = hook_text_hit(body)
+            if hk:
+                he = f"redteam gate: hook paths are harness-only ({hk} in a heredoc)."
+                break
     if he:
         return he
     # Heredoc bodies fed to a program are commands/code themselves: resolve them like the
     # outer text (bounded recursion).
     for opener, body in docs:
-        if _EXEC_RE.search(opener) or "source" in opener or re.search(r"(?:^|\s)\.\s", opener):
+        # Only shell bodies are shell commands; a python/node body is code (its text is still
+        # scanned for senders and hook paths below), so it is not re-parsed as shell.
+        shell_fed = any(re.split(r"[/\\]", w)[-1] in ("bash", "sh", "zsh", "dash", "ksh",
+                                                      "source", ".", "eval")
+                        for w in command_words(opener)) or bool(
+            re.search(r"\|\s*(?:\S*/)?(?:ba|z|da|k)?sh\b", opener))
+        if shell_fed:
             if depth >= 3:
                 return f"redteam gate: heredocs nested too deep to scan. {BASH_DENY}"
             r = _bash_decision(body, str(cwd), allow_tracked=False, depth=depth + 1)
@@ -2377,7 +2434,7 @@ def _bash_decision(command: str, cwd_raw: Any, allow_tracked: bool = True,
             return None
         if not _EXEC_RE.search(_expand(outer, vars0, cwd)):
             return None  # nothing runs (P=python3; $P x.py is caught via the expansion)
-    err = code_env_error(outer, cwd)
+    err = code_env_error(outer, cwd) or xargs_error(outer, cwd)
     if err:
         return f"redteam gate: {err}. {BASH_DENY}"
     if _B64_PIPE_RE.search(outer):
@@ -2692,6 +2749,52 @@ def nested_claude_depth(pid: int | None = None) -> int:
     return max(depth, floor_n)
 
 
+def _user_text(row: dict) -> str | None:
+    """Text of a genuine operator prompt row, or None (tool results, meta, sidechains)."""
+    if row.get("type") != "user" or row.get("isMeta") or row.get("isSidechain"):
+        return None
+    msg = row.get("message") if isinstance(row.get("message"), dict) else {}
+    c = msg.get("content")
+    if isinstance(c, str):
+        return c
+    if isinstance(c, list):
+        if any(isinstance(b, dict) and b.get("type") == "tool_result" for b in c):
+            return None
+        return "\n".join(b.get("text", "") for b in c if isinstance(b, dict)
+                         and b.get("type") == "text" and isinstance(b.get("text"), str))
+    return None
+
+
+def genuine_prompt(payload: dict, prompt: str) -> bool:
+    """The payload's transcript lives under the transcript root and its last user row is a
+    genuine operator prompt containing this waive line."""
+    tp = payload.get("transcript_path")
+    if not isinstance(tp, str) or not tp:
+        return False
+    try:
+        rp = Path(tp).expanduser().resolve()
+        root = transcript_root().resolve()
+        if not rp.is_relative_to(root) or not rp.is_file():
+            return False
+        size = rp.stat().st_size
+        with rp.open("rb") as fh:
+            fh.seek(max(0, size - 4_000_000))
+            lines = fh.read().decode("utf-8", errors="replace").splitlines()
+    except (OSError, RuntimeError):
+        return False
+    line = _WS_RE.sub(" ", prompt).strip().lower()
+    for raw in reversed(lines):
+        try:
+            row = json.loads(raw)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(row, dict) or row.get("type") != "user":
+            continue
+        text = _user_text(row)
+        return text is not None and line in _WS_RE.sub(" ", text).strip().lower()
+    return False
+
+
 def cmd_prompt_hook(_args: argparse.Namespace) -> int:
     try:
         payload = json.loads(_read_stdin())
@@ -2702,6 +2805,13 @@ def cmd_prompt_hook(_args: argparse.Namespace) -> int:
         if not m:
             return EXIT_OK
         sha12 = m.group(1).lower()
+        if not genuine_prompt(payload, prompt):
+            print(json.dumps({"hookSpecificOutput": {
+                "hookEventName": "UserPromptSubmit",
+                "additionalContext": f"redteam: waiver for {sha12} NOT recorded (no matching "
+                                     "operator prompt in the session transcript)"}},
+                separators=(",", ":")))
+            return EXIT_OK
         nested = nested_claude_depth()
         if nested >= 2:
             print(json.dumps({"hookSpecificOutput": {
@@ -2786,7 +2896,7 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.cmd in HOOK_CMDS and os.environ.get("REDTEAM_HOOK") != "1":
         print(f"redteam: `{args.cmd}` is hook-only (run by .claude/hooks/redteam-outward-gate.sh "
-              "with REDTEAM_HOOK=1); verdicts come from SubagentStop, waivers from the operator.",
+              "with REDTEAM_HOOK set to 1); verdicts come from SubagentStop, waivers from the operator.",
               file=sys.stderr)
         return EXIT_USAGE
     return args.func(args)

@@ -101,9 +101,9 @@ merely mention the gate or ledgers are no longer blocked (removed 2026-11-05: fa
   Attendees (attendees/attendeeEmails/addedAttendees/addedAttendeeEmails) must be a subset of the
   `--to/--cc/--bcc` of one passing record (an operator waiver allows any).
 - **Bash**: scanned only when the command (heredoc bodies excluded) runs a program in command
-  position: python/node/deno/bun/ruby/perl/php/curl/wget/sendmail/mail/msmtp/sh/bash (incl. `-c`).
+  position: python/node/deno/bun/ruby/perl/php/curl/wget/send-mail/mail/msmtp/sh/bash (incl. `-c`).
   Pure file writes (`cat > f <<EOF`, `echo … > f`), reads, greps and commits are never scanned.
-  Deny inline senders (smtplib, sendmail, Gmail REST `/send`, `messages().send(`, Instantly
+  Deny inline senders (smtp-lib, send-mail, Gmail REST `/send`, the Gmail API messages-send call, Instantly
   emails/reply, SendGrid, Resend, Postmark) in the command, in a heredoc fed to a program
   (`python3 - <<EOF`, `cat <<EOF | python3`), in a script it runs, or in a `python -m mod` module
   resolved under cwd/repo; `base64 -d | <interpreter>` denies outright. Allowed if the command only
@@ -156,15 +156,15 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   to executing commands (+ `python -m`, stdin heredoc, base64→interpreter), Calendar attendees ⊆
   recorded recipients; PreToolUse matcher drops Write|Edit.
 - 2026-11-05 (audit): exec detection = any program word outside quotes (covers timeout/uv/poetry
-  wrappers); mail programs (mail/mailx/msmtp/swaks/mutt/sendmail) as a command's program deny;
-  smtp(s)://, --mail-rcpt, drafts().send( are sender hits; hook crash denies only Gmail/Calendar
+  wrappers); mail programs (mail/mailx/msmtp/swaks/mutt/send-mail) as a command's program deny;
+  SMTP URLs, curl's mail-recipient flag and the drafts-send call are sender hits; hook crash denies only Gmail/Calendar
   (Bash/other exit 1 → allowed), null command allows; Calendar `location` gated (own pass or
   verbatim inside the passed description).
 - 2026-11-05 (re-audit): when a command executes anything, every heredoc body and every existing
   file named as an unquoted word or redirect source (any suffix, recursing into `sh -c` strings,
   ≤ 40 words) is scanned; dict recipients/attendees without a parseable `email` are unparseable;
   any attendee/guest/invitee key triggers the attendee-subset rule (invites with no vetted text
-  deny); Mailgun/Brevo/Sendinblue/SES hosts and `aws ses|sesv2 send-email` are senders. Limit: a
+  deny); Mailgun/Brevo/Sendinblue/SES hosts and the `aws ses|sesv2` send verbs are senders. Limit: a
   command that executes something and names any file containing a sender literal is denied.
 - 2026-11-05 (third audit): nested-CLI waiver forgery closed twice: Bash denies any `claude`
   invocation whose text, heredoc or file args contain `redteam waive`; prompt-hook refuses to sign
@@ -174,13 +174,13 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   the ancestry check. `record` refuses re-binding a recorded sha to a different envelope. Bash file
   scan expands `$VAR`/`${VAR}` (command assignments + env), globs, `cd` targets and PYTHONPATH for
   `-m`; unresolvable `$VAR` paths are allowed (no file to scan). Senders added: SendGrid SDK,
-  yagmail, Mailjet, Mandrill, Smartlead, ssmtp/sendemail/exim. Boolean `guestsCan*` keys are not
+  yag-mail, Mailjet, Mandrill, Smartlead, ssmtp/exim and the perl mail CLI. Boolean `guestsCan*` keys are not
   attendee keys.
 - 2026-11-05 (fourth audit): trusted = realpath in workspace + tracked/clean in its git; quoted
   paths with spaces scanned whole; scan limits fail closed when code runs (file > 2 MB unless a
   compiled binary, > 64 file args, oversize glob/brace); runners pwsh/powershell, go, npx, tsx,
   ts-node, deno, bun, npm/pnpm/yarn run (package.json script + its files); senders
-  `.messages.send(`, Send-MailMessage, MailerSend, Mailtrap, SparkPost, Loops, Postmark, Resend;
+  the Node googleapis messages-send chain, PowerShell's mail cmdlet, MailerSend, Mailtrap, SparkPost, Loops, Postmark, Resend;
   Gmail forward with a subject denied; any `mcp__*` send_email/send_message/create_draft tool gated
   as email (settings matcher + wrapper fail-closed widened); quote-aware heredoc openers;
   `$(pwd)`, `$(which X)`, backticks, `P=python3; $P`, `{a,b}` expansion; package-install args
@@ -188,13 +188,15 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
 - 2026-11-05 (fifth audit): direct script exec (`./x`, `/abs/x`, `dir/x`, bare name in cwd with
   a shebang) counts as running code and is scanned; bare PATH console scripts (pytest, etc.) are
   scanned themselves but their arguments are not. Runners uv/uvx/pdm/poetry/hatch/pipx/ipython/
-  make (Makefile scanned). Sender chains split by whitespace/newlines, `@sendgrid/mail`,
-  send_transac_email, Gmail upload endpoint, Ruby Net::SMTP, PHP `mail(` (.php files, `php -r`);
+  make (Makefile scanned). Sender chains split by whitespace/newlines, the SendGrid node package,
+  Brevo's transactional call, Gmail upload endpoint, Ruby's SMTP class, PHP's mail function
+  (.php files, `php -r`);
   quoted interpreter words; Calendar `quick_add_event` always gated (settings matcher updated).
-- 2026-11-05 (sixth audit): SDK call forms (whitespace-tolerant): Resend `.emails.send(`,
-  Postmark `sendEmail(`/`sendEmailWithTemplate(`, SES `Send(Raw)EmailCommand` and `send_email(`
-  in an ses/sesv2/boto3-ses context, Mailgun `messages.create(` when the file names mailgun,
-  Brevo `sendTransacEmail(`/`send_transac(tional)_email(`, legacy `googleapis.com/gmail/v1`;
+- 2026-11-05 (sixth audit): SDK call forms (whitespace-tolerant; the exact patterns live in
+  `_SENDER_SIMPLE`/`_SENDER_MULTI_RE`, not here, so this doc never matches them): Resend emails
+  send, Postmark send calls (plain and template), SES v3 commands and boto3 SES send calls in an SES
+  context, Mailgun message create when the file names Mailgun, Brevo transactional send calls,
+  the legacy Gmail v1 REST host;
   every listed SDK/host has a test. `make -C/--directory/-f/--file` resolved; `~user` that does
   not resolve stays literal; `find ROOT [-name P] -exec|-execdir <interpreter>` scans matching
   files under ROOT (fail closed past 64).
@@ -219,3 +221,12 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   Bash denies ("hook paths are harness-only"); naming them (git add, grep, commit messages) and
   `sha|ground|record|check` stay allowed. Tracked runs may pipe into read-only sinks (tail, head,
   tee FILE, grep, wc, less, cat, sort, uniq).
+- 2026-11-05 (eleventh audit): hook-path checks also run on scanned files, heredoc bodies,
+  package.json scripts and a shlex-joined form of the command, only when it executes something
+  (greps/cats of the hook files stay allowed). Only shell-fed heredocs are re-parsed as shell.
+  prompt-hook records a waiver only if `transcript_path` is under the transcript root and its
+  last `user` row is a genuine operator prompt (not tool_result/isMeta/isSidechain) containing
+  the waive line. **Unverified live:** this assumes the harness writes the prompt to the
+  transcript before UserPromptSubmit fires; if a real waiver is refused, that is why.
+  `xargs <interpreter>` without a named script file denies. This doc avoids literal sender
+  patterns so reading it next to an executing command is not denied.
