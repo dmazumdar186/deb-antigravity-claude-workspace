@@ -28,7 +28,7 @@
   "id": "1.4",
   "desc": "Visitor side: catalogue search finds the new congress",
   "status": "PASS",
-  "obs": "Congrès UAT 36791",
+  "obs": "Congrès UAT 130",
   "shot": "evidence/uat-1440-1.4.png"
  },
  {
@@ -60,7 +60,7 @@
   "id": "1.8",
   "desc": "Contributor: « Nouveau congrès » → « Soumettre à relecture »; no « Publier » button",
   "status": "PASS",
-  "obs": "Publier buttons: 0; Vous pouvez enregistrer et soumettre à relecture. La publication est faite par l’équipe ou la Direction.",
+  "obs": "Publier buttons: 0; status badge « À relire »: true; flash: Congrès créé.",
   "shot": "evidence/uat-1440-1.8.png"
  },
  {
@@ -75,8 +75,8 @@
   "W": 1440,
   "id": "1.10",
   "desc": "Direction: draft is « À relire » and can be published",
-  "status": "FAIL",
-  "obs": "ERROR locator.click: Timeout 30000ms exceeded.",
+  "status": "PASS",
+  "obs": "Brouillon UAT 130",
   "shot": "evidence/uat-1440-1.10.png"
  },
  {
@@ -115,8 +115,8 @@
   "W": 1440,
   "id": "2.5",
   "desc": "Combine: « Pays » = Espagne with Cardiologie → 1 result",
-  "status": "FAIL",
-  "obs": "Aller au contenu ASSET Voyages Démonstration avec des données fictives Congrès Espace équipe Trouver son congrès. Demander son vol. Sourc",
+  "status": "PASS",
+  "obs": "1 congrès trouvé",
   "shot": "evidence/uat-1440-2.5.png"
  },
  {
@@ -204,7 +204,7 @@
   "id": "4.1",
   "desc": "« Tableau de bord »: the newest item in « Dernières demandes » is the new reference; note the « Nouvelles » count",
   "status": "PASS",
-  "obs": "first=DV-2026-0007 Veena UAT 36791 (exemple); Nouvelles=3",
+  "obs": "first=DV-2026-0007 Veena UAT 130 (exemple); Nouvelles=3",
   "shot": "evidence/uat-1440-4.1.png"
  },
  {
@@ -316,7 +316,7 @@
   "id": "5.3",
   "desc": "Click « Demander l’accès » with an empty « Motif de la demande » → refused, reason required",
   "status": "PASS",
-  "obs": "Les codes sont masqués. Pour en voir un, demandez l’accès avec un motif : la Direction l’accorde pour 24 heures.",
+  "obs": "Indiquez le motif de la demande (au moins 5 caractères).",
   "shot": "evidence/uat-1440-5.3.png"
  },
  {
@@ -347,8 +347,8 @@
   "W": 1440,
   "id": "5.7",
   "desc": "« Masquer le code » hides it again",
-  "status": "FAIL",
-  "obs": "ERROR locator.click: Timeout 30000ms exceeded.",
+  "status": "PASS",
+  "obs": "hidden",
   "shot": "evidence/uat-1440-5.7.png"
  },
  {

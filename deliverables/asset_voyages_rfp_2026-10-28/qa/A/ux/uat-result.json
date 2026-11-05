@@ -12,8 +12,8 @@
    "story": "S1",
    "n": 2,
    "txt": "Click « Congrès », then « Ajouter un congrès »",
-   "status": "FAIL",
-   "ev": "locator.waitFor: Timeout 30000ms exceeded.",
+   "status": "PASS",
+   "ev": "form open; 5 fields marked « (obligatoire) »",
    "shot": "evidence/uat-S1-02.png"
   },
   {
@@ -29,7 +29,7 @@
    "n": 4,
    "txt": "Click « Publier »; a success notice appears",
    "status": "FAIL",
-   "ev": "locator.waitFor: Timeout 30000ms exceeded.",
+   "ev": "locator.waitFor: Timeout 60000ms exceeded.",
    "shot": "evidence/uat-S1-04.png"
   },
   {
@@ -74,8 +74,8 @@
    "story": "S1",
    "n": 10,
    "txt": "Submitted draft is absent from the public catalogue",
-   "status": "FAIL",
-   "ev": "locator.fill: Error: strict mode violation: getByLabel('Recherche') resolved to 2 elements:"
+   "status": "PASS",
+   "ev": "0 congrès trouvés"
   },
   {
    "story": "S2",
@@ -112,24 +112,24 @@
    "story": "S2",
    "n": 5,
    "txt": "Search « vienne » (lowercase) finds the Vienne congresses",
-   "status": "FAIL",
-   "ev": "locator.fill: Error: strict mode violation: getByLabel('Recherche') resolved to 2 elements:",
+   "status": "PASS",
+   "ev": "2 congrès trouvés",
    "shot": "evidence/uat-S2-05.png"
   },
   {
    "story": "S2",
    "n": 6,
    "txt": "Search « diabetologie » (no accent) finds « Diabétologie »",
-   "status": "FAIL",
-   "ev": "locator.fill: Error: strict mode violation: getByLabel('Recherche') resolved to 2 elements:",
+   "status": "PASS",
+   "ev": "1 congrès trouvé",
    "shot": "evidence/uat-S2-06.png"
   },
   {
    "story": "S2",
    "n": 7,
    "txt": "Search « zzzz »: « Aucun congrès ne correspond à votre recherche » with « Voir tous les congrès »; clicking it resets",
-   "status": "FAIL",
-   "ev": "locator.fill: Error: strict mode violation: getByLabel('Recherche') resolved to 2 elements:",
+   "status": "PASS",
+   "ev": "12 congrès trouvés after reset",
    "shot": "evidence/uat-S2-07.png"
   },
   {
@@ -169,7 +169,7 @@
    "n": 4,
    "txt": "Correct to 2 passengers and return 30/08/2027, click « Envoyer ma demande » once; confirmation with reference DV-2026-NNNN",
    "status": "PASS",
-   "ev": "reference DV-2026-0007",
+   "ev": "reference DV-2026-0009",
    "shot": "evidence/uat-S3-04.png"
   },
   {
@@ -177,7 +177,7 @@
    "n": 5,
    "txt": "Reload the confirmation page; same reference, no second enquiry",
    "status": "PASS",
-   "ev": "before DV-2026-0007, after reload DV-2026-0007",
+   "ev": "before DV-2026-0009, after reload DV-2026-0009",
    "shot": "evidence/uat-S3-05.png"
   },
   {
@@ -240,7 +240,7 @@
    "n": 4,
    "txt": "Correct to 2 passengers and return 30/08/2027, click « Envoyer ma demande » once; confirmation with reference DV-2026-NNNN",
    "status": "PASS",
-   "ev": "reference DV-2026-0008",
+   "ev": "reference DV-2026-0010",
    "shot": "evidence/uat-S3@390-04.png"
   },
   {
@@ -248,63 +248,63 @@
    "n": 5,
    "txt": "Reload the confirmation page; same reference, no second enquiry",
    "status": "PASS",
-   "ev": "before DV-2026-0008, after reload DV-2026-0008",
+   "ev": "before DV-2026-0010, after reload DV-2026-0010",
    "shot": "evidence/uat-S3@390-05.png"
   },
   {
    "story": "S4",
    "n": 1,
    "txt": "As « equipe » on « Tableau de bord »: widget « Demandes de devis par statut » shows counts and « Dernière demande »",
-   "status": "FAIL",
-   "ev": "latest is not DV-2026-0007: Demandes de devis par statut",
+   "status": "PASS",
+   "ev": "Nouvelle=6; latest DV-2026-0010",
    "shot": "evidence/uat-S4-01.png"
   },
   {
    "story": "S4",
    "n": 2,
    "txt": "Click the « Dernière demande » link; detail page shows the enquiry",
-   "status": "FAIL",
-   "ev": "locator.click: Timeout 30000ms exceeded.",
+   "status": "PASS",
+   "ev": "Reçue le (UTC) 2026-11-05 21:06:04 Congrès Journées méditerr",
    "shot": "evidence/uat-S4-02.png"
   },
   {
    "story": "S4",
    "n": 3,
    "txt": "Choose « Qualifiée » in « Statut », click « Enregistrer»; success notice",
-   "status": "FAIL",
-   "ev": "locator.selectOption: Error: strict mode violation: getByLabel('Statut') resolved to 2 elements:",
+   "status": "PASS",
+   "ev": "Demande mise à jour.",
    "shot": "evidence/uat-S4-03.png"
   },
   {
    "story": "S4",
    "n": 4,
    "txt": "« Historique » shows who, when, « Nouvelle → Qualifiée », with no edit/delete control",
-   "status": "FAIL",
-   "ev": "locator.innerText: Timeout 30000ms exceeded.",
+   "status": "PASS",
+   "ev": "2026-11-05 21:06:18\tÉquipe (démo)\tNote interne\tRappel client prévu (UAT). | 2026-11-05 21:06:18\tÉquipe (démo)\tResponsable\t— → Équipe (démo)",
    "shot": "evidence/uat-S4-04.png"
   },
   {
    "story": "S4",
    "n": 5,
    "txt": "Back on « Tableau de bord » the « Nouvelle » count went down by 1",
-   "status": "FAIL",
-   "ev": "4→4",
+   "status": "PASS",
+   "ev": "6 → 5",
    "shot": "evidence/uat-S4-05.png"
   },
   {
    "story": "S4",
    "n": 6,
    "txt": "« Demandes » list: the row shows reference, date, congress, contact, departure city, dates, passengers, status",
-   "status": "FAIL",
-   "ev": "row DV-2026-0007 05/11/2026 20:57 Journées méditerranéennes d’oncologie — exemple Claire Fictive claire.fictive@example.com Lyon 26/08/2027 → 30/08/2027 2 Nouvelle —",
+   "status": "PASS",
+   "ev": "DV-2026-0010 05/11/2026 21:06 Journées méditerranéennes d’oncologie — exemple Claire Fictive claire.fictive@example.com Lyon 26/08/2027 → 30/08/2027 2 Qualifiée Équipe (d",
    "shot": "evidence/uat-S4-06.png"
   },
   {
    "story": "S4",
    "n": 7,
    "txt": "Click « Qualifiée » status view, then search « Claire »; the enquiry is found",
-   "status": "FAIL",
-   "ev": "not found",
+   "status": "PASS",
+   "ev": "found; search box label: Rechercher:",
    "shot": "evidence/uat-S4-07.png"
   },
   {
@@ -368,7 +368,7 @@
    "n": 7,
    "txt": "As « direction »: « Journal GM&E » shows « Code révélé » by Équipe (démo) for neurology, no code text",
    "status": "PASS",
-   "ev": "05/11/2026 20:59 Équipe (démo) Congrès européen de neurologie — exemple Code révélé ",
+   "ev": "05/11/2026 21:06 Équipe (démo) Congrès européen de neurologie — exemple Code révélé ",
    "shot": "evidence/uat-S5-07.png"
   },
   {
@@ -391,15 +391,15 @@
    "story": "S5",
    "n": 10,
    "txt": "As « direction »: « Codes GM&E » list (axe) and contributor has no « Accès GM&E » menu",
-   "status": "FAIL",
-   "ev": "page.waitForURL: Timeout 60000ms exceeded."
+   "status": "PASS",
+   "ev": "contributeur menu has neither « Accès GM&E » nor « Demandes »"
   },
   {
    "story": "S5",
    "n": 11,
    "txt": "Visitor: the neurology congress page says « Tarif congrès négocié disponible » and no DEMO-GME code anywhere in the HTML",
-   "status": "FAIL",
-   "ev": "locator.fill: Error: strict mode violation: getByLabel('Recherche') resolved to 2 elements:"
+   "status": "PASS",
+   "ev": "notice shown; 0 codes"
   }
  ],
  "clicks": {
@@ -424,10 +424,10 @@
    "path": "chip Cardiologie → card"
   },
   "S4-E1": {
-   "n": 2,
+   "n": 3,
    "budget": 3,
-   "path": "Dernière demande link → Statut select (open+pick counted as 1)",
-   "mouseRealistic": 3
+   "path": "Dernière demande link → Statut select (open+pick counted as 1) → Enregistrer",
+   "mouseRealistic": 4
   },
   "S5-E1 equipe request": {
    "n": 2,
@@ -498,6 +498,66 @@
    "owner": "core/theme"
   },
   {
+   "screen": "admin new congress",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-wp-logo",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-wp-logo\" class=\"menupop\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin new congress",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-site-name",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-site-name\" class=\"menupop\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin new congress",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-command-palette",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-command-palette\" class=\"hide-if-no-js\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin new congress",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-new-content",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-new-content\" class=\"menupop\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin new congress",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-my-account",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-my-account\" class=\"menupop with-avatar\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin new congress",
+   "kind": "admin",
+   "id": "label",
+   "impact": "critical",
+   "help": "Form elements must have labels",
+   "target": "#content",
+   "html": "<textarea class=\"wp-editor-area\" style=\"height: 300px\" autocomplete=\"off\" cols=\"40\" name=\"content\" id=\"content\"></textarea>",
+   "owner": "core/theme"
+  },
+  {
    "screen": "catalogue",
    "kind": "front",
    "id": "heading-order",
@@ -539,6 +599,16 @@
   },
   {
    "screen": "congress details",
+   "kind": "front",
+   "id": "list",
+   "impact": "serious",
+   "help": "<ul> and <ol> must only directly contain <li>, <script> or <template> elements",
+   "target": ".is-responsive.items-justified-right.wp-block-navigation__container",
+   "html": "<ul class=\"wp-block-navigation__container is-responsive items-justified-right wp-block-navigation\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "catalogue no result",
    "kind": "front",
    "id": "list",
    "impact": "serious",
@@ -609,6 +679,56 @@
   },
   {
    "screen": "admin dashboard (equipe)",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-my-account",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-my-account\" class=\"menupop with-avatar\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin enquiry detail",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-wp-logo",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-wp-logo\" class=\"menupop\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin enquiry detail",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-site-name",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-site-name\" class=\"menupop\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin enquiry detail",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-command-palette",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-command-palette\" class=\"hide-if-no-js\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin enquiry detail",
+   "kind": "admin",
+   "id": "aria-allowed-role",
+   "impact": "minor",
+   "help": "ARIA role should be appropriate for the element",
+   "target": "#wp-admin-bar-new-content",
+   "html": "<li role=\"group\" id=\"wp-admin-bar-new-content\" class=\"menupop\">",
+   "owner": "core/theme"
+  },
+  {
+   "screen": "admin enquiry detail",
    "kind": "admin",
    "id": "aria-allowed-role",
    "impact": "minor",
@@ -921,7 +1041,7 @@
  "notes": [],
  "consoleErrs": [],
  "reqFails": [
-  "http://127.0.0.1:9402/wp-includes/js/dist/notices.min.js?ver=c09a068fdab0eb465e14 net::ERR_ABORTED",
+  "http://127.0.0.1:9402/wp-includes/js/dist/block-editor.min.js?ver=37e58da384b2558bd479 net::ERR_ABORTED",
   "http://127.0.0.1:9402/wp-includes/js/dist/block-editor.min.js?ver=37e58da384b2558bd479 net::ERR_ABORTED"
  ]
 }

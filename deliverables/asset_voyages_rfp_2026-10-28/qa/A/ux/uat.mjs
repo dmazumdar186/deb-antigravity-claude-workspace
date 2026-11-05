@@ -19,9 +19,10 @@ const br=await chromium.launch();
 const TITLE=`Congrès UAT d’hépatologie ${stamp} — exemple`;
 const NEURO='Congrès européen de neurologie — exemple';
 let permalink='', ref='';
+const ONLY=(process.env.ONLY||'S1,S2,S4').split(',');
 try{
 // ---------- S1 ----------
-{ const {c,p}=await ctx(br); await login(p,'direction'); await axe(p,'admin dashboard (direction)','admin');
+if(ONLY.includes('S1')){ const {c,p}=await ctx(br); await login(p,'direction'); await axe(p,'admin dashboard (direction)','admin');
   const cc=counter();
   await step('S1','Logged in as « direction », on « Tableau de bord »: left menu shows « Congrès »',async()=>{ await p.getByRole('link',{name:'Congrès',exact:true}).first().waitFor(); return 'menu: '+(await p.$$eval('#adminmenu > li > a',a=>a.map(x=>x.innerText.trim()).filter(Boolean).join(', '))); },p);
   await step('S1','Click « Congrès », then « Ajouter un congrès »',async()=>{ await cc.click(p.locator('#adminmenu').getByRole('link',{name:'Congrès',exact:true}).first(),'menu Congrès'); await cc.click(p.getByRole('link',{name:'Ajouter un congrès'}).first(),'Ajouter un congrès'); await p.locator('#asset_congres_details').waitFor(); await axe(p,'admin new congress','admin');
@@ -32,7 +33,7 @@ try{
     await p.getByLabel('Ville').first().fill('Lille'); await p.getByLabel('Pays').first().fill('France'); await p.getByLabel('Discipline').first().fill('Hépatologie');
     await p.getByLabel('Lieu').fill('Grand Palais de Lille (fictif)'); await p.getByLabel('Site officiel').fill('https://example.com/uat');
     await p.getByLabel('Date de vérification').fill('2026-11-05'); return 'all fields found by their visible French label'; },p);
-  await step('S1','Click « Publier »; a success notice appears',async()=>{ await cc.click(p.getByRole('button',{name:'Publier',exact:true}),'Publier'); await p.locator('#message').waitFor({timeout:60000}); const errs=await p.locator('.asset-save-errors').count(); expect(!errs,'save errors'); permalink=await p.locator('#sample-permalink a').getAttribute('href'); return (await p.locator('#message').innerText()).trim().slice(0,80)+' ; '+permalink; },p);
+  await step('S1','Click « Publier »; a success notice appears',async()=>{ const lost=await p.locator('#lost-connection-notice').isVisible().catch(()=>false); if(lost) R.notes.push('S1: « Connexion perdue » banner visible before Publier'); await p.waitForFunction(()=>!document.querySelector('#publish')?.disabled && !(document.querySelector('#lost-connection-notice')?.offsetParent),null,{timeout:90000}); await cc.click(p.getByRole('button',{name:'Publier',exact:true}),'Publier'); await p.locator('#message').waitFor({timeout:60000}); const errs=await p.locator('.asset-save-errors').count(); expect(!errs,'save errors'); permalink=await p.locator('#sample-permalink a').getAttribute('href'); return (await p.locator('#message').innerText()).trim().slice(0,80)+' ; '+permalink; },p);
   R.clicks['S1-E1']={n:cc.n,budget:4,path:cc.log.join(' → ')};
   await step('S1','Visitor view: open the new congress page logged out; title and « Lille » shown',async()=>{ const v=await ctx(br); await v.p.goto(permalink); const t=await v.p.locator('body').innerText(); await v.c.close(); expect(t.includes('Lille'),'Lille missing'); expect(t.includes(TITLE),'title missing'); return 'public page shows title and Lille'; });
   const ce=counter(); await p.goto('/wp-admin/');
@@ -42,14 +43,14 @@ try{
   await step('S1','Hostile: set « Date de fin » before « Date de début » and save; a French message explains the error',async()=>{ await p.getByLabel('Date de fin').fill('2027-06-01'); await p.getByRole('button',{name:'Mettre à jour'}).click(); await p.waitForLoadState('load'); const t=await p.locator('#wpbody-content').innerText(); const m=t.match(/[^\n]*(date de fin|antérieure|avant)[^\n]*/i); expect(m,'no message'); await p.getByLabel('Date de fin').fill('2027-06-16'); await p.getByRole('button',{name:/Mettre à jour|Publier/}).click(); return 'message: '+m[0].slice(0,120); },p);
   await c.close(); }
 // contributor
-{ const {c,p}=await ctx(br); await login(p,'contributeur'); const T2=`Congrès UAT contributeur ${stamp} — exemple`;
+if(ONLY.includes('S1')){ const {c,p}=await ctx(br); await login(p,'contributeur'); const T2=`Congrès UAT contributeur ${stamp} — exemple`;
   await step('S1','As « contributeur »: « Congrès » → « Ajouter un congrès »; the main button reads « Soumettre pour relecture », not « Publier »',async()=>{ await p.locator('#adminmenu').getByRole('link',{name:'Congrès',exact:true}).first().click(); await p.getByRole('link',{name:'Ajouter un congrès'}).first().click(); await p.fill('#title',T2);
     await p.getByLabel('Date de début').fill('2027-07-01'); await p.getByLabel('Date de fin').fill('2027-07-02'); await p.getByLabel('Ville').first().fill('Brest'); await p.getByLabel('Pays').first().fill('France'); await p.getByLabel('Discipline').first().fill('Cardiologie');
     const v=await p.locator('#publish').getAttribute('value'); expect(!/^Publier$/.test(v),'can publish'); await p.locator('#publish').click(); await p.waitForLoadState('load'); return 'button: '+v+'; status: '+(await p.locator('#post-status-display').innerText()); },p);
   await step('S1','Submitted draft is absent from the public catalogue',async()=>{ const v=await ctx(br); await v.p.goto('/?s_q=x'); await v.p.goto('/'); await v.p.getByLabel('Recherche',{exact:true}).fill('contributeur '+stamp); await v.p.getByRole('button',{name:'Rechercher'}).click(); const t=await v.p.locator('body').innerText(); await v.c.close(); expect(!t.includes(T2),'draft visible'); return (t.match(/\d+ congrès trouvés?/)||['?'])[0]; });
   await c.close(); }
 // ---------- S2 + S3 (visitor) ----------
-for (const w of [1440,390]) { const {c,p}=await ctx(br,w); const S='S2'+(w===390?'@390':'');
+for (const w of (ONLY.includes('S2')?[1440,390]:[])) { const {c,p}=await ctx(br,w); const S='S2'+(w===390?'@390':'');
   await p.goto('/'); if(w===1440) await axe(p,'catalogue','front');
   await step(S,'Open the catalogue logged out; heading « Catalogue des congrès » and a result count',async()=>{ const t=await p.locator('body').innerText(); const m=t.match(/(\d+) congrès trouvés/); expect(m,'no count'); const cards=await p.locator('.asset-card').count(); return `${m[0]}; ${cards} cards on page 1`; },p);
   const cs=counter();
@@ -73,7 +74,7 @@ for (const w of [1440,390]) { const {c,p}=await ctx(br,w); const S='S2'+(w===390
   await step(S3,'Reload the confirmation page; same reference, no second enquiry',async()=>{ const before=(await p.locator('body').innerText()).match(/DV-\d{4}-\d{4}/)?.[0]; await p.reload(); const t=await p.locator('body').innerText(); const m=t.match(/DV-\d{4}-\d{4}/)?.[0]; return `before ${before}, after reload ${m||'(no reference shown; form shown fresh)'}`; },p);
   await c.close(); }
 // ---------- S4 (equipe) ----------
-{ const {c,p}=await ctx(br); await login(p,'equipe'); await axe(p,'admin dashboard (equipe)','admin');
+if(ONLY.includes('S4')){ const {c,p}=await ctx(br); await login(p,'equipe'); await axe(p,'admin dashboard (equipe)','admin');
   const nouv=async()=>parseInt(await p.locator('#asset_cd_demandes a',{hasText:'Nouvelle'}).first().innerText(),10);
   let n0; const cd=counter();
   await step('S4','As « equipe » on « Tableau de bord »: widget « Demandes de devis par statut » shows counts and « Dernière demande »',async()=>{ n0=await nouv(); const t=await p.locator('#asset_cd_demandes').innerText(); expect(t.includes(ref),'latest is not '+ref+': '+t.slice(0,90)); return `Nouvelle=${n0}; latest ${ref}`; },p);
@@ -110,4 +111,4 @@ for (const w of [1440,390]) { const {c,p}=await ctx(br,w); const S='S2'+(w===390
   await step('S5','Visitor: the neurology congress page says « Tarif congrès négocié disponible » and no DEMO-GME code anywhere in the HTML',async()=>{ const v=await ctx(br); await v.p.goto('/'); await v.p.getByLabel('Recherche',{exact:true}).fill('neurologie'); await v.p.getByRole('button',{name:'Rechercher'}).click(); await v.p.locator('.asset-card a',{hasText:'européen de neurologie'}).first().click(); const html=await v.p.content(); await v.c.close(); expect(/Tarif congrès négocié disponible/.test(html),'no notice'); for(const k of CODES) expect(!html.includes(k),'leak'); return 'notice shown; 0 codes'; });
   R.consoleErrs=p.errs.slice(0,10); R.reqFails=p.fails.slice(0,10);
   await c.close(); }
-} finally { await br.close(); fs.writeFileSync('uat-result.json',JSON.stringify(R,null,1)); }
+} finally { await br.close(); fs.writeFileSync(process.env.OUT||'uat-result.json',JSON.stringify(R,null,1)); }

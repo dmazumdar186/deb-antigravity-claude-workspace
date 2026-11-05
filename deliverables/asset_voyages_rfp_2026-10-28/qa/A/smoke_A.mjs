@@ -11,28 +11,30 @@ async function hosted(name) {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await ctx.newPage();
   const t0 = Date.now();
+  const want = name === 'blueprint-visitor' ? /Catalogue des congr/i : /Demandes de devis/i;
   try {
     await page.goto(HOST + name + '.json', { waitUntil: 'domcontentloaded', timeout: 60000 });
-    const fr = page.frameLocator('iframe#playground-viewport, iframe.playground-viewport, iframe').first();
-    if (name === 'blueprint-visitor') {
-      await fr.locator('body').waitFor({ timeout: 240000 });
-      await page.waitForFunction(() => { const f=[...document.querySelectorAll('iframe')]; return f.some(x=>{try{return x.contentDocument && /asset|catalogue|congr/i.test(x.contentDocument.body?.innerText||'')}catch(e){return false}})||false; }, null, { timeout: 240000 }).catch(()=>{});
-      const boot = (Date.now() - t0) / 1000;
-      const cards = await fr.locator('article, .asset-card, .asset-congres-card, li.asset-result').count();
-      const txt = await fr.locator('body').innerText();
-      const exemple = (txt.match(/— exemple/g) || []).length;
-      rec('SMOKE-hosted-visitor-12-congresses', exemple >= 12 || cards >= 12, `boot=${boot}s cards=${cards} "— exemple" occurrences=${exemple}`);
-      await page.screenshot({ path: new URL('./logs/hosted-visitor.png', import.meta.url).pathname });
-    } else {
-      await fr.locator('body').waitFor({ timeout: 240000 });
-      await page.waitForTimeout(1000);
-      await page.waitForFunction(() => [...document.querySelectorAll('iframe')].some(x=>{try{return /Demandes/i.test(x.contentDocument.body.innerText)}catch(e){return false}}), null, { timeout: 240000 }).catch(()=>{});
-      const boot = (Date.now() - t0) / 1000;
-      const txt = await fr.locator('body').innerText();
-      rec('SMOKE-hosted-admin-demandes-loggedin', /Demandes/.test(txt) && /Howdy|Bonjour|Se déconnecter|Log Out|admin/i.test(txt), `boot=${boot}s sample=${JSON.stringify(txt.slice(0,160))}`);
-      await page.screenshot({ path: new URL('./logs/hosted-admin.png', import.meta.url).pathname });
+    let txt = '', frame = null;
+    while (Date.now() - t0 < 300000) {
+      for (const f of page.frames()) {
+        try { const t = await f.locator('body').innerText({ timeout: 2000 }); if (want.test(t)) { txt = t; frame = f; break; } } catch {}
+      }
+      if (frame) break;
+      await page.waitForTimeout(2000);
     }
-  } catch (e) { rec('SMOKE-hosted-' + name, false, `after ${(Date.now()-t0)/1000}s: ${e.message.split('\n')[0]}`); try{await page.screenshot({ path: new URL('./logs/hosted-'+name+'-err.png', import.meta.url).pathname });}catch{} }
+    const boot = (Date.now() - t0) / 1000;
+    if (!frame) throw new Error('target text not seen within 300s');
+    if (name === 'blueprint-visitor') {
+      const exemple = (txt.match(/exemple/g) || []).length;
+      const cards = await frame.locator('a:has-text("exemple"), h2:has-text("exemple"), h3:has-text("exemple")').count();
+      const count = (txt.match(/(\d+)\s+congr/i) || [])[0];
+      rec('SMOKE-hosted-visitor-12-congresses', /12/.test(count||'') || cards >= 12, `boot=${boot}s resultCountText=${count} exemple=${exemple} cards=${cards}`);
+    } else {
+      const li = await frame.locator('#wpadminbar').count();
+      rec('SMOKE-hosted-admin-demandes-loggedin', li > 0 && /admin/i.test(txt), `boot=${boot}s adminbar=${li} url=${frame.url().slice(-60)}`);
+    }
+    await page.screenshot({ path: new URL('./logs/hosted-' + name + '.png', import.meta.url).pathname });
+  } catch (e) { rec('SMOKE-hosted-' + name, false, `after ${(Date.now()-t0)/1000}s: ${e.message.split('\n')[0]}`); }
   await ctx.close();
 }
 if (mode !== 'local') { await hosted('blueprint-visitor'); await hosted('blueprint-admin'); }

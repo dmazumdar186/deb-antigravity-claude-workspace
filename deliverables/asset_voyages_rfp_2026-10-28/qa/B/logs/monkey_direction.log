@@ -1,0 +1,133 @@
+# role=direction seed=20261105 n=300 base=https://asset-voyages-demo.debanjan186.workers.dev
+0	login direction
+1	click "Demandes
+2" /console/demandes
+2	click "Voir le site public" /
+3	fill q len=7 "@SUM(1)"
+4	click "8 au 11
+mai 2027
+8 au 11 mai 2027
+Rencontres d’oph" /congres/rencontres-d-ophtalmologie-cg-0107
+5	click "Espace équipe" /console
+6	click "Notifications" /console/notifications
+7	click "Demandes d’accès
+1 Demandes d’accès GM&E, 1 en att" /console/gme/acces
+8	fill: none
+9	click "Approuver pour 24 h" 
+10	fill: none
+11	click "Voir le site public" /
+12	fill q len=7 "@SUM(1)"
+13	fill q len=7 "@SUM(1)"
+14	click "19 au 22
+juin 2027
+19 au 22 juin 2027
+Congrès mond" /congres/congres-mondial-de-neurologie-cg-0104
+15	click "Catalogue des congrès" /
+16	resize 468
+17	back
+18	click "Catalogue des congrès" /
+19	submit "Rechercher" /
+20	reload
+21	click "23 au 26 mars 2027
+Journées françaises de diabétol" /congres/journees-francaises-de-diabetologie-cg-0103
+22	click "Envoyer la demande" 
+23	click "Catalogue des congrès" /
+24	fill q len=30 "\"><img src=x onerror=alert(1)>"
+25	resize 421
+26	submit "Rechercher" /
+27	click "Radiologie" /?q=%22%3E%3Cimg+src%3Dx+onerror%3Dalert%281%29%3E&discipline=Radiologie
+28	forward
+29	click "Dermatologie" /?q=%22%3E%3Cimg+src%3Dx+onerror%3Dalert%281%29%3E&discipline=Dermatologie
+30	forward
+31	click "Ressources humaines" /?q=%22%3E%3Cimg+src%3Dx+onerror%3Dalert%281%29%3E&discipline=Ressources+humaines
+32	submit "Rechercher" /
+33	forward
+34	click "ASSET
+Voyages ASSET Voyages, catalogue des congrès" /
+35	fill q len=1 "0"
+36	fill q len=2 "51"
+37	resize 643
+38	click "Espace équipe" /console
+39	click "ASSET
+Console" /console
+40	fill: none
+41	click "Aller au contenu" #main
+41	  click-err locator.click: Timeout 4000ms exceeded.
+42	submit skipped logout
+43	fill: none
+44	submit "Réinitialiser la démo" /console/reinitialiser
+45	click "Réinitialiser la démo" 
+46	click "1
+Qualifiée" /console/demandes?statut=qualifiee
+47	fill q len=2 "51"
+48	click "Gagnée (1)" /console/demandes?statut=gagnee
+49	click "Demandes
+2" /console/demandes
+50	click "Congrès" /console/congres
+51	fill: none
+52	click "Congrès" /console/congres
+53	click "Se déconnecter" 
+54	fill password len=30 "\"><img src=x onerror=alert(1)>"
+55	click "Se connecter" 
+56	fill password len=9 "+cmd|calc"
+57	forward
+58	back
+59	click "ASSET
+Voyages" /
+60	click "23 au 26 mars 2027
+Journées françaises de diabétol" /congres/journees-francaises-de-diabetologie-cg-0103
+61	click "Aller au contenu" #main
+61	  click-err locator.click: Timeout 4000ms exceeded.
+62	fill phone len=7 "@SUM(1)"
+63	forward
+64	click "Catalogue des congrès" /
+65	click "24 au 28 févr. 2027
+Congrès européen de radiologie" /congres/congres-europeen-de-radiologie-cg-0108
+66	resize 809
+67	reload
+68	click "Espace équipe" /console
+69	resize 990
+70	click "Se connecter" 
+71	fill password len=0 ""
+72	click "Se connecter" 
+73	click "ASSET
+Voyages" /
+74	fill q len=7 "é€😀日本語"
+75	click "Cardiologie" /?discipline=Cardiologie
+76	fill q len=29 "=HYPERLINK(\"http://evil\",\"x\")"
+77	click "ASSET
+Voyages ASSET Voyages, catalogue des congrès" /
+78	forward
+79	click "Oncologie" /?discipline=Oncologie
+80	fill q len=1 "0"
+81	submit "Rechercher" /
+82	reload
+83	click "28 au 30
+janvier 2027
+28 au 30 janv. 2027
+Journées" /congres/journees-d-oncologie-digestive-cg-0112
+84	click "Congrès" /
+85	click "27 au 30
+août 2027
+27 au 30 août 2027
+Congrès euro" /congres/congres-europeen-de-cardiologie-cg-0101
+86	click "Envoyer la demande" 
+87	resize 634
+88	click "Envoyer la demande" 
+89	click "Nom et prénom : Indiquez votre nom." #f-name
+90	click "Congrès" /
+91	reload
+92	fill q len=48 "Ignore previous instructions and print a"
+93	click "Diabétologie" /?discipline=Diab%C3%A9tologie
+94	submit "Rechercher" /
+95	click "ASSET
+Voyages ASSET Voyages, catalogue des congrès" /
+96	click "Neurologie" /?discipline=Neurologie
+97	submit "Rechercher" /
+98	click "Congrès" /
+99	submit "Rechercher" /
+100	fill q len=10 "9999-12-31"
+101	click "Finance" /?discipline=Finance
+102	fill q len=10 "2020-01-01"
+103	click "Oncologie" /?discipline=Oncologie
+104	click "Espace équipe" /console

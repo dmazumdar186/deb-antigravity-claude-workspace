@@ -39,3 +39,4 @@ Running 46 tests using 1 worker
   ✓  34 05-s5-gme.spec.js:127:1 › S5-F3 revoke at once; S5-H1 reveal after revocation, without nonce or without permission is refused and logged (24.3s)
   ✓  35 05-s5-gme.spec.js:177:1 › S5-F5 public pages say only « Tarif congrès négocié disponible », never the code (10.0s)
   ✓  36 05-s5-gme.spec.js:195:1 › S5-L2 codes never in HTML for authorised users until reveal; never in logs, CSV or notifications (22.1s)
+  ✓  37 06-leak.spec.js:76:1 › S5-L1 + S4-F6 logged-out crawl: pages, filters, every congress, feeds, sitemaps, search, every REST route, admin-ajax (6.3m)
