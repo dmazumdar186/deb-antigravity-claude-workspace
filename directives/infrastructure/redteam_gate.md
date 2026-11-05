@@ -209,3 +209,7 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   dirs with untracked sitecustomize/usercustomize or importing .pth, missing paths, `$VAR`
   values and any LD_* deny. Prefix skip handles `timeout -k 5 --signal=KILL 30`, nice/stdbuf/
   ionice/env flags. Env inherited from the session (not set in the command) is out of scope.
+- 2026-11-05 (ninth audit): non-Python loader vars (NODE_OPTIONS, NODE_PATH, PHP_INI_SCAN_DIR,
+  RUBYOPT, PERL5OPT) pointing at a directory deny unless the dir is tracked + clean; LD_PRELOAD
+  always denies; LD_LIBRARY_PATH allowed only when every entry is a root-owned, non-writable
+  system lib dir (as root, nothing is non-writable, so it denies).

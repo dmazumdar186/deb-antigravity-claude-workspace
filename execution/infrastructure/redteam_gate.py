@@ -2092,6 +2092,44 @@ def _env_paths(name: str, value: str) -> list[str]:
     return [x for x in re.split(seps, value) if x]
 
 
+_PY_DIR_ENV = {"PYTHONPATH", "PYTHONHOME", "PYTHONUSERBASE"}
+_SYS_LIB_RE = re.compile(r"/(?:usr/(?:local/)?lib|lib)[^/]*(?:/.*)?|/opt/[^/]+/lib[^/]*(?:/.*)?")
+
+
+def _system_lib_dir(p: Path) -> bool:
+    """Root-owned, not writable by us, under /usr/lib*, /usr/local/lib*, /lib*, /opt/*/lib*."""
+    try:
+        real = Path(os.path.realpath(p))
+        if not _SYS_LIB_RE.fullmatch(real.as_posix()) or not real.is_dir():
+            return False
+        st = real.stat()
+        return getattr(st, "st_uid", 1) == 0 and not os.access(real, os.W_OK)
+    except OSError:
+        return False
+
+
+def _dir_tracked_clean(p: Path) -> bool:
+    """A workspace directory with every file tracked and unmodified (bounded)."""
+    try:
+        root = Path(os.path.realpath(REPO_ROOT))
+        real = Path(os.path.realpath(p))
+    except OSError:
+        return False
+    if not real.is_relative_to(root):
+        return False
+    rel = str(real.relative_to(root)) or "."
+    import subprocess
+    try:
+        r = subprocess.run(["git", "-C", str(root), "status", "--porcelain", "--ignored", "--",
+                            rel], capture_output=True, text=True, encoding="utf-8",
+                           errors="replace", timeout=10)
+    except (OSError, subprocess.SubprocessError) as exc:
+        print(f"redteam: git check failed ({type(exc).__name__})", file=sys.stderr)
+        return False
+    tracked = _git_ok(root, "ls-files", "--error-unmatch", "--", rel)
+    return r.returncode == 0 and not r.stdout.strip() and tracked
+
+
 def code_env_error(outer: str, cwd: Path) -> str | None:
     """Deny code-loading env vars set in the command unless each value is a tracked, unmodified
     workspace path, or a file/dir the scan clears."""
@@ -2106,8 +2144,10 @@ def code_env_error(outer: str, cwd: Path) -> str | None:
         for item in _env_paths(name, value):
             p = _xuser(Path(item))
             p = p if p.is_absolute() else cwd / p
-            if name in ("LD_PRELOAD", "LD_LIBRARY_PATH"):
+            if name == "LD_PRELOAD" or (name == "LD_LIBRARY_PATH" and not _system_lib_dir(p)):
                 return f"{name} loads native code ({item[:40]})"
+            if name == "LD_LIBRARY_PATH":
+                continue
             if not p.exists():
                 if name in ("RUBYOPT", "PERL5OPT", "NODE_OPTIONS"):
                     continue  # a library name (-rjson), not a path
@@ -2121,6 +2161,10 @@ def code_env_error(outer: str, cwd: Path) -> str | None:
                 if hit:
                     return f"sends email inline ({hit})"
                 continue
+            if name not in _PY_DIR_ENV:
+                if _dir_tracked_clean(p):
+                    continue
+                return f"{name} points at directory {item[:40]} (loader runs code from it)"
             files = [p / f for f in _DIR_HOOK_FILES] + sorted(p.glob("*.pth"))[:MAX_ARG_FILES]
             for f in files:
                 if f.is_file() and not git_clean(f):

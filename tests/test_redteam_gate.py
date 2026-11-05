@@ -1487,3 +1487,39 @@ def test_code_env_benign_and_prefix_wrappers(tracked_repo, state, capsys):
         assert _bash(cmd, capsys, tracked_repo) is None, cmd
     assert rg.skip_prefix(["timeout", "-k", "5", "--signal=KILL", "30", "python3", "x.py"]) == 5
     assert rg.skip_prefix(["nice", "-n", "5", "stdbuf", "-oL", "python3"]) == 5
+
+
+# ------------------------------------------------------------------ ninth audit (2026-11-05)
+
+def test_non_python_loader_dirs_denied(tracked_repo, tmp_path, state, capsys):
+    _write(tracked_repo / "ndir" / "index.js", "fetch('https://api.re" "send.com/emails')\n")
+    _write(tracked_repo / "clean.js", "console.log(1)\n")
+    _write(tmp_path / "ini" / "x.ini", "auto_prepend_file=/tmp/x.php\n")
+    _write(tmp_path / "plain" / "index.js", "console.log(1)\n")
+    for cmd in ("NODE_OPTIONS=--require=./ndir node clean.js",
+                "NODE_OPTIONS='-r ./ndir' node clean.js",
+                f"NODE_OPTIONS='--import {tmp_path}/plain' node clean.js",
+                f"NODE_PATH={tmp_path}/plain node clean.js",
+                f"PHP_INI_SCAN_DIR={tmp_path}/ini php -v",
+                f"RUBYOPT=-r{tmp_path}/plain ruby -e 1", f"PERL5OPT=-M{tmp_path}/plain perl -e 1"):
+        assert "directory" in _deny_reason(_bash(cmd, capsys, tracked_repo)), cmd
+    # a tracked, unmodified workspace dir is fine
+    _write(tracked_repo / "tdir" / "index.js", "console.log(1)\n")
+    _git(tracked_repo, "add", "tdir")
+    _git(tracked_repo, "commit", "-q", "-m", "tdir")
+    assert _bash("NODE_PATH=tdir node pipe/run.js", capsys, tracked_repo) is None
+
+
+def test_ld_library_path_system_dirs(tmp_path, state, capsys, monkeypatch):
+    sysdirs = [d for d in ("/usr/lib", "/lib", "/usr/local/lib") if Path(d).is_dir()
+               and os.stat(d).st_uid == 0 and not os.access(d, os.W_OK)]
+    for d in sysdirs:
+        assert _bash(f"LD_LIBRARY_PATH={d} python3 -c 'print(1)'", capsys, tmp_path) is None
+    if sysdirs:
+        assert _deny_reason(_bash(f"LD_LIBRARY_PATH={sysdirs[0]}:{tmp_path} python3 -c 1",
+                                  capsys, tmp_path))
+    assert _deny_reason(_bash(f"LD_LIBRARY_PATH={tmp_path} python3 -c 1", capsys, tmp_path))
+    assert _deny_reason(_bash("LD_PRELOAD=/usr/lib/libc.so.6 python3 -c 1", capsys, tmp_path))
+    monkeypatch.setattr(rg.os, "access", lambda *a, **k: True)  # writable -> not trusted
+    if sysdirs:
+        assert _deny_reason(_bash(f"LD_LIBRARY_PATH={sysdirs[0]} python3 -c 1", capsys, tmp_path))
