@@ -102,6 +102,7 @@ Start: logged in as `equipe` (no access), then as `direction`.
 | X3 | All data fictional: titles end « — exemple », emails @example.com, codes `DEMO-GME-…`. No real client, congress or code. |
 | X4 | Reset: the sandbox can be restored to the seed state (Playground: reload; custom: Direction reset + nightly cron); re-seeding creates no duplicates. |
 | X5 | Hallmark gate: zero FAIL on the hub page and custom demo pages; waivers recorded. |
+| X7 | Client's closing asks, each traced on the hub page: (a) visitor experience AND administration interface shown for every story in both options (links + steps + recording); (b) a table separating « works in the demo » from « built during the project » per story and per option; (c) fictional data and dummy codes stated on the page and in both sandboxes; (d) the response-target items: availability, demo date suggestions (3–5 working days after shortlisting), milestones from approval and receipt of content covering design, development, testing, training and launch; (e) no chargeable custom work started, said plainly. |
 | X6 | Eye review: an independent reviewer reads the screenshots of every story at 1440 and 390 and returns PASS or a defect list. |
 
 ## Loop
