@@ -1726,7 +1726,6 @@ def test_bash_outward_channels_in_untracked_script(tmp_path, state, capsys):
     "npx wrangler pages project list",
     "npx wrangler dev",
     "vercel ls",
-    "vercel deploy",
     "netlify deploy --dir .tmp/site",
     "netlify status",
 ])
@@ -1855,3 +1854,77 @@ def test_deploy_package_script_untracked_dir_denied(tmp_path, state, capsys, mon
     proj = _deploy_repo(tmp_path, monkeypatch)
     _write(proj.parent.parent / "tmpout" / "index.html", "<p>x</p>")
     assert "package.json script ship" in _deny_reason(_bash("npm run ship", capsys, cwd=proj))
+
+
+_DEPLOY_FORMS = [
+    "timeout 60 npx wrangler pages deploy dist",
+    "env A=1 nice -n 5 npx -y wrangler@3 pages deploy dist",
+    "bun x wrangler deploy",
+    "bunx wrangler versions deploy",
+    "npx wrangler versions upload",
+    "wrangler pages deployment create dist",
+    "node node_modules/wrangler/bin/wrangler.js deploy",
+    "ntl deploy --prod-if-unlocked",
+    "netlify deploy --prod",
+    "vercel promote https://x.vercel.app",
+    "vercel alias set a.vercel.app b.com",
+    "vercel",
+    "vercel deploy",
+    "pnpm dlx vercel --prod",
+    "yarn exec wrangler deploy",
+    "bun run deploy",
+]
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_deploy_forms_follow_project_cleanliness(tmp_path, state, capsys, monkeypatch):
+    proj = _deploy_repo(tmp_path, monkeypatch)
+    for cmd in _DEPLOY_FORMS:
+        assert _bash(cmd, capsys, cwd=proj) is None, cmd
+    _write(proj / "src" / "draft.md", "uncommitted\n")
+    for cmd in _DEPLOY_FORMS:
+        assert "uncommitted" in _deny_reason(_bash(cmd, capsys, cwd=proj)), cmd
+    for cmd in ("git commit -m 'ship: wrangler pages deploy dist; vercel --prod'",
+                "echo \"npx wrangler deploy && ntl deploy --prod\"",
+                "git log --grep 'npm run deploy'", "vercel --version", "wrangler whoami",
+                "netlify deploy", "vercel ls"):
+        assert _bash(cmd, capsys, cwd=proj) is None, cmd
+
+
+def test_mcp_send_message_routing(tmp_path, state, capsys):
+    _record_text(tmp_path, "Launch is live", capsys)
+    # a non-mail send_message goes through the channel/audience rules, not the email path
+    assert "audience" in _deny_reason(_mcp("mcp__slack__send_message",
+                                           {"channel": "C1", "text": "Launch is live"}, capsys))
+    assert rg.gmail_action("mcp__slack__send_message") is None
+    assert rg.gmail_action("mcp__acme_mail__send_message") == "send_message"
+    assert "audience" in _deny_reason(_mcp(
+        "mcp__li__publish_post", {"text": "Launch is live", "visibility": "PUBLIC"}, capsys))
+
+
+_GAP_SENDS = [
+    "curl -X POST https://disc|ord.com/api/v10/channels/123/messages -d '{}'",
+    "curl -X POST https://graph.micro|soft.com/v1.0/teams/T/channels/C/messages -d '{}'",
+    "curl -X POST https://sla|ck.com:443/api/chat.post|Message -d text=hi",
+    "curl https://sla|ck.com/api/chat.me|Message -d text=hi",
+    "python3 -c \"c.files_upload|_v2(channel='c', file='x')\"",
+    "python3 -c \"import disc|ord; channel.se|nd('hi')\"",
+    "python3 -c \"from twi|lio.rest import Client; Client().messages.cre|ate(to='+1', body='x')\"",
+    "http POST https://hooks.sla|ck.com/services/x text=hi",
+    "xh post https://api.tele|gram.org/bot1:a/sendMessage text=hi",
+]
+
+
+@pytest.mark.parametrize("cmd", _GAP_SENDS)
+def test_outward_gap_channels_denied(cmd, state, capsys):
+    assert _deny_reason(_bash(cmd.replace("|", ""), capsys)), cmd
+
+
+@pytest.mark.parametrize("cmd", [
+    "python3 -c \"db.messages.cre|ate(x)\"",
+    "python3 -c \"queue.send('x')\"",
+    "http GET https://sla|ck.com/api/conversations.list",
+    "git commit -m 'post to hooks.sla|ck.com later'",
+])
+def test_outward_gap_false_positives(cmd, state, capsys):
+    assert _bash(cmd.replace("|", ""), capsys) is None, cmd

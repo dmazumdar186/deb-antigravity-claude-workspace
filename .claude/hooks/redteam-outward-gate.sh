@@ -52,8 +52,8 @@ if printf '%s' "$INPUT" | grep -Eq '"tool_name"[[:space:]]*:[[:space:]]*"mcp__[^
   OUTWARD=1
 fi
 # Share/permission/post/send/publish MCP tools (any server) fail closed too, except reads.
-if printf '%s' "$INPUT" | grep -Eq '"tool_name"[[:space:]]*:[[:space:]]*"mcp__[^"]*__[^"]*([Ss]hare|[Pp]ermission|post_message|send_|[Pp]ublish)' \
-   && ! printf '%s' "$INPUT" | grep -Eq '"tool_name"[[:space:]]*:[[:space:]]*"mcp__[^"]*__(get|list|search|read|resolve|download|fetch|describe|find|query|lookup|check|count|export|delete|remove|revoke|unshare|trash|untrash)_?'; then
+if printf '%s' "$INPUT" | grep -Eiq '"tool_name"[[:space:]]*:[[:space:]]*"mcp__[^"]*__[^"]*(share|permission|post_message|send_|publish)' \
+   && ! printf '%s' "$INPUT" | grep -Eiq '"tool_name"[[:space:]]*:[[:space:]]*"mcp__[^"]*__(get|list|search|read|resolve|download|fetch|describe|find|query|lookup|check|count|export|delete|remove|revoke|unshare|trash|untrash)_?'; then
   OUTWARD=1
 fi
 

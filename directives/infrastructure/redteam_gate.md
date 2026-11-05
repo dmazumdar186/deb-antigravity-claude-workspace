@@ -270,3 +270,13 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   cold-email send endpoints and SDK calls, production deploys only from committed dirs, MCP
   share/permission and post_message/send_/publish tools (recipient ⊆ recorded pass; fail closed
   in the wrapper; settings matcher widened). Reads and non-prod deploys stay allowed.
+- 2026-11-05 (channels audit): deploys found per quote-aware simple command through wrappers
+  and runners (timeout/env/nice, npx/pnpx/bunx/`bun x`/`pnpm|yarn dlx|exec`, `tool@ver`,
+  `node …/wrangler.js`), `ntl` alias; wrangler `pages deployment create`, `versions
+  deploy|upload`; vercel bare/`deploy`/`promote`/`alias set` (previews count);
+  netlify `--prod-if-unlocked`. No explicit dir → the cwd project must be committed + clean.
+  Non-mail MCP `send_message` tools route through the share/post rules (only names containing
+  mail, plus any `create_draft`, take the email path). Twilio call needs twilio context;
+  host:port forms normalised; Discord channel messages, MS Graph Teams/chat messages, Slack
+  me-message and v2 file upload, discord.py sends (with discord import), httpie/xh calls added.
+  Posts with public visibility need a waiver. Settings matcher case-insensitive.

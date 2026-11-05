@@ -110,7 +110,7 @@
         ]
       },
       {
-        "matcher": "mcp__.*([Gg]mail|send_email|send_message|create_draft).*|mcp__.*[Cc]alendar.*__(create_event|update_event|quick_add_event)|mcp__.*__.*([Ss]hare|[Pp]ermission|post_message|send_|[Pp]ublish).*|Bash",
+        "matcher": "mcp__.*([Gg]mail|send_email|send_message|create_draft).*|mcp__.*[Cc]alendar.*__(create_event|update_event|quick_add_event)|mcp__.*__.*([Ss][Hh][Aa][Rr][Ee]|[Pp][Ee][Rr][Mm][Ii][Ss][Ss][Ii][Oo][Nn]|[Pp][Oo][Ss][Tt]_[Mm][Ee][Ss][Ss][Aa][Gg][Ee]|[Ss][Ee][Nn][Dd]_|[Pp][Uu][Bb][Ll][Ii][Ss][Hh]).*|Bash",
         "hooks": [
           {
             "type": "command",

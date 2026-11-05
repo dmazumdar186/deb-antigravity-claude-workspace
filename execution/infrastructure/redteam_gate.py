@@ -1232,7 +1232,8 @@ def gmail_action(tool_name: str) -> str | None:
     suffix = tool_name.rsplit("__", 1)[-1]
     if "gmail" not in tool_name.lower():
         # Any MCP mail-like sender (send_email/send_message/create_draft) is gated as email.
-        if tool_name.startswith("mcp__") and _MAIL_TOOL_RE.search(suffix):
+        if tool_name.startswith("mcp__") and _MAIL_TOOL_RE.search(suffix) and (
+                "mail" in tool_name.lower() or suffix.lower() == "create_draft"):
             return suffix if suffix in GMAIL_KNOWN else "generic"
         return None
     if suffix in GMAIL_KNOWN:
@@ -1705,6 +1706,8 @@ _OUTWARD_SIMPLE = (
     ("slack.com/api/chat.post" "ephemeral", "Slack chat.postEphemeral"),
     ("slack.com/api/chat.schedule" "message", "Slack chat.scheduleMessage"),
     ("slack.com/api/chat.up" "date", "Slack chat.update"),
+    ("slack.com/api/chat.me" "message", "Slack chat.meMessage"),
+    ("files_upload" "_v2(", "Slack files_upload_v2"),
     ("slack.com/api/files.up" "load", "Slack files.upload"),
     ("slack.com/api/files.complete" "uploadexternal", "Slack files upload"),
     ("chat_post" "message", "Slack chat_post" "Message"),
@@ -1736,12 +1739,25 @@ _OUTWARD_RES = (
      "Meta Graph post/message"),
     (re.compile(r"api\.telegram\.org/bot[^\s/]*/send\w+"), "Telegram send"),
     (re.compile(r"api\.twilio\.com/[\w./-]*/messages"), "Twilio message"),
-    (re.compile(r"\bmessages\s*\.\s*create\s*\([^)]*\b(?:to|body|from_)\s*="), "Twilio messages.create"),
+    (re.compile(r"discord(?:app)?\.com/api/(?:v\d+/)?channels/\d+/messages"), "Discord message"),
+    (re.compile(r"graph\.microsoft\.com/[\w./-]*(?:chats|channels|teams)/[\w./-]*messages"),
+     "MS Graph Teams message"),
     (re.compile(r"\bcreate_tweet\s*\(|\bupdate_status\s*\(|\.v2\s*\.\s*tweet\s*\("), "X/Twitter SDK post"),
 )
 
 
+_PORT_RE = re.compile(r"(\.[a-z]{2,}):\d{1,5}(?=[/\s'\"]|$)")
+_TWILIO_CALL_RE = re.compile(r"\bmessages\s*\.\s*create\s*\(")
+_DISCORD_PY_RE = re.compile(r"\b(?:channel|ctx|user|member|thread|dm)\s*\.\s*send\s*\(")
+_DISCORD_CTX_RE = re.compile(r"\bimport\s+discord\b|\bfrom\s+discord\b|require\(['\"]discord")
+
+
 def outward_api_hit(low: str) -> str | None:
+    low = _PORT_RE.sub(r"\1", low)
+    if "twil" "io" in low and _TWILIO_CALL_RE.search(low):
+        return "Twilio messages.cre" "ate("
+    if _DISCORD_CTX_RE.search(low) and _DISCORD_PY_RE.search(low):
+        return "discord.py send"
     for pat, label in _OUTWARD_SIMPLE:
         if pat in low:
             return label
@@ -1829,10 +1845,6 @@ def split_heredocs(command: str) -> tuple[str, list[tuple[str, str]]]:
 
 
 # ------------------------------------------------------------------ client-visible deploys
-_DEPLOY_RE = re.compile(
-    r"(?:^|[;&|(\n])\s*(?:cd\s+(?P<cd>[^\s;&|]+)\s*&&\s*)?(?:[A-Za-z_]\w*=\S*\s+)*"
-    r"(?:(?:npx|bunx|pnpx)\s+(?:-y\s+|--yes\s+)?|(?:pnpm|yarn)\s+(?:dlx\s+|exec\s+)?|"
-    r"npm\s+exec\s+(?:--\s+)?)?(?:\S*/)?(?P<tool>wrangler|vercel|netlify)\b(?P<args>[^;&|\n]*)")
 _DEPLOY_VAL_FLAGS = {"--project-name", "--branch", "--commit-hash", "--commit-message", "--env",
                      "-e", "-c", "--config", "--name", "--compatibility-date", "--scope",
                      "--token", "-t", "--site", "-s", "--auth", "--alias", "-a", "--message",
@@ -1840,7 +1852,7 @@ _DEPLOY_VAL_FLAGS = {"--project-name", "--branch", "--commit-hash", "--commit-me
                      "--dir", "-d", "--cwd", "--output-dir"}
 _VERCEL_NON_DEPLOY = {"ls", "list", "logs", "env", "pull", "link", "login", "whoami", "inspect",
                       "domains", "dns", "project", "projects", "teams", "help", "dev", "build",
-                      "rm", "remove", "alias", "certs", "secrets", "switch", "promote"}
+                      "rm", "remove", "alias", "certs", "secrets", "switch"}
 _DEPLOY_SKIP_DIRS = ("node_modules/", ".wrangler/", ".vercel/", ".netlify/")
 DEPLOY_DENY = ("Client pages deploy only from committed content: commit the source dir (page "
                "text is covered by the build-contract audit), then deploy that clean dir.")
@@ -1882,39 +1894,189 @@ def _deploy_target(tool: str, argv: list[str]) -> tuple[bool, str | None]:
     return False, None
 
 
-def deploy_error(outer: str, cwd: Path, depth: int = 0) -> str | None:
-    """Deny production deploys of pages whose source dir is not committed + clean (or is
-    gitignored build output of a clean project). `npm|pnpm|yarn run X` scripts are followed."""
-    import shlex
-    if depth < 3:
-        bases = [cwd] + [cwd / c.strip("\"'") for c in re.findall(r"\bcd\s+([^\s;&|]+)", outer)]
-        try:
-            pkg = _package_scripts(outer, bases)
-        except ScanLimit as exc:
-            return f"redteam gate: {exc}. {DEPLOY_DENY}"
-        for label, body in pkg:
-            base = next((b for b in bases if (b / "package.json").is_file()), cwd)
-            err = deploy_error(body, base, depth + 1)
-            if err:
-                return err.replace("redteam gate: ", f"redteam gate: {label}: ", 1)
-    for m in _DEPLOY_RE.finditer(outer):
-        try:
-            argv = shlex.split(m.group("args"))
-        except ValueError:
-            return f"redteam gate: unparseable {m.group('tool')} deploy command. {DEPLOY_DENY}"
-        prod, d = _deploy_target(m.group("tool"), argv)
-        if not prod:
+def split_simple_commands(text: str) -> list[str]:
+    """Split shell text into simple commands on separators OUTSIDE quotes."""
+    out: list[str] = []
+    cur: list[str] = []
+    quote = ""
+    esc = False
+    for ch in text:
+        if esc:
+            cur.append(ch)
+            esc = False
             continue
-        base = cwd
-        if m.group("cd"):
-            base = cwd / m.group("cd").strip("\"'")
+        if ch == "\\" and quote != "'":
+            esc = True
+            cur.append(ch)
+            continue
+        if quote:
+            if ch == quote:
+                quote = ""
+            cur.append(ch)
+            continue
+        if ch in "'\"":
+            quote = ch
+            cur.append(ch)
+            continue
+        if ch in "\n;&|(){}`":
+            out.append("".join(cur))
+            cur = []
+            continue
+        cur.append(ch)
+    out.append("".join(cur))
+    return [c for c in out if c.strip()]
+
+
+_RUNNERS = {"npx", "pnpx", "bunx"}
+_DEPLOY_TOOLS = {"wrangler": "wrangler", "vercel": "vercel", "netlify": "netlify",
+                 "ntl": "netlify"}
+_PKG_MANAGERS = {"npm", "pnpm", "yarn", "bun"}
+
+
+def _tool_name(tok: str) -> str | None:
+    base = re.split(r"[/\\]", tok)[-1].lower()
+    base = re.sub(r"\.(?:c|m)?js$|\.cmd$|\.exe$|\.ps1$", "", base)
+    if base.startswith("@"):
+        base = base.split("/")[-1]
+    base = base.split("@")[0]
+    return _DEPLOY_TOOLS.get(base)
+
+
+def program_argv(toks: list[str]) -> list[str]:
+    """Strip env assignments, wrappers (+ their flags/numbers) and package runners
+    (npx/pnpx/bunx, `bun x`, `pnpm|yarn dlx|exec`, `npm exec [--]`, `node <bin>`)."""
+    i = 0
+    while i < len(toks):
+        t = toks[i]
+        low = t.lower()
+        if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*=.*", t, re.S) or low in _WRAPPERS \
+                or low in _RUNNERS:
+            i += 1
+            while i < len(toks) and (toks[i].startswith("-") or re.fullmatch(r"[\d.]+[smhd]?",
+                                                                              toks[i])):
+                i += 1
+            continue
+        if low in _PKG_MANAGERS and i + 1 < len(toks) and toks[i + 1].lower() in (
+                "x", "dlx", "exec"):
+            i += 2
+            while i < len(toks) and toks[i].startswith("-"):
+                i += 1
+            continue
+        if re.split(r"[/\\]", low)[-1] in ("node", "node.exe", "bun", "deno") and i + 1 < len(
+                toks) and _tool_name(toks[i + 1]):
+            i += 1
+            continue
+        break
+    return toks[i:]
+
+
+def _deploy_target(tool: str, argv: list[str]) -> tuple[bool, str | None]:
+    """(is_deploy, explicit_dir or None = the cwd project)."""
+    pos: list[str] = []
+    named: dict[str, str] = {}
+    flags: set[str] = set()
+    i = 0
+    while i < len(argv):
+        a = argv[i]
+        if a.startswith("-"):
+            k, eq, v = a.partition("=")
+            flags.add(k)
+            if eq:
+                named[k] = v
+            elif k in _DEPLOY_VAL_FLAGS and i + 1 < len(argv):
+                named[k] = argv[i + 1]
+                i += 1
+        else:
+            pos.append(a)
+        i += 1
+    if tool == "wrangler":
+        if pos[:2] in (["pages", "deploy"], ["pages", "publish"]):
+            return True, pos[2] if len(pos) > 2 else named.get("--output-dir")
+        if pos[:3] == ["pages", "deployment", "create"]:
+            return True, pos[3] if len(pos) > 3 else None
+        if pos[:1] in (["deploy"], ["publish"]) or pos[:2] in (
+                ["versions", "deploy"], ["versions", "upload"]):
+            return True, None
+        return False, None
+    if tool == "vercel":
+        if flags & {"--version", "-v", "--help", "-h"} and not pos:
+            return False, None
+        if pos[:1] == ["promote"] or pos[:2] == ["alias", "set"]:
+            return True, None
+        if pos and pos[0] in _VERCEL_NON_DEPLOY:
+            return False, None
+        rest = pos[1:] if pos[:1] == ["deploy"] else pos
+        return True, named.get("--cwd") or (rest[0] if rest else None)
+    if pos[:1] == ["deploy"] and flags & {"--prod", "-p", "--production", "--prod-if-unlocked"}:
+        return True, named.get("--dir") or named.get("-d")
+    return False, None
+
+
+_HTTPIE = {"http", "https", "xh", "xhs", "httpie"}
+
+
+def deploy_error(outer: str, cwd: Path, depth: int = 0) -> str | None:
+    """Deny client-visible deploys whose source is not committed (or gitignored build output
+    of a clean committed project); follow `npm|pnpm|yarn|bun run X`. Also denies httpie
+    (`http`/`https`/`xh`) calls to outward send endpoints (httpie is not an exec word)."""
+    import shlex
+    base = cwd
+    for seg in split_simple_commands(outer):
+        try:
+            toks = shlex.split(seg)
+        except ValueError:
+            toks = seg.split()
+        argv = program_argv(toks)
+        if not argv:
+            continue
+        prog = argv[0]
+        low = prog.lower()
+        if low == "cd":
+            nxt = argv[1] if len(argv) > 1 else ""
+            base = (base / nxt) if nxt and not any(c in nxt for c in "$`~") else base
+            continue
+        if re.split(r"[/\\]", low)[-1] in _HTTPIE:
+            hit = sender_hit(seg.lower())
+            if hit:
+                return f"redteam gate: Bash command sends outward via httpie ({hit}). {BASH_DENY}"
+            continue
+        if low in _PKG_MANAGERS and len(argv) > 1 and depth < 3:
+            name = argv[2] if argv[1] in ("run", "run-script") and len(argv) > 2 else argv[1]
+            try:
+                pkg = _package_scripts(f"npm run {name}", [base])
+            except ScanLimit as exc:
+                return f"redteam gate: {exc}. {DEPLOY_DENY}"
+            for label, body in pkg:
+                err = deploy_error(body, base, depth + 1)
+                if err:
+                    return err.replace("redteam gate: ", f"redteam gate: {label}: ", 1)
+            continue
+        tool = _tool_name(prog)
+        if not tool:
+            continue
+        is_deploy, d = _deploy_target(tool, argv[1:])
+        if not is_deploy:
+            continue
         target = (base / d) if d else base
         if any(c in str(target) for c in "$`~*?"):
             return f"redteam gate: deploy dir {target} uses expansion (unverifiable). {DEPLOY_DENY}"
-        why = dir_committed_error(target)
+        why = dir_committed_error(target) if d else project_clean_error(target)
         if why:
-            return f"redteam gate: {m.group('tool')} deploy of {target}: {why}. {DEPLOY_DENY}"
+            return f"redteam gate: {tool} deploy of {target}: {why}. {DEPLOY_DENY}"
     return None
+
+
+def project_clean_error(proj: Path) -> str | None:
+    """No explicit dir (wrangler deploy, vercel promote, versions deploy): the cwd project
+    must be a workspace subfolder with tracked files and no modified/untracked files."""
+    try:
+        real = Path(os.path.realpath(proj))
+        root = Path(os.path.realpath(REPO_ROOT))
+    except OSError:
+        return "path unresolvable"
+    if not real.is_dir() or not real.is_relative_to(root) or real == root:
+        return "not a committed subdirectory of this workspace"
+    return _project_status_error(real, root)
 
 
 def dir_committed_error(target: Path) -> str | None:
@@ -1966,6 +2128,11 @@ def _build_output_error(real: Path, root: Path) -> str | None:
             break
     if proj == root or not proj.is_relative_to(root):
         return "gitignored output outside a committed project subfolder"
+    return _project_status_error(proj, root)
+
+
+def _project_status_error(proj: Path, root: Path) -> str | None:
+    import subprocess
     rel = str(proj.relative_to(root))
     try:
         ls = subprocess.run(["git", "-C", str(root), "ls-files", "--", rel], capture_output=True,
@@ -1976,10 +2143,10 @@ def _build_output_error(real: Path, root: Path) -> str | None:
     except (OSError, subprocess.SubprocessError) as exc:
         return f"git check failed ({type(exc).__name__})"
     if ls.returncode or st.returncode or not ls.stdout.strip():
-        return f"build output's project {rel} has no tracked files"
+        return f"project {rel} has no tracked files"
     dirty = [ln[3:] for ln in st.stdout.splitlines()]
     if dirty:
-        return f"build output's project {rel} has uncommitted files: " + ", ".join(dirty[:3])
+        return f"project {rel} has uncommitted files: " + ", ".join(dirty[:3])
     return None
 
 
@@ -2737,6 +2904,9 @@ def _mcp_recipients(ti: dict) -> tuple[set[str], list[str], list[str]]:
     for k in MCP_TARGET_KEYS:
         if _present(ti.get(k)):
             targets.append(f"{k}={str(ti[k])[:40]}")
+    if str(ti.get("visibility", "")).lower() in ("public", "anyone", "everyone", "connections",
+                                                  "unlisted"):
+        targets.append(f"visibility={ti['visibility']}")
     if str(ti.get("type", "")).lower() in ("anyone", "domain"):
         targets.append(f"type={ti['type']}")
     return addrs, bad, targets
