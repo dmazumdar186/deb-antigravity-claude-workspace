@@ -2,7 +2,7 @@
 
 A small but real platform covering the five functions ASSET asked every candidate to show. The visitor side and the staff console both work. All data is fictional and the GM&E codes are dummies (`DEMO-GME-…`).
 
-- Live: https://asset-voyages-demo.<account>.workers.dev (see "Deploy" below for the current status)
+- Live: https://asset-voyages-demo.debanjan186.workers.dev (Cloudflare Workers free plan, D1, cron 03:00 UTC)
 - Staff console: `/console`. Demo accounts `direction`, `equipe` and `contributeur` all use the sandbox password `demo-asset`, which is also shown on the login page.
 
 ## Architecture in plain words
@@ -50,25 +50,27 @@ BASE_URL=http://localhost:8787 node node_modules/playwright/cli.js test     # no
 # deploy (free plan only: Workers, D1 and cron triggers are all on the free tier)
 npx wrangler@4 deploy
 python3 -c 'import os,base64;print(base64.b64encode(os.urandom(32)).decode())' | npx wrangler@4 secret put GME_KEY
-BASE_URL=https://asset-voyages-demo.<account>.workers.dev node node_modules/playwright/cli.js test
+BASE_URL=https://asset-voyages-demo.debanjan186.workers.dev node node_modules/playwright/cli.js test
 ```
 
 There are three ways to reset, and all three converge on the same seed with the same ids, so a second reset creates no duplicates: the « Réinitialiser la démo » button on Direction's dashboard, the 03:00 UTC cron, and, locally, `curl "http://localhost:8787/cdn-cgi/handler/scheduled?cron=0+3+*+*+*"`. The seed holds 13 congresses (12 published with the briefed dates and cities, plus one draft, CG-0113), 6 enquiries across all statuses, 5 dummy codes with mixed statuses, and one pending access request from `equipe`.
 
 ## Tests (Playwright, `tests/`)
 
-Every test name starts with the gate ID it proves from `../21_Acceptance_Gates_5_Stories.md`. An automatic fixture fails any test that hits a console error, a failed request or a third-party request (X1, X2). E gates count the clicks.
+Every test name starts with the gate ID it proves from `../21_Acceptance_Gates_5_Stories.md`. An automatic fixture fails any test that hits a console error, a sub-resource answered with 4xx/5xx, a network failure or a third-party request (X1, X2). The fixture ignores `ERR_ABORTED`, which is Chromium cancelling a load because the test clicked on to the next page. A separate test, « X1 strict », loads every visitor and console page without clicking and counts every failed request, aborted ones included. E gates count the clicks.
 
-| File | Gates | Local |
-|---|---|---|
-| `s1_congress.spec.mjs` | S1-F1, S1-E1, S1-F2, S1-E2, S1-F3, S1-H1, S1-H2 | 5/5 pass |
-| `s2_catalogue.spec.mjs` | S2-F1 to S2-F6, S2-E1, S2-E2, S2-H1 | 9/9 pass |
-| `s3_enquiry.spec.mjs` | S3-F1, S3-F2, S3-F3, S3-F4, S3-E1, S3-H1, S3-H2, S3-H3 | 7/7 pass |
-| `s4_team.spec.mjs` | S4-F1 to S4-F6, S4-E1, S4-H1 | 7/7 pass |
-| `s5_gme.spec.mjs` | S5-F1 to S5-F5, S5-E1, S5-H1, S5-L1 (crawl), S5-L2 | 11/11 pass |
-| `x_cross.spec.mjs` | X1, X2, X3, X4, X5, security headers, cookie and logout replay, console at 390 px, hostile console input | 8/8 pass |
-| `z_screens.spec.mjs` | screenshots for X6 | 2/2 pass |
-| **Total** | | **49/49 pass** |
+| File | Gates | Local | Live |
+|---|---|---|---|
+| `s1_congress.spec.mjs` | S1-F1, S1-E1, S1-F2, S1-E2, S1-F3, S1-H1, S1-H2 | 5/5 pass | 5/5 pass |
+| `s2_catalogue.spec.mjs` | S2-F1 to S2-F6, S2-E1, S2-E2, S2-H1 | 9/9 pass | 9/9 pass |
+| `s3_enquiry.spec.mjs` | S3-F1, S3-F2, S3-F3, S3-F4, S3-E1, S3-H1, S3-H2, S3-H3 | 7/7 pass | 7/7 pass |
+| `s4_team.spec.mjs` | S4-F1 to S4-F6, S4-E1, S4-H1 | 7/7 pass | 7/7 pass |
+| `s5_gme.spec.mjs` | S5-F1 to S5-F5, S5-E1, S5-H1, S5-L1 (crawl), S5-L2 | 11/11 pass | 11/11 pass |
+| `x_cross.spec.mjs` | X1, X1 strict, X2, X3, X4, X5, security headers, cookie and logout replay, console at 390 px, hostile console input | 9/9 pass | 9/9 pass |
+| `z_screens.spec.mjs` | screenshots for X6 | 2/2 pass | 2/2 pass |
+| **Total** | | **50/50 pass** | **50/50 pass** |
+
+Both full runs (local `wrangler dev`, then live deploy b48a4877) passed 49/49. « X1 strict » was added afterwards and run on its own, passing locally and live, which brings the totals to 50.
 
 Click budgets measured: S1-E1 3 (budget 4), S1-E2 3 (3), S2-E1 2 (2), S3-E1 1, S4-E1 2 (3), S5-E1 2, 2 and 2 (2 each).
 

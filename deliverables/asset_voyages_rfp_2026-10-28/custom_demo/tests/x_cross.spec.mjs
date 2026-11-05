@@ -20,6 +20,32 @@ test('X1 X2 zero console errors, zero failed and zero third-party requests on ev
   expect(watch.thirdParty).toEqual([]);
 });
 
+test('X1 strict: a page left alone (no click) has zero failed or aborted requests, ERR_ABORTED included', async ({ browser }) => {
+  // The shared fixture tolerates ERR_ABORTED only because test clicks cancel in-flight loads. Here nothing is clicked,
+  // so every request, aborted ones included, must complete with a status below 400.
+  const ctx = await browser.newContext();
+  const page = await ctx.newPage();
+  const bad = [];
+  let total = 0;
+  page.on('request', () => { total++; });
+  page.on('requestfailed', (r) => bad.push(`${r.url()} ${r.failure()?.errorText}`));
+  page.on('response', (r) => { if (r.status() >= 400) bad.push(`${r.url()} HTTP ${r.status()}`); });
+  page.on('console', (m) => { if (m.type() === 'error') bad.push('console: ' + m.text()); });
+  const settle = async (u) => { await page.goto(u, { waitUntil: 'networkidle' }); await page.waitForTimeout(300); };
+  for (const u of PUBLIC.filter((u) => u !== '/page-inconnue')) await settle(u);
+  expect(bad, 'visitor pages left alone').toEqual([]);
+  // the login submit is the only interaction; let the dashboard settle fully before judging again
+  await page.getByLabel('Identifiant').fill('direction');
+  await page.getByLabel('Mot de passe').fill('demo-asset');
+  await Promise.all([page.waitForURL(/\/console$/), page.getByRole('button', { name: 'Se connecter' }).click()]);
+  await page.waitForLoadState('networkidle');
+  expect(bad, 'login submit').toEqual([]);
+  for (const u of CONSOLE) await settle(u);
+  expect(total).toBeGreaterThan(20);
+  expect(bad, 'console pages left alone').toEqual([]);
+  await ctx.close();
+});
+
 test('X3 all data is fictional: titles end « — exemple », e-mails @example.com, codes DEMO-GME-…', async ({ page }) => {
   const titles = [];
   for (const p of ['/', '/?page=2']) { await page.goto(p); titles.push(...await page.locator('.row__t').allTextContents()); }
