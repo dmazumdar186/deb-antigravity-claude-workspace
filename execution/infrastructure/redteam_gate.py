@@ -1224,10 +1224,16 @@ def cmd_check(args: argparse.Namespace) -> int:
 
 # --------------------------------------------------------------------------- PreToolUse hook
 
+_MAIL_TOOL_RE = re.compile(r"send_email|send_message|create_draft", re.I)
+
+
 def gmail_action(tool_name: str) -> str | None:
-    if "gmail" not in tool_name.lower():
-        return None
     suffix = tool_name.rsplit("__", 1)[-1]
+    if "gmail" not in tool_name.lower():
+        # Any MCP mail-like sender (send_email/send_message/create_draft) is gated as email.
+        if tool_name.startswith("mcp__") and _MAIL_TOOL_RE.search(suffix):
+            return suffix if suffix in GMAIL_KNOWN else "generic"
+        return None
     if suffix in GMAIL_KNOWN:
         return suffix
     low = suffix.lower()
@@ -1311,6 +1317,8 @@ def gmail_decision(action: str, ti: dict, state: Path) -> str | None:
                 return f"update_draft {did[:40]}: {err}"
         return None
     if action in ("forward", "generic"):
+        if _present(ti.get("subject")):
+            return f"{action} sets a subject with no vetted body text to bind it to"
         if _present(ti.get("attachments")):
             return f"{action} adds attachments with no vetted text to bind them to"
         return None
@@ -1419,7 +1427,9 @@ def calendar_decision(action: str, ti: dict, state: Path) -> str | None:
 
 # Literals are split so this file does not match its own patterns when it is scanned.
 _SENDER_SIMPLE = ("smtp" "lib", "send" "mail", "messages().se" "nd(", "drafts().se" "nd(",
-                  "api.send" "grid.com", "api.re" "send.com", "api.post" "markapp.com",
+                  "api.send" "grid.com", "re" "send.com", "post" "markapp.com",
+                  "messages.se" "nd(", "send-mail" "message", "mailer" "send.com",
+                  "mail" "trap.io", "spark" "post.com", "loops" ".so",
                   "smtp" "://", "smtp" "s://", "--mail" "-rcpt", "mailgun" ".net/v3",
                   "api.brevo" ".com", "api.sendin" "blue.com", "send" "-email", "send-raw" "-email",
                   "send" "_email(", "send" "_raw_email(", "sendgridapi" "client", "yag" "mail",
@@ -1442,7 +1452,8 @@ _EXEC_SCRIPT_RE = re.compile(
 # A program that executes code or sends mail, in command position (start of a simple command,
 # optionally behind env assignments or a wrapper such as sudo/env/xargs/nohup/time/exec).
 _EXEC_WORDS = (r"python(?:3(?:\.\d+)?)?|py|node|deno|bun|ruby|perl|php|curl|wget|send" r"mail|"
-               r"mailx?|msmtp|ssmtp|send" r"email|exim4?|swaks|aws|mutt|neomutt|s-nail|(?:ba|z|da|k)?sh")
+               r"mailx?|msmtp|ssmtp|send" r"email|exim4?|swaks|aws|mutt|neomutt|s-nail|"
+               r"pwsh|powershell|go|npx|tsx|ts-node|npm|pnpm|yarn|(?:ba|z|da|k)?sh")
 _EXEC_WORD_RE = re.compile(r"(?:" + _EXEC_WORDS + r")(?:\.exe)?", re.I)
 _QUOTED_RE = re.compile(r"'[^']*'|\"(?:[^\"\\]|\\.)*\"", re.S)
 _SEGMENT_SPLIT_RE = re.compile(r"[\n;&|(){}`]|\$\(")
@@ -1504,17 +1515,56 @@ def sender_hit(low: str) -> str | None:
     return None
 
 
+def _unquoted_mask(line: str, quote: str) -> tuple[list[bool], str]:
+    """Per-char 'outside quotes' flags for a line, given the quote state carried in."""
+    mask: list[bool] = []
+    esc = False
+    for ch in line:
+        if quote == "'":
+            mask.append(False)
+            if ch == "'":
+                quote = ""
+            continue
+        if quote == '"':
+            mask.append(False)
+            if esc:
+                esc = False
+            elif ch == "\\":
+                esc = True
+            elif ch == '"':
+                quote = ""
+            continue
+        if esc:
+            esc = False
+            mask.append(False)
+            continue
+        if ch == "\\":
+            esc = True
+            mask.append(False)
+        elif ch in "'\"":
+            quote = ch
+            mask.append(False)
+        else:
+            mask.append(True)
+    return mask, quote
+
+
 def split_heredocs(command: str) -> tuple[str, list[tuple[str, str]]]:
-    """(command text without heredoc bodies, [(opener line, body)])."""
+    """(command text without heredoc bodies, [(opener line, body)]). Quote-aware: a `<<X`
+    inside quotes is not a heredoc opener."""
     lines = command.split("\n")
     outer: list[str] = []
     docs: list[tuple[str, str]] = []
+    quote = ""
     i = 0
     while i < len(lines):
         line = lines[i]
         outer.append(line)
         i += 1
+        mask, quote = _unquoted_mask(line, quote)
         for m in _HEREDOC_RE.finditer(line):
+            if not mask[m.start()]:
+                continue
             strip_tabs, delim = m.group(1) == "-", m.group(3)
             body: list[str] = []
             while i < len(lines):
@@ -1539,10 +1589,18 @@ def _git_ok(cwd: Path, *args: str) -> bool:
 
 
 def git_clean(path: Path) -> bool:
-    """True if the file is git-tracked and identical to HEAD."""
-    cwd = path.parent
-    return (_git_ok(cwd, "ls-files", "--error-unmatch", "--", str(path))
-            and _git_ok(cwd, "diff", "--quiet", "HEAD", "--", str(path)))
+    """True if the file's realpath is inside this workspace and tracked + unmodified in the
+    workspace's own git (a throwaway `git init` elsewhere, or a nested repo, never counts)."""
+    try:
+        real = Path(os.path.realpath(path))
+        root = Path(os.path.realpath(REPO_ROOT))
+    except OSError:
+        return False
+    if not real.is_relative_to(root) or not real.is_file():
+        return False
+    rel = str(real.relative_to(root))
+    return (_git_ok(root, "ls-files", "--error-unmatch", "--", rel)
+            and _git_ok(root, "diff", "--quiet", "HEAD", "--", rel))
 
 
 def resolve_module(mod: str, cwd: Path, extra: Iterable[Path] = ()) -> Path | None:
@@ -1598,12 +1656,16 @@ def tracked_script_run(command: str, cwd: Path) -> bool:
     return path.is_file() and git_clean(path)
 
 
-MAX_ARG_FILES = 40
+MAX_ARG_FILES = 64
+
+
+class ScanLimit(Exception):
+    """A scan limit was hit: the gate cannot vouch for the command (fail closed)."""
 
 
 def _arg_tokens(text: str, depth: int = 0) -> list[str]:
-    """Unquoted words of a command (redirect sources included), recursing into quoted
-    `sh -c "..."`-style strings; every one that names an existing file gets scanned."""
+    """Words of a command after shell-style quote removal (redirect sources included). A quoted
+    word with spaces is kept whole (`"send mail.py"`) AND re-split (for `sh -c "..."`)."""
     import shlex
     try:
         lex = shlex.shlex(text, posix=True, punctuation_chars=";&|<>()")
@@ -1613,40 +1675,70 @@ def _arg_tokens(text: str, depth: int = 0) -> list[str]:
         toks = text.split()
     out: list[str] = []
     for t in toks:
-        t = t.strip("'\"")
-        m = re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*=(.+)", t)
+        m = re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*=(.+)", t, re.S)
         if m:
             t = m.group(1)  # FOO=/tmp/s.py: the value may itself be a script path
         if not t or t.startswith("-") or set(t) <= set(";&|<>()"):
             continue
+        out.append(t)
         if any(c.isspace() for c in t) and depth < 2:
             out.extend(_arg_tokens(t, depth + 1))
-        elif len(out) < MAX_ARG_FILES:
-            out.append(t)
-    return out[:MAX_ARG_FILES]
+    return out
 
 
 _ASSIGN_RE = re.compile(r"(?:^|[\s;&|(])(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)="
                         r"(\"[^\"]*\"|'[^']*'|[^\s;&|)]*)")
 _CD_RE = re.compile(r"(?:^|[\s;&|(])(?:cd|pushd)\s+(\"[^\"]+\"|'[^']+'|[^\s;&|)]+)")
 _VAR_RE = re.compile(r"\$(?:\{([A-Za-z_][A-Za-z0-9_]*)\}|([A-Za-z_][A-Za-z0-9_]*))")
+_SUBST_RE = re.compile(r"\$\(\s*(pwd|which\s+([\w.+-]+)|command\s+-v\s+([\w.+-]+))\s*\)"
+                       r"|`\s*(pwd|which\s+([\w.+-]+))\s*`")
+_BRACE_RE = re.compile(r"\{([^{}\s,]*(?:,[^{}\s,]*)+)\}")
+# Package installs name packages, not code to run: their arguments are not scanned.
+_PIP_INSTALL_RE = re.compile(r"\b(?:pip3?|uv\s+pip|pipx|poetry|pdm|conda|npm|pnpm|yarn)\s+"
+                             r"(?:install|add|i)\b[^;&|\n]*", re.I)
 
 
-def _expand(tok: str, vars_: dict[str, str]) -> str:
+def _expand(tok: str, vars_: dict[str, str], cwd: Path | None = None) -> str:
+    import shutil
+
+    def subst(m: re.Match) -> str:
+        if (m.group(1) or m.group(4) or "").strip() == "pwd":
+            return str(cwd or Path.cwd())
+        name = m.group(2) or m.group(3) or m.group(5)
+        return shutil.which(name) or name if name else m.group(0)
+
+    tok = _SUBST_RE.sub(subst, tok)
     return _VAR_RE.sub(lambda m: vars_.get(m.group(1) or m.group(2), m.group(0)), tok)
+
+
+def _braces(tok: str, limit: int = MAX_ARG_FILES) -> list[str]:
+    out, todo = [], [tok]
+    while todo and len(out) + len(todo) <= limit:
+        t = todo.pop()
+        m = _BRACE_RE.search(t)
+        if not m:
+            out.append(t)
+            continue
+        todo.extend(t[:m.start()] + alt + t[m.end():] for alt in m.group(1).split(","))
+    if todo:
+        raise ScanLimit(f"brace expansion of {tok[:40]} exceeds {limit} words")
+    return out
 
 
 def _candidate_files(tok: str, bases: list[Path]) -> list[Path]:
     import glob
-    p = Path(tok).expanduser()
-    roots = [p] if p.is_absolute() else [b / p for b in bases]
     out: list[Path] = []
-    for r in roots:
-        s = str(r)
-        if any(c in s for c in "*?["):
-            out.extend(Path(g) for g in glob.glob(s)[:MAX_ARG_FILES])
-        else:
-            out.append(r)
+    for word in _braces(tok):
+        p = Path(word).expanduser()
+        for r in ([p] if p.is_absolute() else [b / p for b in bases]):
+            s = str(r)
+            if any(c in s for c in "*?["):
+                hits = glob.glob(s)
+                if len(hits) > MAX_ARG_FILES:
+                    raise ScanLimit(f"glob {word[:40]} matches more than {MAX_ARG_FILES} files")
+                out.extend(Path(g) for g in hits)
+            else:
+                out.append(r)
     return out
 
 
@@ -1654,10 +1746,10 @@ def command_context(outer: str, cwd: Path) -> tuple[dict[str, str], list[Path], 
     """(variables, base dirs for relative paths, PYTHONPATH dirs) seen in the command."""
     vars_ = dict(os.environ)
     for m in _ASSIGN_RE.finditer(outer):
-        vars_[m.group(1)] = _expand(m.group(2).strip("\"'"), vars_)
+        vars_[m.group(1)] = _expand(m.group(2).strip("\"'"), vars_, cwd)
     bases = [cwd]
     for m in _CD_RE.finditer(outer):
-        d = Path(_expand(m.group(1).strip("\"'"), vars_)).expanduser()
+        d = Path(_expand(m.group(1).strip("\"'"), vars_, cwd)).expanduser()
         bases.append(d if d.is_absolute() else bases[-1] / d)
     pp = [Path(x) for x in vars_.get("PYTHONPATH", "").split(os.pathsep) if x]
     pp = [x if x.is_absolute() else cwd / x for x in pp]
@@ -1666,15 +1758,115 @@ def command_context(outer: str, cwd: Path) -> tuple[dict[str, str], list[Path], 
 
 _CLAUDE_RE = re.compile(r"(?:^|[\s;&|(`/\\])claude(?:\.exe|\.cmd|\.js)?(?=[\s;&|)]|$)", re.I)
 _WAIVE_TEXT = "redteam" " waive"
+_PKG_RUN_RE = re.compile(r"\b(?:npm|pnpm|yarn|bun)\s+(?:run(?:-script)?\s+)?([\w:.-]+)", re.I)
+
+
+def _read_limited(p: Path, label: str) -> str | None:
+    """File text (lowercased) or None if not a file; ScanLimit if too large to vouch for."""
+    try:
+        if not p.is_file():
+            return None
+        if p.stat().st_size > MAX_SCAN_BYTES:
+            with p.open("rb") as fh:
+                magic = fh.read(4)
+            if magic[:4] == b"\x7fELF" or magic[:2] == b"MZ" or magic[:4] in (
+                    b"\xcf\xfa\xed\xfe", b"\xca\xfe\xba\xbe"):
+                return None  # a compiled program (the interpreter itself), not a script
+            raise ScanLimit(f"{label} is larger than {MAX_SCAN_BYTES // 1_000_000} MB")
+        return p.read_text(encoding="utf-8", errors="replace").lower()
+    except OSError as exc:
+        print(f"redteam: could not scan {label} ({type(exc).__name__})", file=sys.stderr)
+        return None
 
 
 def _scan_file(p: Path, label: str) -> str | None:
+    text = _read_limited(p, label)
+    hit = sender_hit(text) if text is not None else None
+    return f"{hit} in {label}" if hit else None
+
+
+def _arg_files(expanded: str, bases: list[Path]) -> list[tuple[Path, str]]:
+    seen: dict[Path, str] = {}
+    for tok in _arg_tokens(expanded):
+        for p in _candidate_files(tok, bases):
+            try:
+                if p not in seen and p.is_file():
+                    seen[p] = tok
+            except OSError:
+                continue
+            if len(seen) > MAX_ARG_FILES:
+                raise ScanLimit(f"command names more than {MAX_ARG_FILES} files")
+    return list(seen.items())
+
+
+def _package_scripts(expanded: str, bases: list[Path]) -> list[tuple[str, str]]:
+    """(label, script text) for `npm|pnpm|yarn|bun run X` (best effort, package.json in bases)."""
+    out: list[tuple[str, str]] = []
+    for m in _PKG_RUN_RE.finditer(expanded):
+        name = m.group(1)
+        for b in bases:
+            text = _read_limited(b / "package.json", "package.json")
+            if text is None:
+                continue
+            try:
+                scripts = json.loads(text).get("scripts") or {}
+            except (json.JSONDecodeError, AttributeError):
+                continue
+            body = scripts.get(name.lower()) if isinstance(scripts, dict) else None
+            if isinstance(body, str):
+                out.append((f"package.json script {name}", body))
+            break
+    return out
+
+
+def _nested_waiver(command: str, outer: str, cwd: Path) -> str | None:
+    if not _CLAUDE_RE.search(_QUOTED_RE.sub(" ", outer)):
+        return None
+    texts = [command.lower()]
+    vars_, bases, _pp = command_context(outer, cwd)
     try:
-        if p.is_file() and p.stat().st_size <= MAX_SCAN_BYTES:
-            hit = sender_hit(p.read_text(encoding="utf-8", errors="replace").lower())
-            return f"{hit} in {label}" if hit else None
-    except OSError as exc:
-        print(f"redteam: could not scan {label} ({type(exc).__name__})", file=sys.stderr)
+        for p, tok in _arg_files(_expand(outer, vars_, cwd), bases):
+            t = _read_limited(p, tok)
+            if t:
+                texts.append(t)
+    except ScanLimit:
+        return ("redteam gate: a claude invocation names files the gate cannot fully scan for "
+                "`redteam waive`.")
+    if any(_WAIVE_TEXT in t for t in texts):
+        return ("redteam gate: a nested claude session cannot carry `redteam waive`; waivers "
+                "are typed by the operator in their own session.")
+    return None
+
+
+def _bash_hit(command: str, outer: str, docs: list[tuple[str, str]], cwd: Path,
+              vars_: dict[str, str], bases: list[Path], pp: list[Path],
+              expanded: str) -> str | None:
+    mh = mailer_hit(expanded)
+    if mh:
+        return mh
+    # The command runs something, so every heredoc body counts (a body written to z.py and
+    # run later in the same command is code, not a fixture).
+    scan = _PIP_INSTALL_RE.sub(" ", "\n".join([expanded] + [body for _o, body in docs]))
+    hit = sender_hit(scan.lower())
+    if hit:
+        return hit
+    for label, body in _package_scripts(expanded, bases):
+        hit = sender_hit(body.lower())
+        if hit:
+            return f"{hit} in {label}"
+        for p, tok in _arg_files(_expand(body, vars_, cwd), bases):
+            hit = _scan_file(p, f"{tok} (from {label})")
+            if hit:
+                return hit
+    for p, tok in _arg_files(_PIP_INSTALL_RE.sub(" ", expanded), bases):
+        hit = _scan_file(p, tok)
+        if hit:
+            return hit
+    for m in _PY_MOD_RE.finditer(expanded):
+        mp = resolve_module(m.group(1), cwd, [*bases[1:], *pp])
+        hit = _scan_file(mp, f"module {m.group(1)}") if mp else None
+        if hit:
+            return hit
     return None
 
 
@@ -1688,53 +1880,27 @@ def bash_decision(ti: dict, cwd_raw: Any) -> str | None:
         raise TypeError("Bash command is not a string")
     outer, docs = split_heredocs(command)
     cwd = Path(cwd_raw) if isinstance(cwd_raw, str) and cwd_raw else Path.cwd()
-    if _CLAUDE_RE.search(_QUOTED_RE.sub(" ", outer)):
-        # A nested `claude -p "redteam waive ..."` would fire the UserPromptSubmit waiver hook in a
-        # child session: never let an agent-run command carry the operator's waiver phrase.
-        texts = [command.lower()]
-        vars_, bases, _pp = command_context(outer, cwd)
-        for tok in _arg_tokens(_expand(outer, vars_)):
-            for p in _candidate_files(tok, bases):
-                try:
-                    if p.is_file() and p.stat().st_size <= MAX_SCAN_BYTES:
-                        texts.append(p.read_text(encoding="utf-8", errors="replace").lower())
-                except OSError as exc:
-                    print(f"redteam: could not scan {tok} ({type(exc).__name__})", file=sys.stderr)
-        if any(_WAIVE_TEXT in t for t in texts):
-            return ("redteam gate: a nested claude session cannot carry `redteam waive`; waivers "
-                    "are typed by the operator in their own session.")
+    try:
+        nw = _nested_waiver(command, outer, cwd)
+    except ScanLimit as exc:
+        nw = f"redteam gate: {exc}; cannot vouch for this claude invocation."
+    if nw:
+        return nw
     if not _EXEC_RE.search(outer):
-        return None
-    mh = mailer_hit(outer)
-    if mh:
-        return f"redteam gate: Bash command sends email inline ({mh}). {BASH_DENY}"
+        vars0 = {m.group(1): m.group(2).strip("\"'") for m in _ASSIGN_RE.finditer(outer)}
+        if "$" not in outer and "`" not in outer:
+            return None
+        if not _EXEC_RE.search(_expand(outer, vars0, cwd)):
+            return None  # nothing runs (P=python3; $P x.py is caught via the expansion)
     if _B64_PIPE_RE.search(outer):
         return (f"redteam gate: Bash pipes base64-decoded data into an interpreter "
                 f"(unscannable). {BASH_DENY}")
-    # The command runs something, so every heredoc body counts (a body written to z.py and
-    # run later in the same command is code, not a fixture).
-    scan = "\n".join([outer] + [body for _opener, body in docs])
-    hit = sender_hit(scan.lower())
-    if hit is None:
-        vars_, bases, pp = command_context(outer, cwd)
-        expanded = _expand(outer, vars_)
-        seen: set[Path] = set()
-        for tok in _arg_tokens(expanded):
-            for p in _candidate_files(tok, bases):
-                if p in seen or len(seen) >= MAX_ARG_FILES:
-                    continue
-                seen.add(p)
-                hit = _scan_file(p, tok)
-                if hit:
-                    break
-            if hit:
-                break
-        if hit is None:
-            for m in _PY_MOD_RE.finditer(expanded):
-                mp = resolve_module(m.group(1), cwd, [*bases[1:], *pp])
-                hit = _scan_file(mp, f"module {m.group(1)}") if mp else None
-                if hit:
-                    break
+    vars_, bases, pp = command_context(outer, cwd)
+    expanded = _expand(outer, vars_, cwd)
+    try:
+        hit = _bash_hit(command, outer, docs, cwd, vars_, bases, pp, expanded)
+    except ScanLimit as exc:
+        return f"redteam gate: {exc}; the gate cannot vouch for a command that runs code. {BASH_DENY}"
     if hit is None or tracked_script_run(command, cwd):
         return None
     return f"redteam gate: Bash command sends email inline ({hit}). {BASH_DENY}"
@@ -1779,8 +1945,10 @@ def _is_outward(payload: Any, raw: str) -> bool:
     name = payload.get("tool_name") if isinstance(payload, dict) else None
     if isinstance(name, str):
         low = name.lower()
-        return low.startswith("mcp__") and ("gmail" in low or "calendar" in low)
-    return bool(_OUTWARD_RAW_RE.search(raw))
+        return low.startswith("mcp__") and ("gmail" in low or "calendar" in low
+                                            or bool(_MAIL_TOOL_RE.search(low)))
+    return bool(_OUTWARD_RAW_RE.search(raw) or re.search(
+        r'"tool_name"\s*:\s*"mcp__[^"]*(?:send_email|send_message|create_draft)', raw, re.I))
 
 
 def cmd_hook(_args: argparse.Namespace) -> int:

@@ -47,7 +47,7 @@ case "$MODE" in
 esac
 
 OUTWARD=0
-if printf '%s' "$INPUT" | grep -Eq '"tool_name"[[:space:]]*:[[:space:]]*"mcp__[^"]*([Gg]mail|[Cc]alendar)'; then
+if printf '%s' "$INPUT" | grep -Eq '"tool_name"[[:space:]]*:[[:space:]]*"mcp__[^"]*([Gg]mail|[Cc]alendar|send_email|send_message|create_draft)'; then
   OUTWARD=1
 fi
 

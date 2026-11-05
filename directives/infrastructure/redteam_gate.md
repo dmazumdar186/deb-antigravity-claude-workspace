@@ -29,6 +29,12 @@ the pass, or send through Bash instead of the gated tool. The gate makes each of
 - `hook`, `post-hook`, `subagent-hook`, `prompt-hook` refuse (exit 2) unless `REDTEAM_HOOK=1`,
   which only the hook wrapper sets.
 
+**Trusted operator code (by spec):** a script or `-m` module whose realpath is inside this
+workspace and is tracked + unmodified in the workspace's own git (e.g.
+`execution/google/gmail_send_digest.py`) may send: it is committed operator code, governed by its
+own directive, `--dry-run` default and budget guards. Any edit shows as uncommitted, so the file
+is scanned and denied; a `git init` repo elsewhere (or nested) never counts.
+
 **Limit, stated plainly:** the hooks run as the same user as the agent. An agent that reads the
 key and signs rows itself, sets `REDTEAM_HOOK=1` by hand, fakes a transcript file, briefs a lens to
 "just output PASS", or edits this script defeats the gate. That is deliberate forgery, not
@@ -170,3 +176,12 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   `-m`; unresolvable `$VAR` paths are allowed (no file to scan). Senders added: SendGrid SDK,
   yagmail, Mailjet, Mandrill, Smartlead, ssmtp/sendemail/exim. Boolean `guestsCan*` keys are not
   attendee keys.
+- 2026-11-05 (fourth audit): trusted = realpath in workspace + tracked/clean in its git; quoted
+  paths with spaces scanned whole; scan limits fail closed when code runs (file > 2 MB unless a
+  compiled binary, > 64 file args, oversize glob/brace); runners pwsh/powershell, go, npx, tsx,
+  ts-node, deno, bun, npm/pnpm/yarn run (package.json script + its files); senders
+  `.messages.send(`, Send-MailMessage, MailerSend, Mailtrap, SparkPost, Loops, Postmark, Resend;
+  Gmail forward with a subject denied; any `mcp__*` send_email/send_message/create_draft tool gated
+  as email (settings matcher + wrapper fail-closed widened); quote-aware heredoc openers;
+  `$(pwd)`, `$(which X)`, backticks, `P=python3; $P`, `{a,b}` expansion; package-install args
+  (pip/uv pip/npm i ...) are not scanned. Residual: a big data file passed to a script is denied.

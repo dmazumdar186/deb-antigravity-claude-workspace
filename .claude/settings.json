@@ -110,7 +110,7 @@
         ]
       },
       {
-        "matcher": "mcp__.*[Gg]mail.*|mcp__.*[Cc]alendar.*__(create_event|update_event)|Bash",
+        "matcher": "mcp__.*([Gg]mail|send_email|send_message|create_draft).*|mcp__.*[Cc]alendar.*__(create_event|update_event)|Bash",
         "hooks": [
           {
             "type": "command",

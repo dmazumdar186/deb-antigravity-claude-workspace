@@ -737,7 +737,7 @@ def _bash(cmd: str, capsys, cwd: Path | None = None):
 
 
 @pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
-def test_bash_senders(tmp_path, state, capsys):
+def test_bash_senders(tmp_path, state, capsys, monkeypatch):
     assert _bash("ls -la && git status", capsys) is None
     assert _bash("python3 -m pytest tests/test_redteam_gate.py -q", capsys) is None
     r = _deny_reason(_bash(f'python3 -c "import {SMTP}; {SMTP}.SMTP(\'x\')"', capsys))
@@ -748,6 +748,7 @@ def test_bash_senders(tmp_path, state, capsys):
     repo = tmp_path / "repo"
     repo.mkdir()
     _git(repo, "init", "-q")
+    monkeypatch.setattr(rg, "REPO_ROOT", repo)  # stands in for the workspace repo
     _write(repo / "pipe" / "digest.py", f"import {SMTP}\n")
     _git(repo, "add", ".")
     _git(repo, "commit", "-q", "-m", "init")
@@ -965,10 +966,11 @@ def test_bash_false_positive_regressions(tmp_path, state, capsys):
 
 
 @pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
-def test_bash_module_and_obfuscation(tmp_path, state, capsys):
+def test_bash_module_and_obfuscation(tmp_path, state, capsys, monkeypatch):
     repo = tmp_path / "repo"
     repo.mkdir()
     _git(repo, "init", "-q")
+    monkeypatch.setattr(rg, "REPO_ROOT", repo)  # stands in for the workspace repo
     _write(repo / "pipe" / "__init__.py", "")
     _write(repo / "pipe" / "digest.py", f"import {SMTP}\n")
     _git(repo, "add", ".")
@@ -1158,3 +1160,91 @@ def test_bash_path_indirection_scanned(tmp_path, state, capsys):
 ])
 def test_bash_more_hosts_and_clis(cmd, state, capsys):
     assert _deny_reason(_bash(cmd, capsys)), cmd
+
+
+# ------------------------------------------------------------------ fourth audit (2026-11-05)
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_foreign_git_repo_not_trusted(tmp_path, state, capsys):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _git(repo, "init", "-q")
+    _write(repo / "digest.py", f"import {SMTP}\n")
+    _git(repo, "add", ".")
+    _git(repo, "commit", "-q", "-m", "init")
+    assert not rg.git_clean(repo / "digest.py")
+    assert _deny_reason(_bash("python3 digest.py", capsys, repo))
+    assert rg.git_clean(ROOT / "execution" / "infrastructure" / "redteam_gate.py") in (True, False)
+
+
+def test_quoted_path_with_spaces_scanned(tmp_path, state, capsys):
+    _write(tmp_path / "send it.py", f"import {SMTP}\n")
+    assert _deny_reason(_bash('python3 "send it.py"', capsys, tmp_path))
+    assert _deny_reason(_bash("python3 'send it.py'", capsys, tmp_path))
+
+
+def test_scan_limits_fail_closed(tmp_path, state, capsys, monkeypatch):
+    big = tmp_path / "big.py"
+    big.write_bytes(b"#" * (rg.MAX_SCAN_BYTES + 10))
+    assert "larger than" in _deny_reason(_bash("python3 big.py", capsys, tmp_path))
+    assert _bash("cat big.py | head -1", capsys, tmp_path) is None  # nothing executes
+    for i in range(rg.MAX_ARG_FILES + 2):
+        _write(tmp_path / "many" / f"f{i}.txt", "x")
+    assert "more than" in _deny_reason(_bash("python3 x.py many/*.txt", capsys, tmp_path))
+
+
+@pytest.mark.parametrize("cmd,files", [
+    ("pwsh -File s.ps1", {"s.ps1": "Send-Mail" "Message -To x@y.z"}),
+    ("powershell -c \"Send-Mail" "Message -To x@y.z\"", {}),
+    ("go run main.go", {"main.go": "smtp" ".Send" "Mail(addr)\n// net/smtp" "lib"}),
+    ("npx tsx s.ts", {"s.ts": "gmail.users.messages.se" "nd({})"}),
+    ("ts-node s.ts", {"s.ts": "await gmail.users.messages.se" "nd({})"}),
+    ("deno run s.ts", {"s.ts": "fetch('https://api.re" "send.com/emails')"}),
+    ("npm run mail", {"package.json": json.dumps({"scripts": {"mail": "node m.js"}}),
+                      "m.js": "fetch('https://api.mailer" "send.com/v1/email')"}),
+    ("yarn notify", {"package.json": json.dumps({"scripts": {"notify": "curl https://api.spark"
+                                                             "post.com/x"}})}),
+])
+def test_more_runners_scanned(cmd, files, tmp_path, state, capsys):
+    for name, text in files.items():
+        _write(tmp_path / name, text)
+    assert _deny_reason(_bash(cmd, capsys, tmp_path)), cmd
+
+
+@pytest.mark.parametrize("host", ["mail" "trap.io", "loops" ".so", "post" "markapp.com",
+                                  "re" "send.com", "mailer" "send.com", "spark" "post.com"])
+def test_more_hosts(host, state, capsys):
+    assert _deny_reason(_bash(f"curl -X POST https://api.{host}/send", capsys))
+
+
+def test_gmail_forward_subject_and_generic_mail_tools(tmp_path, state, capsys):
+    assert "subject" in _deny_reason(_hook({"tool_name": GM + "forward", "tool_input": {
+        "messageId": "m1", "to": ["x@y.z"], "subject": "Fwd: free audit!"}}, capsys))
+    assert _hook({"tool_name": GM + "forward", "tool_input": {
+        "messageId": "m1", "to": ["x@y.z"]}}, capsys) is None
+    for tool in ("mcp__Outlook__send_email", "mcp__acme_mail__send_message",
+                 "mcp__x__create_draft"):
+        assert _deny_reason(_hook({"tool_name": tool, "tool_input": {"body": "unvetted"}},
+                                  capsys)), tool
+    assert _stdin_main(["hook"], '{"tool_name":"mcp__Outlook__send_email", junk') == 0
+    assert "fail-closed" in capsys.readouterr().out
+
+
+def test_heredoc_opener_inside_quotes_ignored(tmp_path, state, capsys):
+    cmd = f"python3 -c 'x = 1 <<EOF' && echo \"import {SMTP}\"\nEOF"
+    outer, docs = rg.split_heredocs(cmd)
+    assert docs == [] and outer == cmd
+    assert _deny_reason(_bash(cmd, capsys, tmp_path))
+    o2, d2 = rg.split_heredocs("echo \"a <<B\"\ncat <<'C'\nbody\nC")
+    assert [b for _, b in d2] == ["body"]
+
+
+def test_substitutions_vars_braces_and_pip(tmp_path, state, capsys):
+    _write(tmp_path / "s.py", f"import {SMTP}\n")
+    _write(tmp_path / "a.py", "print(1)\n")
+    for cmd in ("python3 $(pwd)/s.py", "$(which python3) s.py", "P=python3; $P s.py",
+                "python3 {a,s}.py", "python3 `pwd`/s.py"):
+        assert _deny_reason(_bash(cmd, capsys, tmp_path)), cmd
+    for cmd in ("pip install yag" "mail", "python3 -m pip install yag" "mail sendgrid",
+                "uv pip install yag" "mail", "python3 a.py"):
+        assert _bash(cmd, capsys, tmp_path) is None, cmd
