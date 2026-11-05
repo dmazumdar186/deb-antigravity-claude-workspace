@@ -1702,6 +1702,7 @@ def sender_hit(low: str, raw: str | None = None) -> str | None:
 # SDK send calls only: reads (conversations.list, GET /me, ...) do not match. Split literals.
 _OUTWARD_SIMPLE = (
     ("hooks.sla" "ck.com", "Slack webhook"),
+    ("outlook.office" ".com/webhook", "Outlook/Teams webhook"),
     ("slack.com/api/chat.post" "message", "Slack chat.postMessage"),
     ("slack.com/api/chat.post" "ephemeral", "Slack chat.postEphemeral"),
     ("slack.com/api/chat.schedule" "message", "Slack chat.scheduleMessage"),
@@ -1735,7 +1736,13 @@ _OUTWARD_RES = (
                 r"campaign/launch|leads?(?:/(?:add|bulk))?\b|emails/(?:reply|send|forward))"),
      "Instantly campaign/leads API"),
     (re.compile(r"graph\.facebook\.com/[\w./-]*/media_publish"), "Meta Graph publish"),
-    (re.compile(r"api\.telegram\.org/bot[^\s/]*/send\w+"), "Telegram send"),
+    (re.compile(r"api\.telegram\.org/bot[^\s/]*/(?:send\w+|forwardmessages?|copymessages?)"),
+     "Telegram send"),
+    (re.compile(r"discord(?:app)?\.com/api/v\d+/web" r"hooks/"), "Discord webhook"),
+    (re.compile(r"\b(?:webhookclient|incomingwebhook)\b[\s\S]{0,300}?\.\s*send\s*\("),
+     "Slack webhook SDK send"),
+    (re.compile(r"graph\.(?:facebook|instagram)\.com/[\w./-]*/media_publish"), "Meta publish"),
+    (re.compile(r"threads\.net/[\w./-]*threads_publish"), "Threads publish"),
 
     (re.compile(r"\bbot\s*\.\s*send_?(?:message|photo|document|video|audio)\s*\("),
      "Telegram bot send"),
@@ -1757,6 +1764,7 @@ _WRITE_ENDPOINT_RES = (
      "MS Graph Teams message"),
     (re.compile(r"chat\.google" r"apis\.com/v\d+/spaces/[\w./-]*messages"), "Google Chat API"),
     (re.compile(r"api\.twilio\.com/[\w./-]*/messages"), "Twilio message"),
+    (re.compile(r"threads\.net/[\w./-]*/threads\b"), "Threads post"),
     (re.compile(r"graph\.facebook\.com/[\w./-]*(?:/feed|/messages|/photos|/videos)"),
      "Meta Graph post/message"),
 )
@@ -1922,7 +1930,9 @@ def split_simple_commands(text: str) -> list[str]:
 
 _RUNNERS = {"npx", "pnpx", "bunx"}
 _DEPLOY_TOOLS = {"wrangler": "wrangler", "vercel": "vercel", "netlify": "netlify",
-                 "ntl": "netlify"}
+                 "ntl": "netlify", "vc": "vercel"}
+_DEPLOY_WRAPPERS = {"setsid", "unbuffer", "doas", "corepack", "chronic", "caffeinate"}
+_PKG_VAL_FLAGS = {"--filter", "-F", "-C", "--dir", "--cwd", "-w", "--workspace", "--prefix"}
 _PKG_MANAGERS = {"npm", "pnpm", "yarn", "bun"}
 
 
@@ -1942,13 +1952,31 @@ def program_argv(toks: list[str]) -> list[str]:
     while i < len(toks):
         t = toks[i]
         low = t.lower()
+        if low == "flock":
+            i += 1
+            while i < len(toks) and toks[i].startswith("-"):
+                i += 1
+            i += 1  # the lock file
+            continue
         if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*=.*", t, re.S) or low in _WRAPPERS \
-                or low in _RUNNERS:
+                or low in _RUNNERS or low in _DEPLOY_WRAPPERS:
             i += 1
             while i < len(toks) and (toks[i].startswith("-") or re.fullmatch(r"[\d.]+[smhd]?",
                                                                               toks[i])):
+                if toks[i] in ("-p", "--package", "-C", "--chdir", "-u", "--unset", "-g",
+                               "-n") and i + 1 < len(toks):
+                    i += 1
                 i += 1
             continue
+        if low in _PKG_MANAGERS:
+            k = i + 1
+            while k < len(toks) and toks[k].startswith("-"):
+                k += 2 if toks[k] in _PKG_VAL_FLAGS else 1
+            if k < len(toks) and toks[k].lower() in ("x", "dlx", "exec") and k > i + 1:
+                i = k + 1
+                while i < len(toks) and toks[i].startswith("-"):
+                    i += 1
+                continue
         if low in _PKG_MANAGERS and i + 1 < len(toks) and toks[i + 1].lower() in (
                 "x", "dlx", "exec"):
             i += 2
@@ -2017,8 +2045,10 @@ _SCRIPT_SUFFIXES = {".py", ".js", ".mjs", ".cjs", ".ts", ".sh", ".bash", ".rb", 
 _PIPE_SH_RE = re.compile(r"\|\s*(?:\S*/)?(?:ba|z|da|k)?sh\b")
 # A script file that both names a deploy and executes a subprocess is a deploy.
 _DEPLOY_LEX_RE = re.compile(
-    r"\bwrangler\b['\"\s,]+(?:pages['\"\s,]+(?:deploy|publish|deployment)|deploy|publish|"
-    r"versions['\"\s,]+(?:deploy|upload))"
+    r"\bwrangler\b['\"\s,\[]+(?:pages['\"\s,\[]+(?:deploy|publish|deployment)|deploy|publish|"
+    r"versions['\"\s,\[]+(?:deploy|upload))"
+    r"|['\"](?:vercel|vc)['\"]\s*,\s*\[?\s*['\"](?:deploy|--prod|promote)['\"]"
+    r"|['\"](?:netlify|ntl)['\"]\s*,\s*\[?\s*['\"]deploy['\"]"
     r"|\bvercel\b[^\n]{0,80}?(?:--prod|['\"\s,]promote\b|['\"\s,]deploy\b)"
     r"|\b(?:netlify|ntl)\b['\"\s,]+deploy\b[^\n]{0,80}?--prod")
 _SPAWN_RE = re.compile(r"subprocess|os\.system|popen|execsync|execfilesync|spawn|child_process|"
@@ -2055,10 +2085,24 @@ def deploy_error(outer: str, cwd: Path, depth: int = 0) -> str | None:
             toks = shlex.split(seg)
         except ValueError:
             toks = seg.split()
+        for n, t in enumerate(toks[:-1]):
+            if t in ("-C", "--chdir") and "env" in [x.lower() for x in toks[:n]]:
+                base = base / toks[n + 1]
+        redir = toks.index("<") if "<" in toks[1:] else None
+        stdin_file = toks[redir + 1] if redir is not None and redir + 1 < len(toks) else None
+        if redir is not None:
+            toks = toks[:redir] + toks[redir + 2:]
         argv = program_argv(toks)
         if not argv:
             continue
         prog = argv[0]
+        if stdin_file and depth < 3:
+            nm = re.split(r"[/\\]", prog.lower())[-1]
+            if nm in _SHELLS or _INTERPS.fullmatch(nm):
+                err = _exec_file_deploy(base / stdin_file, base, depth,
+                                        force_shell=nm in _SHELLS)
+                if err:
+                    return err
         low = prog.lower()
         name = re.split(r"[/\\]", low)[-1]
         if low in _PKG_MANAGERS and len(argv) > 1:
@@ -2077,13 +2121,21 @@ def deploy_error(outer: str, cwd: Path, depth: int = 0) -> str | None:
                 if err:
                     return err
                 continue
-            fa = next((a for a in argv[1:] if not a.startswith("-")), None)
-            err = _exec_file_deploy(base / fa, base, depth) if fa else None
+            fi = next((n for n, a in enumerate(argv[1:], 1) if not a.startswith("-")), None)
+            err = (_exec_file_deploy(base / argv[fi], base, depth, args=argv[fi + 1:])
+                   if fi else None)
+            if err:
+                return err
+            continue
+        if depth < 3 and name == "script" and "-c" in argv:
+            k = argv.index("-c")
+            err = deploy_error(argv[k + 1], base, depth + 1) if k + 1 < len(argv) else None
             if err:
                 return err
             continue
         if depth < 3 and name in ("source", "."):
-            err = _exec_file_deploy(base / argv[1], base, depth) if len(argv) > 1 else None
+            err = (_exec_file_deploy(base / argv[1], base, depth, args=argv[2:])
+                   if len(argv) > 1 else None)
             if err:
                 return err
             continue
@@ -2133,7 +2185,12 @@ def deploy_error(outer: str, cwd: Path, depth: int = 0) -> str | None:
                 err = deploy_error(body, base, depth + 1)
                 if err:
                     return err.replace("redteam gate: ", f"redteam gate: {label}: ", 1)
-            continue
+            k = argv.index(name) if name in argv else -1
+            if not pkg and k > 0 and _tool_name(name):
+                argv = argv[k:]
+                prog = argv[0]
+            else:
+                continue
         tool = _tool_name(prog)
         if not tool:
             err = _interp_deploy(argv, name, base, depth)
@@ -2207,7 +2264,34 @@ def _script_project(fp: Path) -> Path:
     return real.parent
 
 
-def _exec_file_deploy(fp: Path, base: Path, depth: int, force_shell: bool = False) -> str | None:
+def _bind_positional(text: str, args: list[str], base: Path) -> str:
+    """Substitute $1..$9 / ${1}, ${1:?..}, ${1:-..} with the invoking command's args (paths made
+    absolute against the invoking cwd), then simple NAME=value assignments built from them."""
+    vals: dict[str, str] = {}
+    for n, a in enumerate(args[:9], 1):
+        v = a
+        if not a.startswith("-") and not re.match(r"^[a-z]+://", a) and ((base / a).exists()
+                                                                          or "/" in a):
+            v = str(base / a)
+        vals[str(n)] = v
+
+    def sub_pos(m: re.Match) -> str:
+        return vals.get(m.group(1) or m.group(2), m.group(0))
+
+    text = re.sub(r"\$\{(\d)(?:[:?\-=+][^}]*)?\}|\$(\d)", sub_pos, text)
+    names: dict[str, str] = {}
+    for seg in split_simple_commands(text):
+        m = re.fullmatch(r"\s*(?:export\s+|local\s+|readonly\s+)?([A-Za-z_]\w*)=(\"[^\"$`]*\"|"
+                         r"'[^']*'|[^\s$`'\"]*)\s*", seg)
+        if m:
+            names[m.group(1)] = m.group(2).strip("\"'")
+    for k, v in names.items():
+        text = re.sub(r"\$\{" + k + r"\}|\$" + k + r"\b", lambda _m, v=v: v, text)
+    return text
+
+
+def _exec_file_deploy(fp: Path, base: Path, depth: int, force_shell: bool = False,
+                      args: list[str] | None = None) -> str | None:
     """A file this command EXECUTES: shell files are re-parsed as commands; code files are
     checked for a spawned deploy. The project checked is the script's own project folder."""
     try:
@@ -2219,9 +2303,20 @@ def _exec_file_deploy(fp: Path, base: Path, depth: int, force_shell: bool = Fals
     if not text:
         return None
     if force_shell or fp.suffix.lower() in ("", ".sh", ".bash", ".zsh"):
-        err = deploy_error(text, _script_project(fp) if not force_shell else base, depth + 1)
+        bound = _bind_positional(text, args or [], base)
+        sbase = _script_project(fp) if not force_shell else base
+        err = deploy_error(bound, sbase, depth + 1)
+        if err and "uses expansion" in err and git_clean(fp):
+            # tracked + clean script whose deploy dir is not resolvable from its args: the
+            # project of the path args it was given (else the script's own folder) must be clean
+            paths = [base / a for a in (args or []) if not a.startswith("-") and (base / a).exists()]
+            why = project_clean_error(_script_project(paths[0] / "x") if paths and paths[0].is_dir()
+                                      else (_script_project(paths[0]) if paths else sbase))
+            err = (f"redteam gate: deploy from {fp}: {why}. {DEPLOY_DENY}" if why else None)
         if err:
             return err
+        if git_clean(fp):
+            return None  # tracked script, its commands were checked above
     err = script_deploy_error(text, fp, _script_project(fp))
     return f"redteam gate: {err}. {DEPLOY_DENY}" if err else None
 
@@ -2234,7 +2329,15 @@ def _interp_deploy(argv: list[str], name: str, base: Path, depth: int) -> str | 
             if re.fullmatch(r"-[a-z]*[ce]", a, re.I) or a in ("--eval", "--command"):
                 code = argv[n + 1] if n + 1 < len(argv) else ""
                 err = script_deploy_error(code, Path("inline.py"), base)
-                return f"redteam gate: {err}. {DEPLOY_DENY}" if err else None
+                if err:
+                    return f"redteam gate: {err}. {DEPLOY_DENY}"
+                for f in re.findall(r"open\s*\(\s*['\"]([^'\"]+)['\"]", code):
+                    e2 = _exec_file_deploy(base / f, base, depth)
+                    if e2:
+                        return e2
+                return None
+            if a == "-":
+                return None  # stdin: heredoc bodies are scanned by the caller
             if a == "-m":
                 return None
             if a.startswith("-"):
@@ -2242,7 +2345,7 @@ def _interp_deploy(argv: list[str], name: str, base: Path, depth: int) -> str | 
             return _exec_file_deploy(base / a, base, depth)
         return None
     if "/" in argv[0] or "\\" in argv[0]:
-        return _exec_file_deploy(base / argv[0], base, depth)
+        return _exec_file_deploy(base / argv[0], base, depth, args=argv[1:])
     return None
 
 
@@ -2978,6 +3081,13 @@ def _bash_decision(command: str, cwd_raw: Any, allow_tracked: bool = True,
     if nw:
         return nw
     de = deploy_error(outer, cwd)
+    if not de and _EXEC_RE.search(outer):
+        for opener, body in docs:
+            if re.search(r"\b(?:python(?:3(?:\.\d+)?)?|node|deno|bun|ruby|perl|php)\b", opener):
+                err = script_deploy_error(body, Path("heredoc.py"), cwd)
+                if err:
+                    de = f"redteam gate: {err}. {DEPLOY_DENY}"
+                    break
     if not de and ("$" in outer or "`" in outer):
         v0 = {m.group(1): m.group(2).strip("\"'") for m in _ASSIGN_RE.finditer(outer)}
         ex = _expand(outer, v0, cwd)
@@ -3045,8 +3155,23 @@ MCP_READ_PREFIXES = ("get", "list", "search", "read", "resolve", "download", "fe
                      "describe", "find", "query", "lookup", "check", "count", "export",
                      "delete", "remove", "revoke", "unshare", "trash", "untrash")  # = hook .sh
 _MCP_SHARE_RE = re.compile(r"share|permission", re.I)
-_MCP_POST_RE = re.compile(r"post_message|send_|publish|reply_to_thread|create_post|post_tweet|"
-                          r"tweet|create_message|send_dm|comment|schedule_message", re.I)
+_MCP_POST_RE = re.compile(r"post_message|postmessage|send_|publish|reply_to_thread|create_post|"
+                          r"post_tweet|tweet|create_message|send_dm|comment|schedule_message|"
+                          r"files_upload|create_issue|update_issue|create_pull_request|"
+                          r"pull_request_review_write", re.I)
+# Repo content pushes are code (covered by the build-contract audit), not outward text.
+MCP_NOT_OUTWARD = ("push_files", "create_or_update_file", "delete_file")
+# Outward post/send tools: every string field is text EXCEPT these id/target/enum keys.
+_MCP_ID_KEY_RE = re.compile(
+    r"(?:^|_)ids?$|[a-z]Ids?$|^(?:owner|repo|repository|org|organization|number|issue_number|"
+    r"pull_number|pr_number|channel|channel_id|channel_name|chat_id|thread_ts|ts|visibility|"
+    r"branch|base|head|sha|commit_id|path|line|side|start_line|start_side|state|state_reason|"
+    r"labels|assignees|reviewers|team_reviewers|milestone|type|draft|method|event|page|per_page|"
+    r"limit|cursor|user|username|handle|to|cc|bcc|recipients?|emails?|emailaddress|role|"
+    r"mimetype|filename|file_type|maintainer_can_modify|unfurl_links|unfurl_media|"
+    r"reply_broadcast|mrkdwn|icon_emoji|icon_url|as_user|parse|link_names|scheduled_at|"
+    r"post_at|subject_type|position|in_reply_to|reply_to_tweet_id|quote_tweet_id|media_ids)$",
+    re.I)
 # Recipient keys parsed as email addresses; target keys are non-address audiences.
 MCP_ADDR_KEYS = ("emailAddress", "emailAddresses", "email", "emails", "recipient", "recipients",
                  "to", "cc", "bcc", "users", "members", "invitees")
@@ -3074,7 +3199,7 @@ def mcp_outward_kind(name: str) -> str | None:
     if not isinstance(name, str) or not name.startswith("mcp__"):
         return None
     low = name.rsplit("__", 1)[-1].lower()
-    if low.startswith(MCP_READ_PREFIXES):
+    if low.startswith(MCP_READ_PREFIXES) or low in MCP_NOT_OUTWARD:
         return None
     if _MCP_SHARE_RE.search(low):
         return "share"
@@ -3092,9 +3217,10 @@ def _mcp_recipients(ti: dict) -> tuple[set[str], list[str], list[str]]:
             a, b = parse_addrs(ti[k])
             addrs |= a
             bad += b
-    for k in MCP_TARGET_KEYS:
-        if _present(ti.get(k)):
-            targets.append(f"{k}={str(ti[k])[:40]}")
+    tkeys = {k.lower() for k in MCP_TARGET_KEYS} | {"channel_name", "channelname"}
+    for k, v in ti.items():
+        if isinstance(k, str) and k.lower() in tkeys and _present(v):
+            targets.append(f"{k}={str(v)[:40]}")
     if str(ti.get("visibility", "")).lower() in ("public", "anyone", "everyone", "connections",
                                                   "unlisted"):
         targets.append(f"visibility={ti['visibility']}")
@@ -3111,7 +3237,9 @@ def mcp_outward_decision(kind: str, action: str, ti: dict, state: Path) -> str |
     if kind == "share":
         fields = [f for f in fields if f[0] in MCP_SHARE_TEXT_KEYS]
     else:
-        fields = [f for f in fields if _MCP_TEXT_KEY_RE.search(f[0])]
+        fields = [f for f in text_fields(ti, set(MCP_TARGET_KEYS) | set(MCP_ADDR_KEYS), skip=())
+                  if not _MCP_ID_KEY_RE.search(f[0])
+                  and f[0].lower() not in {k.lower() for k in MCP_TARGET_KEYS}]
     addrs, bad, targets = _mcp_recipients(ti)
     if bad:
         return f"{action}: unparseable recipient(s): {', '.join(bad[:3])}"

@@ -2071,3 +2071,76 @@ def test_getpermissions_is_read():
 ])
 def test_curl_fail_vs_form_flag_case(cmd, deny, state, capsys):
     assert (_bash(cmd.replace("|", ""), capsys) is not None) == deny, cmd
+
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_site_redesign_deploy_script_positional_dir(tmp_path, state, capsys):
+    script = ".claude/skills/site-redesign/scripts/deploy.sh"
+    clean = "directives/subagent"
+    r = subprocess.run(["git", "-C", str(rg.REPO_ROOT), "status", "--porcelain", "--", clean,
+                        script], capture_output=True, text=True, encoding="utf-8",
+                       errors="replace")
+    if r.stdout.strip() or not (rg.REPO_ROOT / script).is_file():
+        pytest.skip("fixture dirty/missing in this checkout")
+    assert _bash(f"bash {script} {clean} acme-redesign for-acme/", capsys,
+                 cwd=rg.REPO_ROOT) is None
+    site = tmp_path / "site"
+    _write(site / "index.html", "<p>x</p>")
+    assert "committed" in _deny_reason(_bash(f"bash {script} {site} acme-redesign", capsys,
+                                             cwd=rg.REPO_ROOT))
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
+def test_inline_code_and_runner_forms(tmp_path, state, capsys, monkeypatch):
+    proj = _deploy_repo(tmp_path, monkeypatch)
+    _write(proj / "dep.sh", "npx wrang" "ler deploy\n")
+    _write(proj / "dep.py", "import subprocess\nsubprocess.run(['wrang" "ler', 'deploy'])\n")
+    _write(proj / "src" / "draft.md", "uncommitted\n")
+    for cmd in (
+        "python3 - <<'EOF'\nimport subprocess\nsubprocess.run(['wrang~ler','pages','deploy','dist'])\nEOF",
+        "python3 -c \"exec(open('dep.py').read())\"",
+        "node -e \"require('child_process').spawnSync('wrang~ler',['pages','deploy','dist'])\"",
+        "sh < dep.sh", "python3 - < dep.py",
+        "vc --prod", "npx -p wrang~ler wrang~ler deploy", "pnpm --filter x exec wrang~ler deploy",
+        "yarn run wrang~ler deploy", "bun run wrang~ler deploy", "corepack pnpm wrang~ler deploy",
+        "setsid wrang~ler deploy", "flock /tmp/l wrang~ler deploy", "unbuffer wrang~ler deploy",
+        "doas wrang~ler deploy", "sudo -u x wrang~ler deploy", "script -q -c 'wrang~ler deploy' /dev/null",
+    ):
+        assert _bash(cmd.replace("~", ""), capsys, cwd=proj) is not None, cmd
+    assert "uncommitted" in _deny_reason(_bash("env -C sites/client npx wrangler deploy", capsys,
+                                               cwd=rg.REPO_ROOT))
+
+
+@pytest.mark.parametrize("cmd", [
+    "curl -X POST https://disc|ord.com/api/v10/webhooks/1/abc -d '{}'",
+    "python3 -c \"from slack_sdk.webhook import WebhookClient; WebhookClient(u).se|nd(text='x')\"",
+    "node -e \"new IncomingWebhook(u).se|nd({text:'x'})\"",
+    "curl -X POST https://graph.insta|gram.com/v19.0/1/media_publish",
+    "curl -X POST https://graph.thre|ads.net/v1.0/me/threads_publish",
+    "curl -X POST https://graph.thre|ads.net/v1.0/me/threads -d text=hi",
+    "curl https://api.tele|gram.org/bot1:a/forwardMessage -d chat_id=1",
+    "curl https://api.tele|gram.org/bot1:a/copyMessage -d chat_id=1",
+    "curl https://api.tele|gram.org/bot1:a/sendPhoto -F photo=@a.png",
+    "curl -X POST https://outlook.off|ice.com/webhook/abc -d '{}'",
+])
+def test_fourth_audit_channels(cmd, state, capsys):
+    assert _deny_reason(_bash(cmd.replace("|", ""), capsys)), cmd
+
+
+def test_mcp_inverted_text_rule_and_kinds(tmp_path, state, capsys):
+    k = rg.mcp_outward_kind
+    for n in ("chat_post" "Message", "files_upload", "create_issue", "update_issue",
+              "create_pull_request", "pull_request_review_write", "add_comment_to_pending_review"):
+        assert k(f"mcp__srv__{n}") == "post", n
+    for n in ("push_files", "create_or_update_file"):
+        assert k(f"mcp__github__{n}") is None, n
+    # unknown string keys are text now
+    assert "has not passed" in _deny_reason(_mcp("mcp__x__create_post",
+                                                 {"page_id": "1", "headline_v2": "Hi"}, capsys))
+    _record_text(tmp_path, "Ship it", capsys)
+    assert _mcp("mcp__github__create_issue", {"owner": "o", "repo": "r", "title": "Ship it",
+                                              "labels": ["a"]}, capsys) is None
+    for key in ("channel_name", "Channel"):
+        assert "audience" in _deny_reason(_mcp("mcp__slack__chat_post" "Message",
+                                               {key: "general", "text": "Ship it"}, capsys))

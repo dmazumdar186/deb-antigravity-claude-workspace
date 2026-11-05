@@ -305,3 +305,19 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   `method:'POST'`. MCP read prefixes need no underscore (`getpermissions`), same as the hook.
   Flags are matched case-sensitively on command text (`-F` form = write, `-f`/`--fail` not);
   in scanned files (lowercased) `-f` still counts as a write.
+- 2026-11-05 (channels fourth audit): tracked scripts get the invoking command's positional
+  args bound (`$1`, `${1:?}`, `SITE="$1"`), so `deploy.sh <dir> <proj>` checks `<dir>` by the
+  normal rule; if still unresolvable, a tracked clean script checks the project of its path
+  args (else its own folder). Inline code deploys: python/node heredocs, `python3 -c
+  "exec(open(f).read())"`, `sh < f`, `python3 - < f`, array-literal spawns
+  (`spawnSync('wrangler',['pages','deploy'])`). Runners: `vc`, `npx -p pkg bin`,
+  `pnpm --filter x exec`, `yarn|bun run <bin>`, corepack, `env -C dir`, setsid/flock/unbuffer/
+  doas/`script -c`. Channels: versioned Discord webhooks, Slack WebhookClient/IncomingWebhook
+  `.send(`, Instagram/Threads publish, Telegram forward/copy, Outlook webhooks. MCP outward
+  tools: every string field is text except an id/target/enum key list (`channel_name`/
+  `Channel` are audiences needing a waiver); kinds add postMessage, files_upload,
+  create/update_issue, create_pull_request, pull_request_review_write; push_files/
+  create_or_update_file are code (build-contract audit), not outward text.
+- Out of scope (documented): `-c 'import deploy'`-style helper modules, shell-escaped or split
+  literals, browser/Playwright UI sends (LinkedIn UI automation included); the hook gates API
+  endpoints, and tracked repo automation stays trusted.
