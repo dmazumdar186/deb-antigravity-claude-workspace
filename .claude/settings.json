@@ -108,6 +108,16 @@
             "timeout": 100
           }
         ]
+      },
+      {
+        "matcher": "mcp__.*([Gg]mail|send_email|send_message|create_draft).*|mcp__.*[Cc]alendar.*__(create_event|update_event|quick_add_event)|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/redteam-outward-gate.sh\" pre",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -139,6 +149,16 @@
             "async": true
           }
         ]
+      },
+      {
+        "matcher": "mcp__.*[Gg]mail.*__(create_draft|update_draft)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/redteam-outward-gate.sh\" post",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "SessionStart": [
@@ -159,6 +179,28 @@
             "type": "command",
             "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/verdict-table-check.sh\"",
             "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/redteam-outward-gate.sh\" subagent",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/redteam-outward-gate.sh\" prompt",
+            "timeout": 10
           }
         ]
       }
