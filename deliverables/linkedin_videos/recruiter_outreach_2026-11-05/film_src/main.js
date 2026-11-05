@@ -11,9 +11,9 @@ const MONO = (w, s) => `${w} ${s}px "Plex Mono"`;
 
 // ---------- timeline (seconds) ----------
 const T = {
-  h1: 0.15, shrink: 3.0, kick: 3.5, rows: [3.65, 3.95, 4.25, 4.55, 4.85], waves: [4.6, 4.75, 4.9, 5.15], goldFill: 5.3, quote: 5.5,
+  h1: 0.15, shrink: 3.0, kick: 3.5, rows: [3.7, 4.2, 4.7], waves: [4.3, 4.45, 4.6, 4.95], goldFill: 5.1, quote: 5.5,
   b2out: 8.5, quoteOut: 10.6,
-  h3: 8.75, rule: 8.95, notes: [9.4, 9.8, 10.2], cards: 10.95, red: 11.45, slide: 11.65, shift: 12.15, tick: 12.55, b3out: 13.85,
+  h3: 8.75, rule: 8.95, notes: [9.35, 9.7, 10.05], cards: 10.95, red: 11.45, slide: 11.65, shift: 12.15, tick: 12.55, b3out: 13.85,
   h4: 14.0, stack: 14.2, chips: [15.1, 15.6, 16.1], priv: 16.4, h4out: 17.5,
   h5: 17.6, l1: 17.85, l2: 18.2, sweep: 19.1, stamp: 20.6, b5out: 23.3,
   pay: 23.6, ten: 23.85, of158: 24.3, cta: 24.6, credit: 24.1, b6out: 30.65, gridBack: 30.85, h1back: 31.0
@@ -89,7 +89,7 @@ const N = 158, COLS = 16, rnd = mulberry(303);
 const order = Array.from({ length: N }, (_, i) => i).sort(() => 0).map(i => ({ i, r: rnd() }));
 const ranked = [...order].sort((a, b) => a.r - b.r).map(o => o.i);   // ranked[k] = dot index; last 10 survive
 const fate = new Array(N);                                           // which wave removes the dot (0..3), 4 = survivor
-ranked.forEach((d, k) => { fate[d] = k < 48 ? 0 : k < 94 ? 1 : k < 140 ? 2 : k < 148 ? 3 : 4; });
+ranked.forEach((d, k) => { fate[d] = k < 48 ? 0 : k < 94 ? 1 : k < N - 18 ? 2 : k < N - 10 ? 3 : 4; });
 function person(cx, cy, s, fill, alpha) {
   if (alpha <= 0) return; g.globalAlpha = alpha; g.lineWidth = Math.max(1.6, s * .07);
   g.strokeStyle = fill ? P.gold : P.ink; g.fillStyle = P.gold;
@@ -152,18 +152,18 @@ function beat1_2(t) {
   line(M, oy + (2 * lh + H1S * .2) * s, M + qw * s, oy + (2 * lh + H1S * .2) * s, u, P.gold, lerp(7, 4, k));
   // kicker + funnel rows
   block({ id: 'kick', text: 'the pool, counted', font: MONO(600, 24), size: 24, lh: 30, x: M, y: 374, color: P.goldTx, t0: T.kick, t1: T.b2out, t, tout: .22 });
-  const rows = [[158, 'profiles assessed'], [594, 'claims pulled from public sources'], [446, 'survived the quote check'], [18, 'passed every hard rule'], [10, 'on the shortlist, as the brief asked']];
+  const rows = [[158, 'profiles assessed'], [18, 'passed every hard rule in the brief'], [10, 'on the shortlist, as the brief asked']];
   rows.forEach(([v, lab], i) => {
-    const t0 = T.rows[i], y = 432 + i * 62;
+    const t0 = T.rows[i], y = 450 + i * 84;
     if (t < t0) return;
-    const p = eo(seg(t, t0, t0 + .45)), q = ei(seg(t, T.b2out + i * .02, T.b2out + .2 + i * .02)), off = (1 - p) * 40 - q * 70;
+    const p = eo(seg(t, t0, t0 + .45)), q = ei(seg(t, T.b2out + i * .02, T.b2out + .2 + i * .02)), off = (1 - p) * 50 - q * 86;
     const n = Math.round(v * eo(seg(t, t0, t0 + .6)));
-    g.save(); g.beginPath(); g.rect(M - 6, y - 50, CW + 12, 66); g.clip(); g.translate(0, off);
-    g.font = SERIF(700, 46); g.fillStyle = i === 4 ? P.goldTx : P.ink; g.textAlign = 'right'; g.fillText(String(n), M + 120, y); g.textAlign = 'left';
-    g.font = SERIF(400, 34); g.fillStyle = P.ink; g.fillText(lab, M + 145, y);
+    g.save(); g.beginPath(); g.rect(M - 6, y - 60, CW + 12, 80); g.clip(); g.translate(0, off);
+    g.font = SERIF(700, 58); g.fillStyle = i === 2 ? P.goldTx : P.ink; g.textAlign = 'right'; g.fillText(String(n), M + 130, y); g.textAlign = 'left';
+    g.font = SERIF(400, 40); g.fillStyle = P.ink; g.fillText(lab, M + 160, y);
     g.restore();
-    line(M, y + 18, W - M, y + 18, eio(seg(t, t0 + .1, t0 + .6)) * (1 - q), P.ink, 1);
-    if (t < T.b2out) { g.font = SERIF(400, 34); rep('row' + i, v + ' ' + lab, M, y - 40, M + 145 + g.measureText(lab).width, y + 10); }
+    line(M, y + 22, W - M, y + 22, eio(seg(t, t0 + .1, t0 + .6)) * (1 - q), P.ink, 1);
+    if (t < T.b2out) { g.font = SERIF(400, 40); rep('row' + i, v + ' ' + lab, M, y - 48, M + 160 + g.measureText(lab).width, y + 12); }
   });
 }
 function quote(t) {
@@ -188,12 +188,20 @@ function beat3(t) {
   }
   block({ id: 'rulek', text: 'the rule', font: MONO(600, 24), size: 24, lh: 30, x: M + 36, y: 524, color: P.goldTx, t0: T.rule + .15, t1: T.b3out, t });
   block({ id: 'rule', text: 'keep a claim only if its quote is found in the cached source', font: SERIF(400, 42), size: 42, lh: 54, x: M + 36, y: 590, t0: T.rule + .08, t1: T.b3out, t, maxW: CW - 72 });
-  const notes = ["148 of 594 couldn't be matched · none reached the page", 'anything inferred is labelled as inferred', 'the hard rules are code, not a model'];
+  const notes = ['no match → dropped · never reaches the page', 'the hard rules are code, not a model'];
   notes.forEach((s, i) => {
     const y = 778 + i * 58, t0 = T.notes[i];
     const a = eo(seg(t, t0, t0 + .3)) * (1 - ei(seg(t, T.b3out, T.b3out + .3)));
     if (a > 0) { g.globalAlpha = a; g.fillStyle = P.gold; g.fillRect(M, y - 16, 14, 14); g.globalAlpha = 1; }
-    block({ id: 'note' + i, text: s, font: MONO(400, 26), size: 26, lh: 32, x: M + 32, y, t0, t1: T.b3out, t });
+    // the arrow is drawn as a vector in its monospace cell (the font subset has no U+2192)
+    const ai = s.indexOf('→'), drawn = ai < 0 ? s : s.slice(0, ai) + ' ' + s.slice(ai + 1);
+    block({ id: 'note' + i, text: s, lines: [drawn], font: MONO(400, 26), size: 26, lh: 32, x: M + 32, y, t0, t1: T.b3out, t });
+    if (ai >= 0) {
+      g.font = MONO(400, 26); const cx0 = M + 32 + g.measureText(s.slice(0, ai)).width, cwid = g.measureText(' ').width, ay = y - 8;
+      const aa = eo(seg(t, t0 + .3, t0 + .5)) * (1 - ei(seg(t, T.b3out, T.b3out + .2)));
+      if (aa > 0) { g.globalAlpha = aa; g.strokeStyle = P.ink; g.lineWidth = 2.2; g.lineCap = 'round'; g.lineJoin = 'round'; g.beginPath();
+        g.moveTo(cx0 + 2, ay); g.lineTo(cx0 + cwid - 2, ay); g.moveTo(cx0 + cwid - 7, ay - 5); g.lineTo(cx0 + cwid - 2, ay); g.lineTo(cx0 + cwid - 7, ay + 5); g.stroke(); g.globalAlpha = 1; }
+    }
   });
   // claim cards: one fails the quote check and slides off, the next is kept
   const cw = 268, chh = 150, cy = 980, gap = 58;
@@ -217,9 +225,9 @@ function beat4_5(t) {
   if (t < T.h4 || t >= T.b5out + .6) return;
   const out = T.b5out, fo = 1 - ei(seg(t, out, out + .3));
   block({ id: 'h4', text: 'One row per candidate.', lines: ['One row', 'per candidate.'], font: SERIF(700, 110), size: 110, lh: 112, x: M, y: 222, t0: T.h4, t1: T.h4out, t });
-  block({ id: 'h5', text: 'Drafts wait for your approval. Nothing sends on its own.', lines: ['Drafts wait for your', 'approval. Nothing', 'sends on its own.'], font: SERIF(700, 92), size: 92, lh: 96, x: M, y: 210, t0: T.h5, t1: out, t });
+  block({ id: 'h5', text: 'The system drafts. Your team sends.', lines: ['The system drafts.', 'Your team sends.'], font: SERIF(700, 100), size: 100, lh: 108, x: M, y: 222, t0: T.h5, t1: out, t });
   // stacked cards, C at the back
-  const DY = 148, stack = [['Candidate C', 40, 300 + DY], ['Candidate B', 20, 336 + DY], [null, 0, 372 + DY]];
+  const DY = 150, stack = [['Candidate C', 40, 300 + DY], ['Candidate B', 20, 336 + DY], [null, 0, 372 + DY]];
   stack.forEach(([lab, inset, top], j) => {
     const d = T.stack + j * .12, p = back(seg(t, d, d + .55), 1.2), a = clamp(p) * fo;
     if (a <= 0) return;
@@ -230,17 +238,14 @@ function beat4_5(t) {
     if (lab && t < out && p > .98) rep('stack' + j, lab, M + inset + 24, top + 8, M + inset + 160, top + 31);
   });
   const cx = M + 36, ty = 438 + DY;
-  // row header: name + tier badge
+  // row header: name only
   const nameP = seg(t, T.stack + .45, T.stack + .9);
   if (t >= T.stack + .45) {
-    g.font = SERIF(700, 40); const nw = g.measureText('Candidate A').width, dw = g.measureText(' · ').width;
-    g.font = MONO(600, 24); const tw = g.measureText('Tier A').width;
+    g.font = SERIF(700, 40); const nw = g.measureText('Candidate A').width;
     g.save(); g.beginPath(); g.rect(cx - 6, ty - 46, CW, 64); g.clip(); g.translate(0, (1 - eo(nameP)) * 60 - ei(seg(t, out, out + .3)) * 60);
-    g.font = SERIF(700, 40); g.fillStyle = P.ink; g.fillText('Candidate A', cx, ty); g.fillText(' · ', cx + nw, ty);
-    rr(cx + nw + dw, ty - 31, tw + 28, 40, 20, P.chip, P.gold, 2);
-    g.font = MONO(600, 24); g.fillStyle = P.goldTx; g.fillText('Tier A', cx + nw + dw + 14, ty - 3);
+    g.fillStyle = P.ink; g.fillText('Candidate A', cx, ty);
     g.restore();
-    if (t < out) rep('candA', 'Candidate A · Tier A', cx, ty - 34, cx + nw + dw + tw + 28, ty + 10);
+    if (t < out) rep('candA', 'Candidate A', cx, ty - 34, cx + nw, ty + 10);
   }
   // why them + placeholder bars
   label('why', 'Why them', cx, 500 + DY, MONO(600, 20), P.grey, eo(seg(t, T.stack + .6, T.stack + .8)) * fo, t < out);

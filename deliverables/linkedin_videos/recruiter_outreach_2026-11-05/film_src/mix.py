@@ -83,7 +83,7 @@ for e in EV:
 f = int(.5 * SR); buf[-f:] *= np.linspace(1, 0, f)[:, None] ** 2
 # master: bring up ~12 dB, tame transients so the -14 LUFS loudnorm can run in linear mode
 buf *= 10 ** (12 / 20)
-for c in range(2): buf[:, c] = sfx.limit(sfx.compress(buf[:, c], thr=.3, ratio=3, att=.003, rel=.12), ceil=.68)
+for c in range(2): buf[:, c] = sfx.limit(sfx.compress(buf[:, c], thr=.3, ratio=3, att=.003, rel=.12), ceil=.6)
 sf.write(FILM + '/out/mix.wav', buf, SR)
 print('instruments:', sorted({(x['inst'] if isinstance(x, dict) else x[1]) for x in ev}))
 print('\n'.join(S.credits(sorted({(x['inst'] if isinstance(x, dict) else x[1]) for x in ev}))))
