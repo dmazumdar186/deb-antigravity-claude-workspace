@@ -108,13 +108,13 @@ Observation for 4.2 and 4.9 (re-run 6 Nov): the « Demandes » table now fits a 
 
 ## Option A: WordPress plugin (WordPress Playground)
 
-**Where:** locally, `wp_demo/` built with `./build_zip.sh --local` and served by `@wp-playground/cli@3.1.62` with the visitor blueprint on http://127.0.0.1:9402 (fresh seed). The hosted links were opened once for first impressions (step 2.0).
+**Where (round 2, 6 Nov 2026):** two places. (1) Locally: `wp_demo/` built with `./build_zip.sh --local` and served by `@wp-playground/cli@3.1.62` with the visitor blueprint on http://127.0.0.1:9405 (fresh seed, WordPress 7.1.4, PHP 8.3). (2) On the hosted links the client will click (`mode=seamless`, with `login=no` for the visitor link), run 3 times in fresh browsers. The hosted blueprints and zip are byte-identical to the local build (zip sha256 ad48baa5…).
 
 **Logins** (the password is `demo-asset`): `direction` (Direction (démo)), `equipe` (Équipe (démo)), `contributeur`. The administrator is `admin` / `password`.
 
 **Before you start:** reload the Playground page to start from the seed. All data is fictional. Codes look like `DEMO-GME-…`.
 
-**Run:** 5 Nov 2026, local, by an internal reviewer acting as a first-time office assistant who follows only the on-screen labels. The visitor steps (S2, S3) were run at 1440 px and 390 px. The team steps were run at 1440 px. Every step was driven by `qa/A/ux/uat.mjs`. Evidence: `qa/A/ux/evidence/uat-<story>-<step>.png` and the logs `qa/A/ux/uat-run.log` and `qa/A/ux/uat-s1-run.log`. The keyboard-only runs are in `qa/A/ux/kb-result-run*.json`.
+**Run:** round 1 on 5 Nov 2026, re-run on 6 Nov 2026 after the fix round, by an independent internal reviewer acting as a first-time office assistant who follows only the on-screen labels. The visitor steps (S2, S3) were run at 1440 px and 390 px; the team steps at 1440 px. Local steps were driven by `qa/A/ux/uat.mjs`, run from `qa/A/ux/r2/`, and keyboard-only steps by `qa/A/ux/kb.mjs`. The hosted walk was driven by `qa/A/ux/r2/hosted2.mjs`. Round-2 evidence: `qa/A/ux/r2/evidence/`, plus the logs `uat2-run.log`, `kb2-result.json` and `hosted2.log` (run 3; runs 1–2 in `hosted2-run1.log` and `hosted2-run2.log`). The results below are round 2.
 
 ### Scenario A1: create and edit a congress (S1)
 
@@ -202,3 +202,40 @@ Note A1.4: in the first mouse run, « Publier » did nothing, and WordPress show
 | A | 3. Flight enquiry | « Internal UAT (ProdCraft) » | 05/11/2026 | PASS (10/10) | EYE-A-003/008/009 (cosmetic) | |
 | A | 4. Team receives, tracks, updates | « Internal UAT (ProdCraft) » | 05/11/2026 | PASS (8/8) | EYE-A-004 (UTC/ISO dates) | |
 | A | 5. GM&E codes and authorisation | « Internal UAT (ProdCraft) » | 05/11/2026 | PASS (11/11) | USAB-A-006 | |
+
+## Extra — Le lien de groupe
+
+Target: the **preview** Worker, https://asset-voyages-demo-preview.debanjan186.workers.dev (never production). Run on 06/11/2026 with Playwright Chromium, `fr-FR`, `Europe/Paris`, at 1440×900 and 390×844 (touch). Every browser is a fresh context and so a private sandbox; staff = `equipe`, delegates = separate logged-out browsers. Script and raw output: `qa/EXTRA/ux/uat.mjs` → `uat-1440.json`, `uat-390.json`; screenshots `qa/EXTRA/ux/evidence/`, `qa/EXTRA/ux/eye/`. Every sandbox used was reset with « Réinitialiser la démo » at the end of the run. Register: `qa/register/EXTRA_ux.md`.
+
+| # | Step | Expected | 1440 | 390 | Evidence |
+|---|---|---|---|---|---|
+| X.1 | As `equipe`, open « Demandes » and click the reference of an enquiry with 2 or more passengers and no link (DV-2026-0002). | The « Lien de groupe » card shows « Créer le lien ». | PASS | PASS (card 2.3 screens down, USAB-X-006) | evidence/*-X1-detail.png |
+| X.2 | Click « Créer le lien ». | « Lien créé : copiez-le et envoyez-le aux participants. », a `/g/<token>` link of 43 characters and « Valable jusqu’au 06/12/2026 » (30 days). | PASS | PASS | evidence/*-X2-created.png |
+| X.3 | Click « Copier le lien ». | The clipboard holds the link; « Lien copié » is shown. | PASS | PASS | uat-*.json |
+| X.4 | As delegate A (another browser, logged out), open the link. | The congress name and dates only; no reference, contact, passenger count, threshold, fare, airline or code. | PASS | PASS | evidence/*-X4-public.png |
+| X.5 | Clear the dates and click « Envoyer mes informations » with every field empty. | « 6 champs à corriger ; rien n’a été enregistré. », focused, each field explained. | PASS | PASS | evidence/*-X5-errors.png |
+| X.6 | Fill « Nom et prénom », « E-mail », « Ville de départ », set « Date retour » before « Date aller », tick the consent box, send. | « La date retour doit être le jour de l’aller ou après. »; typed values kept. | PASS | PASS | uat-*.json |
+| X.7 | Fix the date and tap « Envoyer mes informations » (1 click). | « Votre réponse a bien été reçue. » showing only what A sent. | PASS | PASS | evidence/*-X7-confirm.png |
+| X.8 | Same browser, same e-mail, « Ville de départ » = Marseille, send. | The entry is updated in place; no « Modifications à vérifier ». | PASS | PASS | uat-*.json |
+| X.9 | Delegate B (a different browser) sends A’s e-mail with « Ville de départ » = Nantes. | The same « Votre réponse a bien été reçue. » page. | PASS | PASS | uat-*.json |
+| X.10 | As `equipe`: « Demandes » › the reference › « Groupe (1/2) » (2 clicks from the list). | « 1 répondu / 2 attendus »; « Modification à vérifier » with « Actuel : … Marseille » and « Proposé : … Nantes ». | PASS | PASS | evidence/*-X10-pending.png |
+| X.11 | Click « Refuser ». | « Modification refusée : l’inscription d’origine est conservée. »; Marseille kept. | PASS | PASS | uat-*.json |
+| X.12 | Delegate B resends; `equipe` reloads and clicks « Accepter ». | « Modification acceptée : la liste est à jour. »; Nantes shown; still 1 entry. | PASS | PASS | uat-*.json |
+| X.13 | Keep « Groupe » open; delegate C sends from a third browser; wait up to 25 s without reloading. | The counter changes to « 2 répondus / 2 attendus » by itself. | PASS | PASS | uat-*.json |
+| X.14 | Set « Seuil groupe (à confirmer) » to 3 and click « Enregistrer »; then try 0. | « Seuil groupe enregistré. » and the hint « Proche du seuil groupe : 2 réponses sur 3 (à confirmer). … Indication interne, jamais montrée aux participants. »; 0 is refused (browser check, min 2). | PASS | PASS | evidence/*-X14-hint.png |
+| X.15 | Click « Exporter pour cotation (CSV) ». | `groupe-DV-2026-0002-<date>.csv`, UTF-8 BOM, header « Nom (pièce d’identité) » …, one row per delegate. | PASS | PASS | evidence/*-X15.csv |
+| X.16 | Click « Révoquer le lien », confirm; delegate A reloads the link. | « Lien révoqué : il ne fonctionne plus. … »; the public page answers 410 « Ce lien n’est plus actif »; the list is kept. | PASS | PASS | evidence/*-X16-revoked.png |
+| X.17 | Click « Créer un nouveau lien »; open the new link, then the old one. | New link works; old link says « Ce lien n’est plus actif ». | **FAIL** (old link shows 404 « Lien introuvable », USAB-X-001) | **FAIL** (same) | uat-*.json |
+| X.18 | Open DV-2026-0001 › « Groupe (3/6) »; open its link logged out. | « 3 répondus / 6 attendus »; the public page shows none of the three seeded delegates. | PASS | PASS | uat-*.json |
+| X.19 | Log in as `contributeur`; open `/console/demandes/1/groupe`. | Refused (403 « Accès refusé »). | PASS | PASS | uat-*.json |
+| X.20 | Open DV-2026-0005 (1 passenger). | No « Lien de groupe » card; `/groupe` answers 404. | PASS | PASS | uat-*.json |
+| X.21 | Open `/g/` with a made-up token. | 404 « Lien introuvable ». | PASS | PASS | evidence/*-X21-unknown.png |
+| X.K | Keyboard only: create and copy the link; fill and send the delegate form; « Refuser » and « Accepter ». | All succeed; focus moves to the message after each action. | PASS | PASS | qa/EXTRA/ux/kb-1440.json, kb-390.json |
+
+Note on X.13 and X.15: a second 1440 run made right after three other runs failed these two steps because the per-IP guard (20 accepted answers per 10 minutes) refused delegate C, as designed. A run made after the window closed passed (the result above); the first run is kept as `uat1440_run2_ratelimited.log`.
+
+**Result, Extra:** 20 of 21 steps pass at both widths, plus the keyboard run. X.17 fails on wording only: a replaced link tells the delegate « Lien introuvable … Vérifiez l’adresse reçue » instead of « Ce lien n’est plus actif ».
+
+| Option | Scenario | Tester | Date | Result | Open items | Signature |
+|---|---|---|---|---|---|---|
+| B | Extra. Le lien de groupe | « Internal UAT (ProdCraft) » | 06/11/2026 | PASS with 1 minor FAIL (20/21 at 1440 and 390; keyboard PASS) | USAB-X-001, EYE-X-001 | |

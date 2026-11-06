@@ -1,0 +1,22 @@
+{
+ "role": "anon",
+ "SEED": 20261106,
+ "N": 300,
+ "fails": [],
+ "counts": {
+  "toggle": 19,
+  "submit": 42,
+  "fill": 85,
+  "click": 83,
+  "reload": 8,
+  "goto": 23,
+  "back-to-link": 13,
+  "back": 10,
+  "click:none": 4,
+  "fill:none": 6,
+  "submit:none": 4,
+  "": 3
+ },
+ "leakChecks": 279,
+ "reset": "reset ok"
+}

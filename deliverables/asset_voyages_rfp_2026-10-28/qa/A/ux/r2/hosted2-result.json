@@ -1,7 +1,7 @@
 {
  "boot": {
   "visitor@1440": {
-   "seconds": 14.8,
+   "seconds": 13.1,
    "bonjour": false,
    "adminbar": 0,
    "outerVisibleText": [],
@@ -17,7 +17,7 @@
    ]
   },
   "visitor@390": {
-   "seconds": 15.8,
+   "seconds": 13.1,
    "bonjour": false,
    "adminbar": 0,
    "outerVisibleText": [],
@@ -33,7 +33,7 @@
    ]
   },
   "admin": {
-   "seconds": 18.1,
+   "seconds": 16.5,
    "url": "/wp-admin/admin.php?page=asset-demandes",
    "who": "Bonjour, Direction (démo)",
    "menu": [
@@ -46,7 +46,7 @@
    ]
   },
   "admin@390": {
-   "seconds": 17.4,
+   "seconds": 17,
    "scroll": [
     390,
     390
@@ -58,13 +58,13 @@
    "story": "A2",
    "txt": "hosted: logged out, no admin bar, no Playground toolbar",
    "status": "PASS",
-   "ev": "boot 14.8s, iframe 0,0,1440,900"
+   "ev": "boot 13.1s, iframe 0,0,1440,900"
   },
   {
    "story": "A2",
    "txt": "hosted: « Cardiologie » chip then first card",
    "status": "PASS",
-   "ev": "12 congrès trouvés; Journées méditerranéennes d’oncologie — exemple"
+   "ev": "2 congrès trouvés; Congrès européen de cardiologie — exemple"
   },
   {
    "story": "A3",
@@ -76,7 +76,7 @@
    "story": "A2@390",
    "txt": "hosted 390: logged out, no overflow",
    "status": "PASS",
-   "ev": "boot 15.8s, scroll 390,390"
+   "ev": "boot 13.1s, scroll 390,390"
   },
   {
    "story": "A1",
@@ -88,7 +88,7 @@
    "story": "A1",
    "txt": "hosted: create + publish a congress as direction",
    "status": "PASS",
-   "ev": "Publication mise en ligne. Voir la publication in 0.9s; lost-connection false"
+   "ev": "Publication mise en ligne. Voir la publication in 1.0s; lost-connection false"
   },
   {
    "story": "A1",
@@ -100,7 +100,7 @@
    "story": "A4",
    "txt": "hosted: equipe changes status of newest enquiry",
    "status": "PASS",
-   "ev": "06/11/2026 04:32 Équipe (démo) Statut Nouvelle → Qualifiée"
+   "ev": "06/11/2026 04:35 Équipe (démo) Statut Nouvelle → Qualifiée"
   },
   {
    "story": "A5",
@@ -111,14 +111,14 @@
   {
    "story": "A5",
    "txt": "hosted: direction approves from dashboard widget",
-   "status": "FAIL",
-   "ev": "locator.click: Timeout 30000ms exceeded."
+   "status": "PASS",
+   "ev": "Accès approuvé pour 24 heures."
   },
   {
    "story": "A5",
    "txt": "hosted: equipe reveals once, masked after reload",
-   "status": "FAIL",
-   "ev": "locator.click: Timeout 30000ms exceeded."
+   "status": "PASS",
+   "ev": "revealed DEMO-GME-3M••; masked after reload"
   }
  ]
 }

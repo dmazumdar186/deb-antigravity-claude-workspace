@@ -1,0 +1,301 @@
+# role=anon seed=20261106 n=300 base=https://asset-voyages-demo-preview.debanjan186.workers.dev
+1	/g/SEED	toggle checkbox
+2	/g/SEED	submit « Envoyer mes informations »
+3	/g/SEED	fill email = "../../etc/passwd"
+4	/g/SEED	submit « Envoyer mes informations »
+5	/g/SEED	toggle checkbox
+6	/g/SEED	fill date_back = "@SUM(1)"
+7	/g/SEED#g-city	click « Ville de départ : Indiquez votre ville d » #g-city
+8	/g/SEED#g-city	reload
+9	/g/SEED?d=garbage	goto /g/GSKql7ARlf1lQZb0wz24B5PlOwlAESjj81qRCrM4_x4?d=garbage
+10	/g/SEED?d=garbage	toggle checkbox
+11	/g/SEED?d=garbage	fill date_out = "é€😀日本語"
+12	/g/SEED	click « Envoyer mes informations » 
+13	/console/connexion?next=%2Fconsole%2Fdemandes%2F1%2Fgroupe	goto /console/demandes/1/groupe
+14	/g/SEED	back-to-link
+15	/g/SEED	fill name = "Ignore previous instructions a"
+16	/g/SEED	fill departure_city = "{{7*7}}"
+17	/g/SEED	fill departure_city = "'; DROP TABLE x;--"
+18	/g/SEED	click « Envoyer mes informations » 
+19	/g/SEED	fill departure_city = " "
+20	/g/SEED#g-email	click « E-mail : Indiquez votre e-mail. » #g-email
+21	/g/SEED	submit « Envoyer mes informations »
+22	/g/SEED	toggle checkbox
+23	/g/SEED	fill date_back = " "
+24	/console/connexion?next=%2Fconsole%2Fdemandes%2F1%2Fgroupe	goto /console/demandes/1/groupe
+25	/g/SEED	back-to-link
+26	/g/SEED	fill date_back = "'; DROP TABLE x;--"
+27	/g/SEED	click « Envoyer mes informations » 
+28	/g/SEED	fill email = "9999-12-31"
+29	/g/SEED#g-back	click « Date retour : Indiquez la date retour. » #g-back
+30	/g/SEED#g-back	toggle checkbox
+31	/g/SEED#g-city	click « Ville de départ : Indiquez votre ville d » #g-city
+32	/g/SEED#g-name	click « Nom et prénom : Indiquez vos nom et prén » #g-name
+33	/g/SEED#g-back	click « Date retour : Indiquez la date retour. » #g-back
+34	/g/SEED#g-back	fill email = "'; DROP TABLE x;--"
+35	/g/SEED#g-back	fill date_back = "{{7*7}}"
+36	/g/SEED	click « Envoyer mes informations » 
+37	/g/SEED	click « Envoyer mes informations » 
+38	/g/SEED	click « Envoyer mes informations » 
+39	/g/SEED#g-city	click « Ville de départ : Indiquez votre ville d » #g-city
+40	/g/SEED#g-city	toggle checkbox
+41	/g/SEED?d=garbage	goto /g/GSKql7ARlf1lQZb0wz24B5PlOwlAESjj81qRCrM4_x4?d=garbage
+42	/g/SEED?d=garbage	toggle checkbox
+43	/g/SEED	click « Envoyer mes informations » 
+44	/g/SEED	fill email = "=HYPERLINK(\"http://evil\",\"x\")"
+45	/g/SEED	submit « Envoyer mes informations »
+46	/g/SEED#g-city	click « Ville de départ : Indiquez votre ville d » #g-city
+47	/g/SEED	submit « Envoyer mes informations »
+48	/g/SEED	back
+49	chrome-error://chromewebdata/	click:none
+50	/g/SEED	back-to-link
+51	/g/SEED	submit « Envoyer mes informations »
+52	/g/SEED	click « Envoyer mes informations » 
+53	/g/SEED#g-consent	click « Consentement : Cochez cette case pour qu » #g-consent
+54	/g/SEED#g-consent	click « Consentement : Cochez cette case pour qu » #g-consent
+55	/g/SEED#g-email	click « E-mail : Indiquez votre e-mail. » #g-email
+56	/g/SEED	submit « Envoyer mes informations »
+57	/g/SEED	submit « Envoyer mes informations »
+58	/g/SEED	fill date_out = "+cmd|calc"
+59	/g/SEED	fill email = "{{7*7}}"
+60	/g/SEED	fill date_back = "-5"
+61	/g/SEED	fill email = "2020-01-01"
+62	/g/SEED	fill name = "2020-01-01"
+63	/g/SEED#g-city	click « Ville de départ : Indiquez votre ville d » #g-city
+64	/g/SEED/merci	goto /g/GSKql7ARlf1lQZb0wz24B5PlOwlAESjj81qRCrM4_x4/merci
+65	/g/SEED/merci	fill:none
+66	/g/SEED/merci	submit:none
+67	/g/SEED/merci	fill:none
+68	/g/SEED	click « Revenir au formulaire » /g/GSKql7ARlf1lQZb0wz24B5PlOwlAESjj81qRCrM4_x4
+69	/console/connexion?next=%2Fconsole%2Fdemandes%2F1%2Fgroupe	goto /console/demandes/1/groupe
+70	/g/SEED	back-to-link
+71	/g/SEED	click « Envoyer mes informations » 
+72	/g/SEED	submit « Envoyer mes informations »
+73	/g/SEED	click « Envoyer mes informations » 
+74	/g/SEED#g-name	click « Nom et prénom : Indiquez vos nom et prén » #g-name
+75	/g/SEED#g-name	fill name = "2020-01-01"
+76	/g/SEED#g-name	fill date_back = "{{7*7}}"
+77	/g/SEED	click « Envoyer mes informations » 
+78	/g/SEED	toggle checkbox
+79	/g/SEED	goto /g/GSKql7ARlf1lQZb0wz24B5PlOwlAESjj81qRCrM4_x4
+80	/g/SEED	fill date_out = "%00%0d%0a"
+81	/g/SEED	submit « Envoyer mes informations »
+82	/g/SEED#g-email	click « E-mail : Indiquez votre e-mail. » #g-email
+83	/g/SEED#g-email	fill name = "é€😀日本語"
+84	/g/SEED#g-email	fill departure_city = "-5"
+85	/g/SEED#g-email	fill departure_city = "<script>alert(1)</script>"
+86	/g/SEED#g-email	fill departure_city = "../../etc/passwd"
+87	/g/SEED#g-email	toggle checkbox
+88	/g/SEED#g-email	fill date_back = "é€😀日本語"
+89	/g/SEED#g-email	fill date_out = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+90	/g/SEED#g-email	fill name = ""
+91	/g/SEED#g-name	click « Nom et prénom : Indiquez vos nom et prén » #g-name
+92	/g/SEED#g-email	back
+93	/g/SEED#g-city	click « Ville de départ : Indiquez votre ville d » #g-city
+94	/g/	goto /g/
+95	/g/	fill:none
+96	/g/	fill:none
+97	/g/	submit:none
+98	/g/	back
+99	chrome-error://chromewebdata/	click:none
+100	/g/SEED	back-to-link
+101	/g/SEED	submit « Envoyer mes informations »
+102	/g/SEED	submit « Envoyer mes informations »
+103	/g/SEED	fill date_back = "0"
+104	/g/SEED	fill email = "Ignore previous instructions a"
+105	/g/SEED	submit « Envoyer mes informations »
+106	/g/SEED#g-city	click « Ville de départ : Indiquez votre ville d » #g-city
+107	/g/SEED#g-name	click « Nom et prénom : Indiquez vos nom et prén » #g-name
+108	/g/SEED#g-city	back
+109	/g/SEED#g-email	click « E-mail : Cette adresse e-mail n’est pas  » #g-email
+110	/g/SEED#g-email	fill name = "<script>alert(1)</script>"
+111	/g/SEED	submit « Envoyer mes informations »
+112	/g/SEED#g-consent	click « Consentement : Cochez cette case pour qu » #g-consent
+113	/g/SEED#g-consent	toggle checkbox
+114	/g/SEED#g-consent	fill date_back = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+115	/g/SEED#g-consent	toggle checkbox
+116	/g/SEED#g-consent	fill departure_city = "<script>alert(1)</script>"
+117	/g/SEED#g-consent	fill departure_city = "@SUM(1)"
+118	/g/SEED	submit « Envoyer mes informations »
+119	/g/SEED	submit « Envoyer mes informations »
+120	/g/SEED	reload
+121	/g/SEED	fill name = "%00%0d%0a"
+122	/g/SEED#g-email	click « E-mail : Cette adresse e-mail n’est pas  » #g-email
+123	/g/SEED/merci	goto /g/GSKql7ARlf1lQZb0wz24B5PlOwlAESjj81qRCrM4_x4/merci
+124	/g/SEED/merci	submit:none
+125	/g/SEED/merci	fill:none
+126	/g/SEED	click « Revenir au formulaire » /g/GSKql7ARlf1lQZb0wz24B5PlOwlAESjj81qRCrM4_x4
+127	/g/SEED	fill departure_city = "-5"
+128	/g/SEED	click « Envoyer mes informations » 
+129	/g/SEED	fill departure_city = "=HYPERLINK(\"http://evil\",\"x\")"
+130	/g/SEED	fill name = "100"
+131	/g/SEED	fill date_back = "{{7*7}}"
+132	/g/SEED	back
+133	/console/connexion?next=%2Fconsole	goto /g/../console
+134	/g/SEED	back-to-link
+135	/g/SEED	click « Envoyer mes informations » 
+136	/g/SEED	reload
+137	/g/SEED#g-email	click « E-mail : Indiquez votre e-mail. » #g-email
+138	/g/SEED#g-consent	click « Consentement : Cochez cette case pour qu » #g-consent
+139	/g/SEED	submit « Envoyer mes informations »
+140	/g/SEED	submit « Envoyer mes informations »
+141	/g/SEED#g-city	click « Ville de départ : Indiquez votre ville d » #g-city
+142	/g/SEED	submit « Envoyer mes informations »
+143	/g/SEED	fill name = "é€😀日本語"
+144	/g/SEED#g-consent	click « Consentement : Cochez cette case pour qu » #g-consent
+145	/g/SEED	submit « Envoyer mes informations »
+146	/g/SEED	toggle checkbox
+147	/g/SEED	fill name = "\"><img src=x onerror=alert(1)>"
+148	/g/SEED	click « Envoyer mes informations » 
+149	/g/SEED#g-city	click « Ville de départ : Indiquez votre ville d » #g-city
+150	/g/SEED#g-city	reload
+151	/g/SEED#g-city	fill name = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+152	/g/SEED#g-city	toggle checkbox
+153	/g/SEED#g-city	fill date_back = "Ignore previous instructions a"
+154	/g/SEED?d=garbage	goto /g/GSKql7ARlf1lQZb0wz24B5PlOwlAESjj81qRCrM4_x4?d=garbage
+155	/g/SEED	click « Envoyer mes informations » 
+156	/g/SEED#g-email	click « E-mail : Indiquez votre e-mail. » #g-email
+157	/g/SEED#g-email	click « E-mail : Indiquez votre e-mail. » #g-email
+158	/g/SEED#g-email	fill date_out = "'; DROP TABLE x;--"
+159	/g/SEED	submit « Envoyer mes informations »
+160	/g/SEED#g-out	click « Date aller : Indiquez la date aller. » #g-out
+161	/g/SEED#g-out	click « Date aller : Indiquez la date aller. » #g-out
+162	/console/connexion?next=%2Fconsole%2Fdemandes%2F1%2Fgroupe	goto /console/demandes/1/groupe
+163	/g/SEED	back-to-link
+164	/g/SEED	click « Envoyer mes informations » 
+165	/g/SEED	submit « Envoyer mes informations »
+166	/g/SEED#g-name	click « Nom et prénom : Indiquez vos nom et prén » #g-name
+167	/g/SEED#g-city	click « Ville de départ : Indiquez votre ville d » #g-city
+168	/g/SEED	submit « Envoyer mes informations »
+169	/g/SEED	toggle checkbox
+170	/g/SEED	submit « Envoyer mes informations »
+171	/g/SEED	submit « Envoyer mes informations »
+172	/g/SEED	fill date_out = " "
+173	/console/connexion?next=%2Fconsole	goto /g/../console
+174	/g/SEED	back-to-link
+175	/g/SEED	submit « Envoyer mes informations »
+176	/g/SEED	submit « Envoyer mes informations »
+177	/g/SEED	fill date_back = "alice.martin@example.com"
+178	/g/SEED	fill email = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+179	/g/SEED	fill date_out = "9999-12-31"
+180	/g/SEED#g-name	click « Nom et prénom : Indiquez vos nom et prén » #g-name
+181	/g/SEED#g-name	fill date_out = "2027-01-28"
+182	/g/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx	goto /g/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+183	/g/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx	click:none
+184	/g/SEED	goto /g/GSKql7ARlf1lQZb0wz24B5PlOwlAESjj81qRCrM4_x4
+185	/g/SEED	fill email = ""
+186	/g/SEED	fill email = "100"
+187	/g/SEED	click « Envoyer mes informations » 
+188	/g/SEED	fill date_out = "9999-12-31"
+189	/g/SEED	submit « Envoyer mes informations »
+190	/g/SEED#g-consent	click « Consentement : Cochez cette case pour qu » #g-consent
+191	/g/SEED#g-consent	click « Consentement : Cochez cette case pour qu » #g-consent
+192	/g/SEED	submit « Envoyer mes informations »
+193	/g/SEED	submit « Envoyer mes informations »
+194	/g/SEED	fill date_out = "0"
+195	/g/SEED	fill name = "0"
+196	/g/SEED	fill email = "-5"
+197	/g/SEED	fill departure_city = "<script>alert(1)</script>"
+198	/g/SEED#g-back	click « Date retour : Choisissez une date proche » #g-back
+199	/console/connexion?next=%2Fconsole	goto /g/../console
+200	/g/SEED	back-to-link
+201	/g/SEED	fill email = "9999-12-31"
+202	/g/SEED	submit « Envoyer mes informations »
+203	/g/SEED	click « Envoyer mes informations » 
+204	/g/SEED	fill date_out = "'; DROP TABLE x;--"
+205	/g/SEED	fill date_back = "%00%0d%0a"
+206	/g/SEED	fill departure_city = "é€😀日本語"
+207	/console/connexion?next=%2Fconsole%2Fdemandes%2F1%2Fgroupe	goto /console/demandes/1/groupe
+208	/console/connexion?next=%2Fconsole%2Fdemandes%2F1%2Fgroupe	click « Se connecter » 
+209	/g/SEED	back-to-link
+210	/g/SEED	submit « Envoyer mes informations »
+211	/g/SEED	fill name = "{{7*7}}"
+212	/g/SEED	toggle checkbox
+213	/g/SEED	click « Envoyer mes informations » 
+214	/g/SEED#g-email	click « E-mail : Indiquez votre e-mail. » #g-email
+215	/g/SEED#g-email	fill date_out = "+cmd|calc"
+216	/g/SEED#g-email	fill departure_city = "100"
+217	/g/SEED#g-email	fill name = "+cmd|calc"
+218	/g/SEED#g-email	toggle checkbox
+219	/g/SEED	submit « Envoyer mes informations »
+220	/g/SEED	submit « Envoyer mes informations »
+221	/g/SEED	submit « Envoyer mes informations »
+222	/g/SEED	fill date_out = "<script>alert(1)</script>"
+223	/g/SEED	reload
+224	/g/SEED	fill date_back = "%00%0d%0a"
+225	/g/SEED	fill date_out = "<script>alert(1)</script>"
+226	/g/SEED	submit « Envoyer mes informations »
+227	/g/SEED#g-email	click « E-mail : Indiquez votre e-mail. » #g-email
+228	/g/SEED	submit « Envoyer mes informations »
+229	/g/SEED	click « Envoyer mes informations » 
+230	/g/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx	goto /g/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+231	/g/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx	back
+232	chrome-error://chromewebdata/	click:none
+233	chrome-error://chromewebdata/	submit:none
+234	/g/SEED	back-to-link
+235	/g/SEED	reload
+236	/g/SEED	click « Envoyer mes informations » 
+237	/g/SEED#g-email	click « E-mail : Indiquez votre e-mail. » #g-email
+238	/g/SEED	submit « Envoyer mes informations »
+239	/g/SEED	fill email = "x@y.fr"
+240	/g/SEED#g-consent	click « Consentement : Cochez cette case pour qu » #g-consent
+241	/g/SEED	click « Envoyer mes informations » 
+242	/g/SEED#g-consent	click « Consentement : Cochez cette case pour qu » #g-consent
+243	/g/SEED#g-consent	fill date_back = "3"
+244	/g/SEED#g-consent	click « Consentement : Cochez cette case pour qu » #g-consent
+245	/g/SEED#g-consent	fill date_out = "-5"
+246	/g/SEED#g-consent	reload
+247	/g/SEED#g-name	click « Nom et prénom : Indiquez vos nom et prén » #g-name
+248	/g/SEED#g-consent	click « Consentement : Cochez cette case pour qu » #g-consent
+249	/g/SEED#g-city	click « Ville de départ : Indiquez votre ville d » #g-city
+250	/g/SEED	goto /g/GSKql7ARlf1lQZb0wz24B5PlOwlAESjj81qRCrM4_x4
+251	/g/SEED	click « Envoyer mes informations » 
+252	/g/SEED	fill date_back = " "
+253	/g/SEED	click « Envoyer mes informations » 
+254	/g/SEED	back
+255	chrome-error://chromewebdata/	goto /console/demandes/1/groupe !! page.goto: Navigation to "https://asset-voyages-demo-preview.debanjan186.workers.dev/console/demande
+256	chrome-error://chromewebdata/	fill:none
+257	/console/connexion?next=%2Fconsole%2Fdemandes%2F1%2Fgroupe	 !! page.goto: Navigation to "https://asset-voyages-demo-preview.debanjan186.workers.dev/g/GSKql7ARlf1lQ
+258	/g/SEED	 !! page.goto: Navigation to "https://asset-voyages-demo-preview.debanjan186.workers.dev/g/GSKql7ARlf1lQ
+259	/g/SEED	fill departure_city = "0"
+260	/g/SEED	click « Envoyer mes informations » 
+261	/g/SEED	fill name = "@SUM(1)"
+262	/g/SEED#g-consent	click « Consentement : Cochez cette case pour qu » #g-consent
+263	/g/SEED#g-consent	toggle checkbox
+264	/g/SEED	back
+265	/g/SEED#g-name	click « Nom et prénom : Indiquez vos nom et prén » #g-name
+266	/g/SEED	submit « Envoyer mes informations »
+267	/g/SEED	fill date_back = "0"
+268	/g/SEED	back
+269	chrome-error://chromewebdata/	goto /g/GSKql7ARlf1lQZb0wz24B5PlOwlAESjj81qRCrM4_x4 !! page.goto: Navigation to "https://asset-voyages-demo-preview.debanjan186.workers.dev/g/GSKql7ARlf1lQ
+270	/g/SEED	 !! page.goto: Navigation to "https://asset-voyages-demo-preview.debanjan186.workers.dev/g/GSKql7ARlf1lQ
+271	/g/SEED	submit « Envoyer mes informations »
+272	/g/SEED	fill name = "2027-01-28"
+273	/g/SEED	fill departure_city = "<script>alert(1)</script>"
+274	/g/SEED	back
+275	/g/SEED	fill date_back = "@SUM(1)"
+276	/console/connexion?next=%2Fconsole	goto /g/../console
+277	/console/connexion?next=%2Fconsole	fill username = "\"><img src=x onerror=alert(1)>"
+278	/console/connexion?next=%2Fconsole	fill password = "@SUM(1)"
+279	/g/SEED	back-to-link
+280	/console/connexion?next=%2Fconsole	goto /g/../console
+281	/g/SEED	back-to-link
+282	/g/SEED	click « Envoyer mes informations » 
+283	/g/SEED#g-consent	click « Consentement : Cochez cette case pour qu » #g-consent
+284	/g/SEED#g-consent	fill date_back = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+285	/g/SEED#g-consent	fill departure_city = "%00%0d%0a"
+286	/g/SEED#g-consent	toggle checkbox
+287	/g/SEED#g-consent	click « Consentement : Cochez cette case pour qu » #g-consent
+288	/g/SEED#g-consent	reload
+289	/g/SEED	submit « Envoyer mes informations »
+290	/g/SEED	fill date_out = "<script>alert(1)</script>"
+291	/g/SEED	click « Envoyer mes informations » 
+292	/g/SEED	submit « Envoyer mes informations »
+293	/g/SEED	fill name = "'; DROP TABLE x;--"
+294	/g/SEED#g-consent	click « Consentement : Cochez cette case pour qu » #g-consent
+295	/g/SEED#g-city	click « Ville de départ : Indiquez votre ville d » #g-city
+296	/g/SEED#g-name	click « Nom et prénom : Indiquez vos nom et prén » #g-name
+297	/g/SEED#g-name	fill email = "+cmd|calc"
+298	/g/SEED#g-name	fill date_back = "0"
+299	/g/SEED#g-name	toggle checkbox
+300	/g/SEED#g-consent	click « Consentement : Cochez cette case pour qu » #g-consent
