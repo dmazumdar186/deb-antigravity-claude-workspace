@@ -24,7 +24,7 @@ PUBLIC_URL = "https://asset-voyages-demo.debanjan186.workers.dev"
 ACCOUNT_LOCKOUT = "off"
 
 # Preview: a separate Worker and database for independent testing (`npx wrangler deploy --env preview`).
-# Nothing is shared with the client-facing Worker above: own name, own D1, own GME_KEY and DEMO_TEST_KEY secrets.
+# Nothing is shared with the client-facing Worker above: own name, own D1, own Worker secrets.
 [env.preview]
 name = "asset-voyages-demo-preview"
 workers_dev = true
