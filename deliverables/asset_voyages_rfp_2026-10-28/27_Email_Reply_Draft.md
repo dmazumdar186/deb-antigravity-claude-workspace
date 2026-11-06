@@ -1,43 +1,26 @@
-# Draft reply to Veena Khatri (6 Nov 2026). Not sent. Plain text.
+# Reply to Veena Khatri (6 Nov 2026). Plain text. Gmail draft, not sent.
 
 To: direction@assetvoyages.com
 Subject: Re: ASSET Voyages website redesign – demonstration
 
 Dear Ms Khatri,
 
-Thank you for your message. I confirm my availability, and I have put everything you asked for on one page, so your team can try it at its own pace:
+Thank you for your message. I'm available, and everything you asked for is on one page, so your team can try it whenever suits you:
 
 https://asset-voyages-redesign.pages.dev/demo/
 
-It shows two working demonstrations of the five steps you listed, built as sandboxes to show the approach rather than as the site itself, so you can compare them; the page includes a short note on how to choose:
+Rather than describe the approach, I built the five steps you listed in two ways, so you can compare:
 
-- Option A, WordPress: the platform your current site runs on. It opens entirely in your browser, with nothing to install; it takes up to about 25 seconds to start, and the page says what to do if it stays on the loading screen.
-- Option B, a small custom platform of the kind outlined in my reply of 31 October: public pages served from Cloudflare's network, a standard SQL database, and a small administration console for your team.
+- Option A, WordPress, the platform your current site runs on. It opens in your browser with nothing to install; it can take up to about 25 seconds to start, and if it doesn't, the recording on the page shows the same five steps.
+- Option B, a small custom platform of the kind I outlined on 31 October: public pages on Cloudflare's network, a standard database and a simple console for your team.
 
-For both, the page covers:
+For each option the page shows the visitor side and the team side, short step-by-step instructions, a recording of under five minutes, the demo logins, and a table that separates what already works from what would be built during the project (the signed proposal fixes what is included). It also sets out indicative milestones from approval and receipt of content, from design through to launch, shown for Option B; the proposal confirms the dates for each option. All data and GM&E codes are fictional.
 
-- the visitor experience and the administration interface;
-- step-by-step instructions and a recording of under five minutes for each option;
-- a table that separates what already works in the demonstration from what would be built during the project and what is an option quoted separately; what the project includes is fixed by the signed proposal;
-- the demonstration login details.
+You'll also find one small idea for group congress trips: a link your team sends to a group, so each traveller enters their own details and the list fills in by itself. It's only a suggestion, outside the proposal; your requirements and budget stay as they are.
 
-All data and GM&E codes are fictional; please use fictional details when you try it.
+For the demonstration, 20–30 minutes, I could do Thursday 12 November at 10:00, Monday 16 November at 14:30 or Tuesday 17 November at 10:00 (Paris time). If shortlisting comes later, I'll propose a slot within 3–5 working days, subject to our mutual availability. Nothing chargeable has been started, and any custom sample would only follow a written agreement on scope, fee and date.
 
-The page also shows one small addition that may help with group congress trips: a link your team can send to a group, so each traveller enters their own details and your team sees the list fill in. It is shown in the Option B demonstration only and is a suggestion: it is not part of the proposal to come, and the requirements and budget you communicated stay unchanged. If ASSET wants it, it would be scoped and quoted separately for the option you choose, after the proposal, and built only on your written agreement.
-
-The same page sets out indicative delivery milestones from approval and receipt of content (design, development, testing, training, launch), to be confirmed in the written proposal, and explains in plain words how each option is built.
-
-Demonstration: I would be glad to walk you through it in 20–30 minutes. Possible slots, Paris time:
-
-- Thursday 12 November, 10:00;
-- Monday 16 November, 14:30;
-- Tuesday 17 November, 10:00.
-
-If shortlisting comes later, I will propose a slot within 3–5 working days of your notice, subject to our mutual availability.
-
-Custom sample: should further validation be needed after the demonstration, the scope, fee and delivery date of a small custom sample would be agreed in writing before any work starts. Nothing chargeable has been started.
-
-As you say, this demonstration changes nothing in the requirements and budget previously communicated. As set out in my reply of 31 October, the written proposal follows by Tuesday 10 November on the stated assumptions, or sooner, within 24 to 48 working hours of your written answers if they reach me before then. It will price both options, each against its own scope, so you can choose with the figures in front of you. Your written answers to the questions remain the quickest way to a precise, fixed proposal.
+As set out on 31 October, the written proposal follows by Tuesday 10 November, on the stated assumptions for any question still unanswered when I send it. Answers that reach me before then are reflected in it; later ones go into a revised version within 24 to 48 working hours. It will price both options, each against its own scope, so you can choose with the figures in front of you.
 
 Kind regards,
 

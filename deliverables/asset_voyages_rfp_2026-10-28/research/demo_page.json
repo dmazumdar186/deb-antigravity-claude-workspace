@@ -1,6 +1,6 @@
 {
  "url": "http://localhost:8794/demo/",
- "date": "2026-11-06T17:34:25.720Z",
+ "date": "2026-11-06T17:38:56.715Z",
  "pass": 59,
  "total": 59,
  "results": [
@@ -116,12 +116,12 @@
   {
    "name": "desktop: #compare heading lands below the sticky strip, strip marks it",
    "ok": true,
-   "info": "{\"top\":174.140625,\"strip\":57,\"cur\":\"#compare\"}"
+   "info": "{\"top\":173.328125,\"strip\":57,\"cur\":\"#compare\"}"
   },
   {
    "name": "desktop: #slot heading lands below the sticky strip, strip marks it",
    "ok": true,
-   "info": "{\"top\":173.734375,\"strip\":57,\"cur\":\"#slot\"}"
+   "info": "{\"top\":174.109375,\"strip\":57,\"cur\":\"#slot\"}"
   },
   {
    "name": "recordings: follow the real manifest (all false: section and strip link hidden, no video; announced files: those players only)",
@@ -171,12 +171,12 @@
   {
    "name": "390: #plan heading lands below the sticky strip",
    "ok": true,
-   "info": "{\"top\":129.34375,\"strip\":57}"
+   "info": "{\"top\":128.71875,\"strip\":57}"
   },
   {
    "name": "390: the strip link to #group scrolls its heading below the sticky strip",
    "ok": true,
-   "info": "{\"top\":222.203125,\"strip\":57}"
+   "info": "{\"top\":222.390625,\"strip\":57}"
   },
   {
    "name": "390: the diagram switches to its vertical drawing",
