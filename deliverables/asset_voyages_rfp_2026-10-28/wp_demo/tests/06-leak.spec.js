@@ -7,7 +7,7 @@ const { asRole, CODES, PEOPLE, ROOT, readState, writeState } = require('./helper
 
 test.describe.configure({ mode: 'serial', timeout: 900000 });
 
-const BASE = 'http://127.0.0.1:9400';
+const BASE = process.env.WP_BASE || 'http://127.0.0.1:9400';
 const extraPeople = () => ['Alice Testeur', 'alice.testeur@example.com', 'rejeu@example.com', 'formule@example.com', 'Rejeu Test', readState().newRef, readState().formulaRef, readState().hostileRef].filter(Boolean);
 
 async function crawl(request, seeds, { allowAdmin = false, max = 450, maxDepth = 2 } = {}) {
@@ -115,7 +115,7 @@ test('S5-L1 crawl as equipe without an active grant (public + reachable admin sc
 });
 
 test('S5-F1 (after reveals) database still holds no plaintext code', async () => {
-	const dir = fs.realpathSync(path.join(ROOT, '.tmp', 'db-current'));
+	const dir = fs.realpathSync(path.join(ROOT, '.tmp', `db-current-${(process.env.WP_PORT || '9400')}`));
 	const files = [];
 	const walk = (d) => { for (const f of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, f.name); if (f.isDirectory()) walk(p); else if (/\.ht\.sqlite/.test(f.name)) files.push(p); } };
 	walk(dir);

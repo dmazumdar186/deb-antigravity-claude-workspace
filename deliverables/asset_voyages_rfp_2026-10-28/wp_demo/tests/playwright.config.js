@@ -10,8 +10,8 @@ module.exports = defineConfig({
 	timeout: 180000,
 	expect: { timeout: 20000 },
 	retries: 0,
-	reporter: [['list'], ['json', { outputFile: '../.tmp/results.json' }]],
-	outputDir: '../.tmp/test-output',
+	reporter: [['list'], ['json', { outputFile: `../.tmp/results-port${process.env.WP_PORT || '9400'}.json` }]],
+	outputDir: `../.tmp/test-output-${process.env.WP_PORT || '9400'}`,
 	use: {
 		baseURL: process.env.WP_BASE || 'http://127.0.0.1:9400',
 		locale: 'fr-FR',

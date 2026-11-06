@@ -156,7 +156,7 @@ class Asset_CD_Seed {
 						'post_status'  => $c[6],
 						'post_title'   => $c[0],
 						'post_excerpt' => sprintf( 'Congrès fictif de %s à %s, créé pour la démonstration.', mb_strtolower( $c[1] ), $c[2] ),
-						'post_content' => "<!-- wp:paragraph -->\n<p>Description fictive à des fins de démonstration : ce congrès n’existe pas. Les dates, le lieu et le programme sont inventés.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>Programme indicatif : sessions plénières, ateliers pratiques et exposition professionnelle.</p>\n<!-- /wp:paragraph -->",
+						'post_content' => "Description fictive à des fins de démonstration : ce congrès n’existe pas. Les dates, le lieu et le programme sont inventés.\n\nProgramme indicatif : sessions plénières, ateliers pratiques et exposition professionnelle.", // Plain text: the congress editor is a plain textarea, the front end adds the paragraphs.
 						'meta_input'   => array( '_asset_ref' => $ref ),
 					)
 				);

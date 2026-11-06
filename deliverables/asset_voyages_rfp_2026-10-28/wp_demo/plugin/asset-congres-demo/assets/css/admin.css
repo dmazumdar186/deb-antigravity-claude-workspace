@@ -240,3 +240,12 @@
 		max-width: 100%;
 	}
 }
+
+.asset-revealed {
+	white-space: nowrap;
+}
+
+/* Short ASSET dashboard: hide the empty drag-and-drop columns (« Glissez les blocs ici »). */
+#dashboard-widgets .meta-box-sortables.empty-container {
+	display: none;
+}

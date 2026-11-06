@@ -4,7 +4,7 @@ const { asRole, readState, CODES } = require('./helpers');
 
 // Independent tests: one failure must not stop the others (no serial mode).
 
-const ORIGIN = 'http://127.0.0.1:9400';
+const ORIGIN = process.env.WP_BASE || 'http://127.0.0.1:9400';
 
 function watch(page, bucket, label) {
 	page.on('console', (m) => { if (m.type() === 'error') bucket.push(`${label} console: ${m.text()}`); });

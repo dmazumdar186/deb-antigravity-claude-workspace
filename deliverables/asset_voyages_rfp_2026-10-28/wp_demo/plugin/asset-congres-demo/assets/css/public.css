@@ -617,3 +617,15 @@ body {
 		scroll-behavior: auto !important;
 	}
 }
+
+.asset-team-link {
+	margin: 0;
+	font-size: 0.95rem;
+}
+
+.asset-site-footer .asset-team-link a {
+	display: inline-flex;
+	align-items: center;
+	min-height: 44px;
+	color: var(--paper);
+}

@@ -1,31 +1,31 @@
 {
   "seed": 20261105,
   "role": "direction",
-  "action": 143,
+  "action": 19,
   "problems": [
-    "pageerror wp is not defined"
+    "pageerror Cannot read properties of undefined (reading 'removeClass')"
   ],
   "last20": [
-    "click BUTTON \"Afficher ou masquer le panneau\" ",
-    "submit form",
-    "click BUTTON \"Replier le menu\" ",
-    "click A \"Aller au contenu principal\" #wpbody-content",
-    "type len=31 <script>window.__pwn=1</script>",
-    "type len=16 ../../etc/passwd",
-    "click BUTTON \"Descendre\" ",
+    "click A \"1\nDevis envoyé\" http://127.0.0.1:9417/wp-admin/admin.php?page=asset-demandes&statut=devis_envoye",
+    "click A \"Qualifiée (1)\" http://127.0.0.1:9417/wp-admin/admin.php?page=asset-demandes&statut=qualifiee",
+    "click INPUT \"Rechercher\" ",
+    "click A \"Passagers\nTri croissant\" http://127.0.0.1:9417/wp-admin/admin.php?page=asset-demandes&statut=qualifiee&s&_wpnonce=8d170a87c2&_wp_http_referer=%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-demandes%26statut%3Dqualifiee&orderby=passagers&order=asc",
+    "click A \"Créer\" http://127.0.0.1:9417/wp-admin/media-new.php",
+    "resize 413x823",
+    "click BUTTON \"Aide\" ",
+    "click A \"Ctrl + K\nOuvrir la palette de commandes\" #",
     "back/forward",
-    "back/forward",
-    "resize 713x898",
-    "type len=19 Élodie Ñandú 日本語 😀",
-    "type len=2 -1",
-    "resize 613x706",
-    "back/forward",
-    "type len=25 \"; DROP TABLE wp_posts;--",
-    "click A \"Modifier\nModifier l’état\" #post_status",
-    "resize 1222x628",
     "type len=1 0",
-    "click A \"Ajouter un congrès\" http://127.0.0.1:9400/wp-admin/post-new.php?post_type=asset_congres",
-    "click A \"Ctrl + K\nOuvrir la palette de commandes\" #"
+    "type len=25 \"; DROP TABLE wp_posts;--",
+    "click A \"Toutes (6)\" http://127.0.0.1:9417/wp-admin/admin.php?page=asset-demandes",
+    "click A \"Devis envoyé (1)\" http://127.0.0.1:9417/wp-admin/admin.php?page=asset-demandes&statut=devis_envoye",
+    "click A \"Nouvelle (2)\" http://127.0.0.1:9417/wp-admin/admin.php?page=asset-demandes&statut=nouvelle",
+    "type len=19 Élodie Ñandú 日本語 😀",
+    "resize 549x886",
+    "click A \"Qualifiée (1)\" http://127.0.0.1:9417/wp-admin/admin.php?page=asset-demandes&statut=qualifiee",
+    "back/forward",
+    "click BUTTON \"Afficher plus de détails\" ",
+    "type len=11 99999999999"
   ],
-  "url": "http://127.0.0.1:9400/wp-admin/post-new.php?post_type=asset_congres#"
+  "url": "http://127.0.0.1:9417/wp-admin/admin.php?page=asset-demandes&statut=qualifiee"
 }

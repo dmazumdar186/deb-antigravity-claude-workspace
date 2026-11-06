@@ -478,6 +478,9 @@ class Asset_CD_Gme_Admin {
 		echo '<table class="widefat striped asset-access-history asset-stack"><thead><tr><th scope="col">#</th><th scope="col">' . esc_html__( 'Demandeur', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Congrès', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Raison', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'État', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Décidé par', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Expire le', 'asset-congres-demo' ) . '</th><th scope="col">' . esc_html__( 'Action', 'asset-congres-demo' ) . '</th></tr></thead><tbody>';
 		foreach ( Asset_CD_Gme::requests() as $r ) {
 			$state = Asset_CD_Gme::effective_status( $r );
+			if ( 'pending' === $state ) {
+				continue; // Already listed, with its decision buttons, in the table above.
+			}
 			echo '<tr><td>' . esc_html( (string) $r->id ) . '</td><td>' . esc_html( Asset_CD_Demandes_Admin::user_label( (int) $r->user_id ) ) . '</td><td>' . esc_html( get_the_title( (int) $r->congres_id ) ) . '</td><td>' . esc_html( $r->reason ) . '</td><td>' . esc_html( $labels[ $state ] ?? $state ) . '</td><td>' . esc_html( $r->decided_by ? Asset_CD_Demandes_Admin::user_label( (int) $r->decided_by ) : '—' ) . '</td><td>' . esc_html( 'approved' === $state || 'expired' === $state ? self::dt( $r->expires_at ) : '—' ) . '</td><td>' . self::decision_forms( $r, 'asset-gme-acces' ) . '</td></tr>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- decision_forms escapes.
 		}
 		echo '</tbody></table></div>';

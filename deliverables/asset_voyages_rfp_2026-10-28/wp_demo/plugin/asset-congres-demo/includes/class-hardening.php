@@ -36,6 +36,8 @@ class Asset_CD_Hardening {
 		// "Transition was aborted … ViewTransition opt-in disabled" page error; it also ghosted screenshots.
 		remove_action( 'admin_enqueue_scripts', 'wp_enqueue_view_transitions_admin_css' );
 		add_action( 'admin_bar_menu', array( __CLASS__, 'guard_command_palette' ), 999 );
+		add_action( 'admin_bar_menu', array( __CLASS__, 'back_to_site' ), 35 );
+		add_action( 'wp_dashboard_setup', array( __CLASS__, 'trim_dashboard' ), 99 );
 	}
 
 	/**
@@ -53,6 +55,49 @@ class Asset_CD_Hardening {
 		$args['meta']            = (array) ( $args['meta'] ?? array() );
 		$args['meta']['onclick'] = 'if ( window.wp && wp.data ) { wp.data.dispatch( "core/commands" ).open(); } return false;';
 		$bar->add_node( $args );
+	}
+
+	/**
+	 * « Retour au site » in the admin bar (the reverse of the theme's « Espace équipe » link).
+	 *
+	 * @param WP_Admin_Bar $bar Admin bar.
+	 */
+	public static function back_to_site( $bar ) {
+		if ( is_admin() ) {
+			$bar->add_node(
+				array(
+					'id'    => 'asset-back-to-site',
+					'title' => esc_html__( 'Retour au site', 'asset-congres-demo' ),
+					'href'  => home_url( '/' ),
+				)
+			);
+		}
+	}
+
+	/**
+	 * ASSET roles get a short dashboard: no empty core widgets.
+	 */
+	public static function trim_dashboard() {
+		$user = wp_get_current_user();
+		if ( ! array_intersect( array( 'asset_direction', 'asset_equipe', 'asset_contributeur' ), (array) $user->roles ) ) {
+			return;
+		}
+		foreach ( array( 'dashboard_activity', 'dashboard_right_now', 'dashboard_quick_press', 'dashboard_primary', 'dashboard_site_health' ) as $id ) {
+			remove_meta_box( $id, 'dashboard', 'normal' );
+			remove_meta_box( $id, 'dashboard', 'side' );
+		}
+		remove_action( 'welcome_panel', 'wp_welcome_panel' );
+		if ( ! current_user_can( 'asset_manage_demandes' ) ) {
+			wp_add_dashboard_widget( 'asset_cd_contrib', __( 'Congrès', 'asset-congres-demo' ), array( __CLASS__, 'contrib_widget' ) );
+		}
+	}
+
+	/**
+	 * Contributor widget: the two things a contributor does.
+	 */
+	public static function contrib_widget() {
+		echo '<p><a class="button button-primary" href="' . esc_url( admin_url( 'post-new.php?post_type=' . Asset_CD_Congres::POST_TYPE ) ) . '">' . esc_html__( 'Ajouter un congrès', 'asset-congres-demo' ) . '</a> <a class="button" href="' . esc_url( admin_url( 'edit.php?post_type=' . Asset_CD_Congres::POST_TYPE ) ) . '">' . esc_html__( 'Mes congrès', 'asset-congres-demo' ) . '</a></p>';
+		echo '<p class="description">' . esc_html__( 'Rédigez un congrès puis cliquez sur « Soumettre pour relecture » : la Direction le publie.', 'asset-congres-demo' ) . '</p>';
 	}
 
 	/**

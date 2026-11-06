@@ -54,8 +54,22 @@ class Asset_CD_Catalogue {
 		$cat  = (int) get_option( 'asset_cd_catalogue_page' );
 		$url  = $cat ? get_permalink( $cat ) : home_url( '/' );
 		$html = '<div class="asset-site-header"><p class="asset-brand"><a href="' . esc_url( home_url( '/' ) ) . '">' . esc_html__( 'ASSET Voyages — démonstration', 'asset-congres-demo' ) . '</a></p>';
-		$html .= '<nav aria-label="' . esc_attr__( 'Navigation principale', 'asset-congres-demo' ) . '"><ul class="asset-nav"><li><a href="' . esc_url( (string) $url ) . '">' . esc_html__( 'Catalogue des congrès', 'asset-congres-demo' ) . '</a></li></ul></nav></div>';
+		$html .= '<nav aria-label="' . esc_attr__( 'Navigation principale', 'asset-congres-demo' ) . '"><ul class="asset-nav"><li><a href="' . esc_url( (string) $url ) . '">' . esc_html__( 'Catalogue des congrès', 'asset-congres-demo' ) . '</a></li></ul></nav>';
+		$html .= self::team_links() . '</div>';
 		return $html;
+	}
+
+	/**
+	 * Discreet staff links, so a demo can go from the visitor side to the back office in the same
+	 * Playground tab: « Espace équipe » (login, then dashboard) or, once signed in, dashboard + logout.
+	 *
+	 * @return string
+	 */
+	public static function team_links() {
+		if ( is_user_logged_in() ) {
+			return '<p class="asset-team-link"><a href="' . esc_url( admin_url() ) . '">' . esc_html__( 'Tableau de bord', 'asset-congres-demo' ) . '</a> · <a href="' . esc_url( wp_logout_url( home_url( '/' ) ) ) . '">' . esc_html__( 'Se déconnecter', 'asset-congres-demo' ) . '</a></p>';
+		}
+		return '<p class="asset-team-link"><a href="' . esc_url( wp_login_url( admin_url() ) ) . '">' . esc_html__( 'Espace équipe', 'asset-congres-demo' ) . '</a></p>';
 	}
 
 	/**
@@ -74,7 +88,7 @@ class Asset_CD_Catalogue {
 	 * @return string
 	 */
 	public static function footer_shortcode() {
-		return '<div class="asset-site-footer"><p><strong>' . esc_html__( 'Démonstration ASSET Voyages', 'asset-congres-demo' ) . '</strong></p><p>' . esc_html__( 'Toutes les données sont fictives : congrès, personnes, adresses e-mail en @example.com et codes GM&E factices. Aucun e-mail n’est envoyé et aucune réservation n’est enregistrée.', 'asset-congres-demo' ) . '</p></div>';
+		return '<div class="asset-site-footer"><p><strong>' . esc_html__( 'Démonstration ASSET Voyages', 'asset-congres-demo' ) . '</strong></p><p>' . esc_html__( 'Toutes les données sont fictives : congrès, personnes, adresses e-mail en @example.com et codes GM&E factices. Aucun e-mail n’est envoyé et aucune réservation n’est enregistrée.', 'asset-congres-demo' ) . '</p>' . self::team_links() . '</div>';
 	}
 
 	/**

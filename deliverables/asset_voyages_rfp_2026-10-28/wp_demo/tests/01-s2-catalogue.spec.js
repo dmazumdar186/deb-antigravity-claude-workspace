@@ -1,6 +1,6 @@
 // S2: public catalogue, search, filters, details page (logged out).
 const { test, expect } = require('playwright/test');
-const { clickCounter, writeState } = require('./helpers');
+const { clickCounter, writeState, BASE } = require('./helpers');
 
 test.describe.configure({ mode: 'serial' });
 
@@ -82,7 +82,7 @@ test('S2-F5 details page shows all facts and the prefilled enquiry form', async 
 });
 
 test('S2-F6 works with JavaScript off (server-rendered GET form)', async ({ browser }) => {
-	const ctx = await browser.newContext({ javaScriptEnabled: false, baseURL: 'http://127.0.0.1:9400' });
+	const ctx = await browser.newContext({ javaScriptEnabled: false, baseURL: BASE });
 	const page = await ctx.newPage();
 	await page.goto('/');
 	await page.fill('#asset-f-q', 'oncologie');
@@ -104,7 +104,7 @@ test('S2-E1 find Cardiologie and open one in <= 2 clicks', async ({ page }) => {
 });
 
 test('S2-E2 at 390 px: no horizontal scroll, inputs >= 16 px, tap targets >= 44 px', async ({ browser }) => {
-	const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, baseURL: 'http://127.0.0.1:9400', isMobile: true, hasTouch: true });
+	const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, baseURL: BASE, isMobile: true, hasTouch: true });
 	const page = await ctx.newPage();
 	for (const url of ['/', '/?discipline=cardiologie', '/?q=zzzz']) {
 		await page.goto(url);

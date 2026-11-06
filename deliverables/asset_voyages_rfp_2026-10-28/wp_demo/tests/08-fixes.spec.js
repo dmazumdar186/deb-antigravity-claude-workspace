@@ -10,16 +10,17 @@ const php = (arg) => JSON.parse(execFileSync('php', [path.join(__dirname, 'unit'
 
 // A second, throwaway Playground: visitor blueprint WITHOUT ASSET_GME_KEY, booted with --login
 // (the same auto-login playground.wordpress.net applies when the URL lacks login=no).
-const ALT = 'http://127.0.0.1:9410';
+const ALT_PORT = process.env.ALT_PORT || '9410';
+const ALT = 'http://127.0.0.1:' + ALT_PORT;
 let alt;
 async function startAlt() {
 	if (alt) return;
-	const log = fs.openSync(path.join(ROOT, '.tmp', 'pg-nokey.log'), 'w');
-	const dbdir = path.join(ROOT, '.tmp', 'db-runs', 'nokey-' + Date.now());
+	const log = fs.openSync(path.join(ROOT, '.tmp', `pg-nokey-${ALT_PORT}.log`), 'w');
+	const dbdir = path.join(ROOT, '.tmp', 'db-runs', `nokey-${ALT_PORT}-` + Date.now());
 	fs.mkdirSync(dbdir, { recursive: true });
-	alt = spawn('npx', ['-y', '@wp-playground/cli@3.1.62', 'server', '--blueprint=.tmp/blueprint-nokey.local.json', '--port=9410', '--login', `--mount-before-install=${dbdir}:/wordpress/wp-content/database`], { cwd: ROOT, stdio: ['ignore', log, log], detached: true });
+	alt = spawn('npx', ['-y', '@wp-playground/cli@3.1.62', 'server', '--blueprint=.tmp/blueprint-nokey.local.json', '--port=' + ALT_PORT, '--login', `--mount-before-install=${dbdir}:/wordpress/wp-content/database`], { cwd: ROOT, stdio: ['ignore', log, log], detached: true });
 	for (let i = 0; i < 120; i++) {
-		if (fs.readFileSync(path.join(ROOT, '.tmp', 'pg-nokey.log'), 'utf8').includes('Ready!')) return;
+		if (fs.readFileSync(path.join(ROOT, '.tmp', `pg-nokey-${ALT_PORT}.log`), 'utf8').includes('Ready!')) return;
 		await new Promise((r) => setTimeout(r, 3000));
 	}
 	throw new Error('second Playground did not start');
@@ -427,5 +428,101 @@ test('FIX-A-20 admin bar « Ctrl + K » no longer throws "wp is not defined" whe
 	// Simulate the early click: run the handler with wp undefined.
 	const err = await page.evaluate((code) => { const saved = window.wp; try { window.wp = undefined; new Function(code)(); return null; } catch (e) { return e.message; } finally { window.wp = saved; } }, onclick);
 	expect(err).toBeNull();
+	await ctx.close();
+});
+
+test('FIX-A-21 one sandbox, one journey: visitor enquiry → « Espace équipe » → equipe sees it at the top → « Retour au site » → logout', async ({ browser }) => {
+	const ctx = await browser.newContext({ locale: 'fr-FR', timezoneId: 'Europe/Paris' });
+	const page = await ctx.newPage();
+	await page.goto('/?q=milan');
+	await page.goto(await page.locator('.asset-card h2 a').first().getAttribute('href'));
+	await expect(page.locator('header .asset-team-link a')).toHaveText('Espace équipe');
+	await expect(page.locator('footer .asset-team-link a')).toHaveText('Espace équipe');
+	await page.fill('#asset-q-nom', 'Parcours Unique');
+	await page.fill('#asset-q-email', 'parcours.unique@example.com');
+	await page.fill('#asset-q-telephone', '+33 6 00 00 00 21');
+	await page.fill('#asset-q-ville_depart', 'Lille');
+	await page.fill('#asset-q-date_aller', '2027-09-03');
+	await page.fill('#asset-q-date_retour', '2027-09-09');
+	await page.fill('#asset-q-passagers', '2');
+	await page.check('#asset-q-consentement');
+	await page.waitForTimeout(FILL_WAIT);
+	await page.click('.asset-form button[type=submit]');
+	const ref = (await page.locator('.asset-ref').innerText()).trim();
+	expect(ref).toMatch(/^DV-2026-\d{4}$/);
+	// Same tab: staff link → login → dashboard.
+	await Promise.all([page.waitForURL(/wp-login\.php/), page.click('header .asset-team-link a')]);
+	await page.fill('#user_login', 'equipe');
+	await page.fill('#user_pass', 'demo-asset');
+	await Promise.all([page.waitForURL(/wp-admin\/(index\.php)?$/, { timeout: 90000 }), page.click('#wp-submit')]);
+	await expect(page.locator('#asset_cd_demandes .asset-latest-link')).toContainText(ref);
+	await Promise.all([page.waitForURL(/page=asset-demandes/), page.click('#toplevel_page_asset-demandes > a')]);
+	await expect(page.locator('table.wp-list-table tbody tr').first()).toContainText(ref);
+	await expect(page.locator('table.wp-list-table tbody tr').first()).toContainText('Parcours Unique');
+	// Reverse direction.
+	await Promise.all([page.waitForURL((u) => !u.pathname.includes('/wp-admin')), page.click('#wp-admin-bar-asset-back-to-site > a')]);
+	await expect(page.locator('header .asset-team-link')).toContainText('Se déconnecter');
+	await Promise.all([page.waitForURL((u) => !u.pathname.includes('wp-login')), page.locator('header .asset-team-link a', { hasText: 'Se déconnecter' }).click()]);
+	await expect(page.locator('header .asset-team-link a')).toHaveText('Espace équipe');
+	expect(await page.locator('#wpadminbar').count()).toBe(0);
+	await ctx.close();
+});
+
+test('FIX-A-22 seeded congress descriptions are plain text in the editor and paragraphs on the site', async ({ browser }) => {
+	const { ctx, page } = await asRole(browser, 'direction');
+	await page.goto('/wp-admin/edit.php?post_type=asset_congres');
+	await page.goto(await page.locator('a.row-title', { hasText: 'neurologie' }).first().getAttribute('href'));
+	const v = await page.inputValue('#content');
+	expect(v).toContain('Description fictive');
+	expect(v).not.toMatch(/<!--|<p>|<\/p>/);
+	const permalink = await page.locator('#sample-permalink a').getAttribute('href');
+	await page.goto(permalink);
+	await expect(page.locator('.wp-block-post-content p').first()).toContainText('Description fictive');
+	expect(await page.locator('.wp-block-post-content').innerText()).not.toMatch(/<!--|wp:paragraph/);
+	await ctx.close();
+});
+
+test('FIX-A-23 a revealed code stays on one line', async ({ browser }) => {
+	const { ctx, page } = await asRole(browser, 'direction');
+	for (const w of [1440, 390]) {
+		await page.setViewportSize({ width: w, height: 900 });
+		await page.goto('/wp-admin/admin.php?page=asset-gme');
+		const r = page.locator('table.asset-gme-table tbody tr', { hasText: 'neurologie' });
+		await Promise.all([page.waitForNavigation(), r.locator('button', { hasText: 'Révéler' }).click()]);
+		const code = page.locator('code.asset-revealed');
+		await expect(code).toHaveText(/^DEMO-GME-/);
+		const m = await code.evaluate((el) => ({ ws: getComputedStyle(el).whiteSpace, rects: el.getClientRects().length }));
+		expect(m.ws, String(w)).toBe('nowrap');
+		expect(m.rects, String(w)).toBe(1);
+	}
+	await ctx.close();
+});
+
+test('FIX-A-24 short dashboards for ASSET roles; a pending access request is listed once', async ({ browser }) => {
+	for (const role of ['direction', 'equipe', 'contributeur']) {
+		const { ctx, page } = await asRole(browser, role);
+		await page.goto('/wp-admin/');
+		for (const id of ['#dashboard_activity', '#dashboard_right_now', '#dashboard_quick_press', '#dashboard_primary']) expect(await page.locator(id).count(), `${role} ${id}`).toBe(0);
+		const visibleEmpty = await page.$$eval('#dashboard-widgets .empty-container', (els) => els.filter((e) => e.offsetParent !== null).length);
+		expect(visibleEmpty, role).toBe(0);
+		expect(await page.locator('body').innerText()).not.toMatch(/Glissez les blocs ici|Aucune activité pour le moment/);
+		if (role === 'contributeur') await expect(page.locator('#asset_cd_contrib')).toContainText('Ajouter un congrès');
+		await ctx.close();
+	}
+	// Make one request pending, then check it appears once.
+	const eq = await asRole(browser, 'equipe');
+	await eq.page.goto('/wp-admin/admin.php?page=asset-gme');
+	const row = eq.page.locator('table.asset-gme-table tbody tr', { hasText: 'oncologie' });
+	if (await row.locator('textarea').count()) {
+		await row.locator('textarea').fill('Contrôle du doublon (FIX-A-24).');
+		await row.locator('button', { hasText: 'Demander' }).click();
+		await expect(eq.page.locator('.notice-success')).toBeVisible();
+	}
+	await eq.ctx.close();
+	const { ctx, page } = await asRole(browser, 'direction');
+	await page.goto('/wp-admin/admin.php?page=asset-gme-acces');
+	await expect(page.locator('table.asset-pending tbody tr', { hasText: 'oncologie' })).toHaveCount(1);
+	expect(await page.locator('table.asset-access-history tbody tr', { hasText: 'En attente' }).count()).toBe(0);
+	expect(await page.locator('button', { hasText: 'Approuver' }).count()).toBe(await page.locator('table.asset-pending tbody tr').count());
 	await ctx.close();
 });

@@ -5,7 +5,9 @@ const { expect } = require('playwright/test');
 
 const BASE = process.env.WP_BASE || 'http://127.0.0.1:9400';
 const ROOT = path.resolve(__dirname, '..');
-const STATE = path.join(ROOT, '.tmp', 'suite-state.json');
+// Per-port files, so two suites on one machine (other ports) never share state.
+const PORT = (process.env.WP_PORT || '9400');
+const STATE = path.join(ROOT, '.tmp', `suite-state-${PORT}.json`);
 
 // Seeded dummy codes (must never leak).
 const CODES = ['DEMO-GME-4KQ7', 'DEMO-GME-8TZ2', 'DEMO-GME-3MX9', 'DEMO-GME-6PL5', 'DEMO-GME-1RB8'];

@@ -11,14 +11,18 @@ cd "$(dirname "$0")"
 HOSTED_ZIP_URL="https://asset-voyages-redesign.pages.dev/demo-wordpress/asset-congres-demo.zip"
 LOCAL_ZIP_URL="${PLUGIN_ZIP_URL:-http://127.0.0.1:9401/asset-congres-demo.zip}"
 
-STAGE=".tmp/build"
+STAGE=".tmp/build-$$"
 rm -rf -- "$STAGE"
 mkdir -p "$STAGE"
 cp -R plugin/asset-congres-demo "$STAGE/"
 # Fixed timestamps + sorted entries + no extra attributes = byte-identical zip on re-run.
 find "$STAGE" -exec touch -h -d '2026-11-01 00:00:00 UTC' {} +
-rm -f asset-congres-demo.zip
-( cd "$STAGE" && find asset-congres-demo -type f | LC_ALL=C sort | TZ=UTC zip -X -D -q -@ ../../asset-congres-demo.zip )
+# Atomic replace: a server downloading the zip never sees a half-written file.
+TMPZIP=".tmp/asset-congres-demo.zip.$$"
+rm -f "$TMPZIP"
+( cd "$STAGE" && find asset-congres-demo -type f | LC_ALL=C sort | TZ=UTC zip -X -D -q -@ "../../$TMPZIP" )
+mv -f "$TMPZIP" asset-congres-demo.zip
+rm -rf -- "$STAGE"
 
 render() { # $1 template, $2 url, $3 output
 	sed "s#__PLUGIN_ZIP_URL__#$2#g" "$1" > "$3"
