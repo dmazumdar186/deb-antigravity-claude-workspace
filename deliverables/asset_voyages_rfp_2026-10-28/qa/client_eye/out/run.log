@@ -189,3 +189,6 @@ Call log:
 [12:43:45] A4 links checked 551
 [12:43:59] done
 [12:44:41] hub parsed: tasks 5 rows 11 group steps 4
+[12:46:01] C10 B T1.1 OK (1 clicks) 
+[12:46:07] C10 B T1.2 OK (2 clicks) 
+[12:46:15] C10 B T1.3 OK (6 clicks) 

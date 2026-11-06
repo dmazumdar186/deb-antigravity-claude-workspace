@@ -17,6 +17,7 @@ One name per thing. The hub quotes these labels exactly. Source: client-eye gate
 | Notification log | « Journal des notifications » | |
 | CSV export | « Exporter en CSV » | |
 | Add a congress | « Ajouter un congrès » | |
+| Congress list (A, WordPress submenu) | « Tous les congrès » | Real label in A (class-congres.php:66). |
 | Quote form title | « Demander un devis vol » | |
 | Send the enquiry | « Envoyer ma demande » | |
 | Team login link (public site) | « Espace équipe » | |
