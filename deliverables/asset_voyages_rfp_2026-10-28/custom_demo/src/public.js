@@ -3,7 +3,7 @@ import {
   html, raw, today, addDays, isIsoDate, frRange, frNumDate, rangeParts, norm, clean, MOIS_LONG,
   readForm, makeFormToken, checkFormToken, ipHash, rateHit, redirect, htmlResponse, nowIso, hmac, safeEqual,
 } from './lib.js';
-import { publicPage, field, errorPage, errorSummary } from './views.js';
+import { publicPage, field, errorPage, errorSummary, displayWrap } from './views.js';
 import { claim, baseUrl, DEMO_BUSY, DEMO_PAUSE, T } from './data.js';
 
 const PER_PAGE = 9;
@@ -130,7 +130,7 @@ export async function congressPage(req, env, slug, { values, errors, notice, sta
   <nav class="crumbs" aria-label="Fil d’Ariane"><a href="/">Catalogue des congrès</a><span aria-hidden="true">/</span><span>${c.ref}</span></nav>
   <div class="cg__grid">
     <div class="cg__main">
-      <h1 class="display display--cg">${c.title}</h1>
+      <h1 class="display display--cg${displayWrap(c.title)}">${c.title}</h1>
       <p class="lead cg__when">${frRange(c.start_date, c.end_date)}, ${c.city} (${c.country})</p>
       ${gmeOnSale(c, t) ? html`<p class="gme-note">Tarif congrès négocié disponible : appliqué à votre devis.</p>` : ''}
       <dl class="facts">

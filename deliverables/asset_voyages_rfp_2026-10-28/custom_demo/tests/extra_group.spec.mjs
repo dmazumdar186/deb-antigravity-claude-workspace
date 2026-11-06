@@ -454,6 +454,209 @@ test('G-H5 no silent overwrite: an existing e-mail from another browser becomes 
   for (const P of [B, C]) { assertClean(P.problems); await P.ctx.close(); }
 });
 
+// Fresh form tokens for one link, aged past the 3 s minimum together (one wait for the batch).
+async function tokensFor(request, link, n) {
+  const out = [];
+  for (let i = 0; i < n; i++) out.push(/name="_token" value="([^"]+)"/.exec(await (await request.get(link)).text())[1]);
+  await new Promise((r) => setTimeout(r, 3100));
+  return out;
+}
+const FEB = { date_out: '2027-02-23', date_back: '2027-02-28' }; // DV-2026-0004, radiology congress 24 to 28 Feb. 2027
+
+test('G-H6 (SEC-X-008) at the cap, a new and a registered e-mail get the same answer: both pending, then both refused alike', async ({ page, browser }) => {
+  await login(page, 'equipe');
+  const link = await createLink(page, 4); // 3 passengers: cap max(10, 2 x 3) = 10
+  const D = await newPage(browser); // fills the list
+  const C = await newPage(browser); // someone else holding the link
+  let toks = await tokensFor(D.page.request, link, 10);
+  for (let i = 0; i < 10; i++) expect((await postDelegate(D.page.request, link, { ...FEB, name: `Plein ${i} (exemple)`, email: `plein${i}@example.com` }, { wait: 0, token: toks[i] })).res.status()).toBe(303);
+  await page.goto('/console/demandes/4/groupe');
+  await expect(counter(page)).toHaveText('10 répondus / 3 attendus');
+  // list full: a new e-mail and a registered one, from C
+  toks = await tokensFor(C.page.request, link, 2);
+  const fresh = await postDelegate(C.page.request, link, { ...FEB, name: 'Nouveau (exemple)', email: 'nouveau@example.com', departure_city: 'Rennes' }, { wait: 0, token: toks[0] });
+  const known = await postDelegate(C.page.request, link, { ...FEB, name: 'Connu (exemple)', email: 'plein3@example.com', departure_city: 'Brest' }, { wait: 0, token: toks[1] });
+  for (const x of [fresh, known]) {
+    expect(x.res.status()).toBe(303);
+    expect(x.res.headers().location).toMatch(/^\/g\/[A-Za-z0-9_-]{43}\/merci\?d=[A-Za-z0-9_-]{12}\.\d{10}\.[A-Za-z0-9_-]{43}$/);
+    expect(x.res.headers()['set-cookie']).toMatch(/^__Host-av_dlg=[A-Za-z0-9_-]{22}\.[A-Za-z0-9_-]{43}; /);
+  }
+  const shape = async (x, name, mail, city) => (await (await C.page.request.get(x.res.headers().location)).text()).replace(name, 'NOM').replace(mail, 'MAIL').replace(city, 'VILLE').replace(/\/g\/[A-Za-z0-9_-]{43}/g, '/g/T');
+  expect(await shape(fresh, 'Nouveau (exemple)', 'nouveau@example.com', 'Rennes')).toBe(await shape(known, 'Connu (exemple)', 'plein3@example.com', 'Brest'));
+  await page.reload();
+  await expect(counter(page)).toHaveText('10 répondus / 3 attendus');
+  await expect(page.locator('[data-pending-row]')).toHaveCount(2);
+  await expect(page.locator('[data-pending-row]', { hasText: 'Nouveau (exemple)' })).toContainText('aucune inscription');
+  // fill the pending list to the cap too (8 more new e-mails), then both kinds are refused with the same page
+  toks = await tokensFor(C.page.request, link, 10);
+  for (let i = 0; i < 8; i++) expect((await postDelegate(C.page.request, link, { ...FEB, name: `Attente ${i} (exemple)`, email: `attente${i}@example.com` }, { wait: 0, token: toks[i] })).res.status()).toBe(303);
+  const r1 = await postDelegate(C.page.request, link, { ...FEB, name: 'Encore (exemple)', email: 'encore@example.com', departure_city: 'Rennes' }, { wait: 0, token: toks[8] });
+  const r2 = await postDelegate(C.page.request, link, { ...FEB, name: 'Encore (exemple)', email: 'plein5@example.com', departure_city: 'Rennes' }, { wait: 0, token: toks[9] });
+  expect([r1.res.status(), r2.res.status()]).toEqual([200, 200]);
+  const strip = (t) => t.replace(/name="_token" value="[^"]+"/, '').replace(/encore@example\.com|plein5@example\.com/, 'MAIL');
+  expect(strip(r1.text)).toBe(strip(r2.text));
+  expect(r1.text).toContain('la liste de ce groupe est complète');
+  // the owner's own update is never blocked by the cap
+  const own = await postDelegate(D.page.request, link, { ...FEB, name: 'Plein 2 (exemple)', email: 'plein2@example.com', departure_city: 'Annecy' });
+  expect(own.res.status()).toBe(303);
+  await page.reload();
+  await expect(page.locator('[data-pending-row]')).toHaveCount(10);
+  await expect(page.locator('[data-live] tbody tr', { hasText: 'Plein 2 (exemple)' })).toContainText('Annecy');
+  for (const P of [C, D]) { assertClean(P.problems); await P.ctx.close(); }
+});
+
+test('G-H7 (SEC-X-016) the public form token is single-use: a replay stores nothing', async ({ page, browser }) => {
+  await login(page, 'equipe');
+  const link = await createLink(page, 4);
+  const D = await newPage(browser);
+  const [t1, t2] = await tokensFor(D.page.request, link, 2);
+  const first = await postDelegate(D.page.request, link, { ...FEB, name: 'Unique (exemple)', email: 'unique@example.com' }, { wait: 0, token: t1 });
+  expect(first.res.status()).toBe(303);
+  for (const fields of [{ name: 'Unique (exemple)', email: 'unique@example.com' }, { name: 'Rejeu (exemple)', email: 'rejeu@example.com' }]) {
+    const again = await postDelegate(D.page.request, link, { ...FEB, ...fields }, { wait: 0, token: t1 });
+    expect(again.res.status()).toBe(200);
+    expect(again.text).toContain('Ce formulaire a déjà été envoyé');
+  }
+  // another page load's token still works once
+  expect((await postDelegate(D.page.request, link, { ...FEB, name: 'Second (exemple)', email: 'second@example.com' }, { wait: 0, token: t2 })).res.status()).toBe(303);
+  expect((await postDelegate(D.page.request, link, { ...FEB, name: 'Second (exemple)', email: 'second@example.com' }, { wait: 0, token: t2 })).res.status()).toBe(200);
+  await page.goto('/console/demandes/4/groupe');
+  await expect(counter(page)).toHaveText('2 répondus / 3 attendus');
+  await expect(page.locator('[data-live]')).not.toContainText('Rejeu');
+  await expect(page.locator('[data-pending-row]')).toHaveCount(0);
+  assertClean(D.problems); await D.ctx.close();
+});
+
+// ---------------------------------------------------------------- UX round (../qa/register/EXTRA_ux.md)
+// Words of a text element that the browser split over two lines (a « word » is a run without regular spaces, so a
+// title joined to « — exemple » by non-breaking spaces counts as one).
+const brokenWords = (loc) => loc.evaluate((el) => {
+  const node = el.firstChild; const text = node.textContent; const out = []; let i = 0;
+  for (const w of text.split(' ')) {
+    const r = document.createRange(); r.setStart(node, i); r.setEnd(node, i + w.length);
+    const tops = new Set([...r.getClientRects()].filter((x) => x.width > 0).map((x) => Math.round(x.top)));
+    if (tops.size > 1) out.push(w);
+    i += w.length + 1;
+  }
+  return out;
+});
+
+test('G-U1 (EYE-X-001) the delegate page title never breaks inside a word, at 1440 and 390; (USAB-X-005) all answered: « Tous les participants ont répondu »', async ({ page, browser }) => {
+  await login(page, 'equipe');
+  const link = await createLink(page, 2); // Journées françaises de diabétologie — exemple, 2 passengers
+  for (const vp of [{ width: 1440, height: 900 }, { width: 1280, height: 800 }, { width: 390, height: 844 }]) {
+    const P = await newPage(browser, { viewport: vp });
+    await P.page.goto(link);
+    const h1 = P.page.locator('h1[data-congress]');
+    await expect(h1).toHaveText('Journées françaises de diabétologie — exemple');
+    expect(await brokenWords(h1), `${vp.width}px`).toEqual([]);
+    const right = await h1.evaluate((el) => { const r = document.createRange(); r.selectNodeContents(el); return Math.max(...[...r.getClientRects()].map((x) => x.right)); });
+    expect(right, `${vp.width}px title inside the window`).toBeLessThanOrEqual(vp.width);
+    assertClean(P.problems); await P.ctx.close();
+  }
+  // 2 of 2 answered, threshold 3: near the threshold, and everyone has answered
+  const D = await newPage(browser);
+  const toks = await tokensFor(D.page.request, link, 2);
+  for (let i = 0; i < 2; i++) expect((await postDelegate(D.page.request, link, { date_out: '2027-03-22', date_back: '2027-03-26', email: `tous${i}@example.com`, name: `Tous ${i} (exemple)` }, { wait: 0, token: toks[i] })).res.status()).toBe(303);
+  await page.goto('/console/demandes/2/groupe');
+  await page.getByLabel('Seuil groupe (à confirmer)').fill('3');
+  await page.getByRole('button', { name: 'Enregistrer', exact: true }).click();
+  await expect(page.locator('[data-hint]')).toContainText('Proche du seuil groupe : 2 réponses sur 3 (à confirmer). Tous les participants ont répondu.');
+  await expect(page.locator('[data-hint]')).not.toContainText('Relancez');
+  await page.getByLabel('Seuil groupe (à confirmer)').fill('10');
+  await page.getByRole('button', { name: 'Enregistrer', exact: true }).click();
+  await expect(page.locator('[data-hint]')).toContainText('Tous les participants ont répondu.');
+  assertClean(D.problems); await D.ctx.close();
+});
+
+test('G-U2 (USAB-X-001) a replaced link says « Ce lien n’est plus actif. Demandez le nouveau lien à votre agence. », not « Lien introuvable »', async ({ page, browser }) => {
+  await login(page, 'equipe');
+  const old = await createLink(page, 6);
+  await page.getByRole('button', { name: 'Révoquer le lien' }).click();
+  await page.getByRole('button', { name: 'Créer un nouveau lien' }).click();
+  const fresh = pathOf(await page.locator('[data-group-url]').inputValue());
+  expect(fresh).not.toBe(old);
+  const D = await newPage(browser);
+  await D.page.goto(old);
+  await expect(D.page.getByRole('heading', { name: 'Ce lien n’est plus actif' })).toBeVisible();
+  await expect(D.page.locator('main')).toContainText('Ce lien n’est plus actif. Demandez le nouveau lien à votre agence.');
+  await expect(D.page.locator('main')).not.toContainText('introuvable');
+  expect((await D.page.request.get(old)).status()).toBe(410);
+  expect((await D.page.request.get(fresh)).status()).toBe(200);
+  // a third link replaces the second: both old ones say « plus actif »
+  await page.getByRole('button', { name: 'Révoquer le lien' }).click();
+  await page.getByRole('button', { name: 'Créer un nouveau lien' }).click();
+  for (const l of [old, fresh]) expect(await (await D.page.request.get(l)).text()).toContain('Demandez le nouveau lien à votre agence.');
+  // a guessed token is still « introuvable »
+  expect(await (await D.page.request.get(`/g/${randTok()}`)).text()).toContain('Lien introuvable');
+  assertClean(D.problems); await D.ctx.close();
+});
+
+test('G-U3 (EYE-X-002) short public pages keep the footer at the bottom; (EYE-X-003) e-mails wrap only at @ and dots, cities stay on one line', async ({ page, browser }) => {
+  for (const vp of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+    const P = await newPage(browser, { viewport: vp });
+    for (const p of [`/g/${randTok()}`, '/page-inconnue']) {
+      await P.page.goto(p);
+      const bottom = await P.page.locator('footer.foot').evaluate((f) => f.getBoundingClientRect().bottom);
+      expect(bottom, `${p} at ${vp.width}`).toBeGreaterThanOrEqual(vp.height - 1);
+    }
+    assertClean(P.problems); await P.ctx.close();
+  }
+  await login(page, 'equipe');
+  const link = await createLink(page, 3);
+  const D = await newPage(browser);
+  const toks = await tokensFor(D.page.request, link, 2);
+  await postDelegate(D.page.request, link, { name: 'Gaëlle Dupont-Lefèvre de la Roche (exemple)', email: 'gaelle.dupont-lefevre.54050@sous-domaine.example.com', departure_city: 'Saint-Étienne' }, { wait: 0, token: toks[0] });
+  await postDelegate(D.page.request, link, { name: 'Jean (exemple)', email: 'j@example.com', departure_city: 'Clermont-Ferrand' }, { wait: 0, token: toks[1] });
+  for (const width of [1440, 1366, 1100, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/console/demandes/3/groupe');
+    for (const city of ['Saint-Étienne', 'Clermont-Ferrand']) {
+      const lines = await page.locator('[data-live] tbody .nw', { hasText: city }).evaluate((el) => new Set([...el.getClientRects()].map((x) => Math.round(x.top))).size);
+      expect(lines, `${city} at ${width}`).toBe(1);
+    }
+    // each part between break points (<wbr> before @ and dots) stays on one line, hyphens included
+    const parts = await page.locator('[data-live] tbody tr', { hasText: 'Gaëlle' }).locator('.em').evaluate((el) => [...el.querySelectorAll(':scope > span')].map((n) => ({ t: n.textContent, lines: new Set([...n.getClientRects()].map((x) => Math.round(x.top))).size })));
+    expect(parts.every((p, i) => i === 0 || /^[@.]/.test(p.t))).toBe(true);
+    expect(parts.map((p) => p.t).join('')).toBe('gaelle.dupont-lefevre.54050@sous-domaine.example.com');
+    for (const p of parts) expect(p.lines, `« ${p.t} » at ${width}`).toBe(1);
+  }
+  await page.setViewportSize({ width: 1440, height: 900 });
+  assertClean(D.problems); await D.ctx.close();
+});
+
+test('G-U4 phone: the first field is visible without scrolling; « Aller au lien de groupe » near the top; pending changes highlight what differs', async ({ page, browser }) => {
+  await login(page, 'equipe');
+  const seed = await linkOf(page, 1);
+  const P = await newPage(browser, { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await P.page.goto(seed);
+  const box = await P.page.locator('#g-name').boundingBox();
+  expect(box.y + box.height, 'first field above the fold at 390 x 844').toBeLessThanOrEqual(844);
+  await expect(P.page.locator('.grp__steps')).toBeVisible(); // the steps now follow the form
+  expect((await P.page.locator('.grp__steps').boundingBox()).y).toBeGreaterThan(box.y);
+  assertClean(P.problems); await P.ctx.close();
+  // the enquiry page offers a shortcut to the group card, above the enquiry details
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/console/demandes/1');
+  const jump = page.getByRole('link', { name: 'Aller au lien de groupe' });
+  await expect(jump).toHaveAttribute('href', '#lien-groupe');
+  expect((await jump.boundingBox()).y).toBeLessThan((await page.getByRole('heading', { name: 'Demande de devis vol' }).boundingBox()).y);
+  await jump.click();
+  await expect(page.locator('#lien-groupe')).toBeInViewport();
+  await page.goto('/console/demandes/5');
+  await expect(page.getByRole('link', { name: 'Aller au lien de groupe' })).toHaveCount(0);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  // pending change: the differing fields are marked, the others are not
+  const link = await createLink(page, 3);
+  const B = await newPage(browser); const C = await newPage(browser);
+  await postDelegate(B.page.request, link, { name: 'Marc Petit (exemple)', email: 'marc.petit@example.com', departure_city: 'Lyon' });
+  await postDelegate(C.page.request, link, { name: 'Marc Petitjean (exemple)', email: 'MARC.petit@example.com', departure_city: 'Dijon' });
+  await page.reload();
+  const marks = await page.locator('[data-pending-row] mark.diff').allTextContents();
+  expect(marks).toEqual(['Marc Petitjean (exemple)', 'Dijon']);
+  for (const X of [B, C]) { assertClean(X.problems); await X.ctx.close(); }
+});
+
 test('G-L1 leak: form, confirmation and closed pages never show other delegates, enquiry data, codes or the threshold', async ({ page, browser }) => {
   await login(page, 'direction'); // Direction sees everything, codes included: none of it may reach the public link
   const seed = await linkOf(page, 1);

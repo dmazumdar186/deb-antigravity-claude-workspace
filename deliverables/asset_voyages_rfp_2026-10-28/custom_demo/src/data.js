@@ -5,7 +5,7 @@ import { encryptCode, hashPassword, newSalt, slugify, norm, PBKDF2_ITER, nowIso,
 // Row-level copy-on-write (see T() and cow() below): a sandbox only holds the rows that browser created or changed.
 // Write budget: keyed tables are WITHOUT ROWID (the primary key is the table: one written row per insert, no extra
 // autoindex), log tables are clustered on (sbx, parent, id), notifications and creation events are derived on read.
-export const SCHEMA_VERSION = 9;
+export const SCHEMA_VERSION = 10;
 export const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT NOT NULL) WITHOUT ROWID`,
   `CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT UNIQUE NOT NULL, display_name TEXT NOT NULL, role TEXT NOT NULL CHECK (role IN ('direction','equipe','contributeur')), pw_hash TEXT NOT NULL, pw_salt TEXT NOT NULL, pw_iter INTEGER NOT NULL)`,
@@ -33,10 +33,12 @@ export const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS group_delegates (sbx TEXT NOT NULL DEFAULT '', enquiry_id INTEGER NOT NULL, email_norm TEXT NOT NULL, id TEXT NOT NULL, name TEXT NOT NULL, email TEXT NOT NULL, departure_city TEXT NOT NULL, date_out TEXT NOT NULL, date_back TEXT NOT NULL, consent_at TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, owner TEXT NOT NULL DEFAULT '', PRIMARY KEY (sbx, enquiry_id, email_norm)) WITHOUT ROWID`,
   // A change to an existing entry sent from another browser waits here (one per e-mail, the latest wins) until staff accept or refuse it.
   `CREATE TABLE IF NOT EXISTS group_pending (sbx TEXT NOT NULL DEFAULT '', enquiry_id INTEGER NOT NULL, email_norm TEXT NOT NULL, id TEXT NOT NULL, name TEXT NOT NULL, email TEXT NOT NULL, departure_city TEXT NOT NULL, date_out TEXT NOT NULL, date_back TEXT NOT NULL, consent_at TEXT NOT NULL, created_at TEXT NOT NULL, PRIMARY KEY (sbx, enquiry_id, email_norm)) WITHOUT ROWID`,
+  // A link replaced by « Créer un nouveau lien » leaves its lookup MAC here, so the old URL says « plus actif » (USAB-X-001).
+  `CREATE TABLE IF NOT EXISTS group_replaced (token_mac TEXT NOT NULL, sbx TEXT NOT NULL DEFAULT '', enquiry_id INTEGER NOT NULL, replaced_at TEXT NOT NULL, PRIMARY KEY (token_mac, sbx)) WITHOUT ROWID`,
   `CREATE TABLE IF NOT EXISTS settings (sbx TEXT NOT NULL DEFAULT '', k TEXT NOT NULL, v TEXT NOT NULL, PRIMARY KEY (sbx, k)) WITHOUT ROWID`,
   `CREATE TABLE IF NOT EXISTS rate_limits (key TEXT PRIMARY KEY, count INTEGER NOT NULL, reset_at INTEGER NOT NULL) WITHOUT ROWID`,
 ];
-const DATA_TABLES = ['group_pending', 'group_delegates', 'group_links', 'settings', 'options', 'congress_events', 'enquiry_events', 'enquiries', 'gme_access_log', 'gme_requests', 'gme_codes', 'congresses'];
+const DATA_TABLES = ['group_replaced', 'group_pending', 'group_delegates', 'group_links', 'settings', 'options', 'congress_events', 'enquiry_events', 'enquiries', 'gme_access_log', 'gme_requests', 'gme_codes', 'congresses'];
 // Columns copied when a seed row is first changed in a sandbox (cow).
 const COPY_COLS = {
   congresses: 'id, ref, slug, title, discipline, city, country, start_date, end_date, venue, official_url, verified_on, description, status, search_text, created_at, created_by, updated_at, updated_by',
@@ -47,7 +49,7 @@ const COPY_COLS = {
 // Event and log ids: time first, so ordering by id is chronological.
 let evSeq = 0;
 export const eventId = (at = nowIso()) => `${at}-${(evSeq = (evSeq + 1) % 1e6).toString(36).padStart(4, '0')}${Math.random().toString(36).slice(2, 6)}`;
-const DROP_OLD = ['group_pending', 'group_delegates', 'group_links', 'settings', 'options', 'congress_events', 'enquiry_events', 'notifications', 'enquiries', 'gme_access_log', 'gme_requests', 'gme_codes', 'congresses', 'sandboxes', 'sessions', 'revoked', 'rate_limits', 'meta'];
+const DROP_OLD = ['group_replaced', 'group_pending', 'group_delegates', 'group_links', 'settings', 'options', 'congress_events', 'enquiry_events', 'notifications', 'enquiries', 'gme_access_log', 'gme_requests', 'gme_codes', 'congresses', 'sandboxes', 'sessions', 'revoked', 'rate_limits', 'meta'];
 
 export const USERS = [
   { id: 1, username: 'direction', display_name: 'Hélène Martin, Direction', role: 'direction' },

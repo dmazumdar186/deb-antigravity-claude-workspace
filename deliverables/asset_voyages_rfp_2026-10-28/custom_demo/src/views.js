@@ -4,7 +4,7 @@ import { DEMO_BUSY, DEMO_PAUSE } from './data.js';
 const banner = (busy) => (busy === 'pause' ? DEMO_PAUSE : DEMO_BUSY);
 
 // Bump when app.css or app.js change: assets are cached for a year under a versioned URL.
-export const ASSET_V = '6';
+export const ASSET_V = '7';
 
 const head = (title, description) => html`<html lang="fr"><head>
 <meta charset="utf-8">
@@ -167,5 +167,8 @@ export function errorSummary(errors, labels, ids) {
     <ul>${keys.map((k) => html`<li><a href="#${ids[k] || k}">${labels[k] || k} : ${errors[k]}</a></li>`)}</ul>
   </div>`;
 }
-export const pill = (kind, label) => html`<span class="st st--${kind}">${label}</span>`;
+// Display titles break between words only (EYE-X-001); a run with no space at all longer than 24 characters (a URL, a
+// code) is the last-resort case allowed to break inside.
+export const displayWrap = (text) => (String(text).split(/[\s ]+/).some((w) => w.length > 24) ? ' display--wrap' : '');
+export const pill =(kind, label) => html`<span class="st st--${kind}">${label}</span>`;
 export const csrfInput = (csrf) => html`<input type="hidden" name="_csrf" value="${csrf}">`;
