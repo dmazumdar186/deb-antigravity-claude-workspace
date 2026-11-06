@@ -27,6 +27,9 @@ open(js, 'w', encoding='utf-8').write(src.replace(f"const CUSTOM_URL = '{old}';"
 h = open(html, encoding='utf-8').read()
 pat = re.compile(r'(data-demo="CUSTOM(?:_CONSOLE)?_URL" href=")' + re.escape(old) + r'((?:console)?")')
 h2, n = pat.subn(lambda mo: mo.group(1) + new + mo.group(2), h)
+deep = re.compile(r'(data-demo-b="[A-Za-z0-9/_-]+" href=")' + re.escape(old))
+h2, n2 = deep.subn(lambda mo: mo.group(1) + new, h2)
+n += n2
 open(html, 'w', encoding='utf-8').write(h2)
 print(f'CUSTOM_URL: {old} -> {new}; {n} href fallback(s) updated')
 PY

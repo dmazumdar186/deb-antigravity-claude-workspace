@@ -1,2 +1,3 @@
 ROLE anon seed=20261105 actions=300 failures=0
 ROLE contributeur seed=20261105 actions=300 failures=0
+ROLE equipe seed=20261105 actions=300 failures=0

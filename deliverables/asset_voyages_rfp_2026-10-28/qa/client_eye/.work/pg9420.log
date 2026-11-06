@@ -1,0 +1,9 @@
+
+WordPress Playground CLI
+
+PHP 8.3  WordPress latest
+Extensions intl
+Mount /home/user/deb-antigravity-claude-workspace/deliverables/asset_voyages_rfp_2026-10-28/qa/client_eye/.work/dbA → /wordpress/wp-content/database
+Blueprint .tmp/blueprint-visitor.local.json
+
+Error: listen EADDRINUSE: address already in use 0.0.0.0:9420

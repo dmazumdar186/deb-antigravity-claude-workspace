@@ -12,8 +12,8 @@ const req = createRequire(import.meta.url); let pw; for (const p of ['/opt/node-
 const { chromium } = pw;
 const R = []; const t = (name, ok, info) => { R.push({ name, ok: !!ok, info }); console.log((ok ? 'ok   ' : 'FAIL ') + name + (info !== undefined ? ' — ' + info : '')); };
 const URLS = {
-  WP_VISITOR_URL: 'https://playground.wordpress.net/?blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-visitor.json',
-  WP_ADMIN_URL: 'https://playground.wordpress.net/?blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json',
+  WP_VISITOR_URL: 'https://playground.wordpress.net/?mode=seamless&login=no&blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-visitor.json',
+  WP_ADMIN_URL: 'https://playground.wordpress.net/?mode=seamless&blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json',
   CUSTOM_URL: (readFileSync(SITE + 'js/demo.js', 'utf8').match(/const CUSTOM_URL = '([^']+)'/) || [])[1],
   get CUSTOM_CONSOLE_URL() { return this.CUSTOM_URL + 'console'; },
 };
@@ -38,20 +38,37 @@ await settle(p);
 t('desktop: 0 console errors (served with the real _headers CSP)', p._errs.length === 0, p._errs.slice(0, 3).join(' | '));
 t('desktop: 0 third-party requests on load', [...p._hosts].every((h) => h === local), [...p._hosts].join(','));
 const ov1 = await overflow(p); t('desktop 1440: no horizontal overflow', ov1.sw <= ov1.W && !ov1.bad.length, JSON.stringify(ov1));
+const secOv = (p) => p.evaluate(() => { const W = document.documentElement.clientWidth; const bad = []; for (const el of document.querySelectorAll('#group, #group *')) { if (el.closest('.vh')) continue; const r = el.getBoundingClientRect(); if (r.width && (r.right > W + 1 || r.left < -1 || el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).overflowX !== 'visible')) bad.push((el.className || el.tagName) + ':' + Math.round(r.right)); } return { W, bad: bad.slice(0, 5) }; });
+const gov1 = await secOv(p); t('desktop 1440: group section has nothing overflowing', !gov1.bad.length, JSON.stringify(gov1));
 const anchors = await p.evaluate(() => [...document.querySelectorAll('a[href^="#"]')].map((a) => a.getAttribute('href')).filter((h) => h.length > 1 && !document.getElementById(h.slice(1))));
 t('every in-page anchor resolves to an element', anchors.length === 0, anchors.join(','));
 const navIds = await p.evaluate(() => [...document.querySelectorAll('[data-mini] a')].map((a) => a.getAttribute('href')));
-t('sticky strip lists the eight sections in page order (recordings link hidden until a recording exists)', navIds.join() === '#options,#try,#recordings,#compare,#built,#codes,#plan,#slot' && await p.evaluate((ids) => { const ys = ids.map((h) => document.querySelector(h)).filter((e) => !e.hidden).map((e) => e.getBoundingClientRect().top); return ys.every((y, i) => i === 0 || y > ys[i - 1]); }, navIds), navIds.join());
+t('sticky strip lists the nine sections in page order, group link after "What works" (recordings link hidden until a recording exists)', navIds.join() === '#options,#try,#recordings,#compare,#group,#built,#codes,#plan,#slot' && await p.evaluate((ids) => { const ys = ids.map((h) => document.querySelector(h)).filter((e) => !e.hidden).map((e) => e.getBoundingClientRect().top); return ys.every((y, i) => i === 0 || y > ys[i - 1]); }, navIds), navIds.join());
 // relative page links resolve (media files are optional and checked separately)
 const rel = await p.evaluate(() => [...new Set([...document.querySelectorAll('a[href]')].map((a) => a.getAttribute('href')).filter((h) => !/^(#|https?:|mailto:)/.test(h) && !/^media\//.test(h)))]);
 const relBad = []; for (const h of rel) { const r = await fetch(new URL(h, url)); if (r.status !== 200) relBad.push(h + ':' + r.status); }
 t('relative links to the concept pages resolve (200)', relBad.length === 0 && rel.length >= 4, rel.join(',') + (relBad.length ? ' BAD ' + relBad.join(',') : ''));
+// « Le lien de groupe »: the unnumbered extra section
+const grp = await p.evaluate(() => { const s = document.getElementById('group'); if (!s) return null; const h2s = [...document.querySelectorAll('main h2')]; const pos = (id) => h2s.indexOf(document.querySelector('#' + id + ' h2'));
+  return { text: s.innerText.replace(/\s+/g, ' '), numbered: !!s.querySelector('h2 .n'), title: s.querySelector('h2').textContent, order: pos('compare') < pos('group') && pos('group') < pos('built'), nums: [...document.querySelectorAll('main h2 .n')].map((n) => n.textContent).join(),
+    links: [...s.querySelectorAll('a[href]')].map((a) => [a.dataset.demoB || '', a.getAttribute('href'), a.target, a.rel]), steps: s.querySelectorAll('.extra__how li').length, tries: s.querySelectorAll('.extra__try .steps li').length }; });
+t('group section: present after the table and before "How each one is built", unnumbered, numbering 1 to 7 intact', grp && !grp.numbered && /One more idea: a link for group trips/.test(grp.title) && grp.order && grp.nums === '1,2,3,4,5,6,7', grp && JSON.stringify({ title: grp.title, order: grp.order, nums: grp.nums }));
+const need = ['répondus / attendus', 'Exporter pour cotation (CSV)', 'Groupe', 'Lien de groupe', 'equipe', 'demo-asset', 'never shows the other travellers, codes or fares', 'Working in Option B’s demonstration', 'Suggestion only. It is not part of the quotation and changes nothing in the scope or budget.', 'e-mail confirmation step', 'In WordPress, it would be built as part of the project'];
+const miss = grp ? need.filter((n) => !grp.text.includes(n)) : need;
+t('group section: problem, 3 steps, numbered try-it steps, what the traveller never sees, status and honest limits', grp && grp.steps === 3 && grp.tries >= 3 && !miss.length, 'missing: ' + miss.join(' | '));
+const banned = grp ? (grp.text.match(/airline|Air France|KLM|GM&E|threshold|seuil|carrier|compagnie/gi) || []) : ['no section'];
+const words = grp ? grp.text.split(' ').length : 0;
+t('group section: no airline rules or GM&E thresholds mentioned; under 320 words in total', !banned.length && words < 320, `words=${words}` + (banned.length ? ' BANNED ' + banned.join(',') : ''));
+const gl = grp ? grp.links : [];
+t('group section: every link is an Option B deep link set from CUSTOM_URL, opening in a new tab', gl.length >= 1 && gl.every(([d, h, tg, rl]) => d && h === URLS.CUSTOM_URL + d && tg === '_blank' && /noopener/.test(rl)), JSON.stringify(gl));
+const glBad = []; for (const [d] of gl) { try { const r = await fetch(URLS.CUSTOM_URL + d, { redirect: 'manual' }); const loc = r.headers.get('location') || ''; if (!(r.status === 200 || (r.status === 303 && loc.includes('/console/connexion?next=' + encodeURIComponent('/' + d))))) glBad.push(d + ':' + r.status + ' ' + loc); } catch (e) { glBad.push(d + ':' + e.message); } }
+t('group section: its links resolve on the live demo (sign-in page, then back to the enquiry)', gl.length && !glBad.length, glBad.join(',') || gl.map(([d]) => d).join(','));
 // constants
 const js = readFileSync(SITE + 'js/demo.js', 'utf8'); const html = readFileSync(SITE + 'demo/index.html', 'utf8');
 const constOk = js.includes(`const WP_VISITOR_URL = '${URLS.WP_VISITOR_URL}'`) && js.includes(`const WP_ADMIN_URL = '${URLS.WP_ADMIN_URL}'`) && js.includes(`const CUSTOM_URL = '${URLS.CUSTOM_URL}'`) && js.includes("const CUSTOM_CONSOLE_URL = CUSTOM_URL + 'console'");
 const live = await p.evaluate(() => [...document.querySelectorAll('a[data-demo]')].map((a) => [a.dataset.demo, a.getAttribute('href'), a.target, a.rel]));
 const liveOk = live.length >= 8 && live.every(([k, h, tg, rl]) => h === URLS[k] && tg === '_blank' && /noopener/.test(rl));
-const staticOk = Object.values(URLS).every((u) => html.includes(`href="${u}"`));
+const staticOk = Object.values(URLS).every((u) => html.includes(`href="${u.replace(/&/g, '&amp;')}"`));
 t('demo constants: four URLs defined once in demo.js, applied to every demo link, same hrefs in the HTML for no-JS', constOk && liveOk && staticOk, `links=${live.length}`);
 const cards = await p.evaluate(() => [...document.querySelectorAll('.pass')].map((c) => c.querySelectorAll('a.btn').length));
 t('two option cards, two buttons each', cards.join() === '2,2', cards.join());
@@ -78,8 +95,10 @@ for (const id of ['#compare', '#slot']) {
   t(`desktop: ${id} heading lands below the sticky strip, strip marks it`, g.top >= g.strip && g.top < 260 && g.cur === id, JSON.stringify(g));
 }
 // recordings: default fallback
-const rec0 = await p.evaluate(() => ({ sec: document.querySelector('#recordings').hidden && getComputedStyle(document.querySelector('#recordings')).display === 'none', nav: getComputedStyle(document.querySelector('[data-rec-nav]')).display === 'none', video: !!document.querySelector('[data-rec] video') }));
-t('recordings: manifest keys false, so the section and its strip link stay hidden (no video, no 404)', rec0.sec && rec0.nav && !rec0.video, JSON.stringify(rec0));
+const man = JSON.parse(readFileSync(SITE + 'demo/media/manifest.json', 'utf8')); const anyRec = Object.values(man).some(Boolean);
+const rec0 = await p.evaluate(() => ({ sec: document.querySelector('#recordings').hidden && getComputedStyle(document.querySelector('#recordings')).display === 'none', nav: getComputedStyle(document.querySelector('[data-rec-nav]')).display === 'none', videos: [...document.querySelectorAll('[data-rec]')].filter((f) => f.querySelector('video')).map((f) => f.dataset.rec) }));
+const want = Object.keys(man).filter((k) => man[k]);
+t('recordings: follow the real manifest (all false: section and strip link hidden, no video; announced files: those players only)', anyRec ? (!rec0.sec && !rec0.nav && rec0.videos.join() === want.join()) : (rec0.sec && rec0.nav && !rec0.videos.length), JSON.stringify({ man, rec0 }));
 // contrast of every visible text node against its painted background
 const contrast = await p.evaluate(() => {
   const parse = (c) => { const m = c.match(/rgba?\(([^)]+)\)/); if (!m) return null; const v = m[1].split(/[ ,/]+/).filter(Boolean).map(Number); return { r: v[0], g: v[1], b: v[2], a: v[3] === undefined ? 1 : v[3] }; };
@@ -111,6 +130,7 @@ p = await mk({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: 
 await p.goto(url, { waitUntil: 'load' }); await settle(p);
 t('390: 0 console errors', p._errs.length === 0, p._errs.slice(0, 3).join(' | '));
 const ov2 = await overflow(p); t('390: no horizontal overflow', ov2.sw <= ov2.W && !ov2.bad.length, JSON.stringify(ov2));
+const gov2 = await secOv(p); t('390: group section has nothing overflowing', !gov2.bad.length, JSON.stringify(gov2));
 const small = await p.evaluate(() => { const bad = []; for (const el of document.querySelectorAll('body *:not(svg *)')) { if (![...el.childNodes].some((x) => x.nodeType === 3 && x.textContent.trim())) continue; if (el.closest('.vh,[hidden]') || !el.getClientRects().length) continue; const fs = parseFloat(getComputedStyle(el).fontSize); if (fs < 16) bad.push(el.className || el.tagName); } const svgT = [...document.querySelectorAll('.flow__tall text')].map((x) => x.getBoundingClientRect().height); return { bad: [...new Set(bad)].slice(0, 6), svgMin: Math.min(...svgT) }; });
 t('390: all text 16 px or more (diagram text included, as rendered)', small.bad.length === 0 && small.svgMin >= 15, JSON.stringify(small));
 const taps = await p.evaluate(() => [...document.querySelectorAll('.btn, .time, [data-mini] a, .switch__b, .top__back, .link-quiet, .skip')].filter((e) => e.getClientRects().length && !e.classList.contains('skip')).map((e) => { const r = e.getBoundingClientRect(); return [e.textContent.trim().slice(0, 20), Math.round(r.height), Math.round(r.width)]; }).filter(([, h, w]) => h < 44 || w < 44));
@@ -124,6 +144,10 @@ await p.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto';
 await p.click('[data-mini] a[href="#plan"]'); await p.waitForTimeout(500);
 const g390 = await p.evaluate(() => ({ top: document.querySelector('#plan h2').getBoundingClientRect().top, strip: document.querySelector('[data-mini]').getBoundingClientRect().bottom }));
 t('390: #plan heading lands below the sticky strip', g390.top >= g390.strip, JSON.stringify(g390));
+await p.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; scrollTo(0, 0); });
+await p.click('[data-mini] a[href="#group"]'); await p.waitForTimeout(500);
+const gg = await p.evaluate(() => ({ top: document.querySelector('#group h2').getBoundingClientRect().top, strip: document.querySelector('[data-mini]').getBoundingClientRect().bottom }));
+t('390: the strip link to #group scrolls its heading below the sticky strip', gg.top >= gg.strip, JSON.stringify(gg));
 const tall = await p.evaluate(() => ({ wide: getComputedStyle(document.querySelector('.flow__wide')).display, tall: getComputedStyle(document.querySelector('.flow__tall')).display }));
 t('390: the diagram switches to its vertical drawing', tall.wide === 'none' && tall.tall === 'block', JSON.stringify(tall));
 await p.evaluate(() => scrollTo(0, 0)); await p.waitForTimeout(200);
@@ -152,7 +176,7 @@ await p._ctx.close();
 for (const vp of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
   p = await mk({ viewport: vp, javaScriptEnabled: false });
   await p.goto(url, { waitUntil: 'load' }); await p.waitForTimeout(300);
-  const nojs = await p.evaluate(() => ({ recHidden: getComputedStyle(document.getElementById('recordings')).display === 'none', sections: ['options', 'try', 'compare', 'built', 'codes', 'plan', 'slot'].every((id) => { const s = document.getElementById(id); return s && s.getBoundingClientRect().height > 100; }), opts: [...document.querySelectorAll('.task__opt')].filter((o) => getComputedStyle(o).display !== 'none').length, sw: document.querySelector('[data-switch]').hidden, path: getComputedStyle(document.querySelector('.flow__path')).strokeDasharray, links: [...document.querySelectorAll('a[data-demo]')].every((a) => /^https:/.test(a.href)), rows: document.querySelectorAll('.cmp tbody tr').length, sw0: document.documentElement.scrollWidth <= innerWidth }));
+  const nojs = await p.evaluate(() => ({ recHidden: getComputedStyle(document.getElementById('recordings')).display === 'none', sections: ['options', 'try', 'compare', 'group', 'built', 'codes', 'plan', 'slot'].every((id) => { const s = document.getElementById(id); return s && s.getBoundingClientRect().height > 100; }), opts: [...document.querySelectorAll('.task__opt')].filter((o) => getComputedStyle(o).display !== 'none').length, sw: document.querySelector('[data-switch]').hidden, path: getComputedStyle(document.querySelector('.flow__path')).strokeDasharray, links: [...document.querySelectorAll('a[data-demo]')].every((a) => /^https:/.test(a.href)), rows: document.querySelectorAll('.cmp tbody tr').length, sw0: document.documentElement.scrollWidth <= innerWidth }));
   t(`JS off ${vp.width}: every section, both options of all 5 tasks, demo links, diagram, table, recordings hidden; no overflow`, nojs.sections && nojs.opts === 10 && nojs.sw && nojs.path === 'none' && nojs.recHidden && nojs.links && nojs.rows === 11 && nojs.sw0, JSON.stringify(nojs));
   await p._ctx.close();
 }
@@ -220,7 +244,7 @@ t('footer: the "Unlisted page" note is gone', !foot);
   const j = readFileSync(T + '/js/demo.js', 'utf8'), h = readFileSync(T + '/demo/index.html', 'utf8');
   const again = execFileSync('bash', [new URL('./set_demo_urls.sh', import.meta.url).pathname, 'https://asset-voyages-demo.example.workers.dev/', T], { encoding: 'utf8' });
   let refused = false; try { execFileSync('bash', [new URL('./set_demo_urls.sh', import.meta.url).pathname, 'javascript:alert(1)', T], { stdio: 'pipe' }); } catch { refused = true; }
-  t('set_demo_urls.sh: one command updates demo.js and every Option B href, is idempotent, refuses a non-https value', j.includes("const CUSTOM_URL = 'https://asset-voyages-demo.example.workers.dev/'") && (h.match(/href="https:\/\/asset-voyages-demo\.example\.workers\.dev\/(console)?"/g) || []).length === 5 && !/REPLACE/.test(h) && /already set/.test(again) && refused, out.trim()); }
+  t('set_demo_urls.sh: one command updates demo.js and every Option B href, is idempotent, refuses a non-https value', j.includes("const CUSTOM_URL = 'https://asset-voyages-demo.example.workers.dev/'") && (h.match(/href="https:\/\/asset-voyages-demo\.example\.workers\.dev\/(console)?"/g) || []).length === 5 && h.includes('data-demo-b="console/demandes/1" href="https://asset-voyages-demo.example.workers.dev/console/demandes/1"') && !/REPLACE/.test(h) && /already set/.test(again) && refused, out.trim()); }
 
 await b.close();
 const pass = R.filter((r) => r.ok).length;

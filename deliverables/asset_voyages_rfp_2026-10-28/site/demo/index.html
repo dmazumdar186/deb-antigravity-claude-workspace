@@ -29,6 +29,7 @@
     <a href="#try">Try it</a>
     <a href="#recordings" data-rec-nav hidden>Recordings</a>
     <a href="#compare">What works</a>
+    <a href="#group">Group link</a>
     <a href="#built">How each is built</a>
     <a href="#codes">GM&amp;E codes</a>
     <a href="#plan">Milestones</a>
@@ -312,6 +313,58 @@
       </tbody>
     </table>
     <p class="aside">For both options, hosting in ASSET’s name is set up during the project.</p>
+  </div>
+</section>
+
+<!-- Extra, unnumbered: « Le lien de groupe » (custom_demo/EXTRA_GROUP.md) -->
+<section class="extra" id="group" aria-labelledby="group-title">
+  <div class="container">
+    <div class="intro">
+      <p class="extra__tags"><span class="st st--ok">Works in the Option B demo</span> <span class="st st--idea">Suggestion only</span></p>
+      <h2 id="group-title">One more idea: a link for group trips</h2>
+      <p>For a group going to a congress, each traveller’s details often arrive by e-mail and are copied into a spreadsheet by hand.</p>
+    </div>
+
+    <div class="extra__grid">
+      <div class="extra__what">
+        <h3>What it does</h3>
+        <ol class="extra__how">
+          <li><strong>Your team sends one link</strong> for the enquiry, in its reply to the client.</li>
+          <li><strong>Each traveller fills in their own details</strong> on a phone: name as on the ID document, e-mail, departure city and dates.</li>
+          <li><strong>Your team sees the list fill in</strong>, with a «&nbsp;répondus / attendus&nbsp;» counter and a ready-to-use export, «&nbsp;Exporter pour cotation (CSV)&nbsp;».</li>
+        </ol>
+      </div>
+
+      <div class="extra__try">
+        <h3>How to try it</h3>
+        <ol class="steps">
+          <li><a data-demo-b="console/demandes/1" href="https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/1" target="_blank" rel="noopener">Open enquiry DV-2026-0001<span class="vh"> in the Option B console (new tab)</span></a> and sign in as <code class="cred">equipe</code>, password <code class="cred">demo-asset</code>.</li>
+          <li>Choose the «&nbsp;Groupe&nbsp;» tab. Three fictional travellers have already answered.</li>
+          <li>Under «&nbsp;Lien de groupe&nbsp;», copy the link and open it in another tab. This is the traveller’s page.</li>
+          <li>Send an answer, then go back to the «&nbsp;Groupe&nbsp;» tab: it is in the list.</li>
+        </ol>
+        <p class="task__tip">The traveller’s page never shows the other travellers, codes or fares.</p>
+      </div>
+    </div>
+
+    <div class="extra__status">
+      <div class="extra__col">
+        <h3>Where it stands</h3>
+        <ul>
+          <li>Working in Option B’s demonstration, with fictional travellers.</li>
+          <li><strong>Suggestion only. It is not part of the quotation and changes nothing in the scope or budget.</strong></li>
+          <li>In WordPress, it would be built as part of the project, if you choose it.</li>
+        </ul>
+      </div>
+      <div class="extra__col">
+        <h3>Honest limits of the demo</h3>
+        <ul>
+          <li>A traveller who changes phone cannot correct their entry directly: the change waits for your team to accept it. Production would add an e-mail confirmation step.</li>
+          <li>Anyone the link is forwarded to can answer. Revoking it stops that at once.</li>
+          <li>Reminders by e-mail and a status per traveller come in production.</li>
+        </ul>
+      </div>
+    </div>
   </div>
 </section>
 

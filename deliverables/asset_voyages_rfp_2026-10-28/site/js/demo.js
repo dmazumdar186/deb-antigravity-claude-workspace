@@ -19,6 +19,11 @@
     const url = DEMO[a.dataset.demo];
     if (url) a.href = url;
   });
+  // deeper Option B pages (e.g. one enquiry in the console) follow CUSTOM_URL too
+  document.querySelectorAll('a[data-demo-b]').forEach((a) => {
+    const path = a.dataset.demoB;
+    if (/^[a-z0-9/_-]+$/i.test(path)) a.href = CUSTOM_URL + path;
+  });
 
   // ---- A/B switch (only shown on narrow screens by CSS) ----
   const sw = document.querySelector('[data-switch]');

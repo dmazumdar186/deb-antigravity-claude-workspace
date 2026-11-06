@@ -155,6 +155,23 @@ main>section+section{border-top:1px solid var(--rule)}
 .st--ok{background:var(--ok-bg);color:var(--ok-ink)}
 .st--build{background:var(--build-bg);color:var(--build-ink)}
 
+/* one more idea: the group link (unnumbered extra) */
+.extra__tags{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px!important}
+.extra__tags .st{margin:0}
+.st--idea{background:var(--card);color:var(--ink);border:1px solid var(--rule-strong)}
+.extra__grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px}
+.extra h3{font-size:clamp(25px,2.2vw,31px);line-height:1.12;margin-bottom:16px}
+.extra__how{list-style:none;padding:0;counter-reset:how;display:grid;gap:0;border-top:1px solid var(--rule-strong)}
+.extra__how li{counter-increment:how;display:grid;grid-template-columns:48px minmax(0,1fr);gap:16px;padding:16px 0;border-bottom:1px solid var(--rule)}
+.extra__how li::before{content:counter(how);font:500 36px/1 var(--font-display);color:var(--or-ink)}
+.extra__how strong{font-weight:600}
+.extra__try{background:var(--card);border:1px solid var(--rule);border-top:3px solid var(--navy);border-radius:0 0 12px 12px;padding:24px 28px}
+.extra__status{margin-top:24px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px}
+.extra__col{padding-top:16px;border-top:3px solid var(--or)}
+.extra__col h3{font-size:24px;line-height:1.15;margin-bottom:12px}
+.extra__col ul{padding-left:1.1em;display:grid;gap:8px}
+.extra__col strong{font-weight:600}
+
 /* how it is built */
 .built__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
 .built__col{padding:24px 28px;border-top:3px solid var(--ink);background:var(--card);border-radius:0 0 10px 10px}
@@ -254,7 +271,8 @@ main>section+section{border-top:1px solid var(--rule)}
   .days{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media (max-width:800px){
-  .passes,.recs__grid,.built__grid,.choose__grid,.foot__in{grid-template-columns:minmax(0,1fr)}
+  .passes,.recs__grid,.built__grid,.choose__grid,.foot__in,.extra__grid,.extra__status{grid-template-columns:minmax(0,1fr)}
+  .extra__try{padding-inline:20px}
   .logins{grid-template-columns:minmax(0,1fr)}
   .logins ul{grid-column:1;grid-row:auto}
   .task{grid-template-columns:minmax(0,1fr)}
@@ -291,10 +309,10 @@ main>section+section{border-top:1px solid var(--rule)}
   .hero__lead,.foot__fine,.foot a{color:var(--ink)}
   .options .intro{margin-top:0}
   main>section{padding:16pt 0;break-inside:auto}
-  .pass,.task,.cmp tr,.g,.days li,.flow,.built__col,.rec{break-inside:avoid}
+  .pass,.task,.cmp tr,.g,.days li,.flow,.built__col,.rec,.extra__try,.extra__col{break-inside:avoid}
   .pass--b .pass__main{background:none;color:var(--ink)}
   .pass--b .pass__note{color:var(--muted)}
-  .pass a[data-demo]::after,.steps a[data-demo]::after{content:" (" attr(href) ")";font-weight:400;font-size:9pt;word-break:break-all}
+  .pass a[data-demo]::after,.steps a[data-demo]::after,.steps a[data-demo-b]::after{content:" (" attr(href) ")";font-weight:400;font-size:9pt;word-break:break-all}
   .btn{border-color:var(--ink);background:none;min-height:0;padding:4pt 8pt;display:block;text-align:left}
   .js .tasks .task__opt{display:block!important}
   .js .task__which{display:block!important}
