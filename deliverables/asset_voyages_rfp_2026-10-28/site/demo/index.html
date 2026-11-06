@@ -53,7 +53,7 @@
     <div class="intro">
       <h2 id="options-title"><span class="n">1</span> Two options, both working</h2>
       <p>You asked to see how we would handle congresses, flight enquiries and GM&amp;E codes. Rather than describe it, we show it in both forms, so you can try each one yourselves and pick the option that suits ASSET.</p>
-      <p>Both demos are built to the same five requirements from your email of 5 November. Every congress, person, enquiry and code in them is <strong>fictional</strong>. Each demo is a <strong>sandbox</strong>, a safe practice copy: it resets on its own, so you can try every task without affecting the demo for anyone else.</p>
+      <p>Both demos are built to the same five requirements from your email of 5 November. Every congress, person, enquiry and code in them is <strong>fictional</strong>. Each demo is a <strong>sandbox</strong>, a safe practice copy: what you change is seen only by you, so you can try the five tasks without affecting the demo for anyone else.</p>
     </div>
 
     <div class="passes">
@@ -66,9 +66,9 @@
         </div>
         <div class="pass__stub">
           <a class="btn" data-demo="WP_VISITOR_URL" href="https://playground.wordpress.net/?mode=seamless&amp;login=no&amp;blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-visitor.json" target="_blank" rel="noopener">Open the visitor site<span class="vh"> of Option A (new tab)</span></a>
-          <p class="pass__boot">Takes about 15 to 25 seconds to start. If it stays on the loading screen, reload the page.</p>
+          <p class="pass__boot">Takes up to about 25 seconds to start. If it stays on the loading screen, reload the page.</p>
           <a class="btn btn--line" data-demo="WP_ADMIN_URL" href="https://playground.wordpress.net/?mode=seamless&amp;blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json" target="_blank" rel="noopener">Open the admin, signed in<span class="vh"> to Option A (new tab)</span></a>
-          <p class="pass__boot">Takes about 15 to 25 seconds to start. If it stays on the loading screen, reload the page.</p>
+          <p class="pass__boot">Takes up to about 25 seconds to start. If it stays on the loading screen, reload the page.</p>
           <p class="pass__small">The admin link signs you in automatically as «&nbsp;direction&nbsp;». To follow one enquiry from start to finish, use the visitor site and its «&nbsp;Espace équipe&nbsp;» link: each link opens its own separate copy.</p>
         </div>
       </article>
@@ -78,7 +78,7 @@
           <div class="pass__top"><p class="pass__gate">Option B</p><span class="pass__letter" aria-hidden="true">B</span></div>
           <h3 id="pass-b">Our custom platform</h3>
           <p>The Console from our earlier concept, made real. Public pages for your visitors, a small console for your team, and a database behind them, running on <strong>Cloudflare</strong>, a global network that serves websites.</p>
-          <p class="pass__note">Opens straight away in your browser, with nothing to install.</p>
+          <p class="pass__note">Opens in your browser, with nothing to install.</p>
         </div>
         <div class="pass__stub">
           <a class="btn" data-demo="CUSTOM_URL" href="https://asset-voyages-demo.debanjan186.workers.dev/" target="_blank" rel="noopener">Open the visitor site<span class="vh"> of Option B (new tab)</span></a>
@@ -96,7 +96,7 @@
         <li><code class="cred">equipe</code> the team: handles flight enquiries</li>
         <li><code class="cred">contributeur</code> adds and edits congresses, which then wait for review</li>
       </ul>
-      <p class="logins__note">In Option B, each person's trial is not shown to other visitors and is removed by the nightly clean-up once it has gone unused for 24 hours. Option A starts fresh each time you open it.</p>
+      <p class="logins__note">In Option B, each person's trial is not shown to other visitors and is cleared by the nightly clean-up after 24 hours without use. To follow one enquiry from the visitor site to the team console, use the same browser for both. Option A starts fresh each time you open it.</p>
     </div>
   </div>
 </section>
@@ -219,9 +219,9 @@
         <div class="task__opt task__opt--a">
           <p class="task__which">Option A: WordPress</p>
           <ol class="steps">
-            <li>Signed in as <code class="cred">equipe</code>, open «&nbsp;Codes GM&amp;E&nbsp;› Codes&nbsp;»: the codes are hidden. Click «&nbsp;Demander l’accès&nbsp;» and give a reason.</li>
+            <li>Sign in as <code class="cred">equipe</code> (from the visitor site, «&nbsp;Espace équipe&nbsp;», as in task 4) and open «&nbsp;Codes GM&amp;E&nbsp;› Codes&nbsp;»: the codes are hidden. Click «&nbsp;Demander l’accès&nbsp;» and give a reason.</li>
             <li>Sign out, sign in as <code class="cred">direction</code>, open «&nbsp;Codes GM&amp;E&nbsp;› Demandes d’accès&nbsp;», and click «&nbsp;Approuver pour 24&nbsp;h&nbsp;» or «&nbsp;Refuser&nbsp;».</li>
-            <li>Sign in as <code class="cred">equipe</code> again and open «&nbsp;Codes GM&amp;E&nbsp;› Codes&nbsp;». The code stays hidden until you click «&nbsp;Afficher le code&nbsp;»: that click is needed. Each display is then listed in «&nbsp;Journal d’accès GM&amp;E&nbsp;».</li>
+            <li>Sign in as <code class="cred">equipe</code> again and open «&nbsp;Codes GM&amp;E&nbsp;› Codes&nbsp;». The code stays hidden until you click «&nbsp;Afficher le code&nbsp;»: that click is needed. Each display is then listed in «&nbsp;Journal d’accès GM&amp;E&nbsp;», which you can open signed in as <code class="cred">direction</code>.</li>
           </ol>
         </div>
         <div class="task__opt task__opt--b">
@@ -229,7 +229,7 @@
           <ol class="steps">
             <li>In the team console, sign in as <code class="cred">equipe</code> and open «&nbsp;Codes GM&amp;E&nbsp;› Codes&nbsp;»: the codes are hidden. Click «&nbsp;Demander l’accès&nbsp;» and give a reason.</li>
             <li>Sign out, sign in as <code class="cred">direction</code>, open «&nbsp;Codes GM&amp;E&nbsp;› Demandes d’accès&nbsp;», and click «&nbsp;Approuver pour 24&nbsp;h&nbsp;» or «&nbsp;Refuser&nbsp;».</li>
-            <li>Sign in as <code class="cred">equipe</code> again and open «&nbsp;Codes GM&amp;E&nbsp;› Codes&nbsp;». The code stays hidden until you click «&nbsp;Afficher le code&nbsp;»: that click is needed. Each display is then listed in «&nbsp;Journal d’accès GM&amp;E&nbsp;».</li>
+            <li>Sign in as <code class="cred">equipe</code> again and open «&nbsp;Codes GM&amp;E&nbsp;› Codes&nbsp;». The code stays hidden until you click «&nbsp;Afficher le code&nbsp;»: that click is needed. Each display is then listed in «&nbsp;Journal d’accès GM&amp;E&nbsp;», which you can open signed in as <code class="cred">direction</code>.</li>
           </ol>
         </div>
       </li>
@@ -352,13 +352,13 @@
         <ul>
           <li>Working in Option B’s demonstration, with fictional travellers, as an illustration.</li>
           <li><strong>Suggestion only. It is not included in the proposal to come, and the requirements and budget you communicated stay unchanged.</strong></li>
-          <li>It exists in Option B’s demo only. If ASSET wants it, it would be scoped and quoted separately for the option you choose, after the proposal, and built only on your written agreement.</li>
+          <li>If ASSET wants it, it would be scoped and quoted separately for the option you choose, after the proposal, and built only on your written agreement.</li>
         </ul>
       </div>
       <div class="extra__col">
         <h3>Limits of the demo</h3>
         <ul>
-          <li>A traveller who changes phone cannot correct their entry directly: the change waits for your team to accept it. If the idea is taken up, an email confirmation step would be part of that separate scope.</li>
+          <li>A traveller who changes phone cannot correct their entry directly: the change waits for your team to accept it. If the idea is taken up, an email confirmation step could be added in that separate scope.</li>
           <li>Anyone the link is forwarded to can answer. Revoking it stops that at once.</li>
           <li>Reminders by email and a status per traveller would belong to that separate scope as well.</li>
         </ul>
@@ -400,8 +400,8 @@
       <h3 id="choose-title">How to choose</h3>
       <div class="choose__grid">
         <p><strong>Choose A</strong> if your team wants to keep the editor it already knows.</p>
-        <p><strong>Choose B</strong> if the least upkeep matters most.</p>
-        <p>The written proposal sets out and prices each option against its own scope, so you can decide with both in front of you.</p>
+        <p><strong>Choose B</strong> if having no WordPress and plugin updates to apply matters most.</p>
+        <p>The written proposal, which follows by 10 November, sets out and prices each option against its own scope, so you can decide with both in front of you.</p>
       </div>
       <p class="choose__both"><strong>In both options:</strong> the GM&amp;E codes are kept in a separate, encrypted table; the service accounts opened for the project are in ASSET’s name, your existing accounts and data remain yours throughout, the source code and documentation are handed over in full at completion, as set out in the proposal, and your team can export pages, congresses and enquiries.</p>
     </div>
@@ -450,7 +450,7 @@
   <div class="container">
     <div class="intro">
       <h2 id="plan-title"><span class="n">6</span> Milestones</h2>
-      <p>Indicative, about 13 to 14 weeks to launch in all; counted from your approval and from receipt of the content each stage needs; if content arrives later, the plan moves by the same time. The signed proposal fixes the dates for the option you choose.</p>
+      <p>Indicative, about 13 to 14 weeks to launch in all for either option; counted from your approval and from receipt of the content each stage needs; if content arrives later, the plan moves by the same time. The signed proposal fixes the dates for the option you choose, and they may differ between A and B.</p>
     </div>
     <div class="gantt">
       <div class="gantt__scale" aria-hidden="true">
@@ -459,7 +459,7 @@
       </div>
       <ol class="gantt__rows">
         <li class="g" data-from="1" data-to="2">
-          <div class="g__txt"><h3>Kickoff, access and audit</h3><p class="g__when">Weeks 1 to 2</p><p>An audit of your current site, and one workshop of up to 2 hours.</p></div>
+          <div class="g__txt"><h3>Kickoff, access and audit</h3><p class="g__when">Stage 1</p><p>An audit of your current site, and one workshop of up to 2 hours.</p></div>
           <div class="g__track" aria-hidden="true"><span class="g__bar"></span></div>
         </li>
         <li class="g" data-from="2" data-to="5">
@@ -505,7 +505,7 @@
       <li><p class="day">Tuesday 17 November</p><p class="times"><a class="time" href="mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&amp;body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2010%3A00%20(Paris%20time)">10:00</a></p></li>
     </ul>
     <p class="slot__act"><a class="btn" data-mailto href="mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot">Suggest another time</a></p>
-    <p class="aside">Nothing on this page is chargeable. Should further validation be needed after the demonstration, the scope, fee and delivery date of a sample would be agreed in writing first.</p>
+    <p class="aside">No chargeable work has been started: both demos and this page are provided free of charge. Should further validation be needed after the demonstration, the scope, fee and delivery date of a sample would be agreed in writing first.</p>
   </div>
 </section>
 

@@ -1,15 +1,15 @@
 # Client-eye gate report
 
-Generated 2026-11-06T12:59:31.046Z. Commit e572d6e934d127f553798ae5fe39ef0258e02179. Spec: `28_PreMortem_Client_Eye_Gate.md`. Machine-readable: `report.json`. Triage verdicts: `triage.json`. Register: `../register/CLIENT_EYE.md`.
+Generated 2026-11-06T13:12:12.958Z. Commit 3cf9315072d2e11acb4fb6e93b6ea2df0fb6bf8f. Spec: `28_PreMortem_Client_Eye_Gate.md`. Machine-readable: `report.json`. Triage verdicts: `triage.json`. Register: `../register/CLIENT_EYE.md`.
 
 ## Targets and versions
 
-- Hub: 5 tasks parsed, group section present; demo/index.html deployed = source, index.html deployed = source, js/demo.js deployed = source, css/demo.css deployed = source
+- Hub: 5 tasks parsed, group section present; demo/index.html DIFFERS from source, index.html deployed = source, js/demo.js deployed = source, css/demo.css deployed = source
 - Option B Worker: dba3b6e7-d2ad-45c1-bfba-5132a304268a deployed 2026-11-06T10:55:45.590122Z; custom_demo/src last commit 0459ede 2026-11-06T10:54:46+00:00
 - Option A: local Playground http://127.0.0.1:9460 built from the current wp_demo/ (zip b0fe713a2ce2); hosted zip b0fe713a2ce2
-- Uncommitted source changes at run time: none
+- Uncommitted source changes at run time: M deliverables/asset_voyages_rfp_2026-10-28/site/demo/index.html
 - States captured: 347; widths 320, 390, 768, 1280, 1440, 1920; roles A:visiteur, A:direction, A:contributeur, A:equipe, A-hosted:visiteur, B:visiteur, B:contributeur, B:direction, B:equipe, B:voyageur, HUB:visiteur
-- Part a: run 2026-11-06T12:57:13.646Z, logins 9, writing contexts 2
+- Part a: run 2026-11-06T13:09:50.047Z
 - Part ahosted: run 2026-11-06T12:11:22.680Z, logins 3, writing contexts 2
 - Part b: run 2026-11-06T12:49:46.068Z, logins 9, writing contexts 2, own sandboxes 2
 - Part hub: run 2026-11-06T12:41:37.889Z
@@ -29,24 +29,24 @@ Generated 2026-11-06T12:59:31.046Z. Commit e572d6e934d127f553798ae5fe39ef0258e02
 | B2 | auto | No ISO/US dates; jj/mm/aaaa valid; Paris time; 00:05 Paris clock probe | 0 | 0 | 0 | PASS |
 | B3 | auto | Plural agreement after 0, 1, 2 and many | 0 | 0 | 0 | PASS |
 | B4 | auto | No mid-word breaks, no line starting with » ; : ! ? or ending with «, no orphan « — exemple » (320/390/768/1280/1440/1920) | 2 | 0 | 0 | FAIL |
-| B5 | auto | Spell check fr + en (pyspellchecker) with a reasoned allowlist | 0 | 1 | 4 | FAIL |
-| B6 | auto | Glossary of key labels: same names in the hub and both UIs | 0 | 1 | 2 | FAIL |
+| B5 | auto | Spell check fr + en (pyspellchecker) with a reasoned allowlist | 1 | 3 | 0 | FAIL |
+| B6 | auto | Glossary of key labels: same names in the hub and both UIs | 0 | 1 | 0 | PASS |
 | B7 | auto | Missing accents / capitals on known words | 0 | 0 | 0 | PASS |
 | C1 | auto | No 4xx/5xx, console or page errors in normal use; styled French error pages reached only on purpose | 0 | 0 | 0 | PASS |
 | C2 | auto | Every visible non-submit button changes something within 2 s; submit buttons exercised by the journeys | 0 | 0 | 0 | PASS |
 | C3 | auto | No empty box: every 0-item list shows a sentence | 0 | 0 | 0 | PASS |
-| C4 | auto | CLS ≤ 0.02 per page | 1 | 0 | 0 | FAIL |
+| C4 | auto | CLS ≤ 0.02 per page | 0 | 1 | 0 | PASS |
 | C5 | auto | One body family, one display family, one button style family, one accent colour per surface | 1 | 1 | 0 | FAIL |
 | C6 | auto | No horizontal overflow (six widths); anchors not under the sticky header | 0 | 0 | 0 | PASS |
-| C7 | auto | Expired session shows « Session expirée » + login link; purge only idle > 24 h; hub says private + 24 h reset | 0 | 0 | 0 | PASS |
+| C7 | auto | Expired session shows « Session expirée » + login link; purge only idle > 24 h; hub says private + 24 h reset | 1 | 0 | 0 | FAIL |
 | C8 | auto | No technical residue (errors, stack, JSON braces, wp: markup, hex runs ≥ 16) in visible text | 0 | 0 | 0 | PASS |
 | C9 | auto | No test residue in the sample data (fresh browsers) | 0 | 0 | 0 | PASS |
-| C10 | auto | Instruction replay: each hub step followed literally by visible labels | 2 | 0 | 1 | FAIL |
+| C10 | auto | Instruction replay: each hub step followed literally by visible labels | 0 | 3 | 0 | PASS |
 | D1 | auto | Every « Works in the demo » cell backed by evidence; « Built during the project » not faked by UI | 0 | 0 | 1 | FAIL |
 | D2 | auto | Fictional people: @example.com, fiction phone ranges, no real congress names | 0 | 0 | 0 | PASS |
-| D3 | auto | Every number on the hub is a week, a date, our demo data, or traced to a source line | 0 | 0 | 3 | FAIL |
+| D3 | auto | Every number on the hub is a week, a date, our demo data, or traced to a source line | 2 | 2 | 6 | FAIL |
 | D4 | auto | No GM&E code in DOM, attributes or inputs outside an approved reveal | 0 | 0 | 0 | PASS |
-| E1 | auto | Report names the commit and deployed versions; hub links checked against live versions | 0 | 0 | 0 | PASS |
+| E1 | auto | Report names the commit and deployed versions; hub links checked against live versions | 0 | 0 | 1 | FAIL |
 | E2 | process | Full suites twice green after every change; this gate runs last | 0 | 0 | 0 | HUMAN/PROCESS |
 | E3 | auto | Screenshots taken by this run from fresh contexts on the deployed sites | 0 | 0 | 0 | PASS |
 | E4 | n/a | WebKit and Firefox | 0 | 0 | 0 | N/A |
@@ -80,28 +80,26 @@ Generated 2026-11-06T12:59:31.046Z. Commit e572d6e934d127f553798ae5fe39ef0258e02
 
 | CE | Status | Option | Text / element | Note | Where (page · role · width) | Shot | Reason |
 |---|---|---|---|---|---|---|---|
-| e6f632fb2d | UNTRIAGED | A | autrice · `fr` | unknown fr word in « Auteur/autrice » (14×) | http://127.0.0.1:9460/wp-admin/edit.php?post_type=page · direction · 1440 |  |  |
+| e6f632fb2d | FALSE-POSITIVE | A | autrice · `fr` | unknown fr word in « Auteur/autrice » (14×) | http://127.0.0.1:9460/wp-admin/edit.php?post_type=page · direction · 1440 |  | R2: « Auteur/autrice » is WordPress core's French column heading (inclusive spelling), a valid word. |
 | 5812c2538c | FALSE-POSITIVE | A | equipe · `fr` | unknown fr word in « equipe » (2×) | http://127.0.0.1:9460/wp-admin/profile.php · equipe · 1440 |  | The login name shown in the « Identifiant » field of the profile screen: correct as typed. |
-| 731a17e08b | UNTRIAGED | A | Policy · `fr` | unknown fr word in « Privacy Policy — Brouillon, Page de politique de confidentialité » (8×) | http://127.0.0.1:9460/wp-admin/edit.php?post_type=page · direction · 1440 |  |  |
-| 319b036515 | UNTRIAGED | A | Privacy · `fr` | unknown fr word in « Privacy Policy — Brouillon, Page de politique de confidentialité » (8×) | http://127.0.0.1:9460/wp-admin/edit.php?post_type=page · direction · 1440 |  |  |
-| e6e9297558 | UNTRIAGED | A | Reconnectez-vous · `fr` | unknown fr word in « Votre session a expiré. Reconnectez-vous. » (3×) | http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-demandes&reauth=1 · direction · 1440 |  |  |
+| CE-B5-R2-001 | REAL | A | Policy · `fr` | unknown fr word in « Privacy Policy — Brouillon, Page de politique de confidentialité » (8×) | http://127.0.0.1:9460/wp-admin/edit.php?post_type=page · direction · 1440 |  | R2 NEW: the Pages list (now open to Direction) shows WordPress's default draft page in English, « Privacy Policy — Brouillon », inside a French screen. Seed or retitle it in the blueprint. |
+| CE-B5-R2-001 | REAL | A | Privacy · `fr` | unknown fr word in « Privacy Policy — Brouillon, Page de politique de confidentialité » (8×) | http://127.0.0.1:9460/wp-admin/edit.php?post_type=page · direction · 1440 |  | R2 NEW: the Pages list (now open to Direction) shows WordPress's default draft page in English, « Privacy Policy — Brouillon », inside a French screen. Seed or retitle it in the blueprint. |
+| e6e9297558 | FALSE-POSITIVE | A | Reconnectez-vous · `fr` | unknown fr word in « Votre session a expiré. Reconnectez-vous. » (3×) | http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-demandes&reauth=1 · direction · 1440 |  | R2: « Reconnectez-vous » is correct French (imperative with hyphen); the spell list lacks the verb form. This is the new « Votre session a expiré » message. |
 
 ### B6
 
 | CE | Status | Option | Text / element | Note | Where (page · role · width) | Shot | Reason |
 |---|---|---|---|---|---|---|---|
-| 12b3732ae8 | UNTRIAGED | A | access log | none of « Journal GM&E / Journal / Journal d’accès » seen in the A UI | glossary · visiteur ·  |  |  |
 | de4f377ae3 | FALSE-POSITIVE | A | sign out | none of « Se déconnecter » seen in the A UI | glossary · visiteur ·  |  | WordPress shows « Se déconnecter » only in the account menu that opens on hover; the inventory records what is visible without hovering. The C10 replay hovered and clicked it (T5.2). Not tightened: the inventory stays « visible without interaction », the term is checked by C10. |
-| 791f5c3260 | UNTRIAGED | B | access log | none of « Journal GM&E / Journal / Journal d’accès » seen in the B UI | glossary · visiteur ·  |  |  |
 
 ### C4
 
 | CE | Status | Option | Text / element | Note | Where (page · role · width) | Shot | Reason |
 |---|---|---|---|---|---|---|---|
-| CE-C4-001 | REAL | A | CLS 0.048 · `DIV.drag-drop-inside+P.upload-flash-bypass+P.max-upload-size@1390ms=0.0482` | layout shift above 0.02 | http://127.0.0.1:9460/wp-admin/media-new.php · direction · 1440 (3×) | out/shots/0188-A-direction-1440-direction-wp-admin-media-new-php.png | WordPress admin screens shift after load: 0.02–0.07 (post-new 0.06–0.07 at 390, media-new 0.048, our Demandes detail 0.027 and Accès GM&E 0.022). Mostly core admin; the two plugin screens are ours. |
-| CE-C4-001 | REAL | A | CLS 0.034 · `DIV.admin-ui-navigable-region.interface-interface-skeleton__sidebar+DIV.editor-h` | layout shift above 0.02 | http://127.0.0.1:9460/wp-admin/post-new.php?post_type=page · direction · 1440 (2×) | out/shots/0190-A-direction-1440-direction-wp-admin-post-new-php-post-type-page.png | WordPress admin screens shift after load: 0.02–0.07 (post-new 0.06–0.07 at 390, media-new 0.048, our Demandes detail 0.027 and Accès GM&E 0.022). Mostly core admin; the two plugin screens are ours. |
-| CE-C4-001 | REAL | A | CLS 0.070 · `TEXTAREA#content.wp-editor-area+DIV#submitdiv.postbox+TABLE#post-status-info@217` | layout shift above 0.02 | http://127.0.0.1:9460/wp-admin/post-new.php?post_type=asset_congres · contributeur · 390 | out/shots/0252-A-contributeur-390-contributeur-390-wp-admin-post-new-php-post-type-asset-congr.png | WordPress admin screens shift after load: 0.02–0.07 (post-new 0.06–0.07 at 390, media-new 0.048, our Demandes detail 0.027 and Accès GM&E 0.022). Mostly core admin; the two plugin screens are ours. |
-| CE-C4-001 | REAL | A | CLS 0.061 · `TEXTAREA#content.wp-editor-area+DIV#submitdiv.postbox+DIV.inside@2249ms=0.061` | layout shift above 0.02 | http://127.0.0.1:9460/wp-admin/post-new.php?post_type=asset_congres · equipe · 390 (2×) | out/shots/0258-A-equipe-390-equipe-390-wp-admin-post-new-php-post-type-asset-congres.png | WordPress admin screens shift after load: 0.02–0.07 (post-new 0.06–0.07 at 390, media-new 0.048, our Demandes detail 0.027 and Accès GM&E 0.022). Mostly core admin; the two plugin screens are ours. |
+| CE-C4-001 | FALSE-POSITIVE | A | CLS 0.048 · `DIV.drag-drop-inside+P.upload-flash-bypass+P.max-upload-size@1582ms=0.0482` | layout shift above 0.02 | http://127.0.0.1:9460/wp-admin/media-new.php · direction · 1440 (3×) | out/shots/0038-A-direction-1440-direction-wp-admin-media-new-php.png | R2: every remaining shift is WordPress core (media-new, post-new for pages and congresses); the plugin screens (Demandes detail, Accès GM&E) no longer shift. Known and out of our control, accepted by the operator. |
+| CE-C4-001 | FALSE-POSITIVE | A | CLS 0.034 · `DIV.admin-ui-navigable-region.interface-interface-skeleton__sidebar+DIV.editor-h` | layout shift above 0.02 | http://127.0.0.1:9460/wp-admin/post-new.php?post_type=page · direction · 1440 (2×) | out/shots/0040-A-direction-1440-direction-wp-admin-post-new-php-post-type-page.png | R2: every remaining shift is WordPress core (media-new, post-new for pages and congresses); the plugin screens (Demandes detail, Accès GM&E) no longer shift. Known and out of our control, accepted by the operator. |
+| CE-C4-001 | FALSE-POSITIVE | A | CLS 0.070 · `TEXTAREA#content.wp-editor-area+DIV#submitdiv.postbox+TABLE#post-status-info@267` | layout shift above 0.02 | http://127.0.0.1:9460/wp-admin/post-new.php?post_type=asset_congres · contributeur · 390 | out/shots/0102-A-contributeur-390-contributeur-390-wp-admin-post-new-php-post-type-asset-congr.png | R2: every remaining shift is WordPress core (media-new, post-new for pages and congresses); the plugin screens (Demandes detail, Accès GM&E) no longer shift. Known and out of our control, accepted by the operator. |
+| CE-C4-001 | FALSE-POSITIVE | A | CLS 0.061 · `TEXTAREA#content.wp-editor-area+DIV#submitdiv.postbox+DIV.inside@2382ms=0.061` | layout shift above 0.02 | http://127.0.0.1:9460/wp-admin/post-new.php?post_type=asset_congres · equipe · 390 (2×) | out/shots/0108-A-equipe-390-equipe-390-wp-admin-post-new-php-post-type-asset-congres.png | R2: every remaining shift is WordPress core (media-new, post-new for pages and congresses); the plugin screens (Demandes detail, Accès GM&E) no longer shift. Known and out of our control, accepted by the operator. |
 
 ### C5
 
@@ -110,13 +108,19 @@ Generated 2026-11-06T12:59:31.046Z. Commit e572d6e934d127f553798ae5fe39ef0258e02
 | a9d28ea061 | FALSE-POSITIVE | A-admin | -apple-system \| radius 2px (login page «  »); -apple-system \| radius 0px (C10 T1.1 « Options de l’écran »); dashicons \| radius 2px (C10 T1.2 | 4 button style families | A-admin · visiteur ·  |  | The extra families are WordPress core chrome (« Options de l’écran » tab, login page), not our buttons. Kept visible in the report; the plugin's own buttons are one family. |
 | CE-C5-001 | REAL | hub | Inter \| radius 2px (hub/demo/ « Open the demos »); ui-monospace \| radius 4px (hub/ « ESPACE CLIENT »); Inter \| radius 4px (hub/ « ‹ »); Inte | 4 button style families | hub · visiteur ·  |  | Buttons on the concept pages (/ and /console/) are uppercase monospace, on the demos hub Inter sentence case: the five pages linked from the hub do not share one button style. |
 
+### C7
+
+| CE | Status | Option | Text / element | Note | Where (page · role · width) | Shot | Reason |
+|---|---|---|---|---|---|---|---|
+| CE-C7-001 | REAL | HUB |   Same requirements, fictional data and codes, sandboxes that reset themselves. | the hub does not say that each trial is private | demo/ · visiteur ·  |  | The hub never says that each person's trial is private to their browser (B's own login page does). |
+
 ### C10
 
 | CE | Status | Option | Text / element | Note | Where (page · role · width) | Shot | Reason |
 |---|---|---|---|---|---|---|---|
-| e00c557b95 | UNTRIAGED | A | T5 step 1: Signed in as equipe, open « Codes GM&E › Codes »: the codes are hidden. Click « Demander l’accès » and give a reason. · `instruction replay` | label « Codes » not visible | http://127.0.0.1:9460/wp-admin/admin.php?page=asset-gme · equipe · 1440 | out/shots/0227-A-equipe-1440-C10-T5-1.png |  |
-| CE-C10-001 | REAL | A | T5 step 3: Sign in as equipe again and open « Codes GM&E › Codes ». The code stays hidden until you click « Afficher le code »: that click i · `instruction replay` | label « Codes » not visible | http://127.0.0.1:9460/wp-admin/admin.php?page=asset-gme · equipe · 1440 | out/shots/0245-A-equipe-1440-C10-T5-3.png | Hub A task 5 step 3 says « the code is shown »; the reader must still click « Révéler le code » (one extra click the hub does not mention). |
-| CE-C10-003 | REAL | B | T5 step 3: Sign in as equipe again and open « Codes GM&E › Codes ». The code stays hidden until you click « Afficher le code »: that click i · `instruction replay` | hub says « the code is shown » after signing in; the reader must still click « Afficher le code » | https://asset-voyages-demo.debanjan186.workers.dev/console/gme/112/afficher · equipe · 1440 | out/shots/0080-B-equipe-1440-C10-T5-3.png | Hub B task 5 step 3 says « the code is shown »; the reader must still click « Afficher le code ». |
+| e00c557b95 | FALSE-POSITIVE | A | T5 step 1: Signed in as equipe, open « Codes GM&E › Codes »: the codes are hidden. Click « Demander l’accès » and give a reason. · `instruction replay` | label « Codes » not visible | http://127.0.0.1:9460/wp-admin/admin.php?page=asset-gme · equipe · 1440 | out/shots/0077-A-equipe-1440-C10-T5-1.png | R2: gate artefact. The C2 probe clicked WordPress's « Replier le menu », which persists per user and folded the admin menu for the next sign-in. Tightened: that button is no longer probed. |
+| 509f4ed7ea | FALSE-POSITIVE | A | T5 step 3: Sign in as equipe again and open « Codes GM&E › Codes ». The code stays hidden until you click « Afficher le code »: that click i · `instruction replay` | label « Codes » not visible | http://127.0.0.1:9460/wp-admin/admin.php?page=asset-gme · equipe · 1440 | out/shots/0095-A-equipe-1440-C10-T5-3.png | R2: gate artefact. The C2 probe clicked WordPress's « Replier le menu », which persists per user and folded the admin menu for the next sign-in. Tightened: that button is no longer probed. |
+| CE-C10-003 | FALSE-POSITIVE | B | T5 step 3: Sign in as equipe again and open « Codes GM&E › Codes ». The code stays hidden until you click « Afficher le code »: that click i · `instruction replay` | hub says « the code is shown » after signing in; the reader must still click « Afficher le code » | https://asset-voyages-demo.debanjan186.workers.dev/console/gme/112/afficher · equipe · 1440 | out/shots/0080-B-equipe-1440-C10-T5-3.png | R2: the hub now says « the code stays hidden until you click « Afficher le code »: that click is needed », so the click is documented. The gate rule was stale and is tightened (it flags only when the hub step does not name the label). |
 
 ### D1
 
@@ -128,9 +132,23 @@ Generated 2026-11-06T12:59:31.046Z. Commit e572d6e934d127f553798ae5fe39ef0258e02
 
 | CE | Status | Option | Text / element | Note | Where (page · role · width) | Shot | Reason |
 |---|---|---|---|---|---|---|---|
-| f5941be923 | UNTRIAGED | HUB | one · `rdPress starts fresh each time you open ⟨one⟩ of these links, so nothing from an` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  |  |  |
-| 7bd7b4fa2a | UNTRIAGED | HUB | 24 · `their browser. Trials are cleared after ⟨24⟩ hours without use. ⏎  ⏎ 2 Try it yo` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  (2×) |  |  |
-| ada1eddcfb | UNTRIAGED | HUB | 3 to 5 · `lls later, we will propose dates within ⟨3 to 5⟩ working days of your notice. ⏎ ` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  |  |  |
+| f5941be923 | FALSE-POSITIVE | HUB | one · `rdPress starts fresh each time you open ⟨one⟩ of these links, so nothing from an` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  (3×) |  | R2: « one » is a pronoun (« each time you open one of these links »), not a number. |
+| 7bd7b4fa2a | FALSE-POSITIVE | HUB | 24 · ` to other visitors and is cleared after ⟨24⟩ hours without use. Option A starts ` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  (2×) |  | R2: « 24 hours without use » is traced: the nightly purge keys on sandboxes.last_seen (custom_demo/src/data.js:14), and C7 passes on the idle rule. |
+| CE-D3-001 | REAL | HUB | 4 · ` five tasks from start to finish (about ⟨4⟩ min). ⏎ Option B, our custom platfor` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  (2×) |  | « Try it in five minutes » is a time promise with no source and no measurement (the robot replay alone took 82 s for B, without reading). |
+| CE-D3-001 | REAL | HUB | 3 · ` five tasks from start to finish (about ⟨3⟩ min 30). ⏎ 3 What works today, and w` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  (2×) |  | « Try it in five minutes » is a time promise with no source and no measurement (the robot replay alone took 82 s for B, without reading). |
+| a1ab05068a | UNTRIAGED | HUB | 30 · `tasks from start to finish (about 3 min ⟨30⟩). ⏎ 3 What works today, and what we` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  |  |  |
+| 297483d3c4 | UNTRIAGED | HUB | two · `ted separately ⏎ The site is prepared for ⟨two⟩ languages from the start; the En` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  |  |  |
+| 9adfc2d3b6 | UNTRIAGED | HUB | 1 · `once. ⏎  ⏎ The access path for a GM&E code. ⟨1⟩. Team member sees the code hidde` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  |  |  |
+| f12355073f | UNTRIAGED | HUB | 2 · `e. 1. Team member sees the code hidden. ⟨2⟩. Asks for access and gives a reason.` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  |  |  |
+| 4e9c564547 | UNTRIAGED | HUB | 5 · `ses. 4. Code shown to that person only. ⟨5⟩. Access recorded: who, when, which c` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  |  |  |
+| ebe25a2354 | UNTRIAGED | HUB | 13 to 14 · `n read. ⏎ 6 Milestones ⏎  ⏎ Indicative, about ⟨13 to 14⟩ weeks to launch in all;` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  |  |  |
+| CE-D3-R2-001 | REAL | HUB | 3 to 5 · ` we will offer a slot that falls within ⟨3 to 5⟩ working days of your notice. ⏎ ` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  |  | R2 NEW: « a slot within 3 to 5 working days of your notice » (site/demo/index.html:499) is a time promise with no source line in the repository. Trace it or remove the figure. |
+
+### E1
+
+| CE | Status | Option | Text / element | Note | Where (page · role · width) | Shot | Reason |
+|---|---|---|---|---|---|---|---|
+| 5bfb1dbe2b | UNTRIAGED | HUB | demo/index.html | deployed file differs from site/ in the repository | https://asset-voyages-redesign.pages.dev/demo/index.html · visiteur ·  |  |  |
 
 ## C10 instruction replay
 
@@ -190,10 +208,10 @@ Generated 2026-11-06T12:59:31.046Z. Commit e572d6e934d127f553798ae5fe39ef0258e02
 | 5. GM&E codes protected | B | Works in the demo Codes hidden, access asked with a reason, 24-hour ap | yes | this run: C10 T5 functional PASS · custom_demo/README.md: `s5_gme.spec.mjs` 11/11 pass |
 | Email notifications | A | Built during the project The demo shows a log of the messages instead  | yes | no UI label pretends it works |
 | Email notifications | B | Built during the project The demo shows a log of the messages instead  | yes | no UI label pretends it works |
-| Importing about 300 congresses from a spreadsheet | A | Built during the project With duplicate checks, and a trial run first. | yes | no UI label pretends it works |
-| Importing about 300 congresses from a spreadsheet | B | Built during the project With duplicate checks, and a trial run first. | yes | no UI label pretends it works |
-| English version | A | Built during the project Pages and congresses in English alongside Fre | yes | no UI label pretends it works |
-| English version | B | Built during the project Pages and congresses in English alongside Fre | yes | no UI label pretends it works |
+| Importing about 300 congresses from a spreadsheet in the template we supply | A | Built during the project With duplicate checks and a trial run first;  | yes | no UI label pretends it works |
+| Importing about 300 congresses from a spreadsheet in the template we supply | B | Built during the project With duplicate checks and a trial run first;  | yes | no UI label pretends it works |
+| English version | A | Option, quoted separately A WordPress translation extension is added w | yes | no UI label pretends it works |
+| English version | B | Option, quoted separately The site is prepared for two languages from  | yes | no UI label pretends it works |
 | Two-step login for staff | A | Built during the project A password plus a second check, for every sta | yes | no UI label pretends it works |
 | Two-step login for staff | B | Built during the project Staff sign in with a code sent to their email | yes | no UI label pretends it works |
 | Backups and restore | A | Built during the project Regular backups, and a tested way to restore  | yes | no UI label pretends it works |
@@ -225,7 +243,7 @@ Generated 2026-11-06T12:59:31.046Z. Commit e572d6e934d127f553798ae5fe39ef0258e02
 | ask for access | Demander l’accès | Demander l’accès | Demander l’accès |
 | approve | Approuver pour 24 h | Approuver pour 24 h |  |
 | show the code | Afficher le code | Afficher le code | Afficher le code |
-| access log |  |  |  |
+| access log | Journal d’accès GM&E | Journal d’accès GM&E | Journal d’accès GM&E |
 | access requests | Demandes d’accès | Demandes d’accès |  |
 | CSV export | Exporter en CSV | Exporter en CSV | Exporter en CSV |
 | sign out |  | Se déconnecter |  |

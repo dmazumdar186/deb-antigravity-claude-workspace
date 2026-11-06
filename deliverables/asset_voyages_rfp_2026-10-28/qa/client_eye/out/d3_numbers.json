@@ -36,16 +36,22 @@
   "src": null
  },
  {
-  "n": "twice",
-  "ctx": "s. Rather than describe it, we built it ⟨twice⟩, so you can try it yourselves and pick ",
-  "cls": "our own deliverable count (two demos, two recordings)",
+  "n": "one",
+  "ctx": "w it in both forms, so you can try each ⟨one⟩ yourselves and pick the option that sui",
+  "cls": "the word « one » as a pronoun or article, not a figure",
   "src": null
  },
  {
   "n": "five",
-  "ctx": "SSET. ⏎  ⏎ Both demos are built to the same ⟨five⟩ requirements from your consultation. Ev",
+  "ctx": "SSET. ⏎  ⏎ Both demos are built to the same ⟨five⟩ requirements from your email of 5 Novem",
   "cls": "sourced (the five stories ASSET asked to see)",
   "src": "21_Acceptance_Gates_5_Stories.md:1"
+ },
+ {
+  "n": "5",
+  "ctx": "me five requirements from your email of ⟨5⟩ November. Every congress, person, enqui",
+  "cls": "date",
+  "src": null
  },
  {
   "n": "one",
@@ -54,14 +60,14 @@
   "src": null
  },
  {
-  "n": "15 to 25",
-  "ctx": "site ⏎ of Option A (new tab) ⏎  ⏎ Takes about ⟨15 to 25⟩ seconds to start. If it stays on the lo",
+  "n": "15 to 30",
+  "ctx": "site ⏎ of Option A (new tab) ⏎  ⏎ Takes about ⟨15 to 30⟩ seconds to start. If it stays on the lo",
   "cls": "measured by this gate (A2 hosted boot)",
   "src": null
  },
  {
-  "n": "15 to 25",
-  "ctx": "d in ⏎ to Option A (new tab) ⏎  ⏎ Takes about ⟨15 to 25⟩ seconds to start. If it stays on the lo",
+  "n": "15 to 30",
+  "ctx": "d in ⏎ to Option A (new tab) ⏎  ⏎ Takes about ⟨15 to 30⟩ seconds to start. If it stays on the lo",
   "cls": "measured by this gate (A2 hosted boot)",
   "src": null
  },
@@ -79,19 +85,19 @@
  },
  {
   "n": "24",
-  "ctx": "their browser. Trials are cleared after ⟨24⟩ hours without use. ⏎  ⏎ 2 Try it yourself ⏎  ⏎ ",
+  "ctx": " to other visitors and is cleared after ⟨24⟩ hours without use. Option A starts fres",
   "cls": null,
   "src": null
  },
  {
   "n": "2",
-  "ctx": "re cleared after 24 hours without use. ⏎  ⏎ ⟨2⟩ Try it yourself ⏎  ⏎ Your five requirements",
+  "ctx": " A starts fresh each time you open it. ⏎  ⏎ ⟨2⟩ Try it yourself ⏎  ⏎ Your five requirements",
   "cls": "section / list / diagram step number",
   "src": null
  },
  {
   "n": "five",
-  "ctx": "s without use. ⏎  ⏎ 2 Try it yourself ⏎  ⏎ Your ⟨five⟩ requirements, one task each. Each task ",
+  "ctx": "e you open it. ⏎  ⏎ 2 Try it yourself ⏎  ⏎ Your ⟨five⟩ requirements, one task each. Each task ",
   "cls": "sourced (the five stories ASSET asked to see)",
   "src": "21_Acceptance_Gates_5_Stories.md:1"
  },
@@ -199,19 +205,37 @@
  },
  {
   "n": "five",
-  "ctx": "e per option. ⏎  ⏎ Option A, WordPress: the ⟨five⟩ tasks from start to finish. ⏎ Option B, o",
+  "ctx": "e per option. ⏎  ⏎ Option A, WordPress: the ⟨five⟩ tasks from start to finish (about 4 min",
   "cls": "sourced (the five stories ASSET asked to see)",
   "src": "21_Acceptance_Gates_5_Stories.md:1"
  },
  {
+  "n": "4",
+  "ctx": " five tasks from start to finish (about ⟨4⟩ min). ⏎ Option B, our custom platform: th",
+  "cls": null,
+  "src": null
+ },
+ {
   "n": "five",
-  "ctx": "ish. ⏎ Option B, our custom platform: the ⟨five⟩ tasks from start to finish. ⏎ 3 What work",
+  "ctx": "in). ⏎ Option B, our custom platform: the ⟨five⟩ tasks from start to finish (about 3 min",
   "cls": "sourced (the five stories ASSET asked to see)",
   "src": "21_Acceptance_Gates_5_Stories.md:1"
  },
  {
   "n": "3",
-  "ctx": "m: the five tasks from start to finish. ⏎ ⟨3⟩ What works today, and what we would bui",
+  "ctx": " five tasks from start to finish (about ⟨3⟩ min 30). ⏎ 3 What works today, and what w",
+  "cls": null,
+  "src": null
+ },
+ {
+  "n": "30",
+  "ctx": "tasks from start to finish (about 3 min ⟨30⟩). ⏎ 3 What works today, and what we would",
+  "cls": null,
+  "src": null
+ },
+ {
+  "n": "3",
+  "ctx": " from start to finish (about 3 min 30). ⏎ ⟨3⟩ What works today, and what we would bui",
   "cls": "section / list / diagram step number",
   "src": null
  },
@@ -253,13 +277,25 @@
  },
  {
   "n": "300",
-  "ctx": "nstead of sending them. ⏎ Importing about ⟨300⟩ congresses from a spreadsheet\t ⏎ Built du",
+  "ctx": "nstead of sending them. ⏎ Importing about ⟨300⟩ congresses from a spreadsheet in the te",
   "cls": "sourced (RFP: CSV import of ~300 listings)",
   "src": "00_RFP_Analysis_and_Plan.md:16"
  },
  {
+  "n": "one",
+  "ctx": "rench site is built so that it can take ⟨one⟩.\t ⏎ Option, quoted separately ⏎ The site is",
+  "cls": null,
+  "src": null
+ },
+ {
+  "n": "two",
+  "ctx": "ted separately ⏎ The site is prepared for ⟨two⟩ languages from the start; the English v",
+  "cls": null,
+  "src": null
+ },
+ {
   "n": "Two",
-  "ctx": "congresses in English alongside French. ⏎ ⟨Two⟩-step login for staff\t ⏎ Built during the ",
+  "ctx": "on is switched on as a separate option. ⏎ ⟨Two⟩-step login for staff\t ⏎ Built during the ",
   "cls": "term (two-step login), not a figure",
   "src": null
  },
@@ -271,7 +307,13 @@
  },
  {
   "n": "one",
-  "ctx": " by hand. ⏎  ⏎ What it does ⏎ Your team sends ⟨one⟩ link for the enquiry, in its reply to t",
+  "ctx": "er’s details and bring them together in ⟨one⟩ list. ⏎  ⏎ What it does ⏎ Your team sends one",
+  "cls": null,
+  "src": null
+ },
+ {
+  "n": "one",
+  "ctx": "one list. ⏎  ⏎ What it does ⏎ Your team sends ⟨one⟩ link for the enquiry, in its reply to t",
   "cls": "the word « one » as a pronoun or article, not a figure",
   "src": null
  },
@@ -289,43 +331,79 @@
  },
  {
   "n": "4",
-  "ctx": "tatus per traveller come in production. ⏎ ⟨4⟩ How each one is built, in plain words ⏎ O",
+  "ctx": " belong to that separate scope as well. ⏎ ⟨4⟩ How each one is built, in plain words ⏎ O",
   "cls": "section / list / diagram step number",
   "src": null
  },
  {
   "n": "one",
-  "ctx": "raveller come in production. ⏎ 4 How each ⟨one⟩ is built, in plain words ⏎ Option A: Word",
+  "ctx": "that separate scope as well. ⏎ 4 How each ⟨one⟩ is built, in plain words ⏎ Option A: Word",
   "cls": "the word « one » as a pronoun or article, not a figure",
   "src": null
  },
  {
   "n": "one",
-  "ctx": "rom the start matter most. ⏎  ⏎ With either ⟨one⟩: the source code, the data and every ac",
+  "ctx": "least upkeep matters most. ⏎  ⏎ With either ⟨one⟩: in both options the GM&E codes are kep",
   "cls": "the word « one » as a pronoun or article, not a figure",
   "src": null
  },
  {
   "n": "5",
-  "ctx": "ything; and you receive documentation. ⏎  ⏎ ⟨5⟩ How the GM&E codes stay protected ⏎  ⏎ The ",
+  "ctx": "xport pages, congresses and enquiries. ⏎  ⏎ ⟨5⟩ How the GM&E codes stay protected ⏎  ⏎ The ",
   "cls": "section / list / diagram step number",
   "src": null
  },
  {
   "n": "24",
-  "ctx": "pproval, ever sees a code, and only for ⟨24⟩ hours. ⏎  ⏎ 1 ⏎ Team member ⏎ sees the code ⏎ hid",
+  "ctx": "ode only with Direction’s approval, for ⟨24⟩ hours; Direction manages the codes and ",
   "cls": "sourced (S5 approval lasts 24 h)",
   "src": "21_Acceptance_Gates_5_Stories.md:88"
  },
  {
   "n": "1",
-  "ctx": "er sees a code, and only for 24 hours. ⏎  ⏎ ⟨1⟩ ⏎ Team member ⏎ sees the code ⏎ hidden ⏎ 2 ⏎ Asks",
+  "ctx": "once. ⏎  ⏎ The access path for a GM&E code. ⟨1⟩. Team member sees the code hidden. 2. A",
+  "cls": null,
+  "src": null
+ },
+ {
+  "n": "2",
+  "ctx": "e. 1. Team member sees the code hidden. ⟨2⟩. Asks for access and gives a reason. 3.",
+  "cls": null,
+  "src": null
+ },
+ {
+  "n": "3",
+  "ctx": " 2. Asks for access and gives a reason. ⟨3⟩. Direction approves for 24 h, or refuse",
+  "cls": null,
+  "src": null
+ },
+ {
+  "n": "24",
+  "ctx": "ves a reason. 3. Direction approves for ⟨24⟩ h, or refuses. 4. Code shown to that pe",
+  "cls": "sourced (S5 approval lasts 24 h)",
+  "src": "21_Acceptance_Gates_5_Stories.md:88"
+ },
+ {
+  "n": "4",
+  "ctx": "irection approves for 24 h, or refuses. ⟨4⟩. Code shown to that person only. 5. Acc",
+  "cls": null,
+  "src": null
+ },
+ {
+  "n": "5",
+  "ctx": "ses. 4. Code shown to that person only. ⟨5⟩. Access recorded: who, when, which code",
+  "cls": null,
+  "src": null
+ },
+ {
+  "n": "1",
+  "ctx": "ed: who, when, which code, every time. ⏎  ⏎ ⟨1⟩ ⏎ Team member ⏎ sees the code ⏎ hidden ⏎ 2 ⏎ Asks",
   "cls": "section / list / diagram step number",
   "src": null
  },
  {
   "n": "2",
-  "ctx": "rs. ⏎  ⏎ 1 ⏎ Team member ⏎ sees the code ⏎ hidden ⏎ ⟨2⟩ ⏎ Asks for access ⏎ and gives ⏎ a reason ⏎ 3 ⏎ Di",
+  "ctx": "me. ⏎  ⏎ 1 ⏎ Team member ⏎ sees the code ⏎ hidden ⏎ ⟨2⟩ ⏎ Asks for access ⏎ and gives ⏎ a reason ⏎ 3 ⏎ Di",
   "cls": "section / list / diagram step number",
   "src": null
  },
@@ -355,25 +433,31 @@
  },
  {
   "n": "6",
-  "ctx": "pt in a record that Direction can read. ⏎ ⟨6⟩ Milestones ⏎  ⏎ Counted from your approval ",
+  "ctx": "pt in a record that Direction can read. ⏎ ⟨6⟩ Milestones ⏎  ⏎ Indicative, about 13 to 14 ",
   "cls": "section / list / diagram step number",
   "src": null
  },
  {
+  "n": "13 to 14",
+  "ctx": "n read. ⏎ 6 Milestones ⏎  ⏎ Indicative, about ⟨13 to 14⟩ weeks to launch in all; counted from yo",
+  "cls": null,
+  "src": null
+ },
+ {
   "n": "1",
-  "ctx": "lan is the same for both options. ⏎  ⏎ Week ⟨1⟩ ⏎ Week 5 ⏎ Week 10 ⏎ After launch ⏎ Kickoff, ac",
+  "ctx": " dates for the option you choose. ⏎  ⏎ Week ⟨1⟩ ⏎ Week 5 ⏎ Week 10 ⏎ After launch ⏎ Kickoff, ac",
   "cls": "week",
   "src": null
  },
  {
   "n": "5",
-  "ctx": "the same for both options. ⏎  ⏎ Week 1 ⏎ Week ⟨5⟩ ⏎ Week 10 ⏎ After launch ⏎ Kickoff, access an",
+  "ctx": "for the option you choose. ⏎  ⏎ Week 1 ⏎ Week ⟨5⟩ ⏎ Week 10 ⏎ After launch ⏎ Kickoff, access an",
   "cls": "week",
   "src": null
  },
  {
   "n": "10",
-  "ctx": "e for both options. ⏎  ⏎ Week 1 ⏎ Week 5 ⏎ Week ⟨10⟩ ⏎ After launch ⏎ Kickoff, access and audit ⏎ ",
+  "ctx": " option you choose. ⏎  ⏎ Week 1 ⏎ Week 5 ⏎ Week ⟨10⟩ ⏎ After launch ⏎ Kickoff, access and audit ⏎ ",
   "cls": "week",
   "src": null
  },
@@ -433,25 +517,37 @@
  },
  {
   "n": "four",
-  "ctx": "2 ⏎  ⏎ For your team, with a second session ⟨four⟩ weeks after launch. ⏎  ⏎ Launch ⏎  ⏎ Week 13 ⏎  ⏎ A",
+  "ctx": "2 ⏎  ⏎ For your team, with a second session ⟨four⟩ weeks after launch. ⏎  ⏎ Launch ⏎  ⏎ Weeks 13 t",
   "cls": "sourced (training plan)",
   "src": "advisory/src/part3.md:90"
  },
  {
-  "n": "13",
-  "ctx": " four weeks after launch. ⏎  ⏎ Launch ⏎  ⏎ Week ⟨13⟩ ⏎  ⏎ After your written acceptance and mana",
+  "n": "13 to 14",
+  "ctx": "four weeks after launch. ⏎  ⏎ Launch ⏎  ⏎ Weeks ⟨13 to 14⟩ ⏎  ⏎ After your written acceptance and mana",
   "cls": "week",
   "src": null
  },
  {
   "n": "Four",
-  "ctx": "ected to the new pages. ⏎  ⏎ Stabilisation ⏎  ⏎ ⟨Four⟩ weeks after launch ⏎  ⏎ We watch the new si",
+  "ctx": "ected to the new pages. ⏎  ⏎ Stabilisation ⏎  ⏎ ⟨Four⟩ weeks after launch ⏎  ⏎ For four weeks afte",
   "cls": "sourced (4 weeks stabilisation)",
   "src": "00_RFP_Analysis_and_Plan.md:75"
  },
  {
+  "n": "four",
+  "ctx": "ilisation ⏎  ⏎ Four weeks after launch ⏎  ⏎ For ⟨four⟩ weeks after launch, as set out in the p",
+  "cls": "sourced (4 weeks stabilisation)",
+  "src": "00_RFP_Analysis_and_Plan.md:75"
+ },
+ {
+  "n": "T01 to T15",
+  "ctx": "d scope that fails its acceptance test (⟨T01 to T15⟩). ⏎  ⏎ The launch date is agreed together. ⏎ ",
+  "cls": "sourced (RFP acceptance tests)",
+  "src": "00_RFP_Analysis_and_Plan.md:8"
+ },
+ {
   "n": "7",
-  "ctx": "d. The launch date is agreed together. ⏎  ⏎ ⟨7⟩ A 20 to 30 minute demonstration ⏎  ⏎ We wal",
+  "ctx": ". ⏎  ⏎ The launch date is agreed together. ⏎  ⏎ ⟨7⟩ A 20 to 30 minute demonstration ⏎  ⏎ We wal",
   "cls": "section / list / diagram step number",
   "src": null
  },
@@ -463,7 +559,7 @@
  },
  {
   "n": "3 to 5",
-  "ctx": "lls later, we will propose dates within ⟨3 to 5⟩ working days of your notice. ⏎  ⏎ Thursday ",
+  "ctx": " we will offer a slot that falls within ⟨3 to 5⟩ working days of your notice. ⏎  ⏎ Thursday ",
   "cls": null,
   "src": null
  },

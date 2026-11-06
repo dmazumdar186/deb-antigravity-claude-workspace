@@ -96,17 +96,17 @@
   "evidence": "no UI label pretends it works"
  },
  {
-  "fn": "Importing about 300 congresses from a spreadsheet",
+  "fn": "Importing about 300 congresses from a spreadsheet in the template we supply",
   "option": "A",
-  "cell": "Built during the project With duplicate checks, and a trial run first.",
+  "cell": "Built during the project With duplicate checks and a trial run first; checking the events themselves stays with your tea",
   "works": false,
   "ok": true,
   "evidence": "no UI label pretends it works"
  },
  {
-  "fn": "Importing about 300 congresses from a spreadsheet",
+  "fn": "Importing about 300 congresses from a spreadsheet in the template we supply",
   "option": "B",
-  "cell": "Built during the project With duplicate checks, and a trial run first.",
+  "cell": "Built during the project With duplicate checks and a trial run first; checking the events themselves stays with your tea",
   "works": false,
   "ok": true,
   "evidence": "no UI label pretends it works"
@@ -114,7 +114,7 @@
  {
   "fn": "English version",
   "option": "A",
-  "cell": "Built during the project Pages and congresses in English alongside French.",
+  "cell": "Option, quoted separately A WordPress translation extension is added when the English version is ordered; the French sit",
   "works": false,
   "ok": true,
   "evidence": "no UI label pretends it works"
@@ -122,7 +122,7 @@
  {
   "fn": "English version",
   "option": "B",
-  "cell": "Built during the project Pages and congresses in English alongside French.",
+  "cell": "Option, quoted separately The site is prepared for two languages from the start; the English version is switched on as a",
   "works": false,
   "ok": true,
   "evidence": "no UI label pretends it works"
@@ -162,7 +162,7 @@
  {
   "fn": "Editing all the site’s pages",
   "option": "A",
-  "cell": "Works in the demo The standard WordPress page editor: sign in as direction and open « Pages ». Your current pages are mo",
+  "cell": "Works in the demo The standard WordPress page editor: sign in as direction and open « Pages ». The pages listed in the s",
   "works": true,
   "ok": true,
   "evidence": "this run (gate test CE-D1-PAGES): direction opens « Pages » (edit.php?post_type=page) HTTP 200 · no earlier test ID in wp_demo/README.md"
