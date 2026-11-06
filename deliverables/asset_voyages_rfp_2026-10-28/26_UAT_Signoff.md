@@ -123,23 +123,23 @@ Observation for 4.2 and 4.9 (re-run 6 Nov): the « Demandes » table now fits a 
 | A1.1 | Log in as `direction`. Look at the left menu on « Tableau de bord ». | The menu shows « Tableau de bord, Médias, Congrès, Demandes, Accès GM&E, Profil ». | PASS | uat-S1-01.png |
 | A1.2 | Click « Congrès », then « Ajouter un congrès ». | The « Informations du congrès » box opens, and the required fields are marked « (obligatoire) ». | PASS | uat-S1-02.png (5 fields marked) |
 | A1.3 | Type a title ending « — exemple ». Fill in « Date de début », « Date de fin », « Ville » (Lille), « Pays », « Discipline », « Lieu », « Site officiel » and « Date de vérification ». | Each field can be found by its French label. | PASS | uat-S1-03.png |
-| A1.4 | Click « Publier ». | « Publication mise en ligne. » | PASS (see note) | uat-S1-04.png |
+| A1.4 | Click « Publier ». | « Publication mise en ligne. » | PASS (hosted too: 1.0 s, no « Connexion perdue » in 3 runs) | r2/evidence/uat-S1-04.png, hosted2-s1-published-1440.png |
 | A1.5 | **Visitor side:** open the congress page while logged out. | The title and « Lille » are shown. | PASS | uat-s1-run.log |
 | A1.6 | From « Tableau de bord », click « Congrès », then the title. Change « Ville » to Roubaix and click « Mettre à jour ». | The change is saved, and the admin shows Roubaix. | PASS | uat-S1-06.png |
 | A1.7 | **Visitor side:** reload the public page. | It shows « Roubaix ». | PASS | uat-s1-run.log |
 | A1.8 | Set « Date de fin » earlier than « Date de début » and click « Mettre à jour ». | « La date de fin doit être postérieure ou égale à la date de début : dates non enregistrées. » | PASS | uat-S1-08.png |
 | A1.9 | Log in as `contributeur`, then go to « Congrès » → « Ajouter un congrès ». | The button reads « Soumettre à la relecture », not « Publier ». After submitting, the status is « En attente de relecture ». | PASS | uat-S1-09.png |
 | A1.10 | **Visitor side:** search for that congress in the catalogue. | « 0 congrès trouvés ». | PASS | uat-s1-run.log |
-| A1.K | Keyboard only: steps A1.2 to A1.4. | The congress is published. | **FAIL** | kb-result-run4/5/6/7.json: every field and « Publier » can be reached with a visible focus ring (7 + 9 + 22 + 55 Tabs), but the form was never posted in 5 runs. A control run, using a mouse click after typing with the keyboard, also failed. A mouse run with filled fields passed. See A11Y-A-005. |
+| A1.K | Keyboard only: steps A1.2 to A1.4. | The congress is published. | PASS | r2/kb2-result.json: 7 Tabs to « Congrès », 9 to « Ajouter un congrès », 38 from the title to « Date de début » (through « Description du congrès », no tab trap), 2/2/1/1 for the other fields, then 22 Shift+Tab to « Publier » and Enter. Result: « Publication mise en ligne. » The focus ring is visible throughout. A11Y-A-005 is fixed (A11Y-A-203). |
 
-Note A1.4: in the first mouse run, « Publier » did nothing, and WordPress showed « Connexion perdue. L’enregistrement a été désactivé… ». It passed on the re-run. See USAB-A-008.
+Note A1.4: round 1 saw one « Connexion perdue » on a loaded machine (USAB-A-008). In round 2 autosave is off on the congress editor, and « Publier » worked in every local and hosted run, so USAB-A-008 is closed. New in round 2: « Description du congrès » shows raw block markup (`<!-- wp:paragraph -->`) on the seeded congresses (EYE-A-201, Medium). It does not block any step.
 
 ### Scenario A2: public catalogue, search, filters, details (S2)
 
 | # | Step | Expected | 1440 | 390 | Evidence |
 |---|---|---|---|---|---|
-| A2.0 | Open the hosted **visitor** link. | The catalogue opens, logged out. | **FAIL** | n/a | hosted-visitor-1440.png: catalogue after 18.8 s, but the page shows the admin bar with « Bonjour, admin », « Modifier le site » and « Modifier la page ». The Playground toolbar (« New, Playgrounds, Site Settings, Export, Dev Tools ») covers the bottom of the page. See USAB-A-001. |
-| A2.1 | Open the catalogue while logged out. | « Catalogue des congrès » and « 12 congrès trouvés ». | PASS | PASS | uat-S2-01.png, uat-S2@390-01.png |
+| A2.0 | Open the hosted **visitor** link. | The catalogue opens, logged out. | PASS | PASS | hosted2.log: logged out in 3 of 3 runs (no « Bonjour », no admin bar), no Playground toolbar, catalogue in 13.1–16.5 s at 1440 and 13.1–15.8 s at 390. The hosted chip → card → enquiry also passed (DV-2026-0007). USAB-A-201. |
+| A2.1 | Open the catalogue while logged out. | « Catalogue des congrès » and « 12 congrès trouvés ». | PASS | PASS | r2/evidence/uat-S2-01.png. The run showed 13, because A1 had just published one more congress; the fresh seed shows 12 (visitor-01-catalogue-1440.png). |
 | A2.2 | Click the « Cardiologie » chip. | Only cardiology congresses are listed (« 2 congrès trouvés »). | PASS | PASS | uat-S2-02.png |
 | A2.3 | Click the first card. | The details page shows « Dates, Ville, Pays, Discipline, Lieu, Site officiel » and « Demander un devis vol ». | PASS | PASS | uat-S2-03.png |
 | A2.4 | Check for sideways scrolling. | There is none. | PASS | PASS | scrollWidth 1440/1440 and 390/390 |
@@ -147,7 +147,7 @@ Note A1.4: in the first mouse run, « Publier » did nothing, and WordPress show
 | A2.6 | Search for `diabetologie`, typed without an accent. | « Diabétologie » is found. | PASS | n/a | uat-S2-06.png |
 | A2.7 | Search for `zzzz`, then click « Voir tous les congrès ». | « Aucun congrès ne correspond à votre recherche ». The reset brings back 12. | PASS | n/a | uat-S2-07.png |
 | A2.8 | Choose « Pays » = France and click « Rechercher ». | The filter is applied. Pagination was not exercised, because there were fewer than 10 results. | PASS | n/a | uat-S2-08.png |
-| A2.K | Keyboard only: Tab to the « Cardiologie » chip, press Enter, then Tab to the first card and press Enter. | The details page opens, with a visible focus ring. | PASS | n/a | kb-result-run4.json (12 + 24 Tabs) |
+| A2.K | Keyboard only: Tab to the « Cardiologie » chip, press Enter, then Tab to the first card and press Enter. | The details page opens, with a visible focus ring. | PASS | n/a | r2/kb2-result.json (12 + 24 Tabs) |
 
 ### Scenario A3: flight enquiry (S3)
 
@@ -156,9 +156,9 @@ Note A1.4: in the first mouse run, « Publier » did nothing, and WordPress show
 | A3.1 | On the congress page, look at « Demander un devis vol ». | « Congrès : … » is prefilled. All labels are present, from « Nom et prénom » to the « J’accepte… » consent. | PASS | PASS | uat-S3-01.png |
 | A3.2 | Click « Envoyer ma demande » with the form empty. | « Merci de corriger les points suivants », with « Indiquez votre nom. » and the other messages next to each field. | PASS | PASS | uat-S3-02.png |
 | A3.3 | Enter 0 passengers and a return date before the outbound date. | « La date retour doit être postérieure ou égale à la date aller. » and « Le nombre de passagers doit être un nombre entier entre 1 et 50. » The name already typed is kept. | PASS | PASS | uat-S3-03.png |
-| A3.4 | Correct the form (2 passengers, return 30/08/2027) and click « Envoyer ma demande » once. | « Merci, votre demande a bien été envoyée. » and « Votre référence : DV-2026-NNNN ». | PASS | PASS | DV-2026-0009 (1440), DV-2026-0010 (390) |
+| A3.4 | Correct the form (2 passengers, return 30/08/2027) and click « Envoyer ma demande » once. | « Merci, votre demande a bien été envoyée. » and « Votre référence : DV-2026-NNNN ». | PASS | PASS | DV-2026-0007 (1440), DV-2026-0008 (390); hosted DV-2026-0007 |
 | A3.5 | Reload the confirmation page. | The same reference is shown, and no second enquiry is created. | PASS | PASS | uat-S3-05.png |
-| A3.K | Keyboard only: fill and send the form. | A reference is shown. | PASS | n/a | kb-result-run4.json |
+| A3.K | Keyboard only: fill and send the form. | A reference is shown. | PASS | n/a | r2/kb2-result.json |
 
 ### Scenario A4: team receives, views, tracks, updates (S4)
 
@@ -168,11 +168,11 @@ Note A1.4: in the first mouse run, « Publier » did nothing, and WordPress show
 | A4.2 | Click the « Dernière demande » link. | The detail page shows « Ville de départ », « Date aller », « Date retour », « Passagers » and the contact. | PASS | uat-S4-02.png |
 | A4.3 | Choose « Qualifiée » in « Statut », choose « Équipe (démo) » in « Responsable », add an internal note and click « Enregistrer ». | « Demande mise à jour. » | PASS | uat-S4-03.png |
 | A4.4 | Look at « Historique ». | It shows who, when and « Nouvelle → Qualifiée », with no edit or delete control. | PASS | uat-S4-04.png |
-| A4.5 | Go back to « Tableau de bord ». | « Nouvelle » has gone down by 1 (6 → 5). | PASS | uat-S4-05.png |
+| A4.5 | Go back to « Tableau de bord ». | « Nouvelle » has gone down by 1. | PASS | r2/evidence/uat-S4-05.png (4 → 3) |
 | A4.6 | Click « Demandes ». | The row shows the reference, date, congress, contact, Lyon, dates, 2 passengers and « Qualifiée ». | PASS | uat-S4-06.png |
 | A4.7 | Click the « Qualifiée » view, search for « Claire » and click « Rechercher ». | The enquiry is found. | PASS | uat-S4-07.png |
 | A4.8 | Open « Demandes » → « Journal des notifications ». | There is an entry for the reference, marked « Non distribué (pas de SMTP) ». | PASS | uat-S4-08.png |
-| A4.K | Keyboard only: steps A4.2 to A4.3. | The status is saved. | PASS | kb-result.json (31 + 24 + 3 Tabs) |
+| A4.K | Keyboard only: steps A4.2 to A4.3. | The status is saved. | PASS | r2/kb2-result.json (31 + 24 + 3 Tabs). Hosted, mouse: equipe changed DV-2026-0006 to « Qualifiée » (hosted2-s4-1440.png). |
 
 ### Scenario A5: GM&E codes, access by authorisation (S5)
 
@@ -189,19 +189,19 @@ Note A1.4: in the first mouse run, « Publier » did nothing, and WordPress show
 | A5.9 | As `equipe`, reload « Accès GM&E ». | « Révéler le code » is gone, and « Dernière demande : Révoquée » is shown. | PASS | uat-S5-09.png |
 | A5.10 | Log in as `contributeur`. | The menu shows neither « Accès GM&E » nor « Demandes ». | PASS | uat-run.log |
 | A5.11 | **Visitor side:** open the neurology congress page. | « Tarif congrès négocié disponible » is shown, with 0 codes in the HTML. | PASS | uat-run.log |
-| A5.K | Keyboard only: request, approve and reveal. | All three succeed. | PASS | kb-result-run2.json (15/23/1, 44, 15/23 Tabs) |
+| A5.K | Keyboard only: request, approve and reveal. | All three succeed. | PASS | r2/kb2-result.json (15/23/1, 44, 15/23 Tabs). Hosted, mouse: request, approve, reveal, and masked again after reload (hosted2-s5-reveal-1440.png). |
 
-**Result, Option A:** every local mouse step passes at 1440 px, and at 390 px where it was run. Two steps fail. A2.0: the hosted visitor link opens logged in as admin. A1.K: a congress cannot be published by keyboard alone. The eye review (EYE-A-001/002/005/006) blocks sending the current screenshots. Details are in `qa/register/A_ux.md`.
+**Result, Option A (round 2, 6 Nov 2026):** 51 of 51 local mouse steps pass (A1 10, A2 12, A3 10, A4 8, A5 11). All five keyboard-only stories pass, including A1.K publish. The hosted walk passes 11 of 11 steps, and A2.0 passes. Round 1's two failures (A2.0, A1.K) are fixed. One item is still open outside the WordPress demo itself: the demo hub (`site/demo/index.html`) says in Task 4, « Your enquiry from task 3 is at the top ». On the hosted links it is not there, because the visitor link and the admin link are separate in-browser sites (USAB-A-207, Major, hub copy). Also open: EYE-A-201 (raw block markup in the description field, Medium), USAB-A-208 (hub copy, Minor) and EYE-A-202 (revealed code wraps, Minor). Details are in `qa/register/A_ux.md`.
 
 ### Sign-off: Option A
 
 | Option | Scenario | Tester | Date | Result | Open items | Signature |
 |---|---|---|---|---|---|---|
-| A | 1. Create and edit a congress | « Internal UAT (ProdCraft) » | 05/11/2026 | FAIL (10/10 mouse; keyboard FAIL) | A11Y-A-005, USAB-A-008 | |
-| A | 2. Catalogue, search, filters, details | « Internal UAT (ProdCraft) » | 05/11/2026 | FAIL (12/12 local; hosted A2.0 FAIL) | USAB-A-001, EYE-A-001/002 | |
-| A | 3. Flight enquiry | « Internal UAT (ProdCraft) » | 05/11/2026 | PASS (10/10) | EYE-A-003/008/009 (cosmetic) | |
-| A | 4. Team receives, tracks, updates | « Internal UAT (ProdCraft) » | 05/11/2026 | PASS (8/8) | EYE-A-004 (UTC/ISO dates) | |
-| A | 5. GM&E codes and authorisation | « Internal UAT (ProdCraft) » | 05/11/2026 | PASS (11/11) | USAB-A-006 | |
+| A | 1. Create and edit a congress | « Internal UAT (ProdCraft) » | 06/11/2026 | PASS (10/10 + keyboard + hosted) | EYE-A-201 (medium, raw markup in description) | |
+| A | 2. Catalogue, search, filters, details | « Internal UAT (ProdCraft) » | 06/11/2026 | PASS (12/12 + A2.0 hosted + keyboard) | none | |
+| A | 3. Flight enquiry | « Internal UAT (ProdCraft) » | 06/11/2026 | PASS (10/10 + keyboard + hosted) | none | |
+| A | 4. Team receives, tracks, updates | « Internal UAT (ProdCraft) » | 06/11/2026 | PASS (8/8 + keyboard + hosted) | USAB-A-207 (major, demo hub Task 4 copy), USAB-A-208 (minor) | |
+| A | 5. GM&E codes and authorisation | « Internal UAT (ProdCraft) » | 06/11/2026 | PASS (11/11 + keyboard + hosted) | EYE-A-202 (minor), USAB-A-208 (hub Task 5 path) | |
 
 ## Extra — Le lien de groupe
 

@@ -4,6 +4,7 @@ p = sys.argv[1]
 s = open(p, encoding='utf-8').read()
 head, sep, a = s.partition('## Option A: WordPress plugin (WordPress Playground)')
 assert sep
+a, sep2, tail = a.partition('\n## Extra')
 def rep_line(prefix, new):
     global a
     lines = a.split('\n'); hits = [i for i, l in enumerate(lines) if l.startswith(prefix)]
@@ -23,16 +24,15 @@ rep_line('| A5.K |', '| A5.K | Keyboard only: request, approve and reveal. | All
 a = re.sub(r'\*\*Result, Option A:\*\*[^\n]*',
   '**Result, Option A (round 2, 6 Nov 2026):** 51 of 51 local mouse steps pass (A1 10, A2 12, A3 10, A4 8, A5 11). All five keyboard-only stories pass, including A1.K publish. The hosted walk passes 11 of 11 steps, and A2.0 passes. Round 1\'s two failures (A2.0, A1.K) are fixed. One item is still open outside the WordPress demo itself: the demo hub (`site/demo/index.html`) says in Task 4, « Your enquiry from task 3 is at the top ». On the hosted links it is not there, because the visitor link and the admin link are separate in-browser sites (USAB-A-207, Major, hub copy). Also open: EYE-A-201 (raw block markup in the description field, Medium), USAB-A-208 (hub copy, Minor) and EYE-A-202 (revealed code wraps, Minor). Details are in `qa/register/A_ux.md`.', a)
 a = re.sub(r'\| A \| 1\. Create and edit a congress \|[^\n]*',
-              '| A | 1. Create and edit a congress | « Internal UAT (ProdCraft) » | 06/11/2026 | PASS (10/10 + keyboard + hosted) | EYE-A-201 (medium, raw markup in description) | |', a)
+              '| A | 1. Create and edit a congress | « Internal UAT (ProdCraft) » | 06/11/2026 | PASS (10/10 + keyboard + hosted) | EYE-A-201 (medium, raw markup in description) | |', a)
 a = re.sub(r'\| A \| 2\. Catalogue, search, filters, details \|[^\n]*',
-              '| A | 2. Catalogue, search, filters, details | « Internal UAT (ProdCraft) » | 06/11/2026 | PASS (12/12 + A2.0 hosted + keyboard) | none | |', a)
+              '| A | 2. Catalogue, search, filters, details | « Internal UAT (ProdCraft) » | 06/11/2026 | PASS (12/12 + A2.0 hosted + keyboard) | none | |', a)
 a = re.sub(r'\| A \| 3\. Flight enquiry \|[^\n]*',
-              '| A | 3. Flight enquiry | « Internal UAT (ProdCraft) » | 06/11/2026 | PASS (10/10 + keyboard + hosted) | none | |', a)
+              '| A | 3. Flight enquiry | « Internal UAT (ProdCraft) » | 06/11/2026 | PASS (10/10 + keyboard + hosted) | none | |', a)
 a = re.sub(r'\| A \| 4\. Team receives, tracks, updates \|[^\n]*',
-              '| A | 4. Team receives, tracks, updates | « Internal UAT (ProdCraft) » | 06/11/2026 | PASS (8/8 + keyboard + hosted) | USAB-A-207 (major, demo hub Task 4 copy), USAB-A-208 (minor) | |', a)
+              '| A | 4. Team receives, tracks, updates | « Internal UAT (ProdCraft) » | 06/11/2026 | PASS (8/8 + keyboard + hosted) | USAB-A-207 (major, demo hub Task 4 copy), USAB-A-208 (minor) | |', a)
 a = re.sub(r'\| A \| 5\. GM&E codes and authorisation \|[^\n]*',
-              '| A | 5. GM&E codes and authorisation | « Internal UAT (ProdCraft) » | 06/11/2026 | PASS (11/11 + keyboard + hosted) | EYE-A-202 (minor), USAB-A-208 (hub Task 5 path) | |', a)
-a = a.replace('« ', '«\u00a0').replace(' »', '\u00a0»')
+              '| A | 5. GM&E codes and authorisation | « Internal UAT (ProdCraft) » | 06/11/2026 | PASS (11/11 + keyboard + hosted) | EYE-A-202 (minor), USAB-A-208 (hub Task 5 path) | |', a)
 print([l[:60] for l in a.split("\n") if l.startswith("| A |")])
-open(p, 'w', encoding='utf-8').write(head + sep + a)
+open(p, 'w', encoding='utf-8').write(head + sep + a + sep2 + tail)
 print('ok')
