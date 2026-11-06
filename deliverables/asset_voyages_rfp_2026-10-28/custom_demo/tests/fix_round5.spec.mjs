@@ -64,7 +64,7 @@ test('FIX5-4 (EYE-B-205) « Vérifié le » defaults to the Paris date, also jus
   globalThis.Date = class extends RealDate { constructor(...a) { super(...(a.length ? a : ['2026-11-05T23:05:00Z'])); } static now() { return new RealDate('2026-11-05T23:05:00Z').getTime(); } };
   try {
     expect(lib.parisToday()).toBe('2026-11-06');
-    expect(lib.today()).toBe('2026-11-05');
+    expect(lib.today()).toBe('2026-11-06'); // CE-B2-002: « today » is the Paris date everywhere
   } finally { globalThis.Date = RealDate; }
   // integration: the form's default equals today's Paris date
   const paris = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());

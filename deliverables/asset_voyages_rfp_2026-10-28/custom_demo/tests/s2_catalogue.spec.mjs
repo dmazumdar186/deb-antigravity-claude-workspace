@@ -96,7 +96,7 @@ test('S2-F5 details page shows every fact and the enquiry form prefilled with th
   await page.goto(`/congres/${SLUG.cardio}`);
   await expect(page.locator('h1')).toHaveText('Congrès européen de cardiologie — exemple');
   const facts = page.locator('.facts');
-  for (const [k, v] of [['Dates', '27 au 30 août 2027'], ['Ville', 'Madrid'], ['Pays', 'Espagne'], ['Discipline', 'Cardiologie'], ['Lieu', 'Centre de congrès de Madrid — exemple'], ['Site officiel', 'www.example.org/congres/cg-0101'], ['Vérifié le', '12/10/2026']]) {
+  for (const [k, v] of [['Dates', '27 au 30 août 2027'], ['Ville', 'Madrid'], ['Pays', 'Espagne'], ['Discipline', 'Cardiologie'], ['Lieu', 'Centre de congrès de Madrid — exemple'], ['Site officiel', 'fictif (démonstration)'], ['Vérifié le', '12/10/2026']]) {
     await expect(facts.locator('div', { has: page.locator('dt', { hasText: new RegExp(`^${k}$`) }) }).locator('dd')).toContainText(v);
   }
   await expect(page.locator('[data-congress]')).toHaveText(/Congrès européen de cardiologie\s—\sexemple, 27 au 30 août 2027/);

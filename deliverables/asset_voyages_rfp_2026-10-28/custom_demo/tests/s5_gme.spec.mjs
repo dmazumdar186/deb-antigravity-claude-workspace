@@ -11,7 +11,7 @@ let S;
 test.beforeAll(async ({ browser }) => { S = await newPage(browser); });
 test.afterAll(async () => { await S.ctx.close(); });
 const ONCO = 'Journées d’oncologie digestive — exemple';
-const RADIO = 'Congrès européen de radiologie — exemple';
+const RADIO = 'Rencontres européennes d’imagerie médicale — exemple';
 const card = (page, title) => page.locator('.gme', { has: page.getByRole('link', { name: title }) });
 const nav = (page, name) => page.getByRole('navigation', { name: 'Console' }).getByRole('link', { name });
 const noCode = (text, where) => { for (const c of CODES) expect(text, `${where} contains ${c}`).not.toContain(c); expect(text, where).not.toMatch(CODE_RE); };

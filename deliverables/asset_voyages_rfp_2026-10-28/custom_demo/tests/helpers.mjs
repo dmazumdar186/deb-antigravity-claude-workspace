@@ -19,7 +19,7 @@ export const SLUG = {
   cardio: 'congres-europeen-de-cardiologie-cg-0101',
   onco: 'journees-d-oncologie-digestive-cg-0112',
   diab: 'journees-francaises-de-diabetologie-cg-0103',
-  radio: 'congres-europeen-de-radiologie-cg-0108',
+  radio: 'rencontres-europeennes-d-imagerie-medicale-cg-0108',
   draft: 'journees-de-rhumatologie-cg-0113',
 };
 
@@ -117,7 +117,7 @@ export function future(days) {
 }
 
 export async function fillEnquiry(page, o = {}) {
-  const v = { name: 'Claire Dubois (exemple)', email: 'claire.dubois@example.com', phone: '01 23 45 67 89', company: 'Société E (exemple)', city: 'Bordeaux', out: '2027-08-26', back: '2027-08-31', pax: '3', msg: 'Trois places, départ le matin.', consent: true, ...o };
+  const v = { name: 'Claire Dubois (exemple)', email: 'claire.dubois@example.com', phone: '01 99 00 00 89', company: 'Société E (exemple)', city: 'Bordeaux', out: '2027-08-26', back: '2027-08-31', pax: '3', msg: 'Trois places, départ le matin.', consent: true, ...o };
   await page.getByLabel('Nom et prénom').fill(v.name);
   await page.getByLabel('E-mail').fill(v.email);
   await page.getByLabel('Téléphone').fill(v.phone);
@@ -184,7 +184,7 @@ export async function journey(page) {
   await page.locator('.row__a').first().click();
   await fillEnquiry(page, { out: '2027-08-26', back: '2027-08-31' });
   await page.waitForTimeout(3100);
-  await page.getByRole('button', { name: 'Envoyer la demande' }).click();
+  await page.getByRole('button', { name: 'Envoyer ma demande' }).click();
   await expect(page.locator('[data-ref]')).toHaveText('DV-2026-0007');
   // S4: the team qualifies it, takes it and adds a note
   await login(page, 'equipe');

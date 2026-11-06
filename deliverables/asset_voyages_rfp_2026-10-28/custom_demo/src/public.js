@@ -1,6 +1,6 @@
 // Visitor side: catalogue, congress page, flight enquiry. Server-rendered, works without JavaScript.
 import {
-  html, raw, today, addDays, isIsoDate, frRange, frNumDate, rangeParts, norm, clean, MOIS_LONG,
+  html, raw, parisToday, addDays, isIsoDate, frRange, frNumDate, rangeParts, norm, clean, MOIS_LONG,
   readForm, makeFormToken, checkFormToken, ipHash, rateHit, redirect, htmlResponse, nowIso, hmac, safeEqual,
 } from './lib.js';
 import { publicPage, field, errorPage, errorSummary, displayWrap } from './views.js';
@@ -36,7 +36,7 @@ const monthLabel = (ym) => { const [y, m] = ym.split('-').map(Number); return `$
 export async function catalogue(req, env) {
   const url = new URL(req.url);
   const f = catalogueQuery(url.searchParams);
-  const t = today();
+  const t = parisToday();
   const base = `FROM ${T(env, 'congresses')} WHERE status = 'publie' AND end_date >= ?`;
   const all = (await env.DB.prepare(`SELECT discipline, country, substr(start_date,1,7) AS ym ${base}`).bind(t).all()).results || [];
   const uniq = (k) => [...new Set(all.map((r) => r[k]))].sort((a, b) => a.localeCompare(b, 'fr'));
@@ -110,14 +110,22 @@ async function loadPublicCongress(env, where, bind) {
   return env.DB.prepare(`SELECT c.*, g.status AS gme_status, g.valid_from AS gme_from, g.valid_to AS gme_to
     FROM ${T(env, 'congresses')} c LEFT JOIN ${T(env, 'gme_codes')} g ON g.congress_id = c.id WHERE c.status = 'publie' AND ${where}`).bind(bind).first();
 }
-export const gmeOnSale = (c, t = today()) => c.gme_status === 'approuve' && (!c.gme_from || c.gme_from <= t) && (!c.gme_to || c.gme_to >= t);
+// A fictional congress has no live official site: example.com/.org/.net and the reserved .example/.test/.invalid names
+// answer 404 or nothing (CE-A4-003), so the page says so as plain text instead of linking to an error page.
+export function fictionalSite(url) {
+  let host = '';
+  try { host = new URL(String(url)).hostname.toLowerCase(); } catch { return true; }
+  return /(^|\.)example\.(com|org|net)$/.test(host) || /\.(example|test|invalid|localhost)$/.test(host) || host === 'example';
+}
+export const FICTIONAL_SITE = 'fictif (démonstration)';
+export const gmeOnSale = (c, t = parisToday()) => c.gme_status === 'approuve' && (!c.gme_from || c.gme_from <= t) && (!c.gme_to || c.gme_to >= t);
 
 const ENQ_LABELS = { name: 'Nom et prénom', email: 'E-mail', phone: 'Téléphone', company: 'Société', departure_city: 'Ville de départ', date_out: 'Date aller', date_back: 'Date retour', passengers: 'Passagers', message: 'Message', consent: 'Consentement' };
 const ENQ_IDS = { name: 'f-name', email: 'f-email', phone: 'f-phone', company: 'f-company', departure_city: 'f-city', date_out: 'f-out', date_back: 'f-back', passengers: 'f-pax', message: 'f-msg', consent: 'f-consent' };
 export async function congressPage(req, env, slug, { values, errors, notice, status = 200 } = {}) {
   const c = typeof slug === 'object' ? slug : await loadPublicCongress(env, 'c.slug = ?', slug);
   if (!c) return htmlResponse(errorPage({ status: 404, title: 'Congrès introuvable', text: 'Cette fiche n’existe pas ou n’est pas publiée.' }), 404);
-  const t = today();
+  const t = parisToday();
   const past = c.end_date < t;
   const v = values || { date_out: c.start_date > t ? addDays(c.start_date, -1) < t ? t : addDays(c.start_date, -1) : '', date_back: addDays(c.end_date, 1), passengers: '1' };
   const e = errors || {};
@@ -139,14 +147,14 @@ export async function congressPage(req, env, slug, { values, errors, notice, sta
         <div><dt>Pays</dt><dd>${c.country}</dd></div>
         <div><dt>Discipline</dt><dd>${c.discipline}</dd></div>
         <div><dt>Lieu</dt><dd>${c.venue}</dd></div>
-        <div><dt>Site officiel</dt><dd><a href="${c.official_url}" rel="noopener noreferrer nofollow" class="lnk">${c.official_url.replace(/^https?:\/\//, '')}</a></dd></div>
+        <div><dt>Site officiel</dt><dd>${fictionalSite(c.official_url) ? html`<span data-site="fictif">${FICTIONAL_SITE}</span>` : html`<a href="${c.official_url}" rel="noopener noreferrer nofollow" class="lnk">${c.official_url.replace(/^https?:\/\//, '')}</a>`}</dd></div>
         <div><dt>Vérifié le</dt><dd>${frNumDate(c.verified_on)}</dd></div>
         <div><dt>Référence</dt><dd>${c.ref}</dd></div>
       </dl>
       <div class="prose"><p>${c.description}</p></div>
     </div>
     <aside class="cg__aside" id="demande" aria-labelledby="dem-h">
-      <h2 class="h2" id="dem-h">Demander un devis de vol</h2>
+      <h2 class="h2" id="dem-h">Demander un devis vol</h2>
       ${past ? html`<p>Ce congrès est terminé : la demande de vol n’est plus ouverte.</p>` : html`
       <p class="aside__lead">Un conseiller ASSET prépare votre devis au départ de la ville de votre choix.</p>
       <form class="form" method="post" action="/demande" novalidate>
@@ -169,7 +177,7 @@ export async function congressPage(req, env, slug, { values, errors, notice, sta
           ${e.consent ? html`<p class="err" id="f-consent-e">${e.consent}</p>` : ''}
         </div>
         <p class="form__legend"><span class="req" aria-hidden="true">*</span> Champ obligatoire.</p>
-        <div class="form__actions"><button class="btn btn--wide" type="submit">Envoyer la demande</button></div>
+        <div class="form__actions"><button class="btn btn--wide" type="submit">Envoyer ma demande</button></div>
       </form>`}
     </aside>
   </div>
@@ -178,7 +186,7 @@ export async function congressPage(req, env, slug, { values, errors, notice, sta
 }
 
 export const EMAIL_RE = /^[^\s@<>()",;:]{1,64}@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$/;
-export function validateEnquiry(get, t = today()) {
+export function validateEnquiry(get, t = parisToday()) {
   const v = {
     name: clean(get('name'), 120), email: clean(get('email'), 254), phone: clean(get('phone'), 30), company: clean(get('company'), 120),
     departure_city: clean(get('departure_city'), 80), date_out: clean(get('date_out'), 10), date_back: clean(get('date_back'), 10),
@@ -191,7 +199,7 @@ export function validateEnquiry(get, t = today()) {
   };
   req('name', 'votre nom', 120);
   if (!v.email) e.email = 'Indiquez votre e-mail.';
-  else if (v.email.length > 254 || !EMAIL_RE.test(v.email)) e.email = 'Cette adresse e-mail n’est pas valide (exemple : prenom.nom@societe.fr).';
+  else if (v.email.length > 254 || !EMAIL_RE.test(v.email)) e.email = 'Cette adresse e-mail n’est pas valide (exemple : prenom.nom@example.com).';
   req('phone', 'un numéro de téléphone', 30);
   if (!e.phone && !/^[0-9+().\s-]{6,30}$/.test(v.phone)) e.phone = 'Utilisez uniquement des chiffres, espaces et les signes + ( ) . -';
   if (v.company.length > 120) e.company = '120 caractères au maximum.';
@@ -217,7 +225,7 @@ export async function submitEnquiry(req, env) {
   if (form.error) return htmlResponse(errorPage({ status: form.error, title: 'Demande refusée', text: 'Le formulaire envoyé est trop volumineux ou mal formé.' }), form.error);
   const cid = parseInt(form.get('congress'), 10);
   const c = Number.isFinite(cid) ? await loadPublicCongress(env, 'c.id = ?', cid) : null;
-  if (!c || c.end_date < today()) return htmlResponse(errorPage({ status: 404, title: 'Congrès introuvable', text: 'Ce congrès n’est pas ou plus ouvert aux demandes.' }), 404);
+  if (!c || c.end_date < parisToday()) return htmlResponse(errorPage({ status: 404, title: 'Congrès introuvable', text: 'Ce congrès n’est pas ou plus ouvert aux demandes.' }), 404);
   const { v, e } = validateEnquiry(form.get);
 
   const tok = await checkFormToken(env, 'enquiry', form.get('_token'), { minMs: MIN_FILL_MS });
@@ -229,7 +237,7 @@ export async function submitEnquiry(req, env) {
     const prior = await env.DB.prepare('SELECT ref FROM enquiries WHERE form_nonce = ?').bind(tok.nonce).first();
     if (prior) return redirect(await confirmUrl(env, prior.ref));
   }
-  if (!tok.ok && tok.why === 'fast') return congressPage(req, env, c, { values: v, errors: e, notice: 'Votre demande n’a pas été envoyée : le formulaire a été validé trop vite. Relisez-le puis cliquez de nouveau sur « Envoyer la demande ».', status: 200 });
+  if (!tok.ok && tok.why === 'fast') return congressPage(req, env, c, { values: v, errors: e, notice: 'Votre demande n’a pas été envoyée : le formulaire a été validé trop vite. Relisez-le puis cliquez de nouveau sur « Envoyer ma demande ».', status: 200 });
   if (!tok.ok) return congressPage(req, env, c, { values: v, errors: e, notice: 'Votre demande n’a pas été envoyée : le formulaire a expiré. Vérifiez vos informations puis renvoyez-le.', status: 200 });
   if (Object.keys(e).length) return congressPage(req, env, c, { values: v, errors: e, status: 200 });
 
@@ -242,7 +250,7 @@ export async function submitEnquiry(req, env) {
   }
   // Per browser (whatever IP it comes from: mobile networks and proxies change it) and per IP (a whole office).
   if (!(await rateHit(env, `enq-sbx:${sid}`, ENQ_LIMIT, ENQ_WINDOW)) || (!env.TEST_RUN && !(await rateHit(env, `enq:${ip}`, ENQ_IP_LIMIT, ENQ_WINDOW)))) {
-    return congressPage(req, env, c, { values: v, errors: {}, notice: 'Votre demande n’a pas été envoyée : trop de demandes depuis ce navigateur en 10 minutes. Réessayez dans quelques minutes ou appelez l’agence au 01 00 00 00 00 (numéro d’exemple).', status: 200 });
+    return congressPage(req, env, c, { values: v, errors: {}, notice: 'Votre demande n’a pas été envoyée : trop de demandes depuis ce navigateur en 10 minutes. Réessayez dans quelques minutes ou appelez l’agence au 01 99 00 00 00 (numéro d’exemple).', status: 200 });
   }
   const now = nowIso();
   let row;

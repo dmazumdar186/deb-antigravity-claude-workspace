@@ -1,17 +1,18 @@
 // Schema, seed and reset. Everything here is fictional demo data.
-import { encryptCode, hashPassword, newSalt, slugify, norm, PBKDF2_ITER, nowIso, addDays, today, rateHit, hmac } from './lib.js';
+import { encryptCode, hashPassword, newSalt, slugify, norm, PBKDF2_ITER, nowIso, addDays, parisToday, rateHit, hmac } from './lib.js';
 
 // Schema v6: every demo row carries `sbx`. '' is the shared seed; any other value is one browser's private sandbox.
 // Row-level copy-on-write (see T() and cow() below): a sandbox only holds the rows that browser created or changed.
 // Write budget: keyed tables are WITHOUT ROWID (the primary key is the table: one written row per insert, no extra
 // autoindex), log tables are clustered on (sbx, parent, id), notifications and creation events are derived on read.
-export const SCHEMA_VERSION = 10;
+export const SCHEMA_VERSION = 11;
 export const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT NOT NULL) WITHOUT ROWID`,
   `CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT UNIQUE NOT NULL, display_name TEXT NOT NULL, role TEXT NOT NULL CHECK (role IN ('direction','equipe','contributeur')), pw_hash TEXT NOT NULL, pw_salt TEXT NOT NULL, pw_iter INTEGER NOT NULL)`,
   // Sessions are signed cookies; only logged-out session nonces are stored, until their expiry.
   `CREATE TABLE IF NOT EXISTS revoked (n TEXT PRIMARY KEY, exp INTEGER NOT NULL) WITHOUT ROWID`,
-  `CREATE TABLE IF NOT EXISTS sandboxes (id TEXT PRIMARY KEY, created_at TEXT NOT NULL) WITHOUT ROWID`,
+  // last_seen: last activity, refreshed at most once an hour (effectiveSbx); the nightly purge keys on it.
+  `CREATE TABLE IF NOT EXISTS sandboxes (id TEXT PRIMARY KEY, created_at TEXT NOT NULL, last_seen TEXT NOT NULL) WITHOUT ROWID`,
   `CREATE TABLE IF NOT EXISTS congresses (sbx TEXT NOT NULL DEFAULT '', id INTEGER NOT NULL, ref TEXT NOT NULL, slug TEXT NOT NULL, title TEXT NOT NULL, discipline TEXT NOT NULL, city TEXT NOT NULL, country TEXT NOT NULL, start_date TEXT NOT NULL, end_date TEXT NOT NULL, venue TEXT NOT NULL, official_url TEXT NOT NULL, verified_on TEXT NOT NULL, description TEXT NOT NULL DEFAULT '', status TEXT NOT NULL CHECK (status IN ('brouillon','a_relire','publie','archive')), search_text TEXT NOT NULL, created_at TEXT NOT NULL, created_by INTEGER, updated_at TEXT NOT NULL, updated_by INTEGER, PRIMARY KEY (sbx, id)) WITHOUT ROWID`,
   `CREATE TABLE IF NOT EXISTS congress_events (sbx TEXT NOT NULL DEFAULT '', congress_id INTEGER NOT NULL, id TEXT NOT NULL, at TEXT NOT NULL, user_id INTEGER, kind TEXT NOT NULL, from_val TEXT, to_val TEXT, PRIMARY KEY (sbx, congress_id, id)) WITHOUT ROWID`,
   `CREATE TABLE IF NOT EXISTS enquiries (sbx TEXT NOT NULL DEFAULT '', id INTEGER NOT NULL, ref TEXT NOT NULL, congress_id INTEGER NOT NULL, name TEXT NOT NULL, email TEXT NOT NULL, phone TEXT NOT NULL, company TEXT NOT NULL DEFAULT '', departure_city TEXT NOT NULL, date_out TEXT NOT NULL, date_back TEXT NOT NULL, passengers INTEGER NOT NULL, message TEXT NOT NULL DEFAULT '', consent_at TEXT NOT NULL, status TEXT NOT NULL CHECK (status IN ('nouvelle','qualifiee','devis','gagnee','perdue')), owner_id INTEGER, form_nonce TEXT UNIQUE, ip_hash TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, PRIMARY KEY (sbx, id)) WITHOUT ROWID`,
@@ -69,11 +70,11 @@ export const CONGRESSES = [
   C(101, 'Congrès européen de cardiologie — exemple', 'Cardiologie', 'Madrid', 'Espagne', '2027-08-27', '2027-08-30', 'Centre de congrès de Madrid — exemple', 'Quatre jours de sessions sur l’insuffisance cardiaque, la prévention et l’imagerie.'),
   C(102, 'Congrès international d’oncologie — exemple', 'Oncologie', 'Berlin', 'Allemagne', '2027-10-15', '2027-10-19', 'Palais des expositions de Berlin — exemple', 'Essais cliniques, immunothérapies et parcours patient, en sessions parallèles.'),
   C(103, 'Journées françaises de diabétologie — exemple', 'Diabétologie', 'Lyon', 'France', '2027-03-23', '2027-03-26', 'Centre de congrès de Lyon — exemple', 'Le rendez-vous francophone du diabète : recherche, pratique et éducation thérapeutique.'),
-  C(104, 'Congrès mondial de neurologie — exemple', 'Neurologie', 'Vienne', 'Autriche', '2027-06-19', '2027-06-22', 'Centre international de Vienne — exemple', 'Maladies neurodégénératives, AVC et neuro-imagerie.'),
+  C(104, 'Rencontres internationales de neurologie clinique — exemple', 'Neurologie', 'Vienne', 'Autriche', '2027-06-19', '2027-06-22', 'Centre international de Vienne — exemple', 'Maladies neurodégénératives, AVC et neuro-imagerie.'),
   C(105, 'Congrès européen de dermatologie — exemple', 'Dermatologie', 'Amsterdam', 'Pays-Bas', '2027-09-29', '2027-10-02', 'Parc des congrès d’Amsterdam — exemple', 'Dermatologie clinique, chirurgicale et esthétique.'),
   C(106, 'Congrès international de pneumologie — exemple', 'Pneumologie', 'Milan', 'Italie', '2027-09-04', '2027-09-08', 'Centre des congrès de Milan — exemple', 'Asthme, BPCO, sommeil et soins intensifs respiratoires.'),
   C(107, 'Rencontres d’ophtalmologie — exemple', 'Ophtalmologie', 'Paris', 'France', '2027-05-08', '2027-05-11', 'Palais des congrès de Paris — exemple', 'Chirurgie réfractive, rétine et glaucome.'),
-  C(108, 'Congrès européen de radiologie — exemple', 'Radiologie', 'Vienne', 'Autriche', '2027-02-24', '2027-02-28', 'Centre des congrès de Vienne — exemple', 'Imagerie diagnostique et interventionnelle, intelligence artificielle en radiologie.'),
+  C(108, 'Rencontres européennes d’imagerie médicale — exemple', 'Radiologie', 'Vienne', 'Autriche', '2027-02-24', '2027-02-28', 'Centre des congrès de Vienne — exemple', 'Imagerie diagnostique et interventionnelle, intelligence artificielle en radiologie.'),
   C(109, 'Sommet RH et mobilité — exemple', 'Ressources humaines', 'Lisbonne', 'Portugal', '2027-04-13', '2027-04-14', 'Centre de congrès de Lisbonne — exemple', 'Deux jours sur la mobilité internationale des collaborateurs.'),
   C(110, 'Forum des directions financières — exemple', 'Finance', 'Londres', 'Royaume-Uni', '2027-11-17', '2027-11-18', 'Centre de conférences de Londres — exemple', 'Pilotage, trésorerie et maîtrise des coûts de déplacement.'),
   C(111, 'Congrès nord-américain de cardiologie — exemple', 'Cardiologie', 'Chicago', 'États-Unis', '2027-11-13', '2027-11-16', 'Centre des congrès de Chicago — exemple', 'Cardiologie interventionnelle et rythmologie.'),
@@ -98,12 +99,12 @@ export const GME_SEED_CODES = GME_SEED.map((g) => g.code);
 const E = (id, cg, name, email, phone, company, city, out, back, pax, msg, status, owner, created) =>
   ({ id, cg, name, email, phone, company, city, out, back, pax, msg, status, owner, created });
 const ENQUIRIES = [
-  E(1, 112, 'Camille Laurent (exemple)', 'camille.laurent@example.com', '01 23 45 67 01', 'Laboratoire A (exemple)', 'Lille', '2027-01-27', '2027-01-31', 6, 'Groupe de six médecins, départ groupé si possible.', 'gagnee', 1, '2026-10-20T09:12:00Z'),
-  E(2, 103, 'Hugo Martin (exemple)', 'hugo.martin@example.com', '01 23 45 67 02', '', 'Toulouse', '2027-03-22', '2027-03-26', 2, 'Deux places, retour le dernier soir.', 'devis', 2, '2026-10-24T14:30:00Z'),
-  E(3, 101, 'Inès Moreau (exemple)', 'ines.moreau@example.com', '01 23 45 67 03', 'Société B (exemple)', 'Nantes', '2027-08-26', '2027-08-31', 12, 'Équipe commerciale de douze personnes.', 'qualifiee', 2, '2026-10-28T08:05:00Z'),
-  E(4, 108, 'Paul Lefebvre (exemple)', 'paul.lefebvre@example.com', '01 23 45 67 04', 'Clinique C (exemple)', 'Paris', '2027-02-23', '2027-02-28', 3, '', 'perdue', 1, '2026-10-30T16:45:00Z'),
-  E(5, 107, 'Léa Garnier (exemple)', 'lea.garnier@example.com', '01 23 45 67 05', '', 'Marseille', '2027-05-07', '2027-05-11', 1, 'Je préfère un vol le matin.', 'nouvelle', 2, '2026-11-03T10:20:00Z'),
-  E(6, 102, 'Nathan Roux (exemple)', 'nathan.roux@example.com', '01 23 45 67 06', 'Société D (exemple)', 'Lyon', '2027-10-14', '2027-10-20', 4, 'Quatre participants, dont un en fauteuil roulant.', 'nouvelle', null, '2026-11-04T17:02:00Z'),
+  E(1, 112, 'Camille Laurent (exemple)', 'camille.laurent@example.com', '01 99 00 00 01', 'Laboratoire A (exemple)', 'Lille', '2027-01-27', '2027-01-31', 6, 'Groupe de six médecins, départ groupé si possible.', 'gagnee', 1, '2026-10-20T09:12:00Z'),
+  E(2, 103, 'Hugo Martin (exemple)', 'hugo.martin@example.com', '01 99 00 00 02', '', 'Toulouse', '2027-03-22', '2027-03-26', 2, 'Deux places, retour le dernier soir.', 'devis', 2, '2026-10-24T14:30:00Z'),
+  E(3, 101, 'Inès Moreau (exemple)', 'ines.moreau@example.com', '01 99 00 00 03', 'Société B (exemple)', 'Nantes', '2027-08-26', '2027-08-31', 12, 'Équipe commerciale de douze personnes.', 'qualifiee', 2, '2026-10-28T08:05:00Z'),
+  E(4, 108, 'Paul Lefebvre (exemple)', 'paul.lefebvre@example.com', '01 99 00 00 04', 'Clinique C (exemple)', 'Paris', '2027-02-23', '2027-02-28', 3, '', 'perdue', 1, '2026-10-30T16:45:00Z'),
+  E(5, 107, 'Léa Garnier (exemple)', 'lea.garnier@example.com', '01 99 00 00 05', '', 'Marseille', '2027-05-07', '2027-05-11', 1, 'Je préfère un vol le matin.', 'nouvelle', 2, '2026-11-03T10:20:00Z'),
+  E(6, 102, 'Nathan Roux (exemple)', 'nathan.roux@example.com', '01 99 00 00 06', 'Société D (exemple)', 'Lyon', '2027-10-14', '2027-10-20', 4, 'Quatre participants, dont un en fauteuil roulant.', 'nouvelle', null, '2026-11-04T17:02:00Z'),
 ];
 const PATH = ['nouvelle', 'qualifiee', 'devis'];
 // Seeded group (fictional): enquiry DV-2026-0001, congress CG-0112 (Marseille, 28 to 30 Jan. 2027), 6 expected, 3 answered.
@@ -142,26 +143,40 @@ export function notificationFor(enq, congress, baseUrl) {
 }
 export const baseUrl = (env) => env.PUBLIC_URL || 'https://asset-voyages-demo.debanjan186.workers.dev';
 
-let schemaReady = false;
-export async function ensureReady(env) {
-  if (schemaReady) return;
+// One upgrade per isolate: concurrent first requests after a schema bump share the same promise instead of seeding in
+// parallel (found when 40 parallel logins hit a fresh database). seedShared is also safe across isolates (upserts).
+let schemaReady = null;
+export function ensureReady(env) {
+  if (!schemaReady) schemaReady = upgrade(env).catch((e) => { schemaReady = null; throw e; });
+  return schemaReady;
+}
+async function upgrade(env) {
   let v = null;
   try { v = (await env.DB.prepare(`SELECT v FROM meta WHERE k = 'schema'`).first())?.v; } catch { v = null; }
   if (String(v) !== String(SCHEMA_VERSION)) {
     await env.DB.batch(DROP_OLD.map((t) => env.DB.prepare(`DROP TABLE IF EXISTS ${t}`)));
     await seedShared(env);
   }
-  schemaReady = true;
 }
 
 // ---------- sandboxes ----------
 const SBX_RE = /^[A-Za-z0-9_-]{16,40}$/;
 export const validSbx = (id) => typeof id === 'string' && SBX_RE.test(id);
 // Effective sandbox for reads: the browser's own copy once it exists, else the shared seed ('').
+// Activity (CE-C7-006): the nightly purge removes sandboxes IDLE for more than 24 h, not those created 24 h ago.
+// last_seen is refreshed at most once an hour per sandbox: one conditional UPDATE, written only when the stored value is
+// older than TOUCH_EVERY (concurrent requests race on the WHERE clause, so at most one of them writes).
+export const TOUCH_EVERY_MS = 3600 * 1000;
+export const IDLE_PURGE_MS = 24 * 3600 * 1000;
 export async function effectiveSbx(env, id) {
   if (!validSbx(id)) return '';
-  const row = await env.DB.prepare('SELECT id FROM sandboxes WHERE id = ?').bind(id).first();
-  return row ? id : '';
+  const row = await env.DB.prepare('SELECT id, last_seen FROM sandboxes WHERE id = ?').bind(id).first();
+  if (!row) return '';
+  const stale = new Date(Date.now() - TOUCH_EVERY_MS).toISOString();
+  if (!row.last_seen || row.last_seen < stale) {
+    await env.DB.prepare('UPDATE sandboxes SET last_seen = ?1 WHERE id = ?2 AND last_seen < ?3').bind(nowIso(), id, stale).run();
+  }
+  return id;
 }
 // Row-level copy-on-write. A browser's sandbox writes nothing until its first write; then only the rows it touches are
 // written under its id (an edited congress is copied once, a new enquiry is inserted). Reads overlay the sandbox rows on
@@ -270,7 +285,8 @@ export async function materialize(env) {
   if ((env.IP_HASH && !env.TEST_RUN && !(await rateHit(env, 'sbx-ip:' + env.IP_HASH, SBX_IP_DAILY, 86400))) || !(await rateHit(env, 'sbx:all', SBX_DAILY_LIMIT, 86400))) {
     throw Object.assign(new Error('sandbox limit'), { code: 'SBX_LIMIT' });
   }
-  await db.prepare('INSERT OR IGNORE INTO sandboxes (id, created_at) VALUES (?, ?)').bind(id, nowIso()).run();
+  const at = nowIso();
+  await db.prepare('INSERT OR IGNORE INTO sandboxes (id, created_at, last_seen) VALUES (?, ?, ?)').bind(id, at, at).run();
   env.SBX_EFF = id;
   return id;
 }
@@ -286,16 +302,16 @@ export async function resetSandbox(env) {
   env.SBX_EFF = '';
 }
 // Nightly cron, bounded so it fits the reserved write budget (deleted rows count as written rows on D1):
-// the oldest 300 sandboxes past 24 h, orphans of up to 50 vanished sandboxes, 1,000 expired logouts, 3,000 expired
+// the 300 sandboxes idle the longest among those idle for more than 24 h (last_seen, CE-C7-006), orphans of up to 50 vanished sandboxes, 1,000 expired logouts, 3,000 expired
 // throttle rows, then the shared seed is rebuilt (about 150 rows). On a busy day the rest waits for the next nights;
 // it only costs storage, never visibility (nobody else can read another browser's rows).
 export const PURGE_SANDBOXES = 300;
 export async function nightly(env) {
   await ensureReady(env);
   const db = env.DB;
-  const cutoff = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+  const cutoff = new Date(Date.now() - IDLE_PURGE_MS).toISOString();
   const now = Math.floor(Date.now() / 1000);
-  const expired = `SELECT id FROM sandboxes WHERE created_at < ?1 ORDER BY created_at LIMIT ${PURGE_SANDBOXES}`;
+  const expired = `SELECT id FROM sandboxes WHERE last_seen < ?1 ORDER BY last_seen LIMIT ${PURGE_SANDBOXES}`;
   await db.batch([
     ...DATA_TABLES.map((t) => db.prepare(`DELETE FROM ${t} WHERE sbx IN (${expired})`).bind(cutoff)),
     db.prepare(`DELETE FROM sandboxes WHERE id IN (${expired})`).bind(cutoff),
@@ -325,7 +341,7 @@ export async function seedShared(env) {
     } else {
       const salt = newSalt();
       const hash = await hashPassword(DEMO_PASSWORD, salt);
-      stmts.push(db.prepare('INSERT INTO users (id, username, display_name, role, pw_hash, pw_salt, pw_iter) VALUES (?,?,?,?,?,?,?)').bind(u.id, u.username, u.display_name, u.role, hash, salt, PBKDF2_ITER));
+      stmts.push(db.prepare('INSERT INTO users (id, username, display_name, role, pw_hash, pw_salt, pw_iter) VALUES (?,?,?,?,?,?,?) ON CONFLICT DO NOTHING').bind(u.id, u.username, u.display_name, u.role, hash, salt, PBKDF2_ITER));
     }
   }
   const lists = { discipline: new Set([...CONGRESSES.map((c) => c.discipline), ...EXTRA_DISCIPLINES]), pays: new Set([...CONGRESSES.map((c) => c.country), ...EXTRA_PAYS]) };
@@ -356,11 +372,11 @@ export async function seedShared(env) {
   // The seed salt is fixed so the link survives resets; the token itself needs GME_KEY, so it is not in the repo.
   const seedToken = await hmac(env, 'group-v1', 'tok|' + GROUP_SEED.salt);
   stmts.push(db.prepare(`INSERT INTO group_links (sbx, enquiry_id, origin_sbx, token_mac, tok_salt, created_at, created_by, expires_at) VALUES ('', ?, '', ?, ?, ?, 2, ?)`)
-    .bind(GROUP_SEED.enquiry_id, await hmac(env, 'group-v1', 'id|' + seedToken), GROUP_SEED.salt, now, addDays(today(), 30) + 'T23:59:59Z'));
+    .bind(GROUP_SEED.enquiry_id, await hmac(env, 'group-v1', 'id|' + seedToken), GROUP_SEED.salt, now, addDays(parisToday(), 30) + 'T23:59:59Z'));
   for (const d of GROUP_SEED.delegates) {
     stmts.push(db.prepare(`INSERT INTO group_delegates (sbx, enquiry_id, email_norm, id, name, email, departure_city, date_out, date_back, consent_at, created_at, updated_at) VALUES ('',?,?,?,?,?,?,?,?,?,?,?)`)
       .bind(GROUP_SEED.enquiry_id, d.email.toLowerCase(), d.id, d.name, d.email, d.city, d.out, d.back, d.at, d.at, d.at));
   }
   await db.batch(stmts);
-  return { ok: true, at: now, today: today(), plus: addDays(today(), 0) };
+  return { ok: true, at: now, today: parisToday(), plus: addDays(parisToday(), 0) };
 }

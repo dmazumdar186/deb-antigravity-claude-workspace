@@ -7,7 +7,7 @@
 // there and counts against that sandbox's write budget. The seed link (origin '') behaves like all seed data: a
 // browser's submission lands in that browser's own sandbox.
 import {
-  html, raw, today, nowIso, addDays, isIsoDate, frRange, frNumDate, clean, readForm, sameOrigin, makeFormToken,
+  html, raw, parisToday, nowIso, addDays, isIsoDate, frRange, frNumDate, clean, readForm, sameOrigin, makeFormToken,
   checkFormToken, rateHit, redirect, htmlResponse, hmac, safeEqual, randomToken, getCookie,
 } from './lib.js';
 import { groupPage, field, errorSummary, displayWrap } from './views.js';
@@ -31,7 +31,7 @@ const NO_STORE = { 'cache-control': 'no-store, private' };
 export const tokenFor = (env, salt) => hmac(env, 'group-v1', 'tok|' + salt);
 export const lookupMac = (env, token) => hmac(env, 'group-v1', 'id|' + token);
 export const newSalt = () => randomToken(16); // 128 random bits
-export const linkExpiry = (fromIso = today()) => addDays(String(fromIso).slice(0, 10), LINK_DAYS) + 'T23:59:59Z';
+export const linkExpiry = (fromIso = parisToday()) => addDays(String(fromIso).slice(0, 10), LINK_DAYS) + 'T23:59:59Z';
 export function linkState(link, now = nowIso()) {
   if (!link) return 'none';
   if (link.revoked_at) return 'revoked';
@@ -64,7 +64,7 @@ export const counterText = (answered, expected) => `${answered} répondu${answer
 // Delegate form: name as on the ID, e-mail, departure city, outbound and return dates, consent. Nothing else.
 export const GRP_LABELS = { name: 'Nom et prénom', email: 'E-mail', departure_city: 'Ville de départ', date_out: 'Date aller', date_back: 'Date retour', consent: 'Consentement' };
 export const GRP_IDS = { name: 'g-name', email: 'g-email', departure_city: 'g-city', date_out: 'g-out', date_back: 'g-back', consent: 'g-consent' };
-export function validateDelegate(get, congress, t = today()) {
+export function validateDelegate(get, congress, t = parisToday()) {
   const v = {
     name: clean(get('name'), 120), email: clean(get('email'), 254), departure_city: clean(get('departure_city'), 80),
     date_out: clean(get('date_out'), 10), date_back: clean(get('date_back'), 10), consent: get('consent') === '1',
@@ -136,7 +136,7 @@ export async function resolveLink(env, token) {
   const congress = enquiry ? await scoped.DB.prepare(`SELECT id, title, start_date, end_date FROM ${T(scoped, 'congresses')} WHERE 1=1 AND id = ?`).bind(enquiry.congress_id).first() : null;
   if (!enquiry || !congress) return { state: 'none' };
   const state = linkState(link);
-  return { state: state === 'active' && congress.end_date < today() ? 'ended' : state, env: scoped, link, enquiry, congress, mac };
+  return { state: state === 'active' && congress.end_date < parisToday() ? 'ended' : state, env: scoped, link, enquiry, congress, mac };
 }
 
 // ---------------------------------------------------------------- pages
@@ -157,7 +157,7 @@ function closedPage(kind) {
 const formPurpose = (mac) => 'group:' + mac.slice(0, 22);
 async function formPage(req, env, r, token, { values, errors, notice, status = 200 } = {}) {
   const c = r.congress;
-  const t = today();
+  const t = parisToday();
   const v = values || { date_out: addDays(c.start_date, -1) < t ? t : addDays(c.start_date, -1), date_back: addDays(c.end_date, 1) };
   const e = errors || {};
   const tok = await makeFormToken(env, formPurpose(r.mac));

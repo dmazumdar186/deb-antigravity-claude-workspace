@@ -92,7 +92,6 @@ export default {
         const sbx = validSbx(fromCookie) ? fromCookie : (newSbx = randomToken(18));
         const scoped = Object.create(env);
         scoped.SBX = sbx;
-        scoped.SBX_EFF = newSbx ? '' : await effectiveSbx(env, sbx);
         scoped.IP_HASH = await ipHash(env, req);
         const testKey = req.headers.get('x-demo-test');
         // Test-run key: a Worker SECRET (DEMO_TEST_KEY, 32+ random bytes, never in code or wrangler.toml). Missing or short
@@ -104,6 +103,8 @@ export default {
         // Every request is metered (written rows feed the global daily write guard); only test runs see the header.
         scoped.METER = { n: 0 }; scoped.DB = meterDb(env.DB, scoped.METER); scoped.KEY_OK = keyOk;
         meterRef = scoped;
+        // Metered too: the hourly last_seen refresh (CE-C7-006) counts against the daily write guard.
+        scoped.SBX_EFF = newSbx ? '' : await effectiveSbx(scoped, sbx);
         res = await route(req, scoped);
       }
     } catch (err) {

@@ -640,7 +640,7 @@ test('G-U4 phone: the first field is visible without scrolling; « Aller au lien
   await page.goto('/console/demandes/1');
   const jump = page.getByRole('link', { name: 'Aller au lien de groupe' });
   await expect(jump).toHaveAttribute('href', '#lien-groupe');
-  expect((await jump.boundingBox()).y).toBeLessThan((await page.getByRole('heading', { name: 'Demande de devis vol' }).boundingBox()).y);
+  expect((await jump.boundingBox()).y).toBeLessThan((await page.getByRole('heading', { name: 'Détail de la demande' }).boundingBox()).y);
   await jump.click();
   await expect(page.locator('#lien-groupe')).toBeInViewport();
   await page.goto('/console/demandes/5');

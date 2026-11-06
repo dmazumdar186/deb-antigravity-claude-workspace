@@ -209,7 +209,7 @@ test('FIX2-12 cosmetics: unbroken password, refs, phones and dates; contact stay
   await C.page.goto(`/congres/${SLUG.cardio}`);
   await fillEnquiry(C.page);
   await C.page.waitForTimeout(3100);
-  await C.page.getByRole('button', { name: 'Envoyer la demande' }).click();
+  await C.page.getByRole('button', { name: 'Envoyer ma demande' }).click();
   await expect(C.page.locator('[data-ref]')).toBeVisible();
   const gap = await C.page.evaluate(() => { const h = document.querySelector('.thanks h1').getBoundingClientRect(); const l = document.querySelector('.thanks .lead').getBoundingClientRect(); return l.top - h.bottom; });
   expect(gap).toBeGreaterThanOrEqual(32);
