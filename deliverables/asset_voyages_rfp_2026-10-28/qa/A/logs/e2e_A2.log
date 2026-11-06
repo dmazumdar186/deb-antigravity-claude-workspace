@@ -70,3 +70,8 @@ Running 68 tests using 1 worker
   ✓  65 08-fixes.spec.js:471:1 › FIX-A-22 seeded congress descriptions are plain text in the editor and paragraphs on the site (8.6s)
   ✓  66 08-fixes.spec.js:485:1 › FIX-A-23 a revealed code stays on one line (12.2s)
   ✓  67 08-fixes.spec.js:501:1 › FIX-A-24 short dashboards for ASSET roles; a pending access request is listed once (29.1s)
+  ✓  68 99-s3-ratelimit.spec.js:5:1 › S3-H2 rapid repeat submissions from one address are rate-limited (30.7s)
+
+  Slow test file: 06-leak.spec.js (10.7m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  68 passed (24.8m)
