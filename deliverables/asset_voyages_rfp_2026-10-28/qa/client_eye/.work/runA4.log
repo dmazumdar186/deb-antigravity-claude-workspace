@@ -1,0 +1,17 @@
+[09:23:10] hub parsed: tasks 5 rows 11 group steps 4
+[09:24:20] C10 A T1.1 OK (1 clicks) 
+[09:24:26] C10 A T1.2 OK (2 clicks) 
+[09:24:36] C10 A T1.3 OK (2 clicks) 
+[09:25:39] C10 A T1.tip OK (0 clicks) 
+[09:25:41] C10 A T2.1 OK (0 clicks) 
+[09:25:45] C10 A T2.2 OK (1 clicks) 
+[09:25:47] C10 A T2.3 OK (1 clicks) 
+[09:25:48] C10 A T3.1 OK (0 clicks) 
+[09:25:49] C10 A T3.2 OK (0 clicks) 
+[09:25:56] C10 A T3.3 OK (1 clicks) 
+[09:26:02] C10 A T4.1 OK (3 clicks) 
+[09:26:09] C10 A T4.2 OK (3 clicks) 
+[09:26:14] C10 A T4.3 OK (3 clicks) 
+[09:27:16] C10 A T5.1 OK (2 clicks) 
+[09:27:25] C10 A T5.2 OK (3 clicks) 
+[09:28:13] C10 A T5.3 FAIL (4 clicks) hub says « the code is shown » after signing in; the reader must still click « Révéler le code »

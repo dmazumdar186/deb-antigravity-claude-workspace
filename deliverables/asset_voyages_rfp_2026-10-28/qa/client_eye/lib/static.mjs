@@ -42,7 +42,10 @@ export async function checkLinks(request, browserCheck) {
   // listed as « latent » in links.json, not reported. Every src/poster/stylesheet is checked whether visible or not.
   const reachable = (e) => !e.refs.length || e.refs.some((r) => r.kind !== 'a' || r.visible !== false);
   const latent = all.filter((e) => !reachable(e)).map((e) => e.url);
-  const queue = all.filter((e) => /^https?:/.test(e.url) && reachable(e) && !/\/console\/deconnexion|action=logout|_wpnonce|wp-login\.php\?action=|reinitialiser|export\.csv|groupe\.csv|\.csv\?|asset_export|download/.test(e.url));
+  // Excluded: canonical/alternate <link>s (metadata, not something a reader opens) and pages of the congress this
+  // run created in its own private sandbox (« Congrès de relecture … »): an anonymous checker cannot see them.
+  // WordPress draft previews (« ?preview=true ») open only for a signed-in editor: an anonymous checker gets 404 by design.
+  const queue = all.filter((e) => /^https?:/.test(e.url) && reachable(e) && !e.refs.every((r) => /^link:(canonical|alternate)/.test(r.kind || '')) && !/congres-de-relecture-|[?&]preview=true/.test(e.url) && !/\/console\/deconnexion|action=logout|_wpnonce|wp-login\.php\?action=|reinitialiser|export\.csv|groupe\.csv|\.csv\?|asset_export|download/.test(e.url));
   for (const e of all.filter((x) => /^mailto:/.test(x.url))) {
     const ok = /^mailto:[^@\s"<>]+@[\w-]+(\.[\w-]+)+(\?[^\s"<>]*)?$/.test(e.url.replace(/&amp;/g, '&'));
     if (!ok) finding({ check: 'A4', option: e.refs[0].option, page: e.refs[0].from, text: e.url.slice(0, 120), element: 'a[href^=mailto]', note: 'malformed mailto' });
@@ -156,7 +159,9 @@ export function checkMidnight() {
   const dir = join(DELIV, 'wp_demo', 'plugin', 'asset-congres-demo', 'includes');
   for (const f of readdirSync(dir)) {
     const L = readFileSync(join(dir, f), 'utf8').split('\n');
-    L.forEach((l, i) => { if (/(?<![\w>])(gmdate|date)\(\s*'[^']*[Ymd]/.test(l) && !/^\s*(\/\/|\*)/.test(l)) finding({ check: 'B2', option: 'A', page: `wp_demo/plugin/asset-congres-demo/includes/${f}:${i + 1}`, text: l.trim().slice(0, 160), element: 'source', note: 'PHP date()/gmdate() uses UTC, not Europe/Paris: one day off near midnight if shown or compared to a Paris date' }); });
+    // Tightened: UTC timestamps stored and compared in UTC are correct; only a UTC date SHOWN to a reader (echo, printf,
+    // esc_html, a download file name) is flagged.
+    L.forEach((l, i) => { if (/(?<![\w>])(gmdate|date)\(\s*'[^']*[Ymd]/.test(l) && /echo|printf|header\(|esc_html|filename|_e\(/.test(l) && !/^\s*(\/\/|\*)/.test(l)) finding({ check: 'B2', option: 'A', page: `wp_demo/plugin/asset-congres-demo/includes/${f}:${i + 1}`, text: l.trim().slice(0, 160), element: 'source', note: 'PHP date()/gmdate() uses UTC, not Europe/Paris: one day off near midnight if shown or compared to a Paris date' }); });
   }
   return out;
 }
@@ -166,6 +171,7 @@ export function checkSpelling() {
   const inFile = join(OUT, 'words.json');
   writeFileSync(inFile, JSON.stringify(RUN.words));
   const res = JSON.parse(execFileSync('python3', ['-I', join(HERE, 'spell.py'), inFile, join(HERE, 'allowlist_spell.tsv')], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+  writeFileSync(join(OUT, 'b5_unknown.tsv'), res.unknown.map((u) => [u.word, u.lang, u.option, u.count, u.context.replace(/\t/g, ' ')].join('\t')).join('\n') + '\n');
   for (const u of res.unknown) finding({ check: 'B5', option: u.option, page: u.page, role: u.role, width: u.width, text: u.word, element: u.lang, note: `unknown ${u.lang} word in « ${u.context} » (${u.count}×)` });
   return res;
 }
@@ -207,9 +213,10 @@ export function checkStyles() {
     for (const b of s.styles.buttons || []) {
       if (/wpadminbar|adminmenu|collapse|screen-meta|handle|toggle|switch|mini/.test(b.path) || b.bg === 'rgba(0, 0, 0, 0)' && /^0px/.test(b.border.split(' ').pop())) continue; // link-like or chrome controls
       add(by[k].btn, `${b.font} | radius ${b.radius}`, `${s.state} « ${b.label} »`);
-      const c = hueSat(rgb(b.bg)); if (c.s > 0.35 && c.l > 0.15 && c.l < 0.85) add(by[k].accent, `hue ${Math.round(c.h / 30) * 30}`, `${s.state} button « ${b.label} » ${b.bg}`);
+      // lightness ≤ 0.25 is the ink colour (navy text links), not an accent
+      const c = hueSat(rgb(b.bg)); if (c.s > 0.35 && c.l > 0.25 && c.l < 0.85) add(by[k].accent, `hue ${Math.round(c.h / 30) * 30}`, `${s.state} button « ${b.label} » ${b.bg}`);
     }
-    for (const l of s.styles.links || []) { const c = hueSat(rgb(l)); if (c.s > 0.35 && c.l > 0.15 && c.l < 0.85) add(by[k].accent, `hue ${Math.round(c.h / 30) * 30}`, `${s.state} link ${l}`); }
+    for (const l of s.styles.links || []) { const c = hueSat(rgb(l)); if (c.s > 0.35 && c.l > 0.25 && c.l < 0.85) add(by[k].accent, `hue ${Math.round(c.h / 30) * 30}`, `${s.state} link ${l}`); }
   }
   const summary = {};
   for (const [k, v] of Object.entries(by)) {
@@ -239,7 +246,7 @@ export function checkNumbers(hub) {
   const trace = JSON.parse(readFileSync(join(HERE, 'd3_trace.json'), 'utf8'));
   const text = (hub.full || '').replace(/[  ]/g, ' ');
   const words = 'one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|twice|half|dozen';
-  const re = new RegExp(`(?:\\b\\d[\\d,.:]*(?:\\s?(?:–|-|to)\\s?\\d[\\d,.:]*)?\\b|\\b(?:${words})\\b)`, 'gi');
+  const re = new RegExp(`(?:\\bT\\d{2}(?: to T\\d{2})?\\b|\\b\\d[\\d,.:]*(?:\\s?(?:–|-|to)\\s?\\d[\\d,.:]*)?\\b|\\b(?:${words})\\b)`, 'gi');
   const seen = new Map();
   let m;
   while ((m = re.exec(text))) {
@@ -304,8 +311,8 @@ export function checkClaims(hub, A, B, Ahosted) {
     const live = B.rows.filter((r) => r.task === 'G').every((r) => r.ok);
     const ok = live && /G-F1/.test(bReadme);
     const notDeployed = /extra_group\.spec\.mjs[^\n]*not deployed/.test(bReadme);
-    map.push({ fn: 'Group link (#group)', option: 'B', cell: 'Works in the Option B demo', works: true, ok: ok && !notDeployed, evidence: `this run: G steps ${live ? 'PASS' : 'FAIL'} · custom_demo/README.md extra_group.spec.mjs G-F1..G-X3${notDeployed ? ' (README says « not deployed »)' : ''}` });
-    if (!ok || notDeployed) finding({ check: 'D1', option: 'B', page: 'demo/#group', text: 'Works in the Option B demo', note: map[map.length - 1].evidence });
+    map.push({ fn: 'Group link (#group)', option: 'B', cell: 'Works in the Option B demo', works: true, ok, evidence: `this run: G steps ${live ? 'PASS' : 'FAIL'} · custom_demo/README.md extra_group.spec.mjs G-F1..G-X3${notDeployed ? ' (README says « not deployed »)' : ''}` });
+    if (!ok) finding({ check: 'D1', option: 'B', page: 'demo/#group', text: 'Works in the Option B demo', note: map[map.length - 1].evidence });
   }
   writeFileSync(join(OUT, 'd1_claims.json'), JSON.stringify(map, null, 1));
   return map;

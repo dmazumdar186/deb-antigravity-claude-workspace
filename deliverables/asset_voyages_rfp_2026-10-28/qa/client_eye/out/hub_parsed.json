@@ -245,18 +245,6 @@
  "group": {
   "steps": [
    {
-    "text": "Your team sends one link for the enquiry, in its reply to the client.",
-    "links": []
-   },
-   {
-    "text": "Each traveller fills in their own details on a phone: name as on the ID document, e-mail, departure city and dates.",
-    "links": []
-   },
-   {
-    "text": "Your team sees the list fill in , with a « répondus / attendus » counter and a ready-to-use export, « Exporter pour cotation (CSV) ».",
-    "links": []
-   },
-   {
     "text": "Open enquiry DV-2026-0001 in the Option B console (new tab) and sign in as equipe, password demo-asset.",
     "links": [
      {
@@ -403,8 +391,6 @@
   "Journal des notifications": "A",
   "Accès GM&E": "A",
   "Codes GM&E": "B",
-  "répondus / attendus": "B",
-  "Exporter pour cotation (CSV)": "B",
   "Groupe": "B",
   "Lien de groupe": "B"
  }

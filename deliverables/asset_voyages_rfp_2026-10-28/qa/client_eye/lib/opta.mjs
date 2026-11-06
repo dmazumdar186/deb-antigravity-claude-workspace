@@ -115,9 +115,10 @@ export async function replayA(browser, hub) {
   await step('T1', 3, s.text, async () => {
     await page.getByLabel(/titre/i).first().fill(title);
     for (const [l, v] of [['Date de début', '2027-07-05'], ['Date de fin', '2027-07-07'], ['Ville', 'Nice']]) { const w = await ag.fill(l, v, { exact: true }); if (w) return w; }
-    const d = page.getByLabel('Cardiologie', { exact: true }).filter({ visible: true }).first();
-    if (!(await d.count())) return 'discipline « Cardiologie » not selectable by label';
-    await d.check();
+    // literal: only the fields the hub names (name, dates, city, discipline); a further required field is a finding
+    const d = page.getByLabel(/^Discipline/).filter({ visible: true }).first();
+    if (!(await d.count())) return 'no « Discipline » field';
+    await d.fill('Cardiologie');
     let w = await ag.click('Publier'); if (w) return w;
     await page.waitForTimeout(1500);
     if (!(await ag.sees(/publié|Publié/))) return 'no publish confirmation';
@@ -145,18 +146,18 @@ export async function replayA(browser, hub) {
   });
   s = hubStep(1, 2);
   await step('T2', 2, s.text, async () => {
-    const box = page.getByLabel(/Recherche/).filter({ visible: true }).first();
+    const box = page.getByRole('searchbox').or(page.getByRole('textbox', { name: /Recherche/ })).filter({ visible: true }).first();
     if (!(await box.count())) return 'no visible search box';
     await box.fill('cardiologie');
     const w = await ag.click('Rechercher'); if (w) return w;
-    const miss = []; for (const l of ['Discipline', 'Pays', 'Mois']) if (!(await page.getByLabel(l, { exact: true }).filter({ visible: true }).count())) miss.push(l);
+    const miss = []; for (const l of ['Discipline', 'Pays', 'Mois']) { if (await page.getByLabel(l, { exact: true }).filter({ visible: true }).count()) continue; if (l === 'Discipline' && await page.getByRole('link', { name: 'Cardiologie', exact: true }).filter({ visible: true }).count()) continue; miss.push(l); }
     if (miss.length) return `filters not visible by label: ${miss.join(', ')}`;
     return (await ag.sees(/cardiologie/i)) ? null : 'no result';
   });
   s = hubStep(1, 3);
   await step('T2', 3, s.text, async () => {
     const first = page.locator('main a[href*="/congres/"]').filter({ visible: true }).first();
-    const w = await ag.click((await first.innerText()).trim(), { exact: false }); if (w) return w;
+    const w = await ag.click(((await first.innerText()).split('\n').find((x) => /[a-z]{4}/i.test(x)) || '').trim(), { exact: false }); if (w) return w;
     const t = await page.locator('main').innerText();
     const miss = ['Dates', 'Ville', 'Lieu', 'Discipline'].filter((x) => !new RegExp(x).test(t));
     return miss.length ? `details page lacks: ${miss.join(', ')}` : null;
@@ -232,7 +233,7 @@ export async function replayA(browser, hub) {
   await step('T5', 1, s.text, async () => {
     const q = (s.text.match(/«\s*([^»]+?)\s*»/) || [])[1];
     let w = await ag.click(q, { within: '#adminmenu' }); if (w) return w;
-    if (/DEMO-GME-\d{4}/.test(await page.content())) return 'codes are not hidden';
+    if (/DEMO-GME-[A-Z0-9]{4}/.test(await page.content())) return 'codes are not hidden';
     const reason = page.getByLabel(/Raison de la demande/).filter({ visible: true }).first();
     if (!(await reason.count())) return 'no reason field';
     await reason.fill('Devis pour un groupe, trois places.');
@@ -255,11 +256,11 @@ export async function replayA(browser, hub) {
     page.__meta.role = 'equipe';
     w = await ag.click('Accès GM&E', { within: '#adminmenu' }); if (w) return w;
     let why = null;
-    if (!/DEMO-GME-\d{4}/.test(await page.locator('#wpbody').innerText())) {
+    if (!/DEMO-GME-[A-Z0-9]{4}/.test(await page.locator('#wpbody').innerText())) {
       w = await ag.click('Révéler le code'); if (w) return 'code not shown and ' + w;
       why = 'hub says « the code is shown » after signing in; the reader must still click « Révéler le code »';
     }
-    if (!/DEMO-GME-\d{4}/.test(await page.locator('#wpbody').innerText())) return 'code still not shown';
+    if (!/DEMO-GME-[A-Z0-9]{4}/.test(await page.locator('#wpbody').innerText())) return 'code still not shown';
     const menu = await page.$$eval('#adminmenu a', (as) => as.map((a) => a.innerText.trim()).join(' | '));
     if (!/Journal GM&E/.test(menu) && !/consultation|affichage enregistré|journal/i.test(await page.locator('#wpbody').innerText())) why = (why ? why + '; ' : '') + 'equipe sees no access record (« Journal GM&E » is Direction-only)';
     return { why, extra: 'reveal' };

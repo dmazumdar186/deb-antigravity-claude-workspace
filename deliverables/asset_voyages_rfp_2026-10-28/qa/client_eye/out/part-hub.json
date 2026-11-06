@@ -1,6 +1,6 @@
 {
  "name": "hub",
- "at": "2026-11-06T08:22:14.347Z",
+ "at": "2026-11-06T09:04:59.284Z",
  "findings": [
   {
    "check": "B4",
@@ -120,45 +120,6 @@
    "state": "hub/questions/"
   },
   {
-   "check": "B7",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/demo/",
-   "role": "visiteur",
-   "width": 390,
-   "locale": "fr-FR",
-   "text": "On a congress details page, find « Demander un devis vol ».",
-   "element": "li#task-3 > div.task__opt.task__opt--a > ol.steps > li",
-   "note": "« congress » should be « Congrèss »",
-   "shot": "out/shots/0006-HUB-visiteur-390-hub-demo.png",
-   "state": "hub/demo/"
-  },
-  {
-   "check": "B7",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/demo/",
-   "role": "visiteur",
-   "width": 390,
-   "locale": "fr-FR",
-   "text": "Signed in as equipe, open « Accès GM&E »: the codes are hidden. Ask for access and give a reason.",
-   "element": "li#task-5 > div.task__opt.task__opt--a > ol.steps > li",
-   "note": "« access » should be « Accèss »",
-   "shot": "out/shots/0006-HUB-visiteur-390-hub-demo.png",
-   "state": "hub/demo/"
-  },
-  {
-   "check": "D2",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/demo/",
-   "role": "visiteur",
-   "width": 390,
-   "locale": "fr-FR",
-   "text": "Founder, ProdCraftdebanjan@prodcraft.fyi",
-   "element": "footer.foot > div.container.foot__in > div.foot__sig > p",
-   "note": "real-looking e-mail « ProdCraftdebanjan@prodcraft.fyi »",
-   "shot": "out/shots/0006-HUB-visiteur-390-hub-demo.png",
-   "state": "hub/demo/"
-  },
-  {
    "check": "D2",
    "option": "HUB",
    "page": "https://asset-voyages-redesign.pages.dev/",
@@ -168,6 +129,19 @@
    "text": "Congrès européen de radiologie — exemple",
    "element": "ul.rows > li.row > div > p.row__t",
    "note": "matches a real congress name « congres europeen de radiologie » (marked as an example in the same text)",
+   "shot": "out/shots/0007-HUB-visiteur-390-hub.png",
+   "state": "hub/"
+  },
+  {
+   "check": "D2",
+   "option": "HUB",
+   "page": "https://asset-voyages-redesign.pages.dev/",
+   "role": "visiteur",
+   "width": 390,
+   "locale": "fr-FR",
+   "text": "Congrès mondial de neurologie — exemple",
+   "element": "ul.rows > li.row > div > p.row__t",
+   "note": "matches a real congress name « congres mondial de neurologie » (marked as an example in the same text)",
    "shot": "out/shots/0007-HUB-visiteur-390-hub.png",
    "state": "hub/"
   },
@@ -191,127 +165,10 @@
    "role": "visiteur",
    "width": 390,
    "locale": "fr-FR",
-   "text": "58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux01 55 57 29 00",
+   "text": "58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux 01 55 57 29 00",
    "element": "footer.ftr > div > p",
    "note": "phone « 01 55 57 29 00 » outside the ARCEP fiction ranges (01 99 00…, 02 61 91…, 03 53 01…, 04 65 71…, 05 36 49…, 06 39 98…) and not masked",
    "shot": "out/shots/0007-HUB-visiteur-390-hub.png",
-   "state": "hub/"
-  },
-  {
-   "check": "C2",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/",
-   "role": "visiteur",
-   "width": 390,
-   "locale": "fr-FR",
-   "text": "Réinitialiser",
-   "element": "button",
-   "note": "not clickable: locator.click: Timeout 3000ms exceeded.",
-   "shot": "",
-   "state": "hub/"
-  },
-  {
-   "check": "C2",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/",
-   "role": "visiteur",
-   "width": 390,
-   "locale": "fr-FR",
-   "text": "Voir la fiche",
-   "element": "button",
-   "note": "not clickable: locator.click: Timeout 3000ms exceeded.",
-   "shot": "",
-   "state": "hub/"
-  },
-  {
-   "check": "C2",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/",
-   "role": "visiteur",
-   "width": 390,
-   "locale": "fr-FR",
-   "text": "Voir la fiche",
-   "element": "button",
-   "note": "not clickable: locator.click: Timeout 3000ms exceeded.",
-   "shot": "",
-   "state": "hub/"
-  },
-  {
-   "check": "C2",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/",
-   "role": "visiteur",
-   "width": 390,
-   "locale": "fr-FR",
-   "text": "Voir la fiche",
-   "element": "button",
-   "note": "not clickable: locator.click: Timeout 3000ms exceeded.",
-   "shot": "",
-   "state": "hub/"
-  },
-  {
-   "check": "C2",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/",
-   "role": "visiteur",
-   "width": 390,
-   "locale": "fr-FR",
-   "text": "Voir la fiche",
-   "element": "button",
-   "note": "not clickable: locator.click: Timeout 3000ms exceeded.",
-   "shot": "",
-   "state": "hub/"
-  },
-  {
-   "check": "C2",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/",
-   "role": "visiteur",
-   "width": 390,
-   "locale": "fr-FR",
-   "text": "Voir la fiche",
-   "element": "button",
-   "note": "not clickable: locator.click: Timeout 3000ms exceeded.",
-   "shot": "",
-   "state": "hub/"
-  },
-  {
-   "check": "C2",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/",
-   "role": "visiteur",
-   "width": 390,
-   "locale": "fr-FR",
-   "text": "Voir la fiche",
-   "element": "button",
-   "note": "not clickable: locator.click: Timeout 3000ms exceeded.",
-   "shot": "",
-   "state": "hub/"
-  },
-  {
-   "check": "C2",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/",
-   "role": "visiteur",
-   "width": 390,
-   "locale": "fr-FR",
-   "text": "‹",
-   "element": "button",
-   "note": "not clickable: locator.click: Timeout 3000ms exceeded.",
-   "shot": "",
-   "state": "hub/"
-  },
-  {
-   "check": "C2",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/",
-   "role": "visiteur",
-   "width": 390,
-   "locale": "fr-FR",
-   "text": "1",
-   "element": "button",
-   "note": "not clickable: locator.click: Timeout 3000ms exceeded.",
-   "shot": "",
    "state": "hub/"
   },
   {
@@ -391,19 +248,6 @@
    "note": "orphan-dash",
    "shot": "out/shots/0009-HUB-visiteur-390-hub-console.png",
    "state": "hub/console/"
-  },
-  {
-   "check": "D2",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/questions/",
-   "role": "visiteur",
-   "width": 390,
-   "locale": "fr-FR",
-   "text": "If we don’t hear back, we’ll assume: every enquiry goes to one shared mailbox (direction@assetvoyages.com until you name another), and the confirmation email sa…",
-   "element": "li#q15 > span > span.qa",
-   "note": "real-looking e-mail « direction@assetvoyages.com »",
-   "shot": "out/shots/0010-HUB-visiteur-390-hub-questions.png",
-   "state": "hub/questions/"
   },
   {
    "check": "B4",
@@ -510,58 +354,6 @@
    "state": "hub/pour-asset/"
   },
   {
-   "check": "B7",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/demo/",
-   "role": "visiteur",
-   "width": 1440,
-   "locale": "fr-FR",
-   "text": "On a congress details page, find « Demander un devis vol ».",
-   "element": "li#task-3 > div.task__opt.task__opt--a > ol.steps > li",
-   "note": "« congress » should be « Congrèss »",
-   "shot": "out/shots/0021-HUB-visiteur-1440-hub-demo.png",
-   "state": "hub/demo/"
-  },
-  {
-   "check": "B7",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/demo/",
-   "role": "visiteur",
-   "width": 1440,
-   "locale": "fr-FR",
-   "text": "Signed in as equipe, open « Accès GM&E »: the codes are hidden. Ask for access and give a reason.",
-   "element": "li#task-5 > div.task__opt.task__opt--a > ol.steps > li",
-   "note": "« access » should be « Accèss »",
-   "shot": "out/shots/0021-HUB-visiteur-1440-hub-demo.png",
-   "state": "hub/demo/"
-  },
-  {
-   "check": "B7",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/demo/",
-   "role": "visiteur",
-   "width": 1440,
-   "locale": "fr-FR",
-   "text": "In the team console, sign in as equipe and open « Codes GM&E »: the codes are hidden. Ask for access and give a reason.",
-   "element": "li#task-5 > div.task__opt.task__opt--b > ol.steps > li",
-   "note": "« access » should be « Accèss »",
-   "shot": "out/shots/0021-HUB-visiteur-1440-hub-demo.png",
-   "state": "hub/demo/"
-  },
-  {
-   "check": "D2",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/demo/",
-   "role": "visiteur",
-   "width": 1440,
-   "locale": "fr-FR",
-   "text": "Founder, ProdCraftdebanjan@prodcraft.fyi",
-   "element": "footer.foot > div.container.foot__in > div.foot__sig > p",
-   "note": "real-looking e-mail « ProdCraftdebanjan@prodcraft.fyi »",
-   "shot": "out/shots/0021-HUB-visiteur-1440-hub-demo.png",
-   "state": "hub/demo/"
-  },
-  {
    "check": "D2",
    "option": "HUB",
    "page": "https://asset-voyages-redesign.pages.dev/",
@@ -571,6 +363,19 @@
    "text": "Congrès européen de radiologie — exemple",
    "element": "ul.rows > li.row > div > p.row__t",
    "note": "matches a real congress name « congres europeen de radiologie » (marked as an example in the same text)",
+   "shot": "out/shots/0022-HUB-visiteur-1440-hub.png",
+   "state": "hub/"
+  },
+  {
+   "check": "D2",
+   "option": "HUB",
+   "page": "https://asset-voyages-redesign.pages.dev/",
+   "role": "visiteur",
+   "width": 1440,
+   "locale": "fr-FR",
+   "text": "Congrès mondial de neurologie — exemple",
+   "element": "ul.rows > li.row > div > p.row__t",
+   "note": "matches a real congress name « congres mondial de neurologie » (marked as an example in the same text)",
    "shot": "out/shots/0022-HUB-visiteur-1440-hub.png",
    "state": "hub/"
   },
@@ -594,114 +399,10 @@
    "role": "visiteur",
    "width": 1440,
    "locale": "fr-FR",
-   "text": "58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux01 55 57 29 00",
+   "text": "58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux 01 55 57 29 00",
    "element": "footer.ftr > div > p",
    "note": "phone « 01 55 57 29 00 » outside the ARCEP fiction ranges (01 99 00…, 02 61 91…, 03 53 01…, 04 65 71…, 05 36 49…, 06 39 98…) and not masked",
    "shot": "out/shots/0022-HUB-visiteur-1440-hub.png",
-   "state": "hub/"
-  },
-  {
-   "check": "C2",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/",
-   "role": "visiteur",
-   "width": 1440,
-   "locale": "fr-FR",
-   "text": "Voir la fiche",
-   "element": "button",
-   "note": "not clickable: locator.click: Timeout 3000ms exceeded.",
-   "shot": "",
-   "state": "hub/"
-  },
-  {
-   "check": "C2",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/",
-   "role": "visiteur",
-   "width": 1440,
-   "locale": "fr-FR",
-   "text": "Voir la fiche",
-   "element": "button",
-   "note": "not clickable: locator.click: Timeout 3000ms exceeded.",
-   "shot": "",
-   "state": "hub/"
-  },
-  {
-   "check": "C2",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/",
-   "role": "visiteur",
-   "width": 1440,
-   "locale": "fr-FR",
-   "text": "Voir la fiche",
-   "element": "button",
-   "note": "not clickable: locator.click: Timeout 3000ms exceeded.",
-   "shot": "",
-   "state": "hub/"
-  },
-  {
-   "check": "C2",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/",
-   "role": "visiteur",
-   "width": 1440,
-   "locale": "fr-FR",
-   "text": "Voir la fiche",
-   "element": "button",
-   "note": "not clickable: locator.click: Timeout 3000ms exceeded.",
-   "shot": "",
-   "state": "hub/"
-  },
-  {
-   "check": "C2",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/",
-   "role": "visiteur",
-   "width": 1440,
-   "locale": "fr-FR",
-   "text": "Voir la fiche",
-   "element": "button",
-   "note": "not clickable: locator.click: Timeout 3000ms exceeded.",
-   "shot": "",
-   "state": "hub/"
-  },
-  {
-   "check": "C2",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/",
-   "role": "visiteur",
-   "width": 1440,
-   "locale": "fr-FR",
-   "text": "‹",
-   "element": "button",
-   "note": "not clickable: locator.click: Timeout 3000ms exceeded.",
-   "shot": "",
-   "state": "hub/"
-  },
-  {
-   "check": "C2",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/",
-   "role": "visiteur",
-   "width": 1440,
-   "locale": "fr-FR",
-   "text": "1",
-   "element": "button",
-   "note": "not clickable: locator.click: Timeout 3000ms exceeded.",
-   "shot": "",
-   "state": "hub/"
-  },
-  {
-   "check": "C2",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/",
-   "role": "visiteur",
-   "width": 1440,
-   "locale": "fr-FR",
-   "text": "2",
-   "element": "button",
-   "note": "not clickable: locator.click: Timeout 3000ms exceeded.",
-   "shot": "",
    "state": "hub/"
   },
   {
@@ -757,19 +458,6 @@
    "state": "hub/console/"
   },
   {
-   "check": "D2",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/questions/",
-   "role": "visiteur",
-   "width": 1440,
-   "locale": "fr-FR",
-   "text": "If we don’t hear back, we’ll assume: every enquiry goes to one shared mailbox (direction@assetvoyages.com until you name another), and the confirmation email sa…",
-   "element": "li#q15 > span > span.qa",
-   "note": "real-looking e-mail « direction@assetvoyages.com »",
-   "shot": "out/shots/0025-HUB-visiteur-1440-hub-questions.png",
-   "state": "hub/questions/"
-  },
-  {
    "check": "B4",
    "option": "HUB",
    "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
@@ -809,58 +497,6 @@
    "state": "hub/pour-asset/"
   },
   {
-   "check": "B7",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/demo/",
-   "role": "visiteur",
-   "width": 1440,
-   "locale": "en-GB",
-   "text": "On a congress details page, find « Demander un devis vol ».",
-   "element": "li#task-3 > div.task__opt.task__opt--a > ol.steps > li",
-   "note": "« congress » should be « Congrèss »",
-   "shot": "out/shots/0031-HUB-visiteur-1440-hub-demo.png",
-   "state": "hub/demo/"
-  },
-  {
-   "check": "B7",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/demo/",
-   "role": "visiteur",
-   "width": 1440,
-   "locale": "en-GB",
-   "text": "Signed in as equipe, open « Accès GM&E »: the codes are hidden. Ask for access and give a reason.",
-   "element": "li#task-5 > div.task__opt.task__opt--a > ol.steps > li",
-   "note": "« access » should be « Accèss »",
-   "shot": "out/shots/0031-HUB-visiteur-1440-hub-demo.png",
-   "state": "hub/demo/"
-  },
-  {
-   "check": "B7",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/demo/",
-   "role": "visiteur",
-   "width": 1440,
-   "locale": "en-GB",
-   "text": "In the team console, sign in as equipe and open « Codes GM&E »: the codes are hidden. Ask for access and give a reason.",
-   "element": "li#task-5 > div.task__opt.task__opt--b > ol.steps > li",
-   "note": "« access » should be « Accèss »",
-   "shot": "out/shots/0031-HUB-visiteur-1440-hub-demo.png",
-   "state": "hub/demo/"
-  },
-  {
-   "check": "D2",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/demo/",
-   "role": "visiteur",
-   "width": 1440,
-   "locale": "en-GB",
-   "text": "Founder, ProdCraftdebanjan@prodcraft.fyi",
-   "element": "footer.foot > div.container.foot__in > div.foot__sig > p",
-   "note": "real-looking e-mail « ProdCraftdebanjan@prodcraft.fyi »",
-   "shot": "out/shots/0031-HUB-visiteur-1440-hub-demo.png",
-   "state": "hub/demo/"
-  },
-  {
    "check": "D2",
    "option": "HUB",
    "page": "https://asset-voyages-redesign.pages.dev/",
@@ -870,6 +506,19 @@
    "text": "Congrès européen de radiologie — exemple",
    "element": "ul.rows > li.row > div > p.row__t",
    "note": "matches a real congress name « congres europeen de radiologie » (marked as an example in the same text)",
+   "shot": "out/shots/0032-HUB-visiteur-1440-hub.png",
+   "state": "hub/"
+  },
+  {
+   "check": "D2",
+   "option": "HUB",
+   "page": "https://asset-voyages-redesign.pages.dev/",
+   "role": "visiteur",
+   "width": 1440,
+   "locale": "en-GB",
+   "text": "Congrès mondial de neurologie — exemple",
+   "element": "ul.rows > li.row > div > p.row__t",
+   "note": "matches a real congress name « congres mondial de neurologie » (marked as an example in the same text)",
    "shot": "out/shots/0032-HUB-visiteur-1440-hub.png",
    "state": "hub/"
   },
@@ -893,7 +542,7 @@
    "role": "visiteur",
    "width": 1440,
    "locale": "en-GB",
-   "text": "58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux01 55 57 29 00",
+   "text": "58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux 01 55 57 29 00",
    "element": "footer.ftr > div > p",
    "note": "phone « 01 55 57 29 00 » outside the ARCEP fiction ranges (01 99 00…, 02 61 91…, 03 53 01…, 04 65 71…, 05 36 49…, 06 39 98…) and not masked",
    "shot": "out/shots/0032-HUB-visiteur-1440-hub.png",
@@ -954,54 +603,15 @@
   {
    "check": "D2",
    "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/questions/",
-   "role": "visiteur",
-   "width": 1440,
-   "locale": "en-GB",
-   "text": "If we don’t hear back, we’ll assume: every enquiry goes to one shared mailbox (direction@assetvoyages.com until you name another), and the confirmation email sa…",
-   "element": "li#q15 > span > span.qa",
-   "note": "real-looking e-mail « direction@assetvoyages.com »",
-   "shot": "out/shots/0035-HUB-visiteur-1440-hub-questions.png",
-   "state": "hub/questions/"
-  },
-  {
-   "check": "B7",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/demo/",
+   "page": "https://asset-voyages-redesign.pages.dev/",
    "role": "visiteur",
    "width": 390,
    "locale": "en-GB",
-   "text": "On a congress details page, find « Demander un devis vol ».",
-   "element": "li#task-3 > div.task__opt.task__opt--a > ol.steps > li",
-   "note": "« congress » should be « Congrèss »",
-   "shot": "out/shots/0036-HUB-visiteur-390-hub-demo.png",
-   "state": "hub/demo/"
-  },
-  {
-   "check": "B7",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/demo/",
-   "role": "visiteur",
-   "width": 390,
-   "locale": "en-GB",
-   "text": "Signed in as equipe, open « Accès GM&E »: the codes are hidden. Ask for access and give a reason.",
-   "element": "li#task-5 > div.task__opt.task__opt--a > ol.steps > li",
-   "note": "« access » should be « Accèss »",
-   "shot": "out/shots/0036-HUB-visiteur-390-hub-demo.png",
-   "state": "hub/demo/"
-  },
-  {
-   "check": "D2",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/demo/",
-   "role": "visiteur",
-   "width": 390,
-   "locale": "en-GB",
-   "text": "Founder, ProdCraftdebanjan@prodcraft.fyi",
-   "element": "footer.foot > div.container.foot__in > div.foot__sig > p",
-   "note": "real-looking e-mail « ProdCraftdebanjan@prodcraft.fyi »",
-   "shot": "out/shots/0036-HUB-visiteur-390-hub-demo.png",
-   "state": "hub/demo/"
+   "text": "Congrès européen de radiologie — exemple",
+   "element": "ul.rows > li.row > div > p.row__t",
+   "note": "matches a real congress name « congres europeen de radiologie » (marked as an example in the same text)",
+   "shot": "out/shots/0037-HUB-visiteur-390-hub.png",
+   "state": "hub/"
   },
   {
    "check": "D2",
@@ -1010,9 +620,9 @@
    "role": "visiteur",
    "width": 390,
    "locale": "en-GB",
-   "text": "Congrès européen de radiologie — exemple",
+   "text": "Congrès mondial de neurologie — exemple",
    "element": "ul.rows > li.row > div > p.row__t",
-   "note": "matches a real congress name « congres europeen de radiologie » (marked as an example in the same text)",
+   "note": "matches a real congress name « congres mondial de neurologie » (marked as an example in the same text)",
    "shot": "out/shots/0037-HUB-visiteur-390-hub.png",
    "state": "hub/"
   },
@@ -1036,7 +646,7 @@
    "role": "visiteur",
    "width": 390,
    "locale": "en-GB",
-   "text": "58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux01 55 57 29 00",
+   "text": "58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux 01 55 57 29 00",
    "element": "footer.ftr > div > p",
    "note": "phone « 01 55 57 29 00 » outside the ARCEP fiction ranges (01 99 00…, 02 61 91…, 03 53 01…, 04 65 71…, 05 36 49…, 06 39 98…) and not masked",
    "shot": "out/shots/0037-HUB-visiteur-390-hub.png",
@@ -1119,19 +729,6 @@
    "note": "orphan-dash",
    "shot": "out/shots/0039-HUB-visiteur-390-hub-console.png",
    "state": "hub/console/"
-  },
-  {
-   "check": "D2",
-   "option": "HUB",
-   "page": "https://asset-voyages-redesign.pages.dev/questions/",
-   "role": "visiteur",
-   "width": 390,
-   "locale": "en-GB",
-   "text": "If we don’t hear back, we’ll assume: every enquiry goes to one shared mailbox (direction@assetvoyages.com until you name another), and the confirmation email sa…",
-   "element": "li#q15 > span > span.qa",
-   "note": "real-looking e-mail « direction@assetvoyages.com »",
-   "shot": "out/shots/0040-HUB-visiteur-390-hub-questions.png",
-   "state": "hub/questions/"
   }
  ],
  "states": [
@@ -5687,7 +5284,7 @@
      "playsinline": true,
      "preload": "auto",
      "sources": [
-      "blob:https://asset-voyages-redesign.pages.dev/dccdb268-0978-4710-9b4d-903dfa5d4dda"
+      "blob:https://asset-voyages-redesign.pages.dev/911c1c52-f267-4c21-b529-3861b1062f78"
      ],
      "visible": true,
      "width": 1280
@@ -7108,7 +6705,7 @@
      "playsinline": true,
      "preload": "auto",
      "sources": [
-      "blob:https://asset-voyages-redesign.pages.dev/650f6bd2-718d-4271-874c-c0d4f6cb2196"
+      "blob:https://asset-voyages-redesign.pages.dev/b4788070-3bd6-4691-8e82-da83cff1ff30"
      ],
      "visible": true,
      "width": 1440
@@ -8515,7 +8112,7 @@
    "title": "ASSET Voyages — Voyages d’affaires, MICE et congrès · Concept",
    "lang": "fr",
    "surface": "hub",
-   "cls": 0,
+   "cls": 0.0005164930555555555,
    "overflow": {
     "scrollWidth": 1920,
     "innerWidth": 1920,
@@ -8530,7 +8127,7 @@
      "playsinline": true,
      "preload": "auto",
      "sources": [
-      "blob:https://asset-voyages-redesign.pages.dev/136204a5-4281-4fb8-8b02-ec1fb8ab7510"
+      "blob:https://asset-voyages-redesign.pages.dev/2046262a-b570-46c7-81cd-28d7e96ee476"
      ],
      "visible": true,
      "width": 1920
@@ -9951,7 +9548,7 @@
      "playsinline": true,
      "preload": "auto",
      "sources": [
-      "blob:https://asset-voyages-redesign.pages.dev/6c7022ff-cb28-4299-bb87-08d1ef5d36cf"
+      "blob:https://asset-voyages-redesign.pages.dev/1c0ce864-7c94-41a2-afab-f29662a69713"
      ],
      "visible": true,
      "width": 1440
@@ -12978,9 +12575,9 @@
     "Suggest another time",
     "Nothing on this page is chargeable. If you would like a sample built for one of your own congresses, we can do that only if you ask, with the scope, fee and date agreed in writing first.",
     "Debanjan",
-    "Founder, ProdCraftdebanjan@prodcraft.fyi",
+    "Founder, ProdCraft debanjan@prodcraft.fyi",
     "All congresses, people, enquiries and codes in these demos are fictional. The concept and the demos are illustrations: only the signed proposal defines what is included.",
-    "Earlier pages: the concept, the note for ASSET (in French), the Console mock-up, our questions."
+    "Earlier pages: the concept , the note for ASSET (in French), the Console mock-up , our questions ."
    ],
    "attrs": [
     "Sections of this page",
@@ -13203,7 +12800,7 @@
     "Votre prochain départ commence par un brief.",
     "Trois parcours, un seul interlocuteur. Aucun compte à créer.",
     "01 55 57 29 00",
-    "ASSET Voyages — Selectour58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux",
+    "ASSET Voyages — Selectour 58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux",
     "Vous êtes",
     "Une entreprise",
     "Compte, audit, assistance",
@@ -13224,9 +12821,9 @@
     "→",
     "Agence de voyages d’affaires dédiée aux entreprises. Membre du réseau Selectour.",
     "Agence",
-    "58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux01 55 57 29 00",
+    "58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux 01 55 57 29 00",
     "Liens",
-    "OffresCongrèsContactNote pour ASSETNos questionsLes deux démosHaut de page ↑",
+    "Offres Congrès Contact Note pour ASSET Nos questions Les deux démos Haut de page ↑",
     "Concept de refonte non officiel, préparé par ProdCraft · maquette d’illustration : seule la proposition signée fixe ce qui est inclus · Note pour ASSET · Console (maquette) · Questions (en anglais) · non référencé"
    ],
    "attrs": [
@@ -13396,7 +12993,7 @@
     "26/10/2026",
     "Société B (exemple)",
     "—",
-    "Qualifiéerappel aujourd’hui",
+    "Qualifiée rappel aujourd’hui",
     "Conseiller voyages",
     "D-0001",
     "Voyages d’affaires — compte",
@@ -13728,7 +13325,7 @@
     "Nothing goes live without written approval from ASSET management. No change to your current site or domain happens before that.",
     "08",
     "Our 30 questions",
-    "Please return your answers as one PDF to debanjan@prodcraft.fyi by Friday 6 November. Fill in the PDF directly, or use the Word version and save it as PDF. Write OK to accept our assumption, or your answer. Short answers are fine, and “not decided yet” is a useful answer too. If time is short, start with the eight questions marked Answer first.",
+    "Please return your answers as one PDF to debanjan@prodcraft.fyi by Friday 6 November. Fill in the PDF directly, or use the Word version and save it as PDF. Write OK to accept our assumption, or your answer. Short answers are fine, and “not decided yet” is a useful answer too. If time is short, start with the eight questions marked Answer first .",
     "Download the answer sheet (fillable PDF)",
     "Word version (.docx)",
     "What this means",
@@ -13738,25 +13335,25 @@
     "You can change an assumption by email until the proposal is signed; a change may alter the price and dates.",
     "After signature, changes are agreed in writing with their effect on price and dates.",
     "Timing, budget and decisions",
-    "1Answer first When is the proposal due, and when do you plan to choose a supplier? Is there a date the new site has to be live by, or a busy period when it should not launch?",
+    "1 Answer first When is the proposal due, and when do you plan to choose a supplier? Is there a date the new site has to be live by, or a busy period when it should not launch?",
     "If we don’t hear back, we’ll assume: we send the proposal within 24–48 working hours of receiving your answers, or by 10 November if no answers arrive by 6 November; work starts within 5 working days of the signed proposal; launch about 12 weeks after the start, moving day for day with any late input; no launch between 21 December and 1 January.",
-    "2Answer first Is there a budget range or a cap for the core site and the Congress catalogue? A rough bracket is enough.",
+    "2 Answer first Is there a budget range or a cap for the core site and the Congress catalogue? A rough bracket is enough.",
     "If we don’t hear back, we’ll assume: we quote the core site and the Congress catalogue as set out in our proposal, which lists the pages, listings, rounds of changes and exclusions. Every option is priced separately, so you can pick.",
-    "3Answer first Who at ASSET approves each stage (design, content, launch), and does each activity (Business Travel, MICE, Congresses) sign off its own pages? How many working days should we plan for each approval?",
+    "3 Answer first Who at ASSET approves each stage (design, content, launch), and does each activity (Business Travel, MICE, Congresses) sign off its own pages? How many working days should we plan for each approval?",
     "If we don’t hear back, we’ll assume: ASSET management approves each stage in writing (directly, or through Ms Khatri on its behalf) within 3 working days, in one combined reply for all three activities. To keep the dates on track, if neither an approval nor a written list of blocking problems arrives in that time, a design or content stage counts as approved so work can continue. Launch always needs management’s written go-ahead (section 07). Acceptance testing before launch lasts 5 working days, against the tests in your brief (T01–T15) only.",
     "Today’s website and accounts",
     "4Who looks after the current site today (an agency, a freelancer, your team), and is there a contract or notice period with them?",
     "If we don’t hear back, we’ll assume: nothing in a current contract limits the project, and ASSET arranges any handover from today’s provider.",
-    "5Answer first Are the domain, hosting, email, Google Analytics, Search Console and Google Business Profile accounts in ASSET’s name? Who at ASSET should own the accounts of the new site?",
+    "5 Answer first Are the domain, hosting, email, Google Analytics, Search Console and Google Business Profile accounts in ASSET’s name? Who at ASSET should own the accounts of the new site?",
     "If we don’t hear back, we’ll assume: ASSET gives us access at kickoff. Every new account is opened in ASSET’s name, owned by management, with Ms Khatri as day-to-day administrator. If an account is held by someone else, ASSET asks them to transfer it; we can tell you exactly what to ask for.",
-    "6Answer first Should the new site be on asset-voyagesdaffaires.com, assetvoyages.com, or both? Are there other web addresses or campaign pages we should know about?",
+    "6 Answer first Should the new site be on asset-voyagesdaffaires.com, assetvoyages.com, or both? Are there other web addresses or campaign pages we should know about?",
     "If we don’t hear back, we’ll assume: the new site lives on asset-voyagesdaffaires.com, the address Google knows today, and assetvoyages.com points to it (web address only; your email is not touched). No other addresses are included.",
     "7Could you give us read-only access to Google Analytics and Search Console? Which trackers (LinkedIn, Meta) and ad campaigns (Google Ads, LinkedIn Ads) must keep working?",
     "If we don’t hear back, we’ll assume: we plan the move of old pages from our own scan of the site. No trackers are carried over. Visitor statistics need no cookies, and the site itself counts the actions your brief lists (button clicks, form starts and sends, errors, congress searches, congress page views, account requests and client-login clicks) without cookies or personal data. Ad campaigns are not included.",
     "8Does Selectour ask for anything on your website (logos, legal mentions, brand rules)?",
     "If we don’t hear back, we’ll assume: we show the Selectour Affaires logo and membership line as they appear on today’s site, and nothing more.",
     "Content, brand and languages",
-    "9Answer first Will your team write the new French copy, or do you want us to rewrite the existing pages? Roughly how many pages, articles and FAQ entries do you expect at launch?",
+    "9 Answer first Will your team write the new French copy, or do you want us to rewrite the existing pages? Roughly how many pages, articles and FAQ entries do you expect at launch?",
     "If we don’t hear back, we’ll assume: ASSET writes the French text for new pages. We move up to 20 of today’s pages plus 3 legal pages, editing wording only (titles, headings, clarity and typos), with your corrections made within the two rounds of changes of the content stage (section 07); other pages are merged or redirected. ASSET supplies or approves the wording of the legal pages; we do not give legal advice. Ms Khatri adds further articles and FAQ herself.",
     "10Do you have brand guidelines (logo files, colours, fonts)? Is the logo fixed, or is a light refresh welcome?",
     "If we don’t hear back, we’ll assume: we keep today’s logo and colours exactly as they are and build a short style guide from them.",
@@ -13769,14 +13366,14 @@
     "14Which journeys should be in English first, from when (launch or later), and who will translate?",
     "If we don’t hear back, we’ll assume: the site is in French only at launch. English is a separate option, and ASSET arranges and pays for professional translation.",
     "Enquiries and sales tools",
-    "15Answer first Who should receive each type of enquiry (Business Travel, MICE, Congresses), with a backup person, and how quickly can you promise a reply?",
+    "15 Answer first Who should receive each type of enquiry (Business Travel, MICE, Congresses), with a backup person, and how quickly can you promise a reply?",
     "If we don’t hear back, we’ll assume: every enquiry goes to one shared mailbox (direction@assetvoyages.com until you name another), and the confirmation email says you will reply shortly, with no time promised.",
     "16Which sales tools do you use today: a CRM, a newsletter or email-marketing tool, or email only?",
     "If we don’t hear back, we’ll assume: you use no CRM or newsletter tool. Enquiries are followed in the site’s own enquiry list with an export that opens in Excel, and forms carry no marketing tick box.",
     "Congress catalogue",
     "17Could you share 10 sample rows from your list of events (the 300 in the brief), with where the listings come from and roughly how many you add each year?",
     "If we don’t hear back, we’ll assume: ASSET provides one spreadsheet of up to 300 congresses in our template, using the fields listed in your brief. We import it once and send back a list of any rows with errors for ASSET to correct. Finding, researching or rewriting listings is not included. Ms Khatri adds new ones in the admin afterwards, one by one or by spreadsheet import.",
-    "18Answer first Does ASSET already work with Air France–KLM’s Global Meetings and Events programme? How do the event codes work: one per congress or several, and do they expire?",
+    "18 Answer first Does ASSET already work with Air France–KLM’s Global Meetings and Events programme? How do the event codes work: one per congress or several, and do they expire?",
     "If we don’t hear back, we’ll assume: no fare code and no special-fare wording appears anywhere until ASSET confirms the arrangement in writing. The locked admin holds the code, its evidence and its validity period for each congress, as your brief lists.",
     "19Who at ASSET does each step from spotting a congress to approving it for sale? Who gives the final approval: one person or several?",
     "If we don’t hear back, we’ll assume: Ms Khatri moves each congress through the steps and ASSET management gives the final approval for sale.",
@@ -14103,9 +13700,9 @@
     "Suggest another time",
     "Nothing on this page is chargeable. If you would like a sample built for one of your own congresses, we can do that only if you ask, with the scope, fee and date agreed in writing first.",
     "Debanjan",
-    "Founder, ProdCraftdebanjan@prodcraft.fyi",
+    "Founder, ProdCraft debanjan@prodcraft.fyi",
     "All congresses, people, enquiries and codes in these demos are fictional. The concept and the demos are illustrations: only the signed proposal defines what is included.",
-    "Earlier pages: the concept, the note for ASSET (in French), the Console mock-up, our questions."
+    "Earlier pages: the concept , the note for ASSET (in French), the Console mock-up , our questions ."
    ],
    "attrs": [
     "Sections of this page",
@@ -14329,7 +13926,7 @@
     "Votre prochain départ commence par un brief.",
     "Trois parcours, un seul interlocuteur. Aucun compte à créer.",
     "01 55 57 29 00",
-    "ASSET Voyages — Selectour58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux",
+    "ASSET Voyages — Selectour 58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux",
     "Vous êtes",
     "Une entreprise",
     "Compte, audit, assistance",
@@ -14350,9 +13947,9 @@
     "→",
     "Agence de voyages d’affaires dédiée aux entreprises. Membre du réseau Selectour.",
     "Agence",
-    "58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux01 55 57 29 00",
+    "58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux 01 55 57 29 00",
     "Liens",
-    "OffresCongrèsContactNote pour ASSETNos questionsLes deux démosHaut de page ↑",
+    "Offres Congrès Contact Note pour ASSET Nos questions Les deux démos Haut de page ↑",
     "Concept de refonte non officiel, préparé par ProdCraft · maquette d’illustration : seule la proposition signée fixe ce qui est inclus · Note pour ASSET · Console (maquette) · Questions (en anglais) · non référencé"
    ],
    "attrs": [
@@ -14522,7 +14119,7 @@
     "26/10/2026",
     "Société B (exemple)",
     "—",
-    "Qualifiéerappel aujourd’hui",
+    "Qualifiée rappel aujourd’hui",
     "Conseiller voyages",
     "D-0001",
     "Voyages d’affaires — compte",
@@ -14854,7 +14451,7 @@
     "Nothing goes live without written approval from ASSET management. No change to your current site or domain happens before that.",
     "08",
     "Our 30 questions",
-    "Please return your answers as one PDF to debanjan@prodcraft.fyi by Friday 6 November. Fill in the PDF directly, or use the Word version and save it as PDF. Write OK to accept our assumption, or your answer. Short answers are fine, and “not decided yet” is a useful answer too. If time is short, start with the eight questions marked Answer first.",
+    "Please return your answers as one PDF to debanjan@prodcraft.fyi by Friday 6 November. Fill in the PDF directly, or use the Word version and save it as PDF. Write OK to accept our assumption, or your answer. Short answers are fine, and “not decided yet” is a useful answer too. If time is short, start with the eight questions marked Answer first .",
     "Download the answer sheet (fillable PDF)",
     "Word version (.docx)",
     "What this means",
@@ -14864,25 +14461,25 @@
     "You can change an assumption by email until the proposal is signed; a change may alter the price and dates.",
     "After signature, changes are agreed in writing with their effect on price and dates.",
     "Timing, budget and decisions",
-    "1Answer first When is the proposal due, and when do you plan to choose a supplier? Is there a date the new site has to be live by, or a busy period when it should not launch?",
+    "1 Answer first When is the proposal due, and when do you plan to choose a supplier? Is there a date the new site has to be live by, or a busy period when it should not launch?",
     "If we don’t hear back, we’ll assume: we send the proposal within 24–48 working hours of receiving your answers, or by 10 November if no answers arrive by 6 November; work starts within 5 working days of the signed proposal; launch about 12 weeks after the start, moving day for day with any late input; no launch between 21 December and 1 January.",
-    "2Answer first Is there a budget range or a cap for the core site and the Congress catalogue? A rough bracket is enough.",
+    "2 Answer first Is there a budget range or a cap for the core site and the Congress catalogue? A rough bracket is enough.",
     "If we don’t hear back, we’ll assume: we quote the core site and the Congress catalogue as set out in our proposal, which lists the pages, listings, rounds of changes and exclusions. Every option is priced separately, so you can pick.",
-    "3Answer first Who at ASSET approves each stage (design, content, launch), and does each activity (Business Travel, MICE, Congresses) sign off its own pages? How many working days should we plan for each approval?",
+    "3 Answer first Who at ASSET approves each stage (design, content, launch), and does each activity (Business Travel, MICE, Congresses) sign off its own pages? How many working days should we plan for each approval?",
     "If we don’t hear back, we’ll assume: ASSET management approves each stage in writing (directly, or through Ms Khatri on its behalf) within 3 working days, in one combined reply for all three activities. To keep the dates on track, if neither an approval nor a written list of blocking problems arrives in that time, a design or content stage counts as approved so work can continue. Launch always needs management’s written go-ahead (section 07). Acceptance testing before launch lasts 5 working days, against the tests in your brief (T01–T15) only.",
     "Today’s website and accounts",
     "4Who looks after the current site today (an agency, a freelancer, your team), and is there a contract or notice period with them?",
     "If we don’t hear back, we’ll assume: nothing in a current contract limits the project, and ASSET arranges any handover from today’s provider.",
-    "5Answer first Are the domain, hosting, email, Google Analytics, Search Console and Google Business Profile accounts in ASSET’s name? Who at ASSET should own the accounts of the new site?",
+    "5 Answer first Are the domain, hosting, email, Google Analytics, Search Console and Google Business Profile accounts in ASSET’s name? Who at ASSET should own the accounts of the new site?",
     "If we don’t hear back, we’ll assume: ASSET gives us access at kickoff. Every new account is opened in ASSET’s name, owned by management, with Ms Khatri as day-to-day administrator. If an account is held by someone else, ASSET asks them to transfer it; we can tell you exactly what to ask for.",
-    "6Answer first Should the new site be on asset-voyagesdaffaires.com, assetvoyages.com, or both? Are there other web addresses or campaign pages we should know about?",
+    "6 Answer first Should the new site be on asset-voyagesdaffaires.com, assetvoyages.com, or both? Are there other web addresses or campaign pages we should know about?",
     "If we don’t hear back, we’ll assume: the new site lives on asset-voyagesdaffaires.com, the address Google knows today, and assetvoyages.com points to it (web address only; your email is not touched). No other addresses are included.",
     "7Could you give us read-only access to Google Analytics and Search Console? Which trackers (LinkedIn, Meta) and ad campaigns (Google Ads, LinkedIn Ads) must keep working?",
     "If we don’t hear back, we’ll assume: we plan the move of old pages from our own scan of the site. No trackers are carried over. Visitor statistics need no cookies, and the site itself counts the actions your brief lists (button clicks, form starts and sends, errors, congress searches, congress page views, account requests and client-login clicks) without cookies or personal data. Ad campaigns are not included.",
     "8Does Selectour ask for anything on your website (logos, legal mentions, brand rules)?",
     "If we don’t hear back, we’ll assume: we show the Selectour Affaires logo and membership line as they appear on today’s site, and nothing more.",
     "Content, brand and languages",
-    "9Answer first Will your team write the new French copy, or do you want us to rewrite the existing pages? Roughly how many pages, articles and FAQ entries do you expect at launch?",
+    "9 Answer first Will your team write the new French copy, or do you want us to rewrite the existing pages? Roughly how many pages, articles and FAQ entries do you expect at launch?",
     "If we don’t hear back, we’ll assume: ASSET writes the French text for new pages. We move up to 20 of today’s pages plus 3 legal pages, editing wording only (titles, headings, clarity and typos), with your corrections made within the two rounds of changes of the content stage (section 07); other pages are merged or redirected. ASSET supplies or approves the wording of the legal pages; we do not give legal advice. Ms Khatri adds further articles and FAQ herself.",
     "10Do you have brand guidelines (logo files, colours, fonts)? Is the logo fixed, or is a light refresh welcome?",
     "If we don’t hear back, we’ll assume: we keep today’s logo and colours exactly as they are and build a short style guide from them.",
@@ -14895,14 +14492,14 @@
     "14Which journeys should be in English first, from when (launch or later), and who will translate?",
     "If we don’t hear back, we’ll assume: the site is in French only at launch. English is a separate option, and ASSET arranges and pays for professional translation.",
     "Enquiries and sales tools",
-    "15Answer first Who should receive each type of enquiry (Business Travel, MICE, Congresses), with a backup person, and how quickly can you promise a reply?",
+    "15 Answer first Who should receive each type of enquiry (Business Travel, MICE, Congresses), with a backup person, and how quickly can you promise a reply?",
     "If we don’t hear back, we’ll assume: every enquiry goes to one shared mailbox (direction@assetvoyages.com until you name another), and the confirmation email says you will reply shortly, with no time promised.",
     "16Which sales tools do you use today: a CRM, a newsletter or email-marketing tool, or email only?",
     "If we don’t hear back, we’ll assume: you use no CRM or newsletter tool. Enquiries are followed in the site’s own enquiry list with an export that opens in Excel, and forms carry no marketing tick box.",
     "Congress catalogue",
     "17Could you share 10 sample rows from your list of events (the 300 in the brief), with where the listings come from and roughly how many you add each year?",
     "If we don’t hear back, we’ll assume: ASSET provides one spreadsheet of up to 300 congresses in our template, using the fields listed in your brief. We import it once and send back a list of any rows with errors for ASSET to correct. Finding, researching or rewriting listings is not included. Ms Khatri adds new ones in the admin afterwards, one by one or by spreadsheet import.",
-    "18Answer first Does ASSET already work with Air France–KLM’s Global Meetings and Events programme? How do the event codes work: one per congress or several, and do they expire?",
+    "18 Answer first Does ASSET already work with Air France–KLM’s Global Meetings and Events programme? How do the event codes work: one per congress or several, and do they expire?",
     "If we don’t hear back, we’ll assume: no fare code and no special-fare wording appears anywhere until ASSET confirms the arrangement in writing. The locked admin holds the code, its evidence and its validity period for each congress, as your brief lists.",
     "19Who at ASSET does each step from spotting a congress to approving it for sale? Who gives the final approval: one person or several?",
     "If we don’t hear back, we’ll assume: Ms Khatri moves each congress through the steps and ASSET management gives the final approval for sale.",
@@ -15228,9 +14825,9 @@
     "Suggest another time",
     "Nothing on this page is chargeable. If you would like a sample built for one of your own congresses, we can do that only if you ask, with the scope, fee and date agreed in writing first.",
     "Debanjan",
-    "Founder, ProdCraftdebanjan@prodcraft.fyi",
+    "Founder, ProdCraft debanjan@prodcraft.fyi",
     "All congresses, people, enquiries and codes in these demos are fictional. The concept and the demos are illustrations: only the signed proposal defines what is included.",
-    "Earlier pages: the concept, the note for ASSET (in French), the Console mock-up, our questions."
+    "Earlier pages: the concept , the note for ASSET (in French), the Console mock-up , our questions ."
    ],
    "attrs": [
     "Sections of this page",
@@ -15454,7 +15051,7 @@
     "Votre prochain départ commence par un brief.",
     "Trois parcours, un seul interlocuteur. Aucun compte à créer.",
     "01 55 57 29 00",
-    "ASSET Voyages — Selectour58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux",
+    "ASSET Voyages — Selectour 58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux",
     "Vous êtes",
     "Une entreprise",
     "Compte, audit, assistance",
@@ -15475,9 +15072,9 @@
     "→",
     "Agence de voyages d’affaires dédiée aux entreprises. Membre du réseau Selectour.",
     "Agence",
-    "58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux01 55 57 29 00",
+    "58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux 01 55 57 29 00",
     "Liens",
-    "OffresCongrèsContactNote pour ASSETNos questionsLes deux démosHaut de page ↑",
+    "Offres Congrès Contact Note pour ASSET Nos questions Les deux démos Haut de page ↑",
     "Concept de refonte non officiel, préparé par ProdCraft · maquette d’illustration : seule la proposition signée fixe ce qui est inclus · Note pour ASSET · Console (maquette) · Questions (en anglais) · non référencé"
    ],
    "attrs": [
@@ -15647,7 +15244,7 @@
     "26/10/2026",
     "Société B (exemple)",
     "—",
-    "Qualifiéerappel aujourd’hui",
+    "Qualifiée rappel aujourd’hui",
     "Conseiller voyages",
     "D-0001",
     "Voyages d’affaires — compte",
@@ -15979,7 +15576,7 @@
     "Nothing goes live without written approval from ASSET management. No change to your current site or domain happens before that.",
     "08",
     "Our 30 questions",
-    "Please return your answers as one PDF to debanjan@prodcraft.fyi by Friday 6 November. Fill in the PDF directly, or use the Word version and save it as PDF. Write OK to accept our assumption, or your answer. Short answers are fine, and “not decided yet” is a useful answer too. If time is short, start with the eight questions marked Answer first.",
+    "Please return your answers as one PDF to debanjan@prodcraft.fyi by Friday 6 November. Fill in the PDF directly, or use the Word version and save it as PDF. Write OK to accept our assumption, or your answer. Short answers are fine, and “not decided yet” is a useful answer too. If time is short, start with the eight questions marked Answer first .",
     "Download the answer sheet (fillable PDF)",
     "Word version (.docx)",
     "What this means",
@@ -16413,9 +16010,9 @@
     "Suggest another time",
     "Nothing on this page is chargeable. If you would like a sample built for one of your own congresses, we can do that only if you ask, with the scope, fee and date agreed in writing first.",
     "Debanjan",
-    "Founder, ProdCraftdebanjan@prodcraft.fyi",
+    "Founder, ProdCraft debanjan@prodcraft.fyi",
     "All congresses, people, enquiries and codes in these demos are fictional. The concept and the demos are illustrations: only the signed proposal defines what is included.",
-    "Earlier pages: the concept, the note for ASSET (in French), the Console mock-up, our questions."
+    "Earlier pages: the concept , the note for ASSET (in French), the Console mock-up , our questions ."
    ],
    "attrs": [
     "Sections of this page",
@@ -16470,7 +16067,7 @@
     "Démo de l’outil de réservation",
     "Autre",
     "Aller au contenu",
-    "Voyages d’affaires · MICE · CongrèsAgence Selectour Affaires · Issy-les-Moulineaux",
+    "Voyages d’affaires · MICE · Congrès Agence Selectour Affaires · Issy-les-Moulineaux",
     "Offres",
     "Congrès",
     "Méthode",
@@ -16563,7 +16160,7 @@
     "« Nous vous proposons une première prise de contact afin de mieux comprendre le profil de vos dépenses en voyages d’affaires et déplacements professionnels. »",
     "Trois parcours, un seul interlocuteur. Aucun compte à créer.",
     "01 55 57 29 00",
-    "ASSET Voyages — Selectour58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux",
+    "ASSET Voyages — Selectour 58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux",
     "Vous êtes",
     "Une entreprise",
     "Compte, audit, assistance",
@@ -16584,9 +16181,9 @@
     "→",
     "Agence de voyages d’affaires dédiée aux entreprises. Membre du réseau Selectour.",
     "Agence",
-    "58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux01 55 57 29 00",
+    "58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux 01 55 57 29 00",
     "Liens",
-    "OffresCongrèsContactNote pour ASSETNos questionsLes deux démosHaut de page ↑",
+    "Offres Congrès Contact Note pour ASSET Nos questions Les deux démos Haut de page ↑",
     "Concept de refonte non officiel, préparé par ProdCraft · maquette d’illustration : seule la proposition signée fixe ce qui est inclus · Note pour ASSET · Console (maquette) · Questions (en anglais) · non référencé"
    ],
    "attrs": [
@@ -16755,7 +16352,7 @@
     "26/10/2026",
     "Société B (exemple)",
     "—",
-    "Qualifiéerappel aujourd’hui",
+    "Qualifiée rappel aujourd’hui",
     "Conseiller voyages",
     "D-0001",
     "Voyages d’affaires — compte",
@@ -17092,7 +16689,7 @@
     "Nothing goes live without written approval from ASSET management. No change to your current site or domain happens before that.",
     "08",
     "Our 30 questions",
-    "Please return your answers as one PDF to debanjan@prodcraft.fyi by Friday 6 November. Fill in the PDF directly, or use the Word version and save it as PDF. Write OK to accept our assumption, or your answer. Short answers are fine, and “not decided yet” is a useful answer too. If time is short, start with the eight questions marked Answer first.",
+    "Please return your answers as one PDF to debanjan@prodcraft.fyi by Friday 6 November. Fill in the PDF directly, or use the Word version and save it as PDF. Write OK to accept our assumption, or your answer. Short answers are fine, and “not decided yet” is a useful answer too. If time is short, start with the eight questions marked Answer first .",
     "Download the answer sheet (fillable PDF)",
     "Word version (.docx)",
     "What this means",
@@ -17526,9 +17123,9 @@
     "Suggest another time",
     "Nothing on this page is chargeable. If you would like a sample built for one of your own congresses, we can do that only if you ask, with the scope, fee and date agreed in writing first.",
     "Debanjan",
-    "Founder, ProdCraftdebanjan@prodcraft.fyi",
+    "Founder, ProdCraft debanjan@prodcraft.fyi",
     "All congresses, people, enquiries and codes in these demos are fictional. The concept and the demos are illustrations: only the signed proposal defines what is included.",
-    "Earlier pages: the concept, the note for ASSET (in French), the Console mock-up, our questions."
+    "Earlier pages: the concept , the note for ASSET (in French), the Console mock-up , our questions ."
    ],
    "attrs": [
     "Sections of this page",
@@ -17583,7 +17180,7 @@
     "Démo de l’outil de réservation",
     "Autre",
     "Aller au contenu",
-    "Voyages d’affaires · MICE · CongrèsAgence Selectour Affaires · Issy-les-Moulineaux",
+    "Voyages d’affaires · MICE · Congrès Agence Selectour Affaires · Issy-les-Moulineaux",
     "Offres",
     "Congrès",
     "Méthode",
@@ -17676,7 +17273,7 @@
     "« Nous vous proposons une première prise de contact afin de mieux comprendre le profil de vos dépenses en voyages d’affaires et déplacements professionnels. »",
     "Trois parcours, un seul interlocuteur. Aucun compte à créer.",
     "01 55 57 29 00",
-    "ASSET Voyages — Selectour58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux",
+    "ASSET Voyages — Selectour 58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux",
     "Vous êtes",
     "Une entreprise",
     "Compte, audit, assistance",
@@ -17697,9 +17294,9 @@
     "→",
     "Agence de voyages d’affaires dédiée aux entreprises. Membre du réseau Selectour.",
     "Agence",
-    "58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux01 55 57 29 00",
+    "58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux 01 55 57 29 00",
     "Liens",
-    "OffresCongrèsContactNote pour ASSETNos questionsLes deux démosHaut de page ↑",
+    "Offres Congrès Contact Note pour ASSET Nos questions Les deux démos Haut de page ↑",
     "Concept de refonte non officiel, préparé par ProdCraft · maquette d’illustration : seule la proposition signée fixe ce qui est inclus · Note pour ASSET · Console (maquette) · Questions (en anglais) · non référencé"
    ],
    "attrs": [
@@ -17868,7 +17465,7 @@
     "26/10/2026",
     "Société B (exemple)",
     "—",
-    "Qualifiéerappel aujourd’hui",
+    "Qualifiée rappel aujourd’hui",
     "Conseiller voyages",
     "D-0001",
     "Voyages d’affaires — compte",
@@ -18205,7 +17802,7 @@
     "Nothing goes live without written approval from ASSET management. No change to your current site or domain happens before that.",
     "08",
     "Our 30 questions",
-    "Please return your answers as one PDF to debanjan@prodcraft.fyi by Friday 6 November. Fill in the PDF directly, or use the Word version and save it as PDF. Write OK to accept our assumption, or your answer. Short answers are fine, and “not decided yet” is a useful answer too. If time is short, start with the eight questions marked Answer first.",
+    "Please return your answers as one PDF to debanjan@prodcraft.fyi by Friday 6 November. Fill in the PDF directly, or use the Word version and save it as PDF. Write OK to accept our assumption, or your answer. Short answers are fine, and “not decided yet” is a useful answer too. If time is short, start with the eight questions marked Answer first .",
     "Download the answer sheet (fillable PDF)",
     "Word version (.docx)",
     "What this means",
@@ -18639,9 +18236,9 @@
     "Suggest another time",
     "Nothing on this page is chargeable. If you would like a sample built for one of your own congresses, we can do that only if you ask, with the scope, fee and date agreed in writing first.",
     "Debanjan",
-    "Founder, ProdCraftdebanjan@prodcraft.fyi",
+    "Founder, ProdCraft debanjan@prodcraft.fyi",
     "All congresses, people, enquiries and codes in these demos are fictional. The concept and the demos are illustrations: only the signed proposal defines what is included.",
-    "Earlier pages: the concept, the note for ASSET (in French), the Console mock-up, our questions."
+    "Earlier pages: the concept , the note for ASSET (in French), the Console mock-up , our questions ."
    ],
    "attrs": [
     "Sections of this page",
@@ -18696,7 +18293,7 @@
     "Démo de l’outil de réservation",
     "Autre",
     "Aller au contenu",
-    "Voyages d’affaires · MICE · CongrèsAgence Selectour Affaires · Issy-les-Moulineaux",
+    "Voyages d’affaires · MICE · Congrès Agence Selectour Affaires · Issy-les-Moulineaux",
     "Offres",
     "Congrès",
     "Méthode",
@@ -18789,7 +18386,7 @@
     "« Nous vous proposons une première prise de contact afin de mieux comprendre le profil de vos dépenses en voyages d’affaires et déplacements professionnels. »",
     "Trois parcours, un seul interlocuteur. Aucun compte à créer.",
     "01 55 57 29 00",
-    "ASSET Voyages — Selectour58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux",
+    "ASSET Voyages — Selectour 58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux",
     "Vous êtes",
     "Une entreprise",
     "Compte, audit, assistance",
@@ -18810,9 +18407,9 @@
     "→",
     "Agence de voyages d’affaires dédiée aux entreprises. Membre du réseau Selectour.",
     "Agence",
-    "58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux01 55 57 29 00",
+    "58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux 01 55 57 29 00",
     "Liens",
-    "OffresCongrèsContactNote pour ASSETNos questionsLes deux démosHaut de page ↑",
+    "Offres Congrès Contact Note pour ASSET Nos questions Les deux démos Haut de page ↑",
     "Concept de refonte non officiel, préparé par ProdCraft · maquette d’illustration : seule la proposition signée fixe ce qui est inclus · Note pour ASSET · Console (maquette) · Questions (en anglais) · non référencé"
    ],
    "attrs": [
@@ -18981,7 +18578,7 @@
     "26/10/2026",
     "Société B (exemple)",
     "—",
-    "Qualifiéerappel aujourd’hui",
+    "Qualifiée rappel aujourd’hui",
     "Conseiller voyages",
     "D-0001",
     "Voyages d’affaires — compte",
@@ -19318,7 +18915,7 @@
     "Nothing goes live without written approval from ASSET management. No change to your current site or domain happens before that.",
     "08",
     "Our 30 questions",
-    "Please return your answers as one PDF to debanjan@prodcraft.fyi by Friday 6 November. Fill in the PDF directly, or use the Word version and save it as PDF. Write OK to accept our assumption, or your answer. Short answers are fine, and “not decided yet” is a useful answer too. If time is short, start with the eight questions marked Answer first.",
+    "Please return your answers as one PDF to debanjan@prodcraft.fyi by Friday 6 November. Fill in the PDF directly, or use the Word version and save it as PDF. Write OK to accept our assumption, or your answer. Short answers are fine, and “not decided yet” is a useful answer too. If time is short, start with the eight questions marked Answer first .",
     "Download the answer sheet (fillable PDF)",
     "Word version (.docx)",
     "What this means",
@@ -19752,9 +19349,9 @@
     "Suggest another time",
     "Nothing on this page is chargeable. If you would like a sample built for one of your own congresses, we can do that only if you ask, with the scope, fee and date agreed in writing first.",
     "Debanjan",
-    "Founder, ProdCraftdebanjan@prodcraft.fyi",
+    "Founder, ProdCraft debanjan@prodcraft.fyi",
     "All congresses, people, enquiries and codes in these demos are fictional. The concept and the demos are illustrations: only the signed proposal defines what is included.",
-    "Earlier pages: the concept, the note for ASSET (in French), the Console mock-up, our questions."
+    "Earlier pages: the concept , the note for ASSET (in French), the Console mock-up , our questions ."
    ],
    "attrs": [
     "Sections of this page",
@@ -19809,7 +19406,7 @@
     "Démo de l’outil de réservation",
     "Autre",
     "Aller au contenu",
-    "Voyages d’affaires · MICE · CongrèsAgence Selectour Affaires · Issy-les-Moulineaux",
+    "Voyages d’affaires · MICE · Congrès Agence Selectour Affaires · Issy-les-Moulineaux",
     "Offres",
     "Congrès",
     "Méthode",
@@ -19902,7 +19499,7 @@
     "« Nous vous proposons une première prise de contact afin de mieux comprendre le profil de vos dépenses en voyages d’affaires et déplacements professionnels. »",
     "Trois parcours, un seul interlocuteur. Aucun compte à créer.",
     "01 55 57 29 00",
-    "ASSET Voyages — Selectour58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux",
+    "ASSET Voyages — Selectour 58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux",
     "Vous êtes",
     "Une entreprise",
     "Compte, audit, assistance",
@@ -19923,9 +19520,9 @@
     "→",
     "Agence de voyages d’affaires dédiée aux entreprises. Membre du réseau Selectour.",
     "Agence",
-    "58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux01 55 57 29 00",
+    "58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux 01 55 57 29 00",
     "Liens",
-    "OffresCongrèsContactNote pour ASSETNos questionsLes deux démosHaut de page ↑",
+    "Offres Congrès Contact Note pour ASSET Nos questions Les deux démos Haut de page ↑",
     "Concept de refonte non officiel, préparé par ProdCraft · maquette d’illustration : seule la proposition signée fixe ce qui est inclus · Note pour ASSET · Console (maquette) · Questions (en anglais) · non référencé"
    ],
    "attrs": [
@@ -20094,7 +19691,7 @@
     "26/10/2026",
     "Société B (exemple)",
     "—",
-    "Qualifiéerappel aujourd’hui",
+    "Qualifiée rappel aujourd’hui",
     "Conseiller voyages",
     "D-0001",
     "Voyages d’affaires — compte",
@@ -20431,7 +20028,7 @@
     "Nothing goes live without written approval from ASSET management. No change to your current site or domain happens before that.",
     "08",
     "Our 30 questions",
-    "Please return your answers as one PDF to debanjan@prodcraft.fyi by Friday 6 November. Fill in the PDF directly, or use the Word version and save it as PDF. Write OK to accept our assumption, or your answer. Short answers are fine, and “not decided yet” is a useful answer too. If time is short, start with the eight questions marked Answer first.",
+    "Please return your answers as one PDF to debanjan@prodcraft.fyi by Friday 6 November. Fill in the PDF directly, or use the Word version and save it as PDF. Write OK to accept our assumption, or your answer. Short answers are fine, and “not decided yet” is a useful answer too. If time is short, start with the eight questions marked Answer first .",
     "Download the answer sheet (fillable PDF)",
     "Word version (.docx)",
     "What this means",
@@ -20836,9 +20433,9 @@
     "Suggest another time",
     "Nothing on this page is chargeable. If you would like a sample built for one of your own congresses, we can do that only if you ask, with the scope, fee and date agreed in writing first.",
     "Debanjan",
-    "Founder, ProdCraftdebanjan@prodcraft.fyi",
+    "Founder, ProdCraft debanjan@prodcraft.fyi",
     "All congresses, people, enquiries and codes in these demos are fictional. The concept and the demos are illustrations: only the signed proposal defines what is included.",
-    "Earlier pages: the concept, the note for ASSET (in French), the Console mock-up, our questions."
+    "Earlier pages: the concept , the note for ASSET (in French), the Console mock-up , our questions ."
    ],
    "attrs": [
     "Sections of this page",
@@ -21062,7 +20659,7 @@
     "Votre prochain départ commence par un brief.",
     "Trois parcours, un seul interlocuteur. Aucun compte à créer.",
     "01 55 57 29 00",
-    "ASSET Voyages — Selectour58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux",
+    "ASSET Voyages — Selectour 58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux",
     "Vous êtes",
     "Une entreprise",
     "Compte, audit, assistance",
@@ -21083,9 +20680,9 @@
     "→",
     "Agence de voyages d’affaires dédiée aux entreprises. Membre du réseau Selectour.",
     "Agence",
-    "58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux01 55 57 29 00",
+    "58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux 01 55 57 29 00",
     "Liens",
-    "OffresCongrèsContactNote pour ASSETNos questionsLes deux démosHaut de page ↑",
+    "Offres Congrès Contact Note pour ASSET Nos questions Les deux démos Haut de page ↑",
     "Concept de refonte non officiel, préparé par ProdCraft · maquette d’illustration : seule la proposition signée fixe ce qui est inclus · Note pour ASSET · Console (maquette) · Questions (en anglais) · non référencé"
    ],
    "attrs": [
@@ -21255,7 +20852,7 @@
     "26/10/2026",
     "Société B (exemple)",
     "—",
-    "Qualifiéerappel aujourd’hui",
+    "Qualifiée rappel aujourd’hui",
     "Conseiller voyages",
     "D-0001",
     "Voyages d’affaires — compte",
@@ -21587,7 +21184,7 @@
     "Nothing goes live without written approval from ASSET management. No change to your current site or domain happens before that.",
     "08",
     "Our 30 questions",
-    "Please return your answers as one PDF to debanjan@prodcraft.fyi by Friday 6 November. Fill in the PDF directly, or use the Word version and save it as PDF. Write OK to accept our assumption, or your answer. Short answers are fine, and “not decided yet” is a useful answer too. If time is short, start with the eight questions marked Answer first.",
+    "Please return your answers as one PDF to debanjan@prodcraft.fyi by Friday 6 November. Fill in the PDF directly, or use the Word version and save it as PDF. Write OK to accept our assumption, or your answer. Short answers are fine, and “not decided yet” is a useful answer too. If time is short, start with the eight questions marked Answer first .",
     "Download the answer sheet (fillable PDF)",
     "Word version (.docx)",
     "What this means",
@@ -21597,25 +21194,25 @@
     "You can change an assumption by email until the proposal is signed; a change may alter the price and dates.",
     "After signature, changes are agreed in writing with their effect on price and dates.",
     "Timing, budget and decisions",
-    "1Answer first When is the proposal due, and when do you plan to choose a supplier? Is there a date the new site has to be live by, or a busy period when it should not launch?",
+    "1 Answer first When is the proposal due, and when do you plan to choose a supplier? Is there a date the new site has to be live by, or a busy period when it should not launch?",
     "If we don’t hear back, we’ll assume: we send the proposal within 24–48 working hours of receiving your answers, or by 10 November if no answers arrive by 6 November; work starts within 5 working days of the signed proposal; launch about 12 weeks after the start, moving day for day with any late input; no launch between 21 December and 1 January.",
-    "2Answer first Is there a budget range or a cap for the core site and the Congress catalogue? A rough bracket is enough.",
+    "2 Answer first Is there a budget range or a cap for the core site and the Congress catalogue? A rough bracket is enough.",
     "If we don’t hear back, we’ll assume: we quote the core site and the Congress catalogue as set out in our proposal, which lists the pages, listings, rounds of changes and exclusions. Every option is priced separately, so you can pick.",
-    "3Answer first Who at ASSET approves each stage (design, content, launch), and does each activity (Business Travel, MICE, Congresses) sign off its own pages? How many working days should we plan for each approval?",
+    "3 Answer first Who at ASSET approves each stage (design, content, launch), and does each activity (Business Travel, MICE, Congresses) sign off its own pages? How many working days should we plan for each approval?",
     "If we don’t hear back, we’ll assume: ASSET management approves each stage in writing (directly, or through Ms Khatri on its behalf) within 3 working days, in one combined reply for all three activities. To keep the dates on track, if neither an approval nor a written list of blocking problems arrives in that time, a design or content stage counts as approved so work can continue. Launch always needs management’s written go-ahead (section 07). Acceptance testing before launch lasts 5 working days, against the tests in your brief (T01–T15) only.",
     "Today’s website and accounts",
     "4Who looks after the current site today (an agency, a freelancer, your team), and is there a contract or notice period with them?",
     "If we don’t hear back, we’ll assume: nothing in a current contract limits the project, and ASSET arranges any handover from today’s provider.",
-    "5Answer first Are the domain, hosting, email, Google Analytics, Search Console and Google Business Profile accounts in ASSET’s name? Who at ASSET should own the accounts of the new site?",
+    "5 Answer first Are the domain, hosting, email, Google Analytics, Search Console and Google Business Profile accounts in ASSET’s name? Who at ASSET should own the accounts of the new site?",
     "If we don’t hear back, we’ll assume: ASSET gives us access at kickoff. Every new account is opened in ASSET’s name, owned by management, with Ms Khatri as day-to-day administrator. If an account is held by someone else, ASSET asks them to transfer it; we can tell you exactly what to ask for.",
-    "6Answer first Should the new site be on asset-voyagesdaffaires.com, assetvoyages.com, or both? Are there other web addresses or campaign pages we should know about?",
+    "6 Answer first Should the new site be on asset-voyagesdaffaires.com, assetvoyages.com, or both? Are there other web addresses or campaign pages we should know about?",
     "If we don’t hear back, we’ll assume: the new site lives on asset-voyagesdaffaires.com, the address Google knows today, and assetvoyages.com points to it (web address only; your email is not touched). No other addresses are included.",
     "7Could you give us read-only access to Google Analytics and Search Console? Which trackers (LinkedIn, Meta) and ad campaigns (Google Ads, LinkedIn Ads) must keep working?",
     "If we don’t hear back, we’ll assume: we plan the move of old pages from our own scan of the site. No trackers are carried over. Visitor statistics need no cookies, and the site itself counts the actions your brief lists (button clicks, form starts and sends, errors, congress searches, congress page views, account requests and client-login clicks) without cookies or personal data. Ad campaigns are not included.",
     "8Does Selectour ask for anything on your website (logos, legal mentions, brand rules)?",
     "If we don’t hear back, we’ll assume: we show the Selectour Affaires logo and membership line as they appear on today’s site, and nothing more.",
     "Content, brand and languages",
-    "9Answer first Will your team write the new French copy, or do you want us to rewrite the existing pages? Roughly how many pages, articles and FAQ entries do you expect at launch?",
+    "9 Answer first Will your team write the new French copy, or do you want us to rewrite the existing pages? Roughly how many pages, articles and FAQ entries do you expect at launch?",
     "If we don’t hear back, we’ll assume: ASSET writes the French text for new pages. We move up to 20 of today’s pages plus 3 legal pages, editing wording only (titles, headings, clarity and typos), with your corrections made within the two rounds of changes of the content stage (section 07); other pages are merged or redirected. ASSET supplies or approves the wording of the legal pages; we do not give legal advice. Ms Khatri adds further articles and FAQ herself.",
     "10Do you have brand guidelines (logo files, colours, fonts)? Is the logo fixed, or is a light refresh welcome?",
     "If we don’t hear back, we’ll assume: we keep today’s logo and colours exactly as they are and build a short style guide from them.",
@@ -21628,14 +21225,14 @@
     "14Which journeys should be in English first, from when (launch or later), and who will translate?",
     "If we don’t hear back, we’ll assume: the site is in French only at launch. English is a separate option, and ASSET arranges and pays for professional translation.",
     "Enquiries and sales tools",
-    "15Answer first Who should receive each type of enquiry (Business Travel, MICE, Congresses), with a backup person, and how quickly can you promise a reply?",
+    "15 Answer first Who should receive each type of enquiry (Business Travel, MICE, Congresses), with a backup person, and how quickly can you promise a reply?",
     "If we don’t hear back, we’ll assume: every enquiry goes to one shared mailbox (direction@assetvoyages.com until you name another), and the confirmation email says you will reply shortly, with no time promised.",
     "16Which sales tools do you use today: a CRM, a newsletter or email-marketing tool, or email only?",
     "If we don’t hear back, we’ll assume: you use no CRM or newsletter tool. Enquiries are followed in the site’s own enquiry list with an export that opens in Excel, and forms carry no marketing tick box.",
     "Congress catalogue",
     "17Could you share 10 sample rows from your list of events (the 300 in the brief), with where the listings come from and roughly how many you add each year?",
     "If we don’t hear back, we’ll assume: ASSET provides one spreadsheet of up to 300 congresses in our template, using the fields listed in your brief. We import it once and send back a list of any rows with errors for ASSET to correct. Finding, researching or rewriting listings is not included. Ms Khatri adds new ones in the admin afterwards, one by one or by spreadsheet import.",
-    "18Answer first Does ASSET already work with Air France–KLM’s Global Meetings and Events programme? How do the event codes work: one per congress or several, and do they expire?",
+    "18 Answer first Does ASSET already work with Air France–KLM’s Global Meetings and Events programme? How do the event codes work: one per congress or several, and do they expire?",
     "If we don’t hear back, we’ll assume: no fare code and no special-fare wording appears anywhere until ASSET confirms the arrangement in writing. The locked admin holds the code, its evidence and its validity period for each congress, as your brief lists.",
     "19Who at ASSET does each step from spotting a congress to approving it for sale? Who gives the final approval: one person or several?",
     "If we don’t hear back, we’ll assume: Ms Khatri moves each congress through the steps and ASSET management gives the final approval for sale.",
@@ -21884,7 +21481,7 @@
     "Tuesday 17 November",
     "Suggest another time",
     "Debanjan",
-    "Founder, ProdCraftdebanjan@prodcraft.fyi"
+    "Founder, ProdCraft debanjan@prodcraft.fyi"
    ],
    "clickables": [
     {
@@ -22333,7 +21930,7 @@
     "Votre prochain départ commence par un brief.",
     "Trois parcours, un seul interlocuteur. Aucun compte à créer.",
     "01 55 57 29 00",
-    "ASSET Voyages — Selectour58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux",
+    "ASSET Voyages — Selectour 58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux",
     "Vous êtes",
     "Une entreprise",
     "Compte, audit, assistance",
@@ -22352,9 +21949,8 @@
     "Envoyer la demande",
     "Agence de voyages d’affaires dédiée aux entreprises. Membre du réseau Selectour.",
     "Agence",
-    "58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux01 55 57 29 00",
-    "Liens",
-    "OffresCongrèsContactNote pour ASSETNos questionsLes deux démosHaut de page ↑"
+    "58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux 01 55 57 29 00",
+    "Liens"
    ],
    "clickables": [
     {
@@ -22873,7 +22469,7 @@
     "Voyages d’affaires — audit",
     "26/10/2026",
     "Société B (exemple)",
-    "Qualifiéerappel aujourd’hui",
+    "Qualifiée rappel aujourd’hui",
     "Conseiller voyages",
     "D-0001",
     "Voyages d’affaires — compte",
@@ -23840,7 +23436,7 @@
     "Tuesday 17 November",
     "Suggest another time",
     "Debanjan",
-    "Founder, ProdCraftdebanjan@prodcraft.fyi"
+    "Founder, ProdCraft debanjan@prodcraft.fyi"
    ],
    "clickables": [
     {
@@ -24290,7 +23886,7 @@
     "Votre prochain départ commence par un brief.",
     "Trois parcours, un seul interlocuteur. Aucun compte à créer.",
     "01 55 57 29 00",
-    "ASSET Voyages — Selectour58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux",
+    "ASSET Voyages — Selectour 58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux",
     "Vous êtes",
     "Une entreprise",
     "Compte, audit, assistance",
@@ -24309,9 +23905,8 @@
     "Envoyer la demande",
     "Agence de voyages d’affaires dédiée aux entreprises. Membre du réseau Selectour.",
     "Agence",
-    "58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux01 55 57 29 00",
-    "Liens",
-    "OffresCongrèsContactNote pour ASSETNos questionsLes deux démosHaut de page ↑"
+    "58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux 01 55 57 29 00",
+    "Liens"
    ],
    "clickables": [
     {
@@ -24830,7 +24425,7 @@
     "Voyages d’affaires — audit",
     "26/10/2026",
     "Société B (exemple)",
-    "Qualifiéerappel aujourd’hui",
+    "Qualifiée rappel aujourd’hui",
     "Conseiller voyages",
     "D-0001",
     "Voyages d’affaires — compte",
@@ -25796,7 +25391,7 @@
     "Tuesday 17 November",
     "Suggest another time",
     "Debanjan",
-    "Founder, ProdCraftdebanjan@prodcraft.fyi"
+    "Founder, ProdCraft debanjan@prodcraft.fyi"
    ],
    "clickables": [
     {
@@ -26246,7 +25841,7 @@
     "Votre prochain départ commence par un brief.",
     "Trois parcours, un seul interlocuteur. Aucun compte à créer.",
     "01 55 57 29 00",
-    "ASSET Voyages — Selectour58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux",
+    "ASSET Voyages — Selectour 58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux",
     "Vous êtes",
     "Une entreprise",
     "Compte, audit, assistance",
@@ -26265,9 +25860,8 @@
     "Envoyer la demande",
     "Agence de voyages d’affaires dédiée aux entreprises. Membre du réseau Selectour.",
     "Agence",
-    "58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux01 55 57 29 00",
-    "Liens",
-    "OffresCongrèsContactNote pour ASSETNos questionsLes deux démosHaut de page ↑"
+    "58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux 01 55 57 29 00",
+    "Liens"
    ],
    "clickables": [
     {
@@ -26786,7 +26380,7 @@
     "Voyages d’affaires — audit",
     "26/10/2026",
     "Société B (exemple)",
-    "Qualifiéerappel aujourd’hui",
+    "Qualifiée rappel aujourd’hui",
     "Conseiller voyages",
     "D-0001",
     "Voyages d’affaires — compte",
@@ -27788,7 +27382,7 @@
     "Tuesday 17 November",
     "Suggest another time",
     "Debanjan",
-    "Founder, ProdCraftdebanjan@prodcraft.fyi"
+    "Founder, ProdCraft debanjan@prodcraft.fyi"
    ],
    "clickables": [
     {
@@ -28198,7 +27792,7 @@
     "Analyse",
     "Trois parcours, un seul interlocuteur. Aucun compte à créer.",
     "01 55 57 29 00",
-    "ASSET Voyages — Selectour58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux",
+    "ASSET Voyages — Selectour 58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux",
     "Vous êtes",
     "Une entreprise",
     "Compte, audit, assistance",
@@ -28217,9 +27811,8 @@
     "Envoyer la demande",
     "Agence de voyages d’affaires dédiée aux entreprises. Membre du réseau Selectour.",
     "Agence",
-    "58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux01 55 57 29 00",
-    "Liens",
-    "OffresCongrèsContactNote pour ASSETNos questionsLes deux démosHaut de page ↑"
+    "58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux 01 55 57 29 00",
+    "Liens"
    ],
    "clickables": [
     {
@@ -28745,7 +28338,7 @@
     "Voyages d’affaires — audit",
     "26/10/2026",
     "Société B (exemple)",
-    "Qualifiéerappel aujourd’hui",
+    "Qualifiée rappel aujourd’hui",
     "Conseiller voyages",
     "D-0001",
     "Voyages d’affaires — compte",
@@ -29746,7 +29339,7 @@
     "Tuesday 17 November",
     "Suggest another time",
     "Debanjan",
-    "Founder, ProdCraftdebanjan@prodcraft.fyi"
+    "Founder, ProdCraft debanjan@prodcraft.fyi"
    ],
    "clickables": [
     {
@@ -30156,7 +29749,7 @@
     "Analyse",
     "Trois parcours, un seul interlocuteur. Aucun compte à créer.",
     "01 55 57 29 00",
-    "ASSET Voyages — Selectour58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux",
+    "ASSET Voyages — Selectour 58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux",
     "Vous êtes",
     "Une entreprise",
     "Compte, audit, assistance",
@@ -30175,9 +29768,8 @@
     "Envoyer la demande",
     "Agence de voyages d’affaires dédiée aux entreprises. Membre du réseau Selectour.",
     "Agence",
-    "58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux01 55 57 29 00",
-    "Liens",
-    "OffresCongrèsContactNote pour ASSETNos questionsLes deux démosHaut de page ↑"
+    "58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux 01 55 57 29 00",
+    "Liens"
    ],
    "clickables": [
     {
@@ -30703,7 +30295,7 @@
     "Voyages d’affaires — audit",
     "26/10/2026",
     "Société B (exemple)",
-    "Qualifiéerappel aujourd’hui",
+    "Qualifiée rappel aujourd’hui",
     "Conseiller voyages",
     "D-0001",
     "Voyages d’affaires — compte",
@@ -31704,7 +31296,7 @@
     "Tuesday 17 November",
     "Suggest another time",
     "Debanjan",
-    "Founder, ProdCraftdebanjan@prodcraft.fyi"
+    "Founder, ProdCraft debanjan@prodcraft.fyi"
    ],
    "clickables": [
     {
@@ -32114,7 +31706,7 @@
     "Analyse",
     "Trois parcours, un seul interlocuteur. Aucun compte à créer.",
     "01 55 57 29 00",
-    "ASSET Voyages — Selectour58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux",
+    "ASSET Voyages — Selectour 58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux",
     "Vous êtes",
     "Une entreprise",
     "Compte, audit, assistance",
@@ -32133,9 +31725,8 @@
     "Envoyer la demande",
     "Agence de voyages d’affaires dédiée aux entreprises. Membre du réseau Selectour.",
     "Agence",
-    "58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux01 55 57 29 00",
-    "Liens",
-    "OffresCongrèsContactNote pour ASSETNos questionsLes deux démosHaut de page ↑"
+    "58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux 01 55 57 29 00",
+    "Liens"
    ],
    "clickables": [
     {
@@ -32661,7 +32252,7 @@
     "Voyages d’affaires — audit",
     "26/10/2026",
     "Société B (exemple)",
-    "Qualifiéerappel aujourd’hui",
+    "Qualifiée rappel aujourd’hui",
     "Conseiller voyages",
     "D-0001",
     "Voyages d’affaires — compte",
@@ -33662,7 +33253,7 @@
     "Tuesday 17 November",
     "Suggest another time",
     "Debanjan",
-    "Founder, ProdCraftdebanjan@prodcraft.fyi"
+    "Founder, ProdCraft debanjan@prodcraft.fyi"
    ],
    "clickables": [
     {
@@ -34072,7 +33663,7 @@
     "Analyse",
     "Trois parcours, un seul interlocuteur. Aucun compte à créer.",
     "01 55 57 29 00",
-    "ASSET Voyages — Selectour58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux",
+    "ASSET Voyages — Selectour 58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux",
     "Vous êtes",
     "Une entreprise",
     "Compte, audit, assistance",
@@ -34091,9 +33682,8 @@
     "Envoyer la demande",
     "Agence de voyages d’affaires dédiée aux entreprises. Membre du réseau Selectour.",
     "Agence",
-    "58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux01 55 57 29 00",
-    "Liens",
-    "OffresCongrèsContactNote pour ASSETNos questionsLes deux démosHaut de page ↑"
+    "58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux 01 55 57 29 00",
+    "Liens"
    ],
    "clickables": [
     {
@@ -34619,7 +34209,7 @@
     "Voyages d’affaires — audit",
     "26/10/2026",
     "Société B (exemple)",
-    "Qualifiéerappel aujourd’hui",
+    "Qualifiée rappel aujourd’hui",
     "Conseiller voyages",
     "D-0001",
     "Voyages d’affaires — compte",
@@ -35615,7 +35205,7 @@
     "Tuesday 17 November",
     "Suggest another time",
     "Debanjan",
-    "Founder, ProdCraftdebanjan@prodcraft.fyi"
+    "Founder, ProdCraft debanjan@prodcraft.fyi"
    ],
    "clickables": [
     {
@@ -36065,7 +35655,7 @@
     "Votre prochain départ commence par un brief.",
     "Trois parcours, un seul interlocuteur. Aucun compte à créer.",
     "01 55 57 29 00",
-    "ASSET Voyages — Selectour58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux",
+    "ASSET Voyages — Selectour 58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux",
     "Vous êtes",
     "Une entreprise",
     "Compte, audit, assistance",
@@ -36084,9 +35674,8 @@
     "Envoyer la demande",
     "Agence de voyages d’affaires dédiée aux entreprises. Membre du réseau Selectour.",
     "Agence",
-    "58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux01 55 57 29 00",
-    "Liens",
-    "OffresCongrèsContactNote pour ASSETNos questionsLes deux démosHaut de page ↑"
+    "58, rue Jean-Pierre Timbaud 92130 Issy-les-Moulineaux 01 55 57 29 00",
+    "Liens"
    ],
    "clickables": [
     {
@@ -36605,7 +36194,7 @@
     "Voyages d’affaires — audit",
     "26/10/2026",
     "Société B (exemple)",
-    "Qualifiéerappel aujourd’hui",
+    "Qualifiée rappel aujourd’hui",
     "Conseiller voyages",
     "D-0001",
     "Voyages d’affaires — compte",
@@ -37402,6 +36991,10 @@
    "width": 320,
    "styles": {
     "body": "Inter",
+    "bodyMix": [
+     "Inter:12628",
+     "EB Garamond:249"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -37507,7 +37100,12 @@
    "state": "hub/",
    "width": 320,
    "styles": {
-    "body": "ui-monospace",
+    "body": "Inter",
+    "bodyMix": [
+     "Inter:7149",
+     "ui-monospace:734",
+     "EB Garamond:266"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -37746,7 +37344,11 @@
    "state": "hub/pour-asset/",
    "width": 320,
    "styles": {
-    "body": "ui-monospace",
+    "body": "Inter",
+    "bodyMix": [
+     "Inter:5190",
+     "ui-monospace:23"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -37777,6 +37379,10 @@
    "width": 320,
    "styles": {
     "body": "Inter",
+    "bodyMix": [
+     "Inter:2487",
+     "ui-monospace:91"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -37903,10 +37509,13 @@
    "state": "hub/questions/",
    "width": 320,
    "styles": {
-    "body": "ui-monospace",
+    "body": "Inter",
+    "bodyMix": [
+     "Inter:27476",
+     "ui-monospace:35"
+    ],
     "display": [
-     "EB Garamond",
-     "Inter"
+     "EB Garamond"
     ],
     "buttons": [
      {
@@ -37935,6 +37544,10 @@
    "width": 390,
    "styles": {
     "body": "Inter",
+    "bodyMix": [
+     "Inter:12628",
+     "EB Garamond:249"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -38040,7 +37653,12 @@
    "state": "hub/",
    "width": 390,
    "styles": {
-    "body": "ui-monospace",
+    "body": "Inter",
+    "bodyMix": [
+     "Inter:7149",
+     "ui-monospace:734",
+     "EB Garamond:266"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -38279,7 +37897,11 @@
    "state": "hub/pour-asset/",
    "width": 390,
    "styles": {
-    "body": "ui-monospace",
+    "body": "Inter",
+    "bodyMix": [
+     "Inter:5190",
+     "ui-monospace:23"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -38310,6 +37932,10 @@
    "width": 390,
    "styles": {
     "body": "Inter",
+    "bodyMix": [
+     "Inter:2487",
+     "ui-monospace:91"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -38436,10 +38062,13 @@
    "state": "hub/questions/",
    "width": 390,
    "styles": {
-    "body": "ui-monospace",
+    "body": "Inter",
+    "bodyMix": [
+     "Inter:27476",
+     "ui-monospace:35"
+    ],
     "display": [
-     "EB Garamond",
-     "Inter"
+     "EB Garamond"
     ],
     "buttons": [
      {
@@ -38468,6 +38097,10 @@
    "width": 768,
    "styles": {
     "body": "Inter",
+    "bodyMix": [
+     "Inter:12628",
+     "EB Garamond:249"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -38573,7 +38206,12 @@
    "state": "hub/",
    "width": 768,
    "styles": {
-    "body": "ui-monospace",
+    "body": "Inter",
+    "bodyMix": [
+     "Inter:7149",
+     "ui-monospace:734",
+     "EB Garamond:266"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -38812,7 +38450,11 @@
    "state": "hub/pour-asset/",
    "width": 768,
    "styles": {
-    "body": "ui-monospace",
+    "body": "Inter",
+    "bodyMix": [
+     "Inter:5190",
+     "ui-monospace:23"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -38843,6 +38485,10 @@
    "width": 768,
    "styles": {
     "body": "Inter",
+    "bodyMix": [
+     "Inter:2487",
+     "ui-monospace:91"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -38969,10 +38615,13 @@
    "state": "hub/questions/",
    "width": 768,
    "styles": {
-    "body": "ui-monospace",
+    "body": "Inter",
+    "bodyMix": [
+     "Inter:27506",
+     "ui-monospace:35"
+    ],
     "display": [
-     "EB Garamond",
-     "Inter"
+     "EB Garamond"
     ],
     "buttons": [
      {
@@ -39001,6 +38650,10 @@
    "width": 1280,
    "styles": {
     "body": "Inter",
+    "bodyMix": [
+     "Inter:15512",
+     "EB Garamond:249"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -39084,7 +38737,12 @@
    "state": "hub/",
    "width": 1280,
    "styles": {
-    "body": "ui-monospace",
+    "body": "Inter",
+    "bodyMix": [
+     "Inter:2419",
+     "ui-monospace:492",
+     "EB Garamond:231"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -39290,7 +38948,11 @@
    "state": "hub/pour-asset/",
    "width": 1280,
    "styles": {
-    "body": "ui-monospace",
+    "body": "Inter",
+    "bodyMix": [
+     "Inter:5190",
+     "ui-monospace:23"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -39321,6 +38983,10 @@
    "width": 1280,
    "styles": {
     "body": "Inter",
+    "bodyMix": [
+     "Inter:2657",
+     "ui-monospace:10"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -39447,10 +39113,13 @@
    "state": "hub/questions/",
    "width": 1280,
    "styles": {
-    "body": "ui-monospace",
+    "body": "Inter",
+    "bodyMix": [
+     "Inter:27625",
+     "ui-monospace:35"
+    ],
     "display": [
-     "EB Garamond",
-     "Inter"
+     "EB Garamond"
     ],
     "buttons": [
      {
@@ -39479,6 +39148,10 @@
    "width": 1440,
    "styles": {
     "body": "Inter",
+    "bodyMix": [
+     "Inter:15512",
+     "EB Garamond:249"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -39562,7 +39235,12 @@
    "state": "hub/",
    "width": 1440,
    "styles": {
-    "body": "ui-monospace",
+    "body": "Inter",
+    "bodyMix": [
+     "Inter:2419",
+     "ui-monospace:492",
+     "EB Garamond:231"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -39768,7 +39446,11 @@
    "state": "hub/pour-asset/",
    "width": 1440,
    "styles": {
-    "body": "ui-monospace",
+    "body": "Inter",
+    "bodyMix": [
+     "Inter:5190",
+     "ui-monospace:23"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -39799,6 +39481,10 @@
    "width": 1440,
    "styles": {
     "body": "Inter",
+    "bodyMix": [
+     "Inter:2657",
+     "ui-monospace:10"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -39925,10 +39611,13 @@
    "state": "hub/questions/",
    "width": 1440,
    "styles": {
-    "body": "ui-monospace",
+    "body": "Inter",
+    "bodyMix": [
+     "Inter:27625",
+     "ui-monospace:35"
+    ],
     "display": [
-     "EB Garamond",
-     "Inter"
+     "EB Garamond"
     ],
     "buttons": [
      {
@@ -39957,6 +39646,10 @@
    "width": 1920,
    "styles": {
     "body": "Inter",
+    "bodyMix": [
+     "Inter:15512",
+     "EB Garamond:249"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -40040,7 +39733,12 @@
    "state": "hub/",
    "width": 1920,
    "styles": {
-    "body": "ui-monospace",
+    "body": "Inter",
+    "bodyMix": [
+     "Inter:2419",
+     "ui-monospace:492",
+     "EB Garamond:231"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -40246,7 +39944,11 @@
    "state": "hub/pour-asset/",
    "width": 1920,
    "styles": {
-    "body": "ui-monospace",
+    "body": "Inter",
+    "bodyMix": [
+     "Inter:5190",
+     "ui-monospace:23"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -40277,6 +39979,10 @@
    "width": 1920,
    "styles": {
     "body": "Inter",
+    "bodyMix": [
+     "Inter:2657",
+     "ui-monospace:10"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -40403,10 +40109,13 @@
    "state": "hub/questions/",
    "width": 1920,
    "styles": {
-    "body": "ui-monospace",
+    "body": "Inter",
+    "bodyMix": [
+     "Inter:27625",
+     "ui-monospace:35"
+    ],
     "display": [
-     "EB Garamond",
-     "Inter"
+     "EB Garamond"
     ],
     "buttons": [
      {
@@ -40435,6 +40144,10 @@
    "width": 1440,
    "styles": {
     "body": "Inter",
+    "bodyMix": [
+     "Inter:15512",
+     "EB Garamond:249"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -40518,7 +40231,12 @@
    "state": "hub/",
    "width": 1440,
    "styles": {
-    "body": "ui-monospace",
+    "body": "Inter",
+    "bodyMix": [
+     "Inter:2419",
+     "ui-monospace:492",
+     "EB Garamond:231"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -40724,7 +40442,11 @@
    "state": "hub/pour-asset/",
    "width": 1440,
    "styles": {
-    "body": "ui-monospace",
+    "body": "Inter",
+    "bodyMix": [
+     "Inter:5190",
+     "ui-monospace:23"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -40755,6 +40477,10 @@
    "width": 1440,
    "styles": {
     "body": "Inter",
+    "bodyMix": [
+     "Inter:2657",
+     "ui-monospace:10"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -40881,10 +40607,13 @@
    "state": "hub/questions/",
    "width": 1440,
    "styles": {
-    "body": "ui-monospace",
+    "body": "Inter",
+    "bodyMix": [
+     "Inter:27625",
+     "ui-monospace:35"
+    ],
     "display": [
-     "EB Garamond",
-     "Inter"
+     "EB Garamond"
     ],
     "buttons": [
      {
@@ -40913,6 +40642,10 @@
    "width": 390,
    "styles": {
     "body": "Inter",
+    "bodyMix": [
+     "Inter:12628",
+     "EB Garamond:249"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -41018,7 +40751,12 @@
    "state": "hub/",
    "width": 390,
    "styles": {
-    "body": "ui-monospace",
+    "body": "Inter",
+    "bodyMix": [
+     "Inter:7149",
+     "ui-monospace:734",
+     "EB Garamond:266"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -41257,7 +40995,11 @@
    "state": "hub/pour-asset/",
    "width": 390,
    "styles": {
-    "body": "ui-monospace",
+    "body": "Inter",
+    "bodyMix": [
+     "Inter:5190",
+     "ui-monospace:23"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -41288,6 +41030,10 @@
    "width": 390,
    "styles": {
     "body": "Inter",
+    "bodyMix": [
+     "Inter:2487",
+     "ui-monospace:91"
+    ],
     "display": [
      "EB Garamond"
     ],
@@ -41414,10 +41160,13 @@
    "state": "hub/questions/",
    "width": 390,
    "styles": {
-    "body": "ui-monospace",
+    "body": "Inter",
+    "bodyMix": [
+     "Inter:27476",
+     "ui-monospace:35"
+    ],
     "display": [
-     "EB Garamond",
-     "Inter"
+     "EB Garamond"
     ],
     "buttons": [
      {
@@ -41442,46 +41191,6 @@
  ],
  "urls": [
   {
-   "url": "https://asset-voyages-redesign.pages.dev/demo/",
-   "refs": [
-    {
-     "from": "https://asset-voyages-redesign.pages.dev/demo/",
-     "option": "HUB",
-     "kind": "a",
-     "text": "Skip to the content",
-     "visible": true
-    },
-    {
-     "from": "https://asset-voyages-redesign.pages.dev/demo/",
-     "option": "HUB",
-     "kind": "a",
-     "text": "The two demos",
-     "visible": true
-    },
-    {
-     "from": "https://asset-voyages-redesign.pages.dev/demo/",
-     "option": "HUB",
-     "kind": "a",
-     "text": "Try it",
-     "visible": true
-    },
-    {
-     "from": "https://asset-voyages-redesign.pages.dev/demo/",
-     "option": "HUB",
-     "kind": "a",
-     "text": "Recordings",
-     "visible": true
-    },
-    {
-     "from": "https://asset-voyages-redesign.pages.dev/demo/",
-     "option": "HUB",
-     "kind": "a",
-     "text": "What works",
-     "visible": true
-    }
-   ]
-  },
-  {
    "url": "https://asset-voyages-redesign.pages.dev/",
    "refs": [
     {
@@ -41499,25 +41208,25 @@
      "visible": true
     },
     {
-     "from": "https://asset-voyages-redesign.pages.dev/",
+     "from": "https://asset-voyages-redesign.pages.dev/pour-asset/",
      "option": "HUB",
      "kind": "a",
-     "text": "Aller au contenu",
+     "text": "Retour au concept",
      "visible": true
     },
     {
-     "from": "https://asset-voyages-redesign.pages.dev/",
+     "from": "https://asset-voyages-redesign.pages.dev/pour-asset/",
      "option": "HUB",
      "kind": "a",
-     "text": "ASSET Voyages, retour en haut",
+     "text": "Voir le concept",
      "visible": true
     },
     {
-     "from": "https://asset-voyages-redesign.pages.dev/",
+     "from": "https://asset-voyages-redesign.pages.dev/pour-asset/",
      "option": "HUB",
      "kind": "a",
-     "text": "",
-     "visible": false
+     "text": "le concept",
+     "visible": true
     }
    ]
   },
@@ -42182,17 +41891,17 @@
      "visible": true
     },
     {
-     "from": "https://asset-voyages-redesign.pages.dev/pour-asset/",
-     "option": "HUB",
-     "kind": "a",
-     "text": "Aller au contenu",
-     "visible": true
-    },
-    {
      "from": "https://asset-voyages-redesign.pages.dev/console/",
      "option": "HUB",
      "kind": "a",
      "text": "Note pour ASSET",
+     "visible": true
+    },
+    {
+     "from": "https://asset-voyages-redesign.pages.dev/questions/",
+     "option": "HUB",
+     "kind": "a",
+     "text": "WHAT CHANGES",
      "visible": true
     }
    ]
@@ -42573,6 +42282,46 @@
      "option": "HUB",
      "kind": "a",
      "text": "01 55 57 29 00",
+     "visible": true
+    }
+   ]
+  },
+  {
+   "url": "https://asset-voyages-redesign.pages.dev/demo/",
+   "refs": [
+    {
+     "from": "https://asset-voyages-redesign.pages.dev/",
+     "option": "HUB",
+     "kind": "a",
+     "text": "Les deux démos",
+     "visible": true
+    },
+    {
+     "from": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "option": "HUB",
+     "kind": "a",
+     "text": "les deux démos",
+     "visible": true
+    },
+    {
+     "from": "https://asset-voyages-redesign.pages.dev/questions/",
+     "option": "HUB",
+     "kind": "a",
+     "text": "The two demos",
+     "visible": true
+    },
+    {
+     "from": "https://asset-voyages-redesign.pages.dev/",
+     "option": "HUB",
+     "kind": "a",
+     "text": "Les deux démos",
+     "visible": true
+    },
+    {
+     "from": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "option": "HUB",
+     "kind": "a",
+     "text": "les deux démos",
      "visible": true
     }
    ]

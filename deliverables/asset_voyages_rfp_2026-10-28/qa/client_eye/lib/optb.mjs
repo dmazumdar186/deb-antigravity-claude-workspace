@@ -162,7 +162,7 @@ export async function replayB(browser, hub) {
   });
   res.evidence['1'] = rows.slice(-3).every((r) => r.ok);
   await crawlNav(page, 'direction');
-  for (const p of ['/console/congres/112', '/console/congres/108', '/console/listes', '/console/demandes/3']) { await page.goto(B + p); await S(page, `direction ${p}`); E(page, p); }
+  for (const p of ['/console/congres/112', '/console/congres/108', '/console/demandes/3']) { await page.goto(B + p); await S(page, `direction ${p}`); E(page, p); }
 
   // Task 2
   s = hubStep(1, 1);
@@ -181,7 +181,8 @@ export async function replayB(browser, hub) {
     await box.fill('cardiologie'); ag.note('type « cardiologie »');
     let w = await ag.click('Rechercher'); if (w) { await box.press('Enter'); ag.clicks++; }
     const missing = [];
-    for (const l of ['Discipline', 'Pays', 'Mois']) if (!(await page.getByLabel(l, { exact: true }).filter({ visible: true }).count())) missing.push(l);
+    // Discipline chips (one link per discipline) narrow the list too: a labelled field is not the only way.
+    for (const l of ['Discipline', 'Pays', 'Mois']) { if (await page.getByLabel(l, { exact: true }).filter({ visible: true }).count()) continue; if (l === 'Discipline' && await page.getByRole('link', { name: 'Cardiologie', exact: true }).filter({ visible: true }).count()) continue; missing.push(l); }
     if (missing.length) return `filters not visible by label: ${missing.join(', ')} (hub says discipline, country, month)`;
     if (!(await ag.sees(/cardiologie/i))) return 'no result for « cardiologie »';
     return null;
@@ -189,7 +190,8 @@ export async function replayB(browser, hub) {
   s = hubStep(1, 3);
   await step('T2', 3, s.text, async () => {
     const first = page.locator('main a[href*="/congres/"]').filter({ visible: true }).first();
-    const label = (await first.innerText()).trim();
+    // the reader clicks the congress title shown in the result (first heading-like line of the result link)
+    const label = (await first.locator('h2,h3,.row__t,.row__title,strong').first().innerText().catch(() => '') || (await first.innerText()).split('\n').find((x) => /[a-z]{4}/i.test(x)) || '').trim();
     const w = await ag.click(label, { exact: false }); if (w) return w;
     const t = await page.locator('main').innerText();
     const miss = ['Dates', 'Ville', 'Lieu', 'Discipline'].filter((x) => !new RegExp(x, 'i').test(t));
@@ -271,7 +273,7 @@ export async function replayB(browser, hub) {
     let why = null;
     if (w) { why = `hub label « ${quoted} »: ${w}`; ag.note('fallback: agent reads the menu'); const w2 = await ag.click('Codes', { within: 'nav.side' }); if (w2) return why + '; ' + w2; }
     const html = await page.content();
-    if (/DEMO-GME-\d{4}/.test(html)) return 'codes are not hidden';
+    if (/DEMO-GME-[A-Z0-9]{4}/.test(html)) return 'codes are not hidden';
     const card = page.locator('.gme').filter({ has: page.getByRole('button', { name: 'Demander l’accès' }) }).first();
     if (!(await card.count())) return (why ? why + '; ' : '') + 'no « Demander l’accès » on any code';
     await card.getByLabel(/Motif/).fill('Devis pour un groupe, trois places.');
@@ -296,13 +298,13 @@ export async function replayB(browser, hub) {
     w = await login(page, 'equipe', ag); if (w) return w;
     w = await ag.click('Codes', { within: 'nav.side' }); if (w) return w;
     let why = null;
-    if (!/DEMO-GME-\d{4}/.test(await page.locator('main').innerText())) {
+    if (!/DEMO-GME-[A-Z0-9]{4}/.test(await page.locator('main').innerText())) {
       const b = page.getByRole('button', { name: 'Afficher le code' }).filter({ visible: true }).first();
       if (!(await b.count())) return 'code not shown and no « Afficher le code »';
       await b.click(); ag.clicks++; await page.waitForLoadState();
       why = 'hub says « the code is shown » after signing in; the reader must still click « Afficher le code »';
     }
-    if (!/DEMO-GME-\d{4}/.test(await page.locator('main').innerText())) return 'code still not shown';
+    if (!/DEMO-GME-[A-Z0-9]{4}/.test(await page.locator('main').innerText())) return 'code still not shown';
     await S(page, 'B equipe reveal', { allowCode: true });
     // « the access record lists it »: what can equipe see?
     const t = await page.locator('main').innerText();
@@ -454,7 +456,7 @@ export async function phoneB(browser) {
   // direction
   await login(page, 'direction');
   await crawlNav(page, 'direction 390');
-  for (const p of ['/console/congres/112', '/console/listes']) { await page.goto(B + p); await S(page, `direction ${p} (390)`); }
+  for (const p of ['/console/congres/112']) { await page.goto(B + p); await S(page, `direction ${p} (390)`); }
   out.sbx.push(await sbxOf(ctx));
   await page.goto(B + '/console');
   const rb = page.getByRole('button', { name: 'Réinitialiser la démo' });

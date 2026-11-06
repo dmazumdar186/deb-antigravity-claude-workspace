@@ -1,0 +1,1322 @@
+{
+ "name": "ahosted",
+ "at": "2026-11-06T09:12:23.072Z",
+ "findings": [
+  {
+   "check": "D2",
+   "option": "A-hosted",
+   "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+   "role": "visiteur",
+   "width": 1440,
+   "locale": "fr-FR",
+   "text": "Congrès européen de radiologie — exemple",
+   "element": "div.asset-cd.asset-catalogue > ul.asset-grid > li.asset-card > h2.asset-card__title",
+   "note": "matches a real congress name « congres europeen de radiologie » (marked as an example in the same text)",
+   "shot": "out/shots/0146-A-hosted-visiteur-1440-hosted-visitor-first-screen.png",
+   "state": "hosted visitor first screen"
+  },
+  {
+   "check": "B4",
+   "option": "A-hosted",
+   "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+   "role": "visiteur",
+   "width": 1440,
+   "locale": "fr-FR",
+   "text": "d’ophtalmologie de Paris — exemple",
+   "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a",
+   "note": "orphan-dash",
+   "shot": "out/shots/0146-A-hosted-visiteur-1440-hosted-visitor-first-screen.png",
+   "state": "hosted visitor first screen"
+  },
+  {
+   "check": "B4",
+   "option": "A-hosted",
+   "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+   "role": "visiteur",
+   "width": 1440,
+   "locale": "fr-FR",
+   "text": " européen de cardiologie — exemple",
+   "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a",
+   "note": "orphan-dash",
+   "shot": "out/shots/0146-A-hosted-visiteur-1440-hosted-visitor-first-screen.png",
+   "state": "hosted visitor first screen"
+  },
+  {
+   "check": "B4",
+   "option": "A-hosted",
+   "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+   "role": "visiteur",
+   "width": 1440,
+   "locale": "fr-FR",
+   "text": "européen de dermatologie — exemple",
+   "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a",
+   "note": "orphan-dash",
+   "shot": "out/shots/0146-A-hosted-visiteur-1440-hosted-visitor-first-screen.png",
+   "state": "hosted visitor first screen"
+  },
+  {
+   "check": "A2",
+   "option": "A-hosted",
+   "page": "https://playground.wordpress.net/?mode=seamless&blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json",
+   "role": "visiteur",
+   "width": 1440,
+   "locale": "fr-FR",
+   "text": "not ready after 120 s",
+   "element": "",
+   "note": "admin link never showed its first screen",
+   "shot": "",
+   "state": ""
+  }
+ ],
+ "states": [
+  {
+   "option": "A-hosted",
+   "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+   "role": "visiteur",
+   "width": 1440,
+   "locale": "fr-FR",
+   "shot": "out/shots/0146-A-hosted-visiteur-1440-hosted-visitor-first-screen.png",
+   "state": "hosted visitor first screen",
+   "title": "ASSET Voyages — démonstration – Démonstration : congrès, devis vol et codes GM&E fictifs",
+   "lang": "fr-FR",
+   "surface": "A-public",
+   "cls": 0,
+   "overflow": {
+    "scrollWidth": 1440,
+    "innerWidth": 1440,
+    "offenders": []
+   },
+   "b4": 3,
+   "favicons": [],
+   "videos": [],
+   "clickables": [
+    {
+     "kind": "a",
+     "type": "",
+     "label": "ASSET Voyages — démonstration",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "formMethod": "",
+     "path": "div.wp-block-group.asset-header-band > div.asset-site-header > p.asset-brand > a"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Catalogue des congrès",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "formMethod": "",
+     "path": "nav > ul.asset-nav > li > a"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Espace équipe",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/wp-login.php?redirect_to=https%3A%2F%2Fwpsandbox.wordpress.net%2Fscope%3Attxa-uyim-tjij%2Fwp-admin%2F",
+     "formMethod": "",
+     "path": "div.wp-block-group.asset-header-band > div.asset-site-header > p.asset-team-link > a"
+    },
+    {
+     "kind": "button",
+     "type": "submit",
+     "label": "Rechercher",
+     "href": "",
+     "formMethod": "get",
+     "path": "div.asset-cd.asset-catalogue > form.asset-filters > div.asset-actions > button.asset-btn"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Réinitialiser",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "formMethod": "get",
+     "path": "div.asset-cd.asset-catalogue > form.asset-filters > div.asset-actions > a.asset-link"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Cardiologie",
+     "href": "/scope:ttxa-uyim-tjij/?discipline=cardiologie",
+     "formMethod": "",
+     "path": "nav.asset-chips > ul > li > a.asset-chip"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Dermatologie",
+     "href": "/scope:ttxa-uyim-tjij/?discipline=dermatologie",
+     "formMethod": "",
+     "path": "nav.asset-chips > ul > li > a.asset-chip"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Diabétologie",
+     "href": "/scope:ttxa-uyim-tjij/?discipline=diabetologie",
+     "formMethod": "",
+     "path": "nav.asset-chips > ul > li > a.asset-chip"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Finance",
+     "href": "/scope:ttxa-uyim-tjij/?discipline=finance",
+     "formMethod": "",
+     "path": "nav.asset-chips > ul > li > a.asset-chip"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Hématologie",
+     "href": "/scope:ttxa-uyim-tjij/?discipline=hematologie",
+     "formMethod": "",
+     "path": "nav.asset-chips > ul > li > a.asset-chip"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Neurologie",
+     "href": "/scope:ttxa-uyim-tjij/?discipline=neurologie",
+     "formMethod": "",
+     "path": "nav.asset-chips > ul > li > a.asset-chip"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Oncologie",
+     "href": "/scope:ttxa-uyim-tjij/?discipline=oncologie",
+     "formMethod": "",
+     "path": "nav.asset-chips > ul > li > a.asset-chip"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Ophtalmologie",
+     "href": "/scope:ttxa-uyim-tjij/?discipline=ophtalmologie",
+     "formMethod": "",
+     "path": "nav.asset-chips > ul > li > a.asset-chip"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Pneumologie",
+     "href": "/scope:ttxa-uyim-tjij/?discipline=pneumologie",
+     "formMethod": "",
+     "path": "nav.asset-chips > ul > li > a.asset-chip"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Radiologie",
+     "href": "/scope:ttxa-uyim-tjij/?discipline=radiologie",
+     "formMethod": "",
+     "path": "nav.asset-chips > ul > li > a.asset-chip"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Ressources humaines",
+     "href": "/scope:ttxa-uyim-tjij/?discipline=ressources-humaines",
+     "formMethod": "",
+     "path": "nav.asset-chips > ul > li > a.asset-chip"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Journées méditerranéennes d’oncologie — exemple",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/journees-mediterraneennes-doncologie-exemple/",
+     "formMethod": "",
+     "path": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Congrès européen de radiologie — exemple",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-europeen-de-radiologie-exemple/",
+     "formMethod": "",
+     "path": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Journées francophones de diabétologie — exemple",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/journees-francophones-de-diabetologie-exemple/",
+     "formMethod": "",
+     "path": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Forum européen des ressources humaines — exemple",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/forum-europeen-des-ressources-humaines-exemple/",
+     "formMethod": "",
+     "path": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Congrès d’ophtalmologie de Paris — exemple",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-dophtalmologie-de-paris-exemple/",
+     "formMethod": "",
+     "path": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Congrès européen de neurologie — exemple",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-europeen-de-neurologie-exemple/",
+     "formMethod": "",
+     "path": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Congrès européen de cardiologie — exemple",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-europeen-de-cardiologie-exemple/",
+     "formMethod": "",
+     "path": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Congrès international de pneumologie — exemple",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-international-de-pneumologie-exemple/",
+     "formMethod": "",
+     "path": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Congrès européen de dermatologie — exemple",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-europeen-de-dermatologie-exemple/",
+     "formMethod": "",
+     "path": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "2",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?pg=2",
+     "formMethod": "",
+     "path": "nav.asset-pagination > ul > li > a"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Suivant",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?pg=2",
+     "formMethod": "",
+     "path": "nav.asset-pagination > ul > li > a"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Espace équipe",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/wp-login.php?redirect_to=https%3A%2F%2Fwpsandbox.wordpress.net%2Fscope%3Attxa-uyim-tjij%2Fwp-admin%2F",
+     "formMethod": "",
+     "path": "div.wp-block-group.asset-footer-band > div.asset-site-footer > p.asset-team-link > a"
+    }
+   ],
+   "sticky": 0
+  }
+ ],
+ "coverage": [
+  {
+   "option": "A-hosted",
+   "state": "hosted visitor first screen",
+   "role": "visiteur",
+   "width": 1440,
+   "locale": "fr-FR"
+  }
+ ],
+ "words": [
+  {
+   "option": "A-hosted",
+   "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+   "state": "hosted visitor first screen",
+   "role": "visiteur",
+   "width": 1440,
+   "lang": "fr",
+   "texts": [
+    "Toutes les disciplines",
+    "Cardiologie",
+    "Dermatologie",
+    "Diabétologie",
+    "Finance",
+    "Hématologie",
+    "Neurologie",
+    "Oncologie",
+    "Ophtalmologie",
+    "Pneumologie",
+    "Radiologie",
+    "Ressources humaines",
+    "Tous les pays",
+    "Allemagne",
+    "Autriche",
+    "Belgique",
+    "Espagne",
+    "France",
+    "Italie",
+    "Pays-Bas",
+    "Portugal",
+    "Royaume-Uni",
+    "États-Unis",
+    "Tous les mois",
+    "Janvier 2027",
+    "Février 2027",
+    "Mars 2027",
+    "Avril 2027",
+    "Mai 2027",
+    "Juin 2027",
+    "Août 2027",
+    "Septembre 2027",
+    "Octobre 2027",
+    "Novembre 2027",
+    "Date croissante",
+    "Date décroissante",
+    "ASSET Voyages — démonstration",
+    "Catalogue des congrès",
+    "Espace équipe",
+    "Catalogue des congrès",
+    "Trouvez votre congrès et demandez un devis vol en quelques secondes.",
+    "Démonstration : tous les congrès ci-dessous sont fictifs.",
+    "Recherche",
+    "Discipline",
+    "Pays",
+    "Mois",
+    "Trier par",
+    "Inclure les congrès passés",
+    "Rechercher",
+    "Réinitialiser",
+    "Cardiologie",
+    "Dermatologie",
+    "Diabétologie",
+    "Finance",
+    "Hématologie",
+    "Neurologie",
+    "Oncologie",
+    "Ophtalmologie",
+    "Pneumologie",
+    "Radiologie",
+    "Ressources humaines",
+    "12 congrès trouvés",
+    "Oncologie",
+    "Journées méditerranéennes d’oncologie — exemple",
+    "Du 28 janvier 2027 au 30 janvier 2027",
+    "Marseille, France",
+    "Radiologie",
+    "Congrès européen de radiologie — exemple",
+    "Du 24 février 2027 au 28 février 2027",
+    "Vienne, Autriche",
+    "Diabétologie",
+    "Journées francophones de diabétologie — exemple",
+    "Du 23 mars 2027 au 26 mars 2027",
+    "Lyon, France",
+    "Ressources humaines",
+    "Forum européen des ressources humaines — exemple",
+    "Du 13 avril 2027 au 14 avril 2027",
+    "Lisbonne, Portugal",
+    "Ophtalmologie",
+    "Congrès d’ophtalmologie de Paris — exemple",
+    "Du 8 mai 2027 au 11 mai 2027",
+    "Paris, France",
+    "Neurologie",
+    "Congrès européen de neurologie — exemple",
+    "Du 19 juin 2027 au 22 juin 2027",
+    "Vienne, Autriche",
+    "Tarif congrès négocié disponible",
+    "Cardiologie",
+    "Congrès européen de cardiologie — exemple",
+    "Du 27 août 2027 au 30 août 2027",
+    "Madrid, Espagne",
+    "Tarif congrès négocié disponible",
+    "Pneumologie",
+    "Congrès international de pneumologie — exemple",
+    "Du 4 septembre 2027 au 8 septembre 2027",
+    "Milan, Italie",
+    "Dermatologie",
+    "Congrès européen de dermatologie — exemple",
+    "Du 29 septembre 2027 au 2 octobre 2027",
+    "Amsterdam, Pays-Bas",
+    "1",
+    "2",
+    "Suivant",
+    "Démonstration ASSET Voyages",
+    "Toutes les données sont fictives : congrès, personnes, adresses e-mail en @example.com et codes GM&E factices. Aucun e-mail n’est envoyé et aucune réservation n’est enregistrée.",
+    "Espace équipe"
+   ],
+   "attrs": [
+    "Navigation principale",
+    "Rechercher un congrès",
+    "Titre, ville ou discipline",
+    "Accès rapide par discipline",
+    "Pagination du catalogue",
+    "Page 2"
+   ]
+  }
+ ],
+ "labels": [
+  {
+   "option": "A-hosted",
+   "state": "hosted visitor first screen",
+   "labels": [
+    "Toutes les disciplines",
+    "Cardiologie",
+    "Dermatologie",
+    "Diabétologie",
+    "Finance",
+    "Hématologie",
+    "Neurologie",
+    "Oncologie",
+    "Ophtalmologie",
+    "Pneumologie",
+    "Radiologie",
+    "Ressources humaines",
+    "Tous les pays",
+    "Allemagne",
+    "Autriche",
+    "Belgique",
+    "Espagne",
+    "France",
+    "Italie",
+    "Pays-Bas",
+    "Portugal",
+    "Royaume-Uni",
+    "États-Unis",
+    "Tous les mois",
+    "Janvier 2027",
+    "Février 2027",
+    "Mars 2027",
+    "Avril 2027",
+    "Mai 2027",
+    "Juin 2027",
+    "Août 2027",
+    "Septembre 2027",
+    "Octobre 2027",
+    "Novembre 2027",
+    "Date croissante",
+    "Date décroissante",
+    "ASSET Voyages — démonstration",
+    "Catalogue des congrès",
+    "Espace équipe",
+    "Trouvez votre congrès et demandez un devis vol en quelques secondes.",
+    "Démonstration : tous les congrès ci-dessous sont fictifs.",
+    "Recherche",
+    "Discipline",
+    "Pays",
+    "Mois",
+    "Trier par",
+    "Inclure les congrès passés",
+    "Rechercher",
+    "Réinitialiser",
+    "12 congrès trouvés",
+    "Journées méditerranéennes d’oncologie — exemple",
+    "Du 28 janvier 2027 au 30 janvier 2027",
+    "Marseille, France",
+    "Congrès européen de radiologie — exemple",
+    "Du 24 février 2027 au 28 février 2027",
+    "Vienne, Autriche",
+    "Journées francophones de diabétologie — exemple",
+    "Du 23 mars 2027 au 26 mars 2027",
+    "Lyon, France",
+    "Forum européen des ressources humaines — exemple",
+    "Du 13 avril 2027 au 14 avril 2027",
+    "Lisbonne, Portugal",
+    "Congrès d’ophtalmologie de Paris — exemple",
+    "Du 8 mai 2027 au 11 mai 2027",
+    "Paris, France",
+    "Congrès européen de neurologie — exemple",
+    "Du 19 juin 2027 au 22 juin 2027",
+    "Tarif congrès négocié disponible",
+    "Congrès européen de cardiologie — exemple",
+    "Du 27 août 2027 au 30 août 2027",
+    "Madrid, Espagne",
+    "Congrès international de pneumologie — exemple",
+    "Du 4 septembre 2027 au 8 septembre 2027",
+    "Milan, Italie",
+    "Congrès européen de dermatologie — exemple",
+    "Du 29 septembre 2027 au 2 octobre 2027",
+    "Amsterdam, Pays-Bas",
+    "1",
+    "2",
+    "Suivant",
+    "Démonstration ASSET Voyages"
+   ],
+   "clickables": [
+    {
+     "kind": "a",
+     "type": "",
+     "label": "ASSET Voyages — démonstration",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "formMethod": "",
+     "path": "div.wp-block-group.asset-header-band > div.asset-site-header > p.asset-brand > a"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Catalogue des congrès",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "formMethod": "",
+     "path": "nav > ul.asset-nav > li > a"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Espace équipe",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/wp-login.php?redirect_to=https%3A%2F%2Fwpsandbox.wordpress.net%2Fscope%3Attxa-uyim-tjij%2Fwp-admin%2F",
+     "formMethod": "",
+     "path": "div.wp-block-group.asset-header-band > div.asset-site-header > p.asset-team-link > a"
+    },
+    {
+     "kind": "button",
+     "type": "submit",
+     "label": "Rechercher",
+     "href": "",
+     "formMethod": "get",
+     "path": "div.asset-cd.asset-catalogue > form.asset-filters > div.asset-actions > button.asset-btn"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Réinitialiser",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "formMethod": "get",
+     "path": "div.asset-cd.asset-catalogue > form.asset-filters > div.asset-actions > a.asset-link"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Cardiologie",
+     "href": "/scope:ttxa-uyim-tjij/?discipline=cardiologie",
+     "formMethod": "",
+     "path": "nav.asset-chips > ul > li > a.asset-chip"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Dermatologie",
+     "href": "/scope:ttxa-uyim-tjij/?discipline=dermatologie",
+     "formMethod": "",
+     "path": "nav.asset-chips > ul > li > a.asset-chip"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Diabétologie",
+     "href": "/scope:ttxa-uyim-tjij/?discipline=diabetologie",
+     "formMethod": "",
+     "path": "nav.asset-chips > ul > li > a.asset-chip"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Finance",
+     "href": "/scope:ttxa-uyim-tjij/?discipline=finance",
+     "formMethod": "",
+     "path": "nav.asset-chips > ul > li > a.asset-chip"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Hématologie",
+     "href": "/scope:ttxa-uyim-tjij/?discipline=hematologie",
+     "formMethod": "",
+     "path": "nav.asset-chips > ul > li > a.asset-chip"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Neurologie",
+     "href": "/scope:ttxa-uyim-tjij/?discipline=neurologie",
+     "formMethod": "",
+     "path": "nav.asset-chips > ul > li > a.asset-chip"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Oncologie",
+     "href": "/scope:ttxa-uyim-tjij/?discipline=oncologie",
+     "formMethod": "",
+     "path": "nav.asset-chips > ul > li > a.asset-chip"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Ophtalmologie",
+     "href": "/scope:ttxa-uyim-tjij/?discipline=ophtalmologie",
+     "formMethod": "",
+     "path": "nav.asset-chips > ul > li > a.asset-chip"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Pneumologie",
+     "href": "/scope:ttxa-uyim-tjij/?discipline=pneumologie",
+     "formMethod": "",
+     "path": "nav.asset-chips > ul > li > a.asset-chip"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Radiologie",
+     "href": "/scope:ttxa-uyim-tjij/?discipline=radiologie",
+     "formMethod": "",
+     "path": "nav.asset-chips > ul > li > a.asset-chip"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Ressources humaines",
+     "href": "/scope:ttxa-uyim-tjij/?discipline=ressources-humaines",
+     "formMethod": "",
+     "path": "nav.asset-chips > ul > li > a.asset-chip"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Journées méditerranéennes d’oncologie — exemple",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/journees-mediterraneennes-doncologie-exemple/",
+     "formMethod": "",
+     "path": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Congrès européen de radiologie — exemple",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-europeen-de-radiologie-exemple/",
+     "formMethod": "",
+     "path": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Journées francophones de diabétologie — exemple",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/journees-francophones-de-diabetologie-exemple/",
+     "formMethod": "",
+     "path": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Forum européen des ressources humaines — exemple",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/forum-europeen-des-ressources-humaines-exemple/",
+     "formMethod": "",
+     "path": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Congrès d’ophtalmologie de Paris — exemple",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-dophtalmologie-de-paris-exemple/",
+     "formMethod": "",
+     "path": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Congrès européen de neurologie — exemple",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-europeen-de-neurologie-exemple/",
+     "formMethod": "",
+     "path": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Congrès européen de cardiologie — exemple",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-europeen-de-cardiologie-exemple/",
+     "formMethod": "",
+     "path": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Congrès international de pneumologie — exemple",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-international-de-pneumologie-exemple/",
+     "formMethod": "",
+     "path": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Congrès européen de dermatologie — exemple",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-europeen-de-dermatologie-exemple/",
+     "formMethod": "",
+     "path": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "2",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?pg=2",
+     "formMethod": "",
+     "path": "nav.asset-pagination > ul > li > a"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Suivant",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?pg=2",
+     "formMethod": "",
+     "path": "nav.asset-pagination > ul > li > a"
+    },
+    {
+     "kind": "a",
+     "type": "",
+     "label": "Espace équipe",
+     "href": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/wp-login.php?redirect_to=https%3A%2F%2Fwpsandbox.wordpress.net%2Fscope%3Attxa-uyim-tjij%2Fwp-admin%2F",
+     "formMethod": "",
+     "path": "div.wp-block-group.asset-footer-band > div.asset-site-footer > p.asset-team-link > a"
+    }
+   ]
+  }
+ ],
+ "styles": [
+  {
+   "option": "A-hosted",
+   "surface": "A-public",
+   "state": "hosted visitor first screen",
+   "width": 1440,
+   "styles": {
+    "body": "Inter",
+    "bodyMix": [
+     "Inter:2238"
+    ],
+    "display": [
+     "Inter"
+    ],
+    "buttons": [
+     {
+      "label": "Rechercher",
+      "font": "Inter",
+      "radius": "6px",
+      "bg": "rgb(154, 71, 5)",
+      "color": "rgb(255, 255, 255)",
+      "border": "rgb(154, 71, 5) 2px",
+      "weight": "600",
+      "transform": "none",
+      "path": "div.asset-cd.asset-catalogue > form.asset-filters > div.asset-actions > button.asset-btn"
+     }
+    ],
+    "links": [
+     "rgb(242, 238, 229)",
+     "rgb(10, 31, 48)"
+    ]
+   }
+  }
+ ],
+ "urls": [
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "a",
+     "text": "ASSET Voyages — démonstration",
+     "visible": true
+    },
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "a",
+     "text": "Catalogue des congrès",
+     "visible": true
+    },
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "a",
+     "text": "Réinitialiser",
+     "visible": true
+    },
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "link:canonical"
+    },
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "link:shortlink"
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/wp-login.php?redirect_to=https%3A%2F%2Fwpsandbox.wordpress.net%2Fscope%3Attxa-uyim-tjij%2Fwp-admin%2F",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "a",
+     "text": "Espace équipe",
+     "visible": true
+    },
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "a",
+     "text": "Espace équipe",
+     "visible": true
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=cardiologie",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "a",
+     "text": "Cardiologie",
+     "visible": true
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=dermatologie",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "a",
+     "text": "Dermatologie",
+     "visible": true
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=diabetologie",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "a",
+     "text": "Diabétologie",
+     "visible": true
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=finance",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "a",
+     "text": "Finance",
+     "visible": true
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=hematologie",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "a",
+     "text": "Hématologie",
+     "visible": true
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=neurologie",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "a",
+     "text": "Neurologie",
+     "visible": true
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=oncologie",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "a",
+     "text": "Oncologie",
+     "visible": true
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=ophtalmologie",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "a",
+     "text": "Ophtalmologie",
+     "visible": true
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=pneumologie",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "a",
+     "text": "Pneumologie",
+     "visible": true
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=radiologie",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "a",
+     "text": "Radiologie",
+     "visible": true
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=ressources-humaines",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "a",
+     "text": "Ressources humaines",
+     "visible": true
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/journees-mediterraneennes-doncologie-exemple/",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "a",
+     "text": "Journées méditerranéennes d’oncologie — exemple",
+     "visible": true
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-europeen-de-radiologie-exemple/",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "a",
+     "text": "Congrès européen de radiologie — exemple",
+     "visible": true
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/journees-francophones-de-diabetologie-exemple/",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "a",
+     "text": "Journées francophones de diabétologie — exemple",
+     "visible": true
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/forum-europeen-des-ressources-humaines-exemple/",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "a",
+     "text": "Forum européen des ressources humaines — exemple",
+     "visible": true
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-dophtalmologie-de-paris-exemple/",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "a",
+     "text": "Congrès d’ophtalmologie de Paris — exemple",
+     "visible": true
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-europeen-de-neurologie-exemple/",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "a",
+     "text": "Congrès européen de neurologie — exemple",
+     "visible": true
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-europeen-de-cardiologie-exemple/",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "a",
+     "text": "Congrès européen de cardiologie — exemple",
+     "visible": true
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-international-de-pneumologie-exemple/",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "a",
+     "text": "Congrès international de pneumologie — exemple",
+     "visible": true
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-europeen-de-dermatologie-exemple/",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "a",
+     "text": "Congrès européen de dermatologie — exemple",
+     "visible": true
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?pg=2",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "a",
+     "text": "2",
+     "visible": true
+    },
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "a",
+     "text": "Suivant",
+     "visible": true
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/feed/",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "link:alternate"
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/comments/feed/",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "link:alternate"
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fwpsandbox.wordpress.net%2Fscope%3Attxa-uyim-tjij%2F",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "link:alternate"
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fwpsandbox.wordpress.net%2Fscope%3Attxa-uyim-tjij%2F&format=xml",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "link:alternate"
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/wp-content/plugins/asset-congres-demo/assets/css/public.css?ver=0.2.0",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "link:stylesheet"
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/wp-content/themes/twentytwentyfive/style.min.css?ver=0.2.0",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "link:stylesheet"
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/wp-json/",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "link:https://api.w.org/"
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/wp-json/wp/v2/pages/24",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "link:alternate"
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/xmlrpc.php?rsd",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "link:EditURI"
+    }
+   ]
+  },
+  {
+   "url": "https://wpsandbox.wordpress.net/favicon.ico",
+   "refs": [
+    {
+     "from": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "option": "A-hosted",
+     "kind": "favicon-default"
+    }
+   ]
+  }
+ ],
+ "notes": [],
+ "checks": {},
+ "logins": 0,
+ "writing": [],
+ "boots": [
+  {
+   "kind": "visitor",
+   "href": "https://playground.wordpress.net/?mode=seamless&login=no&blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-visitor.json",
+   "readySec": 15.688,
+   "samples": [
+    {
+     "sec": 1,
+     "shot": "out/shots/hosted-visitor-1s.png",
+     "bytes": 5851,
+     "visible": 1
+    },
+    {
+     "sec": 3,
+     "shot": "out/shots/hosted-visitor-3s.png",
+     "bytes": 5851,
+     "visible": 1
+    },
+    {
+     "sec": 3,
+     "shot": "out/shots/hosted-visitor-3s.png",
+     "bytes": 10765,
+     "visible": 1
+    },
+    {
+     "sec": 6,
+     "shot": "out/shots/hosted-visitor-6s.png",
+     "bytes": 12014,
+     "visible": 1
+    },
+    {
+     "sec": 10,
+     "shot": "out/shots/hosted-visitor-10s.png",
+     "bytes": 11998,
+     "visible": 1
+    },
+    {
+     "sec": 15,
+     "shot": "out/shots/hosted-visitor-15s.png",
+     "bytes": 5851,
+     "visible": 1
+    }
+   ],
+   "near": "Open the visitor site and go to the congress catalogue."
+  },
+  {
+   "kind": "admin",
+   "href": "https://playground.wordpress.net/?mode=seamless&blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json",
+   "readySec": 0,
+   "samples": [
+    {
+     "sec": 1,
+     "shot": "out/shots/hosted-admin-1s.png",
+     "bytes": 5852,
+     "visible": 1
+    },
+    {
+     "sec": 3,
+     "shot": "out/shots/hosted-admin-3s.png",
+     "bytes": 10871,
+     "visible": 1
+    },
+    {
+     "sec": 6,
+     "shot": "out/shots/hosted-admin-6s.png",
+     "bytes": 11997,
+     "visible": 1
+    },
+    {
+     "sec": 10,
+     "shot": "out/shots/hosted-admin-10s.png",
+     "bytes": 12474,
+     "visible": 1
+    },
+    {
+     "sec": 15,
+     "shot": "out/shots/hosted-admin-15s.png",
+     "bytes": 11997,
+     "visible": 1
+    },
+    {
+     "sec": 20,
+     "shot": "out/shots/hosted-admin-20s.png",
+     "bytes": 11997,
+     "visible": 1
+    },
+    {
+     "sec": 30,
+     "shot": "out/shots/hosted-admin-30s.png",
+     "bytes": 12022,
+     "visible": 1
+    }
+   ],
+   "near": "Open the admin. You are already signed in."
+  }
+ ],
+ "replay": []
+}

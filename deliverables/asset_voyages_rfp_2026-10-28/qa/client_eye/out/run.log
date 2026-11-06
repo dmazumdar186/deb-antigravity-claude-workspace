@@ -2,3 +2,117 @@
 [08:22:14] saved part hub: 87 raw findings, 40 states
 [08:22:17] A4 links checked 62
 [08:22:27] done
+[08:29:21] hub parsed: tasks 5 rows 11 group steps 4
+[08:30:27] C10 A T1.1 OK (1 clicks) 
+[08:30:32] C10 A T1.2 OK (2 clicks) 
+[08:30:33] C10 A T1.3 FAIL (0 clicks) discipline « Cardiologie » not selectable by label
+[08:31:22] C10 A T1.tip OK (0 clicks) 
+[08:31:24] C10 A T2.1 OK (0 clicks) 
+[08:31:25] C10 A T2.2 FAIL (0 clicks) exception: locator.fill: Error: Element is not an <input>, <textarea>, <select> or [contenteditable] and does not have a role allowing [aria-readonly]
+[08:31:27] C10 A T2.3 OK (1 clicks) 
+[08:31:28] C10 A T3.1 OK (0 clicks) 
+[08:31:29] C10 A T3.2 OK (0 clicks) 
+[08:31:36] C10 A T3.3 OK (1 clicks) 
+[08:31:43] C10 A T4.1 OK (3 clicks) 
+[08:31:48] C10 A T4.2 OK (3 clicks) 
+[08:31:54] C10 A T4.3 OK (3 clicks) 
+[08:32:42] C10 A T5.1 OK (2 clicks) 
+[08:32:50] C10 A T5.2 OK (3 clicks) 
+[08:33:34] C10 A T5.3 FAIL (4 clicks) code still not shown
+[08:36:47] A phone failed page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:9431/wp-admin/index.php
+Call log:
+[2m  - navigating to "http://127.0.0.1:9431/wp-admin/index.php", waiting until "load"[22m
+
+    at phoneA (/home/user/deb-antigravity-claude-workspace/deliverables/asset_voyages_rfp_2026-10-28/qa/client_eye/lib/opta.mjs:306:186)
+    at async file:///home/user/deb-antigravity-claude-workspace/deliverables/asset_voyages_rfp_2026-10-28/qa/client_eye/gate.mjs:58:11
+[08:36:47] saved part a: 159 raw findings, 133 states
+[08:36:51] A4 links checked 412
+[08:37:01] done
+[08:38:13] hub parsed: tasks 5 rows 11 group steps 4
+[08:39:24] hub parsed: tasks 5 rows 11 group steps 4
+[08:40:33] C10 A T1.1 OK (1 clicks) 
+[08:40:40] C10 A T1.2 OK (2 clicks) 
+[08:40:49] C10 A T1.3 OK (2 clicks) 
+[08:41:42] C10 A T1.tip OK (0 clicks) 
+[08:41:44] C10 A T2.1 OK (0 clicks) 
+[08:41:47] C10 A T2.2 OK (1 clicks) 
+[08:41:49] C10 A T2.3 OK (1 clicks) 
+[08:41:50] C10 A T3.1 OK (0 clicks) 
+[08:41:51] C10 A T3.2 OK (0 clicks) 
+[08:41:58] C10 A T3.3 OK (1 clicks) 
+[08:42:02] saved part hub: 73 raw findings, 40 states
+[08:42:04] C10 A T4.1 OK (3 clicks) 
+[08:42:10] C10 A T4.2 OK (3 clicks) 
+[08:42:15] C10 A T4.3 OK (3 clicks) 
+[08:43:01] C10 A T5.1 OK (2 clicks) 
+[08:43:09] C10 A T5.2 OK (3 clicks) 
+[08:43:21] C10 B T1.1 OK (1 clicks) 
+[08:43:26] C10 B T1.2 OK (2 clicks) 
+[08:43:35] C10 B T1.3 OK (6 clicks) 
+[08:43:53] C10 B T2.1 OK (1 clicks) 
+[08:43:54] C10 A T5.3 FAIL (4 clicks) hub says « the code is shown » after signing in; the reader must still click « Révéler le code »
+[08:43:56] C10 B T2.2 OK (1 clicks) 
+[08:43:57] C10 B T2.3 OK (1 clicks) 
+[08:43:59] C10 B T3.1 OK (0 clicks) 
+[08:44:00] C10 B T3.2 OK (0 clicks) 
+[08:44:06] C10 B T3.3 OK (1 clicks) 
+[08:44:10] C10 B T4.1 OK (2 clicks) 
+[08:44:21] C10 B T4.2 OK (2 clicks) 
+[08:44:31] C10 B T4.3 OK (3 clicks) 
+[08:44:33] C10 B T5.1 FAIL (2 clicks) hub label « Codes GM&E »: label « Codes GM&E » is visible (p) but is not a link or a button
+[08:44:38] C10 B T5.2 OK (4 clicks) 
+[08:44:43] C10 B T5.3 FAIL (4 clicks) hub says « the code is shown » after signing in; the reader must still click « Afficher le code »
+[08:44:45] C10 B G.1 OK (0 clicks) 
+[08:44:47] C10 B G.2 OK (1 clicks) 
+[08:44:48] C10 B G.3 OK (1 clicks) 
+[08:44:57] C10 B G.4 OK (0 clicks) 
+[08:46:59] saved part b: 103 raw findings, 150 states
+[08:47:05] A4 links checked 519
+[08:47:16] done
+[08:47:53] saved part a: 167 raw findings, 145 states
+[08:50:06] A4 links checked 532
+[08:50:17] done
+[08:58:38] hub parsed: tasks 5 rows 11 group steps 4
+[08:59:47] C10 A T1.1 OK (1 clicks) 
+[08:59:53] C10 A T1.2 OK (2 clicks) 
+[09:00:04] C10 A T1.3 OK (2 clicks) 
+[09:00:47] hub parsed: tasks 5 rows 11 group steps 4
+[09:01:03] C10 A T1.tip OK (0 clicks) 
+[09:01:05] C10 A T2.1 OK (0 clicks) 
+[09:01:09] C10 A T2.2 OK (1 clicks) 
+[09:01:11] C10 A T2.3 OK (1 clicks) 
+[09:01:12] C10 A T3.1 OK (0 clicks) 
+[09:01:13] C10 A T3.2 OK (0 clicks) 
+[09:01:20] C10 A T3.3 OK (1 clicks) 
+[09:01:26] C10 A T4.1 OK (3 clicks) 
+[09:01:33] C10 A T4.2 OK (3 clicks) 
+[09:01:42] C10 A T4.3 FAIL (2 clicks) exception: locator.click: Timeout 5000ms exceeded.
+[09:02:34] C10 A T5.1 FAIL (1 clicks) no reason field
+[09:02:43] C10 A T5.2 OK (3 clicks) 
+[09:03:38] C10 A T5.3 FAIL (4 clicks) hub says « the code is shown » after signing in; the reader must still click « Révéler le code »
+[09:04:59] saved part hub: 56 raw findings, 40 states
+[09:07:37] A4 links checked 523
+[09:07:49] done
+[09:10:02] saved part a: 167 raw findings, 145 states
+[09:10:17] A2 hosted visitor: ready after 15.688 s
+[09:12:23] A2 hosted admin: ready after TIMEOUT s
+[09:12:23] saved part ahosted: 5 raw findings, 1 states
+[09:14:49] A4 links checked 562
+[09:14:59] done
+[09:23:10] hub parsed: tasks 5 rows 11 group steps 4
+[09:24:20] C10 A T1.1 OK (1 clicks) 
+[09:24:26] C10 A T1.2 OK (2 clicks) 
+[09:24:36] C10 A T1.3 OK (2 clicks) 
+[09:25:39] C10 A T1.tip OK (0 clicks) 
+[09:25:41] C10 A T2.1 OK (0 clicks) 
+[09:25:45] C10 A T2.2 OK (1 clicks) 
+[09:25:47] C10 A T2.3 OK (1 clicks) 
+[09:25:48] C10 A T3.1 OK (0 clicks) 
+[09:25:49] C10 A T3.2 OK (0 clicks) 
+[09:25:56] C10 A T3.3 OK (1 clicks) 
+[09:26:02] C10 A T4.1 OK (3 clicks) 
+[09:26:09] C10 A T4.2 OK (3 clicks) 
+[09:26:14] C10 A T4.3 OK (3 clicks) 
+[09:27:16] C10 A T5.1 OK (2 clicks) 
+[09:27:25] C10 A T5.2 OK (3 clicks) 
+[09:28:13] C10 A T5.3 FAIL (4 clicks) hub says « the code is shown » after signing in; the reader must still click « Révéler le code »

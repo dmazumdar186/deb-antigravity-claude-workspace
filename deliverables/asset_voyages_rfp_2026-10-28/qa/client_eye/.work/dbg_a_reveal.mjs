@@ -1,0 +1,22 @@
+// Scratch: why does the A reveal not show the code in #wpbody? Not part of the gate.
+const { chromium } = await import(new URL('../../B/ux/node_modules/playwright/index.mjs', import.meta.url));
+const A = process.env.A_BASE || 'http://127.0.0.1:9437';
+const b = await chromium.launch();
+const c = await b.newContext({ locale: 'fr-FR', timezoneId: 'Europe/Paris', viewport: { width: 1440, height: 900 } });
+const p = await c.newPage(); p.setDefaultTimeout(60000);
+const login = async (u) => { await c.clearCookies(); await p.goto(A + '/wp-login.php'); await p.fill('#user_login', u); await p.fill('#user_pass', 'demo-asset'); await p.click('#wp-submit'); await p.waitForLoadState(); };
+await login('equipe');
+await p.goto(A + '/wp-admin/admin.php?page=asset-gme');
+console.log('--- equipe codes\n', (await p.locator('#wpbody').innerText()).slice(0, 1500));
+const reason = p.getByLabel(/Raison de la demande/).first();
+await reason.fill('Test de lecture.');
+await p.getByRole('button', { name: 'Demander l’accès' }).first().click(); await p.waitForLoadState();
+await login('direction');
+console.log('--- direction dash\n', (await p.locator('#wpbody').innerText()).slice(0, 1200));
+await p.getByRole('button', { name: 'Approuver (24 h)' }).first().click(); await p.waitForLoadState();
+await login('equipe');
+await p.goto(A + '/wp-admin/admin.php?page=asset-gme');
+await p.getByRole('button', { name: 'Révéler le code' }).first().click(); await p.waitForLoadState();
+console.log('--- after reveal', p.url(), '\n', (await p.locator('body').innerText()).slice(0, 2500));
+console.log('codes in html:', (await p.content()).match(/DEMO-GME-\d{4}/g));
+await b.close();

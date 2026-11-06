@@ -2,6 +2,21 @@
   { "pattern": "Weeks? ⟨\\d+(\\s?(to|–)\\s?\\d+)?⟩|Weeks? \\d+ to ⟨", "class": "week" },
   { "pattern": "⟨\\d{1,2}⟩ (January|February|March|April|May|June|July|August|September|October|November|December)\\b", "class": "date" },
   { "pattern": "⟨\\d{1,2}:\\d{2}⟩", "class": "date (time slot)" },
-  { "pattern": "Task ⟨\\d⟩|Tasks ⟨\\d⟩|⟨\\d⟩ and \\d follow", "class": "section number (task)" },
-  { "pattern": "DV-2026-⟨|DV-⟨2026", "class": "our demo data (reference)" }
+  { "pattern": "Task ⟨\\d⟩|Tasks ⟨\\d⟩|Tasks \\d and ⟨\\d⟩", "class": "section number (task)" },
+  { "pattern": "⏎ ⟨\\d⟩ [A-Z]|⏎ ⟨\\d⟩\\. [A-Z]|⏎ ⟨\\d⟩ ⏎ [A-Z]|^.{0,40}⟨\\d⟩ ⏎", "class": "section / list / diagram step number" },
+  { "pattern": "DV-2026-⟨|DV-⟨2026", "class": "our demo data (reference)" },
+  { "pattern": "⟨Three⟩ fictional travellers", "class": "our demo data (seeded group: 3 answered)", "source": "custom_demo/EXTRA_GROUP.md", "needle": "3 fictional delegates" },
+  { "pattern": "⟨(two|Two)⟩ (demos|working demos|options)|built it ⟨twice⟩|⟨Two⟩ short recordings|choose ⟨one⟩\\.|tasks, ⟨one⟩ per option", "class": "our own deliverable count (two demos, two recordings)" },
+  { "pattern": "⟨one⟩ (of the logins|enquiry from start|task each|link|of your own)|(add a new|an existing|change|either|each) ⟨one⟩|⟨One⟩ more idea", "class": "the word « one » as a pronoun or article, not a figure" },
+  { "pattern": "⟨Two⟩-step login", "class": "term (two-step login), not a figure" },
+  { "pattern": "⟨20 to 30⟩ minute", "class": "sourced", "source": "27_Email_Reply_Draft.md", "needle": "20–30 minutes" },
+  { "pattern": "same ⟨five⟩ requirements|Your ⟨five⟩ requirements|same ⟨five⟩ tasks|the ⟨five⟩ tasks", "class": "sourced (the five stories ASSET asked to see)", "source": "21_Acceptance_Gates_5_Stories.md", "needle": "the five stories ASSET asked to see" },
+  { "pattern": "for ⟨24⟩ hours|for ⟨24⟩ h|⟨24⟩-hour approval", "class": "sourced (S5 approval lasts 24 h)", "source": "21_Acceptance_Gates_5_Stories.md", "needle": "approves (24 h) or refuses" },
+  { "pattern": "about ⟨300⟩ congresses", "class": "sourced (RFP: CSV import of ~300 listings)", "source": "00_RFP_Analysis_and_Plan.md", "needle": "CSV import of ~300 listings" },
+  { "pattern": "⟨T01 to T15⟩|⟨T01⟩|to ⟨T15⟩", "class": "sourced (RFP acceptance tests)", "source": "00_RFP_Analysis_and_Plan.md", "needle": "T01–T15" },
+  { "pattern": "⟨one⟩ workshop of up to|workshop of up to ⟨2⟩ hours", "class": "sourced (proposal: one workshop of up to 2 hours)", "source": "16_Proposal_Carryover.md", "needle": "one workshop of up to 2 hours" },
+  { "pattern": "with ⟨two⟩ rounds of changes", "class": "sourced (two revision rounds per design stage)", "source": "01c_Reply_to_clarifications_2026-10-31.md", "needle": "Two revision rounds are included at each design stage" },
+  { "pattern": "second session ⟨four⟩ weeks after launch", "class": "sourced (training plan)", "source": "advisory/src/part3.md", "needle": "second session 4 weeks after launch" },
+  { "pattern": "⟨Four⟩ weeks after launch", "class": "sourced (4 weeks stabilisation)", "source": "00_RFP_Analysis_and_Plan.md", "needle": "4 weeks stabilisation" },
+  { "pattern": "about ⟨\\d+ to \\d+⟩ seconds", "class": "measured by this gate (A2 hosted boot)" }
 ]

@@ -28,7 +28,8 @@ for n, line in enumerate(open(allow_file, encoding="utf-8"), 1):
 
 sp = {"fr": SpellChecker(language="fr"), "en": SpellChecker(language="en")}
 WORD = re.compile(r"[A-Za-zÀ-ÖØ-öø-ÿŒœ]+(?:[-][A-Za-zÀ-ÖØ-öø-ÿŒœ]+)*")
-URLISH = re.compile(r"https?://\S+|[\w.+-]+@[\w-]+(?:\.[\w-]+)+|\b[\w-]+\.(?:com|org|net|fyi|dev|fr|php|json|js|csv|zip|mp4)\b|\b[A-Z]{2,}-\d+\S*|DEMO-GME-\S+")
+# e-mails may be split over two lines (« chloe.petit @example .com » once line boxes are joined), so spaces are allowed
+URLISH = re.compile(r"https?://\S+|www\.\S+|[\w.+-]+\s?@\s?[\w-]+(?:\s?\.\s?[\w-]+)+|\b[\w-]+\.(?:com|org|net|fyi|dev|fr|php|json|js|csv|zip|mp4)\b|\b[A-Z]{2,}-\d+\S*|DEMO-GME-\S+")
 
 
 def strip_accents(s):

@@ -26,7 +26,7 @@ export function markCheck(id, status, detail) { RUN.checks[id] = { status, detai
 
 export async function newCtx(browser, { width = 1440, locale = 'fr-FR', tz = 'Europe/Paris', option, label } = {}) {
   const mobile = width < 500;
-  const ctx = await browser.newContext({ locale, timezoneId: tz, viewport: { width, height: mobile ? 844 : 900 }, deviceScaleFactor: 1, isMobile: mobile, hasTouch: mobile, acceptDownloads: true, extraHTTPHeaders: { 'accept-language': locale === 'fr-FR' ? 'fr-FR,fr;q=0.9' : 'en-GB,en;q=0.9' } });
+  const ctx = await browser.newContext({ locale, timezoneId: tz, viewport: { width, height: mobile ? 844 : 900 }, deviceScaleFactor: 1, isMobile: mobile, hasTouch: mobile, acceptDownloads: true, permissions: ['clipboard-read', 'clipboard-write'], extraHTTPHeaders: { 'accept-language': locale === 'fr-FR' ? 'fr-FR,fr;q=0.9' : 'en-GB,en;q=0.9' } });
   await ctx.addInitScript(INIT_SCRIPT);
   const page = await ctx.newPage();
   page.setDefaultTimeout(30000);
@@ -38,7 +38,9 @@ export async function newCtx(browser, { width = 1440, locale = 'fr-FR', tz = 'Eu
 export function attachWatch(page) {
   const m = page.__meta;
   page.on('pageerror', (e) => m.errors.push({ kind: 'pageerror', text: e.message.split('\n')[0], url: page.url() }));
-  page.on('console', (msg) => { if (msg.type() === 'error') m.errors.push({ kind: 'console', text: msg.text().slice(0, 200), url: page.url() }); });
+  // On an error page reached on purpose, Chromium's own « Failed to load resource: 404/410/401 » line for that
+  // document is expected; any other console error is still recorded.
+  page.on('console', (msg) => { if (msg.type() === 'error' && !(m.expectErrorDoc && /Failed to load resource: the server responded with a status of (401|403|404|410|429)/.test(msg.text()))) m.errors.push({ kind: 'console', text: msg.text().slice(0, 200), url: page.url() }); });
   page.on('response', (r) => {
     const st = r.status();
     const type = r.request().resourceType();
@@ -121,7 +123,8 @@ export async function snap(page, opts) {
   RUN.words.push({ option: opts.option, page: data.url, state: opts.state, role: m.role, width, lang, texts: data.texts.filter((t) => !t.code).map((t) => t.tNoCode || t.t), attrs: data.attrs.filter((a) => a.visible).map((a) => a.t) });
   RUN.labels.push({ option: opts.option, state: opts.state, labels: [...new Set(data.texts.map((t) => t.t).filter((t) => t.length <= 80))], clickables: data.clickables });
   RUN.styles.push({ option: opts.option, surface: opts.surface, state: opts.state, width, styles: data.styles });
-  for (const l of data.links) addUrl(l.href, { from: data.url, option: opts.option, kind: 'a', text: l.text, visible: l.visible });
+  // « #… » links stay on the page (skip link, error summary): their targets are checked by C6, not fetched as URLs
+  for (const l of data.links) if (!String(l.raw || '').startsWith('#')) addUrl(l.href, { from: data.url, option: opts.option, kind: 'a', text: l.text, visible: l.visible });
   for (const s of data.media) addUrl(s.url, { from: data.url, option: opts.option, kind: s.kind });
   for (const f of data.favicons) addUrl(f, { from: data.url, option: opts.option, kind: 'favicon' });
   if (!data.favicons.length) addUrl(new URL('/favicon.ico', data.url).href, { from: data.url, option: opts.option, kind: 'favicon-default' });
@@ -153,14 +156,23 @@ export async function probeButtons(page, opts) {
     try { label = ((await b.innerText({ timeout: 2000 })) || (await b.getAttribute('aria-label')) || '').trim().replace(/\s+/g, ' ').slice(0, 60); } catch { continue; }
     const t = await b.getAttribute('type');
     const inForm = await b.evaluate((e) => !!e.form && (e.type === 'submit'));
+    // a button shown as disabled (disabled / aria-disabled) tells the reader it is unavailable: not a dead button
+    if (await b.evaluate((e) => e.disabled || e.getAttribute('aria-disabled') === 'true')) continue;
     if (inForm || t === 'submit') continue;
     const url0 = page.url();
     await page.evaluate(armMutation);
-    try { await b.click({ timeout: 3000 }); } catch (e) { const why = (e.message.split('\n').find((l) => /intercepts pointer events|not visible|outside of the viewport|not stable|disabled/.test(l)) || e.message.split('\n')[0]).trim(); res.push({ label, ok: false, why: 'a reader cannot click it: ' + why.slice(0, 200) }); continue; }
+    // A reader scrolls the button into the middle of the screen before tapping it; Playwright's own scroll puts it at
+    // the top edge, under a sticky header. Retry once from the centre before calling it unclickable.
+    let clickErr = null;
+    for (const attempt of [0, 1]) {
+      try { if (attempt) { await b.evaluate((e) => e.scrollIntoView({ block: 'center' })); await page.waitForTimeout(700); } await b.click({ timeout: 3000, noWaitAfter: true }); clickErr = null; break; } catch (e) { clickErr = e; }
+    }
+    if (clickErr) { const why = (clickErr.message.split('\n').find((l) => /intercepts pointer events|not visible|outside of the viewport|not stable|disabled/.test(l)) || clickErr.message.split('\n')[0]).replace(/\x1b\[[0-9;]*m/g, '').trim(); res.push({ label, ok: false, why: 'a reader cannot click it: ' + why.slice(0, 200) }); await page.goto(url0); await settle(page, 300); continue; }
     await page.waitForTimeout(2000);
     const changed = page.url() !== url0 || (await page.evaluate(() => window.__mut || 0).catch(() => 1)) > 0;
     res.push({ label, ok: changed, why: changed ? '' : 'no navigation, no DOM change within 2 s' });
-    if (page.url() !== url0) { await page.goto(url0); await settle(page, 300); }
+    // every probe starts from the page as first loaded (an opened menu or dialog must not block the next button)
+    if (changed) { await page.goto(url0); await settle(page, 300); }
   }
   for (const r of res) if (!r.ok) finding({ check: 'C2', option: opts.option, page: page.url(), role: page.__meta.role, width: page.viewportSize().width, text: r.label, element: 'button', note: r.why, state: opts.state });
   return res;

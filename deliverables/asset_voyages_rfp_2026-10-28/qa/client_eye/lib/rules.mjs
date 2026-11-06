@@ -135,6 +135,8 @@ export function ruleB3(item) {
 const B7 = [['Equipe', 'Équipe'], ['Acces', 'Accès'], ['Congres', 'Congrès'], ['Reinitialiser', 'Réinitialiser'], ['Verifie', 'Vérifié'], ['Verifiee', 'Vérifiée'], ['Qualifiee', 'Qualifiée'], ['Telephone', 'Téléphone'], ['Societe', 'Société'], ['Detecte', 'Détecté'], ['Reveler', 'Révéler'], ['Revoquer', 'Révoquer'], ['Revoque', 'Révoqué'], ['Deconnecter', 'Déconnecter'], ['Deconnexion', 'Déconnexion'], ['Desole', 'Désolé'], ['Etat', 'État'], ['Ecran', 'Écran'], ['Electronique', 'Électronique'], ['Numero', 'Numéro'], ['Precedent', 'Précédent'], ['Debut', 'Début'], ['Categorie', 'Catégorie'], ['Resultat', 'Résultat'], ['Reponse', 'Réponse'], ['Repondu', 'Répondu'], ['Verifier', 'Vérifier'], ['Prenom', 'Prénom'], ['Selectionner', 'Sélectionner'], ['Diabetologie', 'Diabétologie'], ['Hematologie', 'Hématologie'], ['Etats-Unis', 'États-Unis'], ['Fevrier', 'Février'], ['Aout', 'Août'], ['Decembre', 'Décembre'], ['Depart', 'Départ'], ['Cree', 'Créé'], ['Creer', 'Créer'], ['Modifie', 'Modifié'], ['Envoye', 'Envoyé'], ['Recu', 'Reçu'], ['Demarrer', 'Démarrer'], ['Accueil', 'Accueil'], ['Echec', 'Échec'], ['Elements', 'Éléments'], ['Evenement', 'Événement'], ['Delegue', 'Délégué'], ['Cotation', 'Cotation'], ['Ete', 'Été']]
   .filter(([a, b]) => a !== b);
 export function ruleB7(item) {
+  // WordPress' « Identifiant » (slug) column shows the URL slug, which is accent-free by design (td.column-slug)
+  if (/column-slug/.test(item.path || '')) return [];
   if (item.code) return [];
   const f = [];
   const s = stripUrls(item.tNoCode || item.t).replace(/⟦code⟧/g, ' ');
@@ -199,4 +201,5 @@ export function ruleD2(item, { allowEmails = [] } = {}) {
 }
 
 // ---------- D4: GM&E code visible
-export const CODE_RE = /DEMO-GME-\d{4}/g;
+// « DEMO-GME-XXXX » is the format hint in the code field placeholder, not a code: X{4} is excluded
+export const CODE_RE = /DEMO-GME-(?!XXXX)[A-Z0-9]{4}/g;

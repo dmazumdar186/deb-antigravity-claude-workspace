@@ -26,6 +26,8 @@ function savePart(name, extra = {}) {
   const part = { name, at: new Date().toISOString(), findings: RUN.findings.splice(0), states: RUN.states.splice(0), coverage: RUN.coverage.splice(0), words: RUN.words.splice(0), labels: RUN.labels.splice(0), styles: RUN.styles.splice(0), urls: [...RUN.urls.values()], notes: RUN.notes.splice(0), checks: { ...RUN.checks }, logins: RUN.logins, writing: [...RUN.writingContexts], ...extra };
   RUN.urls.clear(); RUN.checks = {};
   writeJson(`part-${name}.json`, part);
+  // small companion for reading by hand (the part itself can be several MB)
+  writeJson(`summary-${name}.json`, { name, at: part.at, logins: part.logins, writing: part.writing, sbx: part.sbx, resets: part.resets, replay: part.replay, boots: part.boots, pagesEditor: part.pagesEditor, notes: part.notes, findings: part.findings.length });
   log(`saved part ${name}: ${part.findings.length} raw findings, ${part.states.length} states`);
 }
 

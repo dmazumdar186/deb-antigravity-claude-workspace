@@ -1,0 +1,29 @@
+[08:32:54] hub parsed: tasks 5 rows 11 group steps 4
+[08:34:01] C10 B T1.1 OK (1 clicks) 
+[08:34:05] C10 B T1.2 OK (2 clicks) 
+[08:34:11] C10 B T1.3 OK (6 clicks) 
+[08:34:27] C10 B T2.1 OK (1 clicks) 
+[08:34:29] C10 B T2.2 OK (1 clicks) 
+[08:34:30] C10 B T2.3 FAIL (0 clicks) label « 5 au 7
+juillet 2027
+5 au 7 juil. 2027
+Congrès de relecture wzr5 — exemple
+Cardiologie
+Nice, France
+Voir la fiche » not visible
+[08:34:32] C10 B T3.1 OK (0 clicks) 
+[08:34:33] C10 B T3.2 OK (0 clicks) 
+[08:34:39] C10 B T3.3 OK (1 clicks) 
+[08:34:41] C10 B T4.1 OK (2 clicks) 
+[08:34:51] C10 B T4.2 OK (2 clicks) 
+[08:35:01] C10 B T4.3 OK (3 clicks) 
+[08:35:02] C10 B T5.1 FAIL (2 clicks) hub label « Codes GM&E »: label « Codes GM&E » is visible (p) but is not a link or a button
+[08:35:05] C10 B T5.2 OK (4 clicks) 
+[08:35:10] C10 B T5.3 FAIL (4 clicks) hub says « the code is shown » after signing in; the reader must still click « Afficher le code »
+[08:35:12] C10 B G.1 OK (0 clicks) 
+[08:35:13] C10 B G.2 OK (1 clicks) 
+[08:35:15] C10 B G.3 OK (1 clicks) 
+[08:35:23] C10 B G.4 OK (0 clicks) 
+[08:37:01] saved part b: 104 raw findings, 150 states
+[08:37:02] A4 links checked 117
+[08:37:11] done

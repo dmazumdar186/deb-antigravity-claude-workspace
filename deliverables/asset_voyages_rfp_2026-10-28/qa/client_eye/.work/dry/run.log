@@ -1,1 +1,23 @@
 [08:26:25] hub parsed: tasks 5 rows 11 group steps 4
+[08:27:30] C10 B T1.1 OK (1 clicks) 
+[08:27:34] C10 B T1.2 OK (2 clicks) 
+[08:27:40] C10 B T1.3 OK (6 clicks) 
+[08:27:57] C10 B T2.1 OK (1 clicks) 
+[08:27:59] C10 B T2.2 FAIL (1 clicks) filters not visible by label: Discipline (hub says discipline, country, month)
+[08:28:01] C10 B T2.3 OK (1 clicks) 
+[08:28:02] C10 B T3.1 OK (0 clicks) 
+[08:28:03] C10 B T3.2 OK (0 clicks) 
+[08:28:09] C10 B T3.3 OK (1 clicks) 
+[08:28:11] C10 B T4.1 OK (2 clicks) 
+[08:28:20] C10 B T4.2 OK (2 clicks) 
+[08:28:30] C10 B T4.3 OK (3 clicks) 
+[08:28:31] C10 B T5.1 OK (2 clicks) 
+[08:28:34] C10 B T5.2 OK (4 clicks) 
+[08:28:37] C10 B T5.3 FAIL (2 clicks) label « Codes » not visible
+[08:28:39] C10 B G.1 OK (0 clicks) 
+[08:28:40] C10 B G.2 OK (1 clicks) 
+[08:28:41] C10 B G.3 OK (1 clicks) 
+[08:28:49] C10 B G.4 OK (0 clicks) 
+[08:30:27] saved part b: 121 raw findings, 151 states
+[08:30:29] A4 links checked 135
+[08:30:38] done

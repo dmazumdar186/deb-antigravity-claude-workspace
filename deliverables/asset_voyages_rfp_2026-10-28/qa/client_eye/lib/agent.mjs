@@ -17,7 +17,10 @@ export class Agent {
       const vis = (e) => { if (!e.checkVisibility || !e.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) return false; const r = e.getBoundingClientRect(); return r.width > 1 && r.height > 1; };
       const interactive = 'a[href],button,input[type=submit],input[type=button],summary,[role=button],[role=tab],[role=menuitem],label';
       const cand = [...root.querySelectorAll(interactive + ',p,span,div,h1,h2,h3,h4,li,td,th,strong,b')].filter(vis);
-      const own = (e) => N(e.innerText || e.value || '');
+      // what the eye reads: text nodes of the element minus screen-reader-only spans (clip / 1 px boxes)
+      const srOnly = (el) => { for (let x = el; x && x !== e0; x = x.parentElement) { const cs = getComputedStyle(x); if (cs.clip === 'rect(0px, 0px, 0px, 0px)' || cs.clipPath === 'inset(50%)' || (cs.position === 'absolute' && parseFloat(cs.width) <= 1)) return true; } return false; };
+      let e0 = null;
+      const own = (e) => { if (e.value && e.nodeName === 'INPUT') return N(e.value); e0 = e; const w = document.createTreeWalker(e, NodeFilter.SHOW_TEXT); let s = ''; while (w.nextNode()) { const p = w.currentNode.parentElement; if (p && !srOnly(p)) s += w.currentNode.nodeValue; } e0 = null; return N(s); };
       let hits = cand.filter((e) => own(e) === N(label));
       if (!hits.length && !exact) hits = cand.filter((e) => own(e).startsWith(N(label)) && own(e).length < N(label).length + 40);
       if (!hits.length) return { why: `label « ${label} » not visible` };

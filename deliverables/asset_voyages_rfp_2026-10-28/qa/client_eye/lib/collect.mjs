@@ -90,7 +90,10 @@ export function collectPage(opts) {
     let sep = '';
     if (parts.length) {
       let e = n.previousSibling; while (e && e.nodeType === 3 && !e.nodeValue.trim()) e = e.previousSibling;
-      if (e && e.nodeType === 1 && (e.nodeName === 'BR' || !getComputedStyle(e).display.startsWith('inline'))) sep = ' ';
+      const boxy = (el) => el && /^inline-(block|flex|grid|table)$/.test(getComputedStyle(el).display);
+      const prevNode = parts[parts.length - 1].node;
+      if (e && e.nodeType === 1 && (e.nodeName === 'BR' || !getComputedStyle(e).display.startsWith('inline') || boxy(e))) sep = ' ';
+      else if (prevNode.parentElement !== p && (boxy(p.closest('*')) || boxy(prevNode.parentElement))) sep = ' '; // two chips side by side
       else {
         const prev = parts[parts.length - 1].node;
         try { const r1 = document.createRange(); r1.selectNodeContents(prev); const a = [...r1.getClientRects()].pop(); const r2 = document.createRange(); r2.selectNodeContents(n); const c = r2.getClientRects()[0]; if (a && c && c.top >= a.bottom - 1) sep = ' '; } catch (err) { sep = ''; }

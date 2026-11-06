@@ -1,0 +1,105 @@
+{
+ "name": "ahosted",
+ "at": "2026-11-06T09:12:23.072Z",
+ "logins": 0,
+ "writing": [],
+ "replay": [],
+ "boots": [
+  {
+   "kind": "visitor",
+   "href": "https://playground.wordpress.net/?mode=seamless&login=no&blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-visitor.json",
+   "readySec": 15.688,
+   "samples": [
+    {
+     "sec": 1,
+     "shot": "out/shots/hosted-visitor-1s.png",
+     "bytes": 5851,
+     "visible": 1
+    },
+    {
+     "sec": 3,
+     "shot": "out/shots/hosted-visitor-3s.png",
+     "bytes": 5851,
+     "visible": 1
+    },
+    {
+     "sec": 3,
+     "shot": "out/shots/hosted-visitor-3s.png",
+     "bytes": 10765,
+     "visible": 1
+    },
+    {
+     "sec": 6,
+     "shot": "out/shots/hosted-visitor-6s.png",
+     "bytes": 12014,
+     "visible": 1
+    },
+    {
+     "sec": 10,
+     "shot": "out/shots/hosted-visitor-10s.png",
+     "bytes": 11998,
+     "visible": 1
+    },
+    {
+     "sec": 15,
+     "shot": "out/shots/hosted-visitor-15s.png",
+     "bytes": 5851,
+     "visible": 1
+    }
+   ],
+   "near": "Open the visitor site and go to the congress catalogue."
+  },
+  {
+   "kind": "admin",
+   "href": "https://playground.wordpress.net/?mode=seamless&blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json",
+   "readySec": 0,
+   "samples": [
+    {
+     "sec": 1,
+     "shot": "out/shots/hosted-admin-1s.png",
+     "bytes": 5852,
+     "visible": 1
+    },
+    {
+     "sec": 3,
+     "shot": "out/shots/hosted-admin-3s.png",
+     "bytes": 10871,
+     "visible": 1
+    },
+    {
+     "sec": 6,
+     "shot": "out/shots/hosted-admin-6s.png",
+     "bytes": 11997,
+     "visible": 1
+    },
+    {
+     "sec": 10,
+     "shot": "out/shots/hosted-admin-10s.png",
+     "bytes": 12474,
+     "visible": 1
+    },
+    {
+     "sec": 15,
+     "shot": "out/shots/hosted-admin-15s.png",
+     "bytes": 11997,
+     "visible": 1
+    },
+    {
+     "sec": 20,
+     "shot": "out/shots/hosted-admin-20s.png",
+     "bytes": 11997,
+     "visible": 1
+    },
+    {
+     "sec": 30,
+     "shot": "out/shots/hosted-admin-30s.png",
+     "bytes": 12022,
+     "visible": 1
+    }
+   ],
+   "near": "Open the admin. You are already signed in."
+  }
+ ],
+ "notes": [],
+ "findings": 5
+}
