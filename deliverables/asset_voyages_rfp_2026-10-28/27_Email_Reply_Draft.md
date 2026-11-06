@@ -1,4 +1,4 @@
-# Draft reply to Veena Khatri (6 Nov 2026). Not sent; goes through /redteam first.
+# Draft reply to Veena Khatri (6 Nov 2026). Not sent.
 
 **To:** direction@assetvoyages.com
 **Subject:** Re: ASSET Voyages website redesign – demonstration
@@ -23,7 +23,7 @@ For both, the page covers:
 
 All data and GM&E codes are fictional, and each person's trial is private to their browser.
 
-[EXTRA, only if it passes every gate: The page also shows one small addition we think may help with group congress trips: a link your team can send to a group, so each traveller enters their own details and your team sees the list fill in. It is shown as a suggestion only, and is not part of the quotation.]
+The page also shows one small addition that may help with group congress trips: a link your team can send to a group, so each traveller enters their own details and your team sees the list fill in. It is a suggestion only and is not part of the quotation.
 
 The same page gives realistic milestones from approval and receipt of content, covering design, development, testing, training and launch, and explains in plain words how each option is built.
 

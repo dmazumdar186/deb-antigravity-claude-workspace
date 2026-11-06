@@ -1,0 +1,34 @@
+Source: email from Veena Khatri (ASSET Voyages) to Debanjan, received 5 Nov 2026, pasted by the operator in session. Verbatim:
+
+Dear Debanjan,
+
+Following our previous correspondence about the ASSET Voyages website redesign, we would like to review an existing relevant project or arrange a short demonstration to assess your proposed approach.
+
+Please share a relevant WordPress project, demo link or recording. We are not asking you to build a complete custom sample at this stage. If you do not have a comparable demonstration, please explain your proposed workflow and what you can show.
+
+Please demonstrate any existing relevant functionality and explain how you would implement the following process:
+
+Create and edit a congress in WordPress.
+Display it in a public catalogue with search, filters and a details page.
+Submit a flight enquiry with contact details, departure city, travel dates and passenger count.
+Allow our team to receive, view and track the enquiry and update its status.
+Protect private GM&E codes and provide access through an appropriate authorisation process.
+Please show both the visitor experience and the administration interface, and distinguish functionality already working in the demonstration from features that would need development. Use fictional data and dummy codes for any sample.
+
+Proposed timeline
+
+By Friday, 6 November 2026: please confirm availability and share an existing example or briefly explain your approach. This is a response target, not a deadline to build a custom sample. If you need more time, please confirm your earliest response date.
+For shortlisted developers: we propose a 20–30 minute demonstration within 3–5 working days after shortlisting, subject to mutually agreed availability. Please suggest suitable dates.
+Only if further validation is needed: we may discuss one small custom congress sample with the preferred developer. Its scope, any fee and delivery date would be agreed beforehand. We suggest allowing approximately 5–7 working days from agreement, subject to your estimate. Please do not start chargeable custom work without written approval.
+Full website: please provide or update realistic delivery milestones from approval and receipt of the required content, covering design, development, testing, training and launch. The launch date remains to be agreed.
+This is an additional demonstration request; the requirements and budget previously communicated remain unchanged.
+
+Kind regards,
+
+Veena Khatri
+Office Manager assistant
+Asset Voyages
+58, rue Jean-Pierre Timbaud - 92130 ISSY LES MOULINEAUX
+Tel: 01 55 57 29 00
+direction@assetvoyages.com
+www.asset-voyagesdaffaires.com

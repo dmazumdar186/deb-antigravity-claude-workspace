@@ -1,0 +1,11 @@
+Operator facts and positions (session of 5–6 Nov 2026):
+
+- Sender: Debanjan, Founder, ProdCraft, debanjan@prodcraft.fyi (workspace signature rule, CLAUDE.md).
+- Operator instruction: give ASSET both options (Option A WordPress, Option B custom platform), both free demos, and let them pick; put everything behind links so the email stays short; simple and usable by a non-technical person; no prices in emails.
+- Operator instruction: the extra (« Le lien de groupe ») is delivered on top if time allows, as a suggestion; scope and budget unchanged.
+- Operator calendar, Google Calendar read 5 Nov 2026, Europe/Paris, 12–18 Nov: only two events: Fri 13 Nov 16:30–17:00 Physiotherapy; Wed 18 Nov 16:30–17:15 interview (another opportunity). Wed 11 Nov is a French public holiday (Armistice).
+- Live URLs verified 6 Nov 2026: hub https://asset-voyages-redesign.pages.dev/demo/ (HTTP 200); Option B https://asset-voyages-demo.debanjan186.workers.dev (HTTP 200, catalogue shows « 12 congrès »); Option A runs in WordPress Playground from https://asset-voyages-redesign.pages.dev/demo-wordpress/ (zip sha256 b0fe713a…).
+- Recordings on the hub: Option A 4 min 06 s; Option B 3 min 32 s.
+- Measured Playground start times (QA, 6 Nov): visitor link 13–16 s, admin link 16–23 s; one admin boot stalled on 6 Nov, so the hub advises reloading.
+- Nothing chargeable has been started; all demo work is unpaid.
+- Proposed demonstration slots (Paris time, from the calendar availability above): Thursday 12 November 10:00 or 14:30; Friday 13 November 10:00; Monday 16 November 10:00 or 14:30; Tuesday 17 November 10:00 or 14:30.

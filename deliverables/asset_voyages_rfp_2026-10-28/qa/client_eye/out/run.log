@@ -147,3 +147,18 @@ Call log:
 [12:01:17] C10 B T4.2 FAIL (0 clicks) exception: locator.click: Timeout 5000ms exceeded.
 [12:01:23] C10 B T4.3 FAIL (0 clicks) exception: locator.click: Timeout 5000ms exceeded.
 [12:01:30] C10 B T5.1 FAIL (0 clicks) exception: locator.click: Timeout 5000ms exceeded.
+[12:01:36] C10 B T5.2 FAIL (0 clicks) exception: locator.click: Timeout 5000ms exceeded.
+[12:01:42] C10 B T5.3 FAIL (0 clicks) exception: locator.click: Timeout 5000ms exceeded.
+[12:01:44] C10 B G.1 OK (0 clicks) 
+[12:01:46] C10 B G.2 OK (1 clicks) 
+[12:01:48] C10 B G.3 OK (1 clicks) 
+[12:01:56] C10 B G.4 OK (0 clicks) 
+[12:03:21] B phone failed locator.fill: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for getByLabel('E-mail')[22m
+
+    at phoneB (/home/user/deb-antigravity-claude-workspace/deliverables/asset_voyages_rfp_2026-10-28/qa/client_eye/lib/optb.mjs:412:35)
+    at async file:///home/user/deb-antigravity-claude-workspace/deliverables/asset_voyages_rfp_2026-10-28/qa/client_eye/gate.mjs:51:16
+[12:03:32] saved part b: 11 raw findings, 118 states
+[12:04:40] C10 A T1.1 OK (1 clicks) 
+[12:04:45] C10 A T1.2 OK (2 clicks) 
