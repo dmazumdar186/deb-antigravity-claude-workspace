@@ -1,14 +1,14 @@
 {
  "meta": {
-  "generated": "2026-11-06T09:14:59.672Z",
+  "generated": "2026-11-06T09:33:52.284Z",
   "parts": {
    "a": {
-    "at": "2026-11-06T09:10:01.998Z",
-    "findings": 167,
+    "at": "2026-11-06T09:31:58.126Z",
+    "findings": 145,
     "states": 145,
     "logins": 0,
     "writing": [],
-    "target": "http://127.0.0.1:9437"
+    "target": "http://127.0.0.1:9439"
    },
    "ahosted": {
     "at": "2026-11-06T09:12:23.072Z",
@@ -66,11 +66,8 @@
    "HUB:visiteur"
   ],
   "versions": {
-   "commit": "8a0aeeb4afdd49ef3716350888f39a0c87b103c5",
-   "dirty": [
-    "?? deliverables/asset_voyages_rfp_2026-10-28/site/demo/media/wp-walkthrough.jpg",
-    "?? deliverables/asset_voyages_rfp_2026-10-28/site/demo/media/wp-walkthrough.mp4"
-   ],
+   "commit": "e156a5d132523cc6b88a319cd7929ace8a4ec785",
+   "dirty": [],
    "hub demo/index.html": "deployed = source",
    "hub index.html": "deployed = source",
    "hub js/demo.js": "deployed = source",
@@ -122,7 +119,8 @@
   "A2": {
    "REAL": 0,
    "FALSE-POSITIVE": 0,
-   "UNTRIAGED": 1
+   "UNTRIAGED": 0,
+   "UNVERIFIED": 1
   },
   "A3": {
    "REAL": 0,
@@ -130,9 +128,10 @@
    "UNTRIAGED": 0
   },
   "A4": {
-   "REAL": 0,
+   "REAL": 2,
    "FALSE-POSITIVE": 0,
-   "UNTRIAGED": 43
+   "UNTRIAGED": 27,
+   "UNVERIFIED": 1
   },
   "A5": {
    "REAL": 0,
@@ -155,9 +154,9 @@
    "UNTRIAGED": 0
   },
   "B2": {
-   "REAL": 0,
+   "REAL": 2,
    "FALSE-POSITIVE": 0,
-   "UNTRIAGED": 16
+   "UNTRIAGED": 0
   },
   "B3": {
    "REAL": 0,
@@ -165,9 +164,9 @@
    "UNTRIAGED": 0
   },
   "B4": {
-   "REAL": 0,
+   "REAL": 6,
    "FALSE-POSITIVE": 0,
-   "UNTRIAGED": 33
+   "UNTRIAGED": 3
   },
   "B5": {
    "REAL": 0,
@@ -175,9 +174,9 @@
    "UNTRIAGED": 150
   },
   "B6": {
-   "REAL": 0,
-   "FALSE-POSITIVE": 0,
-   "UNTRIAGED": 10
+   "REAL": 8,
+   "FALSE-POSITIVE": 1,
+   "UNTRIAGED": 0
   },
   "B7": {
    "REAL": 0,
@@ -185,9 +184,9 @@
    "UNTRIAGED": 0
   },
   "C1": {
-   "REAL": 0,
+   "REAL": 2,
    "FALSE-POSITIVE": 0,
-   "UNTRIAGED": 6
+   "UNTRIAGED": 1
   },
   "C2": {
    "REAL": 0,
@@ -195,19 +194,19 @@
    "UNTRIAGED": 0
   },
   "C3": {
-   "REAL": 0,
+   "REAL": 1,
    "FALSE-POSITIVE": 0,
-   "UNTRIAGED": 3
+   "UNTRIAGED": 0
   },
   "C4": {
-   "REAL": 0,
+   "REAL": 1,
    "FALSE-POSITIVE": 0,
-   "UNTRIAGED": 7
+   "UNTRIAGED": 0
   },
   "C5": {
-   "REAL": 0,
-   "FALSE-POSITIVE": 0,
-   "UNTRIAGED": 4
+   "REAL": 2,
+   "FALSE-POSITIVE": 1,
+   "UNTRIAGED": 0
   },
   "C6": {
    "REAL": 0,
@@ -215,9 +214,9 @@
    "UNTRIAGED": 0
   },
   "C7": {
-   "REAL": 0,
+   "REAL": 6,
    "FALSE-POSITIVE": 0,
-   "UNTRIAGED": 6
+   "UNTRIAGED": 0
   },
   "C8": {
    "REAL": 0,
@@ -227,32 +226,32 @@
   "C9": {
    "REAL": 0,
    "FALSE-POSITIVE": 0,
-   "UNTRIAGED": 1
+   "UNTRIAGED": 0
   },
   "C10": {
-   "REAL": 0,
+   "REAL": 3,
    "FALSE-POSITIVE": 0,
-   "UNTRIAGED": 5
+   "UNTRIAGED": 0
   },
   "D1": {
-   "REAL": 0,
+   "REAL": 1,
    "FALSE-POSITIVE": 0,
-   "UNTRIAGED": 4
+   "UNTRIAGED": 0
   },
   "D2": {
-   "REAL": 0,
-   "FALSE-POSITIVE": 0,
-   "UNTRIAGED": 29
-  },
-  "D3": {
-   "REAL": 0,
+   "REAL": 6,
    "FALSE-POSITIVE": 0,
    "UNTRIAGED": 1
+  },
+  "D3": {
+   "REAL": 1,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
   },
   "D4": {
    "REAL": 0,
    "FALSE-POSITIVE": 0,
-   "UNTRIAGED": 1
+   "UNTRIAGED": 0
   },
   "E1": {
    "REAL": 0,
@@ -285,7 +284,14 @@
    "UNTRIAGED": 0
   }
  },
- "realPerOption": {},
+ "realPerOption": {
+  "A": 11,
+  "B": 11,
+  "HUB": 8,
+  "A+B": 8,
+  "B-console": 1,
+  "hub": 1
+ },
  "findings": [
   {
    "key": "3ce3c17ff3",
@@ -306,9 +312,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "UNVERIFIED",
+   "reason": "The one hosted boot of the admin link stayed on « Preparing WordPress » at 50 % for 120 s (shots hosted-admin-*.png); the visitor link, same blueprint steps minus « login », was ready in 15.7 s. One boot per link (brief) cannot tell a stall from this sandbox's network. Needs one human boot of the admin link.",
+   "ce": "CE-A2-001"
   },
   {
    "key": "c9a5600558",
@@ -319,7 +325,7 @@
    "element": "a « example.com »",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/congres/journees-mediterraneennes-doncologie-exemple/",
+     "page": "http://127.0.0.1:9439/congres/journees-mediterraneennes-doncologie-exemple/",
      "role": "visiteur",
      "width": "",
      "locale": "fr-FR",
@@ -329,101 +335,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "794dc7cdea",
-   "check": "A4",
-   "option": "A",
-   "text": "http://127.0.0.1:9437/?post_type=asset_congres&p=36&preview=true",
-   "note": "HTTP 404",
-   "element": "a « Prévisualiser\n(ouvre un nouvel onglet) »",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/post-new.php?post_type=asset_congres",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Prévisualiser\n(ouvre un nouvel onglet) »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "d107eaec2b",
-   "check": "A4",
-   "option": "A",
-   "text": "http://127.0.0.1:9437/?post_type=asset_congres&p=38&preview=true",
-   "note": "HTTP 404",
-   "element": "a « Prévisualiser\n(ouvre un nouvel onglet) »",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/post-new.php?post_type=asset_congres",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Prévisualiser\n(ouvre un nouvel onglet) »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "7f2f397415",
-   "check": "A4",
-   "option": "A",
-   "text": "http://127.0.0.1:9437/?post_type=asset_congres&p=39&preview=true",
-   "note": "HTTP 404",
-   "element": "a « Prévisualiser\n(ouvre un nouvel onglet) »",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/post-new.php?post_type=asset_congres",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Prévisualiser\n(ouvre un nouvel onglet) »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "804cb88d6a",
-   "check": "A4",
-   "option": "A",
-   "text": "http://127.0.0.1:9437/?post_type=asset_congres&p=40&preview=true",
-   "note": "HTTP 404",
-   "element": "a « Prévisualiser\n(ouvre un nouvel onglet) »",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/post-new.php?post_type=asset_congres",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Prévisualiser\n(ouvre un nouvel onglet) »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Every congress page links « Site officiel » to https://example.com/congres/cg-0xxx, which answers 404: a reader who clicks it lands on an error page.",
+   "ce": "CE-A4-002"
   },
   {
    "key": "c8cba200c1",
@@ -434,7 +348,7 @@
    "element": "a « example.com »",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/congres/congres-europeen-de-cardiologie-exemple/",
+     "page": "http://127.0.0.1:9439/congres/congres-europeen-de-cardiologie-exemple/",
      "role": "visiteur",
      "width": "",
      "locale": "fr-FR",
@@ -444,118 +358,26 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Every congress page links « Site officiel » to https://example.com/congres/cg-0xxx, which answers 404: a reader who clicks it lands on an error page.",
+   "ce": "CE-A4-002"
   },
   {
-   "key": "f7cf0a2ba8",
+   "key": "5ddb40509b",
    "check": "A4",
-   "option": "A",
-   "text": "http://127.0.0.1:9437/?post_type=asset_congres&p=43&preview=true",
+   "option": "A-hosted",
+   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/wp-login.php?redirect_to=https%3A%2F%2Fwpsandbox.wordpress.net%2Fscope%3Attxa-uyim-tjij%2Fwp-admin%2F",
    "note": "HTTP 404",
-   "element": "a « Prévisualiser\n(ouvre un nouvel onglet) »",
+   "element": "a « Espace équipe »",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/post-new.php?post_type=asset_congres",
+     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
      "role": "visiteur",
      "width": "",
      "locale": "fr-FR",
      "state": "",
      "shot": "",
-     "element": "a « Prévisualiser\n(ouvre un nouvel onglet) »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "8ac911efe5",
-   "check": "A4",
-   "option": "A",
-   "text": "http://127.0.0.1:9437/?post_type=asset_congres&p=44&preview=true",
-   "note": "HTTP 404",
-   "element": "a « Prévisualiser\n(ouvre un nouvel onglet) »",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/post-new.php?post_type=asset_congres",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Prévisualiser\n(ouvre un nouvel onglet) »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "9d9af78d76",
-   "check": "A4",
-   "option": "A",
-   "text": "http://127.0.0.1:9437/?post_type=asset_congres&p=45&preview=true",
-   "note": "HTTP 404",
-   "element": "a « Prévisualiser\n(ouvre un nouvel onglet) »",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/post-new.php?post_type=asset_congres",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Prévisualiser\n(ouvre un nouvel onglet) »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "8ba36be5d8",
-   "check": "A4",
-   "option": "A",
-   "text": "http://127.0.0.1:9437/?post_type=asset_congres&p=42&preview=true",
-   "note": "HTTP 404",
-   "element": "a « Prévisualiser\n(ouvre un nouvel onglet) »",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/post-new.php?post_type=asset_congres",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Prévisualiser\n(ouvre un nouvel onglet) »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "2876580dc3",
-   "check": "A4",
-   "option": "A",
-   "text": "http://127.0.0.1:9437/?post_type=asset_congres&p=46&preview=true",
-   "note": "HTTP 404",
-   "element": "a « Prévisualiser\n(ouvre un nouvel onglet) »",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/post-new.php?post_type=asset_congres",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Prévisualiser\n(ouvre un nouvel onglet) »"
+     "element": "a « Espace équipe »"
     }
    ],
    "count": 1,
@@ -587,29 +409,6 @@
    "ce": ""
   },
   {
-   "key": "2ea8ef3f2c",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=dermatologie",
-   "note": "HTTP 404",
-   "element": "a « Dermatologie »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Dermatologie »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
    "key": "71d6627c47",
    "check": "A4",
    "option": "A-hosted",
@@ -633,29 +432,6 @@
    "ce": ""
   },
   {
-   "key": "5ddb40509b",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/wp-login.php?redirect_to=https%3A%2F%2Fwpsandbox.wordpress.net%2Fscope%3Attxa-uyim-tjij%2Fwp-admin%2F",
-   "note": "HTTP 404",
-   "element": "a « Espace équipe »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Espace équipe »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
    "key": "1ae383c934",
    "check": "A4",
    "option": "A-hosted",
@@ -671,6 +447,29 @@
      "state": "",
      "shot": "",
      "element": "a « Diabétologie »"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "2ea8ef3f2c",
+   "check": "A4",
+   "option": "A-hosted",
+   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=dermatologie",
+   "note": "HTTP 404",
+   "element": "a « Dermatologie »",
+   "occurrences": [
+    {
+     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "a « Dermatologie »"
     }
    ],
    "count": 1,
@@ -725,6 +524,29 @@
    "ce": ""
   },
   {
+   "key": "71f5578ebc",
+   "check": "A4",
+   "option": "A-hosted",
+   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=radiologie",
+   "note": "HTTP 404",
+   "element": "a « Radiologie »",
+   "occurrences": [
+    {
+     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "a « Radiologie »"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
    "key": "ae120a39fa",
    "check": "A4",
    "option": "A-hosted",
@@ -740,29 +562,6 @@
      "state": "",
      "shot": "",
      "element": "a « Neurologie »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "8b96262ff3",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=pneumologie",
-   "note": "HTTP 404",
-   "element": "a « Pneumologie »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Pneumologie »"
     }
    ],
    "count": 1,
@@ -817,6 +616,29 @@
    "ce": ""
   },
   {
+   "key": "8b96262ff3",
+   "check": "A4",
+   "option": "A-hosted",
+   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=pneumologie",
+   "note": "HTTP 404",
+   "element": "a « Pneumologie »",
+   "occurrences": [
+    {
+     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "a « Pneumologie »"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
    "key": "3d663b3699",
    "check": "A4",
    "option": "A-hosted",
@@ -840,12 +662,12 @@
    "ce": ""
   },
   {
-   "key": "71f5578ebc",
+   "key": "2908d55a90",
    "check": "A4",
    "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=radiologie",
+   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/journees-mediterraneennes-doncologie-exemple/",
    "note": "HTTP 404",
-   "element": "a « Radiologie »",
+   "element": "a « Journées méditerranéennes d’oncologie —  »",
    "occurrences": [
     {
      "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
@@ -854,7 +676,7 @@
      "locale": "fr-FR",
      "state": "",
      "shot": "",
-     "element": "a « Radiologie »"
+     "element": "a « Journées méditerranéennes d’oncologie —  »"
     }
    ],
    "count": 1,
@@ -932,12 +754,12 @@
    "ce": ""
   },
   {
-   "key": "4c728fc968",
+   "key": "0ce3221eaa",
    "check": "A4",
    "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-international-de-pneumologie-exemple/",
+   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-europeen-de-neurologie-exemple/",
    "note": "HTTP 404",
-   "element": "a « Congrès international de pneumologie — e »",
+   "element": "a « Congrès européen de neurologie — exemple »",
    "occurrences": [
     {
      "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
@@ -946,76 +768,7 @@
      "locale": "fr-FR",
      "state": "",
      "shot": "",
-     "element": "a « Congrès international de pneumologie — e »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "f4544940c7",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-europeen-de-cardiologie-exemple/",
-   "note": "HTTP 404",
-   "element": "a « Congrès européen de cardiologie — exempl »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Congrès européen de cardiologie — exempl »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "d3bd1c73ed",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-europeen-de-dermatologie-exemple/",
-   "note": "HTTP 404",
-   "element": "a « Congrès européen de dermatologie — exemp »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Congrès européen de dermatologie — exemp »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "2908d55a90",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/journees-mediterraneennes-doncologie-exemple/",
-   "note": "HTTP 404",
-   "element": "a « Journées méditerranéennes d’oncologie —  »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Journées méditerranéennes d’oncologie —  »"
+     "element": "a « Congrès européen de neurologie — exemple »"
     }
    ],
    "count": 1,
@@ -1047,12 +800,12 @@
    "ce": ""
   },
   {
-   "key": "0ce3221eaa",
+   "key": "f4544940c7",
    "check": "A4",
    "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-europeen-de-neurologie-exemple/",
+   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-europeen-de-cardiologie-exemple/",
    "note": "HTTP 404",
-   "element": "a « Congrès européen de neurologie — exemple »",
+   "element": "a « Congrès européen de cardiologie — exempl »",
    "occurrences": [
     {
      "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
@@ -1061,7 +814,7 @@
      "locale": "fr-FR",
      "state": "",
      "shot": "",
-     "element": "a « Congrès européen de neurologie — exemple »"
+     "element": "a « Congrès européen de cardiologie — exempl »"
     }
    ],
    "count": 1,
@@ -1070,12 +823,12 @@
    "ce": ""
   },
   {
-   "key": "fd9b344526",
+   "key": "4c728fc968",
    "check": "A4",
    "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/wp-content/themes/twentytwentyfive/style.min.css?ver=0.2.0",
+   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-international-de-pneumologie-exemple/",
    "note": "HTTP 404",
-   "element": "link:stylesheet «  »",
+   "element": "a « Congrès international de pneumologie — e »",
    "occurrences": [
     {
      "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
@@ -1084,7 +837,30 @@
      "locale": "fr-FR",
      "state": "",
      "shot": "",
-     "element": "link:stylesheet «  »"
+     "element": "a « Congrès international de pneumologie — e »"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "d3bd1c73ed",
+   "check": "A4",
+   "option": "A-hosted",
+   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-europeen-de-dermatologie-exemple/",
+   "note": "HTTP 404",
+   "element": "a « Congrès européen de dermatologie — exemp »",
+   "occurrences": [
+    {
+     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "a « Congrès européen de dermatologie — exemp »"
     }
    ],
    "count": 1,
@@ -1108,29 +884,6 @@
      "state": "",
      "shot": "",
      "element": "a « 2 »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "c412305721",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/wp-content/plugins/asset-congres-demo/assets/css/public.css?ver=0.2.0",
-   "note": "HTTP 404",
-   "element": "link:stylesheet «  »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "link:stylesheet «  »"
     }
    ],
    "count": 1,
@@ -1185,6 +938,52 @@
    "ce": ""
   },
   {
+   "key": "fd9b344526",
+   "check": "A4",
+   "option": "A-hosted",
+   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/wp-content/themes/twentytwentyfive/style.min.css?ver=0.2.0",
+   "note": "HTTP 404",
+   "element": "link:stylesheet «  »",
+   "occurrences": [
+    {
+     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "link:stylesheet «  »"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "c412305721",
+   "check": "A4",
+   "option": "A-hosted",
+   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/wp-content/plugins/asset-congres-demo/assets/css/public.css?ver=0.2.0",
+   "note": "HTTP 404",
+   "element": "link:stylesheet «  »",
+   "occurrences": [
+    {
+     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "link:stylesheet «  »"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
    "key": "71a41e6fe7",
    "check": "A4",
    "option": "B",
@@ -1203,9 +1002,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Every congress page links « Site officiel » to https://www.example.org/…, which answers 404: a reader who clicks it lands on an error page.",
+   "ce": "CE-A4-003"
   },
   {
    "key": "12317546a0",
@@ -1226,9 +1025,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Every congress page links « Site officiel » to https://www.example.org/…, which answers 404: a reader who clicks it lands on an error page.",
+   "ce": "CE-A4-003"
   },
   {
    "key": "52da26a502",
@@ -1249,9 +1048,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Every congress page links « Site officiel » to https://www.example.org/…, which answers 404: a reader who clicks it lands on an error page.",
+   "ce": "CE-A4-003"
   },
   {
    "key": "16cea18f91",
@@ -1272,9 +1071,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "UNVERIFIED",
+   "reason": "sft.fr answers 403 to scripted clients and to a real Chromium tab from this sandbox (a browser user-agent probe was refused by the auto-mode classifier). Needs one click from an ordinary browser.",
+   "ce": "CE-A4-001"
   },
   {
    "key": "eeca7f2a74",
@@ -1295,32 +1094,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "3eb0730482",
-   "check": "B2",
-   "option": "A",
-   "text": "$last                 = gmdate( 'Y-m-t', (int) strtotime( $first . ' 12:00:00 UTC' ) );",
-   "note": "PHP date()/gmdate() uses UTC, not Europe/Paris: one day off near midnight if shown or compared to a Paris date",
-   "element": "source",
-   "occurrences": [
-    {
-     "page": "wp_demo/plugin/asset-congres-demo/includes/class-catalogue.php:203",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "source"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "UNVERIFIED",
+   "reason": "sft.fr answers 403 to scripted clients and to a real Chromium tab from this sandbox (a browser user-agent probe was refused by the auto-mode classifier). Needs one click from an ordinary browser.",
+   "ce": "CE-A4-001"
   },
   {
    "key": "22968a85f1",
@@ -1341,124 +1117,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "e17c6b0432",
-   "check": "B2",
-   "option": "A",
-   "text": "return gmdate( 'Y-m-d H:i:s' );",
-   "note": "PHP date()/gmdate() uses UTC, not Europe/Paris: one day off near midnight if shown or compared to a Paris date",
-   "element": "source",
-   "occurrences": [
-    {
-     "page": "wp_demo/plugin/asset-congres-demo/includes/class-gme.php:262",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "source"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "9846433327",
-   "check": "B2",
-   "option": "A",
-   "text": "$data['expires_at'] = gmdate( 'Y-m-d H:i:s', time() + self::GRANT_HOURS * HOUR_IN_SECONDS );",
-   "note": "PHP date()/gmdate() uses UTC, not Europe/Paris: one day off near midnight if shown or compared to a Paris date",
-   "element": "source",
-   "occurrences": [
-    {
-     "page": "wp_demo/plugin/asset-congres-demo/includes/class-gme.php:414",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "source"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "b3d337363e",
-   "check": "B2",
-   "option": "A",
-   "text": "$when = gmdate( 'Y-m-d H:i:s', time() - $r[12] * DAY_IN_SECONDS );",
-   "note": "PHP date()/gmdate() uses UTC, not Europe/Paris: one day off near midnight if shown or compared to a Paris date",
-   "element": "source",
-   "occurrences": [
-    {
-     "page": "wp_demo/plugin/asset-congres-demo/includes/class-seed.php:313",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "source"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "0a0699a2fd",
-   "check": "B2",
-   "option": "A",
-   "text": "Asset_CD_Demandes::add_history( $id, 'owner', '0', (string) $r[11], '', $r[11], gmdate( 'Y-m-d H:i:s', strtotime( $when ) + 3600 ) );",
-   "note": "PHP date()/gmdate() uses UTC, not Europe/Paris: one day off near midnight if shown or compared to a Paris date",
-   "element": "source",
-   "occurrences": [
-    {
-     "page": "wp_demo/plugin/asset-congres-demo/includes/class-seed.php:346",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "source"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "70ab645147",
-   "check": "B2",
-   "option": "A",
-   "text": "Asset_CD_Demandes::add_history( $id, 'status', $prev, $s, '', $r[11] ? $r[11] : $eq, gmdate( 'Y-m-d H:i:s', strtotime( $when ) + ( $i + 2 ) * 3600 ) );",
-   "note": "PHP date()/gmdate() uses UTC, not Europe/Paris: one day off near midnight if shown or compared to a Paris date",
-   "element": "source",
-   "occurrences": [
-    {
-     "page": "wp_demo/plugin/asset-congres-demo/includes/class-seed.php:352",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "source"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "The CSV download name uses gmdate('Ymd') (UTC): an export made between 00:00 and 01:00 Paris is named with yesterday's date.",
+   "ce": "CE-B2-001"
   },
   {
    "key": "f42da6f53c",
@@ -1497,9 +1158,9 @@
     }
    ],
    "count": 3,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "B decides « today » with UTC today() in the catalogue past filter, the public fare notice, enquiry and traveller date validation, the ended-congress 404, group link state and both CSV file names; the 00:05 Paris probe shows today()=06/11 while Paris is 07/11. parisToday() exists and is used elsewhere.",
+   "ce": "CE-B2-002"
   },
   {
    "key": "3fe656b2aa",
@@ -1520,9 +1181,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "B decides « today » with UTC today() in the catalogue past filter, the public fare notice, enquiry and traveller date validation, the ended-congress 404, group link state and both CSV file names; the 00:05 Paris probe shows today()=06/11 while Paris is 07/11. parisToday() exists and is used elsewhere.",
+   "ce": "CE-B2-002"
   },
   {
    "key": "09c512880f",
@@ -1543,9 +1204,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "B decides « today » with UTC today() in the catalogue past filter, the public fare notice, enquiry and traveller date validation, the ended-congress 404, group link state and both CSV file names; the 00:05 Paris probe shows today()=06/11 while Paris is 07/11. parisToday() exists and is used elsewhere.",
+   "ce": "CE-B2-002"
   },
   {
    "key": "54250dccb5",
@@ -1566,9 +1227,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "B decides « today » with UTC today() in the catalogue past filter, the public fare notice, enquiry and traveller date validation, the ended-congress 404, group link state and both CSV file names; the 00:05 Paris probe shows today()=06/11 while Paris is 07/11. parisToday() exists and is used elsewhere.",
+   "ce": "CE-B2-002"
   },
   {
    "key": "31fd4818ad",
@@ -1589,9 +1250,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "B decides « today » with UTC today() in the catalogue past filter, the public fare notice, enquiry and traveller date validation, the ended-congress 404, group link state and both CSV file names; the 00:05 Paris probe shows today()=06/11 while Paris is 07/11. parisToday() exists and is used elsewhere.",
+   "ce": "CE-B2-002"
   },
   {
    "key": "ff1458f0f2",
@@ -1612,9 +1273,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "B decides « today » with UTC today() in the catalogue past filter, the public fare notice, enquiry and traveller date validation, the ended-congress 404, group link state and both CSV file names; the 00:05 Paris probe shows today()=06/11 while Paris is 07/11. parisToday() exists and is used elsewhere.",
+   "ce": "CE-B2-002"
   },
   {
    "key": "03d674c52a",
@@ -1635,9 +1296,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "B decides « today » with UTC today() in the catalogue past filter, the public fare notice, enquiry and traveller date validation, the ended-congress 404, group link state and both CSV file names; the 00:05 Paris probe shows today()=06/11 while Paris is 07/11. parisToday() exists and is used elsewhere.",
+   "ce": "CE-B2-002"
   },
   {
    "key": "b5da0f2d60",
@@ -1658,9 +1319,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "B decides « today » with UTC today() in the catalogue past filter, the public fare notice, enquiry and traveller date validation, the ended-congress 404, group link state and both CSV file names; the 00:05 Paris probe shows today()=06/11 while Paris is 07/11. parisToday() exists and is used elsewhere.",
+   "ce": "CE-B2-002"
   },
   {
    "key": "9aa7ec4c27",
@@ -1681,9 +1342,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "B decides « today » with UTC today() in the catalogue past filter, the public fare notice, enquiry and traveller date validation, the ended-congress 404, group link state and both CSV file names; the 00:05 Paris probe shows today()=06/11 while Paris is 07/11. parisToday() exists and is used elsewhere.",
+   "ce": "CE-B2-002"
   },
   {
    "key": "a28d8ccedf",
@@ -1694,7 +1355,7 @@
    "element": "section#devis > p.asset-quote__for",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/congres/journees-mediterraneennes-doncologie-exemple/",
+     "page": "http://127.0.0.1:9439/congres/journees-mediterraneennes-doncologie-exemple/",
      "role": "visiteur",
      "width": 320,
      "locale": "fr-FR",
@@ -1703,7 +1364,7 @@
      "element": "section#devis > p.asset-quote__for"
     },
     {
-     "page": "http://127.0.0.1:9437/congres/journees-mediterraneennes-doncologie-exemple/",
+     "page": "http://127.0.0.1:9439/congres/journees-mediterraneennes-doncologie-exemple/",
      "role": "visiteur",
      "width": 768,
      "locale": "fr-FR",
@@ -1712,7 +1373,7 @@
      "element": "main#wp--skip-link--target > h1.wp-block-post-title"
     },
     {
-     "page": "http://127.0.0.1:9437/congres/journees-mediterraneennes-doncologie-exemple/",
+     "page": "http://127.0.0.1:9439/congres/journees-mediterraneennes-doncologie-exemple/",
      "role": "visiteur",
      "width": 1280,
      "locale": "fr-FR",
@@ -1721,7 +1382,7 @@
      "element": "main#wp--skip-link--target > h1.wp-block-post-title"
     },
     {
-     "page": "http://127.0.0.1:9437/congres/journees-mediterraneennes-doncologie-exemple/",
+     "page": "http://127.0.0.1:9439/congres/journees-mediterraneennes-doncologie-exemple/",
      "role": "visiteur",
      "width": 1440,
      "locale": "fr-FR",
@@ -1730,7 +1391,7 @@
      "element": "main#wp--skip-link--target > h1.wp-block-post-title"
     },
     {
-     "page": "http://127.0.0.1:9437/congres/journees-mediterraneennes-doncologie-exemple/",
+     "page": "http://127.0.0.1:9439/congres/journees-mediterraneennes-doncologie-exemple/",
      "role": "visiteur",
      "width": 1920,
      "locale": "fr-FR",
@@ -1739,7 +1400,7 @@
      "element": "main#wp--skip-link--target > h1.wp-block-post-title"
     },
     {
-     "page": "http://127.0.0.1:9437/congres/journees-mediterraneennes-doncologie-exemple/",
+     "page": "http://127.0.0.1:9439/congres/journees-mediterraneennes-doncologie-exemple/",
      "role": "visiteur",
      "width": 1440,
      "locale": "en-GB",
@@ -1749,9 +1410,9 @@
     }
    ],
    "count": 6,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Congress titles in A use an ordinary space before « — exemple », so « — exemple » wraps alone onto the next line (catalogue, congress page, admin lists, at every width). B fixed this with non-breaking spaces.",
+   "ce": "CE-B4-004"
   },
   {
    "key": "3ab292336d",
@@ -1762,7 +1423,7 @@
    "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 390,
      "locale": "fr-FR",
@@ -1771,7 +1432,7 @@
      "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
     },
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 768,
      "locale": "fr-FR",
@@ -1780,7 +1441,7 @@
      "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
     },
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 390,
      "locale": "en-GB",
@@ -1790,9 +1451,9 @@
     }
    ],
    "count": 3,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Congress titles in A use an ordinary space before « — exemple », so « — exemple » wraps alone onto the next line (catalogue, congress page, admin lists, at every width). B fixed this with non-breaking spaces.",
+   "ce": "CE-B4-004"
   },
   {
    "key": "ae7db8f78c",
@@ -1803,7 +1464,7 @@
    "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 390,
      "locale": "fr-FR",
@@ -1812,7 +1473,7 @@
      "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
     },
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 768,
      "locale": "fr-FR",
@@ -1821,7 +1482,7 @@
      "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
     },
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 390,
      "locale": "en-GB",
@@ -1830,28 +1491,19 @@
      "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-gme",
+     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-gme",
      "role": "equipe",
      "width": 1440,
      "locale": "fr-FR",
-     "state": "C10 T5.1",
-     "shot": "out/shots/0074-A-equipe-1440-C10-T5-1.png",
-     "element": "tbody > tr > td > strong"
-    },
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-gme",
-     "role": "equipe",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "C10 T5.3",
-     "shot": "out/shots/0089-A-equipe-1440-C10-T5-3.png",
+     "state": "equipe /wp-admin/admin.php?page=asset-gme",
+     "shot": "out/shots/0072-A-equipe-1440-equipe-wp-admin-admin-php-page-asset-gme.png",
      "element": "tbody > tr > td > strong"
     }
    ],
-   "count": 5,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "count": 4,
+   "status": "REAL",
+   "reason": "Congress titles in A use an ordinary space before « — exemple », so « — exemple » wraps alone onto the next line (catalogue, congress page, admin lists, at every width). B fixed this with non-breaking spaces.",
+   "ce": "CE-B4-004"
   },
   {
    "key": "adaa5499a7",
@@ -1862,7 +1514,7 @@
    "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 390,
      "locale": "fr-FR",
@@ -1871,7 +1523,7 @@
      "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
     },
     {
-     "page": "http://127.0.0.1:9437/?s_congres=cardiologie&q=cardiologie",
+     "page": "http://127.0.0.1:9439/?s_congres=cardiologie&q=cardiologie",
      "role": "visiteur",
      "width": 390,
      "locale": "fr-FR",
@@ -1880,7 +1532,7 @@
      "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
     },
     {
-     "page": "http://127.0.0.1:9437/?discipline=cardiologie",
+     "page": "http://127.0.0.1:9439/?discipline=cardiologie",
      "role": "visiteur",
      "width": 390,
      "locale": "fr-FR",
@@ -1889,7 +1541,7 @@
      "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
     },
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 768,
      "locale": "fr-FR",
@@ -1898,7 +1550,7 @@
      "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
     },
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 1280,
      "locale": "fr-FR",
@@ -1907,7 +1559,7 @@
      "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
     },
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 1440,
      "locale": "fr-FR",
@@ -1916,7 +1568,7 @@
      "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
     },
     {
-     "page": "http://127.0.0.1:9437/?s_congres=cardiologie&q=cardiologie",
+     "page": "http://127.0.0.1:9439/?s_congres=cardiologie&q=cardiologie",
      "role": "visiteur",
      "width": 1440,
      "locale": "fr-FR",
@@ -1925,7 +1577,7 @@
      "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
     },
     {
-     "page": "http://127.0.0.1:9437/?discipline=cardiologie",
+     "page": "http://127.0.0.1:9439/?discipline=cardiologie",
      "role": "visiteur",
      "width": 1440,
      "locale": "fr-FR",
@@ -1934,7 +1586,7 @@
      "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
     },
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 1920,
      "locale": "fr-FR",
@@ -1943,7 +1595,7 @@
      "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
     },
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 1440,
      "locale": "en-GB",
@@ -1952,7 +1604,7 @@
      "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
     },
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 390,
      "locale": "en-GB",
@@ -1961,7 +1613,7 @@
      "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
     },
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 1440,
      "locale": "fr-FR",
@@ -1970,7 +1622,7 @@
      "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
     },
     {
-     "page": "http://127.0.0.1:9437/?q=cardiologie&discipline&pays&mois&tri=date_asc",
+     "page": "http://127.0.0.1:9439/?q=cardiologie&discipline&pays&mois&tri=date_asc",
      "role": "visiteur",
      "width": 1440,
      "locale": "fr-FR",
@@ -1979,7 +1631,7 @@
      "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
     },
     {
-     "page": "http://127.0.0.1:9437/congres/congres-europeen-de-cardiologie-exemple/",
+     "page": "http://127.0.0.1:9439/congres/congres-europeen-de-cardiologie-exemple/",
      "role": "visiteur",
      "width": 1440,
      "locale": "fr-FR",
@@ -1988,7 +1640,7 @@
      "element": "main#wp--skip-link--target > h1.wp-block-post-title"
     },
     {
-     "page": "http://127.0.0.1:9437/congres/congres-europeen-de-cardiologie-exemple/",
+     "page": "http://127.0.0.1:9439/congres/congres-europeen-de-cardiologie-exemple/",
      "role": "visiteur",
      "width": 1440,
      "locale": "fr-FR",
@@ -1997,7 +1649,7 @@
      "element": "main#wp--skip-link--target > h1.wp-block-post-title"
     },
     {
-     "page": "http://127.0.0.1:9437/congres/congres-europeen-de-cardiologie-exemple/",
+     "page": "http://127.0.0.1:9439/congres/congres-europeen-de-cardiologie-exemple/",
      "role": "visiteur",
      "width": 1440,
      "locale": "fr-FR",
@@ -2006,7 +1658,7 @@
      "element": "main#wp--skip-link--target > h1.wp-block-post-title"
     },
     {
-     "page": "http://127.0.0.1:9437/congres/congres-europeen-de-cardiologie-exemple/?asset_ok=440962b6c0763690303421fe15c390b7#devis",
+     "page": "http://127.0.0.1:9439/congres/congres-europeen-de-cardiologie-exemple/?asset_ok=9d7a15751f8c376dd1730ce8bd1aca78#devis",
      "role": "visiteur",
      "width": 1440,
      "locale": "fr-FR",
@@ -2015,19 +1667,19 @@
      "element": "main#wp--skip-link--target > h1.wp-block-post-title"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-gme",
+     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-gme",
      "role": "equipe",
      "width": 1440,
      "locale": "fr-FR",
-     "state": "C10 T5.1",
-     "shot": "out/shots/0074-A-equipe-1440-C10-T5-1.png",
+     "state": "equipe /wp-admin/admin.php?page=asset-gme",
+     "shot": "out/shots/0072-A-equipe-1440-equipe-wp-admin-admin-php-page-asset-gme.png",
      "element": "tbody > tr > td > strong"
     }
    ],
    "count": 18,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Congress titles in A use an ordinary space before « — exemple », so « — exemple » wraps alone onto the next line (catalogue, congress page, admin lists, at every width). B fixed this with non-breaking spaces.",
+   "ce": "CE-B4-004"
   },
   {
    "key": "93ccbd461d",
@@ -2038,7 +1690,7 @@
    "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 768,
      "locale": "fr-FR",
@@ -2047,7 +1699,7 @@
      "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
     },
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 1280,
      "locale": "fr-FR",
@@ -2056,7 +1708,7 @@
      "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
     },
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 1440,
      "locale": "fr-FR",
@@ -2065,7 +1717,7 @@
      "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
     },
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 1920,
      "locale": "fr-FR",
@@ -2074,7 +1726,7 @@
      "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
     },
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 1440,
      "locale": "en-GB",
@@ -2083,7 +1735,7 @@
      "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
     },
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 1440,
      "locale": "fr-FR",
@@ -2093,9 +1745,9 @@
     }
    ],
    "count": 6,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Congress titles in A use an ordinary space before « — exemple », so « — exemple » wraps alone onto the next line (catalogue, congress page, admin lists, at every width). B fixed this with non-breaking spaces.",
+   "ce": "CE-B4-004"
   },
   {
    "key": "b791b017d6",
@@ -2106,7 +1758,7 @@
    "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 1280,
      "locale": "fr-FR",
@@ -2115,7 +1767,7 @@
      "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
     },
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 1440,
      "locale": "fr-FR",
@@ -2124,7 +1776,7 @@
      "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
     },
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 1920,
      "locale": "fr-FR",
@@ -2133,7 +1785,7 @@
      "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
     },
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 1440,
      "locale": "en-GB",
@@ -2142,7 +1794,7 @@
      "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
     },
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 1440,
      "locale": "fr-FR",
@@ -2152,9 +1804,9 @@
     }
    ],
    "count": 5,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Congress titles in A use an ordinary space before « — exemple », so « — exemple » wraps alone onto the next line (catalogue, congress page, admin lists, at every width). B fixed this with non-breaking spaces.",
+   "ce": "CE-B4-004"
   },
   {
    "key": "99618d36fa",
@@ -2165,7 +1817,7 @@
    "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/?pg=2",
+     "page": "http://127.0.0.1:9439/?pg=2",
      "role": "visiteur",
      "width": 1440,
      "locale": "fr-FR",
@@ -2174,19 +1826,19 @@
      "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-gme",
+     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-gme",
      "role": "equipe",
      "width": 1440,
      "locale": "fr-FR",
-     "state": "C10 T5.1",
-     "shot": "out/shots/0074-A-equipe-1440-C10-T5-1.png",
+     "state": "equipe /wp-admin/admin.php?page=asset-gme",
+     "shot": "out/shots/0072-A-equipe-1440-equipe-wp-admin-admin-php-page-asset-gme.png",
      "element": "tbody > tr > td > strong"
     }
    ],
    "count": 2,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Congress titles in A use an ordinary space before « — exemple », so « — exemple » wraps alone onto the next line (catalogue, congress page, admin lists, at every width). B fixed this with non-breaking spaces.",
+   "ce": "CE-B4-004"
   },
   {
    "key": "963c2fa98e",
@@ -2197,7 +1849,7 @@
    "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/?pg=2",
+     "page": "http://127.0.0.1:9439/?pg=2",
      "role": "visiteur",
      "width": 1440,
      "locale": "fr-FR",
@@ -2206,137 +1858,19 @@
      "element": "ul.asset-grid > li.asset-card > h2.asset-card__title > a"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-gme",
+     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-gme",
      "role": "equipe",
      "width": 1440,
      "locale": "fr-FR",
-     "state": "C10 T5.1",
-     "shot": "out/shots/0074-A-equipe-1440-C10-T5-1.png",
+     "state": "equipe /wp-admin/admin.php?page=asset-gme",
+     "shot": "out/shots/0072-A-equipe-1440-equipe-wp-admin-admin-php-page-asset-gme.png",
      "element": "tbody > tr > td > strong"
     }
    ],
    "count": 2,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "b33045af5a",
-   "check": "B4",
-   "option": "A",
-   "text": "ongrès de relecture u2lc — exemple",
-   "note": "orphan-dash",
-   "element": "tr#post-36 > th.title.column-title > strong > a.row-title",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "C10 T1.3",
-     "shot": "out/shots/0035-A-direction-1440-C10-T1-3.png",
-     "element": "tr#post-36 > th.title.column-title > strong > a.row-title"
-    },
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "direction /wp-admin/edit.php?post_type=asset_congres",
-     "shot": "out/shots/0039-A-direction-1440-direction-wp-admin-edit-php-post-type-asset-congres.png",
-     "element": "tr#post-36 > th.title.column-title > strong > a.row-title"
-    },
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
-     "role": "contributeur",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "contributeur /wp-admin/edit.php?post_type=asset_congres",
-     "shot": "out/shots/0050-A-contributeur-1440-contributeur-wp-admin-edit-php-post-type-asset-congres.png",
-     "element": "tr#post-36 > th.title.column-title > strong > span"
-    },
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "direction (after approval) /wp-admin/edit.php?post_type=asset_congres",
-     "shot": "out/shots/0079-A-direction-1440-direction-after-approval-wp-admin-edit-php-post-type-asset-c.png",
-     "element": "tr#post-36 > th.title.column-title > strong > a.row-title"
-    },
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "6w direction /wp-admin/edit.php?post_type=asset_congres",
-     "shot": "",
-     "element": "tr#post-36 > th.title.column-title > strong > a.row-title"
-    }
-   ],
-   "count": 5,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "6127db1056",
-   "check": "B4",
-   "option": "A",
-   "text": "ongrès de relecture 5cjf — exemple",
-   "note": "orphan-dash",
-   "element": "tr#post-25 > th.title.column-title > strong > a.row-title",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "C10 T1.3",
-     "shot": "out/shots/0035-A-direction-1440-C10-T1-3.png",
-     "element": "tr#post-25 > th.title.column-title > strong > a.row-title"
-    },
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "direction /wp-admin/edit.php?post_type=asset_congres",
-     "shot": "out/shots/0039-A-direction-1440-direction-wp-admin-edit-php-post-type-asset-congres.png",
-     "element": "tr#post-25 > th.title.column-title > strong > a.row-title"
-    },
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
-     "role": "contributeur",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "contributeur /wp-admin/edit.php?post_type=asset_congres",
-     "shot": "out/shots/0050-A-contributeur-1440-contributeur-wp-admin-edit-php-post-type-asset-congres.png",
-     "element": "tr#post-25 > th.title.column-title > strong > span"
-    },
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "direction (after approval) /wp-admin/edit.php?post_type=asset_congres",
-     "shot": "out/shots/0079-A-direction-1440-direction-after-approval-wp-admin-edit-php-post-type-asset-c.png",
-     "element": "tr#post-25 > th.title.column-title > strong > a.row-title"
-    },
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "6w direction /wp-admin/edit.php?post_type=asset_congres",
-     "shot": "",
-     "element": "tr#post-25 > th.title.column-title > strong > a.row-title"
-    }
-   ],
-   "count": 5,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Congress titles in A use an ordinary space before « — exemple », so « — exemple » wraps alone onto the next line (catalogue, congress page, admin lists, at every width). B fixed this with non-breaking spaces.",
+   "ce": "CE-B4-004"
   },
   {
    "key": "197e6d6fe8",
@@ -2347,7 +1881,7 @@
    "element": "tbody > tr > td > strong",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-gme",
+     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-gme",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -2356,16 +1890,16 @@
      "element": "tbody > tr > td > strong"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-gme",
+     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-gme&msg=requested",
      "role": "equipe",
      "width": 1440,
      "locale": "fr-FR",
-     "state": "equipe /wp-admin/admin.php?page=asset-gme",
-     "shot": "out/shots/0072-A-equipe-1440-equipe-wp-admin-admin-php-page-asset-gme.png",
+     "state": "C10 T5.1",
+     "shot": "out/shots/0074-A-equipe-1440-C10-T5-1.png",
      "element": "tbody > tr > td > strong"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-gme",
+     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-gme",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -2374,7 +1908,7 @@
      "element": "tbody > tr > td > strong"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "contributeur",
      "width": 390,
      "locale": "fr-FR",
@@ -2383,7 +1917,7 @@
      "element": "tr#post-9 > th.title.column-title > strong > span"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "equipe",
      "width": 390,
      "locale": "fr-FR",
@@ -2392,7 +1926,7 @@
      "element": "tr#post-9 > th.title.column-title > strong > a.row-title"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 390,
      "locale": "fr-FR",
@@ -2401,7 +1935,7 @@
      "element": "tr#post-9 > th.title.column-title > strong > a.row-title"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 390,
      "locale": "fr-FR",
@@ -2410,7 +1944,7 @@
      "element": "tr#post-9 > th.title.column-title > strong > a.row-title"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-demandes",
+     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-demandes",
      "role": "direction",
      "width": 1280,
      "locale": "fr-FR",
@@ -2419,7 +1953,7 @@
      "element": "tbody#the-list > tr > td.congres.column-congres"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-gme",
+     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-gme",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -2428,7 +1962,7 @@
      "element": "tbody > tr > td > strong"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 1920,
      "locale": "fr-FR",
@@ -2438,9 +1972,9 @@
     }
    ],
    "count": 10,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Congress titles in A use an ordinary space before « — exemple », so « — exemple » wraps alone onto the next line (catalogue, congress page, admin lists, at every width). B fixed this with non-breaking spaces.",
+   "ce": "CE-B4-004"
   },
   {
    "key": "f7a7b86343",
@@ -2451,7 +1985,7 @@
    "element": "tr#post-16 > th.title.column-title > strong > span",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "contributeur",
      "width": 390,
      "locale": "fr-FR",
@@ -2460,7 +1994,7 @@
      "element": "tr#post-16 > th.title.column-title > strong > span"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "equipe",
      "width": 390,
      "locale": "fr-FR",
@@ -2469,7 +2003,7 @@
      "element": "tr#post-16 > th.title.column-title > strong > a.row-title"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 390,
      "locale": "fr-FR",
@@ -2478,7 +2012,7 @@
      "element": "tr#post-16 > th.title.column-title > strong > a.row-title"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 390,
      "locale": "fr-FR",
@@ -2487,7 +2021,7 @@
      "element": "tr#post-16 > th.title.column-title > strong > a.row-title"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 1920,
      "locale": "fr-FR",
@@ -2497,9 +2031,9 @@
     }
    ],
    "count": 5,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Congress titles in A use an ordinary space before « — exemple », so « — exemple » wraps alone onto the next line (catalogue, congress page, admin lists, at every width). B fixed this with non-breaking spaces.",
+   "ce": "CE-B4-004"
   },
   {
    "key": "a2afba3c65",
@@ -2510,7 +2044,7 @@
    "element": "tr#post-14 > th.title.column-title > strong > span",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "contributeur",
      "width": 390,
      "locale": "fr-FR",
@@ -2519,7 +2053,7 @@
      "element": "tr#post-14 > th.title.column-title > strong > span"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "equipe",
      "width": 390,
      "locale": "fr-FR",
@@ -2528,7 +2062,7 @@
      "element": "tr#post-14 > th.title.column-title > strong > a.row-title"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 390,
      "locale": "fr-FR",
@@ -2537,7 +2071,7 @@
      "element": "tr#post-14 > th.title.column-title > strong > a.row-title"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 390,
      "locale": "fr-FR",
@@ -2546,7 +2080,7 @@
      "element": "tr#post-14 > th.title.column-title > strong > a.row-title"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 1920,
      "locale": "fr-FR",
@@ -2556,9 +2090,32 @@
     }
    ],
    "count": 5,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Congress titles in A use an ordinary space before « — exemple », so « — exemple » wraps alone onto the next line (catalogue, congress page, admin lists, at every width). B fixed this with non-breaking spaces.",
+   "ce": "CE-B4-004"
+  },
+  {
+   "key": "4e8a6c6a13",
+   "check": "B4",
+   "option": "A",
+   "text": "ongrès de relecture pmmo — exemple",
+   "note": "orphan-dash",
+   "element": "tr#post-25 > th.title.column-title > strong > a.row-title",
+   "occurrences": [
+    {
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
+     "role": "direction",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "6w direction /wp-admin/edit.php?post_type=asset_congres",
+     "shot": "",
+     "element": "tr#post-25 > th.title.column-title > strong > a.row-title"
+    }
+   ],
+   "count": 1,
+   "status": "REAL",
+   "reason": "Congress titles in A use an ordinary space before « — exemple », so « — exemple » wraps alone onto the next line (catalogue, congress page, admin lists, at every width). B fixed this with non-breaking spaces.",
+   "ce": "CE-B4-004"
   },
   {
    "key": "bf5e9714b0",
@@ -2569,7 +2126,7 @@
    "element": "tbody#the-list > tr > td.congres.column-congres",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-demandes",
+     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-demandes",
      "role": "direction",
      "width": 1280,
      "locale": "fr-FR",
@@ -2579,9 +2136,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "A word is split across two lines without a hyphen (« d’ophtalmologie » in the Demandes table at 1280).",
+   "ce": "CE-B4-005"
   },
   {
    "key": "a714bbc974",
@@ -2592,7 +2149,7 @@
    "element": "tr#post-17 > th.title.column-title > strong > a.row-title",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 1280,
      "locale": "fr-FR",
@@ -2602,9 +2159,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Congress titles in A use an ordinary space before « — exemple », so « — exemple » wraps alone onto the next line (catalogue, congress page, admin lists, at every width). B fixed this with non-breaking spaces.",
+   "ce": "CE-B4-004"
   },
   {
    "key": "77b442af30",
@@ -2615,7 +2172,7 @@
    "element": "tr#post-12 > th.title.column-title > strong > a.row-title",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 1280,
      "locale": "fr-FR",
@@ -2625,9 +2182,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Congress titles in A use an ordinary space before « — exemple », so « — exemple » wraps alone onto the next line (catalogue, congress page, admin lists, at every width). B fixed this with non-breaking spaces.",
+   "ce": "CE-B4-004"
   },
   {
    "key": "f1d080dae3",
@@ -2726,9 +2283,9 @@
     }
    ],
    "count": 2,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "The « Lien de groupe » card text « … aux 6 participants : chacun … » has an ordinary space before « : », which starts a line at 390.",
+   "ce": "CE-B4-006"
   },
   {
    "key": "59381427af",
@@ -2749,9 +2306,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "The « Lien de groupe » card text « … aux 6 participants : chacun … » has an ordinary space before « : », which starts a line at 390.",
+   "ce": "CE-B4-006"
   },
   {
    "key": "84680100f5",
@@ -2772,9 +2329,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Concept pages (/ and /console/) show sample titles whose « — exemple » wraps alone onto the next line at 320–768.",
+   "ce": "CE-B4-002"
   },
   {
    "key": "166e9eb7e8",
@@ -2795,9 +2352,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Concept pages (/ and /console/) show sample titles whose « — exemple » wraps alone onto the next line at 320–768.",
+   "ce": "CE-B4-002"
   },
   {
    "key": "118cb66805",
@@ -2818,9 +2375,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "The French note for ASSET uses ordinary spaces inside « » and before ; and :, so « ends lines and » ; : start lines (e.g. « la carte « Voyages d’affaires » », « © 2026 »), at all six widths. Source site/pour-asset/index.html uses U+0020 there.",
+   "ce": "CE-B4-001"
   },
   {
    "key": "57b72b16cc",
@@ -2859,9 +2416,9 @@
     }
    ],
    "count": 3,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "The French note for ASSET uses ordinary spaces inside « » and before ; and :, so « ends lines and » ; : start lines (e.g. « la carte « Voyages d’affaires » », « © 2026 »), at all six widths. Source site/pour-asset/index.html uses U+0020 there.",
+   "ce": "CE-B4-001"
   },
   {
    "key": "0726f80e7e",
@@ -2945,9 +2502,9 @@
     }
    ],
    "count": 8,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "The French note for ASSET uses ordinary spaces inside « » and before ; and :, so « ends lines and » ; : start lines (e.g. « la carte « Voyages d’affaires » », « © 2026 »), at all six widths. Source site/pour-asset/index.html uses U+0020 there.",
+   "ce": "CE-B4-001"
   },
   {
    "key": "8d1d888fba",
@@ -3031,9 +2588,9 @@
     }
    ],
    "count": 8,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "The French note for ASSET uses ordinary spaces inside « » and before ; and :, so « ends lines and » ; : start lines (e.g. « la carte « Voyages d’affaires » », « © 2026 »), at all six widths. Source site/pour-asset/index.html uses U+0020 there.",
+   "ce": "CE-B4-001"
   },
   {
    "key": "add1fe7ffc",
@@ -3072,9 +2629,9 @@
     }
    ],
    "count": 3,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "The French note for ASSET uses ordinary spaces inside « » and before ; and :, so « ends lines and » ; : start lines (e.g. « la carte « Voyages d’affaires » », « © 2026 »), at all six widths. Source site/pour-asset/index.html uses U+0020 there.",
+   "ce": "CE-B4-001"
   },
   {
    "key": "52ce199602",
@@ -3122,9 +2679,9 @@
     }
    ],
    "count": 4,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Concept pages (/ and /console/) show sample titles whose « — exemple » wraps alone onto the next line at 320–768.",
+   "ce": "CE-B4-002"
   },
   {
    "key": "10c60a708d",
@@ -3145,9 +2702,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "« Précisions » is quoted with ordinary spaces on /questions/: « or » end/start a line at 320 and 768.",
+   "ce": "CE-B4-003"
   },
   {
    "key": "d9a5ad0aa8",
@@ -3168,9 +2725,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "The French note for ASSET uses ordinary spaces inside « » and before ; and :, so « ends lines and » ; : start lines (e.g. « la carte « Voyages d’affaires » », « © 2026 »), at all six widths. Source site/pour-asset/index.html uses U+0020 there.",
+   "ce": "CE-B4-001"
   },
   {
    "key": "b775cc08de",
@@ -3191,9 +2748,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "« Précisions » is quoted with ordinary spaces on /questions/: « or » end/start a line at 320 and 768.",
+   "ce": "CE-B4-003"
   },
   {
    "key": "fa88f052d6",
@@ -3241,9 +2798,9 @@
     }
    ],
    "count": 4,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "The French note for ASSET uses ordinary spaces inside « » and before ; and :, so « ends lines and » ; : start lines (e.g. « la carte « Voyages d’affaires » », « © 2026 »), at all six widths. Source site/pour-asset/index.html uses U+0020 there.",
+   "ce": "CE-B4-001"
   },
   {
    "key": "9329d98650",
@@ -3254,7 +2811,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-demandes&action=view&id=41",
+     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-demandes&action=view&id=30",
      "role": "equipe",
      "width": 1440,
      "locale": "fr-FR",
@@ -3277,7 +2834,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 320,
      "locale": "fr-FR",
@@ -3300,7 +2857,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 320,
      "locale": "fr-FR",
@@ -3323,7 +2880,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit-tags.php?taxonomy=asset_discipline&post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit-tags.php?taxonomy=asset_discipline&post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -3346,7 +2903,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit-tags.php?taxonomy=asset_discipline&post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit-tags.php?taxonomy=asset_discipline&post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -3369,7 +2926,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/?pg=2",
+     "page": "http://127.0.0.1:9439/?pg=2",
      "role": "visiteur",
      "width": 390,
      "locale": "fr-FR",
@@ -3384,15 +2941,15 @@
    "ce": ""
   },
   {
-   "key": "928d14cd30",
+   "key": "2a1f776d20",
    "check": "B5",
    "option": "A",
    "text": "Bernard",
-   "note": "unknown fr word in « Julien Bernard julien.bernard @example.com Laboratoire Fictif SA » (8×)",
+   "note": "unknown fr word in « Julien Bernard julien.bernard @example.com Laboratoire Fictif SA » (7×)",
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-demandes",
+     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-demandes",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -3415,7 +2972,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit-tags.php?taxonomy=asset_discipline&post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit-tags.php?taxonomy=asset_discipline&post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -3438,7 +2995,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -3453,15 +3010,15 @@
    "ce": ""
   },
   {
-   "key": "2bfdd585bf",
+   "key": "a4349a1c3d",
    "check": "B5",
    "option": "A",
    "text": "Camille",
-   "note": "unknown fr word in « Camille Martin camille.martin @example.com Clinique Exemple » (27×)",
+   "note": "unknown fr word in « Dernière demande : DV-2026-0006 · Camille Martin · Congrès européen de cardiologie — exemple » (28×)",
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-demandes",
+     "page": "http://127.0.0.1:9439/wp-admin/index.php",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -3484,32 +3041,9 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/?s_congres=cardiologie&q=cardiologie",
+     "page": "http://127.0.0.1:9439/?s_congres=cardiologie&q=cardiologie",
      "role": "visiteur",
      "width": 390,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "b244194340",
-   "check": "B5",
-   "option": "A",
-   "text": "cjf",
-   "note": "unknown fr word in « Congrès de relecture 5cjf — exemple — Brouillon » (37×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
-     "role": "direction",
-     "width": 1440,
      "locale": "fr-FR",
      "state": "",
      "shot": "",
@@ -3530,7 +3064,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/index.php",
+     "page": "http://127.0.0.1:9439/wp-admin/index.php",
      "role": "contributeur",
      "width": 1440,
      "locale": "fr-FR",
@@ -3553,7 +3087,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit-tags.php?taxonomy=asset_discipline&post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit-tags.php?taxonomy=asset_discipline&post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -3568,15 +3102,15 @@
    "ce": ""
   },
   {
-   "key": "d4592e138a",
+   "key": "e18edd5c4a",
    "check": "B5",
    "option": "A",
    "text": "Dubois",
-   "note": "unknown fr word in « Dernière demande : DV-2026-0007 · Claire Dubois (exemple) · Congrès européen de cardiologie — exemple » (52×)",
+   "note": "unknown fr word in « Sophie Dubois sophie.dubois @example.com » (40×)",
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/index.php",
+     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-demandes",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -3591,15 +3125,15 @@
    "ce": ""
   },
   {
-   "key": "fa544a2b09",
+   "key": "b508212f50",
    "check": "B5",
    "option": "A",
    "text": "démo",
-   "note": "unknown fr word in « Bonjour, Direction (démo) » (216×)",
+   "note": "unknown fr word in « Bonjour, Direction (démo) » (193×)",
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/index.php",
+     "page": "http://127.0.0.1:9439/wp-admin/index.php",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -3614,15 +3148,15 @@
    "ce": ""
   },
   {
-   "key": "79d2399517",
+   "key": "e9c9f638b8",
    "check": "B5",
    "option": "A",
    "text": "e-mail",
-   "note": "unknown fr word in « Toutes les données sont fictives : congrès, personnes, adresses e-mail en @example.com et codes GM&E factices. Aucun e-m » (268×)",
+   "note": "unknown fr word in « Toutes les données sont fictives : congrès, personnes, adresses e-mail en @example.com et codes GM&E factices. Aucun e-m » (267×)",
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 320,
      "locale": "fr-FR",
@@ -3645,7 +3179,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-login.php",
+     "page": "http://127.0.0.1:9439/wp-login.php",
      "role": "visiteur",
      "width": 390,
      "locale": "fr-FR",
@@ -3668,7 +3202,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/profile.php",
+     "page": "http://127.0.0.1:9439/wp-admin/profile.php",
      "role": "equipe",
      "width": 1440,
      "locale": "fr-FR",
@@ -3691,7 +3225,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit-tags.php?taxonomy=asset_pays&post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit-tags.php?taxonomy=asset_pays&post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -3714,7 +3248,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-gme",
+     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-gme",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -3737,7 +3271,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/profile.php",
+     "page": "http://127.0.0.1:9439/wp-admin/profile.php",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -3760,7 +3294,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -3783,7 +3317,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/profile.php",
+     "page": "http://127.0.0.1:9439/wp-admin/profile.php",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -3806,7 +3340,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit-tags.php?taxonomy=asset_discipline&post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit-tags.php?taxonomy=asset_discipline&post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -3829,7 +3363,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/post-new.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/post-new.php?post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -3844,15 +3378,15 @@
    "ce": ""
   },
   {
-   "key": "3364a77802",
+   "key": "067256a574",
    "check": "B5",
    "option": "A",
    "text": "Hugo",
-   "note": "unknown fr word in « Hugo Laurent hugo.laurent @example.com Cabinet Exemple » (20×)",
+   "note": "unknown fr word in « Hugo Laurent hugo.laurent @example.com Cabinet Exemple » (19×)",
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-demandes",
+     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-demandes",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -3867,15 +3401,15 @@
    "ce": ""
   },
   {
-   "key": "cb198efd8f",
+   "key": "ae34f815c8",
    "check": "B5",
    "option": "A",
    "text": "Julien",
-   "note": "unknown fr word in « Julien Bernard julien.bernard @example.com Laboratoire Fictif SA » (8×)",
+   "note": "unknown fr word in « Julien Bernard julien.bernard @example.com Laboratoire Fictif SA » (7×)",
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-demandes",
+     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-demandes",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -3890,15 +3424,15 @@
    "ce": ""
   },
   {
-   "key": "cee5e6b3de",
+   "key": "03fdeb012e",
    "check": "B5",
    "option": "A",
    "text": "Laurent",
-   "note": "unknown fr word in « Hugo Laurent hugo.laurent @example.com Cabinet Exemple » (27×)",
+   "note": "unknown fr word in « Hugo Laurent hugo.laurent @example.com Cabinet Exemple » (26×)",
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-demandes",
+     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-demandes",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -3921,7 +3455,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 320,
      "locale": "fr-FR",
@@ -3944,7 +3478,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/?pg=2",
+     "page": "http://127.0.0.1:9439/?pg=2",
      "role": "visiteur",
      "width": 390,
      "locale": "fr-FR",
@@ -3959,15 +3493,15 @@
    "ce": ""
   },
   {
-   "key": "fdef84ef2c",
+   "key": "86d2581267",
    "check": "B5",
    "option": "A",
    "text": "Lyon",
-   "note": "unknown fr word in « Lyon, France » (63×)",
+   "note": "unknown fr word in « Lyon, France » (62×)",
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 320,
      "locale": "fr-FR",
@@ -3982,15 +3516,15 @@
    "ce": ""
   },
   {
-   "key": "a44677b312",
+   "key": "4ff1ebaed4",
    "check": "B5",
    "option": "A",
    "text": "Léa",
-   "note": "unknown fr word in « Léa Moreau lea.moreau @example.com » (29×)",
+   "note": "unknown fr word in « Léa Moreau lea.moreau @example.com » (28×)",
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-demandes",
+     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-demandes",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -4013,7 +3547,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 320,
      "locale": "fr-FR",
@@ -4028,15 +3562,15 @@
    "ce": ""
   },
   {
-   "key": "70771ca71c",
+   "key": "e088d11ac0",
    "check": "B5",
    "option": "A",
    "text": "Marseille",
-   "note": "unknown fr word in « Marseille, France » (96×)",
+   "note": "unknown fr word in « Marseille, France » (95×)",
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 320,
      "locale": "fr-FR",
@@ -4051,15 +3585,15 @@
    "ce": ""
   },
   {
-   "key": "c6a1da497b",
+   "key": "02537e8967",
    "check": "B5",
    "option": "A",
    "text": "Martin",
-   "note": "unknown fr word in « Camille Martin camille.martin @example.com Clinique Exemple » (151×)",
+   "note": "unknown fr word in « Dernière demande : DV-2026-0006 · Camille Martin · Congrès européen de cardiologie — exemple » (152×)",
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-demandes",
+     "page": "http://127.0.0.1:9439/wp-admin/index.php",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -4074,15 +3608,15 @@
    "ce": ""
   },
   {
-   "key": "de18a07e4b",
+   "key": "30efd2d9c1",
    "check": "B5",
    "option": "A",
    "text": "Moreau",
-   "note": "unknown fr word in « Léa Moreau lea.moreau @example.com » (30×)",
+   "note": "unknown fr word in « Léa Moreau lea.moreau @example.com » (29×)",
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-demandes",
+     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-demandes",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -4105,7 +3639,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/media-new.php",
+     "page": "http://127.0.0.1:9439/wp-admin/media-new.php",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -4120,15 +3654,15 @@
    "ce": ""
   },
   {
-   "key": "3411300bd9",
+   "key": "2b8ccaf51d",
    "check": "B5",
    "option": "A",
    "text": "Nantes",
-   "note": "unknown fr word in « Nantes » (22×)",
+   "note": "unknown fr word in « Nantes » (21×)",
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-demandes",
+     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-demandes",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -4143,15 +3677,15 @@
    "ce": ""
   },
   {
-   "key": "6e2fff1d3a",
+   "key": "1bdbc6c3cc",
    "check": "B5",
    "option": "A",
    "text": "Nice",
-   "note": "unknown fr word in « Nice » (22×)",
+   "note": "unknown fr word in « Nice » (14×)",
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -4166,15 +3700,15 @@
    "ce": ""
   },
   {
-   "key": "e6330501ed",
+   "key": "81111e105a",
    "check": "B5",
    "option": "A",
    "text": "Oncologie",
-   "note": "unknown fr word in « Oncologie » (456×)",
+   "note": "unknown fr word in « Oncologie » (447×)",
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 320,
      "locale": "fr-FR",
@@ -4189,15 +3723,38 @@
    "ce": ""
   },
   {
-   "key": "e72da19c65",
+   "key": "b77b69eaa2",
    "check": "B5",
    "option": "A",
-   "text": "Pneumologie",
-   "note": "unknown fr word in « Pneumologie » (202×)",
+   "text": "pmmo",
+   "note": "unknown fr word in « Congrès de relecture pmmo — exemple — Brouillon » (37×)",
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
+     "role": "direction",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "601be43aa7",
+   "check": "B5",
+   "option": "A",
+   "text": "Pneumologie",
+   "note": "unknown fr word in « Pneumologie » (201×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 320,
      "locale": "fr-FR",
@@ -4220,7 +3777,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/post-new.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/post-new.php?post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -4243,7 +3800,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/profile.php",
+     "page": "http://127.0.0.1:9439/wp-admin/profile.php",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -4266,7 +3823,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/congres/congres-europeen-de-cardiologie-exemple/?asset_ok=440962b6c0763690303421fe15c390b7#devis",
+     "page": "http://127.0.0.1:9439/congres/congres-europeen-de-cardiologie-exemple/?asset_ok=9d7a15751f8c376dd1730ce8bd1aca78#devis",
      "role": "visiteur",
      "width": 1440,
      "locale": "fr-FR",
@@ -4289,7 +3846,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -4312,7 +3869,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/post-new.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/post-new.php?post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -4335,7 +3892,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit-tags.php?taxonomy=asset_discipline&post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit-tags.php?taxonomy=asset_discipline&post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -4350,15 +3907,15 @@
    "ce": ""
   },
   {
-   "key": "056bcfba2d",
+   "key": "77a3a1292d",
    "check": "B5",
    "option": "A",
    "text": "Sophie",
-   "note": "unknown fr word in « Sophie Dubois sophie.dubois @example.com » (18×)",
+   "note": "unknown fr word in « Sophie Dubois sophie.dubois @example.com » (17×)",
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-demandes",
+     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-demandes",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -4381,7 +3938,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-login.php",
+     "page": "http://127.0.0.1:9439/wp-login.php",
      "role": "visiteur",
      "width": 390,
      "locale": "fr-FR",
@@ -4404,7 +3961,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/post-new.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/post-new.php?post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -4419,15 +3976,15 @@
    "ce": ""
   },
   {
-   "key": "7c209f75ee",
+   "key": "294f323ec5",
    "check": "B5",
    "option": "A",
    "text": "Thomas",
-   "note": "unknown fr word in « Thomas Petit thomas.petit @example.com Groupe hospitalier Exemple » (8×)",
+   "note": "unknown fr word in « Thomas Petit thomas.petit @example.com Groupe hospitalier Exemple » (7×)",
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-demandes",
+     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-demandes",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -4442,15 +3999,15 @@
    "ce": ""
   },
   {
-   "key": "387a3d67e1",
+   "key": "efa036a3cf",
    "check": "B5",
    "option": "A",
    "text": "Toulouse",
-   "note": "unknown fr word in « Toulouse » (19×)",
+   "note": "unknown fr word in « Toulouse » (18×)",
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-demandes",
+     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-demandes",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -4473,7 +4030,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/media-new.php",
+     "page": "http://127.0.0.1:9439/wp-admin/media-new.php",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -4496,7 +4053,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/media-new.php",
+     "page": "http://127.0.0.1:9439/wp-admin/media-new.php",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -4519,7 +4076,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-login.php",
+     "page": "http://127.0.0.1:9439/wp-login.php",
      "role": "visiteur",
      "width": 390,
      "locale": "fr-FR",
@@ -4542,7 +4099,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/profile.php",
+     "page": "http://127.0.0.1:9439/wp-admin/profile.php",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -4565,7 +4122,7 @@
    "element": "fr",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/profile.php",
+     "page": "http://127.0.0.1:9439/wp-admin/profile.php",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -6696,29 +6253,6 @@
    "ce": ""
   },
   {
-   "key": "e18336fe3d",
-   "check": "B6",
-   "option": "A",
-   "text": "ask for access",
-   "note": "none of « Demander l’accès / Demander l'accès » seen in the A UI",
-   "element": "",
-   "occurrences": [
-    {
-     "page": "glossary",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": ""
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
    "key": "de4f377ae3",
    "check": "B6",
    "option": "A",
@@ -6737,8 +6271,8 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
+   "status": "FALSE-POSITIVE",
+   "reason": "WordPress shows « Se déconnecter » only in the account menu that opens on hover; the inventory records what is visible without hovering. The C10 replay hovered and clicked it (T5.2). Not tightened: the inventory stays « visible without interaction », the term is checked by C10.",
    "ce": ""
   },
   {
@@ -6760,9 +6294,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "A says « Ajouter un congrès », B « Nouveau congrès ».",
+   "ce": "CE-B6-001"
   },
   {
    "key": "1c7ffad3d7",
@@ -6783,9 +6317,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "A says « Journal des notifications » (the hub quotes it), B « Notifications ».",
+   "ce": "CE-B6-002"
   },
   {
    "key": "27d9b4cdf8",
@@ -6806,9 +6340,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "A heads the form « Demander un devis vol » (the hub quotes it), B « Demande de devis vol ».",
+   "ce": "CE-B6-003"
   },
   {
    "key": "1169251339",
@@ -6829,9 +6363,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "A « Envoyer ma demande », B « Envoyer la demande ».",
+   "ce": "CE-B6-004"
   },
   {
    "key": "adb31744d2",
@@ -6852,9 +6386,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "A « Approuver (24 h) », B « Approuver pour 24 h ».",
+   "ce": "CE-B6-005"
   },
   {
    "key": "99ca0dfeeb",
@@ -6875,9 +6409,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "A « Révéler le code », B « Afficher le code ».",
+   "ce": "CE-B6-006"
   },
   {
    "key": "ef8ada7fbb",
@@ -6898,9 +6432,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "A « Journal GM&E », B « Journal » (menu) / « Journal d’accès ».",
+   "ce": "CE-B6-007"
   },
   {
    "key": "cbe795aa72",
@@ -6921,20 +6455,20 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "A « Exporter en CSV », B « Exporter (tableur CSV) ».",
+   "ce": "CE-B6-008"
   },
   {
-   "key": "cbc5449331",
+   "key": "fb58c6d7d2",
    "check": "C1",
    "option": "A",
-   "text": "400 xhr http://127.0.0.1:9437/wp-admin/admin-ajax.php?action=wp-compression-test&test=no&_ajax_nonce=60e8541146&1793955755359",
+   "text": "400 xhr http://127.0.0.1:9439/wp-admin/admin-ajax.php?action=wp-compression-test&test=no&_ajax_nonce=65541e11ff&1793957236633",
    "note": "during C10 T5.2",
    "element": "http",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/admin-ajax.php?action=wp-compression-test&test=no&_ajax_nonce=60e8541146&1793955755359",
+     "page": "http://127.0.0.1:9439/wp-admin/admin-ajax.php?action=wp-compression-test&test=no&_ajax_nonce=65541e11ff&1793957236633",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -6944,9 +6478,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "WordPress core's admin-ajax « wp-compression-test » answers 400 in Playground, logging console errors on admin pages. Invisible to a reader, but the rule is zero console errors; platform-level, check again on real hosting.",
+   "ce": "CE-C1-001"
   },
   {
    "key": "718fab98c8",
@@ -6957,7 +6491,7 @@
    "element": "console",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-gme",
+     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-gme&msg=requested",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -6972,15 +6506,15 @@
    "ce": ""
   },
   {
-   "key": "249472ba92",
+   "key": "2b24f79046",
    "check": "C1",
    "option": "A",
-   "text": "403 document http://127.0.0.1:9437/wp-admin/edit.php?post_type=page",
+   "text": "403 document http://127.0.0.1:9439/wp-admin/edit.php?post_type=page",
    "note": "during errors",
    "element": "http",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=page",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=page",
      "role": "equipe",
      "width": 1440,
      "locale": "fr-FR",
@@ -6990,9 +6524,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Same defect as CE-D1-001: the role the hub's admin link signs in as is refused the Pages screen (403).",
+   "ce": "CE-D1-001"
   },
   {
    "key": "41408b82ae",
@@ -7003,7 +6537,7 @@
    "element": "console",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=page",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=page",
      "role": "equipe",
      "width": 1440,
      "locale": "fr-FR",
@@ -7013,55 +6547,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "70c1f4b91b",
-   "check": "C1",
-   "option": "A",
-   "text": "400 xhr http://127.0.0.1:9437/wp-admin/admin-ajax.php?action=wp-compression-test&test=2&_ajax_nonce=d71a4edec6&1793956019720",
-   "note": "during equipe 390 http://127.0.0.1:9437/wp-admin/index.php",
-   "element": "http",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/admin-ajax.php?action=wp-compression-test&test=2&_ajax_nonce=d71a4edec6&1793956019720",
-     "role": "equipe",
-     "width": 390,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "http"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "0372fa5378",
-   "check": "C1",
-   "option": "A",
-   "text": "Failed to load resource: the server responded with a status of 400 (Bad Request)",
-   "note": "during equipe 390 http://127.0.0.1:9437/wp-admin/index.php",
-   "element": "console",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/profile.php",
-     "role": "equipe",
-     "width": 390,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "console"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Same defect as CE-D1-001: the role the hub's admin link signs in as is refused the Pages screen (403).",
+   "ce": "CE-D1-001"
   },
   {
    "key": "5596fce01e",
@@ -7072,7 +6560,7 @@
    "element": "div#titlediv > div.inside",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/post-new.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/post-new.php?post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -7081,7 +6569,7 @@
      "element": "div#titlediv > div.inside"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/post-new.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/post-new.php?post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -7090,7 +6578,7 @@
      "element": "div#titlediv > div.inside"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/post-new.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/post-new.php?post_type=asset_congres",
      "role": "contributeur",
      "width": 1440,
      "locale": "fr-FR",
@@ -7099,7 +6587,7 @@
      "element": "div#titlediv > div.inside"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/post-new.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/post-new.php?post_type=asset_congres",
      "role": "contributeur",
      "width": 1440,
      "locale": "fr-FR",
@@ -7108,7 +6596,16 @@
      "element": "div#titlediv > div.inside"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/post-new.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/post-new.php?post_type=asset_congres",
+     "role": "equipe",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "equipe /wp-admin/post-new.php?post_type=asset_congres",
+     "shot": "out/shots/0067-A-equipe-1440-equipe-wp-admin-post-new-php-post-type-asset-congres.png",
+     "element": "div#titlediv > div.inside"
+    },
+    {
+     "page": "http://127.0.0.1:9439/wp-admin/post-new.php?post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -7117,33 +6614,10 @@
      "element": "div#titlediv > div.inside"
     }
    ],
-   "count": 5,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "831a239966",
-   "check": "C3",
-   "option": "A",
-   "text": "1062×25 px empty",
-   "note": "visible container with no text or media",
-   "element": "div#titlediv > div.inside",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/post-new.php?post_type=asset_congres",
-     "role": "equipe",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "equipe /wp-admin/post-new.php?post_type=asset_congres",
-     "shot": "out/shots/0067-A-equipe-1440-equipe-wp-admin-post-new-php-post-type-asset-congres.png",
-     "element": "div#titlediv > div.inside"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "count": 6,
+   "status": "REAL",
+   "reason": "The new-congress editor shows an empty 25 px box at the top of the form (938×25 at 1440, 368×25 at 390), see shots.",
+   "ce": "CE-C3-001"
   },
   {
    "key": "237f45724a",
@@ -7154,7 +6628,7 @@
    "element": "div#titlediv > div.inside",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/post-new.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/post-new.php?post_type=asset_congres",
      "role": "contributeur",
      "width": 390,
      "locale": "fr-FR",
@@ -7163,7 +6637,7 @@
      "element": "div#titlediv > div.inside"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/post-new.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/post-new.php?post_type=asset_congres",
      "role": "equipe",
      "width": 390,
      "locale": "fr-FR",
@@ -7172,7 +6646,7 @@
      "element": "div#titlediv > div.inside"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/post-new.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/post-new.php?post_type=asset_congres",
      "role": "direction",
      "width": 390,
      "locale": "fr-FR",
@@ -7182,9 +6656,9 @@
     }
    ],
    "count": 3,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "The new-congress editor shows an empty 25 px box at the top of the form (938×25 at 1440, 368×25 at 390), see shots.",
+   "ce": "CE-C3-001"
   },
   {
    "key": "0e5b7b4e16",
@@ -7192,123 +6666,132 @@
    "option": "A",
    "text": "CLS 0.048",
    "note": "layout shift above 0.02",
-   "element": "DIV.drag-drop-inside+P.upload-flash-bypass+P.max-upload-size@1341ms=0.0482",
+   "element": "DIV.drag-drop-inside+P.upload-flash-bypass+P.max-upload-size@1941ms=0.0482",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/media-new.php",
+     "page": "http://127.0.0.1:9439/wp-admin/media-new.php",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
      "state": "direction /wp-admin/media-new.php",
      "shot": "out/shots/0038-A-direction-1440-direction-wp-admin-media-new-php.png",
-     "element": "DIV.drag-drop-inside+P.upload-flash-bypass+P.max-upload-size@1341ms=0.0482"
+     "element": "DIV.drag-drop-inside+P.upload-flash-bypass+P.max-upload-size@1941ms=0.0482"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/media-new.php",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "direction (after approval) /wp-admin/media-new.php",
-     "shot": "out/shots/0078-A-direction-1440-direction-after-approval-wp-admin-media-new-php.png",
-     "element": "DIV.drag-drop-inside+P.upload-flash-bypass+P.max-upload-size@1546ms=0.0482"
-    }
-   ],
-   "count": 2,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "991ff4bac4",
-   "check": "C4",
-   "option": "A",
-   "text": "CLS 0.030",
-   "note": "layout shift above 0.02",
-   "element": "DIV.asset-cols+TABLE.widefat.striped+P@2990ms=0.0298",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-demandes&action=view&id=41",
-     "role": "equipe",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "C10 T4.2",
-     "shot": "out/shots/0061-A-equipe-1440-C10-T4-2.png",
-     "element": "DIV.asset-cols+TABLE.widefat.striped+P@2990ms=0.0298"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "11e7fc2ddd",
-   "check": "C4",
-   "option": "A",
-   "text": "CLS 0.059",
-   "note": "layout shift above 0.02",
-   "element": "DIV.drag-drop-inside+P.upload-flash-bypass+P.max-upload-size@1522ms=0.0585",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/media-new.php",
+     "page": "http://127.0.0.1:9439/wp-admin/media-new.php",
      "role": "equipe",
      "width": 1440,
      "locale": "fr-FR",
      "state": "equipe /wp-admin/media-new.php",
      "shot": "out/shots/0065-A-equipe-1440-equipe-wp-admin-media-new-php.png",
-     "element": "DIV.drag-drop-inside+P.upload-flash-bypass+P.max-upload-size@1522ms=0.0585"
+     "element": "DIV.drag-drop-inside+P.upload-flash-bypass+P.max-upload-size@1382ms=0.0482"
+    },
+    {
+     "page": "http://127.0.0.1:9439/wp-admin/media-new.php",
+     "role": "direction",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "direction (after approval) /wp-admin/media-new.php",
+     "shot": "out/shots/0078-A-direction-1440-direction-after-approval-wp-admin-media-new-php.png",
+     "element": "DIV.drag-drop-inside+P.upload-flash-bypass+P.max-upload-size@1218ms=0.0482"
+    }
+   ],
+   "count": 3,
+   "status": "REAL",
+   "reason": "WordPress admin screens shift after load: 0.02–0.07 (post-new 0.06–0.07 at 390, media-new 0.048, our Demandes detail 0.027 and Accès GM&E 0.022). Mostly core admin; the two plugin screens are ours.",
+   "ce": "CE-C4-001"
+  },
+  {
+   "key": "1544065e3b",
+   "check": "C4",
+   "option": "A",
+   "text": "CLS 0.027",
+   "note": "layout shift above 0.02",
+   "element": "DIV.asset-cols+TABLE.widefat.striped+P@2585ms=0.0271",
+   "occurrences": [
+    {
+     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-demandes&action=view&id=30",
+     "role": "equipe",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "C10 T4.2",
+     "shot": "out/shots/0061-A-equipe-1440-C10-T4-2.png",
+     "element": "DIV.asset-cols+TABLE.widefat.striped+P@2585ms=0.0271"
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "WordPress admin screens shift after load: 0.02–0.07 (post-new 0.06–0.07 at 390, media-new 0.048, our Demandes detail 0.027 and Accès GM&E 0.022). Mostly core admin; the two plugin screens are ours.",
+   "ce": "CE-C4-001"
   },
   {
-   "key": "5377bcd715",
+   "key": "60ca5c6079",
    "check": "C4",
    "option": "A",
-   "text": "CLS 0.022",
+   "text": "CLS 0.023",
    "note": "layout shift above 0.02",
-   "element": "DIV.wrap@2837ms=0.022",
+   "element": "TABLE.widefat.striped+P.description@2350ms=0.0226",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/index.php?msg=approve",
+     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-gme&msg=requested",
+     "role": "equipe",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "C10 T5.1",
+     "shot": "out/shots/0074-A-equipe-1440-C10-T5-1.png",
+     "element": "TABLE.widefat.striped+P.description@2350ms=0.0226"
+    }
+   ],
+   "count": 1,
+   "status": "REAL",
+   "reason": "WordPress admin screens shift after load: 0.02–0.07 (post-new 0.06–0.07 at 390, media-new 0.048, our Demandes detail 0.027 and Accès GM&E 0.022). Mostly core admin; the two plugin screens are ours.",
+   "ce": "CE-C4-001"
+  },
+  {
+   "key": "85ec0d3756",
+   "check": "C4",
+   "option": "A",
+   "text": "CLS 0.026",
+   "note": "layout shift above 0.02",
+   "element": "DIV.wrap@2807ms=0.0258",
+   "occurrences": [
+    {
+     "page": "http://127.0.0.1:9439/wp-admin/index.php?msg=approve",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
      "state": "C10 T5.2",
      "shot": "out/shots/0075-A-direction-1440-C10-T5-2.png",
-     "element": "DIV.wrap@2837ms=0.022"
+     "element": "DIV.wrap@2807ms=0.0258"
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "WordPress admin screens shift after load: 0.02–0.07 (post-new 0.06–0.07 at 390, media-new 0.048, our Demandes detail 0.027 and Accès GM&E 0.022). Mostly core admin; the two plugin screens are ours.",
+   "ce": "CE-C4-001"
   },
   {
-   "key": "79444b1878",
+   "key": "85bd950a3e",
    "check": "C4",
    "option": "A",
-   "text": "CLS 0.021",
+   "text": "CLS 0.024",
    "note": "layout shift above 0.02",
-   "element": "TABLE.widefat.striped+P.description@1589ms=0.0215",
+   "element": "TABLE.widefat.striped+P.description@1848ms=0.0244",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-gme",
+     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-gme",
      "role": "equipe",
      "width": 1440,
      "locale": "fr-FR",
      "state": "C10 T5.3",
      "shot": "out/shots/0089-A-equipe-1440-C10-T5-3.png",
-     "element": "TABLE.widefat.striped+P.description@1589ms=0.0215"
+     "element": "TABLE.widefat.striped+P.description@1848ms=0.0244"
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "WordPress admin screens shift after load: 0.02–0.07 (post-new 0.06–0.07 at 390, media-new 0.048, our Demandes detail 0.027 and Accès GM&E 0.022). Mostly core admin; the two plugin screens are ours.",
+   "ce": "CE-C4-001"
   },
   {
    "key": "da5b63ffbf",
@@ -7316,22 +6799,22 @@
    "option": "A",
    "text": "CLS 0.070",
    "note": "layout shift above 0.02",
-   "element": "TEXTAREA#content.wp-editor-area+DIV#submitdiv.postbox+TABLE#post-status-info@36518ms=0.0699",
+   "element": "TEXTAREA#content.wp-editor-area+DIV#submitdiv.postbox+TABLE#post-status-info@2285ms=0.0699",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/post-new.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/post-new.php?post_type=asset_congres",
      "role": "contributeur",
      "width": 390,
      "locale": "fr-FR",
      "state": "contributeur 390 /wp-admin/post-new.php?post_type=asset_congres",
      "shot": "out/shots/0096-A-contributeur-390-contributeur-390-wp-admin-post-new-php-post-type-asset-congr.png",
-     "element": "TEXTAREA#content.wp-editor-area+DIV#submitdiv.postbox+TABLE#post-status-info@36518ms=0.0699"
+     "element": "TEXTAREA#content.wp-editor-area+DIV#submitdiv.postbox+TABLE#post-status-info@2285ms=0.0699"
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "WordPress admin screens shift after load: 0.02–0.07 (post-new 0.06–0.07 at 390, media-new 0.048, our Demandes detail 0.027 and Accès GM&E 0.022). Mostly core admin; the two plugin screens are ours.",
+   "ce": "CE-C4-001"
   },
   {
    "key": "5280834967",
@@ -7339,31 +6822,31 @@
    "option": "A",
    "text": "CLS 0.061",
    "note": "layout shift above 0.02",
-   "element": "TEXTAREA#content.wp-editor-area+DIV#submitdiv.postbox+DIV.inside@2488ms=0.061",
+   "element": "TEXTAREA#content.wp-editor-area+DIV#submitdiv.postbox+DIV.inside@2208ms=0.061",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/post-new.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/post-new.php?post_type=asset_congres",
      "role": "equipe",
      "width": 390,
      "locale": "fr-FR",
      "state": "equipe 390 /wp-admin/post-new.php?post_type=asset_congres",
      "shot": "out/shots/0102-A-equipe-390-equipe-390-wp-admin-post-new-php-post-type-asset-congres.png",
-     "element": "TEXTAREA#content.wp-editor-area+DIV#submitdiv.postbox+DIV.inside@2488ms=0.061"
+     "element": "TEXTAREA#content.wp-editor-area+DIV#submitdiv.postbox+DIV.inside@2208ms=0.061"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/post-new.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/post-new.php?post_type=asset_congres",
      "role": "direction",
      "width": 390,
      "locale": "fr-FR",
      "state": "direction 390 /wp-admin/post-new.php?post_type=asset_congres",
      "shot": "out/shots/0113-A-direction-390-direction-390-wp-admin-post-new-php-post-type-asset-congres.png",
-     "element": "TEXTAREA#content.wp-editor-area+DIV#submitdiv.postbox+DIV.inside@2694ms=0.061"
+     "element": "TEXTAREA#content.wp-editor-area+DIV#submitdiv.postbox+DIV.inside@2031ms=0.061"
     }
    ],
    "count": 2,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "WordPress admin screens shift after load: 0.02–0.07 (post-new 0.06–0.07 at 390, media-new 0.048, our Demandes detail 0.027 and Accès GM&E 0.022). Mostly core admin; the two plugin screens are ours.",
+   "ce": "CE-C4-001"
   },
   {
    "key": "59adcfb4bd",
@@ -7384,31 +6867,8 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "58df5f7ea0",
-   "check": "C5",
-   "option": "A-public",
-   "text": "hue 30 (catalogue button « Rechercher » rgb(154, 71, 5)); hue 210 (search zero link rgb(13, 48, 72))",
-   "note": "2 accent colours",
-   "element": "",
-   "occurrences": [
-    {
-     "page": "A-public",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": ""
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
+   "status": "FALSE-POSITIVE",
+   "reason": "The extra families are WordPress core chrome (« Options de l’écran » tab, login page), not our buttons. Kept visible in the report; the plugin's own buttons are one family.",
    "ce": ""
   },
   {
@@ -7430,9 +6890,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "The console login page sets its heading in EB Garamond, every other console screen in Inter.",
+   "ce": "CE-C5-002"
   },
   {
    "key": "af434992f4",
@@ -7453,9 +6913,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Buttons on the concept pages (/ and /console/) are uppercase monospace, on the demos hub Inter sentence case: the five pages linked from the hub do not share one button style.",
+   "ce": "CE-C5-001"
   },
   {
    "key": "7897250496",
@@ -7466,7 +6926,7 @@
    "element": "",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9437%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-demandes&reauth=1",
+     "page": "http://127.0.0.1:9439/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9439%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-demandes&reauth=1",
      "role": "equipe",
      "width": 1440,
      "locale": "fr-FR",
@@ -7476,9 +6936,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "When the WordPress session ends, the reader is sent to wp-login.php?reauth=1 with no message saying the session expired.",
+   "ce": "CE-C7-003"
   },
   {
    "key": "ec6902d336",
@@ -7499,9 +6959,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "A form sent from an open tab after the session ended shows « Session requise »: it does not say the session expired, and the note typed is lost.",
+   "ce": "CE-C7-004"
   },
   {
    "key": "aa7b325632",
@@ -7522,9 +6982,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "After the session ends, the next click lands on the login page with no « Session expirée » message.",
+   "ce": "CE-C7-005"
   },
   {
    "key": "4005f28b67",
@@ -7545,9 +7005,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "The 03:00 UTC purge deletes sandboxes CREATED more than 24 h ago (data.js nightly, created_at < cutoff), so a trial in use at 03:00 that began the previous day is wiped mid-session. The rule is « idle for more than 24 h ».",
+   "ce": "CE-C7-006"
   },
   {
    "key": "751798daf3",
@@ -7568,9 +7028,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "The hub never says that each person's trial is private to their browser (B's own login page does).",
+   "ce": "CE-C7-001"
   },
   {
    "key": "ffdd3e5a8b",
@@ -7591,123 +7051,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "895b50665f",
-   "check": "C9",
-   "option": "A",
-   "text": "Test de lecture.",
-   "note": "test: « Test »",
-   "element": "table.widefat.striped > tbody > tr > td",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-gme-acces",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "direction /wp-admin/admin.php?page=asset-gme-acces",
-     "shot": "out/shots/0046-A-direction-1440-direction-wp-admin-admin-php-page-asset-gme-acces.png",
-     "element": "table.widefat.striped > tbody > tr > td"
-    },
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-gme-journal",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "direction /wp-admin/admin.php?page=asset-gme-journal",
-     "shot": "out/shots/0047-A-direction-1440-direction-wp-admin-admin-php-page-asset-gme-journal.png",
-     "element": "table.widefat.striped > tbody > tr > td"
-    },
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-gme-acces",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "direction (after approval) /wp-admin/admin.php?page=asset-gme-acces",
-     "shot": "out/shots/0086-A-direction-1440-direction-after-approval-wp-admin-admin-php-page-asset-gme-a.png",
-     "element": "table.widefat.striped > tbody > tr > td"
-    },
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-gme-journal",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "direction (after approval) /wp-admin/admin.php?page=asset-gme-journal",
-     "shot": "out/shots/0087-A-direction-1440-direction-after-approval-wp-admin-admin-php-page-asset-gme-j.png",
-     "element": "table.widefat.striped > tbody > tr > td"
-    },
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-gme-acces",
-     "role": "direction",
-     "width": 390,
-     "locale": "fr-FR",
-     "state": "direction 390 /wp-admin/admin.php?page=asset-gme-acces",
-     "shot": "out/shots/0119-A-direction-390-direction-390-wp-admin-admin-php-page-asset-gme-acces.png",
-     "element": "table.widefat.striped > tbody > tr > td"
-    },
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-gme-journal",
-     "role": "direction",
-     "width": 390,
-     "locale": "fr-FR",
-     "state": "direction 390 /wp-admin/admin.php?page=asset-gme-journal",
-     "shot": "out/shots/0120-A-direction-390-direction-390-wp-admin-admin-php-page-asset-gme-journal.png",
-     "element": "table.widefat.striped > tbody > tr > td"
-    }
-   ],
-   "count": 6,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "15ea91caac",
-   "check": "C10",
-   "option": "A",
-   "text": "T4 step 3: Export the list as a spreadsheet file (CSV). « Journal des notifications » shows the message your team would have received.",
-   "note": "exception: locator.click: Timeout 5000ms exceeded.",
-   "element": "instruction replay",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-demandes",
-     "role": "equipe",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "out/shots/0062-A-equipe-1440-C10-T4-3.png",
-     "element": "instruction replay"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "5292925de5",
-   "check": "C10",
-   "option": "A",
-   "text": "T5 step 1: Signed in as equipe, open « Accès GM&E »: the codes are hidden. Ask for access and give a reason.",
-   "note": "no reason field",
-   "element": "instruction replay",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-gme",
-     "role": "equipe",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "out/shots/0074-A-equipe-1440-C10-T5-1.png",
-     "element": "instruction replay"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "The hub says the sandboxes « reset themselves » but not when (B: nightly purge of trials older than 24 h; A: on reload).",
+   "ce": "CE-C7-002"
   },
   {
    "key": "795bc19783",
@@ -7718,7 +7064,7 @@
    "element": "instruction replay",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-gme",
+     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-gme",
      "role": "equipe",
      "width": 1440,
      "locale": "fr-FR",
@@ -7728,9 +7074,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Hub A task 5 step 3 says « the code is shown »; the reader must still click « Révéler le code » (one extra click the hub does not mention).",
+   "ce": "CE-C10-001"
   },
   {
    "key": "bcc4c7a2cc",
@@ -7751,9 +7097,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Hub B task 5 says open « Codes GM&E »; in the console that text is a non-clickable group heading, the link under it says « Codes ».",
+   "ce": "CE-C10-002"
   },
   {
    "key": "eea018a792",
@@ -7774,55 +7120,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "e6cce1fcd8",
-   "check": "D1",
-   "option": "A",
-   "text": "4. Receive, view, track and update enquiries: Works in the demo Statuses, history of changes, export to a spreadsheet (CSV).",
-   "note": "this run: C10 T4 FAIL · wp_demo/README.md: S4-F1, S4-F2, S4-F3, S4-F4, S4-F5, S4-F6, S4-E1, S4-H1",
-   "element": "table.cmp",
-   "occurrences": [
-    {
-     "page": "demo/#compare",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "table.cmp"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "b551d64dd6",
-   "check": "D1",
-   "option": "A",
-   "text": "5. GM&E codes protected: Works in the demo Codes hidden, access asked with a reason, 24-hour approval, a ",
-   "note": "this run: C10 T5 FAIL · wp_demo/README.md: S5-F1, S5-F2, S5-F3, S5-F4, S5-F5, S5-E1, S5-H1, S5-L1, S5-L2",
-   "element": "table.cmp",
-   "occurrences": [
-    {
-     "page": "demo/#compare",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "table.cmp"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Hub B task 5 step 3 says « the code is shown »; the reader must still click « Afficher le code ».",
+   "ce": "CE-C10-003"
   },
   {
    "key": "de74d55922",
@@ -7843,32 +7143,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "9266a5db64",
-   "check": "D1",
-   "option": "B",
-   "text": "Works in the Option B demo",
-   "note": "this run: G steps PASS · custom_demo/README.md extra_group.spec.mjs G-F1..G-X3 (README says « not deployed »)",
-   "element": "",
-   "occurrences": [
-    {
-     "page": "demo/#group",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": ""
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "The hub marks « Editing all the site’s pages » as « Works in the demo » for A, and says the admin link signs in as « direction »; direction gets 403 on Pages (edit.php?post_type=page).",
+   "ce": "CE-D1-001"
   },
   {
    "key": "a143491658",
@@ -7879,7 +7156,7 @@
    "element": "div.asset-cd.asset-catalogue > ul.asset-grid > li.asset-card > h2.asset-card__title",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 390,
      "locale": "fr-FR",
@@ -7888,7 +7165,7 @@
      "element": "div.asset-cd.asset-catalogue > ul.asset-grid > li.asset-card > h2.asset-card__title"
     },
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 1440,
      "locale": "fr-FR",
@@ -7897,7 +7174,7 @@
      "element": "div.asset-cd.asset-catalogue > ul.asset-grid > li.asset-card > h2.asset-card__title"
     },
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 1440,
      "locale": "en-GB",
@@ -7906,7 +7183,7 @@
      "element": "div.asset-cd.asset-catalogue > ul.asset-grid > li.asset-card > h2.asset-card__title"
     },
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 390,
      "locale": "en-GB",
@@ -7915,7 +7192,7 @@
      "element": "div.asset-cd.asset-catalogue > ul.asset-grid > li.asset-card > h2.asset-card__title"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -7924,7 +7201,7 @@
      "element": "tr#post-11 > th.title.column-title > strong"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -7933,7 +7210,7 @@
      "element": "tr#post-11 > th.title.column-title"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -7942,7 +7219,7 @@
      "element": "tr#post-11 > th.title.column-title > strong"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -7951,7 +7228,7 @@
      "element": "tr#post-11 > th.title.column-title"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-gme",
+     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-gme",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -7960,7 +7237,7 @@
      "element": "select#asset-gme-congres"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "contributeur",
      "width": 1440,
      "locale": "fr-FR",
@@ -7969,7 +7246,7 @@
      "element": "tr#post-11 > th.title.column-title > strong"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "contributeur",
      "width": 1440,
      "locale": "fr-FR",
@@ -7978,7 +7255,7 @@
      "element": "tr#post-11 > th.title.column-title"
     },
     {
-     "page": "http://127.0.0.1:9437/",
+     "page": "http://127.0.0.1:9439/",
      "role": "visiteur",
      "width": 1440,
      "locale": "fr-FR",
@@ -7987,7 +7264,7 @@
      "element": "div.asset-cd.asset-catalogue > ul.asset-grid > li.asset-card > h2.asset-card__title"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "equipe",
      "width": 1440,
      "locale": "fr-FR",
@@ -7996,7 +7273,7 @@
      "element": "tr#post-11 > th.title.column-title > strong"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "equipe",
      "width": 1440,
      "locale": "fr-FR",
@@ -8005,7 +7282,7 @@
      "element": "tr#post-11 > th.title.column-title"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -8014,7 +7291,7 @@
      "element": "tr#post-11 > th.title.column-title > strong"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -8023,7 +7300,7 @@
      "element": "tr#post-11 > th.title.column-title"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-gme",
+     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-gme",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -8032,7 +7309,7 @@
      "element": "select#asset-gme-congres"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "contributeur",
      "width": 390,
      "locale": "fr-FR",
@@ -8041,7 +7318,7 @@
      "element": "tr#post-11 > th.title.column-title > strong"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "contributeur",
      "width": 390,
      "locale": "fr-FR",
@@ -8050,7 +7327,7 @@
      "element": "tr#post-11 > th.title.column-title"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "equipe",
      "width": 390,
      "locale": "fr-FR",
@@ -8059,7 +7336,7 @@
      "element": "tr#post-11 > th.title.column-title > strong"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "equipe",
      "width": 390,
      "locale": "fr-FR",
@@ -8068,7 +7345,7 @@
      "element": "tr#post-11 > th.title.column-title"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 390,
      "locale": "fr-FR",
@@ -8077,7 +7354,7 @@
      "element": "tr#post-11 > th.title.column-title > strong"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 390,
      "locale": "fr-FR",
@@ -8086,7 +7363,7 @@
      "element": "tr#post-11 > th.title.column-title"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-gme",
+     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-gme",
      "role": "direction",
      "width": 390,
      "locale": "fr-FR",
@@ -8096,9 +7373,9 @@
     }
    ],
    "count": 24,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "A's seed has « Congrès européen de radiologie — exemple » in Vienna 24–28 Feb 2027: the real ECR's French name, city and season.",
+   "ce": "CE-D2-002"
   },
   {
    "key": "889783e068",
@@ -8109,7 +7386,7 @@
    "element": "th.title.column-title > div.row-actions > span.edit > a",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -8118,7 +7395,7 @@
      "element": "th.title.column-title > div.row-actions > span.edit > a"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -8127,7 +7404,7 @@
      "element": "th.title.column-title > div.row-actions > span.edit > a"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "equipe",
      "width": 1440,
      "locale": "fr-FR",
@@ -8136,7 +7413,7 @@
      "element": "th.title.column-title > div.row-actions > span.edit > a"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -8145,7 +7422,7 @@
      "element": "th.title.column-title > div.row-actions > span.edit > a"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "equipe",
      "width": 390,
      "locale": "fr-FR",
@@ -8154,7 +7431,7 @@
      "element": "th.title.column-title > div.row-actions > span.edit > a"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 390,
      "locale": "fr-FR",
@@ -8164,9 +7441,9 @@
     }
    ],
    "count": 6,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "A's seed has « Congrès européen de radiologie — exemple » in Vienna 24–28 Feb 2027: the real ECR's French name, city and season.",
+   "ce": "CE-D2-002"
   },
   {
    "key": "a3a1bac465",
@@ -8177,7 +7454,7 @@
    "element": "th.title.column-title > div.row-actions > span.inline.hide-if-no-js > button.button-link.editinline",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -8186,7 +7463,7 @@
      "element": "th.title.column-title > div.row-actions > span.inline.hide-if-no-js > button.button-link.editinline"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -8195,7 +7472,7 @@
      "element": "th.title.column-title > div.row-actions > span.inline.hide-if-no-js > button.button-link.editinline"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "equipe",
      "width": 1440,
      "locale": "fr-FR",
@@ -8204,7 +7481,7 @@
      "element": "th.title.column-title > div.row-actions > span.inline.hide-if-no-js > button.button-link.editinline"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -8213,7 +7490,7 @@
      "element": "th.title.column-title > div.row-actions > span.inline.hide-if-no-js > button.button-link.editinline"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "equipe",
      "width": 390,
      "locale": "fr-FR",
@@ -8222,7 +7499,7 @@
      "element": "th.title.column-title > div.row-actions > span.inline.hide-if-no-js > button.button-link.editinline"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 390,
      "locale": "fr-FR",
@@ -8232,9 +7509,9 @@
     }
    ],
    "count": 6,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "A's seed has « Congrès européen de radiologie — exemple » in Vienna 24–28 Feb 2027: the real ECR's French name, city and season.",
+   "ce": "CE-D2-002"
   },
   {
    "key": "6df04364bc",
@@ -8245,7 +7522,7 @@
    "element": "th.title.column-title > div.row-actions > span.trash > a.submitdelete",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -8254,7 +7531,7 @@
      "element": "th.title.column-title > div.row-actions > span.trash > a.submitdelete"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -8263,7 +7540,7 @@
      "element": "th.title.column-title > div.row-actions > span.trash > a.submitdelete"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "equipe",
      "width": 1440,
      "locale": "fr-FR",
@@ -8272,7 +7549,7 @@
      "element": "th.title.column-title > div.row-actions > span.trash > a.submitdelete"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -8281,7 +7558,7 @@
      "element": "th.title.column-title > div.row-actions > span.trash > a.submitdelete"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "equipe",
      "width": 390,
      "locale": "fr-FR",
@@ -8290,7 +7567,7 @@
      "element": "th.title.column-title > div.row-actions > span.trash > a.submitdelete"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 390,
      "locale": "fr-FR",
@@ -8300,9 +7577,9 @@
     }
    ],
    "count": 6,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "A's seed has « Congrès européen de radiologie — exemple » in Vienna 24–28 Feb 2027: the real ECR's French name, city and season.",
+   "ce": "CE-D2-002"
   },
   {
    "key": "a6f8af3819",
@@ -8313,7 +7590,7 @@
    "element": "th.title.column-title > div.row-actions > span.view > a",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -8322,7 +7599,7 @@
      "element": "th.title.column-title > div.row-actions > span.view > a"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -8331,7 +7608,7 @@
      "element": "th.title.column-title > div.row-actions > span.view > a"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "contributeur",
      "width": 1440,
      "locale": "fr-FR",
@@ -8340,7 +7617,7 @@
      "element": "th.title.column-title > div.row-actions > span.view > a"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "equipe",
      "width": 1440,
      "locale": "fr-FR",
@@ -8349,7 +7626,7 @@
      "element": "th.title.column-title > div.row-actions > span.view > a"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 1440,
      "locale": "fr-FR",
@@ -8358,7 +7635,7 @@
      "element": "th.title.column-title > div.row-actions > span.view > a"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "contributeur",
      "width": 390,
      "locale": "fr-FR",
@@ -8367,7 +7644,7 @@
      "element": "th.title.column-title > div.row-actions > span.view > a"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "equipe",
      "width": 390,
      "locale": "fr-FR",
@@ -8376,7 +7653,7 @@
      "element": "th.title.column-title > div.row-actions > span.view > a"
     },
     {
-     "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
      "role": "direction",
      "width": 390,
      "locale": "fr-FR",
@@ -8386,9 +7663,9 @@
     }
    ],
    "count": 8,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "A's seed has « Congrès européen de radiologie — exemple » in Vienna 24–28 Feb 2027: the real ECR's French name, city and season.",
+   "ce": "CE-D2-002"
   },
   {
    "key": "b7d50bc29e",
@@ -8720,9 +7997,9 @@
     }
    ],
    "count": 33,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "B's seed has « Congrès européen de radiologie — exemple » (Vienna, 24–28 Feb 2027, the real ECR) and « Congrès mondial de neurologie — exemple » (WCN).",
+   "ce": "CE-D2-003"
   },
   {
    "key": "c3cf241814",
@@ -8833,9 +8110,9 @@
     }
    ],
    "count": 11,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "B's seed has « Congrès européen de radiologie — exemple » (Vienna, 24–28 Feb 2027, the real ECR) and « Congrès mondial de neurologie — exemple » (WCN).",
+   "ce": "CE-D2-003"
   },
   {
    "key": "366f3a475a",
@@ -8892,9 +8169,9 @@
     }
    ],
    "count": 5,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Seeded phones 01 23 45 67 01–06 are ordinary assignable Paris numbers, not in the ARCEP fiction range (01 99 00 xx xx) and not masked; they show in enquiries and the notification log.",
+   "ce": "CE-D2-005"
   },
   {
    "key": "758a709e2b",
@@ -8951,9 +8228,9 @@
     }
    ],
    "count": 5,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Seeded phones 01 23 45 67 01–06 are ordinary assignable Paris numbers, not in the ARCEP fiction range (01 99 00 xx xx) and not masked; they show in enquiries and the notification log.",
+   "ce": "CE-D2-005"
   },
   {
    "key": "25aa23b767",
@@ -9010,9 +8287,9 @@
     }
    ],
    "count": 5,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "B's seed has « Congrès européen de radiologie — exemple » (Vienna, 24–28 Feb 2027, the real ECR) and « Congrès mondial de neurologie — exemple » (WCN).",
+   "ce": "CE-D2-003"
   },
   {
    "key": "9d67d05a8a",
@@ -9069,9 +8346,9 @@
     }
    ],
    "count": 5,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Seeded phones 01 23 45 67 01–06 are ordinary assignable Paris numbers, not in the ARCEP fiction range (01 99 00 xx xx) and not masked; they show in enquiries and the notification log.",
+   "ce": "CE-D2-005"
   },
   {
    "key": "d729e5e7e8",
@@ -9128,9 +8405,9 @@
     }
    ],
    "count": 5,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "B's seed has « Congrès européen de radiologie — exemple » (Vienna, 24–28 Feb 2027, the real ECR) and « Congrès mondial de neurologie — exemple » (WCN).",
+   "ce": "CE-D2-003"
   },
   {
    "key": "4128df0104",
@@ -9187,9 +8464,9 @@
     }
    ],
    "count": 5,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Seeded phones 01 23 45 67 01–06 are ordinary assignable Paris numbers, not in the ARCEP fiction range (01 99 00 xx xx) and not masked; they show in enquiries and the notification log.",
+   "ce": "CE-D2-005"
   },
   {
    "key": "add580994c",
@@ -9246,9 +8523,9 @@
     }
    ],
    "count": 5,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Seeded phones 01 23 45 67 01–06 are ordinary assignable Paris numbers, not in the ARCEP fiction range (01 99 00 xx xx) and not masked; they show in enquiries and the notification log.",
+   "ce": "CE-D2-005"
   },
   {
    "key": "dcd5757ebb",
@@ -9305,9 +8582,9 @@
     }
    ],
    "count": 5,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Seeded phones 01 23 45 67 01–06 are ordinary assignable Paris numbers, not in the ARCEP fiction range (01 99 00 xx xx) and not masked; they show in enquiries and the notification log.",
+   "ce": "CE-D2-005"
   },
   {
    "key": "40ad4ededf",
@@ -9328,9 +8605,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Seeded phones 01 23 45 67 01–06 are ordinary assignable Paris numbers, not in the ARCEP fiction range (01 99 00 xx xx) and not masked; they show in enquiries and the notification log.",
+   "ce": "CE-D2-005"
   },
   {
    "key": "d9c61236fd",
@@ -9360,9 +8637,9 @@
     }
    ],
    "count": 2,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Seeded phones 01 23 45 67 01–06 are ordinary assignable Paris numbers, not in the ARCEP fiction range (01 99 00 xx xx) and not masked; they show in enquiries and the notification log.",
+   "ce": "CE-D2-005"
   },
   {
    "key": "b2d6ade1c6",
@@ -9383,9 +8660,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "The e-mail error message gives « prenom.nom@societe.fr » as the example: societe.fr is a real domain; use @example.com like the rest of the demo.",
+   "ce": "CE-D2-006"
   },
   {
    "key": "0f9810b903",
@@ -9406,9 +8683,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "B's seed has « Congrès européen de radiologie — exemple » (Vienna, 24–28 Feb 2027, the real ECR) and « Congrès mondial de neurologie — exemple » (WCN).",
+   "ce": "CE-D2-003"
   },
   {
    "key": "d8d07bb291",
@@ -9429,9 +8706,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "The e-mail error message gives « prenom.nom@societe.fr » as the example: societe.fr is a real domain; use @example.com like the rest of the demo.",
+   "ce": "CE-D2-006"
   },
   {
    "key": "d4567b5cf3",
@@ -9452,9 +8729,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "B's seed has « Congrès européen de radiologie — exemple » (Vienna, 24–28 Feb 2027, the real ECR) and « Congrès mondial de neurologie — exemple » (WCN).",
+   "ce": "CE-D2-003"
   },
   {
    "key": "f5a5a12b6f",
@@ -9484,9 +8761,9 @@
     }
    ],
    "count": 2,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "B's seed has « Congrès européen de radiologie — exemple » (Vienna, 24–28 Feb 2027, the real ECR) and « Congrès mondial de neurologie — exemple » (WCN).",
+   "ce": "CE-D2-003"
   },
   {
    "key": "127fb4fb39",
@@ -9516,9 +8793,9 @@
     }
    ],
    "count": 2,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "B's seed has « Congrès européen de radiologie — exemple » (Vienna, 24–28 Feb 2027, the real ECR) and « Congrès mondial de neurologie — exemple » (WCN).",
+   "ce": "CE-D2-003"
   },
   {
    "key": "abee61f38a",
@@ -9539,9 +8816,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Seeded phones 01 23 45 67 01–06 are ordinary assignable Paris numbers, not in the ARCEP fiction range (01 99 00 xx xx) and not masked; they show in enquiries and the notification log.",
+   "ce": "CE-D2-005"
   },
   {
    "key": "760a3afa82",
@@ -9625,9 +8902,9 @@
     }
    ],
    "count": 8,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Concept pages list « Congrès européen de radiologie — exemple » (the French name of ECR, Vienna, late February: the real congress) and « Congrès mondial de neurologie » (WCN). « — exemple » does not make the name fictional.",
+   "ce": "CE-D2-001"
   },
   {
    "key": "8722218e55",
@@ -9675,9 +8952,9 @@
     }
    ],
    "count": 4,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Concept pages list « Congrès européen de radiologie — exemple » (the French name of ECR, Vienna, late February: the real congress) and « Congrès mondial de neurologie » (WCN). « — exemple » does not make the name fictional.",
+   "ce": "CE-D2-001"
   },
   {
    "key": "4fd467697d",
@@ -9725,9 +9002,9 @@
     }
    ],
    "count": 4,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "The concept page shows ASSET's phone 01 55 57 29 00; the address is traced (advisory/src/part1.md:76, RFP letterhead) but the phone is not traced to any source in the repository. Trace or remove.",
+   "ce": "CE-D2-004"
   },
   {
    "key": "04559125b8",
@@ -9775,9 +9052,9 @@
     }
    ],
    "count": 4,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "The concept page shows ASSET's phone 01 55 57 29 00; the address is traced (advisory/src/part1.md:76, RFP letterhead) but the phone is not traced to any source in the repository. Trace or remove.",
+   "ce": "CE-D2-004"
   },
   {
    "key": "9e825e84b8",
@@ -9798,50 +9075,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "b0d269a16f",
-   "check": "D4",
-   "option": "A",
-   "text": "DEMO-GME-XXXX",
-   "note": "GM&E code present without an approved reveal",
-   "element": "DOM (text/attributes/inputs)",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-gme",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "direction /wp-admin/admin.php?page=asset-gme",
-     "shot": "out/shots/0045-A-direction-1440-direction-wp-admin-admin-php-page-asset-gme.png",
-     "element": "DOM (text/attributes/inputs)"
-    },
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-gme",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "direction (after approval) /wp-admin/admin.php?page=asset-gme",
-     "shot": "out/shots/0085-A-direction-1440-direction-after-approval-wp-admin-admin-php-page-asset-gme.png",
-     "element": "DOM (text/attributes/inputs)"
-    },
-    {
-     "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-gme",
-     "role": "direction",
-     "width": 390,
-     "locale": "fr-FR",
-     "state": "direction 390 /wp-admin/admin.php?page=asset-gme",
-     "shot": "out/shots/0118-A-direction-390-direction-390-wp-admin-admin-php-page-asset-gme.png",
-     "element": "DOM (text/attributes/inputs)"
-    }
-   ],
-   "count": 3,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "« Try it in five minutes » is a time promise with no source and no measurement (the robot replay alone took 82 s for B, without reading).",
+   "ce": "CE-D3-001"
   }
  ],
  "replay": {
@@ -9854,7 +9090,7 @@
     "ok": true,
     "why": "",
     "clicks": 1,
-    "page": "http://127.0.0.1:9437/wp-admin/index.php",
+    "page": "http://127.0.0.1:9439/wp-admin/index.php",
     "role": "direction",
     "shot": "out/shots/0033-A-direction-1440-C10-T1-1.png",
     "extra": "local: signed in as direction through wp-login (hosted link checked separately)"
@@ -9867,7 +9103,7 @@
     "ok": true,
     "why": "",
     "clicks": 2,
-    "page": "http://127.0.0.1:9437/wp-admin/post-new.php?post_type=asset_congres",
+    "page": "http://127.0.0.1:9439/wp-admin/post-new.php?post_type=asset_congres",
     "role": "direction",
     "shot": "out/shots/0034-A-direction-1440-C10-T1-2.png",
     "extra": ""
@@ -9880,7 +9116,7 @@
     "ok": true,
     "why": "",
     "clicks": 2,
-    "page": "http://127.0.0.1:9437/wp-admin/edit.php?post_type=asset_congres",
+    "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
     "role": "direction",
     "shot": "out/shots/0035-A-direction-1440-C10-T1-3.png",
     "extra": ""
@@ -9893,7 +9129,7 @@
     "ok": true,
     "why": "",
     "clicks": 0,
-    "page": "http://127.0.0.1:9437/wp-admin/post-new.php?post_type=asset_congres",
+    "page": "http://127.0.0.1:9439/wp-admin/post-new.php?post_type=asset_congres",
     "role": "contributeur",
     "shot": "",
     "extra": ""
@@ -9906,7 +9142,7 @@
     "ok": true,
     "why": "",
     "clicks": 0,
-    "page": "http://127.0.0.1:9437/",
+    "page": "http://127.0.0.1:9439/",
     "role": "visiteur",
     "shot": "out/shots/0054-A-visiteur-1440-C10-T2-1.png",
     "extra": "local: visitor site root"
@@ -9919,7 +9155,7 @@
     "ok": true,
     "why": "",
     "clicks": 1,
-    "page": "http://127.0.0.1:9437/?q=cardiologie&discipline&pays&mois&tri=date_asc",
+    "page": "http://127.0.0.1:9439/?q=cardiologie&discipline&pays&mois&tri=date_asc",
     "role": "visiteur",
     "shot": "out/shots/0055-A-visiteur-1440-C10-T2-2.png",
     "extra": ""
@@ -9932,7 +9168,7 @@
     "ok": true,
     "why": "",
     "clicks": 1,
-    "page": "http://127.0.0.1:9437/congres/congres-europeen-de-cardiologie-exemple/",
+    "page": "http://127.0.0.1:9439/congres/congres-europeen-de-cardiologie-exemple/",
     "role": "visiteur",
     "shot": "out/shots/0056-A-visiteur-1440-C10-T2-3.png",
     "extra": ""
@@ -9945,7 +9181,7 @@
     "ok": true,
     "why": "",
     "clicks": 0,
-    "page": "http://127.0.0.1:9437/congres/congres-europeen-de-cardiologie-exemple/",
+    "page": "http://127.0.0.1:9439/congres/congres-europeen-de-cardiologie-exemple/",
     "role": "visiteur",
     "shot": "out/shots/0057-A-visiteur-1440-C10-T3-1.png",
     "extra": ""
@@ -9958,7 +9194,7 @@
     "ok": true,
     "why": "",
     "clicks": 0,
-    "page": "http://127.0.0.1:9437/congres/congres-europeen-de-cardiologie-exemple/",
+    "page": "http://127.0.0.1:9439/congres/congres-europeen-de-cardiologie-exemple/",
     "role": "visiteur",
     "shot": "out/shots/0058-A-visiteur-1440-C10-T3-2.png",
     "extra": ""
@@ -9971,7 +9207,7 @@
     "ok": true,
     "why": "",
     "clicks": 1,
-    "page": "http://127.0.0.1:9437/congres/congres-europeen-de-cardiologie-exemple/?asset_ok=440962b6c0763690303421fe15c390b7#devis",
+    "page": "http://127.0.0.1:9439/congres/congres-europeen-de-cardiologie-exemple/?asset_ok=9d7a15751f8c376dd1730ce8bd1aca78#devis",
     "role": "visiteur",
     "shot": "out/shots/0059-A-visiteur-1440-C10-T3-3.png",
     "extra": ""
@@ -9984,7 +9220,7 @@
     "ok": true,
     "why": "",
     "clicks": 3,
-    "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-demandes",
+    "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-demandes",
     "role": "equipe",
     "shot": "out/shots/0060-A-equipe-1440-C10-T4-1.png",
     "extra": ""
@@ -9997,7 +9233,7 @@
     "ok": true,
     "why": "",
     "clicks": 3,
-    "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-demandes&action=view&id=41",
+    "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-demandes&action=view&id=30",
     "role": "equipe",
     "shot": "out/shots/0061-A-equipe-1440-C10-T4-2.png",
     "extra": ""
@@ -10007,10 +9243,10 @@
     "task": "T4",
     "n": 3,
     "text": "Export the list as a spreadsheet file (CSV). « Journal des notifications » shows the message your team would have received.",
-    "ok": false,
-    "why": "exception: locator.click: Timeout 5000ms exceeded.",
-    "clicks": 2,
-    "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-demandes",
+    "ok": true,
+    "why": "",
+    "clicks": 3,
+    "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-notifications",
     "role": "equipe",
     "shot": "out/shots/0062-A-equipe-1440-C10-T4-3.png",
     "extra": ""
@@ -10020,10 +9256,10 @@
     "task": "T5",
     "n": 1,
     "text": "Signed in as equipe, open « Accès GM&E »: the codes are hidden. Ask for access and give a reason.",
-    "ok": false,
-    "why": "no reason field",
-    "clicks": 1,
-    "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-gme",
+    "ok": true,
+    "why": "",
+    "clicks": 2,
+    "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-gme&msg=requested",
     "role": "equipe",
     "shot": "out/shots/0074-A-equipe-1440-C10-T5-1.png",
     "extra": ""
@@ -10036,7 +9272,7 @@
     "ok": true,
     "why": "",
     "clicks": 3,
-    "page": "http://127.0.0.1:9437/wp-admin/index.php?msg=approve",
+    "page": "http://127.0.0.1:9439/wp-admin/index.php?msg=approve",
     "role": "direction",
     "shot": "out/shots/0075-A-direction-1440-C10-T5-2.png",
     "extra": ""
@@ -10049,7 +9285,7 @@
     "ok": false,
     "why": "hub says « the code is shown » after signing in; the reader must still click « Révéler le code »",
     "clicks": 4,
-    "page": "http://127.0.0.1:9437/wp-admin/admin.php?page=asset-gme",
+    "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-gme",
     "role": "equipe",
     "shot": "out/shots/0089-A-equipe-1440-C10-T5-3.png",
     "extra": "reveal"
@@ -10456,8 +9692,8 @@
    "option": "A",
    "cell": "Works in the demo Statuses, history of changes, export to a spreadsheet (CSV).",
    "works": true,
-   "ok": false,
-   "evidence": "this run: C10 T4 FAIL · wp_demo/README.md: S4-F1, S4-F2, S4-F3, S4-F4, S4-F5, S4-F6, S4-E1, S4-H1"
+   "ok": true,
+   "evidence": "this run: C10 T4 functional PASS · wp_demo/README.md: S4-F1, S4-F2, S4-F3, S4-F4, S4-F5, S4-F6, S4-E1, S4-H1"
   },
   {
    "fn": "4. Receive, view, track and update enquiries",
@@ -10472,8 +9708,8 @@
    "option": "A",
    "cell": "Works in the demo Codes hidden, access asked with a reason, 24-hour approval, a record of every display.",
    "works": true,
-   "ok": false,
-   "evidence": "this run: C10 T5 FAIL · wp_demo/README.md: S5-F1, S5-F2, S5-F3, S5-F4, S5-F5, S5-E1, S5-H1, S5-L1, S5-L2"
+   "ok": true,
+   "evidence": "this run: C10 T5 functional PASS · wp_demo/README.md: S5-F1, S5-F2, S5-F3, S5-F4, S5-F5, S5-E1, S5-H1, S5-L1, S5-L2"
   },
   {
    "fn": "5. GM&E codes protected",
@@ -10584,7 +9820,7 @@
    "option": "B",
    "cell": "Works in the Option B demo",
    "works": true,
-   "ok": false,
+   "ok": true,
    "evidence": "this run: G steps PASS · custom_demo/README.md extra_group.spec.mjs G-F1..G-X3 (README says « not deployed »)"
   }
  ],
@@ -10741,7 +9977,9 @@
   },
   {
    "term": "ask for access",
-   "A": [],
+   "A": [
+    "Demander l’accès"
+   ],
    "B": [
     "Demander l’accès"
    ],
@@ -10894,8 +10132,7 @@
     "Inter | radius 6px"
    ],
    "accents": [
-    "hue 30",
-    "hue 210"
+    "hue 30"
    ]
   },
   "A-admin": {
@@ -11008,7 +10245,7 @@
     "w": 354,
     "vw": 390
    },
-   "frames": 66
+   "frames": 65
   }
  ],
  "midnight": {
@@ -11026,7 +10263,7 @@
   ]
  },
  "notes": [
-  "D4 reveal state C10 T5.3 (equipe) shows DEMO-GME-4KQ7",
+  "D4 reveal state C10 T5.3 (equipe) shows DEMO-GME-8TZ2",
   "D4 reveal state B equipe reveal (equipe) shows DEMO-GME-4821",
   "D4 reveal state C10 T5.3 (equipe) shows DEMO-GME-4821",
   "traveller phone sandbox cookie: DQE5szIuXdv7E1q1s6qHiq_p"

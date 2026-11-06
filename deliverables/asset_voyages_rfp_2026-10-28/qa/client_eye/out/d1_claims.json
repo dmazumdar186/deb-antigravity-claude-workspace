@@ -52,8 +52,8 @@
   "option": "A",
   "cell": "Works in the demo Statuses, history of changes, export to a spreadsheet (CSV).",
   "works": true,
-  "ok": false,
-  "evidence": "this run: C10 T4 FAIL · wp_demo/README.md: S4-F1, S4-F2, S4-F3, S4-F4, S4-F5, S4-F6, S4-E1, S4-H1"
+  "ok": true,
+  "evidence": "this run: C10 T4 functional PASS · wp_demo/README.md: S4-F1, S4-F2, S4-F3, S4-F4, S4-F5, S4-F6, S4-E1, S4-H1"
  },
  {
   "fn": "4. Receive, view, track and update enquiries",
@@ -68,8 +68,8 @@
   "option": "A",
   "cell": "Works in the demo Codes hidden, access asked with a reason, 24-hour approval, a record of every display.",
   "works": true,
-  "ok": false,
-  "evidence": "this run: C10 T5 FAIL · wp_demo/README.md: S5-F1, S5-F2, S5-F3, S5-F4, S5-F5, S5-E1, S5-H1, S5-L1, S5-L2"
+  "ok": true,
+  "evidence": "this run: C10 T5 functional PASS · wp_demo/README.md: S5-F1, S5-F2, S5-F3, S5-F4, S5-F5, S5-E1, S5-H1, S5-L1, S5-L2"
  },
  {
   "fn": "5. GM&E codes protected",
@@ -180,7 +180,7 @@
   "option": "B",
   "cell": "Works in the Option B demo",
   "works": true,
-  "ok": false,
+  "ok": true,
   "evidence": "this run: G steps PASS · custom_demo/README.md extra_group.spec.mjs G-F1..G-X3 (README says « not deployed »)"
  }
 ]

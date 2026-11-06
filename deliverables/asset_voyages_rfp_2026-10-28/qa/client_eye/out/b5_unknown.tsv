@@ -4,17 +4,16 @@ Amsterdam	fr	A	32	Amsterdam, Pays-Bas
 Band	fr	A	10	Assignez un terme parent pour créer une hiérarchie. Le terme Jazz, par exemple, serait le parent de Bebop et Big Band.
 Bebop	fr	A	10	Assignez un terme parent pour créer une hiérarchie. Le terme Jazz, par exemple, serait le parent de Bebop et Big Band.
 Berlin	fr	A	16	Berlin, Allemagne
-Bernard	fr	A	8	Julien Bernard julien.bernard @example.com Laboratoire Fictif SA
+Bernard	fr	A	7	Julien Bernard julien.bernard @example.com Laboratoire Fictif SA
 Big	fr	A	10	Assignez un terme parent pour créer une hiérarchie. Le terme Jazz, par exemple, serait le parent de Bebop et Big Band.
 Bruxelles	fr	A	8	Bruxelles
-Camille	fr	A	27	Camille Martin camille.martin @example.com Clinique Exemple
+Camille	fr	A	28	Dernière demande : DV-2026-0006 · Camille Martin · Congrès européen de cardiologie — exemple
 Chicago	fr	A	28	Chicago, États-Unis
-cjf	fr	A	37	Congrès de relecture 5cjf — exemple — Brouillon
 cliquez	fr	A	2	Rédigez un congrès puis cliquez sur « Soumettre pour relecture » : la Direction le publie.
 diabetologie	fr	A	3	diabetologie
-Dubois	fr	A	52	Dernière demande : DV-2026-0007 · Claire Dubois (exemple) · Congrès européen de cardiologie — exemple
-démo	fr	A	216	Bonjour, Direction (démo)
-e-mail	fr	A	268	Toutes les données sont fictives : congrès, personnes, adresses e-mail en @example.com et codes GM&E factices. Aucun e-m
+Dubois	fr	A	40	Sophie Dubois sophie.dubois @example.com
+démo	fr	A	193	Bonjour, Direction (démo)
+e-mail	fr	A	267	Toutes les données sont fictives : congrès, personnes, adresses e-mail en @example.com et codes GM&E factices. Aucun e-m
 English	fr	A	12	English (United States)
 equipe	fr	A	2	equipe
 etats-unis	fr	A	3	etats-unis
@@ -24,33 +23,34 @@ Genève	fr	A	8	Genève
 Gravatar	fr	A	7	Vous pouvez changer votre image de profil sur Gravatar.
 hematologie	fr	A	3	hematologie
 https	fr	A	9	https://
-Hugo	fr	A	20	Hugo Laurent hugo.laurent @example.com Cabinet Exemple
-Julien	fr	A	8	Julien Bernard julien.bernard @example.com Laboratoire Fictif SA
-Laurent	fr	A	27	Hugo Laurent hugo.laurent @example.com Cabinet Exemple
+Hugo	fr	A	19	Hugo Laurent hugo.laurent @example.com Cabinet Exemple
+Julien	fr	A	7	Julien Bernard julien.bernard @example.com Laboratoire Fictif SA
+Laurent	fr	A	26	Hugo Laurent hugo.laurent @example.com Cabinet Exemple
 Lisbonne	fr	A	41	Lisbonne, Portugal
 Londres	fr	A	16	Londres, Royaume-Uni
-Lyon	fr	A	63	Lyon, France
-Léa	fr	A	29	Léa Moreau lea.moreau @example.com
+Lyon	fr	A	62	Lyon, France
+Léa	fr	A	28	Léa Moreau lea.moreau @example.com
 Madrid	fr	A	51	Madrid, Espagne
-Marseille	fr	A	96	Marseille, France
-Martin	fr	A	151	Camille Martin camille.martin @example.com Clinique Exemple
-Moreau	fr	A	30	Léa Moreau lea.moreau @example.com
+Marseille	fr	A	95	Marseille, France
+Martin	fr	A	152	Dernière demande : DV-2026-0006 · Camille Martin · Congrès européen de cardiologie — exemple
+Moreau	fr	A	29	Léa Moreau lea.moreau @example.com
 multi-fichiers	fr	A	5	Vous utilisez l’outil de téléversement multi-fichiers. Si vous rencontrez des problèmes, essayez plutôt la méthode du na
-Nantes	fr	A	22	Nantes
-Nice	fr	A	22	Nice
-Oncologie	fr	A	456	Oncologie
-Pneumologie	fr	A	202	Pneumologie
+Nantes	fr	A	21	Nantes
+Nice	fr	A	14	Nice
+Oncologie	fr	A	447	Oncologie
+pmmo	fr	A	37	Congrès de relecture pmmo — exemple — Brouillon
+Pneumologie	fr	A	201	Pneumologie
 Prévisualiser	fr	A	9	Prévisualiser
 Pseudo	fr	A	7	Pseudo (nécessaire)
 recontacte	fr	A	3	Un conseiller ASSET vous recontacte avec une proposition (démonstration : aucun e-mail n’est réellement envoyé).
 rhumatologie	fr	A	86	Congrès de rhumatologie, brouillon — exemple — Brouillon
 single-asset	fr	A	9	single-asset_congres
 Slug	fr	A	32	Slug
-Sophie	fr	A	18	Sophie Dubois sophie.dubois @example.com
+Sophie	fr	A	17	Sophie Dubois sophie.dubois @example.com
 States	fr	A	12	English (United States)
 suiteModifier	fr	A	6	Publier tout de suiteModifier
-Thomas	fr	A	8	Thomas Petit thomas.petit @example.com Groupe hospitalier Exemple
-Toulouse	fr	A	19	Toulouse
+Thomas	fr	A	7	Thomas Petit thomas.petit @example.com Groupe hospitalier Exemple
+Toulouse	fr	A	18	Toulouse
 téléversement	fr	A	10	Vous utilisez l’outil de téléversement multi-fichiers. Si vous rencontrez des problèmes, essayez plutôt la méthode du na
 Téléverser	fr	A	10	Téléverser un média
 United	fr	A	12	English (United States)
