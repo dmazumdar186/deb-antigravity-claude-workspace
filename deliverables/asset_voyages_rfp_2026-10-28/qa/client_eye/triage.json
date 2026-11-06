@@ -2,6 +2,14 @@
  "_doc": "Triage of the client-eye gate findings (run 2026-11-06). Rules are matched in order on check (+ option) and a regex over « text || note || element || pages ». REAL = a defect in our product or our text. FALSE-POSITIVE = the rule was wrong; the reason names the tightening made in the gate code. UNVERIFIED = could not be decided from this environment (listed under « could not check »). « ce » groups findings that are one defect.",
  "rules": [
   {
+   "check": "D1",
+   "option": "A",
+   "match": "GM&E codes protected",
+   "status": "REAL",
+   "ce": "CE-C10-R2-001",
+   "reason": "R2: same defect as CE-C10-R2-001 (C10 T5 fails on A), shown in the hub comparison table."
+  },
+  {
    "check": "C4",
    "option": "A",
    "match": "CLS",
@@ -65,8 +73,9 @@
    "check": "C10",
    "option": "A",
    "match": "label « Codes » not visible",
-   "status": "FALSE-POSITIVE",
-   "reason": "R2: gate artefact. The C2 probe clicked WordPress's « Replier le menu », which persists per user and folded the admin menu for the next sign-in. Tightened: that button is no longer probed."
+   "status": "REAL",
+   "reason": "R2 NEW (verified on shot 0077): hub A task 5 steps 1 and 3 say « Codes GM&E › Codes », but Équipe's WordPress menu shows only « Codes GM&E » (WordPress hides a one-item submenu), so there is no « Codes » item to open. Reword the hub for A, or add a second visible sub-item.",
+   "ce": "CE-C10-R2-001"
   },
   {
    "check": "A2",
