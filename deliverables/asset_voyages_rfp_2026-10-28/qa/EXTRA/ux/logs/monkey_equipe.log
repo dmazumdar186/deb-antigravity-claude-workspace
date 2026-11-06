@@ -1,0 +1,316 @@
+# role=equipe seed=20261106 n=300 base=https://asset-voyages-demo-preview.debanjan186.workers.dev
+1	/console/demandes/1/groupe	click « Exporter pour cotation (CSV) » /console/demandes/1/groupe.csv csv 200
+2	/console/demandes/1/groupe	submit « Révoquer le lien »
+3	/console/demandes/1/groupe	fill seuil = ""
+4	/console/demandes/1/groupe?err=seuil	goto /console/demandes/1/groupe?err=seuil
+5	/console/demandes/1/groupe?err=seuil	fill seuil = "@SUM(1)"
+6	/console/demandes/1/groupe?err=seuil	fill seuil = ""
+7	/console/demandes/1	click « Demande » /console/demandes/1
+8	/console/demandes/1	fill:none
+9	/console/demandes/1	fill:none
+10	/console/demandes/1	fill:none
+11	/console/demandes/1	fill:none
+12	/console/demandes/1	fill:none
+13	/console/demandes/1	fill:none
+14	/console/demandes/1/groupe?err=seuil	back
+15	/console/demandes/1/groupe?err=seuil	click « Enregistrer » 
+16	/console/demandes/1/groupe?ok=seuil	click « Enregistrer » 
+17	/console/demandes/1/groupe?ok=seuil	reload
+18	/console/demandes/1/groupe?ok=seuil	fill seuil = "-5"
+19	/console/demandes/1/groupe?ok=seuil	fill seuil = "=HYPERLINK(\"http://evil\",\"x\")"
+20	/console/demandes/1/groupe?ok=seuil	fill seuil = "x@y.fr"
+21	/console	click « ASSET
+Console » /console
+22	/console	click « ASSET
+Console » /console
+23	/console	submit:none
+24	/console/demandes?statut=nouvelle	click « 2
+Nouvelles » /console/demandes?statut=nouvelle
+25	/console/demandes?statut=nouvelle&q=	submit « Rechercher »
+26	/console/demandes?statut=devis	click « Devis envoyé (1) » /console/demandes?statut=devis
+27	/console/demandes?statut=devis	fill q = "3"
+28	/console/demandes?statut=devis&q=3	submit « Rechercher »
+29	/console/demandes/1/groupe?ok=lien	goto /console/demandes/1/groupe?ok=lien
+30	/console/demandes/1/groupe?ok=lien	fill seuil = "2020-01-01"
+31	/console/demandes/1/groupe?ok=revoque	submit « Révoquer le lien »
+32	/console/demandes/1/groupe?ok=seuil	submit « Enregistrer »
+33	/console/demandes/1/groupe?ok=seuil	fill seuil = "=HYPERLINK(\"http://evil\",\"x\")"
+34	/console/demandes/1/groupe?ok=revoque	back
+35	/console/demandes/1/groupe?ok=revoque	fill seuil = "+cmd|calc"
+36	/console/demandes/1/groupe?ok=revoque	fill seuil = "3"
+37	/console/demandes/1/groupe?ok=seuil	submit « Enregistrer »
+38	/console/demandes/1/groupe?ok=seuil	fill seuil = ""
+39	/console/demandes/1/groupe?err=seuil	submit « Enregistrer »
+40	/console/demandes/1	click « Demande » /console/demandes/1
+41	/console/demandes/1?ok=statut-nouvelle	click « Nouvelle » 
+42	/console/demandes/1?ok=statut-nouvelle	reload
+43	/console/demandes/1?ok=statut-nouvelle	fill:none
+44	/console/demandes/1	back
+45	/console/demandes/1	fill:none
+46	/console/demandes/1/groupe?ok=lien	submit « Créer un nouveau lien »
+47	/console/demandes/1/groupe?ok=lien	reload
+48	/console/demandes/1/groupe?ok=lien	fill seuil = "\"><img src=x onerror=alert(1)>"
+49	/console/demandes/1/groupe?err=seuil	goto /console/demandes/1/groupe?err=seuil
+50	/console/demandes/1/groupe	click « Groupe (3/6) » /console/demandes/1/groupe
+51	/console/demandes/1/groupe	click « Groupe (3/6) » /console/demandes/1/groupe
+52	/console/demandes/1/groupe	fill seuil = "=HYPERLINK(\"http://evil\",\"x\")"
+53	/console/demandes/1/groupe	reload
+54	/console/demandes/1/groupe	submit « Révoquer le lien »
+55	/console/demandes/1	click « Demande » /console/demandes/1
+56	/console/demandes/1	reload
+57	/console/demandes/1/groupe	click « Voir le groupe : 3 répondus / 6 attendus » /console/demandes/1/groupe
+58	/console/demandes/1/groupe?ok=revoque	submit « Révoquer le lien »
+59	/console/demandes/1/groupe?ok=lien	submit « Créer un nouveau lien »
+60	/console/demandes/1/groupe?ok=lien	fill seuil = "2020-01-01"
+61	/console/demandes/1/groupe?ok=lien	click « Révoquer le lien » 
+62	/console	click « ASSET
+Console » /console
+63	/console/gme	click « Votre demande d’accès GM&E est en attent » /console/gme
+64	/console/demandes/1/groupe?ok=lien	goto /console/demandes/1/groupe?ok=lien
+65	/console/gme	back
+66	/console/gme	fill reason = "0"
+67	/console/gme/112/demande	submit « Demander l’accès »
+68	/console/gme/112/demande	reload
+69	/console/gme/112/demande	fill reason = " "
+70	/console/gme/112/demande	reload
+71	/console/congres/101	click « Congrès européen de cardiologie — exempl » /console/congres/101
+72	/console/congres/101?ok=archive	submit « Archiver »
+73	/console/congres/101	back
+74	/console/congres/101	fill verified_on = "@SUM(1)"
+75	/console/congres/101	click « Repasser en brouillon » 
+76	/console/congres/101	submit « Repasser en brouillon »
+77	/console/congres/101#c-ver	click « Vérifié le : Indiquez la date de vérific » #c-ver
+78	/console/congres/101#c-ver	click « Vérifié le : Indiquez la date de vérific » #c-ver
+79	/console/congres/101	back
+80	/console/demandes/999/groupe	goto /console/demandes/999/groupe
+81	/console/demandes/999/groupe	back
+82	/console/demandes/999/groupe	fill:none
+83	chrome-error://chromewebdata/	click:none
+84	chrome-error://chromewebdata/	fill:none
+85	chrome-error://chromewebdata/	fill:none
+86	chrome-error://chromewebdata/	fill:none
+87	chrome-error://chromewebdata/	fill:none
+88	/console/demandes/1/groupe?err=seuil	goto /console/demandes/1/groupe?err=seuil
+89	/console/demandes/1/groupe?err=seuil	fill seuil = "+cmd|calc"
+90	/console/demandes/1/groupe?err=seuil	submit « Révoquer le lien »
+91	/console/demandes/1/groupe?err=seuil	fill seuil = "\"><img src=x onerror=alert(1)>"
+92	/console/demandes/1/groupe?err=seuil	fill seuil = "x@y.fr"
+93	/console/demandes/1/groupe?err=seuil	fill seuil = "2027-01-30"
+94	/console/demandes/1/groupe?ok=seuil	click « Enregistrer » 
+95	/console/demandes/1/groupe?ok=seuil	submit « Révoquer le lien »
+96	/console/demandes/1/groupe?ok=seuil	fill seuil = "9999-12-31"
+97	/console/demandes/1	click « DV-2026-0001 » /console/demandes/1
+98	/console/demandes/1?ok=statut-perdue	submit « Perdue »
+99	/console/demandes/1?ok=statut-nouvelle	click « Nouvelle » 
+100	/console/demandes/1?ok=responsable	submit « Attribuer »
+101	/console/demandes/1?ok=responsable	fill:none
+102	/console/demandes/1	click « Demande » /console/demandes/1
+103	/console/demandes/1/groupe?err=seuil	goto /console/demandes/1/groupe?err=seuil
+104	/console/demandes/1	click « DV-2026-0001 » /console/demandes/1
+105	/console/demandes/1	submit « Nouvelle » !! locator.click: Timeout 4000ms exceeded.
+106	/console/demandes/5/groupe	goto /console/demandes/5/groupe
+107	/console	click « Revenir » /console
+108	/console/demandes/5/groupe	goto /console/demandes/5/groupe
+109	/console/demandes/5/groupe	fill:none
+110	/console	click « Revenir » /console
+111	/console/demandes?statut=devis	click « 1
+Devis envoyé » /console/demandes?statut=devis
+112	/console/demandes?statut=devis&q=	click « Rechercher » 
+113	/console/demandes?statut=devis	click « Devis envoyé (1) » /console/demandes?statut=devis
+114	/console/demandes/2	click « DV-2026-0002 » /console/demandes/2
+115	/console/demandes/2	fill:none
+116	/console/demandes	click « Demandes » /console/demandes
+117	/console/demandes	fill q = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+118	/console/demandes/1/groupe	goto /console/demandes/1/groupe
+119	/console	click « ASSET
+Console » /console
+120	/console	fill:none
+121	/console/demandes/4	click « DV-2026-0004
+Paul Lefebvre (exemple) » /console/demandes/4
+122	/console/demandes/4?ok=statut-nouvelle	submit « Nouvelle »
+123	/console/demandes	click « Demandes » /console/demandes
+124	/console/demandes/2	click « DV-2026-0002 » /console/demandes/2
+125	/console/demandes/2	fill:none
+126	/console/demandes/2?ok=statut-nouvelle	submit « Nouvelle »
+127	/console/demandes/2?ok=statut-nouvelle	fill:none
+128	/console/demandes/2?ok=statut-qualifiee	click « Qualifiée » 
+129	/console/demandes/2?ok=statut-qualifiee	fill:none
+130	/console/demandes/2?ok=statut-qualifiee	fill:none
+131	/console/demandes/2?ok=statut-nouvelle	submit « Nouvelle »
+132	/console/demandes/2?ok=responsable	submit « Attribuer »
+133	/console/demandes/2?ok=responsable	fill:none
+134	/console/demandes/2?ok=statut-nouvelle	back
+135	/console/demandes/2?ok=statut-nouvelle	fill:none
+136	/console/demandes/2?ok=statut-qualifiee	click « Qualifiée » 
+137	/console/demandes/2?ok=statut-nouvelle	click « Nouvelle » 
+138	/console/demandes/2?ok=statut-nouvelle	fill:none
+139	/console/demandes/2?ok=statut-nouvelle	fill:none
+140	/console/demandes/2?ok=statut-nouvelle	fill:none
+141	/console/demandes/2?ok=statut-qualifiee	back
+142	/console/demandes/2?ok=statut-qualifiee	fill:none
+143	/console/demandes/2?ok=statut-nouvelle	back
+144	/console/demandes/2?ok=statut-nouvelle	fill:none
+145	/console/demandes/2?ok=statut-qualifiee	click « Qualifiée » 
+146	/console/demandes/2?ok=statut-qualifiee	fill:none
+147	/console/demandes/2?ok=statut-qualifiee	click « Ajouter la note » 
+148	/console/demandes/2?ok=statut-perdue	click « Perdue » 
+149	/console/demandes/2?ok=responsable	submit « Attribuer »
+150	/console/demandes/2?ok=responsable	fill:none
+151	/console/demandes/2	click « Demande » /console/demandes/2
+152	/console/demandes/2	click « Demande » /console/demandes/2
+153	/console/demandes/2	goto /console/demandes/1/groupe.csv !! page.goto: Download is starting
+154	/console/demandes/2?ok=responsable	back
+155	/console/demandes/2?ok=statut-gagnee	click « Gagnée » 
+156	/console/demandes/2?ok=statut-gagnee	fill:none
+157	/console/demandes/2?ok=statut-gagnee	fill:none
+158	/console/demandes/2?ok=statut-perdue	submit « Perdue »
+159	/console/demandes/2?ok=statut-devis	click « Devis envoyé » 
+160	/console/demandes/2?ok=statut-devis	fill:none
+161	/console/demandes/2/groupe?ok=lien	click « Créer le lien » 
+162	/console/demandes/2/groupe?ok=lien	fill seuil = "../../etc/passwd"
+163	/console/demandes/2?ok=statut-devis	back
+164	/console/demandes/2?ok=statut-devis	fill:none
+165	/console/demandes/2?ok=statut-devis	fill:none
+166	/console/demandes/2?ok=statut-perdue	submit « Perdue »
+167	/console/demandes/2?ok=statut-perdue	fill:none
+168	/console/demandes/2?ok=statut-perdue	fill:none
+169	/console/demandes/2?ok=statut-perdue	reload
+170	/console/demandes/2?ok=statut-perdue	fill:none
+171	/console/demandes/2?ok=responsable	submit « Attribuer »
+172	/console/demandes/2?ok=statut-qualifiee	submit « Qualifiée »
+173	/console/demandes/2?ok=statut-qualifiee	fill:none
+174	/console/demandes/2?ok=statut-gagnee	click « Gagnée » 
+175	/console/demandes/2?ok=responsable	submit « Attribuer »
+176	/console/demandes/2	click « Demande » /console/demandes/2
+177	/console/demandes/2	fill:none
+178	/console/demandes/2	fill:none
+179	/console/demandes/2	fill:none
+180	/console/demandes	click « Demandes » /console/demandes
+181	/console/demandes/3	click « DV-2026-0003 » /console/demandes/3
+182	/console/demandes/3?ok=statut-perdue	click « Perdue » 
+183	/console/demandes/3	back
+184	/console/demandes/3	click « Demande » /console/demandes/3
+185	/console/demandes	click « Demandes » /console/demandes
+186	/console/demandes	fill q = "100"
+187	/console/demandes/3	back
+188	/console/demandes/3	fill:none
+189	/console/demandes/3	fill:none
+190	/console/demandes/3	fill:none
+191	/console/demandes	back
+192	/console/demandes?q=	submit « Rechercher »
+193	/console/demandes?q=	fill q = "2027-01-28"
+194	/console/demandes	back
+195	/console/demandes	fill q = "2027-01-28"
+196	/console/demandes?q=2027-01-28	submit « Rechercher »
+197	/console/demandes?statut=nouvelle&q=2027-01-28	click « Nouvelle (4) » /console/demandes?statut=nouvelle&q=2027-01-28
+198	/console/demandes?statut=nouvelle&q=2027-01-28	fill q = "+cmd|calc"
+199	/console/demandes	click « Effacer » /console/demandes
+200	/console/demandes?statut=nouvelle	click « Nouvelle (4) » /console/demandes?statut=nouvelle
+201	/console/demandes/6	click « DV-2026-0006 » /console/demandes/6
+202	/console/demandes/1/groupe?err=seuil	goto /console/demandes/1/groupe?err=seuil
+203	/console/demandes/1/groupe	click « Groupe (3/6) » /console/demandes/1/groupe
+204	/console/demandes/1/groupe	fill seuil = "2027-01-30"
+205	/console/demandes/1/groupe	click « Copier le lien » 
+206	/console/demandes/1/groupe	fill seuil = "../../etc/passwd"
+207	/console/demandes/1	click « Demande » /console/demandes/1
+208	/console/demandes/1	fill:none
+209	/console/demandes/1?ok=responsable	submit « Me l’attribuer »
+210	/console/demandes/1/groupe	click « Voir le groupe : 3 répondus / 6 attendus » /console/demandes/1/groupe
+211	/console/demandes/1/groupe	click « Copier le lien » 
+212	/console/demandes/1/groupe	fill seuil = "100"
+213	/console/demandes/1/groupe?ok=revoque	click « Révoquer le lien » 
+214	/console/demandes/1/groupe?ok=revoque	fill seuil = "3"
+215	/console/demandes/1/groupe?ok=lien	submit « Créer un nouveau lien »
+216	/console/demandes/1/groupe?ok=revoque	back
+217	/console/demandes/1/groupe?ok=seuil	submit « Enregistrer »
+218	/console/demandes/1/groupe?ok=lien	goto /console/demandes/1/groupe?ok=lien
+219	/console/demandes	click « Demandes » /console/demandes
+220	/console/demandes	click « Toutes (6) » /console/demandes
+221	/console/demandes	fill q = ""
+222	/console/demandes?q=	submit « Rechercher »
+223	/console/demandes?q=	fill q = "<script>alert(1)</script>"
+224	/console/demandes?q=	fill q = ""
+225	/console/demandes?q=	fill q = " "
+226	/console/demandes/4	click « DV-2026-0004 » /console/demandes/4
+227	/console/demandes/4	fill:none
+228	/console/demandes/4?ok=statut-devis	submit « Devis envoyé »
+229	/console/demandes/4?ok=statut-devis	fill:none
+230	/console/demandes/4?ok=statut-devis	fill:none
+231	/console/demandes/1	goto /console/demandes/1
+232	/console/demandes/1	fill:none
+233	/console/demandes/1	fill:none
+234	/console/demandes/1?ok=statut-qualifiee	submit « Qualifiée »
+235	/console/demandes/1?ok=statut-qualifiee	fill:none
+236	/console/demandes/1?ok=statut-qualifiee	click « Qualifiée »  !! locator.click: Timeout 3000ms exceeded.
+237	/console/demandes/5/groupe	goto /console/demandes/5/groupe
+238	/console/demandes/5/groupe	fill:none
+239	/console	click « Revenir » /console
+240	/console/demandes/5	click « DV-2026-0005
+Léa Garnier (exemple) » /console/demandes/5
+241	/console/demandes/5	fill:none
+242	/console/demandes/5?ok=statut-perdue	click « Perdue » 
+243	/console/demandes/5?ok=statut-perdue	fill:none
+244	/console/demandes/5?ok=statut-perdue	fill:none
+245	/console/demandes/5?ok=statut-perdue	goto /console/demandes/1/groupe.csv !! page.goto: Download is starting
+246	/console/demandes/5?ok=statut-gagnee	click « Gagnée » 
+247	/console/demandes/5/groupe	goto /console/demandes/5/groupe
+248	/console	click « ASSET
+Console » /console
+249	/console/demandes/2	click « DV-2026-0002
+Hugo Martin (exemple) » /console/demandes/2
+250	/console/demandes/2	click « Copier le lien » 
+251	/console/demandes/2	fill:none
+252	/console/demandes/2	reload
+253	/console/demandes/2?ok=statut-perdue	click « Perdue » 
+254	/console/demandes/2?ok=statut-perdue	goto /console/demandes/1/groupe.csv !! page.goto: Download is starting
+255	/console/demandes/2?ok=statut-devis	submit « Devis envoyé »
+256	/console/demandes/2?ok=statut-devis	fill:none
+257	/console/demandes/2?ok=statut-devis	click « Ajouter la note » 
+258	/console/demandes/2?ok=statut-devis	fill:none
+259	/console/demandes/2?ok=statut-devis	reload
+260	/console/demandes/2/groupe	click « Voir le groupe : 0 répondu / 2 attendus » /console/demandes/2/groupe
+261	/console/demandes/2/groupe?ok=seuil	submit « Enregistrer »
+262	/console/demandes/2/groupe?ok=seuil	fill seuil = ""
+263	/console	click « ASSET
+Console » /console
+264	/console	fill:none
+265	/console/demandes?statut=devis	click « 2
+Devis envoyés » /console/demandes?statut=devis
+266	/console/demandes?statut=devis	fill q = "\"><img src=x onerror=alert(1)>"
+267	/console/demandes	click « Toutes (6) » /console/demandes
+268	/console/demandes?q=	submit « Rechercher »
+269	/console/demandes/2	click « DV-2026-0002 » /console/demandes/2
+270	/console/demandes/2	fill:none
+271	/console/demandes/2?ok=responsable	submit « Attribuer »
+272	/console/demandes/2?ok=responsable	reload
+273	/console/demandes	click « Demandes » /console/demandes
+274	/console/demandes	fill q = "@SUM(1)"
+275	/console/demandes/2?ok=responsable	back
+276	/console/demandes/2?ok=statut-perdue	submit « Perdue »
+277	/console/demandes/2?ok=statut-perdue	fill:none
+278	/console/demandes/999/groupe	goto /console/demandes/999/groupe
+279	/console	click « Revenir » /console
+280	/console	fill:none
+281	/console/demandes/2	click « DV-2026-0002
+Hugo Martin (exemple) » /console/demandes/2
+282	/console/demandes/2	fill:none
+283	/console/demandes/2	fill:none
+284	/console/demandes/2	fill:none
+285	/console/demandes/2	reload
+286	/console/demandes/2	fill:none
+287	/console/demandes/2?ok=statut-devis	submit « Devis envoyé »
+288	/console/demandes/5/groupe	goto /console/demandes/5/groupe
+289	/console	click « ASSET
+Console » /console
+290	/console	submit:none
+291	/console/demandes/1/groupe	goto /console/demandes/1/groupe
+292	/console/demandes/1/groupe	fill seuil = "../../etc/passwd"
+293	/console	back
+294	/console/demandes?statut=perdue	click « 1
+Perdue » /console/demandes?statut=perdue
+295	/console/demandes?statut=gagnee	click « Gagnée (1) » /console/demandes?statut=gagnee
+296	/console/demandes?statut=gagnee	click « Exporter (tableur CSV) » /console/demandes/export.csv?statut=gagnee csv 200
+297	/console/demandes?statut=gagnee	click « Gagnée (1) » /console/demandes?statut=gagnee
+298	/console/demandes	click « Effacer » /console/demandes
+299	/console/demandes?q=	click « Rechercher » 
+300	/console/demandes?q=	click « Exporter (tableur CSV) » /console/demandes/export.csv csv 200

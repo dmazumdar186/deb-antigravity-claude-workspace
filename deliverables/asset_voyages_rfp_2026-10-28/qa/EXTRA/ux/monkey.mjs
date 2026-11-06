@@ -52,7 +52,7 @@ for (step = 1; step <= N; step++) {
   log.push(`${step}\t${u.replace(B, '').replace(SEED_TOKEN, 'SEED')}\t${a}`);
   if (role !== 'anon' && /connexion/.test(u)) { await login(p, role); await p.goto(GRP); }
 }
-const rs = await reset(p);
+p.removeAllListeners("dialog"); const rs = await reset(p);
 fs.mkdirSync('logs', { recursive: true }); fs.writeFileSync(`logs/monkey_${role}.log`, `# role=${role} seed=${SEED} n=${N} base=${B}\n` + log.join('\n'));
 const summary = { role, SEED, N, fails, counts, leakChecks, reset: rs };
 fs.writeFileSync(`monkey_${role}.json`, JSON.stringify(summary, null, 1)); console.log(JSON.stringify(summary, null, 1));
