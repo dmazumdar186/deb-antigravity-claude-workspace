@@ -283,8 +283,10 @@ test('G-H2 guessed or malformed tokens: « Lien introuvable », the stored MAC i
   if (!LIVE) for (const r of d1Count('SELECT token_mac FROM group_links LIMIT 5')) paths.push(`/g/${r.token_mac}`);
   for (const p of paths) {
     const r = await page.request.get(p);
-    expect(r.status(), p).toBe(404);
     const t = await r.text();
+    // Deployed, Cloudflare's edge refuses an encoded-slash traversal (%2f with ..) with its own 400 before the Worker runs.
+    if (LIVE && p.includes('..%2f') && r.status() === 400) { leakFree(t, p); continue; }
+    expect(r.status(), p).toBe(404);
     // dot segments (%2e%2e) are resolved by the URL parser before the request leaves: they reach the site-wide 404
     expect(t, p).toMatch(/Lien introuvable|Page introuvable/);
     expect(t, p).not.toContain('<script>alert(1)');
