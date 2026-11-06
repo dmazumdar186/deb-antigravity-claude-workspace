@@ -172,7 +172,8 @@ export const REAL_CONGRESSES = [
 ];
 // The client's own published contact details may appear on the concept pages (it is their site being redesigned).
 // Each entry is a build-time assertion: the value must appear at the cited source line, checked by the gate.
-export const CLIENT_CONTACTS = [{ value: 'direction@assetvoyages.com', source: '01_Questions_for_Veena.md', needle: 'direction@assetvoyages.com' }];
+export const CLIENT_CONTACTS = [{ value: 'direction@assetvoyages.com', source: '01_Questions_for_Veena.md', needle: 'direction@assetvoyages.com' },
+  { value: '01 55 57 29 00', source: 'HANDOFF.md', needle: '« Tel: 01 55 57 29 00 »' }];
 export function ruleD2(item, { allowEmails = [] } = {}) {
   const f = [];
   const s = item.t;
@@ -188,6 +189,7 @@ export function ruleD2(item, { allowEmails = [] } = {}) {
   while ((m = ph.exec(s))) {
     const digits = m[0].replace(/\D/g, '').replace(/^33/, '0').replace(/^0?/, '0');
     if (FICTION.some((p) => digits.startsWith(p))) continue;
+    if (!item.demo && CLIENT_CONTACTS.some((c) => c.value.replace(/\D/g, '') === digits)) continue; // client's own phone, outside the demos only
     f.push({ check: 'D2', text: clip(s), element: item.path, note: `phone « ${m[0]} » outside the ARCEP fiction ranges (01 99 00…, 02 61 91…, 03 53 01…, 04 65 71…, 05 36 49…, 06 39 98…) and not masked` });
   }
   const ns = norm(s).replace(/['’]/g, '’');

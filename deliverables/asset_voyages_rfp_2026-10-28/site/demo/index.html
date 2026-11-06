@@ -62,11 +62,13 @@
           <div class="pass__top"><p class="pass__gate">Option A</p><span class="pass__letter" aria-hidden="true">A</span></div>
           <h3 id="pass-a">WordPress</h3>
           <p>The system your current site already runs on, with a plugin we wrote for ASSET. It runs inside <strong>WordPress Playground</strong>: a complete WordPress that runs entirely in your browser, with nothing to install.</p>
-          <p class="pass__note">The first start takes about 20 to 40 seconds while it loads. Later starts are quicker.</p>
+          <p class="pass__note">WordPress starts fresh each time you open one of these links, so nothing from an earlier visit is kept.</p>
         </div>
         <div class="pass__stub">
           <a class="btn" data-demo="WP_VISITOR_URL" href="https://playground.wordpress.net/?mode=seamless&amp;login=no&amp;blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-visitor.json" target="_blank" rel="noopener">Open the visitor site<span class="vh"> of Option A (new tab)</span></a>
+          <p class="pass__boot">Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page.</p>
           <a class="btn btn--line" data-demo="WP_ADMIN_URL" href="https://playground.wordpress.net/?mode=seamless&amp;blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json" target="_blank" rel="noopener">Open the admin, signed in<span class="vh"> to Option A (new tab)</span></a>
+          <p class="pass__boot">Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page.</p>
           <p class="pass__small">The admin link signs you in automatically as «&nbsp;direction&nbsp;». To follow one enquiry from start to finish, use the visitor site and its «&nbsp;Espace équipe&nbsp;» link: each link opens its own separate copy.</p>
         </div>
       </article>
@@ -94,15 +96,16 @@
         <li><code class="cred">equipe</code> the team: handles flight enquiries</li>
         <li><code class="cred">contributeur</code> adds and edits congresses, which then wait for review</li>
       </ul>
+      <p class="logins__note">Each person's trial is private to their browser. Trials are cleared after 24 hours without use.</p>
     </div>
   </div>
 </section>
 
-<!-- 3. Try it in five minutes -->
+<!-- 3. Try it yourself -->
 <section class="try" id="try" aria-labelledby="try-title">
   <div class="container">
     <div class="intro">
-      <h2 id="try-title"><span class="n">2</span> Try it in five minutes</h2>
+      <h2 id="try-title"><span class="n">2</span> Try it yourself</h2>
       <p>Your five requirements, one task each. Each task shows where to click in Option A and in Option B. Tasks 3 and 4 follow on from each other: send an enquiry as a visitor, then find it as the team.</p>
     </div>
 
@@ -130,7 +133,7 @@
           <p class="task__which">Option B: custom platform</p>
           <ol class="steps">
             <li><a data-demo="CUSTOM_CONSOLE_URL" href="https://asset-voyages-demo.debanjan186.workers.dev/console" target="_blank" rel="noopener">Open the team console</a> and sign in as <code class="cred">contributeur</code>.</li>
-            <li>Open the list of congresses and add a new one, or open an existing one to change it.</li>
+            <li>Open the list of congresses and click «&nbsp;Ajouter un congrès&nbsp;», or open an existing one to change it.</li>
             <li>Send it for review. Sign in as <code class="cred">direction</code> to check it and publish it.</li>
           </ol>
         </div>
@@ -169,16 +172,16 @@
           <ol class="steps">
             <li>On a congress details page, find «&nbsp;Demander un devis vol&nbsp;».</li>
             <li>Enter your contact details, departure city, travel dates and number of passengers.</li>
-            <li>Send it. You receive a reference number on screen.</li>
+            <li>Click «&nbsp;Envoyer ma demande&nbsp;». You receive a reference number on screen.</li>
           </ol>
           <p class="task__tip">Try leaving a field empty, or a return date before the outward date: the form says what to correct.</p>
         </div>
         <div class="task__opt task__opt--b">
           <p class="task__which">Option B: custom platform</p>
           <ol class="steps">
-            <li>On a congress details page, open the flight enquiry form.</li>
+            <li>On a congress details page, find «&nbsp;Demander un devis vol&nbsp;».</li>
             <li>Enter your contact details, departure city, travel dates and number of passengers.</li>
-            <li>Send it. You receive a reference number on screen.</li>
+            <li>Click «&nbsp;Envoyer ma demande&nbsp;». You receive a reference number on screen.</li>
           </ol>
           <p class="task__tip">The same checks apply: the form says what to correct before anything is sent.</p>
         </div>
@@ -194,15 +197,15 @@
           <ol class="steps">
             <li>In the same tab as task 3, click «&nbsp;Espace équipe&nbsp;» and sign in as <code class="cred">equipe</code>. Open «&nbsp;Demandes&nbsp;»: your enquiry is at the top.</li>
             <li>Open it and change its status, for example from «&nbsp;Nouvelle&nbsp;» to «&nbsp;Qualifiée&nbsp;». Each change is kept in its history.</li>
-            <li>Export the list as a spreadsheet file (CSV). «&nbsp;Journal des notifications&nbsp;» shows the message your team would have received.</li>
+            <li>Click «&nbsp;Exporter en CSV&nbsp;» to download the list as a spreadsheet file. «&nbsp;Journal des notifications&nbsp;» shows the message your team would have received.</li>
           </ol>
         </div>
         <div class="task__opt task__opt--b">
           <p class="task__which">Option B: custom platform</p>
           <ol class="steps">
-            <li><a data-demo="CUSTOM_CONSOLE_URL" href="https://asset-voyages-demo.debanjan186.workers.dev/console" target="_blank" rel="noopener">Open the team console</a>, sign in as <code class="cred">equipe</code> and open the enquiries.</li>
+            <li><a data-demo="CUSTOM_CONSOLE_URL" href="https://asset-voyages-demo.debanjan186.workers.dev/console" target="_blank" rel="noopener">Open the team console</a>, sign in as <code class="cred">equipe</code> and open «&nbsp;Demandes&nbsp;».</li>
             <li>Open your enquiry from task 3 and change its status. Each change is kept in its history.</li>
-            <li>Export the list as a spreadsheet file (CSV), and see the log of notifications your team would have received.</li>
+            <li>Click «&nbsp;Exporter en CSV&nbsp;» to download the list as a spreadsheet file. «&nbsp;Journal des notifications&nbsp;» shows the message your team would have received.</li>
           </ol>
         </div>
       </li>
@@ -216,17 +219,17 @@
         <div class="task__opt task__opt--a">
           <p class="task__which">Option A: WordPress</p>
           <ol class="steps">
-            <li>Signed in as <code class="cred">equipe</code>, open «&nbsp;Accès GM&amp;E&nbsp;»: the codes are hidden. Ask for access and give a reason.</li>
-            <li>Sign out, sign in as <code class="cred">direction</code>, and approve for 24 hours or refuse.</li>
-            <li>Sign in as <code class="cred">equipe</code> again: the code is shown, and the access record lists it.</li>
+            <li>Signed in as <code class="cred">equipe</code>, open «&nbsp;Codes GM&amp;E&nbsp;› Codes&nbsp;»: the codes are hidden. Click «&nbsp;Demander l’accès&nbsp;» and give a reason.</li>
+            <li>Sign out, sign in as <code class="cred">direction</code>, open «&nbsp;Codes GM&amp;E&nbsp;› Demandes d’accès&nbsp;», and click «&nbsp;Approuver pour 24&nbsp;h&nbsp;» or «&nbsp;Refuser&nbsp;».</li>
+            <li>Sign in as <code class="cred">equipe</code> again and open «&nbsp;Codes GM&amp;E&nbsp;› Codes&nbsp;». The code stays hidden until you click «&nbsp;Afficher le code&nbsp;»: that click is needed. Each display is then listed in «&nbsp;Journal d’accès GM&amp;E&nbsp;».</li>
           </ol>
         </div>
         <div class="task__opt task__opt--b">
           <p class="task__which">Option B: custom platform</p>
           <ol class="steps">
-            <li>In the team console, sign in as <code class="cred">equipe</code> and open «&nbsp;Codes GM&amp;E&nbsp;»: the codes are hidden. Ask for access and give a reason.</li>
-            <li>Sign out, sign in as <code class="cred">direction</code>, and approve for 24 hours or refuse.</li>
-            <li>Sign in as <code class="cred">equipe</code> again: the code is shown, and the access record lists it.</li>
+            <li>In the team console, sign in as <code class="cred">equipe</code> and open «&nbsp;Codes GM&amp;E&nbsp;› Codes&nbsp;»: the codes are hidden. Click «&nbsp;Demander l’accès&nbsp;» and give a reason.</li>
+            <li>Sign out, sign in as <code class="cred">direction</code>, open «&nbsp;Codes GM&amp;E&nbsp;› Demandes d’accès&nbsp;», and click «&nbsp;Approuver pour 24&nbsp;h&nbsp;» or «&nbsp;Refuser&nbsp;».</li>
+            <li>Sign in as <code class="cred">equipe</code> again and open «&nbsp;Codes GM&amp;E&nbsp;› Codes&nbsp;». The code stays hidden until you click «&nbsp;Afficher le code&nbsp;»: that click is needed. Each display is then listed in «&nbsp;Journal d’accès GM&amp;E&nbsp;».</li>
           </ol>
         </div>
       </li>
@@ -308,7 +311,7 @@
           <td data-label="Option A"><span class="st st--build">Built during the project</span> Regular backups, and a tested way to restore them.</td>
           <td data-label="Option B"><span class="st st--build">Built during the project</span> Regular backups, and a tested way to restore them.</td></tr>
         <tr><th scope="row">Editing all the site’s pages</th>
-          <td data-label="Option A"><span class="st st--ok">Works in the demo</span> The standard WordPress page editor; your current pages are moved over during the project.</td>
+          <td data-label="Option A"><span class="st st--ok">Works in the demo</span> The standard WordPress page editor: sign in as <code class="cred">direction</code> and open «&nbsp;Pages&nbsp;». Your current pages are moved over during the project.</td>
           <td data-label="Option B"><span class="st st--build">Built during the project</span> A page editor added to the team console.</td></tr>
       </tbody>
     </table>
