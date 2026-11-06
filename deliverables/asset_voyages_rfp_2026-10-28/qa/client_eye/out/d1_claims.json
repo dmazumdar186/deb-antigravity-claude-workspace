@@ -12,8 +12,8 @@
   "option": "B",
   "cell": "Works in the demo In the team console, with review before publishing.",
   "works": true,
-  "ok": false,
-  "evidence": "this run: C10 T1 FAIL · custom_demo/README.md: `s1_congress.spec.mjs` 5/5 pass"
+  "ok": true,
+  "evidence": "this run: C10 T1 functional PASS · custom_demo/README.md: `s1_congress.spec.mjs` 5/5 pass"
  },
  {
   "fn": "2. Public catalogue with search, filters and details page",
@@ -44,8 +44,8 @@
   "option": "B",
   "cell": "Works in the demo Every field is checked before sending; you get a reference.",
   "works": true,
-  "ok": false,
-  "evidence": "this run: C10 T3 FAIL · custom_demo/README.md: `s3_enquiry.spec.mjs` 7/7 pass"
+  "ok": true,
+  "evidence": "this run: C10 T3 functional PASS · custom_demo/README.md: `s3_enquiry.spec.mjs` 7/7 pass"
  },
  {
   "fn": "4. Receive, view, track and update enquiries",
@@ -60,8 +60,8 @@
   "option": "B",
   "cell": "Works in the demo Statuses, history of changes, export to a spreadsheet (CSV).",
   "works": true,
-  "ok": false,
-  "evidence": "this run: C10 T4 FAIL · custom_demo/README.md: `s4_team.spec.mjs` 7/7 pass"
+  "ok": true,
+  "evidence": "this run: C10 T4 functional PASS · custom_demo/README.md: `s4_team.spec.mjs` 7/7 pass"
  },
  {
   "fn": "5. GM&E codes protected",
@@ -76,8 +76,8 @@
   "option": "B",
   "cell": "Works in the demo Codes hidden, access asked with a reason, 24-hour approval, a record of every display.",
   "works": true,
-  "ok": false,
-  "evidence": "this run: C10 T5 FAIL · custom_demo/README.md: `s5_gme.spec.mjs` 11/11 pass"
+  "ok": true,
+  "evidence": "this run: C10 T5 functional PASS · custom_demo/README.md: `s5_gme.spec.mjs` 11/11 pass"
  },
  {
   "fn": "Email notifications",

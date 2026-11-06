@@ -1,12 +1,12 @@
 {
  "meta": {
-  "generated": "2026-11-06T12:43:59.254Z",
+  "generated": "2026-11-06T12:59:31.046Z",
   "parts": {
    "a": {
-    "at": "2026-11-06T12:10:39.981Z",
-    "findings": 13,
+    "at": "2026-11-06T12:57:13.646Z",
+    "findings": 12,
     "states": 154,
-    "logins": 3,
+    "logins": 9,
     "writing": [
      "B-1440 replay",
      "B-390 phone"
@@ -24,19 +24,21 @@
     ]
    },
    "b": {
-    "at": "2026-11-06T12:03:32.295Z",
-    "findings": 11,
-    "states": 118,
-    "logins": 3,
+    "at": "2026-11-06T12:49:46.068Z",
+    "findings": 1,
+    "states": 150,
+    "logins": 9,
     "writing": [
      "B-1440 replay",
      "B-390 phone"
     ],
     "sbx": [
-     "TJ8uKS_NTHruY0LyrTlDh9Wf"
+     "gi49coia97los10UznHQzZZw",
+     "zJ4huthGKubr2xAgNO-efDvh"
     ],
     "resets": {
-     "replay": true
+     "replay": true,
+     "phone": true
     }
    },
    "hub": {
@@ -47,7 +49,7 @@
     "writing": []
    }
   },
-  "states": 315,
+  "states": 347,
   "widths": [
    320,
    390,
@@ -64,21 +66,18 @@
    "A-hosted:visiteur",
    "B:visiteur",
    "B:contributeur",
+   "B:direction",
    "B:equipe",
    "B:voyageur",
    "HUB:visiteur"
   ],
   "versions": {
-   "commit": "036a55f66ecf4f1e8e2659cd450509ec7fb0fd43",
-   "dirty": [
-    "M deliverables/asset_voyages_rfp_2026-10-28/site/css/demo.css",
-    " M deliverables/asset_voyages_rfp_2026-10-28/site/demo/index.html",
-    " M deliverables/asset_voyages_rfp_2026-10-28/site/js/demo.js"
-   ],
-   "hub demo/index.html": "DIFFERS from source",
+   "commit": "e572d6e934d127f553798ae5fe39ef0258e02179",
+   "dirty": [],
+   "hub demo/index.html": "deployed = source",
    "hub index.html": "deployed = source",
-   "hub js/demo.js": "DIFFERS from source",
-   "hub css/demo.css": "DIFFERS from source",
+   "hub js/demo.js": "deployed = source",
+   "hub css/demo.css": "deployed = source",
    "zipHosted": "b0fe713a2ce204bc3092006dfef62ccf5f34e51c28da9a5a8dd1ee5f70a25760",
    "zipLocal": "b0fe713a2ce204bc3092006dfef62ccf5f34e51c28da9a5a8dd1ee5f70a25760",
    "worker": {
@@ -109,7 +108,7 @@
    },
    "E3": {
     "status": "PASS",
-    "detail": "247 screenshots, all written by this gate from fresh browser contexts on the deployed hub and Option B and the local Option A build."
+    "detail": "279 screenshots, all written by this gate from fresh browser contexts on the deployed hub and Option B and the local Option A build."
    },
    "E5": {
     "status": "PASS",
@@ -182,7 +181,7 @@
   "B6": {
    "REAL": 0,
    "FALSE-POSITIVE": 1,
-   "UNTRIAGED": 5
+   "UNTRIAGED": 2
   },
   "B7": {
    "REAL": 0,
@@ -192,7 +191,7 @@
   "C1": {
    "REAL": 0,
    "FALSE-POSITIVE": 0,
-   "UNTRIAGED": 2
+   "UNTRIAGED": 0
   },
   "C2": {
    "REAL": 0,
@@ -235,14 +234,14 @@
    "UNTRIAGED": 0
   },
   "C10": {
-   "REAL": 3,
+   "REAL": 2,
    "FALSE-POSITIVE": 0,
-   "UNTRIAGED": 8
+   "UNTRIAGED": 1
   },
   "D1": {
    "REAL": 0,
    "FALSE-POSITIVE": 0,
-   "UNTRIAGED": 5
+   "UNTRIAGED": 1
   },
   "D2": {
    "REAL": 0,
@@ -262,7 +261,7 @@
   "E1": {
    "REAL": 0,
    "FALSE-POSITIVE": 0,
-   "UNTRIAGED": 3
+   "UNTRIAGED": 0
   },
   "E2": {
    "REAL": 0,
@@ -287,39 +286,16 @@
   "GATE": {
    "REAL": 0,
    "FALSE-POSITIVE": 0,
-   "UNTRIAGED": 1
+   "UNTRIAGED": 0
   }
  },
  "realPerOption": {
   "A": 3,
   "HUB": 1,
   "hub": 1,
-  "B": 2
+  "B": 1
  },
  "findings": [
-  {
-   "key": "16cea18f91",
-   "check": "A4",
-   "option": "HUB",
-   "text": "https://www.sft.fr/docs/2024164729_sft-2022-enquete-traduction.pdf",
-   "note": "HTTP 403",
-   "element": "a « French translators’ union (SFT) 2022 sur »",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/questions/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « French translators’ union (SFT) 2022 sur »"
-    }
-   ],
-   "count": 1,
-   "status": "UNVERIFIED",
-   "reason": "sft.fr answers 403 to scripted clients and to a real Chromium tab from this sandbox (a browser user-agent probe was refused by the auto-mode classifier). Needs one click from an ordinary browser.",
-   "ce": "CE-A4-001"
-  },
   {
    "key": "eeca7f2a74",
    "check": "A4",
@@ -336,6 +312,29 @@
      "state": "",
      "shot": "",
      "element": "a « 2025 survey »"
+    }
+   ],
+   "count": 1,
+   "status": "UNVERIFIED",
+   "reason": "sft.fr answers 403 to scripted clients and to a real Chromium tab from this sandbox (a browser user-agent probe was refused by the auto-mode classifier). Needs one click from an ordinary browser.",
+   "ce": "CE-A4-001"
+  },
+  {
+   "key": "16cea18f91",
+   "check": "A4",
+   "option": "HUB",
+   "text": "https://www.sft.fr/docs/2024164729_sft-2022-enquete-traduction.pdf",
+   "note": "HTTP 403",
+   "element": "a « French translators’ union (SFT) 2022 sur »",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "a « French translators’ union (SFT) 2022 sur »"
     }
    ],
    "count": 1,
@@ -518,11 +517,11 @@
    "ce": ""
   },
   {
-   "key": "4327d6325c",
+   "key": "e6e9297558",
    "check": "B5",
    "option": "A",
    "text": "Reconnectez-vous",
-   "note": "unknown fr word in « Votre session a expiré. Reconnectez-vous. » (1×)",
+   "note": "unknown fr word in « Votre session a expiré. Reconnectez-vous. » (3×)",
    "element": "fr",
    "occurrences": [
     {
@@ -587,52 +586,6 @@
    "ce": ""
   },
   {
-   "key": "4726616861",
-   "check": "B6",
-   "option": "B",
-   "text": "approve",
-   "note": "none of « Approuver (24 h) / Approuver pour 24 h / Approuver » seen in the B UI",
-   "element": "",
-   "occurrences": [
-    {
-     "page": "glossary",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": ""
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "9635e26009",
-   "check": "B6",
-   "option": "B",
-   "text": "show the code",
-   "note": "none of « Révéler le code / Afficher le code » seen in the B UI",
-   "element": "",
-   "occurrences": [
-    {
-     "page": "glossary",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": ""
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
    "key": "791f5c3260",
    "check": "B6",
    "option": "B",
@@ -656,81 +609,12 @@
    "ce": ""
   },
   {
-   "key": "fd5d699400",
-   "check": "B6",
-   "option": "B",
-   "text": "access requests",
-   "note": "none of « Demandes d’accès » seen in the B UI",
-   "element": "",
-   "occurrences": [
-    {
-     "page": "glossary",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": ""
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "6985d60d80",
-   "check": "C1",
-   "option": "B",
-   "text": "403 document https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/3",
-   "note": "during /console/demandes/3",
-   "element": "http",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/3",
-     "role": "contributeur",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "http"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "7b772f3a12",
-   "check": "C1",
-   "option": "B",
-   "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
-   "note": "during /console/demandes/3",
-   "element": "console",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/3",
-     "role": "contributeur",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "console"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
    "key": "0e5b7b4e16",
    "check": "C4",
    "option": "A",
    "text": "CLS 0.048",
    "note": "layout shift above 0.02",
-   "element": "DIV.drag-drop-inside+P.upload-flash-bypass+P.max-upload-size@1402ms=0.0482",
+   "element": "DIV.drag-drop-inside+P.upload-flash-bypass+P.max-upload-size@1390ms=0.0482",
    "occurrences": [
     {
      "page": "http://127.0.0.1:9460/wp-admin/media-new.php",
@@ -738,8 +622,8 @@
      "width": 1440,
      "locale": "fr-FR",
      "state": "direction /wp-admin/media-new.php",
-     "shot": "out/shots/0196-A-direction-1440-direction-wp-admin-media-new-php.png",
-     "element": "DIV.drag-drop-inside+P.upload-flash-bypass+P.max-upload-size@1402ms=0.0482"
+     "shot": "out/shots/0188-A-direction-1440-direction-wp-admin-media-new-php.png",
+     "element": "DIV.drag-drop-inside+P.upload-flash-bypass+P.max-upload-size@1390ms=0.0482"
     },
     {
      "page": "http://127.0.0.1:9460/wp-admin/media-new.php",
@@ -747,8 +631,8 @@
      "width": 1440,
      "locale": "fr-FR",
      "state": "equipe /wp-admin/media-new.php",
-     "shot": "out/shots/0226-A-equipe-1440-equipe-wp-admin-media-new-php.png",
-     "element": "DIV.drag-drop-inside+P.upload-flash-bypass+P.max-upload-size@1246ms=0.0482"
+     "shot": "out/shots/0218-A-equipe-1440-equipe-wp-admin-media-new-php.png",
+     "element": "DIV.drag-drop-inside+P.upload-flash-bypass+P.max-upload-size@1487ms=0.0482"
     },
     {
      "page": "http://127.0.0.1:9460/wp-admin/media-new.php",
@@ -756,8 +640,8 @@
      "width": 1440,
      "locale": "fr-FR",
      "state": "direction (after approval) /wp-admin/media-new.php",
-     "shot": "out/shots/0239-A-direction-1440-direction-after-approval-wp-admin-media-new-php.png",
-     "element": "DIV.drag-drop-inside+P.upload-flash-bypass+P.max-upload-size@1253ms=0.0482"
+     "shot": "out/shots/0231-A-direction-1440-direction-after-approval-wp-admin-media-new-php.png",
+     "element": "DIV.drag-drop-inside+P.upload-flash-bypass+P.max-upload-size@1409ms=0.0482"
     }
    ],
    "count": 3,
@@ -771,7 +655,7 @@
    "option": "A",
    "text": "CLS 0.034",
    "note": "layout shift above 0.02",
-   "element": "DIV.admin-ui-navigable-region.interface-interface-skeleton__sidebar+DIV.editor-header__settings@2344ms=0.0343",
+   "element": "DIV.admin-ui-navigable-region.interface-interface-skeleton__sidebar+DIV.editor-header__settings@2457ms=0.0343",
    "occurrences": [
     {
      "page": "http://127.0.0.1:9460/wp-admin/post-new.php?post_type=page",
@@ -779,8 +663,8 @@
      "width": 1440,
      "locale": "fr-FR",
      "state": "direction /wp-admin/post-new.php?post_type=page",
-     "shot": "out/shots/0198-A-direction-1440-direction-wp-admin-post-new-php-post-type-page.png",
-     "element": "DIV.admin-ui-navigable-region.interface-interface-skeleton__sidebar+DIV.editor-header__settings@2344ms=0.0343"
+     "shot": "out/shots/0190-A-direction-1440-direction-wp-admin-post-new-php-post-type-page.png",
+     "element": "DIV.admin-ui-navigable-region.interface-interface-skeleton__sidebar+DIV.editor-header__settings@2457ms=0.0343"
     },
     {
      "page": "http://127.0.0.1:9460/wp-admin/post-new.php?post_type=page",
@@ -788,8 +672,8 @@
      "width": 1440,
      "locale": "fr-FR",
      "state": "direction (after approval) /wp-admin/post-new.php?post_type=page",
-     "shot": "out/shots/0241-A-direction-1440-direction-after-approval-wp-admin-post-new-php-post-type-pag.png",
-     "element": "DIV.admin-ui-navigable-region.interface-interface-skeleton__sidebar+DIV.editor-header__settings@2102ms=0.0343"
+     "shot": "out/shots/0233-A-direction-1440-direction-after-approval-wp-admin-post-new-php-post-type-pag.png",
+     "element": "DIV.admin-ui-navigable-region.interface-interface-skeleton__sidebar+DIV.editor-header__settings@2309ms=0.0343"
     }
    ],
    "count": 2,
@@ -803,7 +687,7 @@
    "option": "A",
    "text": "CLS 0.070",
    "note": "layout shift above 0.02",
-   "element": "TEXTAREA#content.wp-editor-area+DIV#submitdiv.postbox+TABLE#post-status-info@2009ms=0.0699",
+   "element": "TEXTAREA#content.wp-editor-area+DIV#submitdiv.postbox+TABLE#post-status-info@2179ms=0.0699",
    "occurrences": [
     {
      "page": "http://127.0.0.1:9460/wp-admin/post-new.php?post_type=asset_congres",
@@ -811,8 +695,8 @@
      "width": 390,
      "locale": "fr-FR",
      "state": "contributeur 390 /wp-admin/post-new.php?post_type=asset_congres",
-     "shot": "out/shots/0260-A-contributeur-390-contributeur-390-wp-admin-post-new-php-post-type-asset-congr.png",
-     "element": "TEXTAREA#content.wp-editor-area+DIV#submitdiv.postbox+TABLE#post-status-info@2009ms=0.0699"
+     "shot": "out/shots/0252-A-contributeur-390-contributeur-390-wp-admin-post-new-php-post-type-asset-congr.png",
+     "element": "TEXTAREA#content.wp-editor-area+DIV#submitdiv.postbox+TABLE#post-status-info@2179ms=0.0699"
     }
    ],
    "count": 1,
@@ -826,7 +710,7 @@
    "option": "A",
    "text": "CLS 0.061",
    "note": "layout shift above 0.02",
-   "element": "TEXTAREA#content.wp-editor-area+DIV#submitdiv.postbox+DIV.inside@1995ms=0.061",
+   "element": "TEXTAREA#content.wp-editor-area+DIV#submitdiv.postbox+DIV.inside@2249ms=0.061",
    "occurrences": [
     {
      "page": "http://127.0.0.1:9460/wp-admin/post-new.php?post_type=asset_congres",
@@ -834,8 +718,8 @@
      "width": 390,
      "locale": "fr-FR",
      "state": "equipe 390 /wp-admin/post-new.php?post_type=asset_congres",
-     "shot": "out/shots/0266-A-equipe-390-equipe-390-wp-admin-post-new-php-post-type-asset-congres.png",
-     "element": "TEXTAREA#content.wp-editor-area+DIV#submitdiv.postbox+DIV.inside@1995ms=0.061"
+     "shot": "out/shots/0258-A-equipe-390-equipe-390-wp-admin-post-new-php-post-type-asset-congres.png",
+     "element": "TEXTAREA#content.wp-editor-area+DIV#submitdiv.postbox+DIV.inside@2249ms=0.061"
     },
     {
      "page": "http://127.0.0.1:9460/wp-admin/post-new.php?post_type=asset_congres",
@@ -843,8 +727,8 @@
      "width": 390,
      "locale": "fr-FR",
      "state": "direction 390 /wp-admin/post-new.php?post_type=asset_congres",
-     "shot": "out/shots/0280-A-direction-390-direction-390-wp-admin-post-new-php-post-type-asset-congres.png",
-     "element": "TEXTAREA#content.wp-editor-area+DIV#submitdiv.postbox+DIV.inside@2011ms=0.061"
+     "shot": "out/shots/0272-A-direction-390-direction-390-wp-admin-post-new-php-post-type-asset-congres.png",
+     "element": "TEXTAREA#content.wp-editor-area+DIV#submitdiv.postbox+DIV.inside@2154ms=0.061"
     }
    ],
    "count": 2,
@@ -899,20 +783,20 @@
    "ce": "CE-C5-001"
   },
   {
-   "key": "b0321fd61a",
+   "key": "e00c557b95",
    "check": "C10",
    "option": "A",
    "text": "T5 step 1: Signed in as equipe, open « Codes GM&E › Codes »: the codes are hidden. Click « Demander l’accès » and give a reason.",
-   "note": "label « Codes GM&E › Codes » not visible",
+   "note": "label « Codes » not visible",
    "element": "instruction replay",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9460/wp-admin/index.php",
+     "page": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-gme",
      "role": "equipe",
      "width": 1440,
      "locale": "fr-FR",
      "state": "",
-     "shot": "out/shots/0235-A-equipe-1440-C10-T5-1.png",
+     "shot": "out/shots/0227-A-equipe-1440-C10-T5-1.png",
      "element": "instruction replay"
     }
    ],
@@ -922,43 +806,20 @@
    "ce": ""
   },
   {
-   "key": "72778b19b2",
-   "check": "C10",
-   "option": "A",
-   "text": "T5 step 2: Sign out, sign in as direction, open « Codes GM&E › Demandes d’accès », and click « Approuver pour 24 h » or « Refuser ».",
-   "note": "label « Approuver (24 h) » not visible",
-   "element": "instruction replay",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9460/wp-admin/index.php",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "out/shots/0236-A-direction-1440-C10-T5-2.png",
-     "element": "instruction replay"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "574998b4ff",
+   "key": "509f4ed7ea",
    "check": "C10",
    "option": "A",
    "text": "T5 step 3: Sign in as equipe again and open « Codes GM&E › Codes ». The code stays hidden until you click « Afficher le code »: that click is needed. Each display is then listed in « Journal d’accès GM&E ».",
-   "note": "label « Accès GM&E » not visible",
+   "note": "label « Codes » not visible",
    "element": "instruction replay",
    "occurrences": [
     {
-     "page": "http://127.0.0.1:9460/wp-admin/index.php",
+     "page": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-gme",
      "role": "equipe",
      "width": 1440,
      "locale": "fr-FR",
      "state": "",
-     "shot": "out/shots/0253-A-equipe-1440-C10-T5-3.png",
+     "shot": "out/shots/0245-A-equipe-1440-C10-T5-3.png",
      "element": "instruction replay"
     }
    ],
@@ -968,181 +829,20 @@
    "ce": "CE-C10-001"
   },
   {
-   "key": "e73398e863",
-   "check": "C10",
-   "option": "B",
-   "text": "T1 step 2: Open the list of congresses and click « Ajouter un congrès », or open an existing one to change it.",
-   "note": "step text changed: re-map the replay",
-   "element": "instruction replay",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres",
-     "role": "contributeur",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "out/shots/0090-B-contributeur-1440-C10-T1-2.png",
-     "element": "instruction replay"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "48d10ba69c",
-   "check": "C10",
-   "option": "B",
-   "text": "T1 step 3: Send it for review. Sign in as direction to check it and publish it.",
-   "note": "no « review » button: label « Envoyer pour relecture » not visible",
-   "element": "instruction replay",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres",
-     "role": "contributeur",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "out/shots/0091-B-contributeur-1440-C10-T1-3.png",
-     "element": "instruction replay"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "53044d8685",
-   "check": "C10",
-   "option": "B",
-   "text": "T3 step 3: Click « Envoyer ma demande ». You receive a reference number on screen.",
-   "note": "label « Envoyer la demande » not visible",
-   "element": "instruction replay",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/congres/journees-d-oncologie-digestive-cg-0112",
-     "role": "contributeur",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "out/shots/0102-B-contributeur-1440-C10-T3-3.png",
-     "element": "instruction replay"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "f7eac3700f",
-   "check": "C10",
-   "option": "B",
-   "text": "T4 step 2: Open your enquiry from task 3 and change its status. Each change is kept in its history.",
-   "note": "exception: locator.click: Timeout 5000ms exceeded.",
-   "element": "instruction replay",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes",
-     "role": "equipe",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "out/shots/0109-B-equipe-1440-C10-T4-2.png",
-     "element": "instruction replay"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "5851bd10fa",
-   "check": "C10",
-   "option": "B",
-   "text": "T4 step 3: Click « Exporter en CSV » to download the list as a spreadsheet file. « Journal des notifications » shows the message your team would have received.",
-   "note": "exception: locator.click: Timeout 5000ms exceeded.",
-   "element": "instruction replay",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes",
-     "role": "equipe",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "out/shots/0110-B-equipe-1440-C10-T4-3.png",
-     "element": "instruction replay"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "200d04f143",
-   "check": "C10",
-   "option": "B",
-   "text": "T5 step 1: In the team console, sign in as equipe and open « Codes GM&E › Codes »: the codes are hidden. Click « Demander l’accès » and give a reason.",
-   "note": "exception: locator.click: Timeout 5000ms exceeded.",
-   "element": "instruction replay",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes",
-     "role": "equipe",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "out/shots/0111-B-equipe-1440-C10-T5-1.png",
-     "element": "instruction replay"
-    }
-   ],
-   "count": 1,
-   "status": "REAL",
-   "reason": "Hub B task 5 says open « Codes GM&E »; in the console that text is a non-clickable group heading, the link under it says « Codes ».",
-   "ce": "CE-C10-002"
-  },
-  {
-   "key": "c6ddbd9782",
-   "check": "C10",
-   "option": "B",
-   "text": "T5 step 2: Sign out, sign in as direction, open « Codes GM&E › Demandes d’accès », and click « Approuver pour 24 h » or « Refuser ».",
-   "note": "exception: locator.click: Timeout 5000ms exceeded.",
-   "element": "instruction replay",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes",
-     "role": "equipe",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "out/shots/0112-B-equipe-1440-C10-T5-2.png",
-     "element": "instruction replay"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "7a40f95dea",
+   "key": "a81146f797",
    "check": "C10",
    "option": "B",
    "text": "T5 step 3: Sign in as equipe again and open « Codes GM&E › Codes ». The code stays hidden until you click « Afficher le code »: that click is needed. Each display is then listed in « Journal d’accès GM&E ».",
-   "note": "exception: locator.click: Timeout 5000ms exceeded.",
+   "note": "hub says « the code is shown » after signing in; the reader must still click « Afficher le code »",
    "element": "instruction replay",
    "occurrences": [
     {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes",
+     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/gme/112/afficher",
      "role": "equipe",
      "width": 1440,
      "locale": "fr-FR",
      "state": "",
-     "shot": "out/shots/0113-B-equipe-1440-C10-T5-3.png",
+     "shot": "out/shots/0080-B-equipe-1440-C10-T5-3.png",
      "element": "instruction replay"
     }
    ],
@@ -1157,98 +857,6 @@
    "option": "A",
    "text": "5. GM&E codes protected: Works in the demo Codes hidden, access asked with a reason, 24-hour approval, a ",
    "note": "this run: C10 T5 FAIL · wp_demo/README.md: S5-F1, S5-F2, S5-F3, S5-F4, S5-F5, S5-E1, S5-H1, S5-L1, S5-L2",
-   "element": "table.cmp",
-   "occurrences": [
-    {
-     "page": "demo/#compare",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "table.cmp"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "3d3944fa1c",
-   "check": "D1",
-   "option": "B",
-   "text": "1. Create and edit congresses: Works in the demo In the team console, with review before publishing.",
-   "note": "this run: C10 T1 FAIL · custom_demo/README.md: `s1_congress.spec.mjs` 5/5 pass",
-   "element": "table.cmp",
-   "occurrences": [
-    {
-     "page": "demo/#compare",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "table.cmp"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "bb66c57546",
-   "check": "D1",
-   "option": "B",
-   "text": "3. Flight enquiry form: Works in the demo Every field is checked before sending; you get a reference.",
-   "note": "this run: C10 T3 FAIL · custom_demo/README.md: `s3_enquiry.spec.mjs` 7/7 pass",
-   "element": "table.cmp",
-   "occurrences": [
-    {
-     "page": "demo/#compare",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "table.cmp"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "28def1b383",
-   "check": "D1",
-   "option": "B",
-   "text": "4. Receive, view, track and update enquiries: Works in the demo Statuses, history of changes, export to a spreadsheet (CSV).",
-   "note": "this run: C10 T4 FAIL · custom_demo/README.md: `s4_team.spec.mjs` 7/7 pass",
-   "element": "table.cmp",
-   "occurrences": [
-    {
-     "page": "demo/#compare",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "table.cmp"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "a2cd02abc4",
-   "check": "D1",
-   "option": "B",
-   "text": "5. GM&E codes protected: Works in the demo Codes hidden, access asked with a reason, 24-hour approval, a ",
-   "note": "this run: C10 T5 FAIL · custom_demo/README.md: `s5_gme.spec.mjs` 11/11 pass",
    "element": "table.cmp",
    "occurrences": [
     {
@@ -1343,97 +951,6 @@
    "status": "UNTRIAGED",
    "reason": "",
    "ce": ""
-  },
-  {
-   "key": "5bfb1dbe2b",
-   "check": "E1",
-   "option": "HUB",
-   "text": "demo/index.html",
-   "note": "deployed file differs from site/ in the repository",
-   "element": "",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/demo/index.html",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": ""
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "3ca48fb6a5",
-   "check": "E1",
-   "option": "HUB",
-   "text": "js/demo.js",
-   "note": "deployed file differs from site/ in the repository",
-   "element": "",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/js/demo.js",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": ""
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "7ebe627cd4",
-   "check": "E1",
-   "option": "HUB",
-   "text": "css/demo.css",
-   "note": "deployed file differs from site/ in the repository",
-   "element": "",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/css/demo.css",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": ""
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "77ade27cb2",
-   "check": "GATE",
-   "option": "B",
-   "text": "locator.fill: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel('E-mail')\u001b[22m\n",
-   "note": "B phone journeys aborted",
-   "element": "",
-   "occurrences": [
-    {
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": ""
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
   }
  ],
  "replay": {
@@ -1448,7 +965,7 @@
     "clicks": 1,
     "page": "http://127.0.0.1:9460/wp-admin/index.php",
     "role": "direction",
-    "shot": "out/shots/0191-A-direction-1440-C10-T1-1.png",
+    "shot": "out/shots/0183-A-direction-1440-C10-T1-1.png",
     "extra": "local: signed in as direction through wp-login (hosted link checked separately)"
    },
    {
@@ -1461,7 +978,7 @@
     "clicks": 2,
     "page": "http://127.0.0.1:9460/wp-admin/post-new.php?post_type=asset_congres",
     "role": "direction",
-    "shot": "out/shots/0192-A-direction-1440-C10-T1-2.png",
+    "shot": "out/shots/0184-A-direction-1440-C10-T1-2.png",
     "extra": ""
    },
    {
@@ -1474,7 +991,7 @@
     "clicks": 2,
     "page": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres",
     "role": "direction",
-    "shot": "out/shots/0193-A-direction-1440-C10-T1-3.png",
+    "shot": "out/shots/0185-A-direction-1440-C10-T1-3.png",
     "extra": ""
    },
    {
@@ -1500,7 +1017,7 @@
     "clicks": 0,
     "page": "http://127.0.0.1:9460/",
     "role": "visiteur",
-    "shot": "out/shots/0215-A-visiteur-1440-C10-T2-1.png",
+    "shot": "out/shots/0207-A-visiteur-1440-C10-T2-1.png",
     "extra": "local: visitor site root"
    },
    {
@@ -1513,7 +1030,7 @@
     "clicks": 1,
     "page": "http://127.0.0.1:9460/?q=cardiologie&discipline&pays&mois&tri=date_asc",
     "role": "visiteur",
-    "shot": "out/shots/0216-A-visiteur-1440-C10-T2-2.png",
+    "shot": "out/shots/0208-A-visiteur-1440-C10-T2-2.png",
     "extra": ""
    },
    {
@@ -1526,7 +1043,7 @@
     "clicks": 1,
     "page": "http://127.0.0.1:9460/congres/congres-europeen-de-cardiologie-exemple/",
     "role": "visiteur",
-    "shot": "out/shots/0217-A-visiteur-1440-C10-T2-3.png",
+    "shot": "out/shots/0209-A-visiteur-1440-C10-T2-3.png",
     "extra": ""
    },
    {
@@ -1539,7 +1056,7 @@
     "clicks": 0,
     "page": "http://127.0.0.1:9460/congres/congres-europeen-de-cardiologie-exemple/",
     "role": "visiteur",
-    "shot": "out/shots/0218-A-visiteur-1440-C10-T3-1.png",
+    "shot": "out/shots/0210-A-visiteur-1440-C10-T3-1.png",
     "extra": ""
    },
    {
@@ -1552,7 +1069,7 @@
     "clicks": 0,
     "page": "http://127.0.0.1:9460/congres/congres-europeen-de-cardiologie-exemple/",
     "role": "visiteur",
-    "shot": "out/shots/0219-A-visiteur-1440-C10-T3-2.png",
+    "shot": "out/shots/0211-A-visiteur-1440-C10-T3-2.png",
     "extra": ""
    },
    {
@@ -1563,9 +1080,9 @@
     "ok": true,
     "why": "",
     "clicks": 1,
-    "page": "http://127.0.0.1:9460/congres/congres-europeen-de-cardiologie-exemple/?asset_ok=61fb6f2ee4749801e54593c022a9bccc#devis",
+    "page": "http://127.0.0.1:9460/congres/congres-europeen-de-cardiologie-exemple/?asset_ok=6a58134054977a3f701711e9d95d2f73#devis",
     "role": "visiteur",
-    "shot": "out/shots/0220-A-visiteur-1440-C10-T3-3.png",
+    "shot": "out/shots/0212-A-visiteur-1440-C10-T3-3.png",
     "extra": ""
    },
    {
@@ -1578,7 +1095,7 @@
     "clicks": 3,
     "page": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes",
     "role": "equipe",
-    "shot": "out/shots/0221-A-equipe-1440-C10-T4-1.png",
+    "shot": "out/shots/0213-A-equipe-1440-C10-T4-1.png",
     "extra": ""
    },
    {
@@ -1591,7 +1108,7 @@
     "clicks": 3,
     "page": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes&action=view&id=32",
     "role": "equipe",
-    "shot": "out/shots/0222-A-equipe-1440-C10-T4-2.png",
+    "shot": "out/shots/0214-A-equipe-1440-C10-T4-2.png",
     "extra": ""
    },
    {
@@ -1604,7 +1121,7 @@
     "clicks": 3,
     "page": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-notifications",
     "role": "equipe",
-    "shot": "out/shots/0223-A-equipe-1440-C10-T4-3.png",
+    "shot": "out/shots/0215-A-equipe-1440-C10-T4-3.png",
     "extra": ""
    },
    {
@@ -1613,11 +1130,11 @@
     "n": 1,
     "text": "Signed in as equipe, open « Codes GM&E › Codes »: the codes are hidden. Click « Demander l’accès » and give a reason.",
     "ok": false,
-    "why": "label « Codes GM&E › Codes » not visible",
-    "clicks": 0,
-    "page": "http://127.0.0.1:9460/wp-admin/index.php",
+    "why": "label « Codes » not visible",
+    "clicks": 1,
+    "page": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-gme",
     "role": "equipe",
-    "shot": "out/shots/0235-A-equipe-1440-C10-T5-1.png",
+    "shot": "out/shots/0227-A-equipe-1440-C10-T5-1.png",
     "extra": ""
    },
    {
@@ -1625,12 +1142,12 @@
     "task": "T5",
     "n": 2,
     "text": "Sign out, sign in as direction, open « Codes GM&E › Demandes d’accès », and click « Approuver pour 24 h » or « Refuser ».",
-    "ok": false,
-    "why": "label « Approuver (24 h) » not visible",
-    "clicks": 2,
-    "page": "http://127.0.0.1:9460/wp-admin/index.php",
+    "ok": true,
+    "why": "",
+    "clicks": 3,
+    "page": "http://127.0.0.1:9460/wp-admin/index.php?msg=approve",
     "role": "direction",
-    "shot": "out/shots/0236-A-direction-1440-C10-T5-2.png",
+    "shot": "out/shots/0228-A-direction-1440-C10-T5-2.png",
     "extra": ""
    },
    {
@@ -1639,11 +1156,11 @@
     "n": 3,
     "text": "Sign in as equipe again and open « Codes GM&E › Codes ». The code stays hidden until you click « Afficher le code »: that click is needed. Each display is then listed in « Journal d’accès GM&E ».",
     "ok": false,
-    "why": "label « Accès GM&E » not visible",
-    "clicks": 2,
-    "page": "http://127.0.0.1:9460/wp-admin/index.php",
+    "why": "label « Codes » not visible",
+    "clicks": 3,
+    "page": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-gme",
     "role": "equipe",
-    "shot": "out/shots/0253-A-equipe-1440-C10-T5-3.png",
+    "shot": "out/shots/0245-A-equipe-1440-C10-T5-3.png",
     "extra": ""
    }
   ],
@@ -1658,7 +1175,7 @@
     "clicks": 1,
     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console",
     "role": "contributeur",
-    "shot": "out/shots/0087-B-contributeur-1440-C10-T1-1.png",
+    "shot": "out/shots/0047-B-contributeur-1440-C10-T1-1.png",
     "extra": ""
    },
    {
@@ -1666,12 +1183,12 @@
     "task": "T1",
     "n": 2,
     "text": "Open the list of congresses and click « Ajouter un congrès », or open an existing one to change it.",
-    "ok": false,
-    "why": "step text changed: re-map the replay",
-    "clicks": 0,
-    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres",
+    "ok": true,
+    "why": "",
+    "clicks": 2,
+    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres/nouveau",
     "role": "contributeur",
-    "shot": "out/shots/0090-B-contributeur-1440-C10-T1-2.png",
+    "shot": "out/shots/0050-B-contributeur-1440-C10-T1-2.png",
     "extra": ""
    },
    {
@@ -1679,12 +1196,12 @@
     "task": "T1",
     "n": 3,
     "text": "Send it for review. Sign in as direction to check it and publish it.",
-    "ok": false,
-    "why": "no « review » button: label « Envoyer pour relecture » not visible",
-    "clicks": 0,
-    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres",
-    "role": "contributeur",
-    "shot": "out/shots/0091-B-contributeur-1440-C10-T1-3.png",
+    "ok": true,
+    "why": "",
+    "clicks": 6,
+    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres/114?ok=publish",
+    "role": "direction",
+    "shot": "out/shots/0052-B-direction-1440-C10-T1-3.png",
     "extra": ""
    },
    {
@@ -1696,8 +1213,8 @@
     "why": "",
     "clicks": 1,
     "page": "https://asset-voyages-demo.debanjan186.workers.dev/",
-    "role": "contributeur",
-    "shot": "out/shots/0097-B-contributeur-1440-C10-T2-1.png",
+    "role": "direction",
+    "shot": "out/shots/0063-B-direction-1440-C10-T2-1.png",
     "extra": ""
    },
    {
@@ -1709,8 +1226,8 @@
     "why": "",
     "clicks": 1,
     "page": "https://asset-voyages-demo.debanjan186.workers.dev/?q=cardiologie&pays=&mois=#resultats",
-    "role": "contributeur",
-    "shot": "out/shots/0098-B-contributeur-1440-C10-T2-2.png",
+    "role": "direction",
+    "shot": "out/shots/0064-B-direction-1440-C10-T2-2.png",
     "extra": ""
    },
    {
@@ -1721,9 +1238,9 @@
     "ok": true,
     "why": "",
     "clicks": 1,
-    "page": "https://asset-voyages-demo.debanjan186.workers.dev/congres/congres-europeen-de-cardiologie-cg-0101",
-    "role": "contributeur",
-    "shot": "out/shots/0099-B-contributeur-1440-C10-T2-3.png",
+    "page": "https://asset-voyages-demo.debanjan186.workers.dev/congres/congres-de-relecture-x1p2-cg-0114",
+    "role": "direction",
+    "shot": "out/shots/0065-B-direction-1440-C10-T2-3.png",
     "extra": ""
    },
    {
@@ -1735,8 +1252,8 @@
     "why": "",
     "clicks": 0,
     "page": "https://asset-voyages-demo.debanjan186.workers.dev/congres/journees-d-oncologie-digestive-cg-0112",
-    "role": "contributeur",
-    "shot": "out/shots/0100-B-contributeur-1440-C10-T3-1.png",
+    "role": "direction",
+    "shot": "out/shots/0066-B-direction-1440-C10-T3-1.png",
     "extra": "form already open on the page (0 clicks)"
    },
    {
@@ -1748,8 +1265,8 @@
     "why": "",
     "clicks": 0,
     "page": "https://asset-voyages-demo.debanjan186.workers.dev/congres/journees-d-oncologie-digestive-cg-0112",
-    "role": "contributeur",
-    "shot": "out/shots/0101-B-contributeur-1440-C10-T3-2.png",
+    "role": "direction",
+    "shot": "out/shots/0067-B-direction-1440-C10-T3-2.png",
     "extra": ""
    },
    {
@@ -1757,12 +1274,12 @@
     "task": "T3",
     "n": 3,
     "text": "Click « Envoyer ma demande ». You receive a reference number on screen.",
-    "ok": false,
-    "why": "label « Envoyer la demande » not visible",
-    "clicks": 0,
-    "page": "https://asset-voyages-demo.debanjan186.workers.dev/congres/journees-d-oncologie-digestive-cg-0112",
-    "role": "contributeur",
-    "shot": "out/shots/0102-B-contributeur-1440-C10-T3-3.png",
+    "ok": true,
+    "why": "",
+    "clicks": 1,
+    "page": "https://asset-voyages-demo.debanjan186.workers.dev/demande/confirmation?ref=DV-2026-0007&k=-SBJreGT73heuu4jBTu4dW",
+    "role": "direction",
+    "shot": "out/shots/0068-B-direction-1440-C10-T3-3.png",
     "extra": ""
    },
    {
@@ -1775,7 +1292,7 @@
     "clicks": 2,
     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes",
     "role": "equipe",
-    "shot": "out/shots/0103-B-equipe-1440-C10-T4-1.png",
+    "shot": "out/shots/0069-B-equipe-1440-C10-T4-1.png",
     "extra": ""
    },
    {
@@ -1783,12 +1300,12 @@
     "task": "T4",
     "n": 2,
     "text": "Open your enquiry from task 3 and change its status. Each change is kept in its history.",
-    "ok": false,
-    "why": "exception: locator.click: Timeout 5000ms exceeded.",
-    "clicks": 0,
-    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes",
+    "ok": true,
+    "why": "",
+    "clicks": 2,
+    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/7?ok=statut-qualifiee",
     "role": "equipe",
-    "shot": "out/shots/0109-B-equipe-1440-C10-T4-2.png",
+    "shot": "out/shots/0075-B-equipe-1440-C10-T4-2.png",
     "extra": ""
    },
    {
@@ -1796,25 +1313,25 @@
     "task": "T4",
     "n": 3,
     "text": "Click « Exporter en CSV » to download the list as a spreadsheet file. « Journal des notifications » shows the message your team would have received.",
-    "ok": false,
-    "why": "exception: locator.click: Timeout 5000ms exceeded.",
-    "clicks": 0,
-    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes",
+    "ok": true,
+    "why": "",
+    "clicks": 3,
+    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/notifications",
     "role": "equipe",
-    "shot": "out/shots/0110-B-equipe-1440-C10-T4-3.png",
-    "extra": ""
+    "shot": "out/shots/0076-B-equipe-1440-C10-T4-3.png",
+    "extra": "CSV demandes-2026-11-06.csv"
    },
    {
     "option": "B",
     "task": "T5",
     "n": 1,
     "text": "In the team console, sign in as equipe and open « Codes GM&E › Codes »: the codes are hidden. Click « Demander l’accès » and give a reason.",
-    "ok": false,
-    "why": "exception: locator.click: Timeout 5000ms exceeded.",
-    "clicks": 0,
-    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes",
+    "ok": true,
+    "why": "",
+    "clicks": 3,
+    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/gme?ok=demande",
     "role": "equipe",
-    "shot": "out/shots/0111-B-equipe-1440-C10-T5-1.png",
+    "shot": "out/shots/0077-B-equipe-1440-C10-T5-1.png",
     "extra": ""
    },
    {
@@ -1822,12 +1339,12 @@
     "task": "T5",
     "n": 2,
     "text": "Sign out, sign in as direction, open « Codes GM&E › Demandes d’accès », and click « Approuver pour 24 h » or « Refuser ».",
-    "ok": false,
-    "why": "exception: locator.click: Timeout 5000ms exceeded.",
-    "clicks": 0,
-    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes",
-    "role": "equipe",
-    "shot": "out/shots/0112-B-equipe-1440-C10-T5-2.png",
+    "ok": true,
+    "why": "",
+    "clicks": 4,
+    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/gme/acces?ok=approuvee",
+    "role": "direction",
+    "shot": "out/shots/0078-B-direction-1440-C10-T5-2.png",
     "extra": ""
    },
    {
@@ -1836,12 +1353,12 @@
     "n": 3,
     "text": "Sign in as equipe again and open « Codes GM&E › Codes ». The code stays hidden until you click « Afficher le code »: that click is needed. Each display is then listed in « Journal d’accès GM&E ».",
     "ok": false,
-    "why": "exception: locator.click: Timeout 5000ms exceeded.",
-    "clicks": 0,
-    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes",
+    "why": "hub says « the code is shown » after signing in; the reader must still click « Afficher le code »",
+    "clicks": 4,
+    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/gme/112/afficher",
     "role": "equipe",
-    "shot": "out/shots/0113-B-equipe-1440-C10-T5-3.png",
-    "extra": ""
+    "shot": "out/shots/0080-B-equipe-1440-C10-T5-3.png",
+    "extra": "reveal"
    },
    {
     "option": "B",
@@ -1853,7 +1370,7 @@
     "clicks": 0,
     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/1",
     "role": "equipe",
-    "shot": "out/shots/0114-B-equipe-1440-C10-G-1.png",
+    "shot": "out/shots/0081-B-equipe-1440-C10-G-1.png",
     "extra": ""
    },
    {
@@ -1866,7 +1383,7 @@
     "clicks": 1,
     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/1/groupe",
     "role": "equipe",
-    "shot": "out/shots/0115-B-equipe-1440-C10-G-2.png",
+    "shot": "out/shots/0082-B-equipe-1440-C10-G-2.png",
     "extra": ""
    },
    {
@@ -1879,7 +1396,7 @@
     "clicks": 1,
     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/1/groupe",
     "role": "equipe",
-    "shot": "out/shots/0116-B-equipe-1440-C10-G-3.png",
+    "shot": "out/shots/0083-B-equipe-1440-C10-G-3.png",
     "extra": ""
    },
    {
@@ -1892,7 +1409,7 @@
     "clicks": 0,
     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/1/groupe",
     "role": "equipe",
-    "shot": "out/shots/0119-B-equipe-1440-C10-G-4.png",
+    "shot": "out/shots/0086-B-equipe-1440-C10-G-4.png",
     "extra": ""
    }
   ],
@@ -2023,8 +1540,8 @@
    "option": "B",
    "cell": "Works in the demo In the team console, with review before publishing.",
    "works": true,
-   "ok": false,
-   "evidence": "this run: C10 T1 FAIL · custom_demo/README.md: `s1_congress.spec.mjs` 5/5 pass"
+   "ok": true,
+   "evidence": "this run: C10 T1 functional PASS · custom_demo/README.md: `s1_congress.spec.mjs` 5/5 pass"
   },
   {
    "fn": "2. Public catalogue with search, filters and details page",
@@ -2055,8 +1572,8 @@
    "option": "B",
    "cell": "Works in the demo Every field is checked before sending; you get a reference.",
    "works": true,
-   "ok": false,
-   "evidence": "this run: C10 T3 FAIL · custom_demo/README.md: `s3_enquiry.spec.mjs` 7/7 pass"
+   "ok": true,
+   "evidence": "this run: C10 T3 functional PASS · custom_demo/README.md: `s3_enquiry.spec.mjs` 7/7 pass"
   },
   {
    "fn": "4. Receive, view, track and update enquiries",
@@ -2071,8 +1588,8 @@
    "option": "B",
    "cell": "Works in the demo Statuses, history of changes, export to a spreadsheet (CSV).",
    "works": true,
-   "ok": false,
-   "evidence": "this run: C10 T4 FAIL · custom_demo/README.md: `s4_team.spec.mjs` 7/7 pass"
+   "ok": true,
+   "evidence": "this run: C10 T4 functional PASS · custom_demo/README.md: `s4_team.spec.mjs` 7/7 pass"
   },
   {
    "fn": "5. GM&E codes protected",
@@ -2087,8 +1604,8 @@
    "option": "B",
    "cell": "Works in the demo Codes hidden, access asked with a reason, 24-hour approval, a record of every display.",
    "works": true,
-   "ok": false,
-   "evidence": "this run: C10 T5 FAIL · custom_demo/README.md: `s5_gme.spec.mjs` 11/11 pass"
+   "ok": true,
+   "evidence": "this run: C10 T5 functional PASS · custom_demo/README.md: `s5_gme.spec.mjs` 11/11 pass"
   },
   {
    "fn": "Email notifications",
@@ -2361,7 +1878,9 @@
    "A": [
     "Approuver pour 24 h"
    ],
-   "B": [],
+   "B": [
+    "Approuver pour 24 h"
+   ],
    "hub": [],
    "scope": "AB"
   },
@@ -2370,7 +1889,9 @@
    "A": [
     "Afficher le code"
    ],
-   "B": [],
+   "B": [
+    "Afficher le code"
+   ],
    "hub": [
     "Afficher le code"
    ],
@@ -2388,7 +1909,9 @@
    "A": [
     "Demandes d’accès"
    ],
-   "B": [],
+   "B": [
+    "Demandes d’accès"
+   ],
    "hub": [],
    "scope": "AB"
   },
@@ -2595,7 +2118,7 @@
     "w": 354,
     "vw": 390
    },
-   "frames": 62
+   "frames": 65
   },
   {
    "name": "custom-walkthrough",
@@ -2637,6 +2160,8 @@
  },
  "notes": [
   "hosted admin signed in as: Bonjour, Direction (démo)",
-  "traveller phone sandbox cookie: JrD-RFqn1sWuCyK0dfZDzI3l"
+  "D4 reveal state B equipe reveal (equipe) shows DEMO-GME-4821",
+  "D4 reveal state C10 T5.3 (equipe) shows DEMO-GME-4821",
+  "traveller phone sandbox cookie: r4DqB8SWF2mt0WrBWgrM9Yzv"
  ]
 }
