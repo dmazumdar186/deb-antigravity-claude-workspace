@@ -32,6 +32,7 @@ function meterDb(db, acc) {
 }
 import { catalogue, congressPage, submitEnquiry, confirmation } from './public.js';
 import { consoleRoute } from './console.js';
+import { groupRoute } from './group.js';
 
 const SECURITY_HEADERS = {
   'content-security-policy': "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'",
@@ -66,6 +67,11 @@ async function route(req, env) {
   if (path === '/demande' && m === 'POST') return submitEnquiry(req, env);
   if (path === '/demande/confirmation' && m === 'GET') return confirmation(req, env);
   if (path === '/console' || path.startsWith('/console/')) return consoleRoute(req, env, path);
+  // « Lien de groupe »: /g/<token> and /g/<token>/merci. Any other /g/ address gets the same « Lien introuvable » page.
+  if (path === '/g' || path.startsWith('/g/')) {
+    const gm = /^\/g\/([^/]{1,200})(?:\/(merci))?\/?$/.exec(path);
+    return groupRoute(req, env, gm ? gm[1] : '', gm ? gm[2] || '' : '');
+  }
   if (m !== 'GET' && m !== 'HEAD') return new Response('Méthode non autorisée', { status: 405, headers: { allow: 'GET' } });
   return htmlResponse(errorPage({ status: 404, title: 'Page introuvable', text: 'Cette adresse ne correspond à aucune page du site.' }), 404);
 }

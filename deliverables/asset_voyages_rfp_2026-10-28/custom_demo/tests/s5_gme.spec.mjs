@@ -1,5 +1,5 @@
 // S5: GM&E codes protected, access through an authorisation process. Includes the leak crawl (S5-L1, S5-L2).
-import { test, expect, login, logout, csrfOf, SLUG, CODES, CODE_RE, d1Dump, d1Count, LIVE, ROOT, newPage, assertClean, sbxOf } from './helpers.mjs';
+import { test, expect, login, logout, csrfOf, SLUG, CODES, CODE_RE, d1Dump, d1Count, d1Args, LIVE, ROOT, newPage, assertClean, sbxOf } from './helpers.mjs';
 import { execFileSync } from 'node:child_process';
 
 test.describe.configure({ mode: 'serial' });
@@ -16,7 +16,7 @@ const card = (page, title) => page.locator('.gme', { has: page.getByRole('link',
 const nav = (page, name) => page.getByRole('navigation', { name: 'Console' }).getByRole('link', { name });
 const noCode = (text, where) => { for (const c of CODES) expect(text, `${where} contains ${c}`).not.toContain(c); expect(text, where).not.toMatch(CODE_RE); };
 function sql(command) {
-  execFileSync('npx', ['wrangler', 'd1', 'execute', 'asset-voyages-demo', LIVE ? '--remote' : '--local', '--command', command], { cwd: ROOT, stdio: 'ignore' });
+  execFileSync('npx', d1Args('--command', command), { cwd: ROOT, stdio: 'ignore' }); // preview runs hit the preview database only
 }
 
 test('S5-F1 codes live only in their own table, encrypted; the database holds no plaintext code', async () => {

@@ -98,14 +98,14 @@ test('FIX4-4 a full S1-S5 journey stays far below the per-sandbox throttle (at m
 
 test('FIX4-5 (SEC-B-201) one HKDF-derived key per purpose: session-v1, form-v1, confirm-v1, iphash-v1; no shared key with prefixes', async ({ page }) => {
   const lib = src('lib.js');
-  expect(lib).toContain("export const MAC_PURPOSES = ['session-v1', 'form-v1', 'confirm-v1', 'iphash-v1'];");
+  expect(lib).toContain("export const MAC_PURPOSES = ['session-v1', 'form-v1', 'confirm-v1', 'iphash-v1', 'group-v1', 'delegate-v1'];"); // group-v1: « Lien de groupe » (EXTRA_GROUP.md)
   expect(lib).toMatch(/info: enc\.encode\(info\)/);
   expect(lib).not.toContain('form-and-ip-hmac');
   for (const f of readdirSync(`${ROOT}/src`)) {
     const s = src(f);
     expect(s, f).not.toMatch(/hmac\(env, '(session|confirm|ip)\|/);
     expect(s, f).not.toMatch(/hmac\(env, `\$\{purpose\}\|/);
-    for (const m of s.matchAll(/hmac\(env, '([^']+)'/g)) expect(['session-v1', 'form-v1', 'confirm-v1', 'iphash-v1'], f).toContain(m[1]);
+    for (const m of s.matchAll(/hmac\(env, '([^']+)'/g)) expect(['session-v1', 'form-v1', 'confirm-v1', 'iphash-v1', 'group-v1', 'delegate-v1'], f).toContain(m[1]);
   }
   // behaviour: a session signature is not a valid confirmation signature, and the other way round
   await login(page, 'equipe');

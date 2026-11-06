@@ -7,6 +7,11 @@ import { dirname, join } from 'node:path';
 export const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 export const BASE = process.env.BASE_URL || 'http://localhost:8787';
 export const LIVE = !BASE.includes('localhost');
+// The preview Worker (wrangler env "preview") has its own D1 database: remote reads and writes of a preview run never reach production.
+export const PREVIEW = BASE.includes('asset-voyages-demo-preview');
+export const D1_NAME = PREVIEW ? 'asset-voyages-demo-preview' : 'asset-voyages-demo';
+export const WORKER_NAME = D1_NAME;
+export const d1Args = (...rest) => ['wrangler', 'd1', 'execute', D1_NAME, LIVE ? '--remote' : '--local', ...(PREVIEW ? ['--env', 'preview'] : []), ...rest];
 export const PASSWORD = 'demo-asset';
 export const CODES = ['DEMO-GME-4821', 'DEMO-GME-2954', 'DEMO-GME-7310', 'DEMO-GME-6147', 'DEMO-GME-1088'];
 export const CODE_RE = /DEMO-GME-\d{4}/;
@@ -144,12 +149,12 @@ export async function postEnquiry(request, slug, fields, { wait = 3100, token } 
 
 // D1 dump through wrangler (local state or the remote database).
 export function d1Dump() {
-  const out = execFileSync('npx', ['wrangler', 'd1', 'execute', 'asset-voyages-demo', LIVE ? '--remote' : '--local', '--json', '--command',
-    'SELECT * FROM gme_codes; SELECT * FROM gme_access_log; SELECT * FROM gme_requests; SELECT * FROM enquiry_events; SELECT * FROM enquiries; SELECT * FROM congresses'], { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] });
+  const out = execFileSync('npx', d1Args('--json', '--command',
+    'SELECT * FROM gme_codes; SELECT * FROM gme_access_log; SELECT * FROM gme_requests; SELECT * FROM enquiry_events; SELECT * FROM enquiries; SELECT * FROM congresses'), { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] });
   return out;
 }
 export function d1Count(sql) {
-  const out = execFileSync('npx', ['wrangler', 'd1', 'execute', 'asset-voyages-demo', LIVE ? '--remote' : '--local', '--json', '--command', sql], { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+  const out = execFileSync('npx', d1Args('--json', '--command', sql), { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
   return JSON.parse(out)[0].results;
 }
 

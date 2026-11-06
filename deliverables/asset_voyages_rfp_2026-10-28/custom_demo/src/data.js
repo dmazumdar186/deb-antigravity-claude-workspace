@@ -1,11 +1,11 @@
 // Schema, seed and reset. Everything here is fictional demo data.
-import { encryptCode, hashPassword, newSalt, slugify, norm, PBKDF2_ITER, nowIso, addDays, today, rateHit } from './lib.js';
+import { encryptCode, hashPassword, newSalt, slugify, norm, PBKDF2_ITER, nowIso, addDays, today, rateHit, hmac } from './lib.js';
 
 // Schema v6: every demo row carries `sbx`. '' is the shared seed; any other value is one browser's private sandbox.
 // Row-level copy-on-write (see T() and cow() below): a sandbox only holds the rows that browser created or changed.
 // Write budget: keyed tables are WITHOUT ROWID (the primary key is the table: one written row per insert, no extra
 // autoindex), log tables are clustered on (sbx, parent, id), notifications and creation events are derived on read.
-export const SCHEMA_VERSION = 7;
+export const SCHEMA_VERSION = 9;
 export const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT NOT NULL) WITHOUT ROWID`,
   `CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT UNIQUE NOT NULL, display_name TEXT NOT NULL, role TEXT NOT NULL CHECK (role IN ('direction','equipe','contributeur')), pw_hash TEXT NOT NULL, pw_salt TEXT NOT NULL, pw_iter INTEGER NOT NULL)`,
@@ -23,9 +23,20 @@ export const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS gme_access_log (sbx TEXT NOT NULL DEFAULT '', id TEXT NOT NULL, at TEXT NOT NULL, user_id INTEGER NOT NULL, congress_id INTEGER NOT NULL, result TEXT NOT NULL, PRIMARY KEY (sbx, id)) WITHOUT ROWID`,
   // Managed lists for the congress form (Direction adds values), so a typo cannot create a duplicate filter.
   `CREATE TABLE IF NOT EXISTS options (sbx TEXT NOT NULL DEFAULT '', kind TEXT NOT NULL CHECK (kind IN ('discipline','pays')), value TEXT NOT NULL, norm TEXT NOT NULL, PRIMARY KEY (sbx, kind, norm)) WITHOUT ROWID`,
+  // « Lien de groupe » (EXTRA_GROUP.md). One link per enquiry and sandbox. The URL token is never stored: the row keeps a
+  // 128-bit random salt (the token is HMAC(group-v1, salt), so the console can show it again) and the lookup MAC
+  // HMAC(group-v1, token). origin_sbx is the sandbox that created the link ('' for the seed link): a delegate's write goes there.
+  `CREATE TABLE IF NOT EXISTS group_links (sbx TEXT NOT NULL DEFAULT '', enquiry_id INTEGER NOT NULL, origin_sbx TEXT NOT NULL, token_mac TEXT NOT NULL, tok_salt TEXT NOT NULL, created_at TEXT NOT NULL, created_by INTEGER, expires_at TEXT NOT NULL, revoked_at TEXT, revoked_by INTEGER, PRIMARY KEY (sbx, enquiry_id)) WITHOUT ROWID`,
+  `CREATE INDEX IF NOT EXISTS group_links_mac ON group_links (token_mac)`,
+  // One row per delegate and enquiry, keyed on the normalised e-mail. `owner` is HMAC(delegate-v1) of the random id in
+  // the signed cookie of the browser that created the entry: only that browser may update it directly.
+  `CREATE TABLE IF NOT EXISTS group_delegates (sbx TEXT NOT NULL DEFAULT '', enquiry_id INTEGER NOT NULL, email_norm TEXT NOT NULL, id TEXT NOT NULL, name TEXT NOT NULL, email TEXT NOT NULL, departure_city TEXT NOT NULL, date_out TEXT NOT NULL, date_back TEXT NOT NULL, consent_at TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, owner TEXT NOT NULL DEFAULT '', PRIMARY KEY (sbx, enquiry_id, email_norm)) WITHOUT ROWID`,
+  // A change to an existing entry sent from another browser waits here (one per e-mail, the latest wins) until staff accept or refuse it.
+  `CREATE TABLE IF NOT EXISTS group_pending (sbx TEXT NOT NULL DEFAULT '', enquiry_id INTEGER NOT NULL, email_norm TEXT NOT NULL, id TEXT NOT NULL, name TEXT NOT NULL, email TEXT NOT NULL, departure_city TEXT NOT NULL, date_out TEXT NOT NULL, date_back TEXT NOT NULL, consent_at TEXT NOT NULL, created_at TEXT NOT NULL, PRIMARY KEY (sbx, enquiry_id, email_norm)) WITHOUT ROWID`,
+  `CREATE TABLE IF NOT EXISTS settings (sbx TEXT NOT NULL DEFAULT '', k TEXT NOT NULL, v TEXT NOT NULL, PRIMARY KEY (sbx, k)) WITHOUT ROWID`,
   `CREATE TABLE IF NOT EXISTS rate_limits (key TEXT PRIMARY KEY, count INTEGER NOT NULL, reset_at INTEGER NOT NULL) WITHOUT ROWID`,
 ];
-const DATA_TABLES = ['options', 'congress_events', 'enquiry_events', 'enquiries', 'gme_access_log', 'gme_requests', 'gme_codes', 'congresses'];
+const DATA_TABLES = ['group_pending', 'group_delegates', 'group_links', 'settings', 'options', 'congress_events', 'enquiry_events', 'enquiries', 'gme_access_log', 'gme_requests', 'gme_codes', 'congresses'];
 // Columns copied when a seed row is first changed in a sandbox (cow).
 const COPY_COLS = {
   congresses: 'id, ref, slug, title, discipline, city, country, start_date, end_date, venue, official_url, verified_on, description, status, search_text, created_at, created_by, updated_at, updated_by',
@@ -36,7 +47,7 @@ const COPY_COLS = {
 // Event and log ids: time first, so ordering by id is chronological.
 let evSeq = 0;
 export const eventId = (at = nowIso()) => `${at}-${(evSeq = (evSeq + 1) % 1e6).toString(36).padStart(4, '0')}${Math.random().toString(36).slice(2, 6)}`;
-const DROP_OLD = ['options', 'congress_events', 'enquiry_events', 'notifications', 'enquiries', 'gme_access_log', 'gme_requests', 'gme_codes', 'congresses', 'sandboxes', 'sessions', 'revoked', 'rate_limits', 'meta'];
+const DROP_OLD = ['group_pending', 'group_delegates', 'group_links', 'settings', 'options', 'congress_events', 'enquiry_events', 'notifications', 'enquiries', 'gme_access_log', 'gme_requests', 'gme_codes', 'congresses', 'sandboxes', 'sessions', 'revoked', 'rate_limits', 'meta'];
 
 export const USERS = [
   { id: 1, username: 'direction', display_name: 'Hélène Martin, Direction', role: 'direction' },
@@ -93,6 +104,16 @@ const ENQUIRIES = [
   E(6, 102, 'Nathan Roux (exemple)', 'nathan.roux@example.com', '01 23 45 67 06', 'Société D (exemple)', 'Lyon', '2027-10-14', '2027-10-20', 4, 'Quatre participants, dont un en fauteuil roulant.', 'nouvelle', null, '2026-11-04T17:02:00Z'),
 ];
 const PATH = ['nouvelle', 'qualifiee', 'devis'];
+// Seeded group (fictional): enquiry DV-2026-0001, congress CG-0112 (Marseille, 28 to 30 Jan. 2027), 6 expected, 3 answered.
+export const GROUP_SEED = {
+  enquiry_id: 1,
+  salt: 'seed-groupe-dv-2026-0001-v1',
+  delegates: [
+    { id: 'seedA0000001', name: 'Alice Martin (exemple)', email: 'alice.martin@example.com', city: 'Lille', out: '2027-01-27', back: '2027-01-31', at: '2026-10-22T08:10:00Z' },
+    { id: 'seedB0000002', name: 'Bruno Leroy (exemple)', email: 'bruno.leroy@example.com', city: 'Lille', out: '2027-01-27', back: '2027-01-30', at: '2026-10-22T12:45:00Z' },
+    { id: 'seedC0000003', name: 'Chloé Petit (exemple)', email: 'chloe.petit@example.com', city: 'Paris', out: '2027-01-28', back: '2027-01-31', at: '2026-10-23T17:20:00Z' },
+  ],
+};
 
 export const STATUS_LABELS = { nouvelle: 'Nouvelle', qualifiee: 'Qualifiée', devis: 'Devis envoyé', gagnee: 'Gagnée', perdue: 'Perdue' };
 export const CG_STATUS = { brouillon: 'Brouillon', a_relire: 'À relire', publie: 'Publié', archive: 'Archivé' };
@@ -143,7 +164,7 @@ export async function effectiveSbx(env, id) {
 // Row-level copy-on-write. A browser's sandbox writes nothing until its first write; then only the rows it touches are
 // written under its id (an edited congress is copied once, a new enquiry is inserted). Reads overlay the sandbox rows on
 // the shared seed: for keyed tables a sandbox row hides the seed row with the same key; log tables are a plain union.
-const OVERLAY_KEYS = { congresses: ['id'], enquiries: ['id'], gme_codes: ['congress_id'], gme_requests: ['id'] };
+const OVERLAY_KEYS = { congresses: ['id'], enquiries: ['id'], gme_codes: ['congress_id'], gme_requests: ['id'], group_links: ['enquiry_id'], group_delegates: ['enquiry_id', 'email_norm'], group_pending: ['enquiry_id', 'email_norm'], settings: ['k'] };
 const UNION_TABLES = new Set(['congress_events', 'enquiry_events', 'gme_access_log', 'options']);
 // The sandbox id is inlined as a literal: validSbx() guarantees [A-Za-z0-9_-]{16,40}, so it cannot carry SQL.
 export function T(env, table) {
@@ -329,6 +350,15 @@ export async function seedShared(env) {
   }
   stmts.push(db.prepare(`INSERT INTO gme_requests (sbx, id, congress_id, user_id, reason, status, created_at) VALUES ('', 1, 103, 2, ?, 'en_attente', ?)`)
     .bind('Préparer le devis de M. Martin (DV-2026-0002), deux places.', '2026-11-04T09:30:00Z'));
+  // « Lien de groupe »: DV-2026-0001 (6 passengers) has an active link and 3 of its 6 delegates have answered.
+  // The seed salt is fixed so the link survives resets; the token itself needs GME_KEY, so it is not in the repo.
+  const seedToken = await hmac(env, 'group-v1', 'tok|' + GROUP_SEED.salt);
+  stmts.push(db.prepare(`INSERT INTO group_links (sbx, enquiry_id, origin_sbx, token_mac, tok_salt, created_at, created_by, expires_at) VALUES ('', ?, '', ?, ?, ?, 2, ?)`)
+    .bind(GROUP_SEED.enquiry_id, await hmac(env, 'group-v1', 'id|' + seedToken), GROUP_SEED.salt, now, addDays(today(), 30) + 'T23:59:59Z'));
+  for (const d of GROUP_SEED.delegates) {
+    stmts.push(db.prepare(`INSERT INTO group_delegates (sbx, enquiry_id, email_norm, id, name, email, departure_city, date_out, date_back, consent_at, created_at, updated_at) VALUES ('',?,?,?,?,?,?,?,?,?,?,?)`)
+      .bind(GROUP_SEED.enquiry_id, d.email.toLowerCase(), d.id, d.name, d.email, d.city, d.out, d.back, d.at, d.at, d.at));
+  }
   await db.batch(stmts);
   return { ok: true, at: now, today: today(), plus: addDays(today(), 0) };
 }

@@ -112,7 +112,8 @@ test('UNIT-B-014 form tokens: valid, tampered, too fast, expired, garbage', asyn
   const [ts, n, s] = t.split('.');
   assert.equal((await L.checkFormToken(env, 'enquiry', `${ts}.${n}.${s.slice(0, -1)}A`)).ok, false);
   const old = String(Date.now() - 3 * 3600 * 1000);
-  const oldTok = `${old}.${n}.` + (await L.hmac(env, `enquiry|${old}|${n}`));
+  // since FIX4-5 the form MAC is hmac(env, 'form-v1', JSON [purpose, ts, nonce]) (stale call fixed with the group extra)
+  const oldTok = `${old}.${n}.` + (await L.hmac(env, 'form-v1', JSON.stringify(['enquiry', Number(old), n])));
   assert.equal((await L.checkFormToken(env, 'enquiry', oldTok)).why, 'expired');
   for (const g of [null, undefined, '', 'x', '1.2.3', {}]) assert.equal((await L.checkFormToken(env, 'enquiry', g)).ok, false);
 });

@@ -177,7 +177,7 @@ export async function congressPage(req, env, slug, { values, errors, notice, sta
   return htmlResponse(publicPage({ busy: (['complet', 'pause'].includes(new URL(req.url).searchParams.get('demo')) ? new URL(req.url).searchParams.get('demo') : false), title: `${c.title} | ASSET Voyages`, description: `${c.title} : ${frRange(c.start_date, c.end_date)}, ${c.city}. Demande de devis vol.`, body }), status, { 'cache-control': 'no-store' });
 }
 
-const EMAIL_RE = /^[^\s@<>()",;:]{1,64}@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$/;
+export const EMAIL_RE = /^[^\s@<>()",;:]{1,64}@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$/;
 export function validateEnquiry(get, t = today()) {
   const v = {
     name: clean(get('name'), 120), email: clean(get('email'), 254), phone: clean(get('phone'), 30), company: clean(get('company'), 120),

@@ -1,6 +1,6 @@
 // Cross-cutting gates: X1/X2 (also enforced on every test by the fixture), X3 fictional data, X4 reset + cron, X5 Hallmark,
 // security headers, console responsiveness at 390 px, hostile console input.
-import { test, expect, resetSandbox, login, csrfOf, SLUG, ROOT, LIVE, BASE, d1Count, sbxOf, CTX } from './helpers.mjs';
+import { test, expect, resetSandbox, login, csrfOf, SLUG, ROOT, LIVE, BASE, d1Count, sbxOf, CTX, WORKER_NAME } from './helpers.mjs';
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync, copyFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
@@ -101,7 +101,7 @@ test('X4 Direction reset restores the seed for this browser only; re-seeding twi
     await expect.poll(() => seedCount().e).toBe(6);
     expect(seedCount()).toEqual({ c: 13, e: 6, g: 5, u: 3, r: 1, cr: 13 });
   } else {
-    const out = execFileSync('curl', ['-s', `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/workers/scripts/asset-voyages-demo/schedules`, '-H', `Authorization: Bearer ${process.env.CLOUDFLARE_API_TOKEN}`], { encoding: 'utf8' });
+    const out = execFileSync('curl', ['-s', `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${WORKER_NAME}/schedules`, '-H', `Authorization: Bearer ${process.env.CLOUDFLARE_API_TOKEN}`], { encoding: 'utf8' });
     expect(JSON.parse(out).result.schedules.map((s) => s.cron)).toContain('0 3 * * *');
   }
 });

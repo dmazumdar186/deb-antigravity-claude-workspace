@@ -4,7 +4,7 @@ import { DEMO_BUSY, DEMO_PAUSE } from './data.js';
 const banner = (busy) => (busy === 'pause' ? DEMO_PAUSE : DEMO_BUSY);
 
 // Bump when app.css or app.js change: assets are cached for a year under a versioned URL.
-export const ASSET_V = '4';
+export const ASSET_V = '6';
 
 const head = (title, description) => html`<html lang="fr"><head>
 <meta charset="utf-8">
@@ -38,6 +38,25 @@ export function publicPage({ title, description = 'Démonstration ASSET Voyages 
     <p class="foot__brand">ASSET <span>Voyages</span></p>
     <p>Voyages d’affaires, séminaires et congrès internationaux. Cette démonstration montre la plateforme sur mesure proposée (option B) ; congrès, demandes et codes tarifaires sont des exemples.</p>
     <p><a href="/">Catalogue des congrès</a><br><a href="/console">Espace équipe</a></p>
+  </div>
+</footer>
+</body></html>`;
+}
+
+// « Lien de groupe » public pages: the same shell, without the catalogue navigation or any mention of fares.
+export function groupPage({ title, body }) {
+  return html`${head(title, 'Voyage de groupe ASSET Voyages : vos informations de voyage. Démonstration, données fictives.')}
+<body class="pub">
+<a class="skip" href="#main">Aller au contenu</a>
+<header class="top">
+  <p class="brand">ASSET <span>Voyages</span></p>
+  <p class="top__note">Démonstration avec des données fictives</p>
+</header>
+<main id="main">${body}</main>
+<footer class="foot">
+  <div class="foot__in">
+    <p class="foot__brand">ASSET <span>Voyages</span></p>
+    <p>Voyages d’affaires, séminaires et congrès internationaux. Ce lien sert uniquement à recueillir les informations de voyage des participants d’un groupe.</p>
   </div>
 </footer>
 </body></html>`;

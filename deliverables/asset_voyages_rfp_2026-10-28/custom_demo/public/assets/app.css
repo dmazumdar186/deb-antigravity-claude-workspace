@@ -172,6 +172,15 @@ main{display:block}
 .cg__aside .field--err input,.cg__aside .field--err textarea{border-color:var(--or-soft)}
 .cg__aside .alert{background:var(--navy);color:var(--on-ink)}
 .cg__aside .btn:hover{background:var(--on-ink);border-color:var(--on-ink);color:var(--ink)}
+/* « Lien de groupe »: the congress page layout, reused for the delegate form */
+.grp__by{font-weight:600;margin-top:16px;max-width:36em}
+.grp__steps{display:grid;gap:8px;margin:24px 0 16px;padding-left:24px;list-style:decimal;max-width:36em}
+.grp__privacy{display:grid;gap:8px;max-width:46em;margin-top:40px;padding-top:16px;border-top:1px solid var(--rule)}
+.grp-thanks .facts{max-width:40em}
+.copy{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px}
+.copy .field{flex:1 1 260px}
+.pend{display:grid;gap:8px;padding:16px;border:1px solid var(--rule);border-radius:var(--r2);background:var(--paper)}
+.pend__act{display:flex;flex-wrap:wrap;gap:12px}
 .thanks{display:grid;gap:24px;padding:clamp(48px,8vw,120px) 0;max-width:46em}
 .thanks .lead{margin-top:16px}
 .thanks p .lnk{display:inline;min-height:0;line-height:inherit}
