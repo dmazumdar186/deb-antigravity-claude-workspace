@@ -1,5 +1,5 @@
 ROLE anon seed=20261105 actions=300 failures=0
-ROLE contributeur seed=20261105 actions=300 failures=8
-ROLE equipe seed=20261105 actions=300 failures=9
-ROLE direction seed=20261105 actions=300 failures=13
-TOTAL failures=30
+ROLE contributeur seed=20261105 actions=300 failures=1
+ROLE equipe seed=20261105 actions=300 failures=0
+ROLE direction seed=20261105 actions=300 failures=1
+TOTAL failures=2
