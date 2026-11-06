@@ -1,6 +1,6 @@
 {
  "name": "hub",
- "at": "2026-11-06T11:59:10.634Z",
+ "at": "2026-11-06T12:41:37.889Z",
  "findings": [
   {
    "check": "B4",
@@ -160,7 +160,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "How each is built",
+     "label": "How it is built",
      "href": "#built",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -184,7 +184,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "Book a demonstration",
+     "label": "Book a demo",
      "href": "#slot",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -289,30 +289,6 @@
      "kind": "a",
      "type": "",
      "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Thursday%2012%20November%2C%2014%3A30%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Friday%2013%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
@@ -322,14 +298,6 @@
      "type": "",
      "label": "10:00",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
     },
@@ -1570,7 +1538,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "How each is built",
+     "label": "How it is built",
      "href": "#built",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -1594,7 +1562,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "Book a demonstration",
+     "label": "Book a demo",
      "href": "#slot",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -1699,30 +1667,6 @@
      "kind": "a",
      "type": "",
      "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Thursday%2012%20November%2C%2014%3A30%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Friday%2013%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
@@ -1732,14 +1676,6 @@
      "type": "",
      "label": "10:00",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
     },
@@ -2991,7 +2927,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "How each is built",
+     "label": "How it is built",
      "href": "#built",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -3015,7 +2951,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "Book a demonstration",
+     "label": "Book a demo",
      "href": "#slot",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -3120,30 +3056,6 @@
      "kind": "a",
      "type": "",
      "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Thursday%2012%20November%2C%2014%3A30%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Friday%2013%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
@@ -3153,14 +3065,6 @@
      "type": "",
      "label": "10:00",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
     },
@@ -4305,7 +4209,7 @@
    "title": "Two working demos for ASSET Voyages · ProdCraft",
    "lang": "en-GB",
    "surface": "hub",
-   "cls": 0.003102637481689453,
+   "cls": 0.0027849382188585067,
    "overflow": {
     "scrollWidth": 1280,
     "innerWidth": 1280,
@@ -4398,7 +4302,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "How each is built",
+     "label": "How it is built",
      "href": "#built",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -4422,7 +4326,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "Book a demonstration",
+     "label": "Book a demo",
      "href": "#slot",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -4535,30 +4439,6 @@
      "kind": "a",
      "type": "",
      "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Thursday%2012%20November%2C%2014%3A30%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Friday%2013%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
@@ -4568,14 +4448,6 @@
      "type": "",
      "label": "10:00",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
     },
@@ -4656,7 +4528,7 @@
      "playsinline": true,
      "preload": "auto",
      "sources": [
-      "blob:https://asset-voyages-redesign.pages.dev/2b6ed6f7-5713-476b-8d47-87db54f366da"
+      "blob:https://asset-voyages-redesign.pages.dev/2b6ed4c4-9f42-4dd7-ba5f-8a3bb6965b84"
      ],
      "visible": true,
      "width": 1280
@@ -5730,7 +5602,7 @@
    "title": "Two working demos for ASSET Voyages · ProdCraft",
    "lang": "en-GB",
    "surface": "hub",
-   "cls": 0.002451466652199074,
+   "cls": 0.0021977745694551614,
    "overflow": {
     "scrollWidth": 1440,
     "innerWidth": 1440,
@@ -5826,7 +5698,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "How each is built",
+     "label": "How it is built",
      "href": "#built",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -5850,7 +5722,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "Book a demonstration",
+     "label": "Book a demo",
      "href": "#slot",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -5963,30 +5835,6 @@
      "kind": "a",
      "type": "",
      "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Thursday%2012%20November%2C%2014%3A30%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Friday%2013%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
@@ -5996,14 +5844,6 @@
      "type": "",
      "label": "10:00",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
     },
@@ -6089,7 +5929,7 @@
      "playsinline": true,
      "preload": "auto",
      "sources": [
-      "blob:https://asset-voyages-redesign.pages.dev/e7a1017d-ebee-425b-990a-70a026826ac1"
+      "blob:https://asset-voyages-redesign.pages.dev/d68b1bcf-533d-4e02-93d4-9526736a8867"
      ],
      "visible": true,
      "width": 1440
@@ -7172,7 +7012,7 @@
    "title": "Two working demos for ASSET Voyages · ProdCraft",
    "lang": "en-GB",
    "surface": "hub",
-   "cls": 0.001378949991861979,
+   "cls": 0.0012362481953185282,
    "overflow": {
     "scrollWidth": 1920,
     "innerWidth": 1920,
@@ -7265,7 +7105,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "How each is built",
+     "label": "How it is built",
      "href": "#built",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -7289,7 +7129,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "Book a demonstration",
+     "label": "Book a demo",
      "href": "#slot",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -7402,30 +7242,6 @@
      "kind": "a",
      "type": "",
      "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Thursday%2012%20November%2C%2014%3A30%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Friday%2013%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
@@ -7435,14 +7251,6 @@
      "type": "",
      "label": "10:00",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
     },
@@ -7523,7 +7331,7 @@
      "playsinline": true,
      "preload": "auto",
      "sources": [
-      "blob:https://asset-voyages-redesign.pages.dev/d0e7b368-db20-413d-a7d9-318fb4349305"
+      "blob:https://asset-voyages-redesign.pages.dev/3e87ff0c-d893-4bb1-bef4-d0b38f0cc3ac"
      ],
      "visible": true,
      "width": 1920
@@ -8597,7 +8405,7 @@
    "title": "Two working demos for ASSET Voyages · ProdCraft",
    "lang": "en-GB",
    "surface": "hub",
-   "cls": 0.002451466652199074,
+   "cls": 0.0021977745694551614,
    "overflow": {
     "scrollWidth": 1440,
     "innerWidth": 1440,
@@ -8693,7 +8501,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "How each is built",
+     "label": "How it is built",
      "href": "#built",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -8717,7 +8525,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "Book a demonstration",
+     "label": "Book a demo",
      "href": "#slot",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -8830,30 +8638,6 @@
      "kind": "a",
      "type": "",
      "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Thursday%2012%20November%2C%2014%3A30%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Friday%2013%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
@@ -8863,14 +8647,6 @@
      "type": "",
      "label": "10:00",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
     },
@@ -8956,7 +8732,7 @@
      "playsinline": true,
      "preload": "auto",
      "sources": [
-      "blob:https://asset-voyages-redesign.pages.dev/05233937-9e6f-4834-984b-491ab22903b6"
+      "blob:https://asset-voyages-redesign.pages.dev/2411baed-5cc1-475c-90f5-a40e0e324641"
      ],
      "visible": true,
      "width": 1440
@@ -10135,7 +9911,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "How each is built",
+     "label": "How it is built",
      "href": "#built",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -10159,7 +9935,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "Book a demonstration",
+     "label": "Book a demo",
      "href": "#slot",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -10264,30 +10040,6 @@
      "kind": "a",
      "type": "",
      "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Thursday%2012%20November%2C%2014%3A30%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Friday%2013%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
@@ -10297,14 +10049,6 @@
      "type": "",
      "label": "10:00",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
     },
@@ -11753,10 +11497,10 @@
     "Recordings",
     "What works",
     "Group link",
-    "How each is built",
+    "How it is built",
     "GM&E codes",
     "Milestones",
-    "Book a demonstration",
+    "Book a demo",
     "Two working demos. Try both, choose one.",
     "Same requirements, fictional data and codes, sandboxes that reset themselves.",
     "Open the demos",
@@ -11770,9 +11514,9 @@
     "The system your current site already runs on, with a plugin we wrote for ASSET. It runs inside WordPress Playground: a complete WordPress that runs entirely in your browser, with nothing to install.",
     "WordPress starts fresh each time you open one of these links, so nothing from an earlier visit is kept.",
     "Open the visitor site",
-    "Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page.",
+    "Takes about 15 to 25 seconds to start. If it stays on the loading screen, reload the page.",
     "Open the admin, signed in",
-    "Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page.",
+    "Takes about 15 to 25 seconds to start. If it stays on the loading screen, reload the page.",
     "The admin link signs you in automatically as « direction ». To follow one enquiry from start to finish, use the visitor site and its « Espace équipe » link: each link opens its own separate copy.",
     "Option B",
     "B",
@@ -11890,14 +11634,11 @@
     "Works in the Option B demo",
     "Suggestion only",
     "One more idea: a link for group trips",
-    "For a group going to a congress, each traveller’s details often arrive by e-mail and are copied into a spreadsheet by hand.",
+    "For a group going to a congress, each traveller’s details often arrive by email and are copied into a spreadsheet by hand.",
     "What it does",
-    "Your team sends one link",
-    "for the enquiry, in its reply to the client.",
-    "Each traveller fills in their own details",
-    "on a phone: name as on the ID document, e-mail, departure city and dates.",
-    "Your team sees the list fill in",
-    ", with a « répondus / attendus » counter and a ready-to-use export, « Exporter pour cotation (CSV) ».",
+    "Your team sends one link for the enquiry, in its reply to the client.",
+    "Each traveller fills in their own details on a phone: name as on the ID document, email, departure city and dates.",
+    "Your team sees the list fill in, with a « répondus / attendus » counter and a ready-to-use export, « Exporter pour cotation (CSV) ».",
     "How to try it",
     "Open enquiry DV-2026-0001 and sign in as ⟦code⟧ , password ⟦code⟧ .",
     "Choose the « Groupe » tab. Three fictional travellers have already answered.",
@@ -11909,13 +11650,13 @@
     "Suggestion only. It is not part of the quotation and changes nothing in the scope or budget.",
     "In WordPress, it would be built as part of the project, if you choose it.",
     "Honest limits of the demo",
-    "A traveller who changes phone cannot correct their entry directly: the change waits for your team to accept it. Production would add an e-mail confirmation step.",
+    "A traveller who changes phone cannot correct their entry directly: the change waits for your team to accept it. Production would add an email confirmation step.",
     "Anyone the link is forwarded to can answer. Revoking it stops that at once.",
-    "Reminders by e-mail and a status per traveller come in production.",
+    "Reminders by email and a status per traveller come in production.",
     "4 How each one is built, in plain words",
     "Option A: WordPress",
     "WordPress, the system your current site already runs on.",
-    "Our own plugin (an add-on to WordPress), with no page builders and no paid plugins.",
+    "A plugin written for ASSET (an add-on to WordPress), with no page builders and no paid plugins. Its code is handed over to you.",
     "Your team edits in the standard WordPress editor.",
     "Hosted with a European WordPress host, in ASSET’s name.",
     "Needs regular updates of WordPress and its plugins.",
@@ -11984,20 +11725,15 @@
     "We watch the new site closely and fix anything that comes up.",
     "If the year-end holidays fall inside the plan, those weeks are added. The launch date is agreed together.",
     "7 A 20 to 30 minute demonstration",
-    "We walk you through both options and answer your questions. Pick a time below and your email opens with it filled in. All times are Paris time.",
+    "We walk you through both options and answer your questions. Pick a time below and your email opens with it filled in. All times are Paris time. If shortlisting falls later, we will propose dates within 3 to 5 working days of your notice.",
     "Thursday 12 November",
     "10:00",
-    "14:30",
-    "Friday 13 November",
-    "10:00",
     "Monday 16 November",
-    "10:00",
     "14:30",
     "Tuesday 17 November",
     "10:00",
-    "14:30",
     "Suggest another time",
-    "Nothing on this page is chargeable. If you would like a sample built for one of your own congresses, we can do that only if you ask, with the scope, fee and date agreed in writing first.",
+    "Nothing on this page is chargeable. Should further validation be needed after the demonstration, the scope, fee and delivery date of a sample would be agreed in writing first.",
     "Debanjan",
     "Founder, ProdCraft debanjan@prodcraft.fyi",
     "All congresses, people, enquiries and codes in these demos are fictional. The concept and the demos are illustrations: only the signed proposal defines what is included.",
@@ -12883,10 +12619,10 @@
     "Recordings",
     "What works",
     "Group link",
-    "How each is built",
+    "How it is built",
     "GM&E codes",
     "Milestones",
-    "Book a demonstration",
+    "Book a demo",
     "Two working demos. Try both, choose one.",
     "Same requirements, fictional data and codes, sandboxes that reset themselves.",
     "Open the demos",
@@ -12900,9 +12636,9 @@
     "The system your current site already runs on, with a plugin we wrote for ASSET. It runs inside WordPress Playground: a complete WordPress that runs entirely in your browser, with nothing to install.",
     "WordPress starts fresh each time you open one of these links, so nothing from an earlier visit is kept.",
     "Open the visitor site",
-    "Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page.",
+    "Takes about 15 to 25 seconds to start. If it stays on the loading screen, reload the page.",
     "Open the admin, signed in",
-    "Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page.",
+    "Takes about 15 to 25 seconds to start. If it stays on the loading screen, reload the page.",
     "The admin link signs you in automatically as « direction ». To follow one enquiry from start to finish, use the visitor site and its « Espace équipe » link: each link opens its own separate copy.",
     "Option B",
     "B",
@@ -13020,14 +12756,11 @@
     "Works in the Option B demo",
     "Suggestion only",
     "One more idea: a link for group trips",
-    "For a group going to a congress, each traveller’s details often arrive by e-mail and are copied into a spreadsheet by hand.",
+    "For a group going to a congress, each traveller’s details often arrive by email and are copied into a spreadsheet by hand.",
     "What it does",
-    "Your team sends one link",
-    "for the enquiry, in its reply to the client.",
-    "Each traveller fills in their own details",
-    "on a phone: name as on the ID document, e-mail, departure city and dates.",
-    "Your team sees the list fill in",
-    ", with a « répondus / attendus » counter and a ready-to-use export, « Exporter pour cotation (CSV) ».",
+    "Your team sends one link for the enquiry, in its reply to the client.",
+    "Each traveller fills in their own details on a phone: name as on the ID document, email, departure city and dates.",
+    "Your team sees the list fill in, with a « répondus / attendus » counter and a ready-to-use export, « Exporter pour cotation (CSV) ».",
     "How to try it",
     "Open enquiry DV-2026-0001 and sign in as ⟦code⟧ , password ⟦code⟧ .",
     "Choose the « Groupe » tab. Three fictional travellers have already answered.",
@@ -13039,13 +12772,13 @@
     "Suggestion only. It is not part of the quotation and changes nothing in the scope or budget.",
     "In WordPress, it would be built as part of the project, if you choose it.",
     "Honest limits of the demo",
-    "A traveller who changes phone cannot correct their entry directly: the change waits for your team to accept it. Production would add an e-mail confirmation step.",
+    "A traveller who changes phone cannot correct their entry directly: the change waits for your team to accept it. Production would add an email confirmation step.",
     "Anyone the link is forwarded to can answer. Revoking it stops that at once.",
-    "Reminders by e-mail and a status per traveller come in production.",
+    "Reminders by email and a status per traveller come in production.",
     "4 How each one is built, in plain words",
     "Option A: WordPress",
     "WordPress, the system your current site already runs on.",
-    "Our own plugin (an add-on to WordPress), with no page builders and no paid plugins.",
+    "A plugin written for ASSET (an add-on to WordPress), with no page builders and no paid plugins. Its code is handed over to you.",
     "Your team edits in the standard WordPress editor.",
     "Hosted with a European WordPress host, in ASSET’s name.",
     "Needs regular updates of WordPress and its plugins.",
@@ -13114,20 +12847,15 @@
     "We watch the new site closely and fix anything that comes up.",
     "If the year-end holidays fall inside the plan, those weeks are added. The launch date is agreed together.",
     "7 A 20 to 30 minute demonstration",
-    "We walk you through both options and answer your questions. Pick a time below and your email opens with it filled in. All times are Paris time.",
+    "We walk you through both options and answer your questions. Pick a time below and your email opens with it filled in. All times are Paris time. If shortlisting falls later, we will propose dates within 3 to 5 working days of your notice.",
     "Thursday 12 November",
     "10:00",
-    "14:30",
-    "Friday 13 November",
-    "10:00",
     "Monday 16 November",
-    "10:00",
     "14:30",
     "Tuesday 17 November",
     "10:00",
-    "14:30",
     "Suggest another time",
-    "Nothing on this page is chargeable. If you would like a sample built for one of your own congresses, we can do that only if you ask, with the scope, fee and date agreed in writing first.",
+    "Nothing on this page is chargeable. Should further validation be needed after the demonstration, the scope, fee and delivery date of a sample would be agreed in writing first.",
     "Debanjan",
     "Founder, ProdCraft debanjan@prodcraft.fyi",
     "All congresses, people, enquiries and codes in these demos are fictional. The concept and the demos are illustrations: only the signed proposal defines what is included.",
@@ -14013,10 +13741,10 @@
     "Recordings",
     "What works",
     "Group link",
-    "How each is built",
+    "How it is built",
     "GM&E codes",
     "Milestones",
-    "Book a demonstration",
+    "Book a demo",
     "Two working demos. Try both, choose one.",
     "Same requirements, fictional data and codes, sandboxes that reset themselves.",
     "Open the demos",
@@ -14030,9 +13758,9 @@
     "The system your current site already runs on, with a plugin we wrote for ASSET. It runs inside WordPress Playground: a complete WordPress that runs entirely in your browser, with nothing to install.",
     "WordPress starts fresh each time you open one of these links, so nothing from an earlier visit is kept.",
     "Open the visitor site",
-    "Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page.",
+    "Takes about 15 to 25 seconds to start. If it stays on the loading screen, reload the page.",
     "Open the admin, signed in",
-    "Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page.",
+    "Takes about 15 to 25 seconds to start. If it stays on the loading screen, reload the page.",
     "The admin link signs you in automatically as « direction ». To follow one enquiry from start to finish, use the visitor site and its « Espace équipe » link: each link opens its own separate copy.",
     "Option B",
     "B",
@@ -14150,14 +13878,11 @@
     "Works in the Option B demo",
     "Suggestion only",
     "One more idea: a link for group trips",
-    "For a group going to a congress, each traveller’s details often arrive by e-mail and are copied into a spreadsheet by hand.",
+    "For a group going to a congress, each traveller’s details often arrive by email and are copied into a spreadsheet by hand.",
     "What it does",
-    "Your team sends one link",
-    "for the enquiry, in its reply to the client.",
-    "Each traveller fills in their own details",
-    "on a phone: name as on the ID document, e-mail, departure city and dates.",
-    "Your team sees the list fill in",
-    ", with a « répondus / attendus » counter and a ready-to-use export, « Exporter pour cotation (CSV) ».",
+    "Your team sends one link for the enquiry, in its reply to the client.",
+    "Each traveller fills in their own details on a phone: name as on the ID document, email, departure city and dates.",
+    "Your team sees the list fill in, with a « répondus / attendus » counter and a ready-to-use export, « Exporter pour cotation (CSV) ».",
     "How to try it",
     "Open enquiry DV-2026-0001 and sign in as ⟦code⟧ , password ⟦code⟧ .",
     "Choose the « Groupe » tab. Three fictional travellers have already answered.",
@@ -14169,13 +13894,13 @@
     "Suggestion only. It is not part of the quotation and changes nothing in the scope or budget.",
     "In WordPress, it would be built as part of the project, if you choose it.",
     "Honest limits of the demo",
-    "A traveller who changes phone cannot correct their entry directly: the change waits for your team to accept it. Production would add an e-mail confirmation step.",
+    "A traveller who changes phone cannot correct their entry directly: the change waits for your team to accept it. Production would add an email confirmation step.",
     "Anyone the link is forwarded to can answer. Revoking it stops that at once.",
-    "Reminders by e-mail and a status per traveller come in production.",
+    "Reminders by email and a status per traveller come in production.",
     "4 How each one is built, in plain words",
     "Option A: WordPress",
     "WordPress, the system your current site already runs on.",
-    "Our own plugin (an add-on to WordPress), with no page builders and no paid plugins.",
+    "A plugin written for ASSET (an add-on to WordPress), with no page builders and no paid plugins. Its code is handed over to you.",
     "Your team edits in the standard WordPress editor.",
     "Hosted with a European WordPress host, in ASSET’s name.",
     "Needs regular updates of WordPress and its plugins.",
@@ -14244,20 +13969,15 @@
     "We watch the new site closely and fix anything that comes up.",
     "If the year-end holidays fall inside the plan, those weeks are added. The launch date is agreed together.",
     "7 A 20 to 30 minute demonstration",
-    "We walk you through both options and answer your questions. Pick a time below and your email opens with it filled in. All times are Paris time.",
+    "We walk you through both options and answer your questions. Pick a time below and your email opens with it filled in. All times are Paris time. If shortlisting falls later, we will propose dates within 3 to 5 working days of your notice.",
     "Thursday 12 November",
     "10:00",
-    "14:30",
-    "Friday 13 November",
-    "10:00",
     "Monday 16 November",
-    "10:00",
     "14:30",
     "Tuesday 17 November",
     "10:00",
-    "14:30",
     "Suggest another time",
-    "Nothing on this page is chargeable. If you would like a sample built for one of your own congresses, we can do that only if you ask, with the scope, fee and date agreed in writing first.",
+    "Nothing on this page is chargeable. Should further validation be needed after the demonstration, the scope, fee and delivery date of a sample would be agreed in writing first.",
     "Debanjan",
     "Founder, ProdCraft debanjan@prodcraft.fyi",
     "All congresses, people, enquiries and codes in these demos are fictional. The concept and the demos are illustrations: only the signed proposal defines what is included.",
@@ -15173,10 +14893,10 @@
     "Recordings",
     "What works",
     "Group link",
-    "How each is built",
+    "How it is built",
     "GM&E codes",
     "Milestones",
-    "Book a demonstration",
+    "Book a demo",
     "Two working demos. Try both, choose one.",
     "Same requirements, fictional data and codes, sandboxes that reset themselves.",
     "Open the demos",
@@ -15190,9 +14910,9 @@
     "The system your current site already runs on, with a plugin we wrote for ASSET. It runs inside WordPress Playground: a complete WordPress that runs entirely in your browser, with nothing to install.",
     "WordPress starts fresh each time you open one of these links, so nothing from an earlier visit is kept.",
     "Open the visitor site",
-    "Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page.",
+    "Takes about 15 to 25 seconds to start. If it stays on the loading screen, reload the page.",
     "Open the admin, signed in",
-    "Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page.",
+    "Takes about 15 to 25 seconds to start. If it stays on the loading screen, reload the page.",
     "The admin link signs you in automatically as « direction ». To follow one enquiry from start to finish, use the visitor site and its « Espace équipe » link: each link opens its own separate copy.",
     "Option B",
     "B",
@@ -15337,14 +15057,11 @@
     "Works in the Option B demo",
     "Suggestion only",
     "One more idea: a link for group trips",
-    "For a group going to a congress, each traveller’s details often arrive by e-mail and are copied into a spreadsheet by hand.",
+    "For a group going to a congress, each traveller’s details often arrive by email and are copied into a spreadsheet by hand.",
     "What it does",
-    "Your team sends one link",
-    "for the enquiry, in its reply to the client.",
-    "Each traveller fills in their own details",
-    "on a phone: name as on the ID document, e-mail, departure city and dates.",
-    "Your team sees the list fill in",
-    ", with a « répondus / attendus » counter and a ready-to-use export, « Exporter pour cotation (CSV) ».",
+    "Your team sends one link for the enquiry, in its reply to the client.",
+    "Each traveller fills in their own details on a phone: name as on the ID document, email, departure city and dates.",
+    "Your team sees the list fill in, with a « répondus / attendus » counter and a ready-to-use export, « Exporter pour cotation (CSV) ».",
     "How to try it",
     "Open enquiry DV-2026-0001 and sign in as ⟦code⟧ , password ⟦code⟧ .",
     "Choose the « Groupe » tab. Three fictional travellers have already answered.",
@@ -15356,13 +15073,13 @@
     "Suggestion only. It is not part of the quotation and changes nothing in the scope or budget.",
     "In WordPress, it would be built as part of the project, if you choose it.",
     "Honest limits of the demo",
-    "A traveller who changes phone cannot correct their entry directly: the change waits for your team to accept it. Production would add an e-mail confirmation step.",
+    "A traveller who changes phone cannot correct their entry directly: the change waits for your team to accept it. Production would add an email confirmation step.",
     "Anyone the link is forwarded to can answer. Revoking it stops that at once.",
-    "Reminders by e-mail and a status per traveller come in production.",
+    "Reminders by email and a status per traveller come in production.",
     "4 How each one is built, in plain words",
     "Option A: WordPress",
     "WordPress, the system your current site already runs on.",
-    "Our own plugin (an add-on to WordPress), with no page builders and no paid plugins.",
+    "A plugin written for ASSET (an add-on to WordPress), with no page builders and no paid plugins. Its code is handed over to you.",
     "Your team edits in the standard WordPress editor.",
     "Hosted with a European WordPress host, in ASSET’s name.",
     "Needs regular updates of WordPress and its plugins.",
@@ -15434,20 +15151,15 @@
     "We watch the new site closely and fix anything that comes up.",
     "If the year-end holidays fall inside the plan, those weeks are added. The launch date is agreed together.",
     "7 A 20 to 30 minute demonstration",
-    "We walk you through both options and answer your questions. Pick a time below and your email opens with it filled in. All times are Paris time.",
+    "We walk you through both options and answer your questions. Pick a time below and your email opens with it filled in. All times are Paris time. If shortlisting falls later, we will propose dates within 3 to 5 working days of your notice.",
     "Thursday 12 November",
     "10:00",
-    "14:30",
-    "Friday 13 November",
-    "10:00",
     "Monday 16 November",
-    "10:00",
     "14:30",
     "Tuesday 17 November",
     "10:00",
-    "14:30",
     "Suggest another time",
-    "Nothing on this page is chargeable. If you would like a sample built for one of your own congresses, we can do that only if you ask, with the scope, fee and date agreed in writing first.",
+    "Nothing on this page is chargeable. Should further validation be needed after the demonstration, the scope, fee and delivery date of a sample would be agreed in writing first.",
     "Debanjan",
     "Founder, ProdCraft debanjan@prodcraft.fyi",
     "All congresses, people, enquiries and codes in these demos are fictional. The concept and the demos are illustrations: only the signed proposal defines what is included.",
@@ -16291,10 +16003,10 @@
     "Recordings",
     "What works",
     "Group link",
-    "How each is built",
+    "How it is built",
     "GM&E codes",
     "Milestones",
-    "Book a demonstration",
+    "Book a demo",
     "Two working demos. Try both, choose one.",
     "Same requirements, fictional data and codes, sandboxes that reset themselves.",
     "Open the demos",
@@ -16308,9 +16020,9 @@
     "The system your current site already runs on, with a plugin we wrote for ASSET. It runs inside WordPress Playground: a complete WordPress that runs entirely in your browser, with nothing to install.",
     "WordPress starts fresh each time you open one of these links, so nothing from an earlier visit is kept.",
     "Open the visitor site",
-    "Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page.",
+    "Takes about 15 to 25 seconds to start. If it stays on the loading screen, reload the page.",
     "Open the admin, signed in",
-    "Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page.",
+    "Takes about 15 to 25 seconds to start. If it stays on the loading screen, reload the page.",
     "The admin link signs you in automatically as « direction ». To follow one enquiry from start to finish, use the visitor site and its « Espace équipe » link: each link opens its own separate copy.",
     "Option B",
     "B",
@@ -16455,14 +16167,11 @@
     "Works in the Option B demo",
     "Suggestion only",
     "One more idea: a link for group trips",
-    "For a group going to a congress, each traveller’s details often arrive by e-mail and are copied into a spreadsheet by hand.",
+    "For a group going to a congress, each traveller’s details often arrive by email and are copied into a spreadsheet by hand.",
     "What it does",
-    "Your team sends one link",
-    "for the enquiry, in its reply to the client.",
-    "Each traveller fills in their own details",
-    "on a phone: name as on the ID document, e-mail, departure city and dates.",
-    "Your team sees the list fill in",
-    ", with a « répondus / attendus » counter and a ready-to-use export, « Exporter pour cotation (CSV) ».",
+    "Your team sends one link for the enquiry, in its reply to the client.",
+    "Each traveller fills in their own details on a phone: name as on the ID document, email, departure city and dates.",
+    "Your team sees the list fill in, with a « répondus / attendus » counter and a ready-to-use export, « Exporter pour cotation (CSV) ».",
     "How to try it",
     "Open enquiry DV-2026-0001 and sign in as ⟦code⟧ , password ⟦code⟧ .",
     "Choose the « Groupe » tab. Three fictional travellers have already answered.",
@@ -16474,13 +16183,13 @@
     "Suggestion only. It is not part of the quotation and changes nothing in the scope or budget.",
     "In WordPress, it would be built as part of the project, if you choose it.",
     "Honest limits of the demo",
-    "A traveller who changes phone cannot correct their entry directly: the change waits for your team to accept it. Production would add an e-mail confirmation step.",
+    "A traveller who changes phone cannot correct their entry directly: the change waits for your team to accept it. Production would add an email confirmation step.",
     "Anyone the link is forwarded to can answer. Revoking it stops that at once.",
-    "Reminders by e-mail and a status per traveller come in production.",
+    "Reminders by email and a status per traveller come in production.",
     "4 How each one is built, in plain words",
     "Option A: WordPress",
     "WordPress, the system your current site already runs on.",
-    "Our own plugin (an add-on to WordPress), with no page builders and no paid plugins.",
+    "A plugin written for ASSET (an add-on to WordPress), with no page builders and no paid plugins. Its code is handed over to you.",
     "Your team edits in the standard WordPress editor.",
     "Hosted with a European WordPress host, in ASSET’s name.",
     "Needs regular updates of WordPress and its plugins.",
@@ -16552,20 +16261,15 @@
     "We watch the new site closely and fix anything that comes up.",
     "If the year-end holidays fall inside the plan, those weeks are added. The launch date is agreed together.",
     "7 A 20 to 30 minute demonstration",
-    "We walk you through both options and answer your questions. Pick a time below and your email opens with it filled in. All times are Paris time.",
+    "We walk you through both options and answer your questions. Pick a time below and your email opens with it filled in. All times are Paris time. If shortlisting falls later, we will propose dates within 3 to 5 working days of your notice.",
     "Thursday 12 November",
     "10:00",
-    "14:30",
-    "Friday 13 November",
-    "10:00",
     "Monday 16 November",
-    "10:00",
     "14:30",
     "Tuesday 17 November",
     "10:00",
-    "14:30",
     "Suggest another time",
-    "Nothing on this page is chargeable. If you would like a sample built for one of your own congresses, we can do that only if you ask, with the scope, fee and date agreed in writing first.",
+    "Nothing on this page is chargeable. Should further validation be needed after the demonstration, the scope, fee and delivery date of a sample would be agreed in writing first.",
     "Debanjan",
     "Founder, ProdCraft debanjan@prodcraft.fyi",
     "All congresses, people, enquiries and codes in these demos are fictional. The concept and the demos are illustrations: only the signed proposal defines what is included.",
@@ -17409,10 +17113,10 @@
     "Recordings",
     "What works",
     "Group link",
-    "How each is built",
+    "How it is built",
     "GM&E codes",
     "Milestones",
-    "Book a demonstration",
+    "Book a demo",
     "Two working demos. Try both, choose one.",
     "Same requirements, fictional data and codes, sandboxes that reset themselves.",
     "Open the demos",
@@ -17426,9 +17130,9 @@
     "The system your current site already runs on, with a plugin we wrote for ASSET. It runs inside WordPress Playground: a complete WordPress that runs entirely in your browser, with nothing to install.",
     "WordPress starts fresh each time you open one of these links, so nothing from an earlier visit is kept.",
     "Open the visitor site",
-    "Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page.",
+    "Takes about 15 to 25 seconds to start. If it stays on the loading screen, reload the page.",
     "Open the admin, signed in",
-    "Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page.",
+    "Takes about 15 to 25 seconds to start. If it stays on the loading screen, reload the page.",
     "The admin link signs you in automatically as « direction ». To follow one enquiry from start to finish, use the visitor site and its « Espace équipe » link: each link opens its own separate copy.",
     "Option B",
     "B",
@@ -17573,14 +17277,11 @@
     "Works in the Option B demo",
     "Suggestion only",
     "One more idea: a link for group trips",
-    "For a group going to a congress, each traveller’s details often arrive by e-mail and are copied into a spreadsheet by hand.",
+    "For a group going to a congress, each traveller’s details often arrive by email and are copied into a spreadsheet by hand.",
     "What it does",
-    "Your team sends one link",
-    "for the enquiry, in its reply to the client.",
-    "Each traveller fills in their own details",
-    "on a phone: name as on the ID document, e-mail, departure city and dates.",
-    "Your team sees the list fill in",
-    ", with a « répondus / attendus » counter and a ready-to-use export, « Exporter pour cotation (CSV) ».",
+    "Your team sends one link for the enquiry, in its reply to the client.",
+    "Each traveller fills in their own details on a phone: name as on the ID document, email, departure city and dates.",
+    "Your team sees the list fill in, with a « répondus / attendus » counter and a ready-to-use export, « Exporter pour cotation (CSV) ».",
     "How to try it",
     "Open enquiry DV-2026-0001 and sign in as ⟦code⟧ , password ⟦code⟧ .",
     "Choose the « Groupe » tab. Three fictional travellers have already answered.",
@@ -17592,13 +17293,13 @@
     "Suggestion only. It is not part of the quotation and changes nothing in the scope or budget.",
     "In WordPress, it would be built as part of the project, if you choose it.",
     "Honest limits of the demo",
-    "A traveller who changes phone cannot correct their entry directly: the change waits for your team to accept it. Production would add an e-mail confirmation step.",
+    "A traveller who changes phone cannot correct their entry directly: the change waits for your team to accept it. Production would add an email confirmation step.",
     "Anyone the link is forwarded to can answer. Revoking it stops that at once.",
-    "Reminders by e-mail and a status per traveller come in production.",
+    "Reminders by email and a status per traveller come in production.",
     "4 How each one is built, in plain words",
     "Option A: WordPress",
     "WordPress, the system your current site already runs on.",
-    "Our own plugin (an add-on to WordPress), with no page builders and no paid plugins.",
+    "A plugin written for ASSET (an add-on to WordPress), with no page builders and no paid plugins. Its code is handed over to you.",
     "Your team edits in the standard WordPress editor.",
     "Hosted with a European WordPress host, in ASSET’s name.",
     "Needs regular updates of WordPress and its plugins.",
@@ -17670,20 +17371,15 @@
     "We watch the new site closely and fix anything that comes up.",
     "If the year-end holidays fall inside the plan, those weeks are added. The launch date is agreed together.",
     "7 A 20 to 30 minute demonstration",
-    "We walk you through both options and answer your questions. Pick a time below and your email opens with it filled in. All times are Paris time.",
+    "We walk you through both options and answer your questions. Pick a time below and your email opens with it filled in. All times are Paris time. If shortlisting falls later, we will propose dates within 3 to 5 working days of your notice.",
     "Thursday 12 November",
     "10:00",
-    "14:30",
-    "Friday 13 November",
-    "10:00",
     "Monday 16 November",
-    "10:00",
     "14:30",
     "Tuesday 17 November",
     "10:00",
-    "14:30",
     "Suggest another time",
-    "Nothing on this page is chargeable. If you would like a sample built for one of your own congresses, we can do that only if you ask, with the scope, fee and date agreed in writing first.",
+    "Nothing on this page is chargeable. Should further validation be needed after the demonstration, the scope, fee and delivery date of a sample would be agreed in writing first.",
     "Debanjan",
     "Founder, ProdCraft debanjan@prodcraft.fyi",
     "All congresses, people, enquiries and codes in these demos are fictional. The concept and the demos are illustrations: only the signed proposal defines what is included.",
@@ -18527,10 +18223,10 @@
     "Recordings",
     "What works",
     "Group link",
-    "How each is built",
+    "How it is built",
     "GM&E codes",
     "Milestones",
-    "Book a demonstration",
+    "Book a demo",
     "Two working demos. Try both, choose one.",
     "Same requirements, fictional data and codes, sandboxes that reset themselves.",
     "Open the demos",
@@ -18544,9 +18240,9 @@
     "The system your current site already runs on, with a plugin we wrote for ASSET. It runs inside WordPress Playground: a complete WordPress that runs entirely in your browser, with nothing to install.",
     "WordPress starts fresh each time you open one of these links, so nothing from an earlier visit is kept.",
     "Open the visitor site",
-    "Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page.",
+    "Takes about 15 to 25 seconds to start. If it stays on the loading screen, reload the page.",
     "Open the admin, signed in",
-    "Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page.",
+    "Takes about 15 to 25 seconds to start. If it stays on the loading screen, reload the page.",
     "The admin link signs you in automatically as « direction ». To follow one enquiry from start to finish, use the visitor site and its « Espace équipe » link: each link opens its own separate copy.",
     "Option B",
     "B",
@@ -18691,14 +18387,11 @@
     "Works in the Option B demo",
     "Suggestion only",
     "One more idea: a link for group trips",
-    "For a group going to a congress, each traveller’s details often arrive by e-mail and are copied into a spreadsheet by hand.",
+    "For a group going to a congress, each traveller’s details often arrive by email and are copied into a spreadsheet by hand.",
     "What it does",
-    "Your team sends one link",
-    "for the enquiry, in its reply to the client.",
-    "Each traveller fills in their own details",
-    "on a phone: name as on the ID document, e-mail, departure city and dates.",
-    "Your team sees the list fill in",
-    ", with a « répondus / attendus » counter and a ready-to-use export, « Exporter pour cotation (CSV) ».",
+    "Your team sends one link for the enquiry, in its reply to the client.",
+    "Each traveller fills in their own details on a phone: name as on the ID document, email, departure city and dates.",
+    "Your team sees the list fill in, with a « répondus / attendus » counter and a ready-to-use export, « Exporter pour cotation (CSV) ».",
     "How to try it",
     "Open enquiry DV-2026-0001 and sign in as ⟦code⟧ , password ⟦code⟧ .",
     "Choose the « Groupe » tab. Three fictional travellers have already answered.",
@@ -18710,13 +18403,13 @@
     "Suggestion only. It is not part of the quotation and changes nothing in the scope or budget.",
     "In WordPress, it would be built as part of the project, if you choose it.",
     "Honest limits of the demo",
-    "A traveller who changes phone cannot correct their entry directly: the change waits for your team to accept it. Production would add an e-mail confirmation step.",
+    "A traveller who changes phone cannot correct their entry directly: the change waits for your team to accept it. Production would add an email confirmation step.",
     "Anyone the link is forwarded to can answer. Revoking it stops that at once.",
-    "Reminders by e-mail and a status per traveller come in production.",
+    "Reminders by email and a status per traveller come in production.",
     "4 How each one is built, in plain words",
     "Option A: WordPress",
     "WordPress, the system your current site already runs on.",
-    "Our own plugin (an add-on to WordPress), with no page builders and no paid plugins.",
+    "A plugin written for ASSET (an add-on to WordPress), with no page builders and no paid plugins. Its code is handed over to you.",
     "Your team edits in the standard WordPress editor.",
     "Hosted with a European WordPress host, in ASSET’s name.",
     "Needs regular updates of WordPress and its plugins.",
@@ -18788,20 +18481,15 @@
     "We watch the new site closely and fix anything that comes up.",
     "If the year-end holidays fall inside the plan, those weeks are added. The launch date is agreed together.",
     "7 A 20 to 30 minute demonstration",
-    "We walk you through both options and answer your questions. Pick a time below and your email opens with it filled in. All times are Paris time.",
+    "We walk you through both options and answer your questions. Pick a time below and your email opens with it filled in. All times are Paris time. If shortlisting falls later, we will propose dates within 3 to 5 working days of your notice.",
     "Thursday 12 November",
     "10:00",
-    "14:30",
-    "Friday 13 November",
-    "10:00",
     "Monday 16 November",
-    "10:00",
     "14:30",
     "Tuesday 17 November",
     "10:00",
-    "14:30",
     "Suggest another time",
-    "Nothing on this page is chargeable. If you would like a sample built for one of your own congresses, we can do that only if you ask, with the scope, fee and date agreed in writing first.",
+    "Nothing on this page is chargeable. Should further validation be needed after the demonstration, the scope, fee and delivery date of a sample would be agreed in writing first.",
     "Debanjan",
     "Founder, ProdCraft debanjan@prodcraft.fyi",
     "All congresses, people, enquiries and codes in these demos are fictional. The concept and the demos are illustrations: only the signed proposal defines what is included.",
@@ -19646,10 +19334,10 @@
     "Recordings",
     "What works",
     "Group link",
-    "How each is built",
+    "How it is built",
     "GM&E codes",
     "Milestones",
-    "Book a demonstration",
+    "Book a demo",
     "Two working demos. Try both, choose one.",
     "Same requirements, fictional data and codes, sandboxes that reset themselves.",
     "Open the demos",
@@ -19663,9 +19351,9 @@
     "The system your current site already runs on, with a plugin we wrote for ASSET. It runs inside WordPress Playground: a complete WordPress that runs entirely in your browser, with nothing to install.",
     "WordPress starts fresh each time you open one of these links, so nothing from an earlier visit is kept.",
     "Open the visitor site",
-    "Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page.",
+    "Takes about 15 to 25 seconds to start. If it stays on the loading screen, reload the page.",
     "Open the admin, signed in",
-    "Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page.",
+    "Takes about 15 to 25 seconds to start. If it stays on the loading screen, reload the page.",
     "The admin link signs you in automatically as « direction ». To follow one enquiry from start to finish, use the visitor site and its « Espace équipe » link: each link opens its own separate copy.",
     "Option B",
     "B",
@@ -19783,14 +19471,11 @@
     "Works in the Option B demo",
     "Suggestion only",
     "One more idea: a link for group trips",
-    "For a group going to a congress, each traveller’s details often arrive by e-mail and are copied into a spreadsheet by hand.",
+    "For a group going to a congress, each traveller’s details often arrive by email and are copied into a spreadsheet by hand.",
     "What it does",
-    "Your team sends one link",
-    "for the enquiry, in its reply to the client.",
-    "Each traveller fills in their own details",
-    "on a phone: name as on the ID document, e-mail, departure city and dates.",
-    "Your team sees the list fill in",
-    ", with a « répondus / attendus » counter and a ready-to-use export, « Exporter pour cotation (CSV) ».",
+    "Your team sends one link for the enquiry, in its reply to the client.",
+    "Each traveller fills in their own details on a phone: name as on the ID document, email, departure city and dates.",
+    "Your team sees the list fill in, with a « répondus / attendus » counter and a ready-to-use export, « Exporter pour cotation (CSV) ».",
     "How to try it",
     "Open enquiry DV-2026-0001 and sign in as ⟦code⟧ , password ⟦code⟧ .",
     "Choose the « Groupe » tab. Three fictional travellers have already answered.",
@@ -19802,13 +19487,13 @@
     "Suggestion only. It is not part of the quotation and changes nothing in the scope or budget.",
     "In WordPress, it would be built as part of the project, if you choose it.",
     "Honest limits of the demo",
-    "A traveller who changes phone cannot correct their entry directly: the change waits for your team to accept it. Production would add an e-mail confirmation step.",
+    "A traveller who changes phone cannot correct their entry directly: the change waits for your team to accept it. Production would add an email confirmation step.",
     "Anyone the link is forwarded to can answer. Revoking it stops that at once.",
-    "Reminders by e-mail and a status per traveller come in production.",
+    "Reminders by email and a status per traveller come in production.",
     "4 How each one is built, in plain words",
     "Option A: WordPress",
     "WordPress, the system your current site already runs on.",
-    "Our own plugin (an add-on to WordPress), with no page builders and no paid plugins.",
+    "A plugin written for ASSET (an add-on to WordPress), with no page builders and no paid plugins. Its code is handed over to you.",
     "Your team edits in the standard WordPress editor.",
     "Hosted with a European WordPress host, in ASSET’s name.",
     "Needs regular updates of WordPress and its plugins.",
@@ -19877,20 +19562,15 @@
     "We watch the new site closely and fix anything that comes up.",
     "If the year-end holidays fall inside the plan, those weeks are added. The launch date is agreed together.",
     "7 A 20 to 30 minute demonstration",
-    "We walk you through both options and answer your questions. Pick a time below and your email opens with it filled in. All times are Paris time.",
+    "We walk you through both options and answer your questions. Pick a time below and your email opens with it filled in. All times are Paris time. If shortlisting falls later, we will propose dates within 3 to 5 working days of your notice.",
     "Thursday 12 November",
     "10:00",
-    "14:30",
-    "Friday 13 November",
-    "10:00",
     "Monday 16 November",
-    "10:00",
     "14:30",
     "Tuesday 17 November",
     "10:00",
-    "14:30",
     "Suggest another time",
-    "Nothing on this page is chargeable. If you would like a sample built for one of your own congresses, we can do that only if you ask, with the scope, fee and date agreed in writing first.",
+    "Nothing on this page is chargeable. Should further validation be needed after the demonstration, the scope, fee and delivery date of a sample would be agreed in writing first.",
     "Debanjan",
     "Founder, ProdCraft debanjan@prodcraft.fyi",
     "All congresses, people, enquiries and codes in these demos are fictional. The concept and the demos are illustrations: only the signed proposal defines what is included.",
@@ -20775,10 +20455,10 @@
     "Recordings",
     "What works",
     "Group link",
-    "How each is built",
+    "How it is built",
     "GM&E codes",
     "Milestones",
-    "Book a demonstration",
+    "Book a demo",
     "Two working demos. Try both, choose one.",
     "Same requirements, fictional data and codes, sandboxes that reset themselves.",
     "Open the demos",
@@ -20857,11 +20537,7 @@
     "Suggestion only",
     "One more idea: a link for group trips",
     "What it does",
-    "Your team sends one link",
-    "for the enquiry, in its reply to the client.",
-    "Each traveller fills in their own details",
-    "on a phone: name as on the ID document, e-mail, departure city and dates.",
-    "Your team sees the list fill in",
+    "Your team sends one link for the enquiry, in its reply to the client.",
     "How to try it",
     "Open enquiry DV-2026-0001 and sign in as equipe, password demo-asset.",
     "Choose the « Groupe » tab. Three fictional travellers have already answered.",
@@ -20872,7 +20548,7 @@
     "In WordPress, it would be built as part of the project, if you choose it.",
     "Honest limits of the demo",
     "Anyone the link is forwarded to can answer. Revoking it stops that at once.",
-    "Reminders by e-mail and a status per traveller come in production.",
+    "Reminders by email and a status per traveller come in production.",
     "4 How each one is built, in plain words",
     "Option A: WordPress",
     "WordPress, the system your current site already runs on.",
@@ -20934,9 +20610,8 @@
     "7 A 20 to 30 minute demonstration",
     "Thursday 12 November",
     "10:00",
-    "14:30",
-    "Friday 13 November",
     "Monday 16 November",
+    "14:30",
     "Tuesday 17 November",
     "Suggest another time",
     "Debanjan",
@@ -21002,7 +20677,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "How each is built",
+     "label": "How it is built",
      "href": "#built",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -21026,7 +20701,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "Book a demonstration",
+     "label": "Book a demo",
      "href": "#slot",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -21131,30 +20806,6 @@
      "kind": "a",
      "type": "",
      "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Thursday%2012%20November%2C%2014%3A30%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Friday%2013%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
@@ -21164,14 +20815,6 @@
      "type": "",
      "label": "10:00",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
     },
@@ -22729,10 +22372,10 @@
     "Recordings",
     "What works",
     "Group link",
-    "How each is built",
+    "How it is built",
     "GM&E codes",
     "Milestones",
-    "Book a demonstration",
+    "Book a demo",
     "Two working demos. Try both, choose one.",
     "Same requirements, fictional data and codes, sandboxes that reset themselves.",
     "Open the demos",
@@ -22811,11 +22454,7 @@
     "Suggestion only",
     "One more idea: a link for group trips",
     "What it does",
-    "Your team sends one link",
-    "for the enquiry, in its reply to the client.",
-    "Each traveller fills in their own details",
-    "on a phone: name as on the ID document, e-mail, departure city and dates.",
-    "Your team sees the list fill in",
+    "Your team sends one link for the enquiry, in its reply to the client.",
     "How to try it",
     "Open enquiry DV-2026-0001 and sign in as equipe, password demo-asset.",
     "Choose the « Groupe » tab. Three fictional travellers have already answered.",
@@ -22826,7 +22465,7 @@
     "In WordPress, it would be built as part of the project, if you choose it.",
     "Honest limits of the demo",
     "Anyone the link is forwarded to can answer. Revoking it stops that at once.",
-    "Reminders by e-mail and a status per traveller come in production.",
+    "Reminders by email and a status per traveller come in production.",
     "4 How each one is built, in plain words",
     "Option A: WordPress",
     "WordPress, the system your current site already runs on.",
@@ -22888,9 +22527,8 @@
     "7 A 20 to 30 minute demonstration",
     "Thursday 12 November",
     "10:00",
-    "14:30",
-    "Friday 13 November",
     "Monday 16 November",
+    "14:30",
     "Tuesday 17 November",
     "Suggest another time",
     "Debanjan",
@@ -22956,7 +22594,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "How each is built",
+     "label": "How it is built",
      "href": "#built",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -22980,7 +22618,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "Book a demonstration",
+     "label": "Book a demo",
      "href": "#slot",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -23085,30 +22723,6 @@
      "kind": "a",
      "type": "",
      "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Thursday%2012%20November%2C%2014%3A30%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Friday%2013%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
@@ -23118,14 +22732,6 @@
      "type": "",
      "label": "10:00",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
     },
@@ -24683,10 +24289,10 @@
     "Recordings",
     "What works",
     "Group link",
-    "How each is built",
+    "How it is built",
     "GM&E codes",
     "Milestones",
-    "Book a demonstration",
+    "Book a demo",
     "Two working demos. Try both, choose one.",
     "Same requirements, fictional data and codes, sandboxes that reset themselves.",
     "Open the demos",
@@ -24765,11 +24371,7 @@
     "Suggestion only",
     "One more idea: a link for group trips",
     "What it does",
-    "Your team sends one link",
-    "for the enquiry, in its reply to the client.",
-    "Each traveller fills in their own details",
-    "on a phone: name as on the ID document, e-mail, departure city and dates.",
-    "Your team sees the list fill in",
+    "Your team sends one link for the enquiry, in its reply to the client.",
     "How to try it",
     "Open enquiry DV-2026-0001 and sign in as equipe, password demo-asset.",
     "Choose the « Groupe » tab. Three fictional travellers have already answered.",
@@ -24780,7 +24382,7 @@
     "In WordPress, it would be built as part of the project, if you choose it.",
     "Honest limits of the demo",
     "Anyone the link is forwarded to can answer. Revoking it stops that at once.",
-    "Reminders by e-mail and a status per traveller come in production.",
+    "Reminders by email and a status per traveller come in production.",
     "4 How each one is built, in plain words",
     "Option A: WordPress",
     "WordPress, the system your current site already runs on.",
@@ -24842,9 +24444,8 @@
     "7 A 20 to 30 minute demonstration",
     "Thursday 12 November",
     "10:00",
-    "14:30",
-    "Friday 13 November",
     "Monday 16 November",
+    "14:30",
     "Tuesday 17 November",
     "Suggest another time",
     "Debanjan",
@@ -24910,7 +24511,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "How each is built",
+     "label": "How it is built",
      "href": "#built",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -24934,7 +24535,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "Book a demonstration",
+     "label": "Book a demo",
      "href": "#slot",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -25039,30 +24640,6 @@
      "kind": "a",
      "type": "",
      "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Thursday%2012%20November%2C%2014%3A30%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Friday%2013%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
@@ -25072,14 +24649,6 @@
      "type": "",
      "label": "10:00",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
     },
@@ -26667,10 +26236,10 @@
     "Recordings",
     "What works",
     "Group link",
-    "How each is built",
+    "How it is built",
     "GM&E codes",
     "Milestones",
-    "Book a demonstration",
+    "Book a demo",
     "Two working demos. Try both, choose one.",
     "Same requirements, fictional data and codes, sandboxes that reset themselves.",
     "Open the demos",
@@ -26754,11 +26323,7 @@
     "Suggestion only",
     "One more idea: a link for group trips",
     "What it does",
-    "Your team sends one link",
-    "for the enquiry, in its reply to the client.",
-    "Each traveller fills in their own details",
-    "on a phone: name as on the ID document, e-mail, departure city and dates.",
-    "Your team sees the list fill in",
+    "Your team sends one link for the enquiry, in its reply to the client.",
     "How to try it",
     "Open enquiry DV-2026-0001 and sign in as equipe, password demo-asset.",
     "Choose the « Groupe » tab. Three fictional travellers have already answered.",
@@ -26769,7 +26334,7 @@
     "In WordPress, it would be built as part of the project, if you choose it.",
     "Honest limits of the demo",
     "Anyone the link is forwarded to can answer. Revoking it stops that at once.",
-    "Reminders by e-mail and a status per traveller come in production.",
+    "Reminders by email and a status per traveller come in production.",
     "4 How each one is built, in plain words",
     "WordPress, the system your current site already runs on.",
     "Your team edits in the standard WordPress editor.",
@@ -26831,9 +26396,8 @@
     "7 A 20 to 30 minute demonstration",
     "Thursday 12 November",
     "10:00",
-    "14:30",
-    "Friday 13 November",
     "Monday 16 November",
+    "14:30",
     "Tuesday 17 November",
     "Suggest another time",
     "Debanjan",
@@ -26899,7 +26463,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "How each is built",
+     "label": "How it is built",
      "href": "#built",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -26923,7 +26487,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "Book a demonstration",
+     "label": "Book a demo",
      "href": "#slot",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -27036,30 +26600,6 @@
      "kind": "a",
      "type": "",
      "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Thursday%2012%20November%2C%2014%3A30%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Friday%2013%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
@@ -27069,14 +26609,6 @@
      "type": "",
      "label": "10:00",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
     },
@@ -28622,10 +28154,10 @@
     "Recordings",
     "What works",
     "Group link",
-    "How each is built",
+    "How it is built",
     "GM&E codes",
     "Milestones",
-    "Book a demonstration",
+    "Book a demo",
     "Two working demos. Try both, choose one.",
     "Same requirements, fictional data and codes, sandboxes that reset themselves.",
     "Open the demos",
@@ -28709,11 +28241,7 @@
     "Suggestion only",
     "One more idea: a link for group trips",
     "What it does",
-    "Your team sends one link",
-    "for the enquiry, in its reply to the client.",
-    "Each traveller fills in their own details",
-    "on a phone: name as on the ID document, e-mail, departure city and dates.",
-    "Your team sees the list fill in",
+    "Your team sends one link for the enquiry, in its reply to the client.",
     "How to try it",
     "Open enquiry DV-2026-0001 and sign in as equipe, password demo-asset.",
     "Choose the « Groupe » tab. Three fictional travellers have already answered.",
@@ -28724,7 +28252,7 @@
     "In WordPress, it would be built as part of the project, if you choose it.",
     "Honest limits of the demo",
     "Anyone the link is forwarded to can answer. Revoking it stops that at once.",
-    "Reminders by e-mail and a status per traveller come in production.",
+    "Reminders by email and a status per traveller come in production.",
     "4 How each one is built, in plain words",
     "WordPress, the system your current site already runs on.",
     "Your team edits in the standard WordPress editor.",
@@ -28786,9 +28314,8 @@
     "7 A 20 to 30 minute demonstration",
     "Thursday 12 November",
     "10:00",
-    "14:30",
-    "Friday 13 November",
     "Monday 16 November",
+    "14:30",
     "Tuesday 17 November",
     "Suggest another time",
     "Debanjan",
@@ -28854,7 +28381,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "How each is built",
+     "label": "How it is built",
      "href": "#built",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -28878,7 +28405,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "Book a demonstration",
+     "label": "Book a demo",
      "href": "#slot",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -28991,30 +28518,6 @@
      "kind": "a",
      "type": "",
      "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Thursday%2012%20November%2C%2014%3A30%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Friday%2013%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
@@ -29024,14 +28527,6 @@
      "type": "",
      "label": "10:00",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
     },
@@ -30577,10 +30072,10 @@
     "Recordings",
     "What works",
     "Group link",
-    "How each is built",
+    "How it is built",
     "GM&E codes",
     "Milestones",
-    "Book a demonstration",
+    "Book a demo",
     "Two working demos. Try both, choose one.",
     "Same requirements, fictional data and codes, sandboxes that reset themselves.",
     "Open the demos",
@@ -30664,11 +30159,7 @@
     "Suggestion only",
     "One more idea: a link for group trips",
     "What it does",
-    "Your team sends one link",
-    "for the enquiry, in its reply to the client.",
-    "Each traveller fills in their own details",
-    "on a phone: name as on the ID document, e-mail, departure city and dates.",
-    "Your team sees the list fill in",
+    "Your team sends one link for the enquiry, in its reply to the client.",
     "How to try it",
     "Open enquiry DV-2026-0001 and sign in as equipe, password demo-asset.",
     "Choose the « Groupe » tab. Three fictional travellers have already answered.",
@@ -30679,7 +30170,7 @@
     "In WordPress, it would be built as part of the project, if you choose it.",
     "Honest limits of the demo",
     "Anyone the link is forwarded to can answer. Revoking it stops that at once.",
-    "Reminders by e-mail and a status per traveller come in production.",
+    "Reminders by email and a status per traveller come in production.",
     "4 How each one is built, in plain words",
     "WordPress, the system your current site already runs on.",
     "Your team edits in the standard WordPress editor.",
@@ -30741,9 +30232,8 @@
     "7 A 20 to 30 minute demonstration",
     "Thursday 12 November",
     "10:00",
-    "14:30",
-    "Friday 13 November",
     "Monday 16 November",
+    "14:30",
     "Tuesday 17 November",
     "Suggest another time",
     "Debanjan",
@@ -30809,7 +30299,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "How each is built",
+     "label": "How it is built",
      "href": "#built",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -30833,7 +30323,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "Book a demonstration",
+     "label": "Book a demo",
      "href": "#slot",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -30946,30 +30436,6 @@
      "kind": "a",
      "type": "",
      "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Thursday%2012%20November%2C%2014%3A30%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Friday%2013%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
@@ -30979,14 +30445,6 @@
      "type": "",
      "label": "10:00",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
     },
@@ -32532,10 +31990,10 @@
     "Recordings",
     "What works",
     "Group link",
-    "How each is built",
+    "How it is built",
     "GM&E codes",
     "Milestones",
-    "Book a demonstration",
+    "Book a demo",
     "Two working demos. Try both, choose one.",
     "Same requirements, fictional data and codes, sandboxes that reset themselves.",
     "Open the demos",
@@ -32619,11 +32077,7 @@
     "Suggestion only",
     "One more idea: a link for group trips",
     "What it does",
-    "Your team sends one link",
-    "for the enquiry, in its reply to the client.",
-    "Each traveller fills in their own details",
-    "on a phone: name as on the ID document, e-mail, departure city and dates.",
-    "Your team sees the list fill in",
+    "Your team sends one link for the enquiry, in its reply to the client.",
     "How to try it",
     "Open enquiry DV-2026-0001 and sign in as equipe, password demo-asset.",
     "Choose the « Groupe » tab. Three fictional travellers have already answered.",
@@ -32634,7 +32088,7 @@
     "In WordPress, it would be built as part of the project, if you choose it.",
     "Honest limits of the demo",
     "Anyone the link is forwarded to can answer. Revoking it stops that at once.",
-    "Reminders by e-mail and a status per traveller come in production.",
+    "Reminders by email and a status per traveller come in production.",
     "4 How each one is built, in plain words",
     "WordPress, the system your current site already runs on.",
     "Your team edits in the standard WordPress editor.",
@@ -32696,9 +32150,8 @@
     "7 A 20 to 30 minute demonstration",
     "Thursday 12 November",
     "10:00",
-    "14:30",
-    "Friday 13 November",
     "Monday 16 November",
+    "14:30",
     "Tuesday 17 November",
     "Suggest another time",
     "Debanjan",
@@ -32764,7 +32217,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "How each is built",
+     "label": "How it is built",
      "href": "#built",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -32788,7 +32241,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "Book a demonstration",
+     "label": "Book a demo",
      "href": "#slot",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -32901,30 +32354,6 @@
      "kind": "a",
      "type": "",
      "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Thursday%2012%20November%2C%2014%3A30%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Friday%2013%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
@@ -32934,14 +32363,6 @@
      "type": "",
      "label": "10:00",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
     },
@@ -34488,10 +33909,10 @@
     "Recordings",
     "What works",
     "Group link",
-    "How each is built",
+    "How it is built",
     "GM&E codes",
     "Milestones",
-    "Book a demonstration",
+    "Book a demo",
     "Two working demos. Try both, choose one.",
     "Same requirements, fictional data and codes, sandboxes that reset themselves.",
     "Open the demos",
@@ -34570,11 +33991,7 @@
     "Suggestion only",
     "One more idea: a link for group trips",
     "What it does",
-    "Your team sends one link",
-    "for the enquiry, in its reply to the client.",
-    "Each traveller fills in their own details",
-    "on a phone: name as on the ID document, e-mail, departure city and dates.",
-    "Your team sees the list fill in",
+    "Your team sends one link for the enquiry, in its reply to the client.",
     "How to try it",
     "Open enquiry DV-2026-0001 and sign in as equipe, password demo-asset.",
     "Choose the « Groupe » tab. Three fictional travellers have already answered.",
@@ -34585,7 +34002,7 @@
     "In WordPress, it would be built as part of the project, if you choose it.",
     "Honest limits of the demo",
     "Anyone the link is forwarded to can answer. Revoking it stops that at once.",
-    "Reminders by e-mail and a status per traveller come in production.",
+    "Reminders by email and a status per traveller come in production.",
     "4 How each one is built, in plain words",
     "Option A: WordPress",
     "WordPress, the system your current site already runs on.",
@@ -34647,9 +34064,8 @@
     "7 A 20 to 30 minute demonstration",
     "Thursday 12 November",
     "10:00",
-    "14:30",
-    "Friday 13 November",
     "Monday 16 November",
+    "14:30",
     "Tuesday 17 November",
     "Suggest another time",
     "Debanjan",
@@ -34715,7 +34131,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "How each is built",
+     "label": "How it is built",
      "href": "#built",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -34739,7 +34155,7 @@
     {
      "kind": "a",
      "type": "",
-     "label": "Book a demonstration",
+     "label": "Book a demo",
      "href": "#slot",
      "formMethod": "",
      "path": "nav.mini > div.container.mini__in > a"
@@ -34844,30 +34260,6 @@
      "kind": "a",
      "type": "",
      "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Thursday%2012%20November%2C%2014%3A30%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Friday%2013%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "10:00",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
@@ -34877,14 +34269,6 @@
      "type": "",
      "label": "10:00",
      "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2010%3A00%20(Paris%20time)",
-     "formMethod": "",
-     "path": "ul.days > li > p.times > a.time"
-    },
-    {
-     "kind": "a",
-     "type": "",
-     "label": "14:30",
-     "href": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2014%3A30%20(Paris%20time)",
      "formMethod": "",
      "path": "ul.days > li > p.times > a.time"
     },
@@ -36440,8 +35824,8 @@
    "styles": {
     "body": "Inter",
     "bodyMix": [
-     "Inter:13441",
-     "EB Garamond:249"
+     "Inter:13497",
+     "EB Garamond:231"
     ],
     "display": [
      "EB Garamond"
@@ -36993,8 +36377,8 @@
    "styles": {
     "body": "Inter",
     "bodyMix": [
-     "Inter:13441",
-     "EB Garamond:249"
+     "Inter:13497",
+     "EB Garamond:231"
     ],
     "display": [
      "EB Garamond"
@@ -37546,8 +36930,8 @@
    "styles": {
     "body": "Inter",
     "bodyMix": [
-     "Inter:13441",
-     "EB Garamond:249"
+     "Inter:13497",
+     "EB Garamond:231"
     ],
     "display": [
      "EB Garamond"
@@ -38099,8 +37483,8 @@
    "styles": {
     "body": "Inter",
     "bodyMix": [
-     "Inter:16867",
-     "EB Garamond:249"
+     "Inter:16923",
+     "EB Garamond:231"
     ],
     "display": [
      "EB Garamond"
@@ -38597,8 +37981,8 @@
    "styles": {
     "body": "Inter",
     "bodyMix": [
-     "Inter:16867",
-     "EB Garamond:249"
+     "Inter:16923",
+     "EB Garamond:231"
     ],
     "display": [
      "EB Garamond"
@@ -39095,8 +38479,8 @@
    "styles": {
     "body": "Inter",
     "bodyMix": [
-     "Inter:16867",
-     "EB Garamond:249"
+     "Inter:16923",
+     "EB Garamond:231"
     ],
     "display": [
      "EB Garamond"
@@ -39593,8 +38977,8 @@
    "styles": {
     "body": "Inter",
     "bodyMix": [
-     "Inter:16867",
-     "EB Garamond:249"
+     "Inter:16923",
+     "EB Garamond:231"
     ],
     "display": [
      "EB Garamond"
@@ -40091,8 +39475,8 @@
    "styles": {
     "body": "Inter",
     "bodyMix": [
-     "Inter:13441",
-     "EB Garamond:249"
+     "Inter:13497",
+     "EB Garamond:231"
     ],
     "display": [
      "EB Garamond"
@@ -40991,126 +40375,6 @@
    ]
   },
   {
-   "url": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Thursday%2012%20November%2C%2014%3A30%20(Paris%20time)",
-   "refs": [
-    {
-     "from": "https://asset-voyages-redesign.pages.dev/demo/",
-     "option": "HUB",
-     "kind": "a",
-     "text": "14:30",
-     "visible": true
-    },
-    {
-     "from": "https://asset-voyages-redesign.pages.dev/demo/",
-     "option": "HUB",
-     "kind": "a",
-     "text": "14:30",
-     "visible": true
-    },
-    {
-     "from": "https://asset-voyages-redesign.pages.dev/demo/",
-     "option": "HUB",
-     "kind": "a",
-     "text": "14:30",
-     "visible": true
-    },
-    {
-     "from": "https://asset-voyages-redesign.pages.dev/demo/",
-     "option": "HUB",
-     "kind": "a",
-     "text": "14:30",
-     "visible": true
-    },
-    {
-     "from": "https://asset-voyages-redesign.pages.dev/demo/",
-     "option": "HUB",
-     "kind": "a",
-     "text": "14:30",
-     "visible": true
-    }
-   ]
-  },
-  {
-   "url": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Friday%2013%20November%2C%2010%3A00%20(Paris%20time)",
-   "refs": [
-    {
-     "from": "https://asset-voyages-redesign.pages.dev/demo/",
-     "option": "HUB",
-     "kind": "a",
-     "text": "10:00",
-     "visible": true
-    },
-    {
-     "from": "https://asset-voyages-redesign.pages.dev/demo/",
-     "option": "HUB",
-     "kind": "a",
-     "text": "10:00",
-     "visible": true
-    },
-    {
-     "from": "https://asset-voyages-redesign.pages.dev/demo/",
-     "option": "HUB",
-     "kind": "a",
-     "text": "10:00",
-     "visible": true
-    },
-    {
-     "from": "https://asset-voyages-redesign.pages.dev/demo/",
-     "option": "HUB",
-     "kind": "a",
-     "text": "10:00",
-     "visible": true
-    },
-    {
-     "from": "https://asset-voyages-redesign.pages.dev/demo/",
-     "option": "HUB",
-     "kind": "a",
-     "text": "10:00",
-     "visible": true
-    }
-   ]
-  },
-  {
-   "url": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2010%3A00%20(Paris%20time)",
-   "refs": [
-    {
-     "from": "https://asset-voyages-redesign.pages.dev/demo/",
-     "option": "HUB",
-     "kind": "a",
-     "text": "10:00",
-     "visible": true
-    },
-    {
-     "from": "https://asset-voyages-redesign.pages.dev/demo/",
-     "option": "HUB",
-     "kind": "a",
-     "text": "10:00",
-     "visible": true
-    },
-    {
-     "from": "https://asset-voyages-redesign.pages.dev/demo/",
-     "option": "HUB",
-     "kind": "a",
-     "text": "10:00",
-     "visible": true
-    },
-    {
-     "from": "https://asset-voyages-redesign.pages.dev/demo/",
-     "option": "HUB",
-     "kind": "a",
-     "text": "10:00",
-     "visible": true
-    },
-    {
-     "from": "https://asset-voyages-redesign.pages.dev/demo/",
-     "option": "HUB",
-     "kind": "a",
-     "text": "10:00",
-     "visible": true
-    }
-   ]
-  },
-  {
    "url": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20November%2C%2014%3A30%20(Paris%20time)",
    "refs": [
     {
@@ -41186,46 +40450,6 @@
      "option": "HUB",
      "kind": "a",
      "text": "10:00",
-     "visible": true
-    }
-   ]
-  },
-  {
-   "url": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20November%2C%2014%3A30%20(Paris%20time)",
-   "refs": [
-    {
-     "from": "https://asset-voyages-redesign.pages.dev/demo/",
-     "option": "HUB",
-     "kind": "a",
-     "text": "14:30",
-     "visible": true
-    },
-    {
-     "from": "https://asset-voyages-redesign.pages.dev/demo/",
-     "option": "HUB",
-     "kind": "a",
-     "text": "14:30",
-     "visible": true
-    },
-    {
-     "from": "https://asset-voyages-redesign.pages.dev/demo/",
-     "option": "HUB",
-     "kind": "a",
-     "text": "14:30",
-     "visible": true
-    },
-    {
-     "from": "https://asset-voyages-redesign.pages.dev/demo/",
-     "option": "HUB",
-     "kind": "a",
-     "text": "14:30",
-     "visible": true
-    },
-    {
-     "from": "https://asset-voyages-redesign.pages.dev/demo/",
-     "option": "HUB",
-     "kind": "a",
-     "text": "14:30",
      "visible": true
     }
    ]

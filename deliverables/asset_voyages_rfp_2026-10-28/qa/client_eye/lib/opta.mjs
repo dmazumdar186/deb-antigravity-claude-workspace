@@ -232,7 +232,7 @@ export async function replayA(browser, hub) {
   s = hubStep(4, 1);
   await step('T5', 1, s.text, async () => {
     const q = (s.text.match(/«\s*([^»]+?)\s*»/) || [])[1];
-    let w = await ag.click(q, { within: '#adminmenu' }); if (w) return w;
+    let w = null; for (const part of q.split('›').map((x) => x.trim())) { w = await ag.click(part, { within: '#adminmenu' }); if (w) return w; }
     if (/DEMO-GME-[A-Z0-9]{4}/.test(await page.content())) return 'codes are not hidden';
     const reason = page.getByLabel(/Raison de la demande/).filter({ visible: true }).first();
     if (!(await reason.count())) return 'no reason field';
@@ -245,7 +245,7 @@ export async function replayA(browser, hub) {
     let w = await logout(page, ag); if (w) return w;
     w = (await ag.fill('Identifiant ou adresse e-mail', 'direction')) || (await ag.fill('Mot de passe', PASSWORD, { exact: true })) || (await ag.click('Se connecter')); if (w) return w;
     page.__meta.role = 'direction';
-    w = await ag.click('Approuver (24 h)'); if (w) return w;
+    w = await ag.click('Approuver pour 24 h'); if (w) return w;
     return (await ag.sees(/approuv|accord/i)) ? null : 'no approval confirmation';
   });
   await crawlMenu(page, 'direction (after approval)');
@@ -254,15 +254,15 @@ export async function replayA(browser, hub) {
     let w = await logout(page, ag); if (w) return w;
     w = (await ag.fill('Identifiant ou adresse e-mail', 'equipe')) || (await ag.fill('Mot de passe', PASSWORD, { exact: true })) || (await ag.click('Se connecter')); if (w) return w;
     page.__meta.role = 'equipe';
-    w = await ag.click('Accès GM&E', { within: '#adminmenu' }); if (w) return w;
+    for (const part of ['Codes GM&E', 'Codes']) { w = await ag.click(part, { within: '#adminmenu' }); if (w) return w; }
     let why = null;
     if (!/DEMO-GME-[A-Z0-9]{4}/.test(await page.locator('#wpbody').innerText())) {
-      w = await ag.click('Révéler le code'); if (w) return 'code not shown and ' + w;
-      why = 'hub says « the code is shown » after signing in; the reader must still click « Révéler le code »';
+      w = await ag.click('Afficher le code'); if (w) return 'code not shown and ' + w;
+      why = 'hub says « the code is shown » after signing in; the reader must still click « Afficher le code »';
     }
     if (!/DEMO-GME-[A-Z0-9]{4}/.test(await page.locator('#wpbody').innerText())) return 'code still not shown';
     const menu = await page.$$eval('#adminmenu a', (as) => as.map((a) => a.innerText.trim()).join(' | '));
-    if (!/Journal GM&E/.test(menu) && !/consultation|affichage enregistré|journal/i.test(await page.locator('#wpbody').innerText())) why = (why ? why + '; ' : '') + 'equipe sees no access record (« Journal GM&E » is Direction-only)';
+    if (!/Journal d’accès GM&E/.test(menu) && !/consultation|affichage enregistré|journal/i.test(await page.locator('#wpbody').innerText())) why = (why ? why + '; ' : '') + 'equipe sees no access record (« Journal GM&E » is Direction-only)';
     return { why, extra: 'reveal' };
   });
   res.evidence['5'] = rows.slice(-3).every((r) => r.ok);

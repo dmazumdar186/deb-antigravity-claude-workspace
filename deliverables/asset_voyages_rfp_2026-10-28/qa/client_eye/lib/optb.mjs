@@ -134,7 +134,7 @@ export async function replayB(browser, hub) {
   await crawlNav(page, 'contributeur');
   s = hubStep(0, 2);
   await step('T1', 2, s.text, async () => {
-    if (!/list of congresses and add a new one/i.test(s.text)) return 'step text changed: re-map the replay';
+    if (!/list of congresses and click/i.test(s.text)) return 'step text changed: re-map the replay';
     let w = await ag.click('Congrès', { within: 'nav.side' }); if (w) return w;
     // « add a new one »: the agent looks for an add label on that list
     const add = ['Nouveau congrès', 'Ajouter un congrès', 'Ajouter', 'Créer un congrès'];
@@ -217,7 +217,7 @@ export async function replayB(browser, hub) {
   s = hubStep(2, 3);
   await step('T3', 3, s.text, async () => {
     await page.waitForTimeout(3200);
-    const w = await ag.click('Envoyer la demande'); if (w) return w;
+    const w = await ag.click('Envoyer ma demande'); if (w) return w;
     const t = await page.locator('body').innerText();
     ref = (t.match(/DV-2026-\d{4}/) || [])[0] || '';
     return ref ? null : 'no reference number on screen';
@@ -253,13 +253,13 @@ export async function replayB(browser, hub) {
   await step('T4', 3, s.text, async () => {
     let w = await ag.click('Demandes', { within: 'nav.side', exact: false }); if (w) return w;
     const dl = page.waitForEvent('download', { timeout: 10000 }).catch(() => null);
-    w = await ag.click('Exporter (tableur CSV)', { exact: false }); if (w) return w;
+    w = await ag.click('Exporter en CSV', { exact: false }); if (w) return w;
     const d = await dl; if (!d) return 'the CSV did not download';
     const p = join(SHOTS, '..', `b-demandes.csv`); await d.saveAs(p);
     const csv = readFileSync(p, 'utf8');
     if (!csv.startsWith('﻿') || !csv.includes(';')) return 'CSV without BOM or « ; » separators';
     if (!csv.includes(ref)) return `CSV lacks ${ref}`;
-    w = await ag.click('Notifications', { within: 'nav.side', exact: false }); if (w) return w;
+    w = await ag.click('Journal des notifications', { within: 'nav.side', exact: false }); if (w) return w;
     if (!(await ag.sees(ref))) return `notification log does not list ${ref}`;
     return { extra: `CSV ${d.suggestedFilename()}` };
   });
@@ -269,7 +269,8 @@ export async function replayB(browser, hub) {
   s = hubStep(4, 1);
   await step('T5', 1, s.text, async () => {
     const quoted = (s.text.match(/«\s*([^»]+?)\s*»/) || [])[1] || '';
-    let w = await ag.click(quoted);
+    let w = null;
+    for (const part of quoted.split('›').map((x) => x.trim())) { w = await ag.click(part, { within: 'nav.side' }); if (w) break; }
     let why = null;
     if (w) { why = `hub label « ${quoted} »: ${w}`; ag.note('fallback: agent reads the menu'); const w2 = await ag.click('Codes', { within: 'nav.side' }); if (w2) return why + '; ' + w2; }
     const html = await page.content();
@@ -408,16 +409,18 @@ export async function phoneB(browser) {
   const { ctx, page } = await newCtx(browser, { width: 390, option: OPT, label: 'B-390' });
   writer(ctx, 'B-390 phone');
   // visitor: errors first, then a valid enquiry
-  await page.goto(B + '/congres/congres-europeen-de-radiologie-cg-0108');
+  // the slug changed when the real congress names were replaced: find the congress by its stable id suffix
+  await page.goto(B + '/');
+  await page.goto(B + (await page.locator('a[href^="/congres/"][href$="-cg-0108"]').first().getAttribute('href')));
   await page.getByLabel('E-mail').fill('pas-un-email');
   await page.getByLabel('Passagers').fill('0');
   await page.waitForTimeout(3200);
-  await page.getByRole('button', { name: 'Envoyer la demande' }).click(); await page.waitForLoadState();
+  await page.getByRole('button', { name: 'Envoyer ma demande' }).click(); await page.waitForLoadState();
   await S(page, 'enquiry errors (390)');
   for (const [l, v] of [['Nom et prénom', 'Marc Petit (exemple)'], ['E-mail', 'marc.petit@example.com'], ['Téléphone', '01 99 00 56 78'], ['Ville de départ', 'Nantes'], ['Date aller', '2027-02-23'], ['Date retour', '2027-02-28'], ['Passagers', '1']]) await page.getByLabel(l).fill(v);
   await page.locator('#f-consent').check();
   await page.waitForTimeout(3200);
-  await page.getByRole('button', { name: 'Envoyer la demande' }).click(); await page.waitForLoadState();
+  await page.getByRole('button', { name: 'Envoyer ma demande' }).click(); await page.waitForLoadState();
   await S(page, 'enquiry confirmation (390)');
   E(page, 'visitor 390');
   // contributeur
