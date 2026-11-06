@@ -1,7 +1,7 @@
 {
  "name": "a",
- "at": "2026-11-06T12:10:39.981Z",
- "logins": 3,
+ "at": "2026-11-06T12:57:13.646Z",
+ "logins": 9,
  "writing": [
   "B-1440 replay",
   "B-390 phone"
@@ -17,7 +17,7 @@
    "clicks": 1,
    "page": "http://127.0.0.1:9460/wp-admin/index.php",
    "role": "direction",
-   "shot": "out/shots/0191-A-direction-1440-C10-T1-1.png",
+   "shot": "out/shots/0183-A-direction-1440-C10-T1-1.png",
    "extra": "local: signed in as direction through wp-login (hosted link checked separately)"
   },
   {
@@ -30,7 +30,7 @@
    "clicks": 2,
    "page": "http://127.0.0.1:9460/wp-admin/post-new.php?post_type=asset_congres",
    "role": "direction",
-   "shot": "out/shots/0192-A-direction-1440-C10-T1-2.png",
+   "shot": "out/shots/0184-A-direction-1440-C10-T1-2.png",
    "extra": ""
   },
   {
@@ -43,7 +43,7 @@
    "clicks": 2,
    "page": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres",
    "role": "direction",
-   "shot": "out/shots/0193-A-direction-1440-C10-T1-3.png",
+   "shot": "out/shots/0185-A-direction-1440-C10-T1-3.png",
    "extra": ""
   },
   {
@@ -69,7 +69,7 @@
    "clicks": 0,
    "page": "http://127.0.0.1:9460/",
    "role": "visiteur",
-   "shot": "out/shots/0215-A-visiteur-1440-C10-T2-1.png",
+   "shot": "out/shots/0207-A-visiteur-1440-C10-T2-1.png",
    "extra": "local: visitor site root"
   },
   {
@@ -82,7 +82,7 @@
    "clicks": 1,
    "page": "http://127.0.0.1:9460/?q=cardiologie&discipline&pays&mois&tri=date_asc",
    "role": "visiteur",
-   "shot": "out/shots/0216-A-visiteur-1440-C10-T2-2.png",
+   "shot": "out/shots/0208-A-visiteur-1440-C10-T2-2.png",
    "extra": ""
   },
   {
@@ -95,7 +95,7 @@
    "clicks": 1,
    "page": "http://127.0.0.1:9460/congres/congres-europeen-de-cardiologie-exemple/",
    "role": "visiteur",
-   "shot": "out/shots/0217-A-visiteur-1440-C10-T2-3.png",
+   "shot": "out/shots/0209-A-visiteur-1440-C10-T2-3.png",
    "extra": ""
   },
   {
@@ -108,7 +108,7 @@
    "clicks": 0,
    "page": "http://127.0.0.1:9460/congres/congres-europeen-de-cardiologie-exemple/",
    "role": "visiteur",
-   "shot": "out/shots/0218-A-visiteur-1440-C10-T3-1.png",
+   "shot": "out/shots/0210-A-visiteur-1440-C10-T3-1.png",
    "extra": ""
   },
   {
@@ -121,7 +121,7 @@
    "clicks": 0,
    "page": "http://127.0.0.1:9460/congres/congres-europeen-de-cardiologie-exemple/",
    "role": "visiteur",
-   "shot": "out/shots/0219-A-visiteur-1440-C10-T3-2.png",
+   "shot": "out/shots/0211-A-visiteur-1440-C10-T3-2.png",
    "extra": ""
   },
   {
@@ -132,9 +132,9 @@
    "ok": true,
    "why": "",
    "clicks": 1,
-   "page": "http://127.0.0.1:9460/congres/congres-europeen-de-cardiologie-exemple/?asset_ok=61fb6f2ee4749801e54593c022a9bccc#devis",
+   "page": "http://127.0.0.1:9460/congres/congres-europeen-de-cardiologie-exemple/?asset_ok=6a58134054977a3f701711e9d95d2f73#devis",
    "role": "visiteur",
-   "shot": "out/shots/0220-A-visiteur-1440-C10-T3-3.png",
+   "shot": "out/shots/0212-A-visiteur-1440-C10-T3-3.png",
    "extra": ""
   },
   {
@@ -147,7 +147,7 @@
    "clicks": 3,
    "page": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes",
    "role": "equipe",
-   "shot": "out/shots/0221-A-equipe-1440-C10-T4-1.png",
+   "shot": "out/shots/0213-A-equipe-1440-C10-T4-1.png",
    "extra": ""
   },
   {
@@ -160,7 +160,7 @@
    "clicks": 3,
    "page": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes&action=view&id=32",
    "role": "equipe",
-   "shot": "out/shots/0222-A-equipe-1440-C10-T4-2.png",
+   "shot": "out/shots/0214-A-equipe-1440-C10-T4-2.png",
    "extra": ""
   },
   {
@@ -173,7 +173,7 @@
    "clicks": 3,
    "page": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-notifications",
    "role": "equipe",
-   "shot": "out/shots/0223-A-equipe-1440-C10-T4-3.png",
+   "shot": "out/shots/0215-A-equipe-1440-C10-T4-3.png",
    "extra": ""
   },
   {
@@ -182,11 +182,11 @@
    "n": 1,
    "text": "Signed in as equipe, open « Codes GM&E › Codes »: the codes are hidden. Click « Demander l’accès » and give a reason.",
    "ok": false,
-   "why": "label « Codes GM&E › Codes » not visible",
-   "clicks": 0,
-   "page": "http://127.0.0.1:9460/wp-admin/index.php",
+   "why": "label « Codes » not visible",
+   "clicks": 1,
+   "page": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-gme",
    "role": "equipe",
-   "shot": "out/shots/0235-A-equipe-1440-C10-T5-1.png",
+   "shot": "out/shots/0227-A-equipe-1440-C10-T5-1.png",
    "extra": ""
   },
   {
@@ -194,12 +194,12 @@
    "task": "T5",
    "n": 2,
    "text": "Sign out, sign in as direction, open « Codes GM&E › Demandes d’accès », and click « Approuver pour 24 h » or « Refuser ».",
-   "ok": false,
-   "why": "label « Approuver (24 h) » not visible",
-   "clicks": 2,
-   "page": "http://127.0.0.1:9460/wp-admin/index.php",
+   "ok": true,
+   "why": "",
+   "clicks": 3,
+   "page": "http://127.0.0.1:9460/wp-admin/index.php?msg=approve",
    "role": "direction",
-   "shot": "out/shots/0236-A-direction-1440-C10-T5-2.png",
+   "shot": "out/shots/0228-A-direction-1440-C10-T5-2.png",
    "extra": ""
   },
   {
@@ -208,11 +208,11 @@
    "n": 3,
    "text": "Sign in as equipe again and open « Codes GM&E › Codes ». The code stays hidden until you click « Afficher le code »: that click is needed. Each display is then listed in « Journal d’accès GM&E ».",
    "ok": false,
-   "why": "label « Accès GM&E » not visible",
-   "clicks": 2,
-   "page": "http://127.0.0.1:9460/wp-admin/index.php",
+   "why": "label « Codes » not visible",
+   "clicks": 3,
+   "page": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-gme",
    "role": "equipe",
-   "shot": "out/shots/0253-A-equipe-1440-C10-T5-3.png",
+   "shot": "out/shots/0245-A-equipe-1440-C10-T5-3.png",
    "extra": ""
   }
  ],
@@ -221,5 +221,5 @@
   "ok": true
  },
  "notes": [],
- "findings": 13
+ "findings": 12
 }

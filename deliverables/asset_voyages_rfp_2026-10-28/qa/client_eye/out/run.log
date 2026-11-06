@@ -224,3 +224,5 @@ Call log:
 [12:52:35] C10 A T4.3 OK (3 clicks) 
 [12:53:25] C10 A T5.1 FAIL (1 clicks) label « Codes » not visible
 [12:53:34] C10 A T5.2 OK (3 clicks) 
+[12:54:22] C10 A T5.3 FAIL (3 clicks) label « Codes » not visible
+[12:57:13] saved part a: 12 raw findings, 154 states

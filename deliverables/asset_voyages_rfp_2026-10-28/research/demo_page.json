@@ -1,6 +1,6 @@
 {
  "url": "http://localhost:8794/demo/",
- "date": "2026-11-06T12:46:17.592Z",
+ "date": "2026-11-06T12:57:49.998Z",
  "pass": 59,
  "total": 59,
  "results": [
@@ -57,7 +57,7 @@
   {
    "name": "group section: no airline rules or GM&E thresholds mentioned; under 320 words in total",
    "ok": true,
-   "info": "words=303"
+   "info": "words=317"
   },
   {
    "name": "group section: every link is an Option B deep link set from CUSTOM_URL, opening in a new tab",
@@ -121,7 +121,7 @@
   {
    "name": "desktop: #slot heading lands below the sticky strip, strip marks it",
    "ok": true,
-   "info": "{\"top\":173.484375,\"strip\":57,\"cur\":\"#slot\"}"
+   "info": "{\"top\":174.046875,\"strip\":57,\"cur\":\"#slot\"}"
   },
   {
    "name": "recordings: follow the real manifest (all false: section and strip link hidden, no video; announced files: those players only)",
@@ -171,12 +171,12 @@
   {
    "name": "390: #plan heading lands below the sticky strip",
    "ok": true,
-   "info": "{\"top\":129.03125,\"strip\":57}"
+   "info": "{\"top\":129.171875,\"strip\":57}"
   },
   {
    "name": "390: the strip link to #group scrolls its heading below the sticky strip",
    "ok": true,
-   "info": "{\"top\":222.390625,\"strip\":57}"
+   "info": "{\"top\":222.140625,\"strip\":57}"
   },
   {
    "name": "390: the diagram switches to its vertical drawing",
