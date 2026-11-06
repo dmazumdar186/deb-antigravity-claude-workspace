@@ -1,16 +1,18 @@
 {
  "name": "b",
- "at": "2026-11-06T12:03:32.295Z",
- "logins": 3,
+ "at": "2026-11-06T12:49:46.068Z",
+ "logins": 9,
  "writing": [
   "B-1440 replay",
   "B-390 phone"
  ],
  "sbx": [
-  "TJ8uKS_NTHruY0LyrTlDh9Wf"
+  "gi49coia97los10UznHQzZZw",
+  "zJ4huthGKubr2xAgNO-efDvh"
  ],
  "resets": {
-  "replay": true
+  "replay": true,
+  "phone": true
  },
  "replay": [
   {
@@ -23,7 +25,7 @@
    "clicks": 1,
    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console",
    "role": "contributeur",
-   "shot": "out/shots/0087-B-contributeur-1440-C10-T1-1.png",
+   "shot": "out/shots/0047-B-contributeur-1440-C10-T1-1.png",
    "extra": ""
   },
   {
@@ -31,12 +33,12 @@
    "task": "T1",
    "n": 2,
    "text": "Open the list of congresses and click « Ajouter un congrès », or open an existing one to change it.",
-   "ok": false,
-   "why": "step text changed: re-map the replay",
-   "clicks": 0,
-   "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres",
+   "ok": true,
+   "why": "",
+   "clicks": 2,
+   "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres/nouveau",
    "role": "contributeur",
-   "shot": "out/shots/0090-B-contributeur-1440-C10-T1-2.png",
+   "shot": "out/shots/0050-B-contributeur-1440-C10-T1-2.png",
    "extra": ""
   },
   {
@@ -44,12 +46,12 @@
    "task": "T1",
    "n": 3,
    "text": "Send it for review. Sign in as direction to check it and publish it.",
-   "ok": false,
-   "why": "no « review » button: label « Envoyer pour relecture » not visible",
-   "clicks": 0,
-   "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres",
-   "role": "contributeur",
-   "shot": "out/shots/0091-B-contributeur-1440-C10-T1-3.png",
+   "ok": true,
+   "why": "",
+   "clicks": 6,
+   "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres/114?ok=publish",
+   "role": "direction",
+   "shot": "out/shots/0052-B-direction-1440-C10-T1-3.png",
    "extra": ""
   },
   {
@@ -61,8 +63,8 @@
    "why": "",
    "clicks": 1,
    "page": "https://asset-voyages-demo.debanjan186.workers.dev/",
-   "role": "contributeur",
-   "shot": "out/shots/0097-B-contributeur-1440-C10-T2-1.png",
+   "role": "direction",
+   "shot": "out/shots/0063-B-direction-1440-C10-T2-1.png",
    "extra": ""
   },
   {
@@ -74,8 +76,8 @@
    "why": "",
    "clicks": 1,
    "page": "https://asset-voyages-demo.debanjan186.workers.dev/?q=cardiologie&pays=&mois=#resultats",
-   "role": "contributeur",
-   "shot": "out/shots/0098-B-contributeur-1440-C10-T2-2.png",
+   "role": "direction",
+   "shot": "out/shots/0064-B-direction-1440-C10-T2-2.png",
    "extra": ""
   },
   {
@@ -86,9 +88,9 @@
    "ok": true,
    "why": "",
    "clicks": 1,
-   "page": "https://asset-voyages-demo.debanjan186.workers.dev/congres/congres-europeen-de-cardiologie-cg-0101",
-   "role": "contributeur",
-   "shot": "out/shots/0099-B-contributeur-1440-C10-T2-3.png",
+   "page": "https://asset-voyages-demo.debanjan186.workers.dev/congres/congres-de-relecture-x1p2-cg-0114",
+   "role": "direction",
+   "shot": "out/shots/0065-B-direction-1440-C10-T2-3.png",
    "extra": ""
   },
   {
@@ -100,8 +102,8 @@
    "why": "",
    "clicks": 0,
    "page": "https://asset-voyages-demo.debanjan186.workers.dev/congres/journees-d-oncologie-digestive-cg-0112",
-   "role": "contributeur",
-   "shot": "out/shots/0100-B-contributeur-1440-C10-T3-1.png",
+   "role": "direction",
+   "shot": "out/shots/0066-B-direction-1440-C10-T3-1.png",
    "extra": "form already open on the page (0 clicks)"
   },
   {
@@ -113,8 +115,8 @@
    "why": "",
    "clicks": 0,
    "page": "https://asset-voyages-demo.debanjan186.workers.dev/congres/journees-d-oncologie-digestive-cg-0112",
-   "role": "contributeur",
-   "shot": "out/shots/0101-B-contributeur-1440-C10-T3-2.png",
+   "role": "direction",
+   "shot": "out/shots/0067-B-direction-1440-C10-T3-2.png",
    "extra": ""
   },
   {
@@ -122,12 +124,12 @@
    "task": "T3",
    "n": 3,
    "text": "Click « Envoyer ma demande ». You receive a reference number on screen.",
-   "ok": false,
-   "why": "label « Envoyer la demande » not visible",
-   "clicks": 0,
-   "page": "https://asset-voyages-demo.debanjan186.workers.dev/congres/journees-d-oncologie-digestive-cg-0112",
-   "role": "contributeur",
-   "shot": "out/shots/0102-B-contributeur-1440-C10-T3-3.png",
+   "ok": true,
+   "why": "",
+   "clicks": 1,
+   "page": "https://asset-voyages-demo.debanjan186.workers.dev/demande/confirmation?ref=DV-2026-0007&k=-SBJreGT73heuu4jBTu4dW",
+   "role": "direction",
+   "shot": "out/shots/0068-B-direction-1440-C10-T3-3.png",
    "extra": ""
   },
   {
@@ -140,7 +142,7 @@
    "clicks": 2,
    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes",
    "role": "equipe",
-   "shot": "out/shots/0103-B-equipe-1440-C10-T4-1.png",
+   "shot": "out/shots/0069-B-equipe-1440-C10-T4-1.png",
    "extra": ""
   },
   {
@@ -148,12 +150,12 @@
    "task": "T4",
    "n": 2,
    "text": "Open your enquiry from task 3 and change its status. Each change is kept in its history.",
-   "ok": false,
-   "why": "exception: locator.click: Timeout 5000ms exceeded.",
-   "clicks": 0,
-   "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes",
+   "ok": true,
+   "why": "",
+   "clicks": 2,
+   "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/7?ok=statut-qualifiee",
    "role": "equipe",
-   "shot": "out/shots/0109-B-equipe-1440-C10-T4-2.png",
+   "shot": "out/shots/0075-B-equipe-1440-C10-T4-2.png",
    "extra": ""
   },
   {
@@ -161,25 +163,25 @@
    "task": "T4",
    "n": 3,
    "text": "Click « Exporter en CSV » to download the list as a spreadsheet file. « Journal des notifications » shows the message your team would have received.",
-   "ok": false,
-   "why": "exception: locator.click: Timeout 5000ms exceeded.",
-   "clicks": 0,
-   "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes",
+   "ok": true,
+   "why": "",
+   "clicks": 3,
+   "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/notifications",
    "role": "equipe",
-   "shot": "out/shots/0110-B-equipe-1440-C10-T4-3.png",
-   "extra": ""
+   "shot": "out/shots/0076-B-equipe-1440-C10-T4-3.png",
+   "extra": "CSV demandes-2026-11-06.csv"
   },
   {
    "option": "B",
    "task": "T5",
    "n": 1,
    "text": "In the team console, sign in as equipe and open « Codes GM&E › Codes »: the codes are hidden. Click « Demander l’accès » and give a reason.",
-   "ok": false,
-   "why": "exception: locator.click: Timeout 5000ms exceeded.",
-   "clicks": 0,
-   "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes",
+   "ok": true,
+   "why": "",
+   "clicks": 3,
+   "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/gme?ok=demande",
    "role": "equipe",
-   "shot": "out/shots/0111-B-equipe-1440-C10-T5-1.png",
+   "shot": "out/shots/0077-B-equipe-1440-C10-T5-1.png",
    "extra": ""
   },
   {
@@ -187,12 +189,12 @@
    "task": "T5",
    "n": 2,
    "text": "Sign out, sign in as direction, open « Codes GM&E › Demandes d’accès », and click « Approuver pour 24 h » or « Refuser ».",
-   "ok": false,
-   "why": "exception: locator.click: Timeout 5000ms exceeded.",
-   "clicks": 0,
-   "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes",
-   "role": "equipe",
-   "shot": "out/shots/0112-B-equipe-1440-C10-T5-2.png",
+   "ok": true,
+   "why": "",
+   "clicks": 4,
+   "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/gme/acces?ok=approuvee",
+   "role": "direction",
+   "shot": "out/shots/0078-B-direction-1440-C10-T5-2.png",
    "extra": ""
   },
   {
@@ -201,12 +203,12 @@
    "n": 3,
    "text": "Sign in as equipe again and open « Codes GM&E › Codes ». The code stays hidden until you click « Afficher le code »: that click is needed. Each display is then listed in « Journal d’accès GM&E ».",
    "ok": false,
-   "why": "exception: locator.click: Timeout 5000ms exceeded.",
-   "clicks": 0,
-   "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes",
+   "why": "hub says « the code is shown » after signing in; the reader must still click « Afficher le code »",
+   "clicks": 4,
+   "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/gme/112/afficher",
    "role": "equipe",
-   "shot": "out/shots/0113-B-equipe-1440-C10-T5-3.png",
-   "extra": ""
+   "shot": "out/shots/0080-B-equipe-1440-C10-T5-3.png",
+   "extra": "reveal"
   },
   {
    "option": "B",
@@ -218,7 +220,7 @@
    "clicks": 0,
    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/1",
    "role": "equipe",
-   "shot": "out/shots/0114-B-equipe-1440-C10-G-1.png",
+   "shot": "out/shots/0081-B-equipe-1440-C10-G-1.png",
    "extra": ""
   },
   {
@@ -231,7 +233,7 @@
    "clicks": 1,
    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/1/groupe",
    "role": "equipe",
-   "shot": "out/shots/0115-B-equipe-1440-C10-G-2.png",
+   "shot": "out/shots/0082-B-equipe-1440-C10-G-2.png",
    "extra": ""
   },
   {
@@ -244,7 +246,7 @@
    "clicks": 1,
    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/1/groupe",
    "role": "equipe",
-   "shot": "out/shots/0116-B-equipe-1440-C10-G-3.png",
+   "shot": "out/shots/0083-B-equipe-1440-C10-G-3.png",
    "extra": ""
   },
   {
@@ -257,12 +259,14 @@
    "clicks": 0,
    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/1/groupe",
    "role": "equipe",
-   "shot": "out/shots/0119-B-equipe-1440-C10-G-4.png",
+   "shot": "out/shots/0086-B-equipe-1440-C10-G-4.png",
    "extra": ""
   }
  ],
  "notes": [
-  "traveller phone sandbox cookie: JrD-RFqn1sWuCyK0dfZDzI3l"
+  "D4 reveal state B equipe reveal (equipe) shows DEMO-GME-4821",
+  "D4 reveal state C10 T5.3 (equipe) shows DEMO-GME-4821",
+  "traveller phone sandbox cookie: r4DqB8SWF2mt0WrBWgrM9Yzv"
  ],
- "findings": 11
+ "findings": 1
 }
