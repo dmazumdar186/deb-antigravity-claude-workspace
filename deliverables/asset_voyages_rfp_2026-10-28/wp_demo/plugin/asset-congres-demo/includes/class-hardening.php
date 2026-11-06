@@ -38,6 +38,34 @@ class Asset_CD_Hardening {
 		add_action( 'admin_bar_menu', array( __CLASS__, 'guard_command_palette' ), 999 );
 		add_action( 'admin_bar_menu', array( __CLASS__, 'back_to_site' ), 35 );
 		add_action( 'wp_dashboard_setup', array( __CLASS__, 'trim_dashboard' ), 99 );
+		add_filter( 'login_message', array( __CLASS__, 'session_expired_message' ) );
+		add_action( 'admin_init', array( __CLASS__, 'skip_compression_test' ), 1 );
+	}
+
+	/**
+	 * Core runs an admin-ajax « wp-compression-test » until can_compress_scripts is set; under
+	 * Playground it answers 400 and logs console errors on admin pages (CE-C1-001). Record the
+	 * answer once (no compression), so the test never runs.
+	 */
+	public static function skip_compression_test() {
+		if ( false === get_site_option( 'can_compress_scripts' ) ) {
+			update_site_option( 'can_compress_scripts', 0 );
+		}
+	}
+
+	/**
+	 * WordPress sends a reader whose session ended to wp-login.php?reauth=1 with no explanation
+	 * (CE-C7-003). Say so in plain French above the form.
+	 *
+	 * @param string $message Existing login message markup.
+	 * @return string
+	 */
+	public static function session_expired_message( $message ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only display flag.
+		if ( empty( $_GET['reauth'] ) || is_user_logged_in() ) {
+			return $message;
+		}
+		return '<p class="message asset-session-expired" role="status">' . esc_html__( 'Votre session a expiré. Reconnectez-vous.', 'asset-congres-demo' ) . '</p>' . $message;
 	}
 
 	/**

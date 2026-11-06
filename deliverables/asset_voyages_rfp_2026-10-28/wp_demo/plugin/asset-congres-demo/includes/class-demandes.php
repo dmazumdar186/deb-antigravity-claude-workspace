@@ -243,7 +243,7 @@ class Asset_CD_Demandes {
 		<p class="asset-quote__for">
 			<?php
 			/* translators: %s: congress title. */
-			echo esc_html( sprintf( __( 'Congrès : %s', 'asset-congres-demo' ), get_the_title( $congres_id ) ) );
+			echo Asset_CD_Ui::nowrap_suffix( esc_html( sprintf( __( 'Congrès : %s', 'asset-congres-demo' ), get_the_title( $congres_id ) ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped, then a span added.
 			?>
 		</p>
 		<form class="asset-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" novalidate>

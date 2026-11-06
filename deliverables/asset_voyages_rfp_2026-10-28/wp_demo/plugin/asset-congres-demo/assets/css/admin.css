@@ -249,3 +249,20 @@
 #dashboard-widgets .meta-box-sortables.empty-container {
 	display: none;
 }
+
+/* « — exemple » never wraps onto a line of its own (CE-B4-004). */
+.asset-nowrap {
+	white-space: nowrap;
+}
+
+/* Demandes list: the congress column is wide enough for its longest word, and words are never
+   split without a hyphen (CE-B4-005). */
+.wp-list-table .column-congres {
+	width: 17%;
+}
+
+.wp-list-table td.column-congres {
+	word-break: normal;
+	overflow-wrap: normal;
+	hyphens: manual;
+}

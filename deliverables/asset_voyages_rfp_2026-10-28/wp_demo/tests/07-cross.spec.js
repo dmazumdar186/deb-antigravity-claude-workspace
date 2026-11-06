@@ -66,7 +66,7 @@ test('X3 all data fictional: titles end « — exemple », emails @example.com, 
 	expect(list.length).toBeGreaterThanOrEqual(13);
 	for (const c of list) {
 		const t = c.title.rendered.replace(/&#8212;/g, '—').replace(/&#8217;/g, '’');
-		expect(t, t).toMatch(/— exemple$/);
+		expect(t, t).toMatch(/\u00A0—\u00A0exemple$/); // non-breaking spaces (CE-B4-004)
 		if (c.content.rendered.trim()) expect(c.content.rendered).toMatch(/fictive|fictif|exemple|test/i);
 	}
 	await anon.close();
@@ -82,7 +82,7 @@ test('X3 all data fictional: titles end « — exemple », emails @example.com, 
 	expect(n).toBe(5);
 	let revealed = 0;
 	for (let i = 0; i < n; i++) {
-		const btn = page.locator('table.asset-gme-table tbody tr').nth(i).locator('button', { hasText: 'Révéler' });
+		const btn = page.locator('table.asset-gme-table tbody tr').nth(i).locator('button', { hasText: 'Afficher le code' });
 		if (!(await btn.count())) continue; // expired code: closed to everyone
 		await Promise.all([page.waitForNavigation(), btn.click()]);
 		await expect(page.locator('code.asset-revealed')).toHaveText(/^DEMO-GME-[A-Z0-9]{4}$/);

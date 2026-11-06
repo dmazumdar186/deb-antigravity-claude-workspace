@@ -406,7 +406,7 @@ class Asset_CD_Catalogue {
 			<?php if ( $discipline ) : ?>
 				<p class="asset-tag"><?php echo esc_html( $discipline ); ?></p>
 			<?php endif; ?>
-			<h2 class="asset-card__title"><a href="<?php echo esc_url( get_permalink( $p ) ); ?>"><?php echo esc_html( get_the_title( $p ) ); ?></a></h2>
+			<h2 class="asset-card__title"><a href="<?php echo esc_url( get_permalink( $p ) ); ?>"><?php echo Asset_CD_Ui::title_html( $p ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped inside. ?></a></h2>
 			<p class="asset-card__meta"><?php echo esc_html( Asset_CD_Congres::format_range( $p->ID ) ); ?></p>
 			<p class="asset-card__meta"><?php echo esc_html( trim( $city . ( $pays ? ', ' . $pays : '' ), ', ' ) ); ?></p>
 			<?php if ( Asset_CD_Gme::has_public_offer( $p->ID ) ) : ?>
@@ -463,6 +463,18 @@ class Asset_CD_Catalogue {
 	}
 
 	/**
+	 * True for the reserved example domains (RFC 2606: example.com, .net, .org and their
+	 * subdomains): they answer 404, so they are never shown as a live link (CE-A4-002).
+	 *
+	 * @param string $url URL.
+	 * @return bool
+	 */
+	public static function is_fictional_url( $url ) {
+		$host = strtolower( (string) wp_parse_url( (string) $url, PHP_URL_HOST ) );
+		return (bool) preg_match( '/(^|\.)example\.(com|net|org)$/', $host );
+	}
+
+	/**
 	 * Appends the details card and the enquiry form to single congress pages.
 	 *
 	 * @param string $content Content.
@@ -505,10 +517,13 @@ class Asset_CD_Catalogue {
 						?>
 						<div><dt><?php echo esc_html( $label ); ?></dt><dd><?php echo esc_html( $value ); ?></dd></div>
 					<?php endforeach; ?>
-					<?php if ( $url ) : ?>
+					<?php if ( $url && ! self::is_fictional_url( $url ) ) : ?>
 						<div><dt><?php esc_html_e( 'Site officiel', 'asset-congres-demo' ); ?></dt><dd><a href="<?php echo esc_url( $url ); ?>" rel="noopener nofollow"><?php echo esc_html( wp_parse_url( $url, PHP_URL_HOST ) ?: $url ); ?></a></dd></div>
 					<?php endif; ?>
 				</dl>
+				<?php if ( ! $url || self::is_fictional_url( $url ) ) : ?>
+					<p class="asset-site-fictif"><?php esc_html_e( 'Site officiel : fictif (démonstration)', 'asset-congres-demo' ); ?></p>
+				<?php endif; ?>
 				<?php if ( $source || $verified ) : ?>
 					<p class="asset-source">
 						<?php

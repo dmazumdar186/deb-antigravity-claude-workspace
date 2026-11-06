@@ -629,3 +629,8 @@ body {
 	min-height: 44px;
 	color: var(--paper);
 }
+
+/* « — exemple » never wraps onto a line of its own (CE-B4-004). */
+.asset-nowrap {
+	white-space: nowrap;
+}

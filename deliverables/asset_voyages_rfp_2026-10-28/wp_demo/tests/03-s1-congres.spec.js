@@ -34,7 +34,7 @@ test('S1-E1 + S1-F1 create and publish in <= 4 clicks with French labels, requir
 	// Server is the judge: the public page shows every saved value.
 	const pub = await ctx.request.get(permalink);
 	const html = await pub.text();
-	for (const t of ['Bordeaux', 'France', 'Gastro-entérologie', '6 décembre 2027', '9 décembre 2027', 'example.com', '5 novembre 2026']) expect(html).toContain(t);
+	for (const t of ['Bordeaux', 'France', 'Gastro-entérologie', '6 décembre 2027', '9 décembre 2027', 'fictif (démonstration)', '5 novembre 2026']) expect(html).toContain(t);
 	await ctx.close();
 });
 

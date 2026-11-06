@@ -41,6 +41,69 @@ class Asset_CD_Roles {
 	}
 
 	/**
+	 * Page-editing capabilities granted to Direction ASSET (edit, publish and delete pages,
+	 * including other users' pages).
+	 *
+	 * @return string[]
+	 */
+	public static function page_caps() {
+		return array(
+			'edit_pages',
+			'edit_others_pages',
+			'edit_published_pages',
+			'edit_private_pages',
+			'read_private_pages',
+			'publish_pages',
+			'delete_pages',
+			'delete_others_pages',
+			'delete_published_pages',
+			'delete_private_pages',
+			// The page editor reads reusable blocks and pattern previews through REST with
+			// context=edit, which needs edit_posts; without it every page edit logs 403s.
+			// The « Articles » menu stays hidden (hide_posts_menu); publish_posts is not granted.
+			'edit_posts',
+		);
+	}
+
+	/**
+	 * Hooks.
+	 */
+	public static function init() {
+		add_action( 'admin_menu', array( __CLASS__, 'hide_posts_menu' ), 99 );
+		add_action( 'admin_bar_menu', array( __CLASS__, 'hide_new_post' ), 999 );
+	}
+
+	/**
+	 * True for an ASSET staff account that is not an administrator.
+	 *
+	 * @return bool
+	 */
+	private static function is_asset_staff() {
+		$u = wp_get_current_user();
+		return $u->exists() && ! in_array( 'administrator', (array) $u->roles, true ) && array_intersect( array( 'asset_direction', 'asset_equipe', 'asset_contributeur' ), (array) $u->roles );
+	}
+
+	/**
+	 * The demo has no blog: no « Articles » menu for ASSET staff.
+	 */
+	public static function hide_posts_menu() {
+		if ( self::is_asset_staff() ) {
+			remove_menu_page( 'edit.php' );
+		}
+	}
+
+	/**
+	 * No « Nouveau → Article » in the admin bar for ASSET staff.
+	 *
+	 * @param WP_Admin_Bar $bar Admin bar.
+	 */
+	public static function hide_new_post( $bar ) {
+		if ( self::is_asset_staff() ) {
+			$bar->remove_node( 'new-post' );
+		}
+	}
+
+	/**
 	 * Creates roles and grants capabilities. Idempotent.
 	 */
 	public static function install() {
@@ -52,7 +115,9 @@ class Asset_CD_Roles {
 			'asset_manage_demandes' => true,
 			'asset_view_gme'        => true,
 		);
-		$dir_caps     = $team_caps + array( 'asset_manage_gme' => true );
+		// Direction also edits the site's pages (CE-D1-001). Pages only: no unfiltered_html, no
+		// user, plugin, theme or option management.
+		$dir_caps     = $team_caps + array( 'asset_manage_gme' => true ) + array_fill_keys( self::page_caps(), true );
 
 		$defs = array(
 			'asset_contributeur' => array( __( 'Contributeur ASSET', 'asset-congres-demo' ), $contrib_caps ),

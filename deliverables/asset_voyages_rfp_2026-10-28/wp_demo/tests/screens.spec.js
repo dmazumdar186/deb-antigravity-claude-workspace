@@ -32,7 +32,7 @@ test('FIX-A-18 screens are taken on a fresh seed (12 upcoming congresses, 6 enqu
 	// One clean, fictional enquiry for the confirmation screen.
 	await page.fill('#asset-q-nom', 'Claire Fontaine');
 	await page.fill('#asset-q-email', 'claire.fontaine@example.com');
-	await page.fill('#asset-q-telephone', '+33 6 00 00 00 07');
+	await page.fill('#asset-q-telephone', '01 99 00 00 07');
 	await page.fill('#asset-q-societe', 'Clinique Exemple Bordeaux');
 	await page.fill('#asset-q-ville_depart', 'Bordeaux');
 	await page.fill('#asset-q-date_aller', '2027-08-26');

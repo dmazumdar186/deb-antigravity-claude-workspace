@@ -47,7 +47,7 @@ class Asset_CD_Seed {
 			'CG-0105' => array( 'Congrès européen de dermatologie — exemple', 'Dermatologie', 'Amsterdam', 'Pays-Bas', '2027-09-29', '2027-10-02', 'publish' ),
 			'CG-0106' => array( 'Congrès international de pneumologie — exemple', 'Pneumologie', 'Milan', 'Italie', '2027-09-04', '2027-09-08', 'publish' ),
 			'CG-0107' => array( 'Congrès d’ophtalmologie de Paris — exemple', 'Ophtalmologie', 'Paris', 'France', '2027-05-08', '2027-05-11', 'publish' ),
-			'CG-0108' => array( 'Congrès européen de radiologie — exemple', 'Radiologie', 'Vienne', 'Autriche', '2027-02-24', '2027-02-28', 'publish' ),
+			'CG-0108' => array( 'Rencontres européennes d’imagerie médicale — exemple', 'Radiologie', 'Porto', 'Portugal', '2027-04-21', '2027-04-24', 'publish' ), // Not a real congress name, city or season (CE-D2-002).
 			'CG-0109' => array( 'Forum européen des ressources humaines — exemple', 'Ressources humaines', 'Lisbonne', 'Portugal', '2027-04-13', '2027-04-14', 'publish' ),
 			'CG-0110' => array( 'Sommet de la finance d’entreprise — exemple', 'Finance', 'Londres', 'Royaume-Uni', '2027-11-17', '2027-11-18', 'publish' ),
 			'CG-0111' => array( 'Congrès nord-américain de cardiologie — exemple', 'Cardiologie', 'Chicago', 'États-Unis', '2027-11-13', '2027-11-16', 'publish' ),
@@ -168,7 +168,7 @@ class Asset_CD_Seed {
 				'_asset_end'      => $c[5],
 				'_asset_city'     => $c[2],
 				'_asset_venue'    => 'Palais des congrès de ' . $c[2] . ' (fictif)',
-				'_asset_url'      => 'https://example.com/congres/' . strtolower( $ref ),
+				'_asset_url'      => '', // Fictional congress: no official site (shown as « fictif (démonstration) », CE-A4-002).
 				'_asset_source'   => 'Site de l’organisateur (exemple)',
 				'_asset_verified' => '2026-10-15',
 			);
@@ -297,12 +297,12 @@ class Asset_CD_Seed {
 		$eq   = $users['equipe'];
 		$dir  = $users['direction'];
 		$rows = array(
-			array( 'DV-2026-0001', 'CG-0102', 'Julien Bernard', 'julien.bernard@example.com', '+33 6 00 00 00 02', 'Laboratoire Fictif SA', 'Lyon', '2027-10-14', '2027-10-20', 12, 'qualifiee', $eq, 9 ),
-			array( 'DV-2026-0002', 'CG-0104', 'Sophie Dubois', 'sophie.dubois@example.com', '+33 6 00 00 00 03', '', 'Bordeaux', '2027-06-18', '2027-06-23', 2, 'devis_envoye', $eq, 8 ),
-			array( 'DV-2026-0003', 'CG-0106', 'Thomas Petit', 'thomas.petit@example.com', '+33 6 00 00 00 04', 'Groupe hospitalier Exemple', 'Nantes', '2027-09-03', '2027-09-09', 25, 'gagnee', $dir, 7 ),
-			array( 'DV-2026-0004', 'CG-0107', 'Léa Moreau', 'lea.moreau@example.com', '+33 6 00 00 00 05', '', 'Toulouse', '2027-05-07', '2027-05-12', 1, 'perdue', $dir, 6 ),
-			array( 'DV-2026-0005', 'CG-0111', 'Hugo Laurent', 'hugo.laurent@example.com', '+33 6 00 00 00 06', 'Cabinet Exemple', 'Marseille', '2027-11-12', '2027-11-17', 4, 'nouvelle', 0, 3 ),
-			array( 'DV-2026-0006', 'CG-0101', 'Camille Martin', 'camille.martin@example.com', '+33 6 00 00 00 01', 'Clinique Exemple', 'Paris', '2027-08-26', '2027-08-31', 3, 'nouvelle', 0, 1 ),
+			array( 'DV-2026-0001', 'CG-0102', 'Julien Bernard', 'julien.bernard@example.com', '01 99 00 00 02', 'Laboratoire Fictif SA', 'Lyon', '2027-10-14', '2027-10-20', 12, 'qualifiee', $eq, 9 ),
+			array( 'DV-2026-0002', 'CG-0104', 'Sophie Dubois', 'sophie.dubois@example.com', '01 99 00 00 03', '', 'Bordeaux', '2027-06-18', '2027-06-23', 2, 'devis_envoye', $eq, 8 ),
+			array( 'DV-2026-0003', 'CG-0106', 'Thomas Petit', 'thomas.petit@example.com', '01 99 00 00 04', 'Groupe hospitalier Exemple', 'Nantes', '2027-09-03', '2027-09-09', 25, 'gagnee', $dir, 7 ),
+			array( 'DV-2026-0004', 'CG-0107', 'Léa Moreau', 'lea.moreau@example.com', '01 99 00 00 05', '', 'Toulouse', '2027-05-07', '2027-05-12', 1, 'perdue', $dir, 6 ),
+			array( 'DV-2026-0005', 'CG-0111', 'Hugo Laurent', 'hugo.laurent@example.com', '01 99 00 00 06', 'Cabinet Exemple', 'Marseille', '2027-11-12', '2027-11-17', 4, 'nouvelle', 0, 3 ),
+			array( 'DV-2026-0006', 'CG-0101', 'Camille Martin', 'camille.martin@example.com', '01 99 00 00 01', 'Clinique Exemple', 'Paris', '2027-08-26', '2027-08-31', 3, 'nouvelle', 0, 1 ),
 		);
 		$flow    = array_keys( Asset_CD_Demandes::statuses() );
 		$created = 0;

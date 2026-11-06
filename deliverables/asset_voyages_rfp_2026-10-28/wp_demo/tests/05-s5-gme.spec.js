@@ -105,7 +105,7 @@ test('S5-F4 + S5-E1 equipe reveals in <= 2 clicks; reveal logged; journal is Dir
 	// Before reveal: still masked in HTML.
 	assertNoSecrets(await page.content(), 'GM&E page before reveal');
 	const reqP = page.waitForRequest((r) => r.method() === 'POST' && r.url().includes('page=asset-gme'));
-	await c.click(row(page, NEURO).locator('button', { hasText: 'Révéler' }));
+	await c.click(row(page, NEURO).locator('button', { hasText: 'Afficher le code' }));
 	const req = await reqP;
 	await expect(row(page, NEURO).locator('code.asset-revealed')).toHaveText('DEMO-GME-3MX9');
 	expect(c.n).toBeLessThanOrEqual(2);
@@ -131,7 +131,7 @@ test('S5-F3 revoke at once; S5-H1 reveal after revocation, without nonce or with
 	// Equipe opens the page while the grant is active and keeps the (valid, session-bound) reveal form.
 	const { ctx, page } = await asRole(browser, 'equipe');
 	await page.goto('/wp-admin/admin.php?page=asset-gme');
-	const form = row(page, NEURO).locator('form', { has: page.locator('button', { hasText: 'Révéler' }) });
+	const form = row(page, NEURO).locator('form', { has: page.locator('button', { hasText: 'Afficher le code' }) });
 	const body = new URLSearchParams({
 		asset_gme_action: 'reveal',
 		congres_id: await form.locator('input[name=congres_id]').inputValue(),
@@ -141,8 +141,8 @@ test('S5-F3 revoke at once; S5-H1 reveal after revocation, without nonce or with
 
 	const d = await asRole(browser, 'direction');
 	await d.page.goto('/wp-admin/admin.php?page=asset-gme-acces');
-	await d.page.locator('table.asset-access-history tr', { hasText: NEURO }).first().locator('button', { hasText: 'Révoquer' }).click();
-	await expect(d.page.locator('.notice-success')).toContainText('révoqué');
+	await d.page.locator('table.asset-access-history tr', { hasText: NEURO }).first().locator('button', { hasText: 'Retirer l’accès' }).click();
+	await expect(d.page.locator('.notice-success')).toContainText('retiré');
 
 	// Same-session replay after revocation: valid nonce, no grant -> refused.
 	let r = await page.request.post('/wp-admin/admin.php?page=asset-gme', { data: body, headers: { 'content-type': 'application/x-www-form-urlencoded' } });
@@ -156,8 +156,8 @@ test('S5-F3 revoke at once; S5-H1 reveal after revocation, without nonce or with
 	assertNoSecrets(html, 'old-session replay');
 	// UI no longer offers reveal.
 	await page.goto('/wp-admin/admin.php?page=asset-gme');
-	expect(await row(page, NEURO).locator('button', { hasText: 'Révéler' }).count()).toBe(0);
-	await expect(row(page, NEURO)).toContainText('Révoquée');
+	expect(await row(page, NEURO).locator('button', { hasText: 'Afficher le code' }).count()).toBe(0);
+	await expect(row(page, NEURO)).toContainText('Accès retiré');
 	// Without nonce.
 	r = await page.request.post('/wp-admin/admin.php?page=asset-gme', { form: { asset_gme_action: 'reveal', congres_id: readState().neuroId } });
 	html = await r.text();
@@ -209,7 +209,7 @@ test('S5-L2 codes never in HTML for authorised users until reveal; never in logs
 	await page.goto('/wp-admin/admin.php?page=asset-gme&edit=' + readState().neuroId);
 	await expect(page.locator('#asset-gme-code')).toHaveValue('');
 	// Direction reveal also works and is logged.
-	await row(page, NEURO).locator('button', { hasText: 'Révéler' }).click();
+	await row(page, NEURO).locator('button', { hasText: 'Afficher le code' }).click();
 	await expect(row(page, NEURO).locator('code.asset-revealed')).toHaveText('DEMO-GME-3MX9');
 	await page.goto('/wp-admin/admin.php?page=asset-gme-journal');
 	await expect(page.locator('tr[data-action="reveal"]').first()).toContainText('Direction (démo)');

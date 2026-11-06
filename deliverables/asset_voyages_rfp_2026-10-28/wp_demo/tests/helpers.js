@@ -86,7 +86,7 @@ async function formTokens(page) {
 
 function validEnquiry(overrides = {}) {
 	return {
-		nom: 'Alice Testeur', email: 'alice.testeur@example.com', telephone: '+33 6 11 22 33 44', societe: 'Société Test (exemple)',
+		nom: 'Alice Testeur', email: 'alice.testeur@example.com', telephone: '01 99 00 11 22', societe: 'Société Test (exemple)',
 		ville_depart: 'Nice', date_aller: '2027-08-26', date_retour: '2027-08-31', passagers: '2', message: 'Merci (test).', consentement: '1',
 		...overrides,
 	};
