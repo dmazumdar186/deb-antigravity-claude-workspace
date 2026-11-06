@@ -1,0 +1,9 @@
+S1 1 PASS Logged in as « direction », on « Tableau de bord »: left menu shows « Congrès » | menu: Tableau de bord, Médias, Congrès, Demandes, Accès GM&E, Profil
+S1 2 PASS Click « Congrès », then « Ajouter un congrès » | form open; 5 fields marked « (obligatoire) »
+S1 3 PASS Type the title and fill « Date de début », « Date de fin », « Ville », « Pays », « Discipline », « Lieu », « Site officiel », « Date de vérification » | all fields found by their visible French label
+S1 4 PASS Click « Publier »; a success notice appears | Publication mise en ligne. Voir la publication ; http://127.0.0.1:9405/congres/congres-uat-dhepatologie-23734-exemple/
+S1 5 PASS Visitor view: open the new congress page logged out; title and « Lille » shown | public page shows title and Lille
+S1 6 PASS Edit: from « Tableau de bord » click « Congrès », click the congress title, change « Ville » to « Roubaix », click « Mettre à jour » | saved; admin shows Roubaix
+S1 7 PASS Visitor view shows « Roubaix » after the edit | public page updated
+S1 8 PASS Hostile: set « Date de fin » before « Date de début » and save; a French message explains the error | message: La date de fin doit être postérieure ou égale à la date de début : dates non enregistrées.
+S1 9 PASS As « contributeur »: « Congrès » → « Ajouter un congrès »; the main button reads « Soumettre pour relecture », not « Publier » | button: Soumettre à la relecture; status: En attente de relecture

@@ -3,7 +3,9 @@ import { createRequire } from 'module';
 const require = createRequire('/home/user/deb-antigravity-claude-workspace/deliverables/asset_voyages_rfp_2026-10-28/wp_demo/tests/');
 const { chromium } = require('playwright');
 const mode = process.argv[2] || 'both';
-const HOST = 'https://playground.wordpress.net/?blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/';
+const HOST = 'https://playground.wordpress.net/?mode=seamless';
+const BP = 'https://asset-voyages-redesign.pages.dev/demo-wordpress/';
+const HURL = (n) => HOST + (n === 'blueprint-visitor' ? '&login=no' : '') + '&blueprint-url=' + BP + n + '.json'; // A-2xx: new hub URLs
 const out = [];
 const rec = (n, ok, info) => { out.push({ n, ok, info }); console.log((ok ? 'PASS ' : 'FAIL ') + n + ' ' + info); };
 const browser = await chromium.launch({ args: ['--no-sandbox'] });
@@ -13,7 +15,7 @@ async function hosted(name) {
   const t0 = Date.now();
   const want = name === 'blueprint-visitor' ? /Catalogue des congr/i : /Demandes de devis/i;
   try {
-    await page.goto(HOST + name + '.json', { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await page.goto(HURL(name), { waitUntil: 'domcontentloaded', timeout: 60000 });
     let txt = '', frame = null;
     while (Date.now() - t0 < 300000) {
       for (const f of page.frames()) {
@@ -26,6 +28,7 @@ async function hosted(name) {
     if (!frame) throw new Error('target text not seen within 300s');
     if (name === 'blueprint-visitor') {
       const exemple = (txt.match(/exemple/g) || []).length;
+      const bonjour = /Bonjour/.test(txt); rec('SMOKE-hosted-visitor-no-Bonjour', !bonjour, 'Bonjour present=' + bonjour);
       const cards = await frame.locator('a:has-text("exemple"), h2:has-text("exemple"), h3:has-text("exemple")').count();
       const count = (txt.match(/(\d+)\s+congr/i) || [])[0];
       rec('SMOKE-hosted-visitor-12-congresses', /12/.test(count||'') || cards >= 12, `boot=${boot}s resultCountText=${count} exemple=${exemple} cards=${cards}`);

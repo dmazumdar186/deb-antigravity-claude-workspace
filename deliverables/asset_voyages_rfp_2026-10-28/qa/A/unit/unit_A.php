@@ -13,6 +13,7 @@ function add_action(){} function add_filter(){} function add_shortcode(){}
 class WP_List_Table{}
 $GLOBALS['TODAY']='2026-11-05';
 foreach(['class-demandes.php','class-gme.php','class-roles.php','class-demandes-admin.php'] as $f) require $P.$f;
+define('ASSET_GME_KEY',str_repeat('ab',32)); // A-2xx edit: key now required (fail-closed)
 $n=0;$fail=0;
 function t($id,$name,$ok,$info=''){global $n,$fail;$n++;if(!$ok)$fail++;echo ($ok?'PASS':'FAIL')." $id $name $info\n";}
 function base($o=[]){return $o+['nom'=>'Jean Test','email'=>'a@example.com','telephone'=>'+33 1 23 45 67','societe'=>'','ville_depart'=>'Paris','date_aller'=>'2026-12-01','date_retour'=>'2026-12-05','passagers'=>'2','message'=>'x','consentement'=>'1'];}
@@ -38,16 +39,17 @@ t($id(),'multibyte 100 chars ok',!isset(V(['nom'=>str_repeat('é',100)])['nom'])
 foreach(['=SUM(1)','+1','-1','@x',"\tx","\rx"] as $v) t($id(),'csv neutralises '.json_encode($v),Asset_CD_Demandes_Admin::csv_cell($v)==="'".$v);
 t($id(),'csv plain unchanged',Asset_CD_Demandes_Admin::csv_cell('Paris')==='Paris'&&Asset_CD_Demandes_Admin::csv_cell('')===''&&Asset_CD_Demandes_Admin::csv_cell(null)==='');
 t($id(),'csv mid-string = not altered',Asset_CD_Demandes_Admin::csv_cell('a=b')==='a=b');
-$e=Asset_CD_Gme::encrypt('DEMO-GME-4KQ7');
-t($id(),'sodium round-trip',Asset_CD_Gme::decrypt($e)==='DEMO-GME-4KQ7');
-t($id(),'random nonce (2 ciphertexts differ)',Asset_CD_Gme::encrypt('A')!==Asset_CD_Gme::encrypt('A'));
+$e=Asset_CD_Gme::encrypt('DEMO-GME-4KQ7',7);
+t($id(),'sodium round-trip',Asset_CD_Gme::decrypt($e,7)==='DEMO-GME-4KQ7');
+t($id(),'random nonce (2 ciphertexts differ)',Asset_CD_Gme::encrypt('A',7)!==Asset_CD_Gme::encrypt('A',7));
 t($id(),'ciphertext has no plaintext',strpos(base64_decode($e),'DEMO')===false);
 $tam=base64_decode($e);$tam[30]=chr(ord($tam[30])^1);
-t($id(),'tampered ciphertext => null',Asset_CD_Gme::decrypt(base64_encode($tam))===null);
-t($id(),'garbage/empty/short => null',Asset_CD_Gme::decrypt('!!!')===null&&Asset_CD_Gme::decrypt('')===null&&Asset_CD_Gme::decrypt(base64_encode('short'))===null);
-t($id(),'empty plaintext round-trip',Asset_CD_Gme::decrypt(Asset_CD_Gme::encrypt(''))==='' ,'(empty string may map to null)');
-t($id(),'unicode round-trip',Asset_CD_Gme::decrypt(Asset_CD_Gme::encrypt('É-✈'))==='É-✈');
-foreach([['DEMO-GME-4KQ7',1],['ABC',0],['ABCD',1],[str_repeat('A',40),1],[str_repeat('A',41),0],['abcd',0],['-ABCD',0],["ABCD\n",1],['A B C D',0],['',0]] as [$cd,$ok]) t($id(),'valid_code '.json_encode($cd),Asset_CD_Gme::valid_code($cd)==(bool)$ok, $cd==="ABCD\n"?'(PCRE $ matches before trailing newline)':'');
+t($id(),'tampered ciphertext => null',Asset_CD_Gme::decrypt(base64_encode($tam),7)===null);
+t($id(),'garbage/empty/short => null',Asset_CD_Gme::decrypt('!!!',7)===null&&Asset_CD_Gme::decrypt('',7)===null&&Asset_CD_Gme::decrypt(base64_encode('short'),7)===null);
+t($id(),'empty plaintext round-trip',Asset_CD_Gme::decrypt(Asset_CD_Gme::encrypt('',7),7)==='' ,'(empty string may map to null)');
+t($id(),'unicode round-trip',Asset_CD_Gme::decrypt(Asset_CD_Gme::encrypt('É-✈',7),7)==='É-✈');
+foreach([['DEMO-GME-4KQ7',1],['ABC',0],['ABCD',1],[str_repeat('A',40),1],[str_repeat('A',41),0],['abcd',0],['-ABCD',0],["ABCD\n",0],['A B C D',0],['',0]] as [$cd,$ok]) t($id(),'valid_code '.json_encode($cd),Asset_CD_Gme::valid_code($cd)==(bool)$ok, $cd==="ABCD\n"?'(A-2xx: now \\z, trailing newline rejected)':'');
+t($id(),'AAD binds congress id (wrong id => null)',Asset_CD_Gme::decrypt($e,8)===null&&Asset_CD_Gme::decrypt($e,7)==='DEMO-GME-4KQ7');
 $cp=Asset_CD_Roles::congres_caps();
 t($id(),'contributeur cannot publish',!in_array('publish_asset_congress',$cp['contrib'])&&!in_array('edit_others_asset_congress',$cp['contrib']));
 t($id(),'team can publish',in_array('publish_asset_congress',$cp['team']));
