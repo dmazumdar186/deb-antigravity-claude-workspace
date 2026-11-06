@@ -73,7 +73,14 @@ t('demo constants: four URLs defined once in demo.js, applied to every demo link
 const cards = await p.evaluate(() => [...document.querySelectorAll('.pass')].map((c) => c.querySelectorAll('a.btn').length));
 t('two option cards, two buttons each', cards.join() === '2,2', cards.join());
 const logins = await p.evaluate(() => document.querySelector('.logins').innerText);
-t('logins: direction / equipe / contributeur, password demo-asset; Playground start time stated', /direction/.test(logins) && /equipe/.test(logins) && /contributeur/.test(logins) && /demo-asset/.test(logins) && /20 to 40 seconds/.test(await p.evaluate(() => document.body.innerText)));
+const boots = await p.evaluate(() => [...document.querySelectorAll('.pass:not(.pass--b) .pass__stub a.btn')].map((a) => { const n = a.nextElementSibling; return n && n.matches('.pass__boot') ? n.textContent : ''; }));
+t('logins: direction / equipe / contributeur, password demo-asset; private + 24 h line; Playground start time and reload tip next to each Option A button', /direction/.test(logins) && /equipe/.test(logins) && /contributeur/.test(logins) && /demo-asset/.test(logins) && /Each person's trial is private to their browser\. Trials are cleared after 24 hours without use\./.test(logins) && boots.length === 2 && boots.every((s) => /15 to 30 seconds/.test(s) && /reload the page/.test(s)), JSON.stringify(boots));
+// C10 + B6: task 5 wording and glossary labels quoted exactly (29_Glossary_Labels.md)
+const body = await p.evaluate(() => document.body.textContent.replace(/ /g, ' '));
+const gloss = ['« Codes GM&E › Codes »', '« Afficher le code »', '« Approuver pour 24 h »', '« Journal d’accès GM&E »', '« Exporter en CSV »', '« Journal des notifications »', '« Demander un devis vol »', '« Envoyer ma demande »', '« Espace équipe »', 'that click is needed'];
+const glMiss = gloss.filter((g) => !body.includes(g));
+const stale = (body.match(/five minutes|the code is shown|Accès GM&E|Révéler|Approuver \(24 h\)|Journal GM&E/g) || []);
+t('hub quotes the glossary labels exactly; task 5 says the « Afficher le code » click is needed; no stale wording', !glMiss.length && !stale.length, 'missing: ' + glMiss.join(' | ') + (stale.length ? ' STALE ' + stale.join(',') : ''));
 // mailto
 const mail = await p.evaluate(() => ({ main: document.querySelector('[data-mailto]').getAttribute('href'), slots: [...document.querySelectorAll('.time')].map((a) => a.getAttribute('href')), labels: [...document.querySelectorAll('.days li')].map((li) => li.innerText.replace(/\s+/g, ' ').trim()) }));
 const subj = (h) => decodeURIComponent((h.match(/subject=([^&]+)/) || [])[1] || '');
@@ -159,6 +166,8 @@ p = await mk({ viewport: { width: 1280, height: 800 } });
 await p.route('**/demo/media/manifest.json', (r) => r.fulfill({ contentType: 'application/json', body: '{"wp-walkthrough":true,"custom-walkthrough":true}' }));
 const hero = readFileSync(SITE + 'assets/hero.mp4');
 await p.route('**/demo/media/custom-walkthrough.mp4', (r) => r.fulfill({ contentType: 'video/mp4', body: hero }));
+// the real wp-walkthrough.mp4 now exists in demo/media: force it missing so the fallback path is still tested
+await p.route('**/demo/media/wp-walkthrough.mp4', (r) => r.fulfill({ status: 404, contentType: 'text/plain', body: 'not found' }));
 await p.goto(url, { waitUntil: 'load' }); await p.waitForTimeout(2500);
 const rec1s = await p.evaluate(() => ({ sec: !document.querySelector('#recordings').hidden, nav: !document.querySelector('[data-rec-nav]').hidden }));
 const rec1 = await p.evaluate(() => Object.fromEntries([...document.querySelectorAll('[data-rec]')].map((f) => [f.dataset.rec, { v: !!f.querySelector('video'), ready: f.querySelector('video')?.readyState || 0, empty: !f.querySelector('[data-rec-empty]').hidden, msg: f.querySelector('[data-rec-msg]').textContent }])));

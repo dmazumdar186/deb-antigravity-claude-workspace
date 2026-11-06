@@ -1,8 +1,8 @@
 {
  "url": "http://localhost:8794/demo/",
- "date": "2026-11-06T08:00:28.081Z",
- "pass": 58,
- "total": 58,
+ "date": "2026-11-06T10:03:02.171Z",
+ "pass": 59,
+ "total": 59,
  "results": [
   {
    "name": "desktop: headline, sentence and primary action above the fold at 1440x900",
@@ -80,8 +80,14 @@
    "info": "2,2"
   },
   {
-   "name": "logins: direction / equipe / contributeur, password demo-asset; Playground start time stated",
-   "ok": true
+   "name": "logins: direction / equipe / contributeur, password demo-asset; private + 24 h line; Playground start time and reload tip next to each Option A button",
+   "ok": true,
+   "info": "[\"Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page.\",\"Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page.\"]"
+  },
+  {
+   "name": "hub quotes the glossary labels exactly; task 5 says the « Afficher le code » click is needed; no stale wording",
+   "ok": true,
+   "info": "missing: "
   },
   {
    "name": "mailto: main button exact; every slot mails debanjan@prodcraft.fyi with subject \"ASSET – demonstration slot\"",
@@ -110,22 +116,22 @@
   {
    "name": "desktop: #compare heading lands below the sticky strip, strip marks it",
    "ok": true,
-   "info": "{\"top\":174.015625,\"strip\":57,\"cur\":\"#compare\"}"
+   "info": "{\"top\":174.265625,\"strip\":57,\"cur\":\"#compare\"}"
   },
   {
    "name": "desktop: #slot heading lands below the sticky strip, strip marks it",
    "ok": true,
-   "info": "{\"top\":173.921875,\"strip\":57,\"cur\":\"#slot\"}"
+   "info": "{\"top\":173.359375,\"strip\":57,\"cur\":\"#slot\"}"
   },
   {
    "name": "recordings: follow the real manifest (all false: section and strip link hidden, no video; announced files: those players only)",
    "ok": true,
-   "info": "{\"man\":{\"wp-walkthrough\":false,\"custom-walkthrough\":true},\"rec0\":{\"sec\":false,\"nav\":false,\"videos\":[\"custom-walkthrough\"]}}"
+   "info": "{\"man\":{\"wp-walkthrough\":true,\"custom-walkthrough\":true},\"rec0\":{\"sec\":false,\"nav\":false,\"videos\":[\"wp-walkthrough\",\"custom-walkthrough\"]}}"
   },
   {
    "name": "WCAG AA contrast on every visible text element",
    "ok": true,
-   "info": "checked 300"
+   "info": "checked 305"
   },
   {
    "name": "print: strip hidden, both options of every task printed, wide diagram, PDF written",
@@ -165,12 +171,12 @@
   {
    "name": "390: #plan heading lands below the sticky strip",
    "ok": true,
-   "info": "{\"top\":128.71875,\"strip\":57}"
+   "info": "{\"top\":128.96875,\"strip\":57}"
   },
   {
    "name": "390: the strip link to #group scrolls its heading below the sticky strip",
    "ok": true,
-   "info": "{\"top\":222.078125,\"strip\":57}"
+   "info": "{\"top\":222.328125,\"strip\":57}"
   },
   {
    "name": "390: the diagram switches to its vertical drawing",
@@ -280,7 +286,7 @@
   {
    "name": "French quotes: every « and » bound to its word by a no-break space (no line starts with » or ends with «)",
    "ok": true,
-   "info": "{\"n\":18,\"bad\":[]}"
+   "info": "{\"n\":41,\"bad\":[]}"
   },
   {
    "name": "footer: the \"Unlisted page\" note is gone",
