@@ -303,7 +303,7 @@ export async function replayB(browser, hub) {
       const b = page.getByRole('button', { name: 'Afficher le code' }).filter({ visible: true }).first();
       if (!(await b.count())) return 'code not shown and no « Afficher le code »';
       await b.click(); ag.clicks++; await page.waitForLoadState();
-      why = 'hub says « the code is shown » after signing in; the reader must still click « Afficher le code »';
+      if (!/Afficher le code/.test(s.text)) why = 'hub says « the code is shown » after signing in; the reader must still click « Afficher le code »';
     }
     if (!/DEMO-GME-[A-Z0-9]{4}/.test(await page.locator('main').innerText())) return 'code still not shown';
     await S(page, 'B equipe reveal', { allowCode: true });

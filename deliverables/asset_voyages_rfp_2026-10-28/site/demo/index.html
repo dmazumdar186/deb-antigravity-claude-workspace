@@ -41,7 +41,7 @@
 
 <section class="hero" aria-labelledby="hero-title">
   <div class="container hero__in">
-    <h1 id="hero-title">Two working demos. Try both, choose one.</h1>
+    <h1 id="hero-title">Two working demos. Try both; the proposal covers each.</h1>
     <p class="hero__lead">Same requirements, fictional data and codes, sandboxes that reset themselves.</p>
     <p class="hero__act"><a class="btn" href="#options">Open the demos</a> <a class="link-quiet" href="#slot">or book a 20 to 30 minute demonstration</a></p>
   </div>
@@ -66,9 +66,9 @@
         </div>
         <div class="pass__stub">
           <a class="btn" data-demo="WP_VISITOR_URL" href="https://playground.wordpress.net/?mode=seamless&amp;login=no&amp;blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-visitor.json" target="_blank" rel="noopener">Open the visitor site<span class="vh"> of Option A (new tab)</span></a>
-          <p class="pass__boot">Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page.</p>
+          <p class="pass__boot">Takes about 15 to 25 seconds to start. If it stays on the loading screen, reload the page.</p>
           <a class="btn btn--line" data-demo="WP_ADMIN_URL" href="https://playground.wordpress.net/?mode=seamless&amp;blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json" target="_blank" rel="noopener">Open the admin, signed in<span class="vh"> to Option A (new tab)</span></a>
-          <p class="pass__boot">Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page.</p>
+          <p class="pass__boot">Takes about 15 to 25 seconds to start. If it stays on the loading screen, reload the page.</p>
           <p class="pass__small">The admin link signs you in automatically as «&nbsp;direction&nbsp;». To follow one enquiry from start to finish, use the visitor site and its «&nbsp;Espace équipe&nbsp;» link: each link opens its own separate copy.</p>
         </div>
       </article>
@@ -96,7 +96,7 @@
         <li><code class="cred">equipe</code> the team: handles flight enquiries</li>
         <li><code class="cred">contributeur</code> adds and edits congresses, which then wait for review</li>
       </ul>
-      <p class="logins__note">In Option B, each person's trial is not shown to other visitors and is cleared after 24 hours without use. Option A starts fresh each time you open it.</p>
+      <p class="logins__note">In Option B, each person's trial is not shown to other visitors and is removed by the nightly clean-up once it has gone unused for 24 hours. Option A starts fresh each time you open it.</p>
     </div>
   </div>
 </section>
@@ -127,7 +127,7 @@
             <li>In the left-hand menu, choose «&nbsp;Congrès&nbsp;», then «&nbsp;Ajouter un congrès&nbsp;».</li>
             <li>Fill in the name, dates, city and discipline, then publish. To change one, open it from «&nbsp;Tous les congrès&nbsp;».</li>
           </ol>
-          <p class="task__tip">Sign in as <code class="cred">contributeur</code> instead and your congress waits for review before it goes live.</p>
+          <p class="task__tip">To see the review step, sign out («&nbsp;Retour au site&nbsp;», then «&nbsp;Se déconnecter&nbsp;»), sign in as <code class="cred">contributeur</code>, and your congress waits for review before it goes live.</p>
         </div>
         <div class="task__opt task__opt--b">
           <p class="task__which">Option B: custom platform</p>
@@ -214,7 +214,7 @@
         <div class="task__head">
           <h3><span class="task__n">Task 5</span> Protect the GM&amp;E codes</h3>
           <p class="task__side">Your team and management</p>
-          <p class="task__explain">GM&amp;E codes are the Air France-KLM Global Meetings &amp; Events fare codes for a congress. Your team sees them hidden and asks for access, giving a reason. Direction approves for 24 hours, or refuses. Each time a code is shown, it is recorded. Visitors never see a code; when a code is approved and valid, they see only a line saying that a negotiated congress fare is available.</p>
+          <p class="task__explain">GM&amp;E codes are the Air France-KLM Global Meetings &amp; Events fare codes for a congress. Your team sees them hidden and asks for access, giving a reason. Direction approves for 24 hours, or refuses. Each time a code is shown, it is recorded. Visitors are not shown a code; when a code is approved and valid, they see only a line saying that a negotiated congress fare is available. In the project, this is checked by your acceptance test T05.</p>
         </div>
         <div class="task__opt task__opt--a">
           <p class="task__which">Option A: WordPress</p>
@@ -342,7 +342,7 @@
           <li>Under «&nbsp;Lien de groupe&nbsp;», copy the link and open it in another tab. This is the traveller’s page.</li>
           <li>Send an answer, then go back to the «&nbsp;Groupe&nbsp;» tab: it is in the list.</li>
         </ol>
-        <p class="task__tip">The traveller’s page never shows the other travellers, codes or fares.</p>
+        <p class="task__tip">The traveller’s page does not show the other travellers, codes or fares.</p>
       </div>
     </div>
 
@@ -350,9 +350,9 @@
       <div class="extra__col">
         <h3>Where it stands</h3>
         <ul>
-          <li>Working in Option B’s demonstration, with fictional travellers, as an illustration only.</li>
+          <li>Working in Option B’s demonstration, with fictional travellers, as an illustration.</li>
           <li><strong>Suggestion only. It is not included in the proposal to come, and the requirements and budget you communicated stay unchanged.</strong></li>
-          <li>It exists in Option B’s demo only. If ASSET wants it, in either option, it would be scoped and quoted separately, after the proposal, and built only on your written agreement.</li>
+          <li>It exists in Option B’s demo only. If ASSET wants it, it would be scoped and quoted separately for the option you choose, after the proposal, and built only on your written agreement.</li>
         </ul>
       </div>
       <div class="extra__col">
@@ -401,8 +401,9 @@
       <div class="choose__grid">
         <p><strong>Choose A</strong> if your team wants to keep the editor it already knows.</p>
         <p><strong>Choose B</strong> if the least upkeep matters most.</p>
+        <p>The written proposal sets out and prices each option against its own scope, so you can decide with both in front of you.</p>
       </div>
-      <p class="choose__both"><strong>With either one:</strong> in both options the GM&amp;E codes are kept in a separate, encrypted table; the service accounts opened for the project are in ASSET’s name, your existing accounts and data remain yours throughout, the source code and documentation are handed over in full at completion, as set out in the proposal, and your team can export pages, congresses and enquiries.</p>
+      <p class="choose__both"><strong>In both options:</strong> the GM&amp;E codes are kept in a separate, encrypted table; the service accounts opened for the project are in ASSET’s name, your existing accounts and data remain yours throughout, the source code and documentation are handed over in full at completion, as set out in the proposal, and your team can export pages, congresses and enquiries.</p>
     </div>
   </div>
 </section>
@@ -454,7 +455,7 @@
     <div class="gantt">
       <div class="gantt__scale" aria-hidden="true">
         <span class="gantt__pad"></span>
-        <div class="gantt__weeks"><span>Week 1</span><span>Week 5</span><span>Week 10</span><span>After launch</span></div>
+        <div class="gantt__weeks"><span>Approval</span><span></span><span>Launch, about 13 to 14 weeks</span><span>After launch</span></div>
       </div>
       <ol class="gantt__rows">
         <li class="g" data-from="1" data-to="2">
@@ -462,23 +463,23 @@
           <div class="g__track" aria-hidden="true"><span class="g__bar"></span></div>
         </li>
         <li class="g" data-from="2" data-to="5">
-          <div class="g__txt"><h3>Design</h3><p class="g__when">Weeks 2 to 5</p><p>Wireframes (page outlines), then desktop and mobile mock-ups, with two rounds of changes at each stage.</p></div>
+          <div class="g__txt"><h3>Design</h3><p class="g__when">Stage 2</p><p>Wireframes (page outlines), then desktop and mobile mock-ups, with two rounds of changes at each stage.</p></div>
           <div class="g__track" aria-hidden="true"><span class="g__bar"></span></div>
         </li>
         <li class="g" data-from="5" data-to="10">
-          <div class="g__txt"><h3>Development</h3><p class="g__when">Weeks 5 to 10</p><p>Pages, the congress catalogue, enquiries, GM&amp;E access, and the import of your congress list, with a trial run first.</p></div>
+          <div class="g__txt"><h3>Development</h3><p class="g__when">Stage 3</p><p>Pages, the congress catalogue, enquiries, GM&amp;E access, and the import of your congress list, with a trial run first.</p></div>
           <div class="g__track" aria-hidden="true"><span class="g__bar"></span></div>
         </li>
         <li class="g" data-from="10" data-to="12">
-          <div class="g__txt"><h3>Testing</h3><p class="g__when">Weeks 10 to 12</p><p>On a private copy of the site, against your acceptance tests T01 to T15, then fixes.</p></div>
+          <div class="g__txt"><h3>Testing</h3><p class="g__when">Stage 4</p><p>On a private copy of the site, against your acceptance tests T01 to T15, then fixes.</p></div>
           <div class="g__track" aria-hidden="true"><span class="g__bar"></span></div>
         </li>
         <li class="g" data-from="12" data-to="12">
-          <div class="g__txt"><h3>Training</h3><p class="g__when">Week 12</p><p>For your team, with a second session four weeks after launch.</p></div>
+          <div class="g__txt"><h3>Training</h3><p class="g__when">Stage 5</p><p>For your team, with a second session four weeks after launch.</p></div>
           <div class="g__track" aria-hidden="true"><span class="g__bar"></span><span class="g__bar g__bar--again"></span></div>
         </li>
         <li class="g g--launch" data-from="13" data-to="13">
-          <div class="g__txt"><h3>Launch</h3><p class="g__when">Weeks 13 to 14</p><p>After your written acceptance and management’s go-ahead, on the terms set out in the proposal, with old addresses redirected to the new pages.</p></div>
+          <div class="g__txt"><h3>Launch</h3><p class="g__when">About 13 to 14 weeks from approval</p><p>After your written acceptance, management’s go-ahead and the acceptance payment, as set out in the proposal, with old addresses redirected to the new pages.</p></div>
           <div class="g__track" aria-hidden="true"><span class="g__bar"></span></div>
         </li>
         <li class="g" data-from="14" data-to="17">
@@ -496,7 +497,7 @@
   <div class="container slot__in">
     <div class="intro">
       <h2 id="slot-title"><span class="n">7</span> A 20 to 30 minute demonstration</h2>
-      <p>We walk you through both options and answer your questions. Pick a time below and your email opens with it filled in. All times are Paris time. If shortlisting comes later, we will offer a slot that falls within 3 to 5 working days of your notice.</p>
+      <p>We walk you through both options and answer your questions. Pick a time below and your email opens with it filled in. All times are Paris time. If shortlisting comes later, we will propose a slot within 3 to 5 working days of your notice, subject to availability on both sides.</p>
     </div>
     <ul class="days">
       <li><p class="day">Thursday 12 November</p><p class="times"><a class="time" href="mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&amp;body=Proposed%20slot%3A%20Thursday%2012%20November%2C%2010%3A00%20(Paris%20time)">10:00</a></p></li>

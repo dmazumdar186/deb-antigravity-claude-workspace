@@ -15,7 +15,7 @@
     { "term": "ask for access", "forms": ["Demander l’accès", "Demander l'accès"] },
     { "term": "approve", "forms": ["Approuver (24 h)", "Approuver pour 24 h", "Approuver"] },
     { "term": "show the code", "forms": ["Révéler le code", "Afficher le code"] },
-    { "term": "access log", "forms": ["Journal GM&E", "Journal", "Journal d’accès"] },
+    { "term": "access log", "forms": ["Journal d’accès GM&E", "Journal GM&E", "Journal", "Journal d’accès"] },
     { "term": "access requests", "forms": ["Demandes d’accès"] },
     { "term": "CSV export", "forms": ["Exporter en CSV", "Exporter (tableur CSV)", "Exporter"] },
     { "term": "sign out", "forms": ["Se déconnecter"] },

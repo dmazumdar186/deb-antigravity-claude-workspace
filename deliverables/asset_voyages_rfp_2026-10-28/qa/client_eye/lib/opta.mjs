@@ -258,7 +258,7 @@ export async function replayA(browser, hub) {
     let why = null;
     if (!/DEMO-GME-[A-Z0-9]{4}/.test(await page.locator('#wpbody').innerText())) {
       w = await ag.click('Afficher le code'); if (w) return 'code not shown and ' + w;
-      why = 'hub says « the code is shown » after signing in; the reader must still click « Afficher le code »';
+      if (!/Afficher le code/.test(s.text)) why = 'hub says « the code is shown » after signing in; the reader must still click « Afficher le code »';
     }
     if (!/DEMO-GME-[A-Z0-9]{4}/.test(await page.locator('#wpbody').innerText())) return 'code still not shown';
     const menu = await page.$$eval('#adminmenu a', (as) => as.map((a) => a.innerText.trim()).join(' | '));

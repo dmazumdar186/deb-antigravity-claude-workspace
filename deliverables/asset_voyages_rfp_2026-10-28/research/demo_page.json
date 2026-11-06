@@ -1,6 +1,6 @@
 {
  "url": "http://localhost:8794/demo/",
- "date": "2026-11-06T12:57:49.998Z",
+ "date": "2026-11-06T13:04:50.904Z",
  "pass": 59,
  "total": 59,
  "results": [
@@ -57,7 +57,7 @@
   {
    "name": "group section: no airline rules or GM&E thresholds mentioned; under 320 words in total",
    "ok": true,
-   "info": "words=317"
+   "info": "words=319"
   },
   {
    "name": "group section: every link is an Option B deep link set from CUSTOM_URL, opening in a new tab",
@@ -82,7 +82,7 @@
   {
    "name": "logins: direction / equipe / contributeur, password demo-asset; private + 24 h line; Playground start time and reload tip next to each Option A button",
    "ok": true,
-   "info": "[\"Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page.\",\"Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page.\"]"
+   "info": "[\"Takes about 15 to 25 seconds to start. If it stays on the loading screen, reload the page.\",\"Takes about 15 to 25 seconds to start. If it stays on the loading screen, reload the page.\"]"
   },
   {
    "name": "hub quotes the glossary labels exactly; task 5 says the « Afficher le code » click is needed; no stale wording",
@@ -116,12 +116,12 @@
   {
    "name": "desktop: #compare heading lands below the sticky strip, strip marks it",
    "ok": true,
-   "info": "{\"top\":174.203125,\"strip\":57,\"cur\":\"#compare\"}"
+   "info": "{\"top\":173.953125,\"strip\":57,\"cur\":\"#compare\"}"
   },
   {
    "name": "desktop: #slot heading lands below the sticky strip, strip marks it",
    "ok": true,
-   "info": "{\"top\":174.046875,\"strip\":57,\"cur\":\"#slot\"}"
+   "info": "{\"top\":174.1875,\"strip\":57,\"cur\":\"#slot\"}"
   },
   {
    "name": "recordings: follow the real manifest (all false: section and strip link hidden, no video; announced files: those players only)",
@@ -171,12 +171,12 @@
   {
    "name": "390: #plan heading lands below the sticky strip",
    "ok": true,
-   "info": "{\"top\":129.171875,\"strip\":57}"
+   "info": "{\"top\":129.25,\"strip\":57}"
   },
   {
    "name": "390: the strip link to #group scrolls its heading below the sticky strip",
    "ok": true,
-   "info": "{\"top\":222.140625,\"strip\":57}"
+   "info": "{\"top\":221.703125,\"strip\":57}"
   },
   {
    "name": "390: the diagram switches to its vertical drawing",
@@ -286,7 +286,7 @@
   {
    "name": "French quotes: every « and » bound to its word by a no-break space (no line starts with » or ends with «)",
    "ok": true,
-   "info": "{\"n\":41,\"bad\":[]}"
+   "info": "{\"n\":43,\"bad\":[]}"
   },
   {
    "name": "footer: the \"Unlisted page\" note is gone",

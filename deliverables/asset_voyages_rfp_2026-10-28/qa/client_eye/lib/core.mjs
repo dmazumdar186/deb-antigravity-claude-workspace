@@ -159,6 +159,8 @@ export async function probeButtons(page, opts) {
     // a button shown as disabled (disabled / aria-disabled) tells the reader it is unavailable: not a dead button
     if (await b.evaluate((e) => e.disabled || e.getAttribute('aria-disabled') === 'true')) continue;
     if (inForm || t === 'submit') continue;
+    // WordPress' « Replier le menu » persists per user (folds the admin menu for every later sign-in): not a probe target
+    if (await b.evaluate((e) => e.id === 'collapse-button')) continue;
     const url0 = page.url();
     await page.evaluate(armMutation);
     // A reader scrolls the button into the middle of the screen before tapping it; Playwright's own scroll puts it at
