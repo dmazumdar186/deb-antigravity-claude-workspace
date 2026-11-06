@@ -18,7 +18,7 @@ For each option the page shows the visitor side and the team side, short step-by
 
 You'll also find one small idea for group congress trips: a link your team sends to a group, so each traveller enters their own details and the list fills in by itself. It's only a suggestion, outside the proposal; your requirements and budget stay as they are.
 
-For the demonstration, 20–30 minutes, I could do Thursday 12 November at 10:00, Monday 16 November at 14:30 or Tuesday 17 November at 10:00 (Paris time). If shortlisting comes later, I'll propose a slot within 3–5 working days, subject to our mutual availability. Nothing chargeable has been started, and any custom sample would only follow a written agreement on scope, fee and date.
+For the 20–30 minute demonstration, I'll book a slot in the calendar you shared. Nothing chargeable has been started, and any custom sample would only follow a written agreement on scope, fee and date.
 
 As set out on 31 October, the written proposal follows by Tuesday 10 November, on the stated assumptions for any question still unanswered when I send it. Answers that reach me before then are reflected in it; later ones go into a revised version within 24 to 48 working hours. It will price both options, each against its own scope, so you can choose with the figures in front of you.
 
@@ -27,3 +27,4 @@ Kind regards,
 Debanjan
 Founder, ProdCraft
 debanjan@prodcraft.fyi
+https://prodcraft.fyi
