@@ -23,7 +23,7 @@ for (const W of [1440,390]){
     await login(p,who); for(const u of urls){ await p.goto(B+u); await scan(p,`${who} ${u}`,W);} 
     if(who==='direction'){ await p.goto(B+'/console/gme'); const b=p.getByRole('button',{name:'Afficher le code'}).first(); if(await b.count()){await b.click(); await p.waitForLoadState(); await scan(p,'direction gme code affiché',W);} }
     await logout(p); }
-  await (async()=>{ try{ await login(p,'direction'); p.on('dialog',d=>d.accept().catch(()=>{})); await p.getByRole('button',{name:'Réinitialiser la démo'}).click(); await p.getByText('La démonstration a été réinitialisée').first().waitFor({timeout:8000}); console.log('sandbox reset ok'); }catch(e){ console.log('sandbox reset FAILED',e.message.split('\n')[0]); } })();
+  await (async()=>{ try{ await p.goto(B+'/console/connexion'); if(!p.url().includes('connexion')) await logout(p); await login(p,'direction'); p.on('dialog',d=>d.accept().catch(()=>{})); await p.getByRole('button',{name:'Réinitialiser la démo'}).click(); await p.getByText('La démonstration a été réinitialisée').first().waitFor({timeout:8000}); console.log('sandbox reset ok'); }catch(e){ console.log('sandbox reset FAILED',e.message.split('\n')[0]); } })();
   await c.close(); }
 await br.close(); fs.writeFileSync('axe.json',JSON.stringify(res,null,1));
 const v=res.filter(r=>!r.ok); console.log('screens',res.filter(r=>r.ok).length,'violations',v.length);

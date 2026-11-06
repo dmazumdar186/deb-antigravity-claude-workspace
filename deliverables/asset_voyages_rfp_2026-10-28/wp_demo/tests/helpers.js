@@ -34,11 +34,19 @@ function writeState(patch) {
 
 async function login(page, role) {
 	const [user, pass] = USERS[role];
-	await page.goto('/wp-login.php');
-	await page.fill('#user_login', user);
-	await page.fill('#user_pass', pass);
-	await Promise.all([page.waitForURL(/wp-admin/), page.click('#wp-submit')]);
-	await page.waitForLoadState('load');
+	// The local Playground can be slow under load: one retry on a timed-out login.
+	for (let attempt = 1; ; attempt++) {
+		try {
+			await page.goto('/wp-login.php');
+			await page.fill('#user_login', user);
+			await page.fill('#user_pass', pass);
+			await Promise.all([page.waitForURL(/wp-admin/, { timeout: 90000 }), page.click('#wp-submit')]);
+			await page.waitForLoadState('load');
+			return;
+		} catch (e) {
+			if (attempt >= 2) throw e;
+		}
+	}
 }
 
 async function asRole(browser, role, opts = {}) {
