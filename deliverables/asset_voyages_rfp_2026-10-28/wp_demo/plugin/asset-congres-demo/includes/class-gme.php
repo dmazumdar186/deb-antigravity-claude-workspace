@@ -354,7 +354,7 @@ class Asset_CD_Gme {
 			'pending'  => __( 'En attente', 'asset-congres-demo' ),
 			'approved' => __( 'Approuvée', 'asset-congres-demo' ),
 			'refused'  => __( 'Refusée', 'asset-congres-demo' ),
-			'revoked'  => __( 'Révoquée', 'asset-congres-demo' ),
+			'revoked'  => __( 'Accès retiré', 'asset-congres-demo' ),
 			'expired'  => __( 'Expirée', 'asset-congres-demo' ),
 		);
 	}

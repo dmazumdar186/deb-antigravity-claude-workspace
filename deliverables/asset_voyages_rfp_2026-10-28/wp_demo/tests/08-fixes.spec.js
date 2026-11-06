@@ -382,7 +382,7 @@ test('FIX-A-17 minor UX defects: actionable rows only, unbroken reference, conse
 	const d = await asRole(browser, 'direction');
 	await d.page.goto('/wp-admin/admin.php?page=asset-gme');
 	const exp = d.page.locator('table.asset-gme-table tbody tr', { has: d.page.locator('td', { hasText: /^Expiré$/ }) });
-	expect(await exp.locator('button', { hasText: 'Révéler' }).count()).toBe(0);
+	expect(await exp.locator('button', { hasText: 'Afficher le code' }).count()).toBe(0);
 	await d.ctx.close();
 
 	// EYE-A-008 / 009 / 010 on the visitor side.
@@ -440,7 +440,7 @@ test('FIX-A-21 one sandbox, one journey: visitor enquiry → « Espace équipe �
 	await expect(page.locator('footer .asset-team-link a')).toHaveText('Espace équipe');
 	await page.fill('#asset-q-nom', 'Parcours Unique');
 	await page.fill('#asset-q-email', 'parcours.unique@example.com');
-	await page.fill('#asset-q-telephone', '+33 6 00 00 00 21');
+	await page.fill('#asset-q-telephone', '01 99 00 00 21');
 	await page.fill('#asset-q-ville_depart', 'Lille');
 	await page.fill('#asset-q-date_aller', '2027-09-03');
 	await page.fill('#asset-q-date_retour', '2027-09-09');
@@ -488,7 +488,7 @@ test('FIX-A-23 a revealed code stays on one line', async ({ browser }) => {
 		await page.setViewportSize({ width: w, height: 900 });
 		await page.goto('/wp-admin/admin.php?page=asset-gme');
 		const r = page.locator('table.asset-gme-table tbody tr', { hasText: 'neurologie' });
-		await Promise.all([page.waitForNavigation(), r.locator('button', { hasText: 'Révéler' }).click()]);
+		await Promise.all([page.waitForNavigation(), r.locator('button', { hasText: 'Afficher le code' }).click()]);
 		const code = page.locator('code.asset-revealed');
 		await expect(code).toHaveText(/^DEMO-GME-/);
 		const m = await code.evaluate((el) => ({ ws: getComputedStyle(el).whiteSpace, rects: el.getClientRects().length }));

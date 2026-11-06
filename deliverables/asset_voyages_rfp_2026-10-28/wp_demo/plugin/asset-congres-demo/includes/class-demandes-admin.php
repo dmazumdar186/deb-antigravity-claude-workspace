@@ -269,7 +269,7 @@ class Asset_CD_Demandes_Admin {
 		echo '<p><a href="' . esc_url( admin_url( 'admin.php?page=asset-demandes' ) ) . '">' . esc_html__( 'Retour à la liste', 'asset-congres-demo' ) . '</a></p>';
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if ( isset( $_GET['updated'] ) ) {
-			echo '<div class="notice notice-success"><p>' . esc_html__( 'Demande mise à jour.', 'asset-congres-demo' ) . '</p></div>';
+			echo '<div class="notice inline notice-success"><p>' . esc_html__( 'Demande mise à jour.', 'asset-congres-demo' ) . '</p></div>';
 		}
 
 		$rows = array(
@@ -289,7 +289,7 @@ class Asset_CD_Demandes_Admin {
 		);
 		echo '<div class="asset-cols"><div class="asset-panel"><h2>' . esc_html__( 'Détails', 'asset-congres-demo' ) . '</h2><table class="widefat striped asset-kv"><tbody>';
 		foreach ( $rows as $label => $value ) {
-			echo '<tr><th scope="row">' . esc_html( $label ) . '</th><td>' . nl2br( esc_html( '' === $value ? '—' : $value ) ) . '</td></tr>';
+			echo '<tr><th scope="row">' . esc_html( $label ) . '</th><td>' . Asset_CD_Ui::nowrap_suffix( nl2br( esc_html( '' === $value ? '—' : $value ) ) ) . '</td></tr>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped, then a span added.
 		}
 		echo '</tbody></table></div>';
 
@@ -407,7 +407,7 @@ class Asset_CD_Demandes_Admin {
 
 		nocache_headers();
 		header( 'Content-Type: text/csv; charset=UTF-8' );
-		header( 'Content-Disposition: attachment; filename="demandes-asset-' . gmdate( 'Ymd' ) . '.csv"' );
+		header( 'Content-Disposition: attachment; filename="demandes-asset-' . wp_date( 'Ymd' ) . '.csv"' ); // Paris date, not UTC (CE-B2-001).
 		header( 'X-Content-Type-Options: nosniff' );
 		$out = fopen( 'php://output', 'w' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
 		fwrite( $out, "\xEF\xBB\xBF" ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite -- UTF-8 BOM for Excel.
@@ -443,7 +443,7 @@ class Asset_CD_Demandes_Admin {
 		if ( $latest ) {
 			$l   = $latest[0];
 			$cid = (int) get_post_meta( $l->ID, '_asset_congres_id', true );
-			echo '<p class="asset-widget-latest">' . esc_html__( 'Dernière demande :', 'asset-congres-demo' ) . ' <a class="asset-latest-link" href="' . esc_url( admin_url( 'admin.php?page=asset-demandes&action=view&id=' . $l->ID ) ) . '">' . esc_html( (string) get_post_meta( $l->ID, '_asset_ref', true ) . ' · ' . get_post_meta( $l->ID, '_asset_nom', true ) . ( $cid ? ' · ' . get_the_title( $cid ) : '' ) ) . '</a></p>';
+			echo '<p class="asset-widget-latest">' . esc_html__( 'Dernière demande :', 'asset-congres-demo' ) . ' <a class="asset-latest-link" href="' . esc_url( admin_url( 'admin.php?page=asset-demandes&action=view&id=' . $l->ID ) ) . '">' . Asset_CD_Ui::nowrap_suffix( esc_html( (string) get_post_meta( $l->ID, '_asset_ref', true ) . ' · ' . get_post_meta( $l->ID, '_asset_nom', true ) . ( $cid ? ' · ' . get_the_title( $cid ) : '' ) ) ) . '</a></p>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped, then a span added.
 		}
 		echo '<ul class="asset-widget">';
 		foreach ( Asset_CD_Demandes::statuses() as $slug => $label ) {
@@ -558,7 +558,7 @@ class Asset_CD_Demandes_List_Table extends WP_List_Table {
 				return esc_html( Asset_CD_Ui::datetime( $item->post_date_gmt ) );
 			case 'congres':
 				$cid = (int) $m( 'congres_id' );
-				return esc_html( $cid ? get_the_title( $cid ) : '—' );
+				return Asset_CD_Ui::nowrap_suffix( esc_html( $cid ? get_the_title( $cid ) : '—' ) );
 			case 'contact':
 				$soc = $m( 'societe' );
 				return esc_html( $m( 'nom' ) ) . '<br /><span class="description asset-email">' . str_replace( '@', '<wbr>@', esc_html( $m( 'email' ) ) ) . '</span>' . ( $soc ? '<br /><span class="description">' . esc_html( $soc ) . '</span>' : '' );

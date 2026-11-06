@@ -55,7 +55,7 @@ class Asset_CD_Congres {
 				'labels'          => array(
 					'name'               => __( 'Congrès', 'asset-congres-demo' ),
 					'singular_name'      => __( 'Congrès', 'asset-congres-demo' ),
-					'add_new'            => __( 'Ajouter', 'asset-congres-demo' ),
+					'add_new'            => __( 'Ajouter un congrès', 'asset-congres-demo' ),
 					'add_new_item'       => __( 'Ajouter un congrès', 'asset-congres-demo' ),
 					'edit_item'          => __( 'Modifier le congrès', 'asset-congres-demo' ),
 					'new_item'           => __( 'Nouveau congrès', 'asset-congres-demo' ),

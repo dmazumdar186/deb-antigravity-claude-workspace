@@ -25,7 +25,7 @@ test('S2-F1 all 12 published upcoming congresses are listed; past and draft are 
 });
 
 test('S2-F2 keyword search: title, city, discipline, accent-insensitive', async ({ page }) => {
-	const cases = { vienne: 2, diabetologie: 1, 'Diabétologie': 1, cardio: 2, lyon: 1, 'ressources humaines': 1, MARSEILLE: 1 };
+	const cases = { vienne: 1, porto: 1, diabetologie: 1, 'Diabétologie': 1, cardio: 2, lyon: 1, 'ressources humaines': 1, MARSEILLE: 1 };
 	for (const [q, n] of Object.entries(cases)) {
 		await page.goto('/?q=' + encodeURIComponent(q));
 		expect(await count(page), q).toBe(n);

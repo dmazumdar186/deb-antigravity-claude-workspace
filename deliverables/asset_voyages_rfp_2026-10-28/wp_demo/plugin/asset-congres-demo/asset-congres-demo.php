@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       ASSET Congrès — démonstration
  * Description:       Démonstration : catalogue de congrès, demandes de devis vol, suivi des demandes et codes GM&E protégés. Données fictives uniquement.
- * Version:           0.2.0
+ * Version:           0.2.1
  * Requires at least: 6.5
  * Requires PHP:      8.1
  * Author:            ProdCraft
@@ -15,7 +15,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'ASSET_CD_VERSION', '0.2.0' );
+define( 'ASSET_CD_VERSION', '0.2.1' );
 define( 'ASSET_CD_FILE', __FILE__ );
 define( 'ASSET_CD_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ASSET_CD_URL', plugin_dir_url( __FILE__ ) );
@@ -86,6 +86,8 @@ function asset_cd_login_redirect( $redirect_to, $requested, $user ) {
 }
 add_filter( 'login_redirect', 'asset_cd_login_redirect', 10, 3 );
 
+Asset_CD_Ui::init();
+Asset_CD_Roles::init();
 Asset_CD_Hardening::init();
 Asset_CD_Congres::init();
 Asset_CD_Catalogue::init();

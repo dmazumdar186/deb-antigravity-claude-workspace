@@ -11,7 +11,9 @@ GATES = ["S1-F1", "S1-F2", "S1-F3", "S1-E1", "S1-E2", "S1-H1", "S1-H2",
          "S3-F1", "S3-F2", "S3-F3", "S3-F4", "S3-E1", "S3-H1", "S3-H2", "S3-H3",
          "S4-F1", "S4-F2", "S4-F3", "S4-F4", "S4-F5", "S4-F6", "S4-E1", "S4-H1",
          "S5-F1", "S5-F2", "S5-F3", "S5-F4", "S5-F5", "S5-E1", "S5-H1", "S5-L1", "S5-L2",
-         "X1", "X2", "X3", "X4"] + [f"FIX-A-{n}" for n in range(1, 25)]
+         "X1", "X2", "X3", "X4"] + [f"FIX-A-{n}" for n in range(1, 25)] + [
+         "CE-A4-002", "CE-B2-001", "CE-B4-004", "CE-B4-005", "CE-B6-001", "CE-C1-001", "CE-C4-001",
+         "CE-C7-003", "CE-D1-001", "CE-D2-002"]
 gates = {g: [] for g in GATES}
 tests = []
 
@@ -30,7 +32,7 @@ for f in files:
     for s in json.loads(f.read_text())["suites"]:
         walk(s)
 for title, status, notes in tests:
-    for g in set(re.findall(r"\b(FIX-A-\d+|S\d-[FEHL]\d|X\d)\b", title)):
+    for g in set(re.findall(r"\b(FIX-A-\d+|S\d-[FEHL]\d|X\d|CE-[A-D]\d+-\d{3})\b", title)):
         gates.setdefault(g, []).append((status, notes))
 
 passed = sum(1 for _, s, _ in tests if s == "passed")
