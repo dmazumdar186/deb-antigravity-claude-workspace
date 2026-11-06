@@ -497,6 +497,7 @@ async function enquiryDetail(ctx, id, { notice } = {}) {
   const body = html`<nav class="crumbs" aria-label="Fil d’Ariane"><a href="/console/demandes">Demandes</a><span aria-hidden="true">/</span><span>${r.ref}</span></nav>
     <div class="head"><h1 class="h1">${r.ref}</h1><p>${pill(ST_KIND[r.status], STATUS_LABELS[r.status])}</p></div>
     ${grp ? enquiryTabs(r, 'demande', grp) : ''}
+    ${grp ? html`<p class="jump"><a class="lnk" href="#lien-groupe">Aller au lien de groupe</a></p>` : ''}
     ${ok ? html`<p class="ok" role="status" tabindex="-1" data-focus>${ok.startsWith('statut-') && STATUS_LABELS[ok.slice(7)] ? `Statut mis à jour : ${STATUS_LABELS[ok.slice(7)]}.` : ok === 'responsable' ? `Responsable : ${r.owner_name || 'personne'}.` : ok === 'note' ? 'Note ajoutée à l’historique.' : 'Enregistré.'}</p>` : ''}
     ${notice ? html`<p class="alert" role="alert" tabindex="-1" data-focus>${notice}</p>` : ''}
     <form method="post" action="/console/demandes/${r.id}" class="card status-bar">
@@ -601,7 +602,7 @@ function groupCard(ctx, r, grp, { compact = false } = {}) {
   const closed = state === 'revoked' ? html`<p class="quiet">Le lien précédent a été révoqué le ${frDateTime(link.revoked_at)} : il ne fonctionne plus.</p>`
     : state === 'expired' ? html`<p class="quiet">Le lien précédent a expiré le ${frNumDate(link.expires_at)}.</p>` : '';
   const create = html`<form method="post" action="/console/demandes/${r.id}/groupe">${csrfInput(ctx.csrf)}<input type="hidden" name="action" value="create"><button class="btn" type="submit">${state === 'none' ? 'Créer le lien' : 'Créer un nouveau lien'}</button></form>`;
-  return html`<section class="card" aria-labelledby="h-g"><h2 class="h3" id="h-g">Lien de groupe</h2>
+  return html`<section class="card" aria-labelledby="h-g" id="lien-groupe"><h2 class="h3" id="h-g">Lien de groupe</h2>
     ${state === 'active' ? html`
       <div class="copy">${field({ id: 'grp-url', name: 'grp_url', label: 'Lien à envoyer aux participants', value: grp.url, attrs: 'readonly spellcheck="false" data-group-url' })}
         <button class="btn btn--line" type="button" data-copy="grp-url" hidden>Copier le lien</button></div>
@@ -622,11 +623,16 @@ async function groupTab(ctx, id) {
   const cities = {};
   for (const d of rows) { const k = d.departure_city.trim(); cities[k] = (cities[k] || 0) + 1; }
   const mix = Object.entries(cities).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'fr'));
-  const hint = seuilHint(grp.answered, seuil);
+  const hint = seuilHint(grp.answered, seuil, grp.expected);
   const pending = (await env.DB.prepare(`SELECT * FROM ${T(env, 'group_pending')} WHERE 1=1 AND enquiry_id = ? ORDER BY created_at LIMIT 200`).bind(id).all()).results || [];
   const pendingBy = Object.fromEntries(pending.map((p) => [p.email_norm, p]));
   const cur = Object.fromEntries(rows.map((d) => [d.email_norm, d]));
-  const trip = (x) => html`${x.name}, ${wbrEmail(x.email)}, départ de ${x.departure_city}, ${nw(frNumDate(x.date_out))} au ${nw(frNumDate(x.date_back))}`;
+  // « Proposé » marks each field that differs from « Actuel » (e-mail compared case-insensitively, as stored).
+  const trip = (x, ref) => {
+    const diff = (k) => ref && (k === 'email' ? String(ref[k]).toLowerCase() !== String(x[k]).toLowerCase() : ref[k] !== x[k]);
+    const m = (k, content) => (diff(k) ? html`<mark class="diff">${content}</mark>` : content);
+    return html`${m('name', x.name)}, ${m('email', emailSpan(x.email))}, départ de ${m('departure_city', nw(x.departure_city))}, ${m('date_out', nw(frNumDate(x.date_out)))} au ${m('date_back', nw(frNumDate(x.date_back)))}`;
+  };
   const badge = html`<span class="st st--rev">Modification à vérifier</span>`;
   const ok = { lien: 'Lien créé : copiez-le et envoyez-le aux participants.', revoque: 'Lien révoqué : il ne fonctionne plus. Les réponses déjà reçues restent dans la liste.', seuil: 'Seuil groupe enregistré.', existe: 'Un lien actif existe déjà : le voici.', accepte: 'Modification acceptée : la liste est à jour.', refuse: 'Modification refusée : l’inscription d’origine est conservée.' }[ctx.url.searchParams.get('ok')];
   const err = ctx.url.searchParams.get('err') === 'seuil' ? `Seuil refusé : indiquez un nombre entier de ${SEUIL_MIN} à ${SEUIL_MAX}.` : '';
@@ -650,16 +656,16 @@ async function groupTab(ctx, id) {
         <p class="quiet">${r.cg_title}. ${mix.length ? html`Départs : ${mix.map(([c, n], i) => html`${i ? ', ' : ''}${c} ${n}`)}.` : 'Aucune réponse pour le moment.'}</p>
         ${hint ? html`<p class="alert" data-hint>${hint.text} Indication interne, jamais montrée aux participants.</p>` : ''}
         ${pending.length ? html`<div class="stack" data-pending><h3 class="h4">Modifications à vérifier (${pending.length})</h3>
-          <p class="quiet">Envoyées depuis un autre appareil que celui de l’inscription : rien n’est remplacé tant que vous n’acceptez pas.</p>
+          <p class="quiet">Envoyées depuis un autre appareil que celui de l’inscription, ou arrivées quand la liste était complète : rien n’est enregistré tant que vous n’acceptez pas.</p>
           <ul class="reqs">${pending.map((p) => html`<li class="pend" data-pending-row>
             <p>${badge} <span class="quiet">reçue le ${frDateTime(p.created_at)}</span></p>
-            <p>Actuel : ${cur[p.email_norm] ? trip(cur[p.email_norm]) : html`<span class="quiet">inscription retirée</span>`}</p>
-            <p>Proposé : ${trip(p)}</p>
+            <p>Actuel : ${cur[p.email_norm] ? trip(cur[p.email_norm]) : html`<span class="quiet">aucune inscription : nouvelle personne arrivée quand la liste était complète</span>`}</p>
+            <p>Proposé : ${trip(p, cur[p.email_norm])}</p>
             <div class="pend__act">${['accepter', 'refuser'].map((d) => html`<form method="post" action="/console/demandes/${r.id}/groupe">${csrfInput(ctx.csrf)}<input type="hidden" name="action" value="${d}"><input type="hidden" name="email" value="${p.email_norm}"><button class="btn${d === 'refuser' ? ' btn--line' : ''}" type="submit">${d === 'accepter' ? 'Accepter' : 'Refuser'}</button></form>`)}</div>
           </li>`)}</ul></div>` : ''}
         ${rows.length ? html`<div class="wrap" role="region" aria-label="Participants" tabindex="0"><table class="tbl">
           <thead><tr><th scope="col">Nom (pièce d’identité)</th><th scope="col">E-mail</th><th scope="col">Départ</th><th scope="col">Aller</th><th scope="col">Retour</th><th scope="col">Reçu le</th></tr></thead>
-          <tbody>${rows.map((d) => html`<tr><td class="wide">${d.name}${pendingBy[d.email_norm] ? html`<br>${badge}` : ''}</td><td class="wide">${wbrEmail(d.email)}</td><td>${d.departure_city}</td><td>${nw(frNumDate(d.date_out))}</td><td>${nw(frNumDate(d.date_back))}</td><td>${frDateTime(d.updated_at)}</td></tr>`)}</tbody>
+          <tbody>${rows.map((d) => html`<tr><td class="wide">${d.name}${pendingBy[d.email_norm] ? html`<br>${badge}` : ''}</td><td class="wide">${emailSpan(d.email)}</td><td>${nw(d.departure_city)}</td><td>${nw(frNumDate(d.date_out))}</td><td>${nw(frNumDate(d.date_back))}</td><td>${frDateTime(d.updated_at)}</td></tr>`)}</tbody>
         </table></div>` : html`<div class="empty"><p>Personne n’a encore répondu.</p></div>`}
         <p class="quiet">La liste se met à jour seule tant que la page reste ouverte.</p>
       </section>`;
@@ -679,6 +685,8 @@ async function groupAction(ctx, id) {
     const sid = await claim(env);
     const salt = newLinkSalt();
     const mac = await lookupMac(env, await tokenFor(env, salt));
+    // The replaced link keeps a tombstone, so its URL answers « Ce lien n’est plus actif » rather than « introuvable ».
+    if (link) await env.DB.prepare('INSERT OR IGNORE INTO group_replaced (token_mac, sbx, enquiry_id, replaced_at) VALUES (?,?,?,?)').bind(link.token_mac, sid, id, now).run();
     await env.DB.prepare(`INSERT INTO group_links (sbx, enquiry_id, origin_sbx, token_mac, tok_salt, created_at, created_by, expires_at, revoked_at, revoked_by) VALUES (?,?,?,?,?,?,?,?,NULL,NULL)
       ON CONFLICT (sbx, enquiry_id) DO UPDATE SET origin_sbx = excluded.origin_sbx, token_mac = excluded.token_mac, tok_salt = excluded.tok_salt, created_at = excluded.created_at, created_by = excluded.created_by, expires_at = excluded.expires_at, revoked_at = NULL, revoked_by = NULL`)
       .bind(sid, id, sid, mac, salt, now, user.id, linkExpiry(parisToday())).run();
@@ -739,6 +747,9 @@ async function groupCsv(ctx, id) {
 const keepRefs = (text) => raw(esc(text).replace(/(?:DV|CG)-\d{4}(?:-\d{4})?/g, (m) => `<span class="nw">${m}</span>`));
 // E-mail addresses may wrap only before « @ » and before a dot, never mid-word.
 const wbrEmail = (email) => raw(esc(email).replace(/([@.])/g, '<wbr>$1'));
+// Group tables (EYE-X-003): the same break points, and never inside a part, whatever the column width.
+// Each part is unbreakable (a hyphen inside « dupont-lefevre » is not a break point either).
+const emailSpan = (email) => raw(`<span class="em">${String(email).split(/(?=[@.])/).map((p) => `<span class="nw">${esc(p)}</span>`).join('<wbr>')}</span>`);
 // Mail text for display: references and phone numbers never break; URLs only break after a slash.
 function mailBody(text) {
   return raw(esc(text)

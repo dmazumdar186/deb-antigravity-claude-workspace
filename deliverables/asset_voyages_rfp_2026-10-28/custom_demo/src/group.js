@@ -10,7 +10,7 @@ import {
   html, raw, today, nowIso, addDays, isIsoDate, frRange, frNumDate, clean, readForm, sameOrigin, makeFormToken,
   checkFormToken, rateHit, redirect, htmlResponse, hmac, safeEqual, randomToken, getCookie,
 } from './lib.js';
-import { groupPage, field, errorSummary } from './views.js';
+import { groupPage, field, errorSummary, displayWrap } from './views.js';
 import { claim, validSbx, T, DEMO_BUSY, DEMO_PAUSE } from './data.js';
 import { EMAIL_RE } from './public.js';
 
@@ -49,10 +49,14 @@ export function parseSeuil(raw) {
 }
 // Internal hint only (never on the public link): « proche » within 2 answers or 20 % of the threshold, « atteint » at it.
 export const nearMargin = (seuil) => Math.max(2, Math.ceil(seuil * 0.2));
-export function seuilHint(answered, seuil) {
+// When every expected traveller has answered (USAB-X-005), it says so instead of asking to chase replies.
+export function seuilHint(answered, seuil, expected = Infinity) {
   if (!(seuil > 0)) return null;
-  if (answered >= seuil) return { kind: 'atteint', text: `Seuil groupe atteint : ${answered} réponse${answered > 1 ? 's' : ''} pour un seuil de ${seuil} (à confirmer).` };
-  if (answered >= seuil - nearMargin(seuil)) return { kind: 'proche', text: `Proche du seuil groupe : ${answered} réponse${answered > 1 ? 's' : ''} sur ${seuil} (à confirmer). Relancez les participants qui n’ont pas encore répondu.` };
+  const all = answered >= expected;
+  const tous = 'Tous les participants ont répondu.';
+  if (answered >= seuil) return { kind: 'atteint', text: `Seuil groupe atteint : ${answered} réponse${answered > 1 ? 's' : ''} pour un seuil de ${seuil} (à confirmer).${all ? ' ' + tous : ''}` };
+  if (answered >= seuil - nearMargin(seuil)) return { kind: 'proche', text: `Proche du seuil groupe : ${answered} réponse${answered > 1 ? 's' : ''} sur ${seuil} (à confirmer). ${all ? tous : 'Relancez les participants qui n’ont pas encore répondu.'}` };
+  if (all) return { kind: 'tous', text: tous };
   return null;
 }
 export const counterText = (answered, expected) => `${answered} répondu${answered > 1 ? 's' : ''} / ${expected} attendu${expected > 1 ? 's' : ''}`;
@@ -121,9 +125,13 @@ export async function resolveLink(env, token) {
     scoped = Object.create(env); scoped.SBX = own.origin_sbx; scoped.SBX_EFF = own.origin_sbx;
   } else if (rows.some((r) => r.sbx === '' && r.origin_sbx === '')) {
     scoped = env; // the seed link: the visiting browser's own view of the seed
-  } else return { state: 'none' };
+  } else {
+    // A link replaced by a newer one leaves a tombstone (USAB-X-001): « plus actif », not « introuvable ».
+    const gone = await env.DB.prepare('SELECT sbx FROM group_replaced WHERE token_mac = ? LIMIT 1').bind(mac).first();
+    return { state: gone ? 'replaced' : 'none' };
+  }
   const link = await scoped.DB.prepare(`SELECT * FROM ${T(scoped, 'group_links')} WHERE 1=1 AND token_mac = ?`).bind(mac).first();
-  if (!link) return { state: 'revoked' }; // replaced by a newer link in this sandbox
+  if (!link) return { state: 'replaced' }; // the seed link, replaced by a newer link in this browser's sandbox
   const enquiry = await scoped.DB.prepare(`SELECT id, congress_id, passengers FROM ${T(scoped, 'enquiries')} WHERE 1=1 AND id = ?`).bind(link.enquiry_id).first();
   const congress = enquiry ? await scoped.DB.prepare(`SELECT id, title, start_date, end_date FROM ${T(scoped, 'congresses')} WHERE 1=1 AND id = ?`).bind(enquiry.congress_id).first() : null;
   if (!enquiry || !congress) return { state: 'none' };
@@ -134,6 +142,7 @@ export async function resolveLink(env, token) {
 // ---------------------------------------------------------------- pages
 const closedText = {
   none: ['Lien introuvable', 'Ce lien ne correspond à aucun voyage de groupe. Vérifiez l’adresse reçue ou demandez un nouveau lien à votre contact ASSET Voyages.', 404],
+  replaced: ['Ce lien n’est plus actif', 'Ce lien n’est plus actif. Demandez le nouveau lien à votre agence.', 410],
   revoked: ['Ce lien n’est plus actif', 'L’agence a fermé ce lien. Si vous devez encore donner vos informations de voyage, demandez un nouveau lien à votre contact ASSET Voyages.', 410],
   expired: ['Ce lien a expiré', 'Les inscriptions par ce lien sont closes. Si vous devez encore donner vos informations de voyage, demandez un nouveau lien à votre contact ASSET Voyages.', 410],
   ended: ['Ce congrès est terminé', 'Les inscriptions au voyage de groupe sont closes.', 410],
@@ -158,15 +167,9 @@ async function formPage(req, env, r, token, { values, errors, notice, status = 2
   ${Object.keys(e).length ? html`<div class="alert--top">${errorSummary(e, GRP_LABELS, GRP_IDS)}</div>` : ''}
   <div class="cg__grid">
     <div class="cg__main">
-      <h1 class="display display--cg" data-congress>${c.title}</h1>
+      <h1 class="display display--cg${displayWrap(c.title)}" data-congress>${c.title}</h1>
       <p class="lead cg__when" data-dates>${frRange(c.start_date, c.end_date)}</p>
       <p class="grp__by">Voyage de groupe organisé par ASSET Voyages : chaque participant donne ici ses propres informations.</p>
-      <ol class="grp__steps">
-        <li>Indiquez vos nom et prénom exactement comme sur la pièce d’identité de votre voyage.</li>
-        <li>Choisissez votre ville de départ et vos dates.</li>
-        <li>Envoyez : l’agence prépare les billets du groupe et revient vers vous.</li>
-      </ol>
-      <p class="quiet">Pour corriger vos informations, renvoyez le formulaire depuis ce même téléphone avec le même e-mail. Depuis un autre appareil, l’agence vérifie la modification avant de l’appliquer.</p>
     </div>
     <aside class="cg__aside" aria-labelledby="g-h">
       <h2 class="h2" id="g-h">Vos informations de voyage</h2>
@@ -187,6 +190,14 @@ async function formPage(req, env, r, token, { values, errors, notice, status = 2
         <div class="form__actions"><button class="btn btn--wide" type="submit">Envoyer mes informations</button></div>
       </form>
     </aside>
+    <div class="grp__more">
+      <ol class="grp__steps">
+        <li>Indiquez vos nom et prénom exactement comme sur la pièce d’identité de votre voyage.</li>
+        <li>Choisissez votre ville de départ et vos dates.</li>
+        <li>Envoyez : l’agence prépare les billets du groupe et revient vers vous.</li>
+      </ol>
+      <p class="quiet">Pour corriger vos informations, renvoyez le formulaire depuis ce même téléphone avec le même e-mail. Depuis un autre appareil, l’agence vérifie la modification avant de l’appliquer.</p>
+    </div>
   </div>
   <section class="grp__privacy" aria-labelledby="g-p"><h2 class="h4" id="g-p">Vos données</h2>
     <p class="quiet">Responsable : ASSET Voyages. Usage : réserver les vols du groupe de ce congrès, rien d’autre ; ni publication ni revente. Seule l’équipe de l’agence voit la liste ; les autres participants ne voient pas vos informations. Conservation : jusqu’à la fin du voyage (dans cette démonstration, effacement chaque nuit). Accès, correction ou effacement : confidentialite@example.com (adresse d’exemple).</p>
@@ -232,10 +243,25 @@ async function submit(req, r, token) {
   }
   const key = emailNorm(v.email);
   const prior = await env.DB.prepare(`SELECT id, owner FROM ${T(env, 'group_delegates')} WHERE 1=1 AND enquiry_id = ? AND email_norm = ?`).bind(r.enquiry.id, key).first();
-  if (!prior) {
-    const n = (await env.DB.prepare(`SELECT COUNT(*) AS n FROM ${T(env, 'group_delegates')} WHERE 1=1 AND enquiry_id = ?`).bind(r.enquiry.id).first()).n;
-    if (n >= delegateCap(r.enquiry.passengers)) return formPage(req, env, r, token, { values: v, notice: 'Vos informations n’ont pas été envoyées : la liste de ce groupe est complète. Contactez votre interlocuteur ASSET Voyages.' });
+  const rid = (await delegateCookieId(env, req)) || randomToken(16);
+  const owner = await ownerHash(env, rid);
+  const owned = !!(prior && prior.owner && safeEqual(prior.owner, owner));
+  const cap = delegateCap(r.enquiry.passengers);
+  const count = async (t) => (await env.DB.prepare(`SELECT COUNT(email_norm) AS n FROM ${T(env, t)} WHERE 1=1 AND enquiry_id = ?`).bind(r.enquiry.id).first()).n;
+  // SEC-X-008: the outcome never depends on whether the e-mail is registered. Direct write: the owner's own update, or a
+  // new e-mail below the cap. Everything else (a registered e-mail from another browser, a new e-mail once the list is
+  // full) becomes a pending change with the same redirect, cookie and page. Only when the pending list is full as well
+  // is the answer refused, with one message for both cases.
+  const direct = owned || (!prior && (await count('group_delegates')) < cap);
+  if (!direct) {
+    const already = await env.DB.prepare(`SELECT 1 AS x FROM ${T(env, 'group_pending')} WHERE 1=1 AND enquiry_id = ? AND email_norm = ?`).bind(r.enquiry.id, key).first();
+    if (!already && (await count('group_pending')) >= cap) return formPage(req, env, r, token, { values: v, notice: 'Vos informations n’ont pas été envoyées : la liste de ce groupe est complète. Contactez votre interlocuteur ASSET Voyages.' });
   }
+  // SEC-X-016: the form token is single-use, like the enquiry form's. Its nonce is burnt atomically (kept 2 h, the
+  // token's own lifetime, then purged nightly with the other expired nonces); a replay stores nothing.
+  const burnt = await env.DB.prepare('INSERT INTO revoked (n, exp) VALUES (?, ?) ON CONFLICT(n) DO NOTHING RETURNING n')
+    .bind('g:' + tok.nonce, Math.floor(Date.now() / 1000) + 2 * 3600 + 60).first();
+  if (!burnt) return formPage(req, env, r, token, { values: v, notice: 'Ce formulaire a déjà été envoyé : vos informations n’ont pas été envoyées une seconde fois. Pour répondre de nouveau, renvoyez le formulaire ci-dessous.' });
   let sid;
   try { sid = await claim(env); } catch (err) { // global budget, then the link's sandbox throttle (or this browser's, seed link)
     if (err && err.code === 'SBX_LIMIT') return formPage(req, env, r, token, { values: v, notice: `Vos informations n’ont pas été envoyées. ${DEMO_BUSY}` });
@@ -244,11 +270,9 @@ async function submit(req, r, token) {
   }
   const now = nowIso();
   // The delegate cookie is (re)sent on every accepted answer, new or not, so its presence reveals nothing.
-  const rid = (await delegateCookieId(env, req)) || randomToken(16);
-  const owner = await ownerHash(env, rid);
   const cookie = { 'set-cookie': `${DLG_COOKIE}=${rid}.${await hmac(env, 'delegate-v1', 'cookie|' + rid)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${DLG_MAX_AGE}` };
   let id;
-  if (!prior || (prior.owner && safeEqual(prior.owner, owner))) {
+  if (direct) {
     // New entry, or the browser that created it: write directly. A seed delegate's row keeps its id (the sandbox row hides the seed row).
     id = prior ? prior.id : randomToken(9);
     await env.DB.prepare(`INSERT INTO group_delegates (sbx, enquiry_id, email_norm, id, name, email, departure_city, date_out, date_back, consent_at, created_at, updated_at, owner)
@@ -256,7 +280,8 @@ async function submit(req, r, token) {
       departure_city = excluded.departure_city, date_out = excluded.date_out, date_back = excluded.date_back, consent_at = excluded.consent_at, updated_at = excluded.updated_at`)
       .bind(sid, r.enquiry.id, key, id, v.name, v.email, v.departure_city, v.date_out, v.date_back, now, now, now, prior ? prior.owner : owner).run();
   } else {
-    // An existing e-mail from another browser: never overwrite. The change waits for staff (« Modification à vérifier »).
+    // A registered e-mail from another browser, or a new one once the list is full: never written directly. The change
+    // waits for staff (« Modification à vérifier »).
     id = randomToken(9);
     await env.DB.prepare(`INSERT INTO group_pending (sbx, enquiry_id, email_norm, id, name, email, departure_city, date_out, date_back, consent_at, created_at)
       VALUES (?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT (sbx, enquiry_id, email_norm) DO UPDATE SET id = excluded.id, name = excluded.name, email = excluded.email,

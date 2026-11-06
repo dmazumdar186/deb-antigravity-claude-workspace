@@ -86,6 +86,22 @@ test('UNIT-G-008 internal hint: « proche » within max(2, 20 %) of the threshol
     assert.doesNotMatch(h.text, /air|klm|compagnie|GM&E|tarif/i);
   }
 });
+test('UNIT-G-014 (USAB-X-005) once everyone expected has answered: « Tous les participants ont répondu », never « Relancez »', () => {
+  const near = G.seuilHint(2, 3, 2);
+  assert.equal(near.kind, 'proche');
+  assert.match(near.text, /Tous les participants ont répondu\./);
+  assert.doesNotMatch(near.text, /Relancez/);
+  assert.match(G.seuilHint(2, 3, 6).text, /Relancez/);
+  assert.equal(G.seuilHint(3, 10, 3).kind, 'tous');
+  assert.equal(G.seuilHint(3, 10, 3).text, 'Tous les participants ont répondu.');
+  assert.equal(G.seuilHint(3, 10, 6), null);
+  assert.match(G.seuilHint(10, 10, 10).text, /^Seuil groupe atteint.*Tous les participants ont répondu\.$/);
+});
+test('UNIT-G-015 (EYE-X-001) display titles may break inside a word only for a run of more than 24 characters without spaces', async () => {
+  const V = await import(new URL('views.js', SRC));
+  assert.equal(V.displayWrap('Journées françaises de diabétologie — exemple'), '');
+  assert.equal(V.displayWrap('Congrès https://www.tres-long-congres-example.org'), ' display--wrap');
+});
 test('UNIT-G-009 counter text and plurals: « 7 répondus / 10 attendus », « 1 répondu / 2 attendus »', () => {
   assert.equal(G.counterText(7, 10), '7 répondus / 10 attendus');
   assert.equal(G.counterText(1, 2), '1 répondu / 2 attendus');

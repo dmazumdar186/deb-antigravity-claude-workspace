@@ -86,7 +86,7 @@ Every test name starts with the gate ID it proves from `../21_Acceptance_Gates_5
 | `fix_round5.spec.mjs` | FIX5-1 to FIX5-4 (UX re-check P3: DV and CG references unbroken, e-mails wrap only at @ and dots, « Vérifié le » defaults to the Paris date) | 4/4 pass | pending deploy |
 | `x_cross.spec.mjs` | X1, X1 strict, X2, X3, X4, X5, security headers, cookie and logout replay, console at 390 px, hostile console input | 9/9 pass | 9/9 pass |
 | `z_screens.spec.mjs` | screenshots for X6 | 2/2 pass | 2/2 pass |
-| `extra_group.spec.mjs` | Extra « Le lien de groupe » ([EXTRA_GROUP.md](EXTRA_GROUP.md)): G-F1 to G-F5, G-E1 to G-E3, G-H1 to G-H5, G-L1, G-L2, G-I1, G-X1 to G-X3 | 15/15 pass (G-H1, G-H4 local only) | not deployed |
+| `extra_group.spec.mjs` | Extra « Le lien de groupe » ([EXTRA_GROUP.md](EXTRA_GROUP.md)): G-F1 to G-F5, G-E1 to G-E3, G-H1 to G-H7, G-U1 to G-U4, G-L1, G-L2, G-I1, G-X1 to G-X3 | 21/21 pass (G-H1, G-H4 local only) | not deployed |
 | **Total** | | **100/100 pass, twice in a row** | 73 pass, 2 skipped by design (version 19d443cb, before fix round 2) |
 
 Fix round 1, local: 75/75. FIX-6a uses a second local server with `--var ACCOUNT_LOCKOUT:on --port 8788`; it is skipped live, as is FIX-3 (cron trigger). Before the fix round, both full runs (local `wrangler dev`, then live deploy b48a4877) passed 49/49. « X1 strict » was added afterwards and run on its own, passing locally and live, which brings the totals to 50.

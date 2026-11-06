@@ -36,7 +36,9 @@ code{white-space:nowrap;font:500 .92em/1 var(--mono);background:var(--paper2);pa
 q{quotes:"« " " »"}
 
 /* type */
-.display{font:500 clamp(40px,6.4vw,92px)/.98 var(--serif);letter-spacing:-.02em;text-wrap:balance;overflow-wrap:break-word;min-width:0;max-width:15ch}
+.display{font:500 clamp(40px,6.4vw,92px)/.98 var(--serif);letter-spacing:-.02em;text-wrap:balance;overflow-wrap:normal;word-break:normal;hyphens:none;min-width:0;max-width:15ch}
+/* EYE-X-001: titles break between words only; a string with no space at all may still break (set by the server) */
+.display--wrap{overflow-wrap:break-word}
 .display--cg{font-size:clamp(36px,4.8vw,66px);max-width:18ch}
 .h1{font:500 clamp(32px,3.2vw,42px)/1.08 var(--serif);letter-spacing:-.01em;overflow-wrap:break-word;min-width:0;text-wrap:balance}
 .h2{font:500 clamp(25px,2.2vw,31px)/1.12 var(--serif);overflow-wrap:break-word;min-width:0}
@@ -181,6 +183,15 @@ main{display:block}
 .copy .field{flex:1 1 260px}
 .pend{display:grid;gap:8px;padding:16px;border:1px solid var(--rule);border-radius:var(--r2);background:var(--paper)}
 .pend__act{display:flex;flex-wrap:wrap;gap:12px}
+.diff{background:var(--st-rev-bg);color:inherit;padding:0 4px;border-radius:var(--r1)}
+.em{overflow-wrap:normal;word-break:keep-all}
+.grp .cg__grid{grid-template-rows:auto 1fr}
+.grp .cg__aside{grid-row:span 2}
+.grp__more{grid-column:1;min-width:0}
+.grp__more .grp__steps{margin-top:0}
+/* EYE-X-002: on short public pages the footer stays at the bottom of the window */
+body.pub{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
+body.pub>main{flex:1 0 auto;width:100%}
 .thanks{display:grid;gap:24px;padding:clamp(48px,8vw,120px) 0;max-width:46em}
 .thanks .lead{margin-top:16px}
 .thanks p .lnk{display:inline;min-height:0;line-height:inherit}
@@ -307,6 +318,7 @@ main{display:block}
   .tbl td>.v{display:block;min-width:0}
 }
 @media (max-width:960px){
+  .grp .cg__aside{grid-row:auto}
   .cat__grid,.cg__grid{grid-template-columns:minmax(0,1fr)}
   .filters,.cg__aside{position:static}
   .shell{grid-template-columns:minmax(0,1fr);min-height:0}
