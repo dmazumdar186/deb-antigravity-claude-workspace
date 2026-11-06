@@ -1,6 +1,6 @@
 {
  "meta": {
-  "generated": "2026-11-06T09:41:21.922Z",
+  "generated": "2026-11-06T09:53:06.527Z",
   "parts": {
    "a": {
     "at": "2026-11-06T09:31:58.126Z",
@@ -66,7 +66,7 @@
    "HUB:visiteur"
   ],
   "versions": {
-   "commit": "8a354864179b7e7593d14dc2ba0467052ce674ea",
+   "commit": "d00ec06fd83ede79a359eb270987e0e8509c7c3e",
    "dirty": [],
    "hub demo/index.html": "deployed = source",
    "hub index.html": "deployed = source",
@@ -130,7 +130,7 @@
   "A4": {
    "REAL": 2,
    "FALSE-POSITIVE": 0,
-   "UNTRIAGED": 28,
+   "UNTRIAGED": 0,
    "UNVERIFIED": 1
   },
   "A5": {
@@ -166,12 +166,12 @@
   "B4": {
    "REAL": 6,
    "FALSE-POSITIVE": 0,
-   "UNTRIAGED": 3
+   "UNTRIAGED": 0
   },
   "B5": {
    "REAL": 0,
-   "FALSE-POSITIVE": 0,
-   "UNTRIAGED": 7
+   "FALSE-POSITIVE": 7,
+   "UNTRIAGED": 0
   },
   "B6": {
    "REAL": 8,
@@ -186,7 +186,7 @@
   "C1": {
    "REAL": 2,
    "FALSE-POSITIVE": 0,
-   "UNTRIAGED": 1
+   "UNTRIAGED": 0
   },
   "C2": {
    "REAL": 0,
@@ -194,8 +194,8 @@
    "UNTRIAGED": 0
   },
   "C3": {
-   "REAL": 1,
-   "FALSE-POSITIVE": 0,
+   "REAL": 0,
+   "FALSE-POSITIVE": 2,
    "UNTRIAGED": 0
   },
   "C4": {
@@ -241,7 +241,7 @@
   "D2": {
    "REAL": 6,
    "FALSE-POSITIVE": 0,
-   "UNTRIAGED": 1
+   "UNTRIAGED": 0
   },
   "D3": {
    "REAL": 1,
@@ -285,7 +285,7 @@
   }
  },
  "realPerOption": {
-  "A": 11,
+  "A": 10,
   "B": 11,
   "HUB": 8,
   "A+B": 8,
@@ -363,627 +363,6 @@
    "ce": "CE-A4-002"
   },
   {
-   "key": "71d6627c47",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-   "note": "HTTP 404",
-   "element": "a « ASSET Voyages — démonstration »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « ASSET Voyages — démonstration »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "5ddb40509b",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/wp-login.php?redirect_to=https%3A%2F%2Fwpsandbox.wordpress.net%2Fscope%3Attxa-uyim-tjij%2Fwp-admin%2F",
-   "note": "HTTP 404",
-   "element": "a « Espace équipe »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Espace équipe »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "4636c24bf9",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=cardiologie",
-   "note": "HTTP 404",
-   "element": "a « Cardiologie »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Cardiologie »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "1ae383c934",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=diabetologie",
-   "note": "HTTP 404",
-   "element": "a « Diabétologie »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Diabétologie »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "2ea8ef3f2c",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=dermatologie",
-   "note": "HTTP 404",
-   "element": "a « Dermatologie »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Dermatologie »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "de3f9d0bf4",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=finance",
-   "note": "HTTP 404",
-   "element": "a « Finance »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Finance »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "2998e50bb6",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=hematologie",
-   "note": "HTTP 404",
-   "element": "a « Hématologie »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Hématologie »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "ae120a39fa",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=neurologie",
-   "note": "HTTP 404",
-   "element": "a « Neurologie »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Neurologie »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "ab76db9ef4",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=oncologie",
-   "note": "HTTP 404",
-   "element": "a « Oncologie »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Oncologie »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "2908d55a90",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/journees-mediterraneennes-doncologie-exemple/",
-   "note": "HTTP 404",
-   "element": "a « Journées méditerranéennes d’oncologie —  »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Journées méditerranéennes d’oncologie —  »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "696c6168d0",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-europeen-de-radiologie-exemple/",
-   "note": "HTTP 404",
-   "element": "a « Congrès européen de radiologie — exemple »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Congrès européen de radiologie — exemple »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "594b749b68",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=ophtalmologie",
-   "note": "HTTP 404",
-   "element": "a « Ophtalmologie »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Ophtalmologie »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "3d663b3699",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=ressources-humaines",
-   "note": "HTTP 404",
-   "element": "a « Ressources humaines »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Ressources humaines »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "8b96262ff3",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=pneumologie",
-   "note": "HTTP 404",
-   "element": "a « Pneumologie »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Pneumologie »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "71f5578ebc",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=radiologie",
-   "note": "HTTP 404",
-   "element": "a « Radiologie »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Radiologie »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "d1759d3755",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-dophtalmologie-de-paris-exemple/",
-   "note": "HTTP 404",
-   "element": "a « Congrès d’ophtalmologie de Paris — exemp »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Congrès d’ophtalmologie de Paris — exemp »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "4c728fc968",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-international-de-pneumologie-exemple/",
-   "note": "HTTP 404",
-   "element": "a « Congrès international de pneumologie — e »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Congrès international de pneumologie — e »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "750a488555",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/forum-europeen-des-ressources-humaines-exemple/",
-   "note": "HTTP 404",
-   "element": "a « Forum européen des ressources humaines — »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Forum européen des ressources humaines — »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "0ac101e8eb",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/journees-francophones-de-diabetologie-exemple/",
-   "note": "HTTP 404",
-   "element": "a « Journées francophones de diabétologie —  »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Journées francophones de diabétologie —  »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "f4544940c7",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-europeen-de-cardiologie-exemple/",
-   "note": "HTTP 404",
-   "element": "a « Congrès européen de cardiologie — exempl »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Congrès européen de cardiologie — exempl »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "0ce3221eaa",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-europeen-de-neurologie-exemple/",
-   "note": "HTTP 404",
-   "element": "a « Congrès européen de neurologie — exemple »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Congrès européen de neurologie — exemple »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "d326bcebdc",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?pg=2",
-   "note": "HTTP 404",
-   "element": "a « 2 »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « 2 »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "d3bd1c73ed",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-europeen-de-dermatologie-exemple/",
-   "note": "HTTP 404",
-   "element": "a « Congrès européen de dermatologie — exemp »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Congrès européen de dermatologie — exemp »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "fd9b344526",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/wp-content/themes/twentytwentyfive/style.min.css?ver=0.2.0",
-   "note": "HTTP 404",
-   "element": "link:stylesheet «  »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "link:stylesheet «  »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "c412305721",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/wp-content/plugins/asset-congres-demo/assets/css/public.css?ver=0.2.0",
-   "note": "HTTP 404",
-   "element": "link:stylesheet «  »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "link:stylesheet «  »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "b695aa69e1",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/wp-json/",
-   "note": "HTTP 404",
-   "element": "link:https://api.w.org/ «  »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "link:https://api.w.org/ «  »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "853315e039",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/xmlrpc.php?rsd",
-   "note": "HTTP 404",
-   "element": "link:EditURI «  »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "link:EditURI «  »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
    "key": "71a41e6fe7",
    "check": "A4",
    "option": "B",
@@ -1053,12 +432,12 @@
    "ce": "CE-A4-003"
   },
   {
-   "key": "f88eb1878b",
+   "key": "16cea18f91",
    "check": "A4",
    "option": "HUB",
-   "text": "https://www.cloudflare.com/products/registrar/",
-   "note": "apiRequestContext.get: Parse Error: Header overflow",
-   "element": "a « Cloudflare Registrar »",
+   "text": "https://www.sft.fr/docs/2024164729_sft-2022-enquete-traduction.pdf",
+   "note": "HTTP 403",
+   "element": "a « French translators’ union (SFT) 2022 sur »",
    "occurrences": [
     {
      "page": "https://asset-voyages-redesign.pages.dev/questions/",
@@ -1067,13 +446,13 @@
      "locale": "fr-FR",
      "state": "",
      "shot": "",
-     "element": "a « Cloudflare Registrar »"
+     "element": "a « French translators’ union (SFT) 2022 sur »"
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "UNVERIFIED",
+   "reason": "sft.fr answers 403 to scripted clients and to a real Chromium tab from this sandbox (a browser user-agent probe was refused by the auto-mode classifier). Needs one click from an ordinary browser.",
+   "ce": "CE-A4-001"
   },
   {
    "key": "eeca7f2a74",
@@ -1091,29 +470,6 @@
      "state": "",
      "shot": "",
      "element": "a « 2025 survey »"
-    }
-   ],
-   "count": 1,
-   "status": "UNVERIFIED",
-   "reason": "sft.fr answers 403 to scripted clients and to a real Chromium tab from this sandbox (a browser user-agent probe was refused by the auto-mode classifier). Needs one click from an ordinary browser.",
-   "ce": "CE-A4-001"
-  },
-  {
-   "key": "16cea18f91",
-   "check": "A4",
-   "option": "HUB",
-   "text": "https://www.sft.fr/docs/2024164729_sft-2022-enquete-traduction.pdf",
-   "note": "HTTP 403",
-   "element": "a « French translators’ union (SFT) 2022 sur »",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/questions/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « French translators’ union (SFT) 2022 sur »"
     }
    ],
    "count": 1,
@@ -2228,9 +1584,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Same defect as CE-B4-004, seen on the hosted visitor link too.",
+   "ce": "CE-B4-004"
   },
   {
    "key": "40e8188284",
@@ -2251,9 +1607,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Same defect as CE-B4-004, seen on the hosted visitor link too.",
+   "ce": "CE-B4-004"
   },
   {
    "key": "8b84b9723b",
@@ -2274,9 +1630,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Same defect as CE-B4-004, seen on the hosted visitor link too.",
+   "ce": "CE-B4-004"
   },
   {
    "key": "cd266b3a95",
@@ -2844,8 +2200,8 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
+   "status": "FALSE-POSITIVE",
+   "reason": "URL slugs in WordPress' « Identifiant » column. Tightened: words in td.column-slug are no longer collected for B5.",
    "ce": ""
   },
   {
@@ -2867,8 +2223,8 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
+   "status": "FALSE-POSITIVE",
+   "reason": "The login name shown in the « Identifiant » field of the profile screen: correct as typed.",
    "ce": ""
   },
   {
@@ -2890,8 +2246,8 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
+   "status": "FALSE-POSITIVE",
+   "reason": "URL slugs in WordPress' « Identifiant » column. Tightened: words in td.column-slug are no longer collected for B5.",
    "ce": ""
   },
   {
@@ -2913,8 +2269,8 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
+   "status": "FALSE-POSITIVE",
+   "reason": "URL slugs in WordPress' « Identifiant » column. Tightened: words in td.column-slug are no longer collected for B5.",
    "ce": ""
   },
   {
@@ -2936,8 +2292,8 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
+   "status": "FALSE-POSITIVE",
+   "reason": "Random stamp in the title of the congress this run created (« Congrès de relecture xxxx — exemple »).",
    "ce": ""
   },
   {
@@ -2959,8 +2315,8 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
+   "status": "FALSE-POSITIVE",
+   "reason": "WordPress core « Publier tout de suite » followed by the « Modifier » link, separated by CSS margin, not by a space character: the eye reads two words.",
    "ce": ""
   },
   {
@@ -2982,8 +2338,8 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
+   "status": "FALSE-POSITIVE",
+   "reason": "Random stamp in the title of the congress this run created (« Congrès de relecture xxxx — exemple »).",
    "ce": ""
   },
   {
@@ -3235,9 +2591,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Console line of the same WordPress core admin-ajax « wp-compression-test » 400 (CE-C1-001).",
+   "ce": "CE-C1-001"
   },
   {
    "key": "2b24f79046",
@@ -3349,9 +2705,9 @@
     }
    ],
    "count": 6,
-   "status": "REAL",
-   "reason": "The new-congress editor shows an empty 25 px box at the top of the form (938×25 at 1440, 368×25 at 390), see shots.",
-   "ce": "CE-C3-001"
+   "status": "FALSE-POSITIVE",
+   "reason": "WordPress core's #titlediv .inside (it later holds the permalink line) is empty on a new congress: 25 px of blank space with no border or background, not a visible empty box. Tightened: C3 only flags empty containers that have a border, a background or a shadow.",
+   "ce": ""
   },
   {
    "key": "237f45724a",
@@ -3390,9 +2746,9 @@
     }
    ],
    "count": 3,
-   "status": "REAL",
-   "reason": "The new-congress editor shows an empty 25 px box at the top of the form (938×25 at 1440, 368×25 at 390), see shots.",
-   "ce": "CE-C3-001"
+   "status": "FALSE-POSITIVE",
+   "reason": "WordPress core's #titlediv .inside (it later holds the permalink line) is empty on a new congress: 25 px of blank space with no border or background, not a visible empty box. Tightened: C3 only flags empty containers that have a border, a background or a shadow.",
+   "ce": ""
   },
   {
    "key": "0e5b7b4e16",
@@ -4420,9 +3776,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "Same defect as CE-D2-002, seen on the hosted visitor link too.",
+   "ce": "CE-D2-002"
   },
   {
    "key": "ed34769f19",
@@ -6991,7 +6347,7 @@
     "w": 354,
     "vw": 390
    },
-   "frames": 62
+   "frames": 66
   }
  ],
  "midnight": {

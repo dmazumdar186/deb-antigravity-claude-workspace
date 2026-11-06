@@ -171,6 +171,10 @@ export function collectPage(opts) {
     if ((el.innerText || '').trim()) continue;
     if (el.querySelector('img,svg,canvas,input,select,textarea,video,iframe,button,picture,object')) continue;
     if (el.closest('[aria-hidden=true]') || el.closest('#wpadminbar')) continue;
+    // Tightened: an empty container with no border, background or shadow is blank space, not a visible empty box
+    const cs = getComputedStyle(el);
+    const boxed = parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth) + parseFloat(cs.borderLeftWidth) > 0 || !/rgba\(0, 0, 0, 0\)|transparent/.test(cs.backgroundColor) || cs.boxShadow !== 'none';
+    if (!boxed) continue;
     out.empties.push({ path: cssPath(el), h: Math.round(r.height), w: Math.round(r.width) });
   }
   // 8. Clickables (C2, C10)

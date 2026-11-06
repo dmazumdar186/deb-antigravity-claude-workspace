@@ -35,7 +35,7 @@
 
     { "check": "C2", "option": "A", "match": "Monter|Descendre", "status": "FALSE-POSITIVE", "reason": "The dashboard widget's « Monter » is aria-disabled (first widget): the reader is told it is unavailable. Tightened: C2 now skips disabled / aria-disabled buttons." },
 
-    { "check": "C3", "option": "A", "match": "post-new\\.php", "status": "REAL", "ce": "CE-C3-001", "reason": "The new-congress editor shows an empty 25 px box at the top of the form (938×25 at 1440, 368×25 at 390), see shots." },
+    { "check": "C3", "option": "A", "match": "titlediv", "status": "FALSE-POSITIVE", "reason": "WordPress core's #titlediv .inside (it later holds the permalink line) is empty on a new congress: 25 px of blank space with no border or background, not a visible empty box. Tightened: C3 only flags empty containers that have a border, a background or a shadow." },
 
     { "check": "C4", "option": "A", "match": "CLS", "status": "REAL", "ce": "CE-C4-001", "reason": "WordPress admin screens shift after load: 0.02–0.07 (post-new 0.06–0.07 at 390, media-new 0.048, our Demandes detail 0.027 and Accès GM&E 0.022). Mostly core admin; the two plugin screens are ours." },
 
@@ -70,6 +70,14 @@
 
     { "check": "D4", "option": "A", "match": "DEMO-GME-XXXX", "status": "FALSE-POSITIVE", "reason": "« DEMO-GME-XXXX » is the format hint (placeholder) in Direction's code field, not a code. Tightened: CODE_RE excludes XXXX." },
 
+    { "check": "B4", "option": "A-hosted", "match": "orphan-dash", "status": "REAL", "ce": "CE-B4-004", "reason": "Same defect as CE-B4-004, seen on the hosted visitor link too." },
+    { "check": "D2", "option": "A-hosted", "match": "real congress", "status": "REAL", "ce": "CE-D2-002", "reason": "Same defect as CE-D2-002, seen on the hosted visitor link too." },
+    { "check": "B5", "option": "A", "match": "diabetologie|hematologie|etats-unis", "status": "FALSE-POSITIVE", "reason": "URL slugs in WordPress' « Identifiant » column. Tightened: words in td.column-slug are no longer collected for B5." },
+    { "check": "B5", "option": "A", "match": "^equipe ", "status": "FALSE-POSITIVE", "reason": "The login name shown in the « Identifiant » field of the profile screen: correct as typed." },
+    { "check": "B5", "match": "pmmo|yyd|relecture", "status": "FALSE-POSITIVE", "reason": "Random stamp in the title of the congress this run created (« Congrès de relecture xxxx — exemple »)." },
+    { "check": "B5", "option": "A", "match": "suiteModifier", "status": "FALSE-POSITIVE", "reason": "WordPress core « Publier tout de suite » followed by the « Modifier » link, separated by CSS margin, not by a space character: the eye reads two words." },
+    { "check": "C1", "option": "A", "match": "400 \\(Bad Request\\)", "status": "REAL", "ce": "CE-C1-001", "reason": "Console line of the same WordPress core admin-ajax « wp-compression-test » 400 (CE-C1-001)." },
+    { "check": "A4", "option": "A-hosted", "match": "wpsandbox\\.wordpress\\.net/scope:", "status": "FALSE-POSITIVE", "reason": "Hosted Playground pages exist only inside the visitor's own tab (service worker), so an outside checker gets 404. Tightened: A4 skips wpsandbox.wordpress.net/scope: URLs (the same links are checked on the local build)." },
     { "check": "B7", "option": "A", "match": "diabetologie|hematologie|etats-unis", "status": "FALSE-POSITIVE", "reason": "WordPress' « Identifiant » column shows URL slugs, accent-free by design. Tightened: B7 skips td.column-slug." }
   ]
 }

@@ -120,7 +120,7 @@ export async function snap(page, opts) {
   // C3: blank boxes
   if (on('C3')) for (const e of data.empties) finding({ ...base, check: 'C3', text: `${e.w}×${e.h} px empty`, element: e.path, note: 'visible container with no text or media' });
   // Inventories for page-independent checks (B5 spelling, B6 glossary, C5 styles, A4 links, A5 videos, C2)
-  RUN.words.push({ option: opts.option, page: data.url, state: opts.state, role: m.role, width, lang, texts: data.texts.filter((t) => !t.code).map((t) => t.tNoCode || t.t), attrs: data.attrs.filter((a) => a.visible).map((a) => a.t) });
+  RUN.words.push({ option: opts.option, page: data.url, state: opts.state, role: m.role, width, lang, texts: data.texts.filter((t) => !t.code && !/column-slug/.test(t.path || '')).map((t) => t.tNoCode || t.t), attrs: data.attrs.filter((a) => a.visible).map((a) => a.t) });
   RUN.labels.push({ option: opts.option, state: opts.state, labels: [...new Set(data.texts.map((t) => t.t).filter((t) => t.length <= 80))], clickables: data.clickables });
   RUN.styles.push({ option: opts.option, surface: opts.surface, state: opts.state, width, styles: data.styles });
   // « #… » links stay on the page (skip link, error summary): their targets are checked by C6, not fetched as URLs

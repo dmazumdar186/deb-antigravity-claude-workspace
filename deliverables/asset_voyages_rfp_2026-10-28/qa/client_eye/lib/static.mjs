@@ -45,7 +45,8 @@ export async function checkLinks(request, browserCheck) {
   // Excluded: canonical/alternate <link>s (metadata, not something a reader opens) and pages of the congress this
   // run created in its own private sandbox (« Congrès de relecture … »): an anonymous checker cannot see them.
   // WordPress draft previews (« ?preview=true ») open only for a signed-in editor: an anonymous checker gets 404 by design.
-  const queue = all.filter((e) => /^https?:/.test(e.url) && reachable(e) && !e.refs.every((r) => /^link:(canonical|alternate)/.test(r.kind || '')) && !/congres-de-relecture-|[?&]preview=true/.test(e.url) && !/\/console\/deconnexion|action=logout|_wpnonce|wp-login\.php\?action=|reinitialiser|export\.csv|groupe\.csv|\.csv\?|asset_export|download/.test(e.url));
+  // Hosted Playground pages (wpsandbox.wordpress.net/scope:…) exist only inside the visitor's own tab (service worker).
+  const queue = all.filter((e) => /^https?:/.test(e.url) && reachable(e) && !e.refs.every((r) => /^link:(canonical|alternate)/.test(r.kind || '')) && !/congres-de-relecture-|[?&]preview=true|wpsandbox\.wordpress\.net\/scope:/.test(e.url) && !/\/console\/deconnexion|action=logout|_wpnonce|wp-login\.php\?action=|reinitialiser|export\.csv|groupe\.csv|\.csv\?|asset_export|download/.test(e.url));
   for (const e of all.filter((x) => /^mailto:/.test(x.url))) {
     const ok = /^mailto:[^@\s"<>]+@[\w-]+(\.[\w-]+)+(\?[^\s"<>]*)?$/.test(e.url.replace(/&amp;/g, '&'));
     if (!ok) finding({ check: 'A4', option: e.refs[0].option, page: e.refs[0].from, text: e.url.slice(0, 120), element: 'a[href^=mailto]', note: 'malformed mailto' });
