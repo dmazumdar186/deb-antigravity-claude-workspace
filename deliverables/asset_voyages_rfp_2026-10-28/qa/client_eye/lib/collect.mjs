@@ -89,6 +89,9 @@ export function collectPage(opts) {
     const parts = blocks.get(b).parts;
     let sep = '';
     if (parts.length) {
+      // a whitespace-only text node between two elements (« <strong>ASSET Voyages</strong> <span>demos</span> ») is a space
+      const tw = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); tw.currentNode = n; const pv = tw.previousNode();
+      if (pv && pv !== parts[parts.length - 1].node && !pv.nodeValue.trim()) sep = ' ';
       let e = n.previousSibling; while (e && e.nodeType === 3 && !e.nodeValue.trim()) e = e.previousSibling;
       const boxy = (el) => el && /^inline-(block|flex|grid|table)$/.test(getComputedStyle(el).display);
       const prevNode = parts[parts.length - 1].node;

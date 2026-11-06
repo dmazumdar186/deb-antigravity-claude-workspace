@@ -1,6 +1,6 @@
 {
  "meta": {
-  "generated": "2026-11-06T09:33:52.284Z",
+  "generated": "2026-11-06T09:41:21.922Z",
   "parts": {
    "a": {
     "at": "2026-11-06T09:31:58.126Z",
@@ -36,7 +36,7 @@
     }
    },
    "hub": {
-    "at": "2026-11-06T09:04:59.284Z",
+    "at": "2026-11-06T09:39:24.792Z",
     "findings": 56,
     "states": 40,
     "logins": 0,
@@ -66,7 +66,7 @@
    "HUB:visiteur"
   ],
   "versions": {
-   "commit": "e156a5d132523cc6b88a319cd7929ace8a4ec785",
+   "commit": "8a354864179b7e7593d14dc2ba0467052ce674ea",
    "dirty": [],
    "hub demo/index.html": "deployed = source",
    "hub index.html": "deployed = source",
@@ -130,7 +130,7 @@
   "A4": {
    "REAL": 2,
    "FALSE-POSITIVE": 0,
-   "UNTRIAGED": 27,
+   "UNTRIAGED": 28,
    "UNVERIFIED": 1
   },
   "A5": {
@@ -171,7 +171,7 @@
   "B5": {
    "REAL": 0,
    "FALSE-POSITIVE": 0,
-   "UNTRIAGED": 150
+   "UNTRIAGED": 7
   },
   "B6": {
    "REAL": 8,
@@ -363,6 +363,29 @@
    "ce": "CE-A4-002"
   },
   {
+   "key": "71d6627c47",
+   "check": "A4",
+   "option": "A-hosted",
+   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+   "note": "HTTP 404",
+   "element": "a « ASSET Voyages — démonstration »",
+   "occurrences": [
+    {
+     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "a « ASSET Voyages — démonstration »"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
    "key": "5ddb40509b",
    "check": "A4",
    "option": "A-hosted",
@@ -401,29 +424,6 @@
      "state": "",
      "shot": "",
      "element": "a « Cardiologie »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "71d6627c47",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-   "note": "HTTP 404",
-   "element": "a « ASSET Voyages — démonstration »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « ASSET Voyages — démonstration »"
     }
    ],
    "count": 1,
@@ -524,29 +524,6 @@
    "ce": ""
   },
   {
-   "key": "71f5578ebc",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=radiologie",
-   "note": "HTTP 404",
-   "element": "a « Radiologie »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Radiologie »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
    "key": "ae120a39fa",
    "check": "A4",
    "option": "A-hosted",
@@ -585,75 +562,6 @@
      "state": "",
      "shot": "",
      "element": "a « Oncologie »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "594b749b68",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=ophtalmologie",
-   "note": "HTTP 404",
-   "element": "a « Ophtalmologie »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Ophtalmologie »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "8b96262ff3",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=pneumologie",
-   "note": "HTTP 404",
-   "element": "a « Pneumologie »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Pneumologie »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "3d663b3699",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=ressources-humaines",
-   "note": "HTTP 404",
-   "element": "a « Ressources humaines »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Ressources humaines »"
     }
    ],
    "count": 1,
@@ -708,12 +616,12 @@
    "ce": ""
   },
   {
-   "key": "0ac101e8eb",
+   "key": "594b749b68",
    "check": "A4",
    "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/journees-francophones-de-diabetologie-exemple/",
+   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=ophtalmologie",
    "note": "HTTP 404",
-   "element": "a « Journées francophones de diabétologie —  »",
+   "element": "a « Ophtalmologie »",
    "occurrences": [
     {
      "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
@@ -722,7 +630,7 @@
      "locale": "fr-FR",
      "state": "",
      "shot": "",
-     "element": "a « Journées francophones de diabétologie —  »"
+     "element": "a « Ophtalmologie »"
     }
    ],
    "count": 1,
@@ -731,12 +639,12 @@
    "ce": ""
   },
   {
-   "key": "750a488555",
+   "key": "3d663b3699",
    "check": "A4",
    "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/forum-europeen-des-ressources-humaines-exemple/",
+   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=ressources-humaines",
    "note": "HTTP 404",
-   "element": "a « Forum européen des ressources humaines — »",
+   "element": "a « Ressources humaines »",
    "occurrences": [
     {
      "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
@@ -745,7 +653,7 @@
      "locale": "fr-FR",
      "state": "",
      "shot": "",
-     "element": "a « Forum européen des ressources humaines — »"
+     "element": "a « Ressources humaines »"
     }
    ],
    "count": 1,
@@ -754,12 +662,12 @@
    "ce": ""
   },
   {
-   "key": "0ce3221eaa",
+   "key": "8b96262ff3",
    "check": "A4",
    "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-europeen-de-neurologie-exemple/",
+   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=pneumologie",
    "note": "HTTP 404",
-   "element": "a « Congrès européen de neurologie — exemple »",
+   "element": "a « Pneumologie »",
    "occurrences": [
     {
      "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
@@ -768,7 +676,30 @@
      "locale": "fr-FR",
      "state": "",
      "shot": "",
-     "element": "a « Congrès européen de neurologie — exemple »"
+     "element": "a « Pneumologie »"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "71f5578ebc",
+   "check": "A4",
+   "option": "A-hosted",
+   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/?discipline=radiologie",
+   "note": "HTTP 404",
+   "element": "a « Radiologie »",
+   "occurrences": [
+    {
+     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "a « Radiologie »"
     }
    ],
    "count": 1,
@@ -800,29 +731,6 @@
    "ce": ""
   },
   {
-   "key": "f4544940c7",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-europeen-de-cardiologie-exemple/",
-   "note": "HTTP 404",
-   "element": "a « Congrès européen de cardiologie — exempl »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « Congrès européen de cardiologie — exempl »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
    "key": "4c728fc968",
    "check": "A4",
    "option": "A-hosted",
@@ -846,12 +754,12 @@
    "ce": ""
   },
   {
-   "key": "d3bd1c73ed",
+   "key": "750a488555",
    "check": "A4",
    "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-europeen-de-dermatologie-exemple/",
+   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/forum-europeen-des-ressources-humaines-exemple/",
    "note": "HTTP 404",
-   "element": "a « Congrès européen de dermatologie — exemp »",
+   "element": "a « Forum européen des ressources humaines — »",
    "occurrences": [
     {
      "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
@@ -860,7 +768,76 @@
      "locale": "fr-FR",
      "state": "",
      "shot": "",
-     "element": "a « Congrès européen de dermatologie — exemp »"
+     "element": "a « Forum européen des ressources humaines — »"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "0ac101e8eb",
+   "check": "A4",
+   "option": "A-hosted",
+   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/journees-francophones-de-diabetologie-exemple/",
+   "note": "HTTP 404",
+   "element": "a « Journées francophones de diabétologie —  »",
+   "occurrences": [
+    {
+     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "a « Journées francophones de diabétologie —  »"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "f4544940c7",
+   "check": "A4",
+   "option": "A-hosted",
+   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-europeen-de-cardiologie-exemple/",
+   "note": "HTTP 404",
+   "element": "a « Congrès européen de cardiologie — exempl »",
+   "occurrences": [
+    {
+     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "a « Congrès européen de cardiologie — exempl »"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "0ce3221eaa",
+   "check": "A4",
+   "option": "A-hosted",
+   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-europeen-de-neurologie-exemple/",
+   "note": "HTTP 404",
+   "element": "a « Congrès européen de neurologie — exemple »",
+   "occurrences": [
+    {
+     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "a « Congrès européen de neurologie — exemple »"
     }
    ],
    "count": 1,
@@ -892,12 +869,12 @@
    "ce": ""
   },
   {
-   "key": "b695aa69e1",
+   "key": "d3bd1c73ed",
    "check": "A4",
    "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/wp-json/",
+   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/congres/congres-europeen-de-dermatologie-exemple/",
    "note": "HTTP 404",
-   "element": "link:https://api.w.org/ «  »",
+   "element": "a « Congrès européen de dermatologie — exemp »",
    "occurrences": [
     {
      "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
@@ -906,30 +883,7 @@
      "locale": "fr-FR",
      "state": "",
      "shot": "",
-     "element": "link:https://api.w.org/ «  »"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "853315e039",
-   "check": "A4",
-   "option": "A-hosted",
-   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/xmlrpc.php?rsd",
-   "note": "HTTP 404",
-   "element": "link:EditURI «  »",
-   "occurrences": [
-    {
-     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "link:EditURI «  »"
+     "element": "a « Congrès européen de dermatologie — exemp »"
     }
    ],
    "count": 1,
@@ -976,6 +930,52 @@
      "state": "",
      "shot": "",
      "element": "link:stylesheet «  »"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "b695aa69e1",
+   "check": "A4",
+   "option": "A-hosted",
+   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/wp-json/",
+   "note": "HTTP 404",
+   "element": "link:https://api.w.org/ «  »",
+   "occurrences": [
+    {
+     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "link:https://api.w.org/ «  »"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "853315e039",
+   "check": "A4",
+   "option": "A-hosted",
+   "text": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/xmlrpc.php?rsd",
+   "note": "HTTP 404",
+   "element": "link:EditURI «  »",
+   "occurrences": [
+    {
+     "page": "https://wpsandbox.wordpress.net/scope:ttxa-uyim-tjij/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "link:EditURI «  »"
     }
    ],
    "count": 1,
@@ -1053,12 +1053,12 @@
    "ce": "CE-A4-003"
   },
   {
-   "key": "16cea18f91",
+   "key": "f88eb1878b",
    "check": "A4",
    "option": "HUB",
-   "text": "https://www.sft.fr/docs/2024164729_sft-2022-enquete-traduction.pdf",
-   "note": "HTTP 403",
-   "element": "a « French translators’ union (SFT) 2022 sur »",
+   "text": "https://www.cloudflare.com/products/registrar/",
+   "note": "apiRequestContext.get: Parse Error: Header overflow",
+   "element": "a « Cloudflare Registrar »",
    "occurrences": [
     {
      "page": "https://asset-voyages-redesign.pages.dev/questions/",
@@ -1067,13 +1067,13 @@
      "locale": "fr-FR",
      "state": "",
      "shot": "",
-     "element": "a « French translators’ union (SFT) 2022 sur »"
+     "element": "a « Cloudflare Registrar »"
     }
    ],
    "count": 1,
-   "status": "UNVERIFIED",
-   "reason": "sft.fr answers 403 to scripted clients and to a real Chromium tab from this sandbox (a browser user-agent probe was refused by the auto-mode classifier). Needs one click from an ordinary browser.",
-   "ce": "CE-A4-001"
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
   },
   {
    "key": "eeca7f2a74",
@@ -1091,6 +1091,29 @@
      "state": "",
      "shot": "",
      "element": "a « 2025 survey »"
+    }
+   ],
+   "count": 1,
+   "status": "UNVERIFIED",
+   "reason": "sft.fr answers 403 to scripted clients and to a real Chromium tab from this sandbox (a browser user-agent probe was refused by the auto-mode classifier). Needs one click from an ordinary browser.",
+   "ce": "CE-A4-001"
+  },
+  {
+   "key": "16cea18f91",
+   "check": "A4",
+   "option": "HUB",
+   "text": "https://www.sft.fr/docs/2024164729_sft-2022-enquete-traduction.pdf",
+   "note": "HTTP 403",
+   "element": "a « French translators’ union (SFT) 2022 sur »",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "a « French translators’ union (SFT) 2022 sur »"
     }
    ],
    "count": 1,
@@ -2803,282 +2826,6 @@
    "ce": "CE-B4-001"
   },
   {
-   "key": "9329d98650",
-   "check": "B5",
-   "option": "A",
-   "text": "admin",
-   "note": "unknown fr word in « admin » (1×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-demandes&action=view&id=30",
-     "role": "equipe",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "34965dcb35",
-   "check": "B5",
-   "option": "A",
-   "text": "Allemagne",
-   "note": "unknown fr word in « Allemagne » (83×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "899a1eda13",
-   "check": "B5",
-   "option": "A",
-   "text": "Amsterdam",
-   "note": "unknown fr word in « Amsterdam, Pays-Bas » (32×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "ff624ee9c4",
-   "check": "B5",
-   "option": "A",
-   "text": "Band",
-   "note": "unknown fr word in « Assignez un terme parent pour créer une hiérarchie. Le terme Jazz, par exemple, serait le parent de Bebop et Big Band. » (10×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/edit-tags.php?taxonomy=asset_discipline&post_type=asset_congres",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "db36f58496",
-   "check": "B5",
-   "option": "A",
-   "text": "Bebop",
-   "note": "unknown fr word in « Assignez un terme parent pour créer une hiérarchie. Le terme Jazz, par exemple, serait le parent de Bebop et Big Band. » (10×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/edit-tags.php?taxonomy=asset_discipline&post_type=asset_congres",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "aa91c97a14",
-   "check": "B5",
-   "option": "A",
-   "text": "Berlin",
-   "note": "unknown fr word in « Berlin, Allemagne » (16×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/?pg=2",
-     "role": "visiteur",
-     "width": 390,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "2a1f776d20",
-   "check": "B5",
-   "option": "A",
-   "text": "Bernard",
-   "note": "unknown fr word in « Julien Bernard julien.bernard @example.com Laboratoire Fictif SA » (7×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-demandes",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "6d3644f982",
-   "check": "B5",
-   "option": "A",
-   "text": "Big",
-   "note": "unknown fr word in « Assignez un terme parent pour créer une hiérarchie. Le terme Jazz, par exemple, serait le parent de Bebop et Big Band. » (10×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/edit-tags.php?taxonomy=asset_discipline&post_type=asset_congres",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "d131cec5bb",
-   "check": "B5",
-   "option": "A",
-   "text": "Bruxelles",
-   "note": "unknown fr word in « Bruxelles » (8×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "a4349a1c3d",
-   "check": "B5",
-   "option": "A",
-   "text": "Camille",
-   "note": "unknown fr word in « Dernière demande : DV-2026-0006 · Camille Martin · Congrès européen de cardiologie — exemple » (28×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/index.php",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "89093e003c",
-   "check": "B5",
-   "option": "A",
-   "text": "Chicago",
-   "note": "unknown fr word in « Chicago, États-Unis » (28×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/?s_congres=cardiologie&q=cardiologie",
-     "role": "visiteur",
-     "width": 390,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "f81ed77364",
-   "check": "B5",
-   "option": "A",
-   "text": "cliquez",
-   "note": "unknown fr word in « Rédigez un congrès puis cliquez sur « Soumettre pour relecture » : la Direction le publie. » (2×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/index.php",
-     "role": "contributeur",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
    "key": "05841c4072",
    "check": "B5",
    "option": "A",
@@ -3090,98 +2837,6 @@
      "page": "http://127.0.0.1:9439/wp-admin/edit-tags.php?taxonomy=asset_discipline&post_type=asset_congres",
      "role": "direction",
      "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "e18edd5c4a",
-   "check": "B5",
-   "option": "A",
-   "text": "Dubois",
-   "note": "unknown fr word in « Sophie Dubois sophie.dubois @example.com » (40×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-demandes",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "b508212f50",
-   "check": "B5",
-   "option": "A",
-   "text": "démo",
-   "note": "unknown fr word in « Bonjour, Direction (démo) » (193×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/index.php",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "e9c9f638b8",
-   "check": "B5",
-   "option": "A",
-   "text": "e-mail",
-   "note": "unknown fr word in « Toutes les données sont fictives : congrès, personnes, adresses e-mail en @example.com et codes GM&E factices. Aucun e-m » (267×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "0056431f6e",
-   "check": "B5",
-   "option": "A",
-   "text": "English",
-   "note": "unknown fr word in « English (United States) » (12×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-login.php",
-     "role": "visiteur",
-     "width": 390,
      "locale": "fr-FR",
      "state": "",
      "shot": "",
@@ -3240,98 +2895,6 @@
    "ce": ""
   },
   {
-   "key": "8e752c7ca7",
-   "check": "B5",
-   "option": "A",
-   "text": "Events",
-   "note": "unknown fr word in « Codes tarifaires Air France-KLM Global Meetings & Events (codes fictifs de démonstration). Ils sont chiffrés, masqués pa » (43×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-gme",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "fc422d679f",
-   "check": "B5",
-   "option": "A",
-   "text": "Fresh",
-   "note": "unknown fr word in « Par défaut Fresh Lumineux Bleu Café Ectoplasme Minuit Océan Lever du soleil » (7×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/profile.php",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "32ab34ab54",
-   "check": "B5",
-   "option": "A",
-   "text": "Genève",
-   "note": "unknown fr word in « Genève » (8×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "f53781ed71",
-   "check": "B5",
-   "option": "A",
-   "text": "Gravatar",
-   "note": "unknown fr word in « Vous pouvez changer votre image de profil sur Gravatar. » (7×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/profile.php",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
    "key": "5cedda81a6",
    "check": "B5",
    "option": "A",
@@ -3343,374 +2906,6 @@
      "page": "http://127.0.0.1:9439/wp-admin/edit-tags.php?taxonomy=asset_discipline&post_type=asset_congres",
      "role": "direction",
      "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "52941d21c2",
-   "check": "B5",
-   "option": "A",
-   "text": "https",
-   "note": "unknown fr word in « https:// » (9×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/post-new.php?post_type=asset_congres",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "067256a574",
-   "check": "B5",
-   "option": "A",
-   "text": "Hugo",
-   "note": "unknown fr word in « Hugo Laurent hugo.laurent @example.com Cabinet Exemple » (19×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-demandes",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "ae34f815c8",
-   "check": "B5",
-   "option": "A",
-   "text": "Julien",
-   "note": "unknown fr word in « Julien Bernard julien.bernard @example.com Laboratoire Fictif SA » (7×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-demandes",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "03fdeb012e",
-   "check": "B5",
-   "option": "A",
-   "text": "Laurent",
-   "note": "unknown fr word in « Hugo Laurent hugo.laurent @example.com Cabinet Exemple » (26×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-demandes",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "0cfa4b6797",
-   "check": "B5",
-   "option": "A",
-   "text": "Lisbonne",
-   "note": "unknown fr word in « Lisbonne, Portugal » (41×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "9a6f94bb23",
-   "check": "B5",
-   "option": "A",
-   "text": "Londres",
-   "note": "unknown fr word in « Londres, Royaume-Uni » (16×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/?pg=2",
-     "role": "visiteur",
-     "width": 390,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "86d2581267",
-   "check": "B5",
-   "option": "A",
-   "text": "Lyon",
-   "note": "unknown fr word in « Lyon, France » (62×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "4ff1ebaed4",
-   "check": "B5",
-   "option": "A",
-   "text": "Léa",
-   "note": "unknown fr word in « Léa Moreau lea.moreau @example.com » (28×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-demandes",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "31e3b2a78a",
-   "check": "B5",
-   "option": "A",
-   "text": "Madrid",
-   "note": "unknown fr word in « Madrid, Espagne » (51×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "e088d11ac0",
-   "check": "B5",
-   "option": "A",
-   "text": "Marseille",
-   "note": "unknown fr word in « Marseille, France » (95×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "02537e8967",
-   "check": "B5",
-   "option": "A",
-   "text": "Martin",
-   "note": "unknown fr word in « Dernière demande : DV-2026-0006 · Camille Martin · Congrès européen de cardiologie — exemple » (152×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/index.php",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "30efd2d9c1",
-   "check": "B5",
-   "option": "A",
-   "text": "Moreau",
-   "note": "unknown fr word in « Léa Moreau lea.moreau @example.com » (29×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-demandes",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "2c05cafe0f",
-   "check": "B5",
-   "option": "A",
-   "text": "multi-fichiers",
-   "note": "unknown fr word in « Vous utilisez l’outil de téléversement multi-fichiers. Si vous rencontrez des problèmes, essayez plutôt la méthode du na » (5×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/media-new.php",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "2b8ccaf51d",
-   "check": "B5",
-   "option": "A",
-   "text": "Nantes",
-   "note": "unknown fr word in « Nantes » (21×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-demandes",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "1bdbc6c3cc",
-   "check": "B5",
-   "option": "A",
-   "text": "Nice",
-   "note": "unknown fr word in « Nice » (14×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "81111e105a",
-   "check": "B5",
-   "option": "A",
-   "text": "Oncologie",
-   "note": "unknown fr word in « Oncologie » (447×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/",
-     "role": "visiteur",
-     "width": 320,
      "locale": "fr-FR",
      "state": "",
      "shot": "",
@@ -3746,213 +2941,6 @@
    "ce": ""
   },
   {
-   "key": "601be43aa7",
-   "check": "B5",
-   "option": "A",
-   "text": "Pneumologie",
-   "note": "unknown fr word in « Pneumologie » (201×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "8e0eb045b9",
-   "check": "B5",
-   "option": "A",
-   "text": "Prévisualiser",
-   "note": "unknown fr word in « Prévisualiser » (9×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/post-new.php?post_type=asset_congres",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "4cbfa8bb6c",
-   "check": "B5",
-   "option": "A",
-   "text": "Pseudo",
-   "note": "unknown fr word in « Pseudo (nécessaire) » (7×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/profile.php",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "703c9bb858",
-   "check": "B5",
-   "option": "A",
-   "text": "recontacte",
-   "note": "unknown fr word in « Un conseiller ASSET vous recontacte avec une proposition (démonstration : aucun e-mail n’est réellement envoyé). » (3×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/congres/congres-europeen-de-cardiologie-exemple/?asset_ok=9d7a15751f8c376dd1730ce8bd1aca78#devis",
-     "role": "visiteur",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "ebafbff969",
-   "check": "B5",
-   "option": "A",
-   "text": "rhumatologie",
-   "note": "unknown fr word in « Congrès de rhumatologie, brouillon — exemple — Brouillon » (86×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "28bd4dcc83",
-   "check": "B5",
-   "option": "A",
-   "text": "single-asset",
-   "note": "unknown fr word in « single-asset_congres » (9×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/post-new.php?post_type=asset_congres",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "0ed0b40d6d",
-   "check": "B5",
-   "option": "A",
-   "text": "Slug",
-   "note": "unknown fr word in « Slug » (32×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/edit-tags.php?taxonomy=asset_discipline&post_type=asset_congres",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "77a3a1292d",
-   "check": "B5",
-   "option": "A",
-   "text": "Sophie",
-   "note": "unknown fr word in « Sophie Dubois sophie.dubois @example.com » (17×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-demandes",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "2903ed7345",
-   "check": "B5",
-   "option": "A",
-   "text": "States",
-   "note": "unknown fr word in « English (United States) » (12×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-login.php",
-     "role": "visiteur",
-     "width": 390,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
    "key": "7db240947d",
    "check": "B5",
    "option": "A",
@@ -3963,788 +2951,6 @@
     {
      "page": "http://127.0.0.1:9439/wp-admin/post-new.php?post_type=asset_congres",
      "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "294f323ec5",
-   "check": "B5",
-   "option": "A",
-   "text": "Thomas",
-   "note": "unknown fr word in « Thomas Petit thomas.petit @example.com Groupe hospitalier Exemple » (7×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-demandes",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "efa036a3cf",
-   "check": "B5",
-   "option": "A",
-   "text": "Toulouse",
-   "note": "unknown fr word in « Toulouse » (18×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-demandes",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "60f21c42c6",
-   "check": "B5",
-   "option": "A",
-   "text": "téléversement",
-   "note": "unknown fr word in « Vous utilisez l’outil de téléversement multi-fichiers. Si vous rencontrez des problèmes, essayez plutôt la méthode du na » (10×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/media-new.php",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "1c98111fdd",
-   "check": "B5",
-   "option": "A",
-   "text": "Téléverser",
-   "note": "unknown fr word in « Téléverser un média » (10×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/media-new.php",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "b9bb97b7c4",
-   "check": "B5",
-   "option": "A",
-   "text": "United",
-   "note": "unknown fr word in « English (United States) » (12×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-login.php",
-     "role": "visiteur",
-     "width": 390,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "899b4aa873",
-   "check": "B5",
-   "option": "A",
-   "text": "web",
-   "note": "unknown fr word in « Site web » (7×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/profile.php",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "a2e6f821c1",
-   "check": "B5",
-   "option": "A",
-   "text": "XML-RPC",
-   "note": "unknown fr word in « Les mots de passe d’application autorisent l’authentification via des systèmes non-interactifs tels que XML-RPC ou l’API » (7×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "http://127.0.0.1:9439/wp-admin/profile.php",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "a196079f1c",
-   "check": "B5",
-   "option": "B",
-   "text": "Alice",
-   "note": "unknown fr word in « Alice Martin (exemple) » (11×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/1/groupe",
-     "role": "equipe",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "d1fe5839a3",
-   "check": "B5",
-   "option": "B",
-   "text": "Ariane",
-   "note": "unknown fr word in « Fil d’Ariane » (42×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/congres/journees-d-oncologie-digestive-cg-0112",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "6a118a346f",
-   "check": "B5",
-   "option": "B",
-   "text": "avr",
-   "note": "unknown fr word in « 13 au 14 avr. 2027 » (33×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "032b764ef1",
-   "check": "B5",
-   "option": "B",
-   "text": "Benali",
-   "note": "unknown fr word in « Karim Benali, Équipe ASSET : congrès et demandes ; codes GM&E masqués, accès sur demande. » (115×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion",
-     "role": "visiteur",
-     "width": 390,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "0c28a8448b",
-   "check": "B5",
-   "option": "B",
-   "text": "Bruno",
-   "note": "unknown fr word in « Bruno Leroy (exemple) » (11×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/1/groupe",
-     "role": "equipe",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "b1f11ffd8d",
-   "check": "B5",
-   "option": "B",
-   "text": "Chloé",
-   "note": "unknown fr word in « Chloé Petit (exemple) » (11×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/1/groupe",
-     "role": "equipe",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "943423e38c",
-   "check": "B5",
-   "option": "B",
-   "text": "Durand",
-   "note": "unknown fr word in « Sophie Durand (exemple) » (9×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/g/twruHve8KdaRoY4dFPkE2iRL4n38WnpDROeWbeF1xXw/merci?d=qludSw0YUJNe.1793958293.eeVVPcb3hXmlBW2VAmMk-B5ht3ydRnRi6TZ_IRlDRpQ",
-     "role": "voyageur",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "e84738c66c",
-   "check": "B5",
-   "option": "B",
-   "text": "févr",
-   "note": "unknown fr word in « 24 au 28 févr. 2027 » (28×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "cf19ae3b1d",
-   "check": "B5",
-   "option": "B",
-   "text": "Garnier",
-   "note": "unknown fr word in « Léa Garnier (exemple) » (21×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "b4de9f91a3",
-   "check": "B5",
-   "option": "B",
-   "text": "Gastro-entérologie",
-   "note": "unknown fr word in « Gastro-entérologie » (8×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres/nouveau",
-     "role": "contributeur",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "c43e3419e6",
-   "check": "B5",
-   "option": "B",
-   "text": "Hélène",
-   "note": "unknown fr word in « Hélène Martin, Direction ASSET : tout, y compris les codes GM&E et les autorisations. » (117×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion",
-     "role": "visiteur",
-     "width": 390,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "b4dfb8e4ce",
-   "check": "B5",
-   "option": "B",
-   "text": "interventionnelle",
-   "note": "unknown fr word in « Imagerie diagnostique et interventionnelle, intelligence artificielle en radiologie. Fiche d’exemple pour la démonstrati » (2×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres/108",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "fb2dacaa40",
-   "check": "B5",
-   "option": "B",
-   "text": "Inès",
-   "note": "unknown fr word in « Inès Moreau (exemple) » (22×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "9ec94c5812",
-   "check": "B5",
-   "option": "B",
-   "text": "janv",
-   "note": "unknown fr word in « 28 au 30 janv. 2027 » (72×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "37ba5eb062",
-   "check": "B5",
-   "option": "B",
-   "text": "juil",
-   "note": "unknown fr word in « 5 au 7 juil. 2027 » (13×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "6b4c8ad66f",
-   "check": "B5",
-   "option": "B",
-   "text": "Julie",
-   "note": "unknown fr word in « Julie Roux, contributrice : prépare des brouillons et les soumet à relecture, sans publier. » (23×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion",
-     "role": "visiteur",
-     "width": 390,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "7729905fa7",
-   "check": "B5",
-   "option": "B",
-   "text": "Karim",
-   "note": "unknown fr word in « Karim Benali, Équipe ASSET : congrès et demandes ; codes GM&E masqués, accès sur demande. » (115×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion",
-     "role": "visiteur",
-     "width": 390,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "fb6d96a7a1",
-   "check": "B5",
-   "option": "B",
-   "text": "Lefebvre",
-   "note": "unknown fr word in « Paul Lefebvre (exemple) » (21×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "9030e169cb",
-   "check": "B5",
-   "option": "B",
-   "text": "Leroy",
-   "note": "unknown fr word in « Bruno Leroy (exemple) » (11×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/1/groupe",
-     "role": "equipe",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "1e1e084cc4",
-   "check": "B5",
-   "option": "B",
-   "text": "Lille",
-   "note": "unknown fr word in « Départ de Lille 27/01/2027 au 31/01/2027 6 passagers » (52×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "8a9a1a46d4",
-   "check": "B5",
-   "option": "B",
-   "text": "Nathan",
-   "note": "unknown fr word in « Nathan Roux (exemple) » (22×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "63cbe47411",
-   "check": "B5",
-   "option": "B",
-   "text": "nov",
-   "note": "unknown fr word in « 13 au 16 nov. 2027 » (15×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/?q=cardiologie",
-     "role": "visiteur",
-     "width": 390,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "015190111f",
-   "check": "B5",
-   "option": "B",
-   "text": "oct",
-   "note": "unknown fr word in « 29 sept. au 2 oct. 2027 » (28×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "8ad38e8d29",
-   "check": "B5",
-   "option": "B",
-   "text": "Paul",
-   "note": "unknown fr word in « Paul Lefebvre (exemple) » (21×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console",
-     "role": "direction",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "5cf3422791",
-   "check": "B5",
-   "option": "B",
-   "text": "Pharo",
-   "note": "unknown fr word in « Palais du Pharo — exemple » (10×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/congres/journees-d-oncologie-digestive-cg-0112",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "df5b8dd32f",
-   "check": "B5",
-   "option": "B",
-   "text": "Réf",
-   "note": "unknown fr word in « Réf. » (24×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres",
-     "role": "contributeur",
-     "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "b9074fd554",
-   "check": "B5",
-   "option": "B",
-   "text": "Urologie",
-   "note": "unknown fr word in « Urologie » (8×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres/nouveau",
-     "role": "contributeur",
      "width": 1440,
      "locale": "fr-FR",
      "state": "",
@@ -4769,1478 +2975,6 @@
      "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres/114?ok=cree-review",
      "role": "contributeur",
      "width": 1440,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "a983ea8af0",
-   "check": "B5",
-   "option": "HUB",
-   "text": "add-ons",
-   "note": "unknown en word in « The version of today’s site, its add-ons and any custom code. » (8×)",
-   "element": "en",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/questions/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "en"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "a510a3ac69",
-   "check": "B5",
-   "option": "HUB",
-   "text": "admin",
-   "note": "unknown en word in « Open the admin, signed in » (120×)",
-   "element": "en",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/demo/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "en"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "86e26dd8e9",
-   "check": "B5",
-   "option": "HUB",
-   "text": "agences",
-   "note": "unknown en word in « “Plus de 122 agences”. The Selectour Affaires figure on your site is undated. Your brief asks for claims to be checked b » (16×)",
-   "element": "en",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/questions/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "en"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "da934ca5b7",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Analytics",
-   "note": "unknown en word in « Cloudflare Web Analytics » (24×)",
-   "element": "en",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/questions/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "en"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "436eb09a19",
-   "check": "B5",
-   "option": "HUB",
-   "text": "anti-spam",
-   "note": "unknown fr word in « L’envoi des formulaires. Les formulaires valident et confirment à l’écran, sans rien envoyer ; en production : enregistr » (8×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "985de3f6f8",
-   "check": "B5",
-   "option": "HUB",
-   "text": "app",
-   "note": "unknown en word in « Two-step login for staff, only for named work email addresses: either your work email account (Microsoft 365 or Google W » (24×)",
-   "element": "en",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/questions/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "en"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "db270e774c",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Approx",
-   "note": "unknown en word in « Approx. per month » (4×)",
-   "element": "en",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/questions/",
-     "role": "visiteur",
-     "width": 1280,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "en"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "4f2709d3b6",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Aujourd",
-   "note": "unknown fr word in « Aujourd’hui / concept » (48×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "4ca77c2e7d",
-   "check": "B5",
-   "option": "HUB",
-   "text": "authorised",
-   "note": "unknown en word in « Only if you lack authorised photos. Example: a stock-photo plan with 10 images a month » (8×)",
-   "element": "en",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/questions/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "en"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "405af55135",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Brevo",
-   "note": "unknown en word in « Brevo (French), backup Resend » (24×)",
-   "element": "en",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/questions/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "en"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "a077631d50",
-   "check": "B5",
-   "option": "HUB",
-   "text": "brief",
-   "note": "unknown fr word in « 01 Le brief » (88×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "aee985bdd9",
-   "check": "B5",
-   "option": "HUB",
-   "text": "clics",
-   "note": "unknown fr word in « Dans la maquette : toutes les offres et tous les formulaires accessibles sans quitter la page, en 1 à 2 clics depuis le  » (8×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "990a5629af",
-   "check": "B5",
-   "option": "HUB",
-   "text": "cliquable",
-   "note": "unknown fr word in « Une maquette cliquable de la refonte d’asset-voyagesdaffaires.com, construite à partir de votre consultation (version 0. » (8×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "a9f0a4438b",
-   "check": "B5",
-   "option": "HUB",
-   "text": "colours",
-   "note": "unknown en word in « 10Do you have brand guidelines (logo files, colours, fonts)? Is the logo fixed, or is a light refresh welcome? » (16×)",
-   "element": "en",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/questions/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "en"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "d0677a7231",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Commons",
-   "note": "unknown fr word in « 58, rue Jean-Pierre Timbaud · 92130 Issy-les-Moulineaux · Photo : Wladyslaw Sojka, CC BY 3.0 via Wikimedia Commons » (4×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "7c2d19da00",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Connexion",
-   "note": "unknown en word in « Client login. Your current client area says “Connexion Traveldoo”, while the brief mentions Wondermiles. Is Wondermiles  » (16×)",
-   "element": "en",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/questions/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "en"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "1bb5eee6df",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Directus",
-   "note": "unknown en word in « The alternative. A ready-made content editor such as Directus, installed on a rented server. It is a sound product and w » (8×)",
-   "element": "en",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/questions/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "en"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "69bb595528",
-   "check": "B5",
-   "option": "HUB",
-   "text": "docx",
-   "note": "unknown en word in « Word version (.docx) » (16×)",
-   "element": "en",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/questions/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "en"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "9a9942af1f",
-   "check": "B5",
-   "option": "HUB",
-   "text": "déc",
-   "note": "unknown fr word in « oct. – déc. 2027 » (8×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "e2fe4abe60",
-   "check": "B5",
-   "option": "HUB",
-   "text": "démos",
-   "note": "unknown fr word in « Offres Congrès Contact Note pour ASSET Nos questions Les deux démos Haut de page ↑ » (16×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "20bd825f00",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Eiffel",
-   "note": "unknown fr word in « Panorama de Paris avec la tour Eiffel et le dôme des Invalides » (4×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "04ccf1fde6",
-   "check": "B5",
-   "option": "HUB",
-   "text": "export",
-   "note": "unknown fr word in « L’envoi des formulaires. Les formulaires valident et confirment à l’écran, sans rien envoyer ; en production : enregistr » (24×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "0129ae2dc7",
-   "check": "B5",
-   "option": "HUB",
-   "text": "fillable",
-   "note": "unknown en word in « Download the answer sheet (fillable PDF) » (16×)",
-   "element": "en",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/questions/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "en"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "2ad01bb712",
-   "check": "B5",
-   "option": "HUB",
-   "text": "filtrable",
-   "note": "unknown fr word in « Catalogue filtrable, fiche par congrès, devis vol pré-rempli ; les statuts internes ne sont jamais affichés » (8×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "f9fcd20efd",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Gandi",
-   "note": "unknown en word in « Estimates, prices checked 28 October 2026, excluding VAT, paid to the providers, not to us. The domain name, hosting and » (8×)",
-   "element": "en",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/questions/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "en"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "d3eb0002ea",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Google",
-   "note": "unknown fr word in « Un concept publié à une adresse de test, non référencé : il n’apparaît pas sur Google et n’est lié depuis aucun site pub » (8×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "ceaa94d7ac",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Géolocalisation",
-   "note": "unknown fr word in « Géolocalisation » (4×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "b1a73ecca2",
-   "check": "B5",
-   "option": "HUB",
-   "text": "HubSpot",
-   "note": "unknown en word in « Only if you choose one. Free plans exist (HubSpot: free for up to 2 users); paid plans start around $7–20 per user » (16×)",
-   "element": "en",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/questions/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "en"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "4c17c972cd",
-   "check": "B5",
-   "option": "HUB",
-   "text": "import",
-   "note": "unknown fr word in « L’administration réelle. La Console est une maquette : gestion des pages, rôles, import de tableur, versions et journal  » (16×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "a7d1734a0c",
-   "check": "B5",
-   "option": "HUB",
-   "text": "incentive",
-   "note": "unknown fr word in « Séminaire, incentive, groupe » (8×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "41ed136c8e",
-   "check": "B5",
-   "option": "HUB",
-   "text": "incentives",
-   "note": "unknown fr word in « MICE · séminaires, incentives, groupes » (4×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "b4e343d038",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Issy-les-Moulineaux",
-   "note": "unknown fr word in « 58, rue Jean-Pierre Timbaud · 92130 Issy-les-Moulineaux · Photo : Wladyslaw Sojka, CC BY 3.0 via Wikimedia Commons » (24×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "1c3f7e679f",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Khatri",
-   "note": "unknown fr word in « ASSET Voyages — direction, et Mme Veena Khatri (coordination) » (72×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "7c2d22d04e",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Khatri",
-   "note": "unknown en word in « ASSET Voyages management, and Ms Veena Khatri (coordination) » (128×)",
-   "element": "en",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/questions/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "en"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "d4dbd57bdd",
-   "check": "B5",
-   "option": "HUB",
-   "text": "LinkedIn",
-   "note": "unknown en word in « 7Could you give us read-only access to Google Analytics and Search Console? Which trackers (LinkedIn, Meta) and ad campa » (16×)",
-   "element": "en",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/questions/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "en"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "075fc43d13",
-   "check": "B5",
-   "option": "HUB",
-   "text": "logins",
-   "note": "unknown en word in « The console asks you to sign in with one of the logins below. » (16×)",
-   "element": "en",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/demo/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "en"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "aabf7528dc",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Mme",
-   "note": "unknown fr word in « ASSET Voyages — direction, et Mme Veena Khatri (coordination) » (72×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "b444046a9b",
-   "check": "B5",
-   "option": "HUB",
-   "text": "multi-segments",
-   "note": "unknown fr word in « « […] nous trouvons la meilleure combinaison tarifaire pour les billets complexes, comme les multi-segments ou les tours » (4×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "2256cbea37",
-   "check": "B5",
-   "option": "HUB",
-   "text": "PME-PMI",
-   "note": "unknown fr word in « Nous proposons aux PME-PMI ainsi qu’aux TPE des solutions sur mesure pour gérer et optimiser vos déplacements profession » (8×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "2e5af2964e",
-   "check": "B5",
-   "option": "HUB",
-   "text": "PME-TPE",
-   "note": "unknown fr word in « Offre PME-TPE » (4×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "652be275ad",
-   "check": "B5",
-   "option": "HUB",
-   "text": "programme",
-   "note": "unknown en word in « 18 Answer first Does ASSET already work with Air France–KLM’s Global Meetings and Events programme? How do the event cod » (8×)",
-   "element": "en",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/questions/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "en"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "8596de7d32",
-   "check": "B5",
-   "option": "HUB",
-   "text": "reporting",
-   "note": "unknown fr word in « « Un reporting complet et personnalisé des voyages d’affaires de vos collaborateurs. » » (16×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "18a9e03df8",
-   "check": "B5",
-   "option": "HUB",
-   "text": "revérifier",
-   "note": "unknown fr word in « « Avec plus de 122 agences et plateaux d’affaires en France, Selectour Affaires constitue le premier réseau dédié aux vo » (12×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "964998c528",
-   "check": "B5",
-   "option": "HUB",
-   "text": "screenshots",
-   "note": "unknown en word in « 24Who is your contact at Wondermiles? What may we show about Wondermiles on the “Digital solutions” page (logo, screensh » (16×)",
-   "element": "en",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/questions/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "en"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "d13aa551a7",
-   "check": "B5",
-   "option": "HUB",
-   "text": "searchable",
-   "note": "unknown en word in « The congress catalogue is the biggest new value. It does not exist today. A searchable list, one page per congress, and  » (8×)",
-   "element": "en",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/questions/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "en"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "41aa2d93bd",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Selectour",
-   "note": "unknown fr word in « ASSET Voyages est une agence de voyages d’affaires à taille humaine, membre du réseau Selectour Affaires. » (48×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "8c9b9f6d01",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Selectour",
-   "note": "unknown en word in « “Plus de 122 agences”. The Selectour Affaires figure on your site is undated. Your brief asks for claims to be checked b » (24×)",
-   "element": "en",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/questions/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "en"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "85d360ce07",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Smart",
-   "note": "unknown fr word in « Domaine actuel asset-voyagesdaffaires.com, alors que la consultation cite www.assetvoyages.com · l’espace client actuel  » (8×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "9ea38c843c",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Sojka",
-   "note": "unknown fr word in « 58, rue Jean-Pierre Timbaud · 92130 Issy-les-Moulineaux · Photo : Wladyslaw Sojka, CC BY 3.0 via Wikimedia Commons » (4×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "ea323b163a",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Stabilisation",
-   "note": "unknown en word in « Stabilisation » (8×)",
-   "element": "en",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/demo/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "en"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "7912aa51f0",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Timbaud",
-   "note": "unknown fr word in « 58, rue Jean-Pierre Timbaud · 92130 Issy-les-Moulineaux · Photo : Wladyslaw Sojka, CC BY 3.0 via Wikimedia Commons » (20×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "59809ee364",
-   "check": "B5",
-   "option": "HUB",
-   "text": "travel",
-   "note": "unknown fr word in « PME · TPE · travel managers » (16×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "6b96abe794",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Traveldoo",
-   "note": "unknown fr word in « Domaine actuel asset-voyagesdaffaires.com, alors que la consultation cite www.assetvoyages.com · l’espace client actuel  » (8×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "b53d86d63d",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Traveldoo",
-   "note": "unknown en word in « Client login. Your current client area says “Connexion Traveldoo”, while the brief mentions Wondermiles. Is Wondermiles  » (32×)",
-   "element": "en",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/questions/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "en"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "0d34ecfd61",
-   "check": "B5",
-   "option": "HUB",
-   "text": "UptimeRobot",
-   "note": "unknown en word in « UptimeRobot » (24×)",
-   "element": "en",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/questions/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "en"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "22e8028f7b",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Veena",
-   "note": "unknown fr word in « ASSET Voyages — direction, et Mme Veena Khatri (coordination) » (16×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "2b75701f23",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Veena",
-   "note": "unknown en word in « ASSET Voyages management, and Ms Veena Khatri (coordination) » (8×)",
-   "element": "en",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/questions/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "en"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "d13d2796ee",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Voyagesdemos",
-   "note": "unknown en word in « ASSET Voyagesdemos prepared by ProdCraft » (5×)",
-   "element": "en",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/demo/",
-     "role": "visiteur",
-     "width": 768,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "en"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "c21afe556f",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Wikimedia",
-   "note": "unknown fr word in « 58, rue Jean-Pierre Timbaud · 92130 Issy-les-Moulineaux · Photo : Wladyslaw Sojka, CC BY 3.0 via Wikimedia Commons » (4×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "8f491514f4",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Wireframes",
-   "note": "unknown en word in « Wireframes (page outlines), then desktop and mobile mock-ups, with two rounds of changes at each stage. » (8×)",
-   "element": "en",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/demo/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "en"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "d700817d62",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Wladyslaw",
-   "note": "unknown fr word in « 58, rue Jean-Pierre Timbaud · 92130 Issy-les-Moulineaux · Photo : Wladyslaw Sojka, CC BY 3.0 via Wikimedia Commons » (4×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "9699a48c82",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Wondermiles",
-   "note": "unknown fr word in « Domaine actuel asset-voyagesdaffaires.com, alors que la consultation cite www.assetvoyages.com · l’espace client actuel  » (16×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "fr"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "06a9867f09",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Wondermiles",
-   "note": "unknown en word in « Ready for later, not dependent on it. Links with Wondermiles or Air France–KLM can come later. The launch must not wait  » (96×)",
-   "element": "en",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/questions/",
-     "role": "visiteur",
-     "width": 320,
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "en"
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
-  },
-  {
-   "key": "500d481425",
-   "check": "B5",
-   "option": "HUB",
-   "text": "Word",
-   "note": "unknown fr word in « Vos réponses écrites aux 30 questions (page en anglais, section 08), sur la fiche de réponses à télécharger (PDF à rempl » (8×)",
-   "element": "fr",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
-     "role": "visiteur",
-     "width": 320,
      "locale": "fr-FR",
      "state": "",
      "shot": "",
@@ -10215,14 +6949,26 @@
  "videos": [
   {
    "name": "wp-walkthrough",
-   "hidden": true,
-   "announced": false,
-   "type": "text/html; charset=utf-8",
+   "hidden": false,
+   "announced": true,
+   "type": "video/mp4",
    "status": 200,
-   "size": 0,
+   "size": 4906769,
    "atoms": [
-    "ctyp"
-   ]
+    "ftyp",
+    "moov",
+    "free",
+    "mdat"
+   ],
+   "attrs": {
+    "poster": "media/wp-walkthrough.jpg",
+    "controls": true,
+    "playsinline": true,
+    "preload": "metadata",
+    "w": 354,
+    "vw": 390
+   },
+   "frames": 64
   },
   {
    "name": "custom-walkthrough",
@@ -10245,7 +6991,7 @@
     "w": 354,
     "vw": 390
    },
-   "frames": 65
+   "frames": 62
   }
  ],
  "midnight": {

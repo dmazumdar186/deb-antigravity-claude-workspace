@@ -1,6 +1,6 @@
 {
  "name": "hub",
- "at": "2026-11-06T09:04:59.284Z",
+ "at": "2026-11-06T09:39:24.792Z",
  "findings": [
   {
    "check": "B4",
@@ -751,6 +751,18 @@
    },
    "b4": 0,
    "videos": [
+    {
+     "path": "div.recs__grid > figure.rec > div.rec__frame > video",
+     "poster": "media/wp-walkthrough.jpg",
+     "controls": true,
+     "playsinline": true,
+     "preload": "metadata",
+     "sources": [
+      "https://asset-voyages-redesign.pages.dev/demo/media/wp-walkthrough.mp4"
+     ],
+     "visible": true,
+     "width": 284
+    },
     {
      "path": "div.recs__grid > figure.rec > div.rec__frame > video",
      "poster": "media/custom-walkthrough.jpg",
@@ -2149,6 +2161,18 @@
     "https://asset-voyages-redesign.pages.dev/favicon.ico"
    ],
    "videos": [
+    {
+     "path": "div.recs__grid > figure.rec > div.rec__frame > video",
+     "poster": "media/wp-walkthrough.jpg",
+     "controls": true,
+     "playsinline": true,
+     "preload": "metadata",
+     "sources": [
+      "https://asset-voyages-redesign.pages.dev/demo/media/wp-walkthrough.mp4"
+     ],
+     "visible": true,
+     "width": 354
+    },
     {
      "path": "div.recs__grid > figure.rec > div.rec__frame > video",
      "poster": "media/custom-walkthrough.jpg",
@@ -3560,6 +3584,18 @@
    "videos": [
     {
      "path": "div.recs__grid > figure.rec > div.rec__frame > video",
+     "poster": "media/wp-walkthrough.jpg",
+     "controls": true,
+     "playsinline": true,
+     "preload": "metadata",
+     "sources": [
+      "https://asset-voyages-redesign.pages.dev/demo/media/wp-walkthrough.mp4"
+     ],
+     "visible": true,
+     "width": 706.5625
+    },
+    {
+     "path": "div.recs__grid > figure.rec > div.rec__frame > video",
      "poster": "media/custom-walkthrough.jpg",
      "controls": true,
      "playsinline": true,
@@ -4955,6 +4991,18 @@
    "videos": [
     {
      "path": "div.recs__grid > figure.rec > div.rec__frame > video",
+     "poster": "media/wp-walkthrough.jpg",
+     "controls": true,
+     "playsinline": true,
+     "preload": "metadata",
+     "sources": [
+      "https://asset-voyages-redesign.pages.dev/demo/media/wp-walkthrough.mp4"
+     ],
+     "visible": true,
+     "width": 536.8125
+    },
+    {
+     "path": "div.recs__grid > figure.rec > div.rec__frame > video",
      "poster": "media/custom-walkthrough.jpg",
      "controls": true,
      "playsinline": true,
@@ -4963,7 +5011,7 @@
       "https://asset-voyages-redesign.pages.dev/demo/media/custom-walkthrough.mp4"
      ],
      "visible": true,
-     "width": 760
+     "width": 536.8125
     }
    ],
    "clickables": [
@@ -5284,7 +5332,7 @@
      "playsinline": true,
      "preload": "auto",
      "sources": [
-      "blob:https://asset-voyages-redesign.pages.dev/911c1c52-f267-4c21-b529-3861b1062f78"
+      "blob:https://asset-voyages-redesign.pages.dev/52515207-a82a-4bcf-8b51-95f2e83f5588"
      ],
      "visible": true,
      "width": 1280
@@ -6371,6 +6419,18 @@
    "videos": [
     {
      "path": "div.recs__grid > figure.rec > div.rec__frame > video",
+     "poster": "media/wp-walkthrough.jpg",
+     "controls": true,
+     "playsinline": true,
+     "preload": "metadata",
+     "sources": [
+      "https://asset-voyages-redesign.pages.dev/demo/media/wp-walkthrough.mp4"
+     ],
+     "visible": true,
+     "width": 532
+    },
+    {
+     "path": "div.recs__grid > figure.rec > div.rec__frame > video",
      "poster": "media/custom-walkthrough.jpg",
      "controls": true,
      "playsinline": true,
@@ -6379,7 +6439,7 @@
       "https://asset-voyages-redesign.pages.dev/demo/media/custom-walkthrough.mp4"
      ],
      "visible": true,
-     "width": 760
+     "width": 532
     }
    ],
    "clickables": [
@@ -6705,7 +6765,7 @@
      "playsinline": true,
      "preload": "auto",
      "sources": [
-      "blob:https://asset-voyages-redesign.pages.dev/b4788070-3bd6-4691-8e82-da83cff1ff30"
+      "blob:https://asset-voyages-redesign.pages.dev/bbd13dde-7ca1-46c0-ba8d-3e8274832e9b"
      ],
      "visible": true,
      "width": 1440
@@ -7798,6 +7858,18 @@
    "videos": [
     {
      "path": "div.recs__grid > figure.rec > div.rec__frame > video",
+     "poster": "media/wp-walkthrough.jpg",
+     "controls": true,
+     "playsinline": true,
+     "preload": "metadata",
+     "sources": [
+      "https://asset-voyages-redesign.pages.dev/demo/media/wp-walkthrough.mp4"
+     ],
+     "visible": true,
+     "width": 532
+    },
+    {
+     "path": "div.recs__grid > figure.rec > div.rec__frame > video",
      "poster": "media/custom-walkthrough.jpg",
      "controls": true,
      "playsinline": true,
@@ -7806,7 +7878,7 @@
       "https://asset-voyages-redesign.pages.dev/demo/media/custom-walkthrough.mp4"
      ],
      "visible": true,
-     "width": 760
+     "width": 532
     }
    ],
    "clickables": [
@@ -8112,7 +8184,7 @@
    "title": "ASSET Voyages — Voyages d’affaires, MICE et congrès · Concept",
    "lang": "fr",
    "surface": "hub",
-   "cls": 0.0005164930555555555,
+   "cls": 0,
    "overflow": {
     "scrollWidth": 1920,
     "innerWidth": 1920,
@@ -8127,7 +8199,7 @@
      "playsinline": true,
      "preload": "auto",
      "sources": [
-      "blob:https://asset-voyages-redesign.pages.dev/2046262a-b570-46c7-81cd-28d7e96ee476"
+      "blob:https://asset-voyages-redesign.pages.dev/6b7b6c88-8b82-43b8-a7a0-dae52d38ead3"
      ],
      "visible": true,
      "width": 1920
@@ -9214,6 +9286,18 @@
    "videos": [
     {
      "path": "div.recs__grid > figure.rec > div.rec__frame > video",
+     "poster": "media/wp-walkthrough.jpg",
+     "controls": true,
+     "playsinline": true,
+     "preload": "metadata",
+     "sources": [
+      "https://asset-voyages-redesign.pages.dev/demo/media/wp-walkthrough.mp4"
+     ],
+     "visible": true,
+     "width": 532
+    },
+    {
+     "path": "div.recs__grid > figure.rec > div.rec__frame > video",
      "poster": "media/custom-walkthrough.jpg",
      "controls": true,
      "playsinline": true,
@@ -9222,7 +9306,7 @@
       "https://asset-voyages-redesign.pages.dev/demo/media/custom-walkthrough.mp4"
      ],
      "visible": true,
-     "width": 760
+     "width": 532
     }
    ],
    "clickables": [
@@ -9548,7 +9632,7 @@
      "playsinline": true,
      "preload": "auto",
      "sources": [
-      "blob:https://asset-voyages-redesign.pages.dev/1c0ce864-7c94-41a2-afab-f29662a69713"
+      "blob:https://asset-voyages-redesign.pages.dev/30d09c41-cd27-4454-bd23-d2b2a5dd79fe"
      ],
      "visible": true,
      "width": 1440
@@ -10642,6 +10726,18 @@
     "https://asset-voyages-redesign.pages.dev/favicon.ico"
    ],
    "videos": [
+    {
+     "path": "div.recs__grid > figure.rec > div.rec__frame > video",
+     "poster": "media/wp-walkthrough.jpg",
+     "controls": true,
+     "playsinline": true,
+     "preload": "metadata",
+     "sources": [
+      "https://asset-voyages-redesign.pages.dev/demo/media/wp-walkthrough.mp4"
+     ],
+     "visible": true,
+     "width": 354
+    },
     {
      "path": "div.recs__grid > figure.rec > div.rec__frame > video",
      "poster": "media/custom-walkthrough.jpg",
@@ -12404,6 +12500,7 @@
     "Sign in as ⟦code⟧ again: the code is shown, and the access record lists it.",
     "Prefer to watch first?",
     "Two short recordings walk through the same five tasks, one per option.",
+    "Option A, WordPress: the five tasks from start to finish.",
     "Option B, our custom platform: the five tasks from start to finish.",
     "3 What works today, and what we would build",
     "“Works in the demo” means you can try it now. “Built during the project” means it is part of the work after approval; where it helps, the demo shows a stand-in.",
@@ -12582,6 +12679,7 @@
    "attrs": [
     "Sections of this page",
     "Show the steps for",
+    "Option A, WordPress: the five tasks from start to finish.",
     "Option B, our custom platform: the five tasks from start to finish."
    ]
   },
@@ -13529,6 +13627,7 @@
     "Sign in as ⟦code⟧ again: the code is shown, and the access record lists it.",
     "Prefer to watch first?",
     "Two short recordings walk through the same five tasks, one per option.",
+    "Option A, WordPress: the five tasks from start to finish.",
     "Option B, our custom platform: the five tasks from start to finish.",
     "3 What works today, and what we would build",
     "“Works in the demo” means you can try it now. “Built during the project” means it is part of the work after approval; where it helps, the demo shows a stand-in.",
@@ -13707,6 +13806,7 @@
    "attrs": [
     "Sections of this page",
     "Show the steps for",
+    "Option A, WordPress: the five tasks from start to finish.",
     "Option B, our custom platform: the five tasks from start to finish."
    ]
   },
@@ -14576,7 +14676,7 @@
    "lang": "en",
    "texts": [
     "Skip to the content",
-    "ASSET Voyagesdemos prepared by ProdCraft",
+    "ASSET Voyages demos prepared by ProdCraft",
     "Back to the concept",
     "The two demos",
     "Try it",
@@ -14654,6 +14754,7 @@
     "Sign in as ⟦code⟧ again: the code is shown, and the access record lists it.",
     "Prefer to watch first?",
     "Two short recordings walk through the same five tasks, one per option.",
+    "Option A, WordPress: the five tasks from start to finish.",
     "Option B, our custom platform: the five tasks from start to finish.",
     "3 What works today, and what we would build",
     "“Works in the demo” means you can try it now. “Built during the project” means it is part of the work after approval; where it helps, the demo shows a stand-in.",
@@ -14832,6 +14933,7 @@
    "attrs": [
     "Sections of this page",
     "Show the steps for",
+    "Option A, WordPress: the five tasks from start to finish.",
     "Option B, our custom platform: the five tasks from start to finish."
    ]
   },
@@ -15731,7 +15833,7 @@
    "lang": "en",
    "texts": [
     "Skip to the content",
-    "ASSET Voyagesdemos prepared by ProdCraft",
+    "ASSET Voyages demos prepared by ProdCraft",
     "Back to the concept",
     "The two demos",
     "Try it",
@@ -15833,6 +15935,7 @@
     "Sign in as ⟦code⟧ again: the code is shown, and the access record lists it.",
     "Prefer to watch first?",
     "Two short recordings walk through the same five tasks, one per option.",
+    "Option A, WordPress: the five tasks from start to finish.",
     "Option B, our custom platform: the five tasks from start to finish.",
     "3 What works today, and what we would build",
     "“Works in the demo” means you can try it now. “Built during the project” means it is part of the work after approval; where it helps, the demo shows a stand-in.",
@@ -16016,6 +16119,7 @@
    ],
    "attrs": [
     "Sections of this page",
+    "Option A, WordPress: the five tasks from start to finish.",
     "Option B, our custom platform: the five tasks from start to finish."
    ]
   },
@@ -16844,7 +16948,7 @@
    "lang": "en",
    "texts": [
     "Skip to the content",
-    "ASSET Voyagesdemos prepared by ProdCraft",
+    "ASSET Voyages demos prepared by ProdCraft",
     "Back to the concept",
     "The two demos",
     "Try it",
@@ -16946,6 +17050,7 @@
     "Sign in as ⟦code⟧ again: the code is shown, and the access record lists it.",
     "Prefer to watch first?",
     "Two short recordings walk through the same five tasks, one per option.",
+    "Option A, WordPress: the five tasks from start to finish.",
     "Option B, our custom platform: the five tasks from start to finish.",
     "3 What works today, and what we would build",
     "“Works in the demo” means you can try it now. “Built during the project” means it is part of the work after approval; where it helps, the demo shows a stand-in.",
@@ -17129,6 +17234,7 @@
    ],
    "attrs": [
     "Sections of this page",
+    "Option A, WordPress: the five tasks from start to finish.",
     "Option B, our custom platform: the five tasks from start to finish."
    ]
   },
@@ -17957,7 +18063,7 @@
    "lang": "en",
    "texts": [
     "Skip to the content",
-    "ASSET Voyagesdemos prepared by ProdCraft",
+    "ASSET Voyages demos prepared by ProdCraft",
     "Back to the concept",
     "The two demos",
     "Try it",
@@ -18059,6 +18165,7 @@
     "Sign in as ⟦code⟧ again: the code is shown, and the access record lists it.",
     "Prefer to watch first?",
     "Two short recordings walk through the same five tasks, one per option.",
+    "Option A, WordPress: the five tasks from start to finish.",
     "Option B, our custom platform: the five tasks from start to finish.",
     "3 What works today, and what we would build",
     "“Works in the demo” means you can try it now. “Built during the project” means it is part of the work after approval; where it helps, the demo shows a stand-in.",
@@ -18242,6 +18349,7 @@
    ],
    "attrs": [
     "Sections of this page",
+    "Option A, WordPress: the five tasks from start to finish.",
     "Option B, our custom platform: the five tasks from start to finish."
    ]
   },
@@ -19070,7 +19178,7 @@
    "lang": "en",
    "texts": [
     "Skip to the content",
-    "ASSET Voyagesdemos prepared by ProdCraft",
+    "ASSET Voyages demos prepared by ProdCraft",
     "Back to the concept",
     "The two demos",
     "Try it",
@@ -19172,6 +19280,7 @@
     "Sign in as ⟦code⟧ again: the code is shown, and the access record lists it.",
     "Prefer to watch first?",
     "Two short recordings walk through the same five tasks, one per option.",
+    "Option A, WordPress: the five tasks from start to finish.",
     "Option B, our custom platform: the five tasks from start to finish.",
     "3 What works today, and what we would build",
     "“Works in the demo” means you can try it now. “Built during the project” means it is part of the work after approval; where it helps, the demo shows a stand-in.",
@@ -19355,6 +19464,7 @@
    ],
    "attrs": [
     "Sections of this page",
+    "Option A, WordPress: the five tasks from start to finish.",
     "Option B, our custom platform: the five tasks from start to finish."
    ]
   },
@@ -20262,6 +20372,7 @@
     "Sign in as ⟦code⟧ again: the code is shown, and the access record lists it.",
     "Prefer to watch first?",
     "Two short recordings walk through the same five tasks, one per option.",
+    "Option A, WordPress: the five tasks from start to finish.",
     "Option B, our custom platform: the five tasks from start to finish.",
     "3 What works today, and what we would build",
     "“Works in the demo” means you can try it now. “Built during the project” means it is part of the work after approval; where it helps, the demo shows a stand-in.",
@@ -20440,6 +20551,7 @@
    "attrs": [
     "Sections of this page",
     "Show the steps for",
+    "Option A, WordPress: the five tasks from start to finish.",
     "Option B, our custom platform: the five tasks from start to finish."
    ]
   },
@@ -21366,6 +21478,7 @@
     "Sign in as equipe again: the code is shown, and the access record lists it.",
     "Prefer to watch first?",
     "Two short recordings walk through the same five tasks, one per option.",
+    "Option A, WordPress: the five tasks from start to finish.",
     "Option B, our custom platform: the five tasks from start to finish.",
     "3 What works today, and what we would build",
     "1. Create and edit congresses",
@@ -23321,6 +23434,7 @@
     "Sign in as equipe again: the code is shown, and the access record lists it.",
     "Prefer to watch first?",
     "Two short recordings walk through the same five tasks, one per option.",
+    "Option A, WordPress: the five tasks from start to finish.",
     "Option B, our custom platform: the five tasks from start to finish.",
     "3 What works today, and what we would build",
     "1. Create and edit congresses",
@@ -25218,7 +25332,7 @@
    "state": "hub/demo/",
    "labels": [
     "Skip to the content",
-    "ASSET Voyagesdemos prepared by ProdCraft",
+    "ASSET Voyages demos prepared by ProdCraft",
     "Back to the concept",
     "The two demos",
     "Try it",
@@ -25276,6 +25390,7 @@
     "Sign in as equipe again: the code is shown, and the access record lists it.",
     "Prefer to watch first?",
     "Two short recordings walk through the same five tasks, one per option.",
+    "Option A, WordPress: the five tasks from start to finish.",
     "Option B, our custom platform: the five tasks from start to finish.",
     "3 What works today, and what we would build",
     "1. Create and edit congresses",
@@ -27203,7 +27318,7 @@
    "state": "hub/demo/",
    "labels": [
     "Skip to the content",
-    "ASSET Voyagesdemos prepared by ProdCraft",
+    "ASSET Voyages demos prepared by ProdCraft",
     "Back to the concept",
     "The two demos",
     "Try it",
@@ -27266,6 +27381,7 @@
     "Sign in as equipe again: the code is shown, and the access record lists it.",
     "Prefer to watch first?",
     "Two short recordings walk through the same five tasks, one per option.",
+    "Option A, WordPress: the five tasks from start to finish.",
     "Option B, our custom platform: the five tasks from start to finish.",
     "3 What works today, and what we would build",
     "Function",
@@ -29160,7 +29276,7 @@
    "state": "hub/demo/",
    "labels": [
     "Skip to the content",
-    "ASSET Voyagesdemos prepared by ProdCraft",
+    "ASSET Voyages demos prepared by ProdCraft",
     "Back to the concept",
     "The two demos",
     "Try it",
@@ -29223,6 +29339,7 @@
     "Sign in as equipe again: the code is shown, and the access record lists it.",
     "Prefer to watch first?",
     "Two short recordings walk through the same five tasks, one per option.",
+    "Option A, WordPress: the five tasks from start to finish.",
     "Option B, our custom platform: the five tasks from start to finish.",
     "3 What works today, and what we would build",
     "Function",
@@ -31117,7 +31234,7 @@
    "state": "hub/demo/",
    "labels": [
     "Skip to the content",
-    "ASSET Voyagesdemos prepared by ProdCraft",
+    "ASSET Voyages demos prepared by ProdCraft",
     "Back to the concept",
     "The two demos",
     "Try it",
@@ -31180,6 +31297,7 @@
     "Sign in as equipe again: the code is shown, and the access record lists it.",
     "Prefer to watch first?",
     "Two short recordings walk through the same five tasks, one per option.",
+    "Option A, WordPress: the five tasks from start to finish.",
     "Option B, our custom platform: the five tasks from start to finish.",
     "3 What works today, and what we would build",
     "Function",
@@ -33074,7 +33192,7 @@
    "state": "hub/demo/",
    "labels": [
     "Skip to the content",
-    "ASSET Voyagesdemos prepared by ProdCraft",
+    "ASSET Voyages demos prepared by ProdCraft",
     "Back to the concept",
     "The two demos",
     "Try it",
@@ -33137,6 +33255,7 @@
     "Sign in as equipe again: the code is shown, and the access record lists it.",
     "Prefer to watch first?",
     "Two short recordings walk through the same five tasks, one per option.",
+    "Option A, WordPress: the five tasks from start to finish.",
     "Option B, our custom platform: the five tasks from start to finish.",
     "3 What works today, and what we would build",
     "Function",
@@ -35090,6 +35209,7 @@
     "Sign in as equipe again: the code is shown, and the access record lists it.",
     "Prefer to watch first?",
     "Two short recordings walk through the same five tasks, one per option.",
+    "Option A, WordPress: the five tasks from start to finish.",
     "Option B, our custom platform: the five tasks from start to finish.",
     "3 What works today, and what we would build",
     "1. Create and edit congresses",
@@ -41403,9 +41523,7 @@
     {
      "from": "https://asset-voyages-redesign.pages.dev/demo/",
      "option": "HUB",
-     "kind": "a",
-     "text": "open the video file directly",
-     "visible": false
+     "kind": "source"
     },
     {
      "from": "https://asset-voyages-redesign.pages.dev/demo/",
@@ -41417,9 +41535,7 @@
     {
      "from": "https://asset-voyages-redesign.pages.dev/demo/",
      "option": "HUB",
-     "kind": "a",
-     "text": "open the video file directly",
-     "visible": false
+     "kind": "source"
     },
     {
      "from": "https://asset-voyages-redesign.pages.dev/demo/",
@@ -42133,6 +42249,36 @@
      "from": "https://asset-voyages-redesign.pages.dev/demo/",
      "option": "HUB",
      "kind": "script"
+    }
+   ]
+  },
+  {
+   "url": "https://asset-voyages-redesign.pages.dev/demo/media/wp-walkthrough.jpg",
+   "refs": [
+    {
+     "from": "https://asset-voyages-redesign.pages.dev/demo/",
+     "option": "HUB",
+     "kind": "poster"
+    },
+    {
+     "from": "https://asset-voyages-redesign.pages.dev/demo/",
+     "option": "HUB",
+     "kind": "poster"
+    },
+    {
+     "from": "https://asset-voyages-redesign.pages.dev/demo/",
+     "option": "HUB",
+     "kind": "poster"
+    },
+    {
+     "from": "https://asset-voyages-redesign.pages.dev/demo/",
+     "option": "HUB",
+     "kind": "poster"
+    },
+    {
+     "from": "https://asset-voyages-redesign.pages.dev/demo/",
+     "option": "HUB",
+     "kind": "poster"
     }
    ]
   },

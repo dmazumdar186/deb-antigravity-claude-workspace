@@ -181,19 +181,25 @@
  },
  {
   "n": "five",
-  "ctx": " short recordings walk through the same ⟨five⟩ tasks, one per option. ⏎  ⏎ Option B, our c",
+  "ctx": " short recordings walk through the same ⟨five⟩ tasks, one per option. ⏎  ⏎ Option A, WordP",
   "cls": "sourced (the five stories ASSET asked to see)",
   "src": "21_Acceptance_Gates_5_Stories.md:1"
  },
  {
   "n": "one",
-  "ctx": "dings walk through the same five tasks, ⟨one⟩ per option. ⏎  ⏎ Option B, our custom platf",
+  "ctx": "dings walk through the same five tasks, ⟨one⟩ per option. ⏎  ⏎ Option A, WordPress: the f",
   "cls": "our own deliverable count (two demos, two recordings)",
   "src": null
  },
  {
   "n": "five",
-  "ctx": "on. ⏎  ⏎ Option B, our custom platform: the ⟨five⟩ tasks from start to finish. ⏎ 3 What work",
+  "ctx": "e per option. ⏎  ⏎ Option A, WordPress: the ⟨five⟩ tasks from start to finish. ⏎ Option B, o",
+  "cls": "sourced (the five stories ASSET asked to see)",
+  "src": "21_Acceptance_Gates_5_Stories.md:1"
+ },
+ {
+  "n": "five",
+  "ctx": "ish. ⏎ Option B, our custom platform: the ⟨five⟩ tasks from start to finish. ⏎ 3 What work",
   "cls": "sourced (the five stories ASSET asked to see)",
   "src": "21_Acceptance_Gates_5_Stories.md:1"
  },

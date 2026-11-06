@@ -119,3 +119,8 @@ Call log:
 [09:31:58] saved part a: 145 raw findings, 145 states
 [09:33:41] A4 links checked 551
 [09:33:52] done
+[09:35:26] hub parsed: tasks 5 rows 11 group steps 4
+[09:39:24] saved part hub: 56 raw findings, 40 states
+[09:41:08] A4 links checked 553
+[09:41:21] done
+[09:45:58] hub parsed: tasks 5 rows 11 group steps 4
