@@ -45,3 +45,4 @@ Running 68 tests using 1 worker
   ✓  40 07-cross.spec.js:16:1 › X1 zero console errors and zero failed requests on every tested screen (1.2m)
   ✓  41 07-cross.spec.js:48:1 › X2 visitor pages load no third-party scripts or requests (5.9s)
   ✓  42 07-cross.spec.js:63:1 › X3 all data fictional: titles end « — exemple », emails @example.com, codes DEMO-GME-… (15.3s)
+  ✓  43 07-cross.spec.js:95:1 › X4 re-seeding is idempotent (no duplicates) (24.4s)
