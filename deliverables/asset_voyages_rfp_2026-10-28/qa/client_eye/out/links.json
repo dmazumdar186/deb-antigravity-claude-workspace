@@ -1,0 +1,498 @@
+[
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/demo/",
+  "status": 200,
+  "type": "text/html; charset=utf-8",
+  "final": "https://asset-voyages-redesign.pages.dev/demo/",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/demo/media/wp-walkthrough.mp4",
+  "status": 200,
+  "type": "text/html; charset=utf-8",
+  "final": "https://asset-voyages-redesign.pages.dev/demo/media/wp-walkthrough.mp4",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/",
+  "status": 200,
+  "type": "text/html; charset=utf-8",
+  "final": "https://asset-voyages-redesign.pages.dev/",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://playground.wordpress.net/?mode=seamless&blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json",
+  "status": 200,
+  "type": "text/html;charset=utf-8",
+  "final": "https://playground.wordpress.net/?mode=seamless&blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json",
+  "err": "blueprint is not valid JSON",
+  "refs": 5
+ },
+ {
+  "url": "https://playground.wordpress.net/?mode=seamless&login=no&blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-visitor.json",
+  "status": 200,
+  "type": "text/html;charset=utf-8",
+  "final": "https://playground.wordpress.net/?mode=seamless&login=no&blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-visitor.json",
+  "err": "blueprint is not valid JSON",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+  "status": 200,
+  "type": "text/html; charset=utf-8",
+  "final": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/demo/media/custom-walkthrough.mp4",
+  "status": 200,
+  "type": "video/mp4",
+  "final": "https://asset-voyages-redesign.pages.dev/demo/media/custom-walkthrough.mp4",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-demo.debanjan186.workers.dev/",
+  "status": 200,
+  "type": "text/html; charset=utf-8",
+  "final": "https://asset-voyages-demo.debanjan186.workers.dev/",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/console/",
+  "status": 200,
+  "type": "text/html; charset=utf-8",
+  "final": "https://asset-voyages-redesign.pages.dev/console/",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-demo.debanjan186.workers.dev/console",
+  "status": 200,
+  "type": "text/html; charset=utf-8",
+  "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/favicon.ico",
+  "status": 200,
+  "type": "image/vnd.microsoft.icon",
+  "final": "https://asset-voyages-redesign.pages.dev/favicon.ico",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/questions/",
+  "status": 200,
+  "type": "text/html; charset=utf-8",
+  "final": "https://asset-voyages-redesign.pages.dev/questions/",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/assets/fonts/Inter.woff2",
+  "status": 200,
+  "type": "font/woff2",
+  "final": "https://asset-voyages-redesign.pages.dev/assets/fonts/Inter.woff2",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/1",
+  "status": 200,
+  "type": "text/html; charset=utf-8",
+  "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fdemandes%2F1",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/assets/fonts/EBGaramond.woff2",
+  "status": 200,
+  "type": "font/woff2",
+  "final": "https://asset-voyages-redesign.pages.dev/assets/fonts/EBGaramond.woff2",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/demo/media/custom-walkthrough.jpg",
+  "status": 200,
+  "type": "image/jpeg",
+  "final": "https://asset-voyages-redesign.pages.dev/demo/media/custom-walkthrough.jpg",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/js/demo.js",
+  "status": 200,
+  "type": "application/javascript",
+  "final": "https://asset-voyages-redesign.pages.dev/js/demo.js",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/assets/favicon-192.png",
+  "status": 200,
+  "type": "image/png",
+  "final": "https://asset-voyages-redesign.pages.dev/assets/favicon-192.png",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/assets/favicon-32.png",
+  "status": 200,
+  "type": "image/png",
+  "final": "https://asset-voyages-redesign.pages.dev/assets/favicon-32.png",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/css/demo.css",
+  "status": 200,
+  "type": "text/css; charset=utf-8",
+  "final": "https://asset-voyages-redesign.pages.dev/css/demo.css",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/js/boot.js",
+  "status": 200,
+  "type": "application/javascript",
+  "final": "https://asset-voyages-redesign.pages.dev/js/boot.js",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/css/styles.css",
+  "status": 200,
+  "type": "text/css; charset=utf-8",
+  "final": "https://asset-voyages-redesign.pages.dev/css/styles.css",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/js/film.js",
+  "status": 200,
+  "type": "application/javascript",
+  "final": "https://asset-voyages-redesign.pages.dev/js/film.js",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/assets/logo-asset-light.png",
+  "status": 200,
+  "type": "image/png",
+  "final": "https://asset-voyages-redesign.pages.dev/assets/logo-asset-light.png",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/js/hero.js",
+  "status": 200,
+  "type": "application/javascript",
+  "final": "https://asset-voyages-redesign.pages.dev/js/hero.js",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/js/main.js",
+  "status": 200,
+  "type": "application/javascript",
+  "final": "https://asset-voyages-redesign.pages.dev/js/main.js",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://creativecommons.org/licenses/by/3.0/",
+  "status": 200,
+  "type": "text/html",
+  "final": "https://creativecommons.org/licenses/by/3.0/",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://commons.wikimedia.org/wiki/File:Paris-pano-wladyslaw.jpg",
+  "status": 200,
+  "type": "text/html; charset=UTF-8",
+  "final": "https://commons.wikimedia.org/wiki/File:Paris-pano-wladyslaw.jpg",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/assets/hero-m.jpg",
+  "status": 200,
+  "type": "image/jpeg",
+  "final": "https://asset-voyages-redesign.pages.dev/assets/hero-m.jpg",
+  "err": "",
+  "refs": 4
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/assets/img/selectour-affaires.png",
+  "status": 200,
+  "type": "image/png",
+  "final": "https://asset-voyages-redesign.pages.dev/assets/img/selectour-affaires.png",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/css/doc.css",
+  "status": 200,
+  "type": "text/css; charset=utf-8",
+  "final": "https://asset-voyages-redesign.pages.dev/css/doc.css",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/js/console.js",
+  "status": 200,
+  "type": "application/javascript",
+  "final": "https://asset-voyages-redesign.pages.dev/js/console.js",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://developers.cloudflare.com/workers/platform/pricing/",
+  "status": 200,
+  "type": "text/html",
+  "final": "https://developers.cloudflare.com/workers/platform/pricing/",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://developers.cloudflare.com/d1/platform/pricing/",
+  "status": 200,
+  "type": "text/html",
+  "final": "https://developers.cloudflare.com/d1/platform/pricing/",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://developers.cloudflare.com/d1/reference/time-travel/",
+  "status": 200,
+  "type": "text/html",
+  "final": "https://developers.cloudflare.com/d1/reference/time-travel/",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://developers.cloudflare.com/r2/pricing/",
+  "status": 200,
+  "type": "text/html",
+  "final": "https://developers.cloudflare.com/r2/pricing/",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/questions/ASSET_Answer_Sheet.pdf",
+  "status": 200,
+  "type": "application/pdf",
+  "final": "https://asset-voyages-redesign.pages.dev/questions/ASSET_Answer_Sheet.pdf",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://developers.cloudflare.com/turnstile/plans/",
+  "status": 200,
+  "type": "text/html",
+  "final": "https://developers.cloudflare.com/turnstile/plans/",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/assets/img/skyline.webp",
+  "status": 200,
+  "type": "image/webp",
+  "final": "https://asset-voyages-redesign.pages.dev/assets/img/skyline.webp",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://developers.cloudflare.com/cloudflare-one/integrations/identity-providers/one-time-pin/",
+  "status": 200,
+  "type": "text/html",
+  "final": "https://developers.cloudflare.com/cloudflare-one/integrations/identity-providers/one-time-pin/",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://developers.cloudflare.com/cloudflare-one/access-controls/access-settings/independent-mfa/",
+  "status": 200,
+  "type": "text/html",
+  "final": "https://developers.cloudflare.com/cloudflare-one/access-controls/access-settings/independent-mfa/",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://domainnamewire.com/2026/04/23/breaking-verisign-raising-wholesale-com-prices/",
+  "status": 200,
+  "type": "text/html; charset=UTF-8",
+  "final": "https://domainnamewire.com/2026/04/23/breaking-verisign-raising-wholesale-com-prices/",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://www.cloudflare.com/products/registrar/",
+  "status": 200,
+  "type": "text/html; charset=utf-8",
+  "final": "https://www.cloudflare.com/domains/",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://resend.com/pricing",
+  "status": 200,
+  "type": "text/html; charset=utf-8",
+  "final": "https://resend.com/pricing",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://www.gandi.net/en/domain/tld/com",
+  "status": 200,
+  "type": "text/html; charset=utf-8",
+  "final": "https://www.gandi.net/en/domain/tld/com",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://www.cloudflare.com/web-analytics/",
+  "status": 200,
+  "type": "text/html; charset=utf-8",
+  "final": "https://www.cloudflare.com/web-analytics/",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://www.sft.fr/docs/2024164729_sft-2022-enquete-traduction.pdf",
+  "status": 403,
+  "type": "text/plain; charset=utf-8",
+  "final": "https://www.sft.fr/docs/2024164729_sft-2022-enquete-traduction.pdf",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://www.sft.fr/global/gene/link.php?doc_id=882&edit_lang=fr",
+  "status": 403,
+  "type": "text/plain; charset=utf-8",
+  "final": "https://www.sft.fr/global/gene/link.php?doc_id=882&edit_lang=fr",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://www.hubspot.com/pricing/crm",
+  "status": 200,
+  "type": "text/html; charset=utf-8",
+  "final": "https://www.hubspot.com/pricing/crm",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://uptimerobot.com/pricing/",
+  "status": 200,
+  "type": "text/html",
+  "final": "https://uptimerobot.com/pricing/",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://blog.cloudflare.com/5-december-2025-outage/",
+  "status": 200,
+  "type": "text/html",
+  "final": "https://blog.cloudflare.com/5-december-2025-outage/",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://blog.cloudflare.com/fail-small-resilience-plan/",
+  "status": 200,
+  "type": "text/html",
+  "final": "https://blog.cloudflare.com/fail-small-resilience-plan/",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://blog.cloudflare.com/cloudflare-service-outage-june-12-2025/",
+  "status": 200,
+  "type": "text/html",
+  "final": "https://blog.cloudflare.com/cloudflare-service-outage-june-12-2025/",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/css/questions.css",
+  "status": 200,
+  "type": "text/css; charset=utf-8",
+  "final": "https://asset-voyages-redesign.pages.dev/css/questions.css",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/js/questions.js",
+  "status": 200,
+  "type": "application/javascript",
+  "final": "https://asset-voyages-redesign.pages.dev/js/questions.js",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://www.brevo.com/products/transactional-email/",
+  "status": 200,
+  "type": "text/html; charset=utf-8",
+  "final": "https://www.brevo.com/products/transactional-email/",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/assets/hero.jpg",
+  "status": 200,
+  "type": "image/jpeg",
+  "final": "https://asset-voyages-redesign.pages.dev/assets/hero.jpg",
+  "err": "",
+  "refs": 4
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-visitor.json",
+  "status": 200,
+  "type": "application/json",
+  "final": "https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-visitor.json",
+  "err": "",
+  "refs": 1
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json",
+  "status": 200,
+  "type": "application/json",
+  "final": "https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json",
+  "err": "",
+  "refs": 1
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/questions/ASSET_Answer_Sheet.docx",
+  "status": 200,
+  "type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "final": "https://asset-voyages-redesign.pages.dev/questions/ASSET_Answer_Sheet.docx",
+  "err": "",
+  "refs": 5
+ },
+ {
+  "url": "https://asset-voyages-redesign.pages.dev/demo-wordpress/asset-congres-demo.zip",
+  "status": 200,
+  "type": "application/zip",
+  "final": "https://asset-voyages-redesign.pages.dev/demo-wordpress/asset-congres-demo.zip",
+  "err": "",
+  "refs": 1
+ },
+ {
+  "url": "https://stock.adobe.com/fr/plans",
+  "status": 200,
+  "type": "text/html; charset=utf-8",
+  "final": "https://stock.adobe.com/fr/plans",
+  "err": "",
+  "refs": 5
+ }
+]

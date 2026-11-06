@@ -77,9 +77,9 @@ Site language: the `setSiteLanguage: fr_FR` step works with the local CLI (trans
 
 Run the full suite with `tests/run_all.sh`. It starts a fresh server, runs every spec in order with one worker, then stops the server. Playwright and Chromium were preinstalled; `tests/node_modules/playwright` is a symlink to the global install. Each test name starts with the acceptance gate ID from `../21_Acceptance_Gates_5_Stories.md`.
 
-Fix round A (6 Nov 2026), on a fresh Playground (WordPress 7.1.4, PHP 8.3): `tests/run_all.sh` ran **twice in a row, 64 passed / 0 failed / 0 skipped each time** (64 of 64, then 64 of 64). The screenshot run (`tests/run_screens.sh`, fresh seed, fr-FR, Europe/Paris) passed 3 of 3. QA's monkey (`../qa/A/monkey_A.mjs`, seed 20261105, 300 actions x 4 roles, fresh server) found **0 failures** (anon 0, contributeur 0, equipe 0, direction 0). Semgrep `p/php` and `p/default` on the plugin found 0 findings; the one exemption carries its reason inline.
+Fix rounds A (6 Nov 2026), on fresh Playgrounds (WordPress 7.1.4, PHP 8.3): `tests/run_all.sh` ran **twice in a row with 68 passed, 0 failed and 0 skipped each time**. The screenshot run (`tests/run_screens.sh`, fresh seed, fr-FR, Europe/Paris) passed 3 of 3. QA's monkey (`../qa/A/monkey_A.mjs`, seed 20261105, 300 actions × 4 roles, fresh server) found **0 failures**. Semgrep `p/php` and `p/default` find 0 issues; the one exemption states its reason inline. The scripts accept `WP_PORT` / `ALT_PORT` (default 9400 / 9410), so two suites can share a machine without stopping each other's servers.
 
-Suites: functional (S1-S5), leak (`06-leak`: a logged-out crawl of 330+ URLs, and a second crawl as `equipe` without a grant, plus a raw scan of the SQLite file), hostile input (H gates), cross-cutting X1-X4, the fix-round tests FIX-A-1 to FIX-A-20 (`08-fixes.spec.js`; FIX-A-18 is in `screens.spec.js`), and the rate limit (`99`). Click counts for the E gates are recorded as test annotations.
+Suites: functional (S1-S5), leak (`06-leak`: a logged-out crawl of 330+ URLs, and a second crawl as `equipe` without a grant, plus a raw scan of the SQLite file), hostile input (H gates), cross-cutting X1-X4, the fix-round tests FIX-A-1 to FIX-A-24 (`08-fixes.spec.js`; FIX-A-18 is in `screens.spec.js`), and the rate limit (`99`). Click counts for the E gates are recorded as test annotations.
 
 
 | Gate | Result | Evidence |
@@ -106,7 +106,7 @@ Suites: functional (S1-S5), leak (`06-leak`: a logged-out crawl of 330+ URLs, an
 | S3-F4 | PASS | 1 test(s) |
 | S3-E1 | PASS | 1 test(s) |
 | S3-H1 | PASS | 1 test(s) |
-| S3-H2 | PASS | 2 test(s); accepted-before-block=5 |
+| S3-H2 | PASS | 2 test(s); accepted-before-block=4 |
 | S3-H3 | PASS | 1 test(s) |
 | S4-F1 | PASS | 1 test(s) |
 | S4-F2 | PASS | 1 test(s) |
@@ -149,6 +149,10 @@ Suites: functional (S1-S5), leak (`06-leak`: a logged-out crawl of 330+ URLs, an
 | FIX-A-18 | PASS | screens.spec.js on a fresh seed (3/3 passed: 12 congresses, clean data, 32 PNGs) |
 | FIX-A-19 | PASS | 1 test(s) |
 | FIX-A-20 | PASS | 1 test(s) |
+| FIX-A-21 | PASS | 1 test(s) |
+| FIX-A-22 | PASS | 1 test(s) |
+| FIX-A-23 | PASS | 1 test(s) |
+| FIX-A-24 | PASS | 1 test(s) |
 
 X5-X7 (Hallmark gate on the hub page, eye review, hub-page traces) belong to the hub page and to the QA agent, not to this plugin suite.
 

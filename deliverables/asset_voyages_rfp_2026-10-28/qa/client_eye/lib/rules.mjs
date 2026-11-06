@@ -166,7 +166,11 @@ export const REAL_CONGRESSES = [
   'journees francophones d’hepato-gastroenterologie et d’oncologie digestive', 'jfhod', 'asco annual meeting', 'ers international congress', 'eadv congress', 'ean congress',
   'congres francais de rhumatologie', 'journees europeennes de la societe francaise de cardiologie', 'congres de la societe francaise d’ophtalmologie', 'journees de neurologie de langue francaise',
   'congres de pneumologie de langue francaise', 'congres annuel de la sfd', 'easd annual meeting', 'world congress of cardiology', 'congres de la sfd', 'ecr', 'jfr', 'cplf', 'jnlf', 'sfo',
+  'congres mondial de neurologie', 'world congress of neurology', 'congres mondial de cardiologie',
 ];
+// The client's own published contact details may appear on the concept pages (it is their site being redesigned).
+// Each entry is a build-time assertion: the value must appear at the cited source line, checked by the gate.
+export const CLIENT_CONTACTS = [{ value: 'direction@assetvoyages.com', source: '01_Questions_for_Veena.md', needle: 'direction@assetvoyages.com' }];
 export function ruleD2(item, { allowEmails = [] } = {}) {
   const f = [];
   const s = item.t;
@@ -175,6 +179,7 @@ export function ruleD2(item, { allowEmails = [] } = {}) {
   while ((m = em.exec(s))) {
     const dom = m[1].toLowerCase();
     if (/^example\.(com|org|net)$/.test(dom) || /\.example$|\.test$|\.invalid$/.test(dom) || allowEmails.includes(m[0].toLowerCase())) continue;
+    if (!item.demo && CLIENT_CONTACTS.some((c) => c.value === m[0].toLowerCase())) continue; // client's own address, outside the demos only
     f.push({ check: 'D2', text: clip(s), element: item.path, note: `real-looking e-mail « ${m[0]} »` });
   }
   const ph = /(?<![\d])(?:\+33\s?\(?0?\)?\s?|0)([1-9])(?:[\s.-]?(\d{2})){4}(?!\d)/g;

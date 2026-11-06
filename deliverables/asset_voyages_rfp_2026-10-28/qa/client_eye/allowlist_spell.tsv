@@ -1,0 +1,10 @@
+# word<TAB>lang (fr, en or * for both)<TAB>reason. Every entry needs a reason; spell.py reports entries without one.
+# Proper nouns and product names
+ASSET	*	client name (ASSET Voyages)
+ProdCraft	*	our company name
+Debanjan	*	operator's first name, sender signature
+WordPress	*	product name
+Playground	*	product name (WordPress Playground)
+Cloudflare	*	product name (hosting network)
+Air	*	part of the airline name Air France-KLM
+KLM	*	airline name

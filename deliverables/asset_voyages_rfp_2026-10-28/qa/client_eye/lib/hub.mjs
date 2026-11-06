@@ -76,7 +76,7 @@ export async function parseHub(browser) {
       tasks.push({ id: li.id, title: txt(h), opts });
     }
     const g = document.getElementById('group');
-    const group = g ? { steps: [...g.querySelectorAll('ol > li')].map((s) => ({ text: txt(s), links: [...s.querySelectorAll('a')].map((a) => ({ text: txt(a), href: a.href })) })), text: txt(g) } : null;
+    const group = g ? { steps: [...((() => { const hd = [...g.querySelectorAll('h3,h4,p')].find((e) => /How to try it/i.test(e.textContent) && e.textContent.length < 40); let n = hd; while (n && n.nodeName !== 'OL') n = n.nextElementSibling; return n || (hd && hd.parentElement.querySelector('ol')) || document.createElement('ol'); })().children)].map((s) => ({ text: txt(s), links: [...s.querySelectorAll('a')].map((a) => ({ text: txt(a), href: a.href })) })), text: txt(g) } : null;
     const rows = [...document.querySelectorAll('table.cmp tbody tr')].map((tr) => ({ fn: txt(tr.querySelector('th')), A: txt(tr.querySelectorAll('td')[0]), B: txt(tr.querySelectorAll('td')[1]) }));
     const passA = txt(document.querySelector('.pass:not(.pass--b)'));
     const passB = txt(document.querySelector('.pass--b'));

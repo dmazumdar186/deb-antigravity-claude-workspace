@@ -1,0 +1,7 @@
+[
+  { "pattern": "Weeks? ⟨\\d+(\\s?(to|–)\\s?\\d+)?⟩|Weeks? \\d+ to ⟨", "class": "week" },
+  { "pattern": "⟨\\d{1,2}⟩ (January|February|March|April|May|June|July|August|September|October|November|December)\\b", "class": "date" },
+  { "pattern": "⟨\\d{1,2}:\\d{2}⟩", "class": "date (time slot)" },
+  { "pattern": "Task ⟨\\d⟩|Tasks ⟨\\d⟩|⟨\\d⟩ and \\d follow", "class": "section number (task)" },
+  { "pattern": "DV-2026-⟨|DV-⟨2026", "class": "our demo data (reference)" }
+]

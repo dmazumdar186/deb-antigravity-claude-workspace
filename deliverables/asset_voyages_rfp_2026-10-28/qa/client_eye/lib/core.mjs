@@ -65,9 +65,10 @@ export async function snap(page, opts) {
   await settle(page, opts.wait ?? 1200);
   const width = page.viewportSize().width;
   let data;
-  try { data = await page.evaluate(collectPage, { b4: !!opts.b4 }); } catch (e) { log('collect failed', opts.state, e.message); return null; }
+  const target = opts.frame || page;
+  try { data = await target.evaluate(collectPage, { b4: !!opts.b4 }); } catch (e) { log('collect failed', opts.state, e.message); return null; }
   let html = '';
-  try { html = await page.content(); } catch {}
+  try { html = await target.content(); } catch {}
   const name = `${String(++shotN).padStart(4, '0')}-${safe(opts.option)}-${safe(m.role)}-${width}-${safe(opts.state)}.png`;
   let shot = '';
   if (opts.shot !== false) {
@@ -88,8 +89,11 @@ export async function snap(page, opts) {
     if (on('B1')) add(lang === 'fr' ? R.ruleB1French(it) : R.ruleB1English(it));
     if (on('B2')) add(R.ruleB2(it));
     if (on('B3') && lang === 'fr') add(R.ruleB3(it));
-    if (on('B7') && (lang === 'fr' || /«/.test(it.t))) add(R.ruleB7(it));
-    if (on('D2')) add(R.ruleD2(it, { allowEmails: opts.allowEmails || [] }));
+    // B7 checks French words: the whole text on a French page, only the « » quotes on an English page
+    // (« access » and « congress » are English words, not « Accès » without its accent).
+    if (on('B7') && lang === 'fr') add(R.ruleB7(it));
+    else if (on('B7') && /«/.test(it.t)) for (const q of it.t.match(/«[^»]*»/g) || []) add(R.ruleB7({ ...it, t: q, tNoCode: q }).map((x) => ({ ...x, text: it.t.slice(0, 160) })));
+    if (on('D2')) add(R.ruleD2({ ...it, demo: !!opts.demo }, { allowEmails: opts.allowEmails || [] }));
   }
   // D4: the whole DOM (text, attributes, input values, hidden fields) except on an explicit reveal state
   if (on('D4')) {
@@ -152,7 +156,7 @@ export async function probeButtons(page, opts) {
     if (inForm || t === 'submit') continue;
     const url0 = page.url();
     await page.evaluate(armMutation);
-    try { await b.click({ timeout: 3000 }); } catch (e) { res.push({ label, ok: false, why: 'not clickable: ' + e.message.split('\n')[0] }); continue; }
+    try { await b.click({ timeout: 3000 }); } catch (e) { const why = (e.message.split('\n').find((l) => /intercepts pointer events|not visible|outside of the viewport|not stable|disabled/.test(l)) || e.message.split('\n')[0]).trim(); res.push({ label, ok: false, why: 'a reader cannot click it: ' + why.slice(0, 200) }); continue; }
     await page.waitForTimeout(2000);
     const changed = page.url() !== url0 || (await page.evaluate(() => window.__mut || 0).catch(() => 1)) > 0;
     res.push({ label, ok: changed, why: changed ? '' : 'no navigation, no DOM change within 2 s' });

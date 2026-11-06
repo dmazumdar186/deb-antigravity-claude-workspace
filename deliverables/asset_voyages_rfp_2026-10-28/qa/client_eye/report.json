@@ -1,0 +1,6841 @@
+{
+ "meta": {
+  "generated": "2026-11-06T08:22:27.230Z",
+  "parts": {
+   "hub": {
+    "at": "2026-11-06T08:22:14.347Z",
+    "findings": 87,
+    "states": 40,
+    "logins": 0,
+    "writing": []
+   }
+  },
+  "states": 40,
+  "widths": [
+   320,
+   390,
+   768,
+   1280,
+   1440,
+   1920
+  ],
+  "roles": [
+   "HUB:visiteur"
+  ],
+  "versions": {
+   "commit": "f88dc8e3179d6d5b7fc87de09eae7f3892e38cb4",
+   "dirty": [],
+   "hub demo/index.html": "deployed = source",
+   "hub index.html": "deployed = source",
+   "hub js/demo.js": "deployed = source",
+   "hub css/demo.css": "deployed = source",
+   "zipHosted": "ad48baa5759e63bfbcbb9552acdb2b58a2511a0e7c79a35c952087b4616b20ee",
+   "zipLocal": "f2db344e4d84529fa93a23610a902f7c6833b25c8c5ebf7320738caaaf20c4a5",
+   "worker": {
+    "id": "9fdd6cb6-04fa-4d3a-a7ea-b2b7617bca32",
+    "created_on": "2026-11-06T07:50:09.302386Z"
+   },
+   "bSrcLastCommit": "d1c1942 2026-11-06T07:32:28+00:00",
+   "browsers": [
+    ".links",
+    "chromium",
+    "chromium-1243",
+    "chromium_headless_shell-1243",
+    "ffmpeg-1011"
+   ]
+  },
+  "checks": {
+   "E4": {
+    "status": "N/A",
+    "detail": "Only Chromium is installed (.links, chromium, chromium-1243, chromium_headless_shell-1243, ffmpeg-1011); Firefox and WebKit are not, and the brief forbids installing them. Recorded N/A, never PASS."
+   },
+   "A7": {
+    "status": "OPERATOR DECISION",
+    "detail": "Option B's address is https://asset-voyages-demo.debanjan186.workers.dev (contains « debanjan186 »). Accepted unless the operator asks for a custom domain."
+   },
+   "E2": {
+    "status": "HUMAN/PROCESS",
+    "detail": "The suites (wp_demo/tests/run_all.sh, custom_demo playwright) must run twice green after the last change; this gate does not run them. It runs last, on the deployed versions named above."
+   },
+   "E3": {
+    "status": "PASS",
+    "detail": "40 screenshots, all written by this gate from fresh browser contexts on the deployed hub and Option B and the local Option A build."
+   },
+   "E5": {
+    "status": "PASS",
+    "detail": "HUB: 320/390/768/1280/1440/1920. The hosted Option A boot is one boot per link at 1440 by design (brief)."
+   }
+  }
+ },
+ "perCheck": {
+  "A1": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "A2": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "A3": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "A4": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 10
+  },
+  "A5": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "A6": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "A7": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "B1": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "B2": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 16
+  },
+  "B3": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "B4": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 12
+  },
+  "B5": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 87
+  },
+  "B6": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 60
+  },
+  "B7": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 3
+  },
+  "C1": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "C2": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 5
+  },
+  "C3": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "C4": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "C5": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 3
+  },
+  "C6": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "C7": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 2
+  },
+  "C8": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "C9": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "C10": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "D1": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 2
+  },
+  "D2": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 5
+  },
+  "D3": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 20
+  },
+  "D4": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "E1": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 1
+  },
+  "E2": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "E3": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "E4": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "E5": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "GATE": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  }
+ },
+ "realPerOption": {},
+ "findings": [
+  {
+   "key": "78e64f9895",
+   "check": "A4",
+   "option": "HUB",
+   "text": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Thursday%2012%2",
+   "note": "malformed mailto",
+   "element": "a[href^=mailto]",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "a[href^=mailto]"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "a[href^=mailto]"
+    }
+   ],
+   "count": 2,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "1ede3d8396",
+   "check": "A4",
+   "option": "HUB",
+   "text": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Friday%2013%20N",
+   "note": "malformed mailto",
+   "element": "a[href^=mailto]",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "a[href^=mailto]"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "e6327b1669",
+   "check": "A4",
+   "option": "HUB",
+   "text": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Monday%2016%20N",
+   "note": "malformed mailto",
+   "element": "a[href^=mailto]",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "a[href^=mailto]"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "a[href^=mailto]"
+    }
+   ],
+   "count": 2,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "e6dbacb112",
+   "check": "A4",
+   "option": "HUB",
+   "text": "mailto:debanjan@prodcraft.fyi?subject=ASSET%20%E2%80%93%20demonstration%20slot&body=Proposed%20slot%3A%20Tuesday%2017%20",
+   "note": "malformed mailto",
+   "element": "a[href^=mailto]",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "a[href^=mailto]"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "a[href^=mailto]"
+    }
+   ],
+   "count": 2,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "2ad4d9786b",
+   "check": "A4",
+   "option": "HUB",
+   "text": "https://asset-voyages-redesign.pages.dev/demo/media/wp-walkthrough.mp4",
+   "note": "answers 200 but as « text/html; charset=utf-8 » (missing file served as a page)",
+   "element": "a",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "a"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "b833ea41dd",
+   "check": "A4",
+   "option": "HUB",
+   "text": "https://playground.wordpress.net/?mode=seamless&blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json",
+   "note": "blueprint is not valid JSON",
+   "element": "a « Open the admin, signed in\nto Option A (n »",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "a « Open the admin, signed in\nto Option A (n »"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "a4299b20ae",
+   "check": "A4",
+   "option": "HUB",
+   "text": "https://playground.wordpress.net/?mode=seamless&login=no&blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-visitor.json",
+   "note": "blueprint is not valid JSON",
+   "element": "a « Open the visitor site\nof Option A (new t »",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "a « Open the visitor site\nof Option A (new t »"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "cf202b618a",
+   "check": "A4",
+   "option": "HUB",
+   "text": "https://commons.wikimedia.org/wiki/File:Paris-pano-wladyslaw.jpg",
+   "note": "answers 200 but as « text/html; charset=UTF-8 » (missing file served as a page)",
+   "element": "a",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "a"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "16cea18f91",
+   "check": "A4",
+   "option": "HUB",
+   "text": "https://www.sft.fr/docs/2024164729_sft-2022-enquete-traduction.pdf",
+   "note": "HTTP 403",
+   "element": "a « French translators’ union (SFT) 2022 sur »",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "a « French translators’ union (SFT) 2022 sur »"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "eeca7f2a74",
+   "check": "A4",
+   "option": "HUB",
+   "text": "https://www.sft.fr/global/gene/link.php?doc_id=882&edit_lang=fr",
+   "note": "HTTP 403",
+   "element": "a « 2025 survey »",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "a « 2025 survey »"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "3eb0730482",
+   "check": "B2",
+   "option": "A",
+   "text": "$last                 = gmdate( 'Y-m-t', (int) strtotime( $first . ' 12:00:00 UTC' ) );",
+   "note": "PHP date()/gmdate() uses UTC, not Europe/Paris: one day off near midnight if shown or compared to a Paris date",
+   "element": "source",
+   "occurrences": [
+    {
+     "page": "wp_demo/plugin/asset-congres-demo/includes/class-catalogue.php:203",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "source"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "22968a85f1",
+   "check": "B2",
+   "option": "A",
+   "text": "header( 'Content-Disposition: attachment; filename=\"demandes-asset-' . gmdate( 'Ymd' ) . '.csv\"' );",
+   "note": "PHP date()/gmdate() uses UTC, not Europe/Paris: one day off near midnight if shown or compared to a Paris date",
+   "element": "source",
+   "occurrences": [
+    {
+     "page": "wp_demo/plugin/asset-congres-demo/includes/class-demandes-admin.php:410",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "source"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "e17c6b0432",
+   "check": "B2",
+   "option": "A",
+   "text": "return gmdate( 'Y-m-d H:i:s' );",
+   "note": "PHP date()/gmdate() uses UTC, not Europe/Paris: one day off near midnight if shown or compared to a Paris date",
+   "element": "source",
+   "occurrences": [
+    {
+     "page": "wp_demo/plugin/asset-congres-demo/includes/class-gme.php:262",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "source"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "9846433327",
+   "check": "B2",
+   "option": "A",
+   "text": "$data['expires_at'] = gmdate( 'Y-m-d H:i:s', time() + self::GRANT_HOURS * HOUR_IN_SECONDS );",
+   "note": "PHP date()/gmdate() uses UTC, not Europe/Paris: one day off near midnight if shown or compared to a Paris date",
+   "element": "source",
+   "occurrences": [
+    {
+     "page": "wp_demo/plugin/asset-congres-demo/includes/class-gme.php:414",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "source"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "b3d337363e",
+   "check": "B2",
+   "option": "A",
+   "text": "$when = gmdate( 'Y-m-d H:i:s', time() - $r[12] * DAY_IN_SECONDS );",
+   "note": "PHP date()/gmdate() uses UTC, not Europe/Paris: one day off near midnight if shown or compared to a Paris date",
+   "element": "source",
+   "occurrences": [
+    {
+     "page": "wp_demo/plugin/asset-congres-demo/includes/class-seed.php:313",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "source"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "0a0699a2fd",
+   "check": "B2",
+   "option": "A",
+   "text": "Asset_CD_Demandes::add_history( $id, 'owner', '0', (string) $r[11], '', $r[11], gmdate( 'Y-m-d H:i:s', strtotime( $when ) + 3600 ) );",
+   "note": "PHP date()/gmdate() uses UTC, not Europe/Paris: one day off near midnight if shown or compared to a Paris date",
+   "element": "source",
+   "occurrences": [
+    {
+     "page": "wp_demo/plugin/asset-congres-demo/includes/class-seed.php:346",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "source"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "70ab645147",
+   "check": "B2",
+   "option": "A",
+   "text": "Asset_CD_Demandes::add_history( $id, 'status', $prev, $s, '', $r[11] ? $r[11] : $eq, gmdate( 'Y-m-d H:i:s', strtotime( $when ) + ( $i + 2 ) * 3600 ) );",
+   "note": "PHP date()/gmdate() uses UTC, not Europe/Paris: one day off near midnight if shown or compared to a Paris date",
+   "element": "source",
+   "occurrences": [
+    {
+     "page": "wp_demo/plugin/asset-congres-demo/includes/class-seed.php:352",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "source"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "f42da6f53c",
+   "check": "B2",
+   "option": "B",
+   "text": "const t = today();",
+   "note": "at 00:05 Paris (2026-11-06T23:05:00Z) today() = 2026-11-06 but the Paris date is 2026-11-07",
+   "element": "source",
+   "occurrences": [
+    {
+     "page": "custom_demo/src/public.js:39",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "source"
+    },
+    {
+     "page": "custom_demo/src/public.js:120",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "source"
+    },
+    {
+     "page": "custom_demo/src/group.js:160",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "source"
+    }
+   ],
+   "count": 3,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "3fe656b2aa",
+   "check": "B2",
+   "option": "B",
+   "text": "export const gmeOnSale = (c, t = today()) => c.gme_status === 'approuve' && (!c.gme_from || c.gme_from <= t) && (!c.gme_to || c.gme_to >= t);",
+   "note": "at 00:05 Paris (2026-11-06T23:05:00Z) today() = 2026-11-06 but the Paris date is 2026-11-07",
+   "element": "source",
+   "occurrences": [
+    {
+     "page": "custom_demo/src/public.js:113",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "source"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "09c512880f",
+   "check": "B2",
+   "option": "B",
+   "text": "export function validateEnquiry(get, t = today()) {",
+   "note": "at 00:05 Paris (2026-11-06T23:05:00Z) today() = 2026-11-06 but the Paris date is 2026-11-07",
+   "element": "source",
+   "occurrences": [
+    {
+     "page": "custom_demo/src/public.js:181",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "source"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "54250dccb5",
+   "check": "B2",
+   "option": "B",
+   "text": "if (!c || c.end_date < today()) return htmlResponse(errorPage({ status: 404, title: 'Congrès introuvable', text: 'Ce congrès n’est pas ou plus ouvert aux demand",
+   "note": "at 00:05 Paris (2026-11-06T23:05:00Z) today() = 2026-11-06 but the Paris date is 2026-11-07",
+   "element": "source",
+   "occurrences": [
+    {
+     "page": "custom_demo/src/public.js:220",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "source"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "31fd4818ad",
+   "check": "B2",
+   "option": "B",
+   "text": "headers: { 'content-type': 'text/csv; charset=utf-8', 'content-disposition': `attachment; filename=\"demandes-${today()}.csv\"`, ...NO_STORE },",
+   "note": "at 00:05 Paris (2026-11-06T23:05:00Z) today() = 2026-11-06 but the Paris date is 2026-11-07",
+   "element": "source",
+   "occurrences": [
+    {
+     "page": "custom_demo/src/console.js:477",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "source"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "ff1458f0f2",
+   "check": "B2",
+   "option": "B",
+   "text": "headers: { 'content-type': 'text/csv; charset=utf-8', 'content-disposition': `attachment; filename=\"groupe-${r.ref}-${today()}.csv\"`, ...NO_STORE },",
+   "note": "at 00:05 Paris (2026-11-06T23:05:00Z) today() = 2026-11-06 but the Paris date is 2026-11-07",
+   "element": "source",
+   "occurrences": [
+    {
+     "page": "custom_demo/src/console.js:742",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "source"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "03d674c52a",
+   "check": "B2",
+   "option": "B",
+   "text": "export const linkExpiry = (fromIso = today()) => addDays(String(fromIso).slice(0, 10), LINK_DAYS) + 'T23:59:59Z';",
+   "note": "at 00:05 Paris (2026-11-06T23:05:00Z) today() = 2026-11-06 but the Paris date is 2026-11-07",
+   "element": "source",
+   "occurrences": [
+    {
+     "page": "custom_demo/src/group.js:34",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "source"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "b5da0f2d60",
+   "check": "B2",
+   "option": "B",
+   "text": "export function validateDelegate(get, congress, t = today()) {",
+   "note": "at 00:05 Paris (2026-11-06T23:05:00Z) today() = 2026-11-06 but the Paris date is 2026-11-07",
+   "element": "source",
+   "occurrences": [
+    {
+     "page": "custom_demo/src/group.js:67",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "source"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "9aa7ec4c27",
+   "check": "B2",
+   "option": "B",
+   "text": "return { state: state === 'active' && congress.end_date < today() ? 'ended' : state, env: scoped, link, enquiry, congress, mac };",
+   "note": "at 00:05 Paris (2026-11-06T23:05:00Z) today() = 2026-11-06 but the Paris date is 2026-11-07",
+   "element": "source",
+   "occurrences": [
+    {
+     "page": "custom_demo/src/group.js:139",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "source"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "84680100f5",
+   "check": "B4",
+   "option": "HUB",
+   "text": "s européen de radiologie — exemple",
+   "note": "orphan-dash",
+   "element": "ul.rows > li.row > div > p.row__t",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "hub/",
+     "shot": "out/shots/0002-HUB-visiteur-320-hub.png",
+     "element": "ul.rows > li.row > div > p.row__t"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "166e9eb7e8",
+   "check": "B4",
+   "option": "HUB",
+   "text": "ès mondial de neurologie — exemple",
+   "note": "orphan-dash",
+   "element": "ul.rows > li.row > div > p.row__t",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "hub/",
+     "shot": "out/shots/0002-HUB-visiteur-320-hub.png",
+     "element": "ul.rows > li.row > div > p.row__t"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "118cb66805",
+   "check": "B4",
+   "option": "HUB",
+   "text": "montre ce que fait ASSET : la deman",
+   "note": "line-starts-with-:",
+   "element": "main > section.cover > p",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "hub/pour-asset/",
+     "shot": "out/shots/0003-HUB-visiteur-320-hub-pour-asset.png",
+     "element": "main > section.cover > p"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "57b72b16cc",
+   "check": "B4",
+   "option": "HUB",
+   "text": " quelle que soit », « voyages d’affaires",
+   "note": "line-ends-with-«",
+   "element": "article#doc > p",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "hub/pour-asset/",
+     "shot": "out/shots/0003-HUB-visiteur-320-hub-pour-asset.png",
+     "element": "article#doc > p"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "fr-FR",
+     "state": "hub/pour-asset/",
+     "shot": "out/shots/0008-HUB-visiteur-390-hub-pour-asset.png",
+     "element": "article#doc > p"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "en-GB",
+     "state": "hub/pour-asset/",
+     "shot": "out/shots/0038-HUB-visiteur-390-hub-pour-asset.png",
+     "element": "article#doc > p"
+    }
+   ],
+   "count": 3,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "0726f80e7e",
+   "check": "B4",
+   "option": "HUB",
+   "text": "la carte « Voyages d’affaires",
+   "note": "line-ends-with-«",
+   "element": "table.cmp > tbody > tr > td",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "hub/pour-asset/",
+     "shot": "out/shots/0003-HUB-visiteur-320-hub-pour-asset.png",
+     "element": "table.cmp > tbody > tr > td"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "fr-FR",
+     "state": "hub/pour-asset/",
+     "shot": "out/shots/0008-HUB-visiteur-390-hub-pour-asset.png",
+     "element": "table.cmp > tbody > tr > td"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 768,
+     "locale": "fr-FR",
+     "state": "hub/pour-asset/",
+     "shot": "out/shots/0013-HUB-visiteur-768-hub-pour-asset.png",
+     "element": "table.cmp > tbody > tr > td"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 1280,
+     "locale": "fr-FR",
+     "state": "hub/pour-asset/",
+     "shot": "out/shots/0018-HUB-visiteur-1280-hub-pour-asset.png",
+     "element": "table.cmp > tbody > tr > td"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "hub/pour-asset/",
+     "shot": "out/shots/0023-HUB-visiteur-1440-hub-pour-asset.png",
+     "element": "table.cmp > tbody > tr > td"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 1920,
+     "locale": "fr-FR",
+     "state": "hub/pour-asset/",
+     "shot": "out/shots/0028-HUB-visiteur-1920-hub-pour-asset.png",
+     "element": "table.cmp > tbody > tr > td"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "en-GB",
+     "state": "hub/pour-asset/",
+     "shot": "out/shots/0033-HUB-visiteur-1440-hub-pour-asset.png",
+     "element": "table.cmp > tbody > tr > td"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "en-GB",
+     "state": "hub/pour-asset/",
+     "shot": "out/shots/0038-HUB-visiteur-390-hub-pour-asset.png",
+     "element": "table.cmp > tbody > tr > td"
+    }
+   ],
+   "count": 8,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "8d1d888fba",
+   "check": "B4",
+   "option": "HUB",
+   "text": "la carte « Meetings & Events ",
+   "note": "line-ends-with-«",
+   "element": "table.cmp > tbody > tr > td",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "hub/pour-asset/",
+     "shot": "out/shots/0003-HUB-visiteur-320-hub-pour-asset.png",
+     "element": "table.cmp > tbody > tr > td"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "fr-FR",
+     "state": "hub/pour-asset/",
+     "shot": "out/shots/0008-HUB-visiteur-390-hub-pour-asset.png",
+     "element": "table.cmp > tbody > tr > td"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 768,
+     "locale": "fr-FR",
+     "state": "hub/pour-asset/",
+     "shot": "out/shots/0013-HUB-visiteur-768-hub-pour-asset.png",
+     "element": "table.cmp > tbody > tr > td"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 1280,
+     "locale": "fr-FR",
+     "state": "hub/pour-asset/",
+     "shot": "out/shots/0018-HUB-visiteur-1280-hub-pour-asset.png",
+     "element": "table.cmp > tbody > tr > td"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "hub/pour-asset/",
+     "shot": "out/shots/0023-HUB-visiteur-1440-hub-pour-asset.png",
+     "element": "table.cmp > tbody > tr > td"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 1920,
+     "locale": "fr-FR",
+     "state": "hub/pour-asset/",
+     "shot": "out/shots/0028-HUB-visiteur-1920-hub-pour-asset.png",
+     "element": "table.cmp > tbody > tr > td"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "en-GB",
+     "state": "hub/pour-asset/",
+     "shot": "out/shots/0033-HUB-visiteur-1440-hub-pour-asset.png",
+     "element": "table.cmp > tbody > tr > td"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "en-GB",
+     "state": "hub/pour-asset/",
+     "shot": "out/shots/0038-HUB-visiteur-390-hub-pour-asset.png",
+     "element": "table.cmp > tbody > tr > td"
+    }
+   ],
+   "count": 8,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "add1fe7ffc",
+   "check": "B4",
+   "option": "HUB",
+   "text": "is « ©2020 » et « © 2026 » · le chi",
+   "note": "line-starts-with-»",
+   "element": "table.cmp > tbody > tr > td",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "hub/pour-asset/",
+     "shot": "out/shots/0003-HUB-visiteur-320-hub-pour-asset.png",
+     "element": "table.cmp > tbody > tr > td"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "fr-FR",
+     "state": "hub/pour-asset/",
+     "shot": "out/shots/0008-HUB-visiteur-390-hub-pour-asset.png",
+     "element": "table.cmp > tbody > tr > td"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "en-GB",
+     "state": "hub/pour-asset/",
+     "shot": "out/shots/0038-HUB-visiteur-390-hub-pour-asset.png",
+     "element": "table.cmp > tbody > tr > td"
+    }
+   ],
+   "count": 3,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "52ce199602",
+   "check": "B4",
+   "option": "HUB",
+   "text": "ncontres d’ophtalmologie — exemple",
+   "note": "orphan-dash",
+   "element": "table.tbl > tbody > tr > td",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/console/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "hub/console/",
+     "shot": "out/shots/0004-HUB-visiteur-320-hub-console.png",
+     "element": "table.tbl > tbody > tr > td"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/console/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "fr-FR",
+     "state": "hub/console/",
+     "shot": "out/shots/0009-HUB-visiteur-390-hub-console.png",
+     "element": "table.tbl > tbody > tr > td"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/console/",
+     "role": "visiteur",
+     "width": 768,
+     "locale": "fr-FR",
+     "state": "hub/console/",
+     "shot": "out/shots/0014-HUB-visiteur-768-hub-console.png",
+     "element": "table.tbl > tbody > tr > td"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/console/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "en-GB",
+     "state": "hub/console/",
+     "shot": "out/shots/0039-HUB-visiteur-390-hub-console.png",
+     "element": "table.tbl > tbody > tr > td"
+    }
+   ],
+   "count": 4,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "10c60a708d",
+   "check": "B4",
+   "option": "HUB",
+   "text": "a free-text « Précisions » box.",
+   "note": "line-starts-with-»",
+   "element": "li#q22 > span > span.qa",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "hub/questions/",
+     "shot": "out/shots/0005-HUB-visiteur-320-hub-questions.png",
+     "element": "li#q22 > span > span.qa"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "d9a5ad0aa8",
+   "check": "B4",
+   "option": "HUB",
+   "text": "écran, sans rien envoyer ; en produ",
+   "note": "line-starts-with-;",
+   "element": "article#doc > ul > li",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 768,
+     "locale": "fr-FR",
+     "state": "hub/pour-asset/",
+     "shot": "out/shots/0013-HUB-visiteur-768-hub-pour-asset.png",
+     "element": "article#doc > ul > li"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "b775cc08de",
+   "check": "B4",
+   "option": "HUB",
+   "text": "s go in a free-text « Précisions » box.",
+   "note": "line-ends-with-«",
+   "element": "li#q22 > span > span.qa",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": 768,
+     "locale": "fr-FR",
+     "state": "hub/questions/",
+     "shot": "out/shots/0015-HUB-visiteur-768-hub-questions.png",
+     "element": "li#q22 > span > span.qa"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "fa88f052d6",
+   "check": "B4",
+   "option": "HUB",
+   "text": "e affiche à la fois « ©2020 » et « © 202",
+   "note": "line-ends-with-«",
+   "element": "table.cmp > tbody > tr > td",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 1280,
+     "locale": "fr-FR",
+     "state": "hub/pour-asset/",
+     "shot": "out/shots/0018-HUB-visiteur-1280-hub-pour-asset.png",
+     "element": "table.cmp > tbody > tr > td"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "hub/pour-asset/",
+     "shot": "out/shots/0023-HUB-visiteur-1440-hub-pour-asset.png",
+     "element": "table.cmp > tbody > tr > td"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 1920,
+     "locale": "fr-FR",
+     "state": "hub/pour-asset/",
+     "shot": "out/shots/0028-HUB-visiteur-1920-hub-pour-asset.png",
+     "element": "table.cmp > tbody > tr > td"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "en-GB",
+     "state": "hub/pour-asset/",
+     "shot": "out/shots/0033-HUB-visiteur-1440-hub-pour-asset.png",
+     "element": "table.cmp > tbody > tr > td"
+    }
+   ],
+   "count": 4,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "a983ea8af0",
+   "check": "B5",
+   "option": "HUB",
+   "text": "add-ons",
+   "note": "unknown en word in « The version of today’s site, its add-ons and any custom code. » (8×)",
+   "element": "en",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "en"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "a510a3ac69",
+   "check": "B5",
+   "option": "HUB",
+   "text": "admin",
+   "note": "unknown en word in « Open the admin, signed in » (120×)",
+   "element": "en",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/demo/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "en"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "86e26dd8e9",
+   "check": "B5",
+   "option": "HUB",
+   "text": "agences",
+   "note": "unknown en word in « “Plus de 122 agences”. The Selectour Affaires figure on your site is undated. Your brief asks for claims to be checked b » (16×)",
+   "element": "en",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "en"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "2fe7b82d27",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Allemagne",
+   "note": "unknown fr word in « Allemagne » (8×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "da934ca5b7",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Analytics",
+   "note": "unknown en word in « Cloudflare Web Analytics » (24×)",
+   "element": "en",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "en"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "436eb09a19",
+   "check": "B5",
+   "option": "HUB",
+   "text": "anti-spam",
+   "note": "unknown fr word in « L’envoi des formulaires. Les formulaires valident et confirment à l’écran, sans rien envoyer ; en production : enregistr » (8×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "985de3f6f8",
+   "check": "B5",
+   "option": "HUB",
+   "text": "app",
+   "note": "unknown en word in « Two-step login for staff, only for named work email addresses: either your work email account (Microsoft 365 or Google W » (24×)",
+   "element": "en",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "en"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "db270e774c",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Approx",
+   "note": "unknown en word in « Approx. per month » (4×)",
+   "element": "en",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": 1280,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "en"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "b977f7d5a1",
+   "check": "B5",
+   "option": "HUB",
+   "text": "ASSETNos",
+   "note": "unknown fr word in « OffresCongrèsContactNote pour ASSETNos questionsLes deux démosHaut de page ↑ » (8×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "4f2709d3b6",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Aujourd",
+   "note": "unknown fr word in « Aujourd’hui / concept » (48×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "4ca77c2e7d",
+   "check": "B5",
+   "option": "HUB",
+   "text": "authorised",
+   "note": "unknown en word in « Only if you lack authorised photos. Example: a stock-photo plan with 10 images a month » (8×)",
+   "element": "en",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "en"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "2b6719cebb",
+   "check": "B5",
+   "option": "HUB",
+   "text": "avr",
+   "note": "unknown fr word in « avr. – juin 2027 » (24×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "405af55135",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Brevo",
+   "note": "unknown en word in « Brevo (French), backup Resend » (24×)",
+   "element": "en",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "en"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "a077631d50",
+   "check": "B5",
+   "option": "HUB",
+   "text": "brief",
+   "note": "unknown fr word in « 01 Le brief » (88×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "aee985bdd9",
+   "check": "B5",
+   "option": "HUB",
+   "text": "clics",
+   "note": "unknown fr word in « Dans la maquette : toutes les offres et tous les formulaires accessibles sans quitter la page, en 1 à 2 clics depuis le  » (8×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "990a5629af",
+   "check": "B5",
+   "option": "HUB",
+   "text": "cliquable",
+   "note": "unknown fr word in « Une maquette cliquable de la refonte d’asset-voyagesdaffaires.com, construite à partir de votre consultation (version 0. » (8×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "a9f0a4438b",
+   "check": "B5",
+   "option": "HUB",
+   "text": "colours",
+   "note": "unknown en word in « 10Do you have brand guidelines (logo files, colours, fonts)? Is the logo fixed, or is a light refresh welcome? » (16×)",
+   "element": "en",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "en"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "d0677a7231",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Commons",
+   "note": "unknown fr word in « 58, rue Jean-Pierre Timbaud · 92130 Issy-les-Moulineaux · Photo : Wladyslaw Sojka, CC BY 3.0 via Wikimedia Commons » (4×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "15f6ec277f",
+   "check": "B5",
+   "option": "HUB",
+   "text": "CongrèsAgence",
+   "note": "unknown fr word in « Voyages d’affaires · MICE · CongrèsAgence Selectour Affaires · Issy-les-Moulineaux » (4×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 1280,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "7c2d19da00",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Connexion",
+   "note": "unknown en word in « Client login. Your current client area says “Connexion Traveldoo”, while the brief mentions Wondermiles. Is Wondermiles  » (16×)",
+   "element": "en",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "en"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "1bb5eee6df",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Directus",
+   "note": "unknown en word in « The alternative. A ready-made content editor such as Directus, installed on a rented server. It is a sound product and w » (8×)",
+   "element": "en",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "en"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "69bb595528",
+   "check": "B5",
+   "option": "HUB",
+   "text": "docx",
+   "note": "unknown en word in « Word version (.docx) » (16×)",
+   "element": "en",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "en"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "9a9942af1f",
+   "check": "B5",
+   "option": "HUB",
+   "text": "déc",
+   "note": "unknown fr word in « oct. – déc. 2027 » (8×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "b8cc404940",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Démo",
+   "note": "unknown fr word in « Démo de l’outil de réservation » (8×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "12116dd180",
+   "check": "B5",
+   "option": "HUB",
+   "text": "démos",
+   "note": "unknown fr word in « Les autres pages : le concept · la Console · nos questions · les deux démos (en anglais). » (8×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "0bdafe48d9",
+   "check": "B5",
+   "option": "HUB",
+   "text": "démosHaut",
+   "note": "unknown fr word in « OffresCongrèsContactNote pour ASSETNos questionsLes deux démosHaut de page ↑ » (8×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "4e66cc8c11",
+   "check": "B5",
+   "option": "HUB",
+   "text": "E-mail",
+   "note": "unknown fr word in « E-mail professionnel » (8×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "20bd825f00",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Eiffel",
+   "note": "unknown fr word in « Panorama de Paris avec la tour Eiffel et le dôme des Invalides » (4×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "96a3a6c500",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Events",
+   "note": "unknown fr word in « Meetings & Events » (28×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "04ccf1fde6",
+   "check": "B5",
+   "option": "HUB",
+   "text": "export",
+   "note": "unknown fr word in « L’envoi des formulaires. Les formulaires valident et confirment à l’écran, sans rien envoyer ; en production : enregistr » (24×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "0129ae2dc7",
+   "check": "B5",
+   "option": "HUB",
+   "text": "fillable",
+   "note": "unknown en word in « Download the answer sheet (fillable PDF) » (16×)",
+   "element": "en",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "en"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "2ad01bb712",
+   "check": "B5",
+   "option": "HUB",
+   "text": "filtrable",
+   "note": "unknown fr word in « Catalogue filtrable, fiche par congrès, devis vol pré-rempli ; les statuts internes ne sont jamais affichés » (8×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "6205640fb5",
+   "check": "B5",
+   "option": "HUB",
+   "text": "févr",
+   "note": "unknown fr word in « 24–28 févr. 2027 » (16×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "f9fcd20efd",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Gandi",
+   "note": "unknown en word in « Estimates, prices checked 28 October 2026, excluding VAT, paid to the providers, not to us. The domain name, hosting and » (8×)",
+   "element": "en",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "en"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "d3eb0002ea",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Google",
+   "note": "unknown fr word in « Un concept publié à une adresse de test, non référencé : il n’apparaît pas sur Google et n’est lié depuis aucun site pub » (8×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "ceaa94d7ac",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Géolocalisation",
+   "note": "unknown fr word in « Géolocalisation » (4×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "b1a73ecca2",
+   "check": "B5",
+   "option": "HUB",
+   "text": "HubSpot",
+   "note": "unknown en word in « Only if you choose one. Free plans exist (HubSpot: free for up to 2 users); paid plans start around $7–20 per user » (16×)",
+   "element": "en",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "en"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "4c17c972cd",
+   "check": "B5",
+   "option": "HUB",
+   "text": "import",
+   "note": "unknown fr word in « L’administration réelle. La Console est une maquette : gestion des pages, rôles, import de tableur, versions et journal  » (16×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "a7d1734a0c",
+   "check": "B5",
+   "option": "HUB",
+   "text": "incentive",
+   "note": "unknown fr word in « Séminaire, incentive, groupe » (8×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "41ed136c8e",
+   "check": "B5",
+   "option": "HUB",
+   "text": "incentives",
+   "note": "unknown fr word in « MICE · séminaires, incentives, groupes » (4×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "b4e343d038",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Issy-les-Moulineaux",
+   "note": "unknown fr word in « 58, rue Jean-Pierre Timbaud · 92130 Issy-les-Moulineaux · Photo : Wladyslaw Sojka, CC BY 3.0 via Wikimedia Commons » (24×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "2c5df458c3",
+   "check": "B5",
+   "option": "HUB",
+   "text": "janv",
+   "note": "unknown fr word in « janv. – mars 2027 » (24×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "9f26cca240",
+   "check": "B5",
+   "option": "HUB",
+   "text": "juil",
+   "note": "unknown fr word in « juil. – sept. 2027 » (8×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "1c3f7e679f",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Khatri",
+   "note": "unknown fr word in « ASSET Voyages — direction, et Mme Veena Khatri (coordination) » (72×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "7c2d22d04e",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Khatri",
+   "note": "unknown en word in « ASSET Voyages management, and Ms Veena Khatri (coordination) » (128×)",
+   "element": "en",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "en"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "d4dbd57bdd",
+   "check": "B5",
+   "option": "HUB",
+   "text": "LinkedIn",
+   "note": "unknown en word in « 7Could you give us read-only access to Google Analytics and Search Console? Which trackers (LinkedIn, Meta) and ad campa » (16×)",
+   "element": "en",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "en"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "78d066e22e",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Lisbonne",
+   "note": "unknown fr word in « Lisbonne, Portugal » (8×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "075fc43d13",
+   "check": "B5",
+   "option": "HUB",
+   "text": "logins",
+   "note": "unknown en word in « The console asks you to sign in with one of the logins below. » (16×)",
+   "element": "en",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/demo/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "en"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "63bbfd97df",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Lyon",
+   "note": "unknown fr word in « Lyon, France » (8×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "2d85aae16a",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Marseille",
+   "note": "unknown fr word in « Marseille, France » (8×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "aabf7528dc",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Mme",
+   "note": "unknown fr word in « ASSET Voyages — direction, et Mme Veena Khatri (coordination) » (72×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "b444046a9b",
+   "check": "B5",
+   "option": "HUB",
+   "text": "multi-segments",
+   "note": "unknown fr word in « « […] nous trouvons la meilleure combinaison tarifaire pour les billets complexes, comme les multi-segments ou les tours » (4×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "9d03bce133",
+   "check": "B5",
+   "option": "HUB",
+   "text": "oct",
+   "note": "unknown fr word in « oct. – déc. 2027 » (8×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "6c86b547e3",
+   "check": "B5",
+   "option": "HUB",
+   "text": "OffresCongrèsContactNote",
+   "note": "unknown fr word in « OffresCongrèsContactNote pour ASSETNos questionsLes deux démosHaut de page ↑ » (8×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "0e512ef22d",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Oncologie",
+   "note": "unknown fr word in « Oncologie » (32×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "2256cbea37",
+   "check": "B5",
+   "option": "HUB",
+   "text": "PME-PMI",
+   "note": "unknown fr word in « Nous proposons aux PME-PMI ainsi qu’aux TPE des solutions sur mesure pour gérer et optimiser vos déplacements profession » (8×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "2e5af2964e",
+   "check": "B5",
+   "option": "HUB",
+   "text": "PME-TPE",
+   "note": "unknown fr word in « Offre PME-TPE » (4×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "a8c062a2b3",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Pneumologie",
+   "note": "unknown fr word in « Pneumologie » (8×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "e3b73f2550",
+   "check": "B5",
+   "option": "HUB",
+   "text": "programme",
+   "note": "unknown en word in « 18Answer first Does ASSET already work with Air France–KLM’s Global Meetings and Events programme? How do the event code » (8×)",
+   "element": "en",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "en"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "18a7adae5f",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Qualifiéerappel",
+   "note": "unknown fr word in « Qualifiéerappel aujourd’hui » (8×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/console/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "2a9294815b",
+   "check": "B5",
+   "option": "HUB",
+   "text": "questionsLes",
+   "note": "unknown fr word in « OffresCongrèsContactNote pour ASSETNos questionsLes deux démosHaut de page ↑ » (8×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "8596de7d32",
+   "check": "B5",
+   "option": "HUB",
+   "text": "reporting",
+   "note": "unknown fr word in « « Un reporting complet et personnalisé des voyages d’affaires de vos collaborateurs. » » (16×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "18a9e03df8",
+   "check": "B5",
+   "option": "HUB",
+   "text": "revérifier",
+   "note": "unknown fr word in « « Avec plus de 122 agences et plateaux d’affaires en France, Selectour Affaires constitue le premier réseau dédié aux vo » (12×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "5e07c50ae3",
+   "check": "B5",
+   "option": "HUB",
+   "text": "rhumatologie",
+   "note": "unknown fr word in « Journées de rhumatologie — exemple » (8×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/console/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "ebf90810a3",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Réf",
+   "note": "unknown fr word in « Réf. » (16×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/console/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "964998c528",
+   "check": "B5",
+   "option": "HUB",
+   "text": "screenshots",
+   "note": "unknown en word in « 24Who is your contact at Wondermiles? What may we show about Wondermiles on the “Digital solutions” page (logo, screensh » (16×)",
+   "element": "en",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "en"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "d13aa551a7",
+   "check": "B5",
+   "option": "HUB",
+   "text": "searchable",
+   "note": "unknown en word in « The congress catalogue is the biggest new value. It does not exist today. A searchable list, one page per congress, and  » (8×)",
+   "element": "en",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "en"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "41aa2d93bd",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Selectour",
+   "note": "unknown fr word in « ASSET Voyages est une agence de voyages d’affaires à taille humaine, membre du réseau Selectour Affaires. » (48×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "8c9b9f6d01",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Selectour",
+   "note": "unknown en word in « “Plus de 122 agences”. The Selectour Affaires figure on your site is undated. Your brief asks for claims to be checked b » (24×)",
+   "element": "en",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "en"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "85d360ce07",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Smart",
+   "note": "unknown fr word in « Domaine actuel asset-voyagesdaffaires.com, alors que la consultation cite www.assetvoyages.com · l’espace client actuel  » (8×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "9ea38c843c",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Sojka",
+   "note": "unknown fr word in « 58, rue Jean-Pierre Timbaud · 92130 Issy-les-Moulineaux · Photo : Wladyslaw Sojka, CC BY 3.0 via Wikimedia Commons » (4×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "ea323b163a",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Stabilisation",
+   "note": "unknown en word in « Stabilisation » (8×)",
+   "element": "en",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/demo/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "en"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "7912aa51f0",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Timbaud",
+   "note": "unknown fr word in « 58, rue Jean-Pierre Timbaud · 92130 Issy-les-Moulineaux · Photo : Wladyslaw Sojka, CC BY 3.0 via Wikimedia Commons » (20×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "59809ee364",
+   "check": "B5",
+   "option": "HUB",
+   "text": "travel",
+   "note": "unknown fr word in « PME · TPE · travel managers » (16×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "6b96abe794",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Traveldoo",
+   "note": "unknown fr word in « Domaine actuel asset-voyagesdaffaires.com, alors que la consultation cite www.assetvoyages.com · l’espace client actuel  » (8×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "b53d86d63d",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Traveldoo",
+   "note": "unknown en word in « Client login. Your current client area says “Connexion Traveldoo”, while the brief mentions Wondermiles. Is Wondermiles  » (32×)",
+   "element": "en",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "en"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "0d34ecfd61",
+   "check": "B5",
+   "option": "HUB",
+   "text": "UptimeRobot",
+   "note": "unknown en word in « UptimeRobot » (24×)",
+   "element": "en",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "en"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "22e8028f7b",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Veena",
+   "note": "unknown fr word in « ASSET Voyages — direction, et Mme Veena Khatri (coordination) » (16×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "2b75701f23",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Veena",
+   "note": "unknown en word in « ASSET Voyages management, and Ms Veena Khatri (coordination) » (8×)",
+   "element": "en",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "en"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "d13d2796ee",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Voyagesdemos",
+   "note": "unknown en word in « ASSET Voyagesdemos prepared by ProdCraft » (5×)",
+   "element": "en",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/demo/",
+     "role": "visiteur",
+     "width": 768,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "en"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "c21afe556f",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Wikimedia",
+   "note": "unknown fr word in « 58, rue Jean-Pierre Timbaud · 92130 Issy-les-Moulineaux · Photo : Wladyslaw Sojka, CC BY 3.0 via Wikimedia Commons » (4×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "8f491514f4",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Wireframes",
+   "note": "unknown en word in « Wireframes (page outlines), then desktop and mobile mock-ups, with two rounds of changes at each stage. » (8×)",
+   "element": "en",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/demo/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "en"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "d700817d62",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Wladyslaw",
+   "note": "unknown fr word in « 58, rue Jean-Pierre Timbaud · 92130 Issy-les-Moulineaux · Photo : Wladyslaw Sojka, CC BY 3.0 via Wikimedia Commons » (4×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "9699a48c82",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Wondermiles",
+   "note": "unknown fr word in « Domaine actuel asset-voyagesdaffaires.com, alors que la consultation cite www.assetvoyages.com · l’espace client actuel  » (16×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "06a9867f09",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Wondermiles",
+   "note": "unknown en word in « Ready for later, not dependent on it. Links with Wondermiles or Air France–KLM can come later. The launch must not wait  » (96×)",
+   "element": "en",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "en"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "500d481425",
+   "check": "B5",
+   "option": "HUB",
+   "text": "Word",
+   "note": "unknown fr word in « Vos réponses écrites aux 30 questions (page en anglais, section 08), sur la fiche de réponses à télécharger (PDF à rempl » (8×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "c5177d9251",
+   "check": "B5",
+   "option": "HUB",
+   "text": "www",
+   "note": "unknown fr word in « Domaine actuel asset-voyagesdaffaires.com, alors que la consultation cite www.assetvoyages.com · l’espace client actuel  » (8×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "d7a7c8a01f",
+   "check": "B6",
+   "option": "A",
+   "text": "congress menu",
+   "note": "none of « Congrès » seen in the A UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "11b67150f0",
+   "check": "B6",
+   "option": "A",
+   "text": "add a congress",
+   "note": "none of « Ajouter un congrès / Nouveau congrès / Ajouter » seen in the A UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "c9e407a20a",
+   "check": "B6",
+   "option": "A",
+   "text": "list of congresses",
+   "note": "none of « Tous les congrès / Congrès » seen in the A UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "2982539102",
+   "check": "B6",
+   "option": "A",
+   "text": "enquiries",
+   "note": "none of « Demandes / Toutes les demandes » seen in the A UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "75760b38c0",
+   "check": "B6",
+   "option": "A",
+   "text": "status new",
+   "note": "none of « Nouvelle » seen in the A UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "36cc850fae",
+   "check": "B6",
+   "option": "A",
+   "text": "status qualified",
+   "note": "none of « Qualifiée » seen in the A UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "f4f6d69c00",
+   "check": "B6",
+   "option": "A",
+   "text": "notification log",
+   "note": "none of « Journal des notifications / Notifications » seen in the A UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "0807871384",
+   "check": "B6",
+   "option": "A",
+   "text": "quote form title",
+   "note": "none of « Demander un devis vol / Demande de devis vol / Demander un devis » seen in the A UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "10bf197512",
+   "check": "B6",
+   "option": "A",
+   "text": "send the enquiry",
+   "note": "none of « Envoyer ma demande / Envoyer la demande » seen in the A UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "be7753f8bb",
+   "check": "B6",
+   "option": "A",
+   "text": "team area link",
+   "note": "none of « Espace équipe » seen in the A UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "3e52fc691c",
+   "check": "B6",
+   "option": "A",
+   "text": "GM&E codes screen",
+   "note": "none of « Accès GM&E / Codes GM&E / Codes » seen in the A UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "e18336fe3d",
+   "check": "B6",
+   "option": "A",
+   "text": "ask for access",
+   "note": "none of « Demander l’accès / Demander l'accès » seen in the A UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "f6b9cd6fe1",
+   "check": "B6",
+   "option": "A",
+   "text": "approve",
+   "note": "none of « Approuver (24 h) / Approuver pour 24 h / Approuver » seen in the A UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "afa414ffc1",
+   "check": "B6",
+   "option": "A",
+   "text": "show the code",
+   "note": "none of « Révéler le code / Afficher le code » seen in the A UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "12b3732ae8",
+   "check": "B6",
+   "option": "A",
+   "text": "access log",
+   "note": "none of « Journal GM&E / Journal / Journal d’accès » seen in the A UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "f842c5f98e",
+   "check": "B6",
+   "option": "A",
+   "text": "access requests",
+   "note": "none of « Demandes d’accès » seen in the A UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "ff605f8b3f",
+   "check": "B6",
+   "option": "A",
+   "text": "CSV export",
+   "note": "none of « Exporter en CSV / Exporter (tableur CSV) / Exporter » seen in the A UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "de4f377ae3",
+   "check": "B6",
+   "option": "A",
+   "text": "sign out",
+   "note": "none of « Se déconnecter » seen in the A UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "073fca929b",
+   "check": "B6",
+   "option": "A",
+   "text": "sign in",
+   "note": "none of « Se connecter » seen in the A UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "905ca055c2",
+   "check": "B6",
+   "option": "A",
+   "text": "dashboard",
+   "note": "none of « Tableau de bord » seen in the A UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "8f431cea8b",
+   "check": "B6",
+   "option": "A",
+   "text": "public catalogue",
+   "note": "none of « Catalogue des congrès » seen in the A UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "20e5109167",
+   "check": "B6",
+   "option": "A",
+   "text": "« Congrès »",
+   "note": "quoted on the hub for Option A but not seen as a label in that UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "hub",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "3a7af20af3",
+   "check": "B6",
+   "option": "A",
+   "text": "« Ajouter un congrès »",
+   "note": "quoted on the hub for Option A but not seen as a label in that UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "hub",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "d0de5386c8",
+   "check": "B6",
+   "option": "A",
+   "text": "« Tous les congrès »",
+   "note": "quoted on the hub for Option A but not seen as a label in that UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "hub",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "53906737dc",
+   "check": "B6",
+   "option": "A",
+   "text": "« Demander un devis vol »",
+   "note": "quoted on the hub for Option A but not seen as a label in that UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "hub",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "3dbeb7c223",
+   "check": "B6",
+   "option": "A",
+   "text": "« Espace équipe »",
+   "note": "quoted on the hub for Option A but not seen as a label in that UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "hub",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "b0e5b90212",
+   "check": "B6",
+   "option": "A",
+   "text": "« Demandes »",
+   "note": "quoted on the hub for Option A but not seen as a label in that UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "hub",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "c3319b4925",
+   "check": "B6",
+   "option": "A",
+   "text": "« Nouvelle »",
+   "note": "quoted on the hub for Option A but not seen as a label in that UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "hub",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "b47f9df1e5",
+   "check": "B6",
+   "option": "A",
+   "text": "« Qualifiée »",
+   "note": "quoted on the hub for Option A but not seen as a label in that UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "hub",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "c6e9febf80",
+   "check": "B6",
+   "option": "A",
+   "text": "« Journal des notifications »",
+   "note": "quoted on the hub for Option A but not seen as a label in that UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "hub",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "e433b68fa3",
+   "check": "B6",
+   "option": "A",
+   "text": "« Accès GM&E »",
+   "note": "quoted on the hub for Option A but not seen as a label in that UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "hub",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "6027f8df43",
+   "check": "B6",
+   "option": "B",
+   "text": "congress menu",
+   "note": "none of « Congrès » seen in the B UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "39a22759f6",
+   "check": "B6",
+   "option": "B",
+   "text": "add a congress",
+   "note": "none of « Ajouter un congrès / Nouveau congrès / Ajouter » seen in the B UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "6e23758adb",
+   "check": "B6",
+   "option": "B",
+   "text": "list of congresses",
+   "note": "none of « Tous les congrès / Congrès » seen in the B UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "d170887729",
+   "check": "B6",
+   "option": "B",
+   "text": "enquiries",
+   "note": "none of « Demandes / Toutes les demandes » seen in the B UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "0c0abbc77a",
+   "check": "B6",
+   "option": "B",
+   "text": "status new",
+   "note": "none of « Nouvelle » seen in the B UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "de40143d82",
+   "check": "B6",
+   "option": "B",
+   "text": "status qualified",
+   "note": "none of « Qualifiée » seen in the B UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "6ddec3761d",
+   "check": "B6",
+   "option": "B",
+   "text": "notification log",
+   "note": "none of « Journal des notifications / Notifications » seen in the B UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "2e71fbd06f",
+   "check": "B6",
+   "option": "B",
+   "text": "quote form title",
+   "note": "none of « Demander un devis vol / Demande de devis vol / Demander un devis » seen in the B UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "f478ea2841",
+   "check": "B6",
+   "option": "B",
+   "text": "send the enquiry",
+   "note": "none of « Envoyer ma demande / Envoyer la demande » seen in the B UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "6fcc4c6599",
+   "check": "B6",
+   "option": "B",
+   "text": "team area link",
+   "note": "none of « Espace équipe » seen in the B UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "4f23975f7e",
+   "check": "B6",
+   "option": "B",
+   "text": "GM&E codes screen",
+   "note": "none of « Accès GM&E / Codes GM&E / Codes » seen in the B UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "14f60fb05f",
+   "check": "B6",
+   "option": "B",
+   "text": "ask for access",
+   "note": "none of « Demander l’accès / Demander l'accès » seen in the B UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "4726616861",
+   "check": "B6",
+   "option": "B",
+   "text": "approve",
+   "note": "none of « Approuver (24 h) / Approuver pour 24 h / Approuver » seen in the B UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "9635e26009",
+   "check": "B6",
+   "option": "B",
+   "text": "show the code",
+   "note": "none of « Révéler le code / Afficher le code » seen in the B UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "791f5c3260",
+   "check": "B6",
+   "option": "B",
+   "text": "access log",
+   "note": "none of « Journal GM&E / Journal / Journal d’accès » seen in the B UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "fd5d699400",
+   "check": "B6",
+   "option": "B",
+   "text": "access requests",
+   "note": "none of « Demandes d’accès » seen in the B UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "4b3caf7e52",
+   "check": "B6",
+   "option": "B",
+   "text": "CSV export",
+   "note": "none of « Exporter en CSV / Exporter (tableur CSV) / Exporter » seen in the B UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "7408259538",
+   "check": "B6",
+   "option": "B",
+   "text": "sign out",
+   "note": "none of « Se déconnecter » seen in the B UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "2c930d591f",
+   "check": "B6",
+   "option": "B",
+   "text": "sign in",
+   "note": "none of « Se connecter » seen in the B UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "757deffe94",
+   "check": "B6",
+   "option": "B",
+   "text": "dashboard",
+   "note": "none of « Tableau de bord » seen in the B UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "eb1cf007c5",
+   "check": "B6",
+   "option": "B",
+   "text": "public catalogue",
+   "note": "none of « Catalogue des congrès » seen in the B UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "b8f3189524",
+   "check": "B6",
+   "option": "B",
+   "text": "group tab",
+   "note": "none of « Groupe » seen in the B UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "0eb7f061bb",
+   "check": "B6",
+   "option": "B",
+   "text": "group link card",
+   "note": "none of « Lien de groupe » seen in the B UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "2fecfe772f",
+   "check": "B6",
+   "option": "B",
+   "text": "group export",
+   "note": "none of « Exporter pour cotation (CSV) » seen in the B UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "10af161061",
+   "check": "B6",
+   "option": "B",
+   "text": "« Codes GM&E »",
+   "note": "quoted on the hub for Option B but not seen as a label in that UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "hub",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "4ffc59ca93",
+   "check": "B6",
+   "option": "B",
+   "text": "« répondus / attendus »",
+   "note": "quoted on the hub for Option B but not seen as a label in that UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "hub",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "64a122faa9",
+   "check": "B6",
+   "option": "B",
+   "text": "« Exporter pour cotation (CSV) »",
+   "note": "quoted on the hub for Option B but not seen as a label in that UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "hub",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "fb16684fe6",
+   "check": "B6",
+   "option": "B",
+   "text": "« Groupe »",
+   "note": "quoted on the hub for Option B but not seen as a label in that UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "hub",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "c739e2ab32",
+   "check": "B6",
+   "option": "B",
+   "text": "« Lien de groupe »",
+   "note": "quoted on the hub for Option B but not seen as a label in that UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "hub",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "60d9fc14cf",
+   "check": "B7",
+   "option": "HUB",
+   "text": "On a congress details page, find « Demander un devis vol ».",
+   "note": "« congress » should be « Congrèss »",
+   "element": "li#task-3 > div.task__opt.task__opt--a > ol.steps > li",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/demo/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "fr-FR",
+     "state": "hub/demo/",
+     "shot": "out/shots/0006-HUB-visiteur-390-hub-demo.png",
+     "element": "li#task-3 > div.task__opt.task__opt--a > ol.steps > li"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/demo/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "hub/demo/",
+     "shot": "out/shots/0021-HUB-visiteur-1440-hub-demo.png",
+     "element": "li#task-3 > div.task__opt.task__opt--a > ol.steps > li"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/demo/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "en-GB",
+     "state": "hub/demo/",
+     "shot": "out/shots/0031-HUB-visiteur-1440-hub-demo.png",
+     "element": "li#task-3 > div.task__opt.task__opt--a > ol.steps > li"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/demo/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "en-GB",
+     "state": "hub/demo/",
+     "shot": "out/shots/0036-HUB-visiteur-390-hub-demo.png",
+     "element": "li#task-3 > div.task__opt.task__opt--a > ol.steps > li"
+    }
+   ],
+   "count": 4,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "4399ec9991",
+   "check": "B7",
+   "option": "HUB",
+   "text": "Signed in as equipe, open « Accès GM&E »: the codes are hidden. Ask for access and give a reason.",
+   "note": "« access » should be « Accèss »",
+   "element": "li#task-5 > div.task__opt.task__opt--a > ol.steps > li",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/demo/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "fr-FR",
+     "state": "hub/demo/",
+     "shot": "out/shots/0006-HUB-visiteur-390-hub-demo.png",
+     "element": "li#task-5 > div.task__opt.task__opt--a > ol.steps > li"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/demo/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "hub/demo/",
+     "shot": "out/shots/0021-HUB-visiteur-1440-hub-demo.png",
+     "element": "li#task-5 > div.task__opt.task__opt--a > ol.steps > li"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/demo/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "en-GB",
+     "state": "hub/demo/",
+     "shot": "out/shots/0031-HUB-visiteur-1440-hub-demo.png",
+     "element": "li#task-5 > div.task__opt.task__opt--a > ol.steps > li"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/demo/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "en-GB",
+     "state": "hub/demo/",
+     "shot": "out/shots/0036-HUB-visiteur-390-hub-demo.png",
+     "element": "li#task-5 > div.task__opt.task__opt--a > ol.steps > li"
+    }
+   ],
+   "count": 4,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "ad9e6d8db3",
+   "check": "B7",
+   "option": "HUB",
+   "text": "In the team console, sign in as equipe and open « Codes GM&E »: the codes are hidden. Ask for access and give a reason.",
+   "note": "« access » should be « Accèss »",
+   "element": "li#task-5 > div.task__opt.task__opt--b > ol.steps > li",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/demo/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "hub/demo/",
+     "shot": "out/shots/0021-HUB-visiteur-1440-hub-demo.png",
+     "element": "li#task-5 > div.task__opt.task__opt--b > ol.steps > li"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/demo/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "en-GB",
+     "state": "hub/demo/",
+     "shot": "out/shots/0031-HUB-visiteur-1440-hub-demo.png",
+     "element": "li#task-5 > div.task__opt.task__opt--b > ol.steps > li"
+    }
+   ],
+   "count": 2,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "46b8794844",
+   "check": "C2",
+   "option": "HUB",
+   "text": "Réinitialiser",
+   "note": "not clickable: locator.click: Timeout 3000ms exceeded.",
+   "element": "button",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "fr-FR",
+     "state": "hub/",
+     "shot": "",
+     "element": "button"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "e0fe1091b4",
+   "check": "C2",
+   "option": "HUB",
+   "text": "Voir la fiche",
+   "note": "not clickable: locator.click: Timeout 3000ms exceeded.",
+   "element": "button",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "fr-FR",
+     "state": "hub/",
+     "shot": "",
+     "element": "button"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "fr-FR",
+     "state": "hub/",
+     "shot": "",
+     "element": "button"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "fr-FR",
+     "state": "hub/",
+     "shot": "",
+     "element": "button"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "fr-FR",
+     "state": "hub/",
+     "shot": "",
+     "element": "button"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "fr-FR",
+     "state": "hub/",
+     "shot": "",
+     "element": "button"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "fr-FR",
+     "state": "hub/",
+     "shot": "",
+     "element": "button"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "hub/",
+     "shot": "",
+     "element": "button"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "hub/",
+     "shot": "",
+     "element": "button"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "hub/",
+     "shot": "",
+     "element": "button"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "hub/",
+     "shot": "",
+     "element": "button"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "hub/",
+     "shot": "",
+     "element": "button"
+    }
+   ],
+   "count": 11,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "86fb4de08e",
+   "check": "C2",
+   "option": "HUB",
+   "text": "‹",
+   "note": "not clickable: locator.click: Timeout 3000ms exceeded.",
+   "element": "button",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "fr-FR",
+     "state": "hub/",
+     "shot": "",
+     "element": "button"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "hub/",
+     "shot": "",
+     "element": "button"
+    }
+   ],
+   "count": 2,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "4649fa6aad",
+   "check": "C2",
+   "option": "HUB",
+   "text": "1",
+   "note": "not clickable: locator.click: Timeout 3000ms exceeded.",
+   "element": "button",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "fr-FR",
+     "state": "hub/",
+     "shot": "",
+     "element": "button"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "hub/",
+     "shot": "",
+     "element": "button"
+    }
+   ],
+   "count": 2,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "fedbdde1a0",
+   "check": "C2",
+   "option": "HUB",
+   "text": "2",
+   "note": "not clickable: locator.click: Timeout 3000ms exceeded.",
+   "element": "button",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "hub/",
+     "shot": "",
+     "element": "button"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "157184c163",
+   "check": "C5",
+   "option": "hub",
+   "text": "Inter (hub/demo/); ui-monospace (hub/)",
+   "note": "2 body font families",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "hub",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "dd39488a29",
+   "check": "C5",
+   "option": "hub",
+   "text": "EB Garamond (hub/demo/); Inter (hub/questions/)",
+   "note": "2 display font families",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "hub",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "af434992f4",
+   "check": "C5",
+   "option": "hub",
+   "text": "Inter | radius 4px (hub/demo/ « Open the demos »); ui-monospace | radius 4px (hub/ « ESPACE CLIENT »); Inter | radius 2px (hub/ « Parler à un conseiller\n→ »); Inter | radius 3px (hub/pour-asset/ « Voir le concept »)",
+   "note": "4 button style families",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "hub",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "4005f28b67",
+   "check": "C7",
+   "option": "B",
+   "text": "SELECT id FROM sandboxes WHERE created_at < ?1 ORDER BY created_at LIMIT ${PURGE_SANDBOXES}",
+   "note": "the 03:00 UTC purge selects sandboxes CREATED more than 24 h ago, not sandboxes IDLE for more than 24 h: a trial in use at 03:00 is wiped if it started the day before",
+   "element": "source",
+   "occurrences": [
+    {
+     "page": "custom_demo/src/data.js:298",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "source"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "ffdd3e5a8b",
+   "check": "C7",
+   "option": "HUB",
+   "text": "\n\nSame requirements, fictional data and codes, sandboxes that reset themselves.",
+   "note": "the hub does not say the trial is reset after 24 h",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "5fc012f744",
+   "check": "D1",
+   "option": "A",
+   "text": "Editing all the site’s pages: Works in the demo The standard WordPress page editor; your current pages are mov",
+   "note": "this run (gate test CE-D1-PAGES): direction opens « Pages » (edit.php?post_type=page) HTTP undefined · no earlier test ID in wp_demo/README.md",
+   "element": "table.cmp",
+   "occurrences": [
+    {
+     "page": "demo/#compare",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "table.cmp"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "9266a5db64",
+   "check": "D1",
+   "option": "B",
+   "text": "Works in the Option B demo",
+   "note": "this run: G steps PASS · custom_demo/README.md extra_group.spec.mjs G-F1..G-X3 (README says « not deployed »)",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "demo/#group",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "4c31617d02",
+   "check": "D2",
+   "option": "HUB",
+   "text": "Founder, ProdCraftdebanjan@prodcraft.fyi",
+   "note": "real-looking e-mail « ProdCraftdebanjan@prodcraft.fyi »",
+   "element": "footer.foot > div.container.foot__in > div.foot__sig > p",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/demo/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "fr-FR",
+     "state": "hub/demo/",
+     "shot": "out/shots/0006-HUB-visiteur-390-hub-demo.png",
+     "element": "footer.foot > div.container.foot__in > div.foot__sig > p"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/demo/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "hub/demo/",
+     "shot": "out/shots/0021-HUB-visiteur-1440-hub-demo.png",
+     "element": "footer.foot > div.container.foot__in > div.foot__sig > p"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/demo/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "en-GB",
+     "state": "hub/demo/",
+     "shot": "out/shots/0031-HUB-visiteur-1440-hub-demo.png",
+     "element": "footer.foot > div.container.foot__in > div.foot__sig > p"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/demo/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "en-GB",
+     "state": "hub/demo/",
+     "shot": "out/shots/0036-HUB-visiteur-390-hub-demo.png",
+     "element": "footer.foot > div.container.foot__in > div.foot__sig > p"
+    }
+   ],
+   "count": 4,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "760a3afa82",
+   "check": "D2",
+   "option": "HUB",
+   "text": "Congrès européen de radiologie — exemple",
+   "note": "matches a real congress name « congres europeen de radiologie » (marked as an example in the same text)",
+   "element": "ul.rows > li.row > div > p.row__t",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "fr-FR",
+     "state": "hub/",
+     "shot": "out/shots/0007-HUB-visiteur-390-hub.png",
+     "element": "ul.rows > li.row > div > p.row__t"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/console/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "fr-FR",
+     "state": "hub/console/",
+     "shot": "out/shots/0009-HUB-visiteur-390-hub-console.png",
+     "element": "table.tbl > tbody > tr > td"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "hub/",
+     "shot": "out/shots/0022-HUB-visiteur-1440-hub.png",
+     "element": "ul.rows > li.row > div > p.row__t"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/console/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "hub/console/",
+     "shot": "out/shots/0024-HUB-visiteur-1440-hub-console.png",
+     "element": "table.tbl > tbody > tr > td"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "en-GB",
+     "state": "hub/",
+     "shot": "out/shots/0032-HUB-visiteur-1440-hub.png",
+     "element": "ul.rows > li.row > div > p.row__t"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/console/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "en-GB",
+     "state": "hub/console/",
+     "shot": "out/shots/0034-HUB-visiteur-1440-hub-console.png",
+     "element": "table.tbl > tbody > tr > td"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "en-GB",
+     "state": "hub/",
+     "shot": "out/shots/0037-HUB-visiteur-390-hub.png",
+     "element": "ul.rows > li.row > div > p.row__t"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/console/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "en-GB",
+     "state": "hub/console/",
+     "shot": "out/shots/0039-HUB-visiteur-390-hub-console.png",
+     "element": "table.tbl > tbody > tr > td"
+    }
+   ],
+   "count": 8,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "4fd467697d",
+   "check": "D2",
+   "option": "HUB",
+   "text": "01 55 57 29 00",
+   "note": "phone « 01 55 57 29 00 » outside the ARCEP fiction ranges (01 99 00…, 02 61 91…, 03 53 01…, 04 65 71…, 05 36 49…, 06 39 98…) and not masked",
+   "element": "section#contact > div.contact__grid > div.contact__side",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "fr-FR",
+     "state": "hub/",
+     "shot": "out/shots/0007-HUB-visiteur-390-hub.png",
+     "element": "section#contact > div.contact__grid > div.contact__side"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "hub/",
+     "shot": "out/shots/0022-HUB-visiteur-1440-hub.png",
+     "element": "section#contact > div.contact__grid > div.contact__side"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "en-GB",
+     "state": "hub/",
+     "shot": "out/shots/0032-HUB-visiteur-1440-hub.png",
+     "element": "section#contact > div.contact__grid > div.contact__side"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "en-GB",
+     "state": "hub/",
+     "shot": "out/shots/0037-HUB-visiteur-390-hub.png",
+     "element": "section#contact > div.contact__grid > div.contact__side"
+    }
+   ],
+   "count": 4,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "db25742a2c",
+   "check": "D2",
+   "option": "HUB",
+   "text": "58, rue Jean-Pierre Timbaud92130 Issy-les-Moulineaux01 55 57 29 00",
+   "note": "phone « 01 55 57 29 00 » outside the ARCEP fiction ranges (01 99 00…, 02 61 91…, 03 53 01…, 04 65 71…, 05 36 49…, 06 39 98…) and not masked",
+   "element": "footer.ftr > div > p",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "fr-FR",
+     "state": "hub/",
+     "shot": "out/shots/0007-HUB-visiteur-390-hub.png",
+     "element": "footer.ftr > div > p"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "hub/",
+     "shot": "out/shots/0022-HUB-visiteur-1440-hub.png",
+     "element": "footer.ftr > div > p"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "en-GB",
+     "state": "hub/",
+     "shot": "out/shots/0032-HUB-visiteur-1440-hub.png",
+     "element": "footer.ftr > div > p"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "en-GB",
+     "state": "hub/",
+     "shot": "out/shots/0037-HUB-visiteur-390-hub.png",
+     "element": "footer.ftr > div > p"
+    }
+   ],
+   "count": 4,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "56eec219c6",
+   "check": "D2",
+   "option": "HUB",
+   "text": "If we don’t hear back, we’ll assume: every enquiry goes to one shared mailbox (direction@assetvoyages.com until you name another), and the confirmation email sa…",
+   "note": "real-looking e-mail « direction@assetvoyages.com »",
+   "element": "li#q15 > span > span.qa",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "fr-FR",
+     "state": "hub/questions/",
+     "shot": "out/shots/0010-HUB-visiteur-390-hub-questions.png",
+     "element": "li#q15 > span > span.qa"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "hub/questions/",
+     "shot": "out/shots/0025-HUB-visiteur-1440-hub-questions.png",
+     "element": "li#q15 > span > span.qa"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": 1440,
+     "locale": "en-GB",
+     "state": "hub/questions/",
+     "shot": "out/shots/0035-HUB-visiteur-1440-hub-questions.png",
+     "element": "li#q15 > span > span.qa"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "en-GB",
+     "state": "hub/questions/",
+     "shot": "out/shots/0040-HUB-visiteur-390-hub-questions.png",
+     "element": "li#q15 > span > span.qa"
+    }
+   ],
+   "count": 4,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "297483d3c4",
+   "check": "D3",
+   "option": "HUB",
+   "text": "two",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": "d by ProdCraft ⏎  ⏎ Back to the concept ⏎ The ⟨two⟩ demos ⏎ Try it ⏎ Recordings ⏎ What works ⏎ Grou",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "d by ProdCraft ⏎  ⏎ Back to the concept ⏎ The ⟨two⟩ demos ⏎ Try it ⏎ Recordings ⏎ What works ⏎ Grou"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": " then desktop and mobile mock-ups, with ⟨two⟩ rounds of changes at each stage. ⏎  ⏎ Devel"
+    }
+   ],
+   "count": 2,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "1d7c6396a3",
+   "check": "D3",
+   "option": "HUB",
+   "text": "Two",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": "E codes ⏎ Milestones ⏎ Book a demonstration ⏎ ⟨Two⟩ working demos. Try both, choose one. ⏎  ⏎ S",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "E codes ⏎ Milestones ⏎ Book a demonstration ⏎ ⟨Two⟩ working demos. Try both, choose one. ⏎  ⏎ S"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "book a 20 to 30 minute demonstration ⏎  ⏎ 1 ⟨Two⟩ options, both working ⏎  ⏎ You asked to see"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "ecord lists it. ⏎ Prefer to watch first? ⏎  ⏎ ⟨Two⟩ short recordings walk through the same "
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "congresses in English alongside French. ⏎ ⟨Two⟩-step login for staff\t ⏎ Built during the "
+    }
+   ],
+   "count": 4,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "f5941be923",
+   "check": "D3",
+   "option": "HUB",
+   "text": "one",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": "ion ⏎ Two working demos. Try both, choose ⟨one⟩. ⏎  ⏎ Same requirements, fictional data and",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "ion ⏎ Two working demos. Try both, choose ⟨one⟩. ⏎  ⏎ Same requirements, fictional data and"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "tomatically as « direction ». To follow ⟨one⟩ enquiry from start to finish, use the v"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ") ⏎  ⏎ The console asks you to sign in with ⟨one⟩ of the logins below. ⏎  ⏎ Demo logins, the "
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "n five minutes ⏎  ⏎ Your five requirements, ⟨one⟩ task each. Each task shows where to cli"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "and discipline, then publish. To change ⟨one⟩, open it from « Tous les congrès ». ⏎  ⏎ Si"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "en the list of congresses and add a new ⟨one⟩, or open an existing one to change it. ⏎ "
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": " and add a new one, or open an existing ⟨one⟩ to change it. ⏎ Send it for review. Sign "
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "dings walk through the same five tasks, ⟨one⟩ per option. ⏎  ⏎ Option B, our custom platf"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": " by hand. ⏎  ⏎ What it does ⏎ Your team sends ⟨one⟩ link ⏎ for the enquiry, in its reply to t"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "raveller come in production. ⏎ 4 How each ⟨one⟩ is built, in plain words ⏎ Option A: Word"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "rom the start matter most. ⏎  ⏎ With either ⟨one⟩: the source code, the data and every ac"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "o 2 ⏎  ⏎ An audit of your current site, and ⟨one⟩ workshop of up to 2 hours. ⏎  ⏎ Design ⏎  ⏎ Wee"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "e. If you would like a sample built for ⟨one⟩ of your own congresses, we can do that "
+    }
+   ],
+   "count": 13,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "8342d57cde",
+   "check": "D3",
+   "option": "HUB",
+   "text": "20 to 30",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": "t themselves. ⏎  ⏎ Open the demos ⏎ or book a ⟨20 to 30⟩ minute demonstration ⏎  ⏎ 1 Two options, bo",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "t themselves. ⏎  ⏎ Open the demos ⏎ or book a ⟨20 to 30⟩ minute demonstration ⏎  ⏎ 1 Two options, bo"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "he launch date is agreed together. ⏎  ⏎ 7 A ⟨20 to 30⟩ minute demonstration ⏎  ⏎ We walk you throu"
+    }
+   ],
+   "count": 2,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "9adfc2d3b6",
+   "check": "D3",
+   "option": "HUB",
+   "text": "1",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": "r book a 20 to 30 minute demonstration ⏎  ⏎ ⟨1⟩ Two options, both working ⏎  ⏎ You asked to",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "r book a 20 to 30 minute demonstration ⏎  ⏎ ⟨1⟩ Two options, both working ⏎  ⏎ You asked to"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": " A: WordPress\tOption B: custom platform ⏎ ⟨1⟩. Create and edit congresses\t ⏎ Works in t"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "er sees a code, and only for 24 hours. ⏎  ⏎ ⟨1⟩ ⏎ Team member ⏎ sees the code ⏎ hidden ⏎ 2 ⏎ Asks"
+    }
+   ],
+   "count": 3,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "71ff5cb971",
+   "check": "D3",
+   "option": "HUB",
+   "text": "twice",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": "s. Rather than describe it, we built it ⟨twice⟩, so you can try it yourselves and pick ",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "s. Rather than describe it, we built it ⟨twice⟩, so you can try it yourselves and pick "
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "9e825e84b8",
+   "check": "D3",
+   "option": "HUB",
+   "text": "five",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": "SSET. ⏎  ⏎ Both demos are built to the same ⟨five⟩ requirements from your consultation. Ev",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "SSET. ⏎  ⏎ Both demos are built to the same ⟨five⟩ requirements from your consultation. Ev"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": " which then wait for review ⏎ 2 Try it in ⟨five⟩ minutes ⏎  ⏎ Your five requirements, one ta"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "r review ⏎ 2 Try it in five minutes ⏎  ⏎ Your ⟨five⟩ requirements, one task each. Each task "
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": " short recordings walk through the same ⟨five⟩ tasks, one per option. ⏎  ⏎ Option B, our c"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "on. ⏎  ⏎ Option B, our custom platform: the ⟨five⟩ tasks from start to finish. ⏎ 3 What work"
+    }
+   ],
+   "count": 5,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "3720ce61b8",
+   "check": "D3",
+   "option": "HUB",
+   "text": "20 to 40",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": "o install. ⏎  ⏎ The first start takes about ⟨20 to 40⟩ seconds while it loads. Later starts ar",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "o install. ⏎  ⏎ The first start takes about ⟨20 to 40⟩ seconds while it loads. Later starts ar"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "f12355073f",
+   "check": "D3",
+   "option": "HUB",
+   "text": "2",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": " congresses, which then wait for review ⏎ ⟨2⟩ Try it in five minutes ⏎  ⏎ Your five requi",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": " congresses, which then wait for review ⏎ ⟨2⟩ Try it in five minutes ⏎  ⏎ Your five requi"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "console, with review before publishing. ⏎ ⟨2⟩. Public catalogue with search, filters "
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "rs. ⏎  ⏎ 1 ⏎ Team member ⏎ sees the code ⏎ hidden ⏎ ⟨2⟩ ⏎ Asks for access ⏎ and gives ⏎ a reason ⏎ 3 ⏎ Di"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "current site, and one workshop of up to ⟨2⟩ hours. ⏎  ⏎ Design ⏎  ⏎ Weeks 2 to 5 ⏎  ⏎ Wireframe"
+    }
+   ],
+   "count": 4,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "3d3b390c7c",
+   "check": "D3",
+   "option": "HUB",
+   "text": "4",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": "n Option A and in Option B. Tasks 3 and ⟨4⟩ follow on from each other: send an enqu",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "n Option A and in Option B. Tasks 3 and ⟨4⟩ follow on from each other: send an enqu"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "ed before sending; you get a reference. ⏎ ⟨4⟩. Receive, view, track and update enquir"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "tatus per traveller come in production. ⏎ ⟨4⟩ How each one is built, in plain words ⏎ O"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "Direction ⏎ approves for 24 h, ⏎ or refuses ⏎ ⟨4⟩ ⏎ Code shown ⏎ to that person ⏎ only ⏎ 5 ⏎ Access"
+    }
+   ],
+   "count": 4,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "7bd7b4fa2a",
+   "check": "D3",
+   "option": "HUB",
+   "text": "24",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": "giving a reason. Direction approves for ⟨24⟩ hours, or refuses. Each time a code is ",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "giving a reason. Direction approves for ⟨24⟩ hours, or refuses. Each time a code is "
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ", sign in as direction, and approve for ⟨24⟩ hours or refuse. ⏎ Sign in as equipe agai"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "des hidden, access asked with a reason, ⟨24⟩-hour approval, a record of every displa"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "pproval, ever sees a code, and only for ⟨24⟩ hours. ⏎  ⏎ 1 ⏎ Team member ⏎ sees the code ⏎ hid"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "gives ⏎ a reason ⏎ 3 ⏎ Direction ⏎ approves for ⟨24⟩ h, ⏎ or refuses ⏎ 4 ⏎ Code shown ⏎ to that pers"
+    }
+   ],
+   "count": 5,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "e999c45a75",
+   "check": "D3",
+   "option": "HUB",
+   "text": "3",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": "m: the five tasks from start to finish. ⏎ ⟨3⟩ What works today, and what we would bui",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "m: the five tasks from start to finish. ⏎ ⟨3⟩ What works today, and what we would bui"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "country and month, a page per congress. ⏎ ⟨3⟩. Flight enquiry form\t ⏎ Works in the demo"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "en ⏎ 2 ⏎ Asks for access ⏎ and gives ⏎ a reason ⏎ ⟨3⟩ ⏎ Direction ⏎ approves for 24 h, ⏎ or refuses"
+    }
+   ],
+   "count": 3,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "4e9c564547",
+   "check": "D3",
+   "option": "HUB",
+   "text": "5",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": "changes, export to a spreadsheet (CSV). ⏎ ⟨5⟩. GM&E codes protected\t ⏎ Works in the dem",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "changes, export to a spreadsheet (CSV). ⏎ ⟨5⟩. GM&E codes protected\t ⏎ Works in the dem"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "ything; and you receive documentation. ⏎  ⏎ ⟨5⟩ How the GM&E codes stay protected ⏎  ⏎ The "
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "efuses ⏎ 4 ⏎ Code shown ⏎ to that person ⏎ only ⏎ ⟨5⟩ ⏎ Access recorded ⏎ who, when, which ⏎ code, "
+    }
+   ],
+   "count": 3,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "8e6c3b6dd9",
+   "check": "D3",
+   "option": "HUB",
+   "text": "300",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": "nstead of sending them. ⏎ Importing about ⟨300⟩ congresses from a spreadsheet\t ⏎ Built du",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "nstead of sending them. ⏎ Importing about ⟨300⟩ congresses from a spreadsheet\t ⏎ Built du"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "25fd4bda4c",
+   "check": "D3",
+   "option": "HUB",
+   "text": "One",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": "s in the Option B demo ⏎ Suggestion only ⏎  ⏎ ⟨One⟩ more idea: a link for group trips ⏎  ⏎ For ",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "s in the Option B demo ⏎ Suggestion only ⏎  ⏎ ⟨One⟩ more idea: a link for group trips ⏎  ⏎ For "
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "1ed36a958f",
+   "check": "D3",
+   "option": "HUB",
+   "text": "Three",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": " demo-asset. ⏎ Choose the « Groupe » tab. ⟨Three⟩ fictional travellers have already answe",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": " demo-asset. ⏎ Choose the « Groupe » tab. ⟨Three⟩ fictional travellers have already answe"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "5b3fae2155",
+   "check": "D3",
+   "option": "HUB",
+   "text": "6",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": "pt in a record that Direction can read. ⏎ ⟨6⟩ Milestones ⏎  ⏎ Counted from your approval ",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "pt in a record that Direction can read. ⏎ ⟨6⟩ Milestones ⏎  ⏎ Counted from your approval "
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "5d53bdeca1",
+   "check": "D3",
+   "option": "HUB",
+   "text": "four",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": "2 ⏎  ⏎ For your team, with a second session ⟨four⟩ weeks after launch. ⏎  ⏎ Launch ⏎  ⏎ Week 13 ⏎  ⏎ A",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "2 ⏎  ⏎ For your team, with a second session ⟨four⟩ weeks after launch. ⏎  ⏎ Launch ⏎  ⏎ Week 13 ⏎  ⏎ A"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "9da6419756",
+   "check": "D3",
+   "option": "HUB",
+   "text": "Four",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": "ected to the new pages. ⏎  ⏎ Stabilisation ⏎  ⏎ ⟨Four⟩ weeks after launch ⏎  ⏎ We watch the new si",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "ected to the new pages. ⏎  ⏎ Stabilisation ⏎  ⏎ ⟨Four⟩ weeks after launch ⏎  ⏎ We watch the new si"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "5e8e2d52e5",
+   "check": "D3",
+   "option": "HUB",
+   "text": "7",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": "d. The launch date is agreed together. ⏎  ⏎ ⟨7⟩ A 20 to 30 minute demonstration ⏎  ⏎ We wal",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "d. The launch date is agreed together. ⏎  ⏎ ⟨7⟩ A 20 to 30 minute demonstration ⏎  ⏎ We wal"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "0a4659202b",
+   "check": "E1",
+   "option": "A-hosted",
+   "text": "hosted ad48baa5759e ≠ local build f2db344e4d84",
+   "note": "the hub's Playground links install an older plugin than the current wp_demo/ code",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "demo-wordpress/asset-congres-demo.zip",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  }
+ ],
+ "replay": {
+  "A": [],
+  "B": [],
+  "Ahosted": []
+ },
+ "boots": [],
+ "claims": [
+  {
+   "fn": "1. Create and edit congresses",
+   "option": "A",
+   "cell": "Works in the demo In the standard WordPress editor, with review before publishing.",
+   "works": true,
+   "ok": true,
+   "evidence": "this run: C10 T1 functional PASS · wp_demo/README.md: S1-F1, S1-F2, S1-F3, S1-E1, S1-E2, S1-H1, S1-H2"
+  },
+  {
+   "fn": "1. Create and edit congresses",
+   "option": "B",
+   "cell": "Works in the demo In the team console, with review before publishing.",
+   "works": true,
+   "ok": true,
+   "evidence": "this run: C10 T1 functional PASS · custom_demo/README.md: `s1_congress.spec.mjs` 5/5 pass"
+  },
+  {
+   "fn": "2. Public catalogue with search, filters and details page",
+   "option": "A",
+   "cell": "Works in the demo Search, filters by discipline, country and month, a page per congress.",
+   "works": true,
+   "ok": true,
+   "evidence": "this run: C10 T2 functional PASS · wp_demo/README.md: S2-F1, S2-F2, S2-F3, S2-F4, S2-F5, S2-F6, S2-E1, S2-E2, S2-H1"
+  },
+  {
+   "fn": "2. Public catalogue with search, filters and details page",
+   "option": "B",
+   "cell": "Works in the demo Search, filters by discipline, country and month, a page per congress.",
+   "works": true,
+   "ok": true,
+   "evidence": "this run: C10 T2 functional PASS · custom_demo/README.md: `s2_catalogue.spec.mjs` 9/9 pass"
+  },
+  {
+   "fn": "3. Flight enquiry form",
+   "option": "A",
+   "cell": "Works in the demo Every field is checked before sending; you get a reference.",
+   "works": true,
+   "ok": true,
+   "evidence": "this run: C10 T3 functional PASS · wp_demo/README.md: S3-F1, S3-F2, S3-F3, S3-F4, S3-E1, S3-H1, S3-H2, S3-H3"
+  },
+  {
+   "fn": "3. Flight enquiry form",
+   "option": "B",
+   "cell": "Works in the demo Every field is checked before sending; you get a reference.",
+   "works": true,
+   "ok": true,
+   "evidence": "this run: C10 T3 functional PASS · custom_demo/README.md: `s3_enquiry.spec.mjs` 7/7 pass"
+  },
+  {
+   "fn": "4. Receive, view, track and update enquiries",
+   "option": "A",
+   "cell": "Works in the demo Statuses, history of changes, export to a spreadsheet (CSV).",
+   "works": true,
+   "ok": true,
+   "evidence": "this run: C10 T4 functional PASS · wp_demo/README.md: S4-F1, S4-F2, S4-F3, S4-F4, S4-F5, S4-F6, S4-E1, S4-H1"
+  },
+  {
+   "fn": "4. Receive, view, track and update enquiries",
+   "option": "B",
+   "cell": "Works in the demo Statuses, history of changes, export to a spreadsheet (CSV).",
+   "works": true,
+   "ok": true,
+   "evidence": "this run: C10 T4 functional PASS · custom_demo/README.md: `s4_team.spec.mjs` 7/7 pass"
+  },
+  {
+   "fn": "5. GM&E codes protected",
+   "option": "A",
+   "cell": "Works in the demo Codes hidden, access asked with a reason, 24-hour approval, a record of every display.",
+   "works": true,
+   "ok": true,
+   "evidence": "this run: C10 T5 functional PASS · wp_demo/README.md: S5-F1, S5-F2, S5-F3, S5-F4, S5-F5, S5-E1, S5-H1, S5-L1, S5-L2"
+  },
+  {
+   "fn": "5. GM&E codes protected",
+   "option": "B",
+   "cell": "Works in the demo Codes hidden, access asked with a reason, 24-hour approval, a record of every display.",
+   "works": true,
+   "ok": true,
+   "evidence": "this run: C10 T5 functional PASS · custom_demo/README.md: `s5_gme.spec.mjs` 11/11 pass"
+  },
+  {
+   "fn": "Email notifications",
+   "option": "A",
+   "cell": "Built during the project The demo shows a log of the messages instead of sending them.",
+   "works": false,
+   "ok": true,
+   "evidence": "no UI label pretends it works"
+  },
+  {
+   "fn": "Email notifications",
+   "option": "B",
+   "cell": "Built during the project The demo shows a log of the messages instead of sending them.",
+   "works": false,
+   "ok": true,
+   "evidence": "no UI label pretends it works"
+  },
+  {
+   "fn": "Importing about 300 congresses from a spreadsheet",
+   "option": "A",
+   "cell": "Built during the project With duplicate checks, and a trial run first.",
+   "works": false,
+   "ok": true,
+   "evidence": "no UI label pretends it works"
+  },
+  {
+   "fn": "Importing about 300 congresses from a spreadsheet",
+   "option": "B",
+   "cell": "Built during the project With duplicate checks, and a trial run first.",
+   "works": false,
+   "ok": true,
+   "evidence": "no UI label pretends it works"
+  },
+  {
+   "fn": "English version",
+   "option": "A",
+   "cell": "Built during the project Pages and congresses in English alongside French.",
+   "works": false,
+   "ok": true,
+   "evidence": "no UI label pretends it works"
+  },
+  {
+   "fn": "English version",
+   "option": "B",
+   "cell": "Built during the project Pages and congresses in English alongside French.",
+   "works": false,
+   "ok": true,
+   "evidence": "no UI label pretends it works"
+  },
+  {
+   "fn": "Two-step login for staff",
+   "option": "A",
+   "cell": "Built during the project A password plus a second check, for every staff account.",
+   "works": false,
+   "ok": true,
+   "evidence": "no UI label pretends it works"
+  },
+  {
+   "fn": "Two-step login for staff",
+   "option": "B",
+   "cell": "Built during the project Staff sign in with a code sent to their email.",
+   "works": false,
+   "ok": true,
+   "evidence": "no UI label pretends it works"
+  },
+  {
+   "fn": "Backups and restore",
+   "option": "A",
+   "cell": "Built during the project Regular backups, and a tested way to restore them.",
+   "works": false,
+   "ok": true,
+   "evidence": "no UI label pretends it works"
+  },
+  {
+   "fn": "Backups and restore",
+   "option": "B",
+   "cell": "Built during the project Regular backups, and a tested way to restore them.",
+   "works": false,
+   "ok": true,
+   "evidence": "no UI label pretends it works"
+  },
+  {
+   "fn": "Editing all the site’s pages",
+   "option": "A",
+   "cell": "Works in the demo The standard WordPress page editor; your current pages are moved over during the project.",
+   "works": true,
+   "ok": false,
+   "evidence": "this run (gate test CE-D1-PAGES): direction opens « Pages » (edit.php?post_type=page) HTTP undefined · no earlier test ID in wp_demo/README.md"
+  },
+  {
+   "fn": "Editing all the site’s pages",
+   "option": "B",
+   "cell": "Built during the project A page editor added to the team console.",
+   "works": false,
+   "ok": true,
+   "evidence": "no UI label pretends it works"
+  },
+  {
+   "fn": "Group link (#group)",
+   "option": "B",
+   "cell": "Works in the Option B demo",
+   "works": true,
+   "ok": false,
+   "evidence": "this run: G steps PASS · custom_demo/README.md extra_group.spec.mjs G-F1..G-X3 (README says « not deployed »)"
+  }
+ ],
+ "glossary": [
+  {
+   "term": "congress menu",
+   "A": [],
+   "B": [],
+   "hub": [
+    "Congrès"
+   ],
+   "scope": "AB"
+  },
+  {
+   "term": "add a congress",
+   "A": [],
+   "B": [],
+   "hub": [
+    "Ajouter un congrès"
+   ],
+   "scope": "AB"
+  },
+  {
+   "term": "list of congresses",
+   "A": [],
+   "B": [],
+   "hub": [
+    "Tous les congrès",
+    "Congrès"
+   ],
+   "scope": "AB"
+  },
+  {
+   "term": "enquiries",
+   "A": [],
+   "B": [],
+   "hub": [
+    "Demandes"
+   ],
+   "scope": "AB"
+  },
+  {
+   "term": "status new",
+   "A": [],
+   "B": [],
+   "hub": [
+    "Nouvelle"
+   ],
+   "scope": "AB"
+  },
+  {
+   "term": "status qualified",
+   "A": [],
+   "B": [],
+   "hub": [
+    "Qualifiée"
+   ],
+   "scope": "AB"
+  },
+  {
+   "term": "notification log",
+   "A": [],
+   "B": [],
+   "hub": [
+    "Journal des notifications"
+   ],
+   "scope": "AB"
+  },
+  {
+   "term": "quote form title",
+   "A": [],
+   "B": [],
+   "hub": [
+    "Demander un devis vol"
+   ],
+   "scope": "AB"
+  },
+  {
+   "term": "send the enquiry",
+   "A": [],
+   "B": [],
+   "hub": [],
+   "scope": "AB"
+  },
+  {
+   "term": "team area link",
+   "A": [],
+   "B": [],
+   "hub": [
+    "Espace équipe"
+   ],
+   "scope": "AB"
+  },
+  {
+   "term": "GM&E codes screen",
+   "A": [],
+   "B": [],
+   "hub": [
+    "Accès GM&E",
+    "Codes GM&E"
+   ],
+   "scope": "AB"
+  },
+  {
+   "term": "ask for access",
+   "A": [],
+   "B": [],
+   "hub": [],
+   "scope": "AB"
+  },
+  {
+   "term": "approve",
+   "A": [],
+   "B": [],
+   "hub": [],
+   "scope": "AB"
+  },
+  {
+   "term": "show the code",
+   "A": [],
+   "B": [],
+   "hub": [],
+   "scope": "AB"
+  },
+  {
+   "term": "access log",
+   "A": [],
+   "B": [],
+   "hub": [],
+   "scope": "AB"
+  },
+  {
+   "term": "access requests",
+   "A": [],
+   "B": [],
+   "hub": [],
+   "scope": "AB"
+  },
+  {
+   "term": "CSV export",
+   "A": [],
+   "B": [],
+   "hub": [],
+   "scope": "AB"
+  },
+  {
+   "term": "sign out",
+   "A": [],
+   "B": [],
+   "hub": [],
+   "scope": "AB"
+  },
+  {
+   "term": "sign in",
+   "A": [],
+   "B": [],
+   "hub": [],
+   "scope": "AB"
+  },
+  {
+   "term": "dashboard",
+   "A": [],
+   "B": [],
+   "hub": [],
+   "scope": "AB"
+  },
+  {
+   "term": "public catalogue",
+   "A": [],
+   "B": [],
+   "hub": [],
+   "scope": "AB"
+  },
+  {
+   "term": "group tab",
+   "A": [],
+   "B": [],
+   "hub": [
+    "Groupe"
+   ],
+   "scope": "B"
+  },
+  {
+   "term": "group link card",
+   "A": [],
+   "B": [],
+   "hub": [
+    "Lien de groupe"
+   ],
+   "scope": "B"
+  },
+  {
+   "term": "group export",
+   "A": [],
+   "B": [],
+   "hub": [
+    "Exporter pour cotation (CSV)"
+   ],
+   "scope": "B"
+  }
+ ],
+ "styles": {
+  "hub": {
+   "body": [
+    "Inter",
+    "ui-monospace"
+   ],
+   "display": [
+    "EB Garamond",
+    "Inter"
+   ],
+   "buttons": [
+    "Inter | radius 4px",
+    "ui-monospace | radius 4px",
+    "Inter | radius 2px",
+    "Inter | radius 3px"
+   ],
+   "accents": [
+    "hue 30"
+   ]
+  }
+ },
+ "videos": [
+  {
+   "name": "wp-walkthrough",
+   "hidden": true,
+   "announced": false,
+   "type": "text/html; charset=utf-8",
+   "status": 200,
+   "size": 0,
+   "atoms": [
+    "ctyp"
+   ]
+  },
+  {
+   "name": "custom-walkthrough",
+   "hidden": false,
+   "announced": true,
+   "type": "video/mp4",
+   "status": 200,
+   "size": 5787166,
+   "atoms": [
+    "ftyp",
+    "moov",
+    "free",
+    "mdat"
+   ],
+   "attrs": {
+    "poster": "media/custom-walkthrough.jpg",
+    "controls": true,
+    "playsinline": true,
+    "preload": "metadata",
+    "w": 354,
+    "vw": 390
+   },
+   "frames": 62
+  }
+ ],
+ "midnight": {
+  "b": {
+   "at": "2026-11-06T23:05:00Z",
+   "today": "2026-11-06",
+   "parisToday": "2026-11-07",
+   "frDateTime": "07/11/2026 00:05",
+   "frNumDate": "07/11/2026"
+  }
+ },
+ "email": {
+  "urls": [
+   "https://asset-voyages-redesign.pages.dev/demo/"
+  ]
+ },
+ "notes": []
+}

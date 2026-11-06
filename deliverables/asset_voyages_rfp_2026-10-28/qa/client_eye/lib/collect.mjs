@@ -84,7 +84,19 @@ export function collectPage(opts) {
     const p = n.parentElement;
     const b = blockOf(p);
     if (!blocks.has(b)) blocks.set(b, { parts: [], code: [] });
-    blocks.get(b).parts.push({ t: n.nodeValue, code: !!p.closest('code,kbd,samp,pre') });
+    // A <br> or a line box change between two text nodes is a visual space even when the source has none
+    // (« ProdCraft<br>debanjan@… » must not read as one word).
+    const parts = blocks.get(b).parts;
+    let sep = '';
+    if (parts.length) {
+      let e = n.previousSibling; while (e && e.nodeType === 3 && !e.nodeValue.trim()) e = e.previousSibling;
+      if (e && e.nodeType === 1 && (e.nodeName === 'BR' || !getComputedStyle(e).display.startsWith('inline'))) sep = ' ';
+      else {
+        const prev = parts[parts.length - 1].node;
+        try { const r1 = document.createRange(); r1.selectNodeContents(prev); const a = [...r1.getClientRects()].pop(); const r2 = document.createRange(); r2.selectNodeContents(n); const c = r2.getClientRects()[0]; if (a && c && c.top >= a.bottom - 1) sep = ' '; } catch (err) { sep = ''; }
+      }
+    }
+    parts.push({ t: sep + n.nodeValue, code: !!p.closest('code,kbd,samp,pre'), node: n });
   }
   for (const [b, v] of blocks) {
     const t = v.parts.map((x) => x.t).join('').replace(/\s+/g, ' ').trim();
@@ -132,8 +144,13 @@ export function collectPage(opts) {
   // 6. Style samples (C5)
   const fam = (el) => el ? getComputedStyle(el).fontFamily.split(',')[0].replace(/["']/g, '').trim() : null;
   const firstVis = (sel) => [...document.querySelectorAll(sel)].find((e) => vis(e));
-  out.styles.body = fam(firstVis('main p, p, li, td') || document.body);
-  out.styles.display = [...new Set(['h1', 'h2', 'h3'].map((h) => fam(firstVis(h))).filter(Boolean))];
+  // Body = the family carrying most of the running text (p, li, td, dd); display = the family of h1/h2 headings.
+  // Weighted by characters so one mono caption does not count as the page's body font.
+  const weigh = (sel) => { const w = new Map(); for (const e of document.querySelectorAll(sel)) { if (!vis(e)) continue; const n = (e.innerText || '').length; if (!n) continue; const f = fam(e); w.set(f, (w.get(f) || 0) + n); } return [...w.entries()].sort((a, b) => b[1] - a[1]); };
+  const bw = weigh('p, li, td, dd');
+  out.styles.body = bw.length ? bw[0][0] : fam(document.body);
+  out.styles.bodyMix = bw.slice(0, 4).map(([f, n]) => `${f}:${n}`);
+  out.styles.display = [...new Set(weigh('h1, h2').slice(0, 1).map((x) => x[0]))];
   out.styles.buttons = [];
   for (const b of [...document.querySelectorAll('button, input[type=submit], a.btn, a.button, .button, .wp-element-button, [class*=btn]')].filter((e) => vis(e)).slice(0, 40)) {
     const cs = getComputedStyle(b);

@@ -1,0 +1,411 @@
+{
+ "tasks": [
+  {
+   "id": "task-1",
+   "title": "Task 1 Create or edit a congress",
+   "opts": {
+    "A": {
+     "which": "Option A: WordPress",
+     "steps": [
+      {
+       "text": "Open the admin. You are already signed in.",
+       "links": [
+        {
+         "text": "Open the admin",
+         "href": "https://playground.wordpress.net/?mode=seamless&blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json"
+        }
+       ]
+      },
+      {
+       "text": "In the left-hand menu, choose « Congrès », then « Ajouter un congrès ».",
+       "links": []
+      },
+      {
+       "text": "Fill in the name, dates, city and discipline, then publish. To change one, open it from « Tous les congrès ».",
+       "links": []
+      }
+     ],
+     "notes": [
+      "Sign in as contributeur instead and your congress waits for review before it goes live."
+     ]
+    },
+    "B": {
+     "which": "Option B: custom platform",
+     "steps": [
+      {
+       "text": "Open the team console and sign in as contributeur.",
+       "links": [
+        {
+         "text": "Open the team console",
+         "href": "https://asset-voyages-demo.debanjan186.workers.dev/console"
+        }
+       ]
+      },
+      {
+       "text": "Open the list of congresses and add a new one, or open an existing one to change it.",
+       "links": []
+      },
+      {
+       "text": "Send it for review. Sign in as direction to check it and publish it.",
+       "links": []
+      }
+     ],
+     "notes": []
+    }
+   }
+  },
+  {
+   "id": "task-2",
+   "title": "Task 2 Find a congress in the public catalogue",
+   "opts": {
+    "A": {
+     "which": "Option A: WordPress",
+     "steps": [
+      {
+       "text": "Open the visitor site and go to the congress catalogue.",
+       "links": [
+        {
+         "text": "Open the visitor site",
+         "href": "https://playground.wordpress.net/?mode=seamless&login=no&blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-visitor.json"
+        }
+       ]
+      },
+      {
+       "text": "Type a word in the search box, or narrow the list by discipline, country or month.",
+       "links": []
+      },
+      {
+       "text": "Open a congress to see its details page: dates, city, venue and discipline.",
+       "links": []
+      }
+     ],
+     "notes": []
+    },
+    "B": {
+     "which": "Option B: custom platform",
+     "steps": [
+      {
+       "text": "Open the visitor site and go to the congress catalogue.",
+       "links": [
+        {
+         "text": "Open the visitor site",
+         "href": "https://asset-voyages-demo.debanjan186.workers.dev/"
+        }
+       ]
+      },
+      {
+       "text": "Type a word in the search box, or narrow the list by discipline, country or month.",
+       "links": []
+      },
+      {
+       "text": "Open a congress to see its details page: dates, city, venue and discipline.",
+       "links": []
+      }
+     ],
+     "notes": []
+    }
+   }
+  },
+  {
+   "id": "task-3",
+   "title": "Task 3 Send a flight enquiry",
+   "opts": {
+    "A": {
+     "which": "Option A: WordPress",
+     "steps": [
+      {
+       "text": "On a congress details page, find « Demander un devis vol ».",
+       "links": []
+      },
+      {
+       "text": "Enter your contact details, departure city, travel dates and number of passengers.",
+       "links": []
+      },
+      {
+       "text": "Send it. You receive a reference number on screen.",
+       "links": []
+      }
+     ],
+     "notes": [
+      "Try leaving a field empty, or a return date before the outward date: the form says what to correct."
+     ]
+    },
+    "B": {
+     "which": "Option B: custom platform",
+     "steps": [
+      {
+       "text": "On a congress details page, open the flight enquiry form.",
+       "links": []
+      },
+      {
+       "text": "Enter your contact details, departure city, travel dates and number of passengers.",
+       "links": []
+      },
+      {
+       "text": "Send it. You receive a reference number on screen.",
+       "links": []
+      }
+     ],
+     "notes": [
+      "The same checks apply: the form says what to correct before anything is sent."
+     ]
+    }
+   }
+  },
+  {
+   "id": "task-4",
+   "title": "Task 4 Receive, view, track and update enquiries",
+   "opts": {
+    "A": {
+     "which": "Option A: WordPress",
+     "steps": [
+      {
+       "text": "In the same tab as task 3, click « Espace équipe » and sign in as equipe. Open « Demandes »: your enquiry is at the top.",
+       "links": []
+      },
+      {
+       "text": "Open it and change its status, for example from « Nouvelle » to « Qualifiée ». Each change is kept in its history.",
+       "links": []
+      },
+      {
+       "text": "Export the list as a spreadsheet file (CSV). « Journal des notifications » shows the message your team would have received.",
+       "links": []
+      }
+     ],
+     "notes": []
+    },
+    "B": {
+     "which": "Option B: custom platform",
+     "steps": [
+      {
+       "text": "Open the team console, sign in as equipe and open the enquiries.",
+       "links": [
+        {
+         "text": "Open the team console",
+         "href": "https://asset-voyages-demo.debanjan186.workers.dev/console"
+        }
+       ]
+      },
+      {
+       "text": "Open your enquiry from task 3 and change its status. Each change is kept in its history.",
+       "links": []
+      },
+      {
+       "text": "Export the list as a spreadsheet file (CSV), and see the log of notifications your team would have received.",
+       "links": []
+      }
+     ],
+     "notes": []
+    }
+   }
+  },
+  {
+   "id": "task-5",
+   "title": "Task 5 Protect the GM&E codes",
+   "opts": {
+    "A": {
+     "which": "Option A: WordPress",
+     "steps": [
+      {
+       "text": "Signed in as equipe, open « Accès GM&E »: the codes are hidden. Ask for access and give a reason.",
+       "links": []
+      },
+      {
+       "text": "Sign out, sign in as direction, and approve for 24 hours or refuse.",
+       "links": []
+      },
+      {
+       "text": "Sign in as equipe again: the code is shown, and the access record lists it.",
+       "links": []
+      }
+     ],
+     "notes": []
+    },
+    "B": {
+     "which": "Option B: custom platform",
+     "steps": [
+      {
+       "text": "In the team console, sign in as equipe and open « Codes GM&E »: the codes are hidden. Ask for access and give a reason.",
+       "links": []
+      },
+      {
+       "text": "Sign out, sign in as direction, and approve for 24 hours or refuse.",
+       "links": []
+      },
+      {
+       "text": "Sign in as equipe again: the code is shown, and the access record lists it.",
+       "links": []
+      }
+     ],
+     "notes": []
+    }
+   }
+  }
+ ],
+ "group": {
+  "steps": [
+   {
+    "text": "Your team sends one link for the enquiry, in its reply to the client.",
+    "links": []
+   },
+   {
+    "text": "Each traveller fills in their own details on a phone: name as on the ID document, e-mail, departure city and dates.",
+    "links": []
+   },
+   {
+    "text": "Your team sees the list fill in , with a « répondus / attendus » counter and a ready-to-use export, « Exporter pour cotation (CSV) ».",
+    "links": []
+   },
+   {
+    "text": "Open enquiry DV-2026-0001 in the Option B console (new tab) and sign in as equipe, password demo-asset.",
+    "links": [
+     {
+      "text": "Open enquiry DV-2026-0001 in the Option B console (new tab)",
+      "href": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/1"
+     }
+    ]
+   },
+   {
+    "text": "Choose the « Groupe » tab. Three fictional travellers have already answered.",
+    "links": []
+   },
+   {
+    "text": "Under « Lien de groupe », copy the link and open it in another tab. This is the traveller’s page.",
+    "links": []
+   },
+   {
+    "text": "Send an answer, then go back to the « Groupe » tab: it is in the list.",
+    "links": []
+   }
+  ],
+  "text": "Works in the Option B demo Suggestion only One more idea: a link for group trips For a group going to a congress, each traveller’s details often arrive by e-mail and are copied into a spreadsheet by hand. What it does Your team sends one link for the enquiry, in its reply to the client. Each traveller fills in their own details on a phone: name as on the ID document, e-mail, departure city and dates. Your team sees the list fill in , with a « répondus / attendus » counter and a ready-to-use export, « Exporter pour cotation (CSV) ». How to try it Open enquiry DV-2026-0001 in the Option B console (new tab) and sign in as equipe, password demo-asset. Choose the « Groupe » tab. Three fictional travellers have already answered. Under « Lien de groupe », copy the link and open it in another tab. This is the traveller’s page. Send an answer, then go back to the « Groupe » tab: it is in the list. The traveller’s page never shows the other travellers, codes or fares. Where it stands Working in Option B’s demonstration, with fictional travellers. Suggestion only. It is not part of the quotation and changes nothing in the scope or budget. In WordPress, it would be built as part of the project, if you choose it. Honest limits of the demo A traveller who changes phone cannot correct their entry directly: the change waits for your team to accept it. Production would add an e-mail confirmation step. Anyone the link is forwarded to can answer. Revoking it stops that at once. Reminders by e-mail and a status per traveller come in production."
+ },
+ "rows": [
+  {
+   "fn": "1. Create and edit congresses",
+   "A": "Works in the demo In the standard WordPress editor, with review before publishing.",
+   "B": "Works in the demo In the team console, with review before publishing."
+  },
+  {
+   "fn": "2. Public catalogue with search, filters and details page",
+   "A": "Works in the demo Search, filters by discipline, country and month, a page per congress.",
+   "B": "Works in the demo Search, filters by discipline, country and month, a page per congress."
+  },
+  {
+   "fn": "3. Flight enquiry form",
+   "A": "Works in the demo Every field is checked before sending; you get a reference.",
+   "B": "Works in the demo Every field is checked before sending; you get a reference."
+  },
+  {
+   "fn": "4. Receive, view, track and update enquiries",
+   "A": "Works in the demo Statuses, history of changes, export to a spreadsheet (CSV).",
+   "B": "Works in the demo Statuses, history of changes, export to a spreadsheet (CSV)."
+  },
+  {
+   "fn": "5. GM&E codes protected",
+   "A": "Works in the demo Codes hidden, access asked with a reason, 24-hour approval, a record of every display.",
+   "B": "Works in the demo Codes hidden, access asked with a reason, 24-hour approval, a record of every display."
+  },
+  {
+   "fn": "Email notifications",
+   "A": "Built during the project The demo shows a log of the messages instead of sending them.",
+   "B": "Built during the project The demo shows a log of the messages instead of sending them."
+  },
+  {
+   "fn": "Importing about 300 congresses from a spreadsheet",
+   "A": "Built during the project With duplicate checks, and a trial run first.",
+   "B": "Built during the project With duplicate checks, and a trial run first."
+  },
+  {
+   "fn": "English version",
+   "A": "Built during the project Pages and congresses in English alongside French.",
+   "B": "Built during the project Pages and congresses in English alongside French."
+  },
+  {
+   "fn": "Two-step login for staff",
+   "A": "Built during the project A password plus a second check, for every staff account.",
+   "B": "Built during the project Staff sign in with a code sent to their email."
+  },
+  {
+   "fn": "Backups and restore",
+   "A": "Built during the project Regular backups, and a tested way to restore them.",
+   "B": "Built during the project Regular backups, and a tested way to restore them."
+  },
+  {
+   "fn": "Editing all the site’s pages",
+   "A": "Works in the demo The standard WordPress page editor; your current pages are moved over during the project.",
+   "B": "Built during the project A page editor added to the team console."
+  }
+ ],
+ "passA": "Option A A WordPress The system your current site already runs on, with a plugin we wrote for ASSET. It runs inside WordPress Playground: a complete WordPress that runs entirely in your browser, with nothing to install. The first start takes about 20 to 40 seconds while it loads. Later starts are quicker. Open the visitor site of Option A (new tab) Open the admin, signed in to Option A (new tab) The admin link signs you in automatically as « direction ». To follow one enquiry from start to finish, use the visitor site and its « Espace équipe » link: each link opens its own separate copy.",
+ "passB": "Option B B Our custom platform The Console from our earlier concept, made real. Public pages for your visitors, a small console for your team, and a database behind them, running on Cloudflare, a global network that serves websites. Opens straight away in your browser, with nothing to install. Open the visitor site of Option B (new tab) Open the team console of Option B (new tab) The console asks you to sign in with one of the logins below.",
+ "buttons": [
+  {
+   "text": "Open the visitor site of Option A (new tab)",
+   "href": "https://playground.wordpress.net/?mode=seamless&login=no&blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-visitor.json",
+   "near": "Open the visitor site of Option A (new tab) Open the admin, signed in to Option A (new tab) The admin link signs you in automatically as « direction ». To follow one enquiry from start to finish, use the visitor site and its « Espace équipe » link: each link opens its own separate copy."
+  },
+  {
+   "text": "Open the admin, signed in to Option A (new tab)",
+   "href": "https://playground.wordpress.net/?mode=seamless&blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json",
+   "near": "Open the visitor site of Option A (new tab) Open the admin, signed in to Option A (new tab) The admin link signs you in automatically as « direction ». To follow one enquiry from start to finish, use the visitor site and its « Espace équipe » link: each link opens its own separate copy."
+  },
+  {
+   "text": "Open the visitor site of Option B (new tab)",
+   "href": "https://asset-voyages-demo.debanjan186.workers.dev/",
+   "near": "Open the visitor site of Option B (new tab) Open the team console of Option B (new tab) The console asks you to sign in with one of the logins below."
+  },
+  {
+   "text": "Open the team console of Option B (new tab)",
+   "href": "https://asset-voyages-demo.debanjan186.workers.dev/console",
+   "near": "Open the visitor site of Option B (new tab) Open the team console of Option B (new tab) The console asks you to sign in with one of the logins below."
+  },
+  {
+   "text": "Open the admin",
+   "href": "https://playground.wordpress.net/?mode=seamless&blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json",
+   "near": "Open the admin. You are already signed in."
+  },
+  {
+   "text": "Open the team console",
+   "href": "https://asset-voyages-demo.debanjan186.workers.dev/console",
+   "near": "Open the team console and sign in as contributeur."
+  },
+  {
+   "text": "Open the visitor site",
+   "href": "https://playground.wordpress.net/?mode=seamless&login=no&blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-visitor.json",
+   "near": "Open the visitor site and go to the congress catalogue."
+  },
+  {
+   "text": "Open the visitor site",
+   "href": "https://asset-voyages-demo.debanjan186.workers.dev/",
+   "near": "Open the visitor site and go to the congress catalogue."
+  },
+  {
+   "text": "Open the team console",
+   "href": "https://asset-voyages-demo.debanjan186.workers.dev/console",
+   "near": "Open the team console, sign in as equipe and open the enquiries."
+  },
+  {
+   "text": "Open enquiry DV-2026-0001 in the Option B console (new tab)",
+   "href": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/1",
+   "near": "Open enquiry DV-2026-0001 in the Option B console (new tab) and sign in as equipe, password demo-asset."
+  }
+ ],
+ "quotesBy": {
+  "Congrès": "A",
+  "Ajouter un congrès": "A",
+  "Tous les congrès": "A",
+  "Demander un devis vol": "A",
+  "Espace équipe": "A",
+  "Demandes": "A",
+  "Nouvelle": "A",
+  "Qualifiée": "A",
+  "Journal des notifications": "A",
+  "Accès GM&E": "A",
+  "Codes GM&E": "B",
+  "répondus / attendus": "B",
+  "Exporter pour cotation (CSV)": "B",
+  "Groupe": "B",
+  "Lien de groupe": "B"
+ }
+}
