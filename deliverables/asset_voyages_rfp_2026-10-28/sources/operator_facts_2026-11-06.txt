@@ -10,3 +10,4 @@ Operator facts and positions (session of 5–6 Nov 2026):
 - Nothing chargeable has been started; all demo work is unpaid.
 - Proposed demonstration slots (Paris time, from the calendar availability above): Thursday 12 November 10:00 or 14:30; Friday 13 November 10:00; Monday 16 November 10:00 or 14:30; Tuesday 17 November 10:00 or 14:30.
 - « Le lien de groupe » (the extra) is live on the production Option B demo, verified 6 Nov 2026: bounded production check 17/17 PASS (link created, one delegate submitted, manifest updated, logged-out leak check clean); the hub page section #group links to it (HTTP 200).
+- Operator decision, 6 Nov 2026 (in session): keep the 31 October commitment — the written proposal follows by 10 November (or within 24 to 48 working hours of ASSET's answers, if sooner) and prices both options (A WordPress, B custom), each against its own scope.
