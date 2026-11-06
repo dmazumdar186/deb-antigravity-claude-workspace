@@ -35,6 +35,24 @@ class Asset_CD_Hardening {
 		// opted-in admin page to the front end, or interrupting a navigation, throws an uncaught
 		// "Transition was aborted … ViewTransition opt-in disabled" page error; it also ghosted screenshots.
 		remove_action( 'admin_enqueue_scripts', 'wp_enqueue_view_transitions_admin_css' );
+		add_action( 'admin_bar_menu', array( __CLASS__, 'guard_command_palette' ), 999 );
+	}
+
+	/**
+	 * The admin bar « Ctrl + K » item calls wp.data inline; clicked before the page's scripts have
+	 * loaded it threw "wp is not defined". Same action, guarded.
+	 *
+	 * @param WP_Admin_Bar $bar Admin bar.
+	 */
+	public static function guard_command_palette( $bar ) {
+		$node = $bar->get_node( 'command-palette' );
+		if ( ! $node ) {
+			return;
+		}
+		$args                    = (array) $node;
+		$args['meta']            = (array) ( $args['meta'] ?? array() );
+		$args['meta']['onclick'] = 'if ( window.wp && wp.data ) { wp.data.dispatch( "core/commands" ).open(); } return false;';
+		$bar->add_node( $args );
 	}
 
 	/**

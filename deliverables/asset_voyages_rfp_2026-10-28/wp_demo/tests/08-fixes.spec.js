@@ -418,3 +418,14 @@ test('FIX-A-17 minor UX defects: actionable rows only, unbroken reference, conse
 	expect(await m.page.locator('.asset-email wbr').count()).toBeGreaterThan(0);
 	await m.ctx.close();
 });
+
+test('FIX-A-20 admin bar « Ctrl + K » no longer throws "wp is not defined" when clicked before scripts load', async ({ browser }) => {
+	const { ctx, page } = await asRole(browser, 'contributeur');
+	await page.goto('/wp-admin/post-new.php?post_type=asset_congres');
+	const onclick = await page.locator('#wp-admin-bar-command-palette > a').getAttribute('onclick');
+	expect(onclick).toContain('window.wp && wp.data');
+	// Simulate the early click: run the handler with wp undefined.
+	const err = await page.evaluate((code) => { const saved = window.wp; try { window.wp = undefined; new Function(code)(); return null; } catch (e) { return e.message; } finally { window.wp = saved; } }, onclick);
+	expect(err).toBeNull();
+	await ctx.close();
+});

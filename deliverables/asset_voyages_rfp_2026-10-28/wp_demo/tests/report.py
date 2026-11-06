@@ -11,7 +11,7 @@ GATES = ["S1-F1", "S1-F2", "S1-F3", "S1-E1", "S1-E2", "S1-H1", "S1-H2",
          "S3-F1", "S3-F2", "S3-F3", "S3-F4", "S3-E1", "S3-H1", "S3-H2", "S3-H3",
          "S4-F1", "S4-F2", "S4-F3", "S4-F4", "S4-F5", "S4-F6", "S4-E1", "S4-H1",
          "S5-F1", "S5-F2", "S5-F3", "S5-F4", "S5-F5", "S5-E1", "S5-H1", "S5-L1", "S5-L2",
-         "X1", "X2", "X3", "X4"] + [f"FIX-A-{n}" for n in range(1, 20)]
+         "X1", "X2", "X3", "X4"] + [f"FIX-A-{n}" for n in range(1, 21)]
 gates = {g: [] for g in GATES}
 tests = []
 
