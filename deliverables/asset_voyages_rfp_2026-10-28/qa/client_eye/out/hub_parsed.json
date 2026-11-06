@@ -42,7 +42,7 @@
        ]
       },
       {
-       "text": "Open the list of congresses and add a new one, or open an existing one to change it.",
+       "text": "Open the list of congresses and click « Ajouter un congrès », or open an existing one to change it.",
        "links": []
       },
       {
@@ -122,7 +122,7 @@
        "links": []
       },
       {
-       "text": "Send it. You receive a reference number on screen.",
+       "text": "Click « Envoyer ma demande ». You receive a reference number on screen.",
        "links": []
       }
      ],
@@ -134,7 +134,7 @@
      "which": "Option B: custom platform",
      "steps": [
       {
-       "text": "On a congress details page, open the flight enquiry form.",
+       "text": "On a congress details page, find « Demander un devis vol ».",
        "links": []
       },
       {
@@ -142,7 +142,7 @@
        "links": []
       },
       {
-       "text": "Send it. You receive a reference number on screen.",
+       "text": "Click « Envoyer ma demande ». You receive a reference number on screen.",
        "links": []
       }
      ],
@@ -168,7 +168,7 @@
        "links": []
       },
       {
-       "text": "Export the list as a spreadsheet file (CSV). « Journal des notifications » shows the message your team would have received.",
+       "text": "Click « Exporter en CSV » to download the list as a spreadsheet file. « Journal des notifications » shows the message your team would have received.",
        "links": []
       }
      ],
@@ -178,7 +178,7 @@
      "which": "Option B: custom platform",
      "steps": [
       {
-       "text": "Open the team console, sign in as equipe and open the enquiries.",
+       "text": "Open the team console, sign in as equipe and open « Demandes ».",
        "links": [
         {
          "text": "Open the team console",
@@ -191,7 +191,7 @@
        "links": []
       },
       {
-       "text": "Export the list as a spreadsheet file (CSV), and see the log of notifications your team would have received.",
+       "text": "Click « Exporter en CSV » to download the list as a spreadsheet file. « Journal des notifications » shows the message your team would have received.",
        "links": []
       }
      ],
@@ -207,15 +207,15 @@
      "which": "Option A: WordPress",
      "steps": [
       {
-       "text": "Signed in as equipe, open « Accès GM&E »: the codes are hidden. Ask for access and give a reason.",
+       "text": "Signed in as equipe, open « Codes GM&E › Codes »: the codes are hidden. Click « Demander l’accès » and give a reason.",
        "links": []
       },
       {
-       "text": "Sign out, sign in as direction, and approve for 24 hours or refuse.",
+       "text": "Sign out, sign in as direction, open « Codes GM&E › Demandes d’accès », and click « Approuver pour 24 h » or « Refuser ».",
        "links": []
       },
       {
-       "text": "Sign in as equipe again: the code is shown, and the access record lists it.",
+       "text": "Sign in as equipe again and open « Codes GM&E › Codes ». The code stays hidden until you click « Afficher le code »: that click is needed. Each display is then listed in « Journal d’accès GM&E ».",
        "links": []
       }
      ],
@@ -225,15 +225,15 @@
      "which": "Option B: custom platform",
      "steps": [
       {
-       "text": "In the team console, sign in as equipe and open « Codes GM&E »: the codes are hidden. Ask for access and give a reason.",
+       "text": "In the team console, sign in as equipe and open « Codes GM&E › Codes »: the codes are hidden. Click « Demander l’accès » and give a reason.",
        "links": []
       },
       {
-       "text": "Sign out, sign in as direction, and approve for 24 hours or refuse.",
+       "text": "Sign out, sign in as direction, open « Codes GM&E › Demandes d’accès », and click « Approuver pour 24 h » or « Refuser ».",
        "links": []
       },
       {
-       "text": "Sign in as equipe again: the code is shown, and the access record lists it.",
+       "text": "Sign in as equipe again and open « Codes GM&E › Codes ». The code stays hidden until you click « Afficher le code »: that click is needed. Each display is then listed in « Journal d’accès GM&E ».",
        "links": []
       }
      ],
@@ -321,22 +321,22 @@
   },
   {
    "fn": "Editing all the site’s pages",
-   "A": "Works in the demo The standard WordPress page editor; your current pages are moved over during the project.",
+   "A": "Works in the demo The standard WordPress page editor: sign in as direction and open « Pages ». Your current pages are moved over during the project.",
    "B": "Built during the project A page editor added to the team console."
   }
  ],
- "passA": "Option A A WordPress The system your current site already runs on, with a plugin we wrote for ASSET. It runs inside WordPress Playground: a complete WordPress that runs entirely in your browser, with nothing to install. The first start takes about 20 to 40 seconds while it loads. Later starts are quicker. Open the visitor site of Option A (new tab) Open the admin, signed in to Option A (new tab) The admin link signs you in automatically as « direction ». To follow one enquiry from start to finish, use the visitor site and its « Espace équipe » link: each link opens its own separate copy.",
+ "passA": "Option A A WordPress The system your current site already runs on, with a plugin we wrote for ASSET. It runs inside WordPress Playground: a complete WordPress that runs entirely in your browser, with nothing to install. WordPress starts fresh each time you open one of these links, so nothing from an earlier visit is kept. Open the visitor site of Option A (new tab) Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page. Open the admin, signed in to Option A (new tab) Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page. The admin link signs you in automatically as « direction ». To follow one enquiry from start to finish, use the visitor site and its « Espace équipe » link: each link opens its own separate copy.",
  "passB": "Option B B Our custom platform The Console from our earlier concept, made real. Public pages for your visitors, a small console for your team, and a database behind them, running on Cloudflare, a global network that serves websites. Opens straight away in your browser, with nothing to install. Open the visitor site of Option B (new tab) Open the team console of Option B (new tab) The console asks you to sign in with one of the logins below.",
  "buttons": [
   {
    "text": "Open the visitor site of Option A (new tab)",
    "href": "https://playground.wordpress.net/?mode=seamless&login=no&blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-visitor.json",
-   "near": "Open the visitor site of Option A (new tab) Open the admin, signed in to Option A (new tab) The admin link signs you in automatically as « direction ». To follow one enquiry from start to finish, use the visitor site and its « Espace équipe » link: each link opens its own separate copy."
+   "near": "Open the visitor site of Option A (new tab) Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page. Open the admin, signed in to Option A (new tab) Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page. The admin link signs you in automatically as « direction ». To follow one enquiry from start to finish, use the visitor site a"
   },
   {
    "text": "Open the admin, signed in to Option A (new tab)",
    "href": "https://playground.wordpress.net/?mode=seamless&blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json",
-   "near": "Open the visitor site of Option A (new tab) Open the admin, signed in to Option A (new tab) The admin link signs you in automatically as « direction ». To follow one enquiry from start to finish, use the visitor site and its « Espace équipe » link: each link opens its own separate copy."
+   "near": "Open the visitor site of Option A (new tab) Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page. Open the admin, signed in to Option A (new tab) Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page. The admin link signs you in automatically as « direction ». To follow one enquiry from start to finish, use the visitor site a"
   },
   {
    "text": "Open the visitor site of Option B (new tab)",
@@ -371,7 +371,7 @@
   {
    "text": "Open the team console",
    "href": "https://asset-voyages-demo.debanjan186.workers.dev/console",
-   "near": "Open the team console, sign in as equipe and open the enquiries."
+   "near": "Open the team console, sign in as equipe and open « Demandes »."
   },
   {
    "text": "Open enquiry DV-2026-0001 in the Option B console (new tab)",
@@ -381,16 +381,23 @@
  ],
  "quotesBy": {
   "Congrès": "A",
-  "Ajouter un congrès": "A",
+  "Ajouter un congrès": "A+B",
   "Tous les congrès": "A",
-  "Demander un devis vol": "A",
+  "Demander un devis vol": "A+B",
+  "Envoyer ma demande": "A+B",
   "Espace équipe": "A",
-  "Demandes": "A",
+  "Demandes": "A+B",
   "Nouvelle": "A",
   "Qualifiée": "A",
-  "Journal des notifications": "A",
-  "Accès GM&E": "A",
-  "Codes GM&E": "B",
+  "Exporter en CSV": "A+B",
+  "Journal des notifications": "A+B",
+  "Codes GM&E › Codes": "A+B",
+  "Demander l’accès": "A+B",
+  "Codes GM&E › Demandes d’accès": "A+B",
+  "Approuver pour 24 h": "A+B",
+  "Refuser": "A+B",
+  "Afficher le code": "A+B",
+  "Journal d’accès GM&E": "A+B",
   "Groupe": "B",
   "Lien de groupe": "B"
  }
