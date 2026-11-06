@@ -6,3 +6,4 @@ node_modules/
 *.cj
 *.har
 storage_state*.json
+qa/recordings/raw_*/
