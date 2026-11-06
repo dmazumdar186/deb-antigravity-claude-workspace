@@ -20,7 +20,7 @@ for (const [w, h] of [[1440, 900], [390, 844]]) {
     await page.goto(`/congres/${SLUG.onco}`); await shot('04-fiche-congres');
     await fillEnquiry(page, { email: 'pas-un-email', pax: '0', consent: false, out: '2027-01-27', back: '2027-01-20' });
     await page.waitForTimeout(3100);
-    await page.getByRole('button', { name: 'Envoyer la demande' }).click();
+    await page.getByRole('button', { name: 'Envoyer ma demande' }).click();
     await expect(page.locator('#form-errors')).toBeVisible();
     await shot('05-fiche-congres-erreurs');
     await page.getByLabel('E-mail').fill('claire.dubois@example.com');
@@ -28,7 +28,7 @@ for (const [w, h] of [[1440, 900], [390, 844]]) {
     await page.getByLabel('Date retour').fill('2027-01-31');
     await page.locator('#f-consent').check();
     await page.waitForTimeout(3100);
-    await page.getByRole('button', { name: 'Envoyer la demande' }).click();
+    await page.getByRole('button', { name: 'Envoyer ma demande' }).click();
     await expect(page.locator('[data-ref]')).toBeVisible();
     await shot('06-confirmation');
     await page.goto('/console/connexion'); await shot('07-connexion');

@@ -4,7 +4,7 @@ import { DEMO_BUSY, DEMO_PAUSE } from './data.js';
 const banner = (busy) => (busy === 'pause' ? DEMO_PAUSE : DEMO_BUSY);
 
 // Bump when app.css or app.js change: assets are cached for a year under a versioned URL.
-export const ASSET_V = '7';
+export const ASSET_V = '8';
 
 const head = (title, description) => html`<html lang="fr"><head>
 <meta charset="utf-8">
@@ -66,11 +66,13 @@ const NAV = [
   { key: 'dash', href: '/console', label: 'Tableau de bord', roles: ['direction', 'equipe', 'contributeur'] },
   { key: 'cg', href: '/console/congres', label: 'Congrès', roles: ['direction', 'equipe', 'contributeur'] },
   { key: 'dem', href: '/console/demandes', label: 'Demandes', roles: ['direction', 'equipe'] },
-  { key: 'notif', href: '/console/notifications', label: 'Notifications', roles: ['direction', 'equipe'] },
-  { group: 'Codes GM&E', roles: ['direction', 'equipe'] },
-  { key: 'gme', href: '/console/gme', label: 'Codes', srSuffix: ' GM&E', roles: ['direction', 'equipe'], sub: true },
+  // Labels follow 29_Glossary_Labels.md (CE-B6): one name per thing in the hub, Option A and Option B.
+  { key: 'notif', href: '/console/notifications', label: 'Journal des notifications', roles: ['direction', 'equipe'] },
+  // The group heading is itself a link to the codes (CE-C10-002: the hub says « open Codes GM&E »).
+  { group: 'Codes GM&E', href: '/console/gme', roles: ['direction', 'equipe'] },
+  { key: 'gme', href: '/console/gme', label: 'Codes', roles: ['direction', 'equipe'], sub: true },
   { key: 'acces', href: '/console/gme/acces', label: 'Demandes d’accès', srSuffix: ' GM&E', roles: ['direction'], sub: true },
-  { key: 'journal', href: '/console/gme/journal', label: 'Journal', srSuffix: ' d’accès GM&E', roles: ['direction'], sub: true },
+  { key: 'journal', href: '/console/gme/journal', label: 'Journal d’accès GM&E', roles: ['direction'], sub: true },
 ];
 
 export function consolePage({ title, user, csrf, current, body, badges = {}, busy = false }) {
@@ -84,7 +86,7 @@ export function consolePage({ title, user, csrf, current, body, badges = {}, bus
 </header>
 <div class="shell">
   <nav class="side" aria-label="Console">
-    ${NAV.filter((n) => n.roles.includes(user.role)).map((n) => n.group ? html`<p class="side__h" aria-hidden="true">${n.group}</p>` : html`<a href="${n.href}"${n.sub ? raw(' class="side__sub"') : ''}${n.key === current ? raw(' aria-current="page"') : ''}>${n.label}${n.srSuffix ? html`<span class="sr">${n.srSuffix}</span>` : ''}${badges[n.key] ? html` <span class="count">${badges[n.key]}</span><span class="sr"> en attente</span>` : ''}</a>`)}
+    ${NAV.filter((n) => n.roles.includes(user.role)).map((n) => n.group ? html`<a class="side__h" href="${n.href}">${n.group}</a>` : html`<a href="${n.href}"${n.sub ? raw(' class="side__sub"') : ''}${n.key === current ? raw(' aria-current="page"') : ''}>${n.label}${n.srSuffix ? html`<span class="sr">${n.srSuffix}</span>` : ''}${badges[n.key] ? html` <span class="count">${badges[n.key]}</span><span class="sr"> en attente</span>` : ''}</a>`)}
     <a href="/">Voir le site public</a>
   </nav>
   <main id="main" class="cmain">

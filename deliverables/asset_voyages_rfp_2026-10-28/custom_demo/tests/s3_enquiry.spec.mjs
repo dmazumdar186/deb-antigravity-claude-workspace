@@ -28,7 +28,7 @@ test('S3-F2 S3-F3 S3-E1 valid submission in 1 click: stored, linked to the congr
   await fillEnquiry(page, { out: '2027-01-27', back: '2027-01-31', name: 'Claire Dubois (exemple)' });
   await page.waitForTimeout(3100); // a human takes longer than the minimum fill time
   let clicks = 0;
-  await page.getByRole('button', { name: 'Envoyer la demande' }).click(); clicks++;
+  await page.getByRole('button', { name: 'Envoyer ma demande' }).click(); clicks++;
   expect(clicks).toBe(1);
   await expect(page.getByRole('heading', { name: 'Merci, votre demande est enregistrée.' })).toBeVisible();
   const ref = (await page.locator('[data-ref]').textContent()).trim();
@@ -73,7 +73,7 @@ test('S3-E1 errors appear next to each field in plain French and keep what was t
   await page.goto(`/congres/${SLUG.cardio}`);
   await fillEnquiry(page, { email: 'pas-un-email', pax: '0', out: '2027-08-30', back: '2027-08-20', consent: false, name: 'Jeanne Typée (exemple)' });
   await page.waitForTimeout(3100);
-  await page.getByRole('button', { name: 'Envoyer la demande' }).click();
+  await page.getByRole('button', { name: 'Envoyer ma demande' }).click();
   await expect(page.locator('#form-errors')).toContainText('champs à corriger');
   await expect(page.locator('#f-email-e')).toHaveText(/adresse e-mail n’est pas valide/);
   await expect(page.locator('#f-pax-e')).toHaveText(/entre 1 et 50/);
@@ -88,7 +88,7 @@ test('S3-E1 errors appear next to each field in plain French and keep what was t
   await page.getByLabel('Date retour').fill('2027-08-31');
   await page.locator('#f-consent').check();
   await page.waitForTimeout(3100);
-  await page.getByRole('button', { name: 'Envoyer la demande' }).click();
+  await page.getByRole('button', { name: 'Envoyer ma demande' }).click();
   await expect(page.locator('[data-ref]')).toHaveText(/DV-2026-\d{4}/);
 });
 
@@ -123,7 +123,7 @@ test('S3-H1 rejected with a message: passengers 0, 51, abc; return before outbou
     expect(text).toContain('rien n’a été enregistré');
     expect(text, JSON.stringify(fields)).toContain(msg);
   }
-  expect(pageHtml).toContain('Envoyer la demande');
+  expect(pageHtml).toContain('Envoyer ma demande');
   // oversized body
   const big = await request.post('/demande', { form: { message: 'x'.repeat(40000) }, maxRedirects: 0 });
   expect(big.status()).toBe(413);
@@ -163,7 +163,7 @@ test('S3-H3 script or HTML in any field is stored and shown as text only; SQL-is
   await page.goto(`/congres/${SLUG.cardio}`);
   await fillEnquiry(page, { name: `${evil} (exemple)`, company: "Robert'); DROP TABLE enquiries;--", city: '=HYPERLINK("http://evil.example")', msg: `${evil}\n<b>gras</b>` });
   await page.waitForTimeout(3100);
-  await page.getByRole('button', { name: 'Envoyer la demande' }).click();
+  await page.getByRole('button', { name: 'Envoyer ma demande' }).click();
   const ref = (await page.locator('[data-ref]').textContent()).trim();
   const admin = await page.context().newPage();
   let adminDialogs = 0; admin.on('dialog', (d) => { adminDialogs++; d.dismiss(); });

@@ -155,7 +155,8 @@ test('X session cookie is HttpOnly, Secure, SameSite=Strict; logout invalidates 
   await page.getByRole('button', { name: 'Se déconnecter' }).click();
   // replay the old cookie and token after logout
   const replay = await request.post('/console/demandes/1', { form: { _csrf: csrf, action: 'status', to: 'perdue' }, headers: { cookie: `__Host-av_session=${c.value}` }, maxRedirects: 0 });
-  expect(replay.status()).toBe(401);
+  expect(replay.status()).toBe(303); // refused: back to the login page with « Votre session a expiré » (CE-C7), nothing written
+  expect(replay.headers().location).toContain('/console/connexion?expire=1');
   // wrong passwords: generic message, then throttled after 10 for that account (other accounts unaffected)
   let last;
   for (let i = 0; i < 11; i++) {

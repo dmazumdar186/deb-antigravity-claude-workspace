@@ -21,7 +21,7 @@ test('S1-F1 S1-E1 create and publish a congress with every field, in 3 clicks fr
   await login(page, 'direction');
   let clicks = 0;
   await page.getByRole('navigation', { name: 'Console' }).getByRole('link', { name: 'Congrès' }).click(); clicks++;
-  await page.getByRole('link', { name: 'Nouveau congrès' }).click(); clicks++;
+  await page.getByRole('link', { name: 'Ajouter un congrès' }).click(); clicks++;
   // every field has a visible French label, required ones are marked
   for (const l of ['Titre', 'Discipline', 'Lieu', 'Ville', 'Pays', 'Date de début', 'Date de fin', 'Site officiel', 'Vérifié le']) {
     const label = page.locator('label', { hasText: l }).first();
@@ -36,7 +36,7 @@ test('S1-F1 S1-E1 create and publish a congress with every field, in 3 clicks fr
   // server is the judge: the public catalogue lists it with all the details
   await page.goto('/?q=test+s1');
   await page.getByRole('link', { name: /Congrès de test S1/ }).click();
-  for (const t of ['Nice', 'France', 'Pneumologie', 'Centre de test — exemple', 'www.example.org/test-s1', '01/11/2026', '5 au 7 juil. 2027']) await expect(page.locator('.facts')).toContainText(t);
+  for (const t of ['Nice', 'France', 'Pneumologie', 'Centre de test — exemple', 'fictif (démonstration)', '01/11/2026', '5 au 7 juil. 2027']) await expect(page.locator('.facts')).toContainText(t);
 });
 
 test('S1-F2 S1-E2 edit an existing congress in 3 clicks; new value in admin and on the public page', async ({ page }) => {

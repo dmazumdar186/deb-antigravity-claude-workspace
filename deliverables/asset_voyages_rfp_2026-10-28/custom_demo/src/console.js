@@ -1,6 +1,6 @@
 // Staff console: sessions, roles, congresses, enquiries, notifications, GM&E codes and their authorisation.
 import {
-  html, raw, esc, today, parisToday, nowIso, isIsoDate, frRange, frNumDate, frDateTime, clean, norm, slugify,
+  html, raw, esc, parisToday, nowIso, isIsoDate, frRange, frNumDate, frDateTime, clean, norm, slugify,
   readForm, sameOrigin, makeFormToken, checkFormToken, ipHash, rateHit, rateBlocked, redirect, htmlResponse,
   getCookie, sha256hex, randomToken, safeEqual, hmac, b64url, unb64, hashPassword, encryptCode, decryptCode, csvCell,
 } from './lib.js';
@@ -46,6 +46,25 @@ async function getSession(req, env) {
   return { sid: p.n, exp: p.e, csrf: p.c, user: { id: row.id, username: row.username, display_name: row.display_name, role: row.role } };
 }
 const cookie = (val, maxAge) => `${COOKIE}=${val}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${maxAge}`;
+// « Session expirée » (CE-C7-004/005): a browser that was signed in carries this marker (no secret, nothing stored
+// server-side) for 7 days. With the marker, or with a session cookie that no longer verifies, a missing session means
+// « expired », so the login page says so; without either the visitor simply never signed in. Logging out clears it.
+export const SEEN_COOKIE = '__Host-av_seen';
+const SEEN_TTL = 7 * 24 * 3600;
+const seenCookie = (maxAge) => `${SEEN_COOKIE}=${maxAge ? '1' : ''}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`;
+export const SESSION_EXPIRED = 'Votre session a expiré. Reconnectez-vous.';
+const NEXT_RE = /^\/console(\/[A-Za-z0-9/_.-]*)?(\?[A-Za-z0-9=&_.%-]*)?$/;
+function expiredRedirect(req, path) {
+  // After a POST from a stale tab, come back to the page the form was on (the POST address itself may be POST-only).
+  let next = path;
+  if (req.method !== 'GET') {
+    next = '/console';
+    try { const r = new URL(req.headers.get('referer') || ''); if (r.origin === new URL(req.url).origin && NEXT_RE.test(r.pathname)) next = r.pathname; } catch { /* no referer */ }
+  }
+  const h = new Headers({ location: `/console/connexion?expire=1&next=${encodeURIComponent(next)}`, ...NO_STORE });
+  h.append('set-cookie', cookie('', 0));
+  return new Response(null, { status: 303, headers: h });
+}
 
 // At phone width each table row becomes a card: every cell gets its column name as data-label.
 function labelTables(markup) {
@@ -81,7 +100,8 @@ export async function loginGet(req, env, { error, status = 200 } = {}) {
   const notice = url.searchParams.get('reinit') ? 'La démonstration a été réinitialisée.' : url.searchParams.get('sortie') ? 'Vous êtes déconnecté.' : '';
   const s = await getSession(req, env);
   if (s && !error) return redirect('/console');
-  return htmlResponse(loginPage({ token: await makeFormToken(env, 'login'), error, next: url.searchParams.get('next') || '', notice }), status, NO_STORE);
+  const expired = !error && url.searchParams.get('expire') === '1' ? SESSION_EXPIRED : '';
+  return htmlResponse(loginPage({ token: await makeFormToken(env, 'login'), error: error || expired, next: url.searchParams.get('next') || '', notice: expired ? '' : notice }), status, NO_STORE);
 }
 export async function loginPost(req, env) {
   const form = await readForm(req);
@@ -115,8 +135,11 @@ export async function loginPost(req, env) {
   }
   const token = await makeSession(env, u.id);
   const next = form.get('next');
-  const dest = /^\/console(\/[A-Za-z0-9/_.-]*)?(\?[A-Za-z0-9=&_.%-]*)?$/.test(next) && !next.includes('//') ? next : '/console';
-  return redirect(dest, { 'set-cookie': cookie(token, SESSION_TTL) });
+  const dest = NEXT_RE.test(next) && !next.includes('//') ? next : '/console';
+  const h = new Headers({ location: dest });
+  h.append('set-cookie', cookie(token, SESSION_TTL));
+  h.append('set-cookie', seenCookie(SEEN_TTL));
+  return new Response(null, { status: 303, headers: h });
 }
 
 // ---------------------------------------------------------------- router
@@ -125,6 +148,7 @@ export async function consoleRoute(req, env, path) {
   if (path === '/console/connexion') return method === 'POST' ? loginPost(req, env) : loginGet(req, env);
   const s = await getSession(req, env);
   if (!s) {
+    if (getCookie(req, COOKIE) || getCookie(req, SEEN_COOKIE)) return expiredRedirect(req, path);
     if (method === 'GET') return redirect('/console/connexion?next=' + encodeURIComponent(path));
     return htmlResponse(errorPage({ status: 401, title: 'Session requise', text: 'Connectez-vous pour effectuer cette action. Rien n’a été modifié.', back: '/console/connexion' }), 401, NO_STORE);
   }
@@ -148,7 +172,10 @@ export async function consoleRoute(req, env, path) {
 
   if (path === '/console/deconnexion' && method === 'POST') {
     await env.DB.prepare('INSERT OR IGNORE INTO revoked (n, exp) VALUES (?, ?)').bind(s.sid, s.exp).run();
-    return redirect('/console/connexion?sortie=1', { 'set-cookie': cookie('', 0) });
+    const h = new Headers({ location: '/console/connexion?sortie=1' });
+    h.append('set-cookie', cookie('', 0));
+    h.append('set-cookie', seenCookie(0));
+    return new Response(null, { status: 303, headers: h });
   }
   if (path === '/console' || path === '/console/') return method === 'GET' ? dashboard(ctx) : notFound(ctx);
   if (path === '/console/reinitialiser' && method === 'POST') {
@@ -191,7 +218,7 @@ async function dashboard(ctx) {
     body = html`<h1 class="h1">Tableau de bord</h1>${notice}
       <p class="intro">Vous préparez les fiches congrès. La publication sur le site est faite par l’équipe ou la Direction.</p>
       <div class="tiles">${['brouillon', 'a_relire', 'publie'].map((s) => html`<a class="tile" href="/console/congres?statut=${s}"><b>${cgCounts[s] || 0}</b><span>${(cgCounts[s] || 0) > 1 ? CG_PLURAL[s] : CG_STATUS[s]}</span></a>`)}</div>
-      <p class="actions"><a class="btn" href="/console/congres/nouveau">Nouveau congrès</a></p>`;
+      <p class="actions"><a class="btn" href="/console/congres/nouveau">Ajouter un congrès</a></p>`;
     return page(ctx, 'Tableau de bord', 'dash', body);
   }
   const counts = Object.fromEntries(((await env.DB.prepare(`SELECT status, COUNT(*) AS n FROM ${T(env, 'enquiries')} WHERE 1=1 GROUP BY status`).all()).results || []).map((r) => [r.status, r.n]));
@@ -231,7 +258,7 @@ async function congressList(ctx) {
   const valid = CG_STATUS[st] ? st : '';
   const rows = (await env.DB.prepare(`SELECT c.id, c.ref, c.title, c.city, c.country, c.start_date, c.end_date, c.status, c.verified_on, g.status AS gme FROM ${T(env, 'congresses')} c LEFT JOIN ${T(env, 'gme_codes')} g ON g.congress_id = c.id WHERE 1=1 ${valid ? 'AND c.status = ?' : ''} ORDER BY c.start_date, c.id`).bind(...(valid ? [valid] : [])).all()).results || [];
   const showGme = STAFF.includes(user.role);
-  const body = html`<div class="head"><h1 class="h1">Congrès</h1><a class="btn" href="/console/congres/nouveau">Nouveau congrès</a></div>
+  const body = html`<div class="head"><h1 class="h1">Congrès</h1><a class="btn" href="/console/congres/nouveau">Ajouter un congrès</a></div>
     <nav class="chips" aria-label="Filtrer par statut"><a class="chip" href="/console/congres"${!valid ? raw(' aria-current="true"') : ''}>Tous</a>${Object.entries(CG_STATUS).map(([k, l]) => html`<a class="chip" href="/console/congres?statut=${k}"${valid === k ? raw(' aria-current="true"') : ''}>${l}</a>`)}</nav>
     <div class="wrap" role="region" aria-label="Liste des congrès" tabindex="0"><table class="tbl">
       <thead><tr><th scope="col">Réf.</th><th scope="col">Congrès</th><th scope="col">Dates</th><th scope="col">Ville</th><th scope="col">Sur le site</th>${showGme ? html`<th scope="col">Code GM&amp;E</th>` : ''}<th scope="col">Vérifié le</th></tr></thead>
@@ -331,7 +358,7 @@ async function congressForm(ctx, id, { values, errors, status = 200, notice } = 
 
   const gmePanel = c && STAFF.includes(user.role) ? await gmeCard(ctx, c, { context: 'congress' }) : '';
   const body = html`<nav class="crumbs" aria-label="Fil d’Ariane"><a href="/console/congres">Congrès</a><span aria-hidden="true">/</span><span>${c ? c.ref : 'Nouveau'}</span></nav>
-    <div class="head"><h1 class="h1">${c ? c.title : 'Nouveau congrès'}</h1>${c ? html`<p>${pill(CG_KIND[stat], CG_STATUS[stat])}${stat === 'publie' ? html` <a class="lnk" href="/congres/${c.slug}">Voir la fiche publique</a>` : ''}</p>` : ''}</div>
+    <div class="head"><h1 class="h1">${c ? c.title : 'Ajouter un congrès'}</h1>${c ? html`<p>${pill(CG_KIND[stat], CG_STATUS[stat])}${stat === 'publie' ? html` <a class="lnk" href="/congres/${c.slug}">Voir la fiche publique</a>` : ''}</p>` : ''}</div>
     ${saved ? html`<p class="ok" role="status" tabindex="-1" data-focus>${savedMessage(saved, stat)}</p>` : ''}
     ${notice ? html`<p class="alert" role="alert" tabindex="-1" data-focus>${notice}</p>` : ''}
     ${listMsg ? html`<p class="${listMsg[0]}" role="status" tabindex="-1" data-focus>${listMsg[1]}</p>` : ''}
@@ -367,12 +394,12 @@ async function congressForm(ctx, id, { values, errors, status = 200, notice } = 
           ${[['discipline', 'Ajouter une discipline'], ['pays', 'Ajouter un pays']].map(([kind, label]) => html`<form method="post" action="/console/listes" class="inline">${csrfInput(ctx.csrf)}
             <input type="hidden" name="kind" value="${kind}"><input type="hidden" name="back" value="${c ? c.id : 'nouveau'}">
             ${field({ id: `add-${kind}`, name: 'value', label, attrs: 'maxlength="60" autocomplete="off"' })}
-            <button class="btn btn--line" type="submit">Ajouter</button></form>`)}
+            <button class="btn btn--line" type="submit">Ajouter à la liste</button></form>`)}
         </section>` : ''}
         ${gmePanel}
       </aside>
     </div>`;
-  return page(ctx, c ? c.title : 'Nouveau congrès', 'cg', body, status);
+  return page(ctx, c ? c.title : 'Ajouter un congrès', 'cg', body, status);
 }
 
 function savedMessage(code, stat) {
@@ -447,7 +474,7 @@ async function enquiryList(ctx) {
   const counts = Object.fromEntries(((await env.DB.prepare(`SELECT status, COUNT(*) AS n FROM ${T(env, 'enquiries')} WHERE 1=1 GROUP BY status`).all()).results || []).map((r) => [r.status, r.n]));
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
   const exportQs = new URLSearchParams({ ...(f.statut ? { statut: f.statut } : {}), ...(f.q ? { q: f.q } : {}) }).toString();
-  const body = html`<div class="head"><h1 class="h1">Demandes</h1><a class="btn btn--line" href="/console/demandes/export.csv${exportQs ? '?' + exportQs : ''}" download>Exporter (tableur CSV)</a></div>
+  const body = html`<div class="head"><h1 class="h1">Demandes</h1><a class="btn btn--line" href="/console/demandes/export.csv${exportQs ? '?' + exportQs : ''}" download>Exporter en CSV</a></div>
     <nav class="chips" aria-label="Filtrer par statut"><a class="chip" href="/console/demandes${f.q ? '?q=' + encodeURIComponent(f.q) : ''}"${!f.statut ? raw(' aria-current="true"') : ''}>Toutes (${total})</a>${Object.entries(STATUS_LABELS).map(([k, l]) => html`<a class="chip" href="/console/demandes?statut=${k}${f.q ? '&q=' + encodeURIComponent(f.q) : ''}"${f.statut === k ? raw(' aria-current="true"') : ''}>${l} (${counts[k] || 0})</a>`)}</nav>
     <form class="search" method="get" action="/console/demandes" role="search">
       ${f.statut ? html`<input type="hidden" name="statut" value="${f.statut}">` : ''}
@@ -474,7 +501,7 @@ async function enquiryCsv(ctx) {
     lines.push([r.ref, frDateTime(r.created_at), r.cg_title, r.cg_ref, r.name, r.email, r.phone, r.company, r.departure_city, r.date_out, r.date_back, r.passengers, STATUS_LABELS[r.status], r.owner_name || '', r.message].map(csvCell).join(';'));
   }
   return new Response('\uFEFF' + lines.join('\r\n') + '\r\n', {
-    headers: { 'content-type': 'text/csv; charset=utf-8', 'content-disposition': `attachment; filename="demandes-${today()}.csv"`, ...NO_STORE },
+    headers: { 'content-type': 'text/csv; charset=utf-8', 'content-disposition': `attachment; filename="demandes-${parisToday()}.csv"`, ...NO_STORE },
   });
 }
 
@@ -506,7 +533,7 @@ async function enquiryDetail(ctx, id, { notice } = {}) {
       <div class="seg" role="group" aria-labelledby="st-h">${Object.entries(STATUS_LABELS).map(([k, l]) => html`<button type="submit" name="to" value="${k}" class="seg__b"${k === r.status ? raw(' aria-pressed="true" disabled') : raw(' aria-pressed="false"')}>${l}</button>`)}</div>
     </form>
     <div class="edit">
-      <section class="card" aria-labelledby="h-c"><h2 class="h3" id="h-c">Demande de devis vol</h2>
+      <section class="card" aria-labelledby="h-c"><h2 class="h3" id="h-c">Détail de la demande</h2>
         <dl class="facts facts--tight">
           <div><dt>Congrès</dt><dd>${r.cg_title} (${nw(r.cg_ref)})</dd></div>
           <div><dt>Nom</dt><dd>${r.name}</dd></div>
@@ -609,7 +636,7 @@ function groupCard(ctx, r, grp, { compact = false } = {}) {
       <p class="quiet">Valable jusqu’au ${frNumDate(link.expires_at)}. Chaque participant donne son nom tel que sur sa pièce d’identité, son e-mail, sa ville de départ et ses dates ; il ne voit jamais les autres.</p>
       ${compact ? html`<p><a class="lnk" href="/console/demandes/${r.id}/groupe">Voir le groupe : ${counterText(grp.answered, grp.expected)}</a></p>`
         : html`<form method="post" action="/console/demandes/${r.id}/groupe" data-confirm="Révoquer ce lien ? Les participants qui ne l’ont pas encore utilisé ne pourront plus répondre.">${csrfInput(ctx.csrf)}<input type="hidden" name="action" value="revoke"><button class="btn btn--line" type="submit">Révoquer le lien</button></form>`}`
-    : html`<p class="quiet">Un lien unique à envoyer aux ${r.passengers} participants : chacun remplit ses informations de voyage depuis son téléphone, la liste se remplit ici.</p>${closed}${create}`}
+    : html`<p class="quiet">Un lien unique à envoyer aux ${r.passengers} participants\u00a0: chacun remplit ses informations de voyage depuis son téléphone, la liste se remplit ici.</p>${closed}${create}`}
   </section>`;
 }
 async function groupTab(ctx, id) {
@@ -739,7 +766,7 @@ async function groupCsv(ctx, id) {
   const lines = [head.map(csvCell).join(';')];
   for (const d of rows) lines.push([r.ref, r.cg_title, d.name, d.email, d.departure_city, d.date_out, d.date_back, frDateTime(d.created_at), frDateTime(d.updated_at), pend.has(d.email_norm) ? 'oui' : ''].map(csvCell).join(';'));
   return new Response('\uFEFF' + lines.join('\r\n') + '\r\n', {
-    headers: { 'content-type': 'text/csv; charset=utf-8', 'content-disposition': `attachment; filename="groupe-${r.ref}-${today()}.csv"`, ...NO_STORE },
+    headers: { 'content-type': 'text/csv; charset=utf-8', 'content-disposition': `attachment; filename="groupe-${r.ref}-${parisToday()}.csv"`, ...NO_STORE },
   });
 }
 
@@ -762,10 +789,10 @@ async function notifications(ctx) {
   const list = (await ctx.env.DB.prepare(`SELECT e.*, c.title AS cg_title, c.ref AS cg_ref FROM ${T(ctx.env, 'enquiries')} e JOIN ${T(ctx.env, 'congresses')} c ON c.id = e.congress_id ORDER BY e.created_at DESC, e.id DESC LIMIT 100`).all()).results || [];
   const base = baseUrl(ctx.env);
   const rows = list.map((e) => { const n = notificationFor(e, { title: e.cg_title, ref: e.cg_ref }, base); return { ...n, at: e.created_at, to_addr: TEAM_INBOX, enquiry_id: e.id, ref: e.ref }; });
-  const body = html`<h1 class="h1">Notifications</h1>
+  const body = html`<h1 class="h1">Journal des notifications</h1>
     <p class="intro">Le message que l’équipe recevrait à chaque nouvelle demande. Dans la démonstration, aucun e-mail n’est réellement envoyé : il est seulement consigné ici.</p>
     <ol class="mails">${rows.map((n) => html`<li class="card mail"><h2 class="h4">${keepRefs(n.subject)}</h2><p class="quiet">Envoi simulé à ${n.to_addr}, le ${frDateTime(n.at)}</p><pre>${mailBody(n.body)}</pre><p><a class="lnk" href="/console/demandes/${n.enquiry_id}">Ouvrir ${n.ref}</a></p></li>`)}</ol>`;
-  return page(ctx, 'Notifications', 'notif', body);
+  return page(ctx, 'Journal des notifications', 'notif', body);
 }
 
 // ---------------------------------------------------------------- GM&E
@@ -957,10 +984,10 @@ async function gmeDecide(ctx, rid) {
 async function gmeJournal(ctx) {
   const rows = (await ctx.env.DB.prepare(`SELECT l.*, u.display_name, c.title, c.ref FROM ${T(ctx.env, 'gme_access_log')} l JOIN users u ON u.id = l.user_id JOIN ${T(ctx.env, 'congresses')} c ON c.id = l.congress_id WHERE 1=1 ORDER BY l.id DESC LIMIT 200`).all()).results || [];
   const res = { affiche: 'Code affiché', refuse: 'Refusé : aucune autorisation', refuse_statut: 'Refusé : code non vérifié ou expiré' };
-  const body = html`<h1 class="h1">Journal d’accès</h1>
+  const body = html`<h1 class="h1">Journal d’accès GM&amp;E</h1>
     <p class="intro">Chaque affichage d’un code GM&amp;E, et chaque tentative refusée, est enregistré ici. Réservé à la Direction.</p>
-    ${rows.length ? html`<div class="wrap" role="region" aria-label="Journal d’accès" tabindex="0"><table class="tbl"><thead><tr><th scope="col">Quand</th><th scope="col">Qui</th><th scope="col">Congrès</th><th scope="col">Résultat</th></tr></thead>
+    ${rows.length ? html`<div class="wrap" role="region" aria-label="Journal d’accès GM&amp;E" tabindex="0"><table class="tbl"><thead><tr><th scope="col">Quand</th><th scope="col">Qui</th><th scope="col">Congrès</th><th scope="col">Résultat</th></tr></thead>
     <tbody>${rows.map((l) => html`<tr><td>${frDateTime(l.at)}</td><td>${l.display_name}</td><td class="wide">${l.title} (${nw(l.ref)})</td><td>${l.result === 'affiche' ? pill('pub', res.affiche) : pill('lost', res[l.result] || l.result)}</td></tr>`)}</tbody></table></div>`
     : html`<p class="quiet">Aucun affichage enregistré pour l’instant.</p>`}`;
-  return page(ctx, 'Journal d’accès', 'journal', body);
+  return page(ctx, 'Journal d’accès GM&E', 'journal', body);
 }

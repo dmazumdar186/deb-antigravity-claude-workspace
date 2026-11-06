@@ -35,14 +35,16 @@ test('FIX-1 isolation: a browser that publishes, defaces, edits URLs, adds enqui
   await A.page.goto(`/congres/${SLUG.onco}`);
   await fillEnquiry(A.page, { name: 'Enquête A (exemple)', out: '2027-01-27', back: '2027-01-31' });
   await A.page.waitForTimeout(3100);
-  await A.page.getByRole('button', { name: 'Envoyer la demande' }).click();
+  await A.page.getByRole('button', { name: 'Envoyer ma demande' }).click();
   await expect(A.page.locator('[data-ref]')).toHaveText('DV-2026-0007');
   // A sees its own changes, on the public pages too (copy-on-write)
   await A.page.goto('/?q=defacement');
   await expect(A.page.locator('.row')).toHaveCount(1);
   await A.page.goto(`/congres/${SLUG.cardio}`);
   await expect(A.page.locator('h1')).toHaveText('Congrès piraté — exemple');
-  await expect(A.page.locator('.facts')).toContainText('phishing.example');
+  await expect(A.page.locator('.facts')).toContainText('fictif (démonstration)'); // reserved .example host: shown as text, never linked (CE-A4-003)
+  await A.page.goto('/console/congres/101');
+  await expect(A.page.getByLabel('Site officiel')).toHaveValue('https://phishing.example/login');
   // B, logged out: seed only
   await B.page.goto('/?q=defacement');
   await expect(B.page.locator('.row')).toHaveCount(0);
@@ -85,7 +87,7 @@ test('FIX-2 « Réinitialiser la démo » resets only the caller’s sandbox; th
   await A.ctx.close(); await B.ctx.close();
 });
 
-test('FIX-3 nightly cron purges sandboxes older than 24 h and leaves recent ones', async ({ page, browser }) => {
+test('FIX-3 nightly cron purges sandboxes idle for more than 24 h and leaves active ones', async ({ page, browser }) => {
   test.skip(LIVE, 'the scheduled handler can only be triggered on the local runtime; live, the cron registration is checked in X4');
   await login(page, 'equipe');
   await page.goto('/console/demandes/1');
@@ -96,7 +98,7 @@ test('FIX-3 nightly cron purges sandboxes older than 24 h and leaves recent ones
   await fresh.page.goto('/console/demandes/1');
   await fresh.page.getByRole('button', { name: 'Qualifiée' }).click();
   const newSbx = await sbxOf(fresh.page);
-  execFileSync('npx', ['wrangler', 'd1', 'execute', 'asset-voyages-demo', '--local', '--command', `UPDATE sandboxes SET created_at = '2026-01-01T00:00:00.000Z' WHERE id = '${oldSbx}'`], { cwd: ROOT, stdio: 'ignore' });
+  execFileSync('npx', ['wrangler', 'd1', 'execute', 'asset-voyages-demo', '--local', '--command', `UPDATE sandboxes SET last_seen = '2026-01-01T00:00:00.000Z' WHERE id = '${oldSbx}'`], { cwd: ROOT, stdio: 'ignore' });
   expect((await page.request.get('/cdn-cgi/handler/scheduled?cron=0+3+*+*+*')).status()).toBe(200);
   await expect.poll(() => d1Count(`SELECT COUNT(*) AS n FROM enquiries WHERE sbx = '${oldSbx}'`)[0].n).toBe(0);
   expect(d1Count(`SELECT COUNT(*) AS n FROM sandboxes WHERE id = '${oldSbx}'`)[0].n).toBe(0);
@@ -211,7 +213,7 @@ test('FIX-9 dates read jj/mm/aaaa or « 28 au 30 janv. 2027 »; the notification
   expect(text).not.toMatch(/\b20\d\d-\d\d-\d\d\b/);
   await fillEnquiry(page, { out: '2027-01-27', back: '2027-01-31' });
   await page.waitForTimeout(3100);
-  await page.getByRole('button', { name: 'Envoyer la demande' }).click();
+  await page.getByRole('button', { name: 'Envoyer ma demande' }).click();
   await login(page, 'equipe');
   await page.goto('/console/notifications');
   const mail = await page.locator('.mail pre').first().innerText();
@@ -232,7 +234,7 @@ test('FIX-10 skip link only appears on keyboard focus; after an error or a redir
   expect((await page.locator('.skip').boundingBox()).y).toBeGreaterThanOrEqual(0);
   await page.goto(`/congres/${SLUG.cardio}`);
   await page.waitForTimeout(3100);
-  await page.getByRole('button', { name: 'Envoyer la demande' }).click();
+  await page.getByRole('button', { name: 'Envoyer ma demande' }).click();
   await expect(page.locator('#form-errors')).toBeFocused();
   await login(page, 'equipe');
   await page.goto('/console/demandes/1');
@@ -348,11 +350,11 @@ test('FIX-21 (D1) Discipline and Pays come from managed lists; Direction adds a 
   expect(await page.getByRole('combobox', { name: 'Discipline', exact: true }).evaluate((e) => e.tagName)).toBe('SELECT');
   expect(await page.getByRole('combobox', { name: 'Pays', exact: true }).evaluate((e) => e.tagName)).toBe('SELECT');
   await page.getByLabel('Ajouter une discipline').fill('Hématologie');
-  await page.locator('form[action="/console/listes"]').first().getByRole('button', { name: 'Ajouter' }).click();
+  await page.locator('form[action="/console/listes"]').first().getByRole('button', { name: 'Ajouter à la liste' }).click();
   await expect(page.getByText('Valeur ajoutée à la liste.')).toBeVisible();
   await page.getByRole('combobox', { name: 'Discipline', exact: true }).selectOption('Hématologie');
   await page.getByLabel('Ajouter une discipline').fill('hematologie');
-  await page.locator('form[action="/console/listes"]').first().getByRole('button', { name: 'Ajouter' }).click();
+  await page.locator('form[action="/console/listes"]').first().getByRole('button', { name: 'Ajouter à la liste' }).click();
   await expect(page.getByText('Cette valeur existe déjà dans la liste')).toBeVisible();
   // a forged free-text value is refused server-side
   await logout(page);
@@ -368,11 +370,11 @@ test('FIX-21 (D1) Discipline and Pays come from managed lists; Direction adds a 
   await expect(page.locator('form[action="/console/listes"]')).toHaveCount(0);
 });
 
-test('FIX-22 (D2) the sidebar groups the GM&E items under « Codes GM&E »: Codes, Demandes d’accès, Journal', async ({ page }) => {
+test('FIX-22 (D2) the sidebar groups the GM&E items under « Codes GM&E »: Codes, Demandes d’accès, Journal d’accès GM&E', async ({ page }) => {
   await login(page, 'direction');
   const side = page.getByRole('navigation', { name: 'Console' });
   await expect(side.locator('.side__h')).toHaveText('Codes GM&E');
-  await expect(side.locator('a.side__sub')).toHaveText([/^Codes/, /^Demandes d’accès/, /^Journal/]);
+  await expect(side.locator('a.side__sub')).toHaveText([/^Codes$/, /^Demandes d’accès/, /^Journal d’accès GM&E$/]);
   await logout(page);
   await login(page, 'equipe');
   await expect(page.getByRole('navigation', { name: 'Console' }).locator('a.side__sub')).toHaveText([/^Codes/]);
@@ -385,7 +387,7 @@ test('FIX-23 FIX-24 (D3, D4) failed enquiry: 200 page, top banner lists each err
     await page.goto(`/congres/${SLUG.cardio}`);
     await fillEnquiry(page, { out: '2027-08-30', back: '2027-08-20', email: 'x@y' });
     await page.waitForTimeout(3100);
-    const [resp] = await Promise.all([page.waitForResponse((r) => r.url().endsWith('/demande')), page.getByRole('button', { name: 'Envoyer la demande' }).click()]);
+    const [resp] = await Promise.all([page.waitForResponse((r) => r.url().endsWith('/demande')), page.getByRole('button', { name: 'Envoyer ma demande' }).click()]);
     expect(resp.status()).toBe(200);
     const banner = page.locator('#form-errors');
     await expect(banner).toBeFocused();
@@ -414,7 +416,7 @@ test('FIX-25 (D5) ten enquiries in ten minutes are accepted per browser; the ele
     await page.goto(`/congres/${SLUG.cardio}`);
     await fillEnquiry(page, { name: `Bureau ${i} (exemple)` });
     await page.waitForTimeout(3100);
-    await page.getByRole('button', { name: 'Envoyer la demande' }).click();
+    await page.getByRole('button', { name: 'Envoyer ma demande' }).click();
     if (i < 10) await expect(page.locator('[data-ref]'), `submission ${i + 1}`).toHaveText(/^DV-2026-\d{4}$/);
   }
   const msg = page.locator('.alert--top');
@@ -427,7 +429,7 @@ test('FIX-25 (D5) ten enquiries in ten minutes are accepted per browser; the ele
   await B.page.goto(`/congres/${SLUG.cardio}`);
   await fillEnquiry(B.page, { name: 'Collègue (exemple)' });
   await B.page.waitForTimeout(3100);
-  await B.page.getByRole('button', { name: 'Envoyer la demande' }).click();
+  await B.page.getByRole('button', { name: 'Envoyer ma demande' }).click();
   await expect(B.page.locator('[data-ref]')).toHaveText('DV-2026-0007');
   assertClean(A.problems); assertClean(B.problems);
   await A.ctx.close(); await B.ctx.close();

@@ -12,7 +12,7 @@ test.beforeAll(async ({ browser }) => {
   await page.goto(`/congres/${SLUG.radio}`);
   await fillEnquiry(page, { name: 'Sophie Bernard (exemple)', email: 'sophie.bernard@example.com', city: 'Strasbourg', out: '2027-02-23', back: '2027-03-01', pax: '4' });
   await page.waitForTimeout(3100);
-  await page.getByRole('button', { name: 'Envoyer la demande' }).click();
+  await page.getByRole('button', { name: 'Envoyer ma demande' }).click();
   REF = (await page.locator('[data-ref]').textContent()).trim();
 });
 test.afterEach(() => assertClean(shared.problems));
@@ -27,7 +27,7 @@ test('S4-F1 the visitor enquiry appears in Demandes with every column and status
   expect(heads).toEqual(['Réf.', 'Statut', 'Reçue', 'Congrès', 'Contact', 'Voyage', 'Responsable']); // Voyage = departure city, dates, passengers
   const row = page.locator('tbody tr', { hasText: REF });
   await expect(row).toHaveCount(1);
-  for (const t of [REF, 'Congrès européen de radiologie — exemple', 'Sophie Bernard (exemple)', 'Départ de Strasbourg', '23/02/2027 au 01/03/2027', '4 passagers', 'Nouvelle', 'À attribuer']) await expect(row).toContainText(t);
+  for (const t of [REF, 'Rencontres européennes d’imagerie médicale — exemple', 'Sophie Bernard (exemple)', 'Départ de Strasbourg', '23/02/2027 au 01/03/2027', '4 passagers', 'Nouvelle', 'À attribuer']) await expect(row).toContainText(t);
   await expect(row.locator('td').nth(2)).toHaveText(/\d{2}\/\d{2}\/\d{4}/);
 });
 
@@ -120,7 +120,7 @@ test('S4-F5 CSV export holds the enquiries and neutralises =, +, - and @ at the 
     await v.goto(`/congres/${SLUG.cardio}`);
     await fillEnquiry(v, { name: n, city: n });
     await v.waitForTimeout(3100);
-    await v.getByRole('button', { name: 'Envoyer la demande' }).click();
+    await v.getByRole('button', { name: 'Envoyer ma demande' }).click();
     await expect(v.locator('[data-ref]')).toBeVisible();
   }
   await login(page, 'equipe');
