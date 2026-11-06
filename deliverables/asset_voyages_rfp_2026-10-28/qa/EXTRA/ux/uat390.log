@@ -10,3 +10,52 @@ X.9 PASS confirmation identical shape; echoes Nantes true
 X.10 PASS counter « 1 répondu / 2 attendus »; tab label « Groupe (1/2) »
 X.11 PASS 
 X.12 PASS counter « 1 répondu / 2 attendus »
+X.13 PASS « 1 répondu / 2 attendus » → « 2 répondus / 2 attendus » without reload
+X.14 PASS hint « Proche du seuil groupe : 2 réponses sur 3 (à confirmer). Relancez les participants qui n’ont pas encore répondu. Indication interne, jamais montrée aux participants. »; error « Seuil refusé (navigateur) : Value must be greater than or equal to 2. »
+X.15 PASS groupe-DV-2026-0002-2026-11-06.csv; 3 lines; header "Demande";"Congrès";"Nom (pièce d’identité)";"E-mail";"Ville de départ";"Aller";"Retour";"Reçu le";"Mis à jour le";"Modification à vérifier"; BOM true
+X.16 PASS dialog « Révoquer ce lien ? Les participants qui ne l’ont pas encore utilisé ne pourront plus répondre. »; public 410 « Ce lien n’est plus actif »; list kept: true
+X.17 FAIL new 200, old 404
+X.18 PASS public 200; others' names absent
+X.19 PASS status 403; Accès refusé
+X.20 PASS DV-2026-0005: card shown false; /groupe 404
+X.21 PASS 404 « Lien introuvable »
+{
+ "cardY": 1951,
+ "viewportH": 844,
+ "createCardBelowFold": true,
+ "createClicksFromList": 2,
+ "landsOn": "/console/demandes/2/groupe?ok=lien",
+ "publicMobile": {
+  "hScroll": false,
+  "minInputFont": 16,
+  "smallTargets": [],
+  "docH": 2219
+ },
+ "delegateSubmitClicks": 1,
+ "confirmMobile": {
+  "hScroll": false,
+  "minInputFont": null,
+  "smallTargets": [],
+  "docH": 1316
+ },
+ "manifestClicksFromList": 2,
+ "revokeDialog": "Révoquer ce lien ? Les participants qui ne l’ont pas encore utilisé ne pourront plus répondre.",
+ "seedToken": "GSKql7ARlf1lQZb0wz24B5PlOwlAESjj81qRCrM4_x4",
+ "errors": {
+  "staff": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)",
+   "Failed to load resource: the server responded with a status of 404 (Not Found)",
+   "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "d1": [
+   "Failed to load resource: the server responded with a status of 410 (Gone)",
+   "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "d2": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "d3": []
+ },
+ "s5": [],
+ "reset": "reset ok | reset ok | reset ok | reset ok"
+}

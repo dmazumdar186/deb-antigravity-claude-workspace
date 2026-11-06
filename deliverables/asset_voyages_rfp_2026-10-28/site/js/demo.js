@@ -5,8 +5,8 @@
   'use strict';
 
   // ---- The four demo addresses: change them here (and the matching href fallbacks in demo/index.html). ----
-  const WP_VISITOR_URL = 'https://playground.wordpress.net/?blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-visitor.json';
-  const WP_ADMIN_URL = 'https://playground.wordpress.net/?blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json';
+  const WP_VISITOR_URL = 'https://playground.wordpress.net/?mode=seamless&login=no&blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-visitor.json';
+  const WP_ADMIN_URL = 'https://playground.wordpress.net/?mode=seamless&blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json';
   const CUSTOM_URL = 'https://asset-voyages-demo.debanjan186.workers.dev/';
   const CUSTOM_CONSOLE_URL = CUSTOM_URL + 'console';
   const DEMO = { WP_VISITOR_URL, WP_ADMIN_URL, CUSTOM_URL, CUSTOM_CONSOLE_URL };

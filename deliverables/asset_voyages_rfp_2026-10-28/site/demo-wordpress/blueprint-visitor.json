@@ -2,15 +2,57 @@
 	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
 	"meta": {
 		"title": "ASSET Voyages : démo congrès (visiteur)",
-		"description": "Catalogue de congrès fictifs, recherche, filtres, fiche détail et demande de devis vol. Données fictives.",
+		"description": "Catalogue de congrès fictifs, recherche, filtres, fiche détail et demande de devis vol. Visiteur non connecté. Données fictives. ASSET_GME_KEY ci-dessous : clé publique de démonstration uniquement.",
 		"author": "ProdCraft"
 	},
 	"landingPage": "/",
-	"preferredVersions": { "php": "8.3", "wp": "latest" },
-	"features": { "networking": true },
+	"preferredVersions": {
+		"php": "8.3",
+		"wp": "latest"
+	},
+	"features": {
+		"networking": true
+	},
+	"login": false,
 	"steps": [
-		{ "step": "setSiteLanguage", "language": "fr_FR" },
-		{ "step": "installPlugin", "pluginData": { "resource": "url", "url": "https://asset-voyages-redesign.pages.dev/demo-wordpress/asset-congres-demo.zip" }, "options": { "activate": true } },
-		{ "step": "runPHP", "code": "<?php require_once '/wordpress/wp-load.php'; asset_congres_demo_seed();" }
+		{
+			"step": "defineWpConfigConsts",
+			"consts": {
+				"ASSET_GME_KEY": "6efdc2e7995c6fff36b185a638d326a3a0f71cca0046d4238a114e29595a2852",
+				"ASSET_GME_KEY_NOTICE": "DEMO ONLY: public sandbox key, never reuse in production (see README)",
+				"ASSET_DEMO_VISITOR": true
+			}
+		},
+		{
+			"step": "setSiteLanguage",
+			"language": "fr_FR"
+		},
+		{
+			"step": "setSiteOptions",
+			"options": {
+				"timezone_string": "Europe/Paris",
+				"date_format": "d/m/Y",
+				"time_format": "H:i",
+				"start_of_week": 1
+			}
+		},
+		{
+			"step": "installPlugin",
+			"pluginData": {
+				"resource": "url",
+				"url": "https://asset-voyages-redesign.pages.dev/demo-wordpress/asset-congres-demo.zip"
+			},
+			"options": {
+				"activate": true
+			}
+		},
+		{
+			"step": "runPHP",
+			"code": "<?php require_once '/wordpress/wp-load.php'; asset_congres_demo_seed();"
+		},
+		{
+			"step": "activateTheme",
+			"themeFolderName": "asset-demo"
+		}
 	]
 }

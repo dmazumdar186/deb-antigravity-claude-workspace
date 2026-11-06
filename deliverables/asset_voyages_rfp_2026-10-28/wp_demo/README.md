@@ -76,9 +76,9 @@ Site language: the `setSiteLanguage: fr_FR` step works with the local CLI (trans
 
 Run the full suite with `tests/run_all.sh`. It starts a fresh server, runs every spec in order with one worker, then stops the server. Playwright and Chromium were preinstalled; `tests/node_modules/playwright` is a symlink to the global install. Each test name starts with the acceptance gate ID from `../21_Acceptance_Gates_5_Stories.md`.
 
-Latest full run (fresh Playground, WordPress 7.1.4, PHP 8.3, 5 Nov 2026): Tests: **46 passed / 0 failed or not run** out of 46 (Playwright, Chromium, 1 worker).
+Fix round A (6 Nov 2026), on a fresh Playground (WordPress 7.1.4, PHP 8.3): `tests/run_all.sh` ran **twice in a row, 64 passed / 0 failed / 0 skipped each time** (64 of 64, then 64 of 64). The screenshot run (`tests/run_screens.sh`, fresh seed, fr-FR, Europe/Paris) passed 3 of 3. QA's monkey (`../qa/A/monkey_A.mjs`, seed 20261105, 300 actions x 4 roles, fresh server) found **0 failures** (anon 0, contributeur 0, equipe 0, direction 0). Semgrep `p/php` and `p/default` on the plugin found 0 findings; the one exemption carries its reason inline.
 
-Suites: functional (S1-S5), leak (`06-leak`: logged-out crawl of 330+ URLs, including pages, filter combinations, every congress, feeds, sitemaps, search and every argument-free REST route + admin-ajax; a second crawl as `equipe` without a grant covers ~400 URLs; plus a raw scan of the SQLite file), hostile input (H gates: script/HTML, formula injection, 5,000-char inputs, passengers 0/51/abc/2.5, reversed and past dates, missing or forged nonce, forged timestamp, honeypot, replayed submit, replayed reveal after revocation, rate limit), cross-cutting X1-X4, and screenshots. Click counts for the E gates are recorded as test annotations.
+Suites: functional (S1-S5), leak (`06-leak`: a logged-out crawl of 330+ URLs, and a second crawl as `equipe` without a grant, plus a raw scan of the SQLite file), hostile input (H gates), cross-cutting X1-X4, the fix-round tests FIX-A-1 to FIX-A-20 (`08-fixes.spec.js`; FIX-A-18 is in `screens.spec.js`), and the rate limit (`99`). Click counts for the E gates are recorded as test annotations.
 
 
 | Gate | Result | Evidence |
@@ -105,7 +105,7 @@ Suites: functional (S1-S5), leak (`06-leak`: logged-out crawl of 330+ URLs, incl
 | S3-F4 | PASS | 1 test(s) |
 | S3-E1 | PASS | 1 test(s) |
 | S3-H1 | PASS | 1 test(s) |
-| S3-H2 | PASS | 2 test(s); accepted-before-block=6 |
+| S3-H2 | PASS | 2 test(s); accepted-before-block=5 |
 | S3-H3 | PASS | 1 test(s) |
 | S4-F1 | PASS | 1 test(s) |
 | S4-F2 | PASS | 1 test(s) |
@@ -122,12 +122,32 @@ Suites: functional (S1-S5), leak (`06-leak`: logged-out crawl of 330+ URLs, incl
 | S5-F5 | PASS | 1 test(s) |
 | S5-E1 | PASS | 3 test(s); clicks=2; clicks=1; clicks=2 |
 | S5-H1 | PASS | 1 test(s) |
-| S5-L1 | PASS | 2 test(s); urls=330; urls=398 |
+| S5-L1 | PASS | 2 test(s); urls=330; urls=404 |
 | S5-L2 | PASS | 1 test(s) |
-| X1 | PASS | 1 test(s) |
+| X1 | PASS | 2 test(s) |
 | X2 | PASS | 1 test(s) |
 | X3 | PASS | 1 test(s) |
 | X4 | PASS | 1 test(s) |
+| FIX-A-1 | PASS | 2 test(s) |
+| FIX-A-2 | PASS | 1 test(s) |
+| FIX-A-3 | PASS | 1 test(s) |
+| FIX-A-4 | PASS | 1 test(s) |
+| FIX-A-5 | PASS | 1 test(s) |
+| FIX-A-6 | PASS | 1 test(s) |
+| FIX-A-7 | PASS | 1 test(s) |
+| FIX-A-8 | PASS | 1 test(s) |
+| FIX-A-9 | PASS | 1 test(s) |
+| FIX-A-10 | PASS | 1 test(s) |
+| FIX-A-11 | PASS | 1 test(s) |
+| FIX-A-12 | PASS | 1 test(s) |
+| FIX-A-13 | PASS | 1 test(s) |
+| FIX-A-14 | PASS | 1 test(s) |
+| FIX-A-15 | PASS | 1 test(s) |
+| FIX-A-16 | PASS | 1 test(s) |
+| FIX-A-17 | PASS | 1 test(s) |
+| FIX-A-18 | PASS | screens.spec.js on a fresh seed (3/3 passed: 12 congresses, clean data, 32 PNGs) |
+| FIX-A-19 | PASS | 1 test(s) |
+| FIX-A-20 | PASS | 1 test(s) |
 
 X5-X7 (Hallmark gate on the hub page, eye review, hub-page traces) belong to the hub page and to the QA agent, not to this plugin suite.
 
