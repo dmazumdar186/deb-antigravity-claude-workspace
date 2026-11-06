@@ -9,10 +9,10 @@ Thank you for your message. I confirm my availability, and I have put everything
 
 **https://asset-voyages-redesign.pages.dev/demo/**
 
-It shows two working demonstrations of the five steps you listed, so you can compare them and choose:
+It shows two working demonstrations of the five steps you listed, so you can compare them; the page notes where each option is stronger:
 
-- **Option A, WordPress:** the platform your current site uses. It runs entirely in your browser, and nothing needs to be installed.
-- **Option B, our own lightweight platform:** pages served from Cloudflare's network, with a small administration console for your team.
+- **Option A, WordPress:** the platform your current site runs on. It opens entirely in your browser, with nothing to install.
+- **Option B, a small custom platform** built on standard open-source tools, as described in my reply of 31 October: pages served from Cloudflare's network, with a small administration console for your team.
 
 For both, the page covers:
 
@@ -25,20 +25,19 @@ All data and GM&E codes are fictional, and each person's trial is private to the
 
 The page also shows one small addition that may help with group congress trips: a link your team can send to a group, so each traveller enters their own details and your team sees the list fill in. It is a suggestion only and is not part of the quotation.
 
-The same page gives realistic milestones from approval and receipt of content, covering design, development, testing, training and launch, and explains in plain words how each option is built.
+The same page sets out the delivery milestones from approval and receipt of content (design, development, testing, training, launch) and explains in plain words how each option is built.
 
 **Demonstration.** I would be glad to walk you through it in 20–30 minutes. Possible slots, Paris time:
 
-- Thursday 12 November, 10:00 or 14:30;
-- Friday 13 November, 10:00;
-- Monday 16 November, 10:00 or 14:30;
-- Tuesday 17 November, 10:00 or 14:30.
+- Thursday 12 November, 10:00;
+- Monday 16 November, 14:30;
+- Tuesday 17 November, 10:00.
 
-Another time is equally fine.
+If shortlisting falls later, I will propose dates within 3–5 working days of your notice.
 
-**Custom sample.** If you later want one small custom congress sample, I will propose its scope, any fee and the date in writing first. Nothing chargeable has been started.
+**Custom sample.** Should further validation be needed after the demonstration, its scope, fee and delivery date would be agreed in writing before any work starts. Nothing chargeable has been started.
 
-The requirements and budget you communicated earlier are unchanged on our side.
+As you say, the requirements and budget previously communicated remain unchanged. Which option we recommend, and on what terms, will be set out in the written proposal, where each is priced against its scope.
 
 Kind regards,
 

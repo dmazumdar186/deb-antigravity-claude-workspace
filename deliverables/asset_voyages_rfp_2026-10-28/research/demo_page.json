@@ -1,6 +1,6 @@
 {
  "url": "http://localhost:8794/demo/",
- "date": "2026-11-06T12:01:15.341Z",
+ "date": "2026-11-06T12:35:34.709Z",
  "pass": 59,
  "total": 59,
  "results": [
@@ -92,12 +92,12 @@
   {
    "name": "mailto: main button exact; every slot mails debanjan@prodcraft.fyi with subject \"ASSET – demonstration slot\"",
    "ok": true,
-   "info": "Thursday 12 November 10:00 14:30 / Friday 13 November 10:00 / Monday 16 November 10:00 14:30 / Tuesday 17 November 10:00 14:30"
+   "info": "Thursday 12 November 10:00 / Monday 16 November 14:30 / Tuesday 17 November 10:00"
   },
   {
-   "name": "slots: Thu 12 (10:00, 14:30), Fri 13 (10:00), Mon 16 (10:00, 14:30), Tue 17 (10:00, 14:30)",
+   "name": "slots: Thu 12 (10:00), Mon 16 (14:30), Tue 17 (10:00) — no conflict with the operator calendar",
    "ok": true,
-   "info": "Thursday 12 November 10:00 14:30|Friday 13 November 10:00|Monday 16 November 10:00 14:30|Tuesday 17 November 10:00 14:30"
+   "info": "Thursday 12 November 10:00|Monday 16 November 14:30|Tuesday 17 November 10:00"
   },
   {
    "name": "comparison: 11 rows, every cell carries one of the two statuses",
@@ -121,7 +121,7 @@
   {
    "name": "desktop: #slot heading lands below the sticky strip, strip marks it",
    "ok": true,
-   "info": "{\"top\":173.859375,\"strip\":57,\"cur\":\"#slot\"}"
+   "info": "{\"top\":174.046875,\"strip\":57,\"cur\":\"#slot\"}"
   },
   {
    "name": "recordings: follow the real manifest (all false: section and strip link hidden, no video; announced files: those players only)",
@@ -131,7 +131,7 @@
   {
    "name": "WCAG AA contrast on every visible text element",
    "ok": true,
-   "info": "checked 305"
+   "info": "checked 300"
   },
   {
    "name": "print: strip hidden, both options of every task printed, wide diagram, PDF written",
@@ -171,7 +171,7 @@
   {
    "name": "390: #plan heading lands below the sticky strip",
    "ok": true,
-   "info": "{\"top\":129.09375,\"strip\":57}"
+   "info": "{\"top\":129.28125,\"strip\":57}"
   },
   {
    "name": "390: the strip link to #group scrolls its heading below the sticky strip",

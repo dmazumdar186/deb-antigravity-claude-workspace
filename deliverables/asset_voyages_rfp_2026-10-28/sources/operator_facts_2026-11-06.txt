@@ -9,3 +9,4 @@ Operator facts and positions (session of 5–6 Nov 2026):
 - Measured Playground start times (QA, 6 Nov): visitor link 13–16 s, admin link 16–23 s; one admin boot stalled on 6 Nov, so the hub advises reloading.
 - Nothing chargeable has been started; all demo work is unpaid.
 - Proposed demonstration slots (Paris time, from the calendar availability above): Thursday 12 November 10:00 or 14:30; Friday 13 November 10:00; Monday 16 November 10:00 or 14:30; Tuesday 17 November 10:00 or 14:30.
+- « Le lien de groupe » (the extra) is live on the production Option B demo, verified 6 Nov 2026: bounded production check 17/17 PASS (link created, one delegate submitted, manifest updated, logged-out leak check clean); the hub page section #group links to it (HTTP 200).

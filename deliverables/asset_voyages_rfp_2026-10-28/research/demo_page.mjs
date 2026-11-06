@@ -84,8 +84,8 @@ t('hub quotes the glossary labels exactly; task 5 says the « Afficher le code �
 // mailto
 const mail = await p.evaluate(() => ({ main: document.querySelector('[data-mailto]').getAttribute('href'), slots: [...document.querySelectorAll('.time')].map((a) => a.getAttribute('href')), labels: [...document.querySelectorAll('.days li')].map((li) => li.innerText.replace(/\s+/g, ' ').trim()) }));
 const subj = (h) => decodeURIComponent((h.match(/subject=([^&]+)/) || [])[1] || '');
-t('mailto: main button exact; every slot mails debanjan@prodcraft.fyi with subject "ASSET – demonstration slot"', mail.main === MAILTO && mail.slots.length === 7 && mail.slots.every((h) => h.startsWith('mailto:debanjan@prodcraft.fyi?') && subj(h) === 'ASSET – demonstration slot'), mail.labels.join(' / '));
-t('slots: Thu 12 (10:00, 14:30), Fri 13 (10:00), Mon 16 (10:00, 14:30), Tue 17 (10:00, 14:30)', mail.labels.join('|') === 'Thursday 12 November 10:00 14:30|Friday 13 November 10:00|Monday 16 November 10:00 14:30|Tuesday 17 November 10:00 14:30', mail.labels.join('|'));
+t('mailto: main button exact; every slot mails debanjan@prodcraft.fyi with subject "ASSET – demonstration slot"', mail.main === MAILTO && mail.slots.length === 3 && mail.slots.every((h) => h.startsWith('mailto:debanjan@prodcraft.fyi?') && subj(h) === 'ASSET – demonstration slot'), mail.labels.join(' / '));
+t('slots: Thu 12 (10:00), Mon 16 (14:30), Tue 17 (10:00) — no conflict with the operator calendar', mail.labels.join('|') === 'Thursday 12 November 10:00|Monday 16 November 14:30|Tuesday 17 November 10:00', mail.labels.join('|'));
 // table
 const tbl = await p.evaluate(() => [...document.querySelectorAll('.cmp tbody tr')].map((tr) => [tr.querySelector('th').innerText, ...[...tr.querySelectorAll('td .st')].map((s) => s.innerText)]));
 t('comparison: 11 rows, every cell carries one of the two statuses', tbl.length === 11 && tbl.every((r) => r.length === 3 && r.slice(1).every((s) => s === 'Works in the demo' || s === 'Built during the project')), tbl.length + ' rows');

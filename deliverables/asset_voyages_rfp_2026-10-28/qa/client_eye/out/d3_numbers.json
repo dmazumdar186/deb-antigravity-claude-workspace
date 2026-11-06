@@ -48,8 +48,20 @@
   "src": "21_Acceptance_Gates_5_Stories.md:1"
  },
  {
-  "n": "20 to 40",
-  "ctx": "o install. ⏎  ⏎ The first start takes about ⟨20 to 40⟩ seconds while it loads. Later starts ar",
+  "n": "one",
+  "ctx": "rdPress starts fresh each time you open ⟨one⟩ of these links, so nothing from an earl",
+  "cls": null,
+  "src": null
+ },
+ {
+  "n": "15 to 30",
+  "ctx": "site ⏎ of Option A (new tab) ⏎  ⏎ Takes about ⟨15 to 30⟩ seconds to start. If it stays on the lo",
+  "cls": "measured by this gate (A2 hosted boot)",
+  "src": null
+ },
+ {
+  "n": "15 to 30",
+  "ctx": "d in ⏎ to Option A (new tab) ⏎  ⏎ Takes about ⟨15 to 30⟩ seconds to start. If it stays on the lo",
   "cls": "measured by this gate (A2 hosted boot)",
   "src": null
  },
@@ -66,26 +78,26 @@
   "src": null
  },
  {
+  "n": "24",
+  "ctx": "their browser. Trials are cleared after ⟨24⟩ hours without use. ⏎  ⏎ 2 Try it yourself ⏎  ⏎ ",
+  "cls": null,
+  "src": null
+ },
+ {
   "n": "2",
-  "ctx": " congresses, which then wait for review ⏎ ⟨2⟩ Try it in five minutes ⏎  ⏎ Your five requi",
+  "ctx": "re cleared after 24 hours without use. ⏎  ⏎ ⟨2⟩ Try it yourself ⏎  ⏎ Your five requirements",
   "cls": "section / list / diagram step number",
   "src": null
  },
  {
   "n": "five",
-  "ctx": " which then wait for review ⏎ 2 Try it in ⟨five⟩ minutes ⏎  ⏎ Your five requirements, one ta",
-  "cls": null,
-  "src": null
- },
- {
-  "n": "five",
-  "ctx": "r review ⏎ 2 Try it in five minutes ⏎  ⏎ Your ⟨five⟩ requirements, one task each. Each task ",
+  "ctx": "s without use. ⏎  ⏎ 2 Try it yourself ⏎  ⏎ Your ⟨five⟩ requirements, one task each. Each task ",
   "cls": "sourced (the five stories ASSET asked to see)",
   "src": "21_Acceptance_Gates_5_Stories.md:1"
  },
  {
   "n": "one",
-  "ctx": "n five minutes ⏎  ⏎ Your five requirements, ⟨one⟩ task each. Each task shows where to cli",
+  "ctx": "ry it yourself ⏎  ⏎ Your five requirements, ⟨one⟩ task each. Each task shows where to cli",
   "cls": "the word « one » as a pronoun or article, not a figure",
   "src": null
  },
@@ -115,13 +127,7 @@
  },
  {
   "n": "one",
-  "ctx": "en the list of congresses and add a new ⟨one⟩, or open an existing one to change it. ⏎ ",
-  "cls": "the word « one » as a pronoun or article, not a figure",
-  "src": null
- },
- {
-  "n": "one",
-  "ctx": " and add a new one, or open an existing ⟨one⟩ to change it. ⏎ Send it for review. Sign ",
+  "ctx": "outer un congrès », or open an existing ⟨one⟩ to change it. ⏎ Send it for review. Sign ",
   "cls": "the word « one » as a pronoun or article, not a figure",
   "src": null
  },
@@ -151,13 +157,13 @@
  },
  {
   "n": "3",
-  "ctx": " enquiries. ⏎ Open your enquiry from task ⟨3⟩ and change its status. Each change is k",
+  "ctx": "Demandes ». ⏎ Open your enquiry from task ⟨3⟩ and change its status. Each change is k",
   "cls": "section number (task)",
   "src": null
  },
  {
   "n": "5",
-  "ctx": "ons your team would have received. ⏎ Task ⟨5⟩ ⏎ Protect the GM&E codes ⏎  ⏎ Your team and m",
+  "ctx": "age your team would have received. ⏎ Task ⟨5⟩ ⏎ Protect the GM&E codes ⏎  ⏎ Your team and m",
   "cls": "section number (task)",
   "src": null
  },
@@ -169,13 +175,13 @@
  },
  {
   "n": "24",
-  "ctx": ", sign in as direction, and approve for ⟨24⟩ hours or refuse. ⏎ Sign in as equipe agai",
-  "cls": "sourced (S5 approval lasts 24 h)",
-  "src": "21_Acceptance_Gates_5_Stories.md:88"
+  "ctx": "s d’accès », and click « Approuver pour ⟨24⟩ h » or « Refuser ». ⏎ Sign in as equipe a",
+  "cls": null,
+  "src": null
  },
  {
   "n": "Two",
-  "ctx": "ecord lists it. ⏎ Prefer to watch first? ⏎  ⏎ ⟨Two⟩ short recordings walk through the same ",
+  "ctx": "d’accès GM&E ». ⏎ Prefer to watch first? ⏎  ⏎ ⟨Two⟩ short recordings walk through the same ",
   "cls": "our own deliverable count (two demos, two recordings)",
   "src": null
  },

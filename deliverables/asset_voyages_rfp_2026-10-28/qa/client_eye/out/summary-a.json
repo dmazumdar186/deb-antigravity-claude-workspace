@@ -1,8 +1,11 @@
 {
  "name": "a",
- "at": "2026-11-06T09:31:58.126Z",
- "logins": 0,
- "writing": [],
+ "at": "2026-11-06T12:10:39.981Z",
+ "logins": 3,
+ "writing": [
+  "B-1440 replay",
+  "B-390 phone"
+ ],
  "replay": [
   {
    "option": "A",
@@ -12,9 +15,9 @@
    "ok": true,
    "why": "",
    "clicks": 1,
-   "page": "http://127.0.0.1:9439/wp-admin/index.php",
+   "page": "http://127.0.0.1:9460/wp-admin/index.php",
    "role": "direction",
-   "shot": "out/shots/0033-A-direction-1440-C10-T1-1.png",
+   "shot": "out/shots/0191-A-direction-1440-C10-T1-1.png",
    "extra": "local: signed in as direction through wp-login (hosted link checked separately)"
   },
   {
@@ -25,9 +28,9 @@
    "ok": true,
    "why": "",
    "clicks": 2,
-   "page": "http://127.0.0.1:9439/wp-admin/post-new.php?post_type=asset_congres",
+   "page": "http://127.0.0.1:9460/wp-admin/post-new.php?post_type=asset_congres",
    "role": "direction",
-   "shot": "out/shots/0034-A-direction-1440-C10-T1-2.png",
+   "shot": "out/shots/0192-A-direction-1440-C10-T1-2.png",
    "extra": ""
   },
   {
@@ -38,9 +41,9 @@
    "ok": true,
    "why": "",
    "clicks": 2,
-   "page": "http://127.0.0.1:9439/wp-admin/edit.php?post_type=asset_congres",
+   "page": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres",
    "role": "direction",
-   "shot": "out/shots/0035-A-direction-1440-C10-T1-3.png",
+   "shot": "out/shots/0193-A-direction-1440-C10-T1-3.png",
    "extra": ""
   },
   {
@@ -51,7 +54,7 @@
    "ok": true,
    "why": "",
    "clicks": 0,
-   "page": "http://127.0.0.1:9439/wp-admin/post-new.php?post_type=asset_congres",
+   "page": "http://127.0.0.1:9460/wp-admin/post-new.php?post_type=asset_congres",
    "role": "contributeur",
    "shot": "",
    "extra": ""
@@ -64,9 +67,9 @@
    "ok": true,
    "why": "",
    "clicks": 0,
-   "page": "http://127.0.0.1:9439/",
+   "page": "http://127.0.0.1:9460/",
    "role": "visiteur",
-   "shot": "out/shots/0054-A-visiteur-1440-C10-T2-1.png",
+   "shot": "out/shots/0215-A-visiteur-1440-C10-T2-1.png",
    "extra": "local: visitor site root"
   },
   {
@@ -77,9 +80,9 @@
    "ok": true,
    "why": "",
    "clicks": 1,
-   "page": "http://127.0.0.1:9439/?q=cardiologie&discipline&pays&mois&tri=date_asc",
+   "page": "http://127.0.0.1:9460/?q=cardiologie&discipline&pays&mois&tri=date_asc",
    "role": "visiteur",
-   "shot": "out/shots/0055-A-visiteur-1440-C10-T2-2.png",
+   "shot": "out/shots/0216-A-visiteur-1440-C10-T2-2.png",
    "extra": ""
   },
   {
@@ -90,9 +93,9 @@
    "ok": true,
    "why": "",
    "clicks": 1,
-   "page": "http://127.0.0.1:9439/congres/congres-europeen-de-cardiologie-exemple/",
+   "page": "http://127.0.0.1:9460/congres/congres-europeen-de-cardiologie-exemple/",
    "role": "visiteur",
-   "shot": "out/shots/0056-A-visiteur-1440-C10-T2-3.png",
+   "shot": "out/shots/0217-A-visiteur-1440-C10-T2-3.png",
    "extra": ""
   },
   {
@@ -103,9 +106,9 @@
    "ok": true,
    "why": "",
    "clicks": 0,
-   "page": "http://127.0.0.1:9439/congres/congres-europeen-de-cardiologie-exemple/",
+   "page": "http://127.0.0.1:9460/congres/congres-europeen-de-cardiologie-exemple/",
    "role": "visiteur",
-   "shot": "out/shots/0057-A-visiteur-1440-C10-T3-1.png",
+   "shot": "out/shots/0218-A-visiteur-1440-C10-T3-1.png",
    "extra": ""
   },
   {
@@ -116,22 +119,22 @@
    "ok": true,
    "why": "",
    "clicks": 0,
-   "page": "http://127.0.0.1:9439/congres/congres-europeen-de-cardiologie-exemple/",
+   "page": "http://127.0.0.1:9460/congres/congres-europeen-de-cardiologie-exemple/",
    "role": "visiteur",
-   "shot": "out/shots/0058-A-visiteur-1440-C10-T3-2.png",
+   "shot": "out/shots/0219-A-visiteur-1440-C10-T3-2.png",
    "extra": ""
   },
   {
    "option": "A",
    "task": "T3",
    "n": 3,
-   "text": "Send it. You receive a reference number on screen.",
+   "text": "Click « Envoyer ma demande ». You receive a reference number on screen.",
    "ok": true,
    "why": "",
    "clicks": 1,
-   "page": "http://127.0.0.1:9439/congres/congres-europeen-de-cardiologie-exemple/?asset_ok=9d7a15751f8c376dd1730ce8bd1aca78#devis",
+   "page": "http://127.0.0.1:9460/congres/congres-europeen-de-cardiologie-exemple/?asset_ok=61fb6f2ee4749801e54593c022a9bccc#devis",
    "role": "visiteur",
-   "shot": "out/shots/0059-A-visiteur-1440-C10-T3-3.png",
+   "shot": "out/shots/0220-A-visiteur-1440-C10-T3-3.png",
    "extra": ""
   },
   {
@@ -142,9 +145,9 @@
    "ok": true,
    "why": "",
    "clicks": 3,
-   "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-demandes",
+   "page": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes",
    "role": "equipe",
-   "shot": "out/shots/0060-A-equipe-1440-C10-T4-1.png",
+   "shot": "out/shots/0221-A-equipe-1440-C10-T4-1.png",
    "extra": ""
   },
   {
@@ -155,70 +158,68 @@
    "ok": true,
    "why": "",
    "clicks": 3,
-   "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-demandes&action=view&id=30",
+   "page": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes&action=view&id=32",
    "role": "equipe",
-   "shot": "out/shots/0061-A-equipe-1440-C10-T4-2.png",
+   "shot": "out/shots/0222-A-equipe-1440-C10-T4-2.png",
    "extra": ""
   },
   {
    "option": "A",
    "task": "T4",
    "n": 3,
-   "text": "Export the list as a spreadsheet file (CSV). « Journal des notifications » shows the message your team would have received.",
+   "text": "Click « Exporter en CSV » to download the list as a spreadsheet file. « Journal des notifications » shows the message your team would have received.",
    "ok": true,
    "why": "",
    "clicks": 3,
-   "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-notifications",
+   "page": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-notifications",
    "role": "equipe",
-   "shot": "out/shots/0062-A-equipe-1440-C10-T4-3.png",
+   "shot": "out/shots/0223-A-equipe-1440-C10-T4-3.png",
    "extra": ""
   },
   {
    "option": "A",
    "task": "T5",
    "n": 1,
-   "text": "Signed in as equipe, open « Accès GM&E »: the codes are hidden. Ask for access and give a reason.",
-   "ok": true,
-   "why": "",
-   "clicks": 2,
-   "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-gme&msg=requested",
+   "text": "Signed in as equipe, open « Codes GM&E › Codes »: the codes are hidden. Click « Demander l’accès » and give a reason.",
+   "ok": false,
+   "why": "label « Codes GM&E › Codes » not visible",
+   "clicks": 0,
+   "page": "http://127.0.0.1:9460/wp-admin/index.php",
    "role": "equipe",
-   "shot": "out/shots/0074-A-equipe-1440-C10-T5-1.png",
+   "shot": "out/shots/0235-A-equipe-1440-C10-T5-1.png",
    "extra": ""
   },
   {
    "option": "A",
    "task": "T5",
    "n": 2,
-   "text": "Sign out, sign in as direction, and approve for 24 hours or refuse.",
-   "ok": true,
-   "why": "",
-   "clicks": 3,
-   "page": "http://127.0.0.1:9439/wp-admin/index.php?msg=approve",
+   "text": "Sign out, sign in as direction, open « Codes GM&E › Demandes d’accès », and click « Approuver pour 24 h » or « Refuser ».",
+   "ok": false,
+   "why": "label « Approuver (24 h) » not visible",
+   "clicks": 2,
+   "page": "http://127.0.0.1:9460/wp-admin/index.php",
    "role": "direction",
-   "shot": "out/shots/0075-A-direction-1440-C10-T5-2.png",
+   "shot": "out/shots/0236-A-direction-1440-C10-T5-2.png",
    "extra": ""
   },
   {
    "option": "A",
    "task": "T5",
    "n": 3,
-   "text": "Sign in as equipe again: the code is shown, and the access record lists it.",
+   "text": "Sign in as equipe again and open « Codes GM&E › Codes ». The code stays hidden until you click « Afficher le code »: that click is needed. Each display is then listed in « Journal d’accès GM&E ».",
    "ok": false,
-   "why": "hub says « the code is shown » after signing in; the reader must still click « Révéler le code »",
-   "clicks": 4,
-   "page": "http://127.0.0.1:9439/wp-admin/admin.php?page=asset-gme",
+   "why": "label « Accès GM&E » not visible",
+   "clicks": 2,
+   "page": "http://127.0.0.1:9460/wp-admin/index.php",
    "role": "equipe",
-   "shot": "out/shots/0089-A-equipe-1440-C10-T5-3.png",
-   "extra": "reveal"
+   "shot": "out/shots/0253-A-equipe-1440-C10-T5-3.png",
+   "extra": ""
   }
  ],
  "pagesEditor": {
-  "status": 403,
-  "ok": false
+  "status": 200,
+  "ok": true
  },
- "notes": [
-  "D4 reveal state C10 T5.3 (equipe) shows DEMO-GME-8TZ2"
- ],
- "findings": 145
+ "notes": [],
+ "findings": 13
 }

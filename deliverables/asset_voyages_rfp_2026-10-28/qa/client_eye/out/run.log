@@ -162,3 +162,25 @@ Call log:
 [12:03:32] saved part b: 11 raw findings, 118 states
 [12:04:40] C10 A T1.1 OK (1 clicks) 
 [12:04:45] C10 A T1.2 OK (2 clicks) 
+[12:04:53] C10 A T1.3 OK (2 clicks) 
+[12:05:45] C10 A T1.tip OK (0 clicks) 
+[12:05:47] C10 A T2.1 OK (0 clicks) 
+[12:05:51] C10 A T2.2 OK (1 clicks) 
+[12:05:53] C10 A T2.3 OK (1 clicks) 
+[12:05:53] C10 A T3.1 OK (0 clicks) 
+[12:05:55] C10 A T3.2 OK (0 clicks) 
+[12:06:01] C10 A T3.3 OK (1 clicks) 
+[12:06:07] C10 A T4.1 OK (3 clicks) 
+[12:06:12] C10 A T4.2 OK (3 clicks) 
+[12:06:16] C10 A T4.3 OK (3 clicks) 
+[12:07:02] C10 A T5.1 FAIL (0 clicks) label « Codes GM&E › Codes » not visible
+[12:07:08] C10 A T5.2 FAIL (2 clicks) label « Approuver (24 h) » not visible
+[12:07:51] C10 A T5.3 FAIL (2 clicks) label « Accès GM&E » not visible
+[12:10:40] saved part a: 13 raw findings, 154 states
+[12:10:55] A2 hosted visitor: ready after 15.676 s
+[12:11:15] A2 hosted admin: ready after 16.635 s
+[12:11:18] C10 A-hosted T1.1 OK (0 clicks) 
+[12:11:22] C10 A-hosted T1.2 OK (2 clicks) 
+[12:11:22] saved part ahosted: 0 raw findings, 3 states
+[12:13:39] A4 links checked 551
+[12:13:53] done
