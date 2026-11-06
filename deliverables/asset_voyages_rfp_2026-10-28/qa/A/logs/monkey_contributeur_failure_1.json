@@ -1,28 +1,23 @@
 {
   "seed": 20261105,
   "role": "contributeur",
-  "action": 26,
+  "action": 19,
   "problems": [
-    "pageerror Transition was aborted because of invalid state. ViewTransition opt-in disabled"
+    "pageerror wp is not defined"
   ],
   "last20": [
-    "click A \"À propos de WordPress\" http://127.0.0.1:9404/wp-admin/about.php",
+    "click A \"À propos de WordPress\" http://127.0.0.1:9400/wp-admin/about.php",
     "click BUTTON \"Replier le menu\" ",
-    "click A \"À propos de WordPress\" http://127.0.0.1:9404/wp-admin/about.php",
-    "click A \"Créer\" http://127.0.0.1:9404/wp-admin/post-new.php?post_type=asset_congres",
+    "click A \"À propos de WordPress\" http://127.0.0.1:9400/wp-admin/about.php",
+    "click A \"Créer\" http://127.0.0.1:9400/wp-admin/post-new.php?post_type=asset_congres",
     "back/forward",
     "back/forward",
     "click BUTTON \"Options de l’écran\" ",
     "back/forward",
     "click A \"Aller au contenu principal\" #wpbody-content",
     "resize 397x839",
-    "click A \"Créer\" http://127.0.0.1:9404/wp-admin/post-new.php?post_type=asset_congres",
-    "click INPUT \"Enregistrer le brouillon\" ",
-    "type len=37 =HYPERLINK(\"http://evil.example\",\"x\")",
-    "type len=2 -1",
-    "back/forward",
-    "click A \"Voir la publication\" http://127.0.0.1:9404/?post_type=asset_congres&p=33",
-    "click A \"Créer\" http://127.0.0.1:9404/wp-admin/post-new.php?post_type=asset_congres"
+    "click A \"Créer\" http://127.0.0.1:9400/wp-admin/post-new.php?post_type=asset_congres",
+    "click A \"Ctrl + K\nOuvrir la palette de commandes\" #"
   ],
-  "url": "http://127.0.0.1:9404/wp-admin/post-new.php?post_type=asset_congres"
+  "url": "http://127.0.0.1:9400/wp-admin/post-new.php?post_type=asset_congres#"
 }

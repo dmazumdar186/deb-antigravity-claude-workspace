@@ -99,6 +99,8 @@ export const newSalt = () => b64(crypto.getRandomValues(new Uint8Array(16)));
 
 // ---------- dates (ISO yyyy-mm-dd, UTC) ----------
 export const today = () => new Date().toISOString().slice(0, 10);
+// The staff's calendar day (Europe/Paris), e.g. for « Vérifié le » defaults: right also between 00:00 and 02:00 Paris.
+export const parisToday = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 export const nowIso = () => new Date().toISOString();
 export function addDays(iso, n) {
   const d = new Date(iso + 'T00:00:00Z');

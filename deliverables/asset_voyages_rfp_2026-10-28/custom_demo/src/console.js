@@ -1,6 +1,6 @@
 // Staff console: sessions, roles, congresses, enquiries, notifications, GM&E codes and their authorisation.
 import {
-  html, raw, esc, today, nowIso, isIsoDate, frRange, frNumDate, frDateTime, clean, norm, slugify,
+  html, raw, esc, today, parisToday, nowIso, isIsoDate, frRange, frNumDate, frDateTime, clean, norm, slugify,
   readForm, sameOrigin, makeFormToken, checkFormToken, ipHash, rateHit, rateBlocked, redirect, htmlResponse,
   getCookie, sha256hex, randomToken, safeEqual, hmac, b64url, unb64, hashPassword, encryptCode, decryptCode, csvCell,
 } from './lib.js';
@@ -232,7 +232,7 @@ async function congressList(ctx) {
     <nav class="chips" aria-label="Filtrer par statut"><a class="chip" href="/console/congres"${!valid ? raw(' aria-current="true"') : ''}>Tous</a>${Object.entries(CG_STATUS).map(([k, l]) => html`<a class="chip" href="/console/congres?statut=${k}"${valid === k ? raw(' aria-current="true"') : ''}>${l}</a>`)}</nav>
     <div class="wrap" role="region" aria-label="Liste des congrès" tabindex="0"><table class="tbl">
       <thead><tr><th scope="col">Réf.</th><th scope="col">Congrès</th><th scope="col">Dates</th><th scope="col">Ville</th><th scope="col">Sur le site</th>${showGme ? html`<th scope="col">Code GM&amp;E</th>` : ''}<th scope="col">Vérifié le</th></tr></thead>
-      <tbody>${rows.map((c) => html`<tr><td>${c.ref}</td><td class="wide"><a href="/console/congres/${c.id}">${c.title}</a></td><td>${frRange(c.start_date, c.end_date)}</td><td>${c.city}</td><td>${pill(CG_KIND[c.status], CG_STATUS[c.status])}</td>${showGme ? html`<td>${c.gme ? GME_STATUS[c.gme] : html`<span class="quiet">Aucun</span>`}</td>` : ''}<td>${frNumDate(c.verified_on)}</td></tr>`)}</tbody>
+      <tbody>${rows.map((c) => html`<tr><td class="nw">${c.ref}</td><td class="wide"><a href="/console/congres/${c.id}">${c.title}</a></td><td>${frRange(c.start_date, c.end_date)}</td><td>${c.city}</td><td>${pill(CG_KIND[c.status], CG_STATUS[c.status])}</td>${showGme ? html`<td>${c.gme ? GME_STATUS[c.gme] : html`<span class="quiet">Aucun</span>`}</td>` : ''}<td>${frNumDate(c.verified_on)}</td></tr>`)}</tbody>
     </table></div>
     ${rows.length ? '' : html`<p class="quiet">Aucun congrès avec ce statut.</p>`}`;
   return page(ctx, 'Congrès', 'cg', body);
@@ -256,7 +256,7 @@ function congressValidate(get) {
   if (!v.official_url) e.official_url = 'Indiquez l’adresse du site officiel.';
   else if (!u || u.protocol !== 'https:' || !u.hostname.includes('.') || v.official_url.length > 300) e.official_url = 'Adresse invalide : elle doit commencer par https:// (exemple : https://www.congres.org).';
   if (!isIsoDate(v.verified_on)) e.verified_on = 'Indiquez la date de vérification.';
-  else if (v.verified_on > today()) e.verified_on = 'La vérification ne peut pas être datée dans le futur.';
+  else if (v.verified_on > parisToday()) e.verified_on = 'La vérification ne peut pas être datée dans le futur.';
   if (v.description.length > 4000) e.description = '4 000 caractères au maximum.';
   return { v, e };
 }
@@ -311,7 +311,7 @@ async function congressForm(ctx, id, { values, errors, status = 200, notice } = 
     c = await env.DB.prepare(`SELECT * FROM ${T(env, 'congresses')} WHERE 1=1 AND id = ?`).bind(id).first();
     if (!c) return notFound(ctx);
   }
-  const v = values || c || { verified_on: today() };
+  const v = values || c || { verified_on: parisToday() };
   const e = errors || {};
   const stat = c ? c.status : 'brouillon';
   const editable = !c || canEditCongress(user.role, stat);
@@ -454,7 +454,7 @@ async function enquiryList(ctx) {
     <p class="bar" aria-live="polite">${rows.length} demande${rows.length > 1 ? 's' : ''}</p>
     ${rows.length ? html`<div class="wrap" role="region" aria-label="Liste des demandes" tabindex="0"><table class="tbl">
       <thead><tr><th scope="col">Réf.</th><th scope="col">Statut</th><th scope="col">Reçue</th><th scope="col">Congrès</th><th scope="col">Contact</th><th scope="col">Voyage</th><th scope="col">Responsable</th></tr></thead>
-      <tbody>${rows.map((r) => html`<tr><td><a href="/console/demandes/${r.id}" class="nw">${r.ref}</a></td><td>${pill(ST_KIND[r.status], STATUS_LABELS[r.status])}</td><td>${frDateTime(r.created_at)}</td><td class="wide">${r.cg_title}</td><td class="wide">${r.name}<br><span class="quiet brk">${r.company || r.email}</span></td><td class="wide">Départ de ${r.departure_city}<br>${nw(frNumDate(r.date_out))} au ${nw(frNumDate(r.date_back))}<br>${r.passengers} passager${r.passengers > 1 ? 's' : ''}</td><td>${r.owner_name || html`<span class="quiet">À attribuer</span>`}</td></tr>`)}</tbody>
+      <tbody>${rows.map((r) => html`<tr><td><a href="/console/demandes/${r.id}" class="nw">${r.ref}</a></td><td>${pill(ST_KIND[r.status], STATUS_LABELS[r.status])}</td><td>${frDateTime(r.created_at)}</td><td class="wide">${r.cg_title}</td><td class="wide">${r.name}<br><span class="quiet">${r.company || wbrEmail(r.email)}</span></td><td class="wide">Départ de ${r.departure_city}<br>${nw(frNumDate(r.date_out))} au ${nw(frNumDate(r.date_back))}<br>${r.passengers} passager${r.passengers > 1 ? 's' : ''}</td><td>${r.owner_name || html`<span class="quiet">À attribuer</span>`}</td></tr>`)}</tbody>
     </table></div>` : html`<div class="empty"><p>Aucune demande ne correspond.</p><p><a class="lnk" href="/console/demandes">Voir toutes les demandes</a></p></div>`}`;
   return page(ctx, 'Demandes', 'dem', body);
 }
@@ -573,6 +573,10 @@ async function enquiryAction(ctx, id) {
   return redirect(`/console/demandes/${id}?ok=${okq}`);
 }
 
+// References (DV-2026-0007, CG-0112) never split across lines, wherever they appear in free text.
+const keepRefs = (text) => raw(esc(text).replace(/(?:DV|CG)-\d{4}(?:-\d{4})?/g, (m) => `<span class="nw">${m}</span>`));
+// E-mail addresses may wrap only before « @ » and before a dot, never mid-word.
+const wbrEmail = (email) => raw(esc(email).replace(/([@.])/g, '<wbr>$1'));
 // Mail text for display: references and phone numbers never break; URLs only break after a slash.
 function mailBody(text) {
   return raw(esc(text)
@@ -587,7 +591,7 @@ async function notifications(ctx) {
   const rows = list.map((e) => { const n = notificationFor(e, { title: e.cg_title, ref: e.cg_ref }, base); return { ...n, at: e.created_at, to_addr: TEAM_INBOX, enquiry_id: e.id, ref: e.ref }; });
   const body = html`<h1 class="h1">Notifications</h1>
     <p class="intro">Le message que l’équipe recevrait à chaque nouvelle demande. Dans la démonstration, aucun e-mail n’est réellement envoyé : il est seulement consigné ici.</p>
-    <ol class="mails">${rows.map((n) => html`<li class="card mail"><h2 class="h4">${n.subject}</h2><p class="quiet">Envoi simulé à ${n.to_addr}, le ${frDateTime(n.at)}</p><pre>${mailBody(n.body)}</pre><p><a class="lnk" href="/console/demandes/${n.enquiry_id}">Ouvrir ${n.ref}</a></p></li>`)}</ol>`;
+    <ol class="mails">${rows.map((n) => html`<li class="card mail"><h2 class="h4">${keepRefs(n.subject)}</h2><p class="quiet">Envoi simulé à ${n.to_addr}, le ${frDateTime(n.at)}</p><pre>${mailBody(n.body)}</pre><p><a class="lnk" href="/console/demandes/${n.enquiry_id}">Ouvrir ${n.ref}</a></p></li>`)}</ol>`;
   return page(ctx, 'Notifications', 'notif', body);
 }
 
@@ -739,7 +743,7 @@ async function gmeAccess(ctx) {
   const body = html`<h1 class="h1">Demandes d’accès aux codes GM&amp;E</h1>
     ${msg ? html`<p class="ok" role="status" tabindex="-1" data-focus>${msg}</p>` : ''}
     <section aria-labelledby="h-p"><h2 class="h2" id="h-p">Demandes en attente</h2>
-      ${pending.length ? html`<ul class="reqs">${pending.map((r) => html`<li class="card req"><div><p><b>${r.display_name}</b> demande l’accès au code de <b>${r.title}</b></p><p class="quiet">Le ${frDateTime(r.created_at)}. Motif : <q>${r.reason}</q></p></div>
+      ${pending.length ? html`<ul class="reqs">${pending.map((r) => html`<li class="card req"><div><p><b>${r.display_name}</b> demande l’accès au code de <b>${r.title}</b></p><p class="quiet">Le ${frDateTime(r.created_at)}. Motif : <q>${keepRefs(r.reason)}</q></p></div>
         <div class="req__act">${btn(r, 'approuver', 'Approuver pour 24 h')}${btn(r, 'refuser', 'Refuser', 'btn btn--line')}</div></li>`)}</ul>` : html`<p class="quiet">Aucune demande en attente.</p>`}
     </section>
     <section aria-labelledby="h-a"><h2 class="h2" id="h-a">Accès actifs</h2>
@@ -748,7 +752,7 @@ async function gmeAccess(ctx) {
     </section>
     ${past.length ? html`<section aria-labelledby="h-o"><h2 class="h2" id="h-o">Décisions passées</h2>
       <div class="wrap" role="region" aria-label="Décisions passées" tabindex="0"><table class="tbl"><thead><tr><th scope="col">Demandeur</th><th scope="col">Congrès</th><th scope="col">Motif</th><th scope="col">Décision</th><th scope="col">Par</th><th scope="col">Le</th></tr></thead>
-      <tbody>${past.map((r) => html`<tr><td>${r.display_name}</td><td class="wide">${r.title}</td><td class="wide">${r.reason}</td><td>${label(r)}</td><td>${r.decider || 'Direction'}</td><td>${frDateTime(r.decided_at)}</td></tr>`)}</tbody></table></div></section>` : ''}`;
+      <tbody>${past.map((r) => html`<tr><td>${r.display_name}</td><td class="wide">${r.title}</td><td class="wide">${keepRefs(r.reason)}</td><td>${label(r)}</td><td>${r.decider || 'Direction'}</td><td>${frDateTime(r.decided_at)}</td></tr>`)}</tbody></table></div></section>` : ''}`;
   return page(ctx, 'Demandes d’accès GM&E', 'acces', body);
 }
 
