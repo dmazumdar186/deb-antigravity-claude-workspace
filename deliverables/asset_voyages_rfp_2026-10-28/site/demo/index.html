@@ -27,7 +27,7 @@
   <div class="container mini__in">
     <a href="#options">The two demos</a>
     <a href="#try">Try it</a>
-    <a href="#recordings" data-rec-nav hidden>Recordings</a>
+    <a href="#recordings" data-rec-nav>Recordings</a>
     <a href="#compare">What works</a>
     <a href="#group">Group link</a>
     <a href="#built">How it is built</a>
@@ -53,7 +53,7 @@
     <div class="intro">
       <h2 id="options-title"><span class="n">1</span> Two options, both working</h2>
       <p>You asked to see how we would handle congresses, flight enquiries and GM&amp;E codes. Rather than describe it, we built it twice, so you can try it yourselves and pick the option that suits ASSET.</p>
-      <p>Both demos are built to the same five requirements from your consultation. Every congress, person, enquiry and code in them is <strong>fictional</strong>. Each demo is a <strong>sandbox</strong>, a safe practice copy: it resets on its own, so nothing you click can break anything.</p>
+      <p>Both demos are built to the same five requirements from your consultation. Every congress, person, enquiry and code in them is <strong>fictional</strong>. Each demo is a <strong>sandbox</strong>, a safe practice copy: it resets on its own, so you can try anything without affecting the demo for anyone else.</p>
     </div>
 
     <div class="passes">
@@ -66,9 +66,9 @@
         </div>
         <div class="pass__stub">
           <a class="btn" data-demo="WP_VISITOR_URL" href="https://playground.wordpress.net/?mode=seamless&amp;login=no&amp;blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-visitor.json" target="_blank" rel="noopener">Open the visitor site<span class="vh"> of Option A (new tab)</span></a>
-          <p class="pass__boot">Takes about 15 to 25 seconds to start. If it stays on the loading screen, reload the page.</p>
+          <p class="pass__boot">Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page.</p>
           <a class="btn btn--line" data-demo="WP_ADMIN_URL" href="https://playground.wordpress.net/?mode=seamless&amp;blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json" target="_blank" rel="noopener">Open the admin, signed in<span class="vh"> to Option A (new tab)</span></a>
-          <p class="pass__boot">Takes about 15 to 25 seconds to start. If it stays on the loading screen, reload the page.</p>
+          <p class="pass__boot">Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page.</p>
           <p class="pass__small">The admin link signs you in automatically as «&nbsp;direction&nbsp;». To follow one enquiry from start to finish, use the visitor site and its «&nbsp;Espace équipe&nbsp;» link: each link opens its own separate copy.</p>
         </div>
       </article>
@@ -96,7 +96,7 @@
         <li><code class="cred">equipe</code> the team: handles flight enquiries</li>
         <li><code class="cred">contributeur</code> adds and edits congresses, which then wait for review</li>
       </ul>
-      <p class="logins__note">Each person's trial is private to their browser. Trials are cleared after 24 hours without use.</p>
+      <p class="logins__note">In Option B, each person's trial is not shown to other visitors and is cleared after 24 hours without use. Option A starts fresh each time you open it.</p>
     </div>
   </div>
 </section>
@@ -214,7 +214,7 @@
         <div class="task__head">
           <h3><span class="task__n">Task 5</span> Protect the GM&amp;E codes</h3>
           <p class="task__side">Your team and management</p>
-          <p class="task__explain">GM&amp;E codes are the Air France-KLM Global Meetings &amp; Events fare codes for a congress. Your team sees them hidden and asks for access, giving a reason. Direction approves for 24 hours, or refuses. Each time a code is shown, it is recorded. Visitors never see a code, only a line saying that a negotiated congress fare is available.</p>
+          <p class="task__explain">GM&amp;E codes are the Air France-KLM Global Meetings &amp; Events fare codes for a congress. Your team sees them hidden and asks for access, giving a reason. Direction approves for 24 hours, or refuses. Each time a code is shown, it is recorded. Visitors never see a code; when a code is approved and valid, they see only a line saying that a negotiated congress fare is available.</p>
         </div>
         <div class="task__opt task__opt--a">
           <p class="task__which">Option A: WordPress</p>
@@ -238,30 +238,26 @@
 </section>
 
 <!-- 4. Recordings -->
-<section class="recs" id="recordings" aria-labelledby="recs-title" data-recs hidden>
+<section class="recs" id="recordings" aria-labelledby="recs-title" data-recs>
   <div class="container">
     <div class="intro">
       <h2 id="recs-title">Prefer to watch first?</h2>
       <p>Two short recordings walk through the same five tasks, one per option.</p>
     </div>
     <div class="recs__grid">
-      <figure class="rec" data-rec="wp-walkthrough" hidden>
+      <figure class="rec" data-rec="wp-walkthrough">
         <div class="rec__frame" data-rec-frame>
-          <div class="rec__empty" data-rec-empty>
-            <p class="rec__state" data-rec-msg>The recording for Option A will appear here.</p>
-            <p>Meanwhile, <a href="#try">follow the five tasks</a> or <a href="media/wp-walkthrough.mp4">open the video file directly</a>.</p>
-          </div>
+          <a class="rec__file" data-rec-file href="media/wp-walkthrough.mp4"><img src="media/wp-walkthrough.jpg" alt="" width="1440" height="900" loading="lazy"><span class="rec__play">Play the recording<span class="vh"> for Option A (video file)</span></span></a>
+          <div class="rec__empty" data-rec-empty hidden><p class="rec__state" data-rec-msg></p></div>
         </div>
-        <figcaption>Option A, WordPress: the five tasks from start to finish.</figcaption>
+        <figcaption>Option A, WordPress: the five tasks from start to finish (4 min).</figcaption>
       </figure>
-      <figure class="rec" data-rec="custom-walkthrough" hidden>
+      <figure class="rec" data-rec="custom-walkthrough">
         <div class="rec__frame" data-rec-frame>
-          <div class="rec__empty" data-rec-empty>
-            <p class="rec__state" data-rec-msg>The recording for Option B will appear here.</p>
-            <p>Meanwhile, <a href="#try">follow the five tasks</a> or <a href="media/custom-walkthrough.mp4">open the video file directly</a>.</p>
-          </div>
+          <a class="rec__file" data-rec-file href="media/custom-walkthrough.mp4"><img src="media/custom-walkthrough.jpg" alt="" width="1440" height="900" loading="lazy"><span class="rec__play">Play the recording<span class="vh"> for Option B (video file)</span></span></a>
+          <div class="rec__empty" data-rec-empty hidden><p class="rec__state" data-rec-msg></p></div>
         </div>
-        <figcaption>Option B, our custom platform: the five tasks from start to finish.</figcaption>
+        <figcaption>Option B, our custom platform: the five tasks from start to finish (3 min 30).</figcaption>
       </figure>
     </div>
   </div>
@@ -298,12 +294,12 @@
         <tr><th scope="row">Email notifications</th>
           <td data-label="Option A"><span class="st st--build">Built during the project</span> The demo shows a log of the messages instead of sending them.</td>
           <td data-label="Option B"><span class="st st--build">Built during the project</span> The demo shows a log of the messages instead of sending them.</td></tr>
-        <tr><th scope="row">Importing about 300 congresses from a spreadsheet</th>
-          <td data-label="Option A"><span class="st st--build">Built during the project</span> With duplicate checks, and a trial run first.</td>
-          <td data-label="Option B"><span class="st st--build">Built during the project</span> With duplicate checks, and a trial run first.</td></tr>
+        <tr><th scope="row">Importing about 300 congresses from a spreadsheet in the template we supply</th>
+          <td data-label="Option A"><span class="st st--build">Built during the project</span> With duplicate checks and a trial run first; checking the events themselves stays with your team.</td>
+          <td data-label="Option B"><span class="st st--build">Built during the project</span> With duplicate checks and a trial run first; checking the events themselves stays with your team.</td></tr>
         <tr><th scope="row">English version</th>
-          <td data-label="Option A"><span class="st st--build">Built during the project</span> Pages and congresses in English alongside French.</td>
-          <td data-label="Option B"><span class="st st--build">Built during the project</span> Pages and congresses in English alongside French.</td></tr>
+          <td data-label="Option A"><span class="st st--idea">Option, quoted separately</span> The site is prepared for two languages from the start; the English version is switched on as a separate option.</td>
+          <td data-label="Option B"><span class="st st--idea">Option, quoted separately</span> The site is prepared for two languages from the start; the English version is switched on as a separate option.</td></tr>
         <tr><th scope="row">Two-step login for staff</th>
           <td data-label="Option A"><span class="st st--build">Built during the project</span> A password plus a second check, for every staff account.</td>
           <td data-label="Option B"><span class="st st--build">Built during the project</span> Staff sign in with a code sent to their email.</td></tr>
@@ -311,7 +307,7 @@
           <td data-label="Option A"><span class="st st--build">Built during the project</span> Regular backups, and a tested way to restore them.</td>
           <td data-label="Option B"><span class="st st--build">Built during the project</span> Regular backups, and a tested way to restore them.</td></tr>
         <tr><th scope="row">Editing all the site’s pages</th>
-          <td data-label="Option A"><span class="st st--ok">Works in the demo</span> The standard WordPress page editor: sign in as <code class="cred">direction</code> and open «&nbsp;Pages&nbsp;». Your current pages are moved over during the project.</td>
+          <td data-label="Option A"><span class="st st--ok">Works in the demo</span> The standard WordPress page editor: sign in as <code class="cred">direction</code> and open «&nbsp;Pages&nbsp;». The pages listed in the signed proposal are rebuilt during the project.</td>
           <td data-label="Option B"><span class="st st--build">Built during the project</span> A page editor added to the team console.</td></tr>
       </tbody>
     </table>
@@ -355,16 +351,16 @@
         <h3>Where it stands</h3>
         <ul>
           <li>Working in Option B’s demonstration, with fictional travellers.</li>
-          <li><strong>Suggestion only. It is not part of the quotation and changes nothing in the scope or budget.</strong></li>
-          <li>In WordPress, it would be built as part of the project, if you choose it.</li>
+          <li><strong>Suggestion only. It is not part of the proposal to come and changes nothing in the scope or budget.</strong></li>
+          <li>It exists in Option B only. If ASSET wants it, in either option, it would be scoped and agreed separately from the proposal.</li>
         </ul>
       </div>
       <div class="extra__col">
         <h3>Honest limits of the demo</h3>
         <ul>
-          <li>A traveller who changes phone cannot correct their entry directly: the change waits for your team to accept it. Production would add an email confirmation step.</li>
+          <li>A traveller who changes phone cannot correct their entry directly: the change waits for your team to accept it. If the idea is taken up, an email confirmation step would be added.</li>
           <li>Anyone the link is forwarded to can answer. Revoking it stops that at once.</li>
-          <li>Reminders by email and a status per traveller come in production.</li>
+          <li>Reminders by email and a status per traveller would be added if the idea is taken up.</li>
         </ul>
       </div>
     </div>
@@ -382,9 +378,9 @@
         <h3>Option A: WordPress</h3>
         <ul>
           <li>WordPress, the system your current site already runs on.</li>
-          <li>A plugin written for ASSET (an add-on to WordPress), with no page builders and no paid plugins. Its code is handed over to you.</li>
+          <li>A plugin written for ASSET (an add-on to WordPress), with no page builders. Its code is handed over at completion, as set out in the proposal.</li>
           <li>Your team edits in the standard WordPress editor.</li>
-          <li>Hosted with a European WordPress host, in ASSET’s name.</li>
+          <li>Hosted with a managed WordPress host chosen with you during the audit, with the account in ASSET’s name.</li>
           <li>Needs regular updates of WordPress and its plugins.</li>
         </ul>
       </div>
@@ -395,7 +391,7 @@
           <li>A small console for your team.</li>
           <li>The database is kept in the European Union.</li>
           <li>Staff sign in with a code sent to their email.</li>
-          <li>No plugins to update; the codes are kept in a separate, locked table.</li>
+          <li>No WordPress plugins to update; the codes are kept in a separate, encrypted table.</li>
         </ul>
       </div>
     </div>
@@ -403,10 +399,10 @@
     <div class="choose" aria-labelledby="choose-title">
       <h3 id="choose-title">How to choose</h3>
       <div class="choose__grid">
-        <p><strong>Choose A</strong> if a familiar editor and the widest choice of future developers matter most.</p>
+        <p><strong>Choose A</strong> if your team wants to keep the editor it already knows.</p>
         <p><strong>Choose B</strong> if the least upkeep and security designed in from the start matter most.</p>
       </div>
-      <p class="choose__both"><strong>With either one:</strong> the source code, the data and every account are in ASSET’s name; you can export everything; and you receive documentation.</p>
+      <p class="choose__both"><strong>With either one:</strong> the service accounts opened for the project are in ASSET’s name, your existing accounts and data remain yours throughout, the source code and documentation are handed over in full at completion, as set out in the proposal, and your team can export pages, congresses and enquiries.</p>
     </div>
   </div>
 </section>
@@ -416,13 +412,12 @@
   <div class="container">
     <div class="intro">
       <h2 id="codes-title"><span class="n">5</span> How the GM&amp;E codes stay protected</h2>
-      <p>The same path in both options. Only a named team member, with Direction’s approval, ever sees a code, and only for 24 hours.</p>
+      <p>The same path in both options. A team member sees a code only with Direction’s approval, for 24 hours; Direction manages the codes and can revoke access at once.</p>
     </div>
 
-    <figure class="flow" data-flow>
-      <svg class="flow__wide" viewBox="0 0 1100 510" role="img" aria-labelledby="fw-t fw-d">
-        <title id="fw-t">The access path for a GM&amp;E code</title>
-        <desc id="fw-d">1. A team member opens «&nbsp;Codes GM&amp;E › Codes&nbsp;» and sees the code hidden. 2. They ask for access and give a reason. 3. Direction approves for 24 hours, or refuses. 4. The code is shown to that team member only. 5. The access is recorded, every time. The codes sit in a protected store on the team side, encrypted. Visitors and search engines, on the public side, see only that a negotiated congress fare is available, never the code.</desc>
+    <figure class="flow" data-flow aria-labelledby="flow-alt">
+      <p class="vh" id="flow-alt">The access path for a GM&amp;E code. 1. Team member sees the code hidden. 2. Asks for access and gives a reason. 3. Direction approves for 24 h, or refuses. 4. Code shown to that person only. 5. Access recorded: who, when, which code, every time.</p>
+      <svg class="flow__wide" viewBox="0 0 1100 510" aria-hidden="true" focusable="false">
         <path class="flow__track" d="M103 102 H991"/>
         <path class="flow__path" pathLength="1" d="M103 102 H991"/>
         <g class="flow__node" data-i="1"><rect x="8" y="24" width="190" height="156" rx="10"/><text x="26" y="60" class="flow__num">1</text><text x="26" y="92" class="flow__t">Team member</text><text x="26" y="122" class="flow__s">sees the code</text><text x="26" y="146" class="flow__s">hidden</text></g><g class="flow__node" data-i="2"><rect x="230" y="24" width="190" height="156" rx="10"/><text x="248" y="60" class="flow__num">2</text><text x="248" y="92" class="flow__t">Asks for access</text><text x="248" y="122" class="flow__s">and gives</text><text x="248" y="146" class="flow__s">a reason</text></g><g class="flow__node flow__node--dir" data-i="3"><rect x="452" y="24" width="190" height="156" rx="10"/><text x="470" y="60" class="flow__num">3</text><text x="470" y="92" class="flow__t">Direction</text><text x="470" y="122" class="flow__s">approves for 24 h,</text><text x="470" y="146" class="flow__s">or refuses</text></g><g class="flow__node" data-i="4"><rect x="674" y="24" width="190" height="156" rx="10"/><text x="692" y="60" class="flow__num">4</text><text x="692" y="92" class="flow__t">Code shown</text><text x="692" y="122" class="flow__s">to that person</text><text x="692" y="146" class="flow__s">only</text></g><g class="flow__node flow__node--log" data-i="5"><rect x="896" y="24" width="190" height="156" rx="10"/><text x="914" y="60" class="flow__num">5</text><text x="914" y="92" class="flow__t">Access recorded</text><text x="914" y="122" class="flow__s">who, when, which</text><text x="914" y="146" class="flow__s">code, every time</text></g>
@@ -433,9 +428,7 @@
         <text x="8" y="384" class="flow__s flow__lab">Below the line: the public site</text>
         <g class="flow__pub"><rect x="8" y="402" width="1084" height="100" rx="10"/><text x="26" y="440" class="flow__t">Visitors and search engines</text><text x="26" y="472" class="flow__s">see only “negotiated congress fare available”. The code never reaches the public site.</text></g>
       </svg>
-      <svg class="flow__tall" viewBox="0 0 360 1010" role="img" aria-labelledby="ft-t ft-d">
-        <title id="ft-t">The access path for a GM&amp;E code</title>
-        <desc id="ft-d">1. A team member opens «&nbsp;Codes GM&amp;E › Codes&nbsp;» and sees the code hidden. 2. They ask for access and give a reason. 3. Direction approves for 24 hours, or refuses. 4. The code is shown to that team member only. 5. The access is recorded, every time. The codes sit in a protected store on the team side, encrypted. Visitors and search engines, on the public side, see only that a negotiated congress fare is available, never the code.</desc>
+      <svg class="flow__tall" viewBox="0 0 360 1010" aria-hidden="true" focusable="false">
         <path class="flow__track" d="M36 54 V518"/>
         <path class="flow__path" pathLength="1" d="M36 54 V518"/>
         <g class="flow__node" data-i="1"><rect x="56" y="4" width="300" height="100" rx="10"/><text x="74" y="38" class="flow__t">1. Team member</text><text x="74" y="66" class="flow__s">sees the code</text><text x="74" y="90" class="flow__s">hidden</text></g><g class="flow__node" data-i="2"><rect x="56" y="120" width="300" height="100" rx="10"/><text x="74" y="154" class="flow__t">2. Asks for access</text><text x="74" y="182" class="flow__s">and gives</text><text x="74" y="206" class="flow__s">a reason</text></g><g class="flow__node flow__node--dir" data-i="3"><rect x="56" y="236" width="300" height="100" rx="10"/><text x="74" y="270" class="flow__t">3. Direction</text><text x="74" y="298" class="flow__s">approves for 24 h,</text><text x="74" y="322" class="flow__s">or refuses</text></g><g class="flow__node" data-i="4"><rect x="56" y="352" width="300" height="100" rx="10"/><text x="74" y="386" class="flow__t">4. Code shown</text><text x="74" y="414" class="flow__s">to that person</text><text x="74" y="438" class="flow__s">only</text></g><g class="flow__node flow__node--log" data-i="5"><rect x="56" y="468" width="300" height="100" rx="10"/><text x="74" y="502" class="flow__t">5. Access recorded</text><text x="74" y="530" class="flow__s">who, when, which</text><text x="74" y="554" class="flow__s">code, every time</text></g>
@@ -456,7 +449,7 @@
   <div class="container">
     <div class="intro">
       <h2 id="plan-title"><span class="n">6</span> Milestones</h2>
-      <p>Counted from your approval and receipt of the required content. The plan is the same for both options.</p>
+      <p>Indicative, counted from your approval and from receipt of the content each stage needs; if content arrives later, the plan moves by the same time. The signed proposal fixes the dates for the option you choose.</p>
     </div>
     <div class="gantt">
       <div class="gantt__scale" aria-hidden="true">
@@ -485,16 +478,16 @@
           <div class="g__track" aria-hidden="true"><span class="g__bar"></span><span class="g__bar g__bar--again"></span></div>
         </li>
         <li class="g g--launch" data-from="13" data-to="13">
-          <div class="g__txt"><h3>Launch</h3><p class="g__when">Week 13</p><p>After your written acceptance and management’s go-ahead, with old addresses redirected to the new pages.</p></div>
+          <div class="g__txt"><h3>Launch</h3><p class="g__when">Week 13</p><p>After your written acceptance and management’s go-ahead, on the terms set out in the proposal, with old addresses redirected to the new pages.</p></div>
           <div class="g__track" aria-hidden="true"><span class="g__bar"></span></div>
         </li>
         <li class="g" data-from="14" data-to="17">
-          <div class="g__txt"><h3>Stabilisation</h3><p class="g__when">Four weeks after launch</p><p>We watch the new site closely and fix anything that comes up.</p></div>
+          <div class="g__txt"><h3>Stabilisation</h3><p class="g__when">Four weeks after launch</p><p>For four weeks we watch the new site closely and correct, at no extra cost, anything in the agreed scope that fails its acceptance test (T01 to T15).</p></div>
           <div class="g__track" aria-hidden="true"><span class="g__bar"></span></div>
         </li>
       </ol>
     </div>
-    <p class="aside">If the year-end holidays fall inside the plan, those weeks are added. The launch date is agreed together.</p>
+    <p class="aside">The launch date is agreed together.</p>
   </div>
 </section>
 

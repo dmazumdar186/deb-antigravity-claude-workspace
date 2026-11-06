@@ -9,50 +9,10 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/",
+   "url": "http://127.0.0.1:9460/?discipline=diabetologie",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/?discipline=finance",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/?discipline=finance",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/?discipline=hematologie",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/?discipline=hematologie",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2F",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2F",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/?discipline=neurologie",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/?discipline=neurologie",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/?discipline=ophtalmologie",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/?discipline=ophtalmologie",
+   "final": "http://127.0.0.1:9460/?discipline=diabetologie",
    "err": "",
    "refs": 5
   },
@@ -65,10 +25,34 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/?discipline=diabetologie",
+   "url": "http://127.0.0.1:9460/?discipline=hematologie",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/?discipline=diabetologie",
+   "final": "http://127.0.0.1:9460/?discipline=hematologie",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/?discipline=neurologie",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/?discipline=neurologie",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/?discipline=finance",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/?discipline=finance",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2F",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2F",
    "err": "",
    "refs": 5
   },
@@ -89,6 +73,22 @@
    "refs": 5
   },
   {
+   "url": "http://127.0.0.1:9460/",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/?discipline=radiologie",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/?discipline=radiologie",
+   "err": "",
+   "refs": 5
+  },
+  {
    "url": "http://127.0.0.1:9460/congres/journees-mediterraneennes-doncologie-exemple/",
    "status": 200,
    "type": "text/html; charset=UTF-8",
@@ -105,18 +105,18 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/congres/forum-europeen-des-ressources-humaines-exemple/",
+   "url": "http://127.0.0.1:9460/?discipline=ophtalmologie",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/congres/forum-europeen-des-ressources-humaines-exemple/",
+   "final": "http://127.0.0.1:9460/?discipline=ophtalmologie",
    "err": "",
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/congres/congres-dophtalmologie-de-paris-exemple/",
+   "url": "http://127.0.0.1:9460/congres/forum-europeen-des-ressources-humaines-exemple/",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/congres/congres-dophtalmologie-de-paris-exemple/",
+   "final": "http://127.0.0.1:9460/congres/forum-europeen-des-ressources-humaines-exemple/",
    "err": "",
    "refs": 5
   },
@@ -129,18 +129,18 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/?discipline=radiologie",
+   "url": "http://127.0.0.1:9460/congres/congres-europeen-de-cardiologie-exemple/",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/?discipline=radiologie",
+   "final": "http://127.0.0.1:9460/congres/congres-europeen-de-cardiologie-exemple/",
    "err": "",
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/congres/journees-francophones-de-diabetologie-exemple/",
+   "url": "http://127.0.0.1:9460/congres/rencontres-europeennes-dimagerie-medicale-exemple/",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/congres/journees-francophones-de-diabetologie-exemple/",
+   "final": "http://127.0.0.1:9460/congres/rencontres-europeennes-dimagerie-medicale-exemple/",
    "err": "",
    "refs": 5
   },
@@ -169,26 +169,10 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/congres/rencontres-europeennes-dimagerie-medicale-exemple/",
+   "url": "http://127.0.0.1:9460/congres/journees-francophones-de-diabetologie-exemple/",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/congres/rencontres-europeennes-dimagerie-medicale-exemple/",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/congres/congres-europeen-de-cardiologie-exemple/",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/congres/congres-europeen-de-cardiologie-exemple/",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/favicon.ico",
-   "status": 200,
-   "type": "image/png",
-   "final": "http://127.0.0.1:9460/wp-includes/images/w-logo-gray-white-bg.png",
+   "final": "http://127.0.0.1:9460/congres/journees-francophones-de-diabetologie-exemple/",
    "err": "",
    "refs": 5
   },
@@ -201,38 +185,6 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/?pg=2",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/?pg=2",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/?p=15",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/congres/journees-mediterraneennes-doncologie-exemple/",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=cardiologie",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=cardiologie",
-   "err": "",
-   "refs": 2
-  },
-  {
-   "url": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=finance",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=finance",
-   "err": "",
-   "refs": 2
-  },
-  {
    "url": "http://127.0.0.1:9460/congres/congres-international-de-pneumologie-exemple/",
    "status": 200,
    "type": "text/html; charset=UTF-8",
@@ -241,28 +193,28 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=diabetologie",
+   "url": "http://127.0.0.1:9460/congres/congres-dophtalmologie-de-paris-exemple/",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=diabetologie",
+   "final": "http://127.0.0.1:9460/congres/congres-dophtalmologie-de-paris-exemple/",
    "err": "",
-   "refs": 2
+   "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=oncologie",
+   "url": "http://127.0.0.1:9460/?pg=2",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=oncologie",
+   "final": "http://127.0.0.1:9460/?pg=2",
    "err": "",
-   "refs": 2
+   "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=hematologie",
+   "url": "http://127.0.0.1:9460/favicon.ico",
    "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=hematologie",
+   "type": "image/png",
+   "final": "http://127.0.0.1:9460/wp-includes/images/w-logo-gray-white-bg.png",
    "err": "",
-   "refs": 2
+   "refs": 5
   },
   {
    "url": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=dermatologie",
@@ -273,18 +225,18 @@
    "refs": 2
   },
   {
-   "url": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=radiologie",
+   "url": "http://127.0.0.1:9460/?p=15",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=radiologie",
+   "final": "http://127.0.0.1:9460/congres/journees-mediterraneennes-doncologie-exemple/",
    "err": "",
-   "refs": 2
+   "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=ophtalmologie",
+   "url": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=hematologie",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=ophtalmologie",
+   "final": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=hematologie",
    "err": "",
    "refs": 2
   },
@@ -297,10 +249,34 @@
    "refs": 2
   },
   {
-   "url": "http://127.0.0.1:9460/?q=zzqqxx&discipline=cardiologie",
+   "url": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=diabetologie",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/?q=zzqqxx&discipline=cardiologie",
+   "final": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=diabetologie",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=cardiologie",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=cardiologie",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=pneumologie",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=pneumologie",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=ophtalmologie",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=ophtalmologie",
    "err": "",
    "refs": 2
   },
@@ -313,10 +289,58 @@
    "refs": 2
   },
   {
+   "url": "http://127.0.0.1:9460/congres/congres-nord-americain-de-cardiologie-exemple/",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/congres/congres-nord-americain-de-cardiologie-exemple/",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=finance",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=finance",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://127.0.0.1:9460/?q=zzqqxx&discipline=cardiologie",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/?q=zzqqxx&discipline=cardiologie",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://127.0.0.1:9460/?q=zzqqxx&discipline=diabetologie",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/?q=zzqqxx&discipline=diabetologie",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=oncologie",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=oncologie",
+   "err": "",
+   "refs": 2
+  },
+  {
    "url": "http://127.0.0.1:9460/?q=zzqqxx&discipline=dermatologie",
    "status": 200,
    "type": "text/html; charset=UTF-8",
    "final": "http://127.0.0.1:9460/?q=zzqqxx&discipline=dermatologie",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=radiologie",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=radiologie",
    "err": "",
    "refs": 2
   },
@@ -337,50 +361,10 @@
    "refs": 2
   },
   {
-   "url": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=pneumologie",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/?s_congres=cardiologie&q=cardiologie&discipline=pneumologie",
-   "err": "",
-   "refs": 2
-  },
-  {
-   "url": "http://127.0.0.1:9460/congres/congres-nord-americain-de-cardiologie-exemple/",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/congres/congres-nord-americain-de-cardiologie-exemple/",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/?q=zzqqxx&discipline=diabetologie",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/?q=zzqqxx&discipline=diabetologie",
-   "err": "",
-   "refs": 2
-  },
-  {
-   "url": "http://127.0.0.1:9460/?q=zzqqxx&discipline=neurologie",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/?q=zzqqxx&discipline=neurologie",
-   "err": "",
-   "refs": 2
-  },
-  {
    "url": "http://127.0.0.1:9460/?q=zzqqxx&discipline=ophtalmologie",
    "status": 200,
    "type": "text/html; charset=UTF-8",
    "final": "http://127.0.0.1:9460/?q=zzqqxx&discipline=ophtalmologie",
-   "err": "",
-   "refs": 2
-  },
-  {
-   "url": "http://127.0.0.1:9460/?q=zzqqxx&discipline=ressources-humaines",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/?q=zzqqxx&discipline=ressources-humaines",
    "err": "",
    "refs": 2
   },
@@ -393,12 +377,20 @@
    "refs": 2
   },
   {
-   "url": "http://127.0.0.1:9460/?q=zzqqxx&discipline=radiologie",
+   "url": "http://127.0.0.1:9460/?q=zzqqxx&discipline=ressources-humaines",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/?q=zzqqxx&discipline=radiologie",
+   "final": "http://127.0.0.1:9460/?q=zzqqxx&discipline=ressources-humaines",
    "err": "",
    "refs": 2
+  },
+  {
+   "url": "https://fr.wordpress.org/",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "https://fr.wordpress.org/",
+   "err": "",
+   "refs": 4
   },
   {
    "url": "http://127.0.0.1:9460/wp-admin/load-styles.php?c=0&dir=ltr&load%5Bchunk_0%5D=dashicons,buttons,forms,l10n,wp-base-styles,wp-tooltip,login&ver=7.1.4",
@@ -417,18 +409,18 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-includes/js/dist/i18n.min.js?ver=1dfe7db3940c23ea9216",
-   "status": 200,
-   "type": "application/javascript",
-   "final": "http://127.0.0.1:9460/wp-includes/js/dist/i18n.min.js?ver=1dfe7db3940c23ea9216",
-   "err": "",
-   "refs": 5
-  },
-  {
    "url": "http://127.0.0.1:9460/wp-admin/load-scripts.php?c=0&load%5Bchunk_0%5D=clipboard,jquery-core,jquery-migrate,zxcvbn-async,wp-hooks&ver=7.1.4",
    "status": 200,
    "type": "application/javascript; charset=UTF-8",
    "final": "http://127.0.0.1:9460/wp-admin/load-scripts.php?c=0&load%5Bchunk_0%5D=clipboard,jquery-core,jquery-migrate,zxcvbn-async,wp-hooks&ver=7.1.4",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-includes/js/dist/i18n.min.js?ver=1dfe7db3940c23ea9216",
+   "status": 200,
+   "type": "application/javascript",
+   "final": "http://127.0.0.1:9460/wp-includes/js/dist/i18n.min.js?ver=1dfe7db3940c23ea9216",
    "err": "",
    "refs": 5
   },
@@ -481,6 +473,22 @@
    "refs": 5
   },
   {
+   "url": "http://127.0.0.1:9460/wp-includes/js/wp-tooltip.js?ver=7.1.4",
+   "status": 200,
+   "type": "application/javascript",
+   "final": "http://127.0.0.1:9460/wp-includes/js/wp-tooltip.js?ver=7.1.4",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/?q=zzqqxx&discipline=neurologie",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/?q=zzqqxx&discipline=neurologie",
+   "err": "",
+   "refs": 2
+  },
+  {
    "url": "http://127.0.0.1:9460/congres/congres-international-doncologie-exemple/",
    "status": 200,
    "type": "text/html; charset=UTF-8",
@@ -497,28 +505,12 @@
    "refs": 2
   },
   {
-   "url": "https://fr.wordpress.org/",
+   "url": "http://127.0.0.1:9460/?q=zzqqxx&discipline=radiologie",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "https://fr.wordpress.org/",
+   "final": "http://127.0.0.1:9460/?q=zzqqxx&discipline=radiologie",
    "err": "",
-   "refs": 4
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-includes/js/wp-tooltip.js?ver=7.1.4",
-   "status": 200,
-   "type": "application/javascript",
-   "final": "http://127.0.0.1:9460/wp-includes/js/wp-tooltip.js?ver=7.1.4",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/index.php",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Findex.php&reauth=1",
-   "err": "",
-   "refs": 5
+   "refs": 2
   },
   {
    "url": "http://127.0.0.1:9460/congres/sommet-de-la-finance-dentreprise-exemple/",
@@ -537,10 +529,10 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=page",
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dpage&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -553,66 +545,18 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres",
+   "url": "http://127.0.0.1:9460/wp-admin/index.php",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Findex.php&reauth=1",
    "err": "",
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/edit-comments.php",
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=page",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit-comments.php&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-demandes&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-gme-acces",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-gme-acces&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-gme",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-gme&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/tools.php",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Ftools.php&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/profile.php",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fprofile.php&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/edit-tags.php?taxonomy=asset_pays&post_type=asset_congres",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_pays%26post_type%3Dasset_congres&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dpage&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -625,10 +569,42 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes&action=view&id=23",
+   "url": "http://127.0.0.1:9460/wp-admin/edit-comments.php",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-demandes%26action%3Dview%26id%3D23&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit-comments.php&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-gme",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-gme&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-gme-acces",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-gme-acces&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/edit-tags.php?taxonomy=asset_pays&post_type=asset_congres",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_pays%26post_type%3Dasset_congres&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-demandes&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -641,10 +617,34 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes&statut=gagnee",
+   "url": "http://127.0.0.1:9460/wp-admin/profile.php",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-demandes%26statut%3Dgagnee&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fprofile.php&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/post-new.php",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fpost-new.php&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes&statut=devis_envoye",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-demandes%26statut%3Ddevis_envoye&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/tools.php",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Ftools.php&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -681,6 +681,14 @@
    "refs": 5
   },
   {
+   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes&action=view&id=23",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-demandes%26action%3Dview%26id%3D23&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
    "url": "http://127.0.0.1:9460/wp-admin/load-scripts.php?c=0&load%5Bchunk_0%5D=jquery-core,jquery-migrate,utils&ver=7.1.4",
    "status": 200,
    "type": "application/javascript; charset=UTF-8",
@@ -697,20 +705,12 @@
    "refs": 5
   },
   {
-   "url": "https://secure.gravatar.com/avatar/5448092be0adf2118ed4e83577405b2ee56285075f9d76f05f3f93f742d5b5dc?s=28&d=mm&r=g",
+   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes&statut=gagnee",
    "status": 200,
-   "type": "image/jpeg",
-   "final": "https://secure.gravatar.com/avatar/5448092be0adf2118ed4e83577405b2ee56285075f9d76f05f3f93f742d5b5dc?s=28&d=mm&r=g",
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-demandes%26statut%3Dgagnee&reauth=1",
    "err": "",
-   "refs": 2
-  },
-  {
-   "url": "https://secure.gravatar.com/avatar/5448092be0adf2118ed4e83577405b2ee56285075f9d76f05f3f93f742d5b5dc?s=64&d=mm&r=g",
-   "status": 200,
-   "type": "image/jpeg",
-   "final": "https://secure.gravatar.com/avatar/5448092be0adf2118ed4e83577405b2ee56285075f9d76f05f3f93f742d5b5dc?s=64&d=mm&r=g",
-   "err": "",
-   "refs": 2
+   "refs": 5
   },
   {
    "url": "http://127.0.0.1:9460/wp-admin/load-scripts.php?c=0&load%5Bchunk_0%5D=hoverIntent,wp-dom-ready,wp-hooks&ver=7.1.4",
@@ -831,6 +831,22 @@
    "final": "http://127.0.0.1:9460/wp-includes/js/dist/vendor/moment.min.js?ver=2.30.1",
    "err": "",
    "refs": 5
+  },
+  {
+   "url": "https://secure.gravatar.com/avatar/5448092be0adf2118ed4e83577405b2ee56285075f9d76f05f3f93f742d5b5dc?s=28&d=mm&r=g",
+   "status": 200,
+   "type": "image/jpeg",
+   "final": "https://secure.gravatar.com/avatar/5448092be0adf2118ed4e83577405b2ee56285075f9d76f05f3f93f742d5b5dc?s=28&d=mm&r=g",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "https://secure.gravatar.com/avatar/5448092be0adf2118ed4e83577405b2ee56285075f9d76f05f3f93f742d5b5dc?s=64&d=mm&r=g",
+   "status": 200,
+   "type": "image/jpeg",
+   "final": "https://secure.gravatar.com/avatar/5448092be0adf2118ed4e83577405b2ee56285075f9d76f05f3f93f742d5b5dc?s=64&d=mm&r=g",
+   "err": "",
+   "refs": 2
   },
   {
    "url": "http://127.0.0.1:9460/wp-includes/js/dist/deprecated.min.js?ver=fe587bac92b7d0ef760e",
@@ -1137,14 +1153,6 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes&statut=nouvelle",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-demandes%26statut%3Dnouvelle&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
    "url": "http://127.0.0.1:9460/wp-includes/js/dist/shortcode.min.js?ver=f6273476300cc5fad4cd",
    "status": 200,
    "type": "application/javascript",
@@ -1169,10 +1177,10 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-includes/js/dist/style-engine.min.js?ver=914befb08774033e6265",
+   "url": "http://127.0.0.1:9460/wp-includes/js/dist/upload-media.min.js?ver=a2c026d433c295fd5145",
    "status": 200,
    "type": "application/javascript",
-   "final": "http://127.0.0.1:9460/wp-includes/js/dist/style-engine.min.js?ver=914befb08774033e6265",
+   "final": "http://127.0.0.1:9460/wp-includes/js/dist/upload-media.min.js?ver=a2c026d433c295fd5145",
    "err": "",
    "refs": 5
   },
@@ -1185,18 +1193,10 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-includes/js/dist/upload-media.min.js?ver=a2c026d433c295fd5145",
+   "url": "http://127.0.0.1:9460/wp-includes/js/dist/style-engine.min.js?ver=914befb08774033e6265",
    "status": 200,
    "type": "application/javascript",
-   "final": "http://127.0.0.1:9460/wp-includes/js/dist/upload-media.min.js?ver=a2c026d433c295fd5145",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-includes/js/dist/core-data.min.js?ver=573f98dbff9f49ffeb0b",
-   "status": 200,
-   "type": "application/javascript",
-   "final": "http://127.0.0.1:9460/wp-includes/js/dist/core-data.min.js?ver=573f98dbff9f49ffeb0b",
+   "final": "http://127.0.0.1:9460/wp-includes/js/dist/style-engine.min.js?ver=914befb08774033e6265",
    "err": "",
    "refs": 5
   },
@@ -1217,18 +1217,18 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-includes/js/dist/core-commands.min.js?ver=426a33508599b7f31db3",
+   "url": "http://127.0.0.1:9460/wp-includes/js/dist/core-data.min.js?ver=573f98dbff9f49ffeb0b",
    "status": 200,
    "type": "application/javascript",
-   "final": "http://127.0.0.1:9460/wp-includes/js/dist/core-commands.min.js?ver=426a33508599b7f31db3",
+   "final": "http://127.0.0.1:9460/wp-includes/js/dist/core-data.min.js?ver=573f98dbff9f49ffeb0b",
    "err": "",
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/post-new.php",
+   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes&statut=nouvelle",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fpost-new.php&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-demandes%26statut%3Dnouvelle&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -1241,10 +1241,10 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes&statut=devis_envoye",
+   "url": "http://127.0.0.1:9460/wp-includes/js/mediaelement/mediaelementplayer-legacy.min.css?ver=4.2.17",
    "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-demandes%26statut%3Ddevis_envoye&reauth=1",
+   "type": "text/css",
+   "final": "http://127.0.0.1:9460/wp-includes/js/mediaelement/mediaelementplayer-legacy.min.css?ver=4.2.17",
    "err": "",
    "refs": 5
   },
@@ -1257,18 +1257,18 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-includes/js/mediaelement/mediaelementplayer-legacy.min.css?ver=4.2.17",
-   "status": 200,
-   "type": "text/css",
-   "final": "http://127.0.0.1:9460/wp-includes/js/mediaelement/mediaelementplayer-legacy.min.css?ver=4.2.17",
-   "err": "",
-   "refs": 5
-  },
-  {
    "url": "http://127.0.0.1:9460/wp-includes/js/mediaelement/wp-mediaelement.min.css?ver=7.1.4",
    "status": 200,
    "type": "text/css",
    "final": "http://127.0.0.1:9460/wp-includes/js/mediaelement/wp-mediaelement.min.css?ver=7.1.4",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/load-scripts.php?c=0&load%5Bchunk_0%5D=jquery-core,jquery-migrate,utils,moxiejs,plupload&ver=7.1.4",
+   "status": 200,
+   "type": "application/javascript; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-admin/load-scripts.php?c=0&load%5Bchunk_0%5D=jquery-core,jquery-migrate,utils,moxiejs,plupload&ver=7.1.4",
    "err": "",
    "refs": 5
   },
@@ -1285,14 +1285,6 @@
    "status": 200,
    "type": "text/css",
    "final": "http://127.0.0.1:9460/wp-includes/css/editor.min.css?ver=7.1.4",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/load-scripts.php?c=0&load%5Bchunk_0%5D=jquery-core,jquery-migrate,utils,moxiejs,plupload&ver=7.1.4",
-   "status": 200,
-   "type": "application/javascript; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-admin/load-scripts.php?c=0&load%5Bchunk_0%5D=jquery-core,jquery-migrate,utils,moxiejs,plupload&ver=7.1.4",
    "err": "",
    "refs": 5
   },
@@ -1321,18 +1313,18 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/js/tags-suggest.min.js?ver=7.1.4",
-   "status": 200,
-   "type": "application/javascript",
-   "final": "http://127.0.0.1:9460/wp-admin/js/tags-suggest.min.js?ver=7.1.4",
-   "err": "",
-   "refs": 5
-  },
-  {
    "url": "http://127.0.0.1:9460/wp-includes/js/jquery/ui/autocomplete.min.js?ver=1.14.2",
    "status": 200,
    "type": "application/javascript",
    "final": "http://127.0.0.1:9460/wp-includes/js/jquery/ui/autocomplete.min.js?ver=1.14.2",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/js/tags-suggest.min.js?ver=7.1.4",
+   "status": 200,
+   "type": "application/javascript",
+   "final": "http://127.0.0.1:9460/wp-admin/js/tags-suggest.min.js?ver=7.1.4",
    "err": "",
    "refs": 5
   },
@@ -1377,18 +1369,18 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-includes/js/backbone.min.js?ver=1.6.1",
-   "status": 200,
-   "type": "application/javascript",
-   "final": "http://127.0.0.1:9460/wp-includes/js/backbone.min.js?ver=1.6.1",
-   "err": "",
-   "refs": 5
-  },
-  {
    "url": "http://127.0.0.1:9460/wp-admin/js/editor-expand.min.js?ver=7.1.4",
    "status": 200,
    "type": "application/javascript",
    "final": "http://127.0.0.1:9460/wp-admin/js/editor-expand.min.js?ver=7.1.4",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-includes/js/backbone.min.js?ver=1.6.1",
+   "status": 200,
+   "type": "application/javascript",
+   "final": "http://127.0.0.1:9460/wp-includes/js/backbone.min.js?ver=1.6.1",
    "err": "",
    "refs": 5
   },
@@ -1497,14 +1489,6 @@
    "refs": 5
   },
   {
-   "url": "https://fr.wordpress.org/support/article/excerpt/",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "https://fr.wordpress.org/support/article/excerpt/",
-   "err": "",
-   "refs": 1
-  },
-  {
    "url": "http://127.0.0.1:9460/wp-includes/js/wplink.min.js?ver=7.1.4",
    "status": 200,
    "type": "application/javascript",
@@ -1521,10 +1505,18 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&all_posts=1",
+   "url": "https://fr.wordpress.org/support/article/excerpt/",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26all_posts%3D1&reauth=1",
+   "final": "https://fr.wordpress.org/support/article/excerpt/",
+   "err": "",
+   "refs": 1
+  },
+  {
+   "url": "http://127.0.0.1:9460/congres/",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/congres/",
    "err": "",
    "refs": 5
   },
@@ -1537,6 +1529,14 @@
    "refs": 5
   },
   {
+   "url": "http://127.0.0.1:9460/wp-includes/js/dist/core-commands.min.js?ver=426a33508599b7f31db3",
+   "status": 200,
+   "type": "application/javascript",
+   "final": "http://127.0.0.1:9460/wp-includes/js/dist/core-commands.min.js?ver=426a33508599b7f31db3",
+   "err": "",
+   "refs": 5
+  },
+  {
    "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_status=publish&post_type=asset_congres",
    "status": 200,
    "type": "text/html; charset=UTF-8",
@@ -1545,10 +1545,18 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/congres/",
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&all_posts=1",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/congres/",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26all_posts%3D1&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&orderby=title&order=asc",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26orderby%3Dtitle%26order%3Dasc&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -1569,26 +1577,18 @@
    "refs": 1
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&orderby=date&order=asc",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26orderby%3Ddate%26order%3Dasc&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&asset_discipline=cardiologie",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26asset_discipline%3Dcardiologie&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
    "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&author=2",
    "status": 200,
    "type": "text/html; charset=UTF-8",
    "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26author%3D2&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&orderby=date&order=asc",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26orderby%3Ddate%26order%3Dasc&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -1601,34 +1601,10 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&asset_pays=belgique",
+   "url": "http://127.0.0.1:9460/wp-admin/post.php?post=16&action=edit",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26asset_pays%3Dbelgique&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&orderby=title&order=asc",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26orderby%3Dtitle%26order%3Dasc&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&asset_discipline=oncologie",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26asset_discipline%3Doncologie&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&asset_pays=france",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26asset_pays%3Dfrance&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fpost.php%3Fpost%3D16%26action%3Dedit&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -1641,6 +1617,22 @@
    "refs": 5
   },
   {
+   "url": "http://127.0.0.1:9460/wp-admin/post.php?post=15&action=edit",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fpost.php%3Fpost%3D15%26action%3Dedit&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&asset_discipline=cardiologie",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26asset_discipline%3Dcardiologie&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
    "url": "http://127.0.0.1:9460/wp-admin/post.php?post=14&action=edit",
    "status": 200,
    "type": "text/html; charset=UTF-8",
@@ -1649,18 +1641,18 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/post.php?post=17&action=edit",
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&asset_pays=belgique",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fpost.php%3Fpost%3D17%26action%3Dedit&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26asset_pays%3Dbelgique&reauth=1",
    "err": "",
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/post.php?post=16&action=edit",
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&asset_pays=france",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fpost.php%3Fpost%3D16%26action%3Dedit&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26asset_pays%3Dfrance&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -1669,6 +1661,22 @@
    "status": 200,
    "type": "text/html; charset=UTF-8",
    "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26asset_pays%3Detats-unis&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&asset_discipline=oncologie",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26asset_discipline%3Doncologie&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/post.php?post=17&action=edit",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fpost.php%3Fpost%3D17%26action%3Dedit&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -1689,42 +1697,10 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&asset_pays=royaume-uni",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26asset_pays%3Droyaume-uni&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
    "url": "http://127.0.0.1:9460/wp-admin/post.php?post=12&action=edit",
    "status": 200,
    "type": "text/html; charset=UTF-8",
    "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fpost.php%3Fpost%3D12%26action%3Dedit&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/post.php?post=15&action=edit",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fpost.php%3Fpost%3D15%26action%3Dedit&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&asset_pays=portugal",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26asset_pays%3Dportugal&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/post.php?post=11&action=edit",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fpost.php%3Fpost%3D11%26action%3Dedit&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -1737,18 +1713,10 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&asset_discipline=finance",
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&asset_pays=royaume-uni",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26asset_discipline%3Dfinance&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/post.php?post=10&action=edit",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fpost.php%3Fpost%3D10%26action%3Dedit&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26asset_pays%3Droyaume-uni&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -1761,18 +1729,18 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&asset_discipline=radiologie",
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&asset_discipline=finance",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26asset_discipline%3Dradiologie&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26asset_discipline%3Dfinance&reauth=1",
    "err": "",
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/post.php?post=9&action=edit",
+   "url": "http://127.0.0.1:9460/wp-admin/post.php?post=11&action=edit",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fpost.php%3Fpost%3D9%26action%3Dedit&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fpost.php%3Fpost%3D11%26action%3Dedit&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -1785,42 +1753,34 @@
    "refs": 5
   },
   {
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&asset_pays=portugal",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26asset_pays%3Dportugal&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/post.php?post=9&action=edit",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fpost.php%3Fpost%3D9%26action%3Dedit&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&asset_discipline=radiologie",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26asset_discipline%3Dradiologie&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
    "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&asset_pays=italie",
    "status": 200,
    "type": "text/html; charset=UTF-8",
    "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26asset_pays%3Ditalie&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/post.php?post=8&action=edit",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fpost.php%3Fpost%3D8%26action%3Dedit&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&asset_discipline=neurologie",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26asset_discipline%3Dneurologie&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/post.php?post=7&action=edit",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fpost.php%3Fpost%3D7%26action%3Dedit&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&asset_discipline=pneumologie",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26asset_discipline%3Dpneumologie&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -1833,34 +1793,34 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/post.php?post=5&action=edit",
+   "url": "http://127.0.0.1:9460/wp-admin/post.php?post=10&action=edit",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fpost.php%3Fpost%3D5%26action%3Dedit&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fpost.php%3Fpost%3D10%26action%3Dedit&reauth=1",
    "err": "",
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&asset_pays=autriche",
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&asset_discipline=pneumologie",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26asset_pays%3Dautriche&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26asset_discipline%3Dpneumologie&reauth=1",
    "err": "",
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&asset_pays=pays-bas",
+   "url": "http://127.0.0.1:9460/wp-admin/post.php?post=8&action=edit",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26asset_pays%3Dpays-bas&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fpost.php%3Fpost%3D8%26action%3Dedit&reauth=1",
    "err": "",
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/js/inline-edit-post.min.js?ver=7.1.4",
+   "url": "http://127.0.0.1:9460/wp-admin/post.php?post=7&action=edit",
    "status": 200,
-   "type": "application/javascript",
-   "final": "http://127.0.0.1:9460/wp-admin/js/inline-edit-post.min.js?ver=7.1.4",
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fpost.php%3Fpost%3D7%26action%3Dedit&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -1873,10 +1833,50 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/upload.php?mode=list",
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&asset_pays=autriche",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fupload.php%3Fmode%3Dlist&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26asset_pays%3Dautriche&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/post.php?post=5&action=edit",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fpost.php%3Fpost%3D5%26action%3Dedit&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&asset_discipline=neurologie",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26asset_discipline%3Dneurologie&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/js/inline-edit-post.min.js?ver=7.1.4",
+   "status": 200,
+   "type": "application/javascript",
+   "final": "http://127.0.0.1:9460/wp-admin/js/inline-edit-post.min.js?ver=7.1.4",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&asset_pays=allemagne",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26asset_pays%3Dallemagne&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&asset_pays=pays-bas",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26asset_pays%3Dpays-bas&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -1889,18 +1889,18 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/js/media.min.js?ver=7.1.4",
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&asset_discipline=diabetologie",
    "status": 200,
-   "type": "application/javascript",
-   "final": "http://127.0.0.1:9460/wp-admin/js/media.min.js?ver=7.1.4",
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26asset_discipline%3Ddiabetologie&reauth=1",
    "err": "",
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/load-scripts.php?c=0&load%5Bchunk_0%5D=jquery-core,jquery-migrate,utils,wp-dom-ready,wp-hooks&ver=7.1.4",
+   "url": "http://127.0.0.1:9460/wp-admin/post.php?post=4&action=edit",
    "status": 200,
-   "type": "application/javascript; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-admin/load-scripts.php?c=0&load%5Bchunk_0%5D=jquery-core,jquery-migrate,utils,wp-dom-ready,wp-hooks&ver=7.1.4",
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fpost.php%3Fpost%3D4%26action%3Dedit&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -1909,6 +1909,14 @@
    "status": 200,
    "type": "application/javascript",
    "final": "http://127.0.0.1:9460/wp-includes/js/plupload/moxie.min.js?ver=1.3.5.1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/js/media.min.js?ver=7.1.4",
+   "status": 200,
+   "type": "application/javascript",
+   "final": "http://127.0.0.1:9460/wp-admin/js/media.min.js?ver=7.1.4",
    "err": "",
    "refs": 5
   },
@@ -1929,58 +1937,10 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/load-scripts.php?c=0&load%5Bchunk_0%5D=hoverIntent&ver=7.1.4",
+   "url": "http://127.0.0.1:9460/wp-admin/load-scripts.php?c=0&load%5Bchunk_0%5D=jquery-core,jquery-migrate,utils,wp-dom-ready,wp-hooks&ver=7.1.4",
    "status": 200,
    "type": "application/javascript; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-admin/load-scripts.php?c=0&load%5Bchunk_0%5D=hoverIntent&ver=7.1.4",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/post.php?post=4&action=edit",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fpost.php%3Fpost%3D4%26action%3Dedit&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&asset_pays=allemagne",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26asset_pays%3Dallemagne&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_status=publish&post_type=page",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_status%3Dpublish%26post_type%3Dpage&reauth=1",
-   "err": "",
-   "refs": 4
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_status=draft&post_type=page",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_status%3Ddraft%26post_type%3Dpage&reauth=1",
-   "err": "",
-   "refs": 4
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&asset_discipline=diabetologie",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26asset_discipline%3Ddiabetologie&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=page&orderby=comment_count&order=asc",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dpage%26orderby%3Dcomment_count%26order%3Dasc&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-admin/load-scripts.php?c=0&load%5Bchunk_0%5D=jquery-core,jquery-migrate,utils,wp-dom-ready,wp-hooks&ver=7.1.4",
    "err": "",
    "refs": 5
   },
@@ -1993,12 +1953,60 @@
    "refs": 5
   },
   {
+   "url": "http://127.0.0.1:9460/wp-admin/load-scripts.php?c=0&load%5Bchunk_0%5D=hoverIntent&ver=7.1.4",
+   "status": 200,
+   "type": "application/javascript; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-admin/load-scripts.php?c=0&load%5Bchunk_0%5D=hoverIntent&ver=7.1.4",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/upload.php?mode=list",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fupload.php%3Fmode%3Dlist&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
    "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres&asset_pays=espagne",
    "status": 200,
    "type": "text/html; charset=UTF-8",
    "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dasset_congres%26asset_pays%3Despagne&reauth=1",
    "err": "",
    "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=page&orderby=comment_count&order=asc",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dpage%26orderby%3Dcomment_count%26order%3Dasc&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_status=publish&post_type=page",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_status%3Dpublish%26post_type%3Dpage&reauth=1",
+   "err": "",
+   "refs": 4
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=page&orderby=title&order=desc",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dpage%26orderby%3Dtitle%26order%3Ddesc&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/load-styles.php?c=0&dir=ltr&load%5Bchunk_0%5D=dashicons,admin-bar,buttons,media-views,editor-buttons,wp-theme,wp-components,wp-preferences,wp-block-editor,wp-reusable-blocks,&load%5Bchunk_1%5D=wp-patterns,wp-media-utils,wp-editor,wp-base-styles,common,forms,wp-reset-editor-styles,wp-block-library,wp-block-editor-content&load%5Bchunk_2%5D=,wp-edit-blocks,wp-commands,wp-edit-post,wp-block-directory,wp-format-library,admin-menu,dashboard,list-tables,edit,revisions,me&load%5Bchunk_3%5D=dia,themes,about,nav-menus,wp-pointer,widgets,site-icon,l10n,wp-tooltip,wp-auth-check&ver=7.1.4",
+   "status": 200,
+   "type": "text/css; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-admin/load-styles.php?c=0&dir=ltr&load%5Bchunk_0%5D=dashicons,admin-bar,buttons,media-views,editor-buttons,wp-theme,wp-components,wp-preferences,wp-block-editor,wp-reusable-blocks,&load%5Bchunk_1%5D=wp-patterns,wp-media-utils,wp-editor,wp-base-styles,common,forms,wp-reset-editor-styles,wp-block-library,wp-block-editor-content&load%5Bchunk_2%5D=,wp-edit-blocks,wp-commands,wp-edit-post,wp-block-directory,wp-format-library,admin-menu,dashboard,list-tables,edit,revisions,me&load%5Bchunk_3%5D=dia,themes,about,nav-menus,wp-pointer,widgets,site-icon,l10n,wp-tooltip,wp-auth-check&ver=7.1.4",
+   "err": "",
+   "refs": 3
   },
   {
    "url": "http://127.0.0.1:9460/wp-includes/js/dist/script-modules/latex-to-mathml/loader.min.js?ver=4f37456af539bd3d2351",
@@ -2121,14 +2129,6 @@
    "refs": 3
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=page&orderby=date&order=desc",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dpage%26orderby%3Ddate%26order%3Ddesc&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
    "url": "http://127.0.0.1:9460/wp-includes/js/tinymce/plugins/compat3x/plugin.min.js?ver=49110-20250317",
    "status": 200,
    "type": "application/javascript",
@@ -2145,14 +2145,6 @@
    "refs": 3
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/load-styles.php?c=0&dir=ltr&load%5Bchunk_0%5D=dashicons,admin-bar,buttons,media-views,editor-buttons,wp-theme,wp-components,wp-preferences,wp-block-editor,wp-reusable-blocks,&load%5Bchunk_1%5D=wp-patterns,wp-media-utils,wp-editor,wp-base-styles,common,forms,wp-reset-editor-styles,wp-block-library,wp-block-editor-content&load%5Bchunk_2%5D=,wp-edit-blocks,wp-commands,wp-edit-post,wp-block-directory,wp-format-library,admin-menu,dashboard,list-tables,edit,revisions,me&load%5Bchunk_3%5D=dia,themes,about,nav-menus,wp-pointer,widgets,site-icon,l10n,wp-tooltip,wp-auth-check&ver=7.1.4",
-   "status": 200,
-   "type": "text/css; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-admin/load-styles.php?c=0&dir=ltr&load%5Bchunk_0%5D=dashicons,admin-bar,buttons,media-views,editor-buttons,wp-theme,wp-components,wp-preferences,wp-block-editor,wp-reusable-blocks,&load%5Bchunk_1%5D=wp-patterns,wp-media-utils,wp-editor,wp-base-styles,common,forms,wp-reset-editor-styles,wp-block-library,wp-block-editor-content&load%5Bchunk_2%5D=,wp-edit-blocks,wp-commands,wp-edit-post,wp-block-directory,wp-format-library,admin-menu,dashboard,list-tables,edit,revisions,me&load%5Bchunk_3%5D=dia,themes,about,nav-menus,wp-pointer,widgets,site-icon,l10n,wp-tooltip,wp-auth-check&ver=7.1.4",
-   "err": "",
-   "refs": 3
-  },
-  {
    "url": "https://fr.wordpress.org/support/article/keyboard-shortcuts/",
    "status": 200,
    "type": "text/html; charset=UTF-8",
@@ -2161,34 +2153,10 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/edit-comments.php?comment_status=all",
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_status=draft&post_type=page",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit-comments.php%3Fcomment_status%3Dall&reauth=1",
-   "err": "",
-   "refs": 3
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=page&orderby=title&order=desc",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dpage%26orderby%3Dtitle%26order%3Ddesc&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/edit-comments.php?comment_status=moderated",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit-comments.php%3Fcomment_status%3Dmoderated&reauth=1",
-   "err": "",
-   "refs": 3
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=page&author=1",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dpage%26author%3D1&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_status%3Ddraft%26post_type%3Dpage&reauth=1",
    "err": "",
    "refs": 4
   },
@@ -2201,10 +2169,34 @@
    "refs": 3
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/edit-comments.php?comment_status=approved",
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=page&orderby=date&order=desc",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit-comments.php%3Fcomment_status%3Dapproved&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dpage%26orderby%3Ddate%26order%3Ddesc&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=page&author=1",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fpost_type%3Dpage%26author%3D1&reauth=1",
+   "err": "",
+   "refs": 4
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/edit-comments.php?comment_status=moderated",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit-comments.php%3Fcomment_status%3Dmoderated&reauth=1",
+   "err": "",
+   "refs": 3
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/edit-comments.php?comment_status=all",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit-comments.php%3Fcomment_status%3Dall&reauth=1",
    "err": "",
    "refs": 3
   },
@@ -2215,6 +2207,14 @@
    "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fpost.php%3Fpost%3D24%26action%3Dedit&reauth=1",
    "err": "",
    "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/edit-comments.php?comment_status=approved",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit-comments.php%3Fcomment_status%3Dapproved&reauth=1",
+   "err": "",
+   "refs": 3
   },
   {
    "url": "http://127.0.0.1:9460/wp-admin/edit-comments.php?comment_status=spam",
@@ -2231,6 +2231,14 @@
    "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit-comments.php%3Forderby%3Dcomment_date%26order%3Dasc&reauth=1",
    "err": "",
    "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/media-upload.php?post_id=29&type=image&TB_iframe=1",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fmedia-upload.php%3Fpost_id%3D29%26type%3Dimage%26TB_iframe%3D1&reauth=1",
+   "err": "",
+   "refs": 1
   },
   {
    "url": "http://127.0.0.1:9460/wp-admin/edit-comments.php?orderby=comment_author&order=asc",
@@ -2257,26 +2265,10 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/media-upload.php?post_id=29&type=image&TB_iframe=1",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fmedia-upload.php%3Fpost_id%3D29%26type%3Dimage%26TB_iframe%3D1&reauth=1",
-   "err": "",
-   "refs": 1
-  },
-  {
    "url": "http://127.0.0.1:9460/wp-admin/edit-tags.php?taxonomy=asset_discipline&post_type=asset_congres&orderby=slug&order=asc",
    "status": 200,
    "type": "text/html; charset=UTF-8",
    "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_discipline%26post_type%3Dasset_congres%26orderby%3Dslug%26order%3Dasc&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/edit-tags.php?taxonomy=asset_discipline&post_type=asset_congres&orderby=count&order=asc",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_discipline%26post_type%3Dasset_congres%26orderby%3Dcount%26order%3Dasc&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -2289,26 +2281,10 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/term.php?taxonomy=asset_discipline&tag_ID=2&post_type=asset_congres&wp_http_referer=%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_discipline%26post_type%3Dasset_congres",
+   "url": "http://127.0.0.1:9460/wp-admin/edit-tags.php?taxonomy=asset_discipline&post_type=asset_congres&orderby=count&order=asc",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fterm.php%3Ftaxonomy%3Dasset_discipline%26tag_ID%3D2%26post_type%3Dasset_congres%26wp_http_referer%3D%252Fwp-admin%252Fedit-tags.php%253Ftaxonomy%253Dasset_discipline%2526post_type%253Dasset_congres&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/term.php?taxonomy=asset_discipline&tag_ID=10&post_type=asset_congres&wp_http_referer=%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_discipline%26post_type%3Dasset_congres",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fterm.php%3Ftaxonomy%3Dasset_discipline%26tag_ID%3D10%26post_type%3Dasset_congres%26wp_http_referer%3D%252Fwp-admin%252Fedit-tags.php%253Ftaxonomy%253Dasset_discipline%2526post_type%253Dasset_congres&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?asset_discipline=cardiologie&post_type=asset_congres",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fasset_discipline%3Dcardiologie%26post_type%3Dasset_congres&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_discipline%26post_type%3Dasset_congres%26orderby%3Dcount%26order%3Dasc&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -2321,10 +2297,26 @@
    "refs": 5
   },
   {
+   "url": "http://127.0.0.1:9460/wp-admin/term.php?taxonomy=asset_discipline&tag_ID=2&post_type=asset_congres&wp_http_referer=%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_discipline%26post_type%3Dasset_congres",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fterm.php%3Ftaxonomy%3Dasset_discipline%26tag_ID%3D2%26post_type%3Dasset_congres%26wp_http_referer%3D%252Fwp-admin%252Fedit-tags.php%253Ftaxonomy%253Dasset_discipline%2526post_type%253Dasset_congres&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
    "url": "http://127.0.0.1:9460/wp-admin/term.php?taxonomy=asset_discipline&tag_ID=6&post_type=asset_congres&wp_http_referer=%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_discipline%26post_type%3Dasset_congres",
    "status": 200,
    "type": "text/html; charset=UTF-8",
    "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fterm.php%3Ftaxonomy%3Dasset_discipline%26tag_ID%3D6%26post_type%3Dasset_congres%26wp_http_referer%3D%252Fwp-admin%252Fedit-tags.php%253Ftaxonomy%253Dasset_discipline%2526post_type%253Dasset_congres&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?asset_discipline=cardiologie&post_type=asset_congres",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fasset_discipline%3Dcardiologie%26post_type%3Dasset_congres&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -2337,14 +2329,6 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?asset_discipline=dermatologie&post_type=asset_congres",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fasset_discipline%3Ddermatologie%26post_type%3Dasset_congres&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
    "url": "http://127.0.0.1:9460/wp-admin/term.php?taxonomy=asset_discipline&tag_ID=18&post_type=asset_congres&wp_http_referer=%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_discipline%26post_type%3Dasset_congres",
    "status": 200,
    "type": "text/html; charset=UTF-8",
@@ -2353,18 +2337,18 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/term.php?taxonomy=asset_discipline&tag_ID=21&post_type=asset_congres&wp_http_referer=%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_discipline%26post_type%3Dasset_congres",
+   "url": "http://127.0.0.1:9460/wp-admin/term.php?taxonomy=asset_discipline&tag_ID=10&post_type=asset_congres&wp_http_referer=%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_discipline%26post_type%3Dasset_congres",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fterm.php%3Ftaxonomy%3Dasset_discipline%26tag_ID%3D21%26post_type%3Dasset_congres%26wp_http_referer%3D%252Fwp-admin%252Fedit-tags.php%253Ftaxonomy%253Dasset_discipline%2526post_type%253Dasset_congres&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fterm.php%3Ftaxonomy%3Dasset_discipline%26tag_ID%3D10%26post_type%3Dasset_congres%26wp_http_referer%3D%252Fwp-admin%252Fedit-tags.php%253Ftaxonomy%253Dasset_discipline%2526post_type%253Dasset_congres&reauth=1",
    "err": "",
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?asset_discipline=neurologie&post_type=asset_congres",
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?asset_discipline=dermatologie&post_type=asset_congres",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fasset_discipline%3Dneurologie%26post_type%3Dasset_congres&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fasset_discipline%3Ddermatologie%26post_type%3Dasset_congres&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -2377,6 +2361,14 @@
    "refs": 5
   },
   {
+   "url": "http://127.0.0.1:9460/wp-admin/term.php?taxonomy=asset_discipline&tag_ID=21&post_type=asset_congres&wp_http_referer=%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_discipline%26post_type%3Dasset_congres",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fterm.php%3Ftaxonomy%3Dasset_discipline%26tag_ID%3D21%26post_type%3Dasset_congres%26wp_http_referer%3D%252Fwp-admin%252Fedit-tags.php%253Ftaxonomy%253Dasset_discipline%2526post_type%253Dasset_congres&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
    "url": "http://127.0.0.1:9460/wp-admin/edit.php?asset_discipline=hematologie&post_type=asset_congres",
    "status": 200,
    "type": "text/html; charset=UTF-8",
@@ -2385,18 +2377,18 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/term.php?taxonomy=asset_discipline&tag_ID=4&post_type=asset_congres&wp_http_referer=%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_discipline%26post_type%3Dasset_congres",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fterm.php%3Ftaxonomy%3Dasset_discipline%26tag_ID%3D4%26post_type%3Dasset_congres%26wp_http_referer%3D%252Fwp-admin%252Fedit-tags.php%253Ftaxonomy%253Dasset_discipline%2526post_type%253Dasset_congres&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
    "url": "http://127.0.0.1:9460/wp-admin/term.php?taxonomy=asset_discipline&tag_ID=8&post_type=asset_congres&wp_http_referer=%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_discipline%26post_type%3Dasset_congres",
    "status": 200,
    "type": "text/html; charset=UTF-8",
    "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fterm.php%3Ftaxonomy%3Dasset_discipline%26tag_ID%3D8%26post_type%3Dasset_congres%26wp_http_referer%3D%252Fwp-admin%252Fedit-tags.php%253Ftaxonomy%253Dasset_discipline%2526post_type%253Dasset_congres&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/term.php?taxonomy=asset_discipline&tag_ID=4&post_type=asset_congres&wp_http_referer=%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_discipline%26post_type%3Dasset_congres",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fterm.php%3Ftaxonomy%3Dasset_discipline%26tag_ID%3D4%26post_type%3Dasset_congres%26wp_http_referer%3D%252Fwp-admin%252Fedit-tags.php%253Ftaxonomy%253Dasset_discipline%2526post_type%253Dasset_congres&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -2417,10 +2409,10 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?asset_discipline=pneumologie&post_type=asset_congres",
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?asset_discipline=neurologie&post_type=asset_congres",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fasset_discipline%3Dpneumologie%26post_type%3Dasset_congres&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fasset_discipline%3Dneurologie%26post_type%3Dasset_congres&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -2441,34 +2433,18 @@
    "refs": 5
   },
   {
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?asset_discipline=pneumologie&post_type=asset_congres",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fasset_discipline%3Dpneumologie%26post_type%3Dasset_congres&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
    "url": "http://127.0.0.1:9460/wp-admin/term.php?taxonomy=asset_discipline&tag_ID=15&post_type=asset_congres&wp_http_referer=%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_discipline%26post_type%3Dasset_congres",
    "status": 200,
    "type": "text/html; charset=UTF-8",
    "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fterm.php%3Ftaxonomy%3Dasset_discipline%26tag_ID%3D15%26post_type%3Dasset_congres%26wp_http_referer%3D%252Fwp-admin%252Fedit-tags.php%253Ftaxonomy%253Dasset_discipline%2526post_type%253Dasset_congres&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/js/tags.min.js?ver=7.1.4",
-   "status": 200,
-   "type": "application/javascript",
-   "final": "http://127.0.0.1:9460/wp-admin/js/tags.min.js?ver=7.1.4",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?asset_discipline=ressources-humaines&post_type=asset_congres",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fasset_discipline%3Dressources-humaines%26post_type%3Dasset_congres&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/js/inline-edit-tax.min.js?ver=7.1.4",
-   "status": 200,
-   "type": "application/javascript",
-   "final": "http://127.0.0.1:9460/wp-admin/js/inline-edit-tax.min.js?ver=7.1.4",
    "err": "",
    "refs": 5
   },
@@ -2481,10 +2457,18 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?asset_discipline=rhumatologie&post_type=asset_congres",
+   "url": "http://127.0.0.1:9460/wp-admin/js/tags.min.js?ver=7.1.4",
    "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fasset_discipline%3Drhumatologie%26post_type%3Dasset_congres&reauth=1",
+   "type": "application/javascript",
+   "final": "http://127.0.0.1:9460/wp-admin/js/tags.min.js?ver=7.1.4",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/js/inline-edit-tax.min.js?ver=7.1.4",
+   "status": 200,
+   "type": "application/javascript",
+   "final": "http://127.0.0.1:9460/wp-admin/js/inline-edit-tax.min.js?ver=7.1.4",
    "err": "",
    "refs": 5
   },
@@ -2497,6 +2481,14 @@
    "refs": 5
   },
   {
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?asset_discipline=rhumatologie&post_type=asset_congres",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fasset_discipline%3Drhumatologie%26post_type%3Dasset_congres&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
    "url": "http://127.0.0.1:9460/wp-admin/edit-tags.php?taxonomy=asset_pays&post_type=asset_congres&orderby=slug&order=asc",
    "status": 200,
    "type": "text/html; charset=UTF-8",
@@ -2505,10 +2497,18 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/edit-tags.php?taxonomy=asset_pays&post_type=asset_congres&orderby=description&order=asc",
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?asset_discipline=ressources-humaines&post_type=asset_congres",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_pays%26post_type%3Dasset_congres%26orderby%3Ddescription%26order%3Dasc&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fasset_discipline%3Dressources-humaines%26post_type%3Dasset_congres&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/term.php?taxonomy=asset_discipline&tag_ID=23&post_type=asset_congres&wp_http_referer=%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_discipline%26post_type%3Dasset_congres",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fterm.php%3Ftaxonomy%3Dasset_discipline%26tag_ID%3D23%26post_type%3Dasset_congres%26wp_http_referer%3D%252Fwp-admin%252Fedit-tags.php%253Ftaxonomy%253Dasset_discipline%2526post_type%253Dasset_congres&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -2521,10 +2521,10 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/edit-tags.php?taxonomy=asset_pays&post_type=asset_congres&orderby=name&order=desc",
+   "url": "http://127.0.0.1:9460/wp-admin/edit-tags.php?taxonomy=asset_pays&post_type=asset_congres&orderby=description&order=asc",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_pays%26post_type%3Dasset_congres%26orderby%3Dname%26order%3Ddesc&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_pays%26post_type%3Dasset_congres%26orderby%3Ddescription%26order%3Dasc&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -2537,10 +2537,26 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/term.php?taxonomy=asset_discipline&tag_ID=23&post_type=asset_congres&wp_http_referer=%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_discipline%26post_type%3Dasset_congres",
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?asset_pays=autriche&post_type=asset_congres",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fterm.php%3Ftaxonomy%3Dasset_discipline%26tag_ID%3D23%26post_type%3Dasset_congres%26wp_http_referer%3D%252Fwp-admin%252Fedit-tags.php%253Ftaxonomy%253Dasset_discipline%2526post_type%253Dasset_congres&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fasset_pays%3Dautriche%26post_type%3Dasset_congres&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?asset_pays=allemagne&post_type=asset_congres",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fasset_pays%3Dallemagne%26post_type%3Dasset_congres&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/edit-tags.php?taxonomy=asset_pays&post_type=asset_congres&orderby=name&order=desc",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_pays%26post_type%3Dasset_congres%26orderby%3Dname%26order%3Ddesc&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -2557,14 +2573,6 @@
    "status": 200,
    "type": "text/html; charset=UTF-8",
    "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fasset_pays%3Dbelgique%26post_type%3Dasset_congres&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?asset_pays=allemagne&post_type=asset_congres",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fasset_pays%3Dallemagne%26post_type%3Dasset_congres&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -2593,26 +2601,18 @@
    "refs": 5
   },
   {
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?asset_pays=italie&post_type=asset_congres",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fasset_pays%3Ditalie%26post_type%3Dasset_congres&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
    "url": "http://127.0.0.1:9460/wp-admin/edit.php?asset_pays=espagne&post_type=asset_congres",
    "status": 200,
    "type": "text/html; charset=UTF-8",
    "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fasset_pays%3Despagne%26post_type%3Dasset_congres&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/term.php?taxonomy=asset_pays&tag_ID=13&post_type=asset_congres&wp_http_referer=%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_pays%26post_type%3Dasset_congres",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fterm.php%3Ftaxonomy%3Dasset_pays%26tag_ID%3D13%26post_type%3Dasset_congres%26wp_http_referer%3D%252Fwp-admin%252Fedit-tags.php%253Ftaxonomy%253Dasset_pays%2526post_type%253Dasset_congres&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/term.php?taxonomy=asset_pays&tag_ID=11&post_type=asset_congres&wp_http_referer=%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_pays%26post_type%3Dasset_congres",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fterm.php%3Ftaxonomy%3Dasset_pays%26tag_ID%3D11%26post_type%3Dasset_congres%26wp_http_referer%3D%252Fwp-admin%252Fedit-tags.php%253Ftaxonomy%253Dasset_pays%2526post_type%253Dasset_congres&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -2625,34 +2625,10 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?asset_pays=autriche&post_type=asset_congres",
+   "url": "http://127.0.0.1:9460/wp-admin/term.php?taxonomy=asset_pays&tag_ID=16&post_type=asset_congres&wp_http_referer=%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_pays%26post_type%3Dasset_congres",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fasset_pays%3Dautriche%26post_type%3Dasset_congres&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?asset_pays=portugal&post_type=asset_congres",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fasset_pays%3Dportugal%26post_type%3Dasset_congres&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?asset_pays=italie&post_type=asset_congres",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fasset_pays%3Ditalie%26post_type%3Dasset_congres&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/term.php?taxonomy=asset_pays&tag_ID=19&post_type=asset_congres&wp_http_referer=%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_pays%26post_type%3Dasset_congres",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fterm.php%3Ftaxonomy%3Dasset_pays%26tag_ID%3D19%26post_type%3Dasset_congres%26wp_http_referer%3D%252Fwp-admin%252Fedit-tags.php%253Ftaxonomy%253Dasset_pays%2526post_type%253Dasset_congres&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fterm.php%3Ftaxonomy%3Dasset_pays%26tag_ID%3D16%26post_type%3Dasset_congres%26wp_http_referer%3D%252Fwp-admin%252Fedit-tags.php%253Ftaxonomy%253Dasset_pays%2526post_type%253Dasset_congres&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -2665,6 +2641,22 @@
    "refs": 5
   },
   {
+   "url": "http://127.0.0.1:9460/wp-admin/term.php?taxonomy=asset_pays&tag_ID=11&post_type=asset_congres&wp_http_referer=%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_pays%26post_type%3Dasset_congres",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fterm.php%3Ftaxonomy%3Dasset_pays%26tag_ID%3D11%26post_type%3Dasset_congres%26wp_http_referer%3D%252Fwp-admin%252Fedit-tags.php%253Ftaxonomy%253Dasset_pays%2526post_type%253Dasset_congres&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/term.php?taxonomy=asset_pays&tag_ID=13&post_type=asset_congres&wp_http_referer=%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_pays%26post_type%3Dasset_congres",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fterm.php%3Ftaxonomy%3Dasset_pays%26tag_ID%3D13%26post_type%3Dasset_congres%26wp_http_referer%3D%252Fwp-admin%252Fedit-tags.php%253Ftaxonomy%253Dasset_pays%2526post_type%253Dasset_congres&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
    "url": "http://127.0.0.1:9460/wp-admin/edit.php?asset_pays=royaume-uni&post_type=asset_congres",
    "status": 200,
    "type": "text/html; charset=UTF-8",
@@ -2673,26 +2665,26 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/term.php?taxonomy=asset_pays&tag_ID=20&post_type=asset_congres&wp_http_referer=%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_pays%26post_type%3Dasset_congres",
+   "url": "http://127.0.0.1:9460/wp-admin/term.php?taxonomy=asset_pays&tag_ID=19&post_type=asset_congres&wp_http_referer=%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_pays%26post_type%3Dasset_congres",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fterm.php%3Ftaxonomy%3Dasset_pays%26tag_ID%3D20%26post_type%3Dasset_congres%26wp_http_referer%3D%252Fwp-admin%252Fedit-tags.php%253Ftaxonomy%253Dasset_pays%2526post_type%253Dasset_congres&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fterm.php%3Ftaxonomy%3Dasset_pays%26tag_ID%3D19%26post_type%3Dasset_congres%26wp_http_referer%3D%252Fwp-admin%252Fedit-tags.php%253Ftaxonomy%253Dasset_pays%2526post_type%253Dasset_congres&reauth=1",
    "err": "",
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/term.php?taxonomy=asset_pays&tag_ID=16&post_type=asset_congres&wp_http_referer=%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_pays%26post_type%3Dasset_congres",
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?asset_pays=portugal&post_type=asset_congres",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fterm.php%3Ftaxonomy%3Dasset_pays%26tag_ID%3D16%26post_type%3Dasset_congres%26wp_http_referer%3D%252Fwp-admin%252Fedit-tags.php%253Ftaxonomy%253Dasset_pays%2526post_type%253Dasset_congres&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fasset_pays%3Dportugal%26post_type%3Dasset_congres&reauth=1",
    "err": "",
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/term.php?taxonomy=asset_pays&tag_ID=24&post_type=asset_congres&wp_http_referer=%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_pays%26post_type%3Dasset_congres",
+   "url": "http://127.0.0.1:9460/wp-admin/edit.php?asset_pays=etats-unis&post_type=asset_congres",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fterm.php%3Ftaxonomy%3Dasset_pays%26tag_ID%3D24%26post_type%3Dasset_congres%26wp_http_referer%3D%252Fwp-admin%252Fedit-tags.php%253Ftaxonomy%253Dasset_pays%2526post_type%253Dasset_congres&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fasset_pays%3Detats-unis%26post_type%3Dasset_congres&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -2713,26 +2705,26 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes&orderby=date&order=desc",
+   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes&orderby=depart&order=asc",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-demandes%26orderby%3Ddate%26order%3Ddesc&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-demandes%26orderby%3Ddepart%26order%3Dasc&reauth=1",
    "err": "",
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/edit.php?asset_pays=etats-unis&post_type=asset_congres",
+   "url": "http://127.0.0.1:9460/wp-admin/term.php?taxonomy=asset_pays&tag_ID=24&post_type=asset_congres&wp_http_referer=%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_pays%26post_type%3Dasset_congres",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fedit.php%3Fasset_pays%3Detats-unis%26post_type%3Dasset_congres&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fterm.php%3Ftaxonomy%3Dasset_pays%26tag_ID%3D24%26post_type%3Dasset_congres%26wp_http_referer%3D%252Fwp-admin%252Fedit-tags.php%253Ftaxonomy%253Dasset_pays%2526post_type%253Dasset_congres&reauth=1",
    "err": "",
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes&orderby=passagers&order=asc",
+   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes&orderby=statut&order=asc",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-demandes%26orderby%3Dpassagers%26order%3Dasc&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-demandes%26orderby%3Dstatut%26order%3Dasc&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -2745,18 +2737,18 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes&orderby=depart&order=asc",
+   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes&orderby=passagers&order=asc",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-demandes%26orderby%3Ddepart%26order%3Dasc&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-demandes%26orderby%3Dpassagers%26order%3Dasc&reauth=1",
    "err": "",
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes&action=view&id=21",
+   "url": "http://127.0.0.1:9460/wp-admin/term.php?taxonomy=asset_pays&tag_ID=20&post_type=asset_congres&wp_http_referer=%2Fwp-admin%2Fedit-tags.php%3Ftaxonomy%3Dasset_pays%26post_type%3Dasset_congres",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-demandes%26action%3Dview%26id%3D21&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fterm.php%3Ftaxonomy%3Dasset_pays%26tag_ID%3D20%26post_type%3Dasset_congres%26wp_http_referer%3D%252Fwp-admin%252Fedit-tags.php%253Ftaxonomy%253Dasset_pays%2526post_type%253Dasset_congres&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -2769,10 +2761,18 @@
    "refs": 5
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-gme&edit=4",
+   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes&action=view&id=21",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-gme%26edit%3D4&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-demandes%26action%3Dview%26id%3D21&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes&orderby=date&order=desc",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-demandes%26orderby%3Ddate%26order%3Ddesc&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -2781,6 +2781,30 @@
    "status": 200,
    "type": "text/html; charset=UTF-8",
    "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-gme%26edit%3D5&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-gme&edit=4",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-gme%26edit%3D4&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-gme&edit=9",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-gme%26edit%3D9&reauth=1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes&action=view&id=19",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-demandes%26action%3Dview%26id%3D19&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -2797,30 +2821,6 @@
    "status": 200,
    "type": "text/html; charset=UTF-8",
    "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-gme%26edit%3D7&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes&action=view&id=19",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-demandes%26action%3Dview%26id%3D19&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes&orderby=statut&order=asc",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-demandes%26orderby%3Dstatut%26order%3Dasc&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-gme&edit=9",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-gme%26edit%3D9&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -2889,6 +2889,38 @@
    "refs": 1
   },
   {
+   "url": "http://127.0.0.1:9460/?q=cardiologie&discipline=cardiologie&pays&mois&tri=date_asc",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/?q=cardiologie&discipline=cardiologie&pays&mois&tri=date_asc",
+   "err": "",
+   "refs": 1
+  },
+  {
+   "url": "http://127.0.0.1:9460/?q=cardiologie&discipline=finance&pays&mois&tri=date_asc",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/?q=cardiologie&discipline=finance&pays&mois&tri=date_asc",
+   "err": "",
+   "refs": 1
+  },
+  {
+   "url": "http://127.0.0.1:9460/?q=cardiologie&discipline=neurologie&pays&mois&tri=date_asc",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/?q=cardiologie&discipline=neurologie&pays&mois&tri=date_asc",
+   "err": "",
+   "refs": 1
+  },
+  {
+   "url": "http://127.0.0.1:9460/?q=cardiologie&discipline=oncologie&pays&mois&tri=date_asc",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/?q=cardiologie&discipline=oncologie&pays&mois&tri=date_asc",
+   "err": "",
+   "refs": 1
+  },
+  {
    "url": "http://127.0.0.1:9460/?q=cardiologie&discipline=dermatologie&pays&mois&tri=date_asc",
    "status": 200,
    "type": "text/html; charset=UTF-8",
@@ -2905,50 +2937,10 @@
    "refs": 1
   },
   {
-   "url": "http://127.0.0.1:9460/?q=cardiologie&discipline=neurologie&pays&mois&tri=date_asc",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/?q=cardiologie&discipline=neurologie&pays&mois&tri=date_asc",
-   "err": "",
-   "refs": 1
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-gme&edit=13",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-gme%26edit%3D13&reauth=1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/?q=cardiologie&discipline=cardiologie&pays&mois&tri=date_asc",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/?q=cardiologie&discipline=cardiologie&pays&mois&tri=date_asc",
-   "err": "",
-   "refs": 1
-  },
-  {
    "url": "http://127.0.0.1:9460/?q=cardiologie&discipline=ophtalmologie&pays&mois&tri=date_asc",
    "status": 200,
    "type": "text/html; charset=UTF-8",
    "final": "http://127.0.0.1:9460/?q=cardiologie&discipline=ophtalmologie&pays&mois&tri=date_asc",
-   "err": "",
-   "refs": 1
-  },
-  {
-   "url": "http://127.0.0.1:9460/?q=cardiologie&discipline=finance&pays&mois&tri=date_asc",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/?q=cardiologie&discipline=finance&pays&mois&tri=date_asc",
-   "err": "",
-   "refs": 1
-  },
-  {
-   "url": "http://127.0.0.1:9460/?q=cardiologie&discipline=oncologie&pays&mois&tri=date_asc",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/?q=cardiologie&discipline=oncologie&pays&mois&tri=date_asc",
    "err": "",
    "refs": 1
   },
@@ -2961,12 +2953,12 @@
    "refs": 1
   },
   {
-   "url": "http://127.0.0.1:9460/?q=cardiologie&discipline=ressources-humaines&pays&mois&tri=date_asc",
+   "url": "https://secure.gravatar.com/avatar/9d840c5254b2d63310d9d51b19f29dfe6fdc5e3659bafbc90da0fc566c20df83?s=28&d=mm&r=g",
    "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/?q=cardiologie&discipline=ressources-humaines&pays&mois&tri=date_asc",
+   "type": "image/jpeg",
+   "final": "https://secure.gravatar.com/avatar/9d840c5254b2d63310d9d51b19f29dfe6fdc5e3659bafbc90da0fc566c20df83?s=28&d=mm&r=g",
    "err": "",
-   "refs": 1
+   "refs": 5
   },
   {
    "url": "https://secure.gravatar.com/avatar/9d840c5254b2d63310d9d51b19f29dfe6fdc5e3659bafbc90da0fc566c20df83?s=64&d=mm&r=g",
@@ -2977,10 +2969,10 @@
    "refs": 5
   },
   {
-   "url": "https://secure.gravatar.com/avatar/9d840c5254b2d63310d9d51b19f29dfe6fdc5e3659bafbc90da0fc566c20df83?s=28&d=mm&r=g",
+   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-gme&edit=13",
    "status": 200,
-   "type": "image/jpeg",
-   "final": "https://secure.gravatar.com/avatar/9d840c5254b2d63310d9d51b19f29dfe6fdc5e3659bafbc90da0fc566c20df83?s=28&d=mm&r=g",
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-gme%26edit%3D13&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -3001,22 +2993,6 @@
    "refs": 1
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/media-upload.php?post_id=35&type=image&TB_iframe=1",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fmedia-upload.php%3Fpost_id%3D35%26type%3Dimage%26TB_iframe%3D1&reauth=1",
-   "err": "",
-   "refs": 1
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/media-upload.php?post_id=37&type=image&TB_iframe=1",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fmedia-upload.php%3Fpost_id%3D37%26type%3Dimage%26TB_iframe%3D1&reauth=1",
-   "err": "",
-   "refs": 1
-  },
-  {
    "url": "http://127.0.0.1:9460/?p=4",
    "status": 200,
    "type": "text/html; charset=UTF-8",
@@ -3025,12 +3001,12 @@
    "refs": 4
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/media-upload.php?post_id=33&type=image&TB_iframe=1",
+   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes&action=view&id=32",
    "status": 200,
    "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fmedia-upload.php%3Fpost_id%3D33%26type%3Dimage%26TB_iframe%3D1&reauth=1",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-demandes%26action%3Dview%26id%3D32&reauth=1",
    "err": "",
-   "refs": 1
+   "refs": 5
   },
   {
    "url": "https://wpsandbox.wordpress.net/favicon.ico",
@@ -3041,10 +3017,26 @@
    "refs": 3
   },
   {
+   "url": "http://127.0.0.1:9460/wp-admin/media-upload.php?post_id=37&type=image&TB_iframe=1",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fmedia-upload.php%3Fpost_id%3D37%26type%3Dimage%26TB_iframe%3D1&reauth=1",
+   "err": "",
+   "refs": 1
+  },
+  {
    "url": "https://asset-voyages-demo.debanjan186.workers.dev/",
    "status": 200,
    "type": "text/html; charset=utf-8",
    "final": "https://asset-voyages-demo.debanjan186.workers.dev/",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole",
    "err": "",
    "refs": 5
   },
@@ -3057,12 +3049,44 @@
    "refs": 5
   },
   {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console",
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Dermatologie",
    "status": 200,
    "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Dermatologie",
    "err": "",
    "refs": 5
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/media-upload.php?post_id=33&type=image&TB_iframe=1",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fmedia-upload.php%3Fpost_id%3D33%26type%3Dimage%26TB_iframe%3D1&reauth=1",
+   "err": "",
+   "refs": 1
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/media-upload.php?post_id=35&type=image&TB_iframe=1",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fmedia-upload.php%3Fpost_id%3D35%26type%3Dimage%26TB_iframe%3D1&reauth=1",
+   "err": "",
+   "refs": 1
+  },
+  {
+   "url": "http://127.0.0.1:9460/?q=cardiologie&discipline=ressources-humaines&pays&mois&tri=date_asc",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/?q=cardiologie&discipline=ressources-humaines&pays&mois&tri=date_asc",
+   "err": "",
+   "refs": 1
+  },
+  {
+   "url": "http://127.0.0.1:9460/wp-admin/media-upload.php?post_id=39&type=image&TB_iframe=1",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fmedia-upload.php%3Fpost_id%3D39%26type%3Dimage%26TB_iframe%3D1&reauth=1",
+   "err": "",
+   "refs": 1
   },
   {
    "url": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Diab%C3%A9tologie",
@@ -3081,18 +3105,10 @@
    "refs": 5
   },
   {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Dermatologie",
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Radiologie",
    "status": 200,
    "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Dermatologie",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Neurologie",
-   "status": 200,
-   "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Neurologie",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Radiologie",
    "err": "",
    "refs": 5
   },
@@ -3105,10 +3121,10 @@
    "refs": 5
   },
   {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Pneumologie",
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Ressources+humaines",
    "status": 200,
    "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Pneumologie",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Ressources+humaines",
    "err": "",
    "refs": 5
   },
@@ -3121,10 +3137,18 @@
    "refs": 5
   },
   {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Radiologie",
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Pneumologie",
    "status": 200,
    "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Radiologie",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Pneumologie",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Neurologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Neurologie",
    "err": "",
    "refs": 5
   },
@@ -3141,22 +3165,6 @@
    "status": 200,
    "type": "text/html; charset=utf-8",
    "final": "https://asset-voyages-demo.debanjan186.workers.dev/congres/rencontres-europeennes-d-imagerie-medicale-cg-0108",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Ressources+humaines",
-   "status": 200,
-   "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Ressources+humaines",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes&action=view&id=32",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-demandes%26action%3Dview%26id%3D32&reauth=1",
    "err": "",
    "refs": 5
   },
@@ -3193,10 +3201,10 @@
    "refs": 5
   },
   {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/favicon.ico",
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/congres/congres-europeen-de-cardiologie-cg-0101",
    "status": 200,
-   "type": "image/vnd.microsoft.icon",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/favicon.ico",
+   "type": "text/html; charset=utf-8",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/congres/congres-europeen-de-cardiologie-cg-0101",
    "err": "",
    "refs": 5
   },
@@ -3209,18 +3217,10 @@
    "refs": 5
   },
   {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/congres/congres-europeen-de-dermatologie-cg-0105",
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/favicon.ico",
    "status": 200,
-   "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/congres/congres-europeen-de-dermatologie-cg-0105",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/assets/fonts/Inter.woff2",
-   "status": 200,
-   "type": "font/woff2",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/assets/fonts/Inter.woff2",
+   "type": "image/vnd.microsoft.icon",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/favicon.ico",
    "err": "",
    "refs": 5
   },
@@ -3233,26 +3233,18 @@
    "refs": 5
   },
   {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?page=2",
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/assets/fonts/Inter.woff2",
    "status": 200,
-   "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?page=2",
+   "type": "font/woff2",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/assets/fonts/Inter.woff2",
    "err": "",
    "refs": 5
   },
   {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/assets/app.js?v=8",
-   "status": 200,
-   "type": "text/javascript",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/assets/app.js?v=8",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/congres/congres-europeen-de-cardiologie-cg-0101",
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/congres/congres-europeen-de-dermatologie-cg-0105",
    "status": 200,
    "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/congres/congres-europeen-de-cardiologie-cg-0101",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/congres/congres-europeen-de-dermatologie-cg-0105",
    "err": "",
    "refs": 5
   },
@@ -3265,10 +3257,26 @@
    "refs": 5
   },
   {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?q=cardiologie&discipline=Cardiologie",
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/assets/app.js?v=8",
+   "status": 200,
+   "type": "text/javascript",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/assets/app.js?v=8",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?page=2",
    "status": 200,
    "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?q=cardiologie&discipline=Cardiologie",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?page=2",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?q=cardiologie&discipline=Dermatologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?q=cardiologie&discipline=Dermatologie",
    "err": "",
    "refs": 3
   },
@@ -3281,18 +3289,18 @@
    "refs": 3
   },
   {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?q=cardiologie&discipline=Dermatologie",
-   "status": 200,
-   "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?q=cardiologie&discipline=Dermatologie",
-   "err": "",
-   "refs": 3
-  },
-  {
    "url": "https://asset-voyages-demo.debanjan186.workers.dev/?q=cardiologie&discipline=Diab%C3%A9tologie",
    "status": 200,
    "type": "text/html; charset=utf-8",
    "final": "https://asset-voyages-demo.debanjan186.workers.dev/?q=cardiologie&discipline=Diab%C3%A9tologie",
+   "err": "",
+   "refs": 3
+  },
+  {
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?q=cardiologie&discipline=Cardiologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?q=cardiologie&discipline=Cardiologie",
    "err": "",
    "refs": 3
   },
@@ -3329,22 +3337,6 @@
    "refs": 3
   },
   {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?q=cardiologie&discipline=Radiologie",
-   "status": 200,
-   "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?q=cardiologie&discipline=Radiologie",
-   "err": "",
-   "refs": 3
-  },
-  {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?q=cardiologie&discipline=Pneumologie",
-   "status": 200,
-   "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?q=cardiologie&discipline=Pneumologie",
-   "err": "",
-   "refs": 3
-  },
-  {
    "url": "https://asset-voyages-demo.debanjan186.workers.dev/congres/congres-nord-americain-de-cardiologie-cg-0111",
    "status": 200,
    "type": "text/html; charset=utf-8",
@@ -3353,10 +3345,26 @@
    "refs": 5
   },
   {
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?q=cardiologie&discipline=Radiologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?q=cardiologie&discipline=Radiologie",
+   "err": "",
+   "refs": 3
+  },
+  {
    "url": "https://asset-voyages-demo.debanjan186.workers.dev/?q=cardiologie&discipline=Ressources+humaines",
    "status": 200,
    "type": "text/html; charset=utf-8",
    "final": "https://asset-voyages-demo.debanjan186.workers.dev/?q=cardiologie&discipline=Ressources+humaines",
+   "err": "",
+   "refs": 3
+  },
+  {
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?q=cardiologie&discipline=Pneumologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?q=cardiologie&discipline=Pneumologie",
    "err": "",
    "refs": 3
   },
@@ -3377,6 +3385,14 @@
    "refs": 2
   },
   {
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?q=chicago&discipline=Finance",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?q=chicago&discipline=Finance",
+   "err": "",
+   "refs": 2
+  },
+  {
    "url": "https://asset-voyages-demo.debanjan186.workers.dev/?q=chicago&discipline=Dermatologie",
    "status": 200,
    "type": "text/html; charset=utf-8",
@@ -3389,14 +3405,6 @@
    "status": 200,
    "type": "text/html; charset=utf-8",
    "final": "https://asset-voyages-demo.debanjan186.workers.dev/?q=chicago&discipline=Diab%C3%A9tologie",
-   "err": "",
-   "refs": 2
-  },
-  {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?q=chicago&discipline=Finance",
-   "status": 200,
-   "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?q=chicago&discipline=Finance",
    "err": "",
    "refs": 2
   },
@@ -3417,22 +3425,6 @@
    "refs": 2
   },
   {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?q=chicago&discipline=Ophtalmologie",
-   "status": 200,
-   "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?q=chicago&discipline=Ophtalmologie",
-   "err": "",
-   "refs": 2
-  },
-  {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?q=chicago&discipline=Pneumologie",
-   "status": 200,
-   "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?q=chicago&discipline=Pneumologie",
-   "err": "",
-   "refs": 2
-  },
-  {
    "url": "https://asset-voyages-demo.debanjan186.workers.dev/?q=chicago&discipline=Radiologie",
    "status": 200,
    "type": "text/html; charset=utf-8",
@@ -3445,6 +3437,22 @@
    "status": 200,
    "type": "text/html; charset=utf-8",
    "final": "https://asset-voyages-demo.debanjan186.workers.dev/?q=chicago&discipline=Ressources+humaines",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?q=chicago&discipline=Ophtalmologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?q=chicago&discipline=Ophtalmologie",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?q=chicago&discipline=Pneumologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?q=chicago&discipline=Pneumologie",
    "err": "",
    "refs": 2
   },
@@ -3465,34 +3473,10 @@
    "refs": 2
   },
   {
-   "url": "http://127.0.0.1:9460/wp-admin/media-upload.php?post_id=39&type=image&TB_iframe=1",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fmedia-upload.php%3Fpost_id%3D39%26type%3Dimage%26TB_iframe%3D1&reauth=1",
-   "err": "",
-   "refs": 1
-  },
-  {
    "url": "https://asset-voyages-demo.debanjan186.workers.dev/?q=zzqqxx&discipline=Dermatologie",
    "status": 200,
    "type": "text/html; charset=utf-8",
    "final": "https://asset-voyages-demo.debanjan186.workers.dev/?q=zzqqxx&discipline=Dermatologie",
-   "err": "",
-   "refs": 2
-  },
-  {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?q=zzqqxx&discipline=Diab%C3%A9tologie",
-   "status": 200,
-   "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?q=zzqqxx&discipline=Diab%C3%A9tologie",
-   "err": "",
-   "refs": 2
-  },
-  {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?q=zzqqxx&discipline=Finance",
-   "status": 200,
-   "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?q=zzqqxx&discipline=Finance",
    "err": "",
    "refs": 2
   },
@@ -3505,10 +3489,34 @@
    "refs": 2
   },
   {
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?q=zzqqxx&discipline=Finance",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?q=zzqqxx&discipline=Finance",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?q=zzqqxx&discipline=Diab%C3%A9tologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?q=zzqqxx&discipline=Diab%C3%A9tologie",
+   "err": "",
+   "refs": 2
+  },
+  {
    "url": "https://asset-voyages-demo.debanjan186.workers.dev/?q=zzqqxx&discipline=Oncologie",
    "status": 200,
    "type": "text/html; charset=utf-8",
    "final": "https://asset-voyages-demo.debanjan186.workers.dev/?q=zzqqxx&discipline=Oncologie",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?q=zzqqxx&discipline=Ophtalmologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?q=zzqqxx&discipline=Ophtalmologie",
    "err": "",
    "refs": 2
   },
@@ -3525,14 +3533,6 @@
    "status": 200,
    "type": "text/html; charset=utf-8",
    "final": "https://asset-voyages-demo.debanjan186.workers.dev/?q=zzqqxx&discipline=Radiologie",
-   "err": "",
-   "refs": 2
-  },
-  {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?q=zzqqxx&discipline=Ophtalmologie",
-   "status": 200,
-   "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?q=zzqqxx&discipline=Ophtalmologie",
    "err": "",
    "refs": 2
   },
@@ -3569,14 +3569,6 @@
    "refs": 2
   },
   {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Diab%C3%A9tologie&pays=France&mois=2027-03",
-   "status": 200,
-   "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Diab%C3%A9tologie&pays=France&mois=2027-03",
-   "err": "",
-   "refs": 2
-  },
-  {
    "url": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Finance&pays=France&mois=2027-03",
    "status": 200,
    "type": "text/html; charset=utf-8",
@@ -3585,10 +3577,10 @@
    "refs": 2
   },
   {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Neurologie&pays=France&mois=2027-03",
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Diab%C3%A9tologie&pays=France&mois=2027-03",
    "status": 200,
    "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Neurologie&pays=France&mois=2027-03",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Diab%C3%A9tologie&pays=France&mois=2027-03",
    "err": "",
    "refs": 2
   },
@@ -3601,10 +3593,10 @@
    "refs": 2
   },
   {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Ophtalmologie&pays=France&mois=2027-03",
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Neurologie&pays=France&mois=2027-03",
    "status": 200,
    "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Ophtalmologie&pays=France&mois=2027-03",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Neurologie&pays=France&mois=2027-03",
    "err": "",
    "refs": 2
   },
@@ -3617,26 +3609,26 @@
    "refs": 2
   },
   {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Radiologie&pays=France&mois=2027-03",
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Ophtalmologie&pays=France&mois=2027-03",
    "status": 200,
    "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Radiologie&pays=France&mois=2027-03",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Ophtalmologie&pays=France&mois=2027-03",
    "err": "",
    "refs": 2
-  },
-  {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres",
-   "status": 200,
-   "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fcongres",
-   "err": "",
-   "refs": 5
   },
   {
    "url": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Ressources+humaines&pays=France&mois=2027-03",
    "status": 200,
    "type": "text/html; charset=utf-8",
    "final": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Ressources+humaines&pays=France&mois=2027-03",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Radiologie&pays=France&mois=2027-03",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/?discipline=Radiologie&pays=France&mois=2027-03",
    "err": "",
    "refs": 2
   },
@@ -3649,10 +3641,18 @@
    "refs": 5
   },
   {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres/112",
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres?statut=archive",
    "status": 200,
    "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fcongres%2F112",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fcongres",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres?statut=a_relire",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fcongres",
    "err": "",
    "refs": 5
   },
@@ -3673,10 +3673,18 @@
    "refs": 5
   },
   {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres?statut=a_relire",
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres",
    "status": 200,
    "type": "text/html; charset=utf-8",
    "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fcongres",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres/112",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fcongres%2F112",
    "err": "",
    "refs": 5
   },
@@ -3689,50 +3697,10 @@
    "refs": 5
   },
   {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres?statut=archive",
-   "status": 200,
-   "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fcongres",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres/113",
-   "status": 200,
-   "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fcongres%2F113",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres/104",
-   "status": 200,
-   "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fcongres%2F104",
-   "err": "",
-   "refs": 5
-  },
-  {
    "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres/103",
    "status": 200,
    "type": "text/html; charset=utf-8",
    "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fcongres%2F103",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres/107",
-   "status": 200,
-   "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fcongres%2F107",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres/101",
-   "status": 200,
-   "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fcongres%2F101",
    "err": "",
    "refs": 5
   },
@@ -3745,18 +3713,34 @@
    "refs": 5
   },
   {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres/105",
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres/104",
    "status": 200,
    "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fcongres%2F105",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fcongres%2F104",
    "err": "",
    "refs": 5
   },
   {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres/110",
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres/107",
    "status": 200,
    "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fcongres%2F110",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fcongres%2F107",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres/113",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fcongres%2F113",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres/101",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fcongres%2F101",
    "err": "",
    "refs": 5
   },
@@ -3769,18 +3753,18 @@
    "refs": 5
   },
   {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres/111",
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres/105",
    "status": 200,
    "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fcongres%2F111",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fcongres%2F105",
    "err": "",
    "refs": 5
   },
   {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes",
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres/111",
    "status": 200,
    "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fdemandes",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fcongres%2F111",
    "err": "",
    "refs": 5
   },
@@ -3793,18 +3777,18 @@
    "refs": 5
   },
   {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/notifications",
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres/110",
    "status": 200,
    "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fnotifications",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fcongres%2F110",
    "err": "",
    "refs": 5
   },
   {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/gme",
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes",
    "status": 200,
    "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fgme",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fdemandes",
    "err": "",
    "refs": 5
   },
@@ -3817,10 +3801,10 @@
    "refs": 5
   },
   {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes?statut=devis",
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/gme",
    "status": 200,
    "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fdemandes",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fgme",
    "err": "",
    "refs": 5
   },
@@ -3833,7 +3817,15 @@
    "refs": 5
   },
   {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes?statut=gagnee",
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/notifications",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fnotifications",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes?statut=devis",
    "status": 200,
    "type": "text/html; charset=utf-8",
    "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fdemandes",
@@ -3849,18 +3841,18 @@
    "refs": 5
   },
   {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/6",
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/4",
    "status": 200,
    "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fdemandes%2F6",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fdemandes%2F4",
    "err": "",
    "refs": 5
   },
   {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/3",
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/6",
    "status": 200,
    "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fdemandes%2F3",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fdemandes%2F6",
    "err": "",
    "refs": 5
   },
@@ -3873,10 +3865,10 @@
    "refs": 5
   },
   {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/4",
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes?statut=gagnee",
    "status": 200,
    "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fdemandes%2F4",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fdemandes",
    "err": "",
    "refs": 5
   },
@@ -3889,10 +3881,34 @@
    "refs": 5
   },
   {
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/1",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fdemandes%2F1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/3",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fdemandes%2F3",
+   "err": "",
+   "refs": 5
+  },
+  {
    "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/1/groupe",
    "status": 200,
    "type": "text/html; charset=utf-8",
    "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fdemandes%2F1%2Fgroupe",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "https://asset-voyages-redesign.pages.dev/",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "https://asset-voyages-redesign.pages.dev/",
    "err": "",
    "refs": 5
   },
@@ -3905,42 +3921,18 @@
    "refs": 1
   },
   {
-   "url": "https://asset-voyages-redesign.pages.dev/",
+   "url": "https://asset-voyages-redesign.pages.dev/pour-asset/",
    "status": 200,
    "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-redesign.pages.dev/",
+   "final": "https://asset-voyages-redesign.pages.dev/pour-asset/",
    "err": "",
    "refs": 5
   },
   {
-   "url": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/1",
+   "url": "https://asset-voyages-redesign.pages.dev/questions/",
    "status": 200,
    "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-demo.debanjan186.workers.dev/console/connexion?next=%2Fconsole%2Fdemandes%2F1",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "https://asset-voyages-redesign.pages.dev/demo/media/custom-walkthrough.mp4",
-   "status": 200,
-   "type": "video/mp4",
-   "final": "https://asset-voyages-redesign.pages.dev/demo/media/custom-walkthrough.mp4",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "https://asset-voyages-redesign.pages.dev/console/",
-   "status": 200,
-   "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-redesign.pages.dev/console/",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "https://playground.wordpress.net/?mode=seamless&login=no&blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-visitor.json",
-   "status": 200,
-   "type": "text/html;charset=utf-8",
-   "final": "https://playground.wordpress.net/?mode=seamless&login=no&blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-visitor.json",
+   "final": "https://asset-voyages-redesign.pages.dev/questions/",
    "err": "",
    "refs": 5
   },
@@ -3961,34 +3953,18 @@
    "refs": 5
   },
   {
-   "url": "https://asset-voyages-redesign.pages.dev/pour-asset/",
+   "url": "https://playground.wordpress.net/?mode=seamless&login=no&blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-visitor.json",
+   "status": 200,
+   "type": "text/html;charset=utf-8",
+   "final": "https://playground.wordpress.net/?mode=seamless&login=no&blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-visitor.json",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "https://asset-voyages-redesign.pages.dev/console/",
    "status": 200,
    "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-redesign.pages.dev/pour-asset/",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "https://asset-voyages-redesign.pages.dev/questions/",
-   "status": 200,
-   "type": "text/html; charset=utf-8",
-   "final": "https://asset-voyages-redesign.pages.dev/questions/",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "https://asset-voyages-redesign.pages.dev/assets/fonts/EBGaramond.woff2",
-   "status": 200,
-   "type": "font/woff2",
-   "final": "https://asset-voyages-redesign.pages.dev/assets/fonts/EBGaramond.woff2",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "https://asset-voyages-redesign.pages.dev/demo/media/wp-walkthrough.jpg",
-   "status": 200,
-   "type": "image/jpeg",
-   "final": "https://asset-voyages-redesign.pages.dev/demo/media/wp-walkthrough.jpg",
+   "final": "https://asset-voyages-redesign.pages.dev/console/",
    "err": "",
    "refs": 5
   },
@@ -4001,10 +3977,26 @@
    "refs": 5
   },
   {
+   "url": "https://asset-voyages-redesign.pages.dev/assets/fonts/EBGaramond.woff2",
+   "status": 200,
+   "type": "font/woff2",
+   "final": "https://asset-voyages-redesign.pages.dev/assets/fonts/EBGaramond.woff2",
+   "err": "",
+   "refs": 5
+  },
+  {
    "url": "https://asset-voyages-redesign.pages.dev/js/demo.js",
    "status": 200,
    "type": "application/javascript",
    "final": "https://asset-voyages-redesign.pages.dev/js/demo.js",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "https://asset-voyages-redesign.pages.dev/demo/media/custom-walkthrough.mp4",
+   "status": 200,
+   "type": "video/mp4",
+   "final": "https://asset-voyages-redesign.pages.dev/demo/media/custom-walkthrough.mp4",
    "err": "",
    "refs": 5
   },
@@ -4017,14 +4009,6 @@
    "refs": 5
   },
   {
-   "url": "https://asset-voyages-redesign.pages.dev/demo/media/custom-walkthrough.jpg",
-   "status": 200,
-   "type": "image/jpeg",
-   "final": "https://asset-voyages-redesign.pages.dev/demo/media/custom-walkthrough.jpg",
-   "err": "",
-   "refs": 5
-  },
-  {
    "url": "https://asset-voyages-redesign.pages.dev/css/demo.css",
    "status": 200,
    "type": "text/css; charset=utf-8",
@@ -4033,26 +4017,18 @@
    "refs": 5
   },
   {
-   "url": "https://asset-voyages-redesign.pages.dev/assets/favicon-32.png",
+   "url": "https://asset-voyages-redesign.pages.dev/demo/media/custom-walkthrough.jpg",
    "status": 200,
-   "type": "image/png",
-   "final": "https://asset-voyages-redesign.pages.dev/assets/favicon-32.png",
+   "type": "image/jpeg",
+   "final": "https://asset-voyages-redesign.pages.dev/demo/media/custom-walkthrough.jpg",
    "err": "",
    "refs": 5
   },
   {
-   "url": "https://asset-voyages-redesign.pages.dev/assets/favicon-192.png",
+   "url": "https://asset-voyages-redesign.pages.dev/demo/media/wp-walkthrough.jpg",
    "status": 200,
-   "type": "image/png",
-   "final": "https://asset-voyages-redesign.pages.dev/assets/favicon-192.png",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "https://asset-voyages-redesign.pages.dev/css/styles.css",
-   "status": 200,
-   "type": "text/css; charset=utf-8",
-   "final": "https://asset-voyages-redesign.pages.dev/css/styles.css",
+   "type": "image/jpeg",
+   "final": "https://asset-voyages-redesign.pages.dev/demo/media/wp-walkthrough.jpg",
    "err": "",
    "refs": 5
   },
@@ -4065,6 +4041,22 @@
    "refs": 5
   },
   {
+   "url": "https://asset-voyages-redesign.pages.dev/assets/favicon-32.png",
+   "status": 200,
+   "type": "image/png",
+   "final": "https://asset-voyages-redesign.pages.dev/assets/favicon-32.png",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "https://asset-voyages-redesign.pages.dev/css/styles.css",
+   "status": 200,
+   "type": "text/css; charset=utf-8",
+   "final": "https://asset-voyages-redesign.pages.dev/css/styles.css",
+   "err": "",
+   "refs": 5
+  },
+  {
    "url": "https://commons.wikimedia.org/wiki/File:Paris-pano-wladyslaw.jpg",
    "status": 200,
    "type": "text/html; charset=UTF-8",
@@ -4073,10 +4065,18 @@
    "refs": 5
   },
   {
-   "url": "https://asset-voyages-redesign.pages.dev/js/boot.js",
+   "url": "https://asset-voyages-redesign.pages.dev/assets/favicon-192.png",
+   "status": 200,
+   "type": "image/png",
+   "final": "https://asset-voyages-redesign.pages.dev/assets/favicon-192.png",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "https://asset-voyages-redesign.pages.dev/js/hero.js",
    "status": 200,
    "type": "application/javascript",
-   "final": "https://asset-voyages-redesign.pages.dev/js/boot.js",
+   "final": "https://asset-voyages-redesign.pages.dev/js/hero.js",
    "err": "",
    "refs": 5
   },
@@ -4089,18 +4089,10 @@
    "refs": 5
   },
   {
-   "url": "https://asset-voyages-redesign.pages.dev/assets/hero-m.jpg",
-   "status": 200,
-   "type": "image/jpeg",
-   "final": "https://asset-voyages-redesign.pages.dev/assets/hero-m.jpg",
-   "err": "",
-   "refs": 4
-  },
-  {
-   "url": "https://asset-voyages-redesign.pages.dev/js/hero.js",
+   "url": "https://asset-voyages-redesign.pages.dev/js/boot.js",
    "status": 200,
    "type": "application/javascript",
-   "final": "https://asset-voyages-redesign.pages.dev/js/hero.js",
+   "final": "https://asset-voyages-redesign.pages.dev/js/boot.js",
    "err": "",
    "refs": 5
   },
@@ -4113,10 +4105,18 @@
    "refs": 5
   },
   {
-   "url": "https://creativecommons.org/licenses/by/3.0/",
+   "url": "https://asset-voyages-redesign.pages.dev/assets/hero-m.jpg",
    "status": 200,
-   "type": "text/html",
-   "final": "https://creativecommons.org/licenses/by/3.0/",
+   "type": "image/jpeg",
+   "final": "https://asset-voyages-redesign.pages.dev/assets/hero-m.jpg",
+   "err": "",
+   "refs": 4
+  },
+  {
+   "url": "https://asset-voyages-redesign.pages.dev/assets/logo-asset-light.png",
+   "status": 200,
+   "type": "image/png",
+   "final": "https://asset-voyages-redesign.pages.dev/assets/logo-asset-light.png",
    "err": "",
    "refs": 5
   },
@@ -4129,10 +4129,10 @@
    "refs": 5
   },
   {
-   "url": "https://asset-voyages-redesign.pages.dev/assets/logo-asset-light.png",
+   "url": "https://creativecommons.org/licenses/by/3.0/",
    "status": 200,
-   "type": "image/png",
-   "final": "https://asset-voyages-redesign.pages.dev/assets/logo-asset-light.png",
+   "type": "text/html",
+   "final": "https://creativecommons.org/licenses/by/3.0/",
    "err": "",
    "refs": 5
   },
@@ -4169,26 +4169,18 @@
    "refs": 5
   },
   {
-   "url": "https://developers.cloudflare.com/d1/reference/time-travel/",
-   "status": 200,
-   "type": "text/html",
-   "final": "https://developers.cloudflare.com/d1/reference/time-travel/",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "https://developers.cloudflare.com/d1/platform/pricing/",
-   "status": 200,
-   "type": "text/html",
-   "final": "https://developers.cloudflare.com/d1/platform/pricing/",
-   "err": "",
-   "refs": 5
-  },
-  {
    "url": "https://developers.cloudflare.com/workers/platform/pricing/",
    "status": 200,
    "type": "text/html",
    "final": "https://developers.cloudflare.com/workers/platform/pricing/",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "https://developers.cloudflare.com/turnstile/plans/",
+   "status": 200,
+   "type": "text/html",
+   "final": "https://developers.cloudflare.com/turnstile/plans/",
    "err": "",
    "refs": 5
   },
@@ -4201,10 +4193,18 @@
    "refs": 5
   },
   {
-   "url": "https://developers.cloudflare.com/turnstile/plans/",
+   "url": "https://developers.cloudflare.com/d1/reference/time-travel/",
    "status": 200,
    "type": "text/html",
-   "final": "https://developers.cloudflare.com/turnstile/plans/",
+   "final": "https://developers.cloudflare.com/d1/reference/time-travel/",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "https://developers.cloudflare.com/d1/platform/pricing/",
+   "status": 200,
+   "type": "text/html",
+   "final": "https://developers.cloudflare.com/d1/platform/pricing/",
    "err": "",
    "refs": 5
   },
@@ -4233,18 +4233,18 @@
    "refs": 5
   },
   {
-   "url": "https://domainnamewire.com/2026/04/23/breaking-verisign-raising-wholesale-com-prices/",
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "final": "https://domainnamewire.com/2026/04/23/breaking-verisign-raising-wholesale-com-prices/",
-   "err": "",
-   "refs": 5
-  },
-  {
    "url": "https://www.cloudflare.com/products/registrar/",
    "status": 200,
    "type": "text/html; charset=utf-8",
    "final": "https://www.cloudflare.com/domains/",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "https://domainnamewire.com/2026/04/23/breaking-verisign-raising-wholesale-com-prices/",
+   "status": 200,
+   "type": "text/html; charset=UTF-8",
+   "final": "https://domainnamewire.com/2026/04/23/breaking-verisign-raising-wholesale-com-prices/",
    "err": "",
    "refs": 5
   },
@@ -4265,26 +4265,10 @@
    "refs": 5
   },
   {
-   "url": "https://www.brevo.com/products/transactional-email/",
-   "status": 200,
-   "type": "text/html; charset=utf-8",
-   "final": "https://www.brevo.com/products/transactional-email/",
-   "err": "",
-   "refs": 5
-  },
-  {
    "url": "https://www.hubspot.com/pricing/crm",
    "status": 200,
    "type": "text/html; charset=utf-8",
    "final": "https://www.hubspot.com/pricing/crm",
-   "err": "",
-   "refs": 5
-  },
-  {
-   "url": "https://blog.cloudflare.com/cloudflare-service-outage-june-12-2025/",
-   "status": 200,
-   "type": "text/html",
-   "final": "https://blog.cloudflare.com/cloudflare-service-outage-june-12-2025/",
    "err": "",
    "refs": 5
   },
@@ -4297,10 +4281,26 @@
    "refs": 5
   },
   {
-   "url": "https://blog.cloudflare.com/5-december-2025-outage/",
+   "url": "https://www.brevo.com/products/transactional-email/",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "https://www.brevo.com/products/transactional-email/",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "https://blog.cloudflare.com/cloudflare-service-outage-june-12-2025/",
    "status": 200,
    "type": "text/html",
-   "final": "https://blog.cloudflare.com/5-december-2025-outage/",
+   "final": "https://blog.cloudflare.com/cloudflare-service-outage-june-12-2025/",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "https://blog.cloudflare.com/fail-small-resilience-plan/",
+   "status": 200,
+   "type": "text/html",
+   "final": "https://blog.cloudflare.com/fail-small-resilience-plan/",
    "err": "",
    "refs": 5
   },
@@ -4329,14 +4329,6 @@
    "refs": 5
   },
   {
-   "url": "https://blog.cloudflare.com/fail-small-resilience-plan/",
-   "status": 200,
-   "type": "text/html",
-   "final": "https://blog.cloudflare.com/fail-small-resilience-plan/",
-   "err": "",
-   "refs": 5
-  },
-  {
    "url": "https://asset-voyages-redesign.pages.dev/assets/hero.jpg",
    "status": 200,
    "type": "image/jpeg",
@@ -4353,14 +4345,6 @@
    "refs": 1
   },
   {
-   "url": "https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json",
-   "status": 200,
-   "type": "application/json",
-   "final": "https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json",
-   "err": "",
-   "refs": 1
-  },
-  {
    "url": "https://asset-voyages-redesign.pages.dev/demo-wordpress/asset-congres-demo.zip",
    "status": 200,
    "type": "application/zip",
@@ -4369,24 +4353,26 @@
    "refs": 1
   },
   {
-   "url": "https://stock.adobe.com/fr/plans",
+   "url": "https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json",
    "status": 200,
-   "type": "text/html; charset=utf-8",
-   "final": "https://stock.adobe.com/fr/plans",
+   "type": "application/json",
+   "final": "https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json",
+   "err": "",
+   "refs": 1
+  },
+  {
+   "url": "https://blog.cloudflare.com/5-december-2025-outage/",
+   "status": 200,
+   "type": "text/html",
+   "final": "https://blog.cloudflare.com/5-december-2025-outage/",
    "err": "",
    "refs": 5
   },
   {
-   "url": "https://www.sft.fr/global/gene/link.php?doc_id=882&edit_lang=fr",
-   "status": 403,
-   "browserStatus": 403,
-   "note": "scripted client refused; browser status used"
-  },
-  {
-   "url": "https://www.sft.fr/global/gene/link.php?doc_id=882&edit_lang=fr",
-   "status": 403,
-   "type": "text/plain; charset=utf-8",
-   "final": "https://www.sft.fr/global/gene/link.php?doc_id=882&edit_lang=fr",
+   "url": "https://stock.adobe.com/fr/plans",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "https://stock.adobe.com/fr/plans",
    "err": "",
    "refs": 5
   },
@@ -4401,6 +4387,20 @@
    "status": 403,
    "type": "text/plain; charset=utf-8",
    "final": "https://www.sft.fr/docs/2024164729_sft-2022-enquete-traduction.pdf",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "https://www.sft.fr/global/gene/link.php?doc_id=882&edit_lang=fr",
+   "status": 403,
+   "browserStatus": 403,
+   "note": "scripted client refused; browser status used"
+  },
+  {
+   "url": "https://www.sft.fr/global/gene/link.php?doc_id=882&edit_lang=fr",
+   "status": 403,
+   "type": "text/plain; charset=utf-8",
+   "final": "https://www.sft.fr/global/gene/link.php?doc_id=882&edit_lang=fr",
    "err": "",
    "refs": 5
   }

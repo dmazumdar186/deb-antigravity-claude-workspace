@@ -1,6 +1,6 @@
 {
  "meta": {
-  "generated": "2026-11-06T12:13:53.899Z",
+  "generated": "2026-11-06T12:43:59.254Z",
   "parts": {
    "a": {
     "at": "2026-11-06T12:10:39.981Z",
@@ -40,7 +40,7 @@
     }
    },
    "hub": {
-    "at": "2026-11-06T11:59:10.634Z",
+    "at": "2026-11-06T12:41:37.889Z",
     "findings": 4,
     "states": 40,
     "logins": 0,
@@ -69,12 +69,16 @@
    "HUB:visiteur"
   ],
   "versions": {
-   "commit": "732d2eb6cc193b41077bca0daa8898b3f1d07513",
-   "dirty": [],
-   "hub demo/index.html": "deployed = source",
+   "commit": "036a55f66ecf4f1e8e2659cd450509ec7fb0fd43",
+   "dirty": [
+    "M deliverables/asset_voyages_rfp_2026-10-28/site/css/demo.css",
+    " M deliverables/asset_voyages_rfp_2026-10-28/site/demo/index.html",
+    " M deliverables/asset_voyages_rfp_2026-10-28/site/js/demo.js"
+   ],
+   "hub demo/index.html": "DIFFERS from source",
    "hub index.html": "deployed = source",
-   "hub js/demo.js": "deployed = source",
-   "hub css/demo.css": "deployed = source",
+   "hub js/demo.js": "DIFFERS from source",
+   "hub css/demo.css": "DIFFERS from source",
    "zipHosted": "b0fe713a2ce204bc3092006dfef62ccf5f34e51c28da9a5a8dd1ee5f70a25760",
    "zipLocal": "b0fe713a2ce204bc3092006dfef62ccf5f34e51c28da9a5a8dd1ee5f70a25760",
    "worker": {
@@ -248,7 +252,7 @@
   "D3": {
    "REAL": 0,
    "FALSE-POSITIVE": 0,
-   "UNTRIAGED": 2
+   "UNTRIAGED": 3
   },
   "D4": {
    "REAL": 0,
@@ -258,7 +262,7 @@
   "E1": {
    "REAL": 0,
    "FALSE-POSITIVE": 0,
-   "UNTRIAGED": 0
+   "UNTRIAGED": 3
   },
   "E2": {
    "REAL": 0,
@@ -294,29 +298,6 @@
  },
  "findings": [
   {
-   "key": "eeca7f2a74",
-   "check": "A4",
-   "option": "HUB",
-   "text": "https://www.sft.fr/global/gene/link.php?doc_id=882&edit_lang=fr",
-   "note": "HTTP 403",
-   "element": "a « 2025 survey »",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/questions/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « 2025 survey »"
-    }
-   ],
-   "count": 1,
-   "status": "UNVERIFIED",
-   "reason": "sft.fr answers 403 to scripted clients and to a real Chromium tab from this sandbox (a browser user-agent probe was refused by the auto-mode classifier). Needs one click from an ordinary browser.",
-   "ce": "CE-A4-001"
-  },
-  {
    "key": "16cea18f91",
    "check": "A4",
    "option": "HUB",
@@ -332,6 +313,29 @@
      "state": "",
      "shot": "",
      "element": "a « French translators’ union (SFT) 2022 sur »"
+    }
+   ],
+   "count": 1,
+   "status": "UNVERIFIED",
+   "reason": "sft.fr answers 403 to scripted clients and to a real Chromium tab from this sandbox (a browser user-agent probe was refused by the auto-mode classifier). Needs one click from an ordinary browser.",
+   "ce": "CE-A4-001"
+  },
+  {
+   "key": "eeca7f2a74",
+   "check": "A4",
+   "option": "HUB",
+   "text": "https://www.sft.fr/global/gene/link.php?doc_id=882&edit_lang=fr",
+   "note": "HTTP 403",
+   "element": "a « 2025 survey »",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "a « 2025 survey »"
     }
    ],
    "count": 1,
@@ -1313,6 +1317,98 @@
     }
    ],
    "count": 2,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "ada1eddcfb",
+   "check": "D3",
+   "option": "HUB",
+   "text": "3 to 5",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": "lls later, we will propose dates within ⟨3 to 5⟩ working days of your notice. ⏎  ⏎ Thursday ",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "lls later, we will propose dates within ⟨3 to 5⟩ working days of your notice. ⏎  ⏎ Thursday "
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "5bfb1dbe2b",
+   "check": "E1",
+   "option": "HUB",
+   "text": "demo/index.html",
+   "note": "deployed file differs from site/ in the repository",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/demo/index.html",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "3ca48fb6a5",
+   "check": "E1",
+   "option": "HUB",
+   "text": "js/demo.js",
+   "note": "deployed file differs from site/ in the repository",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/js/demo.js",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "7ebe627cd4",
+   "check": "E1",
+   "option": "HUB",
+   "text": "css/demo.css",
+   "note": "deployed file differs from site/ in the repository",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/css/demo.css",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
    "status": "UNTRIAGED",
    "reason": "",
    "ce": ""
@@ -2522,7 +2618,7 @@
     "w": 354,
     "vw": 390
    },
-   "frames": 62
+   "frames": 65
   }
  ],
  "midnight": {

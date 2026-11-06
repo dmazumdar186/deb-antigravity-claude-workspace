@@ -1,18 +1,18 @@
 # Client-eye gate report
 
-Generated 2026-11-06T12:13:53.899Z. Commit 732d2eb6cc193b41077bca0daa8898b3f1d07513. Spec: `28_PreMortem_Client_Eye_Gate.md`. Machine-readable: `report.json`. Triage verdicts: `triage.json`. Register: `../register/CLIENT_EYE.md`.
+Generated 2026-11-06T12:43:59.254Z. Commit 036a55f66ecf4f1e8e2659cd450509ec7fb0fd43. Spec: `28_PreMortem_Client_Eye_Gate.md`. Machine-readable: `report.json`. Triage verdicts: `triage.json`. Register: `../register/CLIENT_EYE.md`.
 
 ## Targets and versions
 
-- Hub: 5 tasks parsed, group section present; demo/index.html deployed = source, index.html deployed = source, js/demo.js deployed = source, css/demo.css deployed = source
+- Hub: 5 tasks parsed, group section present; demo/index.html DIFFERS from source, index.html deployed = source, js/demo.js DIFFERS from source, css/demo.css DIFFERS from source
 - Option B Worker: dba3b6e7-d2ad-45c1-bfba-5132a304268a deployed 2026-11-06T10:55:45.590122Z; custom_demo/src last commit 0459ede 2026-11-06T10:54:46+00:00
 - Option A: local Playground http://127.0.0.1:9460 built from the current wp_demo/ (zip b0fe713a2ce2); hosted zip b0fe713a2ce2
-- Uncommitted source changes at run time: none
+- Uncommitted source changes at run time: M deliverables/asset_voyages_rfp_2026-10-28/site/css/demo.css;  M deliverables/asset_voyages_rfp_2026-10-28/site/demo/index.html;  M deliverables/asset_voyages_rfp_2026-10-28/site/js/demo.js
 - States captured: 315; widths 320, 390, 768, 1280, 1440, 1920; roles A:visiteur, A:direction, A:contributeur, A:equipe, A-hosted:visiteur, B:visiteur, B:contributeur, B:equipe, B:voyageur, HUB:visiteur
 - Part a: run 2026-11-06T12:10:39.981Z, logins 3, writing contexts 2
 - Part ahosted: run 2026-11-06T12:11:22.680Z, logins 3, writing contexts 2
 - Part b: run 2026-11-06T12:03:32.295Z, logins 3, writing contexts 2, own sandboxes 1
-- Part hub: run 2026-11-06T11:59:10.634Z
+- Part hub: run 2026-11-06T12:41:37.889Z
 
 ## Per check
 
@@ -44,9 +44,9 @@ Generated 2026-11-06T12:13:53.899Z. Commit 732d2eb6cc193b41077bca0daa8898b3f1d07
 | C10 | auto | Instruction replay: each hub step followed literally by visible labels | 3 | 0 | 8 | FAIL |
 | D1 | auto | Every « Works in the demo » cell backed by evidence; « Built during the project » not faked by UI | 0 | 0 | 5 | FAIL |
 | D2 | auto | Fictional people: @example.com, fiction phone ranges, no real congress names | 0 | 0 | 0 | PASS |
-| D3 | auto | Every number on the hub is a week, a date, our demo data, or traced to a source line | 0 | 0 | 2 | FAIL |
+| D3 | auto | Every number on the hub is a week, a date, our demo data, or traced to a source line | 0 | 0 | 3 | FAIL |
 | D4 | auto | No GM&E code in DOM, attributes or inputs outside an approved reveal | 0 | 0 | 0 | PASS |
-| E1 | auto | Report names the commit and deployed versions; hub links checked against live versions | 0 | 0 | 0 | PASS |
+| E1 | auto | Report names the commit and deployed versions; hub links checked against live versions | 0 | 0 | 3 | FAIL |
 | E2 | process | Full suites twice green after every change; this gate runs last | 0 | 0 | 0 | HUMAN/PROCESS |
 | E3 | auto | Screenshots taken by this run from fresh contexts on the deployed sites | 0 | 0 | 0 | PASS |
 | E4 | n/a | WebKit and Firefox | 0 | 0 | 0 | N/A |
@@ -68,8 +68,8 @@ Gate errors: 1
 
 | CE | Status | Option | Text / element | Note | Where (page · role · width) | Shot | Reason |
 |---|---|---|---|---|---|---|---|
-| CE-A4-001 | UNVERIFIED | HUB | https://www.sft.fr/global/gene/link.php?doc_id=882&edit_lang=fr · `a « 2025 survey »` | HTTP 403 | https://asset-voyages-redesign.pages.dev/questions/ · visiteur ·  |  | sft.fr answers 403 to scripted clients and to a real Chromium tab from this sandbox (a browser user-agent probe was refused by the auto-mode classifier). Needs one click from an ordinary browser. |
 | CE-A4-001 | UNVERIFIED | HUB | https://www.sft.fr/docs/2024164729_sft-2022-enquete-traduction.pdf · `a « French translators’ union (SFT) 2022 sur »` | HTTP 403 | https://asset-voyages-redesign.pages.dev/questions/ · visiteur ·  |  | sft.fr answers 403 to scripted clients and to a real Chromium tab from this sandbox (a browser user-agent probe was refused by the auto-mode classifier). Needs one click from an ordinary browser. |
+| CE-A4-001 | UNVERIFIED | HUB | https://www.sft.fr/global/gene/link.php?doc_id=882&edit_lang=fr · `a « 2025 survey »` | HTTP 403 | https://asset-voyages-redesign.pages.dev/questions/ · visiteur ·  |  | sft.fr answers 403 to scripted clients and to a real Chromium tab from this sandbox (a browser user-agent probe was refused by the auto-mode classifier). Needs one click from an ordinary browser. |
 
 ### B4
 
@@ -154,6 +154,15 @@ Gate errors: 1
 |---|---|---|---|---|---|---|---|
 | f5941be923 | UNTRIAGED | HUB | one · `rdPress starts fresh each time you open ⟨one⟩ of these links, so nothing from an` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  |  |  |
 | 7bd7b4fa2a | UNTRIAGED | HUB | 24 · `their browser. Trials are cleared after ⟨24⟩ hours without use. ⏎  ⏎ 2 Try it yo` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  (2×) |  |  |
+| ada1eddcfb | UNTRIAGED | HUB | 3 to 5 · `lls later, we will propose dates within ⟨3 to 5⟩ working days of your notice. ⏎ ` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  |  |  |
+
+### E1
+
+| CE | Status | Option | Text / element | Note | Where (page · role · width) | Shot | Reason |
+|---|---|---|---|---|---|---|---|
+| 5bfb1dbe2b | UNTRIAGED | HUB | demo/index.html | deployed file differs from site/ in the repository | https://asset-voyages-redesign.pages.dev/demo/index.html · visiteur ·  |  |  |
+| 3ca48fb6a5 | UNTRIAGED | HUB | js/demo.js | deployed file differs from site/ in the repository | https://asset-voyages-redesign.pages.dev/js/demo.js · visiteur ·  |  |  |
+| 7ebe627cd4 | UNTRIAGED | HUB | css/demo.css | deployed file differs from site/ in the repository | https://asset-voyages-redesign.pages.dev/css/demo.css · visiteur ·  |  |  |
 
 ### GATE
 

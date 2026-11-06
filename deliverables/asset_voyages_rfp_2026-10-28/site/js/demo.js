@@ -102,7 +102,8 @@
     }
   }
 
-  // ---- recordings: the section stays hidden until a file is announced in media/manifest.json ----
+  // ---- recordings: the markup is rendered from media/manifest.json (a link to each announced file,
+  // no fallback text); this upgrades each link to a player and drops anything the manifest no longer announces ----
   const recs = [...document.querySelectorAll('[data-rec]')];
   const fail = (fig, msg) => {
     const v = fig.querySelector('video');
@@ -129,6 +130,8 @@
     v.addEventListener('error', () => fail(fig, 'This recording could not be loaded just now.'));
     v.appendChild(s);
     if (empty) empty.hidden = true;
+    const file = fig.querySelector('[data-rec-file]');
+    if (file) file.remove();
     frame.prepend(v);
   };
   if (recs.length && window.fetch) {
@@ -136,12 +139,13 @@
       .then((r) => (r.ok ? r.json() : {}))
       .then((m) => {
         const ready = recs.filter((fig) => m && m[fig.dataset.rec] === true);
+        recs.filter((fig) => !ready.includes(fig)).forEach((fig) => fig.remove());
+        const sec = document.querySelector('[data-recs]'), nav = document.querySelector('[data-rec-nav]');
+        if (sec) sec.hidden = !ready.length;
+        if (nav) nav.hidden = !ready.length;
         if (!ready.length) return;
         ready.forEach((fig) => { fig.hidden = false; mount(fig); });
-        const sec = document.querySelector('[data-recs]'), nav = document.querySelector('[data-rec-nav]');
-        if (sec) sec.hidden = false;
-        if (nav) nav.hidden = false;
-        if (ready.length === 1) sec.classList.add('recs--one');
+        if (ready.length === 1 && sec) sec.classList.add('recs--one');
       })
       .catch(() => {});
   }

@@ -7,13 +7,13 @@
  },
  {
   "n": "Two",
-  "ctx": "E codes ⏎ Milestones ⏎ Book a demonstration ⏎ ⟨Two⟩ working demos. Try both, choose one. ⏎  ⏎ S",
+  "ctx": "built ⏎ GM&E codes ⏎ Milestones ⏎ Book a demo ⏎ ⟨Two⟩ working demos. Try both, choose one. ⏎  ⏎ S",
   "cls": "our own deliverable count (two demos, two recordings)",
   "src": null
  },
  {
   "n": "one",
-  "ctx": "ion ⏎ Two working demos. Try both, choose ⟨one⟩. ⏎  ⏎ Same requirements, fictional data and",
+  "ctx": "emo ⏎ Two working demos. Try both, choose ⟨one⟩. ⏎  ⏎ Same requirements, fictional data and",
   "cls": "our own deliverable count (two demos, two recordings)",
   "src": null
  },
@@ -54,14 +54,14 @@
   "src": null
  },
  {
-  "n": "15 to 30",
-  "ctx": "site ⏎ of Option A (new tab) ⏎  ⏎ Takes about ⟨15 to 30⟩ seconds to start. If it stays on the lo",
+  "n": "15 to 25",
+  "ctx": "site ⏎ of Option A (new tab) ⏎  ⏎ Takes about ⟨15 to 25⟩ seconds to start. If it stays on the lo",
   "cls": "measured by this gate (A2 hosted boot)",
   "src": null
  },
  {
-  "n": "15 to 30",
-  "ctx": "d in ⏎ to Option A (new tab) ⏎  ⏎ Takes about ⟨15 to 30⟩ seconds to start. If it stays on the lo",
+  "n": "15 to 25",
+  "ctx": "d in ⏎ to Option A (new tab) ⏎  ⏎ Takes about ⟨15 to 25⟩ seconds to start. If it stays on the lo",
   "cls": "measured by this gate (A2 hosted boot)",
   "src": null
  },
@@ -271,7 +271,7 @@
  },
  {
   "n": "one",
-  "ctx": " by hand. ⏎  ⏎ What it does ⏎ Your team sends ⟨one⟩ link ⏎ for the enquiry, in its reply to t",
+  "ctx": " by hand. ⏎  ⏎ What it does ⏎ Your team sends ⟨one⟩ link for the enquiry, in its reply to t",
   "cls": "the word « one » as a pronoun or article, not a figure",
   "src": null
  },
@@ -462,75 +462,45 @@
   "src": "27_Email_Reply_Draft.md:30"
  },
  {
+  "n": "3 to 5",
+  "ctx": "lls later, we will propose dates within ⟨3 to 5⟩ working days of your notice. ⏎  ⏎ Thursday ",
+  "cls": null,
+  "src": null
+ },
+ {
   "n": "12",
-  "ctx": "in. All times are Paris time. ⏎  ⏎ Thursday ⟨12⟩ November ⏎  ⏎ 10:00 ⏎ 14:30 ⏎  ⏎ Friday 13 Novemb",
+  "ctx": " working days of your notice. ⏎  ⏎ Thursday ⟨12⟩ November ⏎  ⏎ 10:00 ⏎  ⏎ Monday 16 November ⏎  ⏎ 14",
   "cls": "date",
   "src": null
  },
  {
   "n": "10:00",
-  "ctx": " are Paris time. ⏎  ⏎ Thursday 12 November ⏎  ⏎ ⟨10:00⟩ ⏎ 14:30 ⏎  ⏎ Friday 13 November ⏎  ⏎ 10:00 ⏎  ⏎ Monda",
-  "cls": "date (time slot)",
-  "src": null
- },
- {
-  "n": "14:30",
-  "ctx": "aris time. ⏎  ⏎ Thursday 12 November ⏎  ⏎ 10:00 ⏎ ⟨14:30⟩ ⏎  ⏎ Friday 13 November ⏎  ⏎ 10:00 ⏎  ⏎ Monday 16 N",
-  "cls": "date (time slot)",
-  "src": null
- },
- {
-  "n": "13",
-  "ctx": "ursday 12 November ⏎  ⏎ 10:00 ⏎ 14:30 ⏎  ⏎ Friday ⟨13⟩ November ⏎  ⏎ 10:00 ⏎  ⏎ Monday 16 November ⏎  ⏎ 10",
-  "cls": "date",
-  "src": null
- },
- {
-  "n": "10:00",
-  "ctx": "ember ⏎  ⏎ 10:00 ⏎ 14:30 ⏎  ⏎ Friday 13 November ⏎  ⏎ ⟨10:00⟩ ⏎  ⏎ Monday 16 November ⏎  ⏎ 10:00 ⏎ 14:30 ⏎  ⏎ Tuesd",
+  "ctx": " of your notice. ⏎  ⏎ Thursday 12 November ⏎  ⏎ ⟨10:00⟩ ⏎  ⏎ Monday 16 November ⏎  ⏎ 14:30 ⏎  ⏎ Tuesday 17 ",
   "cls": "date (time slot)",
   "src": null
  },
  {
   "n": "16",
-  "ctx": "4:30 ⏎  ⏎ Friday 13 November ⏎  ⏎ 10:00 ⏎  ⏎ Monday ⟨16⟩ November ⏎  ⏎ 10:00 ⏎ 14:30 ⏎  ⏎ Tuesday 17 Novem",
+  "ctx": "e. ⏎  ⏎ Thursday 12 November ⏎  ⏎ 10:00 ⏎  ⏎ Monday ⟨16⟩ November ⏎  ⏎ 14:30 ⏎  ⏎ Tuesday 17 November ⏎  ⏎ 1",
   "cls": "date",
   "src": null
  },
  {
-  "n": "10:00",
-  "ctx": "13 November ⏎  ⏎ 10:00 ⏎  ⏎ Monday 16 November ⏎  ⏎ ⟨10:00⟩ ⏎ 14:30 ⏎  ⏎ Tuesday 17 November ⏎  ⏎ 10:00 ⏎ 14:30",
-  "cls": "date (time slot)",
-  "src": null
- },
- {
   "n": "14:30",
-  "ctx": "ember ⏎  ⏎ 10:00 ⏎  ⏎ Monday 16 November ⏎  ⏎ 10:00 ⏎ ⟨14:30⟩ ⏎  ⏎ Tuesday 17 November ⏎  ⏎ 10:00 ⏎ 14:30 ⏎  ⏎ Sugg",
+  "ctx": "12 November ⏎  ⏎ 10:00 ⏎  ⏎ Monday 16 November ⏎  ⏎ ⟨14:30⟩ ⏎  ⏎ Tuesday 17 November ⏎  ⏎ 10:00 ⏎  ⏎ Suggest an",
   "cls": "date (time slot)",
   "src": null
  },
  {
   "n": "17",
-  "ctx": "onday 16 November ⏎  ⏎ 10:00 ⏎ 14:30 ⏎  ⏎ Tuesday ⟨17⟩ November ⏎  ⏎ 10:00 ⏎ 14:30 ⏎  ⏎ Suggest another ",
+  "ctx": ":00 ⏎  ⏎ Monday 16 November ⏎  ⏎ 14:30 ⏎  ⏎ Tuesday ⟨17⟩ November ⏎  ⏎ 10:00 ⏎  ⏎ Suggest another time ⏎  ⏎ ",
   "cls": "date",
   "src": null
  },
  {
   "n": "10:00",
-  "ctx": "mber ⏎  ⏎ 10:00 ⏎ 14:30 ⏎  ⏎ Tuesday 17 November ⏎  ⏎ ⟨10:00⟩ ⏎ 14:30 ⏎  ⏎ Suggest another time ⏎  ⏎ Nothing on",
+  "ctx": "6 November ⏎  ⏎ 14:30 ⏎  ⏎ Tuesday 17 November ⏎  ⏎ ⟨10:00⟩ ⏎  ⏎ Suggest another time ⏎  ⏎ Nothing on this ",
   "cls": "date (time slot)",
-  "src": null
- },
- {
-  "n": "14:30",
-  "ctx": "10:00 ⏎ 14:30 ⏎  ⏎ Tuesday 17 November ⏎  ⏎ 10:00 ⏎ ⟨14:30⟩ ⏎  ⏎ Suggest another time ⏎  ⏎ Nothing on this ",
-  "cls": "date (time slot)",
-  "src": null
- },
- {
-  "n": "one",
-  "ctx": "e. If you would like a sample built for ⟨one⟩ of your own congresses, we can do that ",
-  "cls": "the word « one » as a pronoun or article, not a figure",
   "src": null
  }
 ]

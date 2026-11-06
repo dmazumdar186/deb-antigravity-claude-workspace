@@ -140,6 +140,11 @@ main>section+section{border-top:1px solid var(--rule)}
 .recs--one .recs__grid{grid-template-columns:minmax(0,1fr);max-width:760px}
 .rec__frame{aspect-ratio:16 / 9;border-radius:10px;overflow:clip;background:var(--ink);color:var(--on-dark);display:grid}
 .rec__frame video{width:100%;height:100%;object-fit:contain;background:var(--ink)}
+.rec__file{position:relative;display:grid;place-items:center;color:var(--on-dark);text-decoration:none}
+.rec__file img{grid-area:1 / 1;width:100%;height:100%;object-fit:cover;opacity:.55}
+.rec__play{grid-area:1 / 1;padding:12px 16px;border-radius:2px;background:var(--ink);font-weight:600;min-height:44px;display:grid;place-items:center}
+.rec__file:hover .rec__play,.rec__file:focus-visible .rec__play{text-decoration:underline}
+.rec__file:focus-visible{outline-color:var(--or-soft)}
 .rec__empty{display:grid;align-content:center;gap:8px;padding:24px clamp(16px,3vw,36px);border:1px dashed var(--rule-dark);border-radius:10px;margin:8px}
 .rec__state{font:500 clamp(22px,2vw,28px)/1.15 var(--font-display)}
 .rec__empty a{color:var(--on-dark)}
