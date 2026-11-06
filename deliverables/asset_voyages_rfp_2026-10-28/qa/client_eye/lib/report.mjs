@@ -71,7 +71,7 @@ export function writeReport({ parts, results, hub }) {
   const roles = [...new Set(RUN.coverage.map((c) => `${c.option}:${c.role}`))];
   const meta = { generated: new Date().toISOString(), parts: Object.fromEntries(Object.entries(parts).map(([k, p]) => [k, { at: p.at, findings: p.findings.length, states: p.states.length, logins: p.logins, writing: p.writing, sbx: p.sbx, resets: p.resets, target: p.target }])), states: RUN.states.length, widths, roles, versions: results.versions, checks: RUN.checks };
   const json = { meta, perCheck: per, realPerOption: perOpt, findings: list, replay: { A: (parts.a || {}).replay || [], B: (parts.b || {}).replay || [], Ahosted: (parts.ahosted || {}).replay || [] }, boots: (parts.ahosted || {}).boots || [], claims: results.claims, glossary: results.glossary, styles: results.styles, videos: results.videos, midnight: results.midnight, email: results.email, notes: RUN.notes };
-  writeFileSync(join(HERE, 'report.json'), JSON.stringify(json, null, 1));
+  writeFileSync(join(process.env.CE_OUT ? OUT : HERE, 'report.json'), JSON.stringify(json, null, 1));
 
   const md = [];
   const esc = (s) => String(s ?? '').replace(/\|/g, '\\|').replace(/\n/g, ' ');
@@ -114,5 +114,5 @@ export function writeReport({ parts, results, hub }) {
   md.push('', '## B6 glossary', '', '| Term | A | B | Hub quotes |', '|---|---|---|---|');
   for (const g of results.glossary || []) md.push(`| ${g.term} | ${g.A.join(' / ')} | ${g.B.join(' / ')} | ${g.hub.join(' / ')} |`);
   md.push('', '## Notes', '', ...RUN.notes.map((n) => `- ${esc(n)}`));
-  writeFileSync(join(HERE, 'report.md'), md.join('\n') + '\n');
+  writeFileSync(join(process.env.CE_OUT ? OUT : HERE, 'report.md'), md.join('\n') + '\n');
 }

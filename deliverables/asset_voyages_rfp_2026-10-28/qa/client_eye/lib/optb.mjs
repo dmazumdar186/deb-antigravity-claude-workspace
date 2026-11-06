@@ -8,7 +8,8 @@ import { join } from 'node:path';
 
 export const B = process.env.B_BASE || 'https://asset-voyages-demo.debanjan186.workers.dev';
 const OPT = 'B';
-const MAX_LOGINS = 10;
+const MAX_LOGINS = B.includes('localhost') ? 1000 : 10; // the live budget; a local dry run is unbounded
+const toB = (href) => String(href || '').replace(/^https:\/\/asset-voyages-demo\.debanjan186\.workers\.dev\/?/, B + '/');
 const PASSWORD = 'demo-asset';
 
 async function sbxOf(ctx) { const c = (await ctx.cookies()).find((x) => x.name === '__Host-av_sbx'); return c ? c.value : ''; }
@@ -127,7 +128,7 @@ export async function replayB(browser, hub) {
     if (!/sign in as contributeur/i.test(s.text)) return 'step text changed: re-map the replay';
     const href = (s.links.find((l) => /console/.test(l.href)) || {}).href;
     if (!href) return 'no « Open the team console » link in the step';
-    await page.goto(href);
+    await page.goto(toB(href));
     return login(page, 'contributeur', ag);
   });
   await crawlNav(page, 'contributeur');
@@ -168,7 +169,7 @@ export async function replayB(browser, hub) {
   await step('T2', 1, s.text, async () => {
     const href = (s.links.find((l) => /workers\.dev/.test(l.href)) || {}).href;
     if (!href) return 'no « Open the visitor site » link';
-    await page.goto(href);
+    await page.goto(toB(href));
     // « go to the congress catalogue »: either the landing page is it, or a visible label leads to it
     if (await page.getByRole('heading', { name: /catalogue/i }).count()) return null;
     return ag.click('Catalogue des congrès');
@@ -225,7 +226,7 @@ export async function replayB(browser, hub) {
   s = hubStep(3, 1);
   await step('T4', 1, s.text, async () => {
     const href = (s.links.find((l) => /console/.test(l.href)) || {}).href;
-    await page.goto(href || B + '/console');
+    await page.goto(href ? toB(href) : B + '/console');
     const w = await login(page, 'equipe', ag); if (w) return w;
     return ag.click('Demandes', { within: 'nav.side', exact: false });
   });
@@ -320,7 +321,7 @@ export async function replayB(browser, hub) {
   await step('G', 1, s.text, async () => {
     const href = (s.links.find((l) => /demandes\/1/.test(l.href)) || {}).href;
     if (!href) return 'no « Open enquiry DV-2026-0001 » link';
-    await page.goto(href);
+    await page.goto(toB(href));
     if (page.url().includes('connexion')) { const w = await login(page, 'equipe', ag); if (w) return w; }
     return (await ag.sees('DV-2026-0001')) ? null : 'enquiry DV-2026-0001 not shown after sign-in';
   });

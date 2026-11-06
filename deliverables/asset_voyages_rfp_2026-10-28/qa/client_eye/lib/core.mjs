@@ -6,7 +6,7 @@ import { INIT_SCRIPT, collectPage, armMutation } from './collect.mjs';
 import * as R from './rules.mjs';
 
 export const HERE = join(dirname(fileURLToPath(import.meta.url)), '..');
-export const OUT = join(HERE, 'out');
+export const OUT = process.env.CE_OUT ? join(HERE, process.env.CE_OUT) : join(HERE, 'out'); // CE_OUT: dry runs write elsewhere
 export const SHOTS = join(OUT, 'shots');
 mkdirSync(SHOTS, { recursive: true });
 const PW = new URL('../../B/ux/node_modules/playwright/index.mjs', import.meta.url);
@@ -72,7 +72,7 @@ export async function snap(page, opts) {
   const name = `${String(++shotN).padStart(4, '0')}-${safe(opts.option)}-${safe(m.role)}-${width}-${safe(opts.state)}.png`;
   let shot = '';
   if (opts.shot !== false) {
-    try { await page.screenshot({ path: join(SHOTS, name), fullPage: width <= 1440, timeout: 30000 }); shot = 'out/shots/' + name; } catch (e) { log('shot failed', name, e.message.split('\n')[0]); }
+    try { await page.screenshot({ path: join(SHOTS, name), fullPage: width <= 1440, timeout: 30000 }); shot = relative(HERE, join(SHOTS, name)); } catch (e) { log('shot failed', name, e.message.split('\n')[0]); }
   }
   const base = { option: opts.option, page: data.url, role: m.role, width, locale: m.locale, shot, state: opts.state };
   const st = { ...base, title: data.title, lang: data.lang, surface: opts.surface, cls: data.cls, overflow: data.overflow, b4: data.b4.length };
