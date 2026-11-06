@@ -1,6 +1,6 @@
 PASS SMOKE-hosted-visitor-no-Bonjour Bonjour present=false
-PASS SMOKE-hosted-visitor-12-congresses boot=15.005s resultCountText=12 congr exemple=9 cards=18
-PASS SMOKE-hosted-admin-demandes-loggedin boot=15.353s adminbar=1 url=/scope:bfvx-bfwy-akde/wp-admin/admin.php?page=asset-demandes
+PASS SMOKE-hosted-visitor-12-congresses boot=15.561s resultCountText=12 congr exemple=9 cards=18
+PASS SMOKE-hosted-admin-demandes-loggedin boot=14.99s adminbar=1 url=/scope:sujh-omgj-dwzn/wp-admin/admin.php?page=asset-demandes
 PASS SMOKE-local / status 200
 PASS SMOKE-local /congres/ status 200
 PASS SMOKE-local /wp-login.php status 200
