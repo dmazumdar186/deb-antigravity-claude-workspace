@@ -28,7 +28,7 @@
   "id": "1.4",
   "desc": "Visitor side: catalogue search finds the new congress",
   "status": "PASS",
-  "obs": "Congrès UAT 65511",
+  "obs": "Congrès UAT 32218",
   "shot": "evidence/uat-390-1.4.png"
  },
  {
@@ -76,7 +76,7 @@
   "id": "1.10",
   "desc": "Direction: draft is « À relire » and can be published",
   "status": "PASS",
-  "obs": "Brouillon UAT 65511",
+  "obs": "Brouillon UAT 32218",
   "shot": "evidence/uat-390-1.10.png"
  },
  {
@@ -204,7 +204,7 @@
   "id": "4.1",
   "desc": "« Tableau de bord »: the newest item in « Dernières demandes » is the new reference; note the « Nouvelles » count",
   "status": "PASS",
-  "obs": "first=DV-2026-0007 Veena UAT 65511 (exemple); Nouvelles=3",
+  "obs": "first=DV-2026-0007 Veena UAT 32218 (exemple); Nouvelles=3",
   "shot": "evidence/uat-390-4.1.png"
  },
  {
@@ -218,9 +218,9 @@
  {
   "W": 390,
   "id": "4.3",
-  "desc": "Click « Qualifiée » → « Enregistré. »; badge reads Qualifiée",
-  "status": "FAIL",
-  "obs": "Aller au contenu ASSET Console Karim Benali, Équipe Se déconnecter Tableau de bord Congrès Demandes 2 en attente Notifications Codes GM&E",
+  "desc": "Click « Qualifiée » → « Statut mis à jour : Qualifiée. »; badge reads Qualifiée",
+  "status": "PASS",
+  "obs": "Statut mis à jour : Qualifiée.",
   "shot": "evidence/uat-390-4.3.png"
  },
  {
@@ -276,7 +276,7 @@
   "id": "4.10",
   "desc": "« Exporter (tableur CSV) » downloads a file containing the reference",
   "status": "PASS",
-  "obs": "demandes-2026-11-05.csv 2 lines",
+  "obs": "demandes-2026-11-06.csv 2 lines",
   "shot": "evidence/uat-390-4.10.png"
  },
  {

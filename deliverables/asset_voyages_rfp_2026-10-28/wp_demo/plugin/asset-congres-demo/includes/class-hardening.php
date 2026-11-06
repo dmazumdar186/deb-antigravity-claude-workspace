@@ -31,6 +31,10 @@ class Asset_CD_Hardening {
 		add_filter( 'user_can_richedit', array( __CLASS__, 'plain_editor' ) );
 		add_action( 'edit_form_after_title', array( __CLASS__, 'editor_label' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'no_autosave' ), 100 );
+		// WordPress 7 opts wp-admin into cross-document view transitions (@view-transition). Moving from an
+		// opted-in admin page to the front end, or interrupting a navigation, throws an uncaught
+		// "Transition was aborted … ViewTransition opt-in disabled" page error; it also ghosted screenshots.
+		remove_action( 'admin_enqueue_scripts', 'wp_enqueue_view_transitions_admin_css' );
 	}
 
 	/**

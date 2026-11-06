@@ -176,6 +176,32 @@ test('FIX-A-7 semgrep echoed-request hits: request data no longer reaches output
 	const src = fs.readFileSync(path.join(ROOT, 'plugin/asset-congres-demo/includes/class-gme-admin.php'), 'utf8');
 	expect(src).not.toMatch(/selected\(\s*\$edit/);
 	expect(src).toMatch(/\$edit = isset\( \$_GET\['edit'\] \) \? absint/);
+	// Every remaining exemption states its reason.
+	for (const line of src.split('\n').filter((l) => l.includes('nosemgrep'))) expect(line).toMatch(/nosemgrep: [\w.-]+ -- .{20,}/);
+	// Semgrep itself (PHP pack) when available: 0 findings.
+	let sg = null;
+	try { execFileSync('semgrep', ['--version'], { stdio: 'ignore' }); sg = true; } catch (e) { sg = false; }
+	if (sg) {
+		const out = execFileSync('semgrep', ['scan', '--config', 'p/php', '--json', '-q', path.join(ROOT, 'plugin/asset-congres-demo')], { encoding: 'utf8', timeout: 300000, maxBuffer: 50e6 });
+		expect(JSON.parse(out).results.map((r) => `${r.path}:${r.start.line} ${r.check_id}`)).toEqual([]);
+	}
+});
+
+test('FIX-A-19 no cross-document view transitions in wp-admin (no "Transition was aborted" page errors)', async ({ browser }) => {
+	const { ctx, page } = await asRole(browser, 'direction');
+	const errors = [];
+	page.on('pageerror', (e) => errors.push(e.message));
+	await page.goto('/wp-admin/');
+	expect(await page.content()).not.toContain('wp-view-transitions-admin');
+	// Rapid admin ↔ front navigation, interrupted on purpose.
+	for (const u of ['/wp-admin/admin.php?page=asset-gme', '/', '/wp-admin/admin.php?page=asset-demandes', '/?q=lyon', '/wp-admin/']) {
+		page.goto(u).catch(() => {});
+		await page.waitForTimeout(150);
+	}
+	await page.goto('/wp-admin/');
+	await page.waitForLoadState('networkidle');
+	expect(errors.filter((m) => /Transition|ViewTransition/.test(m))).toEqual([]);
+	await ctx.close();
 });
 
 test('FIX-A-8 code format check rejects a trailing newline', () => {

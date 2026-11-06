@@ -16,7 +16,7 @@ This is internal UAT, run by ProdCraft. The client's own UAT is part of the proj
 - To start clean, log in as `direction` and click « Réinitialiser la démo » on « Tableau de bord ».
 - All data is fictional. Codes look like `DEMO-GME-…`.
 
-**Run:** 5 Nov 2026, on live, by an internal reviewer acting as a first-time office assistant. Each step was run twice: in a desktop browser (1440 px) and a phone-size browser (390 px), in French. Evidence for each step is a screenshot `qa/B/ux/evidence/uat-<1440|390>-<step>.png` plus the log lines in `qa/B/ux/uat1440.log` and `qa/B/ux/uat390.log`. Reference numbers below come from the 1440 run.
+**Run:** 5 Nov 2026 (first run), re-run 6 Nov 2026 on live Worker version `29d23da1-4707-436e-8b91-dbdb96fd844c`, by an internal reviewer acting as a first-time office assistant. Each step was run twice: in a desktop browser (1440 px) and a phone-size browser (390 px), in French. Evidence for each step is a screenshot `qa/B/ux/evidence/uat-<1440|390>-<step>.png` plus the log lines in `qa/B/ux/uat1440.log` and `qa/B/ux/uat390.log`. Reference numbers below come from the 1440 run.
 
 ### Scenario 1: create and edit a congress (S1)
 
@@ -29,7 +29,7 @@ This is internal UAT, run by ProdCraft. The client's own UAT is part of the proj
 | 1.5 | Back in the console, click « Congrès », then click the congress title. Change « Ville » to `Marseille` and click « Enregistrer ». | « Modifications enregistrées. » | PASS | PASS | « Modifications enregistrées. » |
 | 1.6 | Click « Voir la fiche publique ». | The public page shows « Marseille (France) ». | PASS | PASS | « Marseille (France) » |
 | 1.7 | Click « Nouveau congrès » again. Fill in the form with « Date de fin » before « Date de début », then click « Publier ». | Nothing is saved, and a message explains the problem. | PASS | PASS | « Date de fin : La date de fin doit être le jour du début ou après. » |
-| 1.8 | Click « Se déconnecter » and log in as `contributeur`. Click « Nouveau congrès », fill in the form, then click « Soumettre à relecture ». | There is no « Publier » button. The status reads « À relire ». | PASS | PASS | 0 « Publier » buttons; badge « À relire » (the message says « Congrès créé. »; see USAB-B-013) |
+| 1.8 | Click « Se déconnecter » and log in as `contributeur`. Click « Nouveau congrès », fill in the form, then click « Soumettre à relecture ». | There is no « Publier » button. The status reads « À relire ». | PASS | PASS | 0 « Publier » buttons; badge « À relire »; message « Congrès créé. Soumis à relecture. » |
 | 1.9 | **Visitor side:** search the catalogue for that title. | « Aucun congrès trouvé ». The draft is not public. | PASS | PASS | « Aucun congrès trouvé » |
 | 1.10 | Log in as `direction`. Click « Congrès », then « À relire ». Open the congress and click « Publier ». Then search the catalogue for it again. | It is now listed. | PASS | PASS | title found |
 
@@ -64,18 +64,18 @@ This is internal UAT, run by ProdCraft. The client's own UAT is part of the proj
 |---|---|---|---|---|---|
 | 4.1 | As `equipe`, open « Tableau de bord » and note the number on « Nouvelles ». | The new reference is first in « Dernières demandes ». | PASS | PASS | DV-2026-0007 first; « Nouvelles » = 3 |
 | 4.2 | Click the reference. | You see the congress, contact, e-mail, « Ville de départ », « Aller », « Retour », « Passagers », and the status « Nouvelle ». | PASS | PASS | all shown |
-| 4.3 | Under « Changer le statut », click « Qualifiée ». | « Enregistré. » appears and the badge reads « Qualifiée ». | PASS | PASS | « Enregistré. » |
+| 4.3 | Under « Changer le statut », click « Qualifiée ». | « Statut mis à jour : Qualifiée. » appears and the badge reads « Qualifiée ». | PASS | PASS | « Statut mis à jour : Qualifiée. » |
 | 4.4 | Click « Me l’attribuer ». | « Responsable » shows Karim Benali. | PASS | PASS | « Karim Benali, Équipe » |
 | 4.5 | Type a note under « Note interne » and click « Ajouter la note ». | The note appears in « Historique ». | PASS | PASS | note shown |
 | 4.6 | Click « Devis envoyé », then « Gagnée ». | « Historique » shows each change with who made it, when, and the old and new status. | PASS | PASS | « Nouvelle vers Qualifiée », « Qualifiée vers Devis envoyé », « Devis envoyé vers Gagnée » |
 | 4.7 | Look at « Historique ». | There is no edit or delete button. | PASS | PASS | 0 buttons |
 | 4.8 | Go back to « Tableau de bord ». | « Nouvelles » has gone down by one. | PASS | PASS | 3 → 2 |
 | 4.9 | Click « Demandes », then the « Gagnée » filter. Then search for the reference with « Rechercher ». | The enquiry appears in both. | PASS | PASS | found / 1 row |
-| 4.10 | Click « Exporter (tableur CSV) ». | A spreadsheet file downloads, with the enquiry in it. | PASS | PASS | `demandes-2026-11-05.csv`. The export follows the active search. |
+| 4.10 | Click « Exporter (tableur CSV) ». | A spreadsheet file downloads, with the enquiry in it. | PASS | PASS | `demandes-2026-11-06.csv`. The export follows the active search. |
 | 4.11 | **Visitor side:** log out and search the public catalogue for the visitor's name. | Nothing is found, so enquiries are never public. | PASS | PASS | « Aucun congrès trouvé » |
 | 4.12 | Log in as `contributeur` and open `/console/demandes`. | Access refused. | PASS | PASS | HTTP 403 |
 
-Observation for 4.2 and 4.9: on a desktop screen, the « Demandes » table hides the columns « Passagers », « Statut » and « Responsable » past its right edge. They only show if you scroll sideways inside the table, and nothing on screen tells you to. The steps still pass, but a first-time user would not find the status in the list. This is logged as USAB-B-011 (major) and is to be fixed before sending.
+Observation for 4.2 and 4.9 (re-run 6 Nov): the « Demandes » table now fits a desktop screen; « Statut » is the second column and « Voyage » groups departure, dates and passengers. USAB-B-011 is closed.
 
 ### Scenario 5: GM&E codes, access by authorisation (S5)
 
@@ -93,7 +93,7 @@ Observation for 4.2 and 4.9: on a desktop screen, the « Demandes » table hides
 | 5.10 | Click « Demandes d’accès », then « Révoquer maintenant ». | « Accès révoqué immédiatement. » | PASS | PASS | shown |
 | 5.11 | Log in as `equipe` and click « Codes ». | « Afficher le code » is gone. A new request is needed. | PASS | PASS | 0 buttons |
 
-**Result, Option B:** all 48 steps PASS at 1440 px and at 390 px. There is one observation, USAB-B-011, to fix before sending.
+**Result, Option B (re-run 6 Nov 2026, live version `29d23da1-4707-436e-8b91-dbdb96fd844c`):** all 48 steps PASS at 1440 px and at 390 px. USAB-B-011 is fixed. Step 4.3 now expects the new message « Statut mis à jour : Qualifiée. ».
 
 ## Sign-off
 

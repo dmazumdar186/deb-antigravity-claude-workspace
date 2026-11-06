@@ -360,6 +360,7 @@ class Asset_CD_Gme_Admin {
 		echo '</select></td></tr>';
 		echo '<tr><th scope="row"><label for="asset-gme-from">' . esc_html__( 'Valide du', 'asset-congres-demo' ) . '</label></th><td><input type="date" id="asset-gme-from" name="valid_from" value="' . esc_attr( $row ? $row->valid_from : '' ) . '" /></td></tr>';
 		echo '<tr><th scope="row"><label for="asset-gme-to">' . esc_html__( 'Valide jusqu’au', 'asset-congres-demo' ) . '</label></th><td><input type="date" id="asset-gme-to" name="valid_to" value="' . esc_attr( $row ? $row->valid_to : '' ) . '" /></td></tr>';
+		// nosemgrep: php.lang.security.injection.echoed-request.echoed-request -- the evidence note comes from the database row of an absint() id, and is escaped with esc_textarea() at the point of output (semgrep does not list esc_textarea as a sanitizer).
 		echo '<tr><th scope="row"><label for="asset-gme-evidence">' . esc_html__( 'Note de preuve', 'asset-congres-demo' ) . '</label></th><td><textarea id="asset-gme-evidence" name="evidence" rows="3" class="large-text" maxlength="500">' . esc_textarea( $row ? $row->evidence : '' ) . '</textarea></td></tr>';
 		echo '</tbody></table>';
 		submit_button( __( 'Enregistrer le code', 'asset-congres-demo' ) );
