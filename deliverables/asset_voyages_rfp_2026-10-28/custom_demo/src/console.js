@@ -5,6 +5,7 @@ import {
   getCookie, sha256hex, randomToken, safeEqual, hmac, b64url, unb64, hashPassword, encryptCode, decryptCode, csvCell,
 } from './lib.js';
 import { consolePage, loginPage, errorPage, field, select, pill, csrfInput, errorSummary } from './views.js';
+import { GROUP_MIN_PAX, DEFAULT_SEUIL, tokenFor, lookupMac, newSalt as newLinkSalt, linkExpiry, linkState, parseSeuil, seuilHint, counterText, SEUIL_MIN, SEUIL_MAX } from './group.js';
 import { STATUS_LABELS, STATUS_PLURAL, CG_STATUS, GME_STATUS, congressSearch, congressSlug, resetSandbox, claim, nbsp, T, cow, upsertRow, eventId, notificationFor, baseUrl, TEAM_INBOX } from './data.js';
 
 export const COOKIE = '__Host-av_session';
@@ -166,6 +167,8 @@ export async function consoleRoute(req, env, path) {
   if (path === '/console/demandes') return enquiryList(ctx);
   if (path === '/console/demandes/export.csv') return enquiryCsv(ctx);
   if ((m = /^\/console\/demandes\/(\d+)$/.exec(path))) return method === 'POST' ? enquiryAction(ctx, +m[1]) : enquiryDetail(ctx, +m[1]);
+  if ((m = /^\/console\/demandes\/(\d+)\/groupe$/.exec(path))) return method === 'POST' ? groupAction(ctx, +m[1]) : groupTab(ctx, +m[1]);
+  if ((m = /^\/console\/demandes\/(\d+)\/groupe\.csv$/.exec(path)) && method === 'GET') return groupCsv(ctx, +m[1]);
   if (path === '/console/notifications') return notifications(ctx);
   // GM&E
   if (path === '/console/gme') return gmeList(ctx, {});
@@ -483,6 +486,7 @@ async function enquiryDetail(ctx, id, { notice } = {}) {
   const names = Object.fromEntries(staff.map((u) => [String(u.id), u.display_name]));
   const events = (await env.DB.prepare(`SELECT ev.*, u.display_name FROM ${T(env, 'enquiry_events')} ev LEFT JOIN users u ON u.id = ev.user_id WHERE 1=1 AND enquiry_id = ? ORDER BY ev.at ASC, ev.id ASC`).bind(id).all()).results || [];
   events.unshift({ kind: 'creation', at: r.created_at, display_name: null }); // derived from the enquiry itself
+  const grp = r.passengers >= GROUP_MIN_PAX ? await groupInfo(env, r, ctx.url.origin) : null;
   const ok = ctx.url.searchParams.get('ok');
   const evText = (ev) => {
     if (ev.kind === 'creation') return 'Demande reçue depuis le site';
@@ -492,6 +496,7 @@ async function enquiryDetail(ctx, id, { notice } = {}) {
   };
   const body = html`<nav class="crumbs" aria-label="Fil d’Ariane"><a href="/console/demandes">Demandes</a><span aria-hidden="true">/</span><span>${r.ref}</span></nav>
     <div class="head"><h1 class="h1">${r.ref}</h1><p>${pill(ST_KIND[r.status], STATUS_LABELS[r.status])}</p></div>
+    ${grp ? enquiryTabs(r, 'demande', grp) : ''}
     ${ok ? html`<p class="ok" role="status" tabindex="-1" data-focus>${ok.startsWith('statut-') && STATUS_LABELS[ok.slice(7)] ? `Statut mis à jour : ${STATUS_LABELS[ok.slice(7)]}.` : ok === 'responsable' ? `Responsable : ${r.owner_name || 'personne'}.` : ok === 'note' ? 'Note ajoutée à l’historique.' : 'Enregistré.'}</p>` : ''}
     ${notice ? html`<p class="alert" role="alert" tabindex="-1" data-focus>${notice}</p>` : ''}
     <form method="post" action="/console/demandes/${r.id}" class="card status-bar">
@@ -517,6 +522,7 @@ async function enquiryDetail(ctx, id, { notice } = {}) {
         </dl>
       </section>
       <aside class="edit__side">
+        ${grp ? groupCard(ctx, r, grp, { compact: true }) : ''}
         <section class="card" aria-labelledby="h-o"><h2 class="h3" id="h-o">Responsable</h2>
           <p>${r.owner_name || html`<span class="quiet">À attribuer</span>`}</p>
           <form method="post" action="/console/demandes/${r.id}" class="inline">${csrfInput(ctx.csrf)}<input type="hidden" name="action" value="owner">
@@ -571,6 +577,131 @@ async function enquiryAction(ctx, id) {
   }
   const okq = action === 'status' ? `statut-${form.get('to')}` : action === 'owner' ? 'responsable' : 'note';
   return redirect(`/console/demandes/${id}?ok=${okq}`);
+}
+
+// ---------------------------------------------------------------- « Lien de groupe » (EXTRA_GROUP.md)
+async function groupInfo(env, r, origin) {
+  const link = await env.DB.prepare(`SELECT * FROM ${T(env, 'group_links')} WHERE 1=1 AND enquiry_id = ?`).bind(r.id).first();
+  const state = linkState(link);
+  // The link is built on the address the console is served from (the live demo, a staging copy or a local run).
+  const url = state === 'active' ? `${origin}/g/${await tokenFor(env, link.tok_salt)}` : '';
+  const answered = (await env.DB.prepare(`SELECT COUNT(*) AS n FROM ${T(env, 'group_delegates')} WHERE 1=1 AND enquiry_id = ?`).bind(r.id).first()).n;
+  return { link, state, url, answered, expected: r.passengers };
+}
+async function seuilOf(env) {
+  const row = await env.DB.prepare(`SELECT v FROM ${T(env, 'settings')} WHERE 1=1 AND k = 'seuil_groupe'`).first();
+  return parseSeuil(row && row.v) || DEFAULT_SEUIL;
+}
+function enquiryTabs(r, current, grp) {
+  const tab = (key, href, label) => html`<a class="chip" href="${href}"${current === key ? raw(' aria-current="page"') : ''}>${label}</a>`;
+  return html`<nav class="chips" aria-label="Sections de la demande">${tab('demande', `/console/demandes/${r.id}`, 'Demande')}${tab('groupe', `/console/demandes/${r.id}/groupe`, `Groupe (${grp.answered}/${grp.expected})`)}</nav>`;
+}
+function groupCard(ctx, r, grp, { compact = false } = {}) {
+  const { link, state } = grp;
+  const closed = state === 'revoked' ? html`<p class="quiet">Le lien précédent a été révoqué le ${frDateTime(link.revoked_at)} : il ne fonctionne plus.</p>`
+    : state === 'expired' ? html`<p class="quiet">Le lien précédent a expiré le ${frNumDate(link.expires_at)}.</p>` : '';
+  const create = html`<form method="post" action="/console/demandes/${r.id}/groupe">${csrfInput(ctx.csrf)}<input type="hidden" name="action" value="create"><button class="btn" type="submit">${state === 'none' ? 'Créer le lien' : 'Créer un nouveau lien'}</button></form>`;
+  return html`<section class="card" aria-labelledby="h-g"><h2 class="h3" id="h-g">Lien de groupe</h2>
+    ${state === 'active' ? html`
+      <div class="copy">${field({ id: 'grp-url', name: 'grp_url', label: 'Lien à envoyer aux participants', value: grp.url, attrs: 'readonly spellcheck="false" data-group-url' })}
+        <button class="btn btn--line" type="button" data-copy="grp-url" hidden>Copier le lien</button></div>
+      <p class="quiet">Valable jusqu’au ${frNumDate(link.expires_at)}. Chaque participant donne son nom tel que sur sa pièce d’identité, son e-mail, sa ville de départ et ses dates ; il ne voit jamais les autres.</p>
+      ${compact ? html`<p><a class="lnk" href="/console/demandes/${r.id}/groupe">Voir le groupe : ${counterText(grp.answered, grp.expected)}</a></p>`
+        : html`<form method="post" action="/console/demandes/${r.id}/groupe" data-confirm="Révoquer ce lien ? Les participants qui ne l’ont pas encore utilisé ne pourront plus répondre.">${csrfInput(ctx.csrf)}<input type="hidden" name="action" value="revoke"><button class="btn btn--line" type="submit">Révoquer le lien</button></form>`}`
+    : html`<p class="quiet">Un lien unique à envoyer aux ${r.passengers} participants : chacun remplit ses informations de voyage depuis son téléphone, la liste se remplit ici.</p>${closed}${create}`}
+  </section>`;
+}
+async function groupTab(ctx, id) {
+  const { env } = ctx;
+  const r = await env.DB.prepare(`${enqSelect(env)} AND e.id = ?`).bind(id).first();
+  if (!r) return notFound(ctx);
+  if (r.passengers < GROUP_MIN_PAX) return deny(ctx, 'Le lien de groupe est proposé à partir de deux passagers.', 404);
+  const grp = await groupInfo(env, r, ctx.url.origin);
+  const seuil = await seuilOf(env);
+  const rows = (await env.DB.prepare(`SELECT * FROM ${T(env, 'group_delegates')} WHERE 1=1 AND enquiry_id = ? ORDER BY created_at, email_norm LIMIT 200`).bind(id).all()).results || [];
+  const cities = {};
+  for (const d of rows) { const k = d.departure_city.trim(); cities[k] = (cities[k] || 0) + 1; }
+  const mix = Object.entries(cities).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'fr'));
+  const hint = seuilHint(grp.answered, seuil);
+  const ok = { lien: 'Lien créé : copiez-le et envoyez-le aux participants.', revoque: 'Lien révoqué : il ne fonctionne plus. Les réponses déjà reçues restent dans la liste.', seuil: 'Seuil groupe enregistré.', existe: 'Un lien actif existe déjà : le voici.' }[ctx.url.searchParams.get('ok')];
+  const err = ctx.url.searchParams.get('err') === 'seuil' ? `Seuil refusé : indiquez un nombre entier de ${SEUIL_MIN} à ${SEUIL_MAX}.` : '';
+  const body = html`<nav class="crumbs" aria-label="Fil d’Ariane"><a href="/console/demandes">Demandes</a><span aria-hidden="true">/</span><a href="/console/demandes/${r.id}">${r.ref}</a><span aria-hidden="true">/</span><span>Groupe</span></nav>
+    <div class="head"><h1 class="h1">Groupe ${nw(r.ref)}</h1><p>${pill(ST_KIND[r.status], STATUS_LABELS[r.status])}</p></div>
+    ${enquiryTabs(r, 'groupe', grp)}
+    ${ok ? html`<p class="ok" role="status" tabindex="-1" data-focus>${ok}</p>` : ''}
+    ${err ? html`<p class="alert" role="alert" tabindex="-1" data-focus>${err}</p>` : ''}
+    <div class="cols">
+      ${groupCard(ctx, r, grp)}
+      <section class="card" aria-labelledby="h-s"><h2 class="h3" id="h-s">Réglage interne</h2>
+        <form method="post" action="/console/demandes/${r.id}/groupe" class="inline">${csrfInput(ctx.csrf)}<input type="hidden" name="action" value="seuil">
+          ${field({ id: 'seuil', name: 'seuil', label: 'Seuil groupe (à confirmer)', type: 'number', value: String(seuil), attrs: `min="${SEUIL_MIN}" max="${SEUIL_MAX}" step="1" inputmode="numeric"` })}
+          <button class="btn btn--line" type="submit">Enregistrer</button></form>
+        <p class="quiet">Nombre de participants à partir duquel l’équipe étudie un tarif de groupe. Valeur à confirmer pour chaque dossier ; elle n’apparaît jamais sur le lien public.</p>
+      </section>
+    </div>
+      <section class="card" aria-labelledby="h-m" data-live>
+        <div class="head"><h2 class="h3" id="h-m">Liste des participants</h2><a class="btn btn--line" href="/console/demandes/${r.id}/groupe.csv" download>Exporter pour cotation (CSV)</a></div>
+        <p class="h2" data-counter>${counterText(grp.answered, grp.expected)}</p>
+        <p class="quiet">${r.cg_title}. ${mix.length ? html`Départs : ${mix.map(([c, n], i) => html`${i ? ', ' : ''}${c} ${n}`)}.` : 'Aucune réponse pour le moment.'}</p>
+        ${hint ? html`<p class="alert" data-hint>${hint.text} Indication interne, jamais montrée aux participants.</p>` : ''}
+        ${rows.length ? html`<div class="wrap" role="region" aria-label="Participants" tabindex="0"><table class="tbl">
+          <thead><tr><th scope="col">Nom (pièce d’identité)</th><th scope="col">E-mail</th><th scope="col">Départ</th><th scope="col">Aller</th><th scope="col">Retour</th><th scope="col">Reçu le</th></tr></thead>
+          <tbody>${rows.map((d) => html`<tr><td class="wide">${d.name}</td><td class="wide">${wbrEmail(d.email)}</td><td>${d.departure_city}</td><td>${nw(frNumDate(d.date_out))}</td><td>${nw(frNumDate(d.date_back))}</td><td>${frDateTime(d.updated_at)}</td></tr>`)}</tbody>
+        </table></div>` : html`<div class="empty"><p>Personne n’a encore répondu.</p></div>`}
+        <p class="quiet">La liste se met à jour seule tant que la page reste ouverte.</p>
+      </section>`;
+  return page(ctx, `Groupe ${r.ref}`, 'dem', body);
+}
+async function groupAction(ctx, id) {
+  const { env, user, form } = ctx;
+  const r = await env.DB.prepare(`SELECT id, passengers FROM ${T(env, 'enquiries')} WHERE 1=1 AND id = ?`).bind(id).first();
+  if (!r) return notFound(ctx);
+  if (r.passengers < GROUP_MIN_PAX) return deny(ctx, 'Le lien de groupe est proposé à partir de deux passagers. Rien n’a été créé.', 400);
+  const action = form.get('action');
+  const now = nowIso();
+  const link = await env.DB.prepare(`SELECT * FROM ${T(env, 'group_links')} WHERE 1=1 AND enquiry_id = ?`).bind(id).first();
+  const back = `/console/demandes/${id}/groupe`;
+  if (action === 'create') {
+    if (linkState(link) === 'active') return redirect(`${back}?ok=existe`); // idempotent: a double click makes one link
+    const sid = await claim(env);
+    const salt = newLinkSalt();
+    const mac = await lookupMac(env, await tokenFor(env, salt));
+    await env.DB.prepare(`INSERT INTO group_links (sbx, enquiry_id, origin_sbx, token_mac, tok_salt, created_at, created_by, expires_at, revoked_at, revoked_by) VALUES (?,?,?,?,?,?,?,?,NULL,NULL)
+      ON CONFLICT (sbx, enquiry_id) DO UPDATE SET origin_sbx = excluded.origin_sbx, token_mac = excluded.token_mac, tok_salt = excluded.tok_salt, created_at = excluded.created_at, created_by = excluded.created_by, expires_at = excluded.expires_at, revoked_at = NULL, revoked_by = NULL`)
+      .bind(sid, id, sid, mac, salt, now, user.id, linkExpiry(parisToday())).run();
+    return redirect(`${back}?ok=lien`);
+  }
+  if (action === 'revoke') {
+    if (linkState(link) !== 'active') return redirect(back);
+    const sid = await claim(env);
+    // The seed link is copied into this sandbox as revoked (origin stays ''); a sandbox's own link is updated in place.
+    await env.DB.prepare(`INSERT INTO group_links (sbx, enquiry_id, origin_sbx, token_mac, tok_salt, created_at, created_by, expires_at, revoked_at, revoked_by) VALUES (?,?,?,?,?,?,?,?,?,?)
+      ON CONFLICT (sbx, enquiry_id) DO UPDATE SET revoked_at = excluded.revoked_at, revoked_by = excluded.revoked_by`)
+      .bind(sid, id, link.origin_sbx, link.token_mac, link.tok_salt, link.created_at, link.created_by, link.expires_at, now, user.id).run();
+    return redirect(`${back}?ok=revoque`);
+  }
+  if (action === 'seuil') {
+    const n = parseSeuil(form.get('seuil'));
+    if (n === null) return redirect(`${back}?err=seuil`);
+    if (n !== (await seuilOf(env))) {
+      const sid = await claim(env);
+      await env.DB.prepare(`INSERT INTO settings (sbx, k, v) VALUES (?, 'seuil_groupe', ?) ON CONFLICT (sbx, k) DO UPDATE SET v = excluded.v`).bind(sid, String(n)).run();
+    }
+    return redirect(`${back}?ok=seuil`);
+  }
+  return deny(ctx, 'Action inconnue. Rien n’a été modifié.', 400);
+}
+async function groupCsv(ctx, id) {
+  const { env } = ctx;
+  const r = await env.DB.prepare(`${enqSelect(env)} AND e.id = ?`).bind(id).first();
+  if (!r || r.passengers < GROUP_MIN_PAX) return notFound(ctx);
+  const rows = (await env.DB.prepare(`SELECT * FROM ${T(env, 'group_delegates')} WHERE 1=1 AND enquiry_id = ? ORDER BY created_at, email_norm LIMIT 1000`).bind(id).all()).results || [];
+  const head = ['Demande', 'Congrès', 'Nom (pièce d’identité)', 'E-mail', 'Ville de départ', 'Aller', 'Retour', 'Reçu le', 'Mis à jour le'];
+  const lines = [head.map(csvCell).join(';')];
+  for (const d of rows) lines.push([r.ref, r.cg_title, d.name, d.email, d.departure_city, d.date_out, d.date_back, frDateTime(d.created_at), frDateTime(d.updated_at)].map(csvCell).join(';'));
+  return new Response('\uFEFF' + lines.join('\r\n') + '\r\n', {
+    headers: { 'content-type': 'text/csv; charset=utf-8', 'content-disposition': `attachment; filename="groupe-${r.ref}-${today()}.csv"`, ...NO_STORE },
+  });
 }
 
 // References (DV-2026-0007, CG-0112) never split across lines, wherever they appear in free text.
