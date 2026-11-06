@@ -7,13 +7,7 @@
  },
  {
   "n": "Two",
-  "ctx": "built ⏎ GM&E codes ⏎ Milestones ⏎ Book a demo ⏎ ⟨Two⟩ working demos. Try both, choose one. ⏎  ⏎ S",
-  "cls": "our own deliverable count (two demos, two recordings)",
-  "src": null
- },
- {
-  "n": "one",
-  "ctx": "emo ⏎ Two working demos. Try both, choose ⟨one⟩. ⏎  ⏎ Same requirements, fictional data and",
+  "ctx": "built ⏎ GM&E codes ⏎ Milestones ⏎ Book a demo ⏎ ⟨Two⟩ working demos. Try both; the proposal c",
   "cls": "our own deliverable count (two demos, two recordings)",
   "src": null
  },
@@ -60,14 +54,14 @@
   "src": null
  },
  {
-  "n": "15 to 30",
-  "ctx": "site ⏎ of Option A (new tab) ⏎  ⏎ Takes about ⟨15 to 30⟩ seconds to start. If it stays on the lo",
+  "n": "15 to 25",
+  "ctx": "site ⏎ of Option A (new tab) ⏎  ⏎ Takes about ⟨15 to 25⟩ seconds to start. If it stays on the lo",
   "cls": "measured by this gate (A2 hosted boot)",
   "src": null
  },
  {
-  "n": "15 to 30",
-  "ctx": "d in ⏎ to Option A (new tab) ⏎  ⏎ Takes about ⟨15 to 30⟩ seconds to start. If it stays on the lo",
+  "n": "15 to 25",
+  "ctx": "d in ⏎ to Option A (new tab) ⏎  ⏎ Takes about ⟨15 to 25⟩ seconds to start. If it stays on the lo",
   "cls": "measured by this gate (A2 hosted boot)",
   "src": null
  },
@@ -85,9 +79,9 @@
  },
  {
   "n": "24",
-  "ctx": " to other visitors and is cleared after ⟨24⟩ hours without use. Option A starts fres",
-  "cls": null,
-  "src": null
+  "ctx": "ly clean-up once it has gone unused for ⟨24⟩ hours. Option A starts fresh each time ",
+  "cls": "sourced (S5 approval lasts 24 h)",
+  "src": "21_Acceptance_Gates_5_Stories.md:88"
  },
  {
   "n": "2",
@@ -127,7 +121,7 @@
  },
  {
   "n": "one",
-  "ctx": "and discipline, then publish. To change ⟨one⟩, open it from « Tous les congrès ». ⏎  ⏎ Si",
+  "ctx": "and discipline, then publish. To change ⟨one⟩, open it from « Tous les congrès ». ⏎  ⏎ To",
   "cls": "the word « one » as a pronoun or article, not a figure",
   "src": null
  },
@@ -178,6 +172,12 @@
   "ctx": "giving a reason. Direction approves for ⟨24⟩ hours, or refuses. Each time a code is ",
   "cls": "sourced (S5 approval lasts 24 h)",
   "src": "21_Acceptance_Gates_5_Stories.md:88"
+ },
+ {
+  "n": "T05",
+  "ctx": "this is checked by your acceptance test ⟨T05⟩. ⏎  ⏎ Option A: WordPress ⏎  ⏎ Signed in as equ",
+  "cls": null,
+  "src": null
  },
  {
   "n": "24",
@@ -342,12 +342,6 @@
   "src": null
  },
  {
-  "n": "one",
-  "ctx": "least upkeep matters most. ⏎  ⏎ With either ⟨one⟩: in both options the GM&E codes are kep",
-  "cls": "the word « one » as a pronoun or article, not a figure",
-  "src": null
- },
- {
   "n": "5",
   "ctx": "xport pages, congresses and enquiries. ⏎  ⏎ ⟨5⟩ How the GM&E codes stay protected ⏎  ⏎ The ",
   "cls": "section / list / diagram step number",
@@ -444,21 +438,9 @@
   "src": null
  },
  {
-  "n": "1",
-  "ctx": " dates for the option you choose. ⏎  ⏎ Week ⟨1⟩ ⏎ Week 5 ⏎ Week 10 ⏎ After launch ⏎ Kickoff, ac",
-  "cls": "week",
-  "src": null
- },
- {
-  "n": "5",
-  "ctx": "for the option you choose. ⏎  ⏎ Week 1 ⏎ Week ⟨5⟩ ⏎ Week 10 ⏎ After launch ⏎ Kickoff, access an",
-  "cls": "week",
-  "src": null
- },
- {
-  "n": "10",
-  "ctx": " option you choose. ⏎  ⏎ Week 1 ⏎ Week 5 ⏎ Week ⟨10⟩ ⏎ After launch ⏎ Kickoff, access and audit ⏎ ",
-  "cls": "week",
+  "n": "13 to 14",
+  "ctx": "ion you choose. ⏎  ⏎ Approval ⏎ Launch, about ⟨13 to 14⟩ weeks ⏎ After launch ⏎ Kickoff, access and ",
+  "cls": null,
   "src": null
  },
  {
@@ -469,20 +451,20 @@
  },
  {
   "n": "one",
-  "ctx": "o 2 ⏎  ⏎ An audit of your current site, and ⟨one⟩ workshop of up to 2 hours. ⏎  ⏎ Design ⏎  ⏎ Wee",
+  "ctx": "o 2 ⏎  ⏎ An audit of your current site, and ⟨one⟩ workshop of up to 2 hours. ⏎  ⏎ Design ⏎  ⏎ Sta",
   "cls": "sourced (proposal: one workshop of up to 2 hours)",
   "src": "16_Proposal_Carryover.md:8"
  },
  {
   "n": "2",
-  "ctx": "current site, and one workshop of up to ⟨2⟩ hours. ⏎  ⏎ Design ⏎  ⏎ Weeks 2 to 5 ⏎  ⏎ Wireframe",
+  "ctx": "current site, and one workshop of up to ⟨2⟩ hours. ⏎  ⏎ Design ⏎  ⏎ Stage 2 ⏎  ⏎ Wireframes (pa",
   "cls": "sourced (proposal: one workshop of up to 2 hours)",
   "src": "16_Proposal_Carryover.md:8"
  },
  {
-  "n": "2 to 5",
-  "ctx": "rkshop of up to 2 hours. ⏎  ⏎ Design ⏎  ⏎ Weeks ⟨2 to 5⟩ ⏎  ⏎ Wireframes (page outlines), then deskt",
-  "cls": "week",
+  "n": "2",
+  "ctx": "rkshop of up to 2 hours. ⏎  ⏎ Design ⏎  ⏎ Stage ⟨2⟩ ⏎  ⏎ Wireframes (page outlines), then deskt",
+  "cls": null,
   "src": null
  },
  {
@@ -492,39 +474,39 @@
   "src": "01c_Reply_to_clarifications_2026-10-31.md:18"
  },
  {
-  "n": "5 to 10",
-  "ctx": "nges at each stage. ⏎  ⏎ Development ⏎  ⏎ Weeks ⟨5 to 10⟩ ⏎  ⏎ Pages, the congress catalogue, enquiri",
-  "cls": "week",
+  "n": "3",
+  "ctx": "nges at each stage. ⏎  ⏎ Development ⏎  ⏎ Stage ⟨3⟩ ⏎  ⏎ Pages, the congress catalogue, enquiri",
+  "cls": null,
   "src": null
  },
  {
-  "n": "10 to 12",
-  "ctx": "with a trial run first. ⏎  ⏎ Testing ⏎  ⏎ Weeks ⟨10 to 12⟩ ⏎  ⏎ On a private copy of the site, against",
-  "cls": "week",
+  "n": "4",
+  "ctx": "with a trial run first. ⏎  ⏎ Testing ⏎  ⏎ Stage ⟨4⟩ ⏎  ⏎ On a private copy of the site, against",
+  "cls": null,
   "src": null
  },
  {
   "n": "T01 to T15",
-  "ctx": "the site, against your acceptance tests ⟨T01 to T15⟩, then fixes. ⏎  ⏎ Training ⏎  ⏎ Week 12 ⏎  ⏎ For yo",
+  "ctx": "the site, against your acceptance tests ⟨T01 to T15⟩, then fixes. ⏎  ⏎ Training ⏎  ⏎ Stage 5 ⏎  ⏎ For yo",
   "cls": "sourced (RFP acceptance tests)",
   "src": "00_RFP_Analysis_and_Plan.md:8"
  },
  {
-  "n": "12",
-  "ctx": "T01 to T15, then fixes. ⏎  ⏎ Training ⏎  ⏎ Week ⟨12⟩ ⏎  ⏎ For your team, with a second session f",
-  "cls": "week",
+  "n": "5",
+  "ctx": "01 to T15, then fixes. ⏎  ⏎ Training ⏎  ⏎ Stage ⟨5⟩ ⏎  ⏎ For your team, with a second session f",
+  "cls": null,
   "src": null
  },
  {
   "n": "four",
-  "ctx": "2 ⏎  ⏎ For your team, with a second session ⟨four⟩ weeks after launch. ⏎  ⏎ Launch ⏎  ⏎ Weeks 13 t",
+  "ctx": "5 ⏎  ⏎ For your team, with a second session ⟨four⟩ weeks after launch. ⏎  ⏎ Launch ⏎  ⏎ About 13 t",
   "cls": "sourced (training plan)",
   "src": "advisory/src/part3.md:90"
  },
  {
   "n": "13 to 14",
-  "ctx": "four weeks after launch. ⏎  ⏎ Launch ⏎  ⏎ Weeks ⟨13 to 14⟩ ⏎  ⏎ After your written acceptance and mana",
-  "cls": "week",
+  "ctx": "four weeks after launch. ⏎  ⏎ Launch ⏎  ⏎ About ⟨13 to 14⟩ weeks from approval ⏎  ⏎ After your written",
+  "cls": null,
   "src": null
  },
  {
@@ -559,25 +541,25 @@
  },
  {
   "n": "3 to 5",
-  "ctx": " we will offer a slot that falls within ⟨3 to 5⟩ working days of your notice. ⏎  ⏎ Thursday ",
+  "ctx": "es later, we will propose a slot within ⟨3 to 5⟩ working days of your notice, subject to",
   "cls": null,
   "src": null
  },
  {
   "n": "12",
-  "ctx": " working days of your notice. ⏎  ⏎ Thursday ⟨12⟩ November ⏎  ⏎ 10:00 ⏎  ⏎ Monday 16 November ⏎  ⏎ 14",
+  "ctx": "o availability on both sides. ⏎  ⏎ Thursday ⟨12⟩ November ⏎  ⏎ 10:00 ⏎  ⏎ Monday 16 November ⏎  ⏎ 14",
   "cls": "date",
   "src": null
  },
  {
   "n": "10:00",
-  "ctx": " of your notice. ⏎  ⏎ Thursday 12 November ⏎  ⏎ ⟨10:00⟩ ⏎  ⏎ Monday 16 November ⏎  ⏎ 14:30 ⏎  ⏎ Tuesday 17 ",
+  "ctx": "y on both sides. ⏎  ⏎ Thursday 12 November ⏎  ⏎ ⟨10:00⟩ ⏎  ⏎ Monday 16 November ⏎  ⏎ 14:30 ⏎  ⏎ Tuesday 17 ",
   "cls": "date (time slot)",
   "src": null
  },
  {
   "n": "16",
-  "ctx": "e. ⏎  ⏎ Thursday 12 November ⏎  ⏎ 10:00 ⏎  ⏎ Monday ⟨16⟩ November ⏎  ⏎ 14:30 ⏎  ⏎ Tuesday 17 November ⏎  ⏎ 1",
+  "ctx": "s. ⏎  ⏎ Thursday 12 November ⏎  ⏎ 10:00 ⏎  ⏎ Monday ⟨16⟩ November ⏎  ⏎ 14:30 ⏎  ⏎ Tuesday 17 November ⏎  ⏎ 1",
   "cls": "date",
   "src": null
  },

@@ -1,13 +1,13 @@
 # Client-eye gate report
 
-Generated 2026-11-06T13:12:12.958Z. Commit 3cf9315072d2e11acb4fb6e93b6ea2df0fb6bf8f. Spec: `28_PreMortem_Client_Eye_Gate.md`. Machine-readable: `report.json`. Triage verdicts: `triage.json`. Register: `../register/CLIENT_EYE.md`.
+Generated 2026-11-06T13:15:12.221Z. Commit 6a61058eb66d68618c4daabb63ca358a5d3e5ac0. Spec: `28_PreMortem_Client_Eye_Gate.md`. Machine-readable: `report.json`. Triage verdicts: `triage.json`. Register: `../register/CLIENT_EYE.md`.
 
 ## Targets and versions
 
-- Hub: 5 tasks parsed, group section present; demo/index.html DIFFERS from source, index.html deployed = source, js/demo.js deployed = source, css/demo.css deployed = source
+- Hub: 5 tasks parsed, group section present; demo/index.html deployed = source, index.html deployed = source, js/demo.js deployed = source, css/demo.css deployed = source
 - Option B Worker: dba3b6e7-d2ad-45c1-bfba-5132a304268a deployed 2026-11-06T10:55:45.590122Z; custom_demo/src last commit 0459ede 2026-11-06T10:54:46+00:00
 - Option A: local Playground http://127.0.0.1:9460 built from the current wp_demo/ (zip b0fe713a2ce2); hosted zip b0fe713a2ce2
-- Uncommitted source changes at run time: M deliverables/asset_voyages_rfp_2026-10-28/site/demo/index.html
+- Uncommitted source changes at run time: none
 - States captured: 347; widths 320, 390, 768, 1280, 1440, 1920; roles A:visiteur, A:direction, A:contributeur, A:equipe, A-hosted:visiteur, B:visiteur, B:contributeur, B:direction, B:equipe, B:voyageur, HUB:visiteur
 - Part a: run 2026-11-06T13:09:50.047Z
 - Part ahosted: run 2026-11-06T12:11:22.680Z, logins 3, writing contexts 2
@@ -38,15 +38,15 @@ Generated 2026-11-06T13:12:12.958Z. Commit 3cf9315072d2e11acb4fb6e93b6ea2df0fb6b
 | C4 | auto | CLS ≤ 0.02 per page | 0 | 1 | 0 | PASS |
 | C5 | auto | One body family, one display family, one button style family, one accent colour per surface | 1 | 1 | 0 | FAIL |
 | C6 | auto | No horizontal overflow (six widths); anchors not under the sticky header | 0 | 0 | 0 | PASS |
-| C7 | auto | Expired session shows « Session expirée » + login link; purge only idle > 24 h; hub says private + 24 h reset | 1 | 0 | 0 | FAIL |
+| C7 | auto | Expired session shows « Session expirée » + login link; purge only idle > 24 h; hub says private + 24 h reset | 2 | 0 | 0 | FAIL |
 | C8 | auto | No technical residue (errors, stack, JSON braces, wp: markup, hex runs ≥ 16) in visible text | 0 | 0 | 0 | PASS |
 | C9 | auto | No test residue in the sample data (fresh browsers) | 0 | 0 | 0 | PASS |
-| C10 | auto | Instruction replay: each hub step followed literally by visible labels | 0 | 3 | 0 | PASS |
-| D1 | auto | Every « Works in the demo » cell backed by evidence; « Built during the project » not faked by UI | 0 | 0 | 1 | FAIL |
+| C10 | auto | Instruction replay: each hub step followed literally by visible labels | 1 | 1 | 0 | FAIL |
+| D1 | auto | Every « Works in the demo » cell backed by evidence; « Built during the project » not faked by UI | 1 | 0 | 0 | FAIL |
 | D2 | auto | Fictional people: @example.com, fiction phone ranges, no real congress names | 0 | 0 | 0 | PASS |
-| D3 | auto | Every number on the hub is a week, a date, our demo data, or traced to a source line | 2 | 2 | 6 | FAIL |
+| D3 | auto | Every number on the hub is a week, a date, our demo data, or traced to a source line | 2 | 2 | 7 | FAIL |
 | D4 | auto | No GM&E code in DOM, attributes or inputs outside an approved reveal | 0 | 0 | 0 | PASS |
-| E1 | auto | Report names the commit and deployed versions; hub links checked against live versions | 0 | 0 | 1 | FAIL |
+| E1 | auto | Report names the commit and deployed versions; hub links checked against live versions | 0 | 0 | 0 | PASS |
 | E2 | process | Full suites twice green after every change; this gate runs last | 0 | 0 | 0 | HUMAN/PROCESS |
 | E3 | auto | Screenshots taken by this run from fresh contexts on the deployed sites | 0 | 0 | 0 | PASS |
 | E4 | n/a | WebKit and Firefox | 0 | 0 | 0 | N/A |
@@ -66,8 +66,8 @@ Generated 2026-11-06T13:12:12.958Z. Commit 3cf9315072d2e11acb4fb6e93b6ea2df0fb6b
 
 | CE | Status | Option | Text / element | Note | Where (page · role · width) | Shot | Reason |
 |---|---|---|---|---|---|---|---|
-| CE-A4-001 | UNVERIFIED | HUB | https://www.sft.fr/global/gene/link.php?doc_id=882&edit_lang=fr · `a « 2025 survey »` | HTTP 403 | https://asset-voyages-redesign.pages.dev/questions/ · visiteur ·  |  | sft.fr answers 403 to scripted clients and to a real Chromium tab from this sandbox (a browser user-agent probe was refused by the auto-mode classifier). Needs one click from an ordinary browser. |
 | CE-A4-001 | UNVERIFIED | HUB | https://www.sft.fr/docs/2024164729_sft-2022-enquete-traduction.pdf · `a « French translators’ union (SFT) 2022 sur »` | HTTP 403 | https://asset-voyages-redesign.pages.dev/questions/ · visiteur ·  |  | sft.fr answers 403 to scripted clients and to a real Chromium tab from this sandbox (a browser user-agent probe was refused by the auto-mode classifier). Needs one click from an ordinary browser. |
+| CE-A4-001 | UNVERIFIED | HUB | https://www.sft.fr/global/gene/link.php?doc_id=882&edit_lang=fr · `a « 2025 survey »` | HTTP 403 | https://asset-voyages-redesign.pages.dev/questions/ · visiteur ·  |  | sft.fr answers 403 to scripted clients and to a real Chromium tab from this sandbox (a browser user-agent probe was refused by the auto-mode classifier). Needs one click from an ordinary browser. |
 
 ### B4
 
@@ -113,42 +113,38 @@ Generated 2026-11-06T13:12:12.958Z. Commit 3cf9315072d2e11acb4fb6e93b6ea2df0fb6b
 | CE | Status | Option | Text / element | Note | Where (page · role · width) | Shot | Reason |
 |---|---|---|---|---|---|---|---|
 | CE-C7-001 | REAL | HUB |   Same requirements, fictional data and codes, sandboxes that reset themselves. | the hub does not say that each trial is private | demo/ · visiteur ·  |  | The hub never says that each person's trial is private to their browser (B's own login page does). |
+| CE-C7-002 | REAL | HUB |   Same requirements, fictional data and codes, sandboxes that reset themselves. | the hub does not say the trial is reset after 24 h | demo/ · visiteur ·  |  | The hub says the sandboxes « reset themselves » but not when (B: nightly purge of trials older than 24 h; A: on reload). |
 
 ### C10
 
 | CE | Status | Option | Text / element | Note | Where (page · role · width) | Shot | Reason |
 |---|---|---|---|---|---|---|---|
-| e00c557b95 | FALSE-POSITIVE | A | T5 step 1: Signed in as equipe, open « Codes GM&E › Codes »: the codes are hidden. Click « Demander l’accès » and give a reason. · `instruction replay` | label « Codes » not visible | http://127.0.0.1:9460/wp-admin/admin.php?page=asset-gme · equipe · 1440 | out/shots/0077-A-equipe-1440-C10-T5-1.png | R2: gate artefact. The C2 probe clicked WordPress's « Replier le menu », which persists per user and folded the admin menu for the next sign-in. Tightened: that button is no longer probed. |
-| 509f4ed7ea | FALSE-POSITIVE | A | T5 step 3: Sign in as equipe again and open « Codes GM&E › Codes ». The code stays hidden until you click « Afficher le code »: that click i · `instruction replay` | label « Codes » not visible | http://127.0.0.1:9460/wp-admin/admin.php?page=asset-gme · equipe · 1440 | out/shots/0095-A-equipe-1440-C10-T5-3.png | R2: gate artefact. The C2 probe clicked WordPress's « Replier le menu », which persists per user and folded the admin menu for the next sign-in. Tightened: that button is no longer probed. |
+| CE-C10-R2-001 | REAL | A | T5 step 1: Signed in as equipe, open « Codes GM&E › Codes »: the codes are hidden. Click « Demander l’accès » and give a reason. · `instruction replay` | label « Codes » not visible | http://127.0.0.1:9460/wp-admin/admin.php?page=asset-gme · equipe · 1440 | out/shots/0077-A-equipe-1440-C10-T5-1.png | R2 NEW (verified on shot 0077): hub A task 5 steps 1 and 3 say « Codes GM&E › Codes », but Équipe's WordPress menu shows only « Codes GM&E » (WordPress hides a one-item submenu), so there is no « Codes » item to open. Reword the hub for A, or add a second visible sub-item. |
+| CE-C10-R2-001 | REAL | A | T5 step 3: Sign in as equipe again and open « Codes GM&E › Codes ». The code stays hidden until you click « Afficher le code »: that click i · `instruction replay` | label « Codes » not visible | http://127.0.0.1:9460/wp-admin/admin.php?page=asset-gme · equipe · 1440 | out/shots/0095-A-equipe-1440-C10-T5-3.png | R2 NEW (verified on shot 0077): hub A task 5 steps 1 and 3 say « Codes GM&E › Codes », but Équipe's WordPress menu shows only « Codes GM&E » (WordPress hides a one-item submenu), so there is no « Codes » item to open. Reword the hub for A, or add a second visible sub-item. |
 | CE-C10-003 | FALSE-POSITIVE | B | T5 step 3: Sign in as equipe again and open « Codes GM&E › Codes ». The code stays hidden until you click « Afficher le code »: that click i · `instruction replay` | hub says « the code is shown » after signing in; the reader must still click « Afficher le code » | https://asset-voyages-demo.debanjan186.workers.dev/console/gme/112/afficher · equipe · 1440 | out/shots/0080-B-equipe-1440-C10-T5-3.png | R2: the hub now says « the code stays hidden until you click « Afficher le code »: that click is needed », so the click is documented. The gate rule was stale and is tightened (it flags only when the hub step does not name the label). |
 
 ### D1
 
 | CE | Status | Option | Text / element | Note | Where (page · role · width) | Shot | Reason |
 |---|---|---|---|---|---|---|---|
-| b551d64dd6 | UNTRIAGED | A | 5. GM&E codes protected: Works in the demo Codes hidden, access asked with a reason, 24-hour approval, a  · `table.cmp` | this run: C10 T5 FAIL · wp_demo/README.md: S5-F1, S5-F2, S5-F3, S5-F4, S5-F5, S5-E1, S5-H1, S5-L1, S5-L2 | demo/#compare · visiteur ·  |  |  |
+| CE-C10-R2-001 | REAL | A | 5. GM&E codes protected: Works in the demo Codes hidden, access asked with a reason, 24-hour approval, a  · `table.cmp` | this run: C10 T5 FAIL · wp_demo/README.md: S5-F1, S5-F2, S5-F3, S5-F4, S5-F5, S5-E1, S5-H1, S5-L1, S5-L2 | demo/#compare · visiteur ·  |  | R2: same defect as CE-C10-R2-001 (C10 T5 fails on A), shown in the hub comparison table. |
 
 ### D3
 
 | CE | Status | Option | Text / element | Note | Where (page · role · width) | Shot | Reason |
 |---|---|---|---|---|---|---|---|
 | f5941be923 | FALSE-POSITIVE | HUB | one · `rdPress starts fresh each time you open ⟨one⟩ of these links, so nothing from an` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  (3×) |  | R2: « one » is a pronoun (« each time you open one of these links »), not a number. |
-| 7bd7b4fa2a | FALSE-POSITIVE | HUB | 24 · ` to other visitors and is cleared after ⟨24⟩ hours without use. Option A starts ` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  (2×) |  | R2: « 24 hours without use » is traced: the nightly purge keys on sandboxes.last_seen (custom_demo/src/data.js:14), and C7 passes on the idle rule. |
-| CE-D3-001 | REAL | HUB | 4 · ` five tasks from start to finish (about ⟨4⟩ min). ⏎ Option B, our custom platfor` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  (2×) |  | « Try it in five minutes » is a time promise with no source and no measurement (the robot replay alone took 82 s for B, without reading). |
-| CE-D3-001 | REAL | HUB | 3 · ` five tasks from start to finish (about ⟨3⟩ min 30). ⏎ 3 What works today, and w` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  (2×) |  | « Try it in five minutes » is a time promise with no source and no measurement (the robot replay alone took 82 s for B, without reading). |
+| 2c434936bb | UNTRIAGED | HUB | T05 · `this is checked by your acceptance test ⟨T05⟩. ⏎  ⏎ Option A: WordPress ⏎  ⏎ Sig` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  |  |  |
+| 7bd7b4fa2a | FALSE-POSITIVE | HUB | 24 · `s d’accès », and click « Approuver pour ⟨24⟩ h » or « Refuser ». ⏎ Sign in as eq` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  |  | R2: « 24 hours without use » is traced: the nightly purge keys on sandboxes.last_seen (custom_demo/src/data.js:14), and C7 passes on the idle rule. |
+| CE-D3-001 | REAL | HUB | 4 · ` five tasks from start to finish (about ⟨4⟩ min). ⏎ Option B, our custom platfor` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  (3×) |  | « Try it in five minutes » is a time promise with no source and no measurement (the robot replay alone took 82 s for B, without reading). |
+| CE-D3-001 | REAL | HUB | 3 · ` five tasks from start to finish (about ⟨3⟩ min 30). ⏎ 3 What works today, and w` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  (3×) |  | « Try it in five minutes » is a time promise with no source and no measurement (the robot replay alone took 82 s for B, without reading). |
 | a1ab05068a | UNTRIAGED | HUB | 30 · `tasks from start to finish (about 3 min ⟨30⟩). ⏎ 3 What works today, and what we` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  |  |  |
 | 297483d3c4 | UNTRIAGED | HUB | two · `ted separately ⏎ The site is prepared for ⟨two⟩ languages from the start; the En` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  |  |  |
 | 9adfc2d3b6 | UNTRIAGED | HUB | 1 · `once. ⏎  ⏎ The access path for a GM&E code. ⟨1⟩. Team member sees the code hidde` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  |  |  |
-| f12355073f | UNTRIAGED | HUB | 2 · `e. 1. Team member sees the code hidden. ⟨2⟩. Asks for access and gives a reason.` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  |  |  |
-| 4e9c564547 | UNTRIAGED | HUB | 5 · `ses. 4. Code shown to that person only. ⟨5⟩. Access recorded: who, when, which c` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  |  |  |
-| ebe25a2354 | UNTRIAGED | HUB | 13 to 14 · `n read. ⏎ 6 Milestones ⏎  ⏎ Indicative, about ⟨13 to 14⟩ weeks to launch in all;` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  |  |  |
-| CE-D3-R2-001 | REAL | HUB | 3 to 5 · ` we will offer a slot that falls within ⟨3 to 5⟩ working days of your notice. ⏎ ` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  |  | R2 NEW: « a slot within 3 to 5 working days of your notice » (site/demo/index.html:499) is a time promise with no source line in the repository. Trace it or remove the figure. |
-
-### E1
-
-| CE | Status | Option | Text / element | Note | Where (page · role · width) | Shot | Reason |
-|---|---|---|---|---|---|---|---|
-| 5bfb1dbe2b | UNTRIAGED | HUB | demo/index.html | deployed file differs from site/ in the repository | https://asset-voyages-redesign.pages.dev/demo/index.html · visiteur ·  |  |  |
+| f12355073f | UNTRIAGED | HUB | 2 · `e. 1. Team member sees the code hidden. ⟨2⟩. Asks for access and gives a reason.` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  (2×) |  |  |
+| 4e9c564547 | UNTRIAGED | HUB | 5 · `ses. 4. Code shown to that person only. ⟨5⟩. Access recorded: who, when, which c` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  (2×) |  |  |
+| ebe25a2354 | UNTRIAGED | HUB | 13 to 14 · `n read. ⏎ 6 Milestones ⏎  ⏎ Indicative, about ⟨13 to 14⟩ weeks to launch in all;` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  (3×) |  |  |
+| CE-D3-R2-001 | REAL | HUB | 3 to 5 · `es later, we will propose a slot within ⟨3 to 5⟩ working days of your notice, su` | number not classified (week, date, our demo data) and not traced to a source line | demo/ · visiteur ·  |  | R2 NEW: « a slot within 3 to 5 working days of your notice » (site/demo/index.html:499) is a time promise with no source line in the repository. Trace it or remove the figure. |
 
 ## C10 instruction replay
 
@@ -246,7 +242,7 @@ Generated 2026-11-06T13:12:12.958Z. Commit 3cf9315072d2e11acb4fb6e93b6ea2df0fb6b
 | access log | Journal d’accès GM&E | Journal d’accès GM&E | Journal d’accès GM&E |
 | access requests | Demandes d’accès | Demandes d’accès |  |
 | CSV export | Exporter en CSV | Exporter en CSV | Exporter en CSV |
-| sign out |  | Se déconnecter |  |
+| sign out |  | Se déconnecter | Se déconnecter |
 | sign in | Se connecter | Se connecter |  |
 | dashboard | Tableau de bord | Tableau de bord |  |
 | public catalogue | Catalogue des congrès | Catalogue des congrès |  |

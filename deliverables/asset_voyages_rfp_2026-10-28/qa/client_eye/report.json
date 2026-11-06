@@ -1,6 +1,6 @@
 {
  "meta": {
-  "generated": "2026-11-06T13:12:12.958Z",
+  "generated": "2026-11-06T13:15:12.221Z",
   "parts": {
    "a": {
     "at": "2026-11-06T13:09:50.047Z",
@@ -69,11 +69,9 @@
    "HUB:visiteur"
   ],
   "versions": {
-   "commit": "3cf9315072d2e11acb4fb6e93b6ea2df0fb6bf8f",
-   "dirty": [
-    "M deliverables/asset_voyages_rfp_2026-10-28/site/demo/index.html"
-   ],
-   "hub demo/index.html": "DIFFERS from source",
+   "commit": "6a61058eb66d68618c4daabb63ca358a5d3e5ac0",
+   "dirty": [],
+   "hub demo/index.html": "deployed = source",
    "hub index.html": "deployed = source",
    "hub js/demo.js": "deployed = source",
    "hub css/demo.css": "deployed = source",
@@ -218,7 +216,7 @@
    "UNTRIAGED": 0
   },
   "C7": {
-   "REAL": 1,
+   "REAL": 2,
    "FALSE-POSITIVE": 0,
    "UNTRIAGED": 0
   },
@@ -233,14 +231,14 @@
    "UNTRIAGED": 0
   },
   "C10": {
-   "REAL": 0,
-   "FALSE-POSITIVE": 3,
+   "REAL": 1,
+   "FALSE-POSITIVE": 1,
    "UNTRIAGED": 0
   },
   "D1": {
-   "REAL": 0,
+   "REAL": 1,
    "FALSE-POSITIVE": 0,
-   "UNTRIAGED": 1
+   "UNTRIAGED": 0
   },
   "D2": {
    "REAL": 0,
@@ -250,7 +248,7 @@
   "D3": {
    "REAL": 2,
    "FALSE-POSITIVE": 2,
-   "UNTRIAGED": 6
+   "UNTRIAGED": 7
   },
   "D4": {
    "REAL": 0,
@@ -260,7 +258,7 @@
   "E1": {
    "REAL": 0,
    "FALSE-POSITIVE": 0,
-   "UNTRIAGED": 1
+   "UNTRIAGED": 0
   },
   "E2": {
    "REAL": 0,
@@ -289,34 +287,11 @@
   }
  },
  "realPerOption": {
-  "A": 2,
-  "HUB": 4,
+  "A": 3,
+  "HUB": 5,
   "hub": 1
  },
  "findings": [
-  {
-   "key": "eeca7f2a74",
-   "check": "A4",
-   "option": "HUB",
-   "text": "https://www.sft.fr/global/gene/link.php?doc_id=882&edit_lang=fr",
-   "note": "HTTP 403",
-   "element": "a « 2025 survey »",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/questions/",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": "a « 2025 survey »"
-    }
-   ],
-   "count": 1,
-   "status": "UNVERIFIED",
-   "reason": "sft.fr answers 403 to scripted clients and to a real Chromium tab from this sandbox (a browser user-agent probe was refused by the auto-mode classifier). Needs one click from an ordinary browser.",
-   "ce": "CE-A4-001"
-  },
   {
    "key": "16cea18f91",
    "check": "A4",
@@ -333,6 +308,29 @@
      "state": "",
      "shot": "",
      "element": "a « French translators’ union (SFT) 2022 sur »"
+    }
+   ],
+   "count": 1,
+   "status": "UNVERIFIED",
+   "reason": "sft.fr answers 403 to scripted clients and to a real Chromium tab from this sandbox (a browser user-agent probe was refused by the auto-mode classifier). Needs one click from an ordinary browser.",
+   "ce": "CE-A4-001"
+  },
+  {
+   "key": "eeca7f2a74",
+   "check": "A4",
+   "option": "HUB",
+   "text": "https://www.sft.fr/global/gene/link.php?doc_id=882&edit_lang=fr",
+   "note": "HTTP 403",
+   "element": "a « 2025 survey »",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "a « 2025 survey »"
     }
    ],
    "count": 1,
@@ -758,6 +756,29 @@
    "ce": "CE-C7-001"
   },
   {
+   "key": "ffdd3e5a8b",
+   "check": "C7",
+   "option": "HUB",
+   "text": "\n\nSame requirements, fictional data and codes, sandboxes that reset themselves.",
+   "note": "the hub does not say the trial is reset after 24 h",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "REAL",
+   "reason": "The hub says the sandboxes « reset themselves » but not when (B: nightly purge of trials older than 24 h; A: on reload).",
+   "ce": "CE-C7-002"
+  },
+  {
    "key": "e00c557b95",
    "check": "C10",
    "option": "A",
@@ -776,9 +797,9 @@
     }
    ],
    "count": 1,
-   "status": "FALSE-POSITIVE",
-   "reason": "R2: gate artefact. The C2 probe clicked WordPress's « Replier le menu », which persists per user and folded the admin menu for the next sign-in. Tightened: that button is no longer probed.",
-   "ce": ""
+   "status": "REAL",
+   "reason": "R2 NEW (verified on shot 0077): hub A task 5 steps 1 and 3 say « Codes GM&E › Codes », but Équipe's WordPress menu shows only « Codes GM&E » (WordPress hides a one-item submenu), so there is no « Codes » item to open. Reword the hub for A, or add a second visible sub-item.",
+   "ce": "CE-C10-R2-001"
   },
   {
    "key": "509f4ed7ea",
@@ -799,9 +820,9 @@
     }
    ],
    "count": 1,
-   "status": "FALSE-POSITIVE",
-   "reason": "R2: gate artefact. The C2 probe clicked WordPress's « Replier le menu », which persists per user and folded the admin menu for the next sign-in. Tightened: that button is no longer probed.",
-   "ce": ""
+   "status": "REAL",
+   "reason": "R2 NEW (verified on shot 0077): hub A task 5 steps 1 and 3 say « Codes GM&E › Codes », but Équipe's WordPress menu shows only « Codes GM&E » (WordPress hides a one-item submenu), so there is no « Codes » item to open. Reword the hub for A, or add a second visible sub-item.",
+   "ce": "CE-C10-R2-001"
   },
   {
    "key": "a81146f797",
@@ -845,9 +866,9 @@
     }
    ],
    "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
+   "status": "REAL",
+   "reason": "R2: same defect as CE-C10-R2-001 (C10 T5 fails on A), shown in the hub comparison table.",
+   "ce": "CE-C10-R2-001"
   },
   {
    "key": "f5941be923",
@@ -891,12 +912,12 @@
    "ce": ""
   },
   {
-   "key": "7bd7b4fa2a",
+   "key": "2c434936bb",
    "check": "D3",
    "option": "HUB",
-   "text": "24",
+   "text": "T05",
    "note": "number not classified (week, date, our demo data) and not traced to a source line",
-   "element": " to other visitors and is cleared after ⟨24⟩ hours without use. Option A starts fres",
+   "element": "this is checked by your acceptance test ⟨T05⟩. ⏎  ⏎ Option A: WordPress ⏎  ⏎ Signed in as equ",
    "occurrences": [
     {
      "page": "demo/",
@@ -905,8 +926,22 @@
      "locale": "fr-FR",
      "state": "",
      "shot": "",
-     "element": " to other visitors and is cleared after ⟨24⟩ hours without use. Option A starts fres"
-    },
+     "element": "this is checked by your acceptance test ⟨T05⟩. ⏎  ⏎ Option A: WordPress ⏎  ⏎ Signed in as equ"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "7bd7b4fa2a",
+   "check": "D3",
+   "option": "HUB",
+   "text": "24",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": "s d’accès », and click « Approuver pour ⟨24⟩ h » or « Refuser ». ⏎ Sign in as equipe a",
+   "occurrences": [
     {
      "page": "demo/",
      "role": "visiteur",
@@ -917,7 +952,7 @@
      "element": "s d’accès », and click « Approuver pour ⟨24⟩ h » or « Refuser ». ⏎ Sign in as equipe a"
     }
    ],
-   "count": 2,
+   "count": 1,
    "status": "FALSE-POSITIVE",
    "reason": "R2: « 24 hours without use » is traced: the nightly purge keys on sandboxes.last_seen (custom_demo/src/data.js:14), and C7 passes on the idle rule.",
    "ce": ""
@@ -947,9 +982,18 @@
      "state": "",
      "shot": "",
      "element": "irection approves for 24 h, or refuses. ⟨4⟩. Code shown to that person only. 5. Acc"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "with a trial run first. ⏎  ⏎ Testing ⏎  ⏎ Stage ⟨4⟩ ⏎  ⏎ On a private copy of the site, against"
     }
    ],
-   "count": 2,
+   "count": 3,
    "status": "REAL",
    "reason": "« Try it in five minutes » is a time promise with no source and no measurement (the robot replay alone took 82 s for B, without reading).",
    "ce": "CE-D3-001"
@@ -979,9 +1023,18 @@
      "state": "",
      "shot": "",
      "element": " 2. Asks for access and gives a reason. ⟨3⟩. Direction approves for 24 h, or refuse"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "nges at each stage. ⏎  ⏎ Development ⏎  ⏎ Stage ⟨3⟩ ⏎  ⏎ Pages, the congress catalogue, enquiri"
     }
    ],
-   "count": 2,
+   "count": 3,
    "status": "REAL",
    "reason": "« Try it in five minutes » is a time promise with no source and no measurement (the robot replay alone took 82 s for B, without reading).",
    "ce": "CE-D3-001"
@@ -1071,9 +1124,18 @@
      "state": "",
      "shot": "",
      "element": "e. 1. Team member sees the code hidden. ⟨2⟩. Asks for access and gives a reason. 3."
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "rkshop of up to 2 hours. ⏎  ⏎ Design ⏎  ⏎ Stage ⟨2⟩ ⏎  ⏎ Wireframes (page outlines), then deskt"
     }
    ],
-   "count": 1,
+   "count": 2,
    "status": "UNTRIAGED",
    "reason": "",
    "ce": ""
@@ -1094,9 +1156,18 @@
      "state": "",
      "shot": "",
      "element": "ses. 4. Code shown to that person only. ⟨5⟩. Access recorded: who, when, which code"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "01 to T15, then fixes. ⏎  ⏎ Training ⏎  ⏎ Stage ⟨5⟩ ⏎  ⏎ For your team, with a second session f"
     }
    ],
-   "count": 1,
+   "count": 2,
    "status": "UNTRIAGED",
    "reason": "",
    "ce": ""
@@ -1117,9 +1188,27 @@
      "state": "",
      "shot": "",
      "element": "n read. ⏎ 6 Milestones ⏎  ⏎ Indicative, about ⟨13 to 14⟩ weeks to launch in all; counted from yo"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "ion you choose. ⏎  ⏎ Approval ⏎ Launch, about ⟨13 to 14⟩ weeks ⏎ After launch ⏎ Kickoff, access and "
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "four weeks after launch. ⏎  ⏎ Launch ⏎  ⏎ About ⟨13 to 14⟩ weeks from approval ⏎  ⏎ After your written"
     }
    ],
-   "count": 1,
+   "count": 3,
    "status": "UNTRIAGED",
    "reason": "",
    "ce": ""
@@ -1130,7 +1219,7 @@
    "option": "HUB",
    "text": "3 to 5",
    "note": "number not classified (week, date, our demo data) and not traced to a source line",
-   "element": " we will offer a slot that falls within ⟨3 to 5⟩ working days of your notice. ⏎  ⏎ Thursday ",
+   "element": "es later, we will propose a slot within ⟨3 to 5⟩ working days of your notice, subject to",
    "occurrences": [
     {
      "page": "demo/",
@@ -1139,36 +1228,13 @@
      "locale": "fr-FR",
      "state": "",
      "shot": "",
-     "element": " we will offer a slot that falls within ⟨3 to 5⟩ working days of your notice. ⏎  ⏎ Thursday "
+     "element": "es later, we will propose a slot within ⟨3 to 5⟩ working days of your notice, subject to"
     }
    ],
    "count": 1,
    "status": "REAL",
    "reason": "R2 NEW: « a slot within 3 to 5 working days of your notice » (site/demo/index.html:499) is a time promise with no source line in the repository. Trace it or remove the figure.",
    "ce": "CE-D3-R2-001"
-  },
-  {
-   "key": "5bfb1dbe2b",
-   "check": "E1",
-   "option": "HUB",
-   "text": "demo/index.html",
-   "note": "deployed file differs from site/ in the repository",
-   "element": "",
-   "occurrences": [
-    {
-     "page": "https://asset-voyages-redesign.pages.dev/demo/index.html",
-     "role": "visiteur",
-     "width": "",
-     "locale": "fr-FR",
-     "state": "",
-     "shot": "",
-     "element": ""
-    }
-   ],
-   "count": 1,
-   "status": "UNTRIAGED",
-   "reason": "",
-   "ce": ""
   }
  ],
  "replay": {
@@ -2158,7 +2224,9 @@
    "B": [
     "Se déconnecter"
    ],
-   "hub": [],
+   "hub": [
+    "Se déconnecter"
+   ],
    "scope": "AB"
   },
   {
@@ -2342,7 +2410,7 @@
     "w": 354,
     "vw": 390
    },
-   "frames": 63
+   "frames": 64
   },
   {
    "name": "custom-walkthrough",
@@ -2365,7 +2433,7 @@
     "w": 354,
     "vw": 390
    },
-   "frames": 62
+   "frames": 64
   }
  ],
  "midnight": {

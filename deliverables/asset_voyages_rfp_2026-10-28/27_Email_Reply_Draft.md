@@ -11,7 +11,7 @@ https://asset-voyages-redesign.pages.dev/demo/
 
 It shows two working demonstrations of the five steps you listed, built as sandboxes to show the approach rather than as the site itself, so you can compare them; the page includes a short note on how to choose:
 
-- Option A, WordPress: the platform your current site runs on. It opens entirely in your browser, with nothing to install; it takes a few seconds to start, and the page says what to do if it does not.
+- Option A, WordPress: the platform your current site runs on. It opens entirely in your browser, with nothing to install; it takes up to about 25 seconds to start, and the page says what to do if it stays on the loading screen.
 - Option B, a small custom platform of the kind outlined in my reply of 31 October: public pages served from Cloudflare's network, a standard SQL database, and a small administration console for your team.
 
 For both, the page covers:
@@ -23,7 +23,7 @@ For both, the page covers:
 
 All data and GM&E codes are fictional; please use fictional details when you try it.
 
-The page also shows one small addition that may help with group congress trips: a link your team can send to a group, so each traveller enters their own details and your team sees the list fill in. It is shown in the Option B demonstration only and is a suggestion: it is not part of the proposal to come, and the requirements and budget you communicated stay unchanged. If ASSET wants it, in either option, it would be scoped and quoted separately after the proposal and built only on your written agreement.
+The page also shows one small addition that may help with group congress trips: a link your team can send to a group, so each traveller enters their own details and your team sees the list fill in. It is shown in the Option B demonstration only and is a suggestion: it is not part of the proposal to come, and the requirements and budget you communicated stay unchanged. If ASSET wants it, it would be scoped and quoted separately for the option you choose, after the proposal, and built only on your written agreement.
 
 The same page sets out indicative delivery milestones from approval and receipt of content (design, development, testing, training, launch), to be confirmed in the written proposal, and explains in plain words how each option is built.
 
@@ -37,7 +37,7 @@ If shortlisting comes later, I will propose a slot within 3–5 working days of 
 
 Custom sample: should further validation be needed after the demonstration, the scope, fee and delivery date of a small custom sample would be agreed in writing before any work starts. Nothing chargeable has been started.
 
-As you say, this demonstration changes nothing in the requirements and budget previously communicated. As set out in my reply of 31 October, the written proposal follows by Tuesday 10 November on the stated assumptions, or sooner, within 24 to 48 working hours of your written answers if they reach me before then. It will price both options, each against its own scope, so you can choose with the figures in front of you. Your written answers remain the quickest way to a precise, fixed proposal; the demonstration does not replace them.
+As you say, this demonstration changes nothing in the requirements and budget previously communicated. As set out in my reply of 31 October, the written proposal follows by Tuesday 10 November on the stated assumptions, or sooner, within 24 to 48 working hours of your written answers if they reach me before then. It will price both options, each against its own scope, so you can choose with the figures in front of you. Your written answers to the questions remain the quickest way to a precise, fixed proposal.
 
 Kind regards,
 
