@@ -1,10 +1,4 @@
-boot visitor 1440 {"seconds":16.5,"bonjour":false,"adminbar":0,"outerVisibleText":[],"iframeBox":[0,0,1440,900],"scroll":[1440,1440]}
-A2 PASS hosted: logged out, no admin bar, no Playground toolbar | boot 16.5s, iframe 0,0,1440,900
-A2 PASS hosted: « Cardiologie » chip then first card | 2 congrès trouvés; Congrès européen de cardiologie — exemple
+boot visitor 1440 {"seconds":14.8,"bonjour":false,"adminbar":0,"outerVisibleText":[],"iframeBox":[0,0,1440,900],"scroll":[1440,1440]}
+A2 PASS hosted: logged out, no admin bar, no Playground toolbar | boot 14.8s, iframe 0,0,1440,900
+A2 PASS hosted: « Cardiologie » chip then first card | 12 congrès trouvés; Journées méditerranéennes d’oncologie — exemple
 A3 PASS hosted: submit enquiry, get DV reference | DV-2026-0007
-boot visitor 390 {"seconds":15.2,"bonjour":false,"adminbar":0,"outerVisibleText":[],"iframeBox":[0,0,390,844],"scroll":[390,390]}
-A2@390 PASS hosted 390: logged out, no overflow | boot 15.2s, scroll 390,390
-boot admin {"seconds":22.7,"url":"/wp-admin/admin.php?page=asset-demandes","who":"Bonjour, Direction (démo)","menu":["Tableau de bord","Médias","Congrès","Demandes","Accès GM&E","Profil"]}
-A1 PASS hosted admin: lands on Demandes as direction | /wp-admin/admin.php?page=asset-demandes Bonjour, Direction (démo)
-A1 PASS hosted: create + publish a congress as direction | Publication mise en ligne. Voir la publication in 1.0s; lost-connection false
-A1 PASS hosted: public page shows the new congress | ok

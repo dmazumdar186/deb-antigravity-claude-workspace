@@ -16,3 +16,4 @@ wp-admin/admin-post.php?action=asset_gme_save                   400 403:deny 403
 wp-admin/admin-post.php?action=asset_gme_decide                 400 403:deny 403:deny 403:deny
 wp-admin/admin-post.php?action=asset_gme_request                400 403:deny 403:deny 403:deny
 wp-admin/admin-post.php?action=asset_demande_update             400 403:deny 403:deny 403:deny
+wp-admin/admin-post.php?action=asset_cd_reseed                  400 403:deny 403:deny 403:deny

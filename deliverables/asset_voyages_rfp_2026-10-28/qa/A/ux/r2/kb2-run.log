@@ -1,0 +1,4 @@
+S2+S3 chip Cardiologie:12 | first card link:24 | Nom et prénom:6 | E-mail:1 | Téléphone:1 | Ville de départ:2 | Date aller:1 | Date retour:2 | Nombre de passagers:2 | consent checkbox:2 | Envoyer ma demande:1 | confirmation: | STORY RESULT:PASS
+S1 menu Congrès:7 | Ajouter un congrès:9 | Date de début (from title):38 | Date de fin:2 | Ville:2 | Pays:1 | Discipline:1 | Publier (Shift+Tab from Discipline):22 | lost-connection banner before Enter: | notice: | STORY RESULT:PASS
+S4 Dernière demande link:31 | Statut select:24 | Enregistrer:3 | STORY RESULT:PASS
+S5 menu Accès GM&E:15 | first reason textarea:23 | Demander l’accès:1 | Approuver (24 h) in widget:44 | menu Accès GM&E (2):15 | Révéler le code:23 | STORY RESULT:PASS

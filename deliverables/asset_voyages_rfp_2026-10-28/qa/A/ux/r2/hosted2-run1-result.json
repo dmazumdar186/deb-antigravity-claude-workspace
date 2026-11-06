@@ -1,0 +1,124 @@
+{
+ "boot": {
+  "visitor@1440": {
+   "seconds": 16.5,
+   "bonjour": false,
+   "adminbar": 0,
+   "outerVisibleText": [],
+   "iframeBox": [
+    0,
+    0,
+    1440,
+    900
+   ],
+   "scroll": [
+    1440,
+    1440
+   ]
+  },
+  "visitor@390": {
+   "seconds": 15.2,
+   "bonjour": false,
+   "adminbar": 0,
+   "outerVisibleText": [],
+   "iframeBox": [
+    0,
+    0,
+    390,
+    844
+   ],
+   "scroll": [
+    390,
+    390
+   ]
+  },
+  "admin": {
+   "seconds": 22.7,
+   "url": "/wp-admin/admin.php?page=asset-demandes",
+   "who": "Bonjour, Direction (démo)",
+   "menu": [
+    "Tableau de bord",
+    "Médias",
+    "Congrès",
+    "Demandes",
+    "Accès GM&E",
+    "Profil"
+   ]
+  },
+  "admin@390": {
+   "seconds": 20.6,
+   "scroll": [
+    390,
+    390
+   ]
+  }
+ },
+ "steps": [
+  {
+   "story": "A2",
+   "txt": "hosted: logged out, no admin bar, no Playground toolbar",
+   "status": "PASS",
+   "ev": "boot 16.5s, iframe 0,0,1440,900"
+  },
+  {
+   "story": "A2",
+   "txt": "hosted: « Cardiologie » chip then first card",
+   "status": "PASS",
+   "ev": "2 congrès trouvés; Congrès européen de cardiologie — exemple"
+  },
+  {
+   "story": "A3",
+   "txt": "hosted: submit enquiry, get DV reference",
+   "status": "PASS",
+   "ev": "DV-2026-0007"
+  },
+  {
+   "story": "A2@390",
+   "txt": "hosted 390: logged out, no overflow",
+   "status": "PASS",
+   "ev": "boot 15.2s, scroll 390,390"
+  },
+  {
+   "story": "A1",
+   "txt": "hosted admin: lands on Demandes as direction",
+   "status": "PASS",
+   "ev": "/wp-admin/admin.php?page=asset-demandes Bonjour, Direction (démo)"
+  },
+  {
+   "story": "A1",
+   "txt": "hosted: create + publish a congress as direction",
+   "status": "PASS",
+   "ev": "Publication mise en ligne. Voir la publication in 1.0s; lost-connection false"
+  },
+  {
+   "story": "A1",
+   "txt": "hosted: public page shows the new congress",
+   "status": "PASS",
+   "ev": "ok"
+  },
+  {
+   "story": "A4",
+   "txt": "hosted: equipe changes status of newest enquiry",
+   "status": "PASS",
+   "ev": "06/11/2026 04:28 Équipe (démo) Statut Nouvelle → Qualifiée"
+  },
+  {
+   "story": "A5",
+   "txt": "hosted: equipe requests access (codes masked)",
+   "status": "PASS",
+   "ev": "Demande d’accès envoyée à la Direction."
+  },
+  {
+   "story": "A5",
+   "txt": "hosted: direction approves from dashboard widget",
+   "status": "FAIL",
+   "ev": "locator.click: Timeout 30000ms exceeded."
+  },
+  {
+   "story": "A5",
+   "txt": "hosted: equipe reveals once, masked after reload",
+   "status": "FAIL",
+   "ev": "locator.click: Timeout 30000ms exceeded."
+  }
+ ]
+}

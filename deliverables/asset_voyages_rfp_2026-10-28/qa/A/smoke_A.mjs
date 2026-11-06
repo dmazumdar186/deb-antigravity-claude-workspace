@@ -34,7 +34,7 @@ async function hosted(name) {
       rec('SMOKE-hosted-visitor-12-congresses', /12/.test(count||'') || cards >= 12, `boot=${boot}s resultCountText=${count} exemple=${exemple} cards=${cards}`);
     } else {
       const li = await frame.locator('#wpadminbar').count();
-      rec('SMOKE-hosted-admin-demandes-loggedin', li > 0 && /admin/i.test(txt), `boot=${boot}s adminbar=${li} url=${frame.url().slice(-60)}`);
+      rec('SMOKE-hosted-admin-demandes-loggedin', li > 0 && /direction/i.test(txt) /* A-2xx: admin blueprint now logs in as direction, not admin */, `boot=${boot}s adminbar=${li} url=${frame.url().slice(-60)}`);
     }
     await page.screenshot({ path: new URL('./logs/hosted-' + name + '.png', import.meta.url).pathname });
   } catch (e) { rec('SMOKE-hosted-' + name, false, `after ${(Date.now()-t0)/1000}s: ${e.message.split('\n')[0]}`); }
