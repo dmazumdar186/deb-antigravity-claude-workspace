@@ -22,3 +22,22 @@ crons = ["0 3 * * *"]
 PUBLIC_URL = "https://asset-voyages-demo.debanjan186.workers.dev"
 # "off" for the public demo (shared accounts must never be locked for other visitors); "on" in production.
 ACCOUNT_LOCKOUT = "off"
+
+# Preview: a separate Worker and database for independent testing (`npx wrangler deploy --env preview`).
+# Nothing is shared with the client-facing Worker above: own name, own D1, own GME_KEY and DEMO_TEST_KEY secrets.
+[env.preview]
+name = "asset-voyages-demo-preview"
+workers_dev = true
+preview_urls = false
+
+[[env.preview.d1_databases]]
+binding = "DB"
+database_name = "asset-voyages-demo-preview"
+database_id = "1c329116-470c-4ba9-8e1c-41307e6b878c"
+
+[env.preview.triggers]
+crons = ["0 3 * * *"]
+
+[env.preview.vars]
+PUBLIC_URL = "https://asset-voyages-demo-preview.debanjan186.workers.dev"
+ACCOUNT_LOCKOUT = "off"

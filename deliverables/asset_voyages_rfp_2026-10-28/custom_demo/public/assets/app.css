@@ -179,6 +179,8 @@ main{display:block}
 .grp-thanks .facts{max-width:40em}
 .copy{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px}
 .copy .field{flex:1 1 260px}
+.pend{display:grid;gap:8px;padding:16px;border:1px solid var(--rule);border-radius:var(--r2);background:var(--paper)}
+.pend__act{display:flex;flex-wrap:wrap;gap:12px}
 .thanks{display:grid;gap:24px;padding:clamp(48px,8vw,120px) 0;max-width:46em}
 .thanks .lead{margin-top:16px}
 .thanks p .lnk{display:inline;min-height:0;line-height:inherit}

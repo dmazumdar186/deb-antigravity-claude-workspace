@@ -47,9 +47,10 @@ export function safeEqual(a, b) {
 // AES-GCM for GM&E codes uses it directly. Every MAC has its own key, derived with HKDF (SHA-256) from GME_KEY with a
 // dedicated info label, so no MAC can ever be replayed for another purpose:
 //   session-v1 (session cookies), form-v1 (anonymous form tokens), confirm-v1 (confirmation links), iphash-v1 (IP hashes),
-//   group-v1 (« Lien de groupe »: link tokens, their lookup MAC and the delegate confirmation links).
+//   group-v1 (« Lien de groupe »: link tokens, their lookup MAC and the delegate confirmation links),
+//   delegate-v1 (the delegate's browser cookie that may update its own entry).
 // No GME_KEY means no key at all: every request fails closed before any token or session is accepted.
-export const MAC_PURPOSES = ['session-v1', 'form-v1', 'confirm-v1', 'iphash-v1', 'group-v1'];
+export const MAC_PURPOSES = ['session-v1', 'form-v1', 'confirm-v1', 'iphash-v1', 'group-v1', 'delegate-v1'];
 let keyCache = null;
 export async function keys(env) {
   if (!env.GME_KEY) throw new Error('GME_KEY secret is not set');

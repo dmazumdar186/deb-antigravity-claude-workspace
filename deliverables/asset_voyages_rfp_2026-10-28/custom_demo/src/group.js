@@ -8,7 +8,7 @@
 // browser's submission lands in that browser's own sandbox.
 import {
   html, raw, today, nowIso, addDays, isIsoDate, frRange, frNumDate, clean, readForm, sameOrigin, makeFormToken,
-  checkFormToken, rateHit, redirect, htmlResponse, hmac, safeEqual, randomToken,
+  checkFormToken, rateHit, redirect, htmlResponse, hmac, safeEqual, randomToken, getCookie,
 } from './lib.js';
 import { groupPage, field, errorSummary } from './views.js';
 import { claim, validSbx, T, DEMO_BUSY, DEMO_PAUSE } from './data.js';
@@ -166,7 +166,7 @@ async function formPage(req, env, r, token, { values, errors, notice, status = 2
         <li>Choisissez votre ville de départ et vos dates.</li>
         <li>Envoyez : l’agence prépare les billets du groupe et revient vers vous.</li>
       </ol>
-      <p class="quiet">Vous pouvez renvoyer le formulaire avec le même e-mail pour corriger vos informations : elles remplacent les précédentes.</p>
+      <p class="quiet">Pour corriger vos informations, renvoyez le formulaire depuis ce même téléphone avec le même e-mail. Depuis un autre appareil, l’agence vérifie la modification avant de l’appliquer.</p>
     </div>
     <aside class="cg__aside" aria-labelledby="g-h">
       <h2 class="h2" id="g-h">Vos informations de voyage</h2>
@@ -231,7 +231,7 @@ async function submit(req, r, token) {
     return formPage(req, env, r, token, { values: v, notice: 'Vos informations n’ont pas été envoyées : trop d’envois depuis cette connexion en 10 minutes. Réessayez dans quelques minutes.', status: 429 });
   }
   const key = emailNorm(v.email);
-  const prior = await env.DB.prepare(`SELECT id FROM ${T(env, 'group_delegates')} WHERE 1=1 AND enquiry_id = ? AND email_norm = ?`).bind(r.enquiry.id, key).first();
+  const prior = await env.DB.prepare(`SELECT id, owner FROM ${T(env, 'group_delegates')} WHERE 1=1 AND enquiry_id = ? AND email_norm = ?`).bind(r.enquiry.id, key).first();
   if (!prior) {
     const n = (await env.DB.prepare(`SELECT COUNT(*) AS n FROM ${T(env, 'group_delegates')} WHERE 1=1 AND enquiry_id = ?`).bind(r.enquiry.id).first()).n;
     if (n >= delegateCap(r.enquiry.passengers)) return formPage(req, env, r, token, { values: v, notice: 'Vos informations n’ont pas été envoyées : la liste de ce groupe est complète. Contactez votre interlocuteur ASSET Voyages.' });
@@ -243,13 +243,38 @@ async function submit(req, r, token) {
     throw err;
   }
   const now = nowIso();
-  // A seed delegate re-submitting in a sandbox keeps their seed id (the sandbox row hides the seed row).
-  const id = prior ? prior.id : randomToken(9);
-  await env.DB.prepare(`INSERT INTO group_delegates (sbx, enquiry_id, email_norm, id, name, email, departure_city, date_out, date_back, consent_at, created_at, updated_at)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT (sbx, enquiry_id, email_norm) DO UPDATE SET name = excluded.name, email = excluded.email,
-    departure_city = excluded.departure_city, date_out = excluded.date_out, date_back = excluded.date_back, consent_at = excluded.consent_at, updated_at = excluded.updated_at`)
-    .bind(sid, r.enquiry.id, key, id, v.name, v.email, v.departure_city, v.date_out, v.date_back, now, now, now).run();
-  return redirect(await confirmUrl(env, token, r.mac, id));
+  // The delegate cookie is (re)sent on every accepted answer, new or not, so its presence reveals nothing.
+  const rid = (await delegateCookieId(env, req)) || randomToken(16);
+  const owner = await ownerHash(env, rid);
+  const cookie = { 'set-cookie': `${DLG_COOKIE}=${rid}.${await hmac(env, 'delegate-v1', 'cookie|' + rid)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${DLG_MAX_AGE}` };
+  let id;
+  if (!prior || (prior.owner && safeEqual(prior.owner, owner))) {
+    // New entry, or the browser that created it: write directly. A seed delegate's row keeps its id (the sandbox row hides the seed row).
+    id = prior ? prior.id : randomToken(9);
+    await env.DB.prepare(`INSERT INTO group_delegates (sbx, enquiry_id, email_norm, id, name, email, departure_city, date_out, date_back, consent_at, created_at, updated_at, owner)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT (sbx, enquiry_id, email_norm) DO UPDATE SET name = excluded.name, email = excluded.email,
+      departure_city = excluded.departure_city, date_out = excluded.date_out, date_back = excluded.date_back, consent_at = excluded.consent_at, updated_at = excluded.updated_at`)
+      .bind(sid, r.enquiry.id, key, id, v.name, v.email, v.departure_city, v.date_out, v.date_back, now, now, now, prior ? prior.owner : owner).run();
+  } else {
+    // An existing e-mail from another browser: never overwrite. The change waits for staff (« Modification à vérifier »).
+    id = randomToken(9);
+    await env.DB.prepare(`INSERT INTO group_pending (sbx, enquiry_id, email_norm, id, name, email, departure_city, date_out, date_back, consent_at, created_at)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT (sbx, enquiry_id, email_norm) DO UPDATE SET id = excluded.id, name = excluded.name, email = excluded.email,
+      departure_city = excluded.departure_city, date_out = excluded.date_out, date_back = excluded.date_back, consent_at = excluded.consent_at, created_at = excluded.created_at`)
+      .bind(sid, r.enquiry.id, key, id, v.name, v.email, v.departure_city, v.date_out, v.date_back, now, now).run();
+  }
+  return redirect(await confirmUrl(env, token, r.mac, id), cookie);
+}
+
+// ---------------------------------------------------------------- delegate cookie (delegate-v1)
+// The cookie carries a random browser id and its MAC; the entry stores only HMAC(delegate-v1, 'owner|' + id).
+export const DLG_COOKIE = '__Host-av_dlg';
+const DLG_MAX_AGE = 60 * 86400;
+export const ownerHash = (env, rid) => hmac(env, 'delegate-v1', 'owner|' + rid);
+export async function delegateCookieId(env, req) {
+  const m = /^([A-Za-z0-9_-]{22})\.([A-Za-z0-9_-]{43})$/.exec(getCookie(req, DLG_COOKIE) || '');
+  if (!m) return null;
+  return safeEqual(m[2], await hmac(env, 'delegate-v1', 'cookie|' + m[1])) ? m[1] : null;
 }
 function closedPageStatus(status) {
   const body = html`<section class="msg"><h1 class="h1" tabindex="-1" data-focus>Envoi refusé</h1><p>Le formulaire envoyé est trop volumineux ou mal formé : vos informations n’ont pas été enregistrées.</p></section>`;
@@ -263,10 +288,13 @@ async function thanks(req, r, token) {
   const mm = /^([A-Za-z0-9_-]{8,16})\.(\d{10})\.([A-Za-z0-9_-]{43})$/.exec(d);
   let row = null;
   if (mm && +mm[2] > Math.floor(Date.now() / 1000) && safeEqual(mm[3], await confirmSig(env, r.mac, mm[1], +mm[2]))) {
-    row = await env.DB.prepare(`SELECT name, email, departure_city, date_out, date_back FROM ${T(env, 'group_delegates')} WHERE 1=1 AND enquiry_id = ? AND id = ?`).bind(r.enquiry.id, mm[1]).first();
+    // The same page whether the answer was stored or is waiting for a check: it shows what this person sent, nothing more.
+    for (const t of ['group_pending', 'group_delegates']) {
+      row = row || await env.DB.prepare(`SELECT name, email, departure_city, date_out, date_back FROM ${T(env, t)} WHERE 1=1 AND enquiry_id = ? AND id = ?`).bind(r.enquiry.id, mm[1]).first();
+    }
   }
   const body = html`<section class="thanks grp-thanks">
-    <h1 class="display" tabindex="-1" data-focus>Merci, vos informations sont enregistrées.</h1>
+    <h1 class="display" tabindex="-1" data-focus>Votre réponse a bien été reçue.</h1>
     <p class="lead">Voyage de groupe : ${r.congress.title}, ${frRange(r.congress.start_date, r.congress.end_date)}. L’agence ASSET Voyages revient vers vous avec votre billet.</p>
     ${row ? html`<dl class="facts" data-own>
       <div><dt>Nom et prénom</dt><dd>${row.name}</dd></div>
@@ -275,7 +303,7 @@ async function thanks(req, r, token) {
       <div><dt>Aller</dt><dd>${frNumDate(row.date_out)}</dd></div>
       <div><dt>Retour</dt><dd>${frNumDate(row.date_back)}</dd></div>
     </dl>
-    <p class="quiet">Une erreur ? Renvoyez le formulaire avec le même e-mail : vos nouvelles informations remplacent celles-ci.</p>` : ''}
+    <p class="quiet">Une erreur ? Renvoyez le formulaire depuis ce même téléphone avec le même e-mail.</p>` : ''}
     <p><a class="btn btn--line" href="/g/${token}">Revenir au formulaire</a></p>
   </section>`;
   return htmlResponse(groupPage({ title: 'Informations enregistrées | ASSET Voyages', body }), 200, NO_STORE);

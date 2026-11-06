@@ -623,7 +623,12 @@ async function groupTab(ctx, id) {
   for (const d of rows) { const k = d.departure_city.trim(); cities[k] = (cities[k] || 0) + 1; }
   const mix = Object.entries(cities).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'fr'));
   const hint = seuilHint(grp.answered, seuil);
-  const ok = { lien: 'Lien créé : copiez-le et envoyez-le aux participants.', revoque: 'Lien révoqué : il ne fonctionne plus. Les réponses déjà reçues restent dans la liste.', seuil: 'Seuil groupe enregistré.', existe: 'Un lien actif existe déjà : le voici.' }[ctx.url.searchParams.get('ok')];
+  const pending = (await env.DB.prepare(`SELECT * FROM ${T(env, 'group_pending')} WHERE 1=1 AND enquiry_id = ? ORDER BY created_at LIMIT 200`).bind(id).all()).results || [];
+  const pendingBy = Object.fromEntries(pending.map((p) => [p.email_norm, p]));
+  const cur = Object.fromEntries(rows.map((d) => [d.email_norm, d]));
+  const trip = (x) => html`${x.name}, ${wbrEmail(x.email)}, départ de ${x.departure_city}, ${nw(frNumDate(x.date_out))} au ${nw(frNumDate(x.date_back))}`;
+  const badge = html`<span class="st st--rev">Modification à vérifier</span>`;
+  const ok = { lien: 'Lien créé : copiez-le et envoyez-le aux participants.', revoque: 'Lien révoqué : il ne fonctionne plus. Les réponses déjà reçues restent dans la liste.', seuil: 'Seuil groupe enregistré.', existe: 'Un lien actif existe déjà : le voici.', accepte: 'Modification acceptée : la liste est à jour.', refuse: 'Modification refusée : l’inscription d’origine est conservée.' }[ctx.url.searchParams.get('ok')];
   const err = ctx.url.searchParams.get('err') === 'seuil' ? `Seuil refusé : indiquez un nombre entier de ${SEUIL_MIN} à ${SEUIL_MAX}.` : '';
   const body = html`<nav class="crumbs" aria-label="Fil d’Ariane"><a href="/console/demandes">Demandes</a><span aria-hidden="true">/</span><a href="/console/demandes/${r.id}">${r.ref}</a><span aria-hidden="true">/</span><span>Groupe</span></nav>
     <div class="head"><h1 class="h1">Groupe ${nw(r.ref)}</h1><p>${pill(ST_KIND[r.status], STATUS_LABELS[r.status])}</p></div>
@@ -644,9 +649,17 @@ async function groupTab(ctx, id) {
         <p class="h2" data-counter>${counterText(grp.answered, grp.expected)}</p>
         <p class="quiet">${r.cg_title}. ${mix.length ? html`Départs : ${mix.map(([c, n], i) => html`${i ? ', ' : ''}${c} ${n}`)}.` : 'Aucune réponse pour le moment.'}</p>
         ${hint ? html`<p class="alert" data-hint>${hint.text} Indication interne, jamais montrée aux participants.</p>` : ''}
+        ${pending.length ? html`<div class="stack" data-pending><h3 class="h4">Modifications à vérifier (${pending.length})</h3>
+          <p class="quiet">Envoyées depuis un autre appareil que celui de l’inscription : rien n’est remplacé tant que vous n’acceptez pas.</p>
+          <ul class="reqs">${pending.map((p) => html`<li class="pend" data-pending-row>
+            <p>${badge} <span class="quiet">reçue le ${frDateTime(p.created_at)}</span></p>
+            <p>Actuel : ${cur[p.email_norm] ? trip(cur[p.email_norm]) : html`<span class="quiet">inscription retirée</span>`}</p>
+            <p>Proposé : ${trip(p)}</p>
+            <div class="pend__act">${['accepter', 'refuser'].map((d) => html`<form method="post" action="/console/demandes/${r.id}/groupe">${csrfInput(ctx.csrf)}<input type="hidden" name="action" value="${d}"><input type="hidden" name="email" value="${p.email_norm}"><button class="btn${d === 'refuser' ? ' btn--line' : ''}" type="submit">${d === 'accepter' ? 'Accepter' : 'Refuser'}</button></form>`)}</div>
+          </li>`)}</ul></div>` : ''}
         ${rows.length ? html`<div class="wrap" role="region" aria-label="Participants" tabindex="0"><table class="tbl">
           <thead><tr><th scope="col">Nom (pièce d’identité)</th><th scope="col">E-mail</th><th scope="col">Départ</th><th scope="col">Aller</th><th scope="col">Retour</th><th scope="col">Reçu le</th></tr></thead>
-          <tbody>${rows.map((d) => html`<tr><td class="wide">${d.name}</td><td class="wide">${wbrEmail(d.email)}</td><td>${d.departure_city}</td><td>${nw(frNumDate(d.date_out))}</td><td>${nw(frNumDate(d.date_back))}</td><td>${frDateTime(d.updated_at)}</td></tr>`)}</tbody>
+          <tbody>${rows.map((d) => html`<tr><td class="wide">${d.name}${pendingBy[d.email_norm] ? html`<br>${badge}` : ''}</td><td class="wide">${wbrEmail(d.email)}</td><td>${d.departure_city}</td><td>${nw(frNumDate(d.date_out))}</td><td>${nw(frNumDate(d.date_back))}</td><td>${frDateTime(d.updated_at)}</td></tr>`)}</tbody>
         </table></div>` : html`<div class="empty"><p>Personne n’a encore répondu.</p></div>`}
         <p class="quiet">La liste se met à jour seule tant que la page reste ouverte.</p>
       </section>`;
@@ -689,6 +702,23 @@ async function groupAction(ctx, id) {
     }
     return redirect(`${back}?ok=seuil`);
   }
+  if (action === 'accepter' || action === 'refuser') {
+    const key = String(form.get('email') || '').slice(0, 254);
+    const p = await env.DB.prepare(`SELECT * FROM ${T(env, 'group_pending')} WHERE 1=1 AND enquiry_id = ? AND email_norm = ?`).bind(id, key).first();
+    if (!p) return redirect(back); // already decided (double click, other tab)
+    const sid = await claim(env);
+    const stmts = [env.DB.prepare('DELETE FROM group_pending WHERE sbx = ? AND enquiry_id = ? AND email_norm = ?').bind(sid, id, key)];
+    if (action === 'accepter') {
+      const d = await env.DB.prepare(`SELECT * FROM ${T(env, 'group_delegates')} WHERE 1=1 AND enquiry_id = ? AND email_norm = ?`).bind(id, key).first();
+      // The entry keeps its id, creation date and owner (the original browser can still correct it).
+      stmts.unshift(env.DB.prepare(`INSERT INTO group_delegates (sbx, enquiry_id, email_norm, id, name, email, departure_city, date_out, date_back, consent_at, created_at, updated_at, owner)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT (sbx, enquiry_id, email_norm) DO UPDATE SET name = excluded.name, email = excluded.email,
+        departure_city = excluded.departure_city, date_out = excluded.date_out, date_back = excluded.date_back, consent_at = excluded.consent_at, updated_at = excluded.updated_at`)
+        .bind(sid, id, key, d ? d.id : p.id, p.name, p.email, p.departure_city, p.date_out, p.date_back, p.consent_at, d ? d.created_at : p.created_at, now, d ? d.owner : ''));
+    }
+    await env.DB.batch(stmts);
+    return redirect(`${back}?ok=${action === 'accepter' ? 'accepte' : 'refuse'}`);
+  }
   return deny(ctx, 'Action inconnue. Rien n’a été modifié.', 400);
 }
 async function groupCsv(ctx, id) {
@@ -696,9 +726,10 @@ async function groupCsv(ctx, id) {
   const r = await env.DB.prepare(`${enqSelect(env)} AND e.id = ?`).bind(id).first();
   if (!r || r.passengers < GROUP_MIN_PAX) return notFound(ctx);
   const rows = (await env.DB.prepare(`SELECT * FROM ${T(env, 'group_delegates')} WHERE 1=1 AND enquiry_id = ? ORDER BY created_at, email_norm LIMIT 1000`).bind(id).all()).results || [];
-  const head = ['Demande', 'Congrès', 'Nom (pièce d’identité)', 'E-mail', 'Ville de départ', 'Aller', 'Retour', 'Reçu le', 'Mis à jour le'];
+  const pend = new Set(((await env.DB.prepare(`SELECT email_norm FROM ${T(env, 'group_pending')} WHERE 1=1 AND enquiry_id = ?`).bind(id).all()).results || []).map((p) => p.email_norm));
+  const head = ['Demande', 'Congrès', 'Nom (pièce d’identité)', 'E-mail', 'Ville de départ', 'Aller', 'Retour', 'Reçu le', 'Mis à jour le', 'Modification à vérifier'];
   const lines = [head.map(csvCell).join(';')];
-  for (const d of rows) lines.push([r.ref, r.cg_title, d.name, d.email, d.departure_city, d.date_out, d.date_back, frDateTime(d.created_at), frDateTime(d.updated_at)].map(csvCell).join(';'));
+  for (const d of rows) lines.push([r.ref, r.cg_title, d.name, d.email, d.departure_city, d.date_out, d.date_back, frDateTime(d.created_at), frDateTime(d.updated_at), pend.has(d.email_norm) ? 'oui' : ''].map(csvCell).join(';'));
   return new Response('\uFEFF' + lines.join('\r\n') + '\r\n', {
     headers: { 'content-type': 'text/csv; charset=utf-8', 'content-disposition': `attachment; filename="groupe-${r.ref}-${today()}.csv"`, ...NO_STORE },
   });

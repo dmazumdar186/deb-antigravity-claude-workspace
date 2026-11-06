@@ -115,7 +115,7 @@ test('G-F2 G-E1 G-E2 G-E3 G-I1 create in 2 clicks, delegate on a phone submits i
   let sendClicks = 0;
   await B.page.getByRole('button', { name: 'Envoyer mes informations' }).click(); sendClicks++;
   expect(sendClicks, 'G-E2 delegate submit').toBe(1);
-  await expect(B.page.getByRole('heading', { name: 'Merci, vos informations sont enregistrées.' })).toBeVisible();
+  await expect(B.page.getByRole('heading', { name: 'Votre réponse a bien été reçue.' })).toBeVisible();
   await expect(B.page.locator('[data-own]')).toContainText('Diane Morel (exemple)');
   await expect(B.page.locator('[data-own]')).toContainText('26/08/2027');
   const thanksUrl = B.page.url();
@@ -185,7 +185,7 @@ test('G-F3 CSV export of the manifest: BOM, semicolons, formula cells neutralise
   expect([...buf.subarray(0, 3)]).toEqual([0xef, 0xbb, 0xbf]);
   const csv = buf.toString('utf8').slice(1);
   const lines = csv.trim().split('\r\n');
-  expect(lines[0]).toBe('"Demande";"Congrès";"Nom (pièce d’identité)";"E-mail";"Ville de départ";"Aller";"Retour";"Reçu le";"Mis à jour le"');
+  expect(lines[0]).toBe('"Demande";"Congrès";"Nom (pièce d’identité)";"E-mail";"Ville de départ";"Aller";"Retour";"Reçu le";"Mis à jour le";"Modification à vérifier"');
   expect(lines.length).toBe(3);
   expect(csv).toContain(`"'=HYPERLINK(""http://evil.example"",""x"")"`);
   expect(csv).toContain(`"'+33 cmd|calc"`);
@@ -378,6 +378,80 @@ test('G-H4 rate limits of the public route: 20 submissions per IP per 10 min, th
   await ctx.close();
 });
 
+test('G-H5 no silent overwrite: an existing e-mail from another browser becomes « Modification à vérifier »; the creator’s browser may update; staff accept or refuse', async ({ page, browser }) => {
+  await login(page, 'equipe');
+  const link = await createLink(page, 3);
+  const B = await newPage(browser); // the delegate's own phone
+  const C = await newPage(browser); // a colleague holding the same link
+  const dlg = async (P) => (await P.ctx.cookies()).find((c) => c.name === '__Host-av_dlg');
+  const first = await postDelegate(B.page.request, link, { name: 'Diane Morel (exemple)', email: 'diane.morel@example.com', departure_city: 'Lyon' });
+  expect(first.res.status()).toBe(303);
+  expect(await dlg(B)).toBeTruthy();
+  expect((await dlg(B)).httpOnly).toBe(true);
+  // C: one new e-mail and one existing e-mail. Same status, same redirect shape, same cookie, same page: nothing tells them apart.
+  const fresh = await postDelegate(C.page.request, link, { name: 'Hugo Blanc (exemple)', email: 'hugo.blanc@example.com', departure_city: 'Rennes' });
+  const overwrite = await postDelegate(C.page.request, link, { name: 'Diane Usurpée (exemple)', email: 'DIANE.morel@example.com', departure_city: 'Brest' });
+  for (const x of [fresh, overwrite]) {
+    expect(x.res.status()).toBe(303);
+    expect(x.res.headers().location).toMatch(/^\/g\/[A-Za-z0-9_-]{43}\/merci\?d=[A-Za-z0-9_-]{12}\.\d{10}\.[A-Za-z0-9_-]{43}$/);
+    expect(x.res.headers()['set-cookie']).toMatch(/^__Host-av_dlg=[A-Za-z0-9_-]{22}\.[A-Za-z0-9_-]{43}; Path=\/; HttpOnly; Secure; SameSite=Lax; Max-Age=\d+$/);
+  }
+  const shape = async (x, name, city) => (await (await C.page.request.get(x.res.headers().location)).text()).replace(name, 'NOM').replace(/[a-zA-Z.]+@example\.com/, 'MAIL').replace(city, 'VILLE').replace(/\/g\/[A-Za-z0-9_-]{43}/g, '/g/T');
+  const s1 = await shape(fresh, 'Hugo Blanc (exemple)', 'Rennes');
+  const s2 = await shape(overwrite, 'Diane Usurpée (exemple)', 'Brest');
+  expect(s2).toBe(s1);
+  expect(s1).toContain('Votre réponse a bien été reçue.');
+  expect(s2).not.toContain('Lyon');
+  // the console: original kept, the change waits with its badge
+  await page.goto('/console/demandes/3/groupe');
+  await expect(counter(page)).toHaveText('2 répondus / 12 attendus');
+  const row = page.locator('[data-live] tbody tr', { hasText: 'Diane Morel (exemple)' });
+  await expect(row).toContainText('Lyon');
+  await expect(row).toContainText('Modification à vérifier');
+  await expect(page.locator('[data-live] tbody')).not.toContainText('Brest');
+  const pend = page.locator('[data-pending-row]');
+  await expect(pend).toHaveCount(1);
+  await expect(pend).toContainText('Actuel : Diane Morel (exemple)');
+  await expect(pend).toContainText('Proposé : Diane Usurpée (exemple)');
+  await expect(pend).toContainText('Brest');
+  // the creator's browser updates directly, the pending change stays for staff
+  const own = await postDelegate(B.page.request, link, { name: 'Diane Morel (exemple)', email: 'diane.morel@example.com', departure_city: 'Grenoble' });
+  expect(own.res.status()).toBe(303);
+  // a forged delegate cookie is ignored: still a pending change
+  const E = await browser.newContext({ baseURL: BASE, extraHTTPHeaders: { ...(TEST_KEY ? { 'x-demo-test': TEST_KEY } : {}), cookie: `__Host-av_dlg=${'A'.repeat(22)}.${'B'.repeat(43)}` } });
+  expect((await postDelegate(E.request, link, { name: 'Diane Faux (exemple)', email: 'diane.morel@example.com', departure_city: 'Nice' })).res.status()).toBe(303);
+  await E.close();
+  await page.reload();
+  await expect(row).toContainText('Grenoble');
+  await expect(pend).toHaveCount(1);
+  await expect(pend).toContainText('Nice'); // the latest proposal replaces the earlier one
+  if (!LIVE) expect(d1Count(`SELECT COUNT(*) AS n FROM group_delegates WHERE email_norm = 'diane.morel@example.com' AND sbx = '${await sbxOf(page)}'`)[0].n).toBe(1);
+  // Refuser: the entry stays as it was
+  await pend.getByRole('button', { name: 'Refuser' }).click();
+  await expect(page.locator('.ok')).toHaveText('Modification refusée : l’inscription d’origine est conservée.');
+  await expect(pend).toHaveCount(0);
+  await expect(row).toContainText('Grenoble');
+  await expect(row).not.toContainText('Modification à vérifier');
+  // Accepter: the entry takes the proposal, keeps one row and its creator, who can still correct it
+  await postDelegate(C.page.request, link, { name: 'Diane Morel-Blanc (exemple)', email: 'diane.morel@example.com', departure_city: 'Annecy' });
+  await page.reload();
+  await pend.getByRole('button', { name: 'Accepter' }).click();
+  await expect(page.locator('.ok')).toHaveText('Modification acceptée : la liste est à jour.');
+  await expect(counter(page)).toHaveText('2 répondus / 12 attendus');
+  const accepted = page.locator('[data-live] tbody tr', { hasText: 'Diane Morel-Blanc (exemple)' });
+  await expect(accepted).toContainText('Annecy');
+  await postDelegate(B.page.request, link, { name: 'Diane Morel (exemple)', email: 'diane.morel@example.com', departure_city: 'Valence' });
+  await page.reload();
+  await expect(page.locator('[data-live] tbody tr', { hasText: 'Diane Morel (exemple)' })).toContainText('Valence');
+  await expect(pend).toHaveCount(0);
+  // a seeded delegate's e-mail sent from any browser is a pending change too (the seed has no owner)
+  await postDelegate(C.page.request, await linkOf(page, 1), { name: 'Usurpateur (exemple)', email: 'alice.martin@example.com', date_out: '2027-01-27', date_back: '2027-01-31' });
+  // decisions need a staff session and its CSRF token
+  const anon = await C.page.request.post('/console/demandes/3/groupe', { form: { action: 'accepter', email: 'diane.morel@example.com' }, maxRedirects: 0, headers: { origin: ORIGIN } });
+  expect([302, 303, 401, 403]).toContain(anon.status());
+  for (const P of [B, C]) { assertClean(P.problems); await P.ctx.close(); }
+});
+
 test('G-L1 leak: form, confirmation and closed pages never show other delegates, enquiry data, codes or the threshold', async ({ page, browser }) => {
   await login(page, 'direction'); // Direction sees everything, codes included: none of it may reach the public link
   const seed = await linkOf(page, 1);
@@ -472,7 +546,9 @@ test('G-X3 Hallmark sloplint: zero FAIL on the new public pages and console page
   const fix = (h) => h.replace(/href="\/assets\/app\.css[^"]*"/, 'href="../app.css"');
   await login(page, 'equipe');
   const link = await linkOf(page, 1);
+  await postDelegate(page.request, link, { name: 'Alice Martin-Roy (exemple)', email: 'alice.martin@example.com', date_out: '2027-01-27', date_back: '2027-01-31' }); // a pending change on screen
   await page.goto('/console/demandes/1/groupe');
+  await expect(page.locator('[data-pending-row]')).toHaveCount(1);
   writeFileSync(join(dir, 'con', 'groupe.html'), fix(await page.content()));
   await page.goto('/console/demandes/1');
   writeFileSync(join(dir, 'con', 'demande.html'), fix(await page.content()));

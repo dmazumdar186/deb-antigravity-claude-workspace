@@ -104,6 +104,20 @@ test('UNIT-G-011 CSV cells reuse the formula-injection escaping', () => {
   assert.equal(L.csvCell('@SUM(A1)'), `"'@SUM(A1)"`);
   assert.equal(L.csvCell('Lille'), '"Lille"');
 });
+test('UNIT-G-013 delegate cookie (delegate-v1): own key, owner hash per browser id, forged or malformed cookies refused', async () => {
+  assert.ok(L.MAC_PURPOSES.includes('delegate-v1'));
+  const rid = 'r'.repeat(22);
+  const h = await G.ownerHash(env, rid);
+  assert.equal(await G.ownerHash(env, rid), h);
+  assert.notEqual(await G.ownerHash(env, 's'.repeat(22)), h);
+  assert.notEqual(await L.hmac(env, 'group-v1', 'owner|' + rid), h);
+  const sig = await L.hmac(env, 'delegate-v1', 'cookie|' + rid);
+  const req = (v) => new Request('https://x.example/g/t', { headers: { cookie: `__Host-av_dlg=${v}` } });
+  assert.equal(await G.delegateCookieId(env, req(`${rid}.${sig}`)), rid);
+  assert.equal(await G.delegateCookieId(env2, req(`${rid}.${sig}`)), null); // another key
+  assert.equal(await G.delegateCookieId(env, req(`${'s'.repeat(22)}.${sig}`)), null);
+  for (const bad of ['', 'x', `${rid}.${sig}.extra`, `${rid}`, `${rid}.${h}`]) assert.equal(await G.delegateCookieId(env, req(bad)), null, bad);
+});
 test('UNIT-G-012 token format: only 43 base64url characters', () => {
   for (const bad of ['', 'x'.repeat(42), 'x'.repeat(44), '../../etc/passwd', 'a'.repeat(42) + '=', 'a'.repeat(42) + '/']) assert.equal(G.TOKEN_RE.test(bad), false, bad);
   assert.equal(G.TOKEN_RE.test('A'.repeat(43)), true);
