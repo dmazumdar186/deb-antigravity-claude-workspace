@@ -40,3 +40,8 @@ Running 68 tests using 1 worker
   ✓  35 05-s5-gme.spec.js:180:1 › S5-F5 public pages say only « Tarif congrès négocié disponible », never the code (7.7s)
   ✓  36 05-s5-gme.spec.js:198:1 › S5-L2 codes never in HTML for authorised users until reveal; never in logs, CSV or notifications (19.3s)
   ✓  37 06-leak.spec.js:76:1 › S5-L1 + S4-F6 logged-out crawl: pages, filters, every congress, feeds, sitemaps, search, every REST route, admin-ajax (4.6m)
+  ✓  38 06-leak.spec.js:95:1 › S5-L1 crawl as equipe without an active grant (public + reachable admin screens) (6.2m)
+  ✓  39 06-leak.spec.js:117:1 › S5-F1 (after reveals) database still holds no plaintext code (8ms)
+  ✓  40 07-cross.spec.js:16:1 › X1 zero console errors and zero failed requests on every tested screen (1.2m)
+  ✓  41 07-cross.spec.js:48:1 › X2 visitor pages load no third-party scripts or requests (5.9s)
+  ✓  42 07-cross.spec.js:63:1 › X3 all data fictional: titles end « — exemple », emails @example.com, codes DEMO-GME-… (15.3s)
