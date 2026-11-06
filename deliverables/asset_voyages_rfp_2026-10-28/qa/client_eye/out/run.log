@@ -242,3 +242,6 @@ Call log:
 [13:05:02] C10 A T4.1 OK (3 clicks) 
 [13:05:08] C10 A T4.2 OK (3 clicks) 
 [13:05:13] C10 A T4.3 OK (3 clicks) 
+[13:06:01] C10 A T5.1 FAIL (1 clicks) label « Codes » not visible
+[13:06:09] C10 A T5.2 OK (3 clicks) 
+[13:06:57] C10 A T5.3 FAIL (3 clicks) label « Codes » not visible
