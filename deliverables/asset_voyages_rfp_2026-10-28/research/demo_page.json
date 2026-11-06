@@ -1,6 +1,6 @@
 {
  "url": "http://localhost:8794/demo/",
- "date": "2026-11-06T10:03:02.171Z",
+ "date": "2026-11-06T12:01:15.341Z",
  "pass": 59,
  "total": 59,
  "results": [
@@ -57,7 +57,7 @@
   {
    "name": "group section: no airline rules or GM&E thresholds mentioned; under 320 words in total",
    "ok": true,
-   "info": "words=282"
+   "info": "words=281"
   },
   {
    "name": "group section: every link is an Option B deep link set from CUSTOM_URL, opening in a new tab",
@@ -82,7 +82,7 @@
   {
    "name": "logins: direction / equipe / contributeur, password demo-asset; private + 24 h line; Playground start time and reload tip next to each Option A button",
    "ok": true,
-   "info": "[\"Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page.\",\"Takes about 15 to 30 seconds to start. If it stays on the loading screen, reload the page.\"]"
+   "info": "[\"Takes about 15 to 25 seconds to start. If it stays on the loading screen, reload the page.\",\"Takes about 15 to 25 seconds to start. If it stays on the loading screen, reload the page.\"]"
   },
   {
    "name": "hub quotes the glossary labels exactly; task 5 says the « Afficher le code » click is needed; no stale wording",
@@ -121,7 +121,7 @@
   {
    "name": "desktop: #slot heading lands below the sticky strip, strip marks it",
    "ok": true,
-   "info": "{\"top\":173.359375,\"strip\":57,\"cur\":\"#slot\"}"
+   "info": "{\"top\":173.859375,\"strip\":57,\"cur\":\"#slot\"}"
   },
   {
    "name": "recordings: follow the real manifest (all false: section and strip link hidden, no video; announced files: those players only)",
@@ -171,7 +171,7 @@
   {
    "name": "390: #plan heading lands below the sticky strip",
    "ok": true,
-   "info": "{\"top\":128.96875,\"strip\":57}"
+   "info": "{\"top\":129.09375,\"strip\":57}"
   },
   {
    "name": "390: the strip link to #group scrolls its heading below the sticky strip",
@@ -286,7 +286,7 @@
   {
    "name": "French quotes: every « and » bound to its word by a no-break space (no line starts with » or ends with «)",
    "ok": true,
-   "info": "{\"n\":41,\"bad\":[]}"
+   "info": "{\"n\":43,\"bad\":[]}"
   },
   {
    "name": "footer: the \"Unlisted page\" note is gone",

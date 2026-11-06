@@ -115,7 +115,7 @@ main>section+section{border-top:1px solid var(--rule)}
 .logins p{grid-column:1}
 .logins ul{grid-column:2;grid-row:1 / span 2;list-style:none;padding:0;display:grid;gap:8px}
 .logins .logins__note{grid-column:1 / -1;padding-top:12px;border-top:1px solid var(--rule)}
-.cred{font-size:16px;background:var(--paper-2);padding:0 4px;border-radius:3px;margin-right:4px;white-space:nowrap}
+.cred{font-size:16px;background:var(--paper-2);padding:0 4px;border-radius:3px;white-space:nowrap}
 
 /* try it: tasks */
 .switch{display:none;grid-template-columns:1fr 1fr;border:1px solid var(--rule-strong);border-radius:6px;padding:4px;margin-bottom:20px;gap:4px;background:var(--card)}
@@ -213,9 +213,9 @@ main>section+section{border-top:1px solid var(--rule)}
 /* the reveal: only when scripting runs and motion is welcome; content is complete without it */
 @media (prefers-reduced-motion:no-preference){
   .js .flow[data-armed] .flow__path{stroke-dasharray:1;stroke-dashoffset:1}
-  .js .flow[data-armed] .flow__node,.js .flow[data-armed] .flow__arrow,.js .flow[data-armed] .flow__dot{opacity:.25}
+  .js .flow[data-armed] .flow__node text,.js .flow[data-armed] .flow__arrow,.js .flow[data-armed] .flow__dot{opacity:.25}
   .js .flow.is-in .flow__path{stroke-dashoffset:0;transition:stroke-dashoffset 2.2s var(--ease)}
-  .js .flow.is-in .flow__node,.js .flow.is-in .flow__arrow,.js .flow.is-in .flow__dot{opacity:1;transition:opacity .5s var(--ease)}
+  .js .flow.is-in .flow__node text,.js .flow.is-in .flow__arrow,.js .flow.is-in .flow__dot{opacity:1;transition:opacity .5s var(--ease)}
   .js .flow.is-in [data-i="2"],.js .flow.is-in .flow__arrow:nth-of-type(1){transition-delay:.45s}
   .js .flow.is-in [data-i="3"]{transition-delay:.9s}
   .js .flow.is-in [data-i="4"]{transition-delay:1.35s}

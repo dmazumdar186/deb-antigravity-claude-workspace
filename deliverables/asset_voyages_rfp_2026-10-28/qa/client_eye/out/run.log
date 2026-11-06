@@ -133,3 +133,17 @@ Call log:
 [09:52:53] A4 links checked 526
 [09:53:06] done
 [11:55:08] hub parsed: tasks 5 rows 11 group steps 4
+[11:59:10] saved part hub: 4 raw findings, 40 states
+[12:00:30] C10 B T1.1 OK (1 clicks) 
+[12:00:35] C10 B T1.2 FAIL (0 clicks) step text changed: re-map the replay
+[12:00:36] C10 B T1.3 FAIL (0 clicks) no « review » button: label « Envoyer pour relecture » not visible
+[12:00:46] C10 B T2.1 OK (1 clicks) 
+[12:00:48] C10 B T2.2 OK (1 clicks) 
+[12:00:50] C10 B T2.3 OK (1 clicks) 
+[12:00:52] C10 B T3.1 OK (0 clicks) 
+[12:00:53] C10 B T3.2 OK (0 clicks) 
+[12:00:58] C10 B T3.3 FAIL (0 clicks) label « Envoyer la demande » not visible
+[12:01:02] C10 B T4.1 OK (2 clicks) 
+[12:01:17] C10 B T4.2 FAIL (0 clicks) exception: locator.click: Timeout 5000ms exceeded.
+[12:01:23] C10 B T4.3 FAIL (0 clicks) exception: locator.click: Timeout 5000ms exceeded.
+[12:01:30] C10 B T5.1 FAIL (0 clicks) exception: locator.click: Timeout 5000ms exceeded.
