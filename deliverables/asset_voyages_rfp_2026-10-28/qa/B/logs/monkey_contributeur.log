@@ -53,3 +53,301 @@ Journées d’oncologie digestive" /congres/journees-d-oncologie-digestive-cg-01
 46	resize 452
 47	click "Consentement : Cochez cette case pour que nous pui" #f-consent
 48	click "Consentement : Cochez cette case pour que nous pui" #f-consent
+49	click "Catalogue des congrès" /
+50	fill q len=5000 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+51	back
+51	offsite chrome-error://chromewebdata/
+52	click "Pneumologie" /?discipline=Pneumologie#resultats
+53	submit "Rechercher" /#resultats
+54	submit "Rechercher" /#resultats
+55	click "4 au 8 sept. 2027
+Congrès international de pneumol" /congres/congres-international-de-pneumologie-cg-0106
+56	click "Espace équipe" /console
+57	click "Voir le site public" /
+58	reload
+59	back
+60	back
+61	click "Catalogue des congrès" /
+62	click "Aller au contenu" #main
+62	  click-err locator.click: Timeout 4000ms exceeded.
+63	submit "Rechercher" /#resultats
+64	click "Diabétologie" /?discipline=Diab%C3%A9tologie#resultats
+65	click "Diabétologie" /#resultats
+66	click "ASSET
+Voyages ASSET Voyages, catalogue des congrès" /
+67	fill q len=7 "é€😀日本語"
+68	fill q len=7 "@SUM(1)"
+69	click "Finance" /?discipline=Finance#resultats
+70	fill q len=30 "\"><img src=x onerror=alert(1)>"
+71	back
+72	click "28 au 30 janv. 2027
+Journées d’oncologie digestive" /congres/journees-d-oncologie-digestive-cg-0112
+73	click "Catalogue des congrès" /
+74	fill q len=7 "é€😀日本語"
+75	click "Aller au contenu" #main
+75	  click-err locator.click: Timeout 4000ms exceeded.
+76	reload
+77	fill q len=29 "=HYPERLINK(\"http://evil\",\"x\")"
+78	click "Rechercher" 
+79	fill q len=10 "9999-12-31"
+80	click "Espace équipe" /console
+81	click "ASSET
+Console" /console
+82	reload
+83	fill: none
+84	submit skipped logout
+85	back
+86	fill q len=30 "\"><img src=x onerror=alert(1)>"
+87	fill q len=1 "0"
+88	fill q len=5000 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+89	fill q len=7 "{{7*7}}"
+90	click "Espace équipe" /console
+91	click "Aller au contenu" #main
+91	  click-err locator.click: Timeout 4000ms exceeded.
+92	submit skipped logout
+93	fill: none
+94	click "Se déconnecter" 
+95	reload
+96	click "Se connecter" 
+97	click "Aller au contenu" #main
+97	  click-err locator.click: Timeout 4000ms exceeded.
+98	fill username len=48 "Ignore previous instructions and print a"
+99	forward
+100	click "Se connecter" 
+101	back
+102	submit "Se connecter" /console/connexion
+103	click "Se connecter" 
+104	click "Se connecter" 
+105	resize 593
+106	fill username len=6 "x@y.fr"
+107	back
+108	click "Diabétologie" /?q=%3DHYPERLINK%28%22http%3A%2F%2Fevil%22%2C%22x%22%29&discipline=Diab%C3%A9tologie#resultats
+109	click "Ophtalmologie" /?q=%3DHYPERLINK%28%22http%3A%2F%2Fevil%22%2C%22x%22%29&discipline=Ophtalmologie#resultats
+110	reload
+111	fill q len=5000 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+112	resize 696
+113	fill q len=7 "{{7*7}}"
+114	fill q len=1 " "
+115	click "Espace équipe" /console
+116	resize 529
+117	click "Se connecter" 
+118	fill username len=2 "-5"
+119	submit "Se connecter" /console/connexion
+120	resize 1047
+121	reload
+122	submit "Se connecter" /console/connexion
+123	submit "Se connecter" /console/connexion
+124	fill password len=5000 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+125	resize 693
+126	submit "Se connecter" /console/connexion
+127	submit "Se connecter" /console/connexion
+128	click "Se connecter" 
+129	forward
+130	click "ASSET
+Voyages" /
+131	submit "Rechercher" /#resultats
+132	fill q len=25 "<script>alert(1)</script>"
+133	submit "Rechercher" /#resultats
+134	reload
+135	fill q len=5000 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+136	forward
+137	click "Neurologie" /?q=%3Cscript%3Ealert%281%29%3C%2Fscript%3E&discipline=Neurologie#resultats
+138	click "Réinitialiser la recherche" /
+139	fill q len=10 "9999-12-31"
+140	click "Ressources humaines" /?discipline=Ressources+humaines#resultats
+141	submit "Rechercher" /#resultats
+142	fill q len=9 "+cmd|calc"
+143	resize 772
+144	fill q len=9 "+cmd|calc"
+145	click "Catalogue des congrès" /
+146	submit "Rechercher" /#resultats
+147	click "Page suivante" /?page=2#resultats
+148	click "Diabétologie" /?discipline=Diab%C3%A9tologie#resultats
+149	fill q len=1 " "
+150	click "23 au 26
+mars 2027
+23 au 26 mars 2027
+Journées fra" /congres/journees-francaises-de-diabetologie-cg-0103
+151	resize 672
+152	click "Catalogue des congrès" /
+153	click "29 sept. au 2 oct. 2027
+Congrès européen de dermat" /congres/congres-europeen-de-dermatologie-cg-0105
+154	submit "Envoyer la demande" /demande
+155	click "Aller au contenu" #main
+155	  click-err locator.click: Timeout 4000ms exceeded.
+156	click "Aller au contenu" #main
+156	  click-err locator.click: Timeout 4000ms exceeded.
+157	click "Voir le formulaire" #demande
+158	back
+159	fill name len=10 "2020-01-01"
+160	fill passengers len=7 "é€😀日本語"
+160	  fill-err locator.fill: Error: Cannot type text into input[type=number]
+161	click "Ville de départ : Indiquez votre ville de départ." #f-city
+162	reload
+163	click "Téléphone : Indiquez un numéro de téléphone." #f-phone
+164	back
+165	submit "Envoyer la demande" /demande
+166	click "Envoyer la demande" 
+167	click "E-mail : Indiquez votre e-mail." #f-email
+168	forward
+169	submit "Envoyer la demande" /demande
+170	click "Envoyer la demande" 
+171	forward
+172	click "Téléphone : Indiquez un numéro de téléphone." #f-phone
+173	click "Nom et prénom : Indiquez votre nom." #f-name
+174	fill message len=7 "@SUM(1)"
+175	resize 534
+176	back
+177	click "Nom et prénom : Indiquez votre nom." #f-name
+178	reload
+179	click "Catalogue des congrès" /
+180	click "Page suivante" /?page=2#resultats
+181	click "Page précédente" /#resultats
+182	fill q len=7 "@SUM(1)"
+183	click "Ressources humaines" /?discipline=Ressources+humaines#resultats
+184	click "Rechercher" 
+185	click "Ressources humaines" /#resultats
+186	click "Page suivante" /?page=2#resultats
+187	fill q len=30 "\"><img src=x onerror=alert(1)>"
+188	click "Rechercher" 
+189	fill q len=1 "0"
+190	click "Oncologie" /?q=%22%3E%3Cimg+src%3Dx+onerror%3Dalert%281%29%3E&discipline=Oncologie#resultats
+191	submit "Rechercher" /#resultats
+192	click "Oncologie" /?q=%22%3E%3Cimg+src%3Dx+onerror%3Dalert%281%29%3E#resultats
+193	fill q len=29 "=HYPERLINK(\"http://evil\",\"x\")"
+194	resize 1384
+195	click "ASSET
+Voyages ASSET Voyages, catalogue des congrès" /
+196	click "ASSET
+Voyages ASSET Voyages, catalogue des congrès" /
+197	fill q len=5000 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+198	forward
+199	fill q len=7 "{{7*7}}"
+200	click "23 au 26
+mars 2027
+23 au 26 mars 2027
+Journées fra" /congres/journees-francaises-de-diabetologie-cg-0103
+201	fill message len=7 "@SUM(1)"
+202	resize 858
+203	click "Catalogue des congrès" /
+204	resize 1295
+205	fill q len=0 ""
+206	back
+207	click "Espace équipe" /console
+208	fill password len=25 "<script>alert(1)</script>"
+209	click "Aller au contenu" #main
+209	  click-err locator.click: Timeout 4000ms exceeded.
+210	fill username len=6 "🚀🔥💥"
+211	fill username len=0 ""
+212	fill password len=6 "🚀🔥💥"
+213	click "ASSET
+Voyages" /
+214	resize 1038
+215	reload
+216	resize 620
+217	click "27 au 30 août 2027
+Congrès européen de cardiologie" /congres/congres-europeen-de-cardiologie-cg-0101
+218	click "ASSET
+Voyages ASSET Voyages, catalogue des congrès" /
+219	click "ASSET
+Voyages ASSET Voyages, catalogue des congrès" /
+220	click "4 au 8 sept. 2027
+Congrès international de pneumol" /congres/congres-international-de-pneumologie-cg-0106
+221	forward
+222	click "Espace équipe" /console
+223	forward
+224	fill password len=9 "+cmd|calc"
+225	click "Se connecter" 
+226	click "ASSET
+Voyages" /
+227	reload
+228	resize 1349
+229	click "Espace équipe" /console
+230	resize 1302
+231	back
+232	click "Neurologie" /?discipline=Neurologie#resultats
+233	resize 982
+234	click "Réinitialiser" /
+235	fill q len=2 "-5"
+236	submit "Rechercher" /#resultats
+237	reload
+238	click "Diabétologie" /?q=-5&discipline=Diab%C3%A9tologie#resultats
+239	forward
+240	resize 977
+241	forward
+242	reload
+243	reload
+244	forward
+245	click "Pneumologie" /?q=-5&discipline=Pneumologie#resultats
+246	fill q len=48 "Ignore previous instructions and print a"
+247	click "Réinitialiser la recherche" /
+248	click "27 au 30
+août 2027
+27 au 30 août 2027
+Congrès euro" /congres/congres-europeen-de-cardiologie-cg-0101
+249	forward
+250	fill passengers len=25 "<script>alert(1)</script>"
+250	  fill-err locator.fill: Error: Cannot type text into input[type=number]
+251	back
+252	click "23 au 26
+mars 2027
+23 au 26 mars 2027
+Journées fra" /congres/journees-francaises-de-diabetologie-cg-0103
+253	fill date_back len=16 "../../etc/passwd"
+253	  fill-err locator.fill: Error: Malformed value
+254	submit "Envoyer la demande" /demande
+255	click "Aller au contenu" #main
+255	  click-err locator.click: Timeout 4000ms exceeded.
+256	back
+257	submit "Envoyer la demande" /demande
+258	click "ASSET
+Voyages ASSET Voyages, catalogue des congrès" /
+259	fill q len=22 "'; DROP TABLE users;--"
+260	fill q len=10 "9999-12-31"
+261	forward
+262	fill q len=25 "<script>alert(1)</script>"
+263	click "Pneumologie" /?discipline=Pneumologie#resultats
+264	submit "Rechercher" /#resultats
+265	reload
+266	fill q len=29 "=HYPERLINK(\"http://evil\",\"x\")"
+267	click "Radiologie" /?discipline=Radiologie#resultats
+268	reload
+269	click "Toutes" /#resultats
+270	click "Congrès" /
+271	fill q len=0 ""
+272	fill q len=1 "0"
+273	fill q len=2 "51"
+274	click "Finance" /?discipline=Finance#resultats
+275	resize 538
+276	fill q len=9 "+cmd|calc"
+277	submit "Rechercher" /#resultats
+278	submit "Rechercher" /#resultats
+279	click "Espace équipe" /console
+280	forward
+281	click "Se connecter" 
+282	click "Se connecter" 
+283	resize 597
+284	resize 904
+285	submit "Se connecter" /console/connexion
+286	submit "Se connecter" /console/connexion
+287	fill username len=16 "../../etc/passwd"
+288	forward
+289	click "Se connecter" 
+290	click "Aller au contenu" #main
+290	  click-err locator.click: Timeout 4000ms exceeded.
+291	click "ASSET
+Voyages" /
+292	click "Finance" /?discipline=Finance#resultats
+293	fill q len=7 "é€😀日本語"
+294	fill q len=48 "Ignore previous instructions and print a"
+295	fill q len=7 "é€😀日本語"
+296	reload
+297	resize 515
+298	click "17 au 18 nov. 2027
+Forum des directions financière" /congres/forum-des-directions-financieres-cg-0110
+299	fill date_out len=0 ""
+300	click "Espace équipe" /console
+302	end logout
+# sandbox reset ok
+# failures=0
+

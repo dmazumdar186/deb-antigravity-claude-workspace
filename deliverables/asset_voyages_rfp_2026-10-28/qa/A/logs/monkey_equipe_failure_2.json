@@ -1,31 +1,31 @@
 {
   "seed": 20261105,
   "role": "equipe",
-  "action": 78,
+  "action": 83,
   "problems": [
     "pageerror Transition was aborted because of invalid state. ViewTransition opt-in disabled"
   ],
   "last20": [
-    "resize 554x891",
-    "click A \"Ctrl + K\nOuvrir la palette de commandes\" #",
-    "back/forward",
+    "click A \"Créer\" http://127.0.0.1:9404/wp-admin/media-new.php",
+    "click A \"Aller à la barre d’outils\" #wp-toolbar",
+    "resize 947x660",
     "submit form",
-    "click BUTTON \"méthode du navigateur\" ",
-    "back/forward",
-    "click A \"ASSET Voyages — démonstration\" http://127.0.0.1:9403/",
-    "submit form",
-    "resize 1430x800",
-    "click BUTTON \"Replier le menu\" ",
-    "click BUTTON \"Afficher ou masquer le panneau\" ",
-    "click BUTTON \"Options de l’écran\" ",
-    "click BUTTON \"\" ",
-    "resize 663x679",
+    "type len=31 <script>window.__pwn=1</script>",
+    "type len=19 Élodie Ñandú 日本語 😀",
     "submit form",
     "back/forward",
-    "click A \"Voir toutes les demandes\" http://127.0.0.1:9403/wp-admin/admin.php?page=asset-demandes",
-    "type len=25 \"; DROP TABLE wp_posts;--",
-    "click A \"ASSET Voyages — démonstration\" http://127.0.0.1:9403/",
-    "click A \"Congrès d’ophtalmologie de Paris — exemple\" http://127.0.0.1:9403/congres/congres-dophtalmologie-de-paris-exemple/"
+    "resize 1380x960",
+    "back/forward",
+    "resize 1303x972",
+    "back/forward",
+    "type len=31 <script>window.__pwn=1</script>",
+    "back/forward",
+    "type len=10 2027-13-45",
+    "click A \"DV-2026-0001\" http://127.0.0.1:9404/wp-admin/admin.php?page=asset-demandes&action=view&id=18",
+    "type len=10 2027-13-45",
+    "click A \"Retour à la liste\" http://127.0.0.1:9404/wp-admin/admin.php?page=asset-demandes",
+    "click A \"ASSET Voyages — démonstration\" http://127.0.0.1:9404/",
+    "resize 1191x933"
   ],
-  "url": "http://127.0.0.1:9403/congres/congres-dophtalmologie-de-paris-exemple/"
+  "url": "http://127.0.0.1:9404/"
 }

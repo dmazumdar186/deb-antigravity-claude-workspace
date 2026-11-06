@@ -152,3 +152,55 @@ export function d1Count(sql) {
   const out = execFileSync('npx', ['wrangler', 'd1', 'execute', 'asset-voyages-demo', LIVE ? '--remote' : '--local', '--json', '--command', sql], { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
   return JSON.parse(out)[0].results;
 }
+
+// The typical session: the full S1-S5 journey in one browser (used by FIX3-1 and FIX4-4).
+export async function journey(page) {
+  // S1: Direction creates and publishes a congress, then edits a seeded one
+  await login(page, 'direction');
+  await page.goto('/console/congres/nouveau');
+  await page.getByLabel('Titre').fill('Congrès de mesure — exemple');
+  await page.getByRole('combobox', { name: 'Discipline', exact: true }).selectOption('Cardiologie');
+  await page.getByLabel('Lieu').fill('Salle — exemple');
+  await page.getByLabel('Ville').fill('Nice');
+  await page.getByRole('combobox', { name: 'Pays', exact: true }).selectOption('France');
+  await page.getByLabel('Date de début').fill('2027-07-05');
+  await page.getByLabel('Date de fin').fill('2027-07-07');
+  await page.getByLabel('Site officiel').fill('https://www.example.org/mesure');
+  await page.getByLabel('Vérifié le').fill('2026-11-01');
+  await page.getByRole('button', { name: 'Publier' }).click();
+  await expect(page.getByText('Congrès créé.')).toBeVisible();
+  await page.goto('/console/congres/101');
+  await page.getByLabel('Ville').fill('Barcelone');
+  await page.getByRole('button', { name: 'Enregistrer', exact: true }).click();
+  await expect(page.getByText('Modifications enregistrées.')).toBeVisible();
+  await logout(page);
+  // S2 + S3: the visitor searches, opens a congress and sends an enquiry
+  await page.goto('/?q=barcelone');
+  await page.locator('.row__a').first().click();
+  await fillEnquiry(page, { out: '2027-08-26', back: '2027-08-31' });
+  await page.waitForTimeout(3100);
+  await page.getByRole('button', { name: 'Envoyer la demande' }).click();
+  await expect(page.locator('[data-ref]')).toHaveText('DV-2026-0007');
+  // S4: the team qualifies it, takes it and adds a note
+  await login(page, 'equipe');
+  await page.locator('.feed li').first().getByRole('link').click();
+  await page.getByRole('button', { name: 'Qualifiée' }).click();
+  await page.getByRole('button', { name: 'Me l’attribuer' }).click();
+  await page.getByLabel('Visible uniquement par l’équipe').fill('Rappel demain.');
+  await page.getByRole('button', { name: 'Ajouter la note' }).click();
+  await expect(page.locator('.ok')).toHaveText('Note ajoutée à l’historique.'); // wait for the reloaded page, never read mid-navigation
+  // S5: equipe asks for a code, Direction approves, equipe reveals it
+  await page.goto('/console/gme');
+  const card = page.locator('.gme', { hasText: 'oncologie digestive' });
+  await card.getByLabel(/Motif/).fill('Devis DV-2026-0007.');
+  await card.getByRole('button', { name: 'Demander l’accès' }).click();
+  await logout(page);
+  await login(page, 'direction');
+  await page.goto('/console/gme/acces');
+  await page.locator('.req', { hasText: 'oncologie digestive' }).getByRole('button', { name: 'Approuver pour 24 h' }).click();
+  await logout(page);
+  await login(page, 'equipe');
+  await page.goto('/console/gme');
+  await page.locator('.gme', { hasText: 'oncologie digestive' }).getByRole('button', { name: 'Afficher le code' }).click();
+  await expect(page.locator('[data-revealed]')).toContainText('DEMO-GME-4821');
+}

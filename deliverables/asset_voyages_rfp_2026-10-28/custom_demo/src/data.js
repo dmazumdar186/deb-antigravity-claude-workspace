@@ -182,6 +182,62 @@ export const RESERVED_ROWS = 10000;
 export const SBX_IP_DAILY = 20;
 export const SBX_DAILY_LIMIT = Math.floor((100000 - RESERVED_ROWS) / ROWS_PER_SESSION); // 3,000
 export const DEMO_BUSY = 'Démo très demandée : vous pouvez parcourir, les essais reprennent dans quelques minutes.';
+// ---------- write budget guards (ADV-B-207) ----------
+// Global: D1 allows 100,000 written rows a day; every request's written rows are metered (index.js) and added to an
+// in-memory tally that is flushed to one `wall:<day>` counter row at most every 5 minutes or 200 rows (one write per
+// flush), so counting never costs a write per write. At WALL_LIMIT (15,000 below the quota, which absorbs unflushed
+// tallies, logins and the nightly job) every write path degrades to the read-only seed with the calm banner.
+// Per sandbox: 60 write requests per 10 minutes, counted in memory; the count is persisted (one upsert) only once a
+// browser passes 20 writes in the window, so a normal session (about 16 write requests for the whole S1-S5 journey)
+// never spends a row on it.
+export const WALL_LIMIT = 85000;
+export const SBX_WRITE_LIMIT = 60;
+const SBX_WRITE_WINDOW = 600;
+const mem = { day: '', pending: 0, flushedAt: Date.now(), sbx: new Map() };
+const utcDay = () => new Date().toISOString().slice(0, 10);
+export function noteWrites(n) {
+  if (mem.day !== utcDay()) { mem.day = utcDay(); mem.pending = 0; }
+  mem.pending += n || 0;
+}
+export function wallFlushDue() { return mem.pending >= 200 || (mem.pending > 0 && Date.now() - mem.flushedAt > 300000); }
+export async function flushWall(env) {
+  const n = mem.pending; if (!n) return;
+  mem.pending = 0; mem.flushedAt = Date.now();
+  const end = Math.floor(Date.parse(mem.day + 'T00:00:00Z') / 1000) + 86400 + 3600;
+  await env.DB.prepare(`INSERT INTO rate_limits (key, count, reset_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET count = count + excluded.count`)
+    .bind('wall:' + mem.day, n, end).run();
+}
+export async function wallTotal(env) {
+  if (mem.day !== utcDay()) { mem.day = utcDay(); mem.pending = 0; }
+  const row = await env.DB.prepare('SELECT count FROM rate_limits WHERE key = ?').bind('wall:' + mem.day).first();
+  return (row ? row.count : 0) + mem.pending;
+}
+const fail = (code) => Object.assign(new Error(code), { code });
+// Every write path calls this first, after its own role and CSRF checks: global budget, per-sandbox throttle, then the
+// sandbox is registered on its first write (nothing is created for a refused request).
+export async function claim(env) {
+  if ((await wallTotal(env)) >= WALL_LIMIT) throw fail('SBX_LIMIT');
+  const sid = env.SBX;
+  if (!validSbx(sid)) throw new Error('no sandbox id');
+  const win = Math.floor(Date.now() / 1000 / SBX_WRITE_WINDOW);
+  let e = mem.sbx.get(sid);
+  if (!e || e.win !== win) {
+    if (mem.sbx.size > 5000) for (const [k, v] of mem.sbx) if (v.win !== win) mem.sbx.delete(k);
+    const row = await env.DB.prepare('SELECT count FROM rate_limits WHERE key = ?').bind(`w:${sid}:${win}`).first();
+    e = { win, n: row ? row.count : 0, saved: row ? row.count : 0 };
+    mem.sbx.set(sid, e);
+  }
+  if (e.n >= SBX_WRITE_LIMIT) throw fail('WRITE_PAUSE');
+  e.n += 1;
+  if (e.n >= 20 && e.n - e.saved >= 10) {
+    e.saved = e.n;
+    await env.DB.prepare(`INSERT INTO rate_limits (key, count, reset_at) VALUES (?1, ?2, ?3) ON CONFLICT(key) DO UPDATE SET count = MAX(count, ?2)`)
+      .bind(`w:${sid}:${win}`, e.n, (win + 1) * SBX_WRITE_WINDOW).run();
+  }
+  return materialize(env);
+}
+export const DEMO_PAUSE = 'Beaucoup d’essais en peu de temps : vos modifications reprennent dans quelques minutes. Vous pouvez continuer à parcourir.';
+
 // First write of a browser: register its sandbox (one row, caps checked). Nothing is copied here. Returns the id.
 export async function materialize(env) {
   if (env.SBX_EFF) return env.SBX_EFF;

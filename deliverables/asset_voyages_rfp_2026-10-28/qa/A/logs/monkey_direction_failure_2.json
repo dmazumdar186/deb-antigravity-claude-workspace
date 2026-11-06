@@ -1,31 +1,31 @@
 {
   "seed": 20261105,
   "role": "direction",
-  "action": 59,
+  "action": 165,
   "problems": [
     "pageerror Transition was aborted because of invalid state. ViewTransition opt-in disabled"
   ],
   "last20": [
-    "type len=10 2027-13-45",
-    "back/forward",
-    "type len=31 <script>window.__pwn=1</script>",
+    "click A \"Qualifiée (2)\" http://127.0.0.1:9404/wp-admin/admin.php?page=asset-demandes&statut=qualifiee",
+    "resize 1222x628",
+    "type len=1 0",
+    "click A \"Créer\" http://127.0.0.1:9404/wp-admin/media-new.php",
     "click A \"Ctrl + K\nOuvrir la palette de commandes\" #",
-    "type len=31 <script>window.__pwn=1</script>",
-    "back/forward",
-    "click A \"Aller à la barre d’outils\" #wp-toolbar",
-    "click A \"Passagers\nTri croissant\" http://127.0.0.1:9403/wp-admin/admin.php?page=asset-demandes&statut=gagnee&s=-1&_wpnonce=fa6c3876c5&_wp_http_referer=%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-demandes%26statut%3Dgagnee%26s%3D0%26_wpnonce%3Dfa6c3876c5%26paged%3D1&orderby=passagers&order=asc",
-    "type len=31 <script>window.__pwn=1</script>",
-    "type len=25 \"; DROP TABLE wp_posts;--",
     "submit form",
-    "click A \"Devis envoyé (1)\" http://127.0.0.1:9403/wp-admin/admin.php?page=asset-demandes&statut=devis_envoye",
-    "click A \"Dates\nTri croissant\" http://127.0.0.1:9403/wp-admin/admin.php?page=asset-demandes&statut=devis_envoye&orderby=depart&order=asc",
-    "click A \"Qualifiée (1)\" http://127.0.0.1:9403/wp-admin/admin.php?page=asset-demandes&statut=qualifiee",
+    "resize 1216x781",
+    "type len=1 0",
     "back/forward",
-    "click BUTTON \"\" ",
-    "resize 1034x855",
-    "type len=11 99999999999",
-    "type len=0 ",
-    "back/forward"
+    "click A \"Date\nTri décroissant\" http://127.0.0.1:9404/wp-admin/admin.php?page=asset-demandes&statut=qualifiee&orderby=date&order=desc",
+    "click A \"Passagers\nTri croissant\" http://127.0.0.1:9404/wp-admin/admin.php?page=asset-demandes&statut=qualifiee&orderby=passagers&order=asc",
+    "type len=2 -1",
+    "type len=37 =HYPERLINK(\"http://evil.example\",\"x\")",
+    "submit form",
+    "back/forward",
+    "resize 1196x993",
+    "resize 789x941",
+    "click A \"Aller au contenu principal\" #wpbody-content",
+    "click A \"À propos de WordPress\" http://127.0.0.1:9404/wp-admin/about.php",
+    "click A \"ASSET Voyages — démonstration\" http://127.0.0.1:9404/"
   ],
-  "url": "http://127.0.0.1:9403/"
+  "url": "http://127.0.0.1:9404/"
 }

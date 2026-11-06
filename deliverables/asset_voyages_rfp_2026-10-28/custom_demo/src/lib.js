@@ -44,7 +44,11 @@ export function safeEqual(a, b) {
 }
 
 // ---------- keys: one Worker secret (GME_KEY, 32 random bytes, base64) ----------
-// AES-GCM for GM&E codes uses it directly; form/IP HMAC uses an HKDF-derived key.
+// AES-GCM for GM&E codes uses it directly. Every MAC has its own key, derived with HKDF (SHA-256) from GME_KEY with a
+// dedicated info label, so no MAC can ever be replayed for another purpose:
+//   session-v1 (session cookies), form-v1 (anonymous form tokens), confirm-v1 (confirmation links), iphash-v1 (IP hashes).
+// No GME_KEY means no key at all: every request fails closed before any token or session is accepted.
+export const MAC_PURPOSES = ['session-v1', 'form-v1', 'confirm-v1', 'iphash-v1'];
 let keyCache = null;
 export async function keys(env) {
   if (!env.GME_KEY) throw new Error('GME_KEY secret is not set');
@@ -53,15 +57,20 @@ export async function keys(env) {
   if (rawKey.length !== 32) throw new Error('GME_KEY must be 32 bytes, base64');
   const aes = await crypto.subtle.importKey('raw', rawKey, 'AES-GCM', false, ['encrypt', 'decrypt']);
   const hk = await crypto.subtle.importKey('raw', rawKey, 'HKDF', false, ['deriveKey']);
-  const hmac = await crypto.subtle.deriveKey(
-    { name: 'HKDF', hash: 'SHA-256', salt: enc.encode('asset-voyages-demo'), info: enc.encode('form-and-ip-hmac') },
-    hk, { name: 'HMAC', hash: 'SHA-256', length: 256 }, false, ['sign']);
-  keyCache = { src: env.GME_KEY, aes, hmac };
+  const mac = {};
+  for (const info of MAC_PURPOSES) {
+    mac[info] = await crypto.subtle.deriveKey(
+      { name: 'HKDF', hash: 'SHA-256', salt: enc.encode('asset-voyages-demo'), info: enc.encode(info) },
+      hk, { name: 'HMAC', hash: 'SHA-256', length: 256 }, false, ['sign']);
+  }
+  keyCache = { src: env.GME_KEY, aes, mac };
   return keyCache;
 }
-export async function hmac(env, text) {
-  const { hmac: k } = await keys(env);
-  return b64url(await crypto.subtle.sign('HMAC', k, enc.encode(text)));
+// hmac(env, 'session-v1', text): MAC under the key of that purpose only.
+export async function hmac(env, purpose, text) {
+  const { mac } = await keys(env);
+  if (!mac[purpose]) throw new Error('unknown MAC purpose');
+  return b64url(await crypto.subtle.sign('HMAC', mac[purpose], enc.encode(text)));
 }
 export async function encryptCode(env, plain) {
   const { aes } = await keys(env);
@@ -164,7 +173,7 @@ export function sameOrigin(req) {
 }
 export async function ipHash(env, req) {
   const ip = req.headers.get('cf-connecting-ip') || 'local';
-  return (await hmac(env, 'ip|' + ip)).slice(0, 22);
+  return (await hmac(env, 'iphash-v1', ip)).slice(0, 22);
 }
 export function getCookie(req, name) {
   const h = req.headers.get('cookie') || '';
@@ -203,13 +212,14 @@ export async function rateBlocked(env, key, limit) {
 export async function makeFormToken(env, purpose) {
   const ts = Date.now();
   const nonce = randomToken(12);
-  return `${ts}.${nonce}.${await hmac(env, `${purpose}|${ts}|${nonce}`)}`;
+  // the form kind (enquiry, login) is a signed field of the token, under the form-v1 key
+  return `${ts}.${nonce}.${await hmac(env, 'form-v1', JSON.stringify([purpose, ts, nonce]))}`;
 }
 export async function checkFormToken(env, purpose, token, { minMs = 0, maxMs = 2 * 3600 * 1000 } = {}) {
   const m = /^(\d{10,16})\.([A-Za-z0-9_-]{8,40})\.([A-Za-z0-9_-]{20,80})$/.exec(String(token || ''));
   if (!m) return { ok: false, why: 'invalid' };
   const [, ts, nonce, sig] = m;
-  if (!safeEqual(sig, await hmac(env, `${purpose}|${ts}|${nonce}`))) return { ok: false, why: 'invalid' };
+  if (!safeEqual(sig, await hmac(env, 'form-v1', JSON.stringify([purpose, Number(ts), nonce])))) return { ok: false, why: 'invalid' };
   const age = Date.now() - Number(ts);
   if (age < minMs) return { ok: false, why: 'fast', nonce };
   if (age > maxMs) return { ok: false, why: 'expired', nonce };

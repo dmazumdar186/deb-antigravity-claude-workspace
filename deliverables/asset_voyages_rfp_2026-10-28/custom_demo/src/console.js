@@ -5,7 +5,7 @@ import {
   getCookie, sha256hex, randomToken, safeEqual, hmac, b64url, unb64, hashPassword, encryptCode, decryptCode, csvCell,
 } from './lib.js';
 import { consolePage, loginPage, errorPage, field, select, pill, csrfInput, errorSummary } from './views.js';
-import { STATUS_LABELS, STATUS_PLURAL, CG_STATUS, GME_STATUS, congressSearch, congressSlug, resetSandbox, materialize, nbsp, T, cow, upsertRow, eventId, notificationFor, baseUrl, TEAM_INBOX } from './data.js';
+import { STATUS_LABELS, STATUS_PLURAL, CG_STATUS, GME_STATUS, congressSearch, congressSlug, resetSandbox, claim, nbsp, T, cow, upsertRow, eventId, notificationFor, baseUrl, TEAM_INBOX } from './data.js';
 
 export const COOKIE = '__Host-av_session';
 const SESSION_TTL = 8 * 3600;
@@ -28,13 +28,15 @@ const nw = (t) => html`<span class="nw">${t}</span>`;
 // Logging out writes the nonce to `revoked`, so a copied cookie is refused server-side afterwards.
 async function makeSession(env, userId) {
   const payload = b64url(new TextEncoder().encode(JSON.stringify({ u: userId, c: randomToken(24), e: Math.floor(Date.now() / 1000) + SESSION_TTL, n: randomToken(16) })));
-  return `${payload}.${await hmac(env, 'session|' + payload)}`;
+  return `${payload}.${await hmac(env, 'session-v1', payload)}`;
 }
 async function getSession(req, env) {
   const tok = getCookie(req, COOKIE);
   if (!tok || tok.length > 400) return null;
-  const [payload, sig] = tok.split('.');
-  if (!payload || !sig || !safeEqual(sig, await hmac(env, 'session|' + payload))) return null;
+  const parts = tok.split('.');
+  if (parts.length !== 2) return null; // exactly payload.signature: any extra segment is refused
+  const [payload, sig] = parts;
+  if (!/^[A-Za-z0-9_-]+$/.test(payload) || !/^[A-Za-z0-9_-]{43}$/.test(sig) || !safeEqual(sig, await hmac(env, 'session-v1', payload))) return null;
   let p;
   try { p = JSON.parse(new TextDecoder().decode(unb64(payload.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(payload.length / 4) * 4, '=')))); } catch { return null; }
   if (!p || !Number.isInteger(p.u) || typeof p.c !== 'string' || typeof p.n !== 'string' || !(p.e > Math.floor(Date.now() / 1000))) return null;
@@ -58,7 +60,7 @@ function labelTables(markup) {
 }
 function page(ctx, title, current, body, status = 200) {
   body = raw(labelTables(String(body)));
-  return htmlResponse(consolePage({ title, user: ctx.user, csrf: ctx.csrf, current, body, badges: ctx.badges, busy: ctx.url.searchParams.get('demo') === 'complet' }), status, NO_STORE);
+  return htmlResponse(consolePage({ title, user: ctx.user, csrf: ctx.csrf, current, body, badges: ctx.badges, busy: (['complet', 'pause'].includes(ctx.url.searchParams.get('demo')) ? ctx.url.searchParams.get('demo') : false) }), status, NO_STORE);
 }
 function deny(ctx, text = 'Votre rôle ne donne pas accès à cette page.', status = 403) {
   return htmlResponse(errorPage({ status, title: 'Accès refusé', text, user: ctx.user, csrf: ctx.csrf, back: '/console' }), status, NO_STORE);
@@ -136,8 +138,8 @@ export async function consoleRoute(req, env, path) {
   } else if (method !== 'GET' && method !== 'HEAD') {
     return new Response('Méthode non autorisée', { status: 405, headers: { allow: 'GET, POST' } });
   }
-  // Every accepted console write lands in this browser's private sandbox (copied from the seed on first write).
-  if (method === 'POST' && path !== '/console/deconnexion' && path !== '/console/reinitialiser') await materialize(env);
+  // No sandbox is created here: each write path calls claim() itself, after its role and validation checks, so a
+  // refused POST (wrong role, bad CSRF, invalid form) writes nothing and creates nothing.
   ctx.badges = await badges(env, s.user);
   const role = s.user.role;
   const allow = (roles) => roles.includes(role);
@@ -297,6 +299,7 @@ async function addOption(ctx) {
   const exists = await env.DB.prepare(`SELECT value FROM ${T(env, 'options')} WHERE 1=1 AND kind = ? AND norm = ?`).bind(kind, n).first();
   if (exists) return redirect(`${back}?liste=existe`);
   const pretty = value.charAt(0).toUpperCase() + value.slice(1);
+  await claim(env);
   await env.DB.prepare('INSERT INTO options (sbx, kind, value, norm) VALUES (?,?,?,?)').bind(env.SBX_EFF, kind, pretty, n).run();
   return redirect(`${back}?liste=ajoute`);
 }
@@ -406,6 +409,7 @@ async function congressSave(ctx, id) {
     const maxId = (await env.DB.prepare(`SELECT COALESCE(MAX(id), 100) AS m FROM ${T(env, 'congresses')} WHERE 1=1`).first()).m;
     const nid = maxId + 1;
     const ref = `CG-${String(nid).padStart(4, '0')}`;
+    await claim(env);
     await env.DB.batch([
       env.DB.prepare(`INSERT INTO congresses (sbx, id, ref, slug, title, discipline, city, country, start_date, end_date, venue, official_url, verified_on, description, status, search_text, created_at, created_by, updated_at, updated_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
         .bind(env.SBX_EFF, nid, ref, congressSlug(v.title, ref) || `congres-${ref.toLowerCase()}`, v.title, v.discipline, v.city, v.country, v.start_date, v.end_date, v.venue, v.official_url, v.verified_on, v.description, to, norm(search + ' ' + ref), now, user.id, now, user.id),
@@ -414,6 +418,7 @@ async function congressSave(ctx, id) {
     ]);
     return redirect(`/console/congres/${nid}?ok=cree-${action}`);
   }
+  await claim(env);
   const stmts = [upsertRow(env, 'congresses', { ...c, ...v, status: to, search_text: search, updated_at: now, updated_by: user.id })];
   if (to !== from) stmts.push(env.DB.prepare(`INSERT INTO congress_events (sbx, congress_id, id, at, user_id, kind, from_val, to_val) VALUES (?,?,?,?,?,'statut',?,?)`).bind(env.SBX_EFF, id, eventId(now), now, user.id, from, to));
   await env.DB.batch(stmts);
@@ -543,6 +548,7 @@ async function enquiryAction(ctx, id) {
   if (action === 'status') {
     const to = form.get('to');
     if (!STATUS_LABELS[to]) return enquiryDetail(ctx, id, { notice: 'Statut inconnu : rien n’a été modifié.' });
+    if (to !== r.status) await claim(env);
     if (to !== r.status) await env.DB.batch([upsertRow(env, 'enquiries', { ...r, status: to, updated_at: now }), ev('statut', r.status, to)]);
   } else if (action === 'owner') {
     const raw = form.get('owner');
@@ -552,11 +558,13 @@ async function enquiryAction(ctx, id) {
       if (!u) return enquiryDetail(ctx, id, { notice: 'Responsable inconnu : rien n’a été modifié.' });
       owner = u.id;
     }
+    if (owner !== r.owner_id) await claim(env);
     if (owner !== r.owner_id) await env.DB.batch([upsertRow(env, 'enquiries', { ...r, owner_id: owner, updated_at: now }), ev('responsable', r.owner_id == null ? null : String(r.owner_id), owner == null ? null : String(owner))]);
   } else if (action === 'note') {
     const note = clean(form.get('note'), 2000);
     if (!note) return enquiryDetail(ctx, id, { notice: 'La note est vide : rien n’a été ajouté.' });
     if (note.length > 2000) return enquiryDetail(ctx, id, { notice: 'Note trop longue (2 000 caractères au maximum).' });
+    await claim(env);
     await env.DB.batch([ev('note', null, note)]); // a note only appends to the history: no copy of the enquiry needed
   } else {
     return enquiryDetail(ctx, id, { notice: 'Action inconnue : rien n’a été modifié.' });
@@ -589,6 +597,7 @@ async function activeGrant(env, userId, congressId) {
 }
 async function logAccess(env, userId, congressId, result) {
   if (!Number.isFinite(congressId)) return;
+  await claim(env);
   const at = nowIso();
   await env.DB.prepare('INSERT INTO gme_access_log (sbx, id, at, user_id, congress_id, result) VALUES (?,?,?,?,?,?)').bind(env.SBX_EFF, eventId(at), at, userId, congressId, result).run();
 }
@@ -662,6 +671,7 @@ async function gmeRequest(ctx, cid) {
   if (reason.length < 5) return gmeList(ctx, { reqFor: cid, reqValue: reason, reqError: 'Indiquez le motif de la demande (au moins 5 caractères).', status: 200 });
   if (reason.length > 500) return gmeList(ctx, { reqFor: cid, reqValue: reason.slice(0, 500), reqError: '500 caractères au maximum.', status: 200 });
   const pending = await env.DB.prepare(`SELECT id FROM ${T(env, 'gme_requests')} WHERE 1=1 AND congress_id = ? AND user_id = ? AND status = 'en_attente'`).bind(cid, user.id).first();
+  if (!pending) await claim(env);
   if (!pending) await env.DB.prepare(`INSERT INTO gme_requests (sbx, id, congress_id, user_id, reason, status, created_at) VALUES (?1, (SELECT COALESCE(MAX(id), 0) + 1 FROM ${T(env, 'gme_requests')}), ?2, ?3, ?4, 'en_attente', ?5)`).bind(env.SBX_EFF, cid, user.id, reason, nowIso()).run();
   return redirect('/console/gme?ok=demande');
 }
@@ -705,9 +715,11 @@ async function gmeSave(ctx, cid) {
   if (err) return congressForm(ctx, cid, { notice: `Code GM&E non enregistré : ${err}`, status: 200 });
   const now = nowIso();
   if (g) {
+    await claim(env);
     // one written row: the new version of the code record (the sandbox's copy, or a first copy of the seed record)
     await upsertRow(env, 'gme_codes', { ...g, code_enc: code ? await encryptCode(env, code) : g.code_enc, status, valid_from: from || null, valid_to: to || null, evidence, updated_at: now, updated_by: user.id }).run();
   } else {
+    await claim(env);
     await upsertRow(env, 'gme_codes', { congress_id: cid, code_enc: await encryptCode(env, code), status, valid_from: from || null, valid_to: to || null, evidence, updated_at: now, updated_by: user.id }).run();
   }
   return redirect(`/console/congres/${cid}?ok=1`);
@@ -748,14 +760,17 @@ async function gmeDecide(ctx, rid) {
   const now = new Date();
   if (d === 'approuver' && r.status === 'en_attente') {
     const exp = new Date(now.getTime() + GRANT_HOURS * 3600 * 1000).toISOString();
+    await claim(env);
     await upsertRow(env, 'gme_requests', { ...r, status: 'approuvee', decided_at: now.toISOString(), decided_by: user.id, expires_at: exp }).run();
     return redirect('/console/gme/acces?ok=approuvee');
   }
   if (d === 'refuser' && r.status === 'en_attente') {
+    await claim(env);
     await upsertRow(env, 'gme_requests', { ...r, status: 'refusee', decided_at: now.toISOString(), decided_by: user.id }).run();
     return redirect('/console/gme/acces?ok=refusee');
   }
   if (d === 'revoquer' && r.status === 'approuvee') {
+    await claim(env);
     await upsertRow(env, 'gme_requests', { ...r, status: 'revoquee', decided_at: now.toISOString(), decided_by: user.id }).run();
     return redirect('/console/gme/acces?ok=revoquee');
   }

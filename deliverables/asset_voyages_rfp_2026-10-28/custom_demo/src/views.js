@@ -1,6 +1,7 @@
 // Page shells and small form helpers. Plain French, no JavaScript required.
 import { html, raw } from './lib.js';
-import { DEMO_BUSY } from './data.js';
+import { DEMO_BUSY, DEMO_PAUSE } from './data.js';
+const banner = (busy) => (busy === 'pause' ? DEMO_PAUSE : DEMO_BUSY);
 
 // Bump when app.css or app.js change: assets are cached for a year under a versioned URL.
 export const ASSET_V = '4';
@@ -31,7 +32,7 @@ export function publicPage({ title, description = 'Démonstration ASSET Voyages 
     <a href="/console">Espace équipe</a>
   </nav>
 </header>
-<main id="main">${busy ? html`<p class="busy" role="status" tabindex="-1" data-focus>${DEMO_BUSY}</p>` : ''}${body}</main>
+<main id="main">${busy ? html`<p class="busy" role="status" tabindex="-1" data-focus>${banner(busy)}</p>` : ''}${body}</main>
 <footer class="foot">
   <div class="foot__in">
     <p class="foot__brand">ASSET <span>Voyages</span></p>
@@ -68,7 +69,7 @@ export function consolePage({ title, user, csrf, current, body, badges = {}, bus
     <a href="/">Voir le site public</a>
   </nav>
   <main id="main" class="cmain">
-    ${busy ? html`<p class="busy" role="status" tabindex="-1" data-focus>${DEMO_BUSY}</p>` : ''}
+    ${busy ? html`<p class="busy" role="status" tabindex="-1" data-focus>${banner(busy)}</p>` : ''}
     <p class="sandbox">Bac à sable privé : données fictives, vos essais ne sont visibles que dans ce navigateur, aucun e-mail réel n’est envoyé.</p>
     ${body}
   </main>

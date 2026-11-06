@@ -1,7 +1,7 @@
 // ASSET Voyages, option B demo: one Cloudflare Worker, D1 database, static assets, daily cron reset.
 import { htmlResponse, getCookie, randomToken, ipHash, sha256hex, safeEqual } from './lib.js';
 import { errorPage } from './views.js';
-import { ensureReady, nightly, validSbx, effectiveSbx } from './data.js';
+import { ensureReady, nightly, validSbx, effectiveSbx, noteWrites, wallFlushDue, flushWall } from './data.js';
 
 const SBX_COOKIE = '__Host-av_sbx';
 
@@ -71,7 +71,7 @@ async function route(req, env) {
 }
 
 export default {
-  async fetch(req, env) {
+  async fetch(req, env, ctx) {
     let res;
     let newSbx = null;
     let meterRef = null;
@@ -95,24 +95,29 @@ export default {
         const keyOk = !!(testKey && typeof secret === 'string' && secret.length >= 43 && safeEqual(await sha256hex(testKey), await sha256hex(secret)));
         // x-demo-real: 1 keeps the meter but drops the exemption, to measure what a real visitor's session costs.
         scoped.TEST_RUN = keyOk && req.headers.get('x-demo-real') !== '1';
-        if (keyOk) { scoped.METER = { n: 0 }; scoped.DB = meterDb(env.DB, scoped.METER); }
+        // Every request is metered (written rows feed the global daily write guard); only test runs see the header.
+        scoped.METER = { n: 0 }; scoped.DB = meterDb(env.DB, scoped.METER); scoped.KEY_OK = keyOk;
         meterRef = scoped;
         res = await route(req, scoped);
       }
     } catch (err) {
-      if (err && err.code === 'SBX_LIMIT') {
+      if (err && (err.code === 'SBX_LIMIT' || err.code === 'WRITE_PAUSE')) {
         // Sandbox caps reached: back to the same page, read-only seed, with a calm banner (never a bare 429).
         const ref = req.headers.get('referer');
         let back = '/';
         try { const u = new URL(ref); if (u.origin === new URL(req.url).origin) back = u.pathname; } catch { back = '/'; }
-        res = new Response(null, { status: 303, headers: { location: `${back}?demo=complet` } });
+        res = new Response(null, { status: 303, headers: { location: `${back}?demo=${err.code === 'WRITE_PAUSE' ? 'pause' : 'complet'}` } });
       } else {
         console.error('request failed', err && err.message);
         res = htmlResponse(errorPage({ status: 500, title: 'Erreur temporaire', text: 'Le service n’a pas pu répondre. Réessayez dans un instant ; rien n’a été enregistré en double.' }), 500);
       }
     }
     const out = secure(res);
-    if (meterRef && meterRef.METER) out.headers.set('x-d1-rows-written', String(meterRef.METER.n));
+    if (meterRef && meterRef.METER) {
+      noteWrites(meterRef.METER.n);
+      if (meterRef.KEY_OK) out.headers.set('x-d1-rows-written', String(meterRef.METER.n));
+      if (wallFlushDue() && ctx && ctx.waitUntil) ctx.waitUntil(flushWall(env).catch(() => {}));
+    }
     if (newSbx) out.headers.append('set-cookie', `${SBX_COOKIE}=${newSbx}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=172800`);
     return out;
   },

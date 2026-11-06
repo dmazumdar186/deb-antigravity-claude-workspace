@@ -3,19 +3,23 @@
  "results": [
   {
    "role": "anon",
-   "fails": []
+   "fails": [],
+   "grantApproved": false
   },
   {
    "role": "contributeur",
-   "fails": []
+   "fails": [],
+   "grantApproved": false
   },
   {
    "role": "equipe",
-   "fails": []
+   "fails": [],
+   "grantApproved": false
   },
   {
    "role": "direction",
-   "fails": []
+   "fails": [],
+   "grantApproved": true
   }
  ]
 }

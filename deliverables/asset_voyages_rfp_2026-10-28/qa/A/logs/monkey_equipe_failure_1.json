@@ -1,31 +1,17 @@
 {
   "seed": 20261105,
   "role": "equipe",
-  "action": 57,
+  "action": 5,
   "problems": [
     "pageerror Transition was aborted because of invalid state. ViewTransition opt-in disabled"
   ],
   "last20": [
-    "type len=31 <script>window.__pwn=1</script>",
-    "click A \"Ctrl + K\nOuvrir la palette de commandes\" #",
-    "click BUTTON \"méthode du navigateur\" ",
-    "submit form",
-    "click A \"Menu\" #",
-    "resize 858x622",
-    "click BUTTON \"Aide\" ",
-    "click A \"À propos de WordPress\" http://127.0.0.1:9403/wp-admin/about.php",
-    "click A \"Aller au contenu principal\" #wpbody-content",
-    "submit form",
-    "back/forward",
-    "click BUTTON \"\" ",
-    "resize 554x891",
-    "click A \"Ctrl + K\nOuvrir la palette de commandes\" #",
-    "back/forward",
-    "submit form",
-    "click BUTTON \"méthode du navigateur\" ",
-    "back/forward",
-    "click A \"ASSET Voyages — démonstration\" http://127.0.0.1:9403/",
-    "submit form"
+    "click A \"DV-2026-0007 · Alice Integration INT-1793918929081 · Congrès\" http://127.0.0.1:9404/wp-admin/admin.php?page=asset-demandes&action=view&id=28",
+    "resize 1003x750",
+    "type len=10 2027-13-45",
+    "resize 1167x616",
+    "click A \"ASSET Voyages — démonstration\" http://127.0.0.1:9404/",
+    "type len=25 \"; DROP TABLE wp_posts;--"
   ],
-  "url": "http://127.0.0.1:9403/?q&discipline&pays&mois&tri=date_asc"
+  "url": "http://127.0.0.1:9404/"
 }

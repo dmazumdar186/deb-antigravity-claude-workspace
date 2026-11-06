@@ -1,13 +1,14 @@
+sandbox reset FAILED locator.fill: Timeout 30000ms exceeded.
 1.1 PASS | Tableau de bord
 1.2 PASS | 9 labels with *
 1.3 PASS | Congrès créé.
-1.4 PASS | Congrès UAT 69491
+1.4 PASS | Congrès UAT 65511
 1.5 PASS | Modifications enregistrées.
 1.6 PASS | Marseille (France)
 1.7 PASS | Date de fin : La date de fin doit être le jour du début ou après.
 1.8 PASS | Publier buttons: 0; status badge « À relire »: true; flash: Congrès créé.
 1.9 PASS | Aucun congrès trouvé
-1.10 PASS | Brouillon UAT 69491
+1.10 PASS | Brouillon UAT 65511
 2.1 PASS | 12 congrès
 2.2 PASS | 2 congrès trouvés
 2.3 PASS | Journées françaises de diabétologie
@@ -23,9 +24,9 @@
 3.4 PASS | after reload: DV-2026-0007
 3.5 PASS | Nouvelle demande DV-2026-0007
 3.6 PASS | 1 row(s)
-4.1 PASS | first=DV-2026-0007 Veena UAT 69491 (exemple); Nouvelles=3
+4.1 PASS | first=DV-2026-0007 Veena UAT 65511 (exemple); Nouvelles=3
 4.2 PASS | all shown
-4.3 PASS | Enregistré.
+4.3 FAIL | Aller au contenu ASSET Console Karim Benali, Équipe Se déconnecter Tableau de bord Congrès Demandes 2 en attente Notifications Codes GM&E
 4.4 PASS | Karim Benali, Équipe
 4.5 PASS | Rappeler la cliente demain (UAT)
 4.6 PASS | Statut : Nouvelle vers Qualifiée | Statut : Qualifiée vers Devis envoyé | Statut : Devis envoyé vers Gagnée
@@ -34,7 +35,7 @@
 4.9 PASS | in Gagnée: true; search rows: 1
 4.10 PASS | demandes-2026-11-05.csv 2 lines
 4.11 PASS | Aucun congrès trouvé
-4.12 PASS | HTTP 403 Aller au contenu ASSET Console Se déconnecter Tableau de bord Congrès Voir le si
+4.12 PASS | HTTP 403 Aller au contenu ASSET Console Julie Roux, Contributrice Se déconnecter Tablea
 5.1 PASS | no code in HTML: true
 5.2 PASS | masked
 5.3 PASS | Indiquez le motif de la demande (au moins 5 caractères).

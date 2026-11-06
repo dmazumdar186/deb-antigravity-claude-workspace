@@ -4,7 +4,7 @@ import {
   readForm, makeFormToken, checkFormToken, ipHash, rateHit, redirect, htmlResponse, nowIso, hmac, safeEqual,
 } from './lib.js';
 import { publicPage, field, errorPage, errorSummary } from './views.js';
-import { notificationFor, TEAM_INBOX, materialize, baseUrl, DEMO_BUSY, T } from './data.js';
+import { claim, baseUrl, DEMO_BUSY, DEMO_PAUSE, T } from './data.js';
 
 const PER_PAGE = 9;
 const MIN_FILL_MS = 3000;
@@ -103,7 +103,7 @@ export async function catalogue(req, env) {
     </div>
   </div>
 </section>`;
-  return htmlResponse(publicPage({ title: 'Catalogue des congrès | ASSET Voyages', body, busy: url.searchParams.get('demo') === 'complet' }), 200, { 'cache-control': 'no-cache' });
+  return htmlResponse(publicPage({ title: 'Catalogue des congrès | ASSET Voyages', body, busy: (['complet', 'pause'].includes(url.searchParams.get('demo')) ? url.searchParams.get('demo') : false) }), 200, { 'cache-control': 'no-cache' });
 }
 
 async function loadPublicCongress(env, where, bind) {
@@ -174,7 +174,7 @@ export async function congressPage(req, env, slug, { values, errors, notice, sta
     </aside>
   </div>
 </article>`;
-  return htmlResponse(publicPage({ busy: new URL(req.url).searchParams.get('demo') === 'complet', title: `${c.title} | ASSET Voyages`, description: `${c.title} : ${frRange(c.start_date, c.end_date)}, ${c.city}. Demande de devis vol.`, body }), status, { 'cache-control': 'no-store' });
+  return htmlResponse(publicPage({ busy: (['complet', 'pause'].includes(new URL(req.url).searchParams.get('demo')) ? new URL(req.url).searchParams.get('demo') : false), title: `${c.title} | ASSET Voyages`, description: `${c.title} : ${frRange(c.start_date, c.end_date)}, ${c.city}. Demande de devis vol.`, body }), status, { 'cache-control': 'no-store' });
 }
 
 const EMAIL_RE = /^[^\s@<>()",;:]{1,64}@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$/;
@@ -235,8 +235,9 @@ export async function submitEnquiry(req, env) {
 
   const ip = env.IP_HASH || await ipHash(env, req);
   let sid;
-  try { sid = await materialize(env); } catch (err) { // this browser's private sandbox; caps reached: keep what was typed, explain calmly
+  try { sid = await claim(env); } catch (err) { // budget guards, then this browser's sandbox; on a cap keep what was typed
     if (err && err.code === 'SBX_LIMIT') return congressPage(req, env, c, { values: v, errors: {}, notice: `Votre demande n’a pas été envoyée. ${DEMO_BUSY}`, status: 200 });
+    if (err && err.code === 'WRITE_PAUSE') return congressPage(req, env, c, { values: v, errors: {}, notice: `Votre demande n’a pas été envoyée. ${DEMO_PAUSE}`, status: 200 });
     throw err;
   }
   // Per browser (whatever IP it comes from: mobile networks and proxies change it) and per IP (a whole office).
@@ -262,7 +263,7 @@ export async function submitEnquiry(req, env) {
 }
 
 // The confirmation link is signed so nobody can enumerate references from the public site.
-const confirmSig = async (env, ref) => (await hmac(env, 'confirm|' + ref)).slice(0, 22);
+const confirmSig = async (env, ref) => (await hmac(env, 'confirm-v1', ref)).slice(0, 22);
 async function confirmUrl(env, ref) {
   return `/demande/confirmation?ref=${encodeURIComponent(ref)}&k=${await confirmSig(env, ref)}`;
 }

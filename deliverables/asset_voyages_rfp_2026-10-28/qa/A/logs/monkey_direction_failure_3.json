@@ -1,31 +1,31 @@
 {
   "seed": 20261105,
   "role": "direction",
-  "action": 116,
+  "action": 169,
   "problems": [
     "pageerror Transition was aborted because of invalid state. ViewTransition opt-in disabled"
   ],
   "last20": [
-    "resize 1191x933",
-    "resize 898x784",
-    "click A \"À propos de WordPress\" http://127.0.0.1:9403/wp-admin/about.php",
+    "resize 1222x628",
+    "type len=1 0",
+    "click A \"Créer\" http://127.0.0.1:9404/wp-admin/media-new.php",
     "click A \"Ctrl + K\nOuvrir la palette de commandes\" #",
-    "type len=0 ",
-    "type len=25 \"; DROP TABLE wp_posts;--",
-    "resize 579x728",
-    "type len=11 99999999999",
+    "submit form",
+    "resize 1216x781",
+    "type len=1 0",
     "back/forward",
-    "click A \"Menu\" #",
-    "type len=19 Élodie Ñandú 日本語 😀",
+    "click A \"Date\nTri décroissant\" http://127.0.0.1:9404/wp-admin/admin.php?page=asset-demandes&statut=qualifiee&orderby=date&order=desc",
+    "click A \"Passagers\nTri croissant\" http://127.0.0.1:9404/wp-admin/admin.php?page=asset-demandes&statut=qualifiee&orderby=passagers&order=asc",
+    "type len=2 -1",
+    "type len=37 =HYPERLINK(\"http://evil.example\",\"x\")",
+    "submit form",
+    "back/forward",
+    "resize 1196x993",
+    "resize 789x941",
     "click A \"Aller au contenu principal\" #wpbody-content",
-    "click A \"Ctrl + K\nOuvrir la palette de commandes\" #",
-    "click A \"ASSET Voyages — démonstration\" http://127.0.0.1:9403/",
-    "back/forward",
-    "resize 781x841",
-    "type len=5000 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-    "click BUTTON \"Afficher plus de détails\" ",
-    "click A \"ASSET Voyages — démonstration\" http://127.0.0.1:9403/",
-    "click A \"Radiologie\" /?discipline=radiologie"
+    "click A \"À propos de WordPress\" http://127.0.0.1:9404/wp-admin/about.php",
+    "click A \"ASSET Voyages — démonstration\" http://127.0.0.1:9404/",
+    "back/forward"
   ],
-  "url": "http://127.0.0.1:9403/?discipline=radiologie"
+  "url": "http://127.0.0.1:9404/"
 }

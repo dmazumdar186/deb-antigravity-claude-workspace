@@ -1,31 +1,31 @@
 {
   "seed": 20261105,
   "role": "equipe",
-  "action": 88,
+  "action": 154,
   "problems": [
     "pageerror Transition was aborted because of invalid state. ViewTransition opt-in disabled"
   ],
   "last20": [
-    "click BUTTON \"Replier le menu\" ",
-    "click BUTTON \"Afficher ou masquer le panneau\" ",
-    "click BUTTON \"Options de l’écran\" ",
-    "click BUTTON \"\" ",
-    "resize 663x679",
-    "submit form",
-    "back/forward",
-    "click A \"Voir toutes les demandes\" http://127.0.0.1:9403/wp-admin/admin.php?page=asset-demandes",
+    "click A \"À propos de WordPress\" http://127.0.0.1:9404/wp-admin/about.php",
+    "resize 1033x663",
     "type len=25 \"; DROP TABLE wp_posts;--",
-    "click A \"ASSET Voyages — démonstration\" http://127.0.0.1:9403/",
-    "click A \"Congrès d’ophtalmologie de Paris — exemple\" http://127.0.0.1:9403/congres/congres-dophtalmologie-de-paris-exemple/",
-    "click A \"1\nPerdue\" http://127.0.0.1:9403/wp-admin/admin.php?page=asset-demandes&statut=perdue",
-    "type len=11 99999999999",
-    "click A \"Qualifiée (1)\" http://127.0.0.1:9403/wp-admin/admin.php?page=asset-demandes&statut=qualifiee",
-    "type len=31 <script>window.__pwn=1</script>",
-    "type len=1 0",
-    "click BUTTON \"Afficher plus de détails\" ",
-    "click A \"À propos de WordPress\" http://127.0.0.1:9403/wp-admin/about.php",
-    "click A \"ASSET Voyages — démonstration\" http://127.0.0.1:9403/",
-    "back/forward"
+    "type len=19 Élodie Ñandú 日本語 😀",
+    "click A \"Aller à la barre d’outils\" #wp-toolbar",
+    "click A \"À propos de WordPress\" http://127.0.0.1:9404/wp-admin/about.php",
+    "click A \"À propos de WordPress\" http://127.0.0.1:9404/wp-admin/about.php",
+    "click A \"Aller au contenu principal\" #wpbody-content",
+    "click A \"À propos de WordPress\" http://127.0.0.1:9404/wp-admin/about.php",
+    "click A \"Créer\" http://127.0.0.1:9404/wp-admin/media-new.php",
+    "type len=37 =HYPERLINK(\"http://evil.example\",\"x\")",
+    "click A \"À propos de WordPress\" http://127.0.0.1:9404/wp-admin/about.php",
+    "resize 1152x774",
+    "click A \"ASSET Voyages — démonstration\" http://127.0.0.1:9404/",
+    "type len=16 ../../etc/passwd",
+    "back/forward",
+    "submit form",
+    "click A \"DV-2026-0002\" http://127.0.0.1:9404/wp-admin/admin.php?page=asset-demandes&action=view&id=19",
+    "click A \"ASSET Voyages — démonstration\" http://127.0.0.1:9404/",
+    "click A \"Forum européen des ressources humaines — exemple\" http://127.0.0.1:9404/congres/forum-europeen-des-ressources-humaines-exemple/"
   ],
-  "url": "http://127.0.0.1:9403/wp-admin/about.php"
+  "url": "http://127.0.0.1:9404/congres/forum-europeen-des-ressources-humaines-exemple/"
 }
