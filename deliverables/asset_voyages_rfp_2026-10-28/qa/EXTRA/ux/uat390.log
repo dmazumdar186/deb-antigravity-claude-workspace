@@ -6,3 +6,7 @@ X.5 PASS summary: 6 champs à corriger ; rien n’a été enregistré.; focus al
 X.6 PASS Date retour : La date retour doit être le jour de l’aller ou après. | Date retour * | La date retour doit être le jour de l’aller ou après. | name kept: Delphine Roux 17000 (exemple)
 X.7 PASS Aller au contenu ASSET Voyages Démonstration avec des données fictives Votre réponse a bien été reçue. Voyage de groupe : Journées françaises de diabétologie — exemple, 23 au 26 mars 2027. L’agence ASSET Voyages revient vers vous avec votre billet. Nom et prénom Delphine Roux 17000 (exemple) E-mail 
 X.8 PASS staff counter « 1 répondu / 2 attendus »; pending block false
+X.9 PASS confirmation identical shape; echoes Nantes true
+X.10 PASS counter « 1 répondu / 2 attendus »; tab label « Groupe (1/2) »
+X.11 PASS 
+X.12 PASS counter « 1 répondu / 2 attendus »
