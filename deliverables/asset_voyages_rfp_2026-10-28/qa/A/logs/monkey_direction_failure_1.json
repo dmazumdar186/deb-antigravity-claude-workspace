@@ -1,31 +1,31 @@
 {
   "seed": 20261105,
   "role": "direction",
-  "action": 88,
+  "action": 143,
   "problems": [
-    "pageerror Transition was aborted because of invalid state. ViewTransition opt-in disabled"
+    "pageerror wp is not defined"
   ],
   "last20": [
-    "click A \"À propos de WordPress\" http://127.0.0.1:9404/wp-admin/about.php",
-    "click A \"Aller au contenu principal\" #wpbody-content",
-    "click BUTTON \"\" ",
-    "click A \"Aller sur l’accueil\" http://127.0.0.1:9404/wp-admin/",
-    "resize 1396x773",
-    "click A \"2\nQualifiée\" http://127.0.0.1:9404/wp-admin/admin.php?page=asset-demandes&statut=qualifiee",
-    "click A \"Créer\" http://127.0.0.1:9404/wp-admin/media-new.php",
-    "click A \"Aller au contenu principal\" #wpbody-content",
-    "click A \"Créer\" http://127.0.0.1:9404/wp-admin/media-new.php",
-    "resize 590x857",
-    "type len=10 2027-13-45",
+    "click BUTTON \"Afficher ou masquer le panneau\" ",
     "submit form",
-    "resize 980x750",
-    "resize 499x650",
-    "submit form",
+    "click BUTTON \"Replier le menu\" ",
+    "click A \"Aller au contenu principal\" #wpbody-content",
     "type len=31 <script>window.__pwn=1</script>",
-    "click A \"Créer\" http://127.0.0.1:9404/wp-admin/media-new.php",
-    "resize 837x655",
-    "click A \"ASSET Voyages — démonstration\" http://127.0.0.1:9404/",
-    "resize 829x922"
+    "type len=16 ../../etc/passwd",
+    "click BUTTON \"Descendre\" ",
+    "back/forward",
+    "back/forward",
+    "resize 713x898",
+    "type len=19 Élodie Ñandú 日本語 😀",
+    "type len=2 -1",
+    "resize 613x706",
+    "back/forward",
+    "type len=25 \"; DROP TABLE wp_posts;--",
+    "click A \"Modifier\nModifier l’état\" #post_status",
+    "resize 1222x628",
+    "type len=1 0",
+    "click A \"Ajouter un congrès\" http://127.0.0.1:9400/wp-admin/post-new.php?post_type=asset_congres",
+    "click A \"Ctrl + K\nOuvrir la palette de commandes\" #"
   ],
-  "url": "http://127.0.0.1:9404/"
+  "url": "http://127.0.0.1:9400/wp-admin/post-new.php?post_type=asset_congres#"
 }
