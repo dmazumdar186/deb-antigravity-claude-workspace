@@ -1,13 +1,16 @@
+Subject: GreenJobs transition plan: moving off Strategies by 6 December
+
 Hi Keith,
 
-Thanks for passing on the Strategies notice. As promised, my transition plan is attached. In short: the boards stay live on Strategies while we build and test, and I'd aim to switch on Thursday 3 December, leaving Friday 4 December as buffer before the contract ends on Sunday 6 December.
+Thanks for passing on the Strategies notice. As promised, my transition plan is attached.
 
-I'd aim for 3 December if the Strategies contract covers only the two GreenJobs boards, I have the signed contract and data processing agreement plus access to DNS, Strategies and analytics (or the name of whoever can grant each) by Wednesday 11 November, and you sign off the test address by Friday 27 November. The plan is tight, so if something is late we trim the 3 December list in the order set out in the contract rather than miss the 6th.
+In short: the boards stay live on Strategies while we build and test, and I'd aim to switch on Thursday 3 December, leaving Friday 4 December as buffer before the contract ends on Sunday 6 December. On day one your team posts jobs through a simple admin console I'll build, and the posting-tool feeds and log-ins follow in December and January.
 
-One thing to flag: on 3 December your team posts jobs through the new console, and advertisers' own postings and the Broadbean, Idibu or LogicMelon feeds follow in the second phase. The plan explains this; tell me if it's a problem.
+The plan ends with twelve short questions. If the answers reach me by Monday evening, I start on Tuesday. Please share any logins through a password manager rather than by email.
 
-Please share any logins through a password manager rather than by email. Could we do 20 minutes on Monday 9 November, at a time that suits you, to go through the plan? I'll send the contract and data processing agreement beforehand so you can read them. If signing will take longer than 11 November, tell me the date; the 6 December end date doesn't move, so we'd agree in writing which items move to the second phase.
+Could we do 20 minutes on Monday 9 November, at a time that suits you? I'll send the contract and data processing agreement after the call.
 
+Thanks,
 Debanjan
 Founder, ProdCraft
 debanjan@prodcraft.fyi
