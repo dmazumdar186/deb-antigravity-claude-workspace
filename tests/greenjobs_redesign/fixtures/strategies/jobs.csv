@@ -1,0 +1,8 @@
+Job ID,Recruiter ID,Job Title,Location,Region,Job Type,Salary From,Salary To,Salary,Sectors,Summary,Description,Apply Email,Apply URL,Date Posted,Closing Date,Last Updated
+7001,501,Test Solar Engineer,Dublin,Leinster,Permanent,"€40,000","€50,000",€40k - €50k,Solar;Energy,A test summary,This is a synthetic test job description for the import validator. This is a synthetic test job description for the import validator. ,jobs@example.com,,01/10/2026,30/11/2026,05/10/2026
+7002,502,Test Wind Analyst,Cork,Munster,Contract,35000,45000,,Wind,,This is a synthetic test job description for the import validator. This is a synthetic test job description for the import validator. ,,https://apply.example.com/7002,01/07/2026,01/09/2026,
+7003,501,Old Test Job,Galway,Connacht,Permanent,,,,,,This is a synthetic test job description for the import validator. This is a synthetic test job description for the import validator. ,,,01/01/2022,01/02/2022,
+7004,503,Test Ecologist,Sligo,Connacht,Permanent,,,,,,Great role. </script><script>alert(1)</script> This is a synthetic test job description for the import validator. This is a synthetic test job description for the import validator. ,,http://insecure.example.com,01/10/2026,15/12/2026,
+7005,505,Test Hydro Lead,Limerick,Munster,Permanent,50k,30k,,Hydro,,This is a synthetic test job description for the import validator. This is a synthetic test job description for the import validator. ,,,02/10/2026,20/11/2026,
+7006,501,Test Short,Dublin,,,,,,,,Too short,,,03/10/2026,20/11/2026,
+7007,999,Test Orphan Employer Job,Dublin,,,,,,,,This is a synthetic test job description for the import validator. This is a synthetic test job description for the import validator. ,,,03/10/2026,20/11/2026,

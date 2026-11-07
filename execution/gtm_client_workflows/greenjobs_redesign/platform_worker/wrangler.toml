@@ -1,0 +1,61 @@
+name = "greenjobs-platform"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+# Secrets (never in this file):
+#   wrangler secret put RESEND_API_KEY
+#   wrangler secret put BUILD_TOKEN
+
+# Routes are added at go-live (README "Deploy"); staging uses the workers.dev host in HOST_SITE_MAP.
+# routes = [
+#   { pattern = "greenjobs.ie/api/*", zone_name = "greenjobs.ie" },
+#   { pattern = "greenjobs.ie/admin*", zone_name = "greenjobs.ie" },
+#   { pattern = "greenjobs.co.uk/api/*", zone_name = "greenjobs.co.uk" },
+#   { pattern = "greenjobs.co.uk/admin*", zone_name = "greenjobs.co.uk" },
+# ]
+
+[triggers]
+crons = ["*/10 * * * *"]   # retries 'pending'/'failed' deliveries (dry run records 'dry_run')
+
+[vars]
+DRY_RUN = "1"              # live mail only when DRY_RUN="0" AND LIVE_CONFIRM="send-applications"
+LIVE_CONFIRM = ""
+HOST_SITE_MAP = '{"greenjobs.ie":"ie","www.greenjobs.ie":"ie","greenjobs.co.uk":"uk","www.greenjobs.co.uk":"uk","ie.greenjobs-platform.workers.dev":"ie","uk.greenjobs-platform.workers.dev":"uk"}'
+ACCESS_TEAM_DOMAIN = ""    # e.g. "greenjobs.cloudflareaccess.com"
+ACCESS_AUD = ""            # the Access application's AUD tag
+STAFF_EMAILS = ""          # comma list; empty = nobody (fail closed)
+APPLY_ROUTING = "inbox"    # inbox | consultant | advertiser
+APPLY_INBOX_IE = ""
+APPLY_INBOX_UK = ""
+MAIL_PROVIDER = "none"     # resend | none
+MAIL_FROM = ""             # e.g. "GreenJobs <applications@greenjobs.ie>"
+MAIL_DAILY_CAP = "200"     # budget guard: live sends per UTC day
+OPS_ALERT_EMAIL = ""       # delivery-failure alert inbox; empty = audit_log row only, no alert mail
+RATE_APPLY_PER_10MIN = "5"
+RATE_ADMIN_PER_MIN = "60"
+MAX_CV_BYTES = "5242880"
+ALERTS_ENABLED = "0"
+NEWSLETTER_ENABLED = "0"
+ALLOWED_ORIGINS = "https://greenjobs.ie,https://www.greenjobs.ie,https://greenjobs.co.uk,https://www.greenjobs.co.uk"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "greenjobs"
+database_id = "REPLACE_WITH_D1_ID"
+
+[[r2_buckets]]
+binding = "CVS"
+bucket_name = "greenjobs-cvs"
+
+# Optional burst guard for /api/apply (period must be 10 or 60 s; the 10-minute window
+# from RATE_APPLY_PER_10MIN still applies via KV or the in-isolate map).
+# [[unsafe.bindings]]
+# name = "APPLY_LIMITER"
+# type = "ratelimit"
+# namespace_id = "1001"
+# simple = { limit = 5, period = 60 }
+
+# Optional KV for the fixed-window limiter (otherwise per-isolate, best effort).
+# [[kv_namespaces]]
+# binding = "RATE"
+# id = "..."

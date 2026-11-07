@@ -86,8 +86,42 @@ is below the estimate: top up at the Higgsfield API console, then re-run. On 202
   `OPENROUTER_API_KEY` (or an Anthropic key) as a Worker secret; nothing model-backed is live and no
   key exists in cloud sessions. Cloud sessions have no `.env`.
 
+## Strategies data import (migration, 2026-11)
+
+Moving both boards off Strategies (contract ends 6 Dec 2026). Mapping, gates and run order:
+`deliverables/greenjobs_migration_2026-11-06/build/import/IMPORT_MAPPING.md`.
+
+- Inputs: Strategies admin → "Download Reports" CSVs (recruiters, candidates, profiles, jobs, applications), per
+  site, in date batches; alias map `execution/gtm_client_workflows/greenjobs_redesign/strategies_mapping.json`.
+- Command: `python3 execution/gtm_client_workflows/greenjobs_redesign/strategies_import.py --site ie|uk --report TYPE
+  --csv PATH [--csv PATH ...] [--as-of YYYY-MM-DD] [--retention-months 24]`. Dry run by default (JSON summary, no PII).
+  `--emit-sql PATH` writes idempotent upserts (shapes of `build/d1/upserts.sql`) plus an `import_batches` row per
+  file; the operator applies them with `npx wrangler@4 d1 execute greenjobs --file=PATH`. No network in the script.
+- Outputs: stdout summary; `--report-out` (no PII; outside the repo or `<repo>/.tmp/`); `--emit-sql` (outside the repo only).
+- Exit: 0 ok / no-op, 2 usage or a required header with no alias match, 3 gate (yield < 0.05, rejects > 0.20).
+- CSVs hold candidate PII: never in git, never in `.tmp/`; the script refuses repo paths except
+  `tests/**/fixtures/` (fake data). Real headers are unknown until the first export: add aliases to the JSON,
+  never edit code. Profiles need `--candidates-csv` (or an email column); applications SQL needs `--jobs-csv` or
+  `--known-job-ids`. Tests: `python3 -m pytest tests/greenjobs_redesign/test_strategies_import.py -q`.
+
+## Platform Worker (migration, 2026-11)
+
+Staff posting console + public apply endpoint for go-live Thu 3 Dec 2026 (floor scope). Code:
+`execution/gtm_client_workflows/greenjobs_redesign/platform_worker/` (README has routes, config, deploy).
+Schema `deliverables/greenjobs_migration_2026-11-06/build/d1/schema.sql`; build pack index `build/README.md`.
+
+- Dry by default: mail sends only with `DRY_RUN="0"` AND `LIVE_CONFIRM="send-applications"`; `MAIL_DAILY_CAP`
+  is the budget guard and `audit_log` `mail.send` rows are the ledger. Secrets only via `wrangler secret put`.
+- Staff auth: Cloudflare Access plus in-Worker JWT verification and the `STAFF_EMAILS` allow-list.
+- Tests (offline): `bash deliverables/greenjobs_migration_2026-11-06/build/run_tests.sh` (schema x2, pytest import,
+  `node --no-warnings --test 'tests/greenjobs_redesign/platform/*.test.mjs'`, no-CSV check). Node 22 rejects a bare
+  directory after `--test`; use the quoted glob.
+- Keith's twelve answers map to config in `build/DECISION_TABLE.md`; audits run against the frozen
+  `build/REDTEAM_CHECKLIST.md`, at most 2 rounds.
+
 ## Changelog
 
+- 2026-11-07 (migration platform): `platform_worker/` skeleton (console post/edit/close, `/api/apply`, Access JWT, rate limits, dry-run default), D1 schema + idempotent upserts, BDD features + 121 offline node tests, frozen red-team checklist, SAST report, decision table for the twelve questions.
 - 2026-09-28 (client wall): `scrape_greenjobs.py` gains `parse_client_logos()` / `download_client_logos()`
   and a `--clients-only` flag: fetches /for-employers.asp on both boards (112 logos, all served from
   greenjobs.co.uk/images/logos/advertise/), saves them to `src/assets/logos/clients/` (dedupe by file,
@@ -187,3 +221,8 @@ is below the estimate: top up at the Higgsfield API console, then re-run. On 202
   atomic; `run_all.py` SKIP semantics, total check count into COVERAGE.md; dashboard copy in the visitor voice
   (`DASHBOARD_COPY` / `DASHBOARD_REWRITES` in `build_site.py`); IE hero now reads 15 live sectors (Solar became
   live through the restored secondary). Tests: `test_build.py` block `# --- round 4 ---`.
+- 2026-11-07 (Strategies import): `strategies_import.py` + `strategies_mapping.json` validate, map, dedupe and
+  retention-filter Strategies CSV exports offline and emit idempotent D1 SQL; mapping doc
+  `deliverables/greenjobs_migration_2026-11-06/build/import/IMPORT_MAPPING.md`; tests
+  `tests/greenjobs_redesign/test_strategies_import.py` (synthetic fixtures). Header aliases are guesses until the
+  first real export.
