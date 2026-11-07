@@ -104,8 +104,24 @@ Moving both boards off Strategies (contract ends 6 Dec 2026). Mapping, gates and
   never edit code. Profiles need `--candidates-csv` (or an email column); applications SQL needs `--jobs-csv` or
   `--known-job-ids`. Tests: `python3 -m pytest tests/greenjobs_redesign/test_strategies_import.py -q`.
 
+## Platform Worker (migration, 2026-11)
+
+Staff posting console + public apply endpoint for go-live Thu 3 Dec 2026 (floor scope). Code:
+`execution/gtm_client_workflows/greenjobs_redesign/platform_worker/` (README has routes, config, deploy).
+Schema `deliverables/greenjobs_migration_2026-11-06/build/d1/schema.sql`; build pack index `build/README.md`.
+
+- Dry by default: mail sends only with `DRY_RUN="0"` AND `LIVE_CONFIRM="send-applications"`; `MAIL_DAILY_CAP`
+  is the budget guard and `audit_log` `mail.send` rows are the ledger. Secrets only via `wrangler secret put`.
+- Staff auth: Cloudflare Access plus in-Worker JWT verification and the `STAFF_EMAILS` allow-list.
+- Tests (offline): `bash deliverables/greenjobs_migration_2026-11-06/build/run_tests.sh` (schema x2, pytest import,
+  `node --no-warnings --test 'tests/greenjobs_redesign/platform/*.test.mjs'`, no-CSV check). Node 22 rejects a bare
+  directory after `--test`; use the quoted glob.
+- Keith's twelve answers map to config in `build/DECISION_TABLE.md`; audits run against the frozen
+  `build/REDTEAM_CHECKLIST.md`, at most 2 rounds.
+
 ## Changelog
 
+- 2026-11-07 (migration platform): `platform_worker/` skeleton (console post/edit/close, `/api/apply`, Access JWT, rate limits, dry-run default), D1 schema + idempotent upserts, BDD features + 121 offline node tests, frozen red-team checklist, SAST report, decision table for the twelve questions.
 - 2026-09-28 (client wall): `scrape_greenjobs.py` gains `parse_client_logos()` / `download_client_logos()`
   and a `--clients-only` flag: fetches /for-employers.asp on both boards (112 logos, all served from
   greenjobs.co.uk/images/logos/advertise/), saves them to `src/assets/logos/clients/` (dedupe by file,

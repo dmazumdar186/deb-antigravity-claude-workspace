@@ -74,8 +74,15 @@ def fresh_db() -> sqlite3.Connection:
 
 
 def counts(con) -> dict:
-    return {t: con.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]
-            for t in ("employers", "jobs", "candidates", "applications", "import_batches")}
+    # Fixed literal statements per table (no string-built SQL).
+    queries = {
+        "employers": "SELECT COUNT(*) FROM employers",
+        "jobs": "SELECT COUNT(*) FROM jobs",
+        "candidates": "SELECT COUNT(*) FROM candidates",
+        "applications": "SELECT COUNT(*) FROM applications",
+        "import_batches": "SELECT COUNT(*) FROM import_batches",
+    }
+    return {t: con.execute(q).fetchone()[0] for t, q in queries.items()}
 
 
 # --------------------------------------------------------------------------- dry run behaviour

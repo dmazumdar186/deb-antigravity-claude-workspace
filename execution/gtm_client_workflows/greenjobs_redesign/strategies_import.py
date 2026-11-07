@@ -711,10 +711,9 @@ def check_output(raw: str, allow_repo_tmp: bool, inputs: list[Path]) -> Path:
         raise UsageError(f"output directory does not exist: {p.parent}")
     if p in inputs:
         raise UsageError("output path equals an input path")
-    if _within(p, REPO_ROOT):
-        if not (allow_repo_tmp and _within(p, REPO_ROOT / ".tmp")):
-            where = "outside the repo or under <repo>/.tmp/" if allow_repo_tmp else "outside the git repo"
-            raise UsageError(f"refused: this output must resolve {where}")
+    if _within(p, REPO_ROOT) and not (allow_repo_tmp and _within(p, REPO_ROOT / ".tmp")):
+        where = "outside the repo or under <repo>/.tmp/" if allow_repo_tmp else "outside the git repo"
+        raise UsageError(f"refused: this output must resolve {where}")
     return p
 
 
