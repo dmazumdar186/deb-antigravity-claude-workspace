@@ -71,7 +71,7 @@ Total for the MVP (#1–9, 11, 15–17): about **18–22 working days** against 
 | Week | Dates | Outcome |
 |---|---|---|
 | 0 | Mon 9 Nov | Keith gets the requirements list (§6). Contract + DPA signed. |
-| 1 | 9–13 Nov | Access in hand (DNS, Cloudflare, Resend, GA). Exports run. Front end deployed on a staging subdomain. |
+| 1 | 9–13 Nov | Inputs deadline Wed 11 November: contract, DPA and access to DNS, Strategies and analytics; any slip moves the switch date. Access in hand (DNS, Cloudflare, Resend, GA). Exports run. Front end deployed on a staging subdomain. |
 | 2–3 | 16–27 Nov | Posting console, applications, candidate accounts, alerts, import. Staging acceptance with Keith and the site manager. |
 | 4 | 30 Nov–3 Dec | Final delta export, parallel check, DNS cut-over Thu 3 Dec, daily checks. Fri 4 Dec is the buffer. |
 | After | Dec–Jan | Phase 2: Broadbean / Idibu / LogicMelon, CRM posting, employer self-service. €1,500 due Q1 per contract. |
