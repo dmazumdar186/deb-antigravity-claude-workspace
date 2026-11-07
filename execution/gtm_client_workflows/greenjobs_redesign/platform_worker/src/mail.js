@@ -3,8 +3,14 @@
 //   AND the RESEND_API_KEY secret is set AND today's send count is under MAIL_DAILY_CAP.
 // Otherwise deliver() returns {status:'dry_run'} and the transport is never called.
 // Every live send writes an audit_log 'mail.send' row: that is the cost ledger (spend = rows x unit price).
+// Alert channel (#21): any live delivery failure (cap, timeout, transport, provider) writes one audit_log
+// 'delivery.failed' row per application (ids + reason only, no PII) and, the first time only, attempts one
+// alert mail to OPS_ALERT_EMAIL (if set). The alert counts against MAIL_DAILY_CAP like any other send.
 
 import { intVar, nowIso, todayUtc } from './util.js';
+import { isValidEmail } from './validate.js';
+
+export const SEND_TIMEOUT_MS = 10000;
 
 export function isLive(env) {
   return env.DRY_RUN === '0' && env.LIVE_CONFIRM === 'send-applications' && env.MAIL_PROVIDER === 'resend' && !!env.RESEND_API_KEY;
@@ -19,10 +25,12 @@ export function headerSafe(s, max = 200) {
 
 const PROVIDER_URL = 'https://api.resend.com/emails';
 
-export function resendTransport(fetchImpl = (...a) => fetch(...a)) {
+/** timeoutMs is injectable for tests; a hung provider aborts (TimeoutError) instead of leaving the row 'pending'. */
+export function resendTransport(fetchImpl = (...a) => fetch(...a), { timeoutMs = SEND_TIMEOUT_MS } = {}) {
   return async (payload, env, idempotencyKey) => {
     const res = await fetchImpl(PROVIDER_URL, {
       method: 'POST',
+      signal: AbortSignal.timeout(timeoutMs),
       headers: {
         Authorization: `Bearer ${env.RESEND_API_KEY}`,
         'Content-Type': 'application/json',
@@ -67,29 +75,67 @@ export function buildApplicationEmail(env, { app, job, cv }) {
   return payload;
 }
 
+const SQL_AUDIT_ROW = 'INSERT OR IGNORE INTO audit_log (at, actor, action, entity, entity_id, request_id, detail_json) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)';
+
+async function underCap(env, db, now) {
+  const cap = intVar(env, 'MAIL_DAILY_CAP', 200);
+  const sentToday = await db
+    .prepare("SELECT COUNT(*) AS n FROM audit_log WHERE action = 'mail.send' AND at >= ?1")
+    .bind(`${todayUtc(now)}T00:00:00Z`)
+    .first();
+  return (sentToday?.n || 0) < cap;
+}
+
+function ledgerRow(db, now, entity, key, requestId) {
+  return db.prepare(SQL_AUDIT_ROW).bind(nowIso(now), 'system', 'mail.send', entity, key, requestId, JSON.stringify({ provider: 'resend', units: 1 })).run();
+}
+
+export function buildAlertEmail(env, appId, reason) {
+  return {
+    from: headerSafe(env.MAIL_FROM),
+    to: [headerSafe(env.OPS_ALERT_EMAIL, 254)],
+    subject: headerSafe(`GreenJobs: application delivery failed (${reason})`),
+    text: [`Application id: ${appId}`, `Reason: ${reason}`, 'The cron retries every 10 minutes for 48 h. Check the inbox and Resend status.'].join('\n'),
+  };
+}
+
 export function createMailer({ transport } = {}) {
+  /** One 'delivery.failed' row per application (stable request_id); the alert goes only on the first. Never throws. */
+  async function onFailure(env, db, send, key, reason, now) {
+    try {
+      const res = await db.prepare(SQL_AUDIT_ROW)
+        .bind(nowIso(now), 'system', 'delivery.failed', 'application', key, `delivery.failed:${key}`, JSON.stringify({ reason }))
+        .run();
+      const first = !!(res && res.meta && res.meta.changes > 0);
+      const to = env.OPS_ALERT_EMAIL || '';
+      if (!first || !to || !isValidEmail(to) || !isLive(env)) return;
+      if (!(await underCap(env, db, now))) return;
+      const r = await send(buildAlertEmail(env, key, reason), env, `alert:${key}`);
+      if (r && r.ok) await ledgerRow(db, now, 'alert', key, `mail:alert:${key}`);
+    } catch {
+      console.error('mail: alert_failed', key);
+    }
+  }
+
   return {
     /** Returns {status: 'dry_run'|'sent'|'failed', reason?}. */
     async deliver(env, db, payload, { idempotencyKey, now }) {
       if (!isLive(env)) return { status: 'dry_run' };
-      const cap = intVar(env, 'MAIL_DAILY_CAP', 200);
-      const sentToday = await db
-        .prepare("SELECT COUNT(*) AS n FROM audit_log WHERE action = 'mail.send' AND at >= ?1")
-        .bind(`${todayUtc(now)}T00:00:00Z`)
-        .first();
-      if ((sentToday?.n || 0) >= cap) return { status: 'failed', reason: 'daily_cap' };
       const send = transport || resendTransport();
+      const fail = async (reason) => {
+        await onFailure(env, db, send, idempotencyKey, reason, now);
+        return { status: 'failed', reason };
+      };
+      if (!(await underCap(env, db, now))) return fail('daily_cap');
       let r;
       try {
         r = await send(payload, env, idempotencyKey);
-      } catch {
-        return { status: 'failed', reason: 'transport' };
+      } catch (e) {
+        const name = e && e.name;
+        return fail(name === 'TimeoutError' || name === 'AbortError' ? 'timeout' : 'transport');
       }
-      if (!r || !r.ok) return { status: 'failed', reason: 'provider' };
-      await db
-        .prepare('INSERT OR IGNORE INTO audit_log (at, actor, action, entity, entity_id, request_id, detail_json) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)')
-        .bind(nowIso(now), 'system', 'mail.send', 'application', idempotencyKey, `mail:${idempotencyKey}`, JSON.stringify({ provider: 'resend', units: 1 }))
-        .run();
+      if (!r || !r.ok) return fail('provider');
+      await ledgerRow(db, now, 'application', idempotencyKey, `mail:${idempotencyKey}`);
       return { status: 'sent' };
     },
   };

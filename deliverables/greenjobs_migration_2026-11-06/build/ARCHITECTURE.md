@@ -40,7 +40,7 @@ All Cloudflare pieces live in **GreenJobs' own Cloudflare account**. We work in 
 |---|---|---|
 | `GET /api/jobs` | public | Live jobs for the site resolved from the request host (`HOST_SITE_MAP`); paginated |
 | `GET /api/jobs/:id` | public | One live job; closed or other-site ids return 404 |
-| `GET /api/export/jobs?site=` | bearer `BUILD_TOKEN` | Full live job set for `build_site.py` |
+| `GET /api/export/jobs?site=` | bearer `BUILD_TOKEN` | Full live job set for `build_site.py`, keyset paged: follow `next` until null |
 | `POST /api/admin/jobs`, `PUT /api/admin/jobs/:id` | Access JWT + `STAFF_EMAILS` | Create / edit (edit uses the `version` optimistic lock, stale = 409) |
 | `POST /api/admin/jobs/:id/close` | Access JWT + `STAFF_EMAILS` | Close; idempotent |
 | `POST /api/apply` | public, rate limited | Application with optional CV |
@@ -68,6 +68,7 @@ All Cloudflare pieces live in **GreenJobs' own Cloudflare account**. We work in 
 4. The cron `scheduled` handler runs every 5 minutes. If a publish is pending, it calls `DEPLOY_HOOK_URL` once
    (debounced: many edits in 5 minutes give one rebuild).
 5. The Pages build runs `build_site.py`, which fetches `GET /api/export/jobs?site=ie|uk` with `BUILD_TOKEN`,
+   following the `next` cursor (`&after=<next>`) until it is null (pages hold at most 1000 jobs), then
    renders, validates, and deploys. A failed build leaves the last good deploy live.
 
 The static page can lag the database by up to one rebuild. This is safe because `POST /api/apply` re-checks

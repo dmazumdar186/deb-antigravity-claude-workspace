@@ -3,7 +3,7 @@
 
 import assert from 'node:assert/strict';
 import {
-  AUD, DOC_BYTES, PDF_BYTES, adminRequest, applyRequest, docxBytes, makeWorld, seedJob, signToken, validJobBody,
+  AUD, DOC_BYTES, PDF_BYTES, adminRequest, applyRequest, docxBytes, makeWorld, reapplyImport, seedJob, signToken, validJobBody,
 } from './helpers.mjs';
 
 const unescape = (s) => s.replace(/\\r/g, '\r').replace(/\\n/g, '\n').replace(/\\t/g, '\t');
@@ -220,6 +220,12 @@ export function registerSteps({ Given, When, Then }) {
   Then(/the created job is titled "([^"]+)"/, function (title) {
     assert.equal(this.w.db.q('SELECT title FROM jobs WHERE id = ?1', this.createdId)[0].title, title);
   });
+  When(/the Strategies import is re-applied for job "([^"]+)" with title "([^"]+)"/, function (id, title) {
+    reapplyImport(this.w, id, { title });
+  });
+  Then(/job "([^"]+)" is titled "([^"]+)" with source "([a-z]+)"/, function (id, title, source) {
+    assert.deepEqual(this.w.db.q('SELECT title, source FROM jobs WHERE id = ?1', id)[0], { title, source });
+  });
   Then(/there are (\d+) jobs stored/, function (n) {
     assert.equal(this.w.db.q('SELECT COUNT(*) AS n FROM jobs')[0].n, Number(n));
   });
@@ -253,7 +259,7 @@ export function registerSteps({ Given, When, Then }) {
   });
   Given(/the candidate attaches a CV of (\d+) bytes/, function (n) {
     const b = new Uint8Array(Number(n));
-    b.set(PDF_BYTES);
+    if (b.length >= PDF_BYTES.length) b.set(PDF_BYTES);
     this.candidate.cv = b;
   });
   Given(/the candidate attaches an executable named "([^"]+)"/, function (name) {

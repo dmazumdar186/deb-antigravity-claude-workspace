@@ -54,6 +54,14 @@ Feature: Staff posting console - post, edit, close
     And there is 1 audit row for action "job.close"
     And the job list on host "greenjobs.ie" does not contain "ie:strat:1001"
 
+  Scenario: A console edit of an imported job survives a later Strategies re-import
+    Given I am signed in to Cloudflare Access as "keith@greenjobs.ie"
+    And a live job "ie:strat:7001" titled "Wind Engineer" on site "ie"
+    When I edit job "ie:strat:7001" setting title to "Senior Wind Engineer" at version 1
+    Then the response status is 200
+    When the Strategies import is re-applied for job "ie:strat:7001" with title "Wind Engineer"
+    Then job "ie:strat:7001" is titled "Senior Wind Engineer" with source "console"
+
   Scenario: A signed-in user who is not on the staff allow-list is refused
     Given I am signed in to Cloudflare Access as "intern@example.com"
     When I request the admin job list

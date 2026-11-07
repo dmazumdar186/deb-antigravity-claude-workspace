@@ -101,7 +101,7 @@ def test_candidates_dry_run_two_batches(capsys):
     for r in d["rejects"]:
         assert set(r) == {"file", "row", "column", "reason", "evidence"} and len(r["evidence"]) <= 40
     reasons = {w["reason"] for w in d["warnings"]}
-    assert "formula_injection_neutralised" in reasons and "prompt_injection_flagged" in reasons
+    assert "formula_injection_flagged" in reasons and "prompt_injection_flagged" in reasons
 
 
 def test_no_pii_in_stdout_or_report(capsys, tmp_path):
@@ -136,12 +136,14 @@ def test_formula_rules():
     text = {"type": "text", "max_len": 100}
     assert si.convert("phone", text, "-", ctx) == "-"
     assert si.convert("phone", text, "+353 (1) 555-0100", ctx) == "+353 (1) 555-0100"
-    assert si.convert("x", text, "=1+1", ctx) == "'=1+1"
-    assert si.convert("x", text, "@SUM(A1)", ctx) == "'@SUM(A1)"
-    assert si.convert("x", text, "-2+cmd|' /C calc'!A0", ctx).startswith("'")
-    assert si.convert("x", text, "\t=evil", ctx).startswith("'=")
+    # Flag only: raw text kept for D1 (no "'" prefix on the live board); CSV export neutralises.
+    assert si.convert("x", text, "=1+1", ctx) == "=1+1"
+    assert si.convert("x", text, "@SUM(A1)", ctx) == "@SUM(A1)"
+    assert si.convert("x", text, "-Senior role", ctx) == "-Senior role"
+    assert si.convert("x", text, "\t=evil", ctx) == "=evil"
     assert si.convert("x", text, "a\x07b\x00c", ctx) == "abc"
     assert ctx.flags["formula_injection"] == 4
+    assert [w["reason"] for w in ctx.warnings].count("formula_injection_flagged") == 4
     with pytest.raises(si.RowReject) as e:
         si.convert("email", {"type": "email"}, "=x@example.com", ctx)
     assert e.value.reason == "formula_injection"
@@ -331,7 +333,7 @@ def test_emitted_sql_idempotent(capsys, tmp_path):
                       ("test.candidate.two@example.com",)).fetchone()
     assert row == ("Seán", "Ó Tester", "Energy analyst")  # cp1252 batch is newer; profile merged
     assert con.execute("SELECT last_name FROM candidates WHERE source_id='1010'").fetchone()[0] == "O'Candidate Ten"
-    assert con.execute("SELECT first_name FROM candidates WHERE source_id='1004'").fetchone()[0].startswith("'=")
+    assert con.execute("SELECT first_name FROM candidates WHERE source_id='1004'").fetchone()[0].startswith("=")  # raw, flagged only
     status = dict(con.execute("SELECT source_id, status FROM jobs").fetchall())
     assert status["7001"] == "live" and status["7002"] == "closed"
     emp = dict(con.execute("SELECT source_id, employer_id FROM jobs").fetchall())

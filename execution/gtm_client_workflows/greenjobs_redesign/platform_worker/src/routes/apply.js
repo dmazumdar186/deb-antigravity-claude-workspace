@@ -99,6 +99,11 @@ export async function apply(ctx) {
   // CV: optional; sniffed by magic bytes; key built from site/date/uuid only (never the client file name).
   let cv = null;
   const file = form.get('cv');
+  // A zero-byte file the candidate chose is refused, never silently treated as "no CV" (#6). The one exception
+  // is the unnamed empty part a browser sends for an optional file input left blank: that is genuinely no CV.
+  if (file && typeof file === 'object' && typeof file.arrayBuffer === 'function' && file.size === 0 && file.name) {
+    return err('cv_empty', 400, cors);
+  }
   if (file && typeof file === 'object' && typeof file.arrayBuffer === 'function' && file.size > 0) {
     if (file.size > maxCv) return err('cv_too_large', 413, cors);
     const bytes = new Uint8Array(await file.arrayBuffer());

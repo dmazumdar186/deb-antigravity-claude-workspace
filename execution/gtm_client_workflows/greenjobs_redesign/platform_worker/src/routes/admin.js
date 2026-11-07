@@ -31,9 +31,13 @@ ON CONFLICT (id) DO UPDATE SET
   version = jobs.version + 1, updated_at = excluded.updated_at
 WHERE jobs.source = 'strategies'`;
 
+// A console edit takes ownership of the row (source = 'console'), so the import upsert's
+// `WHERE jobs.source = 'strategies'` guard stops a later re-import overwriting it (#15).
+// UNIQUE (site, source, source_id) cannot collide: an imported row's source_id is the Strategies id,
+// which is also in its PRIMARY KEY '{site}:strat:{id}', and console-created rows carry source_id NULL.
 const SQL_JOB_EDIT = `UPDATE jobs SET title = ?3, location = ?4, description = ?5, closing_at = ?6, apply_mode = ?7, apply_email = ?8,
   apply_url = ?9, sal_min = ?10, sal_max = ?11, currency = ?12, sal_text = ?13, status = ?14,
-  version = version + 1, updated_at = ?15
+  source = 'console', version = version + 1, updated_at = ?15
 WHERE id = ?1 AND version = ?2`;
 
 const SQL_JOB_CLOSE = `UPDATE jobs SET status = 'closed', closed_at = ?2, version = version + 1, updated_at = ?2

@@ -25,10 +25,12 @@ ON CONFLICT (id) DO UPDATE SET
   version = jobs.version + 1, updated_at = excluded.updated_at
 WHERE jobs.source = 'strategies';  -- console-owned rows are never overwritten by an import
 
--- jobs (console edit): optimistic lock; 0 rows changed = stale version -> HTTP 409
+-- jobs (console edit): optimistic lock; 0 rows changed = stale version -> HTTP 409.
+-- Sets source = 'console' so a later Strategies re-import (guard above) never overwrites the edit.
+-- No UNIQUE (site, source, source_id) collision: an imported source_id is unique per site via its id.
 UPDATE jobs SET title = ?3, location = ?4, description = ?5, closing_at = ?6, apply_mode = ?7, apply_email = ?8,
   apply_url = ?9, sal_min = ?10, sal_max = ?11, currency = ?12, sal_text = ?13, status = ?14,
-  version = version + 1, updated_at = ?15
+  source = 'console', version = version + 1, updated_at = ?15
 WHERE id = ?1 AND version = ?2;
 
 -- jobs (console close): idempotent; closing a closed job changes nothing

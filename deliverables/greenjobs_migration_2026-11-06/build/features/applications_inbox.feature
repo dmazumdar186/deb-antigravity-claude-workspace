@@ -107,6 +107,14 @@ Feature: Applications are routed to an inbox
     And the response error is "cv_too_large"
     And no CV is stored
 
+  Scenario: A zero-byte CV file is refused, not treated as no CV
+    Given the candidate attaches a CV of 0 bytes
+    When the candidate submits the application on host "greenjobs.ie"
+    Then the response status is 400
+    And the response error is "cv_empty"
+    And no CV is stored
+    And 0 applications are stored
+
   Scenario: An executable renamed to .pdf is refused by its magic bytes
     Given the candidate attaches an executable named "cv.pdf"
     When the candidate submits the application on host "greenjobs.ie"

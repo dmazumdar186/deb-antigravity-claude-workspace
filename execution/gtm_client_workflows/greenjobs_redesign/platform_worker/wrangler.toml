@@ -30,6 +30,7 @@ APPLY_INBOX_UK = ""
 MAIL_PROVIDER = "none"     # resend | none
 MAIL_FROM = ""             # e.g. "GreenJobs <applications@greenjobs.ie>"
 MAIL_DAILY_CAP = "200"     # budget guard: live sends per UTC day
+OPS_ALERT_EMAIL = ""       # delivery-failure alert inbox; empty = audit_log row only, no alert mail
 RATE_APPLY_PER_10MIN = "5"
 RATE_ADMIN_PER_MIN = "60"
 MAX_CV_BYTES = "5242880"

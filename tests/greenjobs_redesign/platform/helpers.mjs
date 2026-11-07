@@ -238,6 +238,27 @@ export function seedJob(world, o = {}) {
   return id;
 }
 
+export const UPSERTS_PATH = resolve(REPO, 'deliverables/greenjobs_migration_2026-11-06/build/d1/upserts.sql');
+
+/** The canonical import upsert for jobs, read from upserts.sql exactly as the Python emitter uses it. */
+export function importJobSql() {
+  const stmts = readFileSync(UPSERTS_PATH, 'utf8').replace(/--[^\n]*/g, '').split(';').map((x) => x.trim());
+  const hits = stmts.filter((x) => x.startsWith('INSERT INTO jobs '));
+  if (hits.length !== 1) throw new Error(`upserts.sql: expected one jobs import upsert, found ${hits.length}`);
+  return hits[0];
+}
+
+/** Re-apply a Strategies import of an existing job row (as a re-run of the emitted SQL would), with overrides. */
+export function reapplyImport(world, id, over = {}) {
+  const r = { ...world.db.q('SELECT * FROM jobs WHERE id = ?1', id)[0], ...over };
+  const sourceId = r.source_id ?? id.split(':').pop();
+  return world.db.sqlite.prepare(importJobSql()).run(
+    id, r.site, 'strategies', sourceId, r.employer_id, r.title, r.location, r.region, r.job_type, r.sal_min, r.sal_max,
+    r.currency, r.period, r.sal_text, r.sectors_json, r.summary, r.description, r.apply_mode, r.apply_email, r.apply_url,
+    r.status, r.posted_at, r.closing_at, 'import', '2026-11-08T09:00:00Z',
+  );
+}
+
 export const ORIGIN = (host = 'greenjobs.ie') => `https://${host}`;
 
 export async function adminRequest(method, path, o = {}) {

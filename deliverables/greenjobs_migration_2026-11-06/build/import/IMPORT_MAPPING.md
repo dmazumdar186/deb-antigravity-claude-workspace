@@ -16,8 +16,10 @@ field that matches no header stops the run (exit 2) and prints the headers it sa
 - **Dates:** day-first only (`06/11/2026`, `06/11/2026 14:32`, `2026-11-06`, `6 Nov 2026` ...). Stored as ISO UTC.
 - **Retention:** keep a row only if its activity date (first non-empty field in the report's chain) is on or after
   `--as-of` minus `--retention-months` (default 24; allowed 6..84). No date at all: excluded `no_activity_date`.
-- **Hostile input:** formula cells (`= + - @`, leading tab/CR) are flagged; in text fields they are kept with a
-  leading `'`, in typed fields (email, id, date, url, filename) they are invalid. `-` or `+353 1 ...` (numbers,
+- **Hostile input:** formula cells (`= + - @`, leading tab/CR) are flagged (warning `formula_injection_flagged`,
+  masked evidence); in text fields the raw text is kept unchanged in D1 (no leading `'` on the live board), in typed
+  fields (email, id, date, url, filename) they are invalid. Neutralising happens only when a CSV is written: this
+  script writes no CSV (SQL + JSON report only); the Worker's `toCsvCell()` (`src/validate.js`) neutralises on export. `-` or `+353 1 ...` (numbers,
   phones) are not flagged. Prompt-injection / script phrases are flagged, kept, escaped on render. File-name fields
   containing `..` `/` `\` `:` `~` (also URL-encoded) are unsafe. Control chars stripped. Max lengths enforced.
 - **Rejects** carry `{file, row, column, reason, evidence}`; evidence is ≤ 40 chars, emails masked (`j***@example.com`),

@@ -332,9 +332,10 @@ def convert(fname: str, spec: dict, raw: str | None, ctx: Ctx):
         ctx.flags["formula_injection"] += 1
         if ftype not in ("text", "list"):
             return invalid("formula_injection")
-        ctx.warn(fname, "formula_injection_neutralised", evidence_for(s, spec))
-        if ftype == "text":
-            s = "'" + s
+        # Flag only (#11): the raw text goes to D1 unchanged, so the live board never shows a stray "'".
+        # Neutralising is an export-time concern: this script writes no CSV (only SQL + a JSON report);
+        # the Worker's toCsvCell() in platform_worker/src/validate.js neutralises on every CSV export.
+        ctx.warn(fname, "formula_injection_flagged", evidence_for(s, spec))
     if ftype == "text":
         m = PROMPT_INJECTION_RE.search(s)
         if m:

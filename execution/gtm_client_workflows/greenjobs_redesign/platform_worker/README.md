@@ -33,9 +33,9 @@ ledger); `MAIL_DAILY_CAP` is the budget guard.
 
 | Route | Auth | Notes |
 |---|---|---|
-| `GET /api/jobs` | public, site from Host | live and `closing_at >= today`; `{today, jobs:[{id,title,employer,location,type,sal_text,sectors,posted,closing,summary}]}` |
+| `GET /api/jobs[?limit=&after=]` | public, site from Host | live and `closing_at >= today`; `{today, jobs:[{id,title,employer,location,type,sal_text,sectors,posted,closing,summary}], next}`. Keyset paged: `limit` default 500, clamped 1..1000; `after` = the previous page's `next` (a job id, `safeParam`-validated, bad/unknown -> 400 `invalid_cursor`); `next` is null on the last page |
 | `GET /api/jobs/:id` | public | 404 unless live on this site; `description_html` is escaped |
-| `GET /api/export/jobs?site=ie\|uk` | `Authorization: Bearer $BUILD_TOKEN` (constant-time) | for the static rebuild |
+| `GET /api/export/jobs?site=ie\|uk[&limit=&after=]` | `Authorization: Bearer $BUILD_TOKEN` (constant-time) | for the static rebuild; same keyset paging (ordered by id) and `next` cursor. The rebuild must follow `next` until it is null, or jobs past page 1 are dropped |
 | `POST /api/apply` | public, `ALLOWED_ORIGINS` CORS | multipart: `job_id, name, email, phone?, cover_note?, cv?, consent=yes, website=""` (honeypot), `ts` (render ms, >= 3 s, <= 24 h old) |
 | `GET /admin/` | Access + JWT + allow-list | console |
 | `GET /api/admin/jobs[?status=&limit=&offset=]` | staff | paginated (limit <= 200, `next_offset`) |
@@ -53,7 +53,11 @@ also names).
 `DRY_RUN`, `LIVE_CONFIRM`, `HOST_SITE_MAP`, `ACCESS_TEAM_DOMAIN`, `ACCESS_AUD`, `STAFF_EMAILS`,
 `APPLY_ROUTING` (`inbox|consultant|advertiser`), `APPLY_INBOX_IE`, `APPLY_INBOX_UK`,
 `MAIL_PROVIDER` (`resend|none`), `MAIL_FROM`, `MAIL_DAILY_CAP`, `RATE_APPLY_PER_10MIN`,
-`RATE_ADMIN_PER_MIN`, `MAX_CV_BYTES`, `ALERTS_ENABLED`, `NEWSLETTER_ENABLED`, `ALLOWED_ORIGINS`.
+`RATE_ADMIN_PER_MIN`, `MAX_CV_BYTES`, `ALERTS_ENABLED`, `NEWSLETTER_ENABLED`, `ALLOWED_ORIGINS`,
+`OPS_ALERT_EMAIL` (empty = no alert mail).
+Delivery failures: the Resend call times out after 10 s (`delivery_status='failed'`, cron retries). Any live
+failure writes one `audit_log` `delivery.failed` row per application (id + reason, no PII) and, on the first
+failure only, sends one alert to `OPS_ALERT_EMAIL` when set (never in dry run; counts against `MAIL_DAILY_CAP`).
 Secrets: `RESEND_API_KEY`, `BUILD_TOKEN`. Bindings: `DB` (D1), `CVS` (R2), optional `RATE` (KV),
 optional `APPLY_LIMITER` (Rate Limiting).
 

@@ -78,7 +78,7 @@ export function createHandler(deps = {}) {
 
     const cors = corsHeaders(request, env);
     if (cors === null) return err('origin_not_allowed', 403);
-    if (method === 'GET' && path === '/api/jobs') return listJobs(env, site, now, cors);
+    if (method === 'GET' && path === '/api/jobs') return listJobs(env, site, now, cors, url);
     const m = JOB_PATH.exec(path);
     if (method === 'GET' && m) return getJob(env, site, m[1], now, cors);
     if (method === 'POST' && path === '/api/apply') return apply({ env, site, now, request, cors, rate, mailer });
