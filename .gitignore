@@ -138,3 +138,10 @@ downloads/
 
 # LinkedIn connect dataset: PII. Ledger/aliases live in Google Drive folder linkedin_connect; master is rebuilt locally. Never in this public repo.
 data/linkedin_connect/
+
+# GreenJobs migration (2026-11-07): Strategies CSV exports hold candidate PII and never enter git.
+# Only synthetic fixtures under tests/ are tracked. build/ is re-included (global build/ rule above).
+!deliverables/greenjobs_migration_2026-11-06/build/
+deliverables/greenjobs_migration_2026-11-06/**/*.csv
+deliverables/greenjobs_migration_2026-11-06/**/*.sql.out
+**/strategies_export*/
