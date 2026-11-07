@@ -26,7 +26,7 @@ echo "== 2/4 import validator (pytest)"
 "$PY" -m pytest -q tests/greenjobs_redesign/test_strategies_import.py || fail=1
 
 echo "== 3/4 Worker unit tests + BDD features (node --test)"
-node --no-warnings --test tests/greenjobs_redesign/platform/ || fail=1
+node --no-warnings --test 'tests/greenjobs_redesign/platform/*.test.mjs' || fail=1
 
 echo "== 4/4 no candidate data staged"
 if git ls-files --cached --others --exclude-standard | grep -E '^deliverables/greenjobs_migration_2026-11-06/.*\.csv$'; then
