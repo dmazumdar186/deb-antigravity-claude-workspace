@@ -95,6 +95,7 @@ A reply to Keith built from §6 counts as outward text, so it has to pass `/redt
 
 - Keith signs off on the test address by Fri 27 November. If inputs slip, we cut the 3 December scope rather than move the date, because Strategies switches off on 6 December. A changed switch date is a schedule change agreed in writing, not a breach.
 - Each 3 December item has a short acceptance list in the contract, tested on the test address before the switch. There are 10 days of daily checks after the switch.
+- Trim order for 3 December is agreed in writing. Advertiser online payment (featured jobs, packages) is not in the 3 December list.
 - Phase 2 (Dec–Jan, covered by the monthly arrangement) is a named list with a target date per item: candidate log-ins, employer log-ins, Broadbean / Idibu / LogicMelon feeds, CRM posting. Anything off the list is quoted separately.
 - Until candidate log-ins arrive, candidates browse and apply without an account. Passwords won't come across in the exports, so candidates set a new one when log-ins go live.
 - Logins are shared through a password manager, never in a chat message.
