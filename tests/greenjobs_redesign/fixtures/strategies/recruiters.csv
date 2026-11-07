@@ -1,0 +1,6 @@
+Recruiter ID,Company Name,Contact Name,Email,Telephone,Website,Logo,Last Login,Date Registered
+501,Example Energy Ltd,Test Contact One,contact.one@example.com,+353 1 555 0501,https://www.example.com,example-energy.png,01/10/2026,01/01/2024
+502,Example Energy Limited,Test Contact Two,contact.two@example.com,,https://www.example.org,,02/10/2026,01/01/2024
+503,Test Wind Co,Test Contact Three,contact.three@example.com,,,images/logos/advertise/x.png,03/10/2026,01/01/2024
+504,Old Test Solar,Test Contact Four,contact.four@example.com,,,,01/01/2021,01/01/2020
+505,Test Hydro Group,Test Contact Five,contact.five@example.com,,javascript:alert(1),,04/10/2026,01/01/2024
