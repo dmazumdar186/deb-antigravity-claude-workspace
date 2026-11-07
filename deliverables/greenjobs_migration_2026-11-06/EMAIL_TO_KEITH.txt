@@ -1,10 +1,10 @@
 Hi Keith,
 
-As promised, the transition plan is attached. In short: the boards stay live on Strategies while we build and test, and I'd aim to switch on Thursday 3 December, leaving Friday 4 December as buffer before the 6th.
+As promised, the transition plan is attached. In short: the boards stay live on Strategies while we build and test, and I'd aim to switch on Thursday 3 December, leaving Friday 4 December as buffer before the contract ends on Sunday 6 December.
 
-To hold that date I need the signed contract, the data processing agreement and access to DNS, Strategies and analytics by Wednesday 11 November. The plan lists what I need from you, most urgent first.
+That date holds if I have the signed contract and data processing agreement, plus access to DNS, Strategies and analytics or the name of the person who can give it, by Wednesday 11 November. If something is late, we trim the 3 December list in an order we agree in writing. The plan lists what I need from you, most urgent first.
 
-Please share any logins through a password manager rather than by email. Could we do 20 minutes on Monday 9 November to go through the plan and sign the contract and data processing agreement? I'll send both beforehand so you can read them first.
+Please share any logins through a password manager rather than by email. Could we do 20 minutes on Monday 9 November to go through the plan? I'll send the contract and data processing agreement beforehand so you can read them. If you need more time to sign, let me know the date and I'll adjust the timeline.
 
 Debanjan
 Founder, ProdCraft
