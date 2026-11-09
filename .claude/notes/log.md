@@ -163,3 +163,4 @@ Source: execution/gtm_client_workflows/gaia_sourcing
 ## [2026-09-13 16:00] constraint gaia_sourcing sandbox-only test failures
 test_ocr's local engine needs fitz and the Chromium render test needs a browser binary, both unavailable in this sandbox; not real regressions.
 Source: execution/gtm_client_workflows/gaia_sourcing/tests
+- [redteam_gate] instantly reads: sender_hit now flags Instantly only on /emails/reply|forward|send or /emails + HTTP write; GET list/search of /emails passes (2026-11-09). curl -f alone counts as a write (fail safe); use -fsS/--fail.

@@ -2672,3 +2672,48 @@ def test_false_positive_guards_second_audit_stay_denied(tmp_path, state, capsys)
     # a node-shebang test file with selector words still passes
     _write(tmp_path / "qa" / "ok.mjs", "#!/usr/bin/env node\n" + _PW_BODY)
     assert _bash("node qa/ok.mjs", capsys, tmp_path) is None
+
+
+# Instantly: GET reads of /emails pass; reply/forward/send and HTTP writes to /emails block (2026-11-09).
+_INST = "https://api.instan" "tly.ai/api/v2"
+INSTANTLY_READS = [
+    f"curl -sS -H 'Authorization: Bearer x' '{_INST}/emails?email_type=received&limit=50'",
+    f"curl -fsS '{_INST}/emails/abc-123'",
+    f"python3 -c \"import requests; requests.get('{_INST}/emails', params={{'limit': 5}})\"",
+]
+INSTANTLY_SENDS = [
+    f"curl -X POST {_INST}/emails/reply -d '{{}}'",
+    f"curl {_INST}/emails/reply",
+    f"curl --request POST '{_INST}/emails' --json '{{}}'",
+    f"curl {_INST}/emails/forward",
+    f"python3 -c \"import requests; requests.post('{_INST}/emails', json={{}})\"",
+    f"python3 -c \"import requests; requests.request('POST', '{_INST}/emails')\"",
+]
+
+
+@pytest.mark.parametrize("cmd", INSTANTLY_READS)
+def test_instantly_email_reads_allowed(cmd, state, capsys):
+    assert rg.sender_hit(cmd.lower(), cmd) is None, cmd
+    assert _bash(cmd, capsys) is None, cmd
+
+
+@pytest.mark.parametrize("cmd", INSTANTLY_SENDS)
+def test_instantly_email_sends_denied(cmd, state, capsys):
+    assert rg.sender_hit(cmd.lower(), cmd), cmd
+    assert _deny_reason(_bash(cmd, capsys)), cmd
+
+
+def test_instantly_get_only_script_runs_uncommitted(tmp_path, state, capsys):
+    _write(tmp_path / "read.py", "import requests\nAPI = 'https://api.instan" "tly.ai/api/v2'\n"
+           "r = requests.get(f'{API}/emails', params={'lead': 'x'}, timeout=30)\nprint(r.json())\n")
+    assert _bash("python3 read.py", capsys, tmp_path) is None
+
+
+def test_instantly_module_send_reply_still_denied(tmp_path, state, capsys):
+    src = (ROOT / "execution" / "modules" / "outputs" / "instantly.py").read_text(encoding="utf-8")
+    assert "def send_reply(" in src
+    # An uncommitted copy of the module (fetch_replies GET + send_reply POST) is scanned and denied.
+    _write(tmp_path / "s.py", src + "\nAPI = 'https://api.instan" "tly.ai/api/v2'\n")
+    assert _deny_reason(_bash("python3 s.py", capsys, tmp_path))
+    send_only = src[src.index("def send_reply("):src.index("def fetch_step_analytics(")]
+    assert rg.sender_hit(("https://api.instan" "tly.ai/api/v2\n" + send_only).lower())

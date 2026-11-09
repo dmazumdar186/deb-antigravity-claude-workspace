@@ -106,7 +106,8 @@ merely mention the gate or ledgers are no longer blocked (removed 2026-11-05: fa
   position: python/node/deno/bun/ruby/perl/php/curl/wget/send-mail/mail/msmtp/sh/bash (incl. `-c`).
   Pure file writes (`cat > f <<EOF`, `echo … > f`), reads, greps and commits are never scanned.
   Deny inline senders (smtp-lib, send-mail, Gmail REST `/send`, the Gmail API messages-send call, Instantly
-  emails/reply, SendGrid, Resend, Postmark) in the command, in a heredoc fed to a program
+  `/emails/reply|forward|send` or `/emails` with an HTTP write (POST/PUT/PATCH, `-d`, `--data`, `--json`,
+  `.post(`); a GET list/search of `/emails` passes (2026-11-09), SendGrid, Resend, Postmark) in the command, in a heredoc fed to a program
   (`python3 - <<EOF`, `cat <<EOF | python3`), in a script it runs, or in a `python -m mod` module
   resolved under cwd/repo; `base64 -d | <interpreter>` denies outright. Allowed if the command only
   runs a git-tracked, unmodified `.py`/`.sh` or `-m` module (optional leading `cd X &&`, no `-c`,
