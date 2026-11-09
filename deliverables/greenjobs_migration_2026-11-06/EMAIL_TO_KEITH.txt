@@ -2,15 +2,13 @@ Subject: GreenJobs: plan for moving off Strategies by 6 December
 
 Hi Keith,
 
-Here's the transition plan I promised, attached as a PDF.
+Here's the transition plan I promised, attached as a PDF. A bit later than the weekend, but ready for your Monday.
 
-The short version: the boards stay live on Strategies while I build and test, and I'd aim to switch them over on Thursday 3 December. That leaves Friday as a buffer before the Strategies contract ends on Sunday 6 December. From the switch, your team posts jobs through a simple admin console I'll build. The candidate and employer log-ins and the feeds from the posting tools follow after that, with the feeds depending on each provider's onboarding.
+The short version: the boards stay live on Strategies while I build and test, and I'd aim to switch them over on Thursday 3 December. That leaves a working day in hand before the Strategies contract ends on Sunday 6 December. From the switch, your team posts jobs through a simple admin console I'll build. The candidate and employer log-ins and the feeds from the posting tools follow in a second phase, with target dates in the contract and the feeds depending on each provider's onboarding.
 
-There are twelve questions at the end. Could you reply to this email with your answers? That way we have everything in writing in one place. Short answers are fine, and if you don't know one yet, give me your best guess for now and we'll firm it up later.
+There are twelve questions at the end. Could you reply to this email with your answers? That way we have everything in writing in one place. Short answers are fine. Questions 1, 2, 7 and 12 set the scope, so I need firm answers on those. For the rest, a best guess is fine for now and we'll firm it up later.
 
-As soon as I have your answers, I'll start on the parts that need none of your data. The data exports can only begin once the data processing agreement is signed, so I'll send that and the contract as soon as your answers are in. If both are back by Wednesday 11 November, we're in good shape for 3 December.
-
-On payment, the €600 a month is paid upfront, at the start of each month. That's how I work with all my clients, because the work runs on tools and API costs from day one. I'll send the invoice along with the contract.
+As soon as I have your answers, I'll send the contract, the data processing agreement and the first invoice. On payment, the €600 a month is paid upfront: the first month when you sign, then at the start of each month after that. That's how I work with all my clients, because the work runs on tools and API costs from day one. The build starts once the contract is signed and the first month is paid, and the data exports once the data processing agreement is signed. If all of that is back by Wednesday 11 November, we're in good shape for 3 December.
 
 One more thing: if you share any logins, please use a password manager rather than email.
 
