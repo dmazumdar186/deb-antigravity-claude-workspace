@@ -17,7 +17,7 @@ workspace mods, and keep a trust record for each. Sits beside `directives/infras
 - `skillspector scan|mcp` (CLI, `uv tool`)
 - `agent-reach setup|add|login|doctor` (CLI, `uv tool`)
 - `.claude/settings.json` — `extraKnownMarketplaces` + `enabledPlugins`
-- `execution/infrastructure/setup_freellmapi.sh`, `setup_pentagi.sh`
+- `execution/infrastructure/setup_freellmapi.sh`, `setup_pentagi.sh`, `setup_opencode.sh`, `setup_voicestudio.sh`, `setup_open_seo.sh`, `setup_openbot.sh`, `setup_replica_skill.sh`
 
 ## Outputs
 
@@ -34,6 +34,11 @@ workspace mods, and keep a trust record for each. Sits beside `directives/infras
 | skill-inspector (NVIDIA SkillSpector) | `nvidia/skillspector` | **skill copied into repo** `.claude/skills/skill-inspector/` + `skillspector` CLI | skill auto-loads; CLI via `uv tool install` |
 | Agent-Reach | `Panniantong/Agent-Reach` | **CLI + user-level skill** | `uv tool install`; `agent-reach setup` links `~/.claude/skills/agent-reach` |
 | FreeLLMAPI | `tashfeenahmed/freellmapi` | **self-hosted service** (not a plugin) | `execution/infrastructure/setup_freellmapi.sh` → see `directives/infrastructure/freellmapi.md` |
+| OpenCode | `anomalyco/opencode` | **CLI** (not a plugin) | `execution/infrastructure/setup_opencode.sh` (npm `@opencode/cli`) → see `directives/infrastructure/opencode.md` |
+| VoiceStudio | `debpalash/VoiceStudio` | **self-hosted service** (AGPL-3.0; optional scan-gated skill) | `execution/infrastructure/setup_voicestudio.sh` → see `directives/infrastructure/voicestudio.md` |
+| OpenSEO | `every-app/open-seo` | **self-hosted service** (MIT; Docker, `:3011`) | `execution/infrastructure/setup_open_seo.sh` → see `directives/infrastructure/open_seo.md` |
+| OpenBot | `nightly-labs/openbot` | **self-hosted service** (PolyForm **Noncommercial**: not for client work) | `execution/infrastructure/setup_openbot.sh` → see `directives/infrastructure/openbot.md` |
+| Replica | `Jakeschincariol/replica-skill` | **skill pack** (11 skills, MIT; **not installed**, skillspector-gated copy) | `execution/infrastructure/setup_replica_skill.sh` → see `directives/infrastructure/replica_skill.md` |
 
 The seven workspace mods (`jev-router-mod`, `safety-guard-mod`, `done-notify-mod`,
 `session-ledger-mod`, `context-meter`, `quota-watch`, `tool-timing`) stay enabled from

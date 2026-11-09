@@ -14,7 +14,12 @@
       "lemo-opuscar": "The prompt asks to explain, visualize, teach, or animate how code, an algorithm, or a data structure works as a video, film, or animation.",
       "skill-inspector": "The prompt is about installing, adding, cloning, enabling, or trusting a downloaded skill or plugin, or asks whether a skill/plugin is safe, over-permissioned, or malicious.",
       "freellmapi": "The prompt mentions hitting LLM rate limits, HTTP 429s, quota or credit exhaustion, model overload, or wanting free or pooled model providers behind one endpoint.",
-      "pentagi": "The prompt asks to run an authorized penetration test, vulnerability scan, exploit, or offensive security assessment against a target the operator owns or has written permission to test."
+      "pentagi": "The prompt asks to run an authorized penetration test, vulnerability scan, exploit, or offensive security assessment against a target the operator owns or has written permission to test.",
+      "opencode": "The prompt wants a second, provider-agnostic terminal coding agent, or to run coding work on OpenRouter, FreeLLMAPI or local models instead of Claude.",
+      "voicestudio": "The prompt needs text-to-speech, voice cloning, transcription or dubbing done locally without a paid speech API.",
+      "open-seo": "The prompt asks for keyword research, rank tracking, backlinks, an SEO site audit or AI-search visibility for a site.",
+      "openbot": "The prompt wants persistent AI agents running 24/7 on a server with queues and agent-to-agent messaging, for non-commercial use.",
+      "replica-skill": "The prompt asks to rebuild, reverse-engineer or rebrand an existing app or SaaS the operator owns or has rights to, as a clean-room build."
     }
   }
 }

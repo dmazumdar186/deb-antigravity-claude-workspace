@@ -62,7 +62,7 @@ lengths_ok = all(len(c.get("value_add", "")) <= 90 for c in caps.values())
 ok("every value_add <= 90 chars", lengths_ok,
    extra=str({k: len(v["value_add"]) for k, v in caps.items() if len(v["value_add"]) > 90}))
 menu = R.advisor_menu()
-ok("menu excludes always-on", set(menu) == {"agent-reach", "lemo-opuscar", "skill-inspector", "freellmapi", "pentagi"},
+ok("menu excludes always-on", set(menu) == {"agent-reach", "lemo-opuscar", "skill-inspector", "freellmapi", "pentagi", "opencode", "voicestudio", "open-seo", "openbot", "replica-skill"},
    extra=str(set(menu)))
 ok("always-on entries present but not suggestable",
    "ponytail" in caps and "safety-guard" in caps and "ponytail" not in menu and "safety-guard" not in menu)

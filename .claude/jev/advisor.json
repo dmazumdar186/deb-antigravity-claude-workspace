@@ -36,6 +36,31 @@
       "kind": "always-on",
       "when": "Documented only, never suggested per-prompt: always-on destructive-bash guard.",
       "value_add": "Always-on: rewrites or blocks destructive bash (rm -rf, force-push, DROP)."
+    },
+    "opencode": {
+      "kind": "service",
+      "when": "The prompt wants a second, provider-agnostic terminal coding agent, or to run coding work on OpenRouter, FreeLLMAPI or local models instead of Claude.",
+      "value_add": "Want a coding agent on any model? Set up OpenCode (MIT CLI, plan/build agents)."
+    },
+    "voicestudio": {
+      "kind": "service",
+      "when": "The prompt needs text-to-speech, voice cloning, transcription or dubbing done locally without a paid speech API.",
+      "value_add": "Need TTS, voice cloning or dubbing? Set up VoiceStudio: local API + MCP on :3900."
+    },
+    "open-seo": {
+      "kind": "service",
+      "when": "The prompt asks for keyword research, rank tracking, backlinks, an SEO site audit or AI-search visibility for a site.",
+      "value_add": "SEO research or audit? Set up OpenSEO (self-hosted; DataForSEO key, pay per use)."
+    },
+    "openbot": {
+      "kind": "service",
+      "when": "The prompt wants persistent AI agents running 24/7 on a server with queues and agent-to-agent messaging, for non-commercial use.",
+      "value_add": "24/7 agents with queues? Set up OpenBot. Noncommercial licence: not for client work."
+    },
+    "replica-skill": {
+      "kind": "service",
+      "when": "The prompt asks to rebuild, reverse-engineer or rebrand an existing app or SaaS the operator owns or has rights to, as a clean-room build.",
+      "value_add": "Rebuilding an app clean-room? Set up the Replica skill pack (scan-gated install)."
     }
   }
 }
