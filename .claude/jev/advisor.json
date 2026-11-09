@@ -58,9 +58,9 @@
       "value_add": "24/7 agents with queues? Set up OpenBot. Noncommercial licence: not for client work."
     },
     "replica-skill": {
-      "kind": "service",
+      "kind": "skill",
       "when": "The prompt asks to rebuild, reverse-engineer or rebrand an existing app or SaaS the operator owns or has rights to, as a clean-room build.",
-      "value_add": "Rebuilding an app clean-room? Set up the Replica skill pack (scan-gated install)."
+      "value_add": "Rebuilding an app you have rights to? Start with /replica-recon <app URL> (installed)."
     }
   }
 }
