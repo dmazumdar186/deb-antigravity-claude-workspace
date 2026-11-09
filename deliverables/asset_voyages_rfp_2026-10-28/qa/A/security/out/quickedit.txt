@@ -1,0 +1,8 @@
+inline nonce: found
+		<tr id="post-40" class="iedit author-self level-0 post-40 type-asset_congres status-pending hentry">
+			<td class="check-column">			<input id="cb-select-40" type="checkbox" name="post[]" value="40" 
+{"code":"rest_cannot_publish","message":"D\u00e9sol\u00e9, vous n\u2019avez pas l\u2019autorisation de publier des articles avec ce type de publication.","data"
+{"code":"rest_cannot_publish","message":"D\u00e9sol\u00e9, vous n\u2019avez pas l\u2019autorisation de cr\u00e9er des contenus priv\u00e9s avec ce type de publi
+{"code":"rest_cannot_delete","message":"D\u00e9sol\u00e9, vous n\u2019avez pas l\u2019autorisation de supprimer cet article.","data":{"status":403}}
+{"code":"rest_cannot_edit","message":"D\u00e9sol\u00e9, vous n\u2019avez pas l\u2019autorisation de modifier cet article.","data":{"status":403}}
+final status pending

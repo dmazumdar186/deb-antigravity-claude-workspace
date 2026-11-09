@@ -1,0 +1,19 @@
+{
+ "role": "equipe",
+ "SEED": 20261106,
+ "N": 300,
+ "fails": [],
+ "counts": {
+  "click": 94,
+  "submit": 43,
+  "fill": 41,
+  "goto": 21,
+  "fill:none": 67,
+  "back": 19,
+  "reload": 12,
+  "submit:none": 2,
+  "click:none": 1
+ },
+ "leakChecks": 0,
+ "reset": "reset FAILED locator.waitFor: Timeout 8000ms exceeded."
+}

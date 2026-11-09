@@ -1,0 +1,78 @@
+[
+ {
+  "story": "S1",
+  "label": "menu Congrès",
+  "tabs": 7,
+  "focus": "A# Congrès",
+  "focusVisible": true
+ },
+ {
+  "story": "S1",
+  "label": "Ajouter un congrès",
+  "tabs": 9,
+  "focus": "A# Ajouter un congrès",
+  "focusVisible": true
+ },
+ {
+  "story": "S1",
+  "label": "Date de début (from title)",
+  "tabs": 22,
+  "focus": "INPUT#asset-field-asset_start asset_meta[_asset_start]",
+  "focusVisible": true
+ },
+ {
+  "story": "S1",
+  "label": "Date de fin",
+  "tabs": 2,
+  "focus": "INPUT#asset-field-asset_end asset_meta[_asset_end]",
+  "focusVisible": true
+ },
+ {
+  "story": "S1",
+  "label": "Ville",
+  "tabs": 2,
+  "focus": "INPUT#asset-field-asset_city asset_meta[_asset_city]",
+  "focusVisible": true
+ },
+ {
+  "story": "S1",
+  "label": "Pays",
+  "tabs": 1,
+  "focus": "INPUT#asset-field-asset_pays asset_tax[asset_pays]",
+  "focusVisible": true
+ },
+ {
+  "story": "S1",
+  "label": "Discipline",
+  "tabs": 1,
+  "focus": "INPUT#asset-field-asset_discipline asset_tax[asset_discipline]",
+  "focusVisible": true
+ },
+ {
+  "story": "S1",
+  "label": "Publier (Shift+Tab from Discipline)",
+  "tabs": 18,
+  "focus": "INPUT#publish Publier",
+  "focusVisible": true
+ },
+ {
+  "story": "S1",
+  "label": "INVALID",
+  "focus": "[]"
+ },
+ {
+  "story": "S1",
+  "label": "VALUES",
+  "focus": "[\"title=Congrès clavier — exemple\",\"asset-field-asset_start=2027-06-14\",\"asset-field-asset_end=2027-06-16\",\"asset-field-asset_city=Lille\",\"asset-field-asset_pays=France\",\"asset-field-asset_discipline=Hépatologie\"]"
+ },
+ {
+  "story": "S1",
+  "label": "MOUSE click on Publier instead of Enter",
+  "focus": "false"
+ },
+ {
+  "story": "S1",
+  "label": "STORY RESULT",
+  "result": "FAIL no notice; page says:  Connexion perdue. L’enregistrement a été désactivé jusqu’à votre reconnexion. Cette publication est sauvegardée dans votre navi"
+ }
+]

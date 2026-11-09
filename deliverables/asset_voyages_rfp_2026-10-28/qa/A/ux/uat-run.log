@@ -1,0 +1,51 @@
+S1 1 PASS Logged in as « direction », on « Tableau de bord »: left menu shows « Congrès » | menu: Tableau de bord, Médias, Congrès, Demandes, Accès GM&E, Profil
+S1 2 PASS Click « Congrès », then « Ajouter un congrès » | form open; 5 fields marked « (obligatoire) »
+S1 3 PASS Type the title and fill « Date de début », « Date de fin », « Ville », « Pays », « Discipline », « Lieu », « Site officiel », « Date de vérification » | all fields found by their visible French label
+S1 4 FAIL Click « Publier »; a success notice appears | locator.waitFor: Timeout 60000ms exceeded.
+S1 5 FAIL Visitor view: open the new congress page logged out; title and « Lille » shown | Lille missing
+S1 6 FAIL Edit: from « Tableau de bord » click « Congrès », click the congress title, change « Ville » to « Roubaix », click « Mettre à jour » | locator.click: Timeout 30000ms exceeded.
+S1 7 FAIL Visitor view shows « Roubaix » after the edit | Roubaix missing
+S1 8 FAIL Hostile: set « Date de fin » before « Date de début » and save; a French message explains the error | locator.click: Timeout 30000ms exceeded.
+S1 9 PASS As « contributeur »: « Congrès » → « Ajouter un congrès »; the main button reads « Soumettre pour relecture », not « Publier » | button: Soumettre à la relecture; status: En attente de relecture
+S1 10 PASS Submitted draft is absent from the public catalogue | 0 congrès trouvés
+S2 1 PASS Open the catalogue logged out; heading « Catalogue des congrès » and a result count | 12 congrès trouvés; 9 cards on page 1
+S2 2 PASS Click the « Cardiologie » chip; only cardiology congresses are listed | 2 congrès trouvés
+S2 3 PASS Click the first congress card; the details page opens with « Informations pratiques » and « Demander un devis vol » | title: Congrès européen de cardiologie — exemple
+S2 4 PASS Horizontal scroll check at this width | scrollWidth 1440/1440
+S2 5 PASS Search « vienne » (lowercase) finds the Vienne congresses | 2 congrès trouvés
+S2 6 PASS Search « diabetologie » (no accent) finds « Diabétologie » | 1 congrès trouvé
+S2 7 PASS Search « zzzz »: « Aucun congrès ne correspond à votre recherche » with « Voir tous les congrès »; clicking it resets | 12 congrès trouvés after reset
+S2 8 PASS Page 2 via « Suivant » after choosing « Pays » = France keeps the filter | only one page with France filter (fewer than 10 results): pagination not exercised here
+S3 1 PASS On the congress page, form « Demander un devis vol » shows the congress name prefilled and every field label | ?
+S3 2 PASS Click « Envoyer ma demande » with the form empty; errors in French next to each field | « Merci de corriger les points suivants » + per-field « Indiquez votre nom. » etc.
+S3 3 PASS Fill with 0 passengers and return before outbound; errors shown and typed name kept | Date retour / La date retour doit être postérieure ou égale à la date aller. / Le nombre de passagers doit être un nombre entier entre 1 et 50.
+S3 4 PASS Correct to 2 passengers and return 30/08/2027, click « Envoyer ma demande » once; confirmation with reference DV-2026-NNNN | reference DV-2026-0009
+S3 5 PASS Reload the confirmation page; same reference, no second enquiry | before DV-2026-0009, after reload DV-2026-0009
+S2@390 1 PASS Open the catalogue logged out; heading « Catalogue des congrès » and a result count | 12 congrès trouvés; 9 cards on page 1
+S2@390 2 PASS Click the « Cardiologie » chip; only cardiology congresses are listed | 2 congrès trouvés
+S2@390 3 PASS Click the first congress card; the details page opens with « Informations pratiques » and « Demander un devis vol » | title: Congrès européen de cardiologie — exemple
+S2@390 4 PASS Horizontal scroll check at this width | scrollWidth 390/390
+S3@390 1 PASS On the congress page, form « Demander un devis vol » shows the congress name prefilled and every field label | ?
+S3@390 2 PASS Click « Envoyer ma demande » with the form empty; errors in French next to each field | « Merci de corriger les points suivants » + per-field « Indiquez votre nom. » etc.
+S3@390 3 PASS Fill with 0 passengers and return before outbound; errors shown and typed name kept | Date retour / La date retour doit être postérieure ou égale à la date aller. / Le nombre de passagers doit être un nombre entier entre 1 et 50.
+S3@390 4 PASS Correct to 2 passengers and return 30/08/2027, click « Envoyer ma demande » once; confirmation with reference DV-2026-NNNN | reference DV-2026-0010
+S3@390 5 PASS Reload the confirmation page; same reference, no second enquiry | before DV-2026-0010, after reload DV-2026-0010
+S4 1 PASS As « equipe » on « Tableau de bord »: widget « Demandes de devis par statut » shows counts and « Dernière demande » | Nouvelle=6; latest DV-2026-0010
+S4 2 PASS Click the « Dernière demande » link; detail page shows the enquiry | Reçue le (UTC) 2026-11-05 21:06:04 Congrès Journées méditerr
+S4 3 PASS Choose « Qualifiée » in « Statut », click « Enregistrer»; success notice | Demande mise à jour.
+S4 4 PASS « Historique » shows who, when, « Nouvelle → Qualifiée », with no edit/delete control | 2026-11-05 21:06:18	Équipe (démo)	Note interne	Rappel client prévu (UAT). | 2026-11-05 21:06:18	Équipe (démo)	Responsable	— → Équipe (démo)
+S4 5 PASS Back on « Tableau de bord » the « Nouvelle » count went down by 1 | 6 → 5
+S4 6 PASS « Demandes » list: the row shows reference, date, congress, contact, departure city, dates, passengers, status | DV-2026-0010 05/11/2026 21:06 Journées méditerranéennes d’oncologie — exemple Claire Fictive claire.fictive@example.com Lyon 26/08/2027 → 30/08/2027 2 Qualifiée Équipe (d
+S4 7 PASS Click « Qualifiée » status view, then search « Claire »; the enquiry is found | found; search box label: Rechercher:
+S4 8 PASS « Journal des notifications » has an entry for the new reference | entry found, « Non distribué (pas de SMTP) »
+S5 1 PASS As « equipe »: click « Accès GM&E »; every code shows as dots | 5 masked codes; no DEMO-GME code in HTML
+S5 2 PASS Click « Demander l’accès » on the neurology row with the reason empty; refused with a message | message: Raison de la demande (obligatoire)
+S5 3 PASS Type a reason and click « Demander l’accès »; « Demande d’accès envoyée » | Demande d’accès envoyée à la Direction.
+S5 4 PASS As « direction » on « Tableau de bord »: widget « Accès GM&E en attente » lists the request; click « Approuver (24 h) » | Accès approuvé pour 24 heures.
+S5 5 PASS As « equipe »: « Accès GM&E » → « Révéler le code » on the neurology row; the code appears once | revealed DEMO-GME-3M••
+S5 6 PASS Reload « Accès GM&E »: the code is masked again | masked after reload
+S5 7 PASS As « direction »: « Journal GM&E » shows « Code révélé » by Équipe (démo) for neurology, no code text | 05/11/2026 21:06 Équipe (démo) Congrès européen de neurologie — exemple Code révélé 
+S5 8 PASS As « direction »: « Demandes d’accès » → « Révoquer » on the approved request | Accès révoqué immédiatement.
+S5 9 PASS As « equipe » after revocation: no « Révéler le code » on the neurology row | row shows: Dernière demande : Révoquée Raison de la demande (obligatoire) Demander l’accès
+S5 10 PASS As « direction »: « Codes GM&E » list (axe) and contributor has no « Accès GM&E » menu | contributeur menu has neither « Accès GM&E » nor « Demandes »
+S5 11 PASS Visitor: the neurology congress page says « Tarif congrès négocié disponible » and no DEMO-GME code anywhere in the HTML | notice shown; 0 codes

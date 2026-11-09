@@ -38,6 +38,8 @@ Thumbs.db
 # audit/fixtures/vision_golden/make_golden.py; committed so TestVisionGolden
 # passes on a fresh clone without regenerating them.
 !execution/personal_workflows/prodcraft_medspa/audit/fixtures/vision_golden/*.png
+!deliverables/asset_voyages_rfp_2026-10-28/site/assets/*.png
+!deliverables/asset_voyages_rfp_2026-10-28/site/assets/img/*.png
 
 # IDE
 .vscode/

@@ -1,0 +1,10 @@
+import { chromium, ctx, login } from './lib.mjs';
+const br=await chromium.launch(); const {c,p}=await ctx(br); await login(p,'direction'); await p.goto('/wp-admin/post-new.php?post_type=asset_congres');
+await p.fill('#title','Dbg2 congres — exemple');
+await p.getByLabel('Date de début').fill('2027-06-14'); await p.getByLabel('Date de fin').fill('2027-06-16');
+await p.getByLabel('Ville').first().fill('Lille'); await p.getByLabel('Pays').first().fill('France'); await p.getByLabel('Discipline').first().fill('Hépatologie');
+await p.getByLabel('Lieu').fill('X (fictif)'); await p.getByLabel('Site officiel').fill('https://example.com/uat'); await p.getByLabel('Date de vérification').fill('2026-11-05');
+const t0=Date.now(); await p.getByRole('button',{name:'Publier',exact:true}).click(); await p.waitForLoadState('load'); await p.waitForTimeout(3000);
+console.log((Date.now()-t0)/1000, p.url()); console.log((await p.locator('#wpbody-content .notice, #message, .asset-save-errors, .error').allInnerTexts()).join(' / ').slice(0,400));
+console.log('status', await p.locator('#post-status-display').innerText().catch(()=>'-'), 'publish val', await p.locator('#publish').getAttribute('value'));
+await c.close(); await br.close();

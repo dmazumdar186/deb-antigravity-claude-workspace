@@ -1,0 +1,31 @@
+{
+  "seed": 20261105,
+  "role": "equipe",
+  "action": 83,
+  "problems": [
+    "pageerror Transition was aborted because of invalid state. ViewTransition opt-in disabled"
+  ],
+  "last20": [
+    "click A \"Créer\" http://127.0.0.1:9404/wp-admin/media-new.php",
+    "click A \"Aller à la barre d’outils\" #wp-toolbar",
+    "resize 947x660",
+    "submit form",
+    "type len=31 <script>window.__pwn=1</script>",
+    "type len=19 Élodie Ñandú 日本語 😀",
+    "submit form",
+    "back/forward",
+    "resize 1380x960",
+    "back/forward",
+    "resize 1303x972",
+    "back/forward",
+    "type len=31 <script>window.__pwn=1</script>",
+    "back/forward",
+    "type len=10 2027-13-45",
+    "click A \"DV-2026-0001\" http://127.0.0.1:9404/wp-admin/admin.php?page=asset-demandes&action=view&id=18",
+    "type len=10 2027-13-45",
+    "click A \"Retour à la liste\" http://127.0.0.1:9404/wp-admin/admin.php?page=asset-demandes",
+    "click A \"ASSET Voyages — démonstration\" http://127.0.0.1:9404/",
+    "resize 1191x933"
+  ],
+  "url": "http://127.0.0.1:9404/"
+}

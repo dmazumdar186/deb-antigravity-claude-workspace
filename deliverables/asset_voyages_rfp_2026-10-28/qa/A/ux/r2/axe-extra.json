@@ -1,0 +1,378 @@
+[
+ {
+  "screen": "admin congress list",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-wp-logo",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-wp-logo\" class=\"menupop\">",
+  "owner": "core"
+ },
+ {
+  "screen": "admin congress list",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-site-name",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-site-name\" class=\"menupop\">",
+  "owner": "core"
+ },
+ {
+  "screen": "admin congress list",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-command-palette",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-command-palette\" class=\"hide-if-no-js\">",
+  "owner": "core"
+ },
+ {
+  "screen": "admin congress list",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-new-content",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-new-content\" class=\"menupop\">",
+  "owner": "core"
+ },
+ {
+  "screen": "admin congress list",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-archive",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-archive\"><a class=\"ab-item\" role=\"menuitem\" href=\"http://127.0.0.1:9405/congres/\">Voir les articles</a></li>",
+  "owner": "core"
+ },
+ {
+  "screen": "admin congress list",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-my-account",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-my-account\" class=\"menupop with-avatar\">",
+  "owner": "core"
+ },
+ {
+  "screen": "admin congress edit (plain editor)",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-wp-logo",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-wp-logo\" class=\"menupop\">",
+  "owner": "core"
+ },
+ {
+  "screen": "admin congress edit (plain editor)",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-site-name",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-site-name\" class=\"menupop\">",
+  "owner": "core"
+ },
+ {
+  "screen": "admin congress edit (plain editor)",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-command-palette",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-command-palette\" class=\"hide-if-no-js\">",
+  "owner": "core"
+ },
+ {
+  "screen": "admin congress edit (plain editor)",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-new-content",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-new-content\" class=\"menupop\">",
+  "owner": "core"
+ },
+ {
+  "screen": "admin congress edit (plain editor)",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-view",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-view\"><a class=\"ab-item\" role=\"menuitem\" href=\"http://127.0.0.1:9405/congres/congres-clavier-exemple/\">Voir le congrès</a></li",
+  "owner": "core"
+ },
+ {
+  "screen": "admin congress edit (plain editor)",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-my-account",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-my-account\" class=\"menupop with-avatar\">",
+  "owner": "core"
+ },
+ {
+  "screen": "admin new congress",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-wp-logo",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-wp-logo\" class=\"menupop\">",
+  "owner": "core"
+ },
+ {
+  "screen": "admin new congress",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-site-name",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-site-name\" class=\"menupop\">",
+  "owner": "core"
+ },
+ {
+  "screen": "admin new congress",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-command-palette",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-command-palette\" class=\"hide-if-no-js\">",
+  "owner": "core"
+ },
+ {
+  "screen": "admin new congress",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-new-content",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-new-content\" class=\"menupop\">",
+  "owner": "core"
+ },
+ {
+  "screen": "admin new congress",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-my-account",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-my-account\" class=\"menupop with-avatar\">",
+  "owner": "core"
+ },
+ {
+  "screen": "admin disciplines",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-wp-logo",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-wp-logo\" class=\"menupop\">",
+  "owner": "core"
+ },
+ {
+  "screen": "admin disciplines",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-site-name",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-site-name\" class=\"menupop\">",
+  "owner": "core"
+ },
+ {
+  "screen": "admin disciplines",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-command-palette",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-command-palette\" class=\"hide-if-no-js\">",
+  "owner": "core"
+ },
+ {
+  "screen": "admin disciplines",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-new-content",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-new-content\" class=\"menupop\">",
+  "owner": "core"
+ },
+ {
+  "screen": "admin disciplines",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-my-account",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-my-account\" class=\"menupop with-avatar\">",
+  "owner": "core"
+ },
+ {
+  "screen": "admin dashboard (contributeur)",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-wp-logo",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-wp-logo\" class=\"menupop\">",
+  "owner": "core"
+ },
+ {
+  "screen": "admin dashboard (contributeur)",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-site-name",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-site-name\" class=\"menupop\">",
+  "owner": "core"
+ },
+ {
+  "screen": "admin dashboard (contributeur)",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-command-palette",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-command-palette\" class=\"hide-if-no-js\">",
+  "owner": "core"
+ },
+ {
+  "screen": "admin dashboard (contributeur)",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-new-content",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-new-content\" class=\"menupop\">",
+  "owner": "core"
+ },
+ {
+  "screen": "admin dashboard (contributeur)",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-my-account",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-my-account\" class=\"menupop with-avatar\">",
+  "owner": "core"
+ },
+ {
+  "screen": "admin new congress (contributeur)",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-wp-logo",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-wp-logo\" class=\"menupop\">",
+  "owner": "core"
+ },
+ {
+  "screen": "admin new congress (contributeur)",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-site-name",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-site-name\" class=\"menupop\">",
+  "owner": "core"
+ },
+ {
+  "screen": "admin new congress (contributeur)",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-command-palette",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-command-palette\" class=\"hide-if-no-js\">",
+  "owner": "core"
+ },
+ {
+  "screen": "admin new congress (contributeur)",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-new-content",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-new-content\" class=\"menupop\">",
+  "owner": "core"
+ },
+ {
+  "screen": "admin new congress (contributeur)",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-my-account",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-my-account\" class=\"menupop with-avatar\">",
+  "owner": "core"
+ },
+ {
+  "screen": "390 admin dashboard (equipe)",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-menu-toggle",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-menu-toggle\"><a class=\"ab-item\" role=\"menuitem\" href=\"#\" aria-expanded=\"false\"><span class=\"ab-icon\" aria-hidden=\"true\"></span",
+  "owner": "core"
+ },
+ {
+  "screen": "390 admin dashboard (equipe)",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-site-name",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-site-name\" class=\"menupop\">",
+  "owner": "core"
+ },
+ {
+  "screen": "390 admin dashboard (equipe)",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-command-palette",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-command-palette\" class=\"hide-if-no-js\">",
+  "owner": "core"
+ },
+ {
+  "screen": "390 admin dashboard (equipe)",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-new-content",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-new-content\" class=\"menupop\">",
+  "owner": "core"
+ },
+ {
+  "screen": "390 admin dashboard (equipe)",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-my-account",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-my-account\" class=\"menupop with-avatar\">",
+  "owner": "core"
+ },
+ {
+  "screen": "390 admin demandes",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-menu-toggle",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-menu-toggle\"><a class=\"ab-item\" role=\"menuitem\" href=\"#\" aria-expanded=\"false\"><span class=\"ab-icon\" aria-hidden=\"true\"></span",
+  "owner": "core"
+ },
+ {
+  "screen": "390 admin demandes",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-site-name",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-site-name\" class=\"menupop\">",
+  "owner": "core"
+ },
+ {
+  "screen": "390 admin demandes",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-command-palette",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-command-palette\" class=\"hide-if-no-js\">",
+  "owner": "core"
+ },
+ {
+  "screen": "390 admin demandes",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-new-content",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-new-content\" class=\"menupop\">",
+  "owner": "core"
+ },
+ {
+  "screen": "390 admin demandes",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-my-account",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-my-account\" class=\"menupop with-avatar\">",
+  "owner": "core"
+ },
+ {
+  "screen": "390 admin GM&E (equipe)",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-menu-toggle",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-menu-toggle\"><a class=\"ab-item\" role=\"menuitem\" href=\"#\" aria-expanded=\"false\"><span class=\"ab-icon\" aria-hidden=\"true\"></span",
+  "owner": "core"
+ },
+ {
+  "screen": "390 admin GM&E (equipe)",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-site-name",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-site-name\" class=\"menupop\">",
+  "owner": "core"
+ },
+ {
+  "screen": "390 admin GM&E (equipe)",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-command-palette",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-command-palette\" class=\"hide-if-no-js\">",
+  "owner": "core"
+ },
+ {
+  "screen": "390 admin GM&E (equipe)",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-new-content",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-new-content\" class=\"menupop\">",
+  "owner": "core"
+ },
+ {
+  "screen": "390 admin GM&E (equipe)",
+  "id": "aria-allowed-role",
+  "impact": "minor",
+  "target": "#wp-admin-bar-my-account",
+  "html": "<li role=\"group\" id=\"wp-admin-bar-my-account\" class=\"menupop with-avatar\">",
+  "owner": "core"
+ }
+]

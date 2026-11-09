@@ -1,0 +1,4 @@
+const {chromium}=require('playwright');const U='https://asset-voyages-demo.debanjan186.workers.dev';
+(async()=>{const b=await chromium.launch();const p=await b.newPage();await p.goto(U+'/console');await p.fill('[name=username]','direction');await p.fill('[name=password]','demo-asset');await p.click('button[type=submit]');await p.waitForLoadState();
+await p.goto(U+'/console/congres/101');console.log(await p.locator('form[action$="/gme"]').evaluate(f=>f.innerText.replace(/\s+/g,' ').slice(0,400)));
+p.once('dialog',d=>{console.log('dialog:',d.message());d.accept()});await p.goto(U+'/console');await p.click('text=Réinitialiser la démo');await p.waitForLoadState();console.log('reset ->',p.url(),(await p.evaluate(()=>document.body.innerText)).match(/[^\n]*réinitialis[^\n]*/i)?.[0]);await b.close()})();

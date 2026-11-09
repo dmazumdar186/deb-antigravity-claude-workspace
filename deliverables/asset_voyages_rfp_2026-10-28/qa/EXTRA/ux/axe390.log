@@ -1,0 +1,39 @@
+screens 14 violations 0 serious/critical 0
+{
+ "public-form": {
+  "forbidden": null,
+  "lang": "fr",
+  "title": "Voyage de groupe : Journées françaises de diabétologie — exemple | ASSET Voyages"
+ },
+ "public-form-errors": {
+  "forbidden": null,
+  "lang": "fr",
+  "title": "Voyage de groupe : Journées françaises de diabétologie — exemple | ASSET Voyages"
+ },
+ "public-confirmation": {
+  "forbidden": null,
+  "lang": "fr",
+  "title": "Informations enregistrées | ASSET Voyages"
+ },
+ "public-confirmation-pending": {
+  "forbidden": null,
+  "lang": "fr",
+  "title": "Informations enregistrées | ASSET Voyages"
+ },
+ "public-seed-form": {
+  "forbidden": null,
+  "lang": "fr",
+  "title": "Voyage de groupe : Journées d’oncologie digestive — exemple | ASSET Voyages"
+ },
+ "public-unknown": {
+  "forbidden": null,
+  "lang": "fr",
+  "title": "Lien introuvable | ASSET Voyages"
+ },
+ "public-revoked": {
+  "forbidden": null,
+  "lang": "fr",
+  "title": "Ce lien n’est plus actif | ASSET Voyages"
+ }
+}
+{"errs":{"s":["Failed to load resource: the server responded with a status of 404 (Not Found)","Failed to load resource: the server responded with a status of 404 (Not Found)"],"d1":["Failed to load resource: the server responded with a status of 410 (Gone)"],"d2":[],"d3":["Failed to load resource: the server responded with a status of 404 (Not Found)"]},"s5":[],"rs":["reset ok","reset ok","reset ok","reset ok"]}

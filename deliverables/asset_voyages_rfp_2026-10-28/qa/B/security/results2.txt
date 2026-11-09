@@ -1,0 +1,11 @@
+A add 303 /console/congres/nouveau?liste=ajoute
+PASS A sees own option
+PASS B does not see A option
+enquiry 303 /demande/confirmation?ref=DV-2026-0007&k=iApTMSlufVQWrbl8VxkurK
+A ids [1, 2, 3, 4, 5, 6, 7]
+PASS IDOR B GET A-only enquiry 7 | 404
+PASS IDOR B POST A-only enquiry 7 | 404
+B reset 303
+PASS A option survives B reset
+PASS COW race keeps all 5 concurrent first writes + seed copy | codes=[303, 303, 303, 303, 303] kept=5/5 enquiries=6 options_in_page=35
+REQUESTS 28

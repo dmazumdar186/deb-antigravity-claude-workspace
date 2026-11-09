@@ -1,0 +1,17 @@
+{
+  "seed": 20261105,
+  "role": "equipe",
+  "action": 5,
+  "problems": [
+    "pageerror Transition was aborted because of invalid state. ViewTransition opt-in disabled"
+  ],
+  "last20": [
+    "click A \"DV-2026-0007 · Alice Integration INT-1793918929081 · Congrès\" http://127.0.0.1:9404/wp-admin/admin.php?page=asset-demandes&action=view&id=28",
+    "resize 1003x750",
+    "type len=10 2027-13-45",
+    "resize 1167x616",
+    "click A \"ASSET Voyages — démonstration\" http://127.0.0.1:9404/",
+    "type len=25 \"; DROP TABLE wp_posts;--"
+  ],
+  "url": "http://127.0.0.1:9404/"
+}

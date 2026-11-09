@@ -1,0 +1,6 @@
+plaintext DEMO-GME hits in raw file: []
+code rows 5 distinct nonces 5 distinct ciphertexts 5
+log actions [('approve', 2), ('refuse', 1), ('request', 3), ('reveal', 4), ('reveal_refused', 8), ('revoke', 2)]
+log details containing DEMO: (0,)
+access rows [(1, 3, 4, 'refused', ''), (2, 3, 5, 'revoked', '2026-11-05 20:57:15'), (3, 3, 7, 'revoked', '2026-11-05 20:58:20')]
+meta/options with gme: (0,) []

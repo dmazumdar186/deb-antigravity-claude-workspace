@@ -41,15 +41,22 @@ Cover "Prepared for / by / date". Today/Concept table 6 rows incl. measured heig
 <url> > <that file>` first) and the concept's own heights from `functional.json`. What does not
 exist yet · next · signature "Debanjan, Founder, ProdCraft, debanjan@prodcraft.fyi".
 
+## Hallmark (picked by the brain at research; the standard above wins on conflict)
+Macrostructure <file>, direction <theme slug | custom>, signature <one line>. Obey
+`.claude/skills/hallmark/SKILL.md` § The Floor except where the standard requires otherwise
+(amber small caps → record `hallmark-house: 54 — standard (d)` / `67` in `<abs>/HANDOFF.md`).
+
 ## Verify (mandatory before reporting)
 1. Copy `scripts/functional_template.mjs` → `<abs>/research/functional.mjs`, set the selector
    constants, keep every assertion name; run → `functional.json`, must be N/N.
 2. `node .claude/skills/site-redesign/scripts/site_check.mjs --site <abs>/site --pages /,/for-<name>/`
    exit 0.
-3. Screens per `concept_recipe.md` §8 into `<abs>/screens/` (after settle).
+3. `node .claude/skills/site-redesign/scripts/hallmark_gate.mjs <abs>/site <abs>/HANDOFF.md` exit 0:
+   fix every FAIL; fix every REFLEX or add `hallmark-waive: <gate> — <real reason>` to HANDOFF.
+4. Screens per `concept_recipe.md` §8 into `<abs>/screens/` (after settle).
 Do not deploy, do not commit. Report ≤ 200 words: files + sizes, functional N/N, site_check
 summary, page heights desktop/mobile vs live, console errors, GLM cost line, not done.
 
 ## Reviewer rounds (brain spawns after the report; worker fixes)
 Round 1 and round 2: reviewer Reads every PNG against §8 checklist → SHIP or numbered defects.
-Fix all, re-run 1–3, re-screenshot. Ship only on SHIP.
+Fix all, re-run 1–4, re-screenshot. Ship only on SHIP.

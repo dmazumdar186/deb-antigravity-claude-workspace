@@ -1,0 +1,47 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/theme.json",
+	"version": 3,
+	"settings": {
+		"appearanceTools": true,
+		"color": {
+			"defaultPalette": false,
+			"defaultGradients": false,
+			"palette": [
+				{ "slug": "paper", "name": "Papier", "color": "#F2EEE5" },
+				{ "slug": "ink", "name": "Encre", "color": "#0A1F30" },
+				{ "slug": "navy", "name": "Marine", "color": "#0D3048" },
+				{ "slug": "or", "name": "Orange", "color": "#EF760D" },
+				{ "slug": "or-ink", "name": "Orange texte", "color": "#9A4705" },
+				{ "slug": "white", "name": "Blanc", "color": "#FFFFFF" }
+			]
+		},
+		"typography": {
+			"fontFamilies": [
+				{ "slug": "system", "name": "Inter / système", "fontFamily": "Inter, system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif" }
+			],
+			"fontSizes": [
+				{ "slug": "small", "name": "Petit", "size": "0.95rem" },
+				{ "slug": "medium", "name": "Moyen", "size": "1.0625rem" },
+				{ "slug": "large", "name": "Grand", "size": "1.5rem" },
+				{ "slug": "x-large", "name": "Très grand", "size": "2.25rem" }
+			]
+		},
+		"layout": { "contentSize": "760px", "wideSize": "1200px" }
+	},
+	"styles": {
+		"color": { "background": "var(--wp--preset--color--paper)", "text": "var(--wp--preset--color--ink)" },
+		"typography": { "fontFamily": "var(--wp--preset--font-family--system)", "fontSize": "var(--wp--preset--font-size--medium)", "lineHeight": "1.55" },
+		"spacing": { "blockGap": "1.25rem", "padding": { "left": "1.25rem", "right": "1.25rem" } },
+		"elements": {
+			"link": { "color": { "text": "var(--wp--preset--color--or-ink)" } },
+			"heading": { "color": { "text": "var(--wp--preset--color--ink)" }, "typography": { "fontFamily": "var(--wp--preset--font-family--system)", "fontWeight": "700", "lineHeight": "1.2" } },
+			"h1": { "typography": { "fontSize": "var(--wp--preset--font-size--x-large)" } },
+			"h2": { "typography": { "fontSize": "var(--wp--preset--font-size--large)" } },
+			"button": { "color": { "background": "var(--wp--preset--color--or-ink)", "text": "var(--wp--preset--color--white)" } }
+		}
+	},
+	"templateParts": [
+		{ "name": "header", "title": "En-tête", "area": "header" },
+		{ "name": "footer", "title": "Pied de page", "area": "footer" }
+	]
+}

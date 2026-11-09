@@ -1,0 +1,148 @@
+== headers
+PASS SEC headers on / | {'content-security-policy': "default-src 'self'; script-src 'self'; s", 'x-content-type-options': 'nosniff', 'x-frame-options': 'DENY', 'referrer-policy': 'same-origin', 'strict-transport-security': 'max-age=31536000'}
+PASS sbx cookie flags | __Host-av_sbx=HMDsMhJv9S1htYnfYOnO1MI-; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=172800
+FAIL HSTS includeSubDomains/preload (advisory) | max-age=31536000
+PASS asset traversal | 404
+PASS asset traversal enc | 404
+PASS 404 page no stack | 404
+PASS PUT / 405 | 405
+PASS 415 wrong ctype | 415
+PASS 413 oversize | 413
+PASS login page no-store | no-store, private
+PASS session cookie flags | __Host-av_session  Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=28800
+PASS session fixation: new token issued | 303
+PASS login CSRF cross-origin refused | 403
+PASS open redirect next | /console
+== matrix
+PASS M anon GET /console | exp 303 got 303 cc=
+PASS M anon GET /console/congres | exp 303 got 303 cc=
+PASS M anon GET /console/congres/nouveau | exp 303 got 303 cc=
+PASS M anon GET /console/congres/101 | exp 303 got 303 cc=
+PASS M anon GET /console/demandes | exp 303 got 303 cc=
+PASS M anon GET /console/demandes/export.csv | exp 303 got 303 cc=
+PASS M anon GET /console/demandes/1 | exp 303 got 303 cc=
+PASS M anon GET /console/notifications | exp 303 got 303 cc=
+PASS M anon GET /console/gme | exp 303 got 303 cc=
+PASS M anon GET /console/gme/acces | exp 303 got 303 cc=
+PASS M anon GET /console/gme/journal | exp 303 got 303 cc=
+PASS M anon POST /console/reinitialiser | exp 401 got 401
+PASS M anon POST /console/listes | exp 401 got 401
+PASS M anon POST /console/congres/112/gme | exp 401 got 401
+PASS M anon POST /console/demandes/1 | exp 401 got 401
+PASS M anon POST /console/gme/112/demande | exp 401 got 401
+PASS M anon POST /console/gme/112/afficher | exp 401 got 401
+PASS M anon POST /console/gme/acces/999 | exp 401 got 401
+PASS M anon POST /console/congres/101 | exp 401 got 401
+PASS M anon POST /console/congres/nouveau | exp 401 got 401
+PASS M direction GET /console | exp ok got 200 cc=no-store, private
+PASS M direction GET /console/congres | exp ok got 200 cc=no-store, private
+PASS M direction GET /console/congres/nouveau | exp ok got 200 cc=no-store, private
+PASS M direction GET /console/congres/101 | exp ok got 200 cc=no-store, private
+PASS M direction GET /console/demandes | exp ok got 200 cc=no-store, private
+PASS M direction GET /console/demandes/export.csv | exp ok got 200 cc=no-store, private
+PASS M direction GET /console/demandes/1 | exp ok got 200 cc=no-store, private
+PASS M direction GET /console/notifications | exp ok got 200 cc=no-store, private
+PASS M direction GET /console/gme | exp ok got 200 cc=no-store, private
+PASS M direction GET /console/gme/acces | exp ok got 200 cc=no-store, private
+PASS M direction GET /console/gme/journal | exp ok got 200 cc=no-store, private
+PASS M direction POST /console/listes | exp ok got 400
+PASS M direction POST /console/congres/112/gme | exp ok got 200
+PASS M direction POST /console/demandes/1 | exp ok got 200
+PASS M direction POST /console/gme/112/demande | exp 403 got 403
+PASS M direction POST /console/gme/112/afficher | exp ok got 200
+PASS M direction POST /console/gme/acces/999 | exp ok got 404
+PASS M direction POST /console/congres/101 | exp ok got 200
+PASS M direction POST /console/congres/nouveau | exp ok got 200
+PASS M equipe GET /console | exp ok got 200 cc=no-store, private
+PASS M equipe GET /console/congres | exp ok got 200 cc=no-store, private
+PASS M equipe GET /console/congres/nouveau | exp ok got 200 cc=no-store, private
+PASS M equipe GET /console/congres/101 | exp ok got 200 cc=no-store, private
+PASS M equipe GET /console/demandes | exp ok got 200 cc=no-store, private
+PASS M equipe GET /console/demandes/export.csv | exp ok got 200 cc=no-store, private
+PASS M equipe GET /console/demandes/1 | exp ok got 200 cc=no-store, private
+PASS M equipe GET /console/notifications | exp ok got 200 cc=no-store, private
+PASS M equipe GET /console/gme | exp ok got 200 cc=no-store, private
+PASS M equipe GET /console/gme/acces | exp 403 got 403 cc=no-store, private
+PASS M equipe GET /console/gme/journal | exp 403 got 403 cc=no-store, private
+PASS M equipe POST /console/reinitialiser | exp 403 got 403
+PASS M equipe POST /console/listes | exp 403 got 403
+PASS M equipe POST /console/congres/112/gme | exp 403 got 403
+PASS M equipe POST /console/demandes/1 | exp ok got 200
+PASS M equipe POST /console/gme/112/demande | exp ok got 200
+PASS M equipe POST /console/gme/112/afficher | exp 403 got 403
+PASS M equipe POST /console/gme/acces/999 | exp 403 got 403
+PASS M equipe POST /console/congres/101 | exp ok got 200
+PASS M equipe POST /console/congres/nouveau | exp ok got 200
+PASS M contributeur GET /console | exp ok got 200 cc=no-store, private
+PASS M contributeur GET /console/congres | exp ok got 200 cc=no-store, private
+PASS M contributeur GET /console/congres/nouveau | exp ok got 200 cc=no-store, private
+PASS M contributeur GET /console/congres/101 | exp ok got 200 cc=no-store, private
+PASS M contributeur GET /console/demandes | exp 403 got 403 cc=no-store, private
+PASS M contributeur GET /console/demandes/export.csv | exp 403 got 403 cc=no-store, private
+PASS M contributeur GET /console/demandes/1 | exp 403 got 403 cc=no-store, private
+PASS M contributeur GET /console/notifications | exp 403 got 403 cc=no-store, private
+PASS M contributeur GET /console/gme | exp 403 got 403 cc=no-store, private
+PASS M contributeur GET /console/gme/acces | exp 403 got 403 cc=no-store, private
+PASS M contributeur GET /console/gme/journal | exp 403 got 403 cc=no-store, private
+PASS M contributeur POST /console/reinitialiser | exp 403 got 403
+PASS M contributeur POST /console/listes | exp 403 got 403
+PASS M contributeur POST /console/congres/112/gme | exp 403 got 403
+PASS M contributeur POST /console/demandes/1 | exp 403 got 403
+PASS M contributeur POST /console/gme/112/demande | exp 403 got 403
+PASS M contributeur POST /console/gme/112/afficher | exp 403 got 403
+PASS M contributeur POST /console/gme/acces/999 | exp 403 got 403
+FAIL M contributeur POST /console/congres/101 | exp ok got 403
+PASS M contributeur POST /console/congres/nouveau | exp ok got 200
+PASS M anon DELETE | 401
+PASS M equipe DELETE | 405
+== reveal
+gme cards ['112', '103', '108', '101', '105']
+  reveal 112 status~['Approuvé', 'Approuvé'] validity ['01/10/2026', '30/01/2027', '12/10/2026', '15/10/2026', '26/03/2027'] -> 200 leak=['DEMO-GME-4821'] cc=no-store, private
+  reveal 103 status~['Approuvé', 'Vérifié'] validity ['15/10/2026', '26/03/2027', '01/11/2026', '28/02/2027'] -> 200 leak=['DEMO-GME-2954'] cc=no-store, private
+  reveal 108 status~['Vérifié', 'Détecté'] validity ['01/11/2026', '28/02/2027'] -> 200 leak=['DEMO-GME-7310'] cc=no-store, private
+  reveal 101 status~['Détecté', 'non vérifié'] validity ['01/01/2026', '30/06/2026'] -> 403 leak=[] cc=no-store, private
+  reveal 105 status~['expiré'] validity ['01/01/2026', '30/06/2026'] -> 403 leak=[] cc=no-store, private
+== csrf
+FAIL CSRF /console/listes | 415/403
+FAIL CSRF /console/congres/112/gme | 415/403
+FAIL CSRF /console/demandes/1 | 415/403
+FAIL CSRF /console/gme/112/demande | 415/403
+FAIL CSRF /console/gme/112/afficher | 415/403
+FAIL CSRF /console/gme/acces/999 | 415/403
+FAIL CSRF /console/congres/101 | 415/403
+FAIL CSRF /console/congres/nouveau | 415/403
+PASS CSRF no-Origin cross-site | 403
+PASS CSRF other user token | 403
+PASS journal not padded by forged posts (direction sandbox) | rows 7->7 (direction reveals above add rows; equipe forged go to equipe sbx)
+== isolation
+PASS A writes option | 303
+FAIL A sees own option
+PASS B (fresh sbx) does not see A option
+PASS public seed unaffected
+PASS forged sbx AAAAAAAAAAAAAAAA isolated
+PASS forged sbx AAAAAAAAAAAAAAAA-x isolated
+PASS forged sbx n5FiywqwdSh9Lfue9UBi isolated
+  inj __Host-av_sbx=n5FiywqwdSh9Lfue9UBiphgk; __Host-av_sbx=x 200 False
+  inj __Host-av_sbx=; __Host-av_sbx=n5FiywqwdSh9Lfue9UBiphgk 200 True
+  inj __Host-av_sbx="n5FiywqwdSh9Lfue9UBiphgk" 200 True
+  inj __Host-av_sbx=' OR 1=1 --aaaaaaaaaa 200 True
+  inj __Host-av_sbx=n5FiywqwdSh9Lfue9UBiphgk%00 200 True
+  enquiry A -> 200 
+  A enquiry ids [1, 2, 3, 4, 5, 6]
+FAIL IDOR B GET A-only enquiry 6 | 200
+FAIL IDOR B POST A-only enquiry 6 | 303
+PASS nonce replay from other sandbox does not leak A ref | 200 
+PASS B reset | 303
+FAIL A option survives B reset
+== cow race
+FAIL COW race: all concurrent first writes kept, seed copied | codes=[303, 303, 303, 303, 303, 303] kept=0/6 enquiries_visible=6
+== throttle
+PASS throttle race: <=10 attempts pass per sbx | 401=10 429=4 other=[]
+FAIL throttle per-sbx bypass by rotating sbx cookie (expected 401 = bypass; IP+account cap 50 still applies) | 401
+== enquiry rl
+FAIL enquiry per-sbx limit 10 | ['200', '200', '200', '200', '200', '200', '200', '200', '200', '200', '200']
+PASS enquiry limit bypass by dropping sbx cookie (303 = bypass, IP cap 60 remains) | 200
+== exhaustion
+FAIL sandbox creation throttled before 40/IP (limit is 150/IP/h, 1500/day global) | created=40 codes=[200]
+PASS old session dead after logout | 303
+REQUESTS 264

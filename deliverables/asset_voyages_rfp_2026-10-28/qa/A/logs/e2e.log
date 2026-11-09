@@ -1,0 +1,87 @@
+
+Running 46 tests using 1 worker
+
+  ✓   1 01-s2-catalogue.spec.js:10:1 › S2-F1 all 12 published upcoming congresses are listed; past and draft are not (6.0s)
+  ✓   2 01-s2-catalogue.spec.js:27:1 › S2-F2 keyword search: title, city, discipline, accent-insensitive (10.0s)
+  ✓   3 01-s2-catalogue.spec.js:38:1 › S2-F3 filters alone and combined, result count, no-result message and reset (10.8s)
+  ✓   4 01-s2-catalogue.spec.js:60:1 › S2-F4 pagination works and keeps active filters (2.4s)
+  ✓   5 01-s2-catalogue.spec.js:73:1 › S2-F5 details page shows all facts and the prefilled enquiry form (2.8s)
+  ✓   6 01-s2-catalogue.spec.js:84:1 › S2-F6 works with JavaScript off (server-rendered GET form) (3.7s)
+  ✓   7 01-s2-catalogue.spec.js:95:1 › S2-E1 find Cardiologie and open one in <= 2 clicks (4.1s)
+  ✓   8 01-s2-catalogue.spec.js:106:1 › S2-E2 at 390 px: no horizontal scroll, inputs >= 16 px, tap targets >= 44 px (8.1s)
+  ✓   9 01-s2-catalogue.spec.js:145:1 › S2-H1 script/HTML in search is escaped; 5,000-char query does not error (3.6s)
+  ✓  10 02-s3-enquiry.spec.js:20:1 › S3-F1 all fields present, congress prefilled (1.4s)
+  ✓  11 02-s3-enquiry.spec.js:32:1 › S3-E1 errors appear next to fields in French and keep typed values (1 click) (6.7s)
+  ✓  12 02-s3-enquiry.spec.js:49:1 › S3-F2 valid submission stored, linked to congress, reference shown (22.2s)
+  ✓  13 02-s3-enquiry.spec.js:66:1 › S3-F3 team notified (notification journal entry) (8.2s)
+  ✓  14 02-s3-enquiry.spec.js:74:1 › S3-F4 reloading the confirmation, or replaying the POST, creates no second enquiry (21.4s)
+  ✓  15 02-s3-enquiry.spec.js:96:1 › S3-H1 invalid values rejected with a message and no data change (33.2s)
+  ✓  16 02-s3-enquiry.spec.js:124:1 › S3-H2 honeypot, too-fast and missing-nonce submissions are not stored (21.8s)
+  ✓  17 02-s3-enquiry.spec.js:150:1 › S3-H3 script/HTML in any field is stored and shown as text only (24.7s)
+  ✓  18 03-s1-congres.spec.js:15:1 › S1-E1 + S1-F1 create and publish in <= 4 clicks with French labels, required fields marked (15.4s)
+  ✓  19 03-s1-congres.spec.js:41:1 › S1-E2 + S1-F2 edit in <= 3 clicks; new value shows in admin and on the public page (21.0s)
+  ✓  20 03-s1-congres.spec.js:59:1 › S1-F3 contributor drafts and submits for review, cannot publish; draft is not public; Direction publishes (31.0s)
+  ✓  21 03-s1-congres.spec.js:94:1 › S1-H1 end before start and invalid URL rejected with a message; HTML in title shown as text (21.0s)
+  ✓  22 03-s1-congres.spec.js:127:1 › S1-H2 saving without a valid nonce changes nothing (9.6s)
+  ✓  23 04-s4-demandes.spec.js:12:1 › S4-F1 the S3 enquiry appears in « Demandes » with all columns and status Nouvelle (6.3s)
+  ✓  24 04-s4-demandes.spec.js:26:1 › S4-F2 filter by status and search by name / reference (15.1s)
+  ✓  25 04-s4-demandes.spec.js:47:1 › S4-E1 from admin home, open the newest enquiry and change its status in <= 3 clicks; counts update (12.5s)
+  ✓  26 04-s4-demandes.spec.js:67:1 › S4-F3 status flow saved, owner assigned, internal note saved (26.4s)
+  ✓  27 04-s4-demandes.spec.js:93:1 › S4-F4 history is append-only: who, when, from → to; no edit or delete controls (11.2s)
+  ✓  28 04-s4-demandes.spec.js:111:1 › S4-F5 CSV export contains enquiries; formula prefixes neutralised (10.0s)
+  ✓  29 04-s4-demandes.spec.js:129:1 › S4-H1 logged-out and contributor users cannot read or change enquiries (22.3s)
+  ✓  30 05-s5-gme.spec.js:21:1 › S5-F1 codes stored only in their own table, encrypted; no plaintext anywhere in the database (14ms)
+(node:25550) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  31 05-s5-gme.spec.js:45:1 › S5-F2 + S5-E1 equipe sees codes masked; requests access with a required reason in <= 2 clicks (14.1s)
+  ✓  32 05-s5-gme.spec.js:69:1 › S5-F3 + S5-E1 direction sees pending requests, approves in <= 2 clicks from admin home, refuses another (13.7s)
+  ✓  33 05-s5-gme.spec.js:97:1 › S5-F4 + S5-E1 equipe reveals in <= 2 clicks; reveal logged; journal is Direction-only (17.8s)
+  ✓  34 05-s5-gme.spec.js:127:1 › S5-F3 revoke at once; S5-H1 reveal after revocation, without nonce or without permission is refused and logged (24.3s)
+  ✓  35 05-s5-gme.spec.js:177:1 › S5-F5 public pages say only « Tarif congrès négocié disponible », never the code (10.0s)
+  ✓  36 05-s5-gme.spec.js:195:1 › S5-L2 codes never in HTML for authorised users until reveal; never in logs, CSV or notifications (22.1s)
+  ✓  37 06-leak.spec.js:76:1 › S5-L1 + S4-F6 logged-out crawl: pages, filters, every congress, feeds, sitemaps, search, every REST route, admin-ajax (6.3m)
+  ✓  38 06-leak.spec.js:95:1 › S5-L1 crawl as equipe without an active grant (public + reachable admin screens) (7.8m)
+  ✓  39 06-leak.spec.js:117:1 › S5-F1 (after reveals) database still holds no plaintext code (7ms)
+  ✘  40 07-cross.spec.js:16:1 › X1 zero console errors and zero failed requests on every tested screen (1.3m)
+  -  41 07-cross.spec.js:48:1 › X2 visitor pages load no third-party scripts or requests
+  -  42 07-cross.spec.js:63:1 › X3 all data fictional: titles end « — exemple », emails @example.com, codes DEMO-GME-…
+  -  43 07-cross.spec.js:90:1 › X4 re-seeding is idempotent (no duplicates)
+  ✓  44 08-screens.spec.js:9:1 › Screens: visitor (23.6s)
+  ✓  45 08-screens.spec.js:29:1 › Screens: admin (51.9s)
+  ✓  46 99-s3-ratelimit.spec.js:5:1 › S3-H2 rapid repeat submissions from one address are rate-limited (35.9s)
+
+
+  1) 07-cross.spec.js:16:1 › X1 zero console errors and zero failed requests on every tested screen 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 4
+
+    - Array []
+    + Array [
+    +   "visitor HTTP 404: http://127.0.0.1:9400/congres/x",
+    +   "visitor console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    + ]
+
+      43 | 		await ctx.close();
+      44 | 	}
+    > 45 | 	expect(problems).toEqual([]);
+         | 	                 ^
+      46 | });
+      47 |
+      48 | test('X2 visitor pages load no third-party scripts or requests', async ({ browser }) => {
+        at /home/user/deb-antigravity-claude-workspace/deliverables/asset_voyages_rfp_2026-10-28/wp_demo/tests/07-cross.spec.js:45:19
+
+    Error Context: ../.tmp/test-output/07-cross-X1-zero-console-e-477af-ests-on-every-tested-screen/error-context.md
+
+  Slow test file: 06-leak.spec.js (14.1m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  1 failed
+    07-cross.spec.js:16:1 › X1 zero console errors and zero failed requests on every tested screen ─
+  3 did not run
+  42 passed (25.6m)
+
+real	26m4.260s
+user	0m56.827s
+sys	0m19.581s

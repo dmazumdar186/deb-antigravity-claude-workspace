@@ -1,0 +1,125 @@
+{
+ "name": "ahosted",
+ "at": "2026-11-06T12:11:22.680Z",
+ "logins": 3,
+ "writing": [
+  "B-1440 replay",
+  "B-390 phone"
+ ],
+ "replay": [
+  {
+   "option": "A-hosted",
+   "task": "T1",
+   "n": 1,
+   "text": "Open the admin. You are already signed in.",
+   "ok": true,
+   "why": "",
+   "clicks": 0,
+   "page": "https://wpsandbox.wordpress.net/scope:zsmq-nrxp-txwa/wp-admin/admin.php?page=asset-demandes",
+   "role": "Bonjour, Direction (démo)",
+   "shot": "out/shots/0314-A-hosted-visiteur-1440-hosted-admin-first-screen.png",
+   "extra": "signed in as « Bonjour, Direction (démo) »"
+  },
+  {
+   "option": "A-hosted",
+   "task": "T1",
+   "n": 2,
+   "text": "In the left-hand menu, choose « Congrès », then « Ajouter un congrès ».",
+   "ok": true,
+   "why": "",
+   "clicks": 2,
+   "page": "https://wpsandbox.wordpress.net/scope:zsmq-nrxp-txwa/wp-admin/post-new.php?post_type=asset_congres",
+   "role": "Bonjour, Direction (démo)",
+   "shot": "out/shots/0315-A-hosted-visiteur-1440-hosted-admin-after-task-1-step-2.png",
+   "extra": ""
+  }
+ ],
+ "boots": [
+  {
+   "kind": "visitor",
+   "href": "https://playground.wordpress.net/?mode=seamless&login=no&blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-visitor.json",
+   "readySec": 15.676,
+   "samples": [
+    {
+     "sec": 1,
+     "shot": "out/shots/hosted-visitor-1s.png",
+     "bytes": 5851,
+     "visible": 1
+    },
+    {
+     "sec": 3,
+     "shot": "out/shots/hosted-visitor-3s.png",
+     "bytes": 11013,
+     "visible": 21
+    },
+    {
+     "sec": 6,
+     "shot": "out/shots/hosted-visitor-6s.png",
+     "bytes": 11997,
+     "visible": 1
+    },
+    {
+     "sec": 10,
+     "shot": "out/shots/hosted-visitor-10s.png",
+     "bytes": 11997,
+     "visible": 1
+    },
+    {
+     "sec": 15,
+     "shot": "out/shots/hosted-visitor-15s.png",
+     "bytes": 13279,
+     "visible": 1
+    }
+   ],
+   "near": "Open the visitor site and go to the congress catalogue."
+  },
+  {
+   "kind": "admin",
+   "href": "https://playground.wordpress.net/?mode=seamless&blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json",
+   "readySec": 16.635,
+   "samples": [
+    {
+     "sec": 1,
+     "shot": "out/shots/hosted-admin-1s.png",
+     "bytes": 5852,
+     "visible": 1
+    },
+    {
+     "sec": 3,
+     "shot": "out/shots/hosted-admin-3s.png",
+     "bytes": 10763,
+     "visible": 1
+    },
+    {
+     "sec": 6,
+     "shot": "out/shots/hosted-admin-6s.png",
+     "bytes": 12593,
+     "visible": 1
+    },
+    {
+     "sec": 6,
+     "shot": "out/shots/hosted-admin-6s.png",
+     "bytes": 12164,
+     "visible": 1
+    },
+    {
+     "sec": 10,
+     "shot": "out/shots/hosted-admin-10s.png",
+     "bytes": 10579,
+     "visible": 1
+    },
+    {
+     "sec": 15,
+     "shot": "out/shots/hosted-admin-15s.png",
+     "bytes": 5851,
+     "visible": 1
+    }
+   ],
+   "near": "Open the admin. You are already signed in."
+  }
+ ],
+ "notes": [
+  "hosted admin signed in as: Bonjour, Direction (démo)"
+ ],
+ "findings": 0
+}

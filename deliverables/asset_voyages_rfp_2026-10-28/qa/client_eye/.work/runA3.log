@@ -1,0 +1,23 @@
+[08:58:38] hub parsed: tasks 5 rows 11 group steps 4
+[08:59:47] C10 A T1.1 OK (1 clicks) 
+[08:59:53] C10 A T1.2 OK (2 clicks) 
+[09:00:04] C10 A T1.3 OK (2 clicks) 
+[09:01:03] C10 A T1.tip OK (0 clicks) 
+[09:01:05] C10 A T2.1 OK (0 clicks) 
+[09:01:09] C10 A T2.2 OK (1 clicks) 
+[09:01:11] C10 A T2.3 OK (1 clicks) 
+[09:01:12] C10 A T3.1 OK (0 clicks) 
+[09:01:13] C10 A T3.2 OK (0 clicks) 
+[09:01:20] C10 A T3.3 OK (1 clicks) 
+[09:01:26] C10 A T4.1 OK (3 clicks) 
+[09:01:33] C10 A T4.2 OK (3 clicks) 
+[09:01:42] C10 A T4.3 FAIL (2 clicks) exception: locator.click: Timeout 5000ms exceeded.
+[09:02:34] C10 A T5.1 FAIL (1 clicks) no reason field
+[09:02:43] C10 A T5.2 OK (3 clicks) 
+[09:03:38] C10 A T5.3 FAIL (4 clicks) hub says « the code is shown » after signing in; the reader must still click « Révéler le code »
+[09:10:02] saved part a: 167 raw findings, 145 states
+[09:10:17] A2 hosted visitor: ready after 15.688 s
+[09:12:23] A2 hosted admin: ready after TIMEOUT s
+[09:12:23] saved part ahosted: 5 raw findings, 1 states
+[09:14:49] A4 links checked 562
+[09:14:59] done

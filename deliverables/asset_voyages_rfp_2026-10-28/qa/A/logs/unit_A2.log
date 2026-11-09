@@ -1,0 +1,58 @@
+PASS UNIT-A-001 passagers=0 
+PASS UNIT-A-002 passagers=1 
+PASS UNIT-A-003 passagers=50 
+PASS UNIT-A-004 passagers=51 
+PASS UNIT-A-005 passagers=-1 
+PASS UNIT-A-006 passagers='abc' 
+PASS UNIT-A-007 passagers='2.5' 
+PASS UNIT-A-008 passagers='' 
+PASS UNIT-A-009 passagers=' 7 ' 
+PASS UNIT-A-010 passagers='1e1' 
+PASS UNIT-A-011 date_aller = today ok 
+PASS UNIT-A-012 date_aller yesterday rejected 
+PASS UNIT-A-013 retour == aller ok 
+PASS UNIT-A-014 retour = aller-1 rejected 
+PASS UNIT-A-015 invalid date 2026-02-30 rejected 
+PASS UNIT-A-016 bad email rejected 
+PASS UNIT-A-017 missing consent rejected 
+PASS UNIT-A-018 nom 100 ok / 101 rejected 
+PASS UNIT-A-019 message 2000 ok / 2001 rejected 
+PASS UNIT-A-020 phone 5 digits rejected / 6 ok 
+PASS UNIT-A-021 array-typed field does not fatal 
+PASS UNIT-A-022 valid input => no errors 
+PASS UNIT-A-023 script tag stripped from nom alert(1)Bob
+PASS UNIT-A-024 multibyte 100 chars ok 
+PASS UNIT-A-025 csv neutralises "=SUM(1)" 
+PASS UNIT-A-026 csv neutralises "+1" 
+PASS UNIT-A-027 csv neutralises "-1" 
+PASS UNIT-A-028 csv neutralises "@x" 
+PASS UNIT-A-029 csv neutralises "\tx" 
+PASS UNIT-A-030 csv neutralises "\rx" 
+PASS UNIT-A-031 csv plain unchanged 
+PASS UNIT-A-032 csv mid-string = not altered 
+PASS UNIT-A-033 sodium round-trip 
+PASS UNIT-A-034 random nonce (2 ciphertexts differ) 
+PASS UNIT-A-035 ciphertext has no plaintext 
+PASS UNIT-A-036 tampered ciphertext => null 
+PASS UNIT-A-037 garbage/empty/short => null 
+PASS UNIT-A-038 empty plaintext round-trip (empty string may map to null)
+PASS UNIT-A-039 unicode round-trip 
+PASS UNIT-A-040 valid_code "DEMO-GME-4KQ7" 
+PASS UNIT-A-041 valid_code "ABC" 
+PASS UNIT-A-042 valid_code "ABCD" 
+PASS UNIT-A-043 valid_code "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" 
+PASS UNIT-A-044 valid_code "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" 
+PASS UNIT-A-045 valid_code "abcd" 
+PASS UNIT-A-046 valid_code "-ABCD" 
+PASS UNIT-A-047 valid_code "ABCD\n" (A-2xx: now \z, trailing newline rejected)
+PASS UNIT-A-048 valid_code "A B C D" 
+PASS UNIT-A-049 valid_code "" 
+PASS UNIT-A-050 AAD binds congress id (wrong id => null) 
+PASS UNIT-A-051 contributeur cannot publish 
+PASS UNIT-A-052 team can publish 
+PASS UNIT-A-053 contrib subset of team 
+PASS UNIT-A-054 no gme/demandes caps in congres map 
+PASS UNIT-A-055 statuses = 5 expected slugs 
+PASS UNIT-A-056 gme statuses lifecycle ["detecte","verifie","approuve","expire"]
+PASS UNIT-A-057 PAX consts 1..50 
+TOTAL 57 FAIL 0

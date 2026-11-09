@@ -1,0 +1,2459 @@
+{
+ "meta": {
+  "generated": "2026-11-06T13:15:12.221Z",
+  "parts": {
+   "a": {
+    "at": "2026-11-06T13:09:50.047Z",
+    "findings": 12,
+    "states": 154,
+    "logins": 0,
+    "writing": [],
+    "target": "http://127.0.0.1:9460"
+   },
+   "ahosted": {
+    "at": "2026-11-06T12:11:22.680Z",
+    "findings": 0,
+    "states": 3,
+    "logins": 3,
+    "writing": [
+     "B-1440 replay",
+     "B-390 phone"
+    ]
+   },
+   "b": {
+    "at": "2026-11-06T12:49:46.068Z",
+    "findings": 1,
+    "states": 150,
+    "logins": 9,
+    "writing": [
+     "B-1440 replay",
+     "B-390 phone"
+    ],
+    "sbx": [
+     "gi49coia97los10UznHQzZZw",
+     "zJ4huthGKubr2xAgNO-efDvh"
+    ],
+    "resets": {
+     "replay": true,
+     "phone": true
+    }
+   },
+   "hub": {
+    "at": "2026-11-06T12:41:37.889Z",
+    "findings": 4,
+    "states": 40,
+    "logins": 0,
+    "writing": []
+   }
+  },
+  "states": 347,
+  "widths": [
+   320,
+   390,
+   768,
+   1280,
+   1440,
+   1920
+  ],
+  "roles": [
+   "A:visiteur",
+   "A:direction",
+   "A:contributeur",
+   "A:equipe",
+   "A-hosted:visiteur",
+   "B:visiteur",
+   "B:contributeur",
+   "B:direction",
+   "B:equipe",
+   "B:voyageur",
+   "HUB:visiteur"
+  ],
+  "versions": {
+   "commit": "6a61058eb66d68618c4daabb63ca358a5d3e5ac0",
+   "dirty": [],
+   "hub demo/index.html": "deployed = source",
+   "hub index.html": "deployed = source",
+   "hub js/demo.js": "deployed = source",
+   "hub css/demo.css": "deployed = source",
+   "zipHosted": "b0fe713a2ce204bc3092006dfef62ccf5f34e51c28da9a5a8dd1ee5f70a25760",
+   "zipLocal": "b0fe713a2ce204bc3092006dfef62ccf5f34e51c28da9a5a8dd1ee5f70a25760",
+   "worker": {
+    "id": "dba3b6e7-d2ad-45c1-bfba-5132a304268a",
+    "created_on": "2026-11-06T10:55:45.590122Z"
+   },
+   "bSrcLastCommit": "0459ede 2026-11-06T10:54:46+00:00",
+   "browsers": [
+    ".links",
+    "chromium",
+    "chromium-1243",
+    "chromium_headless_shell-1243",
+    "ffmpeg-1011"
+   ]
+  },
+  "checks": {
+   "E4": {
+    "status": "N/A",
+    "detail": "Only Chromium is installed (.links, chromium, chromium-1243, chromium_headless_shell-1243, ffmpeg-1011); Firefox and WebKit are not, and the brief forbids installing them. Recorded N/A, never PASS."
+   },
+   "A7": {
+    "status": "OPERATOR DECISION",
+    "detail": "Option B's address is https://asset-voyages-demo.debanjan186.workers.dev (contains « debanjan186 »). Accepted unless the operator asks for a custom domain."
+   },
+   "E2": {
+    "status": "HUMAN/PROCESS",
+    "detail": "The suites (wp_demo/tests/run_all.sh, custom_demo playwright) must run twice green after the last change; this gate does not run them. It runs last, on the deployed versions named above."
+   },
+   "E3": {
+    "status": "PASS",
+    "detail": "279 screenshots, all written by this gate from fresh browser contexts on the deployed hub and Option B and the local Option A build."
+   },
+   "E5": {
+    "status": "PASS",
+    "detail": "A: 320/390/768/1280/1440/1920; A-hosted: 1440; B: 320/390/768/1280/1440/1920; HUB: 320/390/768/1280/1440/1920. The hosted Option A boot is one boot per link at 1440 by design (brief)."
+   }
+  }
+ },
+ "perCheck": {
+  "A1": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "A2": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "A3": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "A4": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0,
+   "UNVERIFIED": 1
+  },
+  "A5": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "A6": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "A7": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "B1": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "B2": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "B3": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "B4": {
+   "REAL": 2,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "B5": {
+   "REAL": 1,
+   "FALSE-POSITIVE": 3,
+   "UNTRIAGED": 0
+  },
+  "B6": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 1,
+   "UNTRIAGED": 0
+  },
+  "B7": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "C1": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "C2": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "C3": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "C4": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 1,
+   "UNTRIAGED": 0
+  },
+  "C5": {
+   "REAL": 1,
+   "FALSE-POSITIVE": 1,
+   "UNTRIAGED": 0
+  },
+  "C6": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "C7": {
+   "REAL": 2,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "C8": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "C9": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "C10": {
+   "REAL": 1,
+   "FALSE-POSITIVE": 1,
+   "UNTRIAGED": 0
+  },
+  "D1": {
+   "REAL": 1,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "D2": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "D3": {
+   "REAL": 2,
+   "FALSE-POSITIVE": 2,
+   "UNTRIAGED": 7
+  },
+  "D4": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "E1": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "E2": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "E3": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "E4": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "E5": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  },
+  "GATE": {
+   "REAL": 0,
+   "FALSE-POSITIVE": 0,
+   "UNTRIAGED": 0
+  }
+ },
+ "realPerOption": {
+  "A": 3,
+  "HUB": 5,
+  "hub": 1
+ },
+ "findings": [
+  {
+   "key": "16cea18f91",
+   "check": "A4",
+   "option": "HUB",
+   "text": "https://www.sft.fr/docs/2024164729_sft-2022-enquete-traduction.pdf",
+   "note": "HTTP 403",
+   "element": "a « French translators’ union (SFT) 2022 sur »",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "a « French translators’ union (SFT) 2022 sur »"
+    }
+   ],
+   "count": 1,
+   "status": "UNVERIFIED",
+   "reason": "sft.fr answers 403 to scripted clients and to a real Chromium tab from this sandbox (a browser user-agent probe was refused by the auto-mode classifier). Needs one click from an ordinary browser.",
+   "ce": "CE-A4-001"
+  },
+  {
+   "key": "eeca7f2a74",
+   "check": "A4",
+   "option": "HUB",
+   "text": "https://www.sft.fr/global/gene/link.php?doc_id=882&edit_lang=fr",
+   "note": "HTTP 403",
+   "element": "a « 2025 survey »",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/questions/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "a « 2025 survey »"
+    }
+   ],
+   "count": 1,
+   "status": "UNVERIFIED",
+   "reason": "sft.fr answers 403 to scripted clients and to a real Chromium tab from this sandbox (a browser user-agent probe was refused by the auto-mode classifier). Needs one click from an ordinary browser.",
+   "ce": "CE-A4-001"
+  },
+  {
+   "key": "0186d1d6ff",
+   "check": "B4",
+   "option": "A",
+   "text": "Responsable",
+   "note": "mid-word",
+   "element": "th#responsable",
+   "occurrences": [
+    {
+     "page": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes",
+     "role": "direction",
+     "width": 1280,
+     "locale": "fr-FR",
+     "state": "6w direction /wp-admin/admin.php?page=asset-demandes",
+     "shot": "",
+     "element": "th#responsable"
+    },
+    {
+     "page": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes",
+     "role": "direction",
+     "width": 1280,
+     "locale": "fr-FR",
+     "state": "6w direction /wp-admin/admin.php?page=asset-demandes",
+     "shot": "",
+     "element": "table.wp-list-table.widefat > tfoot > tr > th.manage-column.column-responsable"
+    }
+   ],
+   "count": 2,
+   "status": "REAL",
+   "reason": "A word is split across two lines without a hyphen (« d’ophtalmologie » in the Demandes table at 1280).",
+   "ce": "CE-B4-005"
+  },
+  {
+   "key": "52ce199602",
+   "check": "B4",
+   "option": "HUB",
+   "text": "ncontres d’ophtalmologie — exemple",
+   "note": "orphan-dash",
+   "element": "table.tbl > tbody > tr > td",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/console/",
+     "role": "visiteur",
+     "width": 320,
+     "locale": "fr-FR",
+     "state": "hub/console/",
+     "shot": "out/shots/0004-HUB-visiteur-320-hub-console.png",
+     "element": "table.tbl > tbody > tr > td"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/console/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "fr-FR",
+     "state": "hub/console/",
+     "shot": "out/shots/0009-HUB-visiteur-390-hub-console.png",
+     "element": "table.tbl > tbody > tr > td"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/console/",
+     "role": "visiteur",
+     "width": 768,
+     "locale": "fr-FR",
+     "state": "hub/console/",
+     "shot": "out/shots/0014-HUB-visiteur-768-hub-console.png",
+     "element": "table.tbl > tbody > tr > td"
+    },
+    {
+     "page": "https://asset-voyages-redesign.pages.dev/console/",
+     "role": "visiteur",
+     "width": 390,
+     "locale": "en-GB",
+     "state": "hub/console/",
+     "shot": "out/shots/0039-HUB-visiteur-390-hub-console.png",
+     "element": "table.tbl > tbody > tr > td"
+    }
+   ],
+   "count": 4,
+   "status": "REAL",
+   "reason": "Concept pages (/ and /console/) show sample titles whose « — exemple » wraps alone onto the next line at 320–768.",
+   "ce": "CE-B4-002"
+  },
+  {
+   "key": "e6f632fb2d",
+   "check": "B5",
+   "option": "A",
+   "text": "autrice",
+   "note": "unknown fr word in « Auteur/autrice » (14×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=page",
+     "role": "direction",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "FALSE-POSITIVE",
+   "reason": "R2: « Auteur/autrice » is WordPress core's French column heading (inclusive spelling), a valid word.",
+   "ce": ""
+  },
+  {
+   "key": "5812c2538c",
+   "check": "B5",
+   "option": "A",
+   "text": "equipe",
+   "note": "unknown fr word in « equipe » (2×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "http://127.0.0.1:9460/wp-admin/profile.php",
+     "role": "equipe",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "FALSE-POSITIVE",
+   "reason": "The login name shown in the « Identifiant » field of the profile screen: correct as typed.",
+   "ce": ""
+  },
+  {
+   "key": "731a17e08b",
+   "check": "B5",
+   "option": "A",
+   "text": "Policy",
+   "note": "unknown fr word in « Privacy Policy — Brouillon, Page de politique de confidentialité » (8×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=page",
+     "role": "direction",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "REAL",
+   "reason": "R2 NEW: the Pages list (now open to Direction) shows WordPress's default draft page in English, « Privacy Policy — Brouillon », inside a French screen. Seed or retitle it in the blueprint.",
+   "ce": "CE-B5-R2-001"
+  },
+  {
+   "key": "319b036515",
+   "check": "B5",
+   "option": "A",
+   "text": "Privacy",
+   "note": "unknown fr word in « Privacy Policy — Brouillon, Page de politique de confidentialité » (8×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=page",
+     "role": "direction",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "REAL",
+   "reason": "R2 NEW: the Pages list (now open to Direction) shows WordPress's default draft page in English, « Privacy Policy — Brouillon », inside a French screen. Seed or retitle it in the blueprint.",
+   "ce": "CE-B5-R2-001"
+  },
+  {
+   "key": "e6e9297558",
+   "check": "B5",
+   "option": "A",
+   "text": "Reconnectez-vous",
+   "note": "unknown fr word in « Votre session a expiré. Reconnectez-vous. » (3×)",
+   "element": "fr",
+   "occurrences": [
+    {
+     "page": "http://127.0.0.1:9460/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A9460%2Fwp-admin%2Fadmin.php%3Fpage%3Dasset-demandes&reauth=1",
+     "role": "direction",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "fr"
+    }
+   ],
+   "count": 1,
+   "status": "FALSE-POSITIVE",
+   "reason": "R2: « Reconnectez-vous » is correct French (imperative with hyphen); the spell list lacks the verb form. This is the new « Votre session a expiré » message.",
+   "ce": ""
+  },
+  {
+   "key": "de4f377ae3",
+   "check": "B6",
+   "option": "A",
+   "text": "sign out",
+   "note": "none of « Se déconnecter » seen in the A UI",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "glossary",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "FALSE-POSITIVE",
+   "reason": "WordPress shows « Se déconnecter » only in the account menu that opens on hover; the inventory records what is visible without hovering. The C10 replay hovered and clicked it (T5.2). Not tightened: the inventory stays « visible without interaction », the term is checked by C10.",
+   "ce": ""
+  },
+  {
+   "key": "0e5b7b4e16",
+   "check": "C4",
+   "option": "A",
+   "text": "CLS 0.048",
+   "note": "layout shift above 0.02",
+   "element": "DIV.drag-drop-inside+P.upload-flash-bypass+P.max-upload-size@1582ms=0.0482",
+   "occurrences": [
+    {
+     "page": "http://127.0.0.1:9460/wp-admin/media-new.php",
+     "role": "direction",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "direction /wp-admin/media-new.php",
+     "shot": "out/shots/0038-A-direction-1440-direction-wp-admin-media-new-php.png",
+     "element": "DIV.drag-drop-inside+P.upload-flash-bypass+P.max-upload-size@1582ms=0.0482"
+    },
+    {
+     "page": "http://127.0.0.1:9460/wp-admin/media-new.php",
+     "role": "equipe",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "equipe /wp-admin/media-new.php",
+     "shot": "out/shots/0068-A-equipe-1440-equipe-wp-admin-media-new-php.png",
+     "element": "DIV.drag-drop-inside+P.upload-flash-bypass+P.max-upload-size@1363ms=0.0482"
+    },
+    {
+     "page": "http://127.0.0.1:9460/wp-admin/media-new.php",
+     "role": "direction",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "direction (after approval) /wp-admin/media-new.php",
+     "shot": "out/shots/0081-A-direction-1440-direction-after-approval-wp-admin-media-new-php.png",
+     "element": "DIV.drag-drop-inside+P.upload-flash-bypass+P.max-upload-size@1395ms=0.0482"
+    }
+   ],
+   "count": 3,
+   "status": "FALSE-POSITIVE",
+   "reason": "R2: every remaining shift is WordPress core (media-new, post-new for pages and congresses); the plugin screens (Demandes detail, Accès GM&E) no longer shift. Known and out of our control, accepted by the operator.",
+   "ce": "CE-C4-001"
+  },
+  {
+   "key": "f662f4706d",
+   "check": "C4",
+   "option": "A",
+   "text": "CLS 0.034",
+   "note": "layout shift above 0.02",
+   "element": "DIV.admin-ui-navigable-region.interface-interface-skeleton__sidebar+DIV.editor-header__settings@2916ms=0.0343",
+   "occurrences": [
+    {
+     "page": "http://127.0.0.1:9460/wp-admin/post-new.php?post_type=page",
+     "role": "direction",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "direction /wp-admin/post-new.php?post_type=page",
+     "shot": "out/shots/0040-A-direction-1440-direction-wp-admin-post-new-php-post-type-page.png",
+     "element": "DIV.admin-ui-navigable-region.interface-interface-skeleton__sidebar+DIV.editor-header__settings@2916ms=0.0343"
+    },
+    {
+     "page": "http://127.0.0.1:9460/wp-admin/post-new.php?post_type=page",
+     "role": "direction",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "direction (after approval) /wp-admin/post-new.php?post_type=page",
+     "shot": "out/shots/0083-A-direction-1440-direction-after-approval-wp-admin-post-new-php-post-type-pag.png",
+     "element": "DIV.admin-ui-navigable-region.interface-interface-skeleton__sidebar+DIV.editor-header__settings@2377ms=0.0343"
+    }
+   ],
+   "count": 2,
+   "status": "FALSE-POSITIVE",
+   "reason": "R2: every remaining shift is WordPress core (media-new, post-new for pages and congresses); the plugin screens (Demandes detail, Accès GM&E) no longer shift. Known and out of our control, accepted by the operator.",
+   "ce": "CE-C4-001"
+  },
+  {
+   "key": "da5b63ffbf",
+   "check": "C4",
+   "option": "A",
+   "text": "CLS 0.070",
+   "note": "layout shift above 0.02",
+   "element": "TEXTAREA#content.wp-editor-area+DIV#submitdiv.postbox+TABLE#post-status-info@2676ms=0.0699",
+   "occurrences": [
+    {
+     "page": "http://127.0.0.1:9460/wp-admin/post-new.php?post_type=asset_congres",
+     "role": "contributeur",
+     "width": 390,
+     "locale": "fr-FR",
+     "state": "contributeur 390 /wp-admin/post-new.php?post_type=asset_congres",
+     "shot": "out/shots/0102-A-contributeur-390-contributeur-390-wp-admin-post-new-php-post-type-asset-congr.png",
+     "element": "TEXTAREA#content.wp-editor-area+DIV#submitdiv.postbox+TABLE#post-status-info@2676ms=0.0699"
+    }
+   ],
+   "count": 1,
+   "status": "FALSE-POSITIVE",
+   "reason": "R2: every remaining shift is WordPress core (media-new, post-new for pages and congresses); the plugin screens (Demandes detail, Accès GM&E) no longer shift. Known and out of our control, accepted by the operator.",
+   "ce": "CE-C4-001"
+  },
+  {
+   "key": "5280834967",
+   "check": "C4",
+   "option": "A",
+   "text": "CLS 0.061",
+   "note": "layout shift above 0.02",
+   "element": "TEXTAREA#content.wp-editor-area+DIV#submitdiv.postbox+DIV.inside@2382ms=0.061",
+   "occurrences": [
+    {
+     "page": "http://127.0.0.1:9460/wp-admin/post-new.php?post_type=asset_congres",
+     "role": "equipe",
+     "width": 390,
+     "locale": "fr-FR",
+     "state": "equipe 390 /wp-admin/post-new.php?post_type=asset_congres",
+     "shot": "out/shots/0108-A-equipe-390-equipe-390-wp-admin-post-new-php-post-type-asset-congres.png",
+     "element": "TEXTAREA#content.wp-editor-area+DIV#submitdiv.postbox+DIV.inside@2382ms=0.061"
+    },
+    {
+     "page": "http://127.0.0.1:9460/wp-admin/post-new.php?post_type=asset_congres",
+     "role": "direction",
+     "width": 390,
+     "locale": "fr-FR",
+     "state": "direction 390 /wp-admin/post-new.php?post_type=asset_congres",
+     "shot": "out/shots/0122-A-direction-390-direction-390-wp-admin-post-new-php-post-type-asset-congres.png",
+     "element": "TEXTAREA#content.wp-editor-area+DIV#submitdiv.postbox+DIV.inside@2118ms=0.061"
+    }
+   ],
+   "count": 2,
+   "status": "FALSE-POSITIVE",
+   "reason": "R2: every remaining shift is WordPress core (media-new, post-new for pages and congresses); the plugin screens (Demandes detail, Accès GM&E) no longer shift. Known and out of our control, accepted by the operator.",
+   "ce": "CE-C4-001"
+  },
+  {
+   "key": "a9d28ea061",
+   "check": "C5",
+   "option": "A-admin",
+   "text": "-apple-system | radius 2px (login page «  »); -apple-system | radius 0px (C10 T1.1 « Options de l’écran »); dashicons | radius 2px (C10 T1.2 «  »); -apple-system | radius 4px (direction /wp-admin/post-new.php?post_type=page « Aucun titre\n· Page »)",
+   "note": "4 button style families",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "A-admin",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "FALSE-POSITIVE",
+   "reason": "The extra families are WordPress core chrome (« Options de l’écran » tab, login page), not our buttons. Kept visible in the report; the plugin's own buttons are one family.",
+   "ce": ""
+  },
+  {
+   "key": "11de612aff",
+   "check": "C5",
+   "option": "hub",
+   "text": "Inter | radius 2px (hub/demo/ « Open the demos »); ui-monospace | radius 4px (hub/ « ESPACE CLIENT »); Inter | radius 4px (hub/ « ‹ »); Inter | radius 3px (hub/pour-asset/ « Voir le concept »)",
+   "note": "4 button style families",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "hub",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "REAL",
+   "reason": "Buttons on the concept pages (/ and /console/) are uppercase monospace, on the demos hub Inter sentence case: the five pages linked from the hub do not share one button style.",
+   "ce": "CE-C5-001"
+  },
+  {
+   "key": "751798daf3",
+   "check": "C7",
+   "option": "HUB",
+   "text": "\n\nSame requirements, fictional data and codes, sandboxes that reset themselves.",
+   "note": "the hub does not say that each trial is private",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "REAL",
+   "reason": "The hub never says that each person's trial is private to their browser (B's own login page does).",
+   "ce": "CE-C7-001"
+  },
+  {
+   "key": "ffdd3e5a8b",
+   "check": "C7",
+   "option": "HUB",
+   "text": "\n\nSame requirements, fictional data and codes, sandboxes that reset themselves.",
+   "note": "the hub does not say the trial is reset after 24 h",
+   "element": "",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": ""
+    }
+   ],
+   "count": 1,
+   "status": "REAL",
+   "reason": "The hub says the sandboxes « reset themselves » but not when (B: nightly purge of trials older than 24 h; A: on reload).",
+   "ce": "CE-C7-002"
+  },
+  {
+   "key": "e00c557b95",
+   "check": "C10",
+   "option": "A",
+   "text": "T5 step 1: Signed in as equipe, open « Codes GM&E › Codes »: the codes are hidden. Click « Demander l’accès » and give a reason.",
+   "note": "label « Codes » not visible",
+   "element": "instruction replay",
+   "occurrences": [
+    {
+     "page": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-gme",
+     "role": "equipe",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "out/shots/0077-A-equipe-1440-C10-T5-1.png",
+     "element": "instruction replay"
+    }
+   ],
+   "count": 1,
+   "status": "REAL",
+   "reason": "R2 NEW (verified on shot 0077): hub A task 5 steps 1 and 3 say « Codes GM&E › Codes », but Équipe's WordPress menu shows only « Codes GM&E » (WordPress hides a one-item submenu), so there is no « Codes » item to open. Reword the hub for A, or add a second visible sub-item.",
+   "ce": "CE-C10-R2-001"
+  },
+  {
+   "key": "509f4ed7ea",
+   "check": "C10",
+   "option": "A",
+   "text": "T5 step 3: Sign in as equipe again and open « Codes GM&E › Codes ». The code stays hidden until you click « Afficher le code »: that click is needed. Each display is then listed in « Journal d’accès GM&E ».",
+   "note": "label « Codes » not visible",
+   "element": "instruction replay",
+   "occurrences": [
+    {
+     "page": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-gme",
+     "role": "equipe",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "out/shots/0095-A-equipe-1440-C10-T5-3.png",
+     "element": "instruction replay"
+    }
+   ],
+   "count": 1,
+   "status": "REAL",
+   "reason": "R2 NEW (verified on shot 0077): hub A task 5 steps 1 and 3 say « Codes GM&E › Codes », but Équipe's WordPress menu shows only « Codes GM&E » (WordPress hides a one-item submenu), so there is no « Codes » item to open. Reword the hub for A, or add a second visible sub-item.",
+   "ce": "CE-C10-R2-001"
+  },
+  {
+   "key": "a81146f797",
+   "check": "C10",
+   "option": "B",
+   "text": "T5 step 3: Sign in as equipe again and open « Codes GM&E › Codes ». The code stays hidden until you click « Afficher le code »: that click is needed. Each display is then listed in « Journal d’accès GM&E ».",
+   "note": "hub says « the code is shown » after signing in; the reader must still click « Afficher le code »",
+   "element": "instruction replay",
+   "occurrences": [
+    {
+     "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/gme/112/afficher",
+     "role": "equipe",
+     "width": 1440,
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "out/shots/0080-B-equipe-1440-C10-T5-3.png",
+     "element": "instruction replay"
+    }
+   ],
+   "count": 1,
+   "status": "FALSE-POSITIVE",
+   "reason": "R2: the hub now says « the code stays hidden until you click « Afficher le code »: that click is needed », so the click is documented. The gate rule was stale and is tightened (it flags only when the hub step does not name the label).",
+   "ce": "CE-C10-003"
+  },
+  {
+   "key": "b551d64dd6",
+   "check": "D1",
+   "option": "A",
+   "text": "5. GM&E codes protected: Works in the demo Codes hidden, access asked with a reason, 24-hour approval, a ",
+   "note": "this run: C10 T5 FAIL · wp_demo/README.md: S5-F1, S5-F2, S5-F3, S5-F4, S5-F5, S5-E1, S5-H1, S5-L1, S5-L2",
+   "element": "table.cmp",
+   "occurrences": [
+    {
+     "page": "demo/#compare",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "table.cmp"
+    }
+   ],
+   "count": 1,
+   "status": "REAL",
+   "reason": "R2: same defect as CE-C10-R2-001 (C10 T5 fails on A), shown in the hub comparison table.",
+   "ce": "CE-C10-R2-001"
+  },
+  {
+   "key": "f5941be923",
+   "check": "D3",
+   "option": "HUB",
+   "text": "one",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": "rdPress starts fresh each time you open ⟨one⟩ of these links, so nothing from an earl",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "rdPress starts fresh each time you open ⟨one⟩ of these links, so nothing from an earl"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "rench site is built so that it can take ⟨one⟩.\t ⏎ Option, quoted separately ⏎ The site is"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "er’s details and bring them together in ⟨one⟩ list. ⏎  ⏎ What it does ⏎ Your team sends one"
+    }
+   ],
+   "count": 3,
+   "status": "FALSE-POSITIVE",
+   "reason": "R2: « one » is a pronoun (« each time you open one of these links »), not a number.",
+   "ce": ""
+  },
+  {
+   "key": "2c434936bb",
+   "check": "D3",
+   "option": "HUB",
+   "text": "T05",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": "this is checked by your acceptance test ⟨T05⟩. ⏎  ⏎ Option A: WordPress ⏎  ⏎ Signed in as equ",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "this is checked by your acceptance test ⟨T05⟩. ⏎  ⏎ Option A: WordPress ⏎  ⏎ Signed in as equ"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "7bd7b4fa2a",
+   "check": "D3",
+   "option": "HUB",
+   "text": "24",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": "s d’accès », and click « Approuver pour ⟨24⟩ h » or « Refuser ». ⏎ Sign in as equipe a",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "s d’accès », and click « Approuver pour ⟨24⟩ h » or « Refuser ». ⏎ Sign in as equipe a"
+    }
+   ],
+   "count": 1,
+   "status": "FALSE-POSITIVE",
+   "reason": "R2: « 24 hours without use » is traced: the nightly purge keys on sandboxes.last_seen (custom_demo/src/data.js:14), and C7 passes on the idle rule.",
+   "ce": ""
+  },
+  {
+   "key": "3d3b390c7c",
+   "check": "D3",
+   "option": "HUB",
+   "text": "4",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": " five tasks from start to finish (about ⟨4⟩ min). ⏎ Option B, our custom platform: th",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": " five tasks from start to finish (about ⟨4⟩ min). ⏎ Option B, our custom platform: th"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "irection approves for 24 h, or refuses. ⟨4⟩. Code shown to that person only. 5. Acc"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "with a trial run first. ⏎  ⏎ Testing ⏎  ⏎ Stage ⟨4⟩ ⏎  ⏎ On a private copy of the site, against"
+    }
+   ],
+   "count": 3,
+   "status": "REAL",
+   "reason": "« Try it in five minutes » is a time promise with no source and no measurement (the robot replay alone took 82 s for B, without reading).",
+   "ce": "CE-D3-001"
+  },
+  {
+   "key": "e999c45a75",
+   "check": "D3",
+   "option": "HUB",
+   "text": "3",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": " five tasks from start to finish (about ⟨3⟩ min 30). ⏎ 3 What works today, and what w",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": " five tasks from start to finish (about ⟨3⟩ min 30). ⏎ 3 What works today, and what w"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": " 2. Asks for access and gives a reason. ⟨3⟩. Direction approves for 24 h, or refuse"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "nges at each stage. ⏎  ⏎ Development ⏎  ⏎ Stage ⟨3⟩ ⏎  ⏎ Pages, the congress catalogue, enquiri"
+    }
+   ],
+   "count": 3,
+   "status": "REAL",
+   "reason": "« Try it in five minutes » is a time promise with no source and no measurement (the robot replay alone took 82 s for B, without reading).",
+   "ce": "CE-D3-001"
+  },
+  {
+   "key": "a1ab05068a",
+   "check": "D3",
+   "option": "HUB",
+   "text": "30",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": "tasks from start to finish (about 3 min ⟨30⟩). ⏎ 3 What works today, and what we would",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "tasks from start to finish (about 3 min ⟨30⟩). ⏎ 3 What works today, and what we would"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "297483d3c4",
+   "check": "D3",
+   "option": "HUB",
+   "text": "two",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": "ted separately ⏎ The site is prepared for ⟨two⟩ languages from the start; the English v",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "ted separately ⏎ The site is prepared for ⟨two⟩ languages from the start; the English v"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "9adfc2d3b6",
+   "check": "D3",
+   "option": "HUB",
+   "text": "1",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": "once. ⏎  ⏎ The access path for a GM&E code. ⟨1⟩. Team member sees the code hidden. 2. A",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "once. ⏎  ⏎ The access path for a GM&E code. ⟨1⟩. Team member sees the code hidden. 2. A"
+    }
+   ],
+   "count": 1,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "f12355073f",
+   "check": "D3",
+   "option": "HUB",
+   "text": "2",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": "e. 1. Team member sees the code hidden. ⟨2⟩. Asks for access and gives a reason. 3.",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "e. 1. Team member sees the code hidden. ⟨2⟩. Asks for access and gives a reason. 3."
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "rkshop of up to 2 hours. ⏎  ⏎ Design ⏎  ⏎ Stage ⟨2⟩ ⏎  ⏎ Wireframes (page outlines), then deskt"
+    }
+   ],
+   "count": 2,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "4e9c564547",
+   "check": "D3",
+   "option": "HUB",
+   "text": "5",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": "ses. 4. Code shown to that person only. ⟨5⟩. Access recorded: who, when, which code",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "ses. 4. Code shown to that person only. ⟨5⟩. Access recorded: who, when, which code"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "01 to T15, then fixes. ⏎  ⏎ Training ⏎  ⏎ Stage ⟨5⟩ ⏎  ⏎ For your team, with a second session f"
+    }
+   ],
+   "count": 2,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "ebe25a2354",
+   "check": "D3",
+   "option": "HUB",
+   "text": "13 to 14",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": "n read. ⏎ 6 Milestones ⏎  ⏎ Indicative, about ⟨13 to 14⟩ weeks to launch in all; counted from yo",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "n read. ⏎ 6 Milestones ⏎  ⏎ Indicative, about ⟨13 to 14⟩ weeks to launch in all; counted from yo"
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "ion you choose. ⏎  ⏎ Approval ⏎ Launch, about ⟨13 to 14⟩ weeks ⏎ After launch ⏎ Kickoff, access and "
+    },
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "four weeks after launch. ⏎  ⏎ Launch ⏎  ⏎ About ⟨13 to 14⟩ weeks from approval ⏎  ⏎ After your written"
+    }
+   ],
+   "count": 3,
+   "status": "UNTRIAGED",
+   "reason": "",
+   "ce": ""
+  },
+  {
+   "key": "ada1eddcfb",
+   "check": "D3",
+   "option": "HUB",
+   "text": "3 to 5",
+   "note": "number not classified (week, date, our demo data) and not traced to a source line",
+   "element": "es later, we will propose a slot within ⟨3 to 5⟩ working days of your notice, subject to",
+   "occurrences": [
+    {
+     "page": "demo/",
+     "role": "visiteur",
+     "width": "",
+     "locale": "fr-FR",
+     "state": "",
+     "shot": "",
+     "element": "es later, we will propose a slot within ⟨3 to 5⟩ working days of your notice, subject to"
+    }
+   ],
+   "count": 1,
+   "status": "REAL",
+   "reason": "R2 NEW: « a slot within 3 to 5 working days of your notice » (site/demo/index.html:499) is a time promise with no source line in the repository. Trace it or remove the figure.",
+   "ce": "CE-D3-R2-001"
+  }
+ ],
+ "replay": {
+  "A": [
+   {
+    "option": "A",
+    "task": "T1",
+    "n": 1,
+    "text": "Open the admin. You are already signed in.",
+    "ok": true,
+    "why": "",
+    "clicks": 1,
+    "page": "http://127.0.0.1:9460/wp-admin/index.php",
+    "role": "direction",
+    "shot": "out/shots/0033-A-direction-1440-C10-T1-1.png",
+    "extra": "local: signed in as direction through wp-login (hosted link checked separately)"
+   },
+   {
+    "option": "A",
+    "task": "T1",
+    "n": 2,
+    "text": "In the left-hand menu, choose « Congrès », then « Ajouter un congrès ».",
+    "ok": true,
+    "why": "",
+    "clicks": 2,
+    "page": "http://127.0.0.1:9460/wp-admin/post-new.php?post_type=asset_congres",
+    "role": "direction",
+    "shot": "out/shots/0034-A-direction-1440-C10-T1-2.png",
+    "extra": ""
+   },
+   {
+    "option": "A",
+    "task": "T1",
+    "n": 3,
+    "text": "Fill in the name, dates, city and discipline, then publish. To change one, open it from « Tous les congrès ».",
+    "ok": true,
+    "why": "",
+    "clicks": 2,
+    "page": "http://127.0.0.1:9460/wp-admin/edit.php?post_type=asset_congres",
+    "role": "direction",
+    "shot": "out/shots/0035-A-direction-1440-C10-T1-3.png",
+    "extra": ""
+   },
+   {
+    "option": "A",
+    "task": "T1",
+    "n": "tip",
+    "text": "Sign in as contributeur instead and your congress waits for review before it goes live.",
+    "ok": true,
+    "why": "",
+    "clicks": 0,
+    "page": "http://127.0.0.1:9460/wp-admin/post-new.php?post_type=asset_congres",
+    "role": "contributeur",
+    "shot": "",
+    "extra": ""
+   },
+   {
+    "option": "A",
+    "task": "T2",
+    "n": 1,
+    "text": "Open the visitor site and go to the congress catalogue.",
+    "ok": true,
+    "why": "",
+    "clicks": 0,
+    "page": "http://127.0.0.1:9460/",
+    "role": "visiteur",
+    "shot": "out/shots/0057-A-visiteur-1440-C10-T2-1.png",
+    "extra": "local: visitor site root"
+   },
+   {
+    "option": "A",
+    "task": "T2",
+    "n": 2,
+    "text": "Type a word in the search box, or narrow the list by discipline, country or month.",
+    "ok": true,
+    "why": "",
+    "clicks": 1,
+    "page": "http://127.0.0.1:9460/?q=cardiologie&discipline&pays&mois&tri=date_asc",
+    "role": "visiteur",
+    "shot": "out/shots/0058-A-visiteur-1440-C10-T2-2.png",
+    "extra": ""
+   },
+   {
+    "option": "A",
+    "task": "T2",
+    "n": 3,
+    "text": "Open a congress to see its details page: dates, city, venue and discipline.",
+    "ok": true,
+    "why": "",
+    "clicks": 1,
+    "page": "http://127.0.0.1:9460/congres/congres-europeen-de-cardiologie-exemple/",
+    "role": "visiteur",
+    "shot": "out/shots/0059-A-visiteur-1440-C10-T2-3.png",
+    "extra": ""
+   },
+   {
+    "option": "A",
+    "task": "T3",
+    "n": 1,
+    "text": "On a congress details page, find « Demander un devis vol ».",
+    "ok": true,
+    "why": "",
+    "clicks": 0,
+    "page": "http://127.0.0.1:9460/congres/congres-europeen-de-cardiologie-exemple/",
+    "role": "visiteur",
+    "shot": "out/shots/0060-A-visiteur-1440-C10-T3-1.png",
+    "extra": ""
+   },
+   {
+    "option": "A",
+    "task": "T3",
+    "n": 2,
+    "text": "Enter your contact details, departure city, travel dates and number of passengers.",
+    "ok": true,
+    "why": "",
+    "clicks": 0,
+    "page": "http://127.0.0.1:9460/congres/congres-europeen-de-cardiologie-exemple/",
+    "role": "visiteur",
+    "shot": "out/shots/0061-A-visiteur-1440-C10-T3-2.png",
+    "extra": ""
+   },
+   {
+    "option": "A",
+    "task": "T3",
+    "n": 3,
+    "text": "Click « Envoyer ma demande ». You receive a reference number on screen.",
+    "ok": true,
+    "why": "",
+    "clicks": 1,
+    "page": "http://127.0.0.1:9460/congres/congres-europeen-de-cardiologie-exemple/?asset_ok=df1e82e5cd70b5df079a3318806886a8#devis",
+    "role": "visiteur",
+    "shot": "out/shots/0062-A-visiteur-1440-C10-T3-3.png",
+    "extra": ""
+   },
+   {
+    "option": "A",
+    "task": "T4",
+    "n": 1,
+    "text": "In the same tab as task 3, click « Espace équipe » and sign in as equipe. Open « Demandes »: your enquiry is at the top.",
+    "ok": true,
+    "why": "",
+    "clicks": 3,
+    "page": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes",
+    "role": "equipe",
+    "shot": "out/shots/0063-A-equipe-1440-C10-T4-1.png",
+    "extra": ""
+   },
+   {
+    "option": "A",
+    "task": "T4",
+    "n": 2,
+    "text": "Open it and change its status, for example from « Nouvelle » to « Qualifiée ». Each change is kept in its history.",
+    "ok": true,
+    "why": "",
+    "clicks": 3,
+    "page": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-demandes&action=view&id=32",
+    "role": "equipe",
+    "shot": "out/shots/0064-A-equipe-1440-C10-T4-2.png",
+    "extra": ""
+   },
+   {
+    "option": "A",
+    "task": "T4",
+    "n": 3,
+    "text": "Click « Exporter en CSV » to download the list as a spreadsheet file. « Journal des notifications » shows the message your team would have received.",
+    "ok": true,
+    "why": "",
+    "clicks": 3,
+    "page": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-notifications",
+    "role": "equipe",
+    "shot": "out/shots/0065-A-equipe-1440-C10-T4-3.png",
+    "extra": ""
+   },
+   {
+    "option": "A",
+    "task": "T5",
+    "n": 1,
+    "text": "Signed in as equipe, open « Codes GM&E › Codes »: the codes are hidden. Click « Demander l’accès » and give a reason.",
+    "ok": false,
+    "why": "label « Codes » not visible",
+    "clicks": 1,
+    "page": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-gme",
+    "role": "equipe",
+    "shot": "out/shots/0077-A-equipe-1440-C10-T5-1.png",
+    "extra": ""
+   },
+   {
+    "option": "A",
+    "task": "T5",
+    "n": 2,
+    "text": "Sign out, sign in as direction, open « Codes GM&E › Demandes d’accès », and click « Approuver pour 24 h » or « Refuser ».",
+    "ok": true,
+    "why": "",
+    "clicks": 3,
+    "page": "http://127.0.0.1:9460/wp-admin/index.php?msg=approve",
+    "role": "direction",
+    "shot": "out/shots/0078-A-direction-1440-C10-T5-2.png",
+    "extra": ""
+   },
+   {
+    "option": "A",
+    "task": "T5",
+    "n": 3,
+    "text": "Sign in as equipe again and open « Codes GM&E › Codes ». The code stays hidden until you click « Afficher le code »: that click is needed. Each display is then listed in « Journal d’accès GM&E ».",
+    "ok": false,
+    "why": "label « Codes » not visible",
+    "clicks": 3,
+    "page": "http://127.0.0.1:9460/wp-admin/admin.php?page=asset-gme",
+    "role": "equipe",
+    "shot": "out/shots/0095-A-equipe-1440-C10-T5-3.png",
+    "extra": ""
+   }
+  ],
+  "B": [
+   {
+    "option": "B",
+    "task": "T1",
+    "n": 1,
+    "text": "Open the team console and sign in as contributeur.",
+    "ok": true,
+    "why": "",
+    "clicks": 1,
+    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console",
+    "role": "contributeur",
+    "shot": "out/shots/0047-B-contributeur-1440-C10-T1-1.png",
+    "extra": ""
+   },
+   {
+    "option": "B",
+    "task": "T1",
+    "n": 2,
+    "text": "Open the list of congresses and click « Ajouter un congrès », or open an existing one to change it.",
+    "ok": true,
+    "why": "",
+    "clicks": 2,
+    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres/nouveau",
+    "role": "contributeur",
+    "shot": "out/shots/0050-B-contributeur-1440-C10-T1-2.png",
+    "extra": ""
+   },
+   {
+    "option": "B",
+    "task": "T1",
+    "n": 3,
+    "text": "Send it for review. Sign in as direction to check it and publish it.",
+    "ok": true,
+    "why": "",
+    "clicks": 6,
+    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/congres/114?ok=publish",
+    "role": "direction",
+    "shot": "out/shots/0052-B-direction-1440-C10-T1-3.png",
+    "extra": ""
+   },
+   {
+    "option": "B",
+    "task": "T2",
+    "n": 1,
+    "text": "Open the visitor site and go to the congress catalogue.",
+    "ok": true,
+    "why": "",
+    "clicks": 1,
+    "page": "https://asset-voyages-demo.debanjan186.workers.dev/",
+    "role": "direction",
+    "shot": "out/shots/0063-B-direction-1440-C10-T2-1.png",
+    "extra": ""
+   },
+   {
+    "option": "B",
+    "task": "T2",
+    "n": 2,
+    "text": "Type a word in the search box, or narrow the list by discipline, country or month.",
+    "ok": true,
+    "why": "",
+    "clicks": 1,
+    "page": "https://asset-voyages-demo.debanjan186.workers.dev/?q=cardiologie&pays=&mois=#resultats",
+    "role": "direction",
+    "shot": "out/shots/0064-B-direction-1440-C10-T2-2.png",
+    "extra": ""
+   },
+   {
+    "option": "B",
+    "task": "T2",
+    "n": 3,
+    "text": "Open a congress to see its details page: dates, city, venue and discipline.",
+    "ok": true,
+    "why": "",
+    "clicks": 1,
+    "page": "https://asset-voyages-demo.debanjan186.workers.dev/congres/congres-de-relecture-x1p2-cg-0114",
+    "role": "direction",
+    "shot": "out/shots/0065-B-direction-1440-C10-T2-3.png",
+    "extra": ""
+   },
+   {
+    "option": "B",
+    "task": "T3",
+    "n": 1,
+    "text": "On a congress details page, find « Demander un devis vol ».",
+    "ok": true,
+    "why": "",
+    "clicks": 0,
+    "page": "https://asset-voyages-demo.debanjan186.workers.dev/congres/journees-d-oncologie-digestive-cg-0112",
+    "role": "direction",
+    "shot": "out/shots/0066-B-direction-1440-C10-T3-1.png",
+    "extra": "form already open on the page (0 clicks)"
+   },
+   {
+    "option": "B",
+    "task": "T3",
+    "n": 2,
+    "text": "Enter your contact details, departure city, travel dates and number of passengers.",
+    "ok": true,
+    "why": "",
+    "clicks": 0,
+    "page": "https://asset-voyages-demo.debanjan186.workers.dev/congres/journees-d-oncologie-digestive-cg-0112",
+    "role": "direction",
+    "shot": "out/shots/0067-B-direction-1440-C10-T3-2.png",
+    "extra": ""
+   },
+   {
+    "option": "B",
+    "task": "T3",
+    "n": 3,
+    "text": "Click « Envoyer ma demande ». You receive a reference number on screen.",
+    "ok": true,
+    "why": "",
+    "clicks": 1,
+    "page": "https://asset-voyages-demo.debanjan186.workers.dev/demande/confirmation?ref=DV-2026-0007&k=-SBJreGT73heuu4jBTu4dW",
+    "role": "direction",
+    "shot": "out/shots/0068-B-direction-1440-C10-T3-3.png",
+    "extra": ""
+   },
+   {
+    "option": "B",
+    "task": "T4",
+    "n": 1,
+    "text": "Open the team console, sign in as equipe and open « Demandes ».",
+    "ok": true,
+    "why": "",
+    "clicks": 2,
+    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes",
+    "role": "equipe",
+    "shot": "out/shots/0069-B-equipe-1440-C10-T4-1.png",
+    "extra": ""
+   },
+   {
+    "option": "B",
+    "task": "T4",
+    "n": 2,
+    "text": "Open your enquiry from task 3 and change its status. Each change is kept in its history.",
+    "ok": true,
+    "why": "",
+    "clicks": 2,
+    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/7?ok=statut-qualifiee",
+    "role": "equipe",
+    "shot": "out/shots/0075-B-equipe-1440-C10-T4-2.png",
+    "extra": ""
+   },
+   {
+    "option": "B",
+    "task": "T4",
+    "n": 3,
+    "text": "Click « Exporter en CSV » to download the list as a spreadsheet file. « Journal des notifications » shows the message your team would have received.",
+    "ok": true,
+    "why": "",
+    "clicks": 3,
+    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/notifications",
+    "role": "equipe",
+    "shot": "out/shots/0076-B-equipe-1440-C10-T4-3.png",
+    "extra": "CSV demandes-2026-11-06.csv"
+   },
+   {
+    "option": "B",
+    "task": "T5",
+    "n": 1,
+    "text": "In the team console, sign in as equipe and open « Codes GM&E › Codes »: the codes are hidden. Click « Demander l’accès » and give a reason.",
+    "ok": true,
+    "why": "",
+    "clicks": 3,
+    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/gme?ok=demande",
+    "role": "equipe",
+    "shot": "out/shots/0077-B-equipe-1440-C10-T5-1.png",
+    "extra": ""
+   },
+   {
+    "option": "B",
+    "task": "T5",
+    "n": 2,
+    "text": "Sign out, sign in as direction, open « Codes GM&E › Demandes d’accès », and click « Approuver pour 24 h » or « Refuser ».",
+    "ok": true,
+    "why": "",
+    "clicks": 4,
+    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/gme/acces?ok=approuvee",
+    "role": "direction",
+    "shot": "out/shots/0078-B-direction-1440-C10-T5-2.png",
+    "extra": ""
+   },
+   {
+    "option": "B",
+    "task": "T5",
+    "n": 3,
+    "text": "Sign in as equipe again and open « Codes GM&E › Codes ». The code stays hidden until you click « Afficher le code »: that click is needed. Each display is then listed in « Journal d’accès GM&E ».",
+    "ok": false,
+    "why": "hub says « the code is shown » after signing in; the reader must still click « Afficher le code »",
+    "clicks": 4,
+    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/gme/112/afficher",
+    "role": "equipe",
+    "shot": "out/shots/0080-B-equipe-1440-C10-T5-3.png",
+    "extra": "reveal"
+   },
+   {
+    "option": "B",
+    "task": "G",
+    "n": 1,
+    "text": "Open enquiry DV-2026-0001 in the Option B console (new tab) and sign in as equipe, password demo-asset.",
+    "ok": true,
+    "why": "",
+    "clicks": 0,
+    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/1",
+    "role": "equipe",
+    "shot": "out/shots/0081-B-equipe-1440-C10-G-1.png",
+    "extra": ""
+   },
+   {
+    "option": "B",
+    "task": "G",
+    "n": 2,
+    "text": "Choose the « Groupe » tab. Three fictional travellers have already answered.",
+    "ok": true,
+    "why": "",
+    "clicks": 1,
+    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/1/groupe",
+    "role": "equipe",
+    "shot": "out/shots/0082-B-equipe-1440-C10-G-2.png",
+    "extra": ""
+   },
+   {
+    "option": "B",
+    "task": "G",
+    "n": 3,
+    "text": "Under « Lien de groupe », copy the link and open it in another tab. This is the traveller’s page.",
+    "ok": true,
+    "why": "",
+    "clicks": 1,
+    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/1/groupe",
+    "role": "equipe",
+    "shot": "out/shots/0083-B-equipe-1440-C10-G-3.png",
+    "extra": ""
+   },
+   {
+    "option": "B",
+    "task": "G",
+    "n": 4,
+    "text": "Send an answer, then go back to the « Groupe » tab: it is in the list.",
+    "ok": true,
+    "why": "",
+    "clicks": 0,
+    "page": "https://asset-voyages-demo.debanjan186.workers.dev/console/demandes/1/groupe",
+    "role": "equipe",
+    "shot": "out/shots/0086-B-equipe-1440-C10-G-4.png",
+    "extra": ""
+   }
+  ],
+  "Ahosted": [
+   {
+    "option": "A-hosted",
+    "task": "T1",
+    "n": 1,
+    "text": "Open the admin. You are already signed in.",
+    "ok": true,
+    "why": "",
+    "clicks": 0,
+    "page": "https://wpsandbox.wordpress.net/scope:zsmq-nrxp-txwa/wp-admin/admin.php?page=asset-demandes",
+    "role": "Bonjour, Direction (démo)",
+    "shot": "out/shots/0314-A-hosted-visiteur-1440-hosted-admin-first-screen.png",
+    "extra": "signed in as « Bonjour, Direction (démo) »"
+   },
+   {
+    "option": "A-hosted",
+    "task": "T1",
+    "n": 2,
+    "text": "In the left-hand menu, choose « Congrès », then « Ajouter un congrès ».",
+    "ok": true,
+    "why": "",
+    "clicks": 2,
+    "page": "https://wpsandbox.wordpress.net/scope:zsmq-nrxp-txwa/wp-admin/post-new.php?post_type=asset_congres",
+    "role": "Bonjour, Direction (démo)",
+    "shot": "out/shots/0315-A-hosted-visiteur-1440-hosted-admin-after-task-1-step-2.png",
+    "extra": ""
+   }
+  ]
+ },
+ "boots": [
+  {
+   "kind": "visitor",
+   "href": "https://playground.wordpress.net/?mode=seamless&login=no&blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-visitor.json",
+   "readySec": 15.676,
+   "samples": [
+    {
+     "sec": 1,
+     "shot": "out/shots/hosted-visitor-1s.png",
+     "bytes": 5851,
+     "visible": 1
+    },
+    {
+     "sec": 3,
+     "shot": "out/shots/hosted-visitor-3s.png",
+     "bytes": 11013,
+     "visible": 21
+    },
+    {
+     "sec": 6,
+     "shot": "out/shots/hosted-visitor-6s.png",
+     "bytes": 11997,
+     "visible": 1
+    },
+    {
+     "sec": 10,
+     "shot": "out/shots/hosted-visitor-10s.png",
+     "bytes": 11997,
+     "visible": 1
+    },
+    {
+     "sec": 15,
+     "shot": "out/shots/hosted-visitor-15s.png",
+     "bytes": 13279,
+     "visible": 1
+    }
+   ],
+   "near": "Open the visitor site and go to the congress catalogue."
+  },
+  {
+   "kind": "admin",
+   "href": "https://playground.wordpress.net/?mode=seamless&blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json",
+   "readySec": 16.635,
+   "samples": [
+    {
+     "sec": 1,
+     "shot": "out/shots/hosted-admin-1s.png",
+     "bytes": 5852,
+     "visible": 1
+    },
+    {
+     "sec": 3,
+     "shot": "out/shots/hosted-admin-3s.png",
+     "bytes": 10763,
+     "visible": 1
+    },
+    {
+     "sec": 6,
+     "shot": "out/shots/hosted-admin-6s.png",
+     "bytes": 12593,
+     "visible": 1
+    },
+    {
+     "sec": 6,
+     "shot": "out/shots/hosted-admin-6s.png",
+     "bytes": 12164,
+     "visible": 1
+    },
+    {
+     "sec": 10,
+     "shot": "out/shots/hosted-admin-10s.png",
+     "bytes": 10579,
+     "visible": 1
+    },
+    {
+     "sec": 15,
+     "shot": "out/shots/hosted-admin-15s.png",
+     "bytes": 5851,
+     "visible": 1
+    }
+   ],
+   "near": "Open the admin. You are already signed in."
+  }
+ ],
+ "claims": [
+  {
+   "fn": "1. Create and edit congresses",
+   "option": "A",
+   "cell": "Works in the demo In the standard WordPress editor, with review before publishing.",
+   "works": true,
+   "ok": true,
+   "evidence": "this run: C10 T1 functional PASS · wp_demo/README.md: S1-F1, S1-F2, S1-F3, S1-E1, S1-E2, S1-H1, S1-H2"
+  },
+  {
+   "fn": "1. Create and edit congresses",
+   "option": "B",
+   "cell": "Works in the demo In the team console, with review before publishing.",
+   "works": true,
+   "ok": true,
+   "evidence": "this run: C10 T1 functional PASS · custom_demo/README.md: `s1_congress.spec.mjs` 5/5 pass"
+  },
+  {
+   "fn": "2. Public catalogue with search, filters and details page",
+   "option": "A",
+   "cell": "Works in the demo Search, filters by discipline, country and month, a page per congress.",
+   "works": true,
+   "ok": true,
+   "evidence": "this run: C10 T2 functional PASS · wp_demo/README.md: S2-F1, S2-F2, S2-F3, S2-F4, S2-F5, S2-F6, S2-E1, S2-E2, S2-H1"
+  },
+  {
+   "fn": "2. Public catalogue with search, filters and details page",
+   "option": "B",
+   "cell": "Works in the demo Search, filters by discipline, country and month, a page per congress.",
+   "works": true,
+   "ok": true,
+   "evidence": "this run: C10 T2 functional PASS · custom_demo/README.md: `s2_catalogue.spec.mjs` 9/9 pass"
+  },
+  {
+   "fn": "3. Flight enquiry form",
+   "option": "A",
+   "cell": "Works in the demo Every field is checked before sending; you get a reference.",
+   "works": true,
+   "ok": true,
+   "evidence": "this run: C10 T3 functional PASS · wp_demo/README.md: S3-F1, S3-F2, S3-F3, S3-F4, S3-E1, S3-H1, S3-H2, S3-H3"
+  },
+  {
+   "fn": "3. Flight enquiry form",
+   "option": "B",
+   "cell": "Works in the demo Every field is checked before sending; you get a reference.",
+   "works": true,
+   "ok": true,
+   "evidence": "this run: C10 T3 functional PASS · custom_demo/README.md: `s3_enquiry.spec.mjs` 7/7 pass"
+  },
+  {
+   "fn": "4. Receive, view, track and update enquiries",
+   "option": "A",
+   "cell": "Works in the demo Statuses, history of changes, export to a spreadsheet (CSV).",
+   "works": true,
+   "ok": true,
+   "evidence": "this run: C10 T4 functional PASS · wp_demo/README.md: S4-F1, S4-F2, S4-F3, S4-F4, S4-F5, S4-F6, S4-E1, S4-H1"
+  },
+  {
+   "fn": "4. Receive, view, track and update enquiries",
+   "option": "B",
+   "cell": "Works in the demo Statuses, history of changes, export to a spreadsheet (CSV).",
+   "works": true,
+   "ok": true,
+   "evidence": "this run: C10 T4 functional PASS · custom_demo/README.md: `s4_team.spec.mjs` 7/7 pass"
+  },
+  {
+   "fn": "5. GM&E codes protected",
+   "option": "A",
+   "cell": "Works in the demo Codes hidden, access asked with a reason, 24-hour approval, a record of every display.",
+   "works": true,
+   "ok": false,
+   "evidence": "this run: C10 T5 FAIL · wp_demo/README.md: S5-F1, S5-F2, S5-F3, S5-F4, S5-F5, S5-E1, S5-H1, S5-L1, S5-L2"
+  },
+  {
+   "fn": "5. GM&E codes protected",
+   "option": "B",
+   "cell": "Works in the demo Codes hidden, access asked with a reason, 24-hour approval, a record of every display.",
+   "works": true,
+   "ok": true,
+   "evidence": "this run: C10 T5 functional PASS · custom_demo/README.md: `s5_gme.spec.mjs` 11/11 pass"
+  },
+  {
+   "fn": "Email notifications",
+   "option": "A",
+   "cell": "Built during the project The demo shows a log of the messages instead of sending them.",
+   "works": false,
+   "ok": true,
+   "evidence": "no UI label pretends it works"
+  },
+  {
+   "fn": "Email notifications",
+   "option": "B",
+   "cell": "Built during the project The demo shows a log of the messages instead of sending them.",
+   "works": false,
+   "ok": true,
+   "evidence": "no UI label pretends it works"
+  },
+  {
+   "fn": "Importing about 300 congresses from a spreadsheet in the template we supply",
+   "option": "A",
+   "cell": "Built during the project With duplicate checks and a trial run first; checking the events themselves stays with your tea",
+   "works": false,
+   "ok": true,
+   "evidence": "no UI label pretends it works"
+  },
+  {
+   "fn": "Importing about 300 congresses from a spreadsheet in the template we supply",
+   "option": "B",
+   "cell": "Built during the project With duplicate checks and a trial run first; checking the events themselves stays with your tea",
+   "works": false,
+   "ok": true,
+   "evidence": "no UI label pretends it works"
+  },
+  {
+   "fn": "English version",
+   "option": "A",
+   "cell": "Option, quoted separately A WordPress translation extension is added when the English version is ordered; the French sit",
+   "works": false,
+   "ok": true,
+   "evidence": "no UI label pretends it works"
+  },
+  {
+   "fn": "English version",
+   "option": "B",
+   "cell": "Option, quoted separately The site is prepared for two languages from the start; the English version is switched on as a",
+   "works": false,
+   "ok": true,
+   "evidence": "no UI label pretends it works"
+  },
+  {
+   "fn": "Two-step login for staff",
+   "option": "A",
+   "cell": "Built during the project A password plus a second check, for every staff account.",
+   "works": false,
+   "ok": true,
+   "evidence": "no UI label pretends it works"
+  },
+  {
+   "fn": "Two-step login for staff",
+   "option": "B",
+   "cell": "Built during the project Staff sign in with a code sent to their email.",
+   "works": false,
+   "ok": true,
+   "evidence": "no UI label pretends it works"
+  },
+  {
+   "fn": "Backups and restore",
+   "option": "A",
+   "cell": "Built during the project Regular backups, and a tested way to restore them.",
+   "works": false,
+   "ok": true,
+   "evidence": "no UI label pretends it works"
+  },
+  {
+   "fn": "Backups and restore",
+   "option": "B",
+   "cell": "Built during the project Regular backups, and a tested way to restore them.",
+   "works": false,
+   "ok": true,
+   "evidence": "no UI label pretends it works"
+  },
+  {
+   "fn": "Editing all the site’s pages",
+   "option": "A",
+   "cell": "Works in the demo The standard WordPress page editor: sign in as direction and open « Pages ». The pages listed in the s",
+   "works": true,
+   "ok": true,
+   "evidence": "this run (gate test CE-D1-PAGES): direction opens « Pages » (edit.php?post_type=page) HTTP 200 · no earlier test ID in wp_demo/README.md"
+  },
+  {
+   "fn": "Editing all the site’s pages",
+   "option": "B",
+   "cell": "Built during the project A page editor added to the team console.",
+   "works": false,
+   "ok": true,
+   "evidence": "no UI label pretends it works"
+  },
+  {
+   "fn": "Group link (#group)",
+   "option": "B",
+   "cell": "Works in the Option B demo",
+   "works": true,
+   "ok": true,
+   "evidence": "this run: G steps PASS · custom_demo/README.md extra_group.spec.mjs G-F1..G-X3 (README says « not deployed »)"
+  }
+ ],
+ "glossary": [
+  {
+   "term": "congress menu",
+   "A": [
+    "Congrès"
+   ],
+   "B": [
+    "Congrès"
+   ],
+   "hub": [
+    "Congrès"
+   ],
+   "scope": "AB"
+  },
+  {
+   "term": "add a congress",
+   "A": [
+    "Ajouter un congrès"
+   ],
+   "B": [
+    "Ajouter un congrès"
+   ],
+   "hub": [
+    "Ajouter un congrès"
+   ],
+   "scope": "AB"
+  },
+  {
+   "term": "list of congresses",
+   "A": [
+    "Tous les congrès",
+    "Congrès"
+   ],
+   "B": [
+    "Congrès"
+   ],
+   "hub": [
+    "Tous les congrès",
+    "Congrès"
+   ],
+   "scope": "AB"
+  },
+  {
+   "term": "enquiries",
+   "A": [
+    "Demandes",
+    "Toutes les demandes"
+   ],
+   "B": [
+    "Demandes",
+    "Toutes les demandes"
+   ],
+   "hub": [
+    "Demandes"
+   ],
+   "scope": "AB"
+  },
+  {
+   "term": "status new",
+   "A": [
+    "Nouvelle"
+   ],
+   "B": [
+    "Nouvelle"
+   ],
+   "hub": [
+    "Nouvelle"
+   ],
+   "scope": "AB"
+  },
+  {
+   "term": "status qualified",
+   "A": [
+    "Qualifiée"
+   ],
+   "B": [
+    "Qualifiée"
+   ],
+   "hub": [
+    "Qualifiée"
+   ],
+   "scope": "AB"
+  },
+  {
+   "term": "notification log",
+   "A": [
+    "Journal des notifications"
+   ],
+   "B": [
+    "Journal des notifications"
+   ],
+   "hub": [
+    "Journal des notifications"
+   ],
+   "scope": "AB"
+  },
+  {
+   "term": "quote form title",
+   "A": [
+    "Demander un devis vol"
+   ],
+   "B": [
+    "Demander un devis vol"
+   ],
+   "hub": [
+    "Demander un devis vol"
+   ],
+   "scope": "AB"
+  },
+  {
+   "term": "send the enquiry",
+   "A": [
+    "Envoyer ma demande"
+   ],
+   "B": [
+    "Envoyer ma demande"
+   ],
+   "hub": [
+    "Envoyer ma demande"
+   ],
+   "scope": "AB"
+  },
+  {
+   "term": "team area link",
+   "A": [
+    "Espace équipe"
+   ],
+   "B": [
+    "Espace équipe"
+   ],
+   "hub": [
+    "Espace équipe"
+   ],
+   "scope": "AB"
+  },
+  {
+   "term": "GM&E codes screen",
+   "A": [
+    "Codes GM&E",
+    "Codes"
+   ],
+   "B": [
+    "Codes GM&E",
+    "Codes"
+   ],
+   "hub": [],
+   "scope": "AB"
+  },
+  {
+   "term": "ask for access",
+   "A": [
+    "Demander l’accès"
+   ],
+   "B": [
+    "Demander l’accès"
+   ],
+   "hub": [
+    "Demander l’accès"
+   ],
+   "scope": "AB"
+  },
+  {
+   "term": "approve",
+   "A": [
+    "Approuver pour 24 h"
+   ],
+   "B": [
+    "Approuver pour 24 h"
+   ],
+   "hub": [],
+   "scope": "AB"
+  },
+  {
+   "term": "show the code",
+   "A": [
+    "Afficher le code"
+   ],
+   "B": [
+    "Afficher le code"
+   ],
+   "hub": [
+    "Afficher le code"
+   ],
+   "scope": "AB"
+  },
+  {
+   "term": "access log",
+   "A": [
+    "Journal d’accès GM&E"
+   ],
+   "B": [
+    "Journal d’accès GM&E"
+   ],
+   "hub": [
+    "Journal d’accès GM&E"
+   ],
+   "scope": "AB"
+  },
+  {
+   "term": "access requests",
+   "A": [
+    "Demandes d’accès"
+   ],
+   "B": [
+    "Demandes d’accès"
+   ],
+   "hub": [],
+   "scope": "AB"
+  },
+  {
+   "term": "CSV export",
+   "A": [
+    "Exporter en CSV"
+   ],
+   "B": [
+    "Exporter en CSV"
+   ],
+   "hub": [
+    "Exporter en CSV"
+   ],
+   "scope": "AB"
+  },
+  {
+   "term": "sign out",
+   "A": [],
+   "B": [
+    "Se déconnecter"
+   ],
+   "hub": [
+    "Se déconnecter"
+   ],
+   "scope": "AB"
+  },
+  {
+   "term": "sign in",
+   "A": [
+    "Se connecter"
+   ],
+   "B": [
+    "Se connecter"
+   ],
+   "hub": [],
+   "scope": "AB"
+  },
+  {
+   "term": "dashboard",
+   "A": [
+    "Tableau de bord"
+   ],
+   "B": [
+    "Tableau de bord"
+   ],
+   "hub": [],
+   "scope": "AB"
+  },
+  {
+   "term": "public catalogue",
+   "A": [
+    "Catalogue des congrès"
+   ],
+   "B": [
+    "Catalogue des congrès"
+   ],
+   "hub": [],
+   "scope": "AB"
+  },
+  {
+   "term": "group tab",
+   "A": [],
+   "B": [
+    "Groupe"
+   ],
+   "hub": [
+    "Groupe"
+   ],
+   "scope": "B"
+  },
+  {
+   "term": "group link card",
+   "A": [],
+   "B": [
+    "Lien de groupe"
+   ],
+   "hub": [
+    "Lien de groupe"
+   ],
+   "scope": "B"
+  },
+  {
+   "term": "group export",
+   "A": [],
+   "B": [
+    "Exporter pour cotation (CSV)"
+   ],
+   "hub": [
+    "Exporter pour cotation (CSV)"
+   ],
+   "scope": "B"
+  }
+ ],
+ "styles": {
+  "A-public": {
+   "body": [
+    "Inter"
+   ],
+   "display": [
+    "Inter"
+   ],
+   "buttons": [
+    "Inter | radius 6px"
+   ],
+   "accents": [
+    "hue 30"
+   ]
+  },
+  "A-admin": {
+   "body": [
+    "-apple-system"
+   ],
+   "display": [
+    "-apple-system"
+   ],
+   "buttons": [
+    "-apple-system | radius 2px",
+    "-apple-system | radius 0px",
+    "dashicons | radius 2px",
+    "-apple-system | radius 4px"
+   ],
+   "accents": [
+    "hue 240"
+   ]
+  },
+  "B-public": {
+   "body": [
+    "Inter"
+   ],
+   "display": [
+    "EB Garamond"
+   ],
+   "buttons": [
+    "Inter | radius 3px"
+   ],
+   "accents": [
+    "hue 30"
+   ]
+  },
+  "B-group": {
+   "body": [
+    "Inter"
+   ],
+   "display": [
+    "EB Garamond"
+   ],
+   "buttons": [
+    "Inter | radius 3px"
+   ],
+   "accents": [
+    "hue 30"
+   ]
+  },
+  "B-console": {
+   "body": [
+    "Inter"
+   ],
+   "display": [
+    "EB Garamond"
+   ],
+   "buttons": [
+    "Inter | radius 3px"
+   ],
+   "accents": [
+    "hue 30"
+   ]
+  },
+  "hub": {
+   "body": [
+    "Inter"
+   ],
+   "display": [
+    "EB Garamond"
+   ],
+   "buttons": [
+    "Inter | radius 2px",
+    "ui-monospace | radius 4px",
+    "Inter | radius 4px",
+    "Inter | radius 3px"
+   ],
+   "accents": [
+    "hue 30"
+   ]
+  }
+ },
+ "videos": [
+  {
+   "name": "wp-walkthrough",
+   "hidden": false,
+   "announced": true,
+   "type": "video/mp4",
+   "status": 200,
+   "size": 4906769,
+   "atoms": [
+    "ftyp",
+    "moov",
+    "free",
+    "mdat"
+   ],
+   "attrs": {
+    "poster": "media/wp-walkthrough.jpg",
+    "controls": true,
+    "playsinline": true,
+    "preload": "metadata",
+    "w": 354,
+    "vw": 390
+   },
+   "frames": 64
+  },
+  {
+   "name": "custom-walkthrough",
+   "hidden": false,
+   "announced": true,
+   "type": "video/mp4",
+   "status": 200,
+   "size": 5787166,
+   "atoms": [
+    "ftyp",
+    "moov",
+    "free",
+    "mdat"
+   ],
+   "attrs": {
+    "poster": "media/custom-walkthrough.jpg",
+    "controls": true,
+    "playsinline": true,
+    "preload": "metadata",
+    "w": 354,
+    "vw": 390
+   },
+   "frames": 64
+  }
+ ],
+ "midnight": {
+  "b": {
+   "at": "2026-11-06T23:05:00Z",
+   "today": "2026-11-07",
+   "parisToday": "2026-11-07",
+   "frDateTime": "07/11/2026 00:05",
+   "frNumDate": "07/11/2026"
+  }
+ },
+ "email": {
+  "urls": [
+   "https://asset-voyages-redesign.pages.dev/demo/"
+  ]
+ },
+ "notes": [
+  "hosted admin signed in as: Bonjour, Direction (démo)",
+  "D4 reveal state B equipe reveal (equipe) shows DEMO-GME-4821",
+  "D4 reveal state C10 T5.3 (equipe) shows DEMO-GME-4821",
+  "traveller phone sandbox cookie: r4DqB8SWF2mt0WrBWgrM9Yzv"
+ ]
+}

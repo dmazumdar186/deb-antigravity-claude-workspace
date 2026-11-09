@@ -1,0 +1,9 @@
+node_modules/
+.wrangler/
+.dev.vars
+*.zip
+!site/demo-wordpress/*.zip
+*.cj
+*.har
+storage_state*.json
+qa/recordings/raw_*/

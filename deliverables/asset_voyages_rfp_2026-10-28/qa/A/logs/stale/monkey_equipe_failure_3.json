@@ -1,0 +1,31 @@
+{
+  "seed": 20261105,
+  "role": "equipe",
+  "action": 154,
+  "problems": [
+    "pageerror Transition was aborted because of invalid state. ViewTransition opt-in disabled"
+  ],
+  "last20": [
+    "click A \"À propos de WordPress\" http://127.0.0.1:9404/wp-admin/about.php",
+    "resize 1033x663",
+    "type len=25 \"; DROP TABLE wp_posts;--",
+    "type len=19 Élodie Ñandú 日本語 😀",
+    "click A \"Aller à la barre d’outils\" #wp-toolbar",
+    "click A \"À propos de WordPress\" http://127.0.0.1:9404/wp-admin/about.php",
+    "click A \"À propos de WordPress\" http://127.0.0.1:9404/wp-admin/about.php",
+    "click A \"Aller au contenu principal\" #wpbody-content",
+    "click A \"À propos de WordPress\" http://127.0.0.1:9404/wp-admin/about.php",
+    "click A \"Créer\" http://127.0.0.1:9404/wp-admin/media-new.php",
+    "type len=37 =HYPERLINK(\"http://evil.example\",\"x\")",
+    "click A \"À propos de WordPress\" http://127.0.0.1:9404/wp-admin/about.php",
+    "resize 1152x774",
+    "click A \"ASSET Voyages — démonstration\" http://127.0.0.1:9404/",
+    "type len=16 ../../etc/passwd",
+    "back/forward",
+    "submit form",
+    "click A \"DV-2026-0002\" http://127.0.0.1:9404/wp-admin/admin.php?page=asset-demandes&action=view&id=19",
+    "click A \"ASSET Voyages — démonstration\" http://127.0.0.1:9404/",
+    "click A \"Forum européen des ressources humaines — exemple\" http://127.0.0.1:9404/congres/forum-europeen-des-ressources-humaines-exemple/"
+  ],
+  "url": "http://127.0.0.1:9404/congres/forum-europeen-des-ressources-humaines-exemple/"
+}

@@ -1,0 +1,155 @@
+# word<TAB>lang (fr, en or * for both)<TAB>reason. Every entry needs a reason; spell.py reports entries without one.
+# The fr/en lists of pyspellchecker are frequency lists: they lack proper nouns, abbreviations and some correct
+# inflections. Each word below was read in its context (out/b5_unknown.tsv) before being allowed.
+# --- our names and the client's
+ASSET	*	client name (ASSET Voyages)
+ProdCraft	*	our company name
+Debanjan	*	operator's first name, sender signature
+Veena	*	client contact's first name (Veena Khatri, 01_Questions_for_Veena.md)
+Khatri	*	client contact's surname
+Mme	fr	French abbreviation of Madame
+Selectour	*	the client's travel network (Selectour Affaires, advisory/src/part1.md:76)
+Timbaud	*	street name of the client's address (rue Jean-Pierre Timbaud)
+Issy-les-Moulineaux	*	town of the client's address
+Traveldoo	*	product name (client's current client-area tool, cited on /questions/)
+Wondermiles	*	product name cited in the client's brief
+# --- product and vendor names
+WordPress	*	product name
+Playground	*	product name (WordPress Playground)
+Cloudflare	*	product name (hosting network)
+Air	*	part of the airline name Air France-KLM
+KLM	*	airline name
+Events	*	part of the programme name « Global Meetings & Events » (Air France-KLM)
+Brevo	*	vendor name (e-mail service) on /questions/
+Directus	*	vendor name (CMS) on /questions/
+Gandi	*	vendor name (registrar) on /questions/
+HubSpot	*	vendor name on /questions/
+UptimeRobot	*	vendor name (monitoring) on /questions/
+LinkedIn	*	vendor name
+Google	*	vendor name
+Analytics	*	part of « Google Analytics »
+Gravatar	*	WordPress core service name (profile screen)
+XML-RPC	*	WordPress core protocol name (core settings text)
+Word	*	Microsoft Word (« fichier Word ») on /pour-asset/
+Wikimedia	*	Wikimedia Commons, photo credit on the concept page
+Commons	*	Wikimedia Commons, photo credit
+Wladyslaw	*	photographer's name in the photo credit (Paris-pano-wladyslaw.jpg)
+Sojka	*	photographer's surname in the photo credit
+Eiffel	*	Tour Eiffel (concept page photo caption)
+docx	*	file extension named on /questions/
+# --- fictional people of the demo seeds (all marked « (exemple) » and @example.com)
+Alice	fr	fictional seed person
+Benali	fr	fictional seed person (Karim Benali, Équipe ASSET)
+Bernard	fr	fictional seed person
+Bruno	fr	fictional seed person
+Camille	fr	fictional seed person
+Chloé	fr	fictional seed person
+Dubois	fr	fictional seed person
+Durand	fr	fictional seed person
+Garnier	fr	fictional seed person
+Hélène	fr	fictional seed person (Hélène Martin, Direction ASSET)
+Hugo	fr	fictional seed person
+Inès	fr	fictional seed person
+Julie	fr	fictional seed person
+Julien	fr	fictional seed person
+Karim	fr	fictional seed person
+Laurent	fr	fictional seed person
+Lefebvre	fr	fictional seed person
+Leroy	fr	fictional seed person
+Léa	fr	fictional seed person
+Martin	fr	fictional seed person
+Moreau	fr	fictional seed person
+Nathan	fr	fictional seed person
+Paul	fr	fictional seed person
+Sophie	fr	fictional seed person
+Thomas	fr	fictional seed person
+# --- places (cities and countries in the fictional catalogue; the fr list lacks proper nouns)
+Allemagne	fr	country name
+Amsterdam	fr	city name
+Berlin	fr	city name
+Bruxelles	fr	city name
+Chicago	fr	city name
+Genève	fr	city name
+Lille	fr	city name
+Lisbonne	fr	city name
+Londres	fr	city name
+Lyon	fr	city name
+Madrid	fr	city name
+Marseille	fr	city name
+Nantes	fr	city name
+Nice	fr	city name
+Toulouse	fr	city name
+Pharo	fr	Palais du Pharo, a venue name in Marseille
+# --- medical disciplines and terms (correct French; missing from the frequency list)
+Oncologie	fr	medical discipline
+Pneumologie	fr	medical discipline
+rhumatologie	fr	medical discipline
+Urologie	fr	medical discipline
+Gastro-entérologie	fr	medical discipline
+interventionnelle	fr	correct French (« radiologie interventionnelle »)
+# --- correct French words and abbreviations missing from the list
+janv	fr	month abbreviation (janv.)
+févr	fr	month abbreviation (févr.)
+avr	fr	month abbreviation (avr.)
+juil	fr	month abbreviation (juil.)
+oct	fr	month abbreviation (oct.)
+nov	fr	month abbreviation (nov.)
+déc	fr	month abbreviation (déc.)
+Réf	fr	abbreviation of « Référence »
+démo	fr	common French clipping of « démonstration », used in every demo label
+démos	fr	plural of « démo »
+e-mail	*	accepted French spelling (also « courriel »), used across both demos
+cliquez	fr	correct imperative of « cliquer »
+cliquable	fr	correct French adjective
+clics	fr	plural of « clic »
+recontacte	fr	correct form of « recontacter »
+revérifier	fr	correct French verb
+Prévisualiser	fr	WordPress French core label
+Téléverser	fr	WordPress French core label (upload)
+téléversement	fr	WordPress French core word
+Pseudo	fr	WordPress French core label
+multi-fichiers	fr	WordPress French core text
+filtrable	fr	correct French adjective
+Géolocalisation	fr	correct French noun
+Aujourd	fr	tokenizer splits « aujourd’hui » at the apostrophe
+Ariane	fr	« Fil d’Ariane » (breadcrumb label)
+admin	*	usual short form for the WordPress administration, as on the hub buttons
+web	fr	« site web », correct French
+https	*	part of a printed address
+anti-spam	fr	correct French
+PME-PMI	fr	French acronym pair
+PME-TPE	fr	French acronym pair
+multi-segments	fr	correct compound
+Stabilisation	en	project phase name used in the proposal (British/French spelling of the phase)
+# --- English words, en-GB spellings and loanwords
+authorised	en	en-GB spelling
+colours	en	en-GB spelling
+programme	en	en-GB spelling
+add-ons	en	correct English
+app	en	correct English
+fillable	en	correct English
+searchable	en	correct English
+logins	en	correct English (plural of login)
+screenshots	en	correct English
+Wireframes	en	correct English
+Approx	en	abbreviation of « approximately »
+agences	en	quoted French word in an English sentence on /questions/ (« agences »)
+brief	fr	usual loanword in French agency vocabulary (« le brief »)
+incentive	fr	MICE loanword (« voyages incentive »)
+incentives	fr	MICE loanword
+reporting	fr	usual loanword in French business vocabulary
+travel	fr	part of the English product phrase quoted in French text
+Smart	fr	part of a product name quoted on the concept page
+export	fr	correct French noun
+import	fr	correct French noun
+# --- WordPress core strings on core admin screens (not our text)
+Fresh	fr	WordPress core admin colour scheme name (profile screen)
+Bebop	fr	WordPress core help text example on the taxonomy screen
+Big	fr	WordPress core help text example (« Big Band »)
+Band	fr	WordPress core help text example (« Big Band »)
+English	fr	language name in WordPress' language selector (« English (United States) »)
+United	fr	language name in WordPress' language selector
+States	fr	language name in WordPress' language selector
+Slug	fr	WordPress French core label for the URL slug
+single-asset	fr	WordPress core body class shown in a theme-template selector (single-asset_congres): core screen
+Connexion	en	the client's own French UI label quoted in an English sentence on /questions/ (“Connexion Traveldoo”)

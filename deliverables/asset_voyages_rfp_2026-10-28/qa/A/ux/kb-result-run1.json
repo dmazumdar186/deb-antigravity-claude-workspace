@@ -1,0 +1,78 @@
+[
+ {
+  "story": "S2+S3",
+  "label": "chip Cardiologie",
+  "tabs": 12,
+  "focus": "A# Cardiologie",
+  "focusVisible": true
+ },
+ {
+  "story": "S2+S3",
+  "label": "STORY RESULT",
+  "result": "FAIL page.evaluate: Execution context was destroyed, most likely because of a navigation"
+ },
+ {
+  "story": "S1",
+  "label": "menu Congrès",
+  "tabs": 7,
+  "focus": "A# Congrès",
+  "focusVisible": true
+ },
+ {
+  "story": "S1",
+  "label": "Ajouter un congrès",
+  "tabs": 9,
+  "focus": "A# Ajouter un congrès",
+  "focusVisible": true
+ },
+ {
+  "story": "S1",
+  "label": "Date de début (from title)",
+  "tabs": 22,
+  "focus": "INPUT#asset-field-asset_start asset_meta[_asset_start]",
+  "focusVisible": true
+ },
+ {
+  "story": "S1",
+  "label": "Publier (forward)",
+  "tabs": 59,
+  "focus": "INPUT#publish Publier",
+  "focusVisible": true
+ },
+ {
+  "story": "S1",
+  "label": "STORY RESULT",
+  "result": "FAIL locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#message') to be visible\u001b[22m\n"
+ },
+ {
+  "story": "S4",
+  "label": "Dernière demande link",
+  "tabs": 31,
+  "focus": "A# DV-2026-0010 · Claire Fictive · Journées méditerranéennes d’oncolog",
+  "focusVisible": true
+ },
+ {
+  "story": "S4",
+  "label": "Statut select",
+  "tabs": 24,
+  "focus": "SELECT#asset-statut Nouvelle Qualifiée Devis envoyé Gagnée Perdue",
+  "focusVisible": true
+ },
+ {
+  "story": "S4",
+  "label": "Enregistrer",
+  "tabs": 3,
+  "focus": "INPUT#submit Enregistrer",
+  "focusVisible": true
+ },
+ {
+  "story": "S4",
+  "label": "STORY RESULT",
+  "result": "PASS"
+ },
+ {
+  "story": "S5",
+  "label": "STORY RESULT",
+  "result": "FAIL page.waitForURL: Timeout 120000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n  navigat"
+ }
+]

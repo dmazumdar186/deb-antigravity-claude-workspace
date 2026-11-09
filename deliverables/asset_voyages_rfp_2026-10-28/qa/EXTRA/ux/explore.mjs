@@ -1,0 +1,17 @@
+import { chromium, B, ctx, login } from './lib.mjs';
+const br = await chromium.launch(); const { c, p } = await ctx(br, 1440);
+await login(p, 'equipe');
+await p.goto(B + '/console/demandes');
+const links = await p.locator('a[href^="/console/demandes/"]').evaluateAll((as) => as.map((a) => a.textContent.trim() + ' ' + a.getAttribute('href')).slice(0, 20));
+console.log(links.join('\n'));
+await p.goto(B + '/console/demandes/1');
+console.log('---- detail 1\n' + (await p.locator('main').innerText()).slice(0, 2500));
+await p.goto(B + '/console/demandes/1/groupe');
+console.log('---- groupe 1\n' + (await p.locator('main').innerText()).slice(0, 3000));
+const url = await p.locator('[data-group-url]').inputValue().catch(() => '');
+console.log('URL', url);
+const { c: c2, p: q } = await ctx(br, 390);
+await q.goto(url); console.log('---- public\n' + (await q.locator('body').innerText()));
+console.log('mins', await q.locator('input[type=date]').evaluateAll((a) => a.map((x) => x.id + ' min=' + x.min + ' max=' + x.max)));
+console.log('errs', p.errs, q.errs);
+await br.close();

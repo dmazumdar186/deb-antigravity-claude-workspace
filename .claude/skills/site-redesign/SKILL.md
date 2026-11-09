@@ -24,6 +24,15 @@ Recipe with mechanics: `reference/concept_recipe.md`. Rules: `reference/build_ru
   pitch, `research/` (facts, `glm_log.md`, `live_metrics.json`, `functional.json`), `screens/`,
   `HANDOFF.md`. Live at `https://<slug>-redesign.pages.dev/` (noindex). Optional social set link.
 
+## Simplicity first (2026-11-09, overrides anything below that conflicts)
+Lost ASSET Voyages to one plain WordPress site while we shipped two platforms and a test-plan hub (`deliverables/asset_voyages_rfp_2026-10-28/30_Postmortem_Lost_to_voyagedemo.md`). Rules (`docs/reference/simplicity_rules.md`):
+1. Build exactly what the client asked, in the platform they named; alternatives go in the proposal.
+2. Show their real future site with their journeys inside, on a real neutral domain; never a feature lab or a "how to test" hub.
+3. One link, instant load, no instructions, no in-browser boot, no login juggling.
+4. Harden to the stage: demo = credible and safe with fictional data; production hardening belongs to the build.
+5. Red-team outward text on substance only, max 2 rounds.
+6. Ship the simple version first; add the prospectus extras below only if time remains.
+
 ## The standard (non-negotiable)
 Build a **prospectus / concept-art renderer**, every element below present:
 - **(a) Cover** — pinned, scroll-scrubbed (`400svh` desktop / `250svh` mobile), 3–5 verbatim fact
@@ -49,13 +58,21 @@ bolted beside a headline; stock photos; text wordmarks; emoji icons; third-party
    site:`, Wikipedia, press), download real logo + photos, collect verbatim facts and
    contradictions, run `measure_live.mjs <url>`, one sector best-practice search. Pick the signature
    object and the 3–5 cover beats. Read `reference/build_rules.md`.
+   **Hallmark plan**: read `.claude/skills/hallmark/SKILL.md` § The Floor (+ its workspace overrides),
+   pick one macrostructure (`references/macrostructures.md`, load only the picked file) and a
+   direction (`theme.mjs deal`, or `direction.md` for custom); the standard below wins on conflict.
+   Picks go into the brief's Hallmark section.
 2. **Brief + build** (one worker, `reference/worker_brief_template.md`, complete brief): worker runs
    `gen_backdrop.py` → reviews the module → builds site + pitch → `render_hero_video.mjs` → adapts
-   `functional_template.mjs` → `site_check.mjs` → screens. Budget index+css+js ≤ 150 KB,
+   `functional_template.mjs` → `site_check.mjs` → `hallmark_gate.mjs` → screens. Budget index+css+js ≤ 150 KB,
    backdrop ≤ 12 KB, zero third-party JS.
 3. **Pitch page** `for-<name>/`: what it is, Today/Concept table (6 rows incl. measured heights),
    what does not exist yet, next, signature "Debanjan, Founder, ProdCraft, debanjan@prodcraft.fyi".
-4. **Two mandatory eye-review rounds**: a reviewer agent (Opus, `omitClaudeMd`) Reads every PNG in
+4. **Hallmark gate** before each review round and before deploy:
+   `node .claude/skills/site-redesign/scripts/hallmark_gate.mjs <abs>/site <abs>/HANDOFF.md` exit 0.
+   Any FAIL blocks deploy; every REFLEX is fixed or waived on the record (`hallmark-waive: <gate> —
+   <reason>` in HANDOFF). Only the (d) small caps may excuse a Floor gate: `hallmark-house: 54|67`.
+   **Two mandatory eye-review rounds**: a reviewer agent (Opus, `omitClaudeMd`) Reads every PNG in
    `screens/` against the checklist in `concept_recipe.md` and returns SHIP or a numbered defect
    list. Fix every item, re-screenshot, round 2. **Ship only on SHIP.** Images never enter the brain.
 5. **Deploy**: `bash scripts/deploy.sh <site-dir> <slug>-redesign for-<name>/`. Sandbox Chromium
@@ -73,7 +90,7 @@ bolted beside a headline; stock photos; text wordmarks; emoji icons; third-party
 | Judgement (brief, verdicts, handoff) | Fable 5.1 (session) |
 | Build worker | Opus 5.5, effort low |
 | Eye reviewer | Opus 5.5, reads PNGs, returns text only |
-| Gates | `scripts/site_check.mjs`, `scripts/functional_template.mjs`, `scripts/measure_live.mjs` |
+| Gates | `scripts/site_check.mjs`, `scripts/functional_template.mjs`, `scripts/measure_live.mjs`, `scripts/hallmark_gate.mjs` (vendored Hallmark sloplint) |
 
 ## Feedback loop
 Operator feedback → reproduce under emulation (Pixel 7 / iPhone 13) before touching code → root
@@ -81,5 +98,5 @@ cause → fix → functional + site_check + one reviewer round → redeploy → 
 → new rule in `reference/build_rules.md`. A rejected concept is rebuilt from the recipe, not patched.
 
 ## Related
-`/human-eye-test` (full release gate) · `/impeccable` (polish) · `directives/gtm_client_workflows/
+`/human-eye-test` (full release gate) · `/hallmark` (Floor, macrostructures, sloplint) · `/impeccable` (polish) · `directives/gtm_client_workflows/
 site_redesign_concepts.md` (SOP) · `design-website` (superseded; bulk Sheet runs only).

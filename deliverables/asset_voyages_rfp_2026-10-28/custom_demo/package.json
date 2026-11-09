@@ -1,0 +1,14 @@
+{
+  "name": "asset-voyages-demo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --local --port 8787 --test-scheduled",
+    "dev:lockout": "wrangler dev --local --port 8788 --var ACCOUNT_LOCKOUT:on --persist-to .wrangler/state-lockout",
+    "deploy": "wrangler deploy",
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "wrangler": "^4"
+  }
+}

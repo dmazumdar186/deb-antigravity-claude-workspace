@@ -1,0 +1,189 @@
+{
+ "axe": [
+  {
+   "W": 390,
+   "screen": "staff-detail-nolink",
+   "ok": true,
+   "violations": 0,
+   "passes": 42,
+   "incomplete": []
+  },
+  {
+   "W": 390,
+   "screen": "staff-groupe-created-empty",
+   "ok": true,
+   "violations": 0,
+   "passes": 38,
+   "incomplete": []
+  },
+  {
+   "W": 390,
+   "screen": "staff-detail-withlink",
+   "ok": true,
+   "violations": 0,
+   "passes": 42,
+   "incomplete": []
+  },
+  {
+   "W": 390,
+   "screen": "public-form",
+   "ok": true,
+   "violations": 0,
+   "passes": 38,
+   "incomplete": []
+  },
+  {
+   "W": 390,
+   "screen": "public-form-errors",
+   "ok": true,
+   "violations": 0,
+   "passes": 43,
+   "incomplete": []
+  },
+  {
+   "W": 390,
+   "screen": "public-confirmation",
+   "ok": true,
+   "violations": 0,
+   "passes": 26,
+   "incomplete": []
+  },
+  {
+   "W": 390,
+   "screen": "public-confirmation-pending",
+   "ok": true,
+   "violations": 0,
+   "passes": 26,
+   "incomplete": []
+  },
+  {
+   "W": 390,
+   "screen": "staff-groupe-pending",
+   "ok": true,
+   "violations": 0,
+   "passes": 45,
+   "incomplete": []
+  },
+  {
+   "W": 390,
+   "screen": "staff-groupe-hint",
+   "ok": true,
+   "violations": 0,
+   "passes": 45,
+   "incomplete": []
+  },
+  {
+   "W": 390,
+   "screen": "staff-groupe-seed",
+   "ok": true,
+   "violations": 0,
+   "passes": 43,
+   "incomplete": []
+  },
+  {
+   "W": 390,
+   "screen": "public-seed-form",
+   "ok": true,
+   "violations": 0,
+   "passes": 38,
+   "incomplete": []
+  },
+  {
+   "W": 390,
+   "screen": "public-unknown",
+   "ok": true,
+   "violations": 0,
+   "passes": 24,
+   "incomplete": []
+  },
+  {
+   "W": 390,
+   "screen": "staff-groupe-revoked",
+   "ok": true,
+   "violations": 0,
+   "passes": 45,
+   "incomplete": []
+  },
+  {
+   "W": 390,
+   "screen": "public-revoked",
+   "ok": true,
+   "violations": 0,
+   "passes": 24,
+   "incomplete": []
+  }
+ ],
+ "shots": [
+  "staff-detail-nolink",
+  "staff-groupe-created-empty",
+  "staff-detail-withlink",
+  "public-form",
+  "public-form-errors",
+  "public-confirmation",
+  "public-confirmation-pending",
+  "staff-groupe-pending",
+  "staff-groupe-hint",
+  "staff-groupe-seed",
+  "public-seed-form",
+  "public-unknown",
+  "staff-groupe-revoked",
+  "public-revoked"
+ ],
+ "text": {
+  "public-form": {
+   "forbidden": null,
+   "lang": "fr",
+   "title": "Voyage de groupe : Journées françaises de diabétologie — exemple | ASSET Voyages"
+  },
+  "public-form-errors": {
+   "forbidden": null,
+   "lang": "fr",
+   "title": "Voyage de groupe : Journées françaises de diabétologie — exemple | ASSET Voyages"
+  },
+  "public-confirmation": {
+   "forbidden": null,
+   "lang": "fr",
+   "title": "Informations enregistrées | ASSET Voyages"
+  },
+  "public-confirmation-pending": {
+   "forbidden": null,
+   "lang": "fr",
+   "title": "Informations enregistrées | ASSET Voyages"
+  },
+  "public-seed-form": {
+   "forbidden": null,
+   "lang": "fr",
+   "title": "Voyage de groupe : Journées d’oncologie digestive — exemple | ASSET Voyages"
+  },
+  "public-unknown": {
+   "forbidden": null,
+   "lang": "fr",
+   "title": "Lien introuvable | ASSET Voyages"
+  },
+  "public-revoked": {
+   "forbidden": null,
+   "lang": "fr",
+   "title": "Ce lien n’est plus actif | ASSET Voyages"
+  }
+ },
+ "errs": {
+  "s": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)",
+   "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "d1": [
+   "Failed to load resource: the server responded with a status of 410 (Gone)"
+  ],
+  "d2": [],
+  "d3": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ]
+ },
+ "s5": [],
+ "rs": [
+  "reset ok",
+  "reset ok",
+  "reset ok",
+  "reset ok"
+ ]
+}

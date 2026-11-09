@@ -1,0 +1,8 @@
+desktop1440 / {"profile":"desktop1440","page":"/","ttfb_ms":485,"lcp_ms":1032,"cls":0,"weight_kb":127,"requests":5}
+desktop1440 /?discipline=Cardiologie {"profile":"desktop1440","page":"/?discipline=Cardiologie","ttfb_ms":526,"lcp_ms":904,"cls":0,"weight_kb":123,"requests":5}
+desktop1440 /congres/congres-europeen-de-cardiologie-cg-0101 {"profile":"desktop1440","page":"/congres/congres-europeen-de-cardiologie-cg-0101","ttfb_ms":236,"lcp_ms":700,"cls":0,"weight_kb":124,"requests":5}
+pixel7_slow4g / {"profile":"pixel7_slow4g","page":"/","ttfb_ms":497,"lcp_ms":1144,"cls":0.0009,"weight_kb":127,"requests":5}
+pixel7_slow4g /?discipline=Cardiologie {"profile":"pixel7_slow4g","page":"/?discipline=Cardiologie","ttfb_ms":465,"lcp_ms":1188,"cls":0,"weight_kb":123,"requests":5}
+pixel7_slow4g /congres/congres-europeen-de-cardiologie-cg-0101 {"profile":"pixel7_slow4g","page":"/congres/congres-europeen-de-cardiologie-cg-0101","ttfb_ms":320,"lcp_ms":968,"cls":0,"weight_kb":124,"requests":5}
+concurrent {"n":30,"p50_ms":263,"p95_ms":302,"max_ms":314,"codes":{"200":30},"wall_ms":369}
+console {"/console":{"status":200,"median_ms":305,"max_ms":315},"/console/demandes":{"status":200,"median_ms":162,"max_ms":274},"/console/congres":{"status":200,"median_ms":136,"max_ms":152},"/console/gme":{"status":200,"median_ms":531,"max_ms":554}}

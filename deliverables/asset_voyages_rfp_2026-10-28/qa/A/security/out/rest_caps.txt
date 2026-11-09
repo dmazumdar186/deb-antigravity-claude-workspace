@@ -1,0 +1,33 @@
+== contributeur restnonce=6bb0...
+id 4 roles ['asset_contributeur']
+['asset_contributeur', 'assign_asset_congres_terms', 'delete_asset_congress', 'edit_asset_congress', 'read']
+-- REST publish:
+{"code":"rest_cannot_publish","message":"D\u00e9sol\u00e9, vous n\u2019avez pas l\u2019autorisation de publier des articles avec ce type de publication.","data":{"status":403}}
+-- REST pending:
+40 pending None alert(1)ok
+-- REST self-promote:
+{"code":"rest_cannot_edit_roles","message":"D\u00e9sol\u00e9, vous n\u2019avez pas l\u2019autorisation de modifier le r\u00f4le de ce compte.","data":{"status":403}}
+-- REST create user:
+{"code":"rest_cannot_create_user","message":"D\u00e9sol\u00e9, vous n\u2019avez pas l\u2019autorisation de cr\u00e9er de nouveaux comptes.","data":{"status":403}}
+== equipe restnonce=0398...
+id 3 roles ['asset_equipe']
+['asset_equipe', 'asset_manage_demandes', 'asset_view_gme', 'assign_asset_congres_terms', 'delete_asset_congress', 'delete_others_asset_congress', 'delete_private_asset_congress', 'delete_published_asset_congress', 'edit_asset_congress', 'edit_others_asset_congress', 'edit_private_asset_congress', 'edit_published_asset_congress', 'manage_asset_congres_terms', 'publish_asset_congress', 'read', 'read_private_asset_congress', 'upload_files']
+-- REST publish:
+{"id":42,"date":"2026-11-05T20:55:26","date_gmt":"2026-11-05T20:55:26","guid":{"rendered":"http:\/\/127.0.0.1:9400\/congres\/sec-probe-equipe-exemple\/","raw":"http:\/\/127.0.0.1:9400\/congres\/sec-probe-equipe-exemple\/"},"modified":"2026-11-05T20:55:26","modified_gmt":"2026-11-05T20:55:26","passwo
+-- REST pending:
+43 pending None alert(1)ok
+-- REST self-promote:
+{"code":"rest_cannot_edit_roles","message":"D\u00e9sol\u00e9, vous n\u2019avez pas l\u2019autorisation de modifier le r\u00f4le de ce compte.","data":{"status":403}}
+-- REST create user:
+{"code":"rest_cannot_create_user","message":"D\u00e9sol\u00e9, vous n\u2019avez pas l\u2019autorisation de cr\u00e9er de nouveaux comptes.","data":{"status":403}}
+== direction restnonce=f3ca...
+id 2 roles ['asset_direction']
+['asset_direction', 'asset_manage_demandes', 'asset_manage_gme', 'asset_view_gme', 'assign_asset_congres_terms', 'delete_asset_congress', 'delete_others_asset_congress', 'delete_private_asset_congress', 'delete_published_asset_congress', 'edit_asset_congress', 'edit_others_asset_congress', 'edit_private_asset_congress', 'edit_published_asset_congress', 'manage_asset_congres_terms', 'publish_asset_congress', 'read', 'read_private_asset_congress', 'upload_files']
+-- REST publish:
+{"id":46,"date":"2026-11-05T20:55:34","date_gmt":"2026-11-05T20:55:34","guid":{"rendered":"http:\/\/127.0.0.1:9400\/congres\/sec-probe-direction-exemple\/","raw":"http:\/\/127.0.0.1:9400\/congres\/sec-probe-direction-exemple\/"},"modified":"2026-11-05T20:55:34","modified_gmt":"2026-11-05T20:55:34","
+-- REST pending:
+47 pending None alert(1)ok
+-- REST self-promote:
+{"code":"rest_cannot_edit_roles","message":"D\u00e9sol\u00e9, vous n\u2019avez pas l\u2019autorisation de modifier le r\u00f4le de ce compte.","data":{"status":403}}
+-- REST create user:
+{"code":"rest_cannot_create_user","message":"D\u00e9sol\u00e9, vous n\u2019avez pas l\u2019autorisation de cr\u00e9er de nouveaux comptes.","data":{"status":403}}

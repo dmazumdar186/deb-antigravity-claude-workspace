@@ -1,0 +1,539 @@
+{
+ "_doc": "Triage of the client-eye gate findings (run 2026-11-06). Rules are matched in order on check (+ option) and a regex over « text || note || element || pages ». REAL = a defect in our product or our text. FALSE-POSITIVE = the rule was wrong; the reason names the tightening made in the gate code. UNVERIFIED = could not be decided from this environment (listed under « could not check »). « ce » groups findings that are one defect.",
+ "rules": [
+  {
+   "check": "D1",
+   "option": "A",
+   "match": "GM&E codes protected",
+   "status": "REAL",
+   "ce": "CE-C10-R2-001",
+   "reason": "R2: same defect as CE-C10-R2-001 (C10 T5 fails on A), shown in the hub comparison table."
+  },
+  {
+   "check": "C4",
+   "option": "A",
+   "match": "CLS",
+   "status": "FALSE-POSITIVE",
+   "ce": "CE-C4-001",
+   "reason": "R2: every remaining shift is WordPress core (media-new, post-new for pages and congresses); the plugin screens (Demandes detail, Accès GM&E) no longer shift. Known and out of our control, accepted by the operator."
+  },
+  {
+   "check": "B5",
+   "option": "A",
+   "match": "autrice",
+   "status": "FALSE-POSITIVE",
+   "reason": "R2: « Auteur/autrice » is WordPress core's French column heading (inclusive spelling), a valid word."
+  },
+  {
+   "check": "B5",
+   "option": "A",
+   "match": "Reconnectez-vous",
+   "status": "FALSE-POSITIVE",
+   "reason": "R2: « Reconnectez-vous » is correct French (imperative with hyphen); the spell list lacks the verb form. This is the new « Votre session a expiré » message."
+  },
+  {
+   "check": "B5",
+   "option": "A",
+   "match": "^(Policy|Privacy) ",
+   "status": "REAL",
+   "ce": "CE-B5-R2-001",
+   "reason": "R2 NEW: the Pages list (now open to Direction) shows WordPress's default draft page in English, « Privacy Policy — Brouillon », inside a French screen. Seed or retitle it in the blueprint."
+  },
+  {
+   "check": "D3",
+   "option": "HUB",
+   "match": "^one ",
+   "status": "FALSE-POSITIVE",
+   "reason": "R2: « one » is a pronoun (« each time you open one of these links »), not a number."
+  },
+  {
+   "check": "D3",
+   "option": "HUB",
+   "match": "^24 ",
+   "status": "FALSE-POSITIVE",
+   "reason": "R2: « 24 hours without use » is traced: the nightly purge keys on sandboxes.last_seen (custom_demo/src/data.js:14), and C7 passes on the idle rule."
+  },
+  {
+   "check": "D3",
+   "option": "HUB",
+   "match": "^3 to 5 ",
+   "status": "REAL",
+   "ce": "CE-D3-R2-001",
+   "reason": "R2 NEW: « a slot within 3 to 5 working days of your notice » (site/demo/index.html:499) is a time promise with no source line in the repository. Trace it or remove the figure."
+  },
+  {
+   "check": "C10",
+   "option": "B",
+   "match": "T5 step 3",
+   "status": "FALSE-POSITIVE",
+   "ce": "CE-C10-003",
+   "reason": "R2: the hub now says « the code stays hidden until you click « Afficher le code »: that click is needed », so the click is documented. The gate rule was stale and is tightened (it flags only when the hub step does not name the label)."
+  },
+  {
+   "check": "C10",
+   "option": "A",
+   "match": "label « Codes » not visible",
+   "status": "REAL",
+   "reason": "R2 NEW (verified on shot 0077): hub A task 5 steps 1 and 3 say « Codes GM&E › Codes », but Équipe's WordPress menu shows only « Codes GM&E » (WordPress hides a one-item submenu), so there is no « Codes » item to open. Reword the hub for A, or add a second visible sub-item.",
+   "ce": "CE-C10-R2-001"
+  },
+  {
+   "check": "A2",
+   "option": "A-hosted",
+   "match": "not ready after|never showed",
+   "status": "UNVERIFIED",
+   "ce": "CE-A2-001",
+   "reason": "The one hosted boot of the admin link stayed on « Preparing WordPress » at 50 % for 120 s (shots hosted-admin-*.png); the visitor link, same blueprint steps minus « login », was ready in 15.7 s. One boot per link (brief) cannot tell a stall from this sandbox's network. Needs one human boot of the admin link."
+  },
+  {
+   "check": "A4",
+   "option": "HUB",
+   "match": "sft\\.fr",
+   "status": "UNVERIFIED",
+   "ce": "CE-A4-001",
+   "reason": "sft.fr answers 403 to scripted clients and to a real Chromium tab from this sandbox (a browser user-agent probe was refused by the auto-mode classifier). Needs one click from an ordinary browser."
+  },
+  {
+   "check": "A4",
+   "option": "A",
+   "match": "example\\.com",
+   "status": "REAL",
+   "ce": "CE-A4-002",
+   "reason": "Every congress page links « Site officiel » to https://example.com/congres/cg-0xxx, which answers 404: a reader who clicks it lands on an error page."
+  },
+  {
+   "check": "A4",
+   "option": "B",
+   "match": "example\\.org",
+   "status": "REAL",
+   "ce": "CE-A4-003",
+   "reason": "Every congress page links « Site officiel » to https://www.example.org/…, which answers 404: a reader who clicks it lands on an error page."
+  },
+  {
+   "check": "B2",
+   "option": "A",
+   "match": "class-demandes-admin\\.php",
+   "status": "REAL",
+   "ce": "CE-B2-001",
+   "reason": "The CSV download name uses gmdate('Ymd') (UTC): an export made between 00:00 and 01:00 Paris is named with yesterday's date."
+  },
+  {
+   "check": "B2",
+   "option": "B",
+   "match": "custom_demo/src/",
+   "status": "REAL",
+   "ce": "CE-B2-002",
+   "reason": "B decides « today » with UTC today() in the catalogue past filter, the public fare notice, enquiry and traveller date validation, the ended-congress 404, group link state and both CSV file names; the 00:05 Paris probe shows today()=06/11 while Paris is 07/11. parisToday() exists and is used elsewhere."
+  },
+  {
+   "check": "B4",
+   "option": "A",
+   "match": "mid-word",
+   "status": "REAL",
+   "ce": "CE-B4-005",
+   "reason": "A word is split across two lines without a hyphen (« d’ophtalmologie » in the Demandes table at 1280)."
+  },
+  {
+   "check": "B4",
+   "option": "A",
+   "match": "orphan-dash",
+   "status": "REAL",
+   "ce": "CE-B4-004",
+   "reason": "Congress titles in A use an ordinary space before « — exemple », so « — exemple » wraps alone onto the next line (catalogue, congress page, admin lists, at every width). B fixed this with non-breaking spaces."
+  },
+  {
+   "check": "B4",
+   "option": "B",
+   "match": "line-starts-with",
+   "status": "REAL",
+   "ce": "CE-B4-006",
+   "reason": "The « Lien de groupe » card text « … aux 6 participants : chacun … » has an ordinary space before « : », which starts a line at 390."
+  },
+  {
+   "check": "B4",
+   "option": "HUB",
+   "match": "orphan-dash",
+   "status": "REAL",
+   "ce": "CE-B4-002",
+   "reason": "Concept pages (/ and /console/) show sample titles whose « — exemple » wraps alone onto the next line at 320–768."
+  },
+  {
+   "check": "B4",
+   "option": "HUB",
+   "match": "questions/",
+   "status": "REAL",
+   "ce": "CE-B4-003",
+   "reason": "« Précisions » is quoted with ordinary spaces on /questions/: « or » end/start a line at 320 and 768."
+  },
+  {
+   "check": "B4",
+   "option": "HUB",
+   "match": "pour-asset/",
+   "status": "REAL",
+   "ce": "CE-B4-001",
+   "reason": "The French note for ASSET uses ordinary spaces inside « » and before ; and :, so « ends lines and » ; : start lines (e.g. « la carte « Voyages d’affaires » », « © 2026 »), at all six widths. Source site/pour-asset/index.html uses U+0020 there."
+  },
+  {
+   "check": "B6",
+   "option": "A",
+   "match": "sign out",
+   "status": "FALSE-POSITIVE",
+   "reason": "WordPress shows « Se déconnecter » only in the account menu that opens on hover; the inventory records what is visible without hovering. The C10 replay hovered and clicked it (T5.2). Not tightened: the inventory stays « visible without interaction », the term is checked by C10."
+  },
+  {
+   "check": "B6",
+   "option": "A+B",
+   "match": "add a congress",
+   "status": "REAL",
+   "ce": "CE-B6-001",
+   "reason": "A says « Ajouter un congrès », B « Nouveau congrès »."
+  },
+  {
+   "check": "B6",
+   "option": "A+B",
+   "match": "notification log",
+   "status": "REAL",
+   "ce": "CE-B6-002",
+   "reason": "A says « Journal des notifications » (the hub quotes it), B « Notifications »."
+  },
+  {
+   "check": "B6",
+   "option": "A+B",
+   "match": "quote form title",
+   "status": "REAL",
+   "ce": "CE-B6-003",
+   "reason": "A heads the form « Demander un devis vol » (the hub quotes it), B « Demande de devis vol »."
+  },
+  {
+   "check": "B6",
+   "option": "A+B",
+   "match": "send the enquiry",
+   "status": "REAL",
+   "ce": "CE-B6-004",
+   "reason": "A « Envoyer ma demande », B « Envoyer la demande »."
+  },
+  {
+   "check": "B6",
+   "option": "A+B",
+   "match": "approve:",
+   "status": "REAL",
+   "ce": "CE-B6-005",
+   "reason": "A « Approuver (24 h) », B « Approuver pour 24 h »."
+  },
+  {
+   "check": "B6",
+   "option": "A+B",
+   "match": "show the code",
+   "status": "REAL",
+   "ce": "CE-B6-006",
+   "reason": "A « Révéler le code », B « Afficher le code »."
+  },
+  {
+   "check": "B6",
+   "option": "A+B",
+   "match": "access log",
+   "status": "REAL",
+   "ce": "CE-B6-007",
+   "reason": "A « Journal GM&E », B « Journal » (menu) / « Journal d’accès »."
+  },
+  {
+   "check": "B6",
+   "option": "A+B",
+   "match": "CSV export",
+   "status": "REAL",
+   "ce": "CE-B6-008",
+   "reason": "A « Exporter en CSV », B « Exporter (tableur CSV) »."
+  },
+  {
+   "check": "B6",
+   "option": "A+B",
+   "match": "GM&E codes screen",
+   "status": "REAL",
+   "ce": "CE-B6-009",
+   "reason": "A « Accès GM&E », B « Codes » under the heading « Codes GM&E » (the hub quotes « Codes GM&E »)."
+  },
+  {
+   "check": "B6",
+   "option": "B",
+   "match": "« Codes GM&E »",
+   "status": "REAL",
+   "ce": "CE-C10-002",
+   "reason": "Same defect as CE-C10-002: the hub tells the reader to open « Codes GM&E », the clickable menu label is « Codes »."
+  },
+  {
+   "check": "B6",
+   "option": "B",
+   "match": "répondus / attendus",
+   "status": "FALSE-POSITIVE",
+   "reason": "The hub quotes the counter's shape « répondus / attendus », not a label; the UI shows « 3 répondus / 6 attendus ». Tightened in the glossary check: a quote that is a counter pattern is matched as a substring (not done in code; recorded here)."
+  },
+  {
+   "check": "C1",
+   "option": "A",
+   "match": "edit\\.php\\?post_type=page",
+   "status": "REAL",
+   "ce": "CE-D1-001",
+   "reason": "Same defect as CE-D1-001: the role the hub's admin link signs in as is refused the Pages screen (403)."
+  },
+  {
+   "check": "C1",
+   "option": "A",
+   "match": "wp-compression-test",
+   "status": "REAL",
+   "ce": "CE-C1-001",
+   "reason": "WordPress core's admin-ajax « wp-compression-test » answers 400 in Playground, logging console errors on admin pages. Invisible to a reader, but the rule is zero console errors; platform-level, check again on real hosting."
+  },
+  {
+   "check": "C2",
+   "option": "A",
+   "match": "Monter|Descendre",
+   "status": "FALSE-POSITIVE",
+   "reason": "The dashboard widget's « Monter » is aria-disabled (first widget): the reader is told it is unavailable. Tightened: C2 now skips disabled / aria-disabled buttons."
+  },
+  {
+   "check": "C3",
+   "option": "A",
+   "match": "titlediv",
+   "status": "FALSE-POSITIVE",
+   "reason": "WordPress core's #titlediv .inside (it later holds the permalink line) is empty on a new congress: 25 px of blank space with no border or background, not a visible empty box. Tightened: C3 only flags empty containers that have a border, a background or a shadow."
+  },
+  {
+   "check": "C5",
+   "option": "A-admin",
+   "match": "button style",
+   "status": "FALSE-POSITIVE",
+   "reason": "The extra families are WordPress core chrome (« Options de l’écran » tab, login page), not our buttons. Kept visible in the report; the plugin's own buttons are one family."
+  },
+  {
+   "check": "C5",
+   "option": "B-console",
+   "match": "display font",
+   "status": "REAL",
+   "ce": "CE-C5-002",
+   "reason": "The console login page sets its heading in EB Garamond, every other console screen in Inter."
+  },
+  {
+   "check": "C5",
+   "option": "hub",
+   "match": "button style",
+   "status": "REAL",
+   "ce": "CE-C5-001",
+   "reason": "Buttons on the concept pages (/ and /console/) are uppercase monospace, on the demos hub Inter sentence case: the five pages linked from the hub do not share one button style."
+  },
+  {
+   "check": "C5",
+   "option": "A-public",
+   "match": "accent",
+   "status": "REAL",
+   "ce": "CE-C5-003",
+   "reason": "Option A's public site uses two accent hues (orange buttons, blue links)."
+  },
+  {
+   "check": "C7",
+   "option": "HUB",
+   "match": "private",
+   "status": "REAL",
+   "ce": "CE-C7-001",
+   "reason": "The hub never says that each person's trial is private to their browser (B's own login page does)."
+  },
+  {
+   "check": "C7",
+   "option": "HUB",
+   "match": "24 h",
+   "status": "REAL",
+   "ce": "CE-C7-002",
+   "reason": "The hub says the sandboxes « reset themselves » but not when (B: nightly purge of trials older than 24 h; A: on reload)."
+  },
+  {
+   "check": "C7",
+   "option": "A",
+   "match": "Session expirée",
+   "status": "REAL",
+   "ce": "CE-C7-003",
+   "reason": "When the WordPress session ends, the reader is sent to wp-login.php?reauth=1 with no message saying the session expired."
+  },
+  {
+   "check": "C7",
+   "option": "B",
+   "match": "open tab",
+   "status": "REAL",
+   "ce": "CE-C7-004",
+   "reason": "A form sent from an open tab after the session ended shows « Session requise »: it does not say the session expired, and the note typed is lost."
+  },
+  {
+   "check": "C7",
+   "option": "B",
+   "match": "sent to the login page",
+   "status": "REAL",
+   "ce": "CE-C7-005",
+   "reason": "After the session ends, the next click lands on the login page with no « Session expirée » message."
+  },
+  {
+   "check": "C7",
+   "option": "B",
+   "match": "purge",
+   "status": "REAL",
+   "ce": "CE-C7-006",
+   "reason": "The 03:00 UTC purge deletes sandboxes CREATED more than 24 h ago (data.js nightly, created_at < cutoff), so a trial in use at 03:00 that began the previous day is wiped mid-session. The rule is « idle for more than 24 h »."
+  },
+  {
+   "check": "C9",
+   "option": "A",
+   "match": "Test de lecture",
+   "status": "FALSE-POSITIVE",
+   "reason": "Residue of this QA's own debug script on the local server (port 9437), not seed data. Not a rule issue: the final A run uses a fresh database (port 9439)."
+  },
+  {
+   "check": "C10",
+   "option": "A",
+   "match": "T5 step 3",
+   "status": "REAL",
+   "ce": "CE-C10-001",
+   "reason": "Hub A task 5 step 3 says « the code is shown »; the reader must still click « Révéler le code » (one extra click the hub does not mention)."
+  },
+  {
+   "check": "C10",
+   "option": "B",
+   "match": "T5 step 1",
+   "status": "REAL",
+   "ce": "CE-C10-002",
+   "reason": "Hub B task 5 says open « Codes GM&E »; in the console that text is a non-clickable group heading, the link under it says « Codes »."
+  },
+  {
+   "check": "D1",
+   "option": "A",
+   "match": "Editing all the site",
+   "status": "REAL",
+   "ce": "CE-D1-001",
+   "reason": "The hub marks « Editing all the site’s pages » as « Works in the demo » for A, and says the admin link signs in as « direction »; direction gets 403 on Pages (edit.php?post_type=page)."
+  },
+  {
+   "check": "D2",
+   "option": "B",
+   "match": "prenom\\.nom@societe\\.fr",
+   "status": "REAL",
+   "ce": "CE-D2-006",
+   "reason": "The e-mail error message gives « prenom.nom@societe.fr » as the example: societe.fr is a real domain; use @example.com like the rest of the demo."
+  },
+  {
+   "check": "D2",
+   "option": "B",
+   "match": "phone",
+   "status": "REAL",
+   "ce": "CE-D2-005",
+   "reason": "Seeded phones 01 23 45 67 01–06 are ordinary assignable Paris numbers, not in the ARCEP fiction range (01 99 00 xx xx) and not masked; they show in enquiries and the notification log."
+  },
+  {
+   "check": "D2",
+   "option": "HUB",
+   "match": "phone",
+   "status": "REAL",
+   "ce": "CE-D2-004",
+   "reason": "The concept page shows ASSET's phone 01 55 57 29 00; the address is traced (advisory/src/part1.md:76, RFP letterhead) but the phone is not traced to any source in the repository. Trace or remove."
+  },
+  {
+   "check": "D2",
+   "option": "HUB",
+   "match": "real congress",
+   "status": "REAL",
+   "ce": "CE-D2-001",
+   "reason": "Concept pages list « Congrès européen de radiologie — exemple » (the French name of ECR, Vienna, late February: the real congress) and « Congrès mondial de neurologie » (WCN). « — exemple » does not make the name fictional."
+  },
+  {
+   "check": "D2",
+   "option": "A",
+   "match": "real congress",
+   "status": "REAL",
+   "ce": "CE-D2-002",
+   "reason": "A's seed has « Congrès européen de radiologie — exemple » in Vienna 24–28 Feb 2027: the real ECR's French name, city and season."
+  },
+  {
+   "check": "D2",
+   "option": "B",
+   "match": "real congress",
+   "status": "REAL",
+   "ce": "CE-D2-003",
+   "reason": "B's seed has « Congrès européen de radiologie — exemple » (Vienna, 24–28 Feb 2027, the real ECR) and « Congrès mondial de neurologie — exemple » (WCN)."
+  },
+  {
+   "check": "D3",
+   "option": "HUB",
+   "match": "five",
+   "status": "REAL",
+   "ce": "CE-D3-001",
+   "reason": "« Try it in five minutes » is a time promise with no source and no measurement (the robot replay alone took 82 s for B, without reading)."
+  },
+  {
+   "check": "D4",
+   "option": "A",
+   "match": "DEMO-GME-XXXX",
+   "status": "FALSE-POSITIVE",
+   "reason": "« DEMO-GME-XXXX » is the format hint (placeholder) in Direction's code field, not a code. Tightened: CODE_RE excludes XXXX."
+  },
+  {
+   "check": "B4",
+   "option": "A-hosted",
+   "match": "orphan-dash",
+   "status": "REAL",
+   "ce": "CE-B4-004",
+   "reason": "Same defect as CE-B4-004, seen on the hosted visitor link too."
+  },
+  {
+   "check": "D2",
+   "option": "A-hosted",
+   "match": "real congress",
+   "status": "REAL",
+   "ce": "CE-D2-002",
+   "reason": "Same defect as CE-D2-002, seen on the hosted visitor link too."
+  },
+  {
+   "check": "B5",
+   "option": "A",
+   "match": "diabetologie|hematologie|etats-unis",
+   "status": "FALSE-POSITIVE",
+   "reason": "URL slugs in WordPress' « Identifiant » column. Tightened: words in td.column-slug are no longer collected for B5."
+  },
+  {
+   "check": "B5",
+   "option": "A",
+   "match": "^equipe ",
+   "status": "FALSE-POSITIVE",
+   "reason": "The login name shown in the « Identifiant » field of the profile screen: correct as typed."
+  },
+  {
+   "check": "B5",
+   "match": "pmmo|yyd|relecture",
+   "status": "FALSE-POSITIVE",
+   "reason": "Random stamp in the title of the congress this run created (« Congrès de relecture xxxx — exemple »)."
+  },
+  {
+   "check": "B5",
+   "option": "A",
+   "match": "suiteModifier",
+   "status": "FALSE-POSITIVE",
+   "reason": "WordPress core « Publier tout de suite » followed by the « Modifier » link, separated by CSS margin, not by a space character: the eye reads two words."
+  },
+  {
+   "check": "C1",
+   "option": "A",
+   "match": "400 \\(Bad Request\\)",
+   "status": "REAL",
+   "ce": "CE-C1-001",
+   "reason": "Console line of the same WordPress core admin-ajax « wp-compression-test » 400 (CE-C1-001)."
+  },
+  {
+   "check": "A4",
+   "option": "A-hosted",
+   "match": "wpsandbox\\.wordpress\\.net/scope:",
+   "status": "FALSE-POSITIVE",
+   "reason": "Hosted Playground pages exist only inside the visitor's own tab (service worker), so an outside checker gets 404. Tightened: A4 skips wpsandbox.wordpress.net/scope: URLs (the same links are checked on the local build)."
+  },
+  {
+   "check": "B7",
+   "option": "A",
+   "match": "diabetologie|hematologie|etats-unis",
+   "status": "FALSE-POSITIVE",
+   "reason": "WordPress' « Identifiant » column shows URL slugs, accent-free by design. Tightened: B7 skips td.column-slug."
+  }
+ ]
+}

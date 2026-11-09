@@ -1,0 +1,122 @@
+[
+ {
+  "story": "S2+S3",
+  "label": "chip Cardiologie",
+  "tabs": 12,
+  "focus": "A# Cardiologie",
+  "focusVisible": true
+ },
+ {
+  "story": "S2+S3",
+  "label": "first card link",
+  "tabs": 24,
+  "focus": "A# Congrès européen de cardiologie — exemple",
+  "focusVisible": true
+ },
+ {
+  "story": "S2+S3",
+  "label": "Nom et prénom",
+  "tabs": 6,
+  "focus": "INPUT#asset-q-nom nom",
+  "focusVisible": true
+ },
+ {
+  "story": "S2+S3",
+  "label": "E-mail",
+  "tabs": 1,
+  "focus": "INPUT#asset-q-email email",
+  "focusVisible": true
+ },
+ {
+  "story": "S2+S3",
+  "label": "Téléphone",
+  "tabs": 1,
+  "focus": "INPUT#asset-q-telephone telephone",
+  "focusVisible": true
+ },
+ {
+  "story": "S2+S3",
+  "label": "Ville de départ",
+  "tabs": 2,
+  "focus": "INPUT#asset-q-ville_depart ville_depart",
+  "focusVisible": true
+ },
+ {
+  "story": "S2+S3",
+  "label": "Date aller",
+  "tabs": 1,
+  "focus": "INPUT#asset-q-date_aller date_aller",
+  "focusVisible": true
+ },
+ {
+  "story": "S2+S3",
+  "label": "Date retour",
+  "tabs": 2,
+  "focus": "INPUT#asset-q-date_retour date_retour",
+  "focusVisible": true
+ },
+ {
+  "story": "S2+S3",
+  "label": "Nombre de passagers",
+  "tabs": 2,
+  "focus": "INPUT#asset-q-passagers passagers",
+  "focusVisible": true
+ },
+ {
+  "story": "S2+S3",
+  "label": "consent checkbox",
+  "tabs": 2,
+  "focus": "INPUT#asset-q-consentement 1",
+  "focusVisible": true
+ },
+ {
+  "story": "S2+S3",
+  "label": "Envoyer ma demande",
+  "tabs": 1,
+  "focus": "BUTTON# Envoyer ma demande",
+  "focusVisible": true
+ },
+ {
+  "story": "S2+S3",
+  "label": "confirmation",
+  "focus": "DV-2026-0011"
+ },
+ {
+  "story": "S2+S3",
+  "label": "STORY RESULT",
+  "result": "PASS"
+ },
+ {
+  "story": "S1",
+  "label": "menu Congrès",
+  "tabs": 7,
+  "focus": "A# Congrès",
+  "focusVisible": true
+ },
+ {
+  "story": "S1",
+  "label": "Ajouter un congrès",
+  "tabs": 9,
+  "focus": "A# Ajouter un congrès",
+  "focusVisible": true
+ },
+ {
+  "story": "S1",
+  "label": "Date de début (from title)",
+  "tabs": 22,
+  "focus": "INPUT#asset-field-asset_start asset_meta[_asset_start]",
+  "focusVisible": true
+ },
+ {
+  "story": "S1",
+  "label": "Publier (forward)",
+  "tabs": 59,
+  "focus": "INPUT#publish Publier",
+  "focusVisible": true
+ },
+ {
+  "story": "S1",
+  "label": "STORY RESULT",
+  "result": "FAIL no notice; page says:  Connexion perdue. L’enregistrement a été désactivé jusqu’à votre reconnexion. Cette publication est sauvegardée dans votre navi"
+ }
+]

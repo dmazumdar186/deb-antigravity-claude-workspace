@@ -1,0 +1,31 @@
+{
+  "seed": 20261105,
+  "role": "contributeur",
+  "action": 50,
+  "problems": [
+    "pageerror Transition was aborted because of invalid state. ViewTransition opt-in disabled"
+  ],
+  "last20": [
+    "type len=37 =HYPERLINK(\"http://evil.example\",\"x\")",
+    "type len=2 -1",
+    "back/forward",
+    "click A \"Voir la publication\" http://127.0.0.1:9404/?post_type=asset_congres&p=33",
+    "click A \"Créer\" http://127.0.0.1:9404/wp-admin/post-new.php?post_type=asset_congres",
+    "resize 1063x943",
+    "back/forward",
+    "resize 1342x963",
+    "click BUTTON \"Monter\" ",
+    "resize 618x719",
+    "click A \"À propos de WordPress\" http://127.0.0.1:9404/wp-admin/about.php",
+    "resize 565x772",
+    "click A \"Menu\" #",
+    "click A \"Menu\" #",
+    "click A \"Aller sur l’accueil\" http://127.0.0.1:9404/wp-admin/",
+    "click A \"Menu\" #",
+    "resize 858x622",
+    "click BUTTON \"Monter\" ",
+    "click A \"ASSET Voyages — démonstration\" http://127.0.0.1:9404/",
+    "click A \"À propos de WordPress\" http://127.0.0.1:9404/wp-admin/about.php"
+  ],
+  "url": "http://127.0.0.1:9404/wp-admin/about.php"
+}

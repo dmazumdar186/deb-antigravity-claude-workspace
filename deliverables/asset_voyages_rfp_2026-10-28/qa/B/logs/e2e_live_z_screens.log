@@ -1,0 +1,7 @@
+
+Running 2 tests using 1 worker
+
+  ✓  1 tests/z_screens.spec.mjs:11:3 › screens at 1440px (28.9s)
+  ✓  2 tests/z_screens.spec.mjs:11:3 › screens at 390px (28.1s)
+
+  2 passed (58.3s)

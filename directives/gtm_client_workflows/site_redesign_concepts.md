@@ -21,6 +21,7 @@ document (scroll-scrubbed cover, signature scroll object, command deck) — the 
 | `render_hero_video.mjs --site --url` | deterministic cover → hero.mp4/webm + portrait + poster + hero.json |
 | `functional_template.mjs` | 29-assertion Playwright suite; set selector constants, keep names |
 | `site_check.mjs --site` | desktop/Pixel 7/iPhone 13/reduced-motion gate |
+| `hallmark_gate.mjs <site> <HANDOFF.md>` | vendored Hallmark sloplint on every page; FAIL blocks, REFLEX fixed or waived in HANDOFF |
 | `deploy.sh <dir> <slug>-redesign <pitch>/` | Cloudflare Pages deploy + live md5 check |
 Kling footage: `execution/gtm_client_workflows/greenjobs_redesign/generate_hero_footage.py`
 (estimate first, `--go` to spend).
@@ -30,7 +31,8 @@ Kling footage: `execution/gtm_client_workflows/greenjobs_redesign/generate_hero_
 `https://<slug>-redesign.pages.dev/` + `/for-<name>/`; commit on branch and `main`.
 
 ## Process
-Research → brief (template) → one build worker → functional + site_check → two reviewer rounds on
+Research + Hallmark plan (Floor, one macrostructure, direction; `.claude/skills/hallmark/`) → brief
+(template) → one build worker → functional + site_check + hallmark_gate → two reviewer rounds on
 PNGs (SHIP required) → deploy → HANDOFF → commit/push → reply with links and outreach message.
 
 ## Edge cases
@@ -42,3 +44,6 @@ PNGs (SHIP required) → deploy → HANDOFF → commit/push → reply with links
 - **Fonts only render live**: judge layout, not type, in sandbox screenshots.
 - **Mid-animation screenshots** lie (counters off by one): wait for settle before capturing.
 - Never send names, emails, phones or client data to GLM/Kimi; reject arguments containing them.
+- **Hallmark vs the house standard**: amber small caps (standard d) trip Floor gates 54/67; record
+  `hallmark-house: 54|67 — <reason>` in HANDOFF (only those two are accepted). Hallmark's render
+  tier needs `puppeteer-core` (not installed): the gate runs static; never claim a render pass.

@@ -1,0 +1,18 @@
+{
+ "visitor": {
+  "url": "https://playground.wordpress.net/?blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-visitor.json",
+  "loaded": true,
+  "seconds": "18.8",
+  "firstTextAt": 2238,
+  "sample": "À propos de WordPress À propos de WordPress Contribuer Site de WordPress-FR Documentation Apprendre WordPress Forums de support Vos retours ASSET Voyages — démo congrès Modifier le site 0 0 commentaire en modération Créer Modifier la page Bonjour, admin Rechercher Aller au contenu ASSET Voyages — démo congrès Catalogue des congrès Catalogue des congrès Trouvez votre congrès et demandez un devis vol en quelques secondes. Démonstration ASSET Voyages : données fictives. Démonstration : tous les con",
+  "errs": []
+ },
+ "admin": {
+  "url": "https://playground.wordpress.net/?blueprint-url=https://asset-voyages-redesign.pages.dev/demo-wordpress/blueprint-admin.json",
+  "loaded": true,
+  "seconds": "19.3",
+  "firstTextAt": 1924,
+  "sample": "Aller au contenu principal Aller à la barre d’outils Tableau de bord Accueil Mises à jour Articles Tous les articles Ajouter un article Catégories Étiquettes Médias Médiathèque Ajouter un fichier média Pages Toutes les pages Ajouter une page Commentaires Congrès Tous les congrès Ajouter un congrès Disciplines Pays Demandes Toutes les demandes Journal des notifications Accès GM&E Codes GM&E Demandes d’accès Journal GM&E Apparence Thèmes Éditeur Polices Extensions Extensions installées Ajouter une",
+  "errs": []
+ }
+}

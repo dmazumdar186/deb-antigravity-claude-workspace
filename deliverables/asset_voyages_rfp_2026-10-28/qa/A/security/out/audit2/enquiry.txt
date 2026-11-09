@@ -1,0 +1,11 @@
+url=http://127.0.0.1:9406/congres/congres-dhematologie-edition-passee-exemple/ cid=16 nonce=ok ts=ok
+-- bypass: pax=0
+303 http://127.0.0.1:9406/congres/congres-dhematologie-edition-passee-exemple/?asset_err=1c237155a59fe45abb24f9997605ba0a#devis
+-- bypass: pax[]
+303 http://127.0.0.1:9406/congres/congres-dhematologie-edition-passee-exemple/?asset_err=2ac49bb0cb2c6554f49854094cac7d59#devis
+-- bypass: no consent
+303 http://127.0.0.1:9406/congres/congres-dhematologie-edition-passee-exemple/?asset_err=66accf314e240b7b8093c22267ea966b#devis
+-- bypass: draft congress id
+400
+-- hostile accepted
+303 http://127.0.0.1:9406/congres/congres-dhematologie-edition-passee-exemple/?asset_ok=bab1a080a0c0edb87b9a1cbfc89716a2#devis

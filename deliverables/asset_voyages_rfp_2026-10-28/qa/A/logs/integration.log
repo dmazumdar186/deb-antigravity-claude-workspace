@@ -1,0 +1,15 @@
+PASS INT-A-001 anon GET Demandes screen -> login redirect, no data :: 302 -> wp-login
+PASS INT-A-002 anon GET 3 GM&E screens -> login redirect, no code :: asset-gme:302 asset-gme-acces:302 asset-gme-journal:302
+PASS INT-A-003 anon GET CSV export (admin-post, with and without nonce) refused, no rows :: statuses 400,400
+PASS INT-A-004 anon public catalogue GET 200 with no PII or code :: 200
+PASS INT-A-005 enquiry POST without nonce refused and not stored :: status 200, count unchanged 6
+PASS INT-A-006 valid enquiry creates a record visible in admin :: ref DV-2026-0007, count 6 -> 7
+PASS INT-A-007 status change writes history row (who, from -> to) :: history rows 1 -> 2
+PASS INT-A-008 GM&E: equipe requests, direction approves, equipe reveals code :: reveal shown for single congress
+PASS INT-A-009 GM&E: after revoke, reveal replay refused, no code, UI hides button :: refused + logged
+PASS INT-A-010 matrix demandes: anon=302 contributeur=403 equipe=200 direction=200 :: {"anon":302,"contributeur":403,"equipe":200,"direction":200}
+PASS INT-A-011 matrix gme_codes: anon=302 contributeur=403 equipe=200 direction=200 :: {"anon":302,"contributeur":403,"equipe":200,"direction":200}
+PASS INT-A-012 matrix gme_acces: anon=302 contributeur=403 equipe=403 direction=200 :: {"anon":302,"contributeur":403,"equipe":403,"direction":200}
+PASS INT-A-013 matrix gme_journal: anon=302 contributeur=403 equipe=403 direction=200 :: {"anon":302,"contributeur":403,"equipe":403,"direction":200}
+PASS INT-A-014 matrix new_congres: anon=302 contributeur=200 equipe=200 direction=200 :: {"anon":302,"contributeur":200,"equipe":200,"direction":200}
+TOTAL 14 PASS 14 FAIL 0

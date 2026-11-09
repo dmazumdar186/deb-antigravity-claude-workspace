@@ -1,0 +1,2 @@
+PASS SMOKE-hosted-visitor-12-congresses boot=19.903s resultCountText=12 congr exemple=9 cards=18
+PASS SMOKE-hosted-admin-demandes-loggedin boot=20.97s adminbar=1 url=/scope:bfcv-nero-gtob/wp-admin/admin.php?page=asset-demandes

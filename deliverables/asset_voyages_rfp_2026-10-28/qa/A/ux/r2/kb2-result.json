@@ -1,0 +1,233 @@
+[
+ {
+  "story": "S2+S3",
+  "label": "chip Cardiologie",
+  "tabs": 12,
+  "focus": "A# Cardiologie",
+  "focusVisible": true
+ },
+ {
+  "story": "S2+S3",
+  "label": "first card link",
+  "tabs": 24,
+  "focus": "A# Congrès européen de cardiologie — exemple",
+  "focusVisible": true
+ },
+ {
+  "story": "S2+S3",
+  "label": "Nom et prénom",
+  "tabs": 6,
+  "focus": "INPUT#asset-q-nom nom",
+  "focusVisible": true
+ },
+ {
+  "story": "S2+S3",
+  "label": "E-mail",
+  "tabs": 1,
+  "focus": "INPUT#asset-q-email email",
+  "focusVisible": true
+ },
+ {
+  "story": "S2+S3",
+  "label": "Téléphone",
+  "tabs": 1,
+  "focus": "INPUT#asset-q-telephone telephone",
+  "focusVisible": true
+ },
+ {
+  "story": "S2+S3",
+  "label": "Ville de départ",
+  "tabs": 2,
+  "focus": "INPUT#asset-q-ville_depart ville_depart",
+  "focusVisible": true
+ },
+ {
+  "story": "S2+S3",
+  "label": "Date aller",
+  "tabs": 1,
+  "focus": "INPUT#asset-q-date_aller date_aller",
+  "focusVisible": true
+ },
+ {
+  "story": "S2+S3",
+  "label": "Date retour",
+  "tabs": 2,
+  "focus": "INPUT#asset-q-date_retour date_retour",
+  "focusVisible": true
+ },
+ {
+  "story": "S2+S3",
+  "label": "Nombre de passagers",
+  "tabs": 2,
+  "focus": "INPUT#asset-q-passagers passagers",
+  "focusVisible": true
+ },
+ {
+  "story": "S2+S3",
+  "label": "consent checkbox",
+  "tabs": 2,
+  "focus": "INPUT#asset-q-consentement 1",
+  "focusVisible": true
+ },
+ {
+  "story": "S2+S3",
+  "label": "Envoyer ma demande",
+  "tabs": 1,
+  "focus": "BUTTON# Envoyer ma demande",
+  "focusVisible": true
+ },
+ {
+  "story": "S2+S3",
+  "label": "confirmation",
+  "focus": "DV-2026-0009"
+ },
+ {
+  "story": "S2+S3",
+  "label": "STORY RESULT",
+  "result": "PASS"
+ },
+ {
+  "story": "S1",
+  "label": "menu Congrès",
+  "tabs": 7,
+  "focus": "A# Congrès",
+  "focusVisible": true
+ },
+ {
+  "story": "S1",
+  "label": "Ajouter un congrès",
+  "tabs": 9,
+  "focus": "A# Ajouter un congrès",
+  "focusVisible": true
+ },
+ {
+  "story": "S1",
+  "label": "Date de début (from title)",
+  "tabs": 38,
+  "focus": "INPUT#asset-field-asset_start asset_meta[_asset_start]",
+  "focusVisible": true
+ },
+ {
+  "story": "S1",
+  "label": "Date de fin",
+  "tabs": 2,
+  "focus": "INPUT#asset-field-asset_end asset_meta[_asset_end]",
+  "focusVisible": true
+ },
+ {
+  "story": "S1",
+  "label": "Ville",
+  "tabs": 2,
+  "focus": "INPUT#asset-field-asset_city asset_meta[_asset_city]",
+  "focusVisible": true
+ },
+ {
+  "story": "S1",
+  "label": "Pays",
+  "tabs": 1,
+  "focus": "INPUT#asset-field-asset_pays asset_tax[asset_pays]",
+  "focusVisible": true
+ },
+ {
+  "story": "S1",
+  "label": "Discipline",
+  "tabs": 1,
+  "focus": "INPUT#asset-field-asset_discipline asset_tax[asset_discipline]",
+  "focusVisible": true
+ },
+ {
+  "story": "S1",
+  "label": "Publier (Shift+Tab from Discipline)",
+  "tabs": 22,
+  "focus": "INPUT#publish Publier",
+  "focusVisible": true
+ },
+ {
+  "story": "S1",
+  "label": "lost-connection banner before Enter",
+  "focus": "false"
+ },
+ {
+  "story": "S1",
+  "label": "notice",
+  "focus": "Publication mise en ligne. Voir la publication"
+ },
+ {
+  "story": "S1",
+  "label": "STORY RESULT",
+  "result": "PASS"
+ },
+ {
+  "story": "S4",
+  "label": "Dernière demande link",
+  "tabs": 31,
+  "focus": "A# DV-2026-0009 · Clavier Seul · Congrès européen de cardiologie — exe",
+  "focusVisible": true
+ },
+ {
+  "story": "S4",
+  "label": "Statut select",
+  "tabs": 24,
+  "focus": "SELECT#asset-statut Nouvelle Qualifiée Devis envoyé Gagnée Perdue",
+  "focusVisible": true
+ },
+ {
+  "story": "S4",
+  "label": "Enregistrer",
+  "tabs": 3,
+  "focus": "INPUT#submit Enregistrer",
+  "focusVisible": true
+ },
+ {
+  "story": "S4",
+  "label": "STORY RESULT",
+  "result": "PASS"
+ },
+ {
+  "story": "S5",
+  "label": "menu Accès GM&E",
+  "tabs": 15,
+  "focus": "A# Accès GM&E",
+  "focusVisible": true
+ },
+ {
+  "story": "S5",
+  "label": "first reason textarea",
+  "tabs": 23,
+  "focus": "TEXTAREA#asset-reason-5 reason",
+  "focusVisible": true
+ },
+ {
+  "story": "S5",
+  "label": "Demander l’accès",
+  "tabs": 1,
+  "focus": "BUTTON# Demander l’accès",
+  "focusVisible": true
+ },
+ {
+  "story": "S5",
+  "label": "Approuver (24 h) in widget",
+  "tabs": 44,
+  "focus": "BUTTON# Approuver (24 h)",
+  "focusVisible": true
+ },
+ {
+  "story": "S5",
+  "label": "menu Accès GM&E (2)",
+  "tabs": 15,
+  "focus": "A# Accès GM&E",
+  "focusVisible": true
+ },
+ {
+  "story": "S5",
+  "label": "Révéler le code",
+  "tabs": 23,
+  "focus": "BUTTON# Révéler le code",
+  "focusVisible": true
+ },
+ {
+  "story": "S5",
+  "label": "STORY RESULT",
+  "result": "PASS"
+ }
+]

@@ -1,0 +1,31 @@
+{
+  "seed": 20261105,
+  "role": "contributeur",
+  "action": 162,
+  "problems": [
+    "pageerror Object"
+  ],
+  "last20": [
+    "resize 1178x984",
+    "submit form",
+    "click A \"Créer\" http://127.0.0.1:9417/wp-admin/post-new.php?post_type=asset_congres",
+    "back/forward",
+    "click BUTTON \"Options de l’écran\" ",
+    "click BUTTON \"Afficher ou masquer le panneau\" ",
+    "click A \"ASSET Voyages — démonstration\" http://127.0.0.1:9417/",
+    "type len=0 ",
+    "resize 407x880",
+    "back/forward",
+    "back/forward",
+    "submit form",
+    "back/forward",
+    "resize 1226x964",
+    "click A \"Radiologie\" /?discipline=radiologie",
+    "click A \"Congrès européen de radiologie — exemple\" http://127.0.0.1:9417/congres/congres-europeen-de-radiologie-exemple/",
+    "submit form",
+    "click BUTTON \"Envoyer ma demande\" ",
+    "click A \"ASSET Voyages — démonstration\" http://127.0.0.1:9417/wp-admin/",
+    "click A \"Créer\" http://127.0.0.1:9417/wp-admin/post-new.php?post_type=asset_congres"
+  ],
+  "url": "chrome-error://chromewebdata/"
+}

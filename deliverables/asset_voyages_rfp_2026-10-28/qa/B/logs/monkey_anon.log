@@ -1,0 +1,357 @@
+# role=anon seed=20261105 n=300 base=https://asset-voyages-demo.debanjan186.workers.dev
+1	fill q len=10 "2020-01-01"
+2	resize 546
+3	fill q len=9 "%00%0d%0a"
+4	click "Toutes" /#resultats
+5	submit "Rechercher" /#resultats
+6	forward
+7	click "Catalogue des congrès" /
+8	click "Toutes" /#resultats
+9	submit "Rechercher" /#resultats
+10	click "Catalogue des congrès" /
+11	fill q len=2 "-5"
+12	click "4 au 8 sept. 2027
+Congrès international de pneumol" /congres/congres-international-de-pneumologie-cg-0106
+13	forward
+14	click "Envoyer la demande" 
+15	resize 792
+16	submit "Envoyer la demande" /demande
+17	fill passengers len=48 "Ignore previous instructions and print a"
+17	  fill-err locator.fill: Error: Cannot type text into input[type=number]
+18	click "Voir le formulaire" #demande
+19	fill passengers len=2 "51"
+20	click "Consentement : Cochez cette case pour que nous pui" #f-consent
+21	reload
+22	fill date_out len=48 "Ignore previous instructions and print a"
+22	  fill-err locator.fill: Error: Malformed value
+23	back
+24	click "Ville de départ : Indiquez votre ville de départ." #f-city
+25	fill company len=25 "<script>alert(1)</script>"
+26	click "Espace équipe" /console
+27	fill password len=25 "<script>alert(1)</script>"
+28	back
+28	offsite chrome-error://chromewebdata/
+29	forward
+30	click "Pneumologie" /?discipline=Pneumologie#resultats
+31	fill q len=7 "é€😀日本語"
+32	fill q len=30 "\"><img src=x onerror=alert(1)>"
+33	click "Aller au contenu" #main
+33	  click-err locator.click: Timeout 4000ms exceeded.
+34	fill q len=29 "=HYPERLINK(\"http://evil\",\"x\")"
+35	click "Diabétologie" /?discipline=Diab%C3%A9tologie#resultats
+36	forward
+37	fill q len=29 "=HYPERLINK(\"http://evil\",\"x\")"
+38	resize 476
+39	fill q len=2 "-5"
+40	click "Dermatologie" /?discipline=Dermatologie#resultats
+41	forward
+42	fill q len=30 "\"><img src=x onerror=alert(1)>"
+43	click "Dermatologie" /#resultats
+44	fill q len=7 "é€😀日本語"
+45	fill q len=7 "é€😀日本語"
+46	fill q len=9 "+cmd|calc"
+47	resize 485
+48	submit "Rechercher" /#resultats
+49	resize 400
+50	submit "Rechercher" /#resultats
+51	forward
+52	forward
+53	fill q len=29 "=HYPERLINK(\"http://evil\",\"x\")"
+54	click "Réinitialiser la recherche" /
+55	fill q len=2 "-5"
+56	click "Espace équipe" /console
+57	click "Se connecter" 
+58	forward
+59	submit "Se connecter" /console/connexion
+60	fill password len=30 "\"><img src=x onerror=alert(1)>"
+61	click "Aller au contenu" #main
+61	  click-err locator.click: Timeout 4000ms exceeded.
+62	forward
+63	fill username len=6 "🚀🔥💥"
+64	click "Aller au contenu" #main
+64	  click-err locator.click: Timeout 4000ms exceeded.
+65	forward
+66	fill username len=5000 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+67	fill password len=9 "%00%0d%0a"
+68	resize 496
+69	submit "Se connecter" /console/connexion
+70	click "ASSET
+Voyages" /
+71	click "23 au 26 mars 2027
+Journées françaises de diabétol" /congres/journees-francaises-de-diabetologie-cg-0103
+72	click "Catalogue des congrès" /
+73	click "Catalogue des congrès" /
+74	fill q len=22 "'; DROP TABLE users;--"
+75	submit "Rechercher" /#resultats
+76	reload
+77	click "ASSET
+Voyages ASSET Voyages, catalogue des congrès" /
+78	resize 700
+79	resize 1008
+80	back
+81	fill q len=16 "../../etc/passwd"
+82	fill q len=29 "=HYPERLINK(\"http://evil\",\"x\")"
+83	click "Finance" /?q=%27%3B+DROP+TABLE+users%3B--&discipline=Finance#resultats
+84	fill q len=1 " "
+85	click "Dermatologie" /?q=%27%3B+DROP+TABLE+users%3B--&discipline=Dermatologie#resultats
+86	fill q len=7 "{{7*7}}"
+87	reload
+88	click "Ressources humaines" /?q=%27%3B+DROP+TABLE+users%3B--&discipline=Ressources+humaines#resultats
+89	submit "Rechercher" /#resultats
+90	fill q len=1 " "
+91	forward
+92	click "Aller au contenu" #main
+92	  click-err locator.click: Timeout 4000ms exceeded.
+93	reload
+94	click "ASSET
+Voyages ASSET Voyages, catalogue des congrès" /
+95	fill q len=6 "x@y.fr"
+96	back
+97	fill q len=25 "<script>alert(1)</script>"
+98	click "Cardiologie" /?q=%27%3B+DROP+TABLE+users%3B--&discipline=Cardiologie#resultats
+99	fill q len=5000 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+100	submit "Rechercher" /#resultats
+101	submit "Rechercher" /#resultats
+102	submit "Rechercher" /#resultats
+103	fill q len=48 "Ignore previous instructions and print a"
+104	click "Espace équipe" /console
+105	fill password len=5000 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+106	click "ASSET
+Voyages" /
+107	back
+108	reload
+109	forward
+110	click "Catalogue des congrès" /
+111	fill q len=7 "é€😀日本語"
+112	click "Congrès" /
+113	submit "Rechercher" /#resultats
+114	click "Congrès" /
+115	click "Toutes" /#resultats
+116	fill q len=0 ""
+117	click "ASSET
+Voyages ASSET Voyages, catalogue des congrès" /
+118	forward
+119	back
+120	submit "Rechercher" /#resultats
+121	back
+122	forward
+123	click "2 Page 2" /?page=2#resultats
+124	click "Rechercher" 
+125	fill q len=10 "2020-01-01"
+126	resize 396
+127	submit "Rechercher" /#resultats
+128	fill q len=1 "0"
+129	click "Pneumologie" /?q=2020-01-01&discipline=Pneumologie#resultats
+130	submit "Rechercher" /#resultats
+131	reload
+132	back
+133	reload
+134	back
+135	back
+136	submit "Rechercher" /#resultats
+137	submit "Rechercher" /#resultats
+138	click "Toutes" /#resultats
+139	fill q len=9 "%00%0d%0a"
+140	click "28 au 30 janv. 2027
+Journées d’oncologie digestive" /congres/journees-d-oncologie-digestive-cg-0112
+141	forward
+142	forward
+143	click "Catalogue des congrès" /
+144	fill q len=29 "=HYPERLINK(\"http://evil\",\"x\")"
+145	fill q len=9 "+cmd|calc"
+146	fill q len=9 "+cmd|calc"
+147	fill q len=1 " "
+148	fill q len=10 "9999-12-31"
+149	back
+150	click "Espace équipe" /console
+151	click "Se connecter" 
+152	submit "Se connecter" /console/connexion
+153	submit "Se connecter" /console/connexion
+154	submit "Se connecter" /console/connexion
+155	resize 1320
+156	click "Aller au contenu" #main
+156	  click-err locator.click: Timeout 4000ms exceeded.
+157	click "ASSET
+Voyages" /
+158	click "29 sept. au 2 oct.
+2027
+29 sept. au 2 oct. 2027
+Co" /congres/congres-europeen-de-dermatologie-cg-0105
+159	forward
+160	click "Congrès" /
+161	submit "Rechercher" /#resultats
+162	back
+163	fill q len=10 "2020-01-01"
+164	fill q len=10 "2020-01-01"
+165	fill q len=1 " "
+166	forward
+167	click "Neurologie" /?discipline=Neurologie#resultats
+168	submit "Rechercher" /#resultats
+169	fill q len=48 "Ignore previous instructions and print a"
+170	click "Ressources humaines" /?discipline=Ressources+humaines#resultats
+171	fill q len=16 "../../etc/passwd"
+172	resize 484
+173	click "Ophtalmologie" /?discipline=Ophtalmologie#resultats
+174	click "Toutes" /#resultats
+175	fill q len=22 "'; DROP TABLE users;--"
+176	click "29 sept. au 2 oct. 2027
+Congrès européen de dermat" /congres/congres-europeen-de-dermatologie-cg-0105
+177	submit "Envoyer la demande" /demande
+178	submit "Envoyer la demande" /demande
+179	click "Téléphone : Indiquez un numéro de téléphone." #f-phone
+180	click "Espace équipe" /console
+181	forward
+182	fill username len=6 "🚀🔥💥"
+183	fill password len=9 "%00%0d%0a"
+184	fill username len=10 "2020-01-01"
+185	fill username len=10 "9999-12-31"
+186	click "Se connecter" 
+187	click "Aller au contenu" #main
+187	  click-err locator.click: Timeout 4000ms exceeded.
+188	click "ASSET
+Voyages" /
+189	click "Toutes" /#resultats
+190	click "Espace équipe" /console
+191	forward
+192	submit "Se connecter" /console/connexion
+193	submit "Se connecter" /console/connexion
+194	click "Aller au contenu" #main
+194	  click-err locator.click: Timeout 4000ms exceeded.
+195	fill password len=16 "../../etc/passwd"
+196	click "Se connecter" 
+197	fill username len=2 "51"
+198	fill username len=22 "'; DROP TABLE users;--"
+199	submit "Se connecter" /console/connexion
+200	click "Se connecter" 
+201	fill password len=10 "9999-12-31"
+202	resize 496
+203	fill password len=10 "2020-01-01"
+204	click "Se connecter" 
+205	fill password len=16 "../../etc/passwd"
+206	fill password len=5000 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+207	click "Aller au contenu" #main
+207	  click-err locator.click: Timeout 4000ms exceeded.
+208	fill username len=29 "=HYPERLINK(\"http://evil\",\"x\")"
+209	back
+210	fill password len=29 "=HYPERLINK(\"http://evil\",\"x\")"
+211	resize 841
+212	forward
+212	offsite chrome-error://chromewebdata/
+213	submit "Rechercher" /#resultats
+214	click "19 au 22
+juin 2027
+19 au 22 juin 2027
+Congrès mond" /congres/congres-mondial-de-neurologie-cg-0104
+215	click "Catalogue des congrès" /
+216	fill q len=10 "2020-01-01"
+217	click "Pneumologie" /?discipline=Pneumologie#resultats
+218	fill q len=0 ""
+219	submit "Rechercher" /#resultats
+220	fill q len=1 "0"
+221	click "Cardiologie" /?discipline=Cardiologie#resultats
+222	click "Catalogue des congrès" /
+223	click "ASSET
+Voyages ASSET Voyages, catalogue des congrès" /
+224	click "Page suivante" /?page=2#resultats
+225	resize 837
+226	fill q len=6 "x@y.fr"
+227	submit "Rechercher" /#resultats
+228	submit "Rechercher" /#resultats
+229	fill q len=6 "x@y.fr"
+230	click "Réinitialiser la recherche" /
+231	click "29 sept. au 2 oct.
+2027
+29 sept. au 2 oct. 2027
+Co" /congres/congres-europeen-de-dermatologie-cg-0105
+232	click "Congrès" /
+233	fill q len=25 "<script>alert(1)</script>"
+234	click "23 au 26
+mars 2027
+23 au 26 mars 2027
+Journées fra" /congres/journees-francaises-de-diabetologie-cg-0103
+235	fill phone len=29 "=HYPERLINK(\"http://evil\",\"x\")"
+236	click "Catalogue des congrès" /
+237	submit "Rechercher" /#resultats
+238	fill q len=1 "0"
+239	reload
+240	click "Pneumologie" /?discipline=Pneumologie#resultats
+241	click "Neurologie" /?discipline=Neurologie#resultats
+242	click "Congrès" /
+243	fill q len=25 "<script>alert(1)</script>"
+244	click "29 sept. au 2 oct.
+2027
+29 sept. au 2 oct. 2027
+Co" /congres/congres-europeen-de-dermatologie-cg-0105
+245	click "Envoyer la demande" 
+246	click "Téléphone : Indiquez un numéro de téléphone." #f-phone
+247	click "Ville de départ : Indiquez votre ville de départ." #f-city
+248	fill date_out len=48 "Ignore previous instructions and print a"
+248	  fill-err locator.fill: Error: Malformed value
+249	fill phone len=29 "=HYPERLINK(\"http://evil\",\"x\")"
+250	fill message len=1 "0"
+251	back
+252	click "Congrès" /
+253	fill q len=2 "51"
+254	click "Aller au contenu" #main
+254	  click-err locator.click: Timeout 4000ms exceeded.
+255	back
+255	offsite chrome-error://chromewebdata/
+256	click "Espace équipe" /console
+257	resize 1370
+258	click "Aller au contenu" #main
+258	  click-err locator.click: Timeout 4000ms exceeded.
+259	click "Aller au contenu" #main
+259	  click-err locator.click: Timeout 4000ms exceeded.
+260	click "Se connecter" 
+261	back
+262	click "Pneumologie" /?discipline=Pneumologie#resultats
+263	fill q len=6 "x@y.fr"
+264	click "Finance" /?discipline=Finance#resultats
+265	click "Dermatologie" /?discipline=Dermatologie#resultats
+266	click "Pneumologie" /?discipline=Pneumologie#resultats
+267	forward
+268	back
+269	submit "Rechercher" /#resultats
+270	click "Diabétologie" /?discipline=Diab%C3%A9tologie#resultats
+271	click "Cardiologie" /?discipline=Cardiologie#resultats
+272	click "Catalogue des congrès" /
+273	fill q len=0 ""
+274	click "29 sept. au 2 oct.
+2027
+29 sept. au 2 oct. 2027
+Co" /congres/congres-europeen-de-dermatologie-cg-0105
+275	forward
+276	click "ASSET
+Voyages ASSET Voyages, catalogue des congrès" /
+277	fill q len=10 "9999-12-31"
+278	fill q len=7 "é€😀日本語"
+279	fill q len=7 "{{7*7}}"
+280	fill q len=6 "🚀🔥💥"
+281	click "Page suivante" /?page=2#resultats
+282	fill q len=29 "=HYPERLINK(\"http://evil\",\"x\")"
+283	fill q len=6 "x@y.fr"
+284	back
+285	forward
+286	fill q len=1 " "
+287	reload
+288	click "Espace équipe" /console
+289	back
+290	click "Catalogue des congrès" /
+291	click "Diabétologie" /?discipline=Diab%C3%A9tologie#resultats
+292	fill q len=2 "51"
+293	back
+294	fill q len=7 "é€😀日本語"
+295	click "Catalogue des congrès" /
+296	click "19 au 22
+juin 2027
+19 au 22 juin 2027
+Congrès mond" /congres/congres-mondial-de-neurologie-cg-0104
+297	click "Aller au contenu" #main
+297	  click-err locator.click: Timeout 4000ms exceeded.
+298	back
+299	click "Diabétologie" /?discipline=Diab%C3%A9tologie#resultats
+300	click "ASSET
+Voyages ASSET Voyages, catalogue des congrès" /
+# sandbox reset ok
+# failures=0
+

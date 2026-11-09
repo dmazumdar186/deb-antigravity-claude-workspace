@@ -1,0 +1,14 @@
+
+Running 9 tests using 1 worker
+
+  ✓  1 tests/s2_catalogue.spec.mjs:9:1 › S2-F1 all 12 published upcoming congresses listed; past and draft ones are not (1.7s)
+  ✓  2 tests/s2_catalogue.spec.mjs:42:1 › S2-F2 keyword search on title, city and discipline, accent-insensitive (2.3s)
+  ✓  3 tests/s2_catalogue.spec.mjs:53:1 › S2-F3 discipline, country and month filters alone and combined, count shown, no-result message and reset (1.3s)
+  ✓  4 tests/s2_catalogue.spec.mjs:79:1 › S2-F4 pagination (9 per page) keeps the active filters (430ms)
+  ✓  5 tests/s2_catalogue.spec.mjs:92:1 › S2-F5 details page shows every fact and the enquiry form prefilled with this congress (347ms)
+  ✓  6 tests/s2_catalogue.spec.mjs:105:1 › S2-F6 works with JavaScript off (server-rendered GET form) (766ms)
+  ✓  7 tests/s2_catalogue.spec.mjs:120:1 › S2-E1 find Cardiologie congresses and open one in 2 clicks (463ms)
+  ✓  8 tests/s2_catalogue.spec.mjs:129:1 › S2-E2 at 390 px: no horizontal scroll, inputs at least 16 px, tap targets at least 44 px (577ms)
+  ✓  9 tests/s2_catalogue.spec.mjs:158:1 › S2-H1 script in the search box is escaped; a 5,000-character query does not error; SQL-ish input is inert (375ms)
+
+  9 passed (9.4s)

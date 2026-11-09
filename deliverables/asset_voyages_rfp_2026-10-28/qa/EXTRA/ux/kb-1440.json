@@ -1,0 +1,45 @@
+{
+ "out": [
+  {
+   "k": "staff-create-copy",
+   "W": 1440,
+   "pass": true,
+   "note": "tabs Demandes 6, ref 23, Créer 18, Copier 2; clipboard ok true; focus after create: {\"tag\":\"BUTTON\",\"id\":\"\",\"name\":\"Lien copié\",\"vis\":true,\"inView\":true}"
+  },
+  {
+   "k": "delegate-form",
+   "W": 1440,
+   "pass": true,
+   "note": "first Tab « Aller au contenu » vis true; skip → BODY#; tabs to name 1, to send 1; focus after send: H1 « Votre réponse a bien été reçue. »"
+  },
+  {
+   "k": "delegate-errors-kb",
+   "W": 1440,
+   "pass": true,
+   "note": "focus on submit-error: {\"tag\":\"DIV\",\"cls\":\"alert alert--list\",\"txt\":\"4 champs à corriger ; rien n’a été enregistré.\\n\\nNom et prénom : Indiquez vos nom\"}; summary links 4; first link → #g-name"
+  },
+  {
+   "k": "staff-refuse",
+   "W": 1440,
+   "pass": true,
+   "note": "tabs to Refuser 21; message focused: Modification refusée : l’inscription d’origine est conservée"
+  },
+  {
+   "k": "staff-accept",
+   "W": 1440,
+   "pass": true,
+   "note": "tabs to Accepter 20; then to CSV 6"
+  }
+ ],
+ "noFocus": [
+  "/g/T#main :: INPUT Date aller * -> NO-RING ",
+  "/g/T#main :: INPUT Date retour * -> NO-RING ",
+  "/g/T :: INPUT Date aller * -> NO-RING ",
+  "/g/T :: INPUT Date retour * -> NO-RING "
+ ],
+ "rs": [
+  "reset ok",
+  "reset ok"
+ ],
+ "errs": []
+}

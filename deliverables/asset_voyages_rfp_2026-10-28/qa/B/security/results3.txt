@@ -1,0 +1,62 @@
+== sessions
+  payload keys ['c', 'e', 'n', 'u'] u 3
+PASS payload carries no role/privilege field | ['c', 'e', 'n', 'u']
+PASS forged session [u->1 keep sig] rejected | 303
+PASS forged session [role smuggle keep sig] rejected | 303
+PASS forged session [sig flipped] rejected | 303
+PASS forged session [no sig] rejected | 303
+PASS forged session [payload only] rejected | 303
+FAIL forged session [extra segment] rejected | 200
+PASS forged session [expired-looking e=0 keep sig] rejected | 303
+PASS forged session [sig of other user] rejected | 303
+PASS forged session [oversize] rejected | 303
+PASS contributeur real cookie still denied on gme | 403
+PASS logout 303 | 303
+PASS replay after logout -> 303 | 303
+PASS replay after logout from other sbx -> 303 | 303
+PASS replay POST after logout -> 401 | 401
+== test-key header
+PASS x-demo-test gives no meter header | ['x-content-type-options', 'x-frame-options', 'x-robots-tag']
+PASS no demo-test name in responses
+== matrix + leak crawl
+PASS authz matrix 75/75
+PASS GME leak only where direction revealed | [('direction', 'POST /console/gme/112/afficher', ['DEMO-GME-4821'])]
+PASS public / no GME | 200
+PASS public /congres/journees-d-oncologie-digestive-cg-0112 no GME | 200
+PASS public /robots.txt no GME | 200
+== reveal statuses (direction, SA)
+  reveal 101 -> 403 leak=False cc=no-store, private
+  reveal 103 -> 200 leak=True cc=no-store, private
+  reveal 105 -> 403 leak=False cc=no-store, private
+  reveal 108 -> 200 leak=True cc=no-store, private
+  reveal 112 -> 200 leak=True cc=no-store, private
+== COW isolation
+  A edit 101 200 None
+FAIL A sees own edit
+PASS B direction does not see A edit
+PASS public anon does not see A edit
+PASS public in fresh-cookie sbx does not see A edit
+  E request 303
+PASS A acces lists E request
+PASS B acces does not list A request
+  enquiry A 303 /demande/confirmation?ref=DV-2026-0007&k=iApTMSlufVQWrbl8VxkurK
+PASS A notifications include enquiry
+PASS B notifications exclude A enquiry
+PASS B CSV export excludes A enquiry
+  A ids [1, 2, 3, 4, 5, 6, 7]
+PASS IDOR B GET A enquiry 7 | 404
+  enquiry B 303 /demande/confirmation?ref=DV-2026-0007&k=iApTMSlufVQWrbl8VxkurK
+PASS B enquiry same ref number, no PK collision | /demande/confirmation?ref=DV-2026-0007&k=iApTMSluf vs /demande/confirmation?ref=DV-2026-0007&k=iApTMSluf
+PASS B id shows B row only
+PASS A id shows A row only
+PASS A confirmation link in B shows B row (same ref) not A title | ['DV-2026-0007']
+  A note on 1 303
+PASS A history shows note
+PASS B history on 1 lacks A note
+PASS B reset | 303
+FAIL A edit survives B reset
+== busy flag cosmetic
+PASS ?demo=complet renders (banner only, no state) | 200
+== cleanup
+PASS A reset -> seed restored
+SANDBOXES_WRITTEN 4 REQUESTS 145

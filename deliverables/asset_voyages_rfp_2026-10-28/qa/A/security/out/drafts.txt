@@ -1,0 +1,7 @@
+?p=40                                                   404 0
+?p=40&preview=true                                      404 0
+?post_type=asset_congres&p=40&preview=true              404 0
+wp-json/wp/v2/asset_congres/40                          401 0
+wp-json/wp/v2/asset_congres/16/revisions                401 0
+?attachment_id=1                                        404 0
+wp-json/wp/v2/search?search=SEC%20pending               200 0

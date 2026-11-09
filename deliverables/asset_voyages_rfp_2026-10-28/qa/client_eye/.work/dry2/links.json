@@ -1,0 +1,941 @@
+{
+ "results": [
+  {
+   "url": "http://localhost:8799/?discipline=Cardiologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?discipline=Cardiologie",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/?discipline=Dermatologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?discipline=Dermatologie",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/?discipline=Diab%C3%A9tologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?discipline=Diab%C3%A9tologie",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/?discipline=Finance",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?discipline=Finance",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/?discipline=Ophtalmologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?discipline=Ophtalmologie",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/?discipline=Pneumologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?discipline=Pneumologie",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/?discipline=Radiologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?discipline=Radiologie",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/?discipline=Neurologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?discipline=Neurologie",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/?discipline=Oncologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?discipline=Oncologie",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/?discipline=Ressources+humaines",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?discipline=Ressources+humaines",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/congres/journees-d-oncologie-digestive-cg-0112",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/congres/journees-d-oncologie-digestive-cg-0112",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/congres/congres-europeen-de-radiologie-cg-0108",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/congres/congres-europeen-de-radiologie-cg-0108",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/congres/journees-francaises-de-diabetologie-cg-0103",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/congres/journees-francaises-de-diabetologie-cg-0103",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/congres/sommet-rh-et-mobilite-cg-0109",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/congres/sommet-rh-et-mobilite-cg-0109",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/congres/rencontres-d-ophtalmologie-cg-0107",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/congres/rencontres-d-ophtalmologie-cg-0107",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/congres/congres-mondial-de-neurologie-cg-0104",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/congres/congres-mondial-de-neurologie-cg-0104",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/assets/fonts/EBGaramond.woff2",
+   "status": 200,
+   "type": "font/woff2",
+   "final": "http://localhost:8799/assets/fonts/EBGaramond.woff2",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/favicon.ico",
+   "status": 200,
+   "type": "image/vnd.microsoft.icon",
+   "final": "http://localhost:8799/favicon.ico",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/congres/congres-europeen-de-cardiologie-cg-0101",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/congres/congres-europeen-de-cardiologie-cg-0101",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/congres/congres-international-de-pneumologie-cg-0106",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/congres/congres-international-de-pneumologie-cg-0106",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/congres/congres-europeen-de-dermatologie-cg-0105",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/congres/congres-europeen-de-dermatologie-cg-0105",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/?page=2",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?page=2",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/assets/fonts/Inter.woff2",
+   "status": 200,
+   "type": "font/woff2",
+   "final": "http://localhost:8799/assets/fonts/Inter.woff2",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/assets/app.css?v=7",
+   "status": 200,
+   "type": "text/css; charset=utf-8",
+   "final": "http://localhost:8799/assets/app.css?v=7",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/assets/app.js?v=7",
+   "status": 200,
+   "type": "text/javascript; charset=utf-8",
+   "final": "http://localhost:8799/assets/app.js?v=7",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/?q=cardiologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=cardiologie",
+   "err": "",
+   "refs": 4
+  },
+  {
+   "url": "http://localhost:8799/?q=cardiologie&discipline=Cardiologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=cardiologie&discipline=Cardiologie",
+   "err": "",
+   "refs": 4
+  },
+  {
+   "url": "http://localhost:8799/?q=cardiologie&discipline=Dermatologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=cardiologie&discipline=Dermatologie",
+   "err": "",
+   "refs": 4
+  },
+  {
+   "url": "http://localhost:8799/?q=cardiologie&discipline=Diab%C3%A9tologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=cardiologie&discipline=Diab%C3%A9tologie",
+   "err": "",
+   "refs": 4
+  },
+  {
+   "url": "http://localhost:8799/?q=cardiologie&discipline=Finance",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=cardiologie&discipline=Finance",
+   "err": "",
+   "refs": 4
+  },
+  {
+   "url": "http://localhost:8799/?q=cardiologie&discipline=Neurologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=cardiologie&discipline=Neurologie",
+   "err": "",
+   "refs": 4
+  },
+  {
+   "url": "http://localhost:8799/?q=cardiologie&discipline=Oncologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=cardiologie&discipline=Oncologie",
+   "err": "",
+   "refs": 4
+  },
+  {
+   "url": "http://localhost:8799/?q=cardiologie&discipline=Ophtalmologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=cardiologie&discipline=Ophtalmologie",
+   "err": "",
+   "refs": 4
+  },
+  {
+   "url": "http://localhost:8799/?q=cardiologie&discipline=Pneumologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=cardiologie&discipline=Pneumologie",
+   "err": "",
+   "refs": 4
+  },
+  {
+   "url": "http://localhost:8799/?q=cardiologie&discipline=Radiologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=cardiologie&discipline=Radiologie",
+   "err": "",
+   "refs": 4
+  },
+  {
+   "url": "http://localhost:8799/?q=cardiologie&discipline=Ressources+humaines",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=cardiologie&discipline=Ressources+humaines",
+   "err": "",
+   "refs": 4
+  },
+  {
+   "url": "http://localhost:8799/congres/congres-nord-americain-de-cardiologie-cg-0111",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/congres/congres-nord-americain-de-cardiologie-cg-0111",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/?q=chicago",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=chicago",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/?q=chicago&discipline=Cardiologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=chicago&discipline=Cardiologie",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/?q=chicago&discipline=Dermatologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=chicago&discipline=Dermatologie",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/?q=chicago&discipline=Diab%C3%A9tologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=chicago&discipline=Diab%C3%A9tologie",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/?q=chicago&discipline=Finance",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=chicago&discipline=Finance",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/?q=chicago&discipline=Neurologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=chicago&discipline=Neurologie",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/?q=chicago&discipline=Oncologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=chicago&discipline=Oncologie",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/?q=chicago&discipline=Pneumologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=chicago&discipline=Pneumologie",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/?q=chicago&discipline=Ophtalmologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=chicago&discipline=Ophtalmologie",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/?q=chicago&discipline=Radiologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=chicago&discipline=Radiologie",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/?q=zzqqxx",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=zzqqxx",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/?q=chicago&discipline=Ressources+humaines",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=chicago&discipline=Ressources+humaines",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/?q=zzqqxx&discipline=Cardiologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=zzqqxx&discipline=Cardiologie",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/?q=zzqqxx&discipline=Dermatologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=zzqqxx&discipline=Dermatologie",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/?q=zzqqxx&discipline=Diab%C3%A9tologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=zzqqxx&discipline=Diab%C3%A9tologie",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/?q=zzqqxx&discipline=Neurologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=zzqqxx&discipline=Neurologie",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/?q=zzqqxx&discipline=Finance",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=zzqqxx&discipline=Finance",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "https://www.example.org/congres/cg-0112",
+   "status": 404,
+   "type": "text/html; charset=utf-8",
+   "final": "https://www.example.org/congres/cg-0112",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/?q=zzqqxx&discipline=Oncologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=zzqqxx&discipline=Oncologie",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/?q=zzqqxx&discipline=Ophtalmologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=zzqqxx&discipline=Ophtalmologie",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/?q=zzqqxx&discipline=Pneumologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=zzqqxx&discipline=Pneumologie",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/?q=zzqqxx&discipline=Radiologie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=zzqqxx&discipline=Radiologie",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/?q=zzqqxx&discipline=Ressources+humaines",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?q=zzqqxx&discipline=Ressources+humaines",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/?pays=France&mois=2027-03",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?pays=France&mois=2027-03",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/?discipline=Cardiologie&pays=France&mois=2027-03",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?discipline=Cardiologie&pays=France&mois=2027-03",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/?discipline=Dermatologie&pays=France&mois=2027-03",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?discipline=Dermatologie&pays=France&mois=2027-03",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/?discipline=Diab%C3%A9tologie&pays=France&mois=2027-03",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?discipline=Diab%C3%A9tologie&pays=France&mois=2027-03",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/?discipline=Finance&pays=France&mois=2027-03",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?discipline=Finance&pays=France&mois=2027-03",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/?discipline=Neurologie&pays=France&mois=2027-03",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?discipline=Neurologie&pays=France&mois=2027-03",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/?discipline=Oncologie&pays=France&mois=2027-03",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?discipline=Oncologie&pays=France&mois=2027-03",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/?discipline=Pneumologie&pays=France&mois=2027-03",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?discipline=Pneumologie&pays=France&mois=2027-03",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/?discipline=Radiologie&pays=France&mois=2027-03",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?discipline=Radiologie&pays=France&mois=2027-03",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/?discipline=Ophtalmologie&pays=France&mois=2027-03",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?discipline=Ophtalmologie&pays=France&mois=2027-03",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/?discipline=Ressources+humaines&pays=France&mois=2027-03",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/?discipline=Ressources+humaines&pays=France&mois=2027-03",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/console/congres",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fcongres",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/congres?statut=brouillon",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fcongres",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/congres?statut=a_relire",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fcongres",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/congres?statut=publie",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fcongres",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/congres/nouveau",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fcongres%2Fnouveau",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/congres?statut=archive",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fcongres",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/congres/108",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fcongres%2F108",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/congres/112",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fcongres%2F112",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/congres/103",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fcongres%2F103",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/congres/109",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fcongres%2F109",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/congres/107",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fcongres%2F107",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/congres/113",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fcongres%2F113",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/congres/104",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fcongres%2F104",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/congres/101",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fcongres%2F101",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/congres/106",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fcongres%2F106",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/congres/105",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fcongres%2F105",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/congres/102",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fcongres%2F102",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/congres/111",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fcongres%2F111",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/congres/110",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fcongres%2F110",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/demandes",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fdemandes",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/notifications",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fnotifications",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/gme",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fgme",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/gme/acces",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fgme%2Facces",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/gme/journal",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fgme%2Fjournal",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/demandes?statut=nouvelle",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fdemandes",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/demandes?statut=devis",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fdemandes",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/demandes?statut=qualifiee",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fdemandes",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/demandes?statut=gagnee",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fdemandes",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/demandes?statut=perdue",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fdemandes",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/demandes/6",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fdemandes%2F6",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/demandes/5",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fdemandes%2F5",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/demandes/2",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fdemandes%2F2",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/demandes/3",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fdemandes%2F3",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/demandes/4",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fdemandes%2F4",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/congres/114",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fcongres%2F114",
+   "err": "",
+   "refs": 2
+  },
+  {
+   "url": "http://localhost:8799/console/demandes/1",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fdemandes%2F1",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "https://www.example.org/congres/cg-0108",
+   "status": 404,
+   "type": "text/html; charset=utf-8",
+   "final": "https://www.example.org/congres/cg-0108",
+   "err": "",
+   "refs": 1
+  },
+  {
+   "url": "http://localhost:8799/console/demandes/3/groupe",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fdemandes%2F3%2Fgroupe",
+   "err": "",
+   "refs": 1
+  },
+  {
+   "url": "http://localhost:8799/g/YFp_InKpTZuk_ZeF3efZlyfHZ3fGOKrOtagMmZKbXF0",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/g/YFp_InKpTZuk_ZeF3efZlyfHZ3fGOKrOtagMmZKbXF0",
+   "err": "",
+   "refs": 1
+  },
+  {
+   "url": "http://localhost:8799/console/demandes/7",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fdemandes%2F7",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/demandes/7/groupe",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fdemandes%2F7%2Fgroupe",
+   "err": "",
+   "refs": 1
+  },
+  {
+   "url": "http://localhost:8799/console/demandes/1/groupe",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fdemandes%2F1%2Fgroupe",
+   "err": "",
+   "refs": 5
+  },
+  {
+   "url": "http://localhost:8799/console/connexion",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion",
+   "err": "",
+   "refs": 1
+  },
+  {
+   "url": "http://localhost:8799/console/demandes/6/groupe",
+   "status": 200,
+   "type": "text/html; charset=utf-8",
+   "final": "http://localhost:8799/console/connexion?next=%2Fconsole%2Fdemandes%2F6%2Fgroupe",
+   "err": "",
+   "refs": 1
+  }
+ ],
+ "latent": []
+}
