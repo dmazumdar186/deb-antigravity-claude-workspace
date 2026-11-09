@@ -2,13 +2,13 @@ Subject: GreenJobs: plan for moving off Strategies by 6 December
 
 Hi Keith,
 
-Here's the transition plan I promised, attached.
+Here's the transition plan I promised, attached as a PDF.
 
-The short version: the boards stay live on Strategies while I build and test, and I'd aim to switch them over on Thursday 3 December. That leaves Friday as a buffer before the Strategies contract ends on Sunday 6 December. From the switch, your team posts jobs through a simple admin console I'll build. The feeds from the posting tools and the candidate and employer log-ins follow after that, depending on each provider's onboarding.
+The short version: the boards stay live on Strategies while I build and test, and I'd aim to switch them over on Thursday 3 December. That leaves Friday as a buffer before the Strategies contract ends on Sunday 6 December. From the switch, your team posts jobs through a simple admin console I'll build. The candidate and employer log-ins and the feeds from the posting tools follow after that, with the feeds depending on each provider's onboarding.
 
-There are twelve questions at the end, but you don't need to write anything up. 20 minutes on a call today or tomorrow would cover most of them. Which suits you?
+There are twelve questions at the end. 20 minutes on a call today or tomorrow would cover them, so which suits you? If a call is hard this week, just reply with the ones you know off-hand and we'll pick up the rest when we talk.
 
-Once we've talked, I can start on Tuesday with the parts that need none of your data. The data exports can only begin once the data processing agreement is signed, so I'll send that and the contract straight after our call.
+Once we've talked, I can start on Tuesday with the parts that need none of your data. The data exports can only begin once the data processing agreement is signed, so I'll send that and the contract straight after our call. If both are back by Wednesday, we're in good shape for 3 December.
 
 One thing: if you share any logins, please use a password manager rather than email.
 
