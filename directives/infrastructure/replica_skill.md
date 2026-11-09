@@ -63,3 +63,8 @@ Consequence: `setup_replica_skill.sh` still **aborts** on replica-launch and rep
 strict on HIGH by design. To install the reviewed pack, install the 9 clean/MEDIUM skills with
 `REPLICA_SKILLS="replica-recon replica-architect replica-design replica-build replica-backend replica-diff replica-brand replica-entrepreneur replica-deploy"`
 and copy the two reviewed ones by hand only after re-checking the diff against `77c9436`.
+
+**Installed 2026-11-09** (operator: "install all 11"): 9 skills via the script with the `REPLICA_SKILLS`
+subset above, then `replica-launch` and `replica-test` copied by hand from the clean clone at `77c9436`
+(`diff -rq` identical). Upstream MIT licence kept at `docs/reference/third_party/replica-skill-LICENSE`.
+Adds ~4.5k chars of skill descriptions to every call; jev skill menu 38 → 49.

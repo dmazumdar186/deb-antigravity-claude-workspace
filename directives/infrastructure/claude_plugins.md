@@ -38,7 +38,7 @@ workspace mods, and keep a trust record for each. Sits beside `directives/infras
 | VoiceStudio | `debpalash/VoiceStudio` | **self-hosted service** (AGPL-3.0; optional scan-gated skill) | `execution/infrastructure/setup_voicestudio.sh` → see `directives/infrastructure/voicestudio.md` |
 | OpenSEO | `every-app/open-seo` | **self-hosted service** (MIT; Docker, `:3011`) | `execution/infrastructure/setup_open_seo.sh` → see `directives/infrastructure/open_seo.md` |
 | OpenBot | `nightly-labs/openbot` | **self-hosted service** (PolyForm **Noncommercial**: not for client work) | `execution/infrastructure/setup_openbot.sh` → see `directives/infrastructure/openbot.md` |
-| Replica | `Jakeschincariol/replica-skill` | **skill pack** (11 skills, MIT; **not installed**, skillspector-gated copy) | `execution/infrastructure/setup_replica_skill.sh` → see `directives/infrastructure/replica_skill.md` |
+| Replica | `Jakeschincariol/replica-skill` | **skill pack** (11 skills, MIT; **installed** 2026-11-09 in `.claude/skills/replica-*` at `77c9436`; 9 via scan-gated script, launch + test hand-copied after HIGH false-positive review; licence `docs/reference/third_party/replica-skill-LICENSE`) | `execution/infrastructure/setup_replica_skill.sh` → see `directives/infrastructure/replica_skill.md` |
 
 The seven workspace mods (`jev-router-mod`, `safety-guard-mod`, `done-notify-mod`,
 `session-ledger-mod`, `context-meter`, `quota-watch`, `tool-timing`) stay enabled from
