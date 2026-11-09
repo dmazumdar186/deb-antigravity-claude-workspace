@@ -82,7 +82,7 @@ if [ "$ACTION" = "down" ] || [ "$ACTION" = "uninstall" ]; then
     exit 0
   fi
   [ "$YES" -eq 1 ] || die "--uninstall deletes ALL OpenSEO data, generated secrets and $DIR. Back up first (node scripts/celld/backup.mjs backup ./backups/x), then re-run with --uninstall --yes."
-  if [ "$DRY_RUN" -eq 1 ] || docker_ok; then compose down -v; fi
+  if [ "$DRY_RUN" -eq 1 ] || docker_ok; then compose down -v; else die "Docker not reachable; refusing to delete $DIR while its volumes (with generated secrets) may still exist. Start Docker and re-run."; fi
   run rm -rf "$DIR"
   log "Uninstalled."
   exit 0

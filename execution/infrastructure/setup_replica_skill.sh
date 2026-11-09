@@ -101,6 +101,7 @@ if [ "$DRY_RUN" -eq 0 ]; then
 fi
 run mkdir -p "$TARGET"
 installed=0; skipped=0
+[ -n "$(skill_names)" ] || die "no replica-*/SKILL.md found in $DIR (upstream layout changed?)."
 for s in $(skill_names); do
   case "$s" in replica-*) ;; *) die "refusing non replica-* name: $s" ;; esac
   SRC="$DIR/$s"; DEST="$TARGET/$s"
@@ -110,10 +111,9 @@ for s in $(skill_names); do
     continue
   fi
   [ -f "$SRC/SKILL.md" ] || die "$SRC/SKILL.md not found (bad REPLICA_SKILLS entry or upstream layout changed)."
-  scan="$(skillspector scan "$SRC" --no-llm -f json)" || die "skillspector scan failed on $s; nothing more copied."
-  if printf '%s' "$scan" | grep -qiE '"(severity|max_severity)"[[:space:]]*:[[:space:]]*"(high|critical)"'; then
-    die "skillspector reported HIGH/CRITICAL findings in $s; not copied."
-  fi
+  rc=0; python3 -I -c 'import sys; sys.path.insert(0, sys.argv[1]); from execution.infrastructure.skillspector_gate import scan; r = scan(sys.argv[2]); print(r); sys.exit(2 if r["error"] else (1 if r["max_severity"] in ("HIGH", "CRITICAL") else 0))' "$WORKSPACE" "$SRC" || rc=$?
+  [ "$rc" -eq 2 ] && die "skillspector scan failed or returned unreadable output on $s; nothing copied."
+  [ "$rc" -ne 0 ] && die "skillspector reported HIGH/CRITICAL findingsin $s; not copied."
   if [ -d "$DEST" ] && diff -rq -x __pycache__ "$SRC" "$DEST" >/dev/null 2>&1; then
     skipped=$((skipped + 1)); continue
   fi

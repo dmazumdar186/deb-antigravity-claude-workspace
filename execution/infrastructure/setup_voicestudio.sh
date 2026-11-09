@@ -191,10 +191,9 @@ if [ "$WITH_SKILL" -eq 1 ]; then
     echo "[dry-run] copy $SRC -> $DEST"
   else
     have skillspector || die "skillspector CLI not installed; refusing to copy the skill (see directives/infrastructure/claude_plugins.md)."
-    scan="$(skillspector scan "$SRC" --no-llm -f json)" || die "skillspector scan failed; skill not copied."
-    if printf '%s' "$scan" | grep -qiE '"(severity|max_severity)"[[:space:]]*:[[:space:]]*"(high|critical)"'; then
-      die "skillspector reported HIGH/CRITICAL findings; skill not copied."
-    fi
+    rc=0; python3 -I -c 'import sys; sys.path.insert(0, sys.argv[1]); from execution.infrastructure.skillspector_gate import scan; r = scan(sys.argv[2]); print(r); sys.exit(2 if r["error"] else (1 if r["max_severity"] in ("HIGH", "CRITICAL") else 0))' "$WORKSPACE" "$SRC" || rc=$?
+    [ "$rc" -eq 2 ] && die "skillspector scan failed or returned unreadable output; nothing copied."
+    [ "$rc" -ne 0 ] && die "skillspector reported HIGH/CRITICAL findings; skill not copied."
     mkdir -p "$DEST"
     cp "$SRC/SKILL.md" "$DEST/SKILL.md"
     log "Skill copied to $DEST (scan clean)."
