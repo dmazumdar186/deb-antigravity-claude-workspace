@@ -1,7 +1,7 @@
 """
 instantly_thread_read.py
 description: Read-only Instantly v2 lookup — find campaigns by name and dump every email (sent + received) for a lead/search term, so a reply can be read before drafting a response. GET only; never sends, replies or mutates.
-inputs: --search <term> (lead email, name or domain, required), --campaign <name substring> (optional), --out <path> (default .tmp/instantly_threads/<search>.json). Env: INSTANTLY_API_KEY.
+inputs: --search <address term> and/or --campaign-id <id>, --received-only, --grep <local filter on name/body>, --campaign <name substring> (optional), --out <path> (default .tmp/instantly_threads/<search>.json). Env: INSTANTLY_API_KEY.
 outputs: JSON file with matched campaigns + emails (oldest first); a plain-text thread printed to stdout.
 
 See also: directives/infrastructure/instantly_thread_read.md
@@ -67,7 +67,10 @@ def _text(e: dict) -> str:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--search", required=True)
+    ap.add_argument("--search", default="", help="Instantly server-side search (matches addresses)")
+    ap.add_argument("--campaign-id", default="", help="restrict /emails to one campaign id")
+    ap.add_argument("--received-only", action="store_true", help="only replies we received")
+    ap.add_argument("--grep", default="", help="local case-insensitive filter on name/address/body")
     ap.add_argument("--campaign", default="")
     ap.add_argument("--out", default="")
     a = ap.parse_args()
@@ -78,14 +81,27 @@ def main() -> int:
         return 2
 
     camps = _paginate("/campaigns", key, {"search": a.campaign}) if a.campaign else []
-    emails = _paginate("/emails", key, {"search": a.search}, gap=EMAILS_GAP_S)
+    if not (a.search or a.campaign_id):
+        print("need --search or --campaign-id", file=sys.stderr)
+        return 2
+    params: dict = {}
+    if a.search:
+        params["search"] = a.search
+    if a.campaign_id:
+        params["campaign_id"] = a.campaign_id
+    if a.received_only:
+        params["email_type"] = "received"
+    emails = _paginate("/emails", key, params, gap=EMAILS_GAP_S)
+    if a.grep:
+        g = a.grep.lower()
+        emails = [e for e in emails if g in json.dumps(e, ensure_ascii=False).lower()]
     if camps:
         ids = {c["id"] for c in camps}
         emails = [e for e in emails if e.get("campaign_id") in ids] or emails
     emails.sort(key=lambda e: e.get("timestamp_email") or e.get("timestamp_created") or "")
 
     out = Path(a.out) if a.out else ROOT / ".tmp" / "instantly_threads" / (
-        re.sub(r"[^\w.-]+", "_", a.search) + ".json")
+        re.sub(r"[^\w.-]+", "_", a.search or a.grep or a.campaign_id) + ".json")
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps({"campaigns": camps, "emails": emails}, indent=1), encoding="utf-8")
 

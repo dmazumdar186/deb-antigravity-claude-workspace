@@ -5,7 +5,11 @@
 **Why a script:** the redteam gate blocks any inline command touching Instantly's emails endpoint
 (it cannot tell a GET from a send). A committed, GET-only script is the sanctioned read path.
 
-**Script:** `python3 execution/infrastructure/instantly_thread_read.py --search <lead email|name|domain> [--campaign <name substring>]`
+**Script:** `python3 execution/infrastructure/instantly_thread_read.py [--search <address>] [--campaign-id <id>] [--received-only] [--grep <name>] [--campaign <name substring>]`
+
+Server-side `--search` matches addresses, not display names. To find a person by name:
+`--campaign-id <id> --received-only --grep <surname>`, then re-run with `--search <their address>`
+for the full thread.
 
 **Inputs:** `INSTANTLY_API_KEY` (env / `.env`).
 
