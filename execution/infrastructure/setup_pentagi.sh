@@ -154,6 +154,9 @@ replace_default COOKIE_SIGNING_SALT      "salt"        "$(gen_secret)"
 replace_default PENTAGI_POSTGRES_PASSWORD "postgres"   "$(gen_secret)"
 replace_default NEO4J_PASSWORD           "devpassword" "$(gen_secret)"
 
+# ---- sandbox port exposure: loopback by default (override with DOCKER_PUBLIC_IP=0.0.0.0 to expose) ----
+set_env DOCKER_PUBLIC_IP "${DOCKER_PUBLIC_IP:-127.0.0.1}"
+
 # ---- LLM provider wiring (only when .env was freshly created / still blank) ----
 llm_blank() {
   [ "$DRY_RUN" -eq 1 ] && return 1
@@ -226,7 +229,7 @@ PentAGI stack is up.
   Default login:  admin@pentagi.com / admin   (CHANGE THE PASSWORD on first login)
 Reminders:
   * AUTHORIZED TARGETS ONLY — only systems you own or have written permission to test.
-  * Flow sandboxes publish ports in the DOCKER_PORTS_BASE window (28000-29999) on all
-    interfaces; firewall the host if it is not isolated.
+  * Flow sandboxes publish ports in the DOCKER_PORTS_BASE window (28000-29999) on
+    DOCKER_PUBLIC_IP (127.0.0.1 by default); if you set it to 0.0.0.0, firewall the host.
   * Stop with: bash execution/infrastructure/setup_pentagi.sh --down
 EOF
