@@ -1474,6 +1474,14 @@ _WRAPPERS = {"sudo", "env", "exec", "xargs", "nohup", "time", "timeout", "nice",
              "hatch", "pipenv", "conda", "rye", "run", "-m"}
 _GMAIL_API = "gmail.googleapis" ".com"
 _INSTANTLY_API = "api.instan" "tly.ai"
+# Instantly send paths (also as f-string tails like `{api_url}/emails/reply`). A bare `/emails`
+# (list/search replies) is a read and passes unless the same text writes over HTTP (2026-11-09).
+_INSTANTLY_SEND_RE = re.compile(r"/emails/(?:reply|forward|send)\b|/reply\b|/forward\b")
+_HTTP_WRITE_RE = re.compile(
+    r"\.(?:post|put|patch)\s*\(|\brequest\s*\(\s*['\"](?:post|put|patch)['\"]"
+    r"|(?:-x|--request)[\s=]*['\"]?(?:post|put|patch)\b"
+    r"|(?:^|\s)(?:-d|-f|--form|--json|--data(?:-[\w-]+)?|--post-(?:data|file))(?:[\s=]|$)"
+    r"|\bmethod\s*[=:]\s*['\"]?(?:post|put|patch)\b|\brequest\s*\([^)]*\bdata\s*=")
 # The script a command executes directly: `python3 [flags] x.py`, `bash x.sh`, `./x.py`.
 _EXEC_SCRIPT_RE = re.compile(
     r"(?:^|[\s;&|(])(?:\S*/)?(?:python(?:3(?:\.\d+)?)?|py|bash|sh|node)(?:\.exe)?\s+"
@@ -1729,7 +1737,8 @@ def sender_hit(low: str, raw: str | None = None) -> str | None:
             return pat
     if _GMAIL_API in low and "/send" in low:
         return "Gmail REST /send"
-    if _INSTANTLY_API in low and ("/emails" in low or "/reply" in low):
+    if _INSTANTLY_API in low and (_INSTANTLY_SEND_RE.search(low) or (
+            "/emails" in low and _HTTP_WRITE_RE.search(low))):
         return "Instantly emails/reply API"
     if _SES_RE.search(low):
         return "Amazon SES endpoint"
