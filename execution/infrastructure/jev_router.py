@@ -52,6 +52,8 @@ SKILLS_DIR = PROJECT_ROOT / ".claude" / "skills"
 TMP = PROJECT_ROOT / ".tmp"
 LOG_PATH = TMP / "jev_router_log.jsonl"
 MENU_CACHE = TMP / "jev_skills_menu.json"
+# Per-session advisor dedupe lives in gitignored .tmp/ so routing never dirties tracked state.json.
+SUGGESTED_PATH = TMP / "jev_suggested.json"
 
 DEFAULT_CONFIG: dict[str, Any] = {
     "model": jev.JEV_MODEL,
@@ -124,21 +126,19 @@ def _session_key(session_id: str | None) -> str:
 
 def suggested_caps(session_id: str | None) -> set[str]:
     """Capabilities already suggested this session (so we never repeat one)."""
-    data = _read_json(STATE_PATH, {"enabled": True})
-    return set((data.get("suggested") or {}).get(_session_key(session_id), []))
+    data = _read_json(SUGGESTED_PATH, {})
+    return set(data.get(_session_key(session_id), []))
 
 
 def mark_suggested(session_id: str | None, cap: str) -> None:
-    JEV_DIR.mkdir(parents=True, exist_ok=True)
-    data = _read_json(STATE_PATH, {"enabled": True})
-    sug = data.get("suggested") or {}
+    SUGGESTED_PATH.parent.mkdir(parents=True, exist_ok=True)
+    sug = _read_json(SUGGESTED_PATH, {})
     key = _session_key(session_id)
     lst = list(sug.get(key, []))
     if cap not in lst:
         lst.append(cap)
     sug[key] = lst
-    data["suggested"] = sug
-    STATE_PATH.write_text(json.dumps(data) + "\n", encoding="utf-8")
+    SUGGESTED_PATH.write_text(json.dumps(sug) + "\n", encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------------------

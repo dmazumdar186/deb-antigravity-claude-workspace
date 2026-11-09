@@ -87,6 +87,7 @@ def run_hook(tmp, prompt, fake, session="s1"):
          mock.patch.object(R, "LOG_PATH", tmp / "log.jsonl"), \
          mock.patch.object(R, "MENU_CACHE", tmp / "menu.json"), \
          mock.patch.object(R, "STATE_PATH", tmp / "state.json"), \
+         mock.patch.object(R, "SUGGESTED_PATH", tmp / "suggested.json"), \
          mock.patch.object(R, "JEV_DIR", tmp):
         return R.run_hook(json.dumps({"prompt": prompt, "session_id": session}))
 

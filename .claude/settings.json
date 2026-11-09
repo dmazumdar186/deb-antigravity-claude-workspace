@@ -211,6 +211,15 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/jev-router-cloud.sh\"",
+            "timeout": 10
+          }
+        ]
       }
     ]
   },

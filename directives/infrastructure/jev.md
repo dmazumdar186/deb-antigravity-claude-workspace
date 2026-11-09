@@ -21,7 +21,7 @@ search-by-meaning, live meters, zero-LLM chatbots).
 
 ## Level 1 — the router (`/jev on|off|status|test|pick`)
 
-- Hook: `UserPromptSubmit` → `.claude/mods/jev-router-mod` (shell hook archived in `docs/reference/hooks-archive/2026-10-22/`) → `execution/infrastructure/jev_router.py hook`.
+- Hook: `UserPromptSubmit` → `.claude/mods/jev-router-mod` locally; in cloud sessions (where the mod does not load) `.claude/hooks/jev-router-cloud.sh` (settings.json, no-op unless `CLAUDE_CODE_REMOTE=true`, so it never double-routes) → `execution/infrastructure/jev_router.py hook` (the old always-on shell hook is archived in `docs/reference/hooks-archive/2026-10-22/`).
 - One Jev call per prompt with up to three questions: **tier** (tiny / bulk / standard / hard), **skill**
   (menu = every `.claude/skills/*/SKILL.md` name + description, plus `none`) and **advise** (plugin
   advisor, below).
@@ -32,8 +32,8 @@ search-by-meaning, live meters, zero-LLM chatbots).
   - skill match ≥ `skill_min_confidence` → "load `<skill>` first".
   Haiku is banned; the Haiku slot from the video is Sonnet here (operator order 2026-10-06).
 - Config `.claude/jev/config.json` (routes, thresholds, timeout 2.5 s; toggles `skill_pick` and `advise`
-  default true; `advisor_min_confidence` 0.6). State `.claude/jev/state.json` (`enabled`, `changed`,
-  `suggested.{session_id}` — key `_` when the hook payload has no session_id).
+  default true; `advisor_min_confidence` 0.6). State `.claude/jev/state.json` (`enabled`,
+  `changed`); advisor dedupe in gitignored `.tmp/jev_suggested.json` (`{session_id: [caps]}` — key `_` when the hook payload has no session_id), so routing never dirties tracked files.
 - Fail-open: missing key, timeout, HTTP error, bad JSON → no output, prompt untouched. Slash commands,
   `!` shell lines and prompts under 12 chars are never routed.
 - Privacy: when ON, prompt text (≤ 6000 chars) is sent to OpenRouter → TypeSafe. `/jev off` for
@@ -52,7 +52,7 @@ Hybrid surfacing (operator decision): NORMAL suggestions are NON-BLOCKING; ONE r
   request, ~no extra latency. On a hit ≥ `advisor_min_confidence` (config, default 0.6) the hook
   prepends a single `💡 <capability>: <value_add>` line to `additionalContext`, which the
   jev-router-mod band surfaces. **Per-session dedupe**: suggested caps are stored in
-  `state.json` (`suggested.{session_id}`); the same capability is never repeated in a session.
+  `.tmp/jev_suggested.json` (`{session_id: [...]}`); the same capability is never repeated in a session.
 - **Blocking gate (the one risky event)**: `execution/infrastructure/skillspector_gate.py`, a
   `PreToolUse(Bash)` hook (`.claude/hooks/skillspector-gate.sh`, settings.json). It detects an
   unvetted skill/plugin install (git clone into/near `.claude/skills`, `cp`/`mv` into
