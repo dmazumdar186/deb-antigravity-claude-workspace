@@ -47,3 +47,19 @@ One reproducible command that clones/updates the upstream pack, scans every skil
 - **Legal:** the pack rebuilds features, not assets; `replica-brand`'s sweep and `replica-deploy`'s preflight block launch under the original's name. Trademark checks are screening only; not legal advice.
 - **Stale files:** the copy overwrites but does not prune files upstream removed; run `--uninstall` commands then reinstall for a clean tree.
 - **Windows:** run from Git Bash or WSL; set `REPLICA_SKILL_DIR` to a Windows-reachable path. Python tools run with `py` locally or `python3` in the cloud.
+
+## Trust record — skillspector scan 2026-11-09 (pin `77c9436`, `--no-llm`)
+
+| Skill | Max | Finding | Verdict |
+|---|---|---|---|
+| replica-recon, -architect, -design, -build, -backend, -diff | NONE | — | clean |
+| replica-brand | MEDIUM | LP3: no `allowed-tools` declared, code reads files | accepted (stdlib file reads only) |
+| replica-entrepreneur | MEDIUM | LP3: no `allowed-tools`, file_write + "network" | accepted: `reviews.py` only regex-matches `https?://` strings in a local CSV, no network call |
+| replica-deploy | MEDIUM | RP1: unpinned `npx playwright` | accepted (dev dependency in instructions, not an MCP server) |
+| replica-launch | **HIGH** | YR4 YARA `mcp_tool_poisoning_metadata`: a literal U+200D in `listing.py:50` | **false positive**: it is the zero-width joiner inside `length()`, which counts emoji ZWJ sequences as one character; no hidden text in any SKILL.md (full repo swept for U+200B-200F, 202A-202E, 2060, 2066-2069, FEFF: only this line and its unit test) |
+| replica-test | **HIGH** x2 | AE1 "incomplete referenced artifact analysis" of `e2e.example.spec.ts` (+ 2x RP1 MEDIUM) | **false positive**: the scanner's parser gave up on a 40-line Playwright example (no network beyond `page.goto` on the local dev server, no eval/exec/env access); upstream remediation text itself says partial analysis is not evidence of evasion |
+
+Consequence: `setup_replica_skill.sh` still **aborts** on replica-launch and replica-test because the gate is
+strict on HIGH by design. To install the reviewed pack, install the 9 clean/MEDIUM skills with
+`REPLICA_SKILLS="replica-recon replica-architect replica-design replica-build replica-backend replica-diff replica-brand replica-entrepreneur replica-deploy"`
+and copy the two reviewed ones by hand only after re-checking the diff against `77c9436`.
