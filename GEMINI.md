@@ -15,10 +15,11 @@ Category map: `directives/README.md` (read first). New script → matching direc
 
 1. **Idempotent.** Re-runs converge: upserts on stable IDs, dedupe ledgers, skip-if-done markers, never a double send or charge. Zero-new input is a no-op.
 2. **Sandboxed.** Anything that spends, sends, posts or deletes defaults to `--dry-run` / offline `--check`; assert spend 0.00 around it. Live needs an explicit flag, a budget guard and a cost-ledger row. Least privilege; secrets never in code, logs or `.mcp.json`.
-3. **Red-teamed by default.** Every system, outward message or deliverable gets a full adversarial audit (`pipeline-auditor` + parallel lens workers returning verdicts). Exempt only pure reads and no-logic edits (typo, format); "looks trivial" is not an exemption. Probe: None/empty replies, hostile input (formula/prompt injection, path traversal), timeouts, rate limits, pagination, re-runs, Windows vs Linux, cloud without `.env`.
-4. **Gated.** Outward text ships only via `/redteam`: every name, figure, date, term and quote traced to a source line; 4 blind lenses PASS on the exact text. Hooks stop unrecorded Gmail, Calendar, common inline sends.
+3. **Red-teamed by default.** Every system, message or deliverable gets an adversarial audit sized to its stage (`pipeline-auditor` + lens workers). Exempt only pure reads and no-logic edits. Probe: empty replies, hostile input, timeouts, rate limits, pagination, re-runs, OS, cloud without `.env`.
+4. **Gated.** Outward text ships only via `/redteam`: every name, figure, date, term and quote traced to a source line; 4 blind lenses PASS on substance, ≤ 2 rounds; style is advice.
 5. **Bounded gates.** Every filter has a floor and a ceiling; every reject carries its evidence quote; any claim about a named third party is a build-time assertion, not a review note.
-6. **Fail loud on delivery, open on advice.** A missed deliverable alerts; helpers (Jev) degrade silently.
+6. **Fail loud on delivery, open on advice.** A missed deliverable alerts; helpers degrade silently.
+7. **Simple wins.** Build what was asked, as the client's real thing: one link, no friction, hardened to the stage, simple first (`docs/reference/simplicity_rules.md`).
 
 ## Debate protocol (pushback by default, cheap by design)
 

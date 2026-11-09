@@ -24,6 +24,15 @@ Recipe with mechanics: `reference/concept_recipe.md`. Rules: `reference/build_ru
   pitch, `research/` (facts, `glm_log.md`, `live_metrics.json`, `functional.json`), `screens/`,
   `HANDOFF.md`. Live at `https://<slug>-redesign.pages.dev/` (noindex). Optional social set link.
 
+## Simplicity first (2026-11-09, overrides anything below that conflicts)
+Lost ASSET Voyages to one plain WordPress site while we shipped two platforms and a test-plan hub (`deliverables/asset_voyages_rfp_2026-10-28/30_Postmortem_Lost_to_voyagedemo.md`). Rules (`docs/reference/simplicity_rules.md`):
+1. Build exactly what the client asked, in the platform they named; alternatives go in the proposal.
+2. Show their real future site with their journeys inside, on a real neutral domain; never a feature lab or a "how to test" hub.
+3. One link, instant load, no instructions, no in-browser boot, no login juggling.
+4. Harden to the stage: demo = credible and safe with fictional data; production hardening belongs to the build.
+5. Red-team outward text on substance only, max 2 rounds.
+6. Ship the simple version first; add the prospectus extras below only if time remains.
+
 ## The standard (non-negotiable)
 Build a **prospectus / concept-art renderer**, every element below present:
 - **(a) Cover** — pinned, scroll-scrubbed (`400svh` desktop / `250svh` mobile), 3–5 verbatim fact

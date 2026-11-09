@@ -11,6 +11,8 @@ The semantic half (four `redteam-lens` subagents) is run via `/redteam`.
 **Output contract:** the operator receives the vetted draft text only; claim tables, verdict files
 and ledger rows are machine state under `.tmp/redteam/` and never go into the email or the reply.
 
+**Loop policy (2026-11-09, simplicity rule 5):** max 2 lens rounds; only substance (facts, names, figures, dates, prices, commitments, scope, legal, confidentiality) can be BLOCKER/MAJOR; tone, hedging and wording are MINOR advice. See `docs/reference/simplicity_rules.md`.
+
 ## Threat model
 The main agent is not malicious, but it cuts corners under pressure: it may skip the reviewers,
 write its own "PASS" verdict files, append a pass row, self-waive, tweak a link or recipient after

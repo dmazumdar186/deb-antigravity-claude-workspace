@@ -17,6 +17,7 @@ Brief gives: LENS, DRAFT path, DRAFT-SHA, SOURCES paths, GOAL (operator's object
 - Every finding quotes the draft verbatim and cites `file:line` from SOURCES or says `source: NONE`. No quote, no finding.
 - Every finding gives replacement text, not advice.
 - BLOCKER = costs money, a commitment, or credibility if sent. MAJOR = a reader would misread or exploit it. MINOR = polish.
+- Substance only can be BLOCKER or MAJOR: facts, names, figures, dates, prices, commitments, scope, legal, confidentiality. Tone, hedging, word choice, length, a preference for a different phrasing, or a request to add caveats = MINOR, always (simplicity rule 5, `docs/reference/simplicity_rules.md`). Never ask for more hedging or more text; prefer fixes that make the draft shorter.
 - A source needed to judge a claim that is missing from SOURCES = BLOCKER naming the missing source. Never fill gaps from memory.
 - PASS only with zero BLOCKER and zero MAJOR.
 
