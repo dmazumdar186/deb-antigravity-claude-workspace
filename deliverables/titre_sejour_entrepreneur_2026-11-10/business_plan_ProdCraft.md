@@ -33,7 +33,7 @@
 
 ## 1. Synthèse du projet
 
-M. Debanjan Mazumdar, ingénieur en technologies de l'information et diplômé d'un Master of Science de Toulouse Business School, justifie d'une quinzaine d'années d'expérience dans le développement de produits numériques et de données, dont vingt mois en France en qualité de Product Manager, statut cadre, en contrat à durée indéterminée. Titulaire d'une carte de séjour « passeport talent – salarié qualifié / entreprise innovante » valable jusqu'au 5 mars 2027, il sollicite un changement de statut afin d'exercer, à titre principal et à temps plein, une activité libérale non réglementée sous le régime de la micro-entreprise.
+M. Debanjan Mazumdar, ingénieur en technologies de l'information et diplômé d'un Master of Science de Toulouse Business School, justifie d'une quinzaine d'années d'expérience dans le développement de produits numériques et de données, dont vingt mois en contrat à durée indéterminée, statut cadre, comme Product Manager chez SAS BIRDS puis Wiser Solutions SAS. Titulaire d'une carte de séjour « passeport talent – salarié qualifié / entreprise innovante » valable jusqu'au 5 mars 2027, il sollicite un changement de statut afin d'exercer, à titre principal et à temps plein, une activité libérale non réglementée sous le régime de la micro-entreprise.
 
 L'activité, exercée sous le nom commercial ProdCraft depuis son domicile de Vitry-sur-Seine, consiste à concevoir pour les petites et moyennes entreprises des sites internet, des systèmes d'intelligence artificielle et d'automatisation commerciale, des contenus vidéo retouchés par IA, et à animer des ateliers en ligne.
 
@@ -49,7 +49,7 @@ L'activité ne nécessite ni local commercial, ni stock, ni emprunt. Les charges
 
 ### 2.1 Formation
 
-- **Master of Science « International Strategic Business »**, Toulouse Business School, école accréditée par la Conférence des Grandes Écoles et titulaire des accréditations internationales AACSB, EQUIS et AMBA. Diplôme délivré le 20 mai 2021 (jury du 29 mars 2021), avec la mention « Summa Cum Laude » (moyenne générale de 16,75/20, classement 2/12).
+- **Master of Science « International Strategic Business »**, Toulouse Business School, école membre de la Conférence des Grandes Écoles et titulaire des accréditations internationales AACSB, EQUIS et AMBA. Diplôme délivré le 20 mai 2021 (comité du 29 mars 2021), avec la mention « Summa Cum Laude » (moyenne générale de 16,75/20, classement 2/12).
 - **Bachelor of Engineering en technologies de l'information**, CMR Institute of Technology, Bengaluru (Inde), 2006-2010.
 
 ### 2.2 Parcours professionnel
@@ -87,7 +87,7 @@ L'activité envisagée prolonge directement la formation d'ingénieur de M. Mazu
 | Siège | Domicile du porteur de projet, Vitry-sur-Seine (Val-de-Marne) |
 | Exercice | À titre principal et à temps plein |
 | Début d'activité | À la délivrance du titre de séjour |
-| Clientèle | Petites et moyennes entreprises, indépendants, cabinets de recrutement, freelances via plateformes |
+| Clientèle | Petites et moyennes entreprises, indépendants, cabinets de recrutement, clients des plateformes freelance |
 
 ProdCraft s'adresse aux petites entreprises qui souhaitent disposer d'un site internet professionnel et tirer parti de l'intelligence artificielle sans recruter de compétences internes. L'offre combine une réalisation rapide (un site vitrine standard est livré en 48 à 72 heures), un accompagnement récurrent (maintenance et hébergement) et des projets d'automatisation à plus forte valeur.
 
@@ -103,11 +103,11 @@ Selon le Baromètre France Num 2025, 65 % des très petites entreprises possède
 
 ### 4.3 Un marché local étendu
 
-L'Île-de-France compte 1 245 253 entreprises, dont 108 573 dans le Val-de-Marne (CCI Paris Île-de-France, Chiffres clés 2025, données INSEE 2022). Le marché accessible depuis Vitry-sur-Seine est donc sans commune mesure avec le volume d'activité recherché, qui porte sur quelques dizaines de clients par an.
+L'Île-de-France compte 1 245 253 entreprises, dont 108 573 dans le Val-de-Marne (CCI Paris Île-de-France, Chiffres clés 2025, données INSEE 2022). Le marché accessible depuis Vitry-sur-Seine est donc sans commune mesure avec le volume d'activité recherché, qui porte sur une vingtaine de clients par an.
 
 ### 4.4 Une demande croissante de compétences en intelligence artificielle
 
-La plateforme de freelances Malt indique que les projets liés à l'intelligence artificielle ont progressé de 170 % en un an en France, que la demande en freelances spécialisés en IA a augmenté de 160 % et que ces profils facturent en moyenne 22 % de plus par jour (Malt Tech Trends 2025).
+La plateforme de freelances Malt indique que les projets liés à l'intelligence artificielle ont progressé de 170 % en un an en France, que la demande en freelances spécialisés en IA a augmenté de 160 % et que les ingénieurs en IA facturent en moyenne 22 % de plus par jour (Malt Tech Trends 2025).
 
 ### 4.5 Segments ciblés
 
@@ -118,9 +118,9 @@ La plateforme de freelances Malt indique que les projets liés à l'intelligence
 
 ### 4.6 Concurrence et positionnement
 
-Un site vitrine est proposé par les freelances entre 800 et 2 000 € et par les agences entre 2 000 et 5 000 € (Wise), certaines agences allant jusqu'à 10 000 € (Codeur). La maintenance d'un site simple se négocie entre 30 et 200 € par mois (iPaoo).
+Un site vitrine est proposé par les freelances débutants entre 800 et 2 000 € et par les agences entre 2 000 et 5 000 € (Wise), certaines agences allant jusqu'à 10 000 € (Codeur) ; les freelances expérimentés le facturent entre 2 500 et 5 000 € (Seedweb, iPaoo). La maintenance d'un site simple se négocie entre 30 et 200 € par mois (iPaoo).
 
-Un site seul constitue donc une prestation banalisée. ProdCraft se distingue par trois éléments : un site livré avec tableau de bord d'administration et référencement intégré en 48 à 72 heures, positionné au niveau des agences (2 500 à 3 000 €) ; une maintenance à 600 € par mois qui inclut jusqu'à 5 heures de modifications, soit un forfait de gestion et non un simple hébergement ; et des projets d'intelligence artificielle que peu de prestataires de sites vitrines savent réaliser.
+Un site seul constitue donc une prestation banalisée. ProdCraft se distingue par trois éléments : un site livré avec tableau de bord d'administration et référencement intégré en 48 à 72 heures, positionné au niveau des freelances expérimentés et des agences (2 500 à 3 000 €) ; une maintenance à 600 € par mois qui inclut jusqu'à 5 heures de modifications, soit un forfait de gestion et non un simple hébergement ; et des projets d'intelligence artificielle, segment dont la demande progresse (Malt Tech Trends 2025).
 
 <div class="pb"></div>
 
@@ -132,9 +132,9 @@ Un site seul constitue donc une prestation banalisée. ProdCraft se distingue pa
 | Une partie des petites entreprises n'a pas encore de site | 65 % des TPE ont un site (France Num) | Confirmée |
 | Le marché local est suffisant | 108 573 entreprises dans le Val-de-Marne | Confirmée |
 | La demande en compétences IA progresse | + 170 % de projets IA, + 160 % de demande en freelances IA (Malt) | Confirmée |
-| Les cabinets de recrutement constituent un segment accessible | 1 574 agences d'emploi en Île-de-France (Prism'emploi) ; aucune donnée publique sur leur usage de l'IA | Partiellement confirmée : le prévisionnel ne retient qu'un pilote par an pour ce segment |
+| Les cabinets de recrutement constituent un segment accessible | 1 574 agences d'emploi en Île-de-France (Prism'emploi) | Partiellement confirmée : le prévisionnel ne retient qu'un pilote par an pour ce segment |
 | Un site vitrine simple peut se vendre à prix élevé | Sites vitrines proposés dès 800 € par les freelances | Infirmée : le site seul est une prestation banalisée |
-| Un site livré avec tableau de bord et référencement se vend au niveau des agences | Agences : 2 000 à 5 000 € (Wise) ; prix retenu : 2 750 € | Confirmée |
+| Un site livré avec tableau de bord et référencement se vend au niveau des freelances expérimentés | Freelances expérimentés : 2 500 à 5 000 € ; agences : 2 000 à 5 000 € ; prix retenu : 2 750 € | Confirmée |
 
 ## 5. Stratégie commerciale
 
@@ -143,7 +143,7 @@ L'acquisition de clients repose sur cinq canaux complémentaires.
 1. **Prospection directe par email**, au moyen d'un système de prospection automatisé conçu par M. Mazumdar, auprès des segments identifiés.
 2. **Plateformes freelance** (Malt, Upwork, Free-Work), qui constituent le principal canal de la première année et permettent de constituer rapidement des références.
 3. **Ateliers en ligne** publiés sur Meetup, qui font connaître l'expertise de M. Mazumdar et génèrent des contacts qualifiés.
-4. **Site de présentation prodcraft.fyi**, qui présentera l'offre à l'ouverture de l'activité.
+4. **Site de présentation prodcraft.fyi**, qui présente l'offre ; aucune prestation n'est réalisée ni facturée avant la délivrance du titre.
 5. **Réseau professionnel**, issu de quinze années d'expérience dans le numérique.
 
 La politique commerciale privilégie la vente d'un site associé à un contrat de maintenance, afin de construire un revenu récurrent, puis la proposition de projets d'automatisation aux clients satisfaits.
@@ -191,12 +191,12 @@ L'activité est exercée depuis le domicile de M. Mazumdar, avec son matériel i
 | Poste | Détail | Coût annuel |
 |---|---|---|
 | Outil de développement IA (abonnement Claude) | 100 €/mois × 12 | 1 200,00 € |
-| Outil d'emailing (Instantly) | 97 $/mois × 12, compté 1 $ = 1 € | 1 164,00 € |
+| Outil de prospection par courriel (Instantly) | 97 $/mois × 12, compté 1 $ = 1 € | 1 164,00 € |
 | Messagerie professionnelle (Google Workspace) | 8,28 €/mois × 12 | 99,36 € |
 | API d'IA (OpenRouter) | Budget plafonné à 10 $/mois × 12, compté 1 $ = 1 € | 120,00 € |
 | Hébergement (Cloudflare) | 5 $/mois × 12, compté 1 $ = 1 € | 60,00 € |
 | Nom de domaine d'envoi | Renouvellement annuel | 10,00 € |
-| Organisation des ateliers (Meetup, abonnement organisateur) | À partir de 174,99 $/an, compté 1 $ = 1 € | 174,99 € |
+| Organisation des ateliers (Meetup, abonnement organisateur) | À partir de 174,99 $/an, compté 1 $ = 1 €, hors frais éventuels de billetterie | 174,99 € |
 | **Sous-total des charges fixes** | | **2 828,35 €** |
 | Commissions des plateformes freelance | 10 % du chiffre d'affaires réalisé via les plateformes | 1 217,50 € (année 1) ; 730,50 € (année 2) ; 487,00 € (année 3) |
 
@@ -204,7 +204,7 @@ Les montants libellés en dollars sont comptés à parité. Les abonnements et c
 
 ## 9. Prévisionnel sur trois ans
 
-Les prix unitaires retenus sont les suivants : site internet 2 750 € HT (milieu de la grille) ; pilote d'approche de candidats 2 000 € HT (milieu de la grille) ; vidéo publicitaire 750 € HT par projet (6 plans à 100 € et 150 € de mise en place) ; atelier 16,67 € HT par participant (20 € TTC).
+Les prix unitaires retenus sont les suivants : site internet 2 750 € HT (milieu de la grille) ; pilote d'approche de candidats 2 000 € HT (milieu de la grille) ; vidéo publicitaire 750 € HT par projet (6 plans à 100 € et 150 € de mise en place) ; atelier 16,67 € HT par participant (20 € TTC, TVA déduite par prudence dès le premier mois).
 
 | Ligne | Année 1 | Année 2 | Année 3 |
 |---|---|---|---|
@@ -236,7 +236,7 @@ Les volumes ci-dessous constituent des hypothèses de travail. Ils reposent sur 
 
 5. **Ateliers en ligne : 2 ateliers par mois, avec 10, puis 12 participants à 20 € TTC.**
 
-6. **Missions via plateformes : 25, puis 15, puis 10 jours par an à 487 €.** Ce montant correspond au taux journalier médian des freelances tech en France relevé par Malt Research (2025-2026). La commission retenue est de 10 %, soit le taux appliqué par Malt sur une première mission. La part des plateformes diminue à mesure que la clientèle directe se développe.
+6. **Missions via plateformes : 25, puis 15, puis 10 jours par an à 487 €.** Ce montant correspond au taux journalier médian des freelances tech en France relevé par Malt Research (2025-2026). La commission retenue est de 10 %, taux appliqué par Malt sur une première mission (Upwork : 0 à 15 % selon le contrat). La part des plateformes diminue à mesure que la clientèle directe se développe.
 
 7. **Charges.** Les charges fixes (2 828,35 €) sont supposées stables sur trois ans ; les commissions suivent le chiffre d'affaires réalisé via les plateformes.
 
@@ -292,9 +292,9 @@ L'article L421-5 du CESEDA subordonne la délivrance de la carte de séjour « e
 
 Au titre de la première année d'activité, le revenu prévisionnel de M. Mazumdar s'établit à 2 932,28 € par mois après cotisations et charges d'exploitation. Il dépasse de 1 065,26 € par mois, soit de 57,1 %, le SMIC mensuel brut à temps plein de 1 867,02 €. Le chiffre d'affaires de la première année (52 875 €) excède de 22 680,61 € le minimum de 30 194,39 € nécessaire pour couvrir le SMIC annuel après cotisations, et de 17 227,98 € le minimum de 35 647,02 € qui couvre également les charges d'exploitation.
 
-Ce chiffre d'affaires représente l'équivalent de 108,6 journées au taux médian de 487 €, soit 69,2 % des 157 jours facturables par an généralement observés chez les freelances en France, niveau cohérent avec une première année d'activité exercée à temps plein. Les moyennes publiées pour l'ensemble des micro-entrepreneurs, plus faibles, incluent une large part d'activités exercées à titre accessoire ou sans chiffre d'affaires (975 000 micro-entrepreneurs sur 3,03 millions n'ont déclaré aucun chiffre d'affaires en 2025).
+Ce chiffre d'affaires représente l'équivalent de 108,6 journées au taux médian de 487 €, soit 69,2 % des 157 jours facturables par an observés par Malt (2024) chez les indépendants en France, niveau cohérent avec une première année d'activité exercée à temps plein. Les moyennes publiées pour l'ensemble des micro-entrepreneurs, plus faibles, incluent une large part d'activités exercées à titre accessoire ou sans chiffre d'affaires (975 000 micro-entrepreneurs sur 3,03 millions n'ont déclaré aucun chiffre d'affaires en 2025).
 
-Le projet repose sur un marché dont la demande est établie par les données publiques, sur des prix situés dans les fourchettes du marché, sur six sources de revenus distinctes dont une part récurrente croissante, et sur un porteur de projet dont la formation et l'expérience correspondent directement à l'activité. Il présente ainsi une viabilité économique permettant à M. Mazumdar de tirer de son activité des ressources nettement supérieures au SMIC à temps plein sur chacune des trois années du prévisionnel, y compris dans un scénario dégradé.
+Le projet repose sur un marché dont la demande est établie par les données publiques, sur des prix situés dans les fourchettes du marché, sur six sources de revenus distinctes dont une part récurrente croissante, et sur un porteur de projet dont la formation et l'expérience correspondent directement à l'activité. Il présente ainsi une viabilité économique permettant à M. Mazumdar de tirer de son activité des ressources nettement supérieures au SMIC à temps plein sur chacune des trois années du prévisionnel, et, pour la première année, y compris dans un scénario dégradé.
 
 <div class="sign">
 
