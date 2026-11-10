@@ -37,13 +37,13 @@ from execution.modules import jev_client as jev  # noqa: E402
 VIDEO = "https://prodcraft.fyi/new-clients"  # 301 -> /gtm/ (plain-word link; "gtm" read as jargon)
 NICHE = {
     "EventAV": dict(buyers="brands and agencies planning events", work="event work",
-                    target="marketing and event leads at companies near you that run conferences and launches",
+                    target="marketing and event managers at mid-size companies",
                     buyer_q="companies that run conferences, launches and brand events"),
     "Fitout": dict(buyers="companies planning an office move or refit", work="fit-out work",
-                   target="office managers and ops heads at companies near you planning an office move",
+                   target="office managers and ops heads at mid-size companies",
                    buyer_q="companies planning an office move, expansion or refit"),
     "DMC": dict(buyers="companies planning incentive trips and offsites", work="incentive trip business",
-                target="sales and hr leads at companies near you that run incentive trips",
+                target="sales directors and hr heads at mid-size companies",
                 buyer_q="companies that run incentive trips, offsites and sales kick-offs"),
 }
 GREET = R("hey {{firstName}},", "hi {{firstName}},", "{{firstName}},")
@@ -51,7 +51,7 @@ GREET = R("hey {{firstName}},", "hi {{firstName}},", "{{firstName}},")
 
 def subjects(n: str) -> list[str]:
     return [R("new clients for {{companyName}}", "{{companyName}} pipeline", "{{firstName}}, new clients?"),
-            R("your next client", "more corporate clients", "{{firstName}}, quick one")]
+            R("your next client", "more clients", "{{firstName}}, quick one")]
 
 
 def pers_pain(n: str) -> str:
@@ -69,8 +69,8 @@ def pain(n: str) -> str:
              f"bet most of your {w} still comes from people who already know you.")
 
 
-PROOF = [R("this year i built this for a company that buys small businesses. about a dozen emails a day by hand became 800 a day.",
-           "earlier this year i set this up for a firm that buys small businesses. they went from roughly 12 emails a day by hand to 800 a day.",
+PROOF = [R("this year i built one for a company that buys small businesses. about a dozen emails a day by hand became 800 a day.",
+           "earlier this year i built one for a firm that buys small businesses: roughly 12 emails a day by hand became 800 a day.",
            "this year i built it for a company that buys small businesses: from about a dozen emails a day, by hand, to 800 a day.")]
 
 
@@ -84,7 +84,7 @@ def offer_q(n: str) -> str:
 
 
 FREE = R("free, no call needed. just reply yes.", "it's free and there's no call. just reply yes.",
-         "free, no call. a yes is all i need.")
+         "free, no call. just say yes.")
 
 
 def step1(n: str, personalized: bool) -> str:
@@ -98,13 +98,13 @@ def step2(n: str) -> str:
           "{{firstName}}, made a quick 30 second video of how it works:",
           "here's a 30 second video of how it works, {{firstName}}:"),
         R(VIDEO, f"{VIDEO} (30 sec)", f"video: {VIDEO}"),
-        R("it finds the right people, checks each email address, then sends from lots of email accounts every day.",
-          "it finds the right people, checks every email before sending, then sends a few a day from lots of addresses.",
+        R("it finds the right people, checks each email address, then sends every day from lots of email accounts.",
+          "it finds the right people, checks each email before sending, then sends every day from lots of addresses.",
           "it finds the people, checks each email first, then sends every day from lots of email addresses."),
-        R("you only see the replies worth answering, and the best ones ping your phone.",
+        R("replies get sorted for you, and the hot ones ping your phone.",
           "replies get sorted for you. when someone's keen, your phone pings and you take it from there.",
           "you get the good replies, and your phone pings when someone's ready to talk."),
-        R("worth a look?", "worth 30 seconds?", "want me to set one up for you?")])
+        R("worth a look?", "worth 30 seconds?", "30 seconds, worth it?")])
 
 
 def step3(n: str) -> str:
