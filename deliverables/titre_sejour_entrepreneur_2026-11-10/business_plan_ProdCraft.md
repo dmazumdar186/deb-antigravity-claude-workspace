@@ -24,16 +24,18 @@
 6. Offre de services et tarifs
 7. Cadre juridique, fiscal et social
 8. Moyens et charges d'exploitation
-9. Prévisionnel sur trois ans
-10. Hypothèses retenues
-11. Plan de trésorerie de la première année
-12. Analyse des risques et scénario dégradé
-13. Calendrier de mise en œuvre
-14. Viabilité économique et conclusion
+9. Plan de financement initial
+10. Prévisionnel sur trois ans
+11. Hypothèses retenues
+12. Plan de trésorerie de la première année
+13. Analyse des risques et scénario dégradé
+14. Calendrier de mise en œuvre
+15. Viabilité économique et conclusion
+16. Annexes
 
 ## 1. Synthèse du projet
 
-M. Debanjan Mazumdar, ingénieur en technologies de l'information et diplômé d'un Master of Science de Toulouse Business School, justifie d'une quinzaine d'années d'expérience dans le développement de produits numériques et de données, dont vingt mois en contrat à durée indéterminée, statut cadre, comme Product Manager chez SAS BIRDS puis Wiser Solutions SAS. Titulaire d'une carte de séjour « passeport talent – salarié qualifié / entreprise innovante » valable jusqu'au 5 mars 2027, il sollicite un changement de statut afin d'exercer, à titre principal et à temps plein, une activité libérale non réglementée sous le régime de la micro-entreprise.
+M. Debanjan Mazumdar, ingénieur en technologies de l'information et diplômé d'un Master of Science de Toulouse Business School, justifie de plus de dix ans d'expérience dans le développement de produits numériques et de données, dont près de vingt mois en contrat à durée indéterminée, statut cadre, comme Product Manager chez SAS BIRDS puis Wiser Solutions SAS (du 2 novembre 2022 au 1er juillet 2024). Titulaire d'une carte de séjour « passeport talent – salarié qualifié / entreprise innovante » valable jusqu'au 5 mars 2027, il sollicite un changement de statut afin d'exercer, à titre principal et à temps plein, une activité libérale non réglementée sous le régime de la micro-entreprise.
 
 L'activité, exercée sous le nom commercial ProdCraft depuis son domicile de Vitry-sur-Seine, consiste à concevoir pour les petites et moyennes entreprises des sites internet, des systèmes d'intelligence artificielle et d'automatisation commerciale, des contenus vidéo retouchés par IA, et à animer des ateliers en ligne.
 
@@ -56,7 +58,7 @@ L'activité ne nécessite ni local commercial, ni stock, ni emprunt. Les charges
 
 | Période | Employeur | Fonction |
 |---|---|---|
-| Novembre 2022 – juillet 2024 | SAS BIRDS, puis Wiser Solutions SAS après fusion (Boulogne-Billancourt) | Product Manager, statut cadre, en contrat à durée indéterminée à temps complet |
+| 2 novembre 2022 – 1er juillet 2024 | SAS BIRDS, puis Wiser Solutions SAS après fusion (Boulogne-Billancourt) | Product Manager, statut cadre, en contrat à durée indéterminée à temps complet |
 | Avril 2019 – septembre 2019 | Pitney Bowes | Senior Data Product Owner |
 | Juin 2018 – février 2019 | Evolent | Senior Data Product Owner |
 | Juillet 2015 – mars 2018 | Avaya India | Senior Product Owner |
@@ -74,7 +76,7 @@ Depuis la fin de son contrat chez Wiser Solutions en juillet 2024, M. Mazumdar e
 
 ### 2.4 Adéquation entre le profil et le projet
 
-L'activité envisagée prolonge directement la formation d'ingénieur de M. Mazumdar et ses quinze années d'expérience dans la conception et le pilotage de produits numériques et de données. Sa formation en stratégie internationale et sa maîtrise du français et de l'anglais lui permettent de servir aussi bien une clientèle locale que des clients européens.
+L'activité envisagée prolonge directement la formation d'ingénieur de M. Mazumdar et ses plus de dix années d'expérience dans la conception et le pilotage de produits numériques et de données. Sa formation en stratégie internationale et sa maîtrise du français et de l'anglais lui permettent de servir aussi bien une clientèle locale que des clients européens.
 
 ## 3. Présentation du projet
 
@@ -83,7 +85,7 @@ L'activité envisagée prolonge directement la formation d'ingénieur de M. Mazu
 | Nom commercial | ProdCraft |
 | Forme juridique | Entreprise individuelle, régime de la micro-entreprise |
 | Nature de l'activité | Profession libérale non réglementée (bénéfices non commerciaux) |
-| Siège | Domicile du porteur de projet, Vitry-sur-Seine (Val-de-Marne) |
+| Siège | L'activité est exercée au domicile du porteur de projet, 6 rue des Malassis, 94400 Vitry-sur-Seine, dont il est locataire (bail joint en annexe). |
 | Exercice | À titre principal et à temps plein |
 | Début d'activité | À la délivrance du titre de séjour |
 | Clientèle | Petites et moyennes entreprises, indépendants, cabinets de recrutement, clients des plateformes freelance |
@@ -94,30 +96,30 @@ ProdCraft s'adresse aux petites entreprises qui souhaitent disposer d'un site in
 
 ### 4.1 Un retard d'adoption de l'intelligence artificielle par les entreprises françaises
 
-En 2024, 10 % des entreprises françaises de 10 salariés ou plus déclaraient utiliser au moins une technologie d'intelligence artificielle, contre 13 % dans l'Union européenne. Ce taux n'était que de 9 % pour les entreprises de moins de 50 salariés, contre 33 % pour celles de 250 salariés ou plus (INSEE, Insee Première n° 2061, juillet 2025). Selon Eurostat, la proportion atteint 18,2 % en France en 2025, contre 20,0 % dans l'Union européenne. Le rattrapage est rapide, mais les plus petites entreprises restent en retard.
+En 2024, 10 % des entreprises françaises de 10 salariés ou plus déclaraient utiliser au moins une technologie d'intelligence artificielle, contre 13 % dans l'Union européenne. Ce taux n'était que de 9 % pour les entreprises de moins de 50 salariés, contre 33 % pour celles de 250 salariés ou plus (INSEE, Insee Première n° 2061, juillet 2025)[^insee]. Selon Eurostat, la proportion atteint 18,2 % en France en 2025, contre 20,0 % dans l'Union européenne[^eurostat]. Le rattrapage est rapide, mais les plus petites entreprises restent en retard.
 
 ### 4.2 Des petites entreprises en demande d'accompagnement
 
-Selon le Baromètre France Num 2025, 65 % des très petites entreprises possèdent un site internet présentant leur activité (81 % des PME), ce qui laisse environ un tiers d'entre elles sans site. L'usage de l'intelligence artificielle y a doublé en un an pour atteindre 26 %, et 37 % des entreprises déclarent des difficultés à trouver un prestataire numérique adapté, en hausse de 15 points.
+Selon le Baromètre France Num 2025, 61 % des très petites entreprises possèdent un site internet présentant leur activité (81 % des PME), ce qui laisse près de quatre très petites entreprises sur dix sans site. L'usage de l'intelligence artificielle y a doublé en un an pour atteindre 26 %, et 37 % des entreprises déclarent des difficultés à trouver un prestataire numérique adapté, en hausse de 15 points[^francenum].
 
 ### 4.3 Un marché local étendu
 
-L'Île-de-France compte 1 245 253 entreprises, dont 108 573 dans le Val-de-Marne (CCI Paris Île-de-France, Chiffres clés 2025, données INSEE 2022). Le marché accessible depuis Vitry-sur-Seine est donc sans commune mesure avec le volume d'activité recherché, qui porte sur une vingtaine de clients par an.
+L'Île-de-France compte 1 245 253 entreprises, dont 108 573 dans le Val-de-Marne (CCI Paris Île-de-France, Chiffres clés 2025, données INSEE 2022)[^cci]. Le marché accessible depuis Vitry-sur-Seine est donc sans commune mesure avec le volume d'activité recherché, qui porte sur une vingtaine de clients par an.
 
 ### 4.4 Une demande croissante de compétences en intelligence artificielle
 
-La plateforme de freelances Malt indique que les projets liés à l'intelligence artificielle ont progressé de 170 % en un an en France, que la demande en freelances spécialisés en IA a augmenté de 160 % et que les ingénieurs en IA facturent en moyenne 22 % de plus par jour (Malt Tech Trends 2025).
+La plateforme de freelances Malt indique que les projets liés à l'intelligence artificielle ont progressé de 170 % en un an en France, que la demande en freelances spécialisés en IA a augmenté de 160 % et que les ingénieurs en IA facturent en moyenne 22 % de plus par jour (Malt Tech Trends 2025)[^malt].
 
 ### 4.5 Segments ciblés
 
 - **Petites et moyennes entreprises** d'Île-de-France sans site ou dotées d'un site ancien, pour les sites, la maintenance et les automatisations.
-- **Cabinets de recrutement et agences d'emploi** : l'Île-de-France compte 1 574 agences d'emploi (Prism'emploi, juillet 2024), auxquelles s'ajoutent les cabinets de recrutement. Ce segment a un besoin direct d'automatisation de la recherche et de la prise de contact avec les candidats.
+- **Cabinets de recrutement et agences d'emploi** : l'Île-de-France compte 1 574 agences d'emploi (Prism'emploi, juillet 2024)[^prism], auxquelles s'ajoutent les cabinets de recrutement. Ce segment a un besoin direct d'automatisation de la recherche et de la prise de contact avec les candidats.
 - **Indépendants**, notamment les professeurs de yoga et praticiens du bien-être en France, pour les sites internet.
 - **Clients des plateformes freelance** (Malt, Upwork, Free-Work), pour des missions ponctuelles facturées à la journée.
 
 ### 4.6 Concurrence et positionnement
 
-Un site vitrine est proposé par les freelances débutants entre 800 et 2 000 € et par les agences entre 2 000 et 5 000 € (Wise), certaines agences allant jusqu'à 10 000 € (Codeur) ; les freelances expérimentés le facturent entre 2 500 et 5 000 € (Seedweb, iPaoo). La maintenance d'un site simple se négocie entre 30 et 200 € par mois (iPaoo).
+Un site vitrine est proposé par les freelances débutants entre 800 et 2 000 € et par les agences entre 2 000 et 5 000 € (Wise)[^wise], certaines agences allant jusqu'à 10 000 € (Codeur)[^codeur] ; les freelances expérimentés le facturent entre 2 500 et 5 000 € (Seedweb)[^seedweb]. La maintenance d'un site simple se négocie entre 30 et 200 € par mois (iPaoo)[^ipaoo].
 
 Un site seul constitue donc une prestation banalisée. ProdCraft se distingue par trois éléments : un site livré avec tableau de bord d'administration et référencement intégré en 48 à 72 heures, positionné au niveau des freelances expérimentés et des agences (2 500 à 3 000 €) ; une maintenance à 600 € par mois qui inclut jusqu'à 5 heures de modifications, soit un forfait de gestion et non un simple hébergement ; et des projets d'intelligence artificielle, segment dont la demande progresse (Malt Tech Trends 2025).
 
@@ -128,12 +130,14 @@ Un site seul constitue donc une prestation banalisée. ProdCraft se distingue pa
 | Hypothèse | Donnée | Conclusion |
 |---|---|---|
 | Les petites entreprises utilisent peu l'IA et ont besoin d'un accompagnement extérieur | 9 % des entreprises de moins de 50 salariés utilisent l'IA (INSEE) ; 37 % peinent à trouver un prestataire adapté (France Num) | Confirmée |
-| Une partie des petites entreprises n'a pas encore de site | 65 % des TPE ont un site (France Num) | Confirmée |
+| Une partie des petites entreprises n'a pas encore de site | 61 % des TPE ont un site (France Num) | Confirmée |
 | Le marché local est suffisant | 108 573 entreprises dans le Val-de-Marne | Confirmée |
 | La demande en compétences IA progresse | + 170 % de projets IA, + 160 % de demande en freelances IA (Malt) | Confirmée |
 | Les cabinets de recrutement constituent un segment accessible | 1 574 agences d'emploi en Île-de-France (Prism'emploi) | Partiellement confirmée : le prévisionnel ne retient qu'un pilote par an pour ce segment |
 | Un site vitrine simple peut se vendre à prix élevé | Sites vitrines proposés dès 800 € par les freelances | Infirmée : le site seul est une prestation banalisée |
 | Un site livré avec tableau de bord et référencement se vend au niveau des freelances expérimentés | Freelances expérimentés : 2 500 à 5 000 € ; agences : 2 000 à 5 000 € ; prix retenu : 2 750 € | Confirmée |
+
+Les sources des données de ce tableau figurent dans les notes des sections 4.1 à 4.6.
 
 ## 5. Stratégie commerciale
 
@@ -143,7 +147,7 @@ L'acquisition de clients repose sur cinq canaux complémentaires.
 2. **Plateformes freelance** (Malt, Upwork, Free-Work), qui constituent le principal canal de la première année et permettent de constituer rapidement des références.
 3. **Ateliers en ligne** publiés sur Meetup, qui font connaître l'expertise de M. Mazumdar et génèrent des contacts qualifiés.
 4. **Site de présentation prodcraft.fyi**, qui présente l'offre ; aucune prestation n'est réalisée ni facturée avant la délivrance du titre.
-5. **Réseau professionnel**, issu de quinze années d'expérience dans le numérique.
+5. **Réseau professionnel**, issu de plus de dix années d'expérience dans le numérique.
 
 La politique commerciale privilégie la vente d'un site associé à un contrat de maintenance, afin de construire un revenu récurrent, puis la proposition de projets d'automatisation aux clients satisfaits.
 
@@ -175,9 +179,9 @@ La politique commerciale privilégie la vente d'un site associé à un contrat d
 ## 7. Cadre juridique, fiscal et social
 
 - **Statut** : entreprise individuelle sous le régime de la micro-entreprise, activité libérale non réglementée relevant des bénéfices non commerciaux. L'immatriculation sera effectuée auprès du guichet unique des formalités d'entreprises.
-- **Cotisations sociales** : 25,6 % du chiffre d'affaires, auxquels s'ajoute la contribution à la formation professionnelle de 0,2 %, soit 25,8 % au total, retenus dans le prévisionnel. L'aide à la création ou à la reprise d'entreprise (ACRE) n'est pas intégrée au prévisionnel.
-- **TVA** : franchise en base jusqu'au dépassement du seuil applicable aux prestations de services (37 500 €, ou 41 250 € l'année du dépassement), avec la mention « TVA non applicable - article 293 B du CGI » ; la TVA sera ensuite facturée. Les prix professionnels sont exprimés hors taxes.
-- **Plafond du régime** : le chiffre d'affaires prévu demeure inférieur au plafond de 83 600 € applicable aux prestations de services pour la période 2026-2028, proratisé l'année d'immatriculation.
+- **Cotisations sociales** : 25,6 % du chiffre d'affaires, auxquels s'ajoute la contribution à la formation professionnelle de 0,2 %, soit 25,8 % au total, retenus dans le prévisionnel[^cotis]. L'aide à la création ou à la reprise d'entreprise (ACRE) n'est pas intégrée au prévisionnel.
+- **TVA** : franchise en base jusqu'au dépassement du seuil applicable aux prestations de services (37 500 €, ou 41 250 € l'année du dépassement)[^tva], avec la mention « TVA non applicable - article 293 B du CGI » ; la TVA sera ensuite facturée. Les prix professionnels sont exprimés hors taxes.
+- **Plafond du régime** : le chiffre d'affaires prévu demeure inférieur au plafond de 83 600 € applicable aux prestations de services pour la période 2026-2028, proratisé l'année d'immatriculation[^plafond].
 - **Cotisation foncière des entreprises** : exonération l'année de création, puis base réduite de moitié l'année suivante.
 - **Compte bancaire** : un compte dédié à l'activité sera ouvert dès le démarrage.
 - **Assurance** : la responsabilité civile professionnelle n'est pas obligatoire pour cette activité non réglementée.
@@ -185,7 +189,7 @@ La politique commerciale privilégie la vente d'un site associé à un contrat d
 
 ## 8. Moyens et charges d'exploitation
 
-L'activité est exercée depuis le domicile de M. Mazumdar, avec son matériel informatique personnel. Elle ne requiert ni local, ni stock, ni investissement initial, ni emprunt. Les charges se limitent aux outils logiciels nécessaires à la production et à la prospection.
+L'activité est exercée au domicile du porteur de projet, 6 rue des Malassis, 94400 Vitry-sur-Seine, dont il est locataire (bail joint en annexe). Elle s'appuie sur le matériel informatique personnel de M. Mazumdar. Elle ne requiert ni local, ni stock, ni investissement initial, ni emprunt. Les charges se limitent aux outils logiciels nécessaires à la production et à la prospection.
 
 | Poste | Détail | Coût annuel |
 |---|---|---|
@@ -201,7 +205,15 @@ L'activité est exercée depuis le domicile de M. Mazumdar, avec son matériel i
 
 Les montants libellés en dollars sont comptés à parité. Les abonnements et crédits de calcul propres à un client (hébergement dédié, génération vidéo) sont inclus dans son forfait ou lui sont refacturés.
 
-## 9. Prévisionnel sur trois ans
+## 9. Plan de financement initial
+
+| Besoins | Ressources |
+|---|---|
+| Aucun investissement initial | Les dépenses de démarrage et les premières charges sont couvertes par l'épargne personnelle du porteur de projet (attestation de solde créditeur jointe en annexe) |
+| Aucun local : activité exercée au domicile du porteur de projet | |
+| Matériel informatique déjà détenu | |
+
+## 10. Prévisionnel sur trois ans
 
 Les prix unitaires retenus sont les suivants : site internet 2 750 € HT (milieu de la grille) ; pilote d'approche de candidats 2 000 € HT (milieu de la grille) ; vidéo publicitaire 750 € HT par projet (6 plans à 100 € et 150 € de mise en place) ; atelier 16,67 € HT par participant (20 € TTC, TVA déduite par prudence dès le premier mois).
 
@@ -221,7 +233,7 @@ Les prix unitaires retenus sont les suivants : site internet 2 750 € HT (milie
 
 L'année 1 s'entend des douze mois qui suivent l'autorisation d'exercer. Le revenu indiqué s'entend avant impôt sur le revenu.
 
-## 10. Hypothèses retenues
+## 11. Hypothèses retenues
 
 Les volumes ci-dessous constituent des hypothèses de travail. Ils reposent sur les éléments suivants.
 
@@ -239,7 +251,7 @@ Les volumes ci-dessous constituent des hypothèses de travail. Ils reposent sur 
 
 7. **Charges.** Les charges fixes (2 828,35 €) sont supposées stables sur trois ans ; les commissions suivent le chiffre d'affaires réalisé via les plateformes.
 
-## 11. Plan de trésorerie de la première année
+## 12. Plan de trésorerie de la première année
 
 Le plan ci-dessous répartit mois par mois le chiffre d'affaires de la première année. Les cotisations sont calculées sur le chiffre d'affaires de chaque mois. L'activité ne nécessitant aucun investissement initial, le solde cumulé est positif dès le premier mois et atteint 10 889,57 € au quatrième mois, ce qui couvre les mois de moindre facturation.
 
@@ -261,7 +273,7 @@ Le plan ci-dessous répartit mois par mois le chiffre d'affaires de la première
 
 Répartition retenue : missions via plateformes concentrées sur les neuf premiers mois (25 jours) ; un site livré tous les deux mois à partir du deuxième mois ; premier contrat de maintenance au troisième mois et second au onzième ; prototypes IA aux cinquième et neuvième mois, pilote d'approche de candidats au septième ; vidéos aux troisième, sixième, neuvième et douzième mois ; ateliers chaque mois.
 
-## 12. Analyse des risques et scénario dégradé
+## 13. Analyse des risques et scénario dégradé
 
 | Risque | Mesure |
 |---|---|
@@ -273,7 +285,7 @@ Répartition retenue : missions via plateformes concentrées sur les neuf premie
 
 **Scénario dégradé.** Si le chiffre d'affaires de la première année était inférieur de 30 % aux prévisions, soit 37 012,50 €, le revenu après cotisations (9 549,23 €) et charges (3 680,60 €) s'établirait à 23 782,68 € par an, soit 1 981,89 € par mois, encore supérieur au SMIC mensuel brut à temps plein. Le chiffre d'affaires de la première année peut ainsi baisser de 17 227,98 €, soit 32,6 %, avant que le revenu ne descende sous ce seuil.
 
-## 13. Calendrier de mise en œuvre
+## 14. Calendrier de mise en œuvre
 
 | Étape | Échéance |
 |---|---|
@@ -285,7 +297,7 @@ Répartition retenue : missions via plateformes concentrées sur les neuf premie
 | Premiers projets d'intelligence artificielle | Mois 5 à 9 |
 | Lancement du moteur de prospection pour les clients | Année 2 |
 
-## 14. Viabilité économique et conclusion
+## 15. Viabilité économique et conclusion
 
 L'article L421-5 du CESEDA subordonne la délivrance de la carte de séjour « entrepreneur/profession libérale » à l'exercice d'une activité non salariée économiquement viable, dont le demandeur tire des moyens d'existence suffisants, soit des ressources au moins équivalentes au SMIC à temps plein.
 
@@ -294,6 +306,14 @@ Au titre de la première année d'activité, le revenu prévisionnel de M. Mazum
 Ce chiffre d'affaires représente l'équivalent de 108,6 journées au taux médian de 487 €, soit 69,2 % des 157 jours facturables par an observés par Malt (2024) chez les indépendants en France, niveau cohérent avec une première année d'activité exercée à temps plein. Les moyennes publiées pour l'ensemble des micro-entrepreneurs, plus faibles, incluent une large part d'activités exercées à titre accessoire ou sans chiffre d'affaires (975 000 micro-entrepreneurs sur 3,03 millions n'ont déclaré aucun chiffre d'affaires en 2025).
 
 Le projet repose sur un marché dont la demande est établie par les données publiques, sur des prix situés dans les fourchettes du marché, sur six sources de revenus distinctes dont une part récurrente croissante, et sur un porteur de projet dont la formation et l'expérience correspondent directement à l'activité. Il présente ainsi une viabilité économique permettant à M. Mazumdar de tirer de son activité des ressources nettement supérieures au SMIC à temps plein sur chacune des trois années du prévisionnel, et, pour la première année, y compris dans un scénario dégradé.
+
+## 16. Annexes
+
+1. Pages du passeport (état civil et validité)
+2. Attestation de solde créditeur (BoursoBank)
+3. Bail de location du domicile
+4. Diplômes : Bachelor of Engineering (CMR Institute of Technology) ; Master of Science (Toulouse Business School)
+5. Certificats de travail
 
 <div class="sign">
 
@@ -304,3 +324,17 @@ Debanjan MAZUMDAR
 Signature :
 
 </div>
+
+[^tva]: Seuils de la franchise en base de TVA : <https://www.impots.gouv.fr/portail/node/12249>
+[^plafond]: Plafond du régime micro-entrepreneur : <https://www.economie.gouv.fr/micro-entreprise-que-se-passe-t-il-quand-le-seuil-de-chiffre-daffaires-est-depasse>
+[^cotis]: Taux de cotisations des micro-entrepreneurs : <https://www.urssaf.fr/files/live/sites/urssaffr/files/autres/Diaporama_Auto-entrepreneur.pdf>
+[^insee]: INSEE, Insee Première n° 2061 : <https://www.insee.fr/fr/statistiques/8604126>
+[^eurostat]: Eurostat, jeu de données isoc_eb_ai : <https://ec.europa.eu/eurostat/databrowser/view/isoc_eb_ai/default/table> ; communiqué : <https://ec.europa.eu/eurostat/web/products-eurostat-news/w/ddn-20251211-2>
+[^francenum]: Baromètre France Num 2025, rapport : <https://www.francenum.gouv.fr/files/2025-09/Barom%C3%A8tre%20France%20Num%202025%20-%20Rapport.pdf>
+[^cci]: CCI Paris Île-de-France, Chiffres clés 2025 : <https://www.cci-paris-idf.fr/sites/default/files/2025-06/CC2025-Ile-de-France.pdf>
+[^malt]: Malt, Tech Trends 2025, communiqué du 10 juin 2025 : <https://cdn.prod.website-files.com/60af7172baabf482e3857f1b/6847f9f068f73fcac08e5bef_Malt%20Tech%20Trends%20-%20CP%2010.06.2025.pdf>
+[^prism]: Prism'emploi, communiqué du 20 novembre 2024 : <https://www.prismemploi.eu/communiques-de-presse/en-ile-de-france-prismemploi-et-lapec-signent-un-accord-en-faveur-de-linsertion-professionnelle-des-cadres>
+[^wise]: Wise : <https://wise.com/fr/blog/combien-coute-la-creation-dun-site-internet>
+[^codeur]: Codeur : <https://www.codeur.com/pages/prix-site-internet>
+[^seedweb]: Seedweb : <https://seedweb.fr/prix-site-internet/>
+[^ipaoo]: iPaoo : <https://www.ipaoo.fr/creer-un-site-vitrine/prix/>
