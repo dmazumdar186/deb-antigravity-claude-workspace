@@ -53,7 +53,7 @@ PAIN = R("bet sourcing still eats a big chunk of your week.",
 RESULT = [R("this june i built a tool for a recruiting agency in dublin.",
             "back in june i built something for an agency in dublin.",
             "in june i built a sourcing tool for a dublin recruiting agency."),
-          R("their consultants got about 15 hours a week back and candidates replied 2.3x more.",
+          R("their consultants got about 15 hours a week back and candidate replies went up 2.3x.",
             "each consultant got ~15 hours a week back, and replies from candidates went up 2.3x.",
             "each consultant there got roughly 15 hours a week back. candidate replies went up 2.3x.")]
 OFFER_Q = R("want me to set it up on one of your open roles so you see it on your own pipeline?",
@@ -61,24 +61,24 @@ OFFER_Q = R("want me to set it up on one of your open roles so you see it on you
             "want me to try it on one of your open roles?")
 STEP2_H = [R("{{firstName}}, here's a short video of how it works:",
              "{{firstName}}, recorded a quick video of how it works:",
-             "here's a 3 minute video of how it works {{firstName}}:"),
+             "here's a 3 minute video of how it works, {{firstName}}:"),
            R(LOOM, f"{LOOM} (3 min)", f"video: {LOOM}"),  # Loom page data: 181 s
            R("it checks each candidate's linkedin and past work, then writes the first message and the follow-up.",
              "it looks up each candidate's linkedin and work history and drafts the message and the follow-up.",
              "it checks candidates against their linkedin, then writes the note and the follow-up for you."),
-           R("so your recruiters spend less time digging for candidates and more time on calls.",
-             "means less time hunting for candidates and more time actually talking to them.",
-             "so your team spends less time searching and more time on calls."),
-           R("people you messaged before come back up with the next note ready.",
-             "anyone you contacted before pops back up with a new message written.",
-             "past candidates come back up too, with the next note already written."),
+           R("so you spend a lot less time digging for candidates.",
+             "means a lot less time hunting for candidates.",
+             "so you spend way less time searching."),
+           R("load your past candidates and they come back up with the next note ready.",
+             "give it your old contact list and each one pops back up with a new message written.",
+             "past candidates you load come back up too, with the next note already written."),
            R("worth a look?", "worth 3 minutes?", "want me to set it up on one of your roles?")]
 STEP3_H = [R("last one {{firstName}}.", "last note from me {{firstName}}.", "{{firstName}}, last one."),
            R("if sourcing isn't a pain at {{companyName}} right now, just say so and i'll stop.",
              "if finding candidates isn't a headache at {{companyName}} right now, lmk and i'll stop.",
              "if this isn't a priority at {{companyName}}, tell me and i'll leave you alone."),
            R("if it is, send me one open role and i'll set it up.", "if it is, reply with one role and i'll set it up.",
-             "otherwise send one open role and i'll do the rest.")]
+             "if it is, send one open role and i'll set it up.")]
 
 SUBJECTS = {
     "A": [R("{{companyName}} sourcing", "sourcing at {{companyName}}", "{{firstName}}, sourcing?"),
