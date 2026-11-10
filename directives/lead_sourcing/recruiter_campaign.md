@@ -27,7 +27,7 @@ Instantly campaigns (draft, then active), tagged `Deb_Oct 6 26`; `launch_state.j
 5. `launch.py --apply --activate`.
 
 ## Edge Cases
-- Settings copied from the live 2 Nov campaigns (read 2026-11-10): Mon-Fri 09:00-13:00 America/Chicago,
+- Settings copied from the live 2 Nov campaigns (read 2026-11-10): Mon-Fri 09:00-13:00 in each location's own time zone (America/Detroit for NY/NJ/Boston: Instantly has no America/New_York; America/Chicago for Houston),
   daily_limit 30, text only, open/link tracking off, stop on reply, stop for company, unsubscribe header on,
   steps day 0 / +2 / +1 days (as stored on DM_Fitout - US - Personalized).
 - The 12 tagged inboxes are shared with every active DM_ campaign (~340 sends/day total).

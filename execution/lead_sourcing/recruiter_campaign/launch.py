@@ -35,8 +35,10 @@ STATE = ROOT / ".tmp/recruiters/launch_state.json"
 COPY_PATH = Path(__file__).with_name("copy.json")
 DATE = "10 Nov 2026"
 LOC_LABEL = {"NewYork": "New York", "NewJersey": "New Jersey", "Boston": "Boston", "Houston": "Houston"}
-# All four markets are US Eastern/Central; the 2 Nov US campaigns ran 09:00-13:00 Chicago Mon-Fri.
-SCHED = ("09:00", "13:00", "America/Chicago")
+# Each location sends 09:00-13:00 in its own office hours (operator 2026-11-10). Instantly's timezone enum has no
+# America/New_York; America/Detroit is the same Eastern clock (incl. DST).
+SCHED = {"NewYork": ("09:00", "13:00", "America/Detroit"), "NewJersey": ("09:00", "13:00", "America/Detroit"),
+         "Boston": ("09:00", "13:00", "America/Detroit"), "Houston": ("09:00", "13:00", "America/Chicago")}
 
 
 def req(method: str, path: str, **kw):
@@ -77,20 +79,20 @@ def plan() -> list[dict]:
         ca = bool(rest)
         # Operator 2026-11-10: one campaign per location x personalization (both segments, same copy).
         name = f"DM_Recruitment - {LOC_LABEL[loc]} - {pers}{' CatchAll' if ca else ''} - {DATE}"
-        out.append(dict(file=f, name=name, pers=pers, catchall=ca))
+        out.append(dict(file=f, name=name, pers=pers, catchall=ca, loc=loc))
     return out
 
 
 def payload(p: dict, copy: dict) -> dict:
     c = copy
     s1 = c["step1_personalized" if p["pers"] == "Personalized" else "step1_nopersonalization"]
-    fr, to, tz = SCHED
+    fr, to, tz = SCHED[p["loc"]]
     steps = [{"type": "email", "delay": 2, "delay_unit": "days",
               "variants": [{"subject": tidy(s), "body": html(s1)} for s in c["subjects"]]},
              {"type": "email", "delay": 2, "delay_unit": "days", "variants": [{"subject": "", "body": html(c["step2"])}]},
              {"type": "email", "delay": 1, "delay_unit": "days", "variants": [{"subject": "", "body": html(c["step3"])}]}]
     return {"name": p["name"], "sequences": [{"steps": steps}],
-            "campaign_schedule": {"schedules": [{"name": "US mornings", "timing": {"from": fr, "to": to},
+            "campaign_schedule": {"schedules": [{"name": f"{LOC_LABEL[p['loc']]} office hours", "timing": {"from": fr, "to": to},
                                                  "days": {"0": False, "1": True, "2": True, "3": True, "4": True,
                                                           "5": True, "6": False}, "timezone": tz}]},
             "email_tag_list": [TAG], "daily_limit": 30, "text_only": True, "first_email_text_only": True,
