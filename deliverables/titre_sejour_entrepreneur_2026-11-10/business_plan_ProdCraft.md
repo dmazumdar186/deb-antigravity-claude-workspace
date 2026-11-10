@@ -57,7 +57,6 @@ L'activité ne nécessite ni local commercial, ni stock, ni emprunt. Les charges
 | Période | Employeur | Fonction |
 |---|---|---|
 | Novembre 2022 – juillet 2024 | SAS BIRDS, puis Wiser Solutions SAS après fusion (Boulogne-Billancourt) | Product Manager, statut cadre, en contrat à durée indéterminée à temps complet |
-| Juin 2021 – novembre 2022 | InfoTnT | Product Manager (données et recommandation) |
 | Avril 2019 – septembre 2019 | Pitney Bowes | Senior Data Product Owner |
 | Juin 2018 – février 2019 | Evolent | Senior Data Product Owner |
 | Juillet 2015 – mars 2018 | Avaya India | Senior Product Owner |
