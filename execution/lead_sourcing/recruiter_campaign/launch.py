@@ -1,6 +1,6 @@
 """
 description: Create (draft), fill and tag the DM_Recruitment Candidate Outreach campaigns in Instantly from the recruiter_leads.py CSVs. Default prints the plan only (no API call); --apply writes drafts; --apply --activate also starts them.
-inputs: .tmp/recruiters/campaigns/*.csv (+ catchall/); execution/lead_sourcing/recruiter_campaign/copy.json (operator-approved copy; required for --apply); env INSTANTLY_API_KEY (only with --apply); flags --apply, --activate, --only, --skip-catchall, --min-total
+inputs: .tmp/recruiters/campaigns/*.csv (+ catchall/); execution/lead_sourcing/recruiter_campaign/copy.json (operator-approved copy; required for --apply); env INSTANTLY_API_KEY (only with --apply); flags --apply, --activate, --only, --skip-catchall, --max-new, --min-total
 outputs: stdout plan (default); with --apply: Instantly campaigns + .tmp/recruiters/launch_state.json
 usage:
     python3 execution/lead_sourcing/recruiter_campaign/launch.py                     # plan only, no network
@@ -29,7 +29,7 @@ from dotenv import load_dotenv
 ROOT = Path(__file__).resolve().parents[3]
 load_dotenv(ROOT / ".env")
 API = "https://api.instantly.ai/api/v2"
-TAG = "cebb93b4-b98d-4948-bd99-43b0495fa93f"  # Deb_Oct 6 26 (same 12 inboxes as the 2 Nov campaigns)
+TAG = "ec57227c-502c-4c93-878d-b7363de132c3"  # Deb_16 Oct 26 (9 inboxes; operator 2026-11-10: new campaigns under this tag only)
 SRC = ROOT / ".tmp/recruiters/campaigns"
 STATE = ROOT / ".tmp/recruiters/launch_state.json"
 COPY_PATH = Path(__file__).with_name("copy.json")
@@ -120,6 +120,8 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--activate", action="store_true", help="also start campaigns; requires --apply")
     ap.add_argument("--only", default="", help="substring filter on campaign name")
     ap.add_argument("--skip-catchall", action="store_true", help="leave the CatchAll campaigns out of this run")
+    ap.add_argument("--max-new", type=int, default=0,
+                    help="cap on NEW leads uploaded this run across all campaigns (0 = no cap); keep under free Instantly slots")
     ap.add_argument("--min-total", type=int, default=3000,
                     help="launch gate: Reoon-safe main leads across all locations must reach this (operator 2026-11-10)")
     a = ap.parse_args(argv)
@@ -145,6 +147,7 @@ def main(argv: list[str] | None = None) -> None:
     main_total = sum(len(leads(p["file"])) for p in plan() if not p["catchall"])
     if main_total < a.min_total:
         sys.exit(f"launch gate: {main_total} main leads < --min-total {a.min_total}; source more before launching")
+    uploaded_this_run = 0
     for p in plans:
         rec = st.setdefault(p["name"], {})
         if "id" not in rec:
@@ -158,6 +161,8 @@ def main(argv: list[str] | None = None) -> None:
         L = leads(p["file"])
         done = set(rec.get("sent_emails", []))
         new = [x for x in L if x["email"].lower() not in done]
+        if a.max_new:
+            new = new[:max(0, a.max_new - uploaded_this_run)]
         if new:
             res = {}
             for i in range(0, len(new), 500):
@@ -168,6 +173,7 @@ def main(argv: list[str] | None = None) -> None:
                 done.update(x["email"].lower() for x in new[i:i + 500])
                 rec["sent_emails"] = sorted(done)
                 STATE.write_text(json.dumps(st, indent=1))
+            uploaded_this_run += len(new)
             prev = rec.get("uploaded", {})
             rec["uploaded"] = {k: prev.get(k, 0) + v for k, v in res.items()}
             rec["expected"] = len(done)
