@@ -141,8 +141,8 @@ def main(argv: list[str] | None = None) -> int:
     if a.apply:
         budget = a.max
         for cid, name, ids in plan:
-            for i in range(0, len(ids), 500):
-                chunk = ids[i:i + 500][:budget]
+            for i in range(0, len(ids), 50):  # the bulk DELETE removes at most 50 leads per call (2026-11-10)
+                chunk = ids[i:i + 50][:budget]
                 if not chunk:
                     break
                 n = int(req("DELETE", "/leads", json={"campaign_id": cid, "ids": chunk, "status": 3}).get("count") or 0)
