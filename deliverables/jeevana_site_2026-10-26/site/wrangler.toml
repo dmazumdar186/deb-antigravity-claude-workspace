@@ -1,0 +1,7 @@
+name = "jeevana-yoga"
+pages_build_output_dir = "."
+compatibility_date = "2026-10-01"
+
+[[kv_namespaces]]
+binding = "JEEVANA_KV"
+id = "33c31b00e6e946489c86f55aa63ba3cc"
