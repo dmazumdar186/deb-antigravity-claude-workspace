@@ -59,10 +59,11 @@ L'activité ne nécessite ni local commercial, ni stock, ni emprunt. Les charges
 | Période | Employeur | Fonction |
 |---|---|---|
 | 2 novembre 2022 – 1er juillet 2024 | SAS BIRDS, puis Wiser Solutions SAS après fusion (Boulogne-Billancourt) | Product Manager, statut cadre, en contrat à durée indéterminée à temps complet |
-| Avril 2019 – septembre 2019 | Pitney Bowes | Senior Data Product Owner |
-| Juin 2018 – février 2019 | Evolent | Senior Data Product Owner |
-| Juillet 2015 – mars 2018 | Avaya India | Senior Product Owner |
-| 2010 – 2015 | TCS, IDrive | Ingénieur logiciel et assurance qualité |
+| Avril 2019 – septembre 2019 | Pitney Bowes Inc (Pune, Inde) | Senior Product Owner |
+| Juin 2018 – février 2019 | Evolent Health International | Senior Product Owner |
+| Juillet 2015 – mars 2018 | Avaya India Pvt Ltd | Senior Product Owner Digitale |
+| Avril 2013 – juillet 2015 | IDrive India Pvt Ltd | Ingénieur QA logiciel |
+| Novembre 2010 – mars 2013 | Tata Consultancy Services | Ingénieur logiciel |
 
 Depuis la fin de son contrat chez Wiser Solutions en juillet 2024, M. Mazumdar est inscrit comme demandeur d'emploi. Il a mis cette période à profit pour préparer le présent projet : conception de prototypes et d'outils d'automatisation, publication de projets en source ouverte et constitution de son offre commerciale.
 
