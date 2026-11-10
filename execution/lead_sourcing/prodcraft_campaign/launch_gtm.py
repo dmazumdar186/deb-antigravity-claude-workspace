@@ -163,7 +163,9 @@ def main(argv: list[str] | None = None) -> None:
         return
     if a.activate and audit(st, False):
         sys.exit("refusing to activate: run --fix-contacted first")
-    plans = [p for p in sources() if p["untouched"] > 0 and a.only in p["name"]]
+    st0 = json.loads(STATE.read_text()) if STATE.exists() else {}
+    # Campaigns already created stay in scope after their leads moved (the source then shows 0 untouched).
+    plans = [p for p in sources() if (p["untouched"] > 0 or p["name"] in st0) and a.only in p["name"]]
     if not a.apply:
         print(f"PLAN ONLY. copy approved={copy.get('approved')}")
         for p in plans:
