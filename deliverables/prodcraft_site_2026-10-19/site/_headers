@@ -15,3 +15,6 @@
 
 /js/*
   Cache-Control: public, max-age=86400, must-revalidate
+
+/recruit/*
+  Cache-Control: public, max-age=3600

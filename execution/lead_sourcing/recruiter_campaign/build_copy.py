@@ -35,7 +35,8 @@ sys.path.insert(0, str(ROOT))
 load_dotenv(ROOT / ".env")
 from execution.modules import jev_client as jev  # noqa: E402
 
-LOOM = "https://www.loom.com/share/0e16c5a3f6ab4cf099fe4d7f4ede0aef"
+LOOM = "https://www.loom.com/share/0e16c5a3f6ab4cf099fe4d7f4ede0aef"  # old link (shows real candidate names; replaced)
+VIDEO = "https://prodcraft.fyi/recruit"  # operator's 31 s video, demo data only, hosted on the ProdCraft site
 
 
 def R(*opts: str) -> str:
@@ -59,10 +60,10 @@ RESULT = [R("this june i built a tool for a recruiting agency in dublin.",
 OFFER_Q = R("want me to set it up on one of your open roles?",
             "should i set it up on one of your open roles?",
             "want me to try it on one of your open roles?")
-STEP2_H = [R("{{firstName}}, here's a short video of how it works:",
-             "{{firstName}}, recorded a quick video of how it works:",
-             "here's a 3 minute video of how it works, {{firstName}}:"),
-           R(LOOM, f"{LOOM} (3 min)", f"video: {LOOM}"),  # Loom page data: 181 s
+STEP2_H = [R("{{firstName}}, here's a 30 second video of how it works:",
+             "{{firstName}}, made a quick 30 second video of how it works:",
+             "here's a 30 second video of how it works, {{firstName}}:"),
+           R(VIDEO, f"{VIDEO} (30 sec)", f"video: {VIDEO}"),  # video 31.6 s
            R("it checks each candidate's linkedin and past work, then writes the first message and the follow-up.",
              "it looks up each candidate's linkedin and work history and drafts the message and the follow-up.",
              "it checks candidates against their linkedin, then writes the note and the follow-up for you."),
