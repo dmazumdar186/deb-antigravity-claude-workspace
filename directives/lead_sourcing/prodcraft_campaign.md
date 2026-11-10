@@ -40,3 +40,19 @@ Run the cold email campaign selling the ProdCraft "Proposal Engine" (free 72-hou
 - Settings with evidence (`.tmp/prodcraft_copy/benchmarks.md`, `siva_analysis.md`): Mon-Fri (Siva sends Fri); US 09:00-13:00 Chicago, UK 08:00-12:00 Isle_of_Man; steps day 0/2/4 (Siva); daily_limit 30 for all incl. catch-all (no evidence for 5/day; pause any campaign above 3% bounce); plain text, tracking off; no signature; lowercase (Siva; confounded).
 - Operator commitments: honour the money-back guarantee; keep one sample per niche (deck, bid/tender proposal, trip proposal) ready to send on "yes".
 - Kill/keep: pause >3% bounce; rewrite if reply < 1% after 500 sends; target >= 0.3% positive per lead (Siva 0.28-0.89%).
+
+## GTM v3 (2026-11-10; supersedes the Proposal Engine pitch for the not-yet-contacted leads)
+- Operator switched the offer to GTM pipelines ("option 1") with the wk04 video (https://prodcraft.fyi/gtm/, credit line
+  removed; emails link https://prodcraft.fyi/new-clients, a 301 to /gtm/ because Jev read "gtm" as jargon).
+- Copy: `build_copy_gtm.py` -> `copy_gtm.json`. Offer from web research (30MPC/Gong 85M emails: offer CTA +28%, meeting
+  ask -44%): step 1 = referral pain + Accessory Masters proof (about a dozen emails a day by hand -> 800 a day) + yes/no
+  "want me to pull the first 20 for you? <titles> at mid-size companies, emails checked. free, no call needed";
+  step 2 = video + how it works; step 3 = prospect names how many clients a month would matter. 50 ruled out by the
+  operator; no guarantee (no data). The $128K figure is never used in emails (FACTS.md: not credited to the system alone).
+- Red-team 4/4 PASS in 3 rounds (round 3 operator-authorised), sha 96f5414f995c. Fixed on the way: no intent/location
+  claims about the free list, "every day" not "a few a day", no free-build ask, name the thing built.
+- Launch: `launch_gtm.py` creates `DM_{Niche} - {US|UK} - {Pers} - 10 Nov 2026` per 2 Nov source with not-contacted
+  leads, moves them (`/leads/move`, FILTER_VAL_NOT_CONTACTED; no new lead slots), tags `Deb_Oct 6 26`, activates.
+  `--audit` checks no already-emailed lead sits in a new campaign (activation refuses otherwise). 2026-11-10: 517 leads
+  moved into 8 active campaigns; analytics "contacted" over-counts, so leads - contacted under-estimates the move.
+- Mid-sequence leads finish the old v2 sequence in the 2 Nov campaigns; finished leads are not re-contacted.
