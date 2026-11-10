@@ -14,7 +14,9 @@
  *   TELEGRAM_BOT_TOKEN       - Telegram bot token
  *   TELEGRAM_CHAT_ID         - Telegram chat/user ID to notify
  *   OPENROUTER_API_KEY       - OpenRouter API key (LLM fallback classifier)
- *   INSTANTLY_API_KEY        - Instantly API key (only needed for the optional auto-reply)
+ *   INSTANTLY_API_KEY        - Instantly API key (campaign allowlist lookup; also the optional auto-reply)
+ *   NOTIFY_TAG_PREFIXES      - plain var, tag-label prefixes of campaigns to notify for (default "Deb")
+ *   NOTIFY_ACTIVE_ONLY       - plain var, "true" = only active campaigns (default)
  *   WEBHOOK_SECRET           - shared secret for /webhook
  *   WEBHOOK_SECRET_CLIENT    - shared secret for /webhook/client (MUST differ from the above)
  *   CLIENT_ACCOUNT_LABEL     - plain var, banner text for the client route (optional)
@@ -24,6 +26,7 @@
 import { classifyByRules, classifyByLlm, shouldNotify, type ClassifyResult } from "./classifier";
 import { sendTelegramMessage, buildTelegramMessage } from "./telegram";
 import { AUTO_REPLY_CAMPAIGNS, buildAutoReplyBody, fetchLatestEmailRecord, sendAutoReply } from "./autoReply";
+import { allowedCampaignIds } from "./campaignFilter";
 
 export interface Env {
   TELEGRAM_BOT_TOKEN: string;
@@ -34,6 +37,8 @@ export interface Env {
   WEBHOOK_SECRET_CLIENT: string;
   CLIENT_ACCOUNT_LABEL?: string;
   DEDUP_KV: KVNamespace;
+  NOTIFY_TAG_PREFIXES?: string; // comma list, default "Deb" (operator's own campaigns)
+  NOTIFY_ACTIVE_ONLY?: string; // "true" (default): only campaigns with status active
 }
 
 interface InstantlyWebhookPayload {
@@ -89,6 +94,9 @@ export default {
         webhook_secret_bound: Boolean(env.WEBHOOK_SECRET),
         client_route_secret_bound: Boolean(env.WEBHOOK_SECRET_CLIENT),
         auto_reply_campaigns: Object.keys(AUTO_REPLY_CAMPAIGNS).length,
+        instantly_bound: Boolean(env.INSTANTLY_API_KEY),
+        notify_tag_prefixes: env.NOTIFY_TAG_PREFIXES ?? "Deb",
+        notify_active_only: (env.NOTIFY_ACTIVE_ONLY ?? "true") !== "false",
       });
     }
 
@@ -136,6 +144,15 @@ async function handleWebhook(request: Request, env: Env, ctx: ExecutionContext, 
   if (!["reply_received", "auto_reply_received"].includes(eventType)) {
     console.log(`[webhook] Skipping event type: ${eventType}`);
     return Response.json({ ok: true, skipped: true, reason: "not_a_reply" });
+  }
+
+  // --- Campaign allowlist (own route only): the operator's tagged, active campaigns; fail open on lookup error ---
+  if (source === "own") {
+    const allowed = await allowedCampaignIds(env);
+    if (allowed && !(body.campaign_id && allowed.has(body.campaign_id))) {
+      console.log(`[webhook] Not my active campaign, skipping | campaign: ${body.campaign_name ?? body.campaign_id ?? "?"}`);
+      return Response.json({ ok: true, skipped: true, reason: "campaign_not_allowed" });
+    }
   }
 
   // --- Extract fields ---

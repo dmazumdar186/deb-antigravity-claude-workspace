@@ -6,6 +6,9 @@ compatibility_date = "2024-12-01"
 # Not a secret, so it lives here rather than in wrangler secret.
 [vars]
 CLIENT_ACCOUNT_LABEL = "Client Account"
+# Telegram only for campaigns tagged with these label prefixes and (by default) active (operator 2026-11-10).
+NOTIFY_TAG_PREFIXES = "Deb"
+NOTIFY_ACTIVE_ONLY = "true"
 
 # Create your own namespace first:
 #   npx wrangler kv namespace create DEDUP_KV
