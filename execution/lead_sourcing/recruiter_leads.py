@@ -453,7 +453,7 @@ def cmd_verify(args: argparse.Namespace) -> None:
 
 
 # ------------------------------------------------------------------------------------------------ build
-COLS = ["email", "first_name", "last_name", "title", "company_name", "website", "city", "state", "location",
+COLS = ["email", "first_name", "last_name", "title", "company_name", "company_full", "website", "city", "state", "location",
         "segment", "specialty", "specialty_evidence", "personalization", "linkedin_url", "company_domain",
         "leadocean_status", "reoon_status", "reoon_score", "send_bucket", "source"]
 CO_SUFFIX = re.compile(r"[,\s]+(inc\.?|llc|l\.l\.c\.|ltd\.?|corp\.?|corporation|co\.|lp|llp|pllc|pc|group inc\.?)$", re.I)
@@ -464,6 +464,83 @@ def company_casual(name: str) -> str:
     for _ in range(2):
         n = CO_SUFFIX.sub("", n).strip()
     return n
+
+
+# Operator 2026-11-10: "Brightpath Staffing" -> "Brightpath" reads more personal. Rules from the casualize-names
+# skill (leading "The", legal suffixes, generic tail words), applied deterministically; Jev then confirms per company
+# that employees would naturally use the short form, else the full casual name stays.
+GENERIC_TAIL = re.compile(
+    r"(?:[\s,&-]+(?:and|staffing|recruiting|recruitment|recruiters|search|executive|talent|group|solutions|services|"
+    r"partners|partnership|consulting|consultants|resources|associates|agency|company|companies|holdings|"
+    r"workforce|personnel|placement|placements|careers|employment|healthcare|health system|international|"
+    r"inc\.?|llc|l\.l\.c\.|ltd\.?|corp\.?|corporation|co\.?|lp|llp|pllc|pc|plc|se|ag|ab|\(publ\)|n\.a\.))+$", re.I)
+
+
+def company_short_candidate(name: str) -> str:
+    """Shortest safe form, or '' when nothing generic can be removed or too little would be left."""
+    full = company_casual(name)
+    n = re.sub(r"^the\s+", "", full, flags=re.I)
+    n = re.split(r"\s+[|(]|\s+-\s+", n)[0].strip()
+    n = GENERIC_TAIL.sub("", n).strip(" ,&-")
+    if not n or n.lower() == full.lower() or len(n.replace(" ", "")) < 3:
+        return ""
+    return n
+
+
+def shorten_companies(names: set[str]) -> dict[str, str]:
+    """full name -> name to use in copy (short form when Jev agrees at >= 0.6, else the full casual name). Cached."""
+    from execution.modules import jev_client as jev
+    cache_path = TMP / "company_short.json"
+    cache = lol.jload(cache_path, {})
+    todo = [n for n in sorted(names) if n not in cache]
+    cands = {n: company_short_candidate(n) for n in todo}
+    ask = [n for n in todo if cands[n]]
+    for n in todo:
+        if not cands[n]:
+            cache[n] = {"short": "", "p": None}
+    q = {"natural": jev.noul(
+        "Would people who work at this company naturally call it by the short name in a casual email, and would "
+        "the short name still clearly mean this company?",
+        "true when the short name is how staff and clients actually refer to it (e.g. 'Brightpath Staffing' -> "
+        "'Brightpath', 'Robert Half International' -> 'Robert Half')",
+        "false when the short name is a plain common word or loses the identity (e.g. 'Insight Global' -> "
+        "'Insight', 'Premier Staffing' -> 'Premier', 'Medical Staffing Network' -> 'Medical')")}
+    cost = 0.0
+    for i in range(0, len(ask), 200):
+        chunk = ask[i:i + 200]
+        for n, res in zip(chunk, jev.decide_many([{"full_name": n, "short_name": cands[n]} for n in chunk], q,
+                                                 workers=8)):
+            cost += res.cost_usd
+            cache[n] = {"short": cands[n], "p": None if res.error else round(res.noul("natural"), 3)}
+        lol.jsave(cache_path, cache)
+    if ask:
+        jev.append_ledger({"caller": "recruiter_leads.shorten_companies", "items": len(ask), "cost_usd": cost})
+    lol.jsave(cache_path, cache)
+    # Second chance when the bare brand was rejected: brand + its industry word ("Premier Staffing").
+    second = {}
+    for n in names:
+        c = cache.get(n, {})
+        if c.get("short") and c.get("p") is not None and c["p"] < 0.6 and "short2" not in c:
+            m = re.match(re.escape(c["short"]) + r"\s+(staffing|recruiting|recruitment|search|talent)\b", 
+                         re.sub(r"^the\s+", "", company_casual(n), flags=re.I), re.I)
+            if m and m.group(0).lower() != company_casual(n).lower():
+                second[n] = m.group(0)
+    if second:
+        ks = sorted(second)
+        for k, res in zip(ks, jev.decide_many([{"full_name": k, "short_name": second[k]} for k in ks], q, workers=8)):
+            cost += res.cost_usd
+            cache[k].update(short2=second[k], p2=None if res.error else round(res.noul("natural"), 3))
+        lol.jsave(cache_path, cache)
+    out = {}
+    for n in names:
+        c = cache.get(n, {})
+        if c.get("short") and (c.get("p") or 0) >= 0.6:
+            out[n] = c["short"]
+        elif c.get("short2") and (c.get("p2") or 0) >= 0.6:
+            out[n] = c["short2"]
+        else:
+            out[n] = company_casual(n)
+    return out
 
 
 def specialty_for(r: dict[str, Any], j: dict[str, Any]) -> tuple[str, str]:
@@ -495,6 +572,7 @@ def cmd_build(_: argparse.Namespace) -> None:
     g = lol.jload(TMP / "gate.json", {})
     kept, rejects = g.get("kept", []), g.get("rejects", [])
     jc, rc = lol.jload(TMP / "jev_cache.json", {}), rv.load_cache()
+    short = shorten_companies({r.get("current_company_name") or "" for r in kept if rc.get(r["_email"])} - {""})
     rows = []
     for r in kept:
         res = rc.get(r["_email"])
@@ -512,7 +590,8 @@ def cmd_build(_: argparse.Namespace) -> None:
         rows.append({
             "email": r["_email"], "first_name": lol.name_case(r.get("profile_first_name")),
             "last_name": lol.name_case(r.get("profile_last_name")), "title": lol.clean(r.get("current_job_title")),
-            "company_name": company_casual(r.get("current_company_name")),
+            "company_name": short.get(r.get("current_company_name") or "") or company_casual(r.get("current_company_name")),
+            "company_full": lol.clean(r.get("current_company_name")),
             "website": lol.clean(r.get("current_company_website")) or f"https://{r['_company_domain']}",
             "city": lol.clean(r.get("city")), "state": lol.clean(r.get("state")),
             "location": LOCATIONS[r["_loc"]]["label"], "segment": segment_of(r, j), "specialty": phrase,

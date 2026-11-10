@@ -55,7 +55,7 @@ RESULT = [R("this june i built a tool for a recruiting agency in dublin.",
             "in june i built a sourcing tool for a dublin recruiting agency."),
           R("their consultants got about 15 hours a week back and candidates replied 2.3x more.",
             "each consultant got ~15 hours a week back, and replies from candidates went up 2.3x.",
-            "every consultant got roughly 15 hours a week back. candidate replies went up 2.3x.")]
+            "each consultant there got roughly 15 hours a week back. candidate replies went up 2.3x.")]
 OFFER_Q = R("want me to set it up on one of your open roles so you see it on your own pipeline?",
             "should i set it up on one open role, so you see it with your own candidates?",
             "want me to try it on one of your open roles?")

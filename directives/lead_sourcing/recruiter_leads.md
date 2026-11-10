@@ -46,6 +46,7 @@ company_domain, leadocean_status, reoon_status, reoon_score, send_bucket, source
 7. Next export day: `--profile agency count`, `--profile agency export`, then steps 4-6 again.
 
 ## Personalization
+`company_name` = brand shortened per the casualize-names rules ("Brightpath Staffing" -> "Brightpath") only when Jev rates the short form natural >= 0.6 (second try: brand + industry word, "Premier Staffing"); cache `company_short.json`; original in `company_full`.
 `specialty` = a phrase from `SPECIALTIES` (e.g. "healthcare hiring", "energy hiring") used as `{{specialty}}` in
 copy. Shipped only when Jev's specialty confidence >= 0.6 AND one of that specialty's evidence words appears in the
 person's own title/headline/summary or employer name/industry (`specialty_evidence` column). Otherwise blank ->
