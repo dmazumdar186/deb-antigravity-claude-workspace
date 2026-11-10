@@ -6,7 +6,7 @@ Full fact sheet with blocklist: `.tmp/gtm_pipeline/system_facts.md` (not committ
 |---|---|
 | 12 emails a day, by hand | directives/gtm_client_workflows/accessory_masters_prd.md:15 ("maybe a dozen emails a day by hand"); operator 2026-11-10 ("10 to 12") |
 | Then 800 a day · 32 inboxes | accessory_masters_prd.md:17, :25; directives/infrastructure/domain_inbox_management.md:46 ("32 inboxes x 25 = 800/day") |
-| 32 at launch → 64 → later 96 inboxes | 32: accessory_masters_prd.md:17; 64 / later 96: operator statement, session 2026-11-10 (no repo record; flagged) |
+| 32 inboxes at launch → then 64 | 32: accessory_masters_prd.md:17, :25; 64: operator 2026-11-10 (.tmp/gtm_pipeline/operator_statements_2026-11-10.md); metrics_canonical.md inboxes row (64 × 25/day ≈ 48k/month, matches the published volume) |
 | revenue up almost $128K in 4 months | operator 2026-11-10 ("almost US$128,000"; "make it 4 months"); metrics_canonical.md revenue row. Client revenue increase, not credited to the system alone |
 | Find the right people | accessory_masters_gtm.md:36, :44-45 (Maps search + contact enrichment) |
 | Check each address before sending | accessory_masters_prd.md:234; HANDOFF.md:47-48 (AnymailFinder → Million Verifier; only verified pass) |

@@ -13,7 +13,7 @@ Every figure traces to FACTS.md.
 ## Beats (≈ seconds)
 
 1. 0–3.5 Hook (full headline on frame 0, LinkedIn thumbnail): "12 emails a day, by hand." / "Then 800 a day." Small tally counter 12 → 800 in gold.
-2. 3.5–8 Inboxes scale: grid of small inbox squares fills 32 at launch → 64 → later 96 in three steps, label counts up. Caption "one client · sending inboxes".
+2. 3.5–8 Inboxes scale: grid of small inbox squares fills 32 at launch → 64 in three steps, label counts up. Caption "one client · sending inboxes".
 3. 8–19 The pipeline, plain words. Six rows light up one after another, a gold line draws down through them:
    Find the right people · Verify every address · Send from many inboxes, every day ·
    AI reads every reply: hot · interested · neutral · not interested ·
@@ -31,7 +31,6 @@ ProdCraft · wk 04
 Then 800 a day.
 32 inboxes at launch
 then 64
-later 96
 the pipeline
 Find the right people
 Check each address before sending
@@ -57,7 +56,7 @@ ProdCraft · weekly notes · 04
 >
 > AI sorts the replies: hot, interested, neutral, not interested. On a hot lead the client's phone pings and a person takes over. An interested one gets an automatic reply asking for a call. Interested leads go into the CRM, and booked calls land on the client's calendar.
 >
-> They launched on 32 sending inboxes, scaled to 64, and later 96. Over 4 months their revenue went up almost $128K.
+> They launched on 32 sending inboxes and scaled to 64. Over 4 months their revenue went up almost $128K.
 >
 > The machine does the volume. Your people do the conversations, the part that closes deals.
 >
@@ -83,3 +82,4 @@ ProdCraft · weekly notes · 04
 - Red team round 1 (all 4 FAIL): "books a call" → the system asks for a call; booked calls land on the calendar. "Verify every address" → "Check each address before sending" (catch-all results accepted). "Every interested lead is logged" → "Interested leads go into the CRM". "runs on its own" dropped (the client's manager runs the sending platform). "We launched" → "They launched" (inboxes were the client's scope). "+$128K"/"about" → "almost $128K" (operator's word). Two stray chart captions deleted.
 - 96 inboxes vs the public "48,000+ emails / month" (metrics_canonical.md:13). Objection (counterparty, reputation): cross-check shows two scales. Resolution: keep 96 (operator's explicit ask); the film states no monthly volume; operator decides whether to update metrics_canonical.md.
 - Red team round 2 (2 PASS, 2 FAIL) → operator decisions 2026-11-10: keep 96 inboxes and update metrics_canonical.md (volume now 70,000+ / month, inboxes and revenue rows added); revenue period is 4 months; wording "their revenue went up" (client revenue, not credited to the machine alone). "64" → "then 64".
+- Operator 2026-11-10 (final): "remove 96, keep it at 64 only". Inboxes 32 → 64; canonical volume back to 48,000+ / month, which 64 inboxes × 25/day matches.
