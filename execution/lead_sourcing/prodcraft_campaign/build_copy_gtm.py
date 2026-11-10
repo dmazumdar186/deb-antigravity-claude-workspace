@@ -15,7 +15,7 @@ Sources (grounding):
   gets an auto-reply asking for a call; interested leads into the CRM). "$128K in 4 months" is NOT used in the
   emails: FACTS.md says it is a client revenue increase not credited to the system alone.
 - Video page: https://prodcraft.fyi/gtm (31.75 s, credit line removed per operator 2026-11-10).
-- Offer (operator 2026-11-10: not 50; 'do what the research says'): step 1 free first 20 named contacts, emails checked, yes/no; step 3 the prospect names a number; no guarantee (no data).
+- Offer (operator 2026-11-10: "go with the research, not what I called for"): research lines verbatim in spirit: step 1 free first 50 named contacts, emails checked, yes/no; step 3 prospect names a number + "if the first batch doesn't land a reply, you don't pay".
 """
 from __future__ import annotations
 
@@ -75,12 +75,12 @@ PROOF = [R("this year i built a cold email system for a company that buys small 
 
 
 # Offer (2026-11-10 research, 85M-email 30MPC/Gong data: a concrete offer CTA beats interest/meeting asks; most
-# yeses go to a concrete sample). Operator: no 50; size 20 chosen (no data on N; a named, specific list is the lever).
+# yeses go to a concrete sample). Operator 2026-11-10: "go with the research, not what I called for" -> 50 (research line).
 def offer_q(n: str) -> str:
     tg = NICHE[n]["target"]
-    return R(f"want me to pull the first 20 for you? {tg}, emails checked.",
-             f"want me to find you 20? {tg}, emails checked.",
-             f"want a first list of 20? {tg}, emails checked.")
+    return R(f"want me to pull the first 50 for you? {tg}, emails checked.",
+             f"want me to find you 50? {tg}, emails checked.",
+             f"want a first list of 50? {tg}, emails checked.")
 
 
 FREE = R("free, no call needed. just reply yes.", "it's free and there's no call. just reply yes.",
@@ -116,6 +116,8 @@ def step3(n: str) -> str:
           "one question: how many new clients a month would actually matter for {{companyName}}?"),
         R("give me a number and i'll show you what it'd take.", "send me a number and i'll show you what it would take.",
           "reply with a number and i'll show you what it'd take."),
+        R("if the first batch doesn't land a reply, you don't pay.", "and if the first batch doesn't get you a reply, you don't pay.",
+          "if the first batch doesn't land a reply, you pay nothing."),
         R("if it's not a priority right now, say so and i'll stop.", "if now's not the time, tell me and i'll stop.",
           "and if it's not a priority, say so and i'll leave you alone.")])
 
