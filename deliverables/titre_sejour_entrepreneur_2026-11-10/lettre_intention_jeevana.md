@@ -1,5 +1,6 @@
 **Jeevana Gogula**
 Jeevana Yoga & Wellness
+Adresse :
 
 À l'attention de la Préfecture du Val-de-Marne
 
@@ -7,14 +8,14 @@ Jeevana Yoga & Wellness
 
 Madame, Monsieur,
 
-Je soussignée Jeevana Gogula, Jeevana Yoga & Wellness, déclare mon intention de confier à M. Debanjan Mazumdar, exerçant sous le nom commercial ProdCraft, la prestation suivante, dès qu'il sera autorisé à exercer son activité d'entrepreneur individuel en France :
+Je soussignée Jeevana Gogula, Jeevana Yoga & Wellness, déclare mon intention de confier à M. Debanjan Mazumdar, qui exercera sous le nom commercial ProdCraft, la prestation suivante, dès qu'il sera autorisé à exercer son activité d'entrepreneur individuel en France :
 
 - **Prestation :** maintenance, hébergement et suivi du référencement (SEO) de mon site internet Jeevana Yoga & Wellness
 - **Montant envisagé :** 99 € HT par mois
 - **Durée envisagée :** 12 mois
 - **Début envisagé :** dès le début de son activité
 
-Je connais le travail de M. Mazumdar et j'ai l'intention de faire appel à ses services aux conditions ci-dessus.
+Je connais M. Mazumdar et j'ai l'intention de faire appel à ses services aux conditions ci-dessus.
 
 La présente lettre exprime une intention sérieuse. Elle ne vaut pas bon de commande. Le contrat définitif sera signé après l'immatriculation de son entreprise.
 
