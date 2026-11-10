@@ -4,7 +4,7 @@ const g = cv.getContext('2d');
 const P = { paper: '#EFEDE6', ink: '#16140F', gold: '#B8913A', goldTx: '#8A6A1F', panel: '#E3DDCB', bar: '#CBC4B4', grey: '#6F695E', dim: '#A49D90' };
 await Promise.all(['700 40px Newsreader', '400 40px Newsreader', 'italic 400 40px Newsreader', '600 20px "Plex Mono"', '400 20px "Plex Mono"'].map(f => document.fonts.load(f)));
 
-window.DUR = 33.75;
+window.DUR = 31.75;
 const M = 80, CW = W - 2 * M;
 const SERIF = (w, s, it = '') => `${it} ${w} ${s}px Newsreader`.trim();
 const MONO = (w, s) => `${w} ${s}px "Plex Mono"`;
@@ -12,11 +12,11 @@ const MONO = (w, s) => `${w} ${s}px "Plex Mono"`;
 // ---------- timeline (seconds) ----------
 const T = {
   ctr: 1.65, ctrEnd: 2.1, b1out: 3.85,
-  b2: 3.95, steps: [4.0, 6.7, 8.65], b2out: 10.65,
-  b3: 10.75, lights: [11.15, 12.3, 13.45, 14.6, 15.75, 16.9, 18.05], b3out: 19.9,
-  pay: 20.0, b4out: 23.5,
-  l1: 23.6, l2: 24.1, b5out: 27.6,
-  offer: 27.75, url: 28.2, credit: 27.75, b6out: 33.0, loop: 33.38
+  b2: 3.95, steps: [4.0, 6.7], b2out: 8.65,
+  b3: 8.75, lights: [9.15, 10.3, 11.45, 12.6, 13.75, 14.9, 16.05], b3out: 17.9,
+  pay: 18.0, b4out: 21.5,
+  l1: 21.6, l2: 22.1, b5out: 25.6,
+  offer: 25.75, url: 26.2, credit: 25.75, b6out: 31.0, loop: 31.38
 };
 window.EV = [
   { t: T.ctr, type: 'paper', v: .35 },
@@ -120,9 +120,9 @@ function beat1(t) {
   if (t < out && t >= T.ctrEnd) rep('ctr800', '800', M, 930 - 196, M + g.measureText('800').width, 930 + 20);
 }
 
-// ---------- beat 2: sending inboxes 32 -> 64 -> 96 ----------
-const COLS = 12, CELL = 72, BOX = 56, GX = (W - COLS * CELL) / 2 + (CELL - BOX) / 2, GY = 470;
-const STEPS = [[32, '', ' inboxes at launch'], [64, 'then ', ''], [96, 'later ', '']];
+// ---------- beat 2: sending inboxes 32 -> 64 ----------
+const COLS = 8, CELL = 84, BOX = 66, GX = (W - COLS * CELL) / 2 + (CELL - BOX) / 2, GY = 470;
+const STEPS = [[32, '', ' inboxes at launch'], [64, 'then ', '']];
 function inbox(x, y, p, a, gold) {
   if (a <= 0 || p <= 0) return;
   const s = lerp(.5, 1, back(p, 1.6)), cx = x + BOX / 2, cy = y + BOX / 2;
@@ -137,7 +137,7 @@ function beat2(t) {
   const out = T.b2out, fo = 1 - ei(seg(t, out, out + .3));
   // the count: big number + small words, rolls on each step
   STEPS.forEach(([n, pre, post], i) => {
-    const t0 = T.steps[i], t1 = i < 2 ? T.steps[i + 1] : out;
+    const t0 = T.steps[i], t1 = i < STEPS.length - 1 ? T.steps[i + 1] : out;
     if (t < t0 || t >= t1 + .35) return;
     const pin = eo(seg(t, t0, t0 + .4)), pout = ei(seg(t, t1, t1 + .3)), y = 380;
     g.font = SERIF(400, 52, 'italic'); const pw = g.measureText(pre).width;
@@ -145,18 +145,18 @@ function beat2(t) {
     g.font = SERIF(400, 52, 'italic'); const qw = g.measureText(post).width;
     g.save(); g.beginPath(); g.rect(M - 10, y - 160, CW + 20, 200); g.clip(); g.translate(0, (1 - pin) * 200 - pout * 200);
     g.fillStyle = P.ink; g.font = SERIF(400, 52, 'italic'); g.fillText(pre, M, y);
-    g.font = SERIF(700, 170); g.fillStyle = i === 2 ? P.goldTx : P.ink; g.fillText(String(n), M + pw, y);
+    g.font = SERIF(700, 170); g.fillStyle = i === 1 ? P.goldTx : P.ink; g.fillText(String(n), M + pw, y);
     g.font = SERIF(400, 52, 'italic'); g.fillStyle = P.ink; g.fillText(post, M + pw + nw + 6, y);
     g.restore();
     if (t < t1) rep('n' + n, (pre + n + post).trim(), M, y - 140, M + pw + nw + 6 + qw, y + 20);
   });
-  // the grid: 96 slots, faint outlines, inboxes pop in by batch
+  // the grid: 64 slots, faint outlines, inboxes pop in by batch
   const ga = eo(seg(t, T.b2, T.b2 + .4)) * fo;
-  for (let k = 0; k < 96; k++) {
+  for (let k = 0; k < 64; k++) {
     const x = GX + (k % COLS) * CELL, y = GY + Math.floor(k / COLS) * CELL;
     if (ga > 0) { g.globalAlpha = ga * .35; g.setLineDash([4, 5]); rr(x, y + BOX * .14, BOX, BOX * .72, 6, null, P.ink + '66', 1.3); g.setLineDash([]); g.globalAlpha = 1; }
     const b = Math.floor(k / 32), j = k % 32, d = T.steps[b] + .15 + j * .018;
-    const latest = b === (t >= T.steps[2] ? 2 : t >= T.steps[1] ? 1 : 0);
+    const latest = b === (t >= T.steps[1] ? 1 : 0);
     inbox(x, y, seg(t, d, d + .35), fo, latest);
   }
 }

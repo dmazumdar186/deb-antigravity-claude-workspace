@@ -52,4 +52,4 @@ Operator decision 2026-11-05: "from now on make such LinkedIn videos to post eve
 |---|---|---|---|
 | 02 | 2026-10 | Reply triage for 800 sends/day (own outbound system) | (made locally) |
 | 03 | 2026-11-05 | Evidence-checked candidate shortlist for recruiters | `deliverables/linkedin_videos/recruiter_outreach_2026-11-05/` |
-| 04 | 2026-11-10 | Outbound GTM pipeline: 12 → 800 emails/day, reply sorting, CRM + calendar hand-off (client, unnamed) | `deliverables/linkedin_videos/gtm_pipeline_2026-11-10/` |
+| 04 | 2026-11-10 | Outbound GTM pipeline: 12 → 800 emails/day, 32 → 64 inboxes, reply sorting, CRM + calendar hand-off (client, unnamed) | `deliverables/linkedin_videos/gtm_pipeline_2026-11-10/` |
