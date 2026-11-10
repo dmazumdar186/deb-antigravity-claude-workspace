@@ -181,3 +181,14 @@ events. Registering this one does not affect that one.
 cd execution/infrastructure/instantly_reply_notifier
 npx wrangler delete instantly-reply-notifier
 ```
+
+## Campaign allowlist (2026-11-10)
+
+Operator: Telegram only for his own campaigns that are active (Siva's Reputation Test pinged every ~30 min).
+`src/campaignFilter.ts`: on the `/webhook` route, a reply notifies only if its `campaign_id` carries an Instantly
+custom tag whose label starts with `NOTIFY_TAG_PREFIXES` (default `Deb`: Deb_03Sep26, Deb_Oct 6 26, Deb_16 Oct 26,
+Debanjan) and, with `NOTIFY_ACTIVE_ONLY=true`, the campaign status is active. List cached 10 min in `DEDUP_KV`
+(`allow:campaigns:v1`); Instantly lookup failure fails OPEN (notifies). Requires worker secret `INSTANTLY_API_KEY`
+(set 2026-11-10, Main workspace key). A new campaign is notified as soon as it is tagged Deb* and active.
+Skipped replies answer `{"skipped":true,"reason":"campaign_not_allowed"}`. Dry check 2026-11-10: 33 campaigns
+allowed, 0 Siva/EM campaigns, 21 other active campaigns filtered.
