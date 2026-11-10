@@ -13,11 +13,12 @@ Every figure traces to FACTS.md.
 ## Beats (≈ seconds)
 
 1. 0–3.5 Hook (full headline on frame 0, LinkedIn thumbnail): "12 emails a day, by hand." / "Then 800 a day." Small tally counter 12 → 800 in gold.
-2. 3.5–8 Inboxes scale: grid of small inbox squares fills 32 → 64 → 96 in three steps, label counts up. Caption "one client · sending inboxes".
+2. 3.5–8 Inboxes scale: grid of small inbox squares fills 32 at launch → 64 → later 96 in three steps, label counts up. Caption "one client · sending inboxes".
 3. 8–19 The pipeline, plain words. Six rows light up one after another, a gold line draws down through them:
-   Find the right people · Verify every address · Send from many inboxes, every day · Log every lead in the CRM ·
-   AI reads every reply: hot · interested · neutral · not now ·
-   Hot lead → a person takes over, and the client's phone pings · Interested → a reply asking for a call, within minutes
+   Find the right people · Verify every address · Send from many inboxes, every day ·
+   AI reads every reply: hot · interested · neutral · not interested ·
+   Hot lead → a person takes over, and the client's phone pings · Interested → an automatic reply, and a call on the calendar ·
+   Every interested lead is logged in the CRM
 4. 19–23 Payoff: "+$128K in revenue in 3 months." (big, gold).
 5. 23–27.5 The point: "The machine does the volume." / "Your people do the conversations."
 6. 27.5–32 Offer: "I build GTM pipelines like this, around your market and your offer." / "prodcraft.fyi · my DMs are open". Credit in footer, loop to frame 1.
@@ -28,19 +29,19 @@ Every figure traces to FACTS.md.
 ProdCraft · wk 04
 12 emails a day, by hand.
 Then 800 a day.
-one client · emails sent per day
+one client · emails a day
 one client · sending inboxes
-32
+32 at launch
 64
-96
+later 96
 the pipeline
 Find the right people
 Verify every address
 Send from many inboxes, every day
-Log every lead in the CRM
-AI reads every reply: hot · interested · neutral · not now
+AI reads every reply: hot · interested · neutral · not interested
 Hot lead → a person takes over, and the client's phone pings
-Interested → a reply asking for a call, within minutes
+Interested → an automatic reply, and a call on the calendar
+Every interested lead is logged in the CRM
 +$128K in revenue in 3 months
 The machine does the volume.
 Your people do the conversations.
@@ -55,12 +56,12 @@ ProdCraft · weekly notes · 04
 > 12 emails a day, by hand. Then 800 a day.
 >
 > One client used to send cold email one at a time. I built them an outbound pipeline that runs on its own:
-> it finds the right people, verifies every address, sends from many inboxes every day, and logs every lead in the CRM.
+> it finds the right people, verifies every address and sends from many inboxes every day.
 >
-> AI reads every reply and sorts it: hot, interested, neutral, not now. A hot lead goes to a person, and the client's phone pings.
-> An interested one gets a reply asking for a call within minutes.
+> AI reads every reply and sorts it: hot, interested, neutral, not interested. A hot lead goes to a person, and the client's phone pings.
+> An interested one gets an automatic reply and books a call on the calendar. Every interested lead is logged in the CRM.
 >
-> We started on 32 sending inboxes, then 64, then 96. Over 3 months it added about $128K in revenue.
+> We launched on 32 sending inboxes, scaled to 64, and later 96. Over 3 months it added about $128K in revenue.
 >
 > The machine does the volume. Your people do the conversations, the part that closes deals.
 >
@@ -77,3 +78,9 @@ ProdCraft · weekly notes · 04
 - $128K, 64 and 96 inboxes. Objection: no repo record; the only recorded money figure is a modeled $1M+ pipeline. Resolution: keep, sourced to the operator's own statement (2026-11-10), flagged to the operator for a written record; never shown next to the modeled pipeline figure.
 - "800+" vs "800". Objection: 800 is the designed rate (32 × 25); the "+" adds an unmeasured claim. Resolution: "800 a day".
 - Sector of the client. Objection: hints at the client. Resolution: "one client".
+- "Positive reply → book" revisited (operator 2026-11-10, binding): interested leads get a reply and book a call on the client's calendar; tools named only as "calendar" and "CRM". Row: "Interested → an automatic reply, and a call on the calendar".
+- "Log every lead in the CRM". Objection (red team): code routes only hot + interested replies to the CRM (index.js:517-519). Resolution: "Every interested lead is logged in the CRM", moved after the reply row.
+- "not now" for the fourth class. Objection (red team): the class is negative (not interested / remove); "not now" changes its meaning. Resolution: "not interested".
+- "emails sent per day". Objection (red team): 800 is the designed rate, not a send log. Resolution: "emails a day".
+- Inbox scale wording (operator 2026-11-10, binding): 32 at launch → 64 → later 96; post "We launched on 32 sending inboxes, scaled to 64, and later 96."
+- "within minutes". Objection (red team): replies are polled every 30 min (wrangler.toml crons; index.js:729-738), worst case ~1 hour. Resolution: drop the timing; "an automatic reply".
