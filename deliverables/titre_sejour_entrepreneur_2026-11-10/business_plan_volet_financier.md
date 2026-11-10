@@ -1,6 +1,6 @@
 # ProdCraft — Volet offre et financier du business plan
 
-Demande de changement de statut : carte « talent – salarié qualifié » vers carte de séjour temporaire « entrepreneur / profession libérale » (CESEDA L421-5). Activité : micro-entrepreneur, profession libérale non réglementée (BNC), conception de sites internet et de systèmes d'IA pour les PME.
+Demande de changement de statut : carte « talent – salarié qualifié » vers carte de séjour temporaire « entrepreneur/profession libérale » (CESEDA L421-5). Activité : micro-entrepreneur, profession libérale non réglementée (BNC), conception de sites internet et de systèmes d'IA pour les PME.
 
 Debanjan Mazumdar, fondateur, ProdCraft (prodcraft.fyi), debanjan@prodcraft.fyi
 
@@ -11,7 +11,8 @@ Debanjan Mazumdar, fondateur, ProdCraft (prodcraft.fyi), debanjan@prodcraft.fyi
 | Prestation | Contenu | Tarif HT | Source |
 |---|---|---|---|
 | Site internet complet | Site testé et opérationnel, avec tableau de bord d'administration et SEO intégré, livré en 48 à 72 heures après réception des contenus | 2 500 à 3 000 € | Grille tarifaire fixée par le fondateur (10/11/2026) ; référence : site principal à 2 500 € dans `deliverables/asset_voyages_rfp_2026-10-28/proposal/ProdCraft_ASSET_Voyages_Proposal_v1.0_2026-10-28.md:228` |
-| Maintenance et hébergement | Hébergement, sauvegardes, supervision, sécurité, contrôles quotidiens, demandes de modification | 600 €/mois | `execution/gtm_client_workflows/proposal_system/proposals/greenjobs-official.official.json:96-97` ; même fichier ASSET Voyages, l. 276 |
+| Maintenance et hébergement (PME) | Hébergement, sauvegardes, supervision, sécurité, contrôles quotidiens, demandes de modification | 600 €/mois | `execution/gtm_client_workflows/proposal_system/proposals/greenjobs-official.official.json:96-97` ; même fichier ASSET Voyages, l. 276 |
+| Maintenance, hébergement et SEO (indépendants et TPE) | Maintenance, hébergement et suivi du référencement d'un site existant | 199 €/mois | Lettres d'intention de Jitendra Kumar et Jeevana Gogula (`lettre_intention_jitendra.md`, `lettre_intention_jeevana.md`) ; même niveau de prix que `docs/sales/vitry_dental_one_pager.md:42` |
 | Revenue Engine : moteur de prospection automatisé | Système de prospection par email de bout en bout (ciblage, personnalisation, routage des réponses, prise de rendez-vous), en service en 30 jours | 12 000 € (forfait) | `execution/personal_workflows/self_outbound_system/config/tone.json` (offre « outbound live for €12k ») |
 | Prototype IA (fonctionnalité, agent, application) | Prototype fonctionnel livré en 14 jours ; base de Deal Guard (synchronisation CRM, Slack, agenda) et de Growth Engine (collecte web et personnalisation) | 4 000 € (forfait) | `tone.json` (offre « prototype ... in 14 days for €4k ») |
 | Système d'approche de candidats (pilote 30 jours) | Sourcing et prise de contact automatisés pour cabinets de recrutement, avec objectif chiffré | 1 500 à 2 500 € | `deliverables/gaia_2026-09-10/call_brief_2026-09-10.md:82` |
@@ -47,33 +48,34 @@ Prix retenu pour un site : 2 750 € HT, milieu de la grille de 2 500 à 3 000 �
 | Ligne | Année 1 | Année 2 | Année 3 |
 |---|---|---|---|
 | Sites internet | 8 × 2 750 € = 22 000,00 € | 10 × 2 750 € = 27 500,00 € | 8 × 2 750 € = 22 000,00 € |
-| Maintenance | 2 × 600 € × 12 = 14 400,00 € | 4 × 600 € × 12 = 28 800,00 € | 6 × 600 € × 12 = 43 200,00 € |
-| Systèmes d'IA | 1 × 12 000 € + 2 × 4 000 € = 20 000,00 € | 1 × 12 000 € + 2 × 4 000 € = 20 000,00 € | 1 × 12 000 € + 1 × 4 000 € = 16 000,00 € |
-| **Chiffre d'affaires total** | **56 400,00 €** | **76 300,00 €** | **81 200,00 €** |
-| Cotisations (25,8 %) | 14 551,20 € | 19 685,40 € | 20 949,60 € |
+| Maintenance | 2 × 600 € × 12 + 2 × 199 € × 12 = 19 176,00 € | 4 × 600 € × 12 + 2 × 199 € × 12 = 33 576,00 € | 6 × 600 € × 12 + 2 × 199 € × 12 = 47 976,00 € |
+| Systèmes d'IA | 1 × 12 000 € + 2 × 4 000 € = 20 000,00 € | 1 × 12 000 € + 2 × 4 000 € = 20 000,00 € | 1 × 12 000 € = 12 000,00 € |
+| **Chiffre d'affaires total** | **61 176,00 €** | **81 076,00 €** | **81 976,00 €** |
+| Cotisations (25,8 %) | 15 783,41 € | 20 917,61 € | 21 149,81 € |
 | Charges d'exploitation | 2 557,36 € | 2 557,36 € | 2 557,36 € |
-| **Revenu net annuel** | **39 291,44 €** | **54 057,24 €** | **57 693,04 €** |
-| **Revenu net mensuel** | **3 274,29 €** | **4 504,77 €** | **4 807,75 €** |
+| **Revenu net annuel** | **42 835,23 €** | **57 601,03 €** | **58 268,83 €** |
+| **Revenu net mensuel** | **3 569,60 €** | **4 800,09 €** | **4 855,74 €** |
 
 L'année 1 couvre les 12 mois suivant l'autorisation d'exercer. Aucun chiffre d'affaires antérieur n'est compté.
 
 ## D. Hypothèses
 
 - **Sites internet : 8, puis 10, puis 8 (hypothèse).** Un site est livré en 48 à 72 heures : la limite est la demande, pas la capacité de production. Des maquettes de sites ont déjà été réalisées pour des prospects (GreenJobs, Gaia Talent, h2 Recruit, GTM People, Midas). Des listes de prospection sont constituées : 977 contacts (cabinets de recrutement), 1 900 contacts (Baie de San Francisco), 145 professeurs de yoga en France, ainsi qu'une base LinkedIn de 8 202 personnes avec 25 demandes de connexion par jour. La baisse en année 3 reflète le passage vers le récurrent.
-- **Maintenance : 2, puis 4, puis 6 contrats actifs en moyenne (hypothèse).** Chaque site livré est proposé avec la maintenance à 600 €/mois, comme dans les propositions GreenJobs et ASSET Voyages. Deux clients (Jitendra et Jeevana) fournissent une lettre d'intention signée pour une prestation après l'autorisation. GreenJobs (Irlande) a par ailleurs donné un accord de principe écrit le 29 octobre 2026 pour 600 €/mois et 1 500 €.
+- **Maintenance PME : 2, puis 4, puis 6 contrats actifs en moyenne (hypothèse).** Chaque site livré est proposé avec la maintenance à 600 €/mois, comme dans les propositions GreenJobs et ASSET Voyages.
+- **Maintenance indépendants : 2 contrats à 199 €/mois sur les 3 ans (engagement documenté).** Jitendra Kumar (Yoga avec Jitendra) et Jeevana Gogula (Jeevana Yoga & Wellness) ont signé une lettre d'intention pour 12 mois à compter du début de l'activité. Le maintien en années 2 et 3 est une hypothèse. GreenJobs (Irlande) a par ailleurs donné un accord de principe écrit le 29 octobre 2026 pour 600 €/mois et 1 500 €.
 - **Systèmes d'IA : 1 moteur de prospection et 2 prototypes par an, puis 1 et 1 en année 3 (hypothèse).** Les prix sont ceux des offres de prospection ProdCraft (12 000 € et 4 000 €). Ils se situent dans la fourchette de 10 000 à 20 000 $ observée par Nick Saraev pour ce type de prestation.
 - **Charges stables sur 3 ans.** Les outils sont des abonnements fixes ; les coûts propres à chaque client lui sont refacturés.
 
 ## E. Viabilité
 
-En année 1, le revenu net prévu est de 3 274,29 € par mois après cotisations (25,8 %) et charges d'exploitation. Le SMIC brut à temps plein est de 1 867,02 € par mois : la marge est de 1 407,27 € par mois, soit 75 % au-dessus du seuil. Le chiffre d'affaires de l'année 1 (56 400 €) dépasse de 26 205,61 € le minimum de 30 194,39 € requis pour couvrir le SMIC après cotisations. Les années 2 et 3 renforcent cette marge grâce au revenu récurrent de la maintenance.
+En année 1, le revenu net prévu est de 3 569,60 € par mois après cotisations (25,8 %) et charges d'exploitation. Le SMIC brut à temps plein est de 1 867,02 € par mois : la marge est de 1 702,58 € par mois, soit 91 % au-dessus du seuil. Le chiffre d'affaires de l'année 1 (61 176 €) dépasse de 30 981,61 € le minimum de 30 194,39 € requis pour couvrir le SMIC après cotisations. Les années 2 et 3 renforcent cette marge grâce au revenu récurrent de la maintenance.
 
 ## F. Points à vérifier avant dépôt
 
-1. **Lettres d'intention.** Obtenir les deux lettres signées de Jitendra et Jeevana, avec les montants qu'ils indiquent eux-mêmes (modèle : `lettre_intention_modele.md`), puis reporter ces montants dans l'hypothèse de l'année 1. GreenJobs ne fournira pas de lettre : joindre à la place l'échange écrit du 29 octobre 2026 (accord de principe).
+1. **Lettres d'intention.** Joindre les deux lettres signées (Jitendra Kumar, Jeevana Gogula). GreenJobs ne fournira pas de lettre : joindre à la place l'échange écrit du 29 octobre 2026 (accord de principe).
 2. **GreenJobs.** Le contrat doit démarrer après l'autorisation d'exercer. Aucune facturation avant cette date.
 3. **TVA.** Le chiffre d'affaires de l'année 1 dépasse le seuil de franchise en base de TVA : les prix sont HT et la TVA devra être facturée. Vérifier aussi le régime de TVA pour un client irlandais (prestation entre entreprises au sein de l'UE).
-4. **Plafond du régime micro.** L'année 3 (81 200 €) est proche du plafond du régime micro-entrepreneur pour les prestations libérales. Vérifier le plafond en vigueur.
+4. **Plafond du régime micro.** Les années 2 et 3 (81 076 € et 81 976 €) sont proches du plafond du régime micro-entrepreneur pour les prestations libérales. Vérifier le plafond en vigueur.
 5. **Instantly.** La page de facturation indique 97 $/mois, la directive 89 €/mois. Vérifier sur la dernière facture.
 6. **Montants en dollars.** OpenRouter et Cloudflare sont comptés à 1 $ = 1 €, ce qui surestime légèrement ces charges.
 7. **Renouvellement de prodcraft.fyi.** Montant absent du workspace ; à ajouter.
