@@ -77,9 +77,9 @@ STEP3_H = [R("last one {{firstName}}.", "last note from me {{firstName}}.", "{{f
            R("if sourcing isn't a pain at {{companyName}} right now, just say so and i'll stop.",
              "if finding candidates isn't a headache at {{companyName}} right now, lmk and i'll stop.",
              "if this isn't a priority at {{companyName}}, tell me and i'll leave you alone."),
-           R("if it is, send me one open role and the first candidate list is free.",
-             "if it is, reply with one role and i'll send the first candidate list free.",
-             "if it is, send one open role and the first list of candidates is on me.")]
+           R("if it is, send me one open role and the first 13 candidates are free.",
+             "if it is, reply with one role and i'll send the first 13 candidates free.",
+             "if it is, send one open role and the first list of 13 candidates is on me.")]
 
 SUBJECTS = {
     "A": [R("{{companyName}} sourcing", "sourcing at {{companyName}}", "{{firstName}}, sourcing?"),
@@ -135,9 +135,9 @@ PERS_PAIN = R("saw you do {{specialty}} at {{companyName}}, so i'm guessing sour
               "you handle {{specialty}} at {{companyName}}, so finding candidates probably eats most of your day.",
               "saw you're on {{specialty}} at {{companyName}}. sourcing probably takes more of your week than you'd like.")
 # Operator 2026-11-10: make clear the first candidate list is free (no time or money asked before proof).
-FREE = R("first candidate list is free, no call needed.",
-         "the first list of candidates is on me, no call needed.",
-         "first candidate list is free. no call needed.")
+FREE = R("first list of 13 candidates is free, no call needed.",
+         "the first 13 candidates are on me, no call needed.",
+         "first list of 13 candidates is free. no call needed.")
 
 
 def step1(angle: str, personalized: bool) -> str:
