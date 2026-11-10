@@ -65,6 +65,14 @@ agency/RPO/freelance at >= 0.6, else InHouse.
 - City keyword collisions (Pasadena CA, Newark DE/OH, Cambridge MD) are removed by the contact state check.
 - Prior DM_Recruitment campaigns (13-14 Oct) exist in the workspace; upload with `skip_if_in_workspace`.
 
+- 2026-11-10 run: 9,998 rows -> 4,526 gated -> Reoon main 2,870 / catchall 364 / drop 1,292 -> after 2-per-company
+  cap and the name check 2,576 main. Short of 3,000, so the agency profile runs on the next export day.
+- LeadOcean sometimes carries the wrong employer name (a progyny.com TA director listed at "John Parker Custom
+  Construction"). `build` checks name vs email domain (cheap match, Jev on the rest, fail closed) and rejects
+  `company_name_mismatch` (124 rows on 2026-11-10; a few, e.g. Gallagher/ajg.com, are false rejects by design).
+- Specialty evidence uses the current title, headline and employer only (the summary describes past jobs), with
+  whole-word matching for short tokens.
+
 ## Exit Criteria
 Every exported row is in a campaign CSV or in `rejects.csv` with a reason; only Reoon `safe` >= 90 in main files;
 max 2 per company; report counts per location/segment/bucket, personalized share, credits and Jev cost.

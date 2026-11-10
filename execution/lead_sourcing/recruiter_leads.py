@@ -473,7 +473,7 @@ GENERIC_TAIL = re.compile(
     r"(?:[\s,&-]+(?:and|staffing|recruiting|recruitment|recruiters|search|executive|talent|group|solutions|services|"
     r"partners|partnership|consulting|consultants|resources|associates|agency|company|companies|holdings|"
     r"workforce|personnel|placement|placements|careers|employment|healthcare|health system|international|"
-    r"inc\.?|llc|l\.l\.c\.|ltd\.?|corp\.?|corporation|co\.?|lp|llp|pllc|pc|plc|se|ag|ab|\(publ\)|n\.a\.))+$", re.I)
+    r"limited|systems|technology|technologies|inc\.?|llc|l\.l\.c\.|ltd\.?|corp\.?|corporation|co\.?|lp|llp|pllc|pc|plc|se|ag|ab|\(publ\)|n\.a\.))+$", re.I)
 
 
 def company_short_candidate(name: str) -> str:
@@ -543,18 +543,67 @@ def shorten_companies(names: set[str]) -> dict[str, str]:
     return out
 
 
+def _name_matches_domain(name: str, domain: str) -> bool:
+    """Cheap pass: the domain's base label and the company name share a 4+ char run or initials."""
+    base = lol.base_label(domain).replace("-", "")
+    words = [w for w in re.split(r"[^a-z0-9]+", (name or "").lower()) if w]
+    flat = "".join(words)
+    if len(base) >= 4 and (base in flat or flat[:6] in base or any(len(w) >= 4 and w in base for w in words)):
+        return True
+    initials = "".join(w[0] for w in words if w not in ("the", "of", "and", "&"))
+    return len(base) >= 2 and (base == initials or base.startswith(initials) and len(initials) >= 3 or base == flat)
+
+
+def check_company_names(pairs: set[tuple[str, str]]) -> dict[tuple[str, str], bool]:
+    """(company name, email domain) -> True when the name is this domain's company. LeadOcean sometimes carries a
+    wrong employer name (2026-11-10: a progyny.com TA director listed at 'John Parker Custom Construction');
+    the copy says 'at {{companyName}}', so a mismatch must never ship. Cheap match first, Jev on the rest."""
+    from execution.modules import jev_client as jev
+    cache_path = TMP / "company_name_check.json"
+    cache = lol.jload(cache_path, {})
+    out, ask = {}, []
+    for name, dom in pairs:
+        key = f"{name}|{dom}"
+        if _name_matches_domain(name, dom):
+            out[(name, dom)] = True
+        elif key in cache:
+            out[(name, dom)] = cache[key] >= 0.6
+        else:
+            ask.append((name, dom))
+    q = {"same": jev.noul("Is this email domain the website/mail domain of this company?",
+                          "true when the domain is the company's own (abbreviation, old name, parent brand count)",
+                          "false when the domain clearly belongs to a different company")}
+    cost = 0.0
+    for i in range(0, len(ask), 200):
+        chunk = ask[i:i + 200]
+        for (name, dom), res in zip(chunk, jev.decide_many([{"company_name": n, "email_domain": d} for n, d in chunk],
+                                                           q, workers=8)):
+            cost += res.cost_usd
+            p = 0.0 if res.error else round(res.noul("same"), 3)  # fail closed: unknown -> treated as mismatch
+            if not res.error:
+                cache[f"{name}|{dom}"] = p
+            out[(name, dom)] = p >= 0.6
+        lol.jsave(cache_path, cache)
+    if ask:
+        jev.append_ledger({"caller": "recruiter_leads.check_company_names", "items": len(ask), "cost_usd": cost})
+    return out
+
+
 def specialty_for(r: dict[str, Any], j: dict[str, Any]) -> tuple[str, str]:
     """(phrase, evidence word) when Jev is confident AND the person's/employer's own text backs it; else blanks."""
     k = j.get("specialty", "general")
     spec = SPECIALTIES.get(k)
     if not spec or k == "general" or j.get("specialty_conf", 0) < 0.6:
         return "", ""
-    text = " ".join(str(r.get(f) or "") for f in ("current_job_title", "profile_headline", "profile_summary",
+    # Current role only: the profile summary describes past jobs ("healthcare" for a TA director now at a builder).
+    text = " ".join(str(r.get(f) or "") for f in ("current_job_title", "profile_headline",
                                                      "current_company_name", "current_company_industry")).lower()
-    text = f" {text} "
     for w in spec["evidence"]:
-        if w in text:
-            return spec["phrase"], w.strip()
+        stem = w.strip()
+        # whole-word start; short tokens ("it", "ai", "rn", "lab") must match a whole word ("recruit" is not "it")
+        pat = r"\b" + re.escape(stem) + (r"\b" if len(stem) <= 3 else "")
+        if re.search(pat, text):
+            return spec["phrase"], stem
     return "", ""
 
 
@@ -572,6 +621,8 @@ def cmd_build(_: argparse.Namespace) -> None:
     g = lol.jload(TMP / "gate.json", {})
     kept, rejects = g.get("kept", []), g.get("rejects", [])
     jc, rc = lol.jload(TMP / "jev_cache.json", {}), rv.load_cache()
+    name_ok = check_company_names({(r.get("current_company_name") or "", r["_email"].split("@", 1)[1])
+                                   for r in kept if rc.get(r["_email"])})
     short = shorten_companies({r.get("current_company_name") or "" for r in kept if rc.get(r["_email"])} - {""})
     rows = []
     for r in kept:
@@ -581,6 +632,10 @@ def cmd_build(_: argparse.Namespace) -> None:
             rejects.append(r)
             continue
         b = rv.bucket(res)
+        if not name_ok.get((r.get("current_company_name") or "", r["_email"].split("@", 1)[1]), False):
+            r["reject_reason"] = "company_name_mismatch"
+            rejects.append(r)
+            continue
         if b == "drop":
             r["reject_reason"] = f"reoon_{res.get('status') or 'error'}"
             rejects.append(r)
