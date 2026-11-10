@@ -29,20 +29,18 @@ Every figure traces to FACTS.md.
 ProdCraft · wk 04
 12 emails a day, by hand.
 Then 800 a day.
-one client · emails a day
-one client · sending inboxes
-32 at launch
+32 inboxes at launch
 64
 later 96
 the pipeline
 Find the right people
-Verify every address
+Check each address before sending
 Send from many inboxes, every day
-AI reads every reply: hot · interested · neutral · not interested
-Hot lead → a person takes over, and the client's phone pings
-Interested → an automatic reply, and a call on the calendar
-Every interested lead is logged in the CRM
-+$128K in revenue in 3 months
+AI sorts the replies: hot · interested · neutral · not interested
+Hot lead → the client's phone pings, and a person takes over
+Interested → an automatic reply, asking for a call
+Interested leads go into the CRM; booked calls land on the calendar
+almost $128K in revenue in 3 months
 The machine does the volume.
 Your people do the conversations.
 I build GTM pipelines like this, around your market and your offer.
@@ -55,13 +53,11 @@ ProdCraft · weekly notes · 04
 
 > 12 emails a day, by hand. Then 800 a day.
 >
-> One client used to send cold email one at a time. I built them an outbound pipeline that runs on its own:
-> it finds the right people, verifies every address and sends from many inboxes every day.
+> One client used to send cold email one at a time. I built them an outbound pipeline: it finds the right people, checks each address before sending, and sends from many inboxes every day.
 >
-> AI reads every reply and sorts it: hot, interested, neutral, not interested. A hot lead goes to a person, and the client's phone pings.
-> An interested one gets an automatic reply and books a call on the calendar. Every interested lead is logged in the CRM.
+> AI sorts the replies: hot, interested, neutral, not interested. On a hot lead the client's phone pings and a person takes over. An interested one gets an automatic reply asking for a call. Interested leads go into the CRM, and booked calls land on the client's calendar.
 >
-> We launched on 32 sending inboxes, scaled to 64, and later 96. Over 3 months it added about $128K in revenue.
+> They launched on 32 sending inboxes, scaled to 64, and later 96. Over 3 months it added almost $128K in revenue.
 >
 > The machine does the volume. Your people do the conversations, the part that closes deals.
 >
@@ -84,3 +80,5 @@ ProdCraft · weekly notes · 04
 - "emails sent per day". Objection (red team): 800 is the designed rate, not a send log. Resolution: "emails a day".
 - Inbox scale wording (operator 2026-11-10, binding): 32 at launch → 64 → later 96; post "We launched on 32 sending inboxes, scaled to 64, and later 96."
 - "within minutes". Objection (red team): replies are polled every 30 min (wrangler.toml crons; index.js:729-738), worst case ~1 hour. Resolution: drop the timing; "an automatic reply".
+- Red team round 1 (all 4 FAIL): "books a call" → the system asks for a call; booked calls land on the calendar. "Verify every address" → "Check each address before sending" (catch-all results accepted). "Every interested lead is logged" → "Interested leads go into the CRM". "runs on its own" dropped (the client's manager runs the sending platform). "We launched" → "They launched" (inboxes were the client's scope). "+$128K"/"about" → "almost $128K" (operator's word). Two stray chart captions deleted.
+- 96 inboxes vs the public "48,000+ emails / month" (metrics_canonical.md:13). Objection (counterparty, reputation): cross-check shows two scales. Resolution: keep 96 (operator's explicit ask); the film states no monthly volume; operator decides whether to update metrics_canonical.md.
