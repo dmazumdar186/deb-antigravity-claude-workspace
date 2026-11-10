@@ -135,7 +135,7 @@ def build_story():
         Paragraph('Debanjan Mazumdar', S['name']),
         Paragraph(
             'Senior Product Manager — AI, Data &amp; Growth Products | B2B SaaS | '
-            '<b>15 years</b> in software, <b>11</b> in product',
+            '<b>10+ years</b> in software and product',
             S['subtitle']
         ),
         Spacer(1, 3),
@@ -152,14 +152,14 @@ def build_story():
     ]
 
     st.append(_accroche(
-        "Senior Product Manager, <b>15 years</b> in B2B software, <b>11</b> owning products end to "
-        "end: Product Owner on enterprise platforms, then Senior PM for AI, data and growth "
-        "products. Four years on GenAI at Wiser Solutions: launched a RAG assistant "
-        "(<b>+45%</b> adoption), priced the AI tier (<b>+18%</b> ARPU), ran a <b>$150K</b> "
-        "company-wide rollout. Engineering degree; prototypes in Claude Code before writing the "
-        "spec. Targeting Senior PM, Senior AI PM or Growth PM roles in B2B SaaS, Paris or remote.",
-        "<b>Selected impact:</b> +45% adoption • +18% ARPU • +32% trial-to-paid • −55% p95 "
-        "latency • $1M+ pipeline • ~$200K/yr cost removed",
+        "Product leader with <b>10+ years</b> in B2B software, owning products end to end: "
+        "Product Owner on enterprise platforms, then Product Manager for AI and data products. "
+        "At Wiser Solutions: launched a RAG assistant (<b>+30%</b> adoption) and ran a "
+        "<b>$150K</b> company-wide GenAI rollout. Engineering degree; prototypes in Claude Code "
+        "before writing the spec. Targeting Senior PM, Senior AI PM or Growth PM roles in B2B "
+        "SaaS, Paris or remote.",
+        "<b>Selected impact:</b> +30% adoption • −40% p95 latency • +40% BU adoption • "
+        "+20% CSAT • 25–30% delivery predictability",
     ))
     st.append(Spacer(1, 8))
 
@@ -167,15 +167,13 @@ def build_story():
     st.append(Spacer(1, 5))
 
     for item in _exp_entry(
-        'Senior Product Manager, AI &amp; Data Intelligence — Wiser Solutions',
-        'B2B SaaS · Retail &amp; Digital-Commerce Intelligence · Paris | Nov 2022 – Present',
+        'Product Manager — Wiser Solutions (formerly SAS BIRDS)',
+        'B2B SaaS · Retail &amp; Digital-Commerce Intelligence · Boulogne-Billancourt (Paris area) | '
+        'Nov 2022 – Jul 2024',
         [
             "Launched a RAG assistant on OpenAI and Anthropic APIs, from JTBD interviews and "
-            "Figma flows to release, lifting feature adoption <b>45%</b> and cutting p95 "
-            "latency <b>55%</b>.",
-
-            "Priced and packaged the AI tier (product-led upsell, Mixpanel funnel), raising "
-            "ARPU <b>18%</b>.",
+            "Figma flows to release, lifting feature adoption <b>30%</b> and cutting p95 "
+            "latency <b>40%</b>.",
 
             "Led the company-wide GenAI rollout on a <b>$150K</b> budget: build-vs-buy across "
             "OpenAI, Anthropic and Google, go/no-go with the CPO and BU heads, onboarding per "
@@ -193,41 +191,16 @@ def build_story():
         st.append(item)
 
     for item in _exp_entry(
-        'Founder &amp; AI Product Consultant — ' + _link('https://prodcraft.fyi', 'ProdCraft'),
-        'Independent AI product studio, Paris (evenings and weekends, alongside Wiser) | '
-        'Jan 2026 – Present',
+        _link('https://prodcraft.fyi', 'ProdCraft') + ' — business project in preparation '
+        '(micro-enterprise, launch upon authorisation)',
+        'Paris | Jul 2024 – Present',
         [
-            "Shipped <b>12+</b> AI products for clients at a <b>&lt;30-day</b> median from brief "
-            "to production, owning discovery, PRD, MVP and release gate.",
+            "Preparing the offer of an AI product and automation studio: service scope, "
+            "target clients and pricing.",
 
-            "Built an agentic outbound pipeline (Claude classification, Cloudflare Workers, "
-            "<b>32</b> inboxes, <b>3-hour</b> SLA) that sourced a <b>$1M+</b> qualified "
-            "pipeline and replaced ~<b>$200K/yr</b> of manual work.",
-
-            "Turned rapid prototyping into a sales tool: rebuilt <b>6</b> prospects' websites "
-            "as live concept redesigns with pitch decks, each from URL to live site in "
-            "<b>48 hours</b> (research, Figma-grade design, Cloudflare Pages).",
-
-            "Designed a candidate sourcing system for a recruitment client (multi-source "
-            "harvest, evidence checks, Recruit CRM sync): <b>≥90%</b> grade precision on a "
-            "labelled set.",
-        ]
-    ):
-        st.append(item)
-
-    for item in _exp_entry(
-        'Product Manager, Data &amp; Recommendation Products — InfoTnT',
-        'B2B SaaS · Paris | Jun 2021 – Nov 2022',
-        [
-            "Introduced product-led growth (self-serve trial, pricing tests, Mixpanel funnel), "
-            "raising trial-to-paid conversion <b>32%</b>.",
-
-            "Set up continuous discovery (customer interviews, JTBD / Outcome-Driven "
-            "Innovation, usage analytics) and a prioritised roadmap, cutting iteration cycles "
-            "<b>35%</b> and lifting the product-market-fit score <b>25%</b>.",
-
-            "Wrote the PRDs and Figma flows for the recommendation engine; ran the backlog in "
-            "Jira and Confluence.",
+            "Building prototypes and open-source tools on GitHub (dmazumdar186): anneal, "
+            "outbound-engine, cv-optimizer-agent, deb-mobile-template, humanizer, "
+            "youtube-video-analyzer.",
         ]
     ):
         st.append(item)
@@ -252,7 +225,7 @@ def build_story():
         st.append(item)
 
     for item in _exp_entry(
-        'Senior Data Product Owner — Evolent International',
+        'Senior Data Product Owner — Evolent',
         'Healthcare SaaS (regulated, US payers and providers) · Pune | Jun 2018 – Feb 2019',
         [
             "Improved platform scalability <b>30%</b> by introducing an SLA/SLO framework and QA "
@@ -278,11 +251,11 @@ def build_story():
         st.append(item)
 
     for item in _exp_entry(
-        'QA / Release Coordinator — IDrive · Software Engineer — Tata Consultancy Services',
-        'Cloud backup · IT services · Bengaluru | 2010 – 2015',
+        'Software Engineer — Tata Consultancy Services (TCS) · QA / Release Coordinator — IDrive',
+        'IT services · Cloud backup · Bengaluru | 2010 – 2015',
         [
-            "Coordinated release trains and QA sign-off for a cloud backup product (Jira, "
-            "Confluence); built distributed-systems components at TCS.",
+            "Built distributed-systems components at TCS; coordinated release trains and QA "
+            "sign-off for a cloud backup product at IDrive (Jira, Confluence).",
         ]
     ):
         st.append(item)
@@ -322,9 +295,9 @@ def build_story():
 
     st.append(SectionHeader('Education'))
     st.append(Spacer(1, 5))
-    st.append(Paragraph('MSc International Strategic Business', S['edu_title']))
-    st.append(Paragraph('Toulouse Business School, Paris | 2019–2021', S['edu_sub']))
-    st.append(Paragraph('BE Information Technology (engineering degree)', S['edu_title']))
+    st.append(Paragraph('MSc International Strategic Business (Summa Cum Laude)', S['edu_title']))
+    st.append(Paragraph('Toulouse Business School | 2019–2021', S['edu_sub']))
+    st.append(Paragraph('Bachelor of Engineering, Information Technology', S['edu_title']))
     st.append(Paragraph('CMR Institute of Technology, Bengaluru | 2006–2010', S['edu_sub']))
 
     st.append(SectionHeader('Languages'))
