@@ -1,0 +1,212 @@
+#cloud-config
+# vps_cloud_init.yaml - one-paste bootstrap for a Hetzner CX43 (Ubuntu 24.04, x86).
+# Directive: directives/infrastructure/vps.md
+# Contains NO secrets. Human steps after boot: log in to the Hetzner web console as root
+# and run `vps-finish-setup` (Tailscale login + Claude login).
+# Bootstrap log: /var/log/deb-vps-bootstrap.log (also /var/log/cloud-init-output.log).
+
+groups:
+  - docker
+
+users:
+  - default
+  - name: deb
+    gecos: Debanjan
+    shell: /bin/bash
+    groups: [sudo, docker]
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+    lock_passwd: true
+
+disable_root: true
+ssh_pwauth: false
+
+package_update: true
+package_upgrade: true
+packages:
+  - git
+  - curl
+  - ca-certificates
+  - gnupg
+  - jq
+  - ufw
+  - fail2ban
+  - unattended-upgrades
+  - python3
+  - python3-venv
+  - pipx
+
+write_files:
+  - path: /etc/ssh/sshd_config.d/10-deb-hardening.conf
+    permissions: "0644"
+    content: |
+      # No public SSH (ufw allows tailscale0 only); break-glass is the Hetzner web console.
+      PermitRootLogin no
+      PasswordAuthentication no
+      KbdInteractiveAuthentication no
+
+  - path: /etc/docker/daemon.json
+    permissions: "0644"
+    content: |
+      {
+        "log-driver": "json-file",
+        "log-opts": { "max-size": "10m", "max-file": "3" }
+      }
+
+  - path: /etc/apt/apt.conf.d/20auto-upgrades
+    permissions: "0644"
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+
+  - path: /etc/apt/apt.conf.d/52deb-unattended-reboot
+    permissions: "0644"
+    content: |
+      Unattended-Upgrade::Automatic-Reboot "true";
+      Unattended-Upgrade::Automatic-Reboot-WithUsers "true";
+      Unattended-Upgrade::Automatic-Reboot-Time "04:30";
+
+  - path: /etc/systemd/system/deb-tools-install.service
+    permissions: "0644"
+    content: |
+      [Unit]
+      Description=Install/start the self-hosted tools (vps_install_tools.sh); re-run: rm /var/lib/deb-tools/installed
+      After=network-online.target docker.service
+      Wants=network-online.target docker.service
+      ConditionPathExists=!/var/lib/deb-tools/installed
+
+      [Service]
+      Type=oneshot
+      User=deb
+      Group=deb
+      SupplementaryGroups=docker
+      StateDirectory=deb-tools
+      LogsDirectory=deb-tools
+      WorkingDirectory=/home/deb/workspace
+      Environment=HOME=/home/deb
+      Environment=NPM_CONFIG_PREFIX=/home/deb/.npm-global
+      Environment=PATH=/home/deb/.npm-global/bin:/home/deb/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      Environment=DOCKER_PUBLIC_IP=127.0.0.1
+      ExecStart=/bin/bash /home/deb/workspace/execution/infrastructure/vps_install_tools.sh
+      TimeoutStartSec=0
+
+      [Install]
+      WantedBy=multi-user.target
+
+  - path: /etc/systemd/system/claude-remote-control.service
+    permissions: "0644"
+    content: |
+      [Unit]
+      Description=Claude Code Remote Control (hetzner-cx43); enabled by vps-finish-setup after login
+      After=network-online.target
+      Wants=network-online.target
+      ConditionPathExists=/home/deb/.claude/.credentials.json
+
+      [Service]
+      User=deb
+      Group=deb
+      WorkingDirectory=/home/deb/workspace
+      Environment=HOME=/home/deb
+      Environment=NPM_CONFIG_PREFIX=/home/deb/.npm-global
+      Environment=PATH=/home/deb/.npm-global/bin:/home/deb/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      ExecStart=/home/deb/.npm-global/bin/claude remote-control --name hetzner-cx43 --permission-mode auto
+      Restart=always
+      RestartSec=30
+
+      [Install]
+      WantedBy=multi-user.target
+
+  - path: /usr/local/sbin/deb-vps-bootstrap.sh
+    permissions: "0755"
+    content: |
+      #!/usr/bin/env bash
+      # Runs once from cloud-init runcmd as root. Each step is independent: a failure is
+      # recorded and reported on the console, the remaining steps still run.
+      set -uo pipefail
+      exec > >(tee -a /var/log/deb-vps-bootstrap.log) 2>&1
+      export DEBIAN_FRONTEND=noninteractive
+      U=deb; H=/home/deb; WS="$H/workspace"
+      REPO=https://github.com/dmazumdar186/deb-antigravity-claude-workspace
+      DEBPATH="$H/.npm-global/bin:$H/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      APT=(apt-get -y -o DPkg::Lock::Timeout=900)
+      CURL=(curl -fsSL --retry 5 --retry-delay 5)
+      FAILED=()
+      step() { local n="$1"; shift; echo "=== [bootstrap] $n"; if "$@"; then echo "--- ok: $n"; else echo "--- FAILED: $n"; FAILED+=("$n"); fi; }
+      as_deb() { (cd "$H" && runuser -u "$U" -- env HOME="$H" USER="$U" NPM_CONFIG_PREFIX="$H/.npm-global" PATH="$DEBPATH" "$@"); }
+
+      swap() {
+        swapon --show=NAME --noheadings | grep -qx /swapfile && return 0
+        [ -f /swapfile ] || { fallocate -l 8G /swapfile && chmod 600 /swapfile && mkswap /swapfile; } || return 1
+        swapon /swapfile || return 1
+        grep -q '^/swapfile ' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+      }
+      repos() {
+        local arch codename; arch="$(dpkg --print-architecture)"; codename="$(. /etc/os-release && echo "$VERSION_CODENAME")"
+        install -m 0755 -d /etc/apt/keyrings
+        "${CURL[@]}" https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc || return 1
+        echo "deb [arch=$arch signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $codename stable" > /etc/apt/sources.list.d/docker.list
+        "${CURL[@]}" https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor --yes -o /etc/apt/keyrings/nodesource.gpg || return 1
+        echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" > /etc/apt/sources.list.d/nodesource.list
+        "${CURL[@]}" "https://pkgs.tailscale.com/stable/ubuntu/$codename.noarmor.gpg" -o /usr/share/keyrings/tailscale-archive-keyring.gpg || return 1
+        echo "deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/ubuntu $codename main" > /etc/apt/sources.list.d/tailscale.list
+        "${CURL[@]}" https://cli.github.com/packages/githubcli-archive-keyring.gpg -o /etc/apt/keyrings/githubcli-archive-keyring.gpg || return 1
+        echo "deb [arch=$arch signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" > /etc/apt/sources.list.d/github-cli.list
+        chmod a+r /etc/apt/keyrings/* /usr/share/keyrings/tailscale-archive-keyring.gpg
+        "${APT[@]}" update
+      }
+      pkgs() {
+        "${APT[@]}" install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin nodejs tailscale gh || return 1
+        usermod -aG docker "$U"
+        systemctl enable --now docker tailscaled
+      }
+      firewall() {
+        ufw default deny incoming && ufw default allow outgoing && ufw allow in on tailscale0 && ufw --force enable
+      }
+      hardening() {
+        systemctl reload ssh 2>/dev/null || systemctl reload sshd 2>/dev/null || true
+        systemctl enable --now fail2ban unattended-upgrades
+      }
+      deb_env() {
+        local line="export PATH=\"\$HOME/.npm-global/bin:\$HOME/.local/bin:\$PATH\""
+        for f in "$H/.profile" "$H/.bashrc"; do
+          touch "$f"; grep -qF '.npm-global/bin' "$f" || echo "$line" >> "$f"; chown "$U:$U" "$f"
+        done
+        as_deb mkdir -p "$H/.npm-global" && as_deb npm config set prefix "$H/.npm-global"
+      }
+      claude_code() { as_deb npm install -g @anthropic-ai/claude-code; }
+      uv_tools() {
+        as_deb pipx install uv || as_deb pipx upgrade uv || return 1
+        as_deb uv tool install --force 'skillspector[mcp] @ git+https://github.com/NVIDIA/skillspector.git'
+      }
+      workspace() {
+        if [ -d "$WS/.git" ]; then as_deb git -C "$WS" pull --ff-only; else as_deb git clone "$REPO" "$WS"; fi || return 1
+        chmod 0755 "$WS/execution/infrastructure/vps_finish_setup.sh" "$WS/execution/infrastructure/vps_install_tools.sh"
+        ln -sfn "$WS/execution/infrastructure/vps_finish_setup.sh" /usr/local/bin/vps-finish-setup
+      }
+      units() {
+        systemctl daemon-reload || return 1
+        systemctl enable deb-tools-install.service || return 1
+        systemctl start --no-block deb-tools-install.service
+      }
+
+      step "8G swapfile" swap
+      step "apt repos (docker, nodesource 22, tailscale, gh)" repos
+      step "docker + node + tailscale + gh" pkgs
+      step "ufw (tailscale0 only)" firewall
+      step "ssh/fail2ban/unattended-upgrades" hardening
+      step "deb npm prefix + PATH" deb_env
+      step "claude code (npm, user prefix)" claude_code
+      step "uv + skillspector" uv_tools
+      step "clone workspace" workspace
+      step "systemd units (tools install started in background)" units
+
+      MSG="Setup running. Log in to this console as root, then run: vps-finish-setup"
+      [ "${#FAILED[@]}" -gt 0 ] && MSG="$MSG
+      BOOTSTRAP STEPS FAILED: ${FAILED[*]} (see /var/log/deb-vps-bootstrap.log)"
+      printf '\n%s\n\n' "$MSG" > /etc/motd
+      printf '\n\n*** %s ***\n\n' "$MSG" > /dev/console 2>/dev/null || true
+      echo "$MSG"
+
+runcmd:
+  - [bash, /usr/local/sbin/deb-vps-bootstrap.sh]
+
+final_message: "cloud-init finished after $UPTIME s. Next: log in as root on this console and run vps-finish-setup"
