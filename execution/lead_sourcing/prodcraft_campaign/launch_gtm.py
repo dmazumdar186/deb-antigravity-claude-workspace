@@ -133,7 +133,10 @@ def audit(st: dict, fix: bool) -> int:
         leads = campaign_leads(rec["id"])
         bad = [l for l in leads if was_contacted(l)]
         bad_total += len(bad)
-        print(f"{name}: {len(leads)} leads, {len(bad)} already contacted")
+        src = campaign_leads(rec["src_id"])
+        src_fresh = sum(1 for l in src if not was_contacted(l))
+        print(f"{name}: {len(leads)} leads, {len(bad)} already contacted | source keeps {len(src)}, "
+              f"{src_fresh} never contacted")
         if fix and bad:
             job = req("POST", "/leads/move", json={"campaign": rec["id"], "ids": [l["id"] for l in bad],
                                                     "to_campaign_id": rec["src_id"]})
