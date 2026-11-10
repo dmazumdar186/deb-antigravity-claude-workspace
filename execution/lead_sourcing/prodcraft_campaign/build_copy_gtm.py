@@ -69,9 +69,9 @@ def pain(n: str) -> str:
              f"bet most of your {w} still comes from people who already know you.")
 
 
-PROOF = [R("this year i built one for a company that buys small businesses. about a dozen emails a day by hand became 800 a day.",
-           "earlier this year i built one for a firm that buys small businesses: roughly 12 emails a day by hand became 800 a day.",
-           "this year i built it for a company that buys small businesses: from about a dozen emails a day, by hand, to 800 a day.")]
+PROOF = [R("this year i built a cold email system for a company that buys small businesses. about a dozen emails a day by hand became 800 a day.",
+           "earlier this year i built a cold email system for a firm that buys small businesses: roughly 12 emails a day by hand became 800 a day.",
+           "this year i built a cold email system for a company that buys small businesses: from about a dozen emails a day, by hand, to 800 a day.")]
 
 
 # Offer (2026-11-10 research, 85M-email 30MPC/Gong data: a concrete offer CTA beats interest/meeting asks; most
@@ -79,7 +79,7 @@ PROOF = [R("this year i built one for a company that buys small businesses. abou
 def offer_q(n: str) -> str:
     tg = NICHE[n]["target"]
     return R(f"want me to pull the first 20 for you? {tg}, emails checked.",
-             f"want me to find you 20 to start? {tg}, emails checked.",
+             f"want me to find you 20? {tg}, emails checked.",
              f"want a first list of 20? {tg}, emails checked.")
 
 
@@ -98,13 +98,13 @@ def step2(n: str) -> str:
           "{{firstName}}, made a quick 30 second video of how it works:",
           "here's a 30 second video of how it works, {{firstName}}:"),
         R(VIDEO, f"{VIDEO} (30 sec)", f"video: {VIDEO}"),
-        R("it finds the right people, checks each email address, then sends every day from lots of email accounts.",
+        R("it finds the right people, checks each email address, then sends every day from many inboxes.",
           "it finds the right people, checks each email before sending, then sends every day from lots of addresses.",
           "it finds the people, checks each email first, then sends every day from lots of email addresses."),
         R("replies get sorted for you, and the hot ones ping your phone.",
           "replies get sorted for you. when someone's keen, your phone pings and you take it from there.",
           "you get the good replies, and your phone pings when someone's ready to talk."),
-        R("worth a look?", "worth 30 seconds?", "30 seconds, worth it?")])
+        R("worth a look?", "worth 30 seconds?", "have a look?")])
 
 
 def step3(n: str) -> str:
