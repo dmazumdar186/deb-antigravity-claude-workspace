@@ -56,8 +56,8 @@ RESULT = [R("this june i built a tool for a recruiting agency in dublin.",
           R("their consultants got about 15 hours a week back and candidate replies went up 2.3x.",
             "each consultant got ~15 hours a week back, and replies from candidates went up 2.3x.",
             "each consultant there got roughly 15 hours a week back. candidate replies went up 2.3x.")]
-OFFER_Q = R("want me to set it up on one of your open roles so you see it on your own pipeline?",
-            "should i set it up on one open role, so you see it with your own candidates?",
+OFFER_Q = R("want me to set it up on one of your open roles?",
+            "should i set it up on one of your open roles?",
             "want me to try it on one of your open roles?")
 STEP2_H = [R("{{firstName}}, here's a short video of how it works:",
              "{{firstName}}, recorded a quick video of how it works:",
@@ -77,8 +77,9 @@ STEP3_H = [R("last one {{firstName}}.", "last note from me {{firstName}}.", "{{f
            R("if sourcing isn't a pain at {{companyName}} right now, just say so and i'll stop.",
              "if finding candidates isn't a headache at {{companyName}} right now, lmk and i'll stop.",
              "if this isn't a priority at {{companyName}}, tell me and i'll leave you alone."),
-           R("if it is, send me one open role and i'll set it up.", "if it is, reply with one role and i'll set it up.",
-             "if it is, send one open role and i'll set it up.")]
+           R("if it is, send me one open role and the first candidate list is free.",
+             "if it is, reply with one role and i'll send the first candidate list free.",
+             "if it is, send one open role and the first list of candidates is on me.")]
 
 SUBJECTS = {
     "A": [R("{{companyName}} sourcing", "sourcing at {{companyName}}", "{{firstName}}, sourcing?"),
@@ -129,10 +130,19 @@ STEP3 = [R("last one {{firstName}}.", "last note from me {{firstName}}.", "{{fir
            "otherwise just send one open role and i'll do the rest.")]
 
 
+# Personalized hook + pain in one line (a separate pain line pushed step 1 past ~70 words and up the slop score).
+PERS_PAIN = R("saw you do {{specialty}} at {{companyName}}, so i'm guessing sourcing eats a big chunk of your week.",
+              "you handle {{specialty}} at {{companyName}}, so finding candidates probably eats most of your day.",
+              "saw you're on {{specialty}} at {{companyName}}. sourcing probably takes more of your week than you'd like.")
+# Operator 2026-11-10: make clear the first candidate list is free (no time or money asked before proof).
+FREE = R("first candidate list is free, no call needed.",
+         "the first list of candidates is on me, no call needed.",
+         "first candidate list is free. no call needed.")
+
+
 def step1(angle: str, personalized: bool) -> str:
     if angle == "H":
-        return "\n\n".join([GREET, PERS if personalized else PAIN] + ([PAIN] if personalized else [])
-                            + RESULT + [OFFER_Q])
+        return "\n\n".join([GREET, PERS_PAIN if personalized else PAIN] + RESULT + [OFFER_Q, FREE])
     return "\n\n".join([GREET, PERS if personalized else NOPERS] + BODY[angle] + [OFFER, ASK1])
 
 
