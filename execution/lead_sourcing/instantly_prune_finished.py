@@ -100,8 +100,12 @@ def finished_leads(cid: str) -> list[dict]:
 
 
 def deletable(lead: dict, cid: str) -> bool:
+    # status 3 alone is not "finished the sequence": stop_for_company marks colleagues of a replier Completed
+    # ("domain_complete") without sending them anything (2026-11-10: 7 such leads were deleted before this check).
+    summary = str(lead.get("status_summary") or "")
     return (lead.get("campaign") == cid and lead.get("status") == 3 and not lead.get("email_reply_count")
-            and lead.get("lt_interest_status") in (None, ""))
+            and lead.get("lt_interest_status") in (None, "") and bool(lead.get("timestamp_last_contact"))
+            and "domain_complete" not in summary)
 
 
 def main(argv: list[str] | None = None) -> int:

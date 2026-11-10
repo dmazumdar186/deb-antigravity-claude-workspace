@@ -25,5 +25,6 @@ Backup CSV of every candidate lead (`.tmp/instantly_prune/backup_<ts>.csv`, writ
 - Deleted leads no longer count for `skip_if_in_workspace`, so a later campaign can re-contact them; unsubscribes
   stay blocked. Repliers, any interest status, bounced, unsubscribed and active leads are never deleted.
 - The 2 Nov and 10 Nov 2026 campaigns are excluded by default (`--exclude`) while their performance is measured.
+- 2026-11-10: status 3 (Completed) also covers colleagues of a replier stopped by stop_for_company ("domain_complete"), never emailed; 7 were deleted before the script required timestamp_last_contact and excluded domain_complete. They are in backup_20261110T105725Z.csv.
 - Bulk DELETE /leads removes at most 50 ids per call (asked 500, got 50); the script sends 50 at a time.
 - Inline Bash calls to the Instantly leads API are blocked by the redteam hook; run this committed script.
