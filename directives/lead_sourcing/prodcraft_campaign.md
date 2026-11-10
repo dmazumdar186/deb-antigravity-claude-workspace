@@ -51,6 +51,7 @@ Run the cold email campaign selling the ProdCraft "Proposal Engine" (free 72-hou
   operator; no guarantee (no data). The $128K figure is never used in emails (FACTS.md: not credited to the system alone).
 - Red-team 4/4 PASS in 3 rounds (round 3 operator-authorised), sha 96f5414f995c. Fixed on the way: no intent/location
   claims about the free list, "every day" not "a few a day", no free-build ask, name the thing built.
+- 2026-11-10 later: operator "go with the research, not what I called for" -> first 50 + step-3 guarantee ("if the first batch doesn't land a reply, you don't pay"); red-team 4/4 PASS sha 39f8f010e517; live sequences updated with `launch_gtm.py --update-copy`. All 16 new 10 Nov campaigns send from the 9 `Deb_16 Oct 26` inboxes (`instantly_retag_campaigns.py`); the 2 Nov campaigns stay on `Deb_Oct 6 26`.
 - Launch: `launch_gtm.py` creates `DM_{Niche} - {US|UK} - {Pers} - 10 Nov 2026` per 2 Nov source with not-contacted
   leads, moves them (`/leads/move`, FILTER_VAL_NOT_CONTACTED; no new lead slots), tags `Deb_Oct 6 26`, activates.
   `--audit` checks no already-emailed lead sits in a new campaign (activation refuses otherwise). 2026-11-10: 517 leads
