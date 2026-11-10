@@ -1,6 +1,6 @@
 """
 description: Create (draft), fill and tag the DM_Recruitment Candidate Outreach campaigns in Instantly from the recruiter_leads.py CSVs. Default prints the plan only (no API call); --apply writes drafts; --apply --activate also starts them.
-inputs: .tmp/recruiters/campaigns/*.csv (+ catchall/); execution/lead_sourcing/recruiter_campaign/copy.json (operator-approved copy; required for --apply); env INSTANTLY_API_KEY (only with --apply); flags --apply, --activate, --only, --min-total
+inputs: .tmp/recruiters/campaigns/*.csv (+ catchall/); execution/lead_sourcing/recruiter_campaign/copy.json (operator-approved copy; required for --apply); env INSTANTLY_API_KEY (only with --apply); flags --apply, --activate, --only, --skip-catchall, --min-total
 outputs: stdout plan (default); with --apply: Instantly campaigns + .tmp/recruiters/launch_state.json
 usage:
     python3 execution/lead_sourcing/recruiter_campaign/launch.py                     # plan only, no network
@@ -119,13 +119,14 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--activate", action="store_true", help="also start campaigns; requires --apply")
     ap.add_argument("--only", default="", help="substring filter on campaign name")
+    ap.add_argument("--skip-catchall", action="store_true", help="leave the CatchAll campaigns out of this run")
     ap.add_argument("--min-total", type=int, default=3000,
                     help="launch gate: Reoon-safe main leads across all locations must reach this (operator 2026-11-10)")
     a = ap.parse_args(argv)
     if a.activate and not a.apply:
         ap.error("--activate requires --apply")
     st = json.loads(STATE.read_text()) if STATE.exists() else {}
-    plans = [p for p in plan() if a.only in p["name"]]
+    plans = [p for p in plan() if a.only in p["name"] and not (a.skip_catchall and p["catchall"])]
     copy = json.loads(COPY_PATH.read_text()) if COPY_PATH.exists() else None
     if not a.apply:
         total = sum(len(leads(p["file"])) for p in plans if not p["catchall"])
