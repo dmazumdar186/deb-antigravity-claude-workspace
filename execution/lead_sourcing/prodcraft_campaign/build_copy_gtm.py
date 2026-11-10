@@ -15,7 +15,7 @@ Sources (grounding):
   gets an auto-reply asking for a call; interested leads into the CRM). "$128K in 4 months" is NOT used in the
   emails: FACTS.md says it is a client revenue increase not credited to the system alone.
 - Video page: https://prodcraft.fyi/gtm (31.75 s, credit line removed per operator 2026-11-10).
-- Offer (operator approval pending in this draft): first 50 people to contact (emails checked) free, no call needed.
+- Offer (operator 2026-11-10: not 50; 'do what the research says'): step 1 free first 20 named contacts, emails checked, yes/no; step 3 the prospect names a number; no guarantee (no data).
 """
 from __future__ import annotations
 
@@ -37,10 +37,13 @@ from execution.modules import jev_client as jev  # noqa: E402
 VIDEO = "https://prodcraft.fyi/new-clients"  # 301 -> /gtm/ (plain-word link; "gtm" read as jargon)
 NICHE = {
     "EventAV": dict(buyers="brands and agencies planning events", work="event work",
+                    target="marketing and event leads at companies near you that run conferences and launches",
                     buyer_q="companies that run conferences, launches and brand events"),
     "Fitout": dict(buyers="companies planning an office move or refit", work="fit-out work",
+                   target="office managers and ops heads at companies near you planning an office move",
                    buyer_q="companies planning an office move, expansion or refit"),
-    "DMC": dict(buyers="companies planning incentive trips and offsites", work="incentive and group trips",
+    "DMC": dict(buyers="companies planning incentive trips and offsites", work="incentive trip business",
+                target="sales and hr leads at companies near you that run incentive trips",
                 buyer_q="companies that run incentive trips, offsites and sales kick-offs"),
 }
 GREET = R("hey {{firstName}},", "hi {{firstName}},", "{{firstName}},")
@@ -51,9 +54,12 @@ def subjects(n: str) -> list[str]:
             R("your next client", "more corporate clients", "{{firstName}}, quick one")]
 
 
-def pers(n: str) -> str:
-    return R("saw {{project_reference}} on your site.", "noticed {{project_reference}} on your site.",
-             "was reading about {{project_reference}} on your site.")
+def pers_pain(n: str) -> str:
+    """Personal hook + pain in one line (keeps step 1 near the 25-75 word range the research found best)."""
+    w = NICHE[n]["work"]
+    return R(f"saw {{{{project_reference}}}} on your site. guessing most new {w} still comes from referrals?",
+             f"noticed {{{{project_reference}}}} on your site. guessing referrals still bring in most new {w}?",
+             f"saw {{{{project_reference}}}} on your site. is most new {w} still coming from referrals?")
 
 
 def pain(n: str) -> str:
@@ -63,28 +69,26 @@ def pain(n: str) -> str:
              f"bet most of your {w} still comes from people who already know you.")
 
 
-PROOF = [R("this year i built something for a company that buys small businesses.",
-           "earlier this year i built this for a company that buys small businesses.",
-           "this year i set this up for a firm that buys small businesses."),
-         R("they went from about a dozen emails a day, written by hand, to 800 a day.",
-           "they went from roughly 12 emails a day by hand to 800 a day.",
-           "about a dozen emails a day by hand turned into 800 a day.")]
+PROOF = [R("this year i built this for a company that buys small businesses. about a dozen emails a day by hand became 800 a day.",
+           "earlier this year i set this up for a firm that buys small businesses. they went from roughly 12 emails a day by hand to 800 a day.",
+           "this year i built it for a company that buys small businesses: from about a dozen emails a day, by hand, to 800 a day.")]
 
 
+# Offer (2026-11-10 research, 85M-email 30MPC/Gong data: a concrete offer CTA beats interest/meeting asks; most
+# yeses go to a concrete sample). Operator: no 50; size 20 chosen (no data on N; a named, specific list is the lever).
 def offer_q(n: str) -> str:
-    b = NICHE[n]["buyers"]
-    return R(f"want me to set it up for {{{{companyName}}}}, aimed at {b}?",
-             f"should i build one for you, aimed at {b}?",
-             f"want me to point it at {b} near you?")
+    tg = NICHE[n]["target"]
+    return R(f"want me to pull the first 20 for you? {tg}, emails checked.",
+             f"want me to find you 20 to start? {tg}, emails checked.",
+             f"want a first list of 20? {tg}, emails checked.")
 
 
-FREE = R("the first 50 people to contact, emails checked, are free. no call needed.",
-         "first 50 names with checked emails are on me, no call needed.",
-         "first list of 50 people, emails checked, is free. no call needed.")
+FREE = R("free, no call needed. just reply yes.", "it's free and there's no call. just reply yes.",
+         "free, no call. a yes is all i need.")
 
 
 def step1(n: str, personalized: bool) -> str:
-    lines = [GREET] + ([pers(n)] if personalized else []) + [pain(n)] + PROOF + [offer_q(n), FREE]
+    lines = [GREET, pers_pain(n) if personalized else pain(n)] + PROOF + [offer_q(n), FREE]
     return "\n\n".join(lines)
 
 
@@ -95,8 +99,8 @@ def step2(n: str) -> str:
           "here's a 30 second video of how it works, {{firstName}}:"),
         R(VIDEO, f"{VIDEO} (30 sec)", f"video: {VIDEO}"),
         R("it finds the right people, checks each email address, then sends from lots of email accounts every day.",
-          "it finds the right people, checks every email before sending and spreads the sending over many accounts.",
-          "it finds the people, checks each email first, then sends a few from each of many accounts."),
+          "it finds the right people, checks every email before sending, then sends a few a day from lots of addresses.",
+          "it finds the people, checks each email first, then sends every day from lots of email addresses."),
         R("you only see the replies worth answering, and the best ones ping your phone.",
           "replies get sorted for you. when someone's keen, your phone pings and you take it from there.",
           "you get the good replies, and your phone pings when someone's ready to talk."),
@@ -104,15 +108,16 @@ def step2(n: str) -> str:
 
 
 def step3(n: str) -> str:
-    b = NICHE[n]["buyers"]
+    # Research: change of angle in the last step; the prospect names the number (no data either way, opinion).
     return "\n\n".join([
         R("last one, {{firstName}}.", "last note from me, {{firstName}}.", "{{firstName}}, last one."),
-        R("if new clients aren't a priority at {{companyName}} right now, say so and i'll stop.",
-          "if winning new clients isn't on the list at {{companyName}} right now, tell me and i'll stop.",
-          "if this isn't a priority for {{companyName}}, say so and i'll leave you alone."),
-        R(f"if it is, reply yes and the first 50 people at {b} are free, emails checked.",
-          f"if it is, a quick yes gets you the first 50 names at {b}, free.",
-          f"if it is, reply yes and i'll send the first 50 names at {b}, free.")])
+        R("different question: how many new clients a month would actually move the needle for {{companyName}}?",
+          "different question: how many new clients a month would make a real difference for {{companyName}}?",
+          "one question: how many new clients a month would actually matter for {{companyName}}?"),
+        R("give me a number and i'll show you what it'd take.", "send me a number and i'll show you what it would take.",
+          "reply with a number and i'll show you what it'd take."),
+        R("if it's not a priority right now, say so and i'll stop.", "if now's not the time, tell me and i'll stop.",
+          "and if it's not a priority, say so and i'll leave you alone.")])
 
 
 def copy_for(n: str) -> dict:
@@ -137,7 +142,9 @@ Q = {"human": jev.noul("Does this cold email read like one real person typed it 
                       "false when it only describes the sender or a generic offer"),
      "fit": jev.noul("Does every proof or offer line directly support solving that buyer's problem of winning clients?",
                      "true when the offer and proof are about finding new clients", "false when a line is unrelated"),
-     "plain": jev.noul("Would a non-technical company owner understand every sentence without software jargon?",
+     "plain": jev.noul("Would a non-technical company owner understand every sentence without software jargon? "
+                       "Everyday words of their own industry (fit-out, refit, incentive trip, offsite, DMC, AV, launch) "
+                       "count as plain (same rule as the 2 Nov build_copy_v2 gate).",
                        "true when plain words an owner uses",
                        "false when it uses terms like AI pipeline, workflow automation, API, enrichment, LLM")}
 GATE = {"human": 0.70, "pain": 0.55, "fit": 0.55, "plain": 0.70}
