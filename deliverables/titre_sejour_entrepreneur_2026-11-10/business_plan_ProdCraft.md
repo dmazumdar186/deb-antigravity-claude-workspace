@@ -210,7 +210,7 @@ Les montants libellés en dollars sont comptés à parité. Les abonnements et c
 
 | Besoins | Ressources |
 |---|---|
-| Aucun investissement initial | Les dépenses de démarrage et les premières charges sont couvertes par l'épargne personnelle du porteur de projet (attestation de solde créditeur jointe en annexe) |
+| Aucun investissement initial | Aucun investissement initial n'est nécessaire ; les charges du premier mois (479,20 €) sont couvertes par le solde bancaire du porteur de projet (attestation de solde créditeur jointe en annexe), puis par le chiffre d'affaires dès le premier mois. |
 | Aucun local : activité exercée au domicile du porteur de projet | |
 | Matériel informatique déjà détenu | |
 
