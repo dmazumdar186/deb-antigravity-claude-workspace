@@ -1,4 +1,4 @@
-# ProdCraft weekly notes · wk 04 — "12 emails a day by hand. Then 800 a day."
+# ProdCraft weekly notes · wk 04 — "12 emails a day, by hand. Then 800 a day."
 
 Format: same as wk 03. 1080×1350 (4:5), ~32 s, 30 fps, code-rendered with lemo-opuscar, original score
 from CC0 samples (Versilian Studios), no voice, no generated footage. Paper #EFEDE6 / ink / one gold accent,
@@ -19,7 +19,7 @@ Every figure traces to FACTS.md.
    AI reads every reply: hot · interested · neutral · not interested ·
    Hot lead → a person takes over, and the client's phone pings · Interested → an automatic reply, and a call on the calendar ·
    Every interested lead is logged in the CRM
-4. 19–23 Payoff: "+$128K in revenue in 3 months." (big, gold).
+4. 19–23 Payoff: "revenue up almost $128K in 4 months" (big gold $128K).
 5. 23–27.5 The point: "The machine does the volume." / "Your people do the conversations."
 6. 27.5–32 Offer: "I build GTM pipelines like this, around your market and your offer." / "prodcraft.fyi · my DMs are open". Credit in footer, loop to frame 1.
 
@@ -30,7 +30,7 @@ ProdCraft · wk 04
 12 emails a day, by hand.
 Then 800 a day.
 32 inboxes at launch
-64
+then 64
 later 96
 the pipeline
 Find the right people
@@ -40,7 +40,7 @@ AI sorts the replies: hot · interested · neutral · not interested
 Hot lead → the client's phone pings, and a person takes over
 Interested → an automatic reply, asking for a call
 Interested leads go into the CRM; booked calls land on the calendar
-almost $128K in revenue in 3 months
+revenue up almost $128K in 4 months
 The machine does the volume.
 Your people do the conversations.
 I build GTM pipelines like this, around your market and your offer.
@@ -57,7 +57,7 @@ ProdCraft · weekly notes · 04
 >
 > AI sorts the replies: hot, interested, neutral, not interested. On a hot lead the client's phone pings and a person takes over. An interested one gets an automatic reply asking for a call. Interested leads go into the CRM, and booked calls land on the client's calendar.
 >
-> They launched on 32 sending inboxes, scaled to 64, and later 96. Over 3 months it added almost $128K in revenue.
+> They launched on 32 sending inboxes, scaled to 64, and later 96. Over 4 months their revenue went up almost $128K.
 >
 > The machine does the volume. Your people do the conversations, the part that closes deals.
 >
@@ -82,3 +82,4 @@ ProdCraft · weekly notes · 04
 - "within minutes". Objection (red team): replies are polled every 30 min (wrangler.toml crons; index.js:729-738), worst case ~1 hour. Resolution: drop the timing; "an automatic reply".
 - Red team round 1 (all 4 FAIL): "books a call" → the system asks for a call; booked calls land on the calendar. "Verify every address" → "Check each address before sending" (catch-all results accepted). "Every interested lead is logged" → "Interested leads go into the CRM". "runs on its own" dropped (the client's manager runs the sending platform). "We launched" → "They launched" (inboxes were the client's scope). "+$128K"/"about" → "almost $128K" (operator's word). Two stray chart captions deleted.
 - 96 inboxes vs the public "48,000+ emails / month" (metrics_canonical.md:13). Objection (counterparty, reputation): cross-check shows two scales. Resolution: keep 96 (operator's explicit ask); the film states no monthly volume; operator decides whether to update metrics_canonical.md.
+- Red team round 2 (2 PASS, 2 FAIL) → operator decisions 2026-11-10: keep 96 inboxes and update metrics_canonical.md (volume now 70,000+ / month, inboxes and revenue rows added); revenue period is 4 months; wording "their revenue went up" (client revenue, not credited to the machine alone). "64" → "then 64".

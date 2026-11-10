@@ -10,7 +10,9 @@ Rule: **never** put a number on a surface that contradicts this sheet. The cross
 
 | Metric | Canonical public value | Real source | Stretched? |
 |---|---|---|---|
-| Volume | **48,000+ emails / month** | 24,000/mo real baseline (32 warmed inboxes, ~800/day) scaled to 48k headline | yes (2×) |
+| Volume | **70,000+ emails / month** | Operator 2026-11-10: launched on 32 warmed inboxes (~800/day, 24k/mo), scaled to 64, later 96 inboxes; 96 × 25/day ≈ 2,400/day ≈ 72k/mo. Was 48,000+ (2× stretch of the 32-inbox baseline) until 2026-11-10 | no (operator-stated scale) |
+| Inboxes | **32 → 64 → 96 sending inboxes** | Operator 2026-11-10 (no send log in repo) | no |
+| Revenue | **revenue up almost $128K in 4 months** | Operator 2026-11-10 (client revenue increase; not attributed to the system alone) | no |
 | Reply rate | **4%+ reply rate** | 4% real | no |
 | Pipeline | **$1M+ qualified pipeline** | Modeled: 24k × 4% × 5% reply→opp × $25k ACV × 12mo ≈ $1M+; rounded down for defensibility | yes (modeled) |
 | Cost replaced | **~$200K/yr SDR headcount replaced** | 1 fully-loaded SDR (salary+benefits+tooling+ramp) ≈ $180–220k/yr | no (industry standard) |
