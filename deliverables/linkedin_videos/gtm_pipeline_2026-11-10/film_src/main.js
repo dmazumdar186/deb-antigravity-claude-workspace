@@ -4,7 +4,7 @@ const g = cv.getContext('2d');
 const P = { paper: '#EFEDE6', ink: '#16140F', gold: '#B8913A', goldTx: '#8A6A1F', panel: '#E3DDCB', bar: '#CBC4B4', grey: '#6F695E', dim: '#A49D90' };
 await Promise.all(['700 40px Newsreader', '400 40px Newsreader', 'italic 400 40px Newsreader', '600 20px "Plex Mono"', '400 20px "Plex Mono"'].map(f => document.fonts.load(f)));
 
-window.DUR = 33.0;
+window.DUR = 33.75;
 const M = 80, CW = W - 2 * M;
 const SERIF = (w, s, it = '') => `${it} ${w} ${s}px Newsreader`.trim();
 const MONO = (w, s) => `${w} ${s}px "Plex Mono"`;
@@ -12,11 +12,11 @@ const MONO = (w, s) => `${w} ${s}px "Plex Mono"`;
 // ---------- timeline (seconds) ----------
 const T = {
   ctr: 1.65, ctrEnd: 2.1, b1out: 3.85,
-  b2: 3.95, steps: [4.0, 6.3, 7.95], b2out: 9.97,
-  b3: 10.05, lights: [10.45, 11.7, 12.95, 14.2, 15.45, 16.7, 17.95], b3out: 19.85,
-  pay: 19.95, b4out: 23.1,
-  l1: 23.2, l2: 23.7, b5out: 27.2,
-  offer: 27.35, url: 27.8, credit: 27.35, b6out: 32.6, loop: 32.62
+  b2: 3.95, steps: [4.0, 6.7, 8.65], b2out: 10.65,
+  b3: 10.75, lights: [11.15, 12.3, 13.45, 14.6, 15.75, 16.9, 18.05], b3out: 19.9,
+  pay: 20.0, b4out: 23.5,
+  l1: 23.6, l2: 24.1, b5out: 27.6,
+  offer: 27.75, url: 28.2, credit: 27.75, b6out: 33.0, loop: 33.38
 };
 window.EV = [
   { t: T.ctr, type: 'paper', v: .35 },
@@ -95,17 +95,14 @@ const H1 = '12 emails a day, by hand. Then 800 a day.';
 const H1L = ['12 emails a day,', 'by hand.', 'Then 800 a day.'];
 g.font = SERIF(700, 100); const H1S = Math.min(128, 100 * CW / Math.max(...H1L.map(s => g.measureText(s).width)));
 const H1Y = 250, H1LH = H1S * 1.02;
-const CTR_LAB = 'one client · emails a day';
 function hookStatic(a, n, report) { // the frame-0 composition, also used for the loop back
   g.globalAlpha = a; g.font = SERIF(700, H1S); g.fillStyle = P.ink;
   H1L.forEach((s, i) => g.fillText(s, M, H1Y + i * H1LH));
   const uw = g.measureText(H1L[2]).width;
   g.strokeStyle = P.gold; g.lineWidth = 7; g.lineCap = 'round'; g.beginPath(); g.moveTo(M, H1Y + 2 * H1LH + H1S * .2); g.lineTo(M + uw, H1Y + 2 * H1LH + H1S * .2); g.stroke();
   g.font = SERIF(700, 230); g.fillStyle = P.gold; g.fillText(String(n), M - 8, 930);
-  g.font = MONO(600, 28); g.fillStyle = P.goldTx; g.fillText(CTR_LAB, M, 1010);
   g.globalAlpha = 1;
-  if (report) { g.font = SERIF(700, H1S); rep('h1', H1, M, H1Y - H1S * .85, M + Math.max(...H1L.map(s => g.measureText(s).width)), H1Y + 2 * H1LH + H1S * .28);
-    g.font = MONO(600, 28); rep('ctrlab', CTR_LAB, M, 1010 - 24, M + g.measureText(CTR_LAB).width, 1018); }
+  if (report) { g.font = SERIF(700, H1S); rep('h1', H1, M, H1Y - H1S * .85, M + Math.max(...H1L.map(s => g.measureText(s).width)), H1Y + 2 * H1LH + H1S * .28);}
 }
 function beat1(t) {
   if (t >= T.b1out + .6) return;
@@ -121,12 +118,11 @@ function beat1(t) {
   g.font = SERIF(700, 230);
   if (t < out && t < T.ctr) rep('ctr12', '12', M, 930 - 196, M + g.measureText('12').width, 930 + 20);
   if (t < out && t >= T.ctrEnd) rep('ctr800', '800', M, 930 - 196, M + g.measureText('800').width, 930 + 20);
-  block({ id: 'ctrlab', text: CTR_LAB, font: MONO(600, 28), size: 28, lh: 34, x: M, y: 1010, color: P.goldTx, t0: -1, t1: out, t, tout: .22 });
 }
 
 // ---------- beat 2: sending inboxes 32 -> 64 -> 96 ----------
 const COLS = 12, CELL = 72, BOX = 56, GX = (W - COLS * CELL) / 2 + (CELL - BOX) / 2, GY = 470;
-const STEPS = [[32, '', ' at launch'], [64, '', ''], [96, 'later ', '']];
+const STEPS = [[32, '', ' inboxes at launch'], [64, 'then ', ''], [96, 'later ', '']];
 function inbox(x, y, p, a, gold) {
   if (a <= 0 || p <= 0) return;
   const s = lerp(.5, 1, back(p, 1.6)), cx = x + BOX / 2, cy = y + BOX / 2;
@@ -139,7 +135,6 @@ function inbox(x, y, p, a, gold) {
 function beat2(t) {
   if (t < T.b2 || t >= T.b2out + .7) return;
   const out = T.b2out, fo = 1 - ei(seg(t, out, out + .3));
-  block({ id: 'cap2', text: 'one client · sending inboxes', font: MONO(600, 28), size: 28, lh: 34, x: M, y: 200, color: P.goldTx, t0: T.b2, t1: out, t });
   // the count: big number + small words, rolls on each step
   STEPS.forEach(([n, pre, post], i) => {
     const t0 = T.steps[i], t1 = i < 2 ? T.steps[i + 1] : out;
@@ -169,20 +164,20 @@ function beat2(t) {
 // ---------- beat 3: the pipeline ----------
 const ROWS = [
   'Find the right people',
-  'Verify every address',
+  'Check each address before sending',
   'Send from many inboxes, every day',
-  'AI reads every reply: hot · interested · neutral · not interested',
-  'Hot lead → a person takes over, and the client\'s phone pings',
-  'Interested → an automatic reply, and a call on the calendar',
-  'Every interested lead is logged in the CRM.'
+  'AI sorts the replies: hot · interested · neutral · not interested',
+  'Hot lead → the client\'s phone pings, and a person takes over',
+  'Interested → an automatic reply, asking for a call',
+  'Interested leads go into the CRM; booked calls land on the calendar'
 ];
 const RF = SERIF(400, 40), RS = 40, RLH = 50, RGAP = 40, RX = M + 64, NX = M + 18, RY0 = 300;
 const ARW = '     '; // five spaces hold the vector arrow (space, arrow cell, space)
-const RL = [['Find the right people'], ['Verify every address'], ['Send from many inboxes, every day'],
-  ['AI reads every reply:', 'hot · interested · neutral · not interested'],
-  ['Hot lead' + ARW + 'a person takes over,', 'and the client\'s phone pings'],
-  ['Interested' + ARW + 'an automatic reply,', 'and a call on the calendar'],
-  ['Every interested lead is logged in the CRM.']];
+const RL = [['Find the right people'], ['Check each address before sending'], ['Send from many inboxes, every day'],
+  ['AI sorts the replies:', 'hot · interested · neutral · not interested'],
+  ['Hot lead' + ARW + 'the client\'s phone pings,', 'and a person takes over'],
+  ['Interested' + ARW + 'an automatic reply,', 'asking for a call'],
+  ['Interested leads go into the CRM;', 'booked calls land on the calendar']];
 const RYS = []; { let y = RY0; RL.forEach(ls => { RYS.push(y); y += ls.length * RLH + RGAP; }); }
 function beat3(t) {
   if (t < T.b3 || t >= T.b3out + .7) return;
@@ -212,15 +207,18 @@ function beat3(t) {
 }
 
 // ---------- beat 4: payoff ----------
+const PAY = 'revenue up almost $128K in 4 months';
 function beat4(t) {
   if (t < T.pay || t >= T.b4out + .6) return;
   const out = T.b4out;
-  g.font = SERIF(700, 100); const BS = Math.min(240, 100 * CW * .94 / g.measureText('+$128K').width);
-  block({ id: 'pay', text: '+$128K in revenue in 3 months', lines: ['+$128K'], font: SERIF(700, BS), size: BS, lh: BS, x: M - 6, y: 640, color: P.gold, t0: T.pay, t1: out, t, report: false });
-  const l2 = block({ id: 'pay2', text: 'in revenue in 3 months', lines: ['in revenue in 3 months'], font: SERIF(700, 78), size: 78, lh: 80, x: M, y: 790, color: P.goldTx, t0: T.pay + .2, t1: out, t, report: false });
-  g.font = SERIF(700, BS); const bw = g.measureText('+$128K').width; g.font = SERIF(700, 78); const sw = g.measureText(l2[0]).width;
-  line(M, 840, M + sw, 840, eio(seg(t, T.pay + .6, T.pay + 1.2)) * (1 - ei(seg(t, out, out + .25))), P.gold, 6);
-  if (t < out) rep('pay', '+$128K in revenue in 3 months', M - 6, 640 - BS * .85, M + Math.max(bw, sw), 790 + 22);
+  g.font = SERIF(700, 100); const BS = Math.min(280, 100 * CW * .9 / g.measureText('$128K').width);
+  block({ id: 'pay0', text: 'revenue up almost', lines: ['revenue up almost'], font: SERIF(400, 70, 'italic'), size: 70, lh: 70, x: M, y: 430, color: P.goldTx, t0: T.pay, t1: out, t, report: false });
+  block({ id: 'pay1', text: '$128K', lines: ['$128K'], font: SERIF(700, BS), size: BS, lh: BS, x: M - 6, y: 430 + BS * .9, color: P.gold, t0: T.pay + .1, t1: out, t, report: false });
+  const y2 = 430 + BS * .9 + 130;
+  block({ id: 'pay2', text: 'in 4 months', lines: ['in 4 months'], font: SERIF(700, 78), size: 78, lh: 80, x: M, y: y2, color: P.goldTx, t0: T.pay + .25, t1: out, t, report: false });
+  g.font = SERIF(700, BS); const bw = g.measureText('$128K').width; g.font = SERIF(700, 78); const sw = g.measureText('in 4 months').width;
+  line(M, y2 + 50, M + sw, y2 + 50, eio(seg(t, T.pay + .6, T.pay + 1.2)) * (1 - ei(seg(t, out, out + .25))), P.gold, 6);
+  if (t < out) rep('pay', PAY, M - 6, 430 - 60, M + Math.max(bw, sw), y2 + 22);
 }
 
 // ---------- beat 5: the point ----------

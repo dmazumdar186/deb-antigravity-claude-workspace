@@ -19,12 +19,12 @@ BAR = 4 * B
 # chord per section: (start, end, bass root, pad notes, pizz arpeggio)
 SECT = [
     (0.0, 3.9, 'D2', ['D3', 'A3'], ['D5', 'A4', 'F#5', 'A4']),
-    (3.9, 10.0, 'B1', ['B2', 'F#3'], ['B4', 'F#4', 'D5', 'F#4']),
-    (10.0, 15.0, 'G1', ['G2', 'D3'], ['G4', 'D5', 'B4', 'D5']),
-    (15.0, 19.9, 'A1', ['A2', 'E3'], ['A4', 'E5', 'C#5', 'E5']),
-    (19.9, 23.15, 'D2', ['D3', 'A3'], ['F#5', 'A4', 'D5', 'A4']),
-    (23.15, 27.3, 'G1', ['G2', 'D3'], ['G4', 'D5', 'B4', 'D5']),
-    (27.3, 32.8, 'D2', ['D3', 'A3'], ['F#5', 'A4', 'D5', 'A4']),
+    (3.9, 10.7, 'B1', ['B2', 'F#3'], ['B4', 'F#4', 'D5', 'F#4']),
+    (10.7, 15.3, 'G1', ['G2', 'D3'], ['G4', 'D5', 'B4', 'D5']),
+    (15.3, 19.95, 'A1', ['A2', 'E3'], ['A4', 'E5', 'C#5', 'E5']),
+    (19.95, 23.55, 'D2', ['D3', 'A3'], ['F#5', 'A4', 'D5', 'A4']),
+    (23.55, 27.7, 'G1', ['G2', 'D3'], ['G4', 'D5', 'B4', 'D5']),
+    (27.7, 33.5, 'D2', ['D3', 'A3'], ['F#5', 'A4', 'D5', 'A4']),
 ]
 ev = []
 for i, (a, b, root, pad, arp) in enumerate(SECT):
@@ -42,12 +42,12 @@ for i, (a, b, root, pad, arp) in enumerate(SECT):
             ev.append((t, 'violins_pizz', arp[k % 4], .8, .30 + .06 * (k % 2 == 0), .35 if k % 2 else -.35))
         k += 1; t += B
 # a high violin line over the payoff and the offer, very soft
-ev.append(dict(t=20.0, inst='violins', pitch='F#5', dur=3.0, vel=.2, pan=.15, attack=1.0, release=1.5))
-ev.append(dict(t=23.3, inst='violins', pitch='D5', dur=3.6, vel=.18, pan=.15, attack=.8, release=1.4))
-ev.append(dict(t=27.5, inst='violins', pitch='A5', dur=4.6, vel=.17, pan=.15, attack=1.0, release=1.6))
+ev.append(dict(t=20.1, inst='violins', pitch='F#5', dur=3.0, vel=.2, pan=.15, attack=1.0, release=1.5))
+ev.append(dict(t=23.7, inst='violins', pitch='D5', dur=3.6, vel=.18, pan=.15, attack=.8, release=1.4))
+ev.append(dict(t=27.9, inst='violins', pitch='A5', dur=4.6, vel=.17, pan=.15, attack=1.0, release=1.6))
 # harp rolls on each headline
-for t0, notes in [(0.05, ['D3', 'A3', 'D4', 'F#4']), (3.95, ['B2', 'F#3', 'B3', 'D4']), (10.05, ['G2', 'D3', 'G3', 'B3']),
-                  (19.95, ['D3', 'A3', 'D4', 'F#4', 'A4']), (23.2, ['G2', 'D3', 'G3', 'B3']), (27.35, ['D3', 'A3', 'D4', 'F#4']), (32.62, ['D3', 'A3', 'D4'])]:
+for t0, notes in [(0.05, ['D3', 'A3', 'D4', 'F#4']), (3.95, ['B2', 'F#3', 'B3', 'D4']), (10.75, ['G2', 'D3', 'G3', 'B3']),
+                  (20.0, ['D3', 'A3', 'D4', 'F#4', 'A4']), (23.6, ['G2', 'D3', 'G3', 'B3']), (27.75, ['D3', 'A3', 'D4', 'F#4'])]:
     for j, p in enumerate(notes):
         ev.append((t0 + j * .07, 'harp', p, 2.5, .34, -.2 + .1 * j))
 # cue-driven pitched accents
