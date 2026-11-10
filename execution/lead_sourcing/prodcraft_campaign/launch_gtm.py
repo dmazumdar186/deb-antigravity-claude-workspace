@@ -151,12 +151,29 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--activate", action="store_true")
     ap.add_argument("--only", default="")
     ap.add_argument("--audit", action="store_true", help="list already-contacted leads in the new campaigns")
+    ap.add_argument("--update-copy", action="store_true",
+                    help="PATCH the sequences of the created campaigns to the current approved copy_gtm.json")
     ap.add_argument("--fix-contacted", action="store_true", help="move already-contacted leads back to the source")
     a = ap.parse_args(argv)
     if a.activate and not a.apply:
         ap.error("--activate requires --apply")
     copy = json.loads(COPY.read_text())
     st = json.loads(STATE.read_text()) if STATE.exists() else {}
+    if a.update_copy:
+        if not copy.get("approved"):
+            sys.exit("copy_gtm.json not approved")
+        for p in sources():
+            rec = st.get(p["name"])
+            if not rec or "id" not in rec:
+                continue
+            body = payload(p, copy)
+            req("PATCH", f"/campaigns/{rec['id']}", json={"sequences": body["sequences"]})
+            got = req("GET", f"/campaigns/{rec['id']}")["sequences"][0]["steps"]
+            ok = [v["body"] for s in got for v in s["variants"]] == [v["body"] for s in body["sequences"][0]["steps"] for v in s["variants"]]
+            print(f"{'OK ' if ok else 'BAD'} {p['name']}: sequence updated (status {got and 'read back'})")
+            if not ok:
+                sys.exit(1)
+        return
     if a.audit or a.fix_contacted:
         n_bad = audit(st, a.fix_contacted)
         print(f"already-contacted leads in new campaigns: {n_bad}")
