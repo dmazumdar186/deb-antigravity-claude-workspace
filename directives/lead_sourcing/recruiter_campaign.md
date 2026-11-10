@@ -13,7 +13,7 @@ Instantly campaigns for recruiters in New York, New Jersey, Boston and Houston, 
 ## Tools/Scripts
 `execution/lead_sourcing/recruiter_campaign/launch.py`: plan only by default (no network); `--apply` creates drafts,
 uploads leads in 500s with `skip_if_in_workspace`, tags `Deb_Oct 6 26`; `--apply --activate` starts them.
-`--segments Agency` drops the in-house files and the segment token from names. State: `.tmp/recruiters/launch_state.json`.
+`--segments Agency` drops the in-house files; names always carry the segment. An existing campaign with the same name is reused, never duplicated; upload counts must account for every lead or the run exits. State: `.tmp/recruiters/launch_state.json`.
 
 ## Outputs
 Instantly campaigns (draft, then active), tagged `Deb_Oct 6 26`; `launch_state.json` with upload counts.

@@ -77,8 +77,8 @@ def plan(segments: list[str]) -> list[dict]:
         if seg not in segments:
             continue
         ca = bool(rest)
-        seg_part = "" if segments == ["Agency"] else f" - {seg}"
-        name = f"DM_Recruitment - {LOC_LABEL[loc]}{seg_part} - {pers}{' CatchAll' if ca else ''} - {DATE}"
+        # Name always carries the segment, so a later run with other --segments never renames (= duplicates) one.
+        name = f"DM_Recruitment - {LOC_LABEL[loc]} - {seg} - {pers}{' CatchAll' if ca else ''} - {DATE}"
         out.append(dict(file=f, name=name, seg=seg, pers=pers, catchall=ca))
     return out
 
@@ -138,7 +138,10 @@ def main(argv: list[str] | None = None) -> None:
     for p in plans:
         rec = st.setdefault(p["name"], {})
         if "id" not in rec:
-            rec["id"] = req("POST", "/campaigns", json=payload(p, copy))["id"]
+            # Guard against a duplicate draft when a retried POST already succeeded server-side.
+            found = [c for c in req("GET", "/campaigns", params={"search": p["name"], "limit": 100}).get("items", [])
+                     if c.get("name") == p["name"]]
+            rec["id"] = found[0]["id"] if found else req("POST", "/campaigns", json=payload(p, copy))["id"]
             STATE.write_text(json.dumps(st, indent=1))
         if "uploaded" not in rec:
             L = leads(p["file"])
@@ -150,6 +153,9 @@ def main(argv: list[str] | None = None) -> None:
                     res[k] = res.get(k, 0) + int(r.get(k) or 0)
             rec.update(uploaded=res, expected=len(L))
             STATE.write_text(json.dumps(st, indent=1))
+            accounted = sum(res.values())
+            if accounted < len(L):  # fail loud: a lead neither uploaded nor reported skipped/invalid
+                sys.exit(f"{p['name']}: {len(L)} leads sent, only {accounted} accounted for: {res}")
         if "tagged" not in rec:
             req("POST", "/custom-tags/toggle-resource", json={"tag_ids": [TAG], "resource_ids": [rec["id"]],
                                                               "resource_type": 2, "assign": True})

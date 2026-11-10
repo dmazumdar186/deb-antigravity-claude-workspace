@@ -133,8 +133,12 @@ TITLE_RANK = [(r"\b(owner|founder|co-?founder|ceo|president|managing (partner|di
               (r"\b(manager|lead|senior|sr\.?)\b", 3)]
 
 
+LOCAL_EXCL_TITLE = re.compile(r"\b(assistant|intern|internship|coordinator|admissions|student|scheduler)\b", re.I)
+
+
 def title_rank(t: str) -> int:
     t = (t or "").lower()
+    t = re.sub(r"\b(talent|recruiting|recruitment|people|hr|business) (acquisition )?partner\b", "recruiter", t)
     for pat, rank in TITLE_RANK:
         if re.search(pat, t):
             return rank
@@ -240,10 +244,11 @@ def cmd_export(args: argparse.Namespace) -> None:
 
 
 def load_raw() -> list[dict[str, Any]]:
-    rows = []
+    rows, seen_files = [], set()
     for key, s in lol.jload(TMP / "exports.json", {}).items():
-        if s.get("status") != "downloaded":
-            continue
+        if s.get("status") != "downloaded" or s["file"] in seen_files:
+            continue  # same file under two keys (a sample re-exported in full) would double-count rows
+        seen_files.add(s["file"])
         with open(ROOT / s["file"], newline="", encoding="utf-8") as fh:
             for r in csv.DictReader(fh):
                 r["_src"] = key
@@ -293,6 +298,9 @@ def hygiene(rows: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict
             continue
         if not r["_loc"]:
             reject(r, "out_of_area")
+            continue
+        if LOCAL_EXCL_TITLE.search(r.get("current_job_title") or ""):
+            reject(r, "excluded_title")
             continue
         local, edom = email.split("@", 1)
         if edom in lol.FREE_MAIL:
@@ -400,7 +408,7 @@ def cmd_gate(args: argparse.Namespace) -> None:
             if i < COMPANY_RESERVE:
                 final.append(p)
             else:
-                p["reject_reason"] = f"company_cap_{COMPANY_CAP}"
+                p["reject_reason"] = f"company_reserve_{COMPANY_RESERVE}"
                 rejects.append(p)
     lol.jsave(TMP / "gate.json", {"kept": final, "rejects": rejects})
     print(f"gate: kept {len(final)}; rejects {dict(Counter(r['reject_reason'] for r in rejects))}")
