@@ -6,7 +6,7 @@
 
 <p class="cover-sub">Projet d'activité et plan d'affaires<br>Conception de sites internet, de systèmes d'intelligence artificielle et d'automatisation pour les petites et moyennes entreprises</p>
 
-<p class="cover-who">Présenté par M. Debanjan MAZUMDAR<br>Micro-entrepreneur, profession libérale non réglementée<br>Vitry-sur-Seine (Val-de-Marne)</p>
+<p class="cover-who">Présenté par M. Debanjan MAZUMDAR<br>Projet de micro-entreprise, profession libérale non réglementée<br>Vitry-sur-Seine (Val-de-Marne)</p>
 
 <p class="cover-to">À l'attention de la Préfecture du Val-de-Marne<br>et du service de la main-d'œuvre étrangère compétent pour le département</p>
 
@@ -33,7 +33,7 @@
 
 ## 1. Synthèse du projet
 
-M. Debanjan Mazumdar, ingénieur en technologies de l'information et diplômé d'un Master of Science de Toulouse Business School, justifie d'une quinzaine d'années d'expérience dans le développement de produits numériques et de données, dont près de deux ans en France en qualité de Product Manager, statut cadre. Titulaire d'une carte de séjour « passeport talent – salarié qualifié / entreprise innovante » valable jusqu'au 5 mars 2027, il sollicite un changement de statut afin d'exercer, à titre principal et à temps plein, une activité libérale non réglementée sous le régime de la micro-entreprise.
+M. Debanjan Mazumdar, ingénieur en technologies de l'information et diplômé d'un Master of Science de Toulouse Business School, justifie d'une quinzaine d'années d'expérience dans le développement de produits numériques et de données, dont vingt mois en France en qualité de Product Manager, statut cadre, en contrat à durée indéterminée. Titulaire d'une carte de séjour « passeport talent – salarié qualifié / entreprise innovante » valable jusqu'au 5 mars 2027, il sollicite un changement de statut afin d'exercer, à titre principal et à temps plein, une activité libérale non réglementée sous le régime de la micro-entreprise.
 
 L'activité, exercée sous le nom commercial ProdCraft depuis son domicile de Vitry-sur-Seine, consiste à concevoir pour les petites et moyennes entreprises des sites internet, des systèmes d'intelligence artificielle et d'automatisation commerciale, des contenus vidéo retouchés par IA, et à animer des ateliers en ligne.
 
@@ -43,14 +43,14 @@ L'activité, exercée sous le nom commercial ProdCraft depuis son domicile de Vi
 | Revenu après cotisations et charges (mensuel) | 2 932,28 € | 4 276,31 € | 4 467,57 € |
 | Écart avec le SMIC mensuel brut (1 867,02 €) | + 57,1 % | + 129,0 % | + 139,3 % |
 
-L'activité ne nécessite ni local commercial, ni stock, ni emprunt. Les charges d'exploitation se limitent à des abonnements logiciels (moins de 4 100 € par an). Même dans un scénario dégradé où le chiffre d'affaires de la première année serait inférieur de 30 % aux prévisions, le revenu demeurerait supérieur au SMIC à temps plein.
+L'activité ne nécessite ni local commercial, ni stock, ni emprunt. Les charges d'exploitation se limitent à des abonnements logiciels et aux commissions des plateformes freelance (moins de 4 100 € par an). Même dans un scénario dégradé où le chiffre d'affaires de la première année serait inférieur de 30 % aux prévisions, le revenu demeurerait supérieur au SMIC à temps plein.
 
 ## 2. Le porteur de projet
 
 ### 2.1 Formation
 
-- **Master of Science « International Strategic Business »**, Toulouse Business School, école accréditée par la Conférence des Grandes Écoles et titulaire des accréditations internationales AACSB, EQUIS et AMBA. Diplôme décerné par le comité de diplomation du 29 mars 2021, avec la mention « Summa Cum Laude » (moyenne générale de 16,75/20, classement 2/12).
-- **Bachelor of Engineering en technologies de l'information**, CMR Institute of Technology, Bangalore (Inde), 2006-2010.
+- **Master of Science « International Strategic Business »**, Toulouse Business School, école accréditée par la Conférence des Grandes Écoles et titulaire des accréditations internationales AACSB, EQUIS et AMBA. Diplôme délivré le 20 mai 2021 (jury du 29 mars 2021), avec la mention « Summa Cum Laude » (moyenne générale de 16,75/20, classement 2/12).
+- **Bachelor of Engineering en technologies de l'information**, CMR Institute of Technology, Bengaluru (Inde), 2006-2010.
 
 ### 2.2 Parcours professionnel
 
@@ -61,9 +61,9 @@ L'activité ne nécessite ni local commercial, ni stock, ni emprunt. Les charges
 | Avril 2019 – septembre 2019 | Pitney Bowes | Senior Data Product Owner |
 | Juin 2018 – février 2019 | Evolent | Senior Data Product Owner |
 | Juillet 2015 – mars 2018 | Avaya India | Senior Product Owner |
-| 2010 – 2015 | TCS, IDrive | Ingénieur logiciel, assurance qualité et mise en production |
+| 2010 – 2015 | TCS, IDrive | Ingénieur logiciel et assurance qualité |
 
-Depuis la fin de son contrat chez Wiser Solutions en juillet 2024, M. Mazumdar est inscrit comme demandeur d'emploi. Il a mis cette période à profit pour préparer le présent projet : conception de prototypes et d'outils d'automatisation, publication de projets en source ouverte, réalisation de sites de démonstration et constitution de son offre commerciale.
+Depuis la fin de son contrat chez Wiser Solutions en juillet 2024, M. Mazumdar est inscrit comme demandeur d'emploi. Il a mis cette période à profit pour préparer le présent projet : conception de prototypes et d'outils d'automatisation, publication de projets en source ouverte et constitution de son offre commerciale.
 
 ### 2.3 Compétences mobilisées
 
@@ -75,7 +75,7 @@ Depuis la fin de son contrat chez Wiser Solutions en juillet 2024, M. Mazumdar e
 
 ### 2.4 Adéquation entre le profil et le projet
 
-L'activité envisagée prolonge directement la formation d'ingénieur de M. Mazumdar et ses quinze années d'expérience dans la conception et le pilotage de produits numériques et de données. Sa formation en stratégie internationale et sa maîtrise du français et de l'anglais lui permettent de servir aussi bien une clientèle locale que des clients européens. La condition tenant à l'adéquation de l'activité avec les qualifications et l'expérience du demandeur est ainsi remplie.
+L'activité envisagée prolonge directement la formation d'ingénieur de M. Mazumdar et ses quinze années d'expérience dans la conception et le pilotage de produits numériques et de données. Sa formation en stratégie internationale et sa maîtrise du français et de l'anglais lui permettent de servir aussi bien une clientèle locale que des clients européens.
 
 ## 3. Présentation du projet
 
@@ -112,15 +112,17 @@ La plateforme de freelances Malt indique que les projets liés à l'intelligence
 ### 4.5 Segments ciblés
 
 - **Petites et moyennes entreprises** d'Île-de-France sans site ou dotées d'un site ancien, pour les sites, la maintenance et les automatisations.
-- **Cabinets de recrutement** : l'Île-de-France compte 1 574 agences d'emploi (Prism'emploi, juillet 2024). Ce segment a un besoin direct d'automatisation de la recherche et de la prise de contact avec les candidats.
+- **Cabinets de recrutement et agences d'emploi** : l'Île-de-France compte 1 574 agences d'emploi (Prism'emploi, juillet 2024), auxquelles s'ajoutent les cabinets de recrutement. Ce segment a un besoin direct d'automatisation de la recherche et de la prise de contact avec les candidats.
 - **Indépendants**, notamment les professeurs de yoga et praticiens du bien-être en France, pour les sites internet.
 - **Clients des plateformes freelance** (Malt, Upwork, Free-Work), pour des missions ponctuelles facturées à la journée.
 
 ### 4.6 Concurrence et positionnement
 
-Un site vitrine est proposé par les freelances entre 800 et 2 000 € et par les agences entre 2 000 et 5 000 € (Wise, 2025), certaines agences allant jusqu'à 10 000 € (Codeur). La maintenance d'un site simple se négocie entre 30 et 200 € par mois (iPaoo).
+Un site vitrine est proposé par les freelances entre 800 et 2 000 € et par les agences entre 2 000 et 5 000 € (Wise), certaines agences allant jusqu'à 10 000 € (Codeur). La maintenance d'un site simple se négocie entre 30 et 200 € par mois (iPaoo).
 
 Un site seul constitue donc une prestation banalisée. ProdCraft se distingue par trois éléments : un site livré avec tableau de bord d'administration et référencement intégré en 48 à 72 heures, positionné au niveau des agences (2 500 à 3 000 €) ; une maintenance à 600 € par mois qui inclut jusqu'à 5 heures de modifications, soit un forfait de gestion et non un simple hébergement ; et des projets d'intelligence artificielle que peu de prestataires de sites vitrines savent réaliser.
+
+<div class="pb"></div>
 
 ### 4.7 Hypothèses de marché et vérification
 
@@ -130,8 +132,9 @@ Un site seul constitue donc une prestation banalisée. ProdCraft se distingue pa
 | Une partie des petites entreprises n'a pas encore de site | 65 % des TPE ont un site (France Num) | Confirmée |
 | Le marché local est suffisant | 108 573 entreprises dans le Val-de-Marne | Confirmée |
 | La demande en compétences IA progresse | + 170 % de projets IA, + 160 % de demande en freelances IA (Malt) | Confirmée |
-| Les cabinets de recrutement constituent un segment accessible | 1 574 agences d'emploi en Île-de-France, dont une part appartient à de grands réseaux aux achats centralisés | Partiellement confirmée : le prévisionnel ne retient qu'un pilote par an pour ce segment |
-| Un site internet seul peut se vendre à prix élevé | Sites vitrines proposés dès 800 € par les freelances | Infirmée : le prix retenu est justifié par le tableau de bord, le référencement, le délai et l'association avec des services d'IA |
+| Les cabinets de recrutement constituent un segment accessible | 1 574 agences d'emploi en Île-de-France (Prism'emploi) ; aucune donnée publique sur leur usage de l'IA | Partiellement confirmée : le prévisionnel ne retient qu'un pilote par an pour ce segment |
+| Un site vitrine simple peut se vendre à prix élevé | Sites vitrines proposés dès 800 € par les freelances | Infirmée : le site seul est une prestation banalisée |
+| Un site livré avec tableau de bord et référencement se vend au niveau des agences | Agences : 2 000 à 5 000 € (Wise) ; prix retenu : 2 750 € | Confirmée |
 
 ## 5. Stratégie commerciale
 
@@ -140,7 +143,7 @@ L'acquisition de clients repose sur cinq canaux complémentaires.
 1. **Prospection directe par email**, au moyen d'un système de prospection automatisé conçu par M. Mazumdar, auprès des segments identifiés.
 2. **Plateformes freelance** (Malt, Upwork, Free-Work), qui constituent le principal canal de la première année et permettent de constituer rapidement des références.
 3. **Ateliers en ligne** publiés sur Meetup, qui font connaître l'expertise de M. Mazumdar et génèrent des contacts qualifiés.
-4. **Site prodcraft.fyi**, présentant l'offre et des sites de démonstration.
+4. **Site de présentation prodcraft.fyi**, qui présentera l'offre à l'ouverture de l'activité.
 5. **Réseau professionnel**, issu de quinze années d'expérience dans le numérique.
 
 La politique commerciale privilégie la vente d'un site associé à un contrat de maintenance, afin de construire un revenu récurrent, puis la proposition de projets d'automatisation aux clients satisfaits.
@@ -157,7 +160,7 @@ La politique commerciale privilégie la vente d'un site associé à un contrat d
 | Système complet en production | Fonctionnalité IA ou application complète (interface et serveur) mise en production en 30 jours | 5 000 à 15 000 € HT (forfait) |
 | **Automatisation commerciale et IA** | | |
 | Moteur de prospection automatisé | Système de prospection par email de bout en bout (ciblage, personnalisation, routage des réponses, prise de rendez-vous), mis en service en 30 jours | 12 000 € HT (forfait) |
-| Système d'approche de candidats (pilote de 30 jours) | Sourcing et prise de contact automatisés pour cabinets de recrutement, avec objectif chiffré | 1 500 à 2 500 € HT (forfait) |
+| Système d'approche de candidats (pilote de 30 jours) | Recherche et prise de contact automatisées avec des candidats pour cabinets de recrutement, avec objectif chiffré | 1 500 à 2 500 € HT (forfait) |
 | Assistant téléphonique IA | Assistant vocal avec numéro français et transfert vers un interlocuteur humain, après un pilote de 30 jours | 199 € HT/mois |
 | Module d'IA de veille | Repérage automatique de contenus sur des sources approuvées, avec validation humaine avant publication | 1 500 € HT |
 | Connecteur CRM | Connexion au logiciel de gestion client (CRM) du client, avec reprise sur erreur | 500 € HT |
@@ -173,12 +176,12 @@ La politique commerciale privilégie la vente d'un site associé à un contrat d
 ## 7. Cadre juridique, fiscal et social
 
 - **Statut** : entreprise individuelle sous le régime de la micro-entreprise, activité libérale non réglementée relevant des bénéfices non commerciaux. L'immatriculation sera effectuée auprès du guichet unique des formalités d'entreprises.
-- **Cotisations sociales** : 25,6 % du chiffre d'affaires, auxquels s'ajoute la contribution à la formation professionnelle de 0,2 %, soit 25,8 % au total, retenus dans le prévisionnel. L'aide à la création ou à la reprise d'entreprise (ACRE) sera sollicitée si M. Mazumdar y est éligible ; elle n'est pas intégrée au prévisionnel.
+- **Cotisations sociales** : 25,6 % du chiffre d'affaires, auxquels s'ajoute la contribution à la formation professionnelle de 0,2 %, soit 25,8 % au total, retenus dans le prévisionnel. L'aide à la création ou à la reprise d'entreprise (ACRE) n'est pas intégrée au prévisionnel.
 - **TVA** : franchise en base jusqu'au dépassement du seuil applicable aux prestations de services (37 500 €, ou 41 250 € l'année du dépassement), avec la mention « TVA non applicable - article 293 B du CGI » ; la TVA sera ensuite facturée. Les prix professionnels sont exprimés hors taxes.
 - **Plafond du régime** : le chiffre d'affaires prévu demeure inférieur au plafond de 83 600 € applicable aux prestations de services pour la période 2026-2028, proratisé l'année d'immatriculation.
 - **Cotisation foncière des entreprises** : exonération l'année de création, puis base réduite de moitié l'année suivante.
 - **Compte bancaire** : un compte dédié à l'activité sera ouvert dès le démarrage.
-- **Assurance** : une assurance de responsabilité civile professionnelle, non obligatoire pour cette activité, sera souscrite dès les premiers contrats.
+- **Assurance** : la responsabilité civile professionnelle n'est pas obligatoire pour cette activité non réglementée.
 - **Protection des données** : les traitements de données personnelles réalisés pour les clients feront l'objet d'un contrat de sous-traitance conforme au RGPD.
 
 ## 8. Moyens et charges d'exploitation
@@ -197,7 +200,7 @@ L'activité est exercée depuis le domicile de M. Mazumdar, avec son matériel i
 | **Sous-total des charges fixes** | | **2 828,35 €** |
 | Commissions des plateformes freelance | 10 % du chiffre d'affaires réalisé via les plateformes | 1 217,50 € (année 1) ; 730,50 € (année 2) ; 487,00 € (année 3) |
 
-Les montants libellés en dollars sont comptés à parité, ce qui surestime légèrement ces charges. Les abonnements et crédits de calcul propres à un client (hébergement dédié, génération vidéo) sont inclus dans son forfait ou lui sont refacturés.
+Les montants libellés en dollars sont comptés à parité. Les abonnements et crédits de calcul propres à un client (hébergement dédié, génération vidéo) sont inclus dans son forfait ou lui sont refacturés.
 
 ## 9. Prévisionnel sur trois ans
 
@@ -209,7 +212,7 @@ Les prix unitaires retenus sont les suivants : site internet 2 750 € HT (milie
 | Maintenance | 1 × 600 € × 12 = 7 200,00 € | 3 × 600 € × 12 = 21 600,00 € | 4 × 600 € × 12 = 28 800,00 € |
 | Systèmes d'IA et d'automatisation | 2 × 4 000 € + 1 × 2 000 € = 10 000,00 € | 1 × 12 000 € + 1 × 4 000 € + 1 × 2 000 € = 18 000,00 € | 1 × 12 000 € + 1 × 4 000 € = 16 000,00 € |
 | Vidéos publicitaires retouchées par IA | 4 × 750 € = 3 000,00 € | 4 × 750 € = 3 000,00 € | 4 × 750 € = 3 000,00 € |
-| Ateliers en ligne | 2 ateliers × 10 participants × 20 € TTC (16,67 € HT) × 12 = 4 000,00 € | 2 × 12 × 20 € TTC (16,67 € HT) × 12 = 4 800,00 € | 2 × 12 × 20 € TTC (16,67 € HT) × 12 = 4 800,00 € |
+| Ateliers en ligne | 2 ateliers × 10 participants × 20 € TTC (16,67 € HT) × 12 = 4 000,00 € | 2 ateliers × 12 participants × 20 € TTC (16,67 € HT) × 12 = 4 800,00 € | 2 ateliers × 12 participants × 20 € TTC (16,67 € HT) × 12 = 4 800,00 € |
 | Missions via plateformes | 25 jours × 487 € = 12 175,00 € | 15 jours × 487 € = 7 305,00 € | 10 jours × 487 € = 4 870,00 € |
 | **Chiffre d'affaires total (HT)** | **52 875,00 €** | **73 955,00 €** | **76 720,00 €** |
 | Cotisations sociales et contribution à la formation professionnelle (25,8 %) | 13 641,75 € | 19 080,39 € | 19 793,76 € |
@@ -235,11 +238,11 @@ Les volumes ci-dessous constituent des hypothèses de travail. Ils reposent sur 
 
 6. **Missions via plateformes : 25, puis 15, puis 10 jours par an à 487 €.** Ce montant correspond au taux journalier médian des freelances tech en France relevé par Malt Research (2025-2026). La commission retenue est de 10 %, soit le taux appliqué par Malt sur une première mission. La part des plateformes diminue à mesure que la clientèle directe se développe.
 
-7. **Charges.** Elles sont supposées stables sur trois ans : il s'agit d'abonnements fixes et de budgets d'API plafonnés.
+7. **Charges.** Les charges fixes (2 828,35 €) sont supposées stables sur trois ans ; les commissions suivent le chiffre d'affaires réalisé via les plateformes.
 
 ## 11. Plan de trésorerie de la première année
 
-Le plan ci-dessous répartit mois par mois le chiffre d'affaires de la première année. Les cotisations sont calculées sur le chiffre d'affaires de chaque mois. L'activité ne nécessitant aucun investissement initial, le solde cumulé est positif dès le premier mois, hors apport personnel.
+Le plan ci-dessous répartit mois par mois le chiffre d'affaires de la première année. Les cotisations sont calculées sur le chiffre d'affaires de chaque mois. L'activité ne nécessitant aucun investissement initial, le solde cumulé est positif dès le premier mois et atteint 10 889,57 € au quatrième mois, ce qui couvre les mois de moindre facturation.
 
 | Mois | Chiffre d'affaires | Cotisations (25,8 %) | Charges | Solde du mois | Solde cumulé |
 |---|---|---|---|---|---|
@@ -275,9 +278,9 @@ Répartition retenue : missions via plateformes concentrées sur les neuf premie
 
 | Étape | Échéance |
 |---|---|
-| Demande d'avis sur la viabilité économique de l'activité auprès du service de la main-d'œuvre étrangère | Décembre 2026 |
-| Immatriculation de la micro-entreprise auprès du guichet unique (sans facturation avant la délivrance du titre) | Janvier 2027 |
-| Dépôt de la demande de changement de statut | Janvier à février 2027, avant le 5 mars 2027 |
+| Demande d'avis sur la viabilité économique de l'activité auprès du service de la main-d'œuvre étrangère (article R421-9 du CESEDA) | Avant le dépôt de la demande |
+| Immatriculation de la micro-entreprise auprès du guichet unique | Selon les pièces exigées pour l'instruction, et au plus tard à la délivrance du titre ; aucune prestation ni facturation avant la délivrance |
+| Dépôt de la demande de changement de statut | Dans les deux mois précédant l'expiration du titre actuel, avant le 5 mars 2027 |
 | Début de l'activité et premières missions via les plateformes | À la délivrance du titre (mois 1) |
 | Premier site livré et premier contrat de maintenance | Mois 2 et 3 |
 | Premiers projets d'intelligence artificielle | Mois 5 à 9 |
