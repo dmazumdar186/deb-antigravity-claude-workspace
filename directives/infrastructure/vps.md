@@ -2,6 +2,8 @@
 
 Workspace-local SOP for turning a fresh Hetzner CX43 into an always-on host for FreeLLMAPI, OpenSEO, OpenCode, VoiceStudio, OpenBot and PentAGI, driven afterwards by Claude Code Remote Control. Sizing and provider choice: `docs/reference/vps_scope_2026-11-09.md`. Per-tool SOPs: `freellmapi.md`, `open_seo.md`, `opencode.md`, `voicestudio.md`, `openbot.md`, `pentagi.md`.
 
+> **Status: on hold (2026-11-10).** Operator set a 0€ spend limit; do not create a paid server. See `docs/reference/vps_scope_2026-11-09.md`.
+
 ## Goal
 
 One paste (cloud-init) in the Hetzner web console builds the whole box with zero terminal work; one command in the Hetzner browser console (`vps-finish-setup`) does the only two human logins (Tailscale, Claude). After that, Claude operates the box.
