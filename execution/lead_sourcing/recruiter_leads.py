@@ -549,14 +549,15 @@ def cmd_build(_: argparse.Namespace) -> None:
     index = []
     groups: dict[tuple[str, str, str], list[dict[str, Any]]] = defaultdict(list)
     for row in final:
-        groups[(row["_loc"], row["segment"], row["personalization"], row["send_bucket"])].append(row)
-    for (loc, seg, pers, b), data in sorted(groups.items()):
-        name = f"Recruitment_{LOCATIONS[loc]['file']}_{seg}_{pers}" + ("_CatchAll" if b == "catchall" else "")
+        groups[(row["_loc"], row["personalization"], row["send_bucket"])].append(row)
+    # Operator 2026-11-10: one campaign per location x personalization; segment stays a column only.
+    for (loc, pers, b), data in sorted(groups.items()):
+        name = f"Recruitment_{LOCATIONS[loc]['file']}_{pers}" + ("_CatchAll" if b == "catchall" else "")
         path = (OUT / "catchall" if b == "catchall" else OUT) / f"{name}.csv"
         write(path, data, COLS)
-        index.append({"file": str(path.relative_to(TMP)), "location": LOCATIONS[loc]["label"], "segment": seg,
+        index.append({"file": str(path.relative_to(TMP)), "location": LOCATIONS[loc]["label"],
                       "personalization": pers, "bucket": b, "leads": len(data)})
-    write(OUT / "_campaign_index.csv", index, ["file", "location", "segment", "personalization", "bucket", "leads"])
+    write(OUT / "_campaign_index.csv", index, ["file", "location", "personalization", "bucket", "leads"])
     write(TMP / "rejects.csv", [{"email": r.get("_email", ""), "title": r.get("current_job_title", ""),
                                  "company_name": r.get("current_company_name", ""),
                                  "location": LOCATIONS.get(r.get("_loc") or "", {}).get("label", ""),

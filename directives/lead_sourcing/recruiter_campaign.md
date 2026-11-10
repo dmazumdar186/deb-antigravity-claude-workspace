@@ -1,7 +1,7 @@
 # Recruiter Campaign (Candidate Outreach System) SOP
 
 ## Goal
-Launch `DM_Recruitment - {Location}[ - {Segment}] - {Personalized|NoPersonalization}[ CatchAll] - 10 Nov 2026`
+Launch `DM_Recruitment - {Location} - {Personalized|NoPersonalization}[ CatchAll] - 10 Nov 2026`
 Instantly campaigns for recruiters in New York, New Jersey, Boston and Houston, in the 2 Nov 2026 DM_ playbook shape.
 
 ## Inputs
@@ -13,13 +13,14 @@ Instantly campaigns for recruiters in New York, New Jersey, Boston and Houston, 
 ## Tools/Scripts
 `execution/lead_sourcing/recruiter_campaign/launch.py`: plan only by default (no network); `--apply` creates drafts,
 uploads leads in 500s with `skip_if_in_workspace`, tags `Deb_Oct 6 26`; `--apply --activate` starts them.
-`--segments Agency` drops the in-house files; names always carry the segment. An existing campaign with the same name is reused, never duplicated; upload counts must account for every lead or the run exits. State: `.tmp/recruiters/launch_state.json`.
+One campaign per location x personalization; agency and in-house share copy (operator 2026-11-10). An existing campaign with the same name is reused, never duplicated; upload counts must account for every lead or the run exits. State: `.tmp/recruiters/launch_state.json`.
 
 ## Outputs
 Instantly campaigns (draft, then active), tagged `Deb_Oct 6 26`; `launch_state.json` with upload counts.
 
 ## Steps
-1. Operator approves copy; write `copy.json` (`Agency` and/or `InHouse` blocks) and gate it per `/redteam`.
+0. Launch gate (operator 2026-11-10): Reoon-safe main leads after every drop must total >= 3,000; no launch before.
+1. Operator approves copy; write `copy.json` and gate it per `/redteam`.
 2. Re-run Reoon if leads are older than 7 days.
 3. `launch.py` (plan) and check names and counts.
 4. `launch.py --apply`; read the drafts back in Instantly.

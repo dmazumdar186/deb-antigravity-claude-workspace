@@ -1,6 +1,6 @@
 """
 description: Create (draft), fill and tag the DM_Recruitment Candidate Outreach campaigns in Instantly from the recruiter_leads.py CSVs. Default prints the plan only (no API call); --apply writes drafts; --apply --activate also starts them.
-inputs: .tmp/recruiters/campaigns/*.csv (+ catchall/); execution/lead_sourcing/recruiter_campaign/copy.json (operator-approved copy; required for --apply); env INSTANTLY_API_KEY (only with --apply); flags --apply, --activate, --segments, --only
+inputs: .tmp/recruiters/campaigns/*.csv (+ catchall/); execution/lead_sourcing/recruiter_campaign/copy.json (operator-approved copy; required for --apply); env INSTANTLY_API_KEY (only with --apply); flags --apply, --activate, --only, --min-total
 outputs: stdout plan (default); with --apply: Instantly campaigns + .tmp/recruiters/launch_state.json
 usage:
     python3 execution/lead_sourcing/recruiter_campaign/launch.py                     # plan only, no network
@@ -8,9 +8,9 @@ usage:
     python3 execution/lead_sourcing/recruiter_campaign/launch.py --apply --activate
 Directive: directives/lead_sourcing/recruiter_campaign.md
 
-copy.json shape: {"Agency": {"subjects": [...], "step1_personalized": "...", "step1_nopersonalization": "...",
-                  "step2": "...", "step3": "..."}, "InHouse": {...}}  (paragraphs separated by blank lines;
-                  {{specialty}} is available in personalized step 1)
+copy.json shape: {"subjects": [...], "step1_personalized": "...", "step1_nopersonalization": "...",
+                  "step2": "...", "step3": "..."}  (paragraphs separated by blank lines; {{specialty}} is available
+                  in personalized step 1; spintax {{RANDOM|a|b}} on every line)
 """
 from __future__ import annotations
 
@@ -70,21 +70,19 @@ def html(t: str) -> str:
     return "".join(f"<div>{p}</div><div><br /></div>" for p in tidy(t).split("\n\n")).removesuffix("<div><br /></div>")
 
 
-def plan(segments: list[str]) -> list[dict]:
+def plan() -> list[dict]:
     out = []
     for f in sorted(SRC.glob("Recruitment_*.csv")) + sorted((SRC / "catchall").glob("Recruitment_*.csv")):
-        _, loc, seg, pers, *rest = f.stem.split("_")
-        if seg not in segments:
-            continue
+        _, loc, pers, *rest = f.stem.split("_")
         ca = bool(rest)
-        # Name always carries the segment, so a later run with other --segments never renames (= duplicates) one.
-        name = f"DM_Recruitment - {LOC_LABEL[loc]} - {seg} - {pers}{' CatchAll' if ca else ''} - {DATE}"
-        out.append(dict(file=f, name=name, seg=seg, pers=pers, catchall=ca))
+        # Operator 2026-11-10: one campaign per location x personalization (both segments, same copy).
+        name = f"DM_Recruitment - {LOC_LABEL[loc]} - {pers}{' CatchAll' if ca else ''} - {DATE}"
+        out.append(dict(file=f, name=name, pers=pers, catchall=ca))
     return out
 
 
 def payload(p: dict, copy: dict) -> dict:
-    c = copy[p["seg"]]
+    c = copy
     s1 = c["step1_personalized" if p["pers"] == "Personalized" else "step1_nopersonalization"]
     fr, to, tz = SCHED
     steps = [{"type": "email", "delay": 2, "delay_unit": "days",
@@ -118,15 +116,18 @@ def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(description="DM_Recruitment Instantly launcher (plan-only by default)")
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--activate", action="store_true", help="also start campaigns; requires --apply")
-    ap.add_argument("--segments", default="Agency,InHouse", help="comma list of Agency,InHouse")
     ap.add_argument("--only", default="", help="substring filter on campaign name")
+    ap.add_argument("--min-total", type=int, default=3000,
+                    help="launch gate: Reoon-safe main leads across all locations must reach this (operator 2026-11-10)")
     a = ap.parse_args(argv)
     if a.activate and not a.apply:
         ap.error("--activate requires --apply")
     st = json.loads(STATE.read_text()) if STATE.exists() else {}
-    plans = [p for p in plan(a.segments.split(",")) if a.only in p["name"]]
+    plans = [p for p in plan() if a.only in p["name"]]
     copy = json.loads(COPY_PATH.read_text()) if COPY_PATH.exists() else None
     if not a.apply:
+        total = sum(len(leads(p["file"])) for p in plans if not p["catchall"])
+        print(f"main leads total {total} (gate {a.min_total}: {'OK' if total >= a.min_total else 'BLOCKED'})")
         print("PLAN ONLY (no Instantly calls)." + ("" if copy else " copy.json missing: copy not approved yet."))
         for p in plans:
             rec = st.get(p["name"], {})
@@ -135,6 +136,11 @@ def main(argv: list[str] | None = None) -> None:
         return
     if not copy:
         sys.exit("copy.json missing: write the operator-approved copy first")
+    if not copy.get("approved"):
+        sys.exit("copy.json not operator-approved; rebuild with build_copy.py --angle H --approved after sign-off")
+    main_total = sum(len(leads(p["file"])) for p in plan() if not p["catchall"])
+    if main_total < a.min_total:
+        sys.exit(f"launch gate: {main_total} main leads < --min-total {a.min_total}; source more before launching")
     for p in plans:
         rec = st.setdefault(p["name"], {})
         if "id" not in rec:
