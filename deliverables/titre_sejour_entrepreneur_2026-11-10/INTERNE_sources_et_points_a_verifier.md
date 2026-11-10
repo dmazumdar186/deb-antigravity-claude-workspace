@@ -35,8 +35,8 @@ Calculs : `.tmp/titre_sejour_sources/calc.py`. Seuils officiels 2026 : plafond m
 
 1. **Lettres.** Aucune lettre d'intention ni de recommandation jointe (optionnelles, retirées).
 2. **GreenJobs.** Ne rien joindre et ne pas citer GreenJobs dans le dossier. Aucune facturation avant l'autorisation d'exercer.
-3. **TVA.** Les années 1 à 3 dépassent 37 500 € et, en année 2 et 3, 41 250 € : TVA facturée dès le dépassement. Vérifier le régime de TVA des clients hors de France.
-4. **Plafond micro.** Années 1 à 3 (39 705 €, 51 205 €, 62 770 €) sous 83 600 €. Le plafond est proratisé l'année de création : vérifier selon la date d'immatriculation.
+3. **TVA.** Les années 1 à 3 dépassent 41 250 € : TVA facturée dès le dépassement. Vérifier le régime de TVA des clients hors de France.
+4. **Plafond micro.** Années 1 à 3 (52 875 €, 73 955 €, 76 720 €) sous 83 600 €. Le plafond est proratisé l'année de création : vérifier selon la date d'immatriculation.
 5. **Instantly.** 97 $/mois retenu (page de facturation) : vérifier sur la dernière facture.
 6. **OpenRouter.** Fixer le plafond de 10 $/mois sur la clé.
 7. **Renouvellement de prodcraft.fyi.** Montant à ajouter.
