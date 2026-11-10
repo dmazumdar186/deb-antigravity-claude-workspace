@@ -133,7 +133,8 @@ def main(argv: list[str] | None = None) -> None:
         print("PLAN ONLY (no Instantly calls)." + ("" if copy else " copy.json missing: copy not approved yet."))
         for p in plans:
             rec = st.get(p["name"], {})
-            print(f"{p['name']} | {p['file'].name} | leads={len(leads(p['file']))} | "
+            new = len([x for x in leads(p["file"]) if x["email"].lower() not in set(rec.get("sent_emails", []))])
+            print(f"{p['name']} | {p['file'].name} | leads={len(leads(p['file']))} new={new} | "
                   f"{'active' if rec.get('active') else 'created' if 'id' in rec else 'todo'}")
         return
     if not copy:
@@ -151,19 +152,28 @@ def main(argv: list[str] | None = None) -> None:
                      if c.get("name") == p["name"]]
             rec["id"] = found[0]["id"] if found else req("POST", "/campaigns", json=payload(p, copy))["id"]
             STATE.write_text(json.dumps(st, indent=1))
-        if "uploaded" not in rec:
-            L = leads(p["file"])
+        # Incremental (operator 2026-11-10: start now, add leads later): only emails not yet sent to this campaign
+        # are uploaded; a re-run after a rebuild tops the running campaign up. skip_if_in_workspace still dedupes.
+        L = leads(p["file"])
+        done = set(rec.get("sent_emails", []))
+        new = [x for x in L if x["email"].lower() not in done]
+        if new:
             res = {}
-            for i in range(0, len(L), 500):
+            for i in range(0, len(new), 500):
                 r = req("POST", "/leads/add", json={"campaign_id": rec["id"], "skip_if_in_workspace": True,
-                                                     "leads": L[i:i + 500]})
+                                                     "leads": new[i:i + 500]})
                 for k in ("leads_uploaded", "skipped_count", "in_blocklist", "duplicated_leads", "invalid_email_count"):
                     res[k] = res.get(k, 0) + int(r.get(k) or 0)
-            rec.update(uploaded=res, expected=len(L))
+                done.update(x["email"].lower() for x in new[i:i + 500])
+                rec["sent_emails"] = sorted(done)
+                STATE.write_text(json.dumps(st, indent=1))
+            prev = rec.get("uploaded", {})
+            rec["uploaded"] = {k: prev.get(k, 0) + v for k, v in res.items()}
+            rec["expected"] = len(done)
             STATE.write_text(json.dumps(st, indent=1))
             accounted = sum(res.values())
-            if accounted < len(L):  # fail loud: a lead neither uploaded nor reported skipped/invalid
-                sys.exit(f"{p['name']}: {len(L)} leads sent, only {accounted} accounted for: {res}")
+            if accounted < len(new):  # fail loud: a lead neither uploaded nor reported skipped/invalid
+                sys.exit(f"{p['name']}: {len(new)} leads sent, only {accounted} accounted for: {res}")
         if "tagged" not in rec:
             req("POST", "/custom-tags/toggle-resource", json={"tag_ids": [TAG], "resource_ids": [rec["id"]],
                                                               "resource_type": 2, "assign": True})
@@ -173,7 +183,7 @@ def main(argv: list[str] | None = None) -> None:
             req("POST", f"/campaigns/{rec['id']}/activate")
             rec["active"] = True
             STATE.write_text(json.dumps(st, indent=1))
-        print(p["name"], rec.get("expected"), rec["uploaded"], "active" if rec.get("active") else "draft")
+        print(p["name"], rec.get("expected"), rec.get("uploaded"), "active" if rec.get("active") else "draft")
 
 
 if __name__ == "__main__":
