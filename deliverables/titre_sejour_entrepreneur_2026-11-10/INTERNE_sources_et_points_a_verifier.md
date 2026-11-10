@@ -10,6 +10,8 @@
 | Missions plateformes 487 €/jour | Malt Research, TJM médian freelance tech : `deliverables/asset_voyages_rfp_2026-10-28/research/market_pricing_paris_2026.md:69` |
 | Moteur de prospection 12 000 € | `execution/personal_workflows/self_outbound_system/config/tone.json:228` ; repère : Nick Saraev, « High-ticket services ($10k, $15k, $20k) », `deliverables/self_outbound_system/nick_saraev_cold_email_full_analysis.md:282` |
 | Prototype IA 4 000 € | `tone.json:297` |
+| Système complet 5 000 à 15 000 € | `tone.json:150` |
+| Vidéo IA 50 à 200 €/plan + 150 € | `directives/gtm_client_workflows/video_edit_client_pipeline.md:17-21,42` |
 | Pilote approche de candidats 1 500 à 2 500 € | `deliverables/gaia_2026-09-10/call_brief_2026-09-10.md:82` |
 | Assistant téléphonique 199 €/mois | `docs/sales/vitry_dental_one_pager.md:42` |
 | Module de veille 1 500 €, connecteur CRM 500 €, version anglaise 750 € | Proposition ASSET Voyages, l. 247, 243, 242 |
@@ -31,13 +33,14 @@ Calculs : `.tmp/titre_sejour_sources/calc.py`. Seuils officiels 2026 : plafond m
 
 ## Points à vérifier avant dépôt
 
-1. **Lettres d'intention : retirées.** Jitendra et Jeevana ne paieront pas : aucune lettre d'intention à leur nom. Option : lettre de recommandation (`lettre_recommandation_modele.md`), seulement si chaque phrase est vraie ; elle mentionne un site déjà réalisé, ce qui peut attirer une question sur une activité antérieure.
+1. **Lettres.** Aucune lettre d'intention ni de recommandation jointe (optionnelles, retirées).
 2. **GreenJobs.** Ne rien joindre et ne pas citer GreenJobs dans le dossier. Aucune facturation avant l'autorisation d'exercer.
 3. **TVA.** L'année 1 dépasse 41 250 € : TVA facturée dès le dépassement. Vérifier le régime de TVA des clients hors de France.
-4. **Plafond micro.** Années 2 et 3 (80 800 € et 81 700 €) sous 83 600 €. Le plafond est proratisé l'année de création : vérifier selon la date d'immatriculation.
+4. **Plafond micro.** Années 1 à 3 (77 440 €, 80 550 €, 79 080 €) sous 83 600 €. Le plafond est proratisé l'année de création : vérifier selon la date d'immatriculation.
 5. **Instantly.** 97 $/mois retenu (page de facturation) : vérifier sur la dernière facture.
 6. **OpenRouter.** Fixer le plafond de 10 $/mois sur la clé.
 7. **Renouvellement de prodcraft.fyi.** Montant à ajouter.
 8. **Délai de 48 à 72 heures.** Joindre des liens vers des sites livrés.
 9. **Meetup.** Vérifier le prix de l'abonnement organisateur en France et les frais sur les événements payants.
 10. **Formations.** Vérifier si une déclaration d'activité de prestataire de formation est requise (non nécessaire sans financement public ou OPCO).
+11. **Calendrier.** Carte actuelle valable jusqu'au 5 mars 2027 : déposer la demande sur l'ANEF avant cette date (vérifier le délai de dépôt recommandé, en général dans les 2 mois précédant l'expiration).
