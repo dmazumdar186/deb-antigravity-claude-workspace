@@ -107,16 +107,59 @@ def wait_job(job_id: str) -> dict:
     return {"status": "timeout", "id": job_id}
 
 
+def campaign_leads(cid: str) -> list[dict]:
+    out, after = [], None
+    while True:
+        body = {"campaign": cid, "limit": 100}
+        if after:
+            body["starting_after"] = after
+        j = req("POST", "/leads/list", json=body)
+        out += j.get("items", [])
+        after = j.get("next_starting_after")
+        if not after:
+            return out
+
+
+def was_contacted(lead: dict) -> bool:
+    return bool(lead.get("timestamp_last_contact") or lead.get("last_step_id") or lead.get("email_reply_count")
+                or lead.get("status") not in (1, None))
+
+
+def audit(st: dict, fix: bool) -> int:
+    """Leads in the new 10 Nov campaigns that were already emailed by the 2 Nov campaign (2026-11-10: the
+    NOT_CONTACTED move filter let some through). --fix-contacted moves them back so nobody gets two first emails."""
+    bad_total = 0
+    for name, rec in st.items():
+        leads = campaign_leads(rec["id"])
+        bad = [l for l in leads if was_contacted(l)]
+        bad_total += len(bad)
+        print(f"{name}: {len(leads)} leads, {len(bad)} already contacted")
+        if fix and bad:
+            job = req("POST", "/leads/move", json={"campaign": rec["id"], "ids": [l["id"] for l in bad],
+                                                    "to_campaign_id": rec["src_id"]})
+            res = wait_job(job.get("id", "")) if job.get("id") else job
+            print(f"  moved back {len(bad)} -> source: {res.get('status')}")
+    return bad_total
+
+
 def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(description="Continue 2 Nov EventAV/Fitout/DMC campaigns on GTM copy (plan-only default)")
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--activate", action="store_true")
     ap.add_argument("--only", default="")
+    ap.add_argument("--audit", action="store_true", help="list already-contacted leads in the new campaigns")
+    ap.add_argument("--fix-contacted", action="store_true", help="move already-contacted leads back to the source")
     a = ap.parse_args(argv)
     if a.activate and not a.apply:
         ap.error("--activate requires --apply")
     copy = json.loads(COPY.read_text())
     st = json.loads(STATE.read_text()) if STATE.exists() else {}
+    if a.audit or a.fix_contacted:
+        n_bad = audit(st, a.fix_contacted)
+        print(f"already-contacted leads in new campaigns: {n_bad}")
+        return
+    if a.activate and audit(st, False):
+        sys.exit("refusing to activate: run --fix-contacted first")
     plans = [p for p in sources() if p["untouched"] > 0 and a.only in p["name"]]
     if not a.apply:
         print(f"PLAN ONLY. copy approved={copy.get('approved')}")
