@@ -51,7 +51,7 @@ L'activité ne requiert ni local, ni stock, ni emprunt. Les charges se limitent 
 | Nom de domaine d'envoi | Renouvellement annuel | 10,00 € |
 | Organisation des ateliers (Meetup, abonnement organisateur) | À partir de 174,99 $/an, compté 1 $ = 1 € | 174,99 € |
 | **Sous-total des charges fixes** | | **2 828,35 €** |
-| Commissions des plateformes freelance | 10 % du chiffre d'affaires réalisé via les plateformes | 1 217,50 € (année 1) ; 974,00 € (année 2) ; 487,00 € (année 3) |
+| Commissions des plateformes freelance | 10 % du chiffre d'affaires réalisé via les plateformes | 730,50 € (années 1 et 2) ; 487,00 € (année 3) |
 
 Les montants libellés en dollars sont comptés à parité, ce qui surestime légèrement ces charges. Les abonnements et crédits de calcul propres à un client (hébergement dédié, génération vidéo) sont inclus dans son forfait ou lui sont refacturés.
 
@@ -61,17 +61,17 @@ Les prix unitaires retenus sont les suivants : site internet 2 750 € HT (milie
 
 | Ligne | Année 1 | Année 2 | Année 3 |
 |---|---|---|---|
-| Sites internet | 6 × 2 750 € = 16 500,00 € | 6 × 2 750 € = 16 500,00 € | 6 × 2 750 € = 16 500,00 € |
-| Maintenance | 1 × 600 € × 12 = 7 200,00 € | 3 × 600 € × 12 = 21 600,00 € | 5 × 600 € × 12 = 36 000,00 € |
-| Systèmes d'IA et d'automatisation | 1 × 4 000 € + 1 × 2 000 € = 6 000,00 € | 1 × 12 000 € + 1 × 2 000 € = 14 000,00 € | 1 × 12 000 € = 12 000,00 € |
-| Vidéos publicitaires retouchées par IA | 4 × 750 € = 3 000,00 € | 4 × 750 € = 3 000,00 € | 4 × 750 € = 3 000,00 € |
+| Sites internet | 5 × 2 750 € = 13 750,00 € | 6 × 2 750 € = 16 500,00 € | 6 × 2 750 € = 16 500,00 € |
+| Maintenance | 1 × 600 € × 12 = 7 200,00 € | 2 × 600 € × 12 = 14 400,00 € | 3 × 600 € × 12 = 21 600,00 € |
+| Systèmes d'IA et d'automatisation | 1 × 4 000 € + 1 × 2 000 € = 6 000,00 € | 1 × 4 000 € + 1 × 2 000 € = 6 000,00 € | 1 × 12 000 € = 12 000,00 € |
+| Vidéos publicitaires retouchées par IA | 3 × 750 € = 2 250,00 € | 4 × 750 € = 3 000,00 € | 4 × 750 € = 3 000,00 € |
 | Ateliers en ligne | 2 ateliers × 8 participants × 20 € TTC (16,67 € HT) × 12 = 3 200,00 € | 2 × 10 × 20 € TTC (16,67 € HT) × 12 = 4 000,00 € | 2 × 12 × 20 € TTC (16,67 € HT) × 12 = 4 800,00 € |
-| Missions via plateformes | 25 jours × 487 € = 12 175,00 € | 20 jours × 487 € = 9 740,00 € | 10 jours × 487 € = 4 870,00 € |
-| **Chiffre d'affaires total (HT)** | **48 075,00 €** | **68 840,00 €** | **77 170,00 €** |
-| Cotisations sociales et contribution à la formation professionnelle (25,8 %) | 12 403,35 € | 17 760,72 € | 19 909,86 € |
-| Charges d'exploitation | 4 045,85 € | 3 802,35 € | 3 315,35 € |
-| **Revenu après cotisations et charges (annuel)** | **31 625,80 €** | **47 276,93 €** | **53 944,79 €** |
-| **Revenu après cotisations et charges (mensuel)** | **2 635,48 €** | **3 939,74 €** | **4 495,40 €** |
+| Missions via plateformes | 15 jours × 487 € = 7 305,00 € | 15 jours × 487 € = 7 305,00 € | 10 jours × 487 € = 4 870,00 € |
+| **Chiffre d'affaires total (HT)** | **39 705,00 €** | **51 205,00 €** | **62 770,00 €** |
+| Cotisations sociales et contribution à la formation professionnelle (25,8 %) | 10 243,89 € | 13 210,89 € | 16 194,66 € |
+| Charges d'exploitation | 3 558,85 € | 3 558,85 € | 3 315,35 € |
+| **Revenu après cotisations et charges (annuel)** | **25 902,26 €** | **34 435,26 €** | **43 259,99 €** |
+| **Revenu après cotisations et charges (mensuel)** | **2 158,52 €** | **2 869,61 €** | **3 605,00 €** |
 
 L'année 1 s'entend des douze mois qui suivent l'autorisation d'exercer. Le taux de 25,8 % correspond aux cotisations sociales des professions libérales non réglementées en micro-entreprise (25,6 %) et à la contribution à la formation professionnelle (0,2 %). La TVA sera facturée à compter du dépassement du seuil de franchise. Le revenu indiqué s'entend avant impôt sur le revenu.
 
@@ -79,28 +79,30 @@ L'année 1 s'entend des douze mois qui suivent l'autorisation d'exercer. Le taux
 
 Les volumes ci-dessous constituent des hypothèses de travail. Ils reposent sur les éléments suivants.
 
-1. **Sites internet : 6 par an.** Un site vitrine standard est livré en 48 à 72 heures ; le volume retenu, un site tous les deux mois environ, reste volontairement en deçà de cette capacité. Des sites de démonstration sont consultables sur prodcraft.fyi. Deux segments sont identifiés pour le lancement : les cabinets de recrutement et les professeurs de yoga en France.
+1. **Sites internet : 5, puis 6 par an.** Un site vitrine standard est livré en 48 à 72 heures ; le volume retenu reste volontairement très inférieur à cette capacité. Le prix retenu (2 750 €) se situe dans la fourchette pratiquée par les freelances expérimentés (2 500 à 5 000 €). Des sites de démonstration sont consultables sur prodcraft.fyi. Deux segments sont identifiés pour le lancement : les cabinets de recrutement et les professeurs de yoga en France.
 
-2. **Maintenance : 1, puis 3, puis 5 contrats actifs en moyenne.** Chaque site livré à une PME ou à un cabinet de recrutement est proposé avec la maintenance à 600 € par mois (hébergement, sauvegardes, supervision, sécurité, jusqu'à 5 heures de modifications). Le nombre de contrats croît à mesure que les sites livrés s'accumulent. Les professeurs de yoga constituent un segment pour les sites, non pour la maintenance.
+2. **Maintenance : 1, puis 2, puis 3 contrats actifs en moyenne.** Le forfait à 600 € par mois s'adresse aux PME et cabinets de recrutement et comprend, outre l'hébergement, les sauvegardes, la supervision et la sécurité, jusqu'à 5 heures de modifications par mois. Les professeurs de yoga constituent un segment pour les sites, non pour la maintenance.
 
-3. **Systèmes d'IA et d'automatisation.** La première année ne retient qu'un prototype (4 000 €) et un pilote d'approche de candidats (2 000 €). Le moteur de prospection (12 000 €), prestation la plus importante, n'est retenu qu'à partir de la deuxième année, une fois des premières références constituées.
+3. **Systèmes d'IA et d'automatisation.** Les deux premières années ne retiennent qu'un prototype (4 000 €) et un pilote d'approche de candidats (2 000 €) par an, montants compris dans la fourchette observée pour les projets d'automatisation des PME (2 000 à 6 000 €). Le moteur de prospection (12 000 €) n'est retenu qu'en troisième année, une fois des références constituées.
 
-4. **Vidéos publicitaires retouchées par IA : 4 projets par an.** Le projet type comprend 6 plans et est proposé avec ou après un site ou une campagne de prospection.
+4. **Vidéos publicitaires retouchées par IA : 3, puis 4 projets par an.** Le projet type comprend 6 plans et est proposé avec ou après un site ou une campagne de prospection.
 
 5. **Ateliers en ligne : 2 ateliers par mois, avec 8, puis 10, puis 12 participants à 20 € TTC.** Les ateliers sont publiés sur Meetup.
 
-6. **Missions via plateformes : 25, puis 20, puis 10 jours par an à 487 €.** Ce montant correspond au taux journalier médian des freelances tech en France relevé par Malt Research (2025-2026). La commission retenue est de 10 %, soit le taux appliqué par Malt sur une première mission ; Upwork applique un taux compris entre 0 et 15 % selon le contrat. Les plateformes constituent le principal canal d'acquisition au démarrage, puis leur part diminue à mesure que la clientèle directe se développe.
+6. **Missions via plateformes : 15, puis 15, puis 10 jours par an à 487 €.** Ce montant correspond au taux journalier médian des freelances tech en France relevé par Malt Research (2025-2026). La commission retenue est de 10 %, soit le taux appliqué par Malt sur une première mission ; Upwork applique un taux compris entre 0 et 15 % selon le contrat.
 
 7. **Charges.** Elles sont supposées stables sur trois ans : il s'agit d'abonnements fixes et de budgets d'API plafonnés.
 
-8. **Régime.** Le chiffre d'affaires prévu (48 075 €, 68 840 €, 77 170 €) demeure inférieur au plafond du régime micro-entrepreneur applicable aux prestations de services, fixé à 83 600 € pour la période 2026-2028. L'année d'immatriculation, ce plafond est proratisé.
+8. **Régime.** Le chiffre d'affaires prévu (39 705 €, 51 205 €, 62 770 €) demeure inférieur au plafond du régime micro-entrepreneur applicable aux prestations de services, fixé à 83 600 € pour la période 2026-2028. L'année d'immatriculation, ce plafond est proratisé.
 
 ## E. Viabilité économique du projet
 
-Au titre de la première année d'activité, le revenu prévisionnel de M. Mazumdar s'établit à 2 635,48 € par mois après cotisations et charges d'exploitation.
+Au titre de la première année d'activité, le revenu prévisionnel de M. Mazumdar s'établit à 2 158,52 € par mois après cotisations et charges d'exploitation.
 
-Ce montant est à rapprocher du SMIC brut mensuel à temps plein, soit 1 867,02 €. Il le dépasse de 768,46 € par mois, soit de 41,2 %.
+Ce montant est à rapprocher du SMIC brut mensuel à temps plein, soit 1 867,02 €. Il le dépasse de 291,50 € par mois, soit de 15,6 %.
 
-Le chiffre d'affaires de la première année (48 075 €) excède de 17 880,61 € le minimum de 30 194,39 € nécessaire pour couvrir le SMIC annuel après cotisations, et de 12 427,98 € le minimum de 35 647,02 € qui couvre également les charges d'exploitation.
+Le chiffre d'affaires de la première année (39 705 €) excède de 9 510,61 € le minimum de 30 194,39 € nécessaire pour couvrir le SMIC annuel après cotisations, et de 4 714,31 € le minimum de 34 990,69 € qui couvre également les charges d'exploitation.
 
-Les hypothèses de la première année ont été arrêtées de manière prudente : la prestation la plus élevée n'est retenue qu'à partir de la deuxième année, et le volume de sites reste très inférieur à la capacité de production. Le revenu repose sur six sources distinctes, dont une part récurrente croissante. Le projet présente ainsi, dès la première année, une viabilité économique permettant à M. Mazumdar de tirer de son activité des ressources supérieures au SMIC à temps plein, et ce sur chacune des trois années du prévisionnel.
+Ce chiffre d'affaires représente l'équivalent de 81,5 journées au taux médian de 487 €, soit environ la moitié des 157 jours facturables par an généralement observés chez les freelances en France. Les moyennes publiées pour l'ensemble des micro-entrepreneurs, plus faibles, incluent une large part d'activités exercées à titre accessoire ou sans chiffre d'affaires (975 000 micro-entrepreneurs sur 3,03 millions n'ont déclaré aucun chiffre d'affaires en 2025) ; M. Mazumdar exercera son activité à temps plein.
+
+Les hypothèses ont été arrêtées de manière prudente : la prestation la plus élevée n'est retenue qu'en troisième année, les prix se situent dans les fourchettes du marché et le volume de sites reste très inférieur à la capacité de production. Le revenu repose sur six sources distinctes, dont une part récurrente croissante. Le projet présente ainsi une viabilité économique permettant à M. Mazumdar de tirer de son activité des ressources supérieures au SMIC à temps plein sur chacune des trois années du prévisionnel.
