@@ -304,8 +304,6 @@ L'article L421-5 du CESEDA subordonne la délivrance de la carte de séjour « e
 
 Au titre de la première année d'activité, le revenu prévisionnel de M. Mazumdar s'établit à 2 932,28 € par mois après cotisations et charges d'exploitation. Il dépasse de 1 065,26 € par mois, soit de 57,1 %, le SMIC mensuel brut à temps plein de 1 867,02 €. Le chiffre d'affaires de la première année (52 875 €) excède de 22 680,61 € le minimum de 30 194,39 € nécessaire pour couvrir le SMIC annuel après cotisations, et de 17 227,98 € le minimum de 35 647,02 € qui couvre également les charges d'exploitation.
 
-Ce chiffre d'affaires représente l'équivalent de 108,6 journées au taux médian de 487 €, soit 69,2 % des 157 jours facturables par an observés par Malt (2024) chez les indépendants en France, niveau cohérent avec une première année d'activité exercée à temps plein. Les moyennes publiées pour l'ensemble des micro-entrepreneurs, plus faibles, incluent une large part d'activités exercées à titre accessoire ou sans chiffre d'affaires (975 000 micro-entrepreneurs sur 3,03 millions n'ont déclaré aucun chiffre d'affaires en 2025).
-
 Le projet repose sur un marché dont la demande est établie par les données publiques, sur des prix situés dans les fourchettes du marché, sur six sources de revenus distinctes dont une part récurrente croissante, et sur un porteur de projet dont la formation et l'expérience correspondent directement à l'activité. Il présente ainsi une viabilité économique permettant à M. Mazumdar de tirer de son activité des ressources nettement supérieures au SMIC à temps plein sur chacune des trois années du prévisionnel, et, pour la première année, y compris dans un scénario dégradé.
 
 ## 16. Annexes
