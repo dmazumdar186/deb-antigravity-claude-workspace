@@ -115,7 +115,7 @@ BODY = {
 STEP2 = [R("{{firstName}}, here's a short video of it in case that's easier than a reply:",
            "{{firstName}}, recorded a quick video of it, in case that's easier:",
            "here's a 3 min loom of it {{firstName}}, if that's easier than replying:"),
-         LOOM,
+         R(LOOM, f"{LOOM} (3 min)", f"video: {LOOM}"),
          R("the whole point is time back for your recruiters, less writing messages and more time on calls.",
            "it's all about giving your recruiters time back, less typing and more calls with candidates.",
            "the idea is your recruiters spend less time writing messages and more time on calls."),
