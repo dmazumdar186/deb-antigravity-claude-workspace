@@ -60,7 +60,7 @@ L'année 1 couvre les 12 mois suivant l'autorisation d'exercer. Aucun chiffre d'
 ## D. Hypothèses
 
 - **Sites internet : 8, puis 10, puis 8 (hypothèse).** Un site est livré en 48 à 72 heures : la limite est la demande, pas la capacité de production. Des maquettes de sites ont déjà été réalisées pour des prospects (GreenJobs, Gaia Talent, h2 Recruit, GTM People, Midas). Des listes de prospection sont constituées : 977 contacts (cabinets de recrutement), 1 900 contacts (Baie de San Francisco), 145 professeurs de yoga en France, ainsi qu'une base LinkedIn de 8 202 personnes avec 25 demandes de connexion par jour. La baisse en année 3 reflète le passage vers le récurrent.
-- **Maintenance : 2, puis 4, puis 6 contrats actifs en moyenne (hypothèse).** Chaque site livré est proposé avec la maintenance à 600 €/mois, comme dans les propositions GreenJobs et ASSET Voyages. GreenJobs (Irlande) a donné son accord de principe le 29 octobre 2026 pour 600 €/mois et 1 500 €, à démarrer après l'autorisation.
+- **Maintenance : 2, puis 4, puis 6 contrats actifs en moyenne (hypothèse).** Chaque site livré est proposé avec la maintenance à 600 €/mois, comme dans les propositions GreenJobs et ASSET Voyages. Deux clients (Jitendra et Jeevana) fournissent une lettre d'intention signée pour une prestation après l'autorisation. GreenJobs (Irlande) a par ailleurs donné un accord de principe écrit le 29 octobre 2026 pour 600 €/mois et 1 500 €.
 - **Systèmes d'IA : 1 moteur de prospection et 2 prototypes par an, puis 1 et 1 en année 3 (hypothèse).** Les prix sont ceux des offres de prospection ProdCraft (12 000 € et 4 000 €). Ils se situent dans la fourchette de 10 000 à 20 000 $ observée par Nick Saraev pour ce type de prestation.
 - **Charges stables sur 3 ans.** Les outils sont des abonnements fixes ; les coûts propres à chaque client lui sont refacturés.
 
@@ -70,7 +70,7 @@ En année 1, le revenu net prévu est de 3 274,29 € par mois après cotisation
 
 ## F. Points à vérifier avant dépôt
 
-1. **Lettres d'intention.** Obtenir les lettres signées de Jitendra, Jeevana et Keith Molony (GreenJobs), avec les montants qu'ils indiquent eux-mêmes. Modèle : `lettre_intention_modele.md`. Ajuster l'année 1 sur ces montants.
+1. **Lettres d'intention.** Obtenir les deux lettres signées de Jitendra et Jeevana, avec les montants qu'ils indiquent eux-mêmes (modèle : `lettre_intention_modele.md`), puis reporter ces montants dans l'hypothèse de l'année 1. GreenJobs ne fournira pas de lettre : joindre à la place l'échange écrit du 29 octobre 2026 (accord de principe).
 2. **GreenJobs.** Le contrat doit démarrer après l'autorisation d'exercer. Aucune facturation avant cette date.
 3. **TVA.** Le chiffre d'affaires de l'année 1 dépasse le seuil de franchise en base de TVA : les prix sont HT et la TVA devra être facturée. Vérifier aussi le régime de TVA pour un client irlandais (prestation entre entreprises au sein de l'UE).
 4. **Plafond du régime micro.** L'année 3 (81 200 €) est proche du plafond du régime micro-entrepreneur pour les prestations libérales. Vérifier le plafond en vigueur.
