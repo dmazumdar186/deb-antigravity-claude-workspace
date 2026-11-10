@@ -86,7 +86,8 @@ def test_ufw_no_public_ssh(doc):
     for ln in ufw_lines:
         for m in re.finditer(r"ufw allow ([^&;]*)", ln):
             rule = m.group(1)
-            assert "tailscale0" in rule, f"public allow rule: {rule}"
+            # Only tailnet traffic, plus Tailscale's own direct-connection UDP port.
+            assert "tailscale0" in rule or rule.strip() == "41641/udp", f"public allow rule: {rule}"
     assert not re.search(r"ufw allow\s+(22|ssh|OpenSSH)\b", script)
 
 

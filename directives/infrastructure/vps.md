@@ -22,11 +22,11 @@ One paste (cloud-init) in the Hetzner web console builds the whole box with zero
 
 1. Hetzner Console → create a project → **Add Server**.
 2. Location **NBG1** (Nuremberg) or **HEL1** (Helsinki). Image **Ubuntu 24.04**. Type **Shared vCPU → x86 → CX43**. Networking **IPv4 + IPv6**.
-3. SSH key: none needed (root password arrives by email; break-glass only).
-4. **Firewalls** → create one with **no inbound rules** and attach it.
+3. SSH key: none needed (root password arrives by email; break-glass only). If no email arrives, use the server's **Rescue → Reset root password** button in the Hetzner Console (unverified that the emailed password survives custom cloud config).
+4. **Firewalls** → create one whose only inbound rule is **UDP 41641** (lets Tailscale connect directly instead of via relays) and attach it.
 5. **Cloud config** → paste the whole of `vps_cloud_init.yaml` → **Create & Buy**.
 6. Wait ~10 min. Open the server's **Console** (top-right `>_`), log in as `root` with the emailed password (you may be forced to set a new one).
-7. Run `vps-finish-setup`. Click the Tailscale link on your phone; open the Claude link, sign in, paste the code back.
+7. Run `vps-finish-setup` (if "command not found", setup is still running: `cloud-init status --wait`, then retry). Click the Tailscale link on your phone; open the Claude link, sign in, paste the code back.
 8. Phone: install the Tailscale app, sign in with the **same** account. The script prints the tailnet URLs.
 9. From here, Claude (Remote Control session `hetzner-cx43`) does the rest, including OpenBot's email-code login.
 
@@ -43,7 +43,8 @@ One paste (cloud-init) in the Hetzner web console builds the whole box with zero
 - **Re-run the tool install:** `rm /var/lib/deb-tools/installed && systemctl start deb-tools-install` (follow with `journalctl -fu deb-tools-install`). The first run is long: VoiceStudio images are ~17 GB.
 - **Re-run the finish step:** `vps-finish-setup` is idempotent; every step skips if already done.
 - **Tailscale HTTPS certificates** must be enabled in the Tailscale admin console (DNS → HTTPS Certificates) for `tailscale serve --https`; the script warns per port if not.
-- **No public SSH by design.** Hetzner Cloud Firewall has no inbound rules and ufw only allows `tailscale0`; SSH in via `tailscale ssh deb@hetzner-cx43` or the web console.
+- **No public SSH by design.** Hetzner Cloud Firewall allows only UDP 41641 (Tailscale) and ufw only allows `tailscale0` + 41641/udp; SSH in via `tailscale ssh deb@hetzner-cx43` or the web console.
+- **Claude is effectively root on this box.** User `deb` has `NOPASSWD:ALL` sudo and Remote Control runs with `--permission-mode auto`, so anything you ask the Remote Control session to do can change the whole server. Intentional (no-HITL operation); keep nothing else of value on this box and never reuse its credentials.
 - **Unattended upgrades** reboot at 04:30 server time when needed; the tool containers and Remote Control come back on their own (unverified until the first reboot).
 - **Cost:** CX43 €16.49/mo excl. VAT (read 2026-11-09), plus paid APIs (DataForSEO, model providers).
 - **PentAGI:** only scan targets you own or have written permission for; Hetzner's AUP prohibits unauthorized scanning. **OpenBot** is PolyForm Noncommercial.

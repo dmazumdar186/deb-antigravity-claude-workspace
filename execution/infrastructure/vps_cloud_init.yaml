@@ -9,7 +9,6 @@ groups:
   - docker
 
 users:
-  - default
   - name: deb
     gecos: Debanjan
     shell: /bin/bash
@@ -29,7 +28,6 @@ packages:
   - gnupg
   - jq
   - ufw
-  - fail2ban
   - unattended-upgrades
   - python3
   - python3-venv
@@ -159,11 +157,11 @@ write_files:
         systemctl enable --now docker tailscaled
       }
       firewall() {
-        ufw default deny incoming && ufw default allow outgoing && ufw allow in on tailscale0 && ufw --force enable
+        ufw default deny incoming && ufw default allow outgoing && ufw allow in on tailscale0 && ufw allow 41641/udp && ufw --force enable
       }
       hardening() {
         systemctl reload ssh 2>/dev/null || systemctl reload sshd 2>/dev/null || true
-        systemctl enable --now fail2ban unattended-upgrades
+        systemctl enable --now unattended-upgrades
       }
       deb_env() {
         local line="export PATH=\"\$HOME/.npm-global/bin:\$HOME/.local/bin:\$PATH\""
@@ -192,7 +190,7 @@ write_files:
       step "apt repos (docker, nodesource 22, tailscale, gh)" repos
       step "docker + node + tailscale + gh" pkgs
       step "ufw (tailscale0 only)" firewall
-      step "ssh/fail2ban/unattended-upgrades" hardening
+      step "ssh/unattended-upgrades" hardening
       step "deb npm prefix + PATH" deb_env
       step "claude code (npm, user prefix)" claude_code
       step "uv + skillspector" uv_tools
