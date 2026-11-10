@@ -47,9 +47,9 @@ def R(*opts: str) -> str:
 # H (hybrid, 2026-11-10 web research): step 1 = recruiter pain + result + free offer as an interest question;
 # mechanism + Loom move to step 2. Subjects lowercase, 2-4 words, no numbers (30MPC/Gong: numbers cut opens).
 SUBJECTS_H = [R("sourcing at {{companyName}}", "{{companyName}} sourcing", "{{firstName}}, sourcing?"),
-              R("your open roles", "one of your roles", "quick question {{firstName}}")]
+              R("your open roles", "one of your roles", "{{firstName}}, one of your roles")]
 PAIN = R("bet sourcing still eats a big chunk of your week.",
-         "my guess is finding candidates still takes most of your day.",
+         "my guess is finding candidates still takes a big chunk of your week.",
          "sourcing probably takes more of your week than you'd like.")
 RESULT = [R("this june i built a tool for a recruiting agency in dublin.",
             "back in june i built something for an agency in dublin.",
@@ -64,23 +64,23 @@ STEP2_H = [R("{{firstName}}, here's a 30 second video of how it works:",
              "{{firstName}}, made a quick 30 second video of how it works:",
              "here's a 30 second video of how it works, {{firstName}}:"),
            R(VIDEO, f"{VIDEO} (30 sec)", f"video: {VIDEO}"),  # video 31.6 s
-           R("it checks each candidate's linkedin and past work, then writes the first message and the follow-up.",
-             "it looks up each candidate's linkedin and work history and drafts the message and the follow-up.",
-             "it checks candidates against their linkedin, then writes the note and the follow-up for you."),
+           R("it checks each candidate's public profile and past work, then writes the first message and the follow-up.",
+             "it looks up each candidate's public profile and work history and drafts the message and the follow-up.",
+             "it checks candidates against their public profile, then writes the note and the follow-up for you."),
            R("so you spend a lot less time digging for candidates.",
              "means a lot less time hunting for candidates.",
-             "so you spend way less time searching."),
+             "so you spend less time searching."),
            R("load your past candidates and they come back up with the next note ready.",
              "give it your old contact list and each one pops back up with a new message written.",
              "past candidates you load come back up too, with the next note already written."),
-           R("worth a look?", "worth 3 minutes?", "want me to set it up on one of your roles?")]
+           R("worth a look?", "worth 30 seconds?", "want me to set it up on one of your roles?")]
 STEP3_H = [R("last one {{firstName}}.", "last note from me {{firstName}}.", "{{firstName}}, last one."),
            R("if sourcing isn't a pain at {{companyName}} right now, just say so and i'll stop.",
-             "if finding candidates isn't a headache at {{companyName}} right now, lmk and i'll stop.",
+             "if finding candidates isn't a headache at {{companyName}} right now, say so and i'll stop.",
              "if this isn't a priority at {{companyName}}, tell me and i'll leave you alone."),
-           R("if it is, send me one open role and the first 13 candidates are free.",
-             "if it is, reply with one role and i'll send the first 13 candidates free.",
-             "if it is, send one open role and the first list of 13 candidates is on me.")]
+           R("if it is, send me one open role and the first 13 verified candidates are free.",
+             "if it is, reply with one role and i'll send the first 13 verified candidates free.",
+             "if it is, send one open role and the first list of 13 verified candidates is on me.")]
 
 SUBJECTS = {
     "A": [R("{{companyName}} sourcing", "sourcing at {{companyName}}", "{{firstName}}, sourcing?"),
@@ -133,12 +133,12 @@ STEP3 = [R("last one {{firstName}}.", "last note from me {{firstName}}.", "{{fir
 
 # Personalized hook + pain in one line (a separate pain line pushed step 1 past ~70 words and up the slop score).
 PERS_PAIN = R("saw you do {{specialty}} at {{companyName}}, so i'm guessing sourcing eats a big chunk of your week.",
-              "you handle {{specialty}} at {{companyName}}, so finding candidates probably eats most of your day.",
+              "you handle {{specialty}} at {{companyName}}. bet sourcing takes a good chunk of your week.",
               "saw you're on {{specialty}} at {{companyName}}. sourcing probably takes more of your week than you'd like.")
 # Operator 2026-11-10: make clear the first candidate list is free (no time or money asked before proof).
-FREE = R("first list of 13 candidates is free, no call needed.",
-         "the first 13 candidates are on me, no call needed.",
-         "first list of 13 candidates is free. no call needed.")
+FREE = R("first 13 verified candidates are free, no call needed.",
+         "the first 13 verified candidates are on me, no call needed.",
+         "first list of 13 verified candidates is free. no call needed.")
 
 
 def step1(angle: str, personalized: bool) -> str:
