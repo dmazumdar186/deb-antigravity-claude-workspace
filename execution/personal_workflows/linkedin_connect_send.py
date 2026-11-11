@@ -344,7 +344,9 @@ def _open_menus(page, more=None):
         target = page.locator(f'[id="{ctrl}"]')
         if target.count():
             return target
-    return page.locator(MENU_CSS).filter(has_not=page.locator("xpath=ancestor::aside"))
+    # never a menu in a rail: inside an <aside>, or inside a <section> that is not the person's card (no h1)
+    return page.locator(MENU_CSS).filter(
+        has_not=page.locator("xpath=ancestor::aside | ancestor::section[not(.//h1)]"))
 
 
 def hide_overlays(page) -> None:
@@ -418,6 +420,8 @@ def safe_click(page, el, what: str) -> None:
         usable = False
     if not usable:
         raise ClickFailed(kind, f"{what}: {first}")
+    if what != "Send" and _first_visible(page.get_by_role("dialog").or_(page.get_by_role("alertdialog"))):
+        raise ClickFailed("dialog_open", f"{what}: a dialog is open; never clicked through: {first}")
     log.info("%s: click blocked (%s), dispatching click: %s", what, kind, first)
     try:
         el.dispatch_event("click")
@@ -557,7 +561,7 @@ def plan_queue(store: Q.Store, day: str, limit: int) -> list[dict]:
     """Q.cmd_plan subtracts today's sends itself; limit is the cap (minus dry-run would-sends)."""
     if limit < 1 or _quiet(Q.cmd_plan, store, limit, True) != 0:
         return []
-    qp = store.queue_path(day)
+    qp = store.queue_path(Q._today())  # cmd_plan writes under the queue module's date; read the same file
     return Q.read_csv(qp) if qp.exists() else []
 
 
@@ -921,7 +925,10 @@ def doctor_report(data_dir: Path, today: dt.date, task_info: str | None) -> str:
     day = today.isoformat()
     out = [f"date {day}: {'send day' if is_send_day(today) else 'rest day'}"]
     m = marker_path(data_dir, day)
-    out.append(f"report email: {'sent - ' + m.read_text(encoding='utf-8').strip() if m.exists() else 'not sent yet'}")
+    try:
+        out.append(f"report email: {'sent - ' + m.read_text(encoding='utf-8').strip() if m.exists() else 'not sent yet'}")
+    except OSError as exc:  # OneDrive / antivirus lock: report it, doctor never crashes
+        out.append(f"report email: marker unreadable ({exc})")
     lock = _lock_file(data_dir)
     if lock.exists():
         age = (time.time() - lock.stat().st_mtime) / 60
@@ -931,7 +938,10 @@ def doctor_report(data_dir: Path, today: dt.date, task_info: str | None) -> str:
         out.append("send.lock: none")
     log_path = data_dir / "send.log"
     if log_path.exists():
-        lines = log_path.read_text(encoding="utf-8", errors="replace").splitlines()
+        try:
+            lines = log_path.read_text(encoding="utf-8", errors="replace").splitlines()
+        except OSError as exc:  # locked log: say so, keep going
+            lines = [f"send.log unreadable ({exc})"]
         runs = [ln for ln in lines if " run 20" in ln]
         out.append("last run started: " + (runs[-1][:19] if runs else "never"))
         out.append("last log lines:")

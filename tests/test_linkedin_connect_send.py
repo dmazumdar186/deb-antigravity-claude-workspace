@@ -218,8 +218,8 @@ def test_debug_capture_prunes_old_files(tmp_path):
     assert not old.exists()
 
 
-def test_more_missing_never_becomes_final(tmp_path):
-    """Only the Follow-only note counts toward no_connect_button_3x; a header we cannot read never burns people."""
+def test_more_missing_is_not_final_on_day_three(tmp_path):
+    """Only the Follow-only note counts toward no_connect_button_3x; an unreadable header can only reach retry_4x."""
     store = seed(tmp_path, [("m", "no_more.html")])
     for day in ("2026-10-30", "2026-10-31"):
         store.append_ledger({"ts": f"{day}T10:00:00", "date": day, "slug": "m", "name": "M",
@@ -700,3 +700,38 @@ def test_task_wakes_the_pc_and_doctor_reads_state(tmp_path):
     assert "send day" in rep and "(20 sent)" in rep and "last run started: 2026-11-02 10:00:07" in rep
     assert "send.lock: none" in rep and "Windows only" in rep
     assert "never run" in S.doctor_report(tmp_path / "empty", WED, "x")
+
+
+def test_menu_in_a_main_rail_section_is_never_used(page):
+    page.set_content("<main><section><h1>A</h1><button aria-label='More actions'>More</button></section>"
+                     "<section><h2>People also viewed</h2><div role=menu><div role=button "
+                     "aria-label='Invite Other to connect'>Connect</div></div></section></main>")
+    out = S._act(page, None, "a", dry_run=True)
+    assert (out.status, out.note) == ("retry", "no_connect_button:menu_no_connect")
+
+
+def test_no_dispatched_click_while_a_dialog_is_open(page, monkeypatch):
+    monkeypatch.setattr(S, "CLICK_TIMEOUT_MS", 800)
+    page.set_content("<button id=b onclick='window.clicked = true'>More</button><div role=dialog>Verify it's you</div>"
+                     "<div class='artdeco-toast-item' style='position:fixed;inset:0'></div>")
+    assert not page.evaluate("window.clicked || false")
+    with pytest.raises(S.ClickFailed) as e:
+        S.safe_click(page, page.locator("#b"), "More")
+    assert e.value.kind == "dialog_open" and not page.evaluate("window.clicked || false")
+
+
+def test_doctor_survives_unreadable_files(tmp_path, monkeypatch):
+    (tmp_path / "send.log").write_text("x", encoding="utf-8")
+    S.marker_path(tmp_path, "2026-11-02").write_text("x", encoding="utf-8")
+    def boom(self, *a, **k):
+        raise PermissionError("locked")
+    monkeypatch.setattr(Path, "read_text", boom)
+    rep = S.doctor_report(tmp_path, MON, None)
+    assert "marker unreadable" in rep and "send.log unreadable" in rep
+
+
+def test_run_crossing_midnight_reads_the_queue_it_planned(page, tmp_path, monkeypatch):
+    store = seed(tmp_path, [("a", "connect_header.html")])
+    monkeypatch.setattr(Q, "_today", lambda: "2026-11-03")  # the clock passed midnight after the run started
+    res = S.run_day(page, store, "2026-11-02", sleep=lambda s: None)
+    assert res.processed == 1
