@@ -73,6 +73,8 @@ agency/RPO/freelance at >= 0.6, else InHouse.
 - Specialty evidence uses the current title, headline and employer only (the summary describes past jobs), with
   whole-word matching for short tokens.
 
+- 2026-11-11 agency top-up: 1,998 agency rows (verified first, capped to fit Instantly) -> 440 new send-ready -> 347 after the cross-campaign 2-per-company cap (`launch.py` now counts every lead already uploaded) -> 329 sent under `--max-new` (281 uploaded, 48 already in workspace). 2,842 leads live in the 8 campaigns.
+
 ## Exit Criteria
 Every exported row is in a campaign CSV or in `rejects.csv` with a reason; only Reoon `safe` >= 90 in main files;
 max 2 per company; report counts per location/segment/bucket, personalized share, credits and Jev cost.
