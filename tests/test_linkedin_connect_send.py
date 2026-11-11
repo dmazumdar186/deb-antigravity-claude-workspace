@@ -662,3 +662,41 @@ def test_debug_folder_error_never_stops_the_day(page, tmp_path):
     store = seed(tmp_path, [("a", "connect_header.html")])
     res = S.run_day(page, store, "2026-11-02", sleep=lambda s: None, debug_dir=blocker)
     assert res.stop is None and res.sent_run == 1
+
+
+def test_any_retry_on_fourth_day_becomes_final(tmp_path):
+    store = seed(tmp_path, [("r", "no_confirm.html")])
+    for day, note in (("2026-10-28", "click_failed:timeout"), ("2026-10-30", "unconfirmed"),
+                      ("2026-10-31", "page_load_failed")):
+        store.append_ledger({"ts": f"{day}T10:00:00", "date": day, "slug": "r", "name": "R",
+                             "status": "retry", "note": note})
+    S._quiet(Q.cmd_mark, store, "r", "retry", "unconfirmed", None)
+    last = store.load_ledger()[-1]
+    assert (last["status"], last["note"]) == ("skipped", "retry_4x:unconfirmed")
+    assert "r" in Q._blocked(store.load_ledger(), "2026-11-03")
+
+
+def test_menu_in_people_also_viewed_rail_is_never_used(page):
+    page.set_content("<main><section><h1>A</h1><button aria-label='More actions'>More</button></section></main>"
+                     "<aside><div role=menu><div role=button aria-label='Invite Other to connect'>Connect</div>"
+                     "</div></aside>")
+    out = S._act(page, None, "a", dry_run=True)
+    assert (out.status, out.note) == ("retry", "no_connect_button:menu_no_connect")
+
+
+def test_menu_named_by_aria_controls_is_used(page):
+    page.set_content("<main><section><h1>A</h1><button aria-label='More actions' aria-controls='dd'>More</button>"
+                     "</section></main><div id='dd' class='artdeco-dropdown__content'>"
+                     "<div role=button aria-label='Invite A to connect'>Connect</div></div>")
+    assert S._act(page, None, "a", dry_run=True).would_send
+
+
+def test_task_wakes_the_pc_and_doctor_reads_state(tmp_path):
+    assert "-WakeToRun" in S.task_script("py.exe", Path("s.py"), Path("r"), False)
+    (tmp_path / "send.log").write_text("2026-11-02 10:00:07 INFO run 2026-11-02: 0 already sent today, cap 20\n",
+                                       encoding="utf-8")
+    S.marker_path(tmp_path, "2026-11-02").write_text("LinkedIn connects 2026-11-02 (20 sent)\n", encoding="utf-8")
+    rep = S.doctor_report(tmp_path, MON, None)
+    assert "send day" in rep and "(20 sent)" in rep and "last run started: 2026-11-02 10:00:07" in rep
+    assert "send.lock: none" in rep and "Windows only" in rep
+    assert "never run" in S.doctor_report(tmp_path / "empty", WED, "x")

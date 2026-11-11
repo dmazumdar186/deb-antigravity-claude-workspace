@@ -48,6 +48,10 @@ STATUSES = ("sent", "skipped", "already_connected", "pending", "withdrawn", "ret
 # to load) keeps the person out of today's queue and eligible from tomorrow.
 TERMINAL = frozenset(STATUSES) - {"retry"}
 NO_CONNECT_DAYS = 3  # "retry no_connect_button" on this many different days -> skipped no_connect_button_3x
+# RCA 2026-11-11: a person failing for any other reason stayed "retry" forever. Any retry on this many different
+# days -> skipped retry_<N>x. Safe on a markup break: the sender stops a day after <= 12 retries, drawn at random
+# from thousands, so nobody realistically reaches 4 days before the break is fixed.
+RETRY_MAX_DAYS = 4
 ENCODINGS = ("utf-8-sig", "cp1252", "latin-1")
 LOCK_TTL_MIN = 120  # a run never legitimately exceeds this; older locks are treated as crashed runs
 
@@ -296,6 +300,10 @@ def cmd_mark(store: Store, slug: str, status: str, note: str, canonical: str | N
                 and r["note"] == "no_connect_button"} | {day}
         if len(days) >= NO_CONNECT_DAYS:  # follow-only profile: stop re-trying it forever
             status, note = "skipped", "no_connect_button_3x"
+    if status == "retry":
+        days = {r["date"] for r in ledger if r["slug"] == slug and r["status"] == "retry"} | {day}
+        if len(days) >= RETRY_MAX_DAYS:
+            status, note = "skipped", f"retry_{RETRY_MAX_DAYS}x" + (f":{note}" if note else "")
     if status == "sent" and len(_sent_on(ledger, day)) >= DAILY_CAP:
         print(f"REFUSED: daily cap of {DAILY_CAP} already reached for {day}", file=sys.stderr)
         return 3

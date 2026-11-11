@@ -1,7 +1,7 @@
 """LinkedIn connection requests from a fixed script: one run per send day, one email table.
 
 description: Send the day's LinkedIn connection requests (20/day, Mon Tue Thu Fri Sat) from a dedicated Chrome profile with Playwright, then email one HTML table.
-inputs: CLI `run [--dry-run]`, `login`, `setup [--start]` (Windows: login once, register + optionally start the scheduled task); `--data-dir` (default env LINKEDIN_CONNECT_DIR or <repo>/data/linkedin_connect, holding master.csv / ledger.csv / aliases.csv from linkedin_connect_queue.py); env GMAIL_SMTP_USER, GMAIL_SMTP_APP_PASSWORD, optional LINKEDIN_CONNECT_EMAIL_TO (default GMAIL_SMTP_USER).
+inputs: CLI `run [--dry-run]`, `login`, `setup [--start]` (Windows: login once, register + optionally start the scheduled task), `doctor` (read-only: why today did or did not run); `--data-dir` (default env LINKEDIN_CONNECT_DIR or <repo>/data/linkedin_connect, holding master.csv / ledger.csv / aliases.csv from linkedin_connect_queue.py); env GMAIL_SMTP_USER, GMAIL_SMTP_APP_PASSWORD, optional LINKEDIN_CONNECT_EMAIL_TO (default GMAIL_SMTP_USER).
 outputs: ledger.csv / aliases.csv / queue_<date>.csv rows via linkedin_connect_queue.py; emailed_<date>.txt marker and send.log in the data dir; one Gmail SMTP email (or .tmp/linkedin_connect_<date>.eml on --dry-run).
 
 Directive: directives/personal_workflows/linkedin_connect_send.md. No AI, no Drive, no cloud task:
@@ -329,9 +329,22 @@ def _connect_in(scope):
         scope.get_by_role("menuitem", name=CONNECT_NAME)).or_(scope.get_by_role("link", name=CONNECT_NAME)))
 
 
-def _open_menus(page):
-    """The More dropdown can be portaled outside the header; only a visible (open) one is ever searched."""
-    return page.locator("[role=menu], .artdeco-dropdown__content")
+MENU_CSS = "[role=menu], .artdeco-dropdown__content"
+
+
+def _open_menus(page, more=None):
+    """The dropdown More opened. LinkedIn may attach it to <body>, so: the element More's aria-controls names,
+    else any visible menu that is not inside an <aside> (the "People also viewed" rail)."""
+    try:
+        ctrl = more.get_attribute("aria-controls", timeout=1_000) if more is not None else None
+    except Exception as exc:  # More re-rendered: fall back to the generic search; logged
+        log.debug("aria-controls read failed: %s", _err(exc, 120))
+        ctrl = None
+    if ctrl and re.fullmatch(r"[A-Za-z0-9_:.-]+", ctrl):
+        target = page.locator(f'[id="{ctrl}"]')
+        if target.count():
+            return target
+    return page.locator(MENU_CSS).filter(has_not=page.locator("xpath=ancestor::aside"))
 
 
 def hide_overlays(page) -> None:
@@ -477,7 +490,7 @@ def _act(page, resp, slug: str, dry_run: bool) -> Outcome:
         if more is not None:
             safe_click(page, more, "More")
             page.wait_for_timeout(600)
-            connect = _connect_in(card) or _connect_in(_open_menus(page))
+            connect = _connect_in(card) or _connect_in(_open_menus(page, more))
     if connect is None:  # not terminal: try again another day; only the plain note counts toward _3x
         if more is None:
             note = "no_connect_button:more_missing"
@@ -846,7 +859,7 @@ def task_script(python_exe: str, script: Path, repo: Path, start: bool) -> str:
         f"$a = New-ScheduledTaskAction -Execute {_ps_quote(python_exe)} -Argument {_ps_quote(action_args)}"
         f" -WorkingDirectory {_ps_quote(str(repo))}",
         f"$t = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday,Tuesday,Thursday,Friday,Saturday -At {TASK_TIME}",
-        "$s = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances IgnoreNew -AllowStartIfOnBatteries"
+        "$s = New-ScheduledTaskSettingsSet -StartWhenAvailable -WakeToRun -MultipleInstances IgnoreNew -AllowStartIfOnBatteries"
         " -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Hours 3)",
         '$p = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\\$env:USERNAME" -LogonType Interactive',
         f"Register-ScheduledTask -TaskName {_ps_quote(TASK_NAME)} -Action $a -Trigger $t -Settings $s -Principal $p"
@@ -891,7 +904,7 @@ def cmd_setup(data_dir: Path, start: bool) -> int:
     ps = task_script(python_exe, Path(__file__).resolve(), REPO, start)
     try:
         res = subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", ps],  # noqa: S603,S607 fixed argv; values are constants + _ps_quote()d paths
-                             capture_output=True, text=True, timeout=120)
+                             capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
     except (OSError, subprocess.TimeoutExpired) as exc:
         print(f"could not register the task with PowerShell ({type(exc).__name__}: {exc})", file=sys.stderr)
         return 3
@@ -903,6 +916,53 @@ def cmd_setup(data_dir: Path, start: bool) -> int:
     return 0
 
 
+def doctor_report(data_dir: Path, today: dt.date, task_info: str | None) -> str:
+    """Why did (or didn't) today run? Read-only: marker, lock, last log lines, Windows task state."""
+    day = today.isoformat()
+    out = [f"date {day}: {'send day' if is_send_day(today) else 'rest day'}"]
+    m = marker_path(data_dir, day)
+    out.append(f"report email: {'sent - ' + m.read_text(encoding='utf-8').strip() if m.exists() else 'not sent yet'}")
+    lock = _lock_file(data_dir)
+    if lock.exists():
+        age = (time.time() - lock.stat().st_mtime) / 60
+        out.append(f"send.lock: present, {age:.0f} min old" + (" (stale: next run takes it over)"
+                                                                 if age > SEND_LOCK_TTL_MIN else " (a run is in progress)"))
+    else:
+        out.append("send.lock: none")
+    log_path = data_dir / "send.log"
+    if log_path.exists():
+        lines = log_path.read_text(encoding="utf-8", errors="replace").splitlines()
+        runs = [ln for ln in lines if " run 20" in ln]
+        out.append("last run started: " + (runs[-1][:19] if runs else "never"))
+        out.append("last log lines:")
+        out += ["  " + ln[:300] for ln in lines[-8:]]
+    else:
+        out.append("send.log: missing (the job has never run with this data dir)")
+    out.append("scheduled task: " + (task_info or "not checked (Windows only)"))
+    return "\n".join(out)
+
+
+def _task_info() -> str | None:
+    if os.name != "nt":
+        return None
+    import subprocess
+    ps = (f"$t = Get-ScheduledTask -TaskName {_ps_quote(TASK_NAME)} -ErrorAction SilentlyContinue; "
+          "if (-not $t) { 'MISSING: run linkedin_connect_setup.cmd' } else { $i = $t | Get-ScheduledTaskInfo; "
+          "'state ' + $t.State + ', last run ' + $i.LastRunTime + ' result ' + $i.LastTaskResult + "
+          "', next run ' + $i.NextRunTime + ', wake to run ' + $t.Settings.WakeToRun }")
+    try:
+        res = subprocess.run(["powershell", "-NoProfile", "-Command", ps], capture_output=True, text=True,  # noqa: S603,S607 fixed argv
+                             encoding="utf-8", errors="replace", timeout=60)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        return f"could not query ({type(exc).__name__})"
+    return (res.stdout or res.stderr).strip() or "no output"
+
+
+def cmd_doctor(data_dir: Path) -> int:
+    print(doctor_report(data_dir, dt.date.today(), _task_info()))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--data-dir", type=Path, default=DEFAULT_DATA_DIR,
@@ -911,11 +971,14 @@ def main(argv: list[str] | None = None) -> int:
     r = sub.add_parser("run", help="send today's batch and email the table (no-op on rest days)")
     r.add_argument("--dry-run", action="store_true", help="no Connect/Send clicks; email written to .tmp/*.eml")
     sub.add_parser("login", help="sign in to LinkedIn in the job's Chrome profile (window closes by itself)")
+    sub.add_parser("doctor", help="read-only: why today did or did not run (marker, lock, log, task state)")
     st = sub.add_parser("setup", help="Windows, once: login if needed, register the scheduled task")
     st.add_argument("--start", action="store_true", help="also start the task now (today's run)")
     a = ap.parse_args(argv)
     if a.cmd == "run":
         return cmd_run(a.data_dir, a.dry_run)
+    if a.cmd == "doctor":
+        return cmd_doctor(a.data_dir)
     if a.cmd == "setup":
         return cmd_setup(a.data_dir, a.start)
     return cmd_login(a.data_dir)
