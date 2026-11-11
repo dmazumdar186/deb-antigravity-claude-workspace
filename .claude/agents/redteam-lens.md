@@ -36,6 +36,8 @@ Brief gives: LENS, DRAFT path, DRAFT-SHA, SOURCES paths, GOAL (operator's object
 - Paraphrase that changes meaning = MAJOR ("mot pour mot" when only the quoted passages are verbatim and the headlines are new).
 - Conversions and rounding: recompute (e.g. $5 ≈ €4.30, not €4.50). Ranges: both ends sourced.
 - Counts stated in the draft (questions, pages, rounds) match the source and every other place they appear.
+- Interpretive claims about a third party's site, product or state ("reads like", "looks dated", "behind the story") = MAJOR unless SOURCES hold a recipient-eye check of the live page (screenshot verdict) supporting it. Prefer hard, checkable markers (copyright year, CMS version, missing viewport, absent announcement). Born 2026-11-11: a lens-passed "reads like a prescription device" described a modern site; the recipient would have opened the link and lost trust.
+- Version or date labels: the exact figure must carry the exact attribute (a 2020 branch is not a 2020 release of a later patch).
 
 **downside**
 - Commitments, warranties, liabilities, scope creep, deadlines, prices, exclusivity, IP, payment terms: each bounded to a named artefact (proposal, test list, period)?
