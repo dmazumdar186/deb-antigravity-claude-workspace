@@ -58,6 +58,7 @@ GAP_SECONDS = (45, 120)  # random pause between profiles
 # (markup changed: continuing would turn hundreds of people into no_connect_button_3x).
 MAX_BLOCK_STREAK = 3  # page_load_failed / unconfirmed in a row
 MAX_UI_STREAK = 10  # click_failed* / no_connect_button* in a row (each already retried once after a reload)
+MAX_RETRY_STREAK = 12  # any retry outcomes in a row (block and UI interleaved never trip the two above)
 BLOCK_NOTES = ("page_load_failed", "unconfirmed")
 UI_NOTE_PREFIXES = ("click_failed", "no_connect_button")
 BLOCK_HTTP = {429: "HTTP 429 (rate limited)", 999: "HTTP 999 (LinkedIn blocked the request)"}
@@ -138,8 +139,10 @@ def _err(exc: BaseException, limit: int = 600) -> str:
 
 
 def cover_lines(message: str) -> str:
-    """Only the call-log lines naming the element that intercepts the click."""
-    return "\n".join(ln for ln in message.splitlines() if "intercepts pointer events" in ln)
+    """The last call-log line naming the element that intercepts the click (the cover at timeout). Earlier
+    lines can name a different element (a benign panel before a modal opened), so only the last one counts."""
+    lines = [ln for ln in message.splitlines() if "intercepts pointer events" in ln]
+    return lines[-1] if lines else ""
 
 
 def click_failure_kind(message: str) -> str:
@@ -308,7 +311,8 @@ def top_card(page):
     main = page.locator("main").first
     if not main.count():
         return page.locator("body")
-    sec = main.locator("section").filter(has=page.locator("h1")).first  # the header, wherever it sits
+    # innermost section holding the h1: a wrapper section around header + "People also viewed" is never the card
+    sec = main.locator("section:has(h1):not(:has(section h1))").first
     if sec.count():
         return sec
     sec = main.locator("section").first
@@ -381,8 +385,10 @@ def safe_click(page, el, what: str) -> None:
     the click on the element itself when it is visible and enabled, and, if something covers it, only when
     that cover is LinkedIn's own sticky chrome (BENIGN_COVER_RE). Raises ClickFailed (full Playwright
     message) otherwise."""
-    with contextlib.suppress(Exception):  # off-screen / detached: the click below reports the real cause
+    try:
         el.scroll_into_view_if_needed(timeout=2_000)
+    except Exception as exc:  # off-screen / detached: the click below reports the real cause; logged
+        log.debug("%s: scroll failed: %s", what, _err(exc, 200))
     _wait_stable(page, el)
     try:
         el.click(timeout=CLICK_TIMEOUT_MS)
@@ -423,9 +429,11 @@ def process_profile(page, url: str, slug: str, dry_run: bool = False,
             state="visible", timeout=RENDER_TIMEOUT_MS)
     except Exception as exc:  # nothing rendered in time; the checks below classify what is there
         log.debug("%s: render wait ended: %s", slug, str(exc).splitlines()[0])
-    with contextlib.suppress(Exception):  # no <main> (404, wall): the checks below classify the page
+    try:
         if page.locator("main").count():
             wait_settled(page, page.locator("main").first)
+    except Exception as exc:  # no <main> (404, wall) or mid-navigation: the checks below classify it; logged
+        log.debug("%s: settle wait skipped: %s", slug, _err(exc, 200))
     try:
         out = _act(page, resp, slug, dry_run)
     except ClickFailed as exc:
@@ -440,8 +448,10 @@ def process_profile(page, url: str, slug: str, dry_run: bool = False,
                 on_fail(page, slug, out.note)
             except Exception as exc:  # debug capture is advice: never fails the profile; logged
                 log.debug("%s: debug capture failed: %s", slug, _err(exc))
-        with contextlib.suppress(Exception):  # closing a menu/dialog is best effort; the next goto resets the page
+        try:
             page.keyboard.press("Escape")
+        except Exception as exc:  # closing a menu/dialog is best effort; the next goto resets the page; logged
+            log.debug("%s: Escape failed: %s", slug, _err(exc, 200))
     return out
 
 
@@ -547,8 +557,13 @@ def run_day(page, store: Q.Store, day: str, dry_run: bool = False,
     res = DayResult()
     start_sent = len(Q._sent_on(store.load_ledger(), day))
     seen: set[str] = set()
-    block_streak = ui_streak = 0
-    on_fail = _debug_capturer(debug_dir, day) if debug_dir is not None else None
+    block_streak = ui_streak = retry_streak = 0
+    on_fail = None
+    if debug_dir is not None:
+        try:
+            on_fail = _debug_capturer(debug_dir, day)
+        except OSError as exc:  # debug captures are advice: a locked / read-only folder never stops the day
+            log.warning("debug captures off this run: %s", exc)
     while room_left(start_sent + res.sent_run + len(res.would_send)) > 0:
         queue = [r for r in plan_queue(store, day, cap - len(res.would_send)) if r["slug"] not in seen]
         if not queue:
@@ -581,6 +596,7 @@ def run_day(page, store: Q.Store, day: str, dry_run: bool = False,
             if out.status and not dry_run:
                 _quiet(Q.cmd_mark, store, r["slug"], out.status, out.note, out.canonical)
                 res.sent_run += out.status == "sent"
+            retry_streak = retry_streak + 1 if out.status == "retry" else 0
             block_streak = block_streak + 1 if out.status == "retry" and out.note in BLOCK_NOTES else 0
             ui_streak = ui_streak + 1 if out.status == "retry" and is_ui_failure(out.note) else 0
             if block_streak >= MAX_BLOCK_STREAK:
@@ -588,6 +604,9 @@ def run_day(page, store: Q.Store, day: str, dry_run: bool = False,
                 return res
             if ui_streak >= MAX_UI_STREAK:
                 res.stop = f"{MAX_UI_STREAK} profiles in a row without a clickable Connect"
+                return res
+            if retry_streak >= MAX_RETRY_STREAK:
+                res.stop = f"{MAX_RETRY_STREAK} profiles in a row without a send"
                 return res
     return res
 

@@ -631,3 +631,34 @@ def test_email_input_dialog_is_skipped_whatever_its_wording(page):
                      "knows you, type their address</p><input type='email'><button disabled>Send</button></div>")
     out = S._finish_invite(page, S.top_card(page), "a", None)
     assert (out.status, out.note) == ("skipped", "email_required")
+
+
+def test_only_the_last_cover_decides_a_dispatched_click():
+    msg = ("Locator.click: Timeout 5000ms exceeded.\n  - <aside class=\"msg-overlay-container\"></aside> intercepts "
+           "pointer events\n  - <div class=\"artdeco-modal__content\">Verify</div> intercepts pointer events\n")
+    assert not S.BENIGN_COVER_RE.search(S.cover_lines(msg))  # a modal opened over the panel: never click through
+    assert S.BENIGN_COVER_RE.search(S.cover_lines(msg.split("\n  - <div")[0]))
+
+
+def test_wrapper_section_is_not_the_card(page):
+    page.set_content("<main><section class='wrap'><section class='top'><h1>A</h1><button>Follow</button></section>"
+                     "<section><h2>People also viewed</h2><button aria-label='Invite Other to connect'>Connect</button>"
+                     "</section></section></main>")
+    assert S._connect_in(S.top_card(page)) is None
+
+
+def test_interleaved_failures_stop_at_the_overall_ceiling(page, tmp_path, monkeypatch):
+    seq = iter([S.Outcome("retry", "page_load_failed"), S.Outcome("retry", "click_failed:timeout")] * 10)
+    monkeypatch.setattr(S, "process_profile", lambda *a, **k: next(seq))
+    monkeypatch.setattr(S, "is_ui_failure", lambda note: False)  # no reload-retry, one outcome per person
+    store = seed(tmp_path, [(f"p{i}", "connect_header.html") for i in range(20)])
+    res = S.run_day(page, store, "2026-11-02", sleep=lambda s: None)
+    assert res.stop == f"{S.MAX_RETRY_STREAK} profiles in a row without a send" and res.processed == S.MAX_RETRY_STREAK
+
+
+def test_debug_folder_error_never_stops_the_day(page, tmp_path):
+    blocker = tmp_path / "debug"
+    blocker.write_text("a file where the folder should be")
+    store = seed(tmp_path, [("a", "connect_header.html")])
+    res = S.run_day(page, store, "2026-11-02", sleep=lambda s: None, debug_dir=blocker)
+    assert res.stop is None and res.sent_run == 1
