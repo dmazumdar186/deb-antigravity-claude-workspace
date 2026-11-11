@@ -44,6 +44,7 @@ def _fast_and_isolated(monkeypatch, tmp_path):
     monkeypatch.setattr(S, "RENDER_TIMEOUT_MS", 3_000)
     monkeypatch.setattr(S, "NAV_TIMEOUT_MS", 5_000)
     monkeypatch.setattr(S, "UI_RETRY_PAUSE_S", (0, 0))
+    monkeypatch.setattr(S, "task_has_catchups", lambda: False)  # never query a real Windows task from tests
 
 
 @pytest.fixture(scope="module")
@@ -464,7 +465,7 @@ def test_chrome_missing_is_loud(tmp_path, monkeypatch):
     _FakeSMTP.sent = []
     seed(tmp_path, [("a", "connect_header.html")])
     assert S.cmd_run(tmp_path, dry_run=False, today=MON) == 3
-    assert _FakeSMTP.sent[0]["Subject"].endswith("— STOPPED: Chrome not available")
+    assert _FakeSMTP.sent[0]["Subject"].endswith("— STOPPED: Chrome not available — say LC fail")
 
 
 def test_detect_stop_ignores_profile_body_text(page):
@@ -492,7 +493,7 @@ def test_missing_playwright_emails_stopped_without_marker(tmp_path, monkeypatch)
     monkeypatch.setattr(builtins, "__import__", no_playwright)
     assert S.cmd_run(tmp_path, dry_run=False, today=MON) == 3
     assert [m["Subject"] for m in _FakeSMTP.sent] == \
-        ["LinkedIn connects 2026-11-02 (0 sent) — STOPPED: playwright not installed"]
+        ["LinkedIn connects 2026-11-02 (0 sent) — STOPPED: playwright not installed — say LC fail"]
     assert not S.marker_path(tmp_path, "2026-11-02").exists()  # a rerun after the fix still sends today
 
 
@@ -735,3 +736,105 @@ def test_run_crossing_midnight_reads_the_queue_it_planned(page, tmp_path, monkey
     monkeypatch.setattr(Q, "_today", lambda: "2026-11-03")  # the clock passed midnight after the run started
     res = S.run_day(page, store, "2026-11-02", sleep=lambda s: None)
     assert res.processed == 1
+
+
+# ----------------------------------------------------------------- runs by itself (operator order 2026-11-11)
+
+def test_subject_says_lc_fail_only_when_a_person_must_act():
+    assert S.build_subject("d", 0, "not logged in").endswith("— STOPPED: not logged in — say LC fail")
+    assert S.build_subject("d", 0, "run failed (KeyError)").endswith("— say LC fail")
+    assert S.build_subject("d", 3, "weekly invitation limit") == "LinkedIn connects d (3 sent) — STOPPED: weekly invitation limit"
+    assert S.build_subject("d", 20, None) == "LinkedIn connects d (20 sent)"
+
+
+def test_task_has_three_starts_and_wakes():
+    ps = S.task_script("py.exe", Path("s.py"), Path("r"), False)
+    assert all(f"-At {t})" in ps for t in ("10:00", "12:00", "14:00")) and "-WakeToRun" in ps
+
+
+def test_setup_failure_is_retried_not_emailed_while_a_catch_up_is_ahead():
+    assert S.later_start_today(dt.datetime(2026, 11, 2, 10, 5), True)
+    assert S.later_start_today(dt.datetime(2026, 11, 2, 12, 30), True)
+    assert not S.later_start_today(dt.datetime(2026, 11, 2, 14, 1), True)  # last start: email now
+    assert not S.later_start_today(dt.datetime(2026, 11, 2, 10, 5), False)  # old task: email now
+
+
+def test_deferred_chrome_failure_sends_no_email_and_no_marker(tmp_path, monkeypatch):
+    monkeypatch.setattr(S, "later_start_today", lambda *a, **k: True)
+    _smtp_env(monkeypatch, _FakeSMTP)
+    _FakeSMTP.sent = []
+    seed(tmp_path, [("a", "connect_header.html")])
+    def no_chrome(data_dir):
+        raise S.ChromeUnavailable("busy")
+    monkeypatch.setattr(S, "open_browser", contextlib.contextmanager(lambda d: (yield no_chrome(d))))
+    assert S.cmd_run(tmp_path, dry_run=False, today=MON) == 3
+    assert _FakeSMTP.sent == [] and not S.marker_path(tmp_path, "2026-11-02").exists()
+    assert "deferred" in (tmp_path / "status.md").read_text(encoding="utf-8")
+
+
+def test_successful_run_writes_status(tmp_path, monkeypatch, browser):
+    _patch_browser(monkeypatch, browser)
+    _smtp_env(monkeypatch, _FakeSMTP)
+    _FakeSMTP.sent = []
+    seed(tmp_path, [("a", "connect_header.html")])
+    assert S.cmd_run(tmp_path, dry_run=False, today=MON) == 0
+    assert "exit 0: LinkedIn connects 2026-11-02 (1 sent)" in (tmp_path / "status.md").read_text(encoding="utf-8")
+
+
+def _git_repo(tmp_path, files: dict[str, bytes]) -> Path:
+    import subprocess
+    origin, clone = tmp_path / "origin", tmp_path / "clone"
+    origin.mkdir()
+    run = lambda *a, cwd=origin: subprocess.run(["git", *a], cwd=cwd, check=True, capture_output=True)  # noqa: E731
+    run("init", "-q", "-b", "main")
+    run("config", "user.email", "t@t"); run("config", "user.name", "t")
+    for rel, data in files.items():
+        (origin / rel).parent.mkdir(parents=True, exist_ok=True)
+        (origin / rel).write_bytes(data)
+    run("add", "-A"); run("commit", "-qm", "x")
+    run("clone", "-q", str(origin), str(clone), cwd=tmp_path)
+    return origin, clone
+
+
+def test_self_update_pulls_new_job_files_and_rejects_broken_python(tmp_path, monkeypatch):
+    import subprocess
+    rel = S.JOB_FILES[1]
+    origin, clone = _git_repo(tmp_path, {rel: b"X = 1\n"})
+    monkeypatch.setattr(S, "REPO", clone)
+    monkeypatch.setattr(S, "JOB_FILES", (rel,))
+    monkeypatch.delenv("LINKEDIN_CONNECT_NO_UPDATE", raising=False)
+    assert S.self_update() is False  # already current
+    (origin / rel).write_bytes(b"X = 2\n")
+    subprocess.run(["git", "commit", "-qam", "y"], cwd=origin, check=True, capture_output=True)
+    assert S.self_update() is True and (clone / rel).read_bytes() == b"X = 2\n"
+    (origin / rel).write_bytes(b"def broken(:\n")
+    subprocess.run(["git", "commit", "-qam", "z"], cwd=origin, check=True, capture_output=True)
+    assert S.self_update() is False and (clone / rel).read_bytes() == b"X = 2\n"  # kept the working file
+    monkeypatch.setenv("LINKEDIN_CONNECT_NO_UPDATE", "1")
+    assert S.self_update() is False
+
+
+def test_run_relaunches_once_after_an_update(tmp_path, monkeypatch):
+    calls = []
+    monkeypatch.delenv("LINKEDIN_CONNECT_UPDATED", raising=False)
+    monkeypatch.setattr(S, "self_update", lambda: True)
+    monkeypatch.setattr(S, "ensure_task", lambda: calls.append("ensure"))
+    class R:
+        returncode = 0
+    def fake_run(cmd, env=None, **k):
+        calls.append((cmd[-1], env.get("LINKEDIN_CONNECT_UPDATED")))
+        return R()
+    monkeypatch.setattr(S.subprocess, "run", fake_run)
+    assert S.main(["--data-dir", str(tmp_path), "run"]) == 0
+    assert calls == [("run", "1")]  # the relaunched child does the run (and its own ensure_task)
+
+
+def test_fix_off_windows_says_where_to_run_it(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(S.os, "name", "posix")
+    assert S.cmd_fix(tmp_path) == 3
+    assert "LC fail.cmd" in capsys.readouterr().out
+
+
+def test_lc_fail_cmd_is_crlf_and_calls_fix():
+    raw = (ROOT / "LC fail.cmd").read_bytes()
+    assert b"\r\n" in raw and b"linkedin_connect_send.py\" fix" in raw and "LC fail.cmd" in S.JOB_FILES

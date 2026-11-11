@@ -12,3 +12,4 @@ Follow `directives/personal_workflows/linkedin_connect_send.md`. The routine is 
 - If asked to "send today's connection requests" by hand on the laptop: `python execution/personal_workflows/linkedin_connect_send.py run` (it no-ops on rest days or once today's email went out). `run --dry-run` clicks nothing and writes the email to `.tmp/`. `login` re-logs the Chrome profile in.
 - Prospect lists: `linkedin_connect_queue.py consolidate --in <csvs>`; counts: `linkedin_connect_queue.py status`.
 - Problems: read `data/linkedin_connect/send.log` and the STOPPED reason in the subject; the directive lists every reason and its fix.
+- Something went wrong (STOPPED / MISSING email, no email): the operator says **LC fail** → use the `lc-fail` skill. The job self-updates from `main` and retries at 12:00 and 14:00 by itself.

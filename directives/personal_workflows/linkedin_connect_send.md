@@ -3,6 +3,15 @@
 > Replaces `linkedin_connect_daily.md` (AI agent clicking each button through Cowork). Why: `docs/reference/linkedin_connect_audit_2026-11-03.md` — the app's safety reviewer started blocking the Send click on 10-30; the fix is to move the deterministic clicking into a script (audit fix B) and make a blocked day loud (fix C).
 > **Risk statement (operator accepted 2026-10-23, unchanged):** sending invitations with a tool is outside LinkedIn's User Agreement. Mitigation is pace and restraint, not concealment: ≤20/day, 45–120 s gaps, stop on the first warning. No fingerprint spoofing, no proxy rotation, no multiple accounts.
 
+## Runs by itself (operator order 2026-11-11: "it has to run by itself, or one word")
+
+- **Self-update:** every scheduled `run` first fetches `origin/main` and refreshes its own files (`JOB_FILES`: send, queue, setup.cmd, `LC fail.cmd`); a `.py` is swapped in only if it compiles; then the run re-launches once on the new code. Fail-open (no git / no network → current files). Off switch: env `LINKEDIN_CONNECT_NO_UPDATE=1`.
+- **Catch-up starts:** the task starts at 10:00, 12:00 and 14:00. A day that emailed is a no-op (marker), so the later starts only act when 10:00 never ran (PC off/asleep) or failed before emailing (Chrome busy, crash, Playwright missing). Those failures are emailed only by the last start (≥ 14:00), so it is still one email a day. A LinkedIn warning or a streak stop writes the marker, so it is never retried the same day.
+- **Task self-repair:** at the end of each run, if the task lacks the three starts or `WakeToRun`, the run re-registers it (no login, no start).
+- **`status.md`** in the data dir: the last run's outcome (machine channel, never emailed).
+- **One word: `LC fail`.** STOPPED subjects that need a person (not logged in, Chrome not available, run failed, Playwright missing, no master list) end with ` — say LC fail`, and so does the 15:07 MISSING alert. Saying "LC fail" to Claude runs the `lc-fail` skill (`fix` on the laptop); double-clicking `LC fail.cmd` in the repo root does the same: diagnosis, latest files, sign-in only if needed, task re-registered, today's run started.
+- **Retired 2026-11-11:** the three Cowork "LinkedIn connect slot" tasks were deleted (operator order).
+
 ## Goal
 
 On each send day (Mon, Tue, Thu, Fri, Sat; rest Wed and Sun) send connection requests to the next 20 unsent people in the master list (≈100/week, LinkedIn's observed free-account weekly limit), never twice to the same person, and email the operator one table when the run finishes.
@@ -23,6 +32,7 @@ On each send day (Mon, Tue, Thu, Fri, Sat; rest Wed and Sun) send connection req
 |--------|---------|
 | `execution/personal_workflows/linkedin_connect_send.py run [--dry-run]` | The whole day: gate, plan, open each profile, act, mark, email, marker. Exit 0 ok / 2 stopped early / 3 config error. |
 | `... login` | Opens the job's Chrome profile on linkedin.com/login; waits (≤ 10 min) for the LinkedIn session cookie and closes the window by itself. |
+| `... fix` / `LC fail.cmd` / skill `lc-fail` | The operator's one word. Prints the doctor report, self-updates, then `setup --start` (login only if needed, re-register the task, start today's run). Windows only; elsewhere it says to double-click `LC fail.cmd`. |
 | `... doctor` | Read-only, any OS: is today a send day, was the email sent (marker), `send.lock` age, last run start and last log lines, and (Windows) the task's state, last run time and result, next run, WakeToRun. First thing to run when a day has no email. |
 | `... setup [--start]` | Windows, re-runnable: checks Gmail creds + master, runs `login` only if the profile has no session, registers the task (`-Force`, never doubled), `--start` fires it now. |
 | `execution/personal_workflows/linkedin_connect_setup.cmd` | Double-click wrapper: `py -m pip install playwright python-dotenv`, then `setup --start`. |
@@ -44,7 +54,7 @@ Constants: queue `DAILY_CAP = 20`; send script `SEND_DAYS = (0, 1, 3, 4, 5)`, `G
 **Double-click `execution\personal_workflows\linkedin_connect_setup.cmd`** in the repo folder on the
 laptop. It installs Playwright with the `py` launcher, opens Chrome on the LinkedIn login page if the
 job's profile has no session (sign in; the window closes by itself), registers the task "LinkedIn connect
-send" (Mon Tue Thu Fri Sat 10:00, `StartWhenAvailable`, `WakeToRun` (wakes a sleeping laptop; added 2026-11-11 after 11-11 had no run), `IgnoreNew`, 3 h limit, Interactive logon, the
+send" (Mon Tue Thu Fri Sat 10:00 + catch-ups 12:00 and 14:00, `StartWhenAvailable`, `WakeToRun` (wakes a sleeping laptop; added 2026-11-11 after 11-11 had no run), `IgnoreNew`, 3 h limit, Interactive logon, the
 same Python that ran setup) and starts today's run. Re-running it is safe: an existing session is kept and
 the task is replaced, not doubled. The only operator input is the LinkedIn sign-in (a credential).
 
@@ -137,6 +147,7 @@ confirmed, so they can be re-enabled if the first run fails:
 
 | Date | Change |
 |------|--------|
+| 2026-11-11 | Round 4 (operator: "must run by itself"): self-update from origin/main before every run (compile-checked, re-launch once); catch-up starts 12:00 / 14:00 with setup-failure emails deferred to the last start; task self-repair at run end; `status.md`; `fix` command + `LC fail.cmd` + `lc-fail` skill; ` — say LC fail` on STOPPED subjects that need a person and on the MISSING alert; Cowork slots deleted. |
 | 2026-11-11 | Round 3 (red-team + QA): More fallback ignores menus in a section without the h1; no dispatched More/Connect click while a dialog is open; doctor survives locked files; queue read under the date it was planned (midnight crossing); "nobody left" documented as a plain email. |
 | 2026-11-11 | Round 2: any retry on 4 days → `skipped retry_4x`; More dropdown via `aria-controls`, never inside `<aside>`; `doctor` command; task `-WakeToRun`; setup's PowerShell call pinned to UTF-8; Cowork slots renamed RETIRED, v1.3 prompt recorded above. |
 | 2026-11-11 | RCA of the 11-10 stop (4 sent, 9 click timeouts, 3 no-Connect, 5-in-a-row guard) and the 11-11 Cowork denial. Sender: Messaging panel hidden by CSS, header settle wait, stable-box + guarded dispatched click (benign covers only), full Playwright reason logged, finer retry notes, header = section with the h1, Connect also as link / in portaled dropdowns, one reload-retry per UI failure, split stop streaks (3 block / 10 UI), HTTP 429/999 stop, debug captures, confirm window restarts after Send, budget 165 → 160 min. 6 new fixtures. Cowork slots stay disabled: the 11-11 run was a manual fire of the disabled 08:00 slot (v1.2 runbook). |

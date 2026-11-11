@@ -26,6 +26,7 @@ import os
 import random
 import re
 import smtplib
+import subprocess
 import sys
 import time
 from dataclasses import dataclass, field
@@ -79,6 +80,20 @@ POLL_MS = 250
 SMTP_HOST, SMTP_PORT = "smtp.gmail.com", 587
 TASK_NAME = "LinkedIn connect send"  # the one Windows scheduled task (`setup` registers it)
 TASK_TIME = "10:00"
+# Operator order 2026-11-11 ("it has to run by itself"): two catch-up starts the same day. A day that already
+# emailed is a no-op (marker), so they only matter when 10:00 never ran (PC off/asleep) or failed before
+# emailing (Chrome busy, crash). Setup failures are emailed only by the last start, so still one email a day.
+CATCHUP_TIMES = ("12:00", "14:00")
+TASK_TIMES = (TASK_TIME,) + CATCHUP_TIMES
+# Self-update (2026-11-11): every scheduled run first refreshes the job's own files from origin/main, so a
+# fix pushed to the repo reaches the laptop without anyone touching it. Off: LINKEDIN_CONNECT_NO_UPDATE=1.
+JOB_FILES = ("execution/personal_workflows/linkedin_connect_send.py",
+             "execution/personal_workflows/linkedin_connect_queue.py",
+             "execution/personal_workflows/linkedin_connect_setup.cmd",
+             "LC fail.cmd")
+FIX_WORD = "LC fail"  # the one thing the operator says (to Claude) or double-clicks when a day goes wrong
+HUMAN_FIX_STOPS = ("not logged in", "Chrome not available", "playwright not installed", "no master list",
+                   "run failed")
 LOGIN_WAIT_S = 600  # `login` / `setup` wait this long for the operator to sign in, then give up
 SMTP_ATTEMPTS, SMTP_RETRY_S = 3, 60
 
@@ -180,7 +195,10 @@ def marker_path(data_dir: Path, day: str) -> Path:
 
 def build_subject(day: str, n_sent: int, stop: str | None) -> str:
     s = f"LinkedIn connects {day} ({n_sent} sent)"
-    return f"{s} — STOPPED: {stop}" if stop else s
+    if not stop:
+        return s
+    hint = f" — say {FIX_WORD}" if stop.startswith(HUMAN_FIX_STOPS) else ""
+    return f"{s} — STOPPED: {stop}{hint}"
 
 
 def build_table_html(rows: list[dict]) -> str:
@@ -710,12 +728,12 @@ def cmd_run(data_dir: Path, dry_run: bool, today: dt.date | None = None) -> int:
         return 3
     if not store.master.exists():
         log.error("no master.csv in %s (run linkedin_connect_queue.py consolidate first)", data_dir)
-        return _config_stop(day, "no master list", dry_run)
+        return _config_stop(day, "no master list", dry_run, data_dir)
     try:
         import playwright.sync_api  # noqa: F401
     except ImportError:
         log.error("playwright not installed: py -m pip install playwright")
-        return _config_stop(day, "playwright not installed", dry_run)
+        return _config_stop(day, "playwright not installed", dry_run, data_dir)
     q_age = Q._lock_age_min(store)  # the retired Cowork routine's lock: honour it, never take it
     if (q_age is not None and q_age <= Q.LOCK_TTL_MIN) or not acquire_lock(data_dir):
         log.info("another run holds the lock; exiting without sending")
@@ -763,9 +781,32 @@ def release_lock(data_dir: Path) -> None:
             path.unlink()
 
 
-def _config_stop(day: str, reason: str, dry_run: bool) -> int:
+def later_start_today(now: dt.datetime | None = None, catchups_registered: bool | None = None) -> bool:
+    """True when a catch-up start of the scheduled task is still ahead today (so a setup failure now is
+    retried, not emailed yet)."""
+    now = now or dt.datetime.now()
+    if catchups_registered is None:
+        catchups_registered = task_has_catchups()
+    return bool(catchups_registered) and now.time() < dt.time.fromisoformat(TASK_TIMES[-1])
+
+
+def write_status(data_dir: Path, text: str) -> None:
+    """Machine channel (never emailed): the last run's outcome."""
+    try:
+        (data_dir / "status.md").write_text(text + "\n", encoding="utf-8")
+    except OSError as exc:  # status is advice: a locked file never fails the run
+        log.warning("status.md not written: %s", exc)
+
+
+def _config_stop(day: str, reason: str, dry_run: bool, data_dir: Path | None = None) -> int:
     """A setup problem found before the browser opens: email it (no marker, so a rerun after the fix
-    still sends today) instead of exiting silently. Always exit 3."""
+    still sends today) instead of exiting silently. Always exit 3. If a catch-up start is still ahead
+    today, the email waits for it (one email a day)."""
+    if not dry_run and later_start_today():
+        log.warning("STOPPED: %s; not emailing yet, the next catch-up start retries", reason)
+        if data_dir is not None:
+            write_status(data_dir, f"{dt.datetime.now():%Y-%m-%d %H:%M} deferred: {reason}")
+        return 3
     deliver(build_subject(day, 0, reason), build_table_html([]), day, dry_run)
     return 3
 
@@ -793,10 +834,17 @@ def _run_locked(data_dir: Path, store: Q.Store, day: str, dry_run: bool) -> int:
         code = 2
     subject = build_subject(day, len(rows), stop)
     log.info("subject: %s", subject)
+    if code == 3 and not dry_run and not rows and later_start_today():
+        log.warning("%s; not emailing yet, the next catch-up start retries", subject)
+        write_status(data_dir, f"{dt.datetime.now():%Y-%m-%d %H:%M} deferred: {subject}")
+        return 3
     if not deliver(subject, build_table_html(rows), day, dry_run):
+        write_status(data_dir, f"{dt.datetime.now():%Y-%m-%d %H:%M} email NOT delivered: {subject}")
         return 3
     if not dry_run and code != 3:  # a setup failure (Chrome missing, crash) must not block a same-day rerun
         marker_path(data_dir, day).write_text(subject + "\n", encoding="utf-8")
+    if not dry_run:
+        write_status(data_dir, f"{dt.datetime.now():%Y-%m-%d %H:%M} exit {code}: {subject}")
     return code
 
 
@@ -862,7 +910,8 @@ def task_script(python_exe: str, script: Path, repo: Path, start: bool) -> str:
     lines = [
         f"$a = New-ScheduledTaskAction -Execute {_ps_quote(python_exe)} -Argument {_ps_quote(action_args)}"
         f" -WorkingDirectory {_ps_quote(str(repo))}",
-        f"$t = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday,Tuesday,Thursday,Friday,Saturday -At {TASK_TIME}",
+        "$t = @(" + ", ".join("(New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday,Tuesday,Thursday,Friday,Saturday"
+                             f" -At {t})" for t in TASK_TIMES) + ")",
         "$s = New-ScheduledTaskSettingsSet -StartWhenAvailable -WakeToRun -MultipleInstances IgnoreNew -AllowStartIfOnBatteries"
         " -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Hours 3)",
         '$p = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\\$env:USERNAME" -LogonType Interactive',
@@ -920,6 +969,74 @@ def cmd_setup(data_dir: Path, start: bool) -> int:
     return 0
 
 
+def _git(args: list[str], timeout: int = 90) -> subprocess.CompletedProcess:
+    return subprocess.run(["git", "-C", str(REPO), *args], capture_output=True, timeout=timeout)  # noqa: S603,S607 fixed argv
+
+
+def self_update() -> bool:
+    """Refresh JOB_FILES from origin/main. Fail-open: any problem keeps the current files. A .py is only
+    swapped in if it compiles. True = at least one file changed (the caller re-launches once)."""
+    if os.environ.get("LINKEDIN_CONNECT_NO_UPDATE") or not (REPO / ".git").exists():
+        return False
+    try:
+        fetch = _git(["fetch", "--quiet", "origin", "main"])
+        if fetch.returncode != 0:
+            log.warning("self-update: git fetch failed: %s", fetch.stderr.decode("utf-8", "replace").strip()[:300])
+            return False
+        changed = []
+        for rel in JOB_FILES:
+            show = _git(["show", f"origin/main:{rel}"], timeout=30)
+            if show.returncode != 0:
+                continue  # not on main (yet): keep what we have
+            new, path = show.stdout, REPO / rel
+            old = path.read_bytes() if path.exists() else b""
+            if new.replace(b"\r\n", b"\n") == old.replace(b"\r\n", b"\n"):
+                continue
+            if rel.endswith(".py"):
+                compile(new, rel, "exec")  # SyntaxError -> except below: keep the current file
+            tmp = path.with_name(path.name + ".update")
+            tmp.write_bytes(new)
+            os.replace(tmp, path)
+            changed.append(rel)
+        if changed:
+            log.info("self-update: refreshed %s from origin/main", ", ".join(changed))
+        return bool(changed)
+    except (OSError, subprocess.SubprocessError, SyntaxError, ValueError) as exc:  # fail-open; logged
+        log.warning("self-update skipped: %s: %s", type(exc).__name__, exc)
+        return False
+
+
+def _powershell(ps: str, timeout: int = 60) -> subprocess.CompletedProcess:
+    return subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", ps],  # noqa: S603,S607 fixed argv
+                          capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout)
+
+
+def task_has_catchups() -> bool:
+    """Windows: the task exists with every TASK_TIMES trigger and WakeToRun. False elsewhere / on error."""
+    if os.name != "nt":
+        return False
+    ps = (f"$t = Get-ScheduledTask -TaskName {_ps_quote(TASK_NAME)} -ErrorAction SilentlyContinue; "
+          "if ($t) { '' + $t.Triggers.Count + '|' + $t.Settings.WakeToRun } else { 'missing' }")
+    try:
+        out = _powershell(ps).stdout.strip()
+    except (OSError, subprocess.SubprocessError) as exc:  # cannot tell: assume not, so failures still email
+        log.debug("task query failed: %s", exc)
+        return False
+    return out == f"{len(TASK_TIMES)}|True"
+
+
+def ensure_task() -> None:
+    """Windows, end of a run: re-register the task if it predates the catch-up starts or WakeToRun (no
+    login, no start). Fail-open: a failure only means the old schedule keeps running."""
+    if os.name != "nt" or task_has_catchups():
+        return
+    try:
+        res = _powershell(task_script(str(Path(sys.executable).resolve()), Path(__file__).resolve(), REPO, False), 120)
+        log.info("task re-registered with catch-up starts: %s", (res.stdout or res.stderr).strip()[:200])
+    except (OSError, subprocess.SubprocessError) as exc:
+        log.warning("task re-register failed: %s", exc)
+
+
 def doctor_report(data_dir: Path, today: dt.date, task_info: str | None) -> str:
     """Why did (or didn't) today run? Read-only: marker, lock, last log lines, Windows task state."""
     day = today.isoformat()
@@ -973,6 +1090,21 @@ def cmd_doctor(data_dir: Path) -> int:
     return 0
 
 
+def cmd_fix(data_dir: Path) -> int:
+    """`LC fail`: show what went wrong, pull the latest job files, then the same as setup --start (sign-in
+    only if LinkedIn logged the profile out, re-register the task, start today's run; a day that already
+    emailed stays a no-op)."""
+    print(doctor_report(data_dir, dt.date.today(), _task_info()))
+    if os.name != "nt":
+        print(f"\n{FIX_WORD}: this must run on the Windows laptop (double-click '{FIX_WORD}.cmd' in the repo folder).")
+        return 3
+    _setup_logging(data_dir)
+    self_update()
+    print("\nRepairing: latest job files, LinkedIn sign-in if needed, scheduled task, today's run...")
+    return subprocess.run([sys.executable, str(Path(__file__).resolve()), "--data-dir", str(data_dir),  # noqa: S603 own script
+                           "setup", "--start"]).returncode
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--data-dir", type=Path, default=DEFAULT_DATA_DIR,
@@ -981,12 +1113,25 @@ def main(argv: list[str] | None = None) -> int:
     r = sub.add_parser("run", help="send today's batch and email the table (no-op on rest days)")
     r.add_argument("--dry-run", action="store_true", help="no Connect/Send clicks; email written to .tmp/*.eml")
     sub.add_parser("login", help="sign in to LinkedIn in the job's Chrome profile (window closes by itself)")
+    sub.add_parser("fix", help=f"'{FIX_WORD}': diagnose, update the job files, repair login/task, start today's run")
     sub.add_parser("doctor", help="read-only: why today did or did not run (marker, lock, log, task state)")
     st = sub.add_parser("setup", help="Windows, once: login if needed, register the scheduled task")
     st.add_argument("--start", action="store_true", help="also start the task now (today's run)")
     a = ap.parse_args(argv)
     if a.cmd == "run":
-        return cmd_run(a.data_dir, a.dry_run)
+        if not a.dry_run and not os.environ.get("LINKEDIN_CONNECT_UPDATED"):
+            _setup_logging(a.data_dir)
+            if self_update():  # re-launch once so this run already uses the fixed code
+                env = dict(os.environ, LINKEDIN_CONNECT_UPDATED="1")
+                return subprocess.run([sys.executable, str(Path(__file__).resolve()), *(argv or sys.argv[1:])],  # noqa: S603 own script
+                                      env=env).returncode
+        try:
+            return cmd_run(a.data_dir, a.dry_run)
+        finally:
+            if not a.dry_run:
+                ensure_task()
+    if a.cmd == "fix":
+        return cmd_fix(a.data_dir)
     if a.cmd == "doctor":
         return cmd_doctor(a.data_dir)
     if a.cmd == "setup":
