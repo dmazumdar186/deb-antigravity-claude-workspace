@@ -834,7 +834,7 @@ def _run_locked(data_dir: Path, store: Q.Store, day: str, dry_run: bool) -> int:
         code = 2
     subject = build_subject(day, len(rows), stop)
     log.info("subject: %s", subject)
-    if code == 3 and not dry_run and not rows and later_start_today():
+    if code == 3 and not dry_run and later_start_today():  # sent rows too: the last start emails them all
         log.warning("%s; not emailing yet, the next catch-up start retries", subject)
         write_status(data_dir, f"{dt.datetime.now():%Y-%m-%d %H:%M} deferred: {subject}")
         return 3
@@ -965,17 +965,21 @@ def cmd_setup(data_dir: Path, start: bool) -> int:
     if res.returncode != 0:
         print(res.stderr.strip(), file=sys.stderr)
         return 3
-    print(f"Task '{TASK_NAME}' runs Mon Tue Thu Fri Sat at {TASK_TIME}; each run emails one table.")
+    print(f"Task '{TASK_NAME}' runs Mon Tue Thu Fri Sat at {', '.join(TASK_TIMES)} (later starts only catch up a "
+          "missed or failed day); one table email per day.")
     return 0
 
 
 def _git(args: list[str], timeout: int = 90) -> subprocess.CompletedProcess:
+    # bytes on purpose (subprocess-encoding rule does not apply): text mode would turn the .cmd files' CRLF into
+    # LF; every caller decodes explicitly with errors="replace"
     return subprocess.run(["git", "-C", str(REPO), *args], capture_output=True, timeout=timeout)  # noqa: S603,S607 fixed argv
 
 
-def self_update() -> bool:
+def self_update(skip: tuple[str, ...] = ()) -> bool:
     """Refresh JOB_FILES from origin/main. Fail-open: any problem keeps the current files. A .py is only
-    swapped in if it compiles. True = at least one file changed (the caller re-launches once)."""
+    swapped in if it compiles; every new file is staged first and only then are all swapped (no half-new
+    set). skip: files not to touch (the .cmd that is running us). True = something changed (re-launch)."""
     if os.environ.get("LINKEDIN_CONNECT_NO_UPDATE") or not (REPO / ".git").exists():
         return False
     try:
@@ -983,8 +987,10 @@ def self_update() -> bool:
         if fetch.returncode != 0:
             log.warning("self-update: git fetch failed: %s", fetch.stderr.decode("utf-8", "replace").strip()[:300])
             return False
-        changed = []
+        staged: list[tuple[Path, Path]] = []
         for rel in JOB_FILES:
+            if rel in skip:
+                continue
             show = _git(["show", f"origin/main:{rel}"], timeout=30)
             if show.returncode != 0:
                 continue  # not on main (yet): keep what we have
@@ -993,16 +999,21 @@ def self_update() -> bool:
             if new.replace(b"\r\n", b"\n") == old.replace(b"\r\n", b"\n"):
                 continue
             if rel.endswith(".py"):
-                compile(new, rel, "exec")  # SyntaxError -> except below: keep the current file
+                compile(new, rel, "exec")  # SyntaxError -> except below: nothing is swapped
             tmp = path.with_name(path.name + ".update")
-            tmp.write_bytes(new)
+            tmp.write_bytes(new)  # the blob's own bytes (CRLF .cmd stays CRLF)
+            staged.append((tmp, path))
+        for tmp, path in staged:
             os.replace(tmp, path)
-            changed.append(rel)
+        changed = [str(path.relative_to(REPO)) for _, path in staged]
         if changed:
             log.info("self-update: refreshed %s from origin/main", ", ".join(changed))
         return bool(changed)
     except (OSError, subprocess.SubprocessError, SyntaxError, ValueError) as exc:  # fail-open; logged
         log.warning("self-update skipped: %s: %s", type(exc).__name__, exc)
+        for rel in JOB_FILES:  # drop half-written staging files; the working files are untouched
+            with contextlib.suppress(OSError):  # nothing staged for this one
+                (REPO / rel).with_name(Path(rel).name + ".update").unlink()
         return False
 
 
@@ -1099,7 +1110,7 @@ def cmd_fix(data_dir: Path) -> int:
         print(f"\n{FIX_WORD}: this must run on the Windows laptop (double-click '{FIX_WORD}.cmd' in the repo folder).")
         return 3
     _setup_logging(data_dir)
-    self_update()
+    self_update(skip=(f"{FIX_WORD}.cmd",))  # cmd.exe is executing that file right now: never rewrite it
     print("\nRepairing: latest job files, LinkedIn sign-in if needed, scheduled task, today's run...")
     return subprocess.run([sys.executable, str(Path(__file__).resolve()), "--data-dir", str(data_dir),  # noqa: S603 own script
                            "setup", "--start"]).returncode

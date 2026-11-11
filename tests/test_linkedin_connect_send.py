@@ -838,3 +838,42 @@ def test_fix_off_windows_says_where_to_run_it(tmp_path, monkeypatch, capsys):
 def test_lc_fail_cmd_is_crlf_and_calls_fix():
     raw = (ROOT / "LC fail.cmd").read_bytes()
     assert b"\r\n" in raw and b"linkedin_connect_send.py\" fix" in raw and "LC fail.cmd" in S.JOB_FILES
+
+
+def test_crash_after_some_sends_defers_so_the_day_has_one_email(tmp_path, monkeypatch, browser):
+    """Audit 2026-11-11: a 10:00 run that sent then crashed emailed AND left no marker -> the 12:00 catch-up
+    emailed again. Now the crash defers; the catch-up sends the cumulative table once."""
+    _patch_browser(monkeypatch, browser)
+    _smtp_env(monkeypatch, _FakeSMTP)
+    _FakeSMTP.sent = []
+    seed(tmp_path, [("a", "connect_header.html"), ("b", "connect_header.html")])
+    real_run_day = S.run_day
+    def crash_after_one(page, store, day, dry_run=False, **k):
+        S._quiet(Q.cmd_mark, store, "a", "sent", "", None)
+        raise RuntimeError("boom")
+    monkeypatch.setattr(S, "run_day", crash_after_one)
+    monkeypatch.setattr(S, "later_start_today", lambda *a, **k: True)
+    assert S.cmd_run(tmp_path, dry_run=False, today=MON) == 3 and _FakeSMTP.sent == []
+    monkeypatch.setattr(S, "run_day", real_run_day)  # 12:00 catch-up: healthy
+    assert S.cmd_run(tmp_path, dry_run=False, today=MON) == 0
+    assert [_subject(m) for m in _FakeSMTP.sent] == ["LinkedIn connects 2026-11-02 (2 sent)"]
+
+
+def test_self_update_skips_the_running_cmd_and_swaps_all_or_nothing(tmp_path, monkeypatch):
+    import subprocess
+    a, b = S.JOB_FILES[0], S.JOB_FILES[1]
+    origin, clone = _git_repo(tmp_path, {a: b"A = 1\n", b: b"B = 1\n", "LC fail.cmd": b"@echo off\r\n"})
+    monkeypatch.setattr(S, "REPO", clone)
+    monkeypatch.setattr(S, "JOB_FILES", (a, b, "LC fail.cmd"))
+    monkeypatch.delenv("LINKEDIN_CONNECT_NO_UPDATE", raising=False)
+    (origin / a).write_bytes(b"A = 2\n"); (origin / b).write_bytes(b"def broken(:\n")
+    (origin / "LC fail.cmd").write_bytes(b"@echo off\r\nrem new\r\n")
+    subprocess.run(["git", "commit", "-qam", "y"], cwd=origin, check=True, capture_output=True)
+    assert S.self_update() is False  # b does not compile -> nothing swapped, not even a
+    assert (clone / a).read_bytes() == b"A = 1\n" and not list(clone.rglob("*.update"))
+    (origin / b).write_bytes(b"B = 2\n")
+    subprocess.run(["git", "commit", "-qam", "z"], cwd=origin, check=True, capture_output=True)
+    assert S.self_update(skip=("LC fail.cmd",)) is True
+    assert (clone / a).read_bytes() == b"A = 2\n" and (clone / b).read_bytes() == b"B = 2\n"
+    assert (clone / "LC fail.cmd").read_bytes() == b"@echo off\r\n"  # the running .cmd is never rewritten
+    assert S.self_update() is True and (clone / "LC fail.cmd").read_bytes() == b"@echo off\r\nrem new\r\n"
