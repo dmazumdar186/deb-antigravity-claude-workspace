@@ -1,0 +1,10 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Jane Doe | LinkedIn</title><script src="common.js"></script></head>
+<body><nav><a href="#">Home</a> <a href="#">My Network</a></nav>
+<main><section class="top-card"><h1>Jane Doe</h1><span>· 2nd</span><div id="actions"><button>Message</button><button>Follow</button><button aria-label="More actions">More</button></div></section></main>
+<aside><h2>People also viewed</h2><button data-other aria-label="Invite Other Person to connect">Connect</button></aside>
+<script>
+setTimeout(() => {
+  document.querySelector('#actions').outerHTML = '<div id="actions"><button>Follow</button><button>Message</button><button id="more" aria-label="More actions">More</button><div role="menu" id="menu" hidden><div role="button" aria-label="Send profile in a message">Send profile</div><div role="button" data-connect aria-label="Invite Jane Doe to connect">Connect</div></div></div>';
+  wire('Jane Doe', 'ok');
+}, 700);
+</script></body></html>

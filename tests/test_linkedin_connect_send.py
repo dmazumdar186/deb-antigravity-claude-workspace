@@ -43,6 +43,7 @@ def _fast_and_isolated(monkeypatch, tmp_path):
     monkeypatch.setattr(S, "CONFIRM_TIMEOUT_MS", 3_000)
     monkeypatch.setattr(S, "RENDER_TIMEOUT_MS", 3_000)
     monkeypatch.setattr(S, "NAV_TIMEOUT_MS", 5_000)
+    monkeypatch.setattr(S, "UI_RETRY_PAUSE_S", (0, 0))
 
 
 @pytest.fixture(scope="module")
@@ -93,6 +94,12 @@ def ledger(store: Q.Store) -> dict[str, tuple[str, str]]:
     ("pending.html", "pending", ""),
     ("first_degree.html", "already_connected", ""),
     ("follow_only.html", "retry", "no_connect_button"),
+    ("no_more.html", "retry", "no_connect_button:more_missing"),
+    ("msg_overlay.html", "sent", ""),
+    ("sticky_cover.html", "sent", ""),
+    ("header_second_section.html", "sent", ""),
+    ("portaled_menu.html", "sent", ""),
+    ("rerender.html", "sent", ""),
     ("email_required.html", "skipped", "email_required"),
     ("not_found.html", "skipped", "profile_gone"),
     ("no_confirm.html", "retry", "unconfirmed"),
@@ -149,7 +156,9 @@ def test_run_day_marks_each_outcome_and_sleeps_between(page, tmp_path):
     assert res.stop is None and res.sent_run == 1 and res.processed == 5
     assert ledger(store) == {"a": ("sent", ""), "b": ("pending", ""), "c": ("retry", "no_connect_button"),
                              "d": ("skipped", "email_required"), "e": ("already_connected", "")}
-    assert len(naps) == 4 and all(45 <= n <= 120 for n in naps)
+    gaps = [n for n in naps if n >= 45]
+    assert len(gaps) == 4 and all(45 <= n <= 120 for n in gaps)
+    assert naps.count(0) == 1  # the follow-only profile was reloaded once (UI failure), with its own short pause
     assert {r["date"] for r in store.load_ledger()} == {"2026-11-02"}
 
 
@@ -167,11 +176,65 @@ def test_run_day_stops_on_weekly_limit(page, tmp_path):
     assert res.stop == "weekly invitation limit" and ledger(store) == {}
 
 
-def test_run_day_stops_after_three_consecutive_retries_incl_load_failures(page, tmp_path):
+def test_run_day_stops_after_three_consecutive_load_failures(page, tmp_path):
     store = seed(tmp_path, [(c, f"http://127.0.0.1:9/in/{c}/") for c in "abcdefg"])
     res = S.run_day(page, store, "2026-11-02", sleep=lambda s: None)
-    assert res.stop == "5 profiles in a row without Connect or confirmation" and res.processed == 5
-    assert sorted(ledger(store).values()) == [("retry", "page_load_failed")] * 5
+    assert res.stop == "3 profiles in a row did not load or confirm" and res.processed == 3
+    assert sorted(ledger(store).values()) == [("retry", "page_load_failed")] * 3
+
+
+def test_ui_failures_do_not_trip_the_block_streak(page, tmp_path):
+    """RCA 2026-11-10: five click/no-Connect retries in a row ended the day. They now neither stop it early
+    nor reset into a block stop; a sendable person after them still gets the invitation."""
+    people = [(f"f{i}", "follow_only.html") for i in range(6)] + [("ok", "connect_more.html")]
+    store = seed(tmp_path, people)
+    res = S.run_day(page, store, "2026-11-02", sleep=lambda s: None)
+    assert res.stop is None and res.sent_run == 1 and ledger(store)["ok"] == ("sent", "")
+
+
+def test_http_999_stops_the_day_and_marks_nothing(page, tmp_path):
+    page.route("**/blocked/**", lambda route: route.fulfill(status=999, body="<html><body></body></html>"))
+    store = seed(tmp_path, [("a", "https://www.linkedin.com/blocked/a/")])
+    res = S.run_day(page, store, "2026-11-02", sleep=lambda s: None)
+    assert res.stop == "HTTP 999 (LinkedIn blocked the request)" and ledger(store) == {}
+
+
+def test_debug_capture_saves_first_three_ui_failures(page, tmp_path):
+    store = seed(tmp_path, [(f"f{i}", "no_more.html") for i in range(4)])
+    S.run_day(page, store, "2026-11-02", sleep=lambda s: None, debug_dir=tmp_path / "debug")
+    files = sorted(f.name for f in (tmp_path / "debug").iterdir())
+    assert len(files) == 2 * S.DEBUG_CAPTURES_PER_RUN
+    assert files[0].startswith("2026-11-02_") and "no_connect_button-more_missing" in files[0]
+    assert all(r == ("retry", "no_connect_button:more_missing") for r in ledger(store).values())
+
+
+def test_debug_capture_prunes_old_files(tmp_path):
+    d = tmp_path / "debug"
+    d.mkdir()
+    old = d / "old.png"
+    old.write_text("x")
+    os.utime(old, (0, 0))
+    S._debug_capturer(d, "2026-11-02")
+    assert not old.exists()
+
+
+def test_more_missing_never_becomes_final(tmp_path):
+    """Only the Follow-only note counts toward no_connect_button_3x; a header we cannot read never burns people."""
+    store = seed(tmp_path, [("m", "no_more.html")])
+    for day in ("2026-10-30", "2026-10-31"):
+        store.append_ledger({"ts": f"{day}T10:00:00", "date": day, "slug": "m", "name": "M",
+                             "status": "retry", "note": "no_connect_button:more_missing"})
+    S._quiet(Q.cmd_mark, store, "m", "retry", "no_connect_button:more_missing", None)
+    assert "m" not in Q._blocked(store.load_ledger(), "2026-11-03")
+
+
+def test_click_failure_kinds():
+    assert S.click_failure_kind("<div class=x> intercepts pointer events") == "overlay_covered"
+    assert S.click_failure_kind("element is not attached to the DOM") == "detached"
+    assert S.click_failure_kind("element is not stable") == "unstable"
+    assert S.click_failure_kind("Timeout 5000ms exceeded.") == "timeout"
+    assert S.is_ui_failure("click_failed:overlay_covered") and S.is_ui_failure("no_connect_button")
+    assert not S.is_ui_failure("page_load_failed") and not S.is_ui_failure("unconfirmed")
 
 
 def test_no_connect_button_on_third_day_becomes_final(tmp_path):
@@ -329,17 +392,17 @@ def _smtp_env(monkeypatch, fake):
     monkeypatch.setattr(S, "SMTP_RETRY_S", 0)
 
 
-def test_missing_connect_everywhere_stops_after_three(tmp_path, monkeypatch, browser):
+def test_missing_connect_everywhere_stops_after_ten(tmp_path, monkeypatch, browser):
     _patch_browser(monkeypatch, browser)
     _smtp_env(monkeypatch, _FakeSMTP)
     _FakeSMTP.sent = []
-    store = seed(tmp_path, [(f"f{i}", "follow_only.html") for i in range(8)])
+    store = seed(tmp_path, [(f"f{i}", "follow_only.html") for i in range(12)])
     assert S.cmd_run(tmp_path, dry_run=False, today=MON) == 2
     rows = ledger(store)
-    assert len(rows) == 5 and all(v == ("retry", "no_connect_button") for v in rows.values())
+    assert len(rows) == S.MAX_UI_STREAK and all(v == ("retry", "no_connect_button") for v in rows.values())
     assert not any(st == "skipped" for st, _ in rows.values())
     assert _FakeSMTP.sent[0]["Subject"] == \
-        "LinkedIn connects 2026-11-02 (0 sent) — STOPPED: 5 profiles in a row without Connect or confirmation"
+        "LinkedIn connects 2026-11-02 (0 sent) — STOPPED: 10 profiles in a row without a clickable Connect"
 
 
 def test_visit_limit_and_time_budget(page, tmp_path, monkeypatch):
@@ -355,7 +418,9 @@ def test_visit_limit_and_time_budget(page, tmp_path, monkeypatch):
 
 
 def test_worst_case_run_fits_task_limit():
-    per_profile = S.GAP_SECONDS[1] + (S.NAV_TIMEOUT_MS + S.RENDER_TIMEOUT_MS + S.CONFIRM_TIMEOUT_MS) / 1000
+    one_visit = (S.NAV_TIMEOUT_MS + S.RENDER_TIMEOUT_MS + S.SETTLE_MAX_MS + S.CONFIRM_TIMEOUT_MS
+                 + 3 * (S.STABLE_MAX_MS + S.CLICK_TIMEOUT_MS)) / 1000  # More, Connect, Send
+    per_profile = S.GAP_SECONDS[1] + S.UI_RETRY_PAUSE_S[1] + 2 * one_visit  # a UI failure is visited twice
     assert S.RUN_BUDGET_S + per_profile + 90 + S.SMTP_ATTEMPTS * (4 * 30 + S.SMTP_RETRY_S) < 3 * 3600  # 90 s Chrome start; 4 socket ops x 30 s per SMTP try
 
 
@@ -548,7 +613,7 @@ def test_unsendable_people_never_stop_the_day_and_20_still_go_out(page, tmp_path
 
 
 def test_visit_ceiling_and_budget_constants():
-    assert S.VISIT_FACTOR * Q.DAILY_CAP == 100 and S.MAX_CONSECUTIVE_RETRIES == 5
+    assert S.VISIT_FACTOR * Q.DAILY_CAP == 100 and (S.MAX_BLOCK_STREAK, S.MAX_UI_STREAK) == (3, 10)
     assert S.SEND_LOCK_TTL_MIN * 60 > S.RUN_BUDGET_S + 300 + S.SMTP_ATTEMPTS * (4 * 30 + S.SMTP_RETRY_S)
 
 
@@ -558,7 +623,7 @@ def test_covered_connect_button_is_this_persons_retry_not_a_crash(page, monkeypa
                      "<div style='position:fixed;inset:0;background:#fff'></div></section></main>")
     page.goto = lambda *a, **k: None
     out = S.process_profile(page, "https://www.linkedin.com/in/a/", "a")
-    assert (out.status, out.note, out.stop) == ("retry", "click_failed", None)
+    assert (out.status, out.note, out.stop) == ("retry", "click_failed:overlay_covered", None)  # unknown cover: never clicked through
 
 
 def test_email_input_dialog_is_skipped_whatever_its_wording(page):

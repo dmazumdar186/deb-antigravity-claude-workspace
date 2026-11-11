@@ -1,0 +1,12 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Jane Doe | LinkedIn</title><script src="common.js"></script></head>
+<body><nav><a href="#">Home</a> <a href="#">My Network</a></nav>
+<main><section class="top-card"><h1>Jane Doe</h1><span>· 2nd</span><div id="actions"><button>Follow</button><button>Message</button><button id="more2" aria-label="More actions">More</button></div></section></main>
+<aside><h2>People also viewed</h2><button data-other aria-label="Invite Other Person to connect">Connect</button></aside>
+<script>
+wire('Jane Doe', 'ok');
+document.querySelector('#more2').onclick = () => {
+  const d = el('<div class="artdeco-dropdown__content"><ul><li><div role="button" aria-label="Invite Jane Doe to connect">Connect</div></li></ul></div>');
+  document.body.appendChild(d);
+  d.querySelector('[role=button]').onclick = () => { window.connectClicked = (window.connectClicked || 0) + 1; inviteFlow('Jane Doe', 'ok'); };
+};
+</script></body></html>

@@ -52,11 +52,22 @@ SEND_DAYS = (0, 1, 3, 4, 5)  # datetime.weekday(): Monday = 0
 GAP_SECONDS = (45, 120)  # random pause between profiles
 # Operator order 2026-11-05: one person who cannot be invited (email asked, Follow-only, gone) never ends the
 # day; the run keeps going until 20 are sent. Only a LinkedIn warning or a broken page/markup stops it.
-MAX_CONSECUTIVE_RETRIES = 5  # five retry outcomes in a row (no Connect / unconfirmed / page load failed) = markup or network broke -> stop
+# RCA 2026-11-11: one streak for every retry stopped 11-06 and 11-10 on click timeouts, not on LinkedIn blocks.
+# Two streaks now: a block-shaped retry (page did not load, Send not confirmed) stops fast; a UI-shaped retry
+# (click failed, no Connect found) is retried once after a reload and only a long run of them stops the day
+# (markup changed: continuing would turn hundreds of people into no_connect_button_3x).
+MAX_BLOCK_STREAK = 3  # page_load_failed / unconfirmed in a row
+MAX_UI_STREAK = 10  # click_failed* / no_connect_button* in a row (each already retried once after a reload)
+BLOCK_NOTES = ("page_load_failed", "unconfirmed")
+UI_NOTE_PREFIXES = ("click_failed", "no_connect_button")
+BLOCK_HTTP = {429: "HTTP 429 (rate limited)", 999: "HTTP 999 (LinkedIn blocked the request)"}
+UI_RETRY_PAUSE_S = (4, 9)  # pause before the one reload-and-retry of a UI failure
+DEBUG_CAPTURES_PER_RUN = 3  # screenshot + header HTML for the first N UI failures (data dir, gitignored)
+DEBUG_KEEP_DAYS = 14
 VISIT_FACTOR = 5  # visit up to 5 x cap profiles to reach the cap (a safety ceiling, not a target)
 # Typical profile ~1.6 min (83 s mean gap + load); 20 sends with a 50% skip rate ~ 65 min. The budget
 # stops a run inside the task's 3 h ExecutionTimeLimit (with email retries) even in the worst case.
-RUN_BUDGET_S = 165 * 60
+RUN_BUDGET_S = 160 * 60  # 165 -> 160 (2026-11-11): the UI reload-retry can double one profile's worst case
 SEND_LOCK_TTL_MIN = 190  # > RUN_BUDGET_S + email retries: a live run's lock is never taken over
 
 NAV_TIMEOUT_MS = 45_000
@@ -78,7 +89,17 @@ STOP_PATTERNS = (
 )
 GONE_RE = re.compile(r"this page doesn[’']t exist|page not found|profile is not available", re.I)
 EMAIL_REQUIRED_RE = re.compile(r"enter (?:their |the member[’']s |an |the |your contact[’']s )?email", re.I)
-CLICK_TIMEOUT_MS = 5_000  # a covered / detached button fails fast and becomes this person's retry
+CLICK_TIMEOUT_MS = 5_000  # Playwright actionability wait; on timeout a visible+enabled target gets a dispatched click
+SETTLE_MS, SETTLE_MAX_MS = 1_000, 4_000  # header DOM unchanged this long before we read it (SPA re-renders)
+STABLE_MS, STABLE_MAX_MS = 500, 3_000  # a button's box must hold still this long (header re-renders after load)
+# LinkedIn's docked Messaging panel sat over the header buttons in every 11-11 screenshot. Hidden by CSS in
+# our own tab only (no click, nothing sent to LinkedIn); re-applied after every navigation.
+OVERLAY_CSS = ("#msg-overlay, .msg-overlay-container, .msg-overlay-list-bubble, .msg-overlay-conversation-bubble"
+               " { display: none !important; }")
+# A covered button gets a dispatched click only when Playwright names one of these as the cover: LinkedIn's
+# own sticky chrome. Anything else on top (an interstitial without role=dialog) is never clicked through.
+BENIGN_COVER_RE = re.compile(r"msg-overlay|global-nav|artdeco-toast|scaffold-layout-toolbar|"
+                             r"pv-profile-sticky-header|artdeco-dropdown|top-card-layout__entity-info", re.I)
 FIRST_DEGREE_RE = re.compile(r"1st degree connection|·\s*1st\b", re.I)
 LOGIN_URL_RE = re.compile(r"linkedin\.com/(?:login|authwall|uas/login|signup)", re.I)
 CHECKPOINT_URL_RE = re.compile(r"linkedin\.com/checkpoint/", re.I)
@@ -92,6 +113,52 @@ SEND_NO_NOTE = re.compile(r"^Send without a note$", re.I)
 SEND_PLAIN = re.compile(r"^Send(?: now| invitation)?$", re.I)
 
 log = logging.getLogger("linkedin_connect_send")
+
+
+class ClickFailed(RuntimeError):
+    """A click that neither Playwright nor a dispatched click could deliver; .kind becomes the ledger note."""
+
+    def __init__(self, kind: str, detail: str):
+        super().__init__(detail)
+        self.kind = kind
+
+
+_CAUSE_RE = re.compile(r"intercepts pointer events|not (?:visible|stable|enabled|attached)|outside of the viewport"
+                       r"|detached|resolved to", re.I)
+
+
+def _err(exc: BaseException, limit: int = 600) -> str:
+    """Playwright's first line plus the call-log lines that say why (what intercepts, not visible, ...), on one
+    line. The call log's locator description is skipped: it is long and says nothing about the cause."""
+    lines = [ln.strip(" -") for ln in str(exc).splitlines() if ln.strip(" -")]
+    if not lines:
+        return type(exc).__name__
+    why = list(dict.fromkeys(ln for ln in lines[1:] if _CAUSE_RE.search(ln)))
+    return " | ".join([lines[0]] + why)[:limit]
+
+
+def cover_lines(message: str) -> str:
+    """Only the call-log lines naming the element that intercepts the click."""
+    return "\n".join(ln for ln in message.splitlines() if "intercepts pointer events" in ln)
+
+
+def click_failure_kind(message: str) -> str:
+    m = message.lower()
+    if "intercepts pointer events" in m:
+        return "overlay_covered"
+    if "not attached" in m or "detached" in m:
+        return "detached"
+    if "not stable" in m:
+        return "unstable"
+    if "outside of the viewport" in m:
+        return "offscreen"
+    if "not visible" in m:
+        return "hidden"
+    return "timeout"
+
+
+def is_ui_failure(note: str) -> bool:
+    return note.startswith(UI_NOTE_PREFIXES)
 
 
 # ----------------------------------------------------------------- calendar, cap, email (pure)
@@ -241,6 +308,9 @@ def top_card(page):
     main = page.locator("main").first
     if not main.count():
         return page.locator("body")
+    sec = main.locator("section").filter(has=page.locator("h1")).first  # the header, wherever it sits
+    if sec.count():
+        return sec
     sec = main.locator("section").first
     return sec if sec.count() else main
 
@@ -252,28 +322,127 @@ def canonical_slug(current_url: str, queued_slug: str) -> str | None:
 
 def _connect_in(scope):
     return _first_visible(scope.get_by_role("button", name=CONNECT_NAME).or_(
-        scope.get_by_role("menuitem", name=CONNECT_NAME)))
+        scope.get_by_role("menuitem", name=CONNECT_NAME)).or_(scope.get_by_role("link", name=CONNECT_NAME)))
 
 
-def process_profile(page, url: str, slug: str, dry_run: bool = False) -> Outcome:
-    """Open one profile, read its state, act once. Never adds a note."""
+def _open_menus(page):
+    """The More dropdown can be portaled outside the header; only a visible (open) one is ever searched."""
+    return page.locator("[role=menu], .artdeco-dropdown__content")
+
+
+def hide_overlays(page) -> None:
+    try:
+        page.add_style_tag(content=OVERLAY_CSS)
+    except Exception as exc:  # page mid-navigation: safe_click still handles a covered button; logged
+        log.debug("overlay css not applied: %s", _err(exc))
+
+
+def wait_settled(page, loc) -> bool:
+    """True once loc's HTML has not changed for SETTLE_MS (gives up after SETTLE_MAX_MS and reads it anyway).
+    LinkedIn re-renders the header after load, in a different button order per profile."""
+    last, since = None, time.monotonic()
+    deadline = since + SETTLE_MAX_MS / 1000
+    while time.monotonic() < deadline:
+        try:
+            html_now = loc.evaluate("e => e.innerHTML", timeout=1_000)
+        except Exception as exc:  # replaced mid-read: counts as a change; logged
+            log.debug("settle read failed: %s", _err(exc, 120))
+            html_now = None
+        if html_now is not None and html_now == last:
+            if time.monotonic() - since >= SETTLE_MS / 1000:
+                return True
+        else:
+            last, since = html_now, time.monotonic()
+        page.wait_for_timeout(150)
+    return False
+
+
+def _wait_stable(page, el) -> bool:
+    """True once el's bounding box has not moved for STABLE_MS (gives up after STABLE_MAX_MS)."""
+    last, since = None, time.monotonic()
+    deadline = since + STABLE_MAX_MS / 1000
+    while time.monotonic() < deadline:
+        try:
+            box = el.bounding_box(timeout=1_000)
+        except Exception as exc:  # detached during a re-render: keep polling, the click reports it; logged
+            log.debug("bounding_box failed: %s", _err(exc, 120))
+            box = None
+        if box is not None and box == last:
+            if time.monotonic() - since >= STABLE_MS / 1000:
+                return True
+        else:
+            last, since = box, time.monotonic()
+        page.wait_for_timeout(100)
+    return False
+
+
+def safe_click(page, el, what: str) -> None:
+    """Scroll into view, wait for a still box, click. If Playwright's actionability check times out, dispatch
+    the click on the element itself when it is visible and enabled, and, if something covers it, only when
+    that cover is LinkedIn's own sticky chrome (BENIGN_COVER_RE). Raises ClickFailed (full Playwright
+    message) otherwise."""
+    with contextlib.suppress(Exception):  # off-screen / detached: the click below reports the real cause
+        el.scroll_into_view_if_needed(timeout=2_000)
+    _wait_stable(page, el)
+    try:
+        el.click(timeout=CLICK_TIMEOUT_MS)
+        return
+    except Exception as exc:  # actionability timeout: classified below, never silently dropped
+        full, first = str(exc), _err(exc)
+    kind = click_failure_kind(full)
+    if kind == "overlay_covered" and not BENIGN_COVER_RE.search(cover_lines(full)):
+        raise ClickFailed(kind, f"{what}: {first}")  # unknown cover: never click through it
+    try:
+        usable = el.is_visible() and el.is_enabled()
+    except Exception as exc:  # element gone: report the original failure
+        log.debug("%s: state check failed: %s", what, _err(exc, 120))
+        usable = False
+    if not usable:
+        raise ClickFailed(kind, f"{what}: {first}")
+    log.info("%s: click blocked (%s), dispatching click: %s", what, kind, first)
+    try:
+        el.dispatch_event("click")
+    except Exception as exc:
+        raise ClickFailed(kind, f"{what}: {first} / dispatch: {_err(exc)}") from exc
+
+
+def process_profile(page, url: str, slug: str, dry_run: bool = False,
+                    on_fail: Callable[[object, str, str], None] | None = None) -> Outcome:
+    """Open one profile, read its state, act once. Never adds a note. on_fail(page, slug, note) is called on a
+    UI failure before the page is touched again (debug capture)."""
     try:
         resp = page.goto(url, wait_until="domcontentloaded", timeout=NAV_TIMEOUT_MS)
     except Exception as exc:  # timeout / net error: a retry for this person, counted toward the stop rule
-        log.warning("%s: page load failed: %s", slug, str(exc).splitlines()[0])
+        log.warning("%s: page load failed: %s", slug, _err(exc))
         return Outcome("retry", "page_load_failed")
+    if resp is not None and resp.status in BLOCK_HTTP:
+        return Outcome(stop=BLOCK_HTTP[resp.status])
+    hide_overlays(page)
     try:  # SPA: wait for the header to render a button, or for a 404 / wall / warning text
         page.locator("main button, main [role=button]").or_(page.get_by_text(RENDERED_TEXT_RE)).first.wait_for(
             state="visible", timeout=RENDER_TIMEOUT_MS)
     except Exception as exc:  # nothing rendered in time; the checks below classify what is there
         log.debug("%s: render wait ended: %s", slug, str(exc).splitlines()[0])
+    with contextlib.suppress(Exception):  # no <main> (404, wall): the checks below classify the page
+        if page.locator("main").count():
+            wait_settled(page, page.locator("main").first)
     try:
-        return _act(page, resp, slug, dry_run)
-    except Exception as exc:  # one person's overlay / detached button / odd dialog never ends the day
-        log.warning("%s: action failed: %s", slug, str(exc).splitlines()[0] if str(exc) else type(exc).__name__)
-        with contextlib.suppress(Exception):
+        out = _act(page, resp, slug, dry_run)
+    except ClickFailed as exc:
+        log.warning("%s: click failed (%s): %s", slug, exc.kind, exc)
+        out = Outcome("retry", f"click_failed:{exc.kind}", canonical=canonical_slug(page.url, slug))
+    except Exception as exc:  # one person's odd dialog / re-render never ends the day; full message logged
+        log.warning("%s: action failed: %s", slug, _err(exc))
+        out = Outcome("retry", "click_failed", canonical=canonical_slug(page.url, slug))
+    if out.status == "retry" and is_ui_failure(out.note):
+        if on_fail is not None:
+            try:
+                on_fail(page, slug, out.note)
+            except Exception as exc:  # debug capture is advice: never fails the profile; logged
+                log.debug("%s: debug capture failed: %s", slug, _err(exc))
+        with contextlib.suppress(Exception):  # closing a menu/dialog is best effort; the next goto resets the page
             page.keyboard.press("Escape")
-        return Outcome("retry", "click_failed")
+    return out
 
 
 def _act(page, resp, slug: str, dry_run: bool) -> Outcome:
@@ -292,20 +461,26 @@ def _act(page, resp, slug: str, dry_run: bool) -> Outcome:
         return Outcome("already_connected", canonical=canon)
 
     connect = _connect_in(card)
+    more = None
     if connect is None:
         more = _first_visible(card.get_by_role("button", name=MORE_NAME))
         if more is not None:
-            more.click(timeout=CLICK_TIMEOUT_MS)
+            safe_click(page, more, "More")
             page.wait_for_timeout(600)
-            connect = _connect_in(card) or _connect_in(page.get_by_role("menu"))
-    if connect is None:
-        page.keyboard.press("Escape")
-        return Outcome("retry", "no_connect_button", canonical=canon)  # not terminal: try again another day
+            connect = _connect_in(card) or _connect_in(_open_menus(page))
+    if connect is None:  # not terminal: try again another day; only the plain note counts toward _3x
+        if more is None:
+            note = "no_connect_button:more_missing"
+        elif _first_visible(card.get_by_role("button", name=re.compile(r"^Follow\b", re.I))):
+            note = "no_connect_button"  # Follow-only profile (More opened, no Connect in it)
+        else:
+            note = "no_connect_button:menu_no_connect"
+        return Outcome("retry", note, canonical=canon)
     if dry_run:
         log.info("%s: dry-run, would click %r", slug, connect.get_attribute("aria-label") or "Connect")
         page.keyboard.press("Escape")
         return Outcome(note="would_send", canonical=canon, would_send=True)
-    connect.click(timeout=CLICK_TIMEOUT_MS)
+    safe_click(page, connect, "Connect")
     return _finish_invite(page, card, slug, canon)
 
 
@@ -327,8 +502,9 @@ def _finish_invite(page, card, slug: str, canon: str | None) -> Outcome:
                 btn = _first_visible(dlg.get_by_role("button", name=SEND_NO_NOTE)) or \
                     _first_visible(dlg.get_by_role("button", name=SEND_PLAIN))
                 if btn is not None:
-                    btn.click(timeout=CLICK_TIMEOUT_MS)
-                    clicked_send = True
+                    safe_click(page, btn, "Send")
+                    clicked_send = True  # the confirm window starts now: a slow Send click must not eat it
+                    deadline = time.monotonic() + CONFIRM_TIMEOUT_MS / 1000
         page.wait_for_timeout(POLL_MS)
     log.warning("%s: no confirmation after the click", slug)
     return Outcome("retry", "unconfirmed", canonical=canon)
@@ -363,7 +539,7 @@ def plan_queue(store: Q.Store, day: str, limit: int) -> list[dict]:
 
 
 def run_day(page, store: Q.Store, day: str, dry_run: bool = False,
-            sleep: Callable[[float], None] | None = None) -> DayResult:
+            sleep: Callable[[float], None] | None = None, debug_dir: Path | None = None) -> DayResult:
     sleep = sleep or time.sleep
     cap = Q.DAILY_CAP
     max_visits = VISIT_FACTOR * cap
@@ -371,7 +547,8 @@ def run_day(page, store: Q.Store, day: str, dry_run: bool = False,
     res = DayResult()
     start_sent = len(Q._sent_on(store.load_ledger(), day))
     seen: set[str] = set()
-    retry_streak = 0
+    block_streak = ui_streak = 0
+    on_fail = _debug_capturer(debug_dir, day) if debug_dir is not None else None
     while room_left(start_sent + res.sent_run + len(res.would_send)) > 0:
         queue = [r for r in plan_queue(store, day, cap - len(res.would_send)) if r["slug"] not in seen]
         if not queue:
@@ -389,7 +566,11 @@ def run_day(page, store: Q.Store, day: str, dry_run: bool = False,
                 sleep(random.uniform(*GAP_SECONDS))
             seen.add(r["slug"])
             res.processed += 1
-            out = process_profile(page, r["linkedin_url"], r["slug"], dry_run)
+            out = process_profile(page, r["linkedin_url"], r["slug"], dry_run, on_fail)
+            if out.status == "retry" and is_ui_failure(out.note):  # reload and try this person once more
+                log.info("%s: %s, reloading for one more try", r["slug"], out.note)
+                sleep(random.uniform(*UI_RETRY_PAUSE_S))
+                out = process_profile(page, r["linkedin_url"], r["slug"], dry_run, on_fail)
             what = f"STOP {out.stop}" if out.stop else " ".join(x for x in (out.status, out.note) if x)
             log.info("%s: %s%s", r["slug"], what, f" (redirected to {out.canonical})" if out.canonical else "")
             if out.stop:
@@ -400,11 +581,39 @@ def run_day(page, store: Q.Store, day: str, dry_run: bool = False,
             if out.status and not dry_run:
                 _quiet(Q.cmd_mark, store, r["slug"], out.status, out.note, out.canonical)
                 res.sent_run += out.status == "sent"
-            retry_streak = retry_streak + 1 if out.status == "retry" else 0
-            if retry_streak >= MAX_CONSECUTIVE_RETRIES:
-                res.stop = f"{MAX_CONSECUTIVE_RETRIES} profiles in a row without Connect or confirmation"
+            block_streak = block_streak + 1 if out.status == "retry" and out.note in BLOCK_NOTES else 0
+            ui_streak = ui_streak + 1 if out.status == "retry" and is_ui_failure(out.note) else 0
+            if block_streak >= MAX_BLOCK_STREAK:
+                res.stop = f"{MAX_BLOCK_STREAK} profiles in a row did not load or confirm"
+                return res
+            if ui_streak >= MAX_UI_STREAK:
+                res.stop = f"{MAX_UI_STREAK} profiles in a row without a clickable Connect"
                 return res
     return res
+
+
+def _debug_capturer(debug_dir: Path, day: str) -> Callable[[object, str, str], None]:
+    """Save a screenshot and the header HTML for the first DEBUG_CAPTURES_PER_RUN UI failures of a run.
+    Old captures (> DEBUG_KEEP_DAYS) are pruned once. PII: lives in the gitignored data dir only."""
+    debug_dir.mkdir(parents=True, exist_ok=True)
+    cutoff = time.time() - DEBUG_KEEP_DAYS * 86400
+    for f in debug_dir.iterdir():
+        with contextlib.suppress(OSError):  # a locked file is pruned next run
+            if f.is_file() and f.stat().st_mtime < cutoff:
+                f.unlink()
+    taken: set[str] = set()
+
+    def capture(page, slug: str, note: str) -> None:
+        if slug in taken or len(taken) >= DEBUG_CAPTURES_PER_RUN:  # first visit of the first N people
+            return
+        taken.add(slug)
+        stem = debug_dir / f"{day}_{re.sub(r'[^A-Za-z0-9_-]', '_', slug)[:80]}_{note.replace(':', '-')}"
+        page.screenshot(path=str(stem.with_suffix(".png")), timeout=10_000)
+        main = page.locator("main").first
+        snippet = main.evaluate("e => e.outerHTML", timeout=5_000) if main.count() else page.content()
+        stem.with_suffix(".html").write_text(f"<!-- {page.url} -->\n{snippet[:300_000]}", encoding="utf-8")
+        log.info("%s: debug capture saved to %s.*", slug, stem.name)
+    return capture
 
 
 def remaining_people(store: Q.Store, day: str) -> int:
@@ -532,7 +741,7 @@ def _run_locked(data_dir: Path, store: Q.Store, day: str, dry_run: bool) -> int:
     code, res = 0, DayResult()
     try:
         with open_browser(data_dir) as page:
-            res = run_day(page, store, day, dry_run)
+            res = run_day(page, store, day, dry_run, debug_dir=data_dir / "debug")
     except ChromeUnavailable as exc:
         log.error("%s", exc)
         res.stop, code = "Chrome not available", 3

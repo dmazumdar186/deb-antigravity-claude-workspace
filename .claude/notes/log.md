@@ -164,3 +164,6 @@ Source: execution/gtm_client_workflows/gaia_sourcing
 test_ocr's local engine needs fitz and the Chromium render test needs a browser binary, both unavailable in this sandbox; not real regressions.
 Source: execution/gtm_client_workflows/gaia_sourcing/tests
 - [redteam_gate] instantly reads: sender_hit now flags Instantly only on /emails/reply|forward|send or /emails + HTTP write; GET list/search of /emails passes (2026-11-09). curl -f alone counts as a write (fail safe); use -fsS/--fail.
+[playwright] click timeouts: Playwright's error message is dominated by the locator description; a 600-char trim drops the "<x> intercepts pointer events" line. Classify on the full message, log only cause lines, and match a cover allowlist against the intercept lines only (the locator string can contain the same class names). (linkedin_connect_send RCA 2026-11-11)
+[playwright] a dispatched click after an actionability timeout can take 5+ s per click; restart any confirm deadline after the last click, or real successes read as "unconfirmed". (2026-11-11)
+[linkedin_connect] one retry streak for every cause stopped 11-06 and 11-10 on UI timeouts; split block-shaped (stop at 3) from UI-shaped (reload once, stop at 10). (2026-11-11)
