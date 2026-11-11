@@ -838,6 +838,8 @@ def test_fix_off_windows_says_where_to_run_it(tmp_path, monkeypatch, capsys):
 def test_lc_fail_cmd_is_crlf_and_calls_fix():
     raw = (ROOT / "LC fail.cmd").read_bytes()
     assert b"\r\n" in raw and b"linkedin_connect_send.py\" fix" in raw and "LC fail.cmd" in S.JOB_FILES
+    body = raw.split(b"\r\n(\r\n", 1)[1]
+    assert body.rstrip().endswith(b"exit /b\r\n)") and b"%ERRORLEVEL%" not in raw  # one parsed block
 
 
 def test_crash_after_some_sends_defers_so_the_day_has_one_email(tmp_path, monkeypatch, browser):
