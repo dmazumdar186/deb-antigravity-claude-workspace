@@ -148,6 +148,15 @@ def main(argv: list[str] | None = None) -> None:
     if main_total < a.min_total:
         sys.exit(f"launch gate: {main_total} main leads < --min-total {a.min_total}; source more before launching")
     uploaded_this_run = 0
+    # Company cap across ALL campaigns and runs (2026-11-11): a rebuild re-applies the 2-per-company cap only inside
+    # the new CSVs, so a top-up could add a 3rd+ person at a firm already in a live campaign (85 such leads found).
+    COMPANY_CAP = 2
+    dom = lambda e: e.lower().split("@", 1)[-1]
+    per_company: dict[str, int] = {}
+    for r in st.values():
+        for e in r.get("sent_emails", []):
+            per_company[dom(e)] = per_company.get(dom(e), 0) + 1
+    capped_out = 0
     for p in plans:
         rec = st.setdefault(p["name"], {})
         if "id" not in rec:
@@ -161,6 +170,14 @@ def main(argv: list[str] | None = None) -> None:
         L = leads(p["file"])
         done = set(rec.get("sent_emails", []))
         new = [x for x in L if x["email"].lower() not in done]
+        keep = []
+        for x in new:
+            if per_company.get(dom(x["email"]), 0) >= COMPANY_CAP:
+                capped_out += 1
+                continue
+            per_company[dom(x["email"])] = per_company.get(dom(x["email"]), 0) + 1
+            keep.append(x)
+        new = keep
         if a.max_new:
             new = new[:max(0, a.max_new - uploaded_this_run)]
         if new:
@@ -190,7 +207,7 @@ def main(argv: list[str] | None = None) -> None:
             req("POST", f"/campaigns/{rec['id']}/activate")
             rec["active"] = True
             STATE.write_text(json.dumps(st, indent=1))
-        print(p["name"], rec.get("expected"), rec.get("uploaded"), "active" if rec.get("active") else "draft")
+        print(f"[company cap so far: {capped_out} leads held back]", p["name"], rec.get("expected"), rec.get("uploaded"), "active" if rec.get("active") else "draft")
 
 
 if __name__ == "__main__":
