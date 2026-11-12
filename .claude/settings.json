@@ -192,7 +192,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/note-taker.sh\" \"$CLAUDE_TOOL_INPUT_FILE_PATH\"",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/note-taker.sh\"",
             "async": true
           }
         ]
@@ -202,7 +202,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/format-python.sh\" \"$CLAUDE_TOOL_INPUT_FILE_PATH\""
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/format-python.sh\""
           }
         ]
       },
@@ -221,7 +221,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/documenter-prompt.sh\" \"$CLAUDE_TOOL_INPUT_FILE_PATH\"",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/documenter-prompt.sh\"",
             "async": true
           }
         ]

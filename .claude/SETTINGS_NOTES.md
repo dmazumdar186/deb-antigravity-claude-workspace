@@ -426,6 +426,13 @@ Verified: 27/32 scripts with tests pass and the other 5 fail the same way under 
 and google-genai in cloud; cv_builder fails on its own). 15 edge cases pass. anneal-reviewer: PASS; its 4 MEDIUM
 findings were fixed. Cloud containers have no pytest until `pip install pytest`, and the hook stays silent until then.
 
-**Found while building it:** `format-python.sh`, `note-taker.sh` and `documenter-prompt.sh` take
-`"$CLAUDE_TOOL_INPUT_FILE_PATH"` as `$1`. Claude Code doesn't set that variable (hooks get JSON on stdin), so all three are
-silent no-ops. Probe 2026-11-12: a Write of `x=1` with black installed stayed `x=1`. Fix them by reading `tool_input.file_path` from stdin.
+**Found while building it, fixed the same day:** `format-python.sh`, `note-taker.sh` and `documenter-prompt.sh` read
+`$CLAUDE_TOOL_INPUT_FILE_PATH`, which Claude Code never sets, so they were silent no-ops. They are now thin wrappers over
+`.claude/hooks/_post_edit.py` (format | note | documenter), which reads the hook JSON from stdin.
+- format: black `--line-ranges` covers only the lines of an Edit's `new_string` (488 of 539 `execution/` files aren't
+  black-formatted, so formatting the whole file would bury every edit in noise). A Write formats the whole file. A pure
+  deletion, a syntax error, an AM-locked path or `.anneal/` is left alone. ruff `--range` is the fallback.
+- note / documenter: a one-line additionalContext once per file per session (plain stdout was discarded anyway).
+  Ledgers are `.tmp/hook_reminders_{note,documenter}.json`, written atomically.
+Verified with 19 behaviour cases. anneal-reviewer: PASS; its MEDIUM/LOW findings were fixed, except the race between a
+parallel edit and the format of the same file (tiny window; black writes all or nothing).

@@ -1,52 +1,12 @@
 #!/bin/bash
-# documenter-prompt.sh
-# PostToolUse hook: fires after Edit|Write on execution/**/*.py files.
-# Reminds Claude to spawn the Documenter sub-agent to sync the corresponding
-# directive. This is a REMINDER only — it never spawns the agent automatically
-# (that would consume tokens on every edit).
-#
-# Configured in .claude/settings.json as an async PostToolUse hook.
-# Always exits 0 — must never block edits.
-
-set +e
-
-FILE_PATH="${1:-$CLAUDE_TOOL_INPUT_FILE_PATH}"
-
-# Only fire for Python files under execution/
-if [[ "$FILE_PATH" != *.py ]]; then
-  exit 0
-fi
-
-if [[ "$FILE_PATH" != *"execution/"* ]] && [[ "$FILE_PATH" != *"execution\\"* ]]; then
-  exit 0
-fi
-
-# Skip AM-locked paths (safety belt)
-lower_path="${FILE_PATH,,}"
-for pattern in "accessory" "hedgestone" "elite-broker" "elitebrokergroup"; do
-  if [[ "$lower_path" == *"$pattern"* ]]; then
+# documenter-prompt.sh — PostToolUse(Edit|Write) hook: reminds Claude once per file per session to sync the directive.
+# Body: _post_edit.py documenter (reads the hook JSON on stdin; an optional $1 path overrides it).
+# Picks the first Python that runs (python3 / python / py). Fails open: always exit 0.
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+for c in python3 python py; do
+  if command -v "$c" >/dev/null 2>&1 && "$c" -c "" >/dev/null 2>&1; then
+    "$c" "$DIR/_post_edit.py" documenter "${1:-}"
     exit 0
   fi
 done
-
-echo ""
-echo "╔══════════════════════════════════════════════════════════════════╗"
-echo "║  DOCUMENTER REMINDER                                              ║"
-echo "║  execution/ script was edited — sync the directive next.         ║"
-echo "╠══════════════════════════════════════════════════════════════════╣"
-echo "║  File: $FILE_PATH"
-echo "╠══════════════════════════════════════════════════════════════════╣"
-echo "║  Spawn this sub-agent when done with the script:                 ║"
-echo "║                                                                   ║"
-echo "║  Agent(                                                           ║"
-echo "║    subagent_type='general-purpose',                               ║"
-echo "║    description='Sync directive after script edit',               ║"
-echo "║    prompt=(                                                       ║"
-echo "║      'Read directives/subagent/documenter.md and follow its      ║"
-echo "║       instructions. Script updated: [NAME]. Changes: [DESC]'     ║"
-echo "║    )                                                              ║"
-echo "║  )                                                                ║"
-echo "╚══════════════════════════════════════════════════════════════════╝"
-echo ""
-
 exit 0
