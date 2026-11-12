@@ -120,7 +120,8 @@ def assert_independent() -> None:
 
 
 def label_key(prompt: str, les: brain.Lesson) -> str:
-    return f"{JUDGE_MODEL}|{sha(prompt)}|{les.id}|{sha(les.rule, 8)}"
+    # The judge's instructions are part of the key: changing JUDGE_SYSTEM relabels everything.
+    return f"{JUDGE_MODEL}|{sha(JUDGE_SYSTEM, 6)}|{sha(prompt)}|{les.id}|{sha(les.rule, 8)}"
 
 
 def load_labels() -> dict[str, float]:
@@ -257,6 +258,7 @@ def benchmark_metrics(
         "n_ret": tp + fp, "n_rel": tp + fn, "n_neg": neg_prompts,
         "prompts": len(bench), "relevant_pairs": rel_total,
         "n_missed": fn, "n_missed_noncore": len(misses), "n_noise": len(noise),
+        "n_missed_on_negatives": sum(1 for _, _, lid in misses if "author negative" in lid),
         "top_misses": [f"{b}->{lid} (judge {p:.2f})" for p, b, lid in misses[:8]],
         "top_noise": [f"{b}->{lid}" for b, lid in noise[:8]],
         "_all_misses": [f"{b}->{lid} (judge {p:.2f})" for p, b, lid in misses],
@@ -674,12 +676,13 @@ def run(label: bool, dry_run: bool, acks: list[str] | None = None,
     body = render(row, prev, faults, spend, bm)
     row["report_sha"] = sha(body)
     row["row_hash"] = row_hash(row)
-    report = body + f"\nhistory row {row['row_hash']} (prev {row['prev_hash']})\n"
+    report = body  # the chain hash lives in history.jsonl, not in the operator's report
     if not dry_run:
         eval_dir().mkdir(parents=True, exist_ok=True)
-        (eval_dir() / "labels.json").write_text(
-            json.dumps(labels, sort_keys=True, indent=0) + "\n", encoding="utf-8"
-        )
+        live_keys = {label_key(pr, x) for pr in prompts for x in act}
+        (eval_dir() / "labels.json").write_text(  # keep only labels the current benchmark x lessons use
+            json.dumps({k2: v for k2, v in labels.items() if k2 in live_keys}, sort_keys=True, indent=0) + "\n",
+            encoding="utf-8")
         if not (eval_dir() / "thresholds.json").exists():
             (eval_dir() / "thresholds.json").write_text(
                 json.dumps(DEFAULT_THRESHOLDS, indent=2) + "\n", encoding="utf-8"
@@ -737,19 +740,23 @@ def render(
     lines += [
         "", "## Evidence", "",
         f"- Benchmark misses ({min(8, k.get('n_missed_noncore', 0))} of {k.get('n_missed_noncore', 0)} misses outside "
-        f"the core; {k.get('n_missed', 0)} of {k.get('n_rel', 0)} relevant pairs not retrieved): "
+        f"the core; {k.get('n_missed', 0)} of {k.get('n_rel', 0)} relevant pairs not retrieved, "
+        f"{k.get('n_missed_on_negatives', 0)} of them on author-negative prompts where the judge disagreed with the author): "
         f"{', '.join(k.get('top_misses', [])) or 'none'}",
         f"- Benchmark noise (first {min(8, k.get('n_noise', 0))} of {k.get('n_noise', 0)} shown-but-irrelevant pairs): "
         f"{', '.join(k.get('top_noise', [])) or 'none'}",
-        f"- Repeat mistakes, never shown: {', '.join(k.get('repeat_never_shown', [])) or 'none'}; "
-        f"shown and ignored: {', '.join(k.get('repeat_shown_ignored', [])) or 'none'}",
+        (f"- Repeat mistakes: unmeasured ({k.get('corrections', 0)} corrections in {k.get('turns_logged', 0)} logged turns)"
+         if not k.get("corrections") else
+         f"- Repeat mistakes, never shown: {', '.join(k.get('repeat_never_shown', [])) or 'none'}; "
+         f"shown and ignored: {', '.join(k.get('repeat_shown_ignored', [])) or 'none'}"),
         f"- Added: {', '.join(k.get('added', [])) or 'none'}; strengthened: "
         f"{', '.join(k.get('strengthened', [])) or 'none'}; retired: {', '.join(k.get('retired', [])) or 'none'}",
         f"- Sources unverifiable in this clone: {len(k.get('source_unverifiable', []))}",
         f"- Judge: {spend.get('calls', 0)} {JUDGE_MODEL} calls this run; {spend.get('pairs_cached', 0)} of "
-        f"{spend.get('pairs_total', 0)} benchmark pairs served from labels.json, every key labelled by {JUDGE_MODEL}. "
-        f"Retriever replay: {spend.get('jev_calls', 0)} Jev calls; total run spend_usd {row.get('spend_usd')} (Jev; the "
-        f"judge runs on the subscription).",
+        f"{spend.get('pairs_total', 0)} benchmark pairs were already labelled before this run (by {JUDGE_MODEL} with the "
+        f"current judge instructions), the rest labelled now. "
+        f"Retriever replay: {spend.get('jev_calls', 0)} Jev calls; total run spend_usd {row.get('spend_usd')} (Jev only; "
+        f"judge calls run on the subscription and are not metered).",
         "", "## Standing caveats", "",
         f"- The judge is {JUDGE_MODEL}, never the Jev retriever it grades. judge_sanity (above) is its agreement with "
         "the author on negative prompts; a low value makes every benchmark number suspect.",

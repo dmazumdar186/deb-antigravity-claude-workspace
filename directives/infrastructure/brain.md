@@ -25,7 +25,7 @@ Hook `additionalContext` (session start / prompt) or a one-time Stop `block`; le
 
 Every hook fails open (exit 0, no output). Without Jev the per-prompt path is keyword-only and offline.
 
-**Measured, not assumed:** `brain_eval.py` scores this weekly with an independent judge (Claude Sonnet). Baseline 2026-11-12: hybrid F1 0.56 against keyword-only 0.23. See `directives/infrastructure/brain_eval.md`.
+**Measured, not assumed:** `brain_eval.py` scores this weekly with an independent judge (Claude Sonnet). Baseline 2026-11-12: hybrid F1 0.52 against keyword-only 0.24 See `directives/infrastructure/brain_eval.md`.
 
 ## Learning loop
 
