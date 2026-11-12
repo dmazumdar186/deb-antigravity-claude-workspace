@@ -19,10 +19,13 @@ Hook `additionalContext` (session start / prompt) or a one-time Stop `block`; le
 | Moment | Hook | What enters context | Cost bound |
 |---|---|---|---|
 | Session start | `SessionStart` → `brain.sh start` | the **core**: lessons with strength ≥ 3, plus the capture instruction and a one-line upkeep flag when due | ≤ 12 lessons / 2,200 chars, once per session |
-| Every prompt | `UserPromptSubmit` → `brain.sh prompt` | up to 3 lessons whose **triggers** match the prompt (offline keyword scoring: whole words, no network), each lesson at most once per session; a capture reminder if the prompt reads like a correction | ≤ 900 chars, usually 0. Notifications and agent reports are skipped |
+| Every prompt | `UserPromptSubmit` → `brain.sh prompt` | up to 3 lessons from a **hybrid retriever**: keyword triggers (offline, whole words, plurals folded) plus one Jev relevance call over every lesson (p ≥ 0.6, 3.5 s timeout, daily cap $0.25, skipped under `/jev off`). Agreement ranks first. Each lesson appears at most once per session; a capture reminder is added when the prompt reads like a correction | ≤ 900 chars, usually 0; about $0.0002 per prompt. Notifications and agent reports are skipped |
 | End of turn | `Stop` → `brain.sh stop` | blocks **once** if the assistant admitted a miss ("my mistake", "nice catch", "I overlooked"...) this turn and did not run `add`/`repeat` | ≤ 3 nudges per session |
+| End of turn (evidence) | same Stop hook | nothing; it appends one text-free observation row for the weekly eval (`directives/infrastructure/brain_eval.md`) when the turn had an injection, a correction or an admission | one Jev call only on those turns |
 
-Every hook fails open (exit 0, no output) and the per-prompt path makes no network call.
+Every hook fails open (exit 0, no output). Without Jev the per-prompt path is keyword-only and offline.
+
+**Measured, not assumed:** `brain_eval.py` scores this weekly with an independent judge (Claude Sonnet). Baseline 2026-11-12: hybrid F1 0.55 against keyword-only 0.23. See `directives/infrastructure/brain_eval.md`.
 
 ## Learning loop
 
@@ -46,7 +49,7 @@ Commit `.claude/brain/` together with the work that taught the lesson.
 - A cloud container has no `.tmp` history, so per-session dedupe starts fresh. That is harmless.
 - Sub-agents get no hooks: the main session copies the relevant injected lessons into each brief.
 - Triggers are whole-word matches (`les` does not match `less`), so choose specific words over generic ones.
-- `/jev off` has no effect on the per-prompt path (it is offline). Only `add` and `lint --deep` call Jev, and they send lesson text only.
+- `/jev off` turns off every Jev call that carries prompt text (per-prompt recall and the live judge); keywords keep working.
 
 ## Output contract
 

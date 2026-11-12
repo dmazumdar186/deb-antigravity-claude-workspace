@@ -16,6 +16,7 @@ The brain runs on hooks (session start, every prompt, end of turn). You never ne
 | `/brain search <text>` | `python3 execution/infrastructure/brain.py search "<text>"` |
 | `/brain add <lesson>` | turn the operator's words into one imperative rule ≤240 chars, a dated `--why` and 4-8 specific `--triggers`, then `add` |
 | `/brain forget <id>` | `archive <id>` |
+| `/brain eval` | `python3 execution/infrastructure/brain_eval.py status`; full run: `run --label` (report in `.claude/brain/eval/reports/`) |
 | `/brain check` | `lint --deep --apply`; resolve conflicts with `supersede <old> <new>` |
 
 After any change, commit `.claude/brain/` and push per CLAUDE.md principle 3.
