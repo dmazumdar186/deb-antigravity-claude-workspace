@@ -45,7 +45,7 @@ Every week, measure whether the workspace brain (`directives/infrastructure/brai
 
 - **Tampering.** Editing or reordering a past history row breaks the chain, and every later run FAILs until the operator rules on it. A missing history after a chain existed shows up as `evidence_deleted`, because the observation count is compared with the last row. A wiped repository can't be detected from inside it; git history is the backstop.
 - **Overfitting.** The benchmark is visible, so triggers could be tuned to it. The keyword-only baseline, live precision and repeat mistakes are the checks; a widening gap between benchmark and live numbers is the signal.
-- **Statistics.** With 48 prompts, a recall change below about 0.05 is within noise; that is why the regression tolerances sit at 0.05.
+- **Statistics.** The configured tolerance is 0.05, widened to 2 standard errors of the smaller sample (about 0.10 for F1 on the current 109 relevant pairs); drift since the first baseline tolerates double. The floors still catch absolute drops.
 - **Ephemeral cloud.** Observation rows only survive if the session commits them. Live numbers cover committed turns only, and the report says so.
 - **`/jev off`.** No retrieval or live-judge call sends prompt text while it is off. The weekly replay sends only the benchmark prompts.
 - **Judge failure.** A judge reply without valid JSON leaves the pair unlabelled. It counts toward `label_coverage_gap` and the run is not a PASS.
