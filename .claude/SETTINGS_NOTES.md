@@ -404,3 +404,12 @@ once at user scope from this cloud session (`claude plugin install <mod>@deb-wor
 which plugin sync carries to the account's other sessions. Verify in a new session: the `jev → <tier>` band
 above the prompt. Update a mod: edit under `.claude/mods/`, bump `version` in its `plugin.json`, push main,
 then `claude plugin update deb-workspace-mods` (or `/reload-plugins`).
+
+## 2026-11-12 — secrets deny rules (Read/Edit/Write)
+
+`permissions.deny` blocks Claude's file tools from `.env`, `.env.local`, `.env.*.local`, `.env.production|development|staging|test`,
+`credentials.json`, `credentials/**`, `token.json` and `*.pem`, at any depth (`**/`). The names are exact because deny beats
+allow: a broad `.env*` would block the 7 tracked `.env.example` / `.env.template` files and `tokens.json`. Verified live:
+a Write to `.tmp/denytest/.env` was denied, while a control write in the same directory and a Read of `.env.example` succeeded.
+Not covered: Bash (`cat .env`). Scripts load `.env` via python-dotenv through Bash, so Bash stays open on purpose.
+Add a new secret filename here as a rule; don't widen the pattern.
