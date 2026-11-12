@@ -477,6 +477,13 @@ def judge(
         v = k.get(m)
         if v is not None and v < floor:
             add(f"{m}_floor", f"{m} {v} below floor {floor}")
+        elif v is not None and SAMPLE_N.get(m) and k.get(SAMPLE_N[m]):
+            import math  # noqa: PLC0415
+            se = math.sqrt(max(v * (1 - v), 0.01) / int(k[SAMPLE_N[m]]))
+            if v - floor < se:
+                fails = " (a FAIL code)" if f"{m}_floor" in fail_on else ""
+                add("near_floor", f"{m} {v} clears its {floor} floor{fails} by {v - floor:.3f}, under one standard "
+                                  f"error ({se:.3f}): a re-run of Jev's picks can cross it")
     for m, ceil in th["ceilings"].items():
         v = k.get(m)
         if v is not None and v > ceil:
@@ -520,13 +527,13 @@ def judge(
             add("unmeasured", f"{name} unmeasured this run (benchmark not labelled or Jev replay failed); not a pass")
     if k.get("live_precision_kw") is None:
         add("unmeasured", f"live_precision_kw unmeasured: {k.get('injections', 0)} live injections in "
-                          f"{k.get('turns_logged', 0)} turns, {k.get('jev_picked_injections', 0)} Jev-picked (never "
+                          f"{k.get('turns_logged', 0)} turn(s), {k.get('jev_picked_injections', 0)} Jev-picked (never "
                           f"self-graded), {k.get('judged_injections', 0)} judged; not a pass")
     if k.get("capture_leak") is None:
         add("unmeasured", "capture_leak unmeasured: no admitted misses logged this week; not a pass")
     if not k.get("corrections"):
         add("unmeasured", f"repeat-mistake rate unmeasured: 0 operator corrections in {k.get('turns_logged', 0)} "
-                          f"logged turns, so a 0 here is no evidence")
+                          f"logged turn(s), so a 0 here is no evidence")
     if k.get("unlabelled_pairs"):
         add("unmeasured", f"{k['unlabelled_pairs']} benchmark pairs unlabelled (run with --label)")
     for lid in k.get("dead_lessons", []):
@@ -634,6 +641,8 @@ def run(label: bool, dry_run: bool, acks: list[str] | None = None,
             if i not in bm["_relevant_any"] and i not in kw["_relevant_any"]
             and i not in kw["_partly_unlabelled"] and i not in live_ever
         ),
+        "all_misses": bm.get("_all_misses", []),
+        "all_noise": bm.get("_all_noise", []),
         "lint_issues": [str(e) for e in rep["errors"]]
         + [f"duplicate {a} ~ {b}" for a, b, *_ in rep["duplicates"]],
         **src,
@@ -707,6 +716,8 @@ KPI_ORDER = ["precision", "recall", "f1", "effective_recall", "noise_rate", "avg
 
 
 DISPLAY = {"effective_recall": "effective_recall (incl. always-loaded core)",
+           "noise_rate": "noise_rate (negative prompts that still got an injection)",
+           "kw_noise_rate": "kw_noise_rate (negative prompts that still got an injection)",
            "kw_effective_recall": "kw_effective_recall (incl. always-loaded core)"}
 
 
@@ -733,7 +744,7 @@ def render(
             delta = f"{a - b:+.3f}".rstrip("0").rstrip(".")
         shown = _fmt(a)
         if name in ("corrections", "repeat_mistakes_week") and no_evidence:
-            shown += f" ({k.get('turns_logged', 0)} turns, 0 corrections: no evidence)"
+            shown += f" ({k.get('turns_logged', 0)} turn(s), 0 corrections: no evidence)"
         lines.append(f"| {DISPLAY.get(name, name)} | {shown} | {_fmt(b) if prev else first} | {delta} |")
     f1_tol = tolerance("f1", float(thresholds()["regression"].get("f1", 0.05)), k, {"kpis": k})
     checks = "present" if k.get("live_precision_kw") is not None and k.get("corrections") else "absent this run"
@@ -745,7 +756,7 @@ def render(
         f"{', '.join(k.get('top_misses', [])) or 'none'}",
         f"- Benchmark noise (first {min(8, k.get('n_noise', 0))} of {k.get('n_noise', 0)} shown-but-irrelevant pairs): "
         f"{', '.join(k.get('top_noise', [])) or 'none'}",
-        (f"- Repeat mistakes: unmeasured ({k.get('corrections', 0)} corrections in {k.get('turns_logged', 0)} logged turns)"
+        (f"- Repeat mistakes: unmeasured ({k.get('corrections', 0)} corrections in {k.get('turns_logged', 0)} logged turn(s))"
          if not k.get("corrections") else
          f"- Repeat mistakes, never shown: {', '.join(k.get('repeat_never_shown', [])) or 'none'}; "
          f"shown and ignored: {', '.join(k.get('repeat_shown_ignored', [])) or 'none'}"),
