@@ -259,8 +259,5 @@
   "disabledMcpjsonServers": [
     "firecrawl",
     "tavily"
-  ],
-  "enabledMcpjsonServers": [
-    "21st"
   ]
 }

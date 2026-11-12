@@ -41,7 +41,7 @@ workspace mods, and keep a trust record for each. Sits beside `directives/infras
 | Replica | `Jakeschincariol/replica-skill` | **skill pack** (11 skills, MIT; **installed** 2026-11-09 in `.claude/skills/replica-*` at `77c9436`; 9 via scan-gated script, launch + test hand-copied after HIGH false-positive review; licence `docs/reference/third_party/replica-skill-LICENSE`) | `execution/infrastructure/setup_replica_skill.sh` → see `directives/infrastructure/replica_skill.md` |
 | Claude Code Setup | `anthropics/claude-plugins-official` (`plugins/claude-code-setup`) | marketplace `claude-plugins-official` → plugin `claude-code-setup` (1 skill: automation recommender) | `settings.json` `enabledPlugins` (**on**) |
 | Elephant-Goldfish Model | `google/elephant-goldfish-model` | marketplace `egm` → plugin `egm` (7 `/egm:*` skills + 10 reviewer agents, `model: inherit`, Apache-2.0) | `settings.json` `enabledPlugins` (**on**) |
-| 21st (Magic MCP) | `21st-dev/magic-mcp` | marketplace `21st-dev` → plugin `21st` (HTTP MCP `https://21st.dev/api/mcp` + `21st-ui` skill) | `settings.json` `enabledPlugins` (**on**, for the `21st-ui` skill); the working MCP is the project `.mcp.json` server `21st`, which reads env `Dev_API_KEY` (verified 2026-11-12: 200 with the key, 401 without) |
+| 21st (Magic MCP) | `21st-dev/magic-mcp` | marketplace `21st-dev` → plugin `21st` (HTTP MCP `https://21st.dev/api/mcp` + `21st-ui` skill) | `settings.json` `enabledPlugins` (**on**); the plugin's MCP reads env `API_KEY_21ST` (cloud env var + local shell). Key verified 2026-11-12: 200 with it, 401 without |
 | Claude Mem | `thedotmack/claude-mem` | marketplace `thedotmack` → plugin `claude-mem` (hooks on 9 events + local worker) | `settings.json` `enabledPlugins` (**on**, all model slots pinned to `claude-sonnet-5-5` via `env`) |
 
 The seven workspace mods (`jev-router-mod`, `safety-guard-mod`, `done-notify-mod`,
@@ -134,7 +134,7 @@ extras exist. Hybrid surfacing (operator decision, 2026-11-03):
 ## Edge cases
 
 - claude-mem: a worker that is already running and was started without the `env` pin keeps its old models. Run `claude-mem stop` (or restart) after changing a pin.
-- 21st: the key lives in env `Dev_API_KEY` (cloud env var; the local shell needs it too). The plugin's own MCP reads `API_KEY_21ST`, so it shows as failed in `/mcp`; that's harmless because the project `.mcp.json` `21st` server is the live one. If `API_KEY_21ST` is ever set, remove the `.mcp.json` entry so the tools aren't duplicated.
+- 21st: the plugin's MCP reads only `API_KEY_21ST` (no fallback). If the var is missing, the server shows as failed in `/mcp` and nothing else breaks.
 
 - Cloud sessions are ephemeral: `uv tool install` + `agent-reach setup` must be re-run each fresh
   container (or scripted in `session-start`). The repo-committed `skill-inspector` skill and the
