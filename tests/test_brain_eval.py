@@ -172,6 +172,7 @@ def test_regression_beyond_tolerance_fails(monkeypatch):
         "fail_on": ["kw_recall_regression"],
     }
     monkeypatch.setattr(ev, "thresholds", lambda: th)
+    monkeypatch.setattr(ev, "tolerance", lambda m, base, k, ref: base)  # tiny fixture: bypass the 2-SE widening
     brain.save(
         brain.Lesson(
             id="deploy",
@@ -235,12 +236,12 @@ def test_live_metrics_split_repeat_mistakes():
     assert m["repeat_mistakes_week"] == 2 and m["repeat_never_shown"] == ["cold"]
     assert (
         m["repeat_shown_ignored"] == ["logo"]
-        and m["live_precision"] == 0.5
+        and m["live_precision_kw"] == 0.5
         and m["capture_leak"] == 1.0
     )
     verdict, faults, codes = ev.judge(
         {**m, "core_chars": 10},
-        None,
+        [],
         ev.DEFAULT_THRESHOLDS,
         {
             "chain_problems": [],
@@ -350,3 +351,89 @@ def test_session_start_surfaces_non_pass_and_overdue(monkeypatch):
         "additionalContext"
     ]
     assert "OVERDUE" in out and "WARN (f1_floor)" in out and "Tell the operator" in out
+
+
+# ---- regressions for the 2026-11-12 evaluator audit ------------------------------------------------
+def test_one_edited_rule_does_not_blank_the_benchmark():
+    setup_world()
+    ev.run(label=True, dry_run=False)
+    lesson("deploy", "Deploy client pages to Cloudflare Pages only, never github.io.", "deploy, client page")
+    _, row = ev.run(label=False, dry_run=True)
+    k = row["kpis"]
+    assert k["kw_recall"] is not None and k["unlabelled_pairs"] > 0
+    assert "label_coverage_gap_ceiling" in row["codes"] and row["verdict"] != "PASS"
+
+
+def test_unmeasured_week_cannot_reset_regression_baseline(monkeypatch):
+    setup_world()
+    monkeypatch.setenv("BRAIN_TODAY", "2026-11-01")
+    ev.run(label=True, dry_run=False)
+    monkeypatch.setenv("BRAIN_TODAY", "2026-11-08")
+    lesson("deploy", "Deploy client pages to Cloudflare Pages only.", "zzz")  # breaks recall
+    ev.run(label=False, dry_run=False)  # an offline run in between
+    monkeypatch.setenv("BRAIN_TODAY", "2026-11-15")
+    monkeypatch.setattr(ev, "tolerance", lambda m, base, k, ref: base)
+    th = {**ev.DEFAULT_THRESHOLDS, "regression": {"kw_recall": 0.05}, "fail_on": ["kw_recall_regression"]}
+    monkeypatch.setattr(ev, "thresholds", lambda: th)
+    _, row = ev.run(label=True, dry_run=True)
+    assert "kw_recall_regression" in row["codes"] or "kw_recall_drift" in row["codes"]
+
+
+def test_goalposts_moved_fails_until_acknowledged():
+    setup_world()
+    ev.run(label=True, dry_run=False)
+    p = ev.eval_dir() / "thresholds.json"
+    p.write_text(json.dumps({**ev.DEFAULT_THRESHOLDS, "floors": {}}), encoding="utf-8")
+    _, row = ev.run(label=True, dry_run=True)
+    assert row["verdict"] == "FAIL" and "goalposts_moved" in row["codes"]
+    report, row = ev.run(label=True, dry_run=True, acks=["goalposts_moved: loosened floors on purpose"])
+    assert row["verdict"] != "FAIL" and "(acknowledged)" in report
+    assert row["acks"][0]["reason"] == "loosened floors on purpose"
+
+
+def test_deleting_history_with_reports_left_is_flagged():
+    setup_world()
+    ev.run(label=True, dry_run=False)
+    ev.history_path().unlink()
+    _, row = ev.run(label=True, dry_run=True)
+    assert row["verdict"] == "FAIL" and "evidence_deleted" in row["codes"]
+
+
+def test_retired_without_supersede_warns():
+    setup_world()
+    ev.run(label=True, dry_run=False)
+    (brain.brain_dir() / "lessons" / "logo.md").unlink()
+    _, row = ev.run(label=True, dry_run=True)
+    assert "retired_without_supersede" in row["codes"] and row["verdict"] in ("WARN", "FAIL")
+
+
+def test_edited_report_is_detected_by_status():
+    setup_world()
+    ev.run(label=True, dry_run=False)
+    rp = next((ev.eval_dir() / "reports").glob("*.md"))
+    rp.write_text(rp.read_text(encoding="utf-8").replace("Fault lines", "All good"), encoding="utf-8")
+    assert "edited after the run" in ev.status()
+
+
+def test_judge_errors_reach_the_verdict(monkeypatch):
+    setup_world()
+    monkeypatch.setattr(ev, "_judge_prompt", lambda p, c: ({}, 0.0, "judge returned no JSON"))
+    _, row = ev.run(label=True, dry_run=True)
+    assert "judge_errors" in row["codes"] and row["verdict"] != "PASS"
+
+
+def test_tolerance_widens_on_small_samples():
+    ref = {"kpis": {"recall": 0.5, "n_rel": 20}}
+    assert ev.tolerance("recall", 0.05, {"n_rel": 20}, ref) > 0.2
+    assert ev.tolerance("recall", 0.05, {"n_rel": 10000}, {"kpis": {"recall": 0.5, "n_rel": 10000}}) == 0.05
+
+
+def test_same_prompt_twice_is_two_turns(sandbox):
+    setup_world()
+    tp = sandbox / "t2.jsonl"
+    tp.write_text(json.dumps({"type": "user", "message": {"role": "user", "content": "go"}}), encoding="utf-8")
+    for _ in range(2):
+        brain.hook_prompt({"session_id": "dup", "prompt": "why did you skip the checklist again?"})
+        brain.hook_stop({"session_id": "dup", "transcript_path": str(tp)})
+    rows = [ln for f in brain.obs_dir().glob("*.jsonl") for ln in f.read_text(encoding="utf-8").splitlines()]
+    assert len(rows) == 2 and len({json.loads(r)["turn"] for r in rows}) == 2

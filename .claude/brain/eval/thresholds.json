@@ -5,7 +5,7 @@
     "f1": 0.45,
     "effective_recall": 0.5,
     "judge_sanity": 0.75,
-    "live_precision": 0.5
+    "live_precision_kw": 0.5
   },
   "ceilings": {
     "noise_rate": 0.2,
@@ -13,7 +13,7 @@
     "core_chars": 2200,
     "capture_leak": 0.25,
     "repeat_mistakes_week": 0,
-    "label_coverage_gap": 0.05
+    "label_coverage_gap": 0.0
   },
   "regression": {
     "f1": 0.05,
@@ -21,17 +21,22 @@
     "recall": 0.05,
     "effective_recall": 0.05,
     "noise_rate": 0.05,
-    "live_precision": 0.1
+    "live_precision_kw": 0.1,
+    "kw_f1": 0.05
   },
+  "overfit_trigger_overlap_jump": 0.1,
   "fail_on": [
     "history_tampered",
     "evidence_deleted",
+    "goalposts_moved",
     "f1_regression",
+    "f1_drift",
     "core_over_cap",
     "recall_floor"
   ],
   "budget": {
-    "max_jev_calls": 150,
+    "max_judge_calls": 60,
+    "max_jev_calls": 60,
     "max_usd": 0.1
   }
 }

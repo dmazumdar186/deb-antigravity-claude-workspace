@@ -654,6 +654,10 @@ def eval_lines() -> list[str]:
     elif age >= EVAL_EVERY_DAYS:
         out.append(f"Brain eval due: run `{cmd}` in a background worker and commit .claude/brain/eval/.")
     verdict = str(last.get("verdict", ""))
+    if verdict == "PASS-PARTIAL" and age <= 1:
+        out.append(f"Brain eval {last.get('date')}: PASS-PARTIAL (some KPIs unmeasured: "
+                   f"{', '.join(c for c in last.get('codes', []) if c != 'dead_lesson')[:120]}). "
+                   f"Tell the operator in one line in your first reply.")
     if verdict in ("WARN", "FAIL"):
         codes = ", ".join(last.get("codes", [])[:4])
         out.append(f"Brain eval {last.get('date')}: {verdict} ({codes}). Tell the operator in one line in your first "
@@ -711,9 +715,11 @@ def hook_prompt(payload: dict[str, Any]) -> str:
     # Evidence for the weekly eval (brain_eval.py): kept in .tmp only; the Stop hook distils it
     # into a text-free observation row. Lesson ids are snapshotted so a lesson written during this
     # turn is never counted as "already known".
+    st["turns"] = int(st.get("turns", 0)) + 1
     st["turn"] = {
         "prompt": prompt[:2000],
-        "sha": hashlib.sha256(prompt.encode("utf-8")).hexdigest()[:12],
+        # counter suffix: the same prompt sent twice is two turns, logged twice
+        "sha": hashlib.sha256(prompt.encode("utf-8")).hexdigest()[:12] + f"-{int(st.get('turns', 0)) + 1}",
         "injected": [ln.rsplit("[", 1)[1].rstrip("]") for ln in lines],
         "sources": {i: sources.get(i, "kw") for i in [ln.rsplit("[", 1)[1].rstrip("]") for ln in lines]},
         "correction": bool(CORRECTION_RE.search(prompt)),

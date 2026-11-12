@@ -51,38 +51,17 @@ from execution.infrastructure import (
 REL_CUT = 0.5  # judge probability at which a lesson counts as relevant to a prompt
 LIVE_WINDOW_DAYS = 7
 DEFAULT_THRESHOLDS = {
-    "floors": {
-        "precision": 0.5,
-        "recall": 0.4,
-        "f1": 0.45,
-        "effective_recall": 0.5,
-        "judge_sanity": 0.75,
-        "live_precision": 0.5,
-    },
-    "ceilings": {
-        "noise_rate": 0.2,
-        "avg_inject_chars": 700,
-        "core_chars": 2200,
-        "capture_leak": 0.25,
-        "repeat_mistakes_week": 0,
-        "label_coverage_gap": 0.05,
-    },
-    "regression": {
-        "f1": 0.05,
-        "precision": 0.05,
-        "recall": 0.05,
-        "effective_recall": 0.05,
-        "noise_rate": 0.05,
-        "live_precision": 0.1,
-    },
-    "fail_on": [
-        "history_tampered",
-        "evidence_deleted",
-        "f1_regression",
-        "core_over_cap",
-        "recall_floor",
-    ],
-    "budget": {"max_jev_calls": 150, "max_usd": 0.10},
+    "floors": {"precision": 0.5, "recall": 0.4, "f1": 0.45, "effective_recall": 0.5, "judge_sanity": 0.75,
+               "live_precision_kw": 0.5},
+    "ceilings": {"noise_rate": 0.2, "avg_inject_chars": 700, "core_chars": 2200, "capture_leak": 0.25,
+                 "repeat_mistakes_week": 0, "label_coverage_gap": 0.0},
+    # tolerance per metric; the evaluator widens it to 2 standard errors when the sample is small
+    "regression": {"f1": 0.05, "precision": 0.05, "recall": 0.05, "effective_recall": 0.05,
+                   "noise_rate": 0.05, "live_precision_kw": 0.1, "kw_f1": 0.05},
+    "overfit_trigger_overlap_jump": 0.1,
+    "fail_on": ["history_tampered", "evidence_deleted", "goalposts_moved", "f1_regression", "f1_drift",
+                "core_over_cap", "recall_floor"],
+    "budget": {"max_judge_calls": 60, "max_jev_calls": 60, "max_usd": 0.10},
 }
 
 
@@ -203,7 +182,9 @@ def benchmark_metrics(
     bench: list[dict[str, Any]], lessons: list[brain.Lesson], labels: dict[str, float],
     picks: dict[str, dict[str, float]] | None = None,
 ) -> dict[str, Any]:
-    """Score one retriever against the judge. picks=None -> keyword-only; else the deployed hybrid."""
+    """Score one retriever against the judge. picks=None -> keyword-only; else the deployed hybrid.
+    Scores every LABELLED (prompt, lesson) pair; an unlabelled pair is skipped and counted, never
+    allowed to blank the prompt (one edited rule must not erase the benchmark)."""
     act = brain.active(lessons)
     core_ids = {x.id for x in brain.core(lessons)}
     tp = fp = fn = eff_hit = rel_total = 0
@@ -214,10 +195,11 @@ def benchmark_metrics(
     misses: list[tuple[float, str, str]] = []
     noise: list[tuple[str, str]] = []
     relevant_any: set[str] = set()
+    partly_unlabelled: set[str] = set()
     for row in bench:
         prompt = str(row.get("prompt", ""))
         rel: set[str] = set()
-        complete = True
+        unl: set[str] = set()
         for x in act:
             total_pairs += 1
             k = label_key(prompt, x)
@@ -226,7 +208,8 @@ def benchmark_metrics(
                 if labels[k] >= REL_CUT:
                     rel.add(x.id)
             else:
-                complete = False
+                unl.add(x.id)
+        partly_unlabelled |= unl
         relevant_any |= rel
         if picks is None:
             hits = brain.retrieve(prompt, lessons)
@@ -234,51 +217,41 @@ def benchmark_metrics(
             hits = [(0.0, x) for _, x in brain.retrieve_hybrid(prompt, lessons, picks=picks.get(prompt, {}))]
         got = {x.id for _, x in hits}
         chars.append(sum(len(brain.bullet(x)) for _, x in hits))
-        if row.get("kind") == "negative" and complete:
+        got_l = got - unl
+        if row.get("kind") == "negative" and not unl:
             author_neg += 1
             author_neg_clean += int(not rel)
-        if not complete:
-            continue
-        tp += len(got & rel)
-        fp += len(got - rel)
+        tp += len(got_l & rel)
+        fp += len(got_l - rel)
         fn += len(rel - got)
         rel_total += len(rel)
         eff_hit += len(rel & (got | core_ids))
-        for lid in rel - got - core_ids:
-            misses.append(
-                (
-                    labels[label_key(prompt, next(x for x in act if x.id == lid))],
-                    row.get("id", "?"),
-                    lid,
-                )
-            )
-        for lid in got - rel:
+        by_id = {x.id: x for x in act}
+        for lid in sorted(rel - got - core_ids):
+            misses.append((labels[label_key(prompt, by_id[lid])], row.get("id", "?"), lid))
+        for lid in sorted(got_l - rel):
             noise.append((row.get("id", "?"), lid))
-        if not rel:
+        if not rel and not unl:
             neg_prompts += 1
             neg_noisy += int(bool(got))
     prec = tp / (tp + fp) if tp + fp else None
     rec = tp / (tp + fn) if tp + fn else None
-    f1 = (
-        2 * prec * rec / (prec + rec)
-        if prec and rec
-        else (0.0 if prec is not None and rec is not None else None)
-    )
+    f1 = 2 * prec * rec / (prec + rec) if prec and rec else (0.0 if prec is not None and rec is not None else None)
     misses.sort(reverse=True)
     return {
-        "precision": _r(prec),
-        "recall": _r(rec),
-        "f1": _r(f1),
+        "precision": _r(prec), "recall": _r(rec), "f1": _r(f1),
         "effective_recall": _r(eff_hit / rel_total if rel_total else None),
         "noise_rate": _r(neg_noisy / neg_prompts if neg_prompts else None),
         "avg_inject_chars": _r(sum(chars) / len(chars) if chars else None, 1),
         "judge_sanity": _r(author_neg_clean / author_neg if author_neg else None),
         "label_coverage_gap": _r(1 - labelled / total_pairs if total_pairs else 0.0),
-        "prompts": len(bench),
-        "relevant_pairs": rel_total,
+        "unlabelled_pairs": total_pairs - labelled,
+        "n_ret": tp + fp, "n_rel": tp + fn, "n_neg": neg_prompts,
+        "prompts": len(bench), "relevant_pairs": rel_total,
         "top_misses": [f"{b}->{lid} (judge {p:.2f})" for p, b, lid in misses[:8]],
         "top_noise": [f"{b}->{lid}" for b, lid in noise[:8]],
         "_relevant_any": sorted(relevant_any),
+        "_partly_unlabelled": sorted(partly_unlabelled),
     }
 
 
@@ -302,7 +275,7 @@ def live_metrics(obs: list[dict[str, Any]], since: str) -> dict[str, Any]:
         "sessions": len({o.get("sid") for o in week}),
         "injections": injected,
         "judged_injections": len(rel_vals),
-        "live_precision": _r(
+        "live_precision_kw": _r(
             sum(1 for p in rel_vals if p >= REL_CUT) / len(rel_vals)
             if rel_vals
             else None
@@ -385,100 +358,168 @@ def verify_chain(rows: list[dict[str, Any]]) -> list[str]:
 
 # ---------------------------------------------------------------------------------------------
 # verdict
+def _git(*args: str) -> tuple[int, str]:
+    import subprocess  # noqa: PLC0415
+
+    try:
+        r = subprocess.run(["git", "-C", str(ROOT), *args], capture_output=True, text=True,
+                           encoding="utf-8", errors="replace", timeout=20)
+        return r.returncode, r.stdout
+    except (OSError, subprocess.SubprocessError) as exc:
+        return 1, str(exc)
+
+
+def git_anchor(history: list[dict[str, Any]], obs_total: int) -> list[tuple[str, str]]:
+    """Compare the working copy with what git already holds, so deleting or truncating the history or
+    the evidence cannot start a clean chain. Only for the real brain dir (tests use temp dirs)."""
+    try:
+        rel = eval_dir().resolve().relative_to(ROOT.resolve()).as_posix()
+    except ValueError:
+        return []
+    out: list[tuple[str, str]] = []
+    code, committed = _git("show", f"HEAD:{rel}/history.jsonl")
+    if code == 0 and committed.strip():
+        old = [json.loads(ln).get("row_hash") for ln in committed.splitlines() if ln.strip()]
+        cur = [r.get("row_hash") for r in history]
+        if cur[: len(old)] != old:
+            out.append(("history_tampered", f"history.jsonl no longer starts with the {len(old)} rows committed at HEAD"))
+    code, deleted = _git("log", "--diff-filter=D", "--format=%h %ad", "--date=short", "--", f"{rel}/history.jsonl")
+    if code == 0 and deleted.strip():
+        out.append(("evidence_deleted", f"history.jsonl was deleted in commit {deleted.split()[0]}"))
+    code, counts = _git("grep", "-c", "", "HEAD", "--", f"{rel}/observations")
+    if code == 0:
+        committed_rows = sum(int(ln.rsplit(":", 1)[1]) for ln in counts.splitlines() if ln.rsplit(":", 1)[-1].isdigit())
+        if obs_total < committed_rows:
+            out.append(("evidence_deleted", f"observation rows {obs_total} < {committed_rows} committed at HEAD"))
+    return out
+
+
+BENCH_METRICS = {"precision", "recall", "f1", "effective_recall", "noise_rate", "avg_inject_chars", "judge_sanity",
+                 "kw_precision", "kw_recall", "kw_f1", "kw_effective_recall", "kw_noise_rate", "trigger_overlap"}
+SAMPLE_N = {"precision": "n_ret", "recall": "n_rel", "f1": "n_rel", "effective_recall": "n_rel",
+            "noise_rate": "n_neg", "kw_precision": "kw_n_ret", "kw_recall": "kw_n_rel", "kw_f1": "kw_n_rel",
+            "live_precision_kw": "judged_injections"}
+
+
+def reference(history: list[dict[str, Any]], metric: str, today: str, bench_hash: str, *, oldest: bool = False,
+              min_age_days: int = 6) -> dict[str, Any] | None:
+    """Row to compare `metric` against: the most recent row at least `min_age_days` old where the metric was
+    measured (so an unmeasured week or a same-day re-run cannot reset the baseline), else the most recent
+    measured row. Benchmark metrics only compare with rows on the same benchmark. oldest=True -> first ever."""
+    import datetime as _dt  # noqa: PLC0415
+
+    rows = [r for r in history if (r.get("kpis") or {}).get(metric) is not None
+            and (metric not in BENCH_METRICS or (r.get("hashes") or {}).get("benchmark") == bench_hash)]
+    if not rows:
+        return None
+    if oldest:
+        return rows[0]
+    cutoff = (_dt.date.fromisoformat(today) - _dt.timedelta(days=min_age_days)).isoformat()
+    aged = [r for r in rows if str(r.get("date", "")) <= cutoff]
+    return aged[-1] if aged else rows[-1]
+
+
+def tolerance(metric: str, base: float, k: dict[str, Any], ref: dict[str, Any]) -> float:
+    """Configured tolerance, widened to 2 standard errors of a proportion on the smaller sample."""
+    import math  # noqa: PLC0415
+
+    n_key = SAMPLE_N.get(metric)
+    n = min(int(k.get(n_key) or 0), int((ref.get("kpis") or {}).get(n_key) or 0)) if n_key else 0
+    p = (ref.get("kpis") or {}).get(metric)
+    if n <= 0 or not isinstance(p, (int, float)) or metric == "avg_inject_chars":
+        return base
+    return max(base, 2 * math.sqrt(max(p * (1 - p), 0.01) / n))
+
+
 def judge(
     k: dict[str, Any],
-    prev: dict[str, Any] | None,
+    history: list[dict[str, Any]],
     th: dict[str, Any],
     ctx: dict[str, Any],
 ) -> tuple[str, list[str], list[str]]:
-    """Return (verdict, fault_lines, alarm_codes). Pure function of numbers + thresholds."""
+    """Return (verdict, fault_lines, alarm_codes). Pure function of numbers, history and thresholds.
+    An alarm code acknowledged with --ack (in this run or an earlier history row) drops from FAIL to WARN
+    but is still printed with its reason."""
     faults: list[tuple[str, str, str]] = []  # (code, level, message)
     fail_on = set(th.get("fail_on", []))
+    acked = {a.get("code") for r in history for a in (r.get("acks") or [])} | {a["code"] for a in ctx.get("acks", [])}
 
     def add(code: str, msg: str) -> None:
-        faults.append((code, "FAIL" if code in fail_on else "WARN", msg))
+        level = "FAIL" if code in fail_on and code not in acked else "WARN"
+        faults.append((code, level, msg + (" (acknowledged)" if code in acked and code in fail_on else "")))
 
     for p in ctx["chain_problems"]:
         add("history_tampered", f"history: {p}")
+    for code, msg in ctx.get("anchor", []):
+        add(code, msg)
     if ctx["obs_total"] < ctx["prev_obs_total"]:
-        add(
-            "evidence_deleted",
-            f"observation rows fell from {ctx['prev_obs_total']} to {ctx['obs_total']}",
-        )
+        add("evidence_deleted", f"observation rows fell from {ctx['prev_obs_total']} to {ctx['obs_total']}")
+    if not history and ctx.get("orphan_reports"):
+        add("evidence_deleted", f"no history but {ctx['orphan_reports']} earlier report(s) exist: history was removed")
     for name, cur, old in ctx["moved"]:
-        add(
-            "goalposts_moved",
-            f"{name} changed since last run ({old} -> {cur}); deltas on it are not comparable",
-        )
+        add("goalposts_moved", f"{name} changed since last run ({old} -> {cur}); acknowledge with --ack if intended")
     for m, floor in th["floors"].items():
         v = k.get(m)
-        if v is None:
-            continue
-        if v < floor:
+        if v is not None and v < floor:
             add(f"{m}_floor", f"{m} {v} below floor {floor}")
     for m, ceil in th["ceilings"].items():
         v = k.get(m)
-        if v is None:
+        if v is not None and v > ceil:
+            add("core_over_cap" if m == "core_chars" else f"{m}_ceiling", f"{m} {v} above ceiling {ceil}")
+    for m, base in th["regression"].items():
+        a = k.get(m)
+        if a is None:
             continue
-        if v > ceil:
-            code = "core_over_cap" if m == "core_chars" else f"{m}_ceiling"
-            add(code, f"{m} {v} above ceiling {ceil}")
-    if prev and not ctx["benchmark_moved"]:
-        for m, tol in th["regression"].items():
-            a, b = k.get(m), (prev.get("kpis") or {}).get(m)
-            if a is None or b is None:
+        for oldest, code in ((False, f"{m}_regression"), (True, f"{m}_drift")):
+            ref = reference(history, m, ctx.get("today", brain.today().isoformat()), ctx.get("bench_hash", ""), oldest=oldest)
+            if not ref:
                 continue
+            b = ref["kpis"][m]
+            tol = tolerance(m, base, k, ref) * (2 if oldest else 1)
             worse = (a - b) if m == "noise_rate" else (b - a)
             if worse > tol:
-                add(f"{m}_regression", f"{m} regressed {b} -> {a} (tolerance {tol})")
+                what = "since the first baseline" if oldest else f"vs {ref.get('date')}"
+                add(code, f"{m} {b} -> {a} {what} (tolerance {tol:.3f})")
+    ref = reference(history, "trigger_overlap", ctx.get("today", brain.today().isoformat()), ctx.get("bench_hash", ""))
+    if ref and k.get("trigger_overlap") is not None:
+        jump = k["trigger_overlap"] - ref["kpis"]["trigger_overlap"]
+        if jump > float(th.get("overfit_trigger_overlap_jump", 0.1)):
+            add("possible_overfit", f"lessons with a trigger copied from a benchmark prompt rose by {jump:.2f}")
     for lid in k.get("repeat_never_shown", []):
-        add(
-            "repeat_missed_retrieval",
-            f"repeat mistake covered by {lid}, but the brain never showed it (trigger gap)",
-        )
+        add("repeat_missed_retrieval", f"repeat mistake covered by {lid}, but the brain never showed it (recall gap)")
     for lid in k.get("repeat_shown_ignored", []):
-        add(
-            "repeat_ignored",
-            f"repeat mistake covered by {lid}, shown in-session and still ignored (rule wording/force gap)",
-        )
-    for name in ("precision", "recall", "f1", "live_precision", "capture_leak"):
+        add("repeat_ignored", f"repeat mistake covered by {lid}, shown in-session and still ignored (wording/force gap)")
+    for lid in k.get("retired_unexplained", []):
+        add("retired_without_supersede", f"{lid} left the brain without a superseding lesson (decay or deletion): confirm")
+    for err in ctx.get("judge_errors", []):
+        add("judge_errors", f"judge/retriever error: {err}")
+    if ctx.get("skipped_budget"):
+        add("budget_skipped", f"{ctx['skipped_budget']} label calls skipped by the budget guard")
+    for name in ("precision", "recall", "f1", "live_precision_kw", "capture_leak"):
         if k.get(name) is None:
-            add(
-                "unmeasured",
-                f"{name} unmeasured this run (no labelled data); not counted as a pass",
-            )
+            add("unmeasured", f"{name} unmeasured this run (no labelled data); not counted as a pass")
+    if k.get("unlabelled_pairs"):
+        add("unmeasured", f"{k['unlabelled_pairs']} benchmark pairs unlabelled (run with --label)")
     for lid in k.get("dead_lessons", []):
-        add(
-            "dead_lesson",
-            f"{lid}: relevant to no benchmark prompt and never injected live",
-        )
+        add("dead_lesson", f"{lid}: relevant to no benchmark prompt and never injected live")
     for lid in k.get("source_missing", []):
         add("source_missing", f"{lid}: source path/sha not found")
     for lid in k.get("lint_issues", []):
         add("lint", f"lint: {lid}")
     order = {"FAIL": 0, "WARN": 1}
     faults.sort(key=lambda f: (order[f[1]], f[0]))
-    verdict = (
-        "FAIL"
-        if any(f[1] == "FAIL" for f in faults)
-        else (
-            "WARN"
-            if any(
-                f[1] == "WARN" and f[0] not in ("unmeasured", "dead_lesson")
-                for f in faults
-            )
-            else ("PASS-PARTIAL" if any(f[0] == "unmeasured" for f in faults) else "PASS")
-        )
-    )
-    return (
-        verdict,
-        [f"[{lvl}] {msg}" for _, lvl, msg in faults],
-        sorted({c for c, _, _ in faults}),
-    )
+    soft = ("unmeasured", "dead_lesson")
+    if any(f[1] == "FAIL" for f in faults):
+        verdict = "FAIL"
+    elif any(f[1] == "WARN" and f[0] not in soft for f in faults):
+        verdict = "WARN"
+    else:
+        verdict = "PASS-PARTIAL" if any(f[0] == "unmeasured" for f in faults) else "PASS"
+    return verdict, [f"[{lvl}] {msg}" for _, lvl, msg in faults], sorted({c for c, _, _ in faults})
 
 
 # ---------------------------------------------------------------------------------------------
-def run(label: bool, dry_run: bool) -> tuple[str, dict[str, Any]]:
+def run(label: bool, dry_run: bool, acks: list[str] | None = None) -> tuple[str, dict[str, Any]]:
     today = brain.today().isoformat()
     lessons, errors = brain.load()
     act = brain.active(lessons)
@@ -502,6 +543,7 @@ def run(label: bool, dry_run: bool) -> tuple[str, dict[str, Any]]:
             picks = None  # Jev unavailable: hybrid cannot be measured this run
             spend["errors"].append("Jev returned nothing for every prompt: hybrid unmeasured")
 
+    spend.setdefault("errors", [])
     kw = benchmark_metrics(bench, lessons, labels)
     bm = benchmark_metrics(bench, lessons, labels, picks) if picks is not None else {
         **kw, **{m: None for m in ("precision", "recall", "f1", "effective_recall", "noise_rate", "avg_inject_chars")}}
@@ -519,6 +561,9 @@ def run(label: bool, dry_run: bool) -> tuple[str, dict[str, Any]]:
 
     history = read_jsonl(history_path())
     prev = history[-1] if history else None
+    bench_text = " ".join(prompts)
+    bench_norm = brain.norm(bench_text)
+    overlap = sum(1 for x in act if any(brain.norm(t).strip() and brain.norm(t) in bench_norm for t in x.triggers))
     snapshot = {x.id: x.strength for x in act}
     prev_snap = (prev or {}).get("snapshot", {})
     hashes = {
@@ -534,7 +579,8 @@ def run(label: bool, dry_run: bool) -> tuple[str, dict[str, Any]]:
     ]
     kpis: dict[str, Any] = {
         **{k: v for k, v in bm.items() if not k.startswith("_")},
-        **{f"kw_{m}": kw[m] for m in ("precision", "recall", "f1", "effective_recall", "noise_rate")},
+        **{f"kw_{m}": kw[m] for m in ("precision", "recall", "f1", "effective_recall", "noise_rate", "n_ret", "n_rel")},
+        "trigger_overlap": _r(overlap / len(act) if act else None),
         **lm,
         "active": len(act),
         "core": len(core),
@@ -544,33 +590,33 @@ def run(label: bool, dry_run: bool) -> tuple[str, dict[str, Any]]:
             i for i in snapshot if i in prev_snap and snapshot[i] > prev_snap[i]
         ),
         "retired": sorted(set(prev_snap) - set(snapshot)) if prev else [],
-        "dead_lessons": (
-            sorted(
-                i
-                for i in snapshot
-                if i not in bm["_relevant_any"] and i not in live_ever
-            )
-            if bm["label_coverage_gap"] == 0
-            else []
+        "retired_unexplained": sorted(
+            i for i in (set(prev_snap) - set(snapshot)) if not any(i in x.supersedes for x in act)) if prev else [],
+        "dead_lessons": sorted(
+            i for i in snapshot
+            if i not in bm["_relevant_any"] and i not in kw["_relevant_any"]
+            and i not in kw["_partly_unlabelled"] and i not in live_ever
         ),
         "lint_issues": [str(e) for e in rep["errors"]]
         + [f"duplicate {a} ~ {b}" for a, b, *_ in rep["duplicates"]],
         **src,
     }
+    ack_rows = [{"code": c.split(":", 1)[0].strip(), "reason": c.split(":", 1)[1].strip() if ":" in c else ""}
+                for c in (acks or [])]
     ctx = {
         "chain_problems": verify_chain(history),
+        "anchor": git_anchor(history, len(obs_rows)),
+        "orphan_reports": len(list((eval_dir() / "reports").glob("*.md"))) if (eval_dir() / "reports").is_dir() else 0,
         "obs_total": len(obs_rows),
         "prev_obs_total": int((prev or {}).get("obs_total", 0)),
         "moved": moved,
-        "benchmark_moved": any(n == "benchmark" for n, *_ in moved),
+        "today": today,
+        "bench_hash": hashes["benchmark"],
+        "acks": ack_rows,
+        "judge_errors": list(spend.get("errors", []))[:5],
+        "skipped_budget": spend.get("skipped_budget", 0),
     }
-    verdict, faults, codes = judge(kpis, prev, th, ctx)
-    if spend["errors"]:
-        faults.append("[WARN] judge errors: " + "; ".join(spend["errors"][:3]))
-    if spend.get("skipped_budget"):
-        faults.append(
-            f"[WARN] {spend['skipped_budget']} label calls skipped by the budget guard"
-        )
+    verdict, faults, codes = judge(kpis, history, th, ctx)
 
     row = {
         "date": today,
@@ -581,14 +627,17 @@ def run(label: bool, dry_run: bool) -> tuple[str, dict[str, Any]]:
         "hashes": hashes,
         "obs_total": len(obs_rows),
         "spend_usd": round(spend["usd"], 6),
+        "acks": ack_rows,
         "prev_hash": (
             (prev or {}).get("row_hash", "genesis")
             if not ctx["chain_problems"]
             else "rechained-after-tamper"
         ),
     }
+    body = render(row, prev, faults, spend)
+    row["report_sha"] = sha(body)
     row["row_hash"] = row_hash(row)
-    report = render(row, prev, faults, spend)
+    report = body + f"\nhistory row {row['row_hash']} (prev {row['prev_hash']})\n"
     if not dry_run:
         eval_dir().mkdir(parents=True, exist_ok=True)
         (eval_dir() / "labels.json").write_text(
@@ -614,7 +663,7 @@ def _fmt(v: Any) -> str:
     return str(v)
 
 
-KPI_ORDER = ["precision", "recall", "f1", "effective_recall", "noise_rate", "avg_inject_chars", "kw_precision", "kw_recall", "kw_f1", "kw_effective_recall", "kw_noise_rate", "judge_sanity", "label_coverage_gap", "live_precision", "corrections", "repeat_mistakes_week", "capture_leak", "turns_logged", "sessions", "active", "core", "core_chars", "added", "strengthened", "retired", "dead_lessons"]
+KPI_ORDER = ["precision", "recall", "f1", "effective_recall", "noise_rate", "avg_inject_chars", "kw_precision", "kw_recall", "kw_f1", "kw_effective_recall", "kw_noise_rate", "judge_sanity", "label_coverage_gap", "live_precision_kw", "corrections", "repeat_mistakes_week", "capture_leak", "turns_logged", "sessions", "active", "core", "core_chars", "added", "strengthened", "retired", "dead_lessons", "trigger_overlap", "unlabelled_pairs"]
 
 
 def render(
@@ -670,8 +719,10 @@ def render(
         "- The benchmark is visible in the repo, so triggers could be overfitted to it; the live precision "
         "and repeat-mistake numbers are the check on that.",
         "- Live numbers only cover turns whose sessions committed their observation rows.",
-        "",
-        f"history row {row['row_hash']} (prev {row['prev_hash']})",
+        "- live_precision_kw judges keyword picks only: Jev-picked injections are never graded by Jev, so the live "
+        "quality of Jev picks is measured only through the benchmark (Sonnet judge). Repeat-mistake detection "
+        "(covered_by) is a Jev judgement, so it can under-count.",
+        "- Deltas within 2 standard errors of the sample are not called regressions; small samples move a lot.",
         "",
     ]
     return "\n".join(lines)
@@ -683,17 +734,19 @@ def status() -> str:
         return "brain eval: never run"
     last = hist[-1]
     rp = eval_dir() / "reports" / f"{last.get('date')}.md"
-    top = ""
+    top, note = "", ""
     try:
-        for line in rp.read_text(encoding="utf-8").splitlines():
+        text = rp.read_text(encoding="utf-8")
+        body = text.rsplit("\nhistory row ", 1)[0]
+        if last.get("report_sha") and sha(body) != last["report_sha"]:
+            note = " [report edited after the run: trust history.jsonl]"
+        for line in text.splitlines():
             if line.startswith("- [FAIL]") or line.startswith("- [WARN]"):
                 top = line[2:]
                 break
     except OSError:
-        top = "(report file missing)"
-    return f"brain eval {last.get('date')}: {last.get('verdict')}" + (
-        f" — {top}" if top else ""
-    )
+        note = " [report file missing]"
+    return f"brain eval {last.get('date')}: {last.get('verdict')}" + (f" — {top}" if top else "") + note
 
 
 def main(argv: list[str]) -> int:
@@ -710,11 +763,13 @@ def main(argv: list[str]) -> int:
     p.add_argument(
         "--dry-run", action="store_true", help="compute and print; write nothing"
     )
+    p.add_argument("--ack", action="append", default=[],
+                   help='acknowledge an alarm, recorded in history: --ack "goalposts_moved: fixed evaluator bug X"')
     sub.add_parser("status")
     sub.add_parser("verify")
     a = ap.parse_args(argv)
     if a.cmd == "run":
-        report, row = run(a.label, a.dry_run)
+        report, row = run(a.label, a.dry_run, a.ack)
         print(report)
         return 2 if row["verdict"] == "FAIL" else 0
     if a.cmd == "verify":
