@@ -316,6 +316,61 @@ def test_add_refuses_contradiction_then_supersede(monkeypatch, capsys):
 def test_add_refuses_restatement_unless_forced(monkeypatch):
     write("old", "Re-fetch a third party site before calling it dated.", "third party, site")
     monkeypatch.setattr(brain, "jev_relations", lambda new, others: {o.id: ("refines", 0.9) for o in others})
-    rule = "Before calling a third party's site dated, re-fetch it live."
-    assert add("--rule", rule, "--triggers", "third party, site") == 3
-    assert add("--rule", rule, "--triggers", "third party, site", "--force") == 0
+    rule = "Open an outside site today and look before you call it dated."
+    assert add("--rule", rule, "--triggers", "homepage") == 3
+    assert add("--rule", rule, "--triggers", "homepage", "--force") == 0
+
+
+def test_id_path_traversal_refused(sandbox):
+    assert add("--rule", "x rule", "--triggers", "t", "--id", "../../../../tmp/pwn", "--force") == 2
+    assert add("--rule", "x rule", "--triggers", "t", "--id", "sub/dir", "--force") == 2
+    with pytest.raises(ValueError):
+        brain.save(brain.Lesson(id="../evil", rule="r"))
+
+
+def test_stop_ignores_quotes_and_soft_phrases(sandbox):
+    for text in ('The client wrote "sorry about that, my mistake, we pay Friday".',
+                 "You're right, cloud runs python 3.11. Nothing to change.",
+                 "I didn't run them because you asked for dry-run only.",
+                 "> my mistake was quoted here"):
+        tp = _transcript(sandbox / "s.jsonl", text)
+        assert brain.hook_stop({"session_id": "fp", "transcript_path": str(tp)}) == "", text
+
+
+def test_verbatim_duplicate_caught_even_when_jev_disagrees(monkeypatch):
+    write("c", "In cold copy never claim a prospect's intent or need; bound every ask.", "cold copy, intent")
+    monkeypatch.setattr(brain, "jev_relations", lambda new, others: {o.id: ("unrelated", 0.9) for o in others})
+    assert add("--rule", "In cold copy never claim a prospect's intent or need; bound every ask.",
+               "--triggers", "cold copy") == 0
+    assert len(brain.load()[0]) == 1
+
+
+def test_single_generic_trigger_does_not_inject():
+    write("r", "Approver drafts list blockers first.", "reply, les", strength=3)
+    lessons, _ = brain.load()
+    assert brain.retrieve("build the mobile app for les with eas", lessons) == []
+    assert [h[1].id for h in brain.retrieve("draft the reply to les", lessons)] == ["r"]
+
+
+def test_restore_clears_dangling_supersedes():
+    write("old", "Old rule.", "t")
+    write("new", "New rule.", "t")
+    brain.main(["supersede", "old", "new"])
+    brain.main(["restore", "old"])
+    assert brain.find("new").supersedes == []
+
+
+def test_lint_apply_skips_weak_lexical_merge():
+    write("a", "Paginate every list API call fully before counting.", "paginate")
+    write("b", "Paginate the Pages project list before deciding a project is missing.", "pages")
+    lessons, errors = brain.load()
+    rep = brain.lint(lessons, errors)
+    rep["duplicates"] = [("a", "b", 0.55, "lex")]
+    assert brain.apply_lint(rep) == []
+
+
+def test_plural_folding_keeps_les_distinct():
+    write("c", "Never claim prospect intent in cold copy.", "cold email, campaign, les")
+    lessons, _ = brain.load()
+    assert [h[1].id for h in brain.retrieve("prepare cold emails for the campaigns", lessons)] == ["c"]
+    assert brain.retrieve("this is less of a priority", lessons) == []

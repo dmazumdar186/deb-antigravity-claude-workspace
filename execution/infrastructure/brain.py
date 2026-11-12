@@ -49,7 +49,7 @@ CORE_MAX_ITEMS = 12
 CORE_MAX_CHARS = 2200
 PROMPT_TOP_K = 3
 PROMPT_MAX_CHARS = 900
-PROMPT_MIN_SCORE = 3.0
+PROMPT_MIN_SCORE = 3.5
 MAX_ACTIVE = 120
 DECAY_DAYS = 180
 DEEP_EVERY_DAYS = 7
@@ -82,17 +82,18 @@ need please thanks thank okay ok let lets go going one two""".split()
 
 CORRECTION_RE = re.compile(
     r"\b(why did(n'?t| not)? you|you (missed|forgot|ignored|skipped|didn'?t|did not|failed|broke|overcomplicated)|"
-    r"not what i asked|i (told|asked) you|again[,!. ]+(the same|same) (mistake|issue|problem)|"
+    r"not what i asked|i (already )?told you|as i (said|told you)|again[,!. ]+(the same|same) (mistake|issue|problem)|"
     r"same mistake|nice catch|that'?s wrong|this is wrong|you were supposed to|should have (run|checked|asked|used)|"
     r"repeat(ing|ed)? (the|this|that) mistake|over-?complicat)",
     re.I,
 )
 ADMISSION_RE = re.compile(
-    r"\b(my mistake|my bad|i overlooked|i missed|nice catch|good catch|you'?re right|you are right|"
-    r"i should have|i overcomplicated|i over-?built|i did(n'?t| not) (run|check|verify|test|read|use)|"
-    r"i failed to|i was wrong|that was wrong of me|i skipped|i apologi[sz]e|sorry about that)\b",
+    r"\b(my mistake|my bad|i overlooked|nice catch|good catch|i should have (run|checked|asked|verified|tested|read|used)|"
+    r"i overcomplicated|i over-?built|i over-?engineered|i failed to|i was wrong|that was wrong of me|"
+    r"i missed (that|this|it|the)|i apologi[sz]e for)\b",
     re.I,
 )
+QUOTED_RE = re.compile(r"\"[^\"\n]{0,400}\"|“[^”\n]{0,400}”|^>.*$|```.*?```", re.M | re.S)
 BRAIN_CMD_RE = re.compile(r"brain\.py\"?\s+(add|repeat|supersede|restore)\b")
 
 
@@ -115,8 +116,17 @@ def words(text: str) -> list[str]:
     ]
 
 
+def stem(w: str) -> str:
+    """Fold plurals so 'cold emails' matches the trigger 'cold email' (not 'les'/'less'/'access')."""
+    if len(w) > 4 and w.endswith("ies"):
+        return w[:-3] + "y"
+    if len(w) > 3 and w.endswith("s") and not w.endswith(("ss", "us", "is")):
+        return w[:-1]
+    return w
+
+
 def norm(text: str) -> str:
-    return " " + " ".join(words(text)) + " "
+    return " " + " ".join(stem(w) for w in words(text)) + " "
 
 
 def content_words(text: str) -> set[str]:
@@ -229,9 +239,16 @@ def active(lessons: list[Lesson]) -> list[Lesson]:
     return [x for x in lessons if x.status == "active"]
 
 
+ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,99}$")
+
+
 def save(les: Lesson) -> Path:
+    if not ID_RE.match(les.id):
+        raise ValueError(f"invalid lesson id {les.id!r} (allowed: a-z 0-9 -)")
     sub = "lessons" if les.status == "active" else "archive"
     target = brain_dir() / sub / f"{les.id}.md"
+    if not target.resolve().is_relative_to(brain_dir().resolve()):
+        raise ValueError("path traversal")
     target.parent.mkdir(parents=True, exist_ok=True)
     tmp = target.with_suffix(".md.tmp")
     tmp.write_text(les.render(), encoding="utf-8", newline="\n")
@@ -254,7 +271,7 @@ def score(les: Lesson, prompt_norm: str, prompt_terms: set[str]) -> float:
     for t in les.triggers:
         tn = norm(t)
         if tn.strip() and tn in prompt_norm:
-            hits += 4.0 if " " in tn.strip() else 3.0
+            hits += 4.0 if " " in tn.strip() else 2.0
     if hits == 0:
         return 0.0
     overlap = len(content_words(les.rule) & prompt_terms)
@@ -386,7 +403,7 @@ def lint(
         for b in act[i + 1 :]:
             s = similarity(a, b)
             if s >= 0.5:
-                report["duplicates"].append((a.id, b.id, round(s, 2)))
+                report["duplicates"].append((a.id, b.id, round(s, 2), "lex"))
     for x in act:
         if x.strength <= 1 and days_since(x.confirmed or x.created) > DECAY_DAYS:
             report["decay"].append(x.id)
@@ -414,7 +431,7 @@ def lint(
             for oid, (rel, conf) in rels.items():
                 if conf >= 0.7 and rel in ("duplicate", "contradicts"):
                     key = "duplicates" if rel == "duplicate" else "conflicts"
-                    report[key].append((x.id, oid, round(conf, 2)))
+                    report[key].append((x.id, oid, round(conf, 2), "jev"))
     return report
 
 
@@ -426,7 +443,9 @@ def apply_lint(report: dict[str, Any]) -> list[str]:
             les.status = "archived"
             save(les)
             done.append(f"archived {lid}")
-    for a, b, _ in report["duplicates"]:
+    for a, b, val, how in report["duplicates"]:
+        if how == "lex" and val < 0.7:  # weak lexical overlap is reported, never auto-merged
+            continue
         la, lb = find(a, False), find(b, False)
         if not la or not lb or la.status != "active" or lb.status != "active":
             continue
@@ -634,6 +653,7 @@ def hook_stop(payload: dict[str, Any]) -> str:
     if int(st.get("nudges", 0)) >= 3:
         return ""
     text, cmds = _turn_messages(tp)
+    text = QUOTED_RE.sub(" ", text)  # quoted client words / code are not the assistant's admission
     if (
         not ADMISSION_RE.search(text)
         or BRAIN_CMD_RE.search(cmds)
@@ -674,6 +694,9 @@ def cmd_add(a: argparse.Namespace) -> int:
         print(f"refused: --scope must be one of {', '.join(SCOPES)}")
         return 2
     lid = a.id or f"{date}-{slug(rule)}"
+    if not ID_RE.match(lid):
+        print("refused: --id may contain only a-z, 0-9 and '-' (max 100 chars).")
+        return 2
     lessons, _ = load(include_archive=True)
     if any(x.id == lid for x in lessons):
         lid = f"{lid}-{sum(1 for x in lessons if x.id.startswith(lid)) + 1}"
@@ -692,7 +715,7 @@ def cmd_add(a: argparse.Namespace) -> int:
     rels = jev_relations(new, [o for _, o in near]) if near else {}
     for sim, o in near:
         rel, conf = rels.get(o.id, ("", 0.0))
-        if (rel == "duplicate" and conf >= 0.7) or (not rels and sim >= 0.6):
+        if (rel == "duplicate" and conf >= 0.7) or sim >= 0.6:
             if a.dry_run:
                 print(f"[dry-run] duplicate of {o.id} -> would strengthen it instead")
                 return 0
@@ -770,6 +793,10 @@ def cmd_set_status(a: argparse.Namespace, status: str) -> int:
     les.status = status
     if status == "active":
         les.confirmed = today().isoformat()
+        for other in active(load()[0]):
+            if les.id in other.supersedes:
+                other.supersedes = [x for x in other.supersedes if x != les.id]
+                save(other)
     save(les)
     print(f"{les.id} -> {status}")
     return 0
