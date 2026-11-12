@@ -55,6 +55,10 @@ Verify with: `npx wrangler secret list` (run from `execution/infrastructure/api-
 
 ## What's still outstanding
 
+### 0. Claude plugins (2026-11-12)
+- **`API_KEY_21ST` is missing**, so the 21st MCP (plugin `21st@21st-dev`) can't connect. Get a free key at 21st.dev/mcp, then set it in the local shell/`.env` and as a cloud env var.
+- **claude-mem is registered but OFF**: it defaults to Haiku (banned) and makes an LLM call per tool use. See `directives/infrastructure/claude_plugins.md` for the enable steps.
+
 ### 1. Telegram bot (Bryce specifically asked for this for testing)
 
 Worker code is fully in place. Two-channel routing, `/status` command handler, idempotency. The setup helper script lives at `execution/infrastructure/setup_telegram_webhook.py`.

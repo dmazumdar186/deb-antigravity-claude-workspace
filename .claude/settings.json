@@ -26,6 +26,30 @@
         "source": "github",
         "repo": "DietrichGebert/ponytail"
       }
+    },
+    "claude-plugins-official": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/claude-plugins-official"
+      }
+    },
+    "egm": {
+      "source": {
+        "source": "github",
+        "repo": "google/elephant-goldfish-model"
+      }
+    },
+    "21st-dev": {
+      "source": {
+        "source": "github",
+        "repo": "21st-dev/magic-mcp"
+      }
+    },
+    "thedotmack": {
+      "source": {
+        "source": "github",
+        "repo": "thedotmack/claude-mem"
+      }
     }
   },
   "enabledPlugins": {
@@ -37,7 +61,11 @@
     "quota-watch@deb-workspace-mods": true,
     "tool-timing@deb-workspace-mods": true,
     "lemo-opuscar@lemolab": true,
-    "ponytail@ponytail": true
+    "ponytail@ponytail": true,
+    "claude-code-setup@claude-plugins-official": true,
+    "egm@egm": true,
+    "21st@21st-dev": true,
+    "claude-mem@thedotmack": false
   },
   "effortLevel": "low",
   "modelSettings": {
