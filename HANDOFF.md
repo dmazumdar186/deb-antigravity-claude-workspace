@@ -57,7 +57,7 @@ Verify with: `npx wrangler secret list` (run from `execution/infrastructure/api-
 
 ### 0. Claude plugins (2026-11-12)
 - **`API_KEY_21ST` is missing**, so the 21st MCP (plugin `21st@21st-dev`) can't connect. Get a free key at 21st.dev/mcp, then set it in the local shell/`.env` and as a cloud env var.
-- **claude-mem is registered but OFF**: it defaults to Haiku (banned) and makes an LLM call per tool use. See `directives/infrastructure/claude_plugins.md` for the enable steps.
+- **claude-mem is ON** (2026-11-12), with every model slot pinned to `claude-sonnet-5-5` in `.claude/settings.json` `env`. It makes one Sonnet call per tool use; switch it off if the 5-hour cap pinches.
 
 ### 1. Telegram bot (Bryce specifically asked for this for testing)
 

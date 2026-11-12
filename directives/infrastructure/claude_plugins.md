@@ -42,7 +42,7 @@ workspace mods, and keep a trust record for each. Sits beside `directives/infras
 | Claude Code Setup | `anthropics/claude-plugins-official` (`plugins/claude-code-setup`) | marketplace `claude-plugins-official` → plugin `claude-code-setup` (1 skill: automation recommender) | `settings.json` `enabledPlugins` (**on**) |
 | Elephant-Goldfish Model | `google/elephant-goldfish-model` | marketplace `egm` → plugin `egm` (7 `/egm:*` skills + 10 reviewer agents, `model: inherit`, Apache-2.0) | `settings.json` `enabledPlugins` (**on**) |
 | 21st (Magic MCP) | `21st-dev/magic-mcp` | marketplace `21st-dev` → plugin `21st` (HTTP MCP `https://21st.dev/api/mcp` + `21st-ui` skill) | `settings.json` `enabledPlugins` (**on**); needs env `API_KEY_21ST` (free key at 21st.dev/mcp) |
-| Claude Mem | `thedotmack/claude-mem` | marketplace `thedotmack` → plugin `claude-mem` (hooks on 9 events + local worker) | `settings.json` `enabledPlugins` (**registered, OFF**; see trust record 2026-11-12) |
+| Claude Mem | `thedotmack/claude-mem` | marketplace `thedotmack` → plugin `claude-mem` (hooks on 9 events + local worker) | `settings.json` `enabledPlugins` (**on**, all model slots pinned to `claude-sonnet-5-5` via `env`) |
 
 The seven workspace mods (`jev-router-mod`, `safety-guard-mod`, `done-notify-mod`,
 `session-ledger-mod`, `context-meter`, `quota-watch`, `tool-timing`) stay enabled from
@@ -90,13 +90,14 @@ Instead the cloned sources were read at these commits (rescan with SkillSpector 
   applies, never Haiku). Enabled. Adds about 800 chars of skill descriptions across all three plugins (prefix rent).
 - **21st** `6b5299e`: one remote HTTP MCP that sends `x-api-key: ${API_KEY_21ST}` to 21st.dev, plus one skill, no hooks.
   Enabled. With no key set, the MCP fails to connect and nothing else breaks.
-- **claude-mem** `c4a9f57`: **left OFF.** Hooks on 9 events (Setup, SessionStart, UserPromptSubmit,
-  Pre/PostToolUse, Stop, SubagentStop, SessionEnd), a background worker, and an LLM call per observation
-  with default `CLAUDE_MEM_MODEL: 'haiku'`, which breaks the Haiku ban and spends from the shared pool on every
-  tool call. Its settings live in `~/.claude-mem/settings.json` (user level, so they don't persist in cloud), and it
-  overlaps `autoMemoryEnabled` + `.claude/notes/`. To enable it locally: first set `CLAUDE_MEM_MODEL` to
-  `claude-sonnet-5-5` in `~/.claude-mem/settings.json`, leave cloud sync unset, then flip
-  `claude-mem@thedotmack` to `true`.
+- **claude-mem** `c4a9f57`: hooks on 9 events (Setup, SessionStart, UserPromptSubmit, Pre/PostToolUse,
+  Stop, SubagentStop, SessionEnd), a local background worker, and one LLM call per observation. Shipped
+  defaults use Haiku in 4 slots (`CLAUDE_MEM_MODEL`, `_TIER_SIMPLE_MODEL`, `_TIER_FAST_MODEL`,
+  `_WORK_VIEW_CLAUDE_MODEL`). **Enabled 2026-11-12 on the operator's order**, with every slot (plus `_TIER_SMART_MODEL`)
+  pinned to `claude-sonnet-5-5` in `.claude/settings.json` `env`. `SettingsDefaultsManager.applyEnvOverrides`
+  lets env beat `~/.claude-mem/settings.json`, so the pin works in cloud without a user-level file. Cloud sync
+  stays off (`CLAUDE_MEM_CLOUD_SYNC_TOKEN` unset). Cost: a Sonnet call per tool use on the shared 5-hour pool.
+  If the cap pinches, set `claude-mem@thedotmack` back to `false`. It overlaps `autoMemoryEnabled` + `.claude/notes/`.
 - **FreeLLMAPI**: already set up as a service (row above). It is not a plugin, so nothing new was added.
 
 ## Plugin advisor (Jev-graded — never remember which tool to use)
@@ -132,6 +133,7 @@ extras exist. Hybrid surfacing (operator decision, 2026-11-03):
 
 ## Edge cases
 
+- claude-mem: a worker that is already running and was started without the `env` pin keeps its old models. Run `claude-mem stop` (or restart) after changing a pin.
 - `21st` needs `API_KEY_21ST` in the environment (local `.env`/shell, or cloud env var). Missing → MCP connect error only.
 
 - Cloud sessions are ephemeral: `uv tool install` + `agent-reach setup` must be re-run each fresh
