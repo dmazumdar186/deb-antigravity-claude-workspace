@@ -246,6 +246,15 @@
             "timeout": 35
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/brain.sh\" start",
+            "timeout": 15
+          }
+        ]
       }
     ],
     "Stop": [
@@ -255,6 +264,15 @@
             "type": "command",
             "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/verdict-table-check.sh\"",
             "timeout": 5
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/brain.sh\" stop",
+            "timeout": 10
           }
         ]
       }
@@ -294,6 +312,15 @@
             "type": "command",
             "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/jev-router-cloud.sh\"",
             "timeout": 10
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/brain.sh\" prompt",
+            "timeout": 5
           }
         ]
       }

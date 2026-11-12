@@ -144,6 +144,19 @@
           "label": "one email/day at 20:00"
         }
       ]
+    },
+    "workspace_brain": {
+      "code": [
+        "execution/infrastructure/brain.py",
+        ".claude/hooks/brain.sh"
+      ],
+      "directive": "directives/infrastructure/brain.md",
+      "data": {
+        "commands": {
+          "tests": "python3 -m pytest tests/test_brain.py -q -p no:cacheprovider",
+          "lint": "python3 execution/infrastructure/brain.py lint"
+        }
+      }
     }
   }
 }

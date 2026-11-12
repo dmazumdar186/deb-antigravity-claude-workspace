@@ -55,7 +55,7 @@ Classify / pick / score / gate over N items is a Jev call, never an LLM loop. `/
 
 - Deliverables live in cloud services; `.tmp/` is scratch, never committed. `.gitignore` drops `*.png`: shipped assets need a `!path` override.
 - Secrets: `.env`, `credentials.json`, `token.json` (gitignored). Cloud has env vars only; name a missing variable in `HANDOFF.md` and take the non-key path.
-- Notes: `.claude/notes/` (load `general.md` at start; `directives/subagent/note_taker.md`). Past sessions: `search_conversations("...")`.
+- Notes: `.claude/notes/` (`directives/subagent/note_taker.md`); lessons auto-load (`directives/infrastructure/brain.md`). Past: `search_conversations("...")`.
 - Client pages on Cloudflare Pages only, never github.io. Sign as "Debanjan, Founder, ProdCraft, debanjan@prodcraft.fyi".
 
 ## Pointers
