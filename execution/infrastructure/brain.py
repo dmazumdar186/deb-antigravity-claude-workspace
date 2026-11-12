@@ -39,6 +39,7 @@ import json
 import os
 import re
 import sys
+import threading
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -311,10 +312,16 @@ def _spent_today() -> float:
         return 0.0
 
 
+_SPEND_LOCK = threading.Lock()
+
+
 def _add_spend(usd: float) -> None:
-    p = _spend_file()
-    p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(f"{_spent_today() + usd:.6f}", encoding="utf-8")
+    # Locked read-modify-write: the eval replays jev_pick on 8 threads; unlocked, updates were lost and
+    # a 48-call run recorded spend 0.0 (2026-11-12). Cross-process races remain possible but rare.
+    with _SPEND_LOCK:
+        p = _spend_file()
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(f"{_spent_today() + usd:.6f}", encoding="utf-8")
 
 
 def jev_pick(prompt: str, lessons: list[Lesson], exclude: set[str]) -> dict[str, float]:

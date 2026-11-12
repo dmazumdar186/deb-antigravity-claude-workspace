@@ -94,6 +94,13 @@ def read_jsonl(p: Path) -> list[dict[str, Any]]:
     return rows
 
 
+def bench_meta() -> dict[str, Any]:
+    try:
+        return json.loads((eval_dir() / "benchmark_meta.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+
+
 def thresholds() -> dict[str, Any]:
     p = eval_dir() / "thresholds.json"
     try:
@@ -228,7 +235,8 @@ def benchmark_metrics(
         eff_hit += len(rel & (got | core_ids))
         by_id = {x.id: x for x in act}
         for lid in sorted(rel - got - core_ids):
-            misses.append((labels[label_key(prompt, by_id[lid])], row.get("id", "?"), lid))
+            neg = " (author negative: judge disagreed with the author, not a retrieval miss)" if row.get("kind") == "negative" else ""
+            misses.append((labels[label_key(prompt, by_id[lid])], row.get("id", "?"), lid + neg))
         for lid in sorted(got_l - rel):
             noise.append((row.get("id", "?"), lid))
         if not rel and not unl:
@@ -248,8 +256,11 @@ def benchmark_metrics(
         "unlabelled_pairs": total_pairs - labelled,
         "n_ret": tp + fp, "n_rel": tp + fn, "n_neg": neg_prompts,
         "prompts": len(bench), "relevant_pairs": rel_total,
+        "n_missed": fn, "n_missed_noncore": len(misses), "n_noise": len(noise),
         "top_misses": [f"{b}->{lid} (judge {p:.2f})" for p, b, lid in misses[:8]],
         "top_noise": [f"{b}->{lid}" for b, lid in noise[:8]],
+        "_all_misses": [f"{b}->{lid} (judge {p:.2f})" for p, b, lid in misses],
+        "_all_noise": [f"{b}->{lid}" for b, lid in noise],
         "_relevant_any": sorted(relevant_any),
         "_partly_unlabelled": sorted(partly_unlabelled),
     }
@@ -275,6 +286,8 @@ def live_metrics(obs: list[dict[str, Any]], since: str) -> dict[str, Any]:
         "sessions": len({o.get("sid") for o in week}),
         "injections": injected,
         "judged_injections": len(rel_vals),
+        "jev_picked_injections": sum(
+            1 for o in week for i in (o.get("injected") or []) if (o.get("sources") or {}).get(i) == "jev"),
         "live_precision_kw": _r(
             sum(1 for p in rel_vals if p >= REL_CUT) / len(rel_vals)
             if rel_vals
@@ -481,6 +494,11 @@ def judge(
                 what = "since the first baseline" if oldest else f"vs {ref.get('date')}"
                 add(code, f"{m} {b} -> {a} {what} (tolerance {tol:.3f})")
     ref = reference(history, "trigger_overlap", ctx.get("today", brain.today().isoformat()), ctx.get("bench_hash", ""))
+    if not ref and k.get("trigger_overlap") is not None:
+        add("possible_overfit", f"trigger_overlap {k['trigger_overlap']}: share of active lessons with a trigger found "
+                                f"verbatim in the benchmark; no earlier run to compare, so overfitting cannot be ruled out")
+    for lid in k.get("lessons_after_freeze", []):
+        add("possible_overfit", f"{lid} was written on/after the benchmark freeze date; its triggers could fit the benchmark")
     if ref and k.get("trigger_overlap") is not None:
         jump = k["trigger_overlap"] - ref["kpis"]["trigger_overlap"]
         if jump > float(th.get("overfit_trigger_overlap_jump", 0.1)):
@@ -495,13 +513,23 @@ def judge(
         add("judge_errors", f"judge/retriever error: {err}")
     if ctx.get("skipped_budget"):
         add("budget_skipped", f"{ctx['skipped_budget']} label calls skipped by the budget guard")
-    for name in ("precision", "recall", "f1", "live_precision_kw", "capture_leak"):
+    for name in ("precision", "recall", "f1"):
         if k.get(name) is None:
-            add("unmeasured", f"{name} unmeasured this run (no labelled data); not counted as a pass")
+            add("unmeasured", f"{name} unmeasured this run (benchmark not labelled or Jev replay failed); not a pass")
+    if k.get("live_precision_kw") is None:
+        add("unmeasured", f"live_precision_kw unmeasured: {k.get('injections', 0)} live injections in "
+                          f"{k.get('turns_logged', 0)} turns, {k.get('jev_picked_injections', 0)} Jev-picked (never "
+                          f"self-graded), {k.get('judged_injections', 0)} judged; not a pass")
+    if k.get("capture_leak") is None:
+        add("unmeasured", "capture_leak unmeasured: no admitted misses logged this week; not a pass")
+    if not k.get("corrections"):
+        add("unmeasured", f"repeat-mistake rate unmeasured: 0 operator corrections in {k.get('turns_logged', 0)} "
+                          f"logged turns, so a 0 here is no evidence")
     if k.get("unlabelled_pairs"):
         add("unmeasured", f"{k['unlabelled_pairs']} benchmark pairs unlabelled (run with --label)")
     for lid in k.get("dead_lessons", []):
-        add("dead_lesson", f"{lid}: relevant to no benchmark prompt and never injected live")
+        add("dead_lesson", f"{lid}: relevant to no benchmark prompt and not injected in the "
+                           f"{k.get('turns_logged_ever', 0)} live turn(s) logged so far")
     for lid in k.get("source_missing", []):
         add("source_missing", f"{lid}: source path/sha not found")
     for lid in k.get("lint_issues", []):
@@ -519,7 +547,8 @@ def judge(
 
 
 # ---------------------------------------------------------------------------------------------
-def run(label: bool, dry_run: bool, acks: list[str] | None = None) -> tuple[str, dict[str, Any]]:
+def run(label: bool, dry_run: bool, acks: list[str] | None = None,
+        notes: list[str] | None = None) -> tuple[str, dict[str, Any]]:
     today = brain.today().isoformat()
     lessons, errors = brain.load()
     act = brain.active(lessons)
@@ -534,10 +563,14 @@ def run(label: bool, dry_run: bool, acks: list[str] | None = None) -> tuple[str,
         "available": None,
     }
     prompts = [str(b.get("prompt", "")) for b in bench]
+    pairs_total = len(prompts) * len(act)
+    pairs_cached = sum(1 for pr in prompts for x in act if label_key(pr, x) in labels)
     picks = None
     if label and bench:
         spend = label_missing(prompts, act, labels, th.get("budget", {}))
+        before = brain._spent_today()
         picks, pinfo = jev_picks(prompts, lessons)
+        pinfo["jev_usd"] = round(max(0.0, brain._spent_today() - before), 6)
         spend.update(pinfo)
         if pinfo["jev_empty"] == len(prompts):
             picks = None  # Jev unavailable: hybrid cannot be measured this run
@@ -567,7 +600,7 @@ def run(label: bool, dry_run: bool, acks: list[str] | None = None) -> tuple[str,
     snapshot = {x.id: x.strength for x in act}
     prev_snap = (prev or {}).get("snapshot", {})
     hashes = {
-        "benchmark": file_sha(eval_dir() / "benchmark.jsonl"),
+        "benchmark": file_sha(eval_dir() / "benchmark.jsonl") + file_sha(eval_dir() / "benchmark_meta.json")[:4],
         "thresholds": file_sha(eval_dir() / "thresholds.json"),
         "evaluator": file_sha(Path(__file__)),
         "brain": file_sha(Path(brain.__file__)),
@@ -581,6 +614,8 @@ def run(label: bool, dry_run: bool, acks: list[str] | None = None) -> tuple[str,
         **{k: v for k, v in bm.items() if not k.startswith("_")},
         **{f"kw_{m}": kw[m] for m in ("precision", "recall", "f1", "effective_recall", "noise_rate", "n_ret", "n_rel")},
         "trigger_overlap": _r(overlap / len(act) if act else None),
+        "lessons_after_freeze": sorted(x.id for x in act if bench_meta().get("frozen") and x.created >= bench_meta()["frozen"]),
+        "turns_logged_ever": len(obs_rows),
         **lm,
         "active": len(act),
         "core": len(core),
@@ -613,7 +648,7 @@ def run(label: bool, dry_run: bool, acks: list[str] | None = None) -> tuple[str,
         "today": today,
         "bench_hash": hashes["benchmark"],
         "acks": ack_rows,
-        "judge_errors": list(spend.get("errors", []))[:5],
+        "judge_errors": list(spend.get("errors", [])),
         "skipped_budget": spend.get("skipped_budget", 0),
     }
     verdict, faults, codes = judge(kpis, history, th, ctx)
@@ -626,7 +661,8 @@ def run(label: bool, dry_run: bool, acks: list[str] | None = None) -> tuple[str,
         "snapshot": snapshot,
         "hashes": hashes,
         "obs_total": len(obs_rows),
-        "spend_usd": round(spend["usd"], 6),
+        "spend_usd": round(spend["usd"] + float(spend.get("jev_usd", 0) or 0), 6),
+        "notes": list(notes or []),
         "acks": ack_rows,
         "prev_hash": (
             (prev or {}).get("row_hash", "genesis")
@@ -634,7 +670,8 @@ def run(label: bool, dry_run: bool, acks: list[str] | None = None) -> tuple[str,
             else "rechained-after-tamper"
         ),
     }
-    body = render(row, prev, faults, spend)
+    spend["pairs_total"], spend["pairs_cached"] = pairs_total, pairs_cached
+    body = render(row, prev, faults, spend, bm)
     row["report_sha"] = sha(body)
     row["row_hash"] = row_hash(row)
     report = body + f"\nhistory row {row['row_hash']} (prev {row['prev_hash']})\n"
@@ -663,7 +700,11 @@ def _fmt(v: Any) -> str:
     return str(v)
 
 
-KPI_ORDER = ["precision", "recall", "f1", "effective_recall", "noise_rate", "avg_inject_chars", "kw_precision", "kw_recall", "kw_f1", "kw_effective_recall", "kw_noise_rate", "judge_sanity", "label_coverage_gap", "live_precision_kw", "corrections", "repeat_mistakes_week", "capture_leak", "turns_logged", "sessions", "active", "core", "core_chars", "added", "strengthened", "retired", "dead_lessons", "trigger_overlap", "unlabelled_pairs"]
+KPI_ORDER = ["precision", "recall", "f1", "effective_recall", "noise_rate", "avg_inject_chars", "kw_precision", "kw_recall", "kw_f1", "kw_effective_recall", "kw_noise_rate", "judge_sanity", "label_coverage_gap", "live_precision_kw", "corrections", "repeat_mistakes_week", "capture_leak", "turns_logged", "injections", "jev_picked_injections", "judged_injections", "unjudged_rows", "sessions", "active", "core", "core_chars", "added", "strengthened", "retired", "dead_lessons", "trigger_overlap", "unlabelled_pairs"]
+
+
+DISPLAY = {"effective_recall": "effective_recall (incl. always-loaded core)",
+           "kw_effective_recall": "kw_effective_recall (incl. always-loaded core)"}
 
 
 def render(
@@ -671,58 +712,59 @@ def render(
     prev: dict[str, Any] | None,
     faults: list[str],
     spend: dict[str, Any],
+    bm: dict[str, Any] | None = None,
 ) -> str:
     k, pk = row["kpis"], (prev or {}).get("kpis", {})
-    lines = [
-        f"# Brain eval {row['date']}: {row['verdict']}",
-        "",
-        "## Fault lines (printed first, never filtered)",
-        "",
-    ]
+    bm = bm or {}
+    first = "n/a (first committed run)"
+    lines = [f"# Brain eval {row['date']}: {row['verdict']}", "", "## Fault lines (printed first)", ""]
     lines += [f"- {f}" for f in faults] or ["- none"]
-    lines += [
-        "",
-        "## KPIs",
-        "",
-        "| KPI | this run | last run | delta |",
-        "|---|---|---|---|",
-    ]
+    if row.get("notes"):
+        lines += ["", "## Run notes", ""] + [f"- {n}" for n in row["notes"]]
+    lines += ["", "## KPIs", "", "| KPI | this run | last run | delta |", "|---|---|---|---|"]
+    no_evidence = not k.get("corrections")
     for name in KPI_ORDER:
         a, b = k.get(name), pk.get(name) if prev else None
         delta = ""
-        if (
-            isinstance(a, (int, float))
-            and isinstance(b, (int, float))
-            and not isinstance(a, bool)
-        ):
+        if isinstance(a, (int, float)) and isinstance(b, (int, float)) and not isinstance(a, bool):
             delta = f"{a - b:+.3f}".rstrip("0").rstrip(".")
-        lines.append(
-            f"| {name} | {_fmt(a)} | {_fmt(b) if prev else 'n/a (first run)'} | {delta} |"
-        )
+        shown = _fmt(a)
+        if name in ("corrections", "repeat_mistakes_week") and no_evidence:
+            shown += f" ({k.get('turns_logged', 0)} turns, 0 corrections: no evidence)"
+        lines.append(f"| {DISPLAY.get(name, name)} | {shown} | {_fmt(b) if prev else first} | {delta} |")
+    f1_tol = tolerance("f1", float(thresholds()["regression"].get("f1", 0.05)), k, {"kpis": k})
+    checks = "present" if k.get("live_precision_kw") is not None and k.get("corrections") else "absent this run"
     lines += [
-        "",
-        "## Evidence",
-        "",
-        f"- Benchmark misses (relevant per judge, not shown): {', '.join(k.get('top_misses', [])) or 'none'}",
-        f"- Benchmark noise (shown, judged irrelevant): {', '.join(k.get('top_noise', [])) or 'none'}",
+        "", "## Evidence", "",
+        f"- Benchmark misses ({min(8, k.get('n_missed_noncore', 0))} of {k.get('n_missed_noncore', 0)} misses outside "
+        f"the core; {k.get('n_missed', 0)} of {k.get('n_rel', 0)} relevant pairs not retrieved): "
+        f"{', '.join(k.get('top_misses', [])) or 'none'}",
+        f"- Benchmark noise (first {min(8, k.get('n_noise', 0))} of {k.get('n_noise', 0)} shown-but-irrelevant pairs): "
+        f"{', '.join(k.get('top_noise', [])) or 'none'}",
         f"- Repeat mistakes, never shown: {', '.join(k.get('repeat_never_shown', [])) or 'none'}; "
         f"shown and ignored: {', '.join(k.get('repeat_shown_ignored', [])) or 'none'}",
         f"- Added: {', '.join(k.get('added', [])) or 'none'}; strengthened: "
         f"{', '.join(k.get('strengthened', [])) or 'none'}; retired: {', '.join(k.get('retired', [])) or 'none'}",
         f"- Sources unverifiable in this clone: {len(k.get('source_unverifiable', []))}",
-        f"- Judge: {spend.get('calls', 0)} Sonnet calls (subscription, $0); retriever replay: {spend.get('jev_calls', 0)} Jev calls",
-        "",
-        "## Standing caveats (true every run)",
-        "",
-        "- The judge is Claude Sonnet (subscription), never the Jev retriever it grades; its sanity on the author's negatives is reported above, and a low "
-        "value means every benchmark number is suspect.",
-        "- The benchmark is visible in the repo, so triggers could be overfitted to it; the live precision "
-        "and repeat-mistake numbers are the check on that.",
+        f"- Judge: {spend.get('calls', 0)} {JUDGE_MODEL} calls this run; {spend.get('pairs_cached', 0)} of "
+        f"{spend.get('pairs_total', 0)} benchmark pairs served from labels.json, every key labelled by {JUDGE_MODEL}. "
+        f"Retriever replay: {spend.get('jev_calls', 0)} Jev calls; total run spend_usd {row.get('spend_usd')} (Jev; the "
+        f"judge runs on the subscription).",
+        "", "## Standing caveats", "",
+        f"- The judge is {JUDGE_MODEL}, never the Jev retriever it grades. judge_sanity (above) is its agreement with "
+        "the author on negative prompts; a low value makes every benchmark number suspect.",
+        f"- The benchmark is visible in the repo, so triggers could be overfitted to it (trigger_overlap "
+        f"{k.get('trigger_overlap')} this run). Live precision and repeat mistakes are the check on that; they are "
+        f"{checks}.",
         "- Live numbers only cover turns whose sessions committed their observation rows.",
-        "- live_precision_kw judges keyword picks only: Jev-picked injections are never graded by Jev, so the live "
-        "quality of Jev picks is measured only through the benchmark (Sonnet judge). Repeat-mistake detection "
-        "(covered_by) is a Jev judgement, so it can under-count.",
-        "- Deltas within 2 standard errors of the sample are not called regressions; small samples move a lot.",
+        "- live_precision_kw grades keyword picks only: Jev never grades its own picks, so Jev picks are measured "
+        "on the benchmark alone. Repeat-mistake detection is a Jev judgement and can under-count.",
+        f"- A drop smaller than max(configured tolerance, 2 standard errors of the smaller sample) is not called a "
+        f"regression, and drift since the first baseline tolerates double: on this sample about {f1_tol:.2f} for f1 "
+        f"week-on-week and {2 * f1_tol:.2f} since baseline. Floors still apply.",
+        "", "## Full miss and noise lists", "",
+        f"- Misses ({len(bm.get('_all_misses', []))}): {', '.join(bm.get('_all_misses', [])) or 'none'}",
+        f"- Noise ({len(bm.get('_all_noise', []))}): {', '.join(bm.get('_all_noise', [])) or 'none'}",
         "",
     ]
     return "\n".join(lines)
@@ -763,13 +805,14 @@ def main(argv: list[str]) -> int:
     p.add_argument(
         "--dry-run", action="store_true", help="compute and print; write nothing"
     )
+    p.add_argument("--note", action="append", default=[], help="run note recorded in history and the report")
     p.add_argument("--ack", action="append", default=[],
                    help='acknowledge an alarm, recorded in history: --ack "goalposts_moved: fixed evaluator bug X"')
     sub.add_parser("status")
     sub.add_parser("verify")
     a = ap.parse_args(argv)
     if a.cmd == "run":
-        report, row = run(a.label, a.dry_run, a.ack)
+        report, row = run(a.label, a.dry_run, a.ack, a.note)
         print(report)
         return 2 if row["verdict"] == "FAIL" else 0
     if a.cmd == "verify":

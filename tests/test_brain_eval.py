@@ -437,3 +437,10 @@ def test_same_prompt_twice_is_two_turns(sandbox):
         brain.hook_stop({"session_id": "dup", "transcript_path": str(tp)})
     rows = [ln for f in brain.obs_dir().glob("*.jsonl") for ln in f.read_text(encoding="utf-8").splitlines()]
     assert len(rows) == 2 and len({json.loads(r)["turn"] for r in rows}) == 2
+
+
+def test_spend_counter_is_thread_safe():
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        list(pool.map(lambda _: brain._add_spend(0.001), range(200)))
+    assert abs(brain._spent_today() - 0.2) < 1e-9
