@@ -18,10 +18,28 @@ Usage:
 import argparse
 import json
 import os
+import re
 import sys
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
+# A skill the operator types as /name shows up in the user message as <command-name>/name</command-name>,
+# not as a Skill tool call. Counting only tool calls makes hand-typed skills look unused.
+COMMAND_RE = re.compile(r"<command-name>/?([\w:.-]+)</command-name>")
+SKILLS_DIR = Path(__file__).resolve().parents[2] / ".claude" / "skills"
+
+
+def workspace_skills() -> list:
+    return sorted(p.parent.name for p in SKILLS_DIR.glob("*/SKILL.md"))
+
+
+def text_of(content) -> str:
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        return " ".join(b.get("text", "") for b in content if isinstance(b, dict) and b.get("type") == "text")
+    return ""
 
 # Cache-aware pricing: 4 entries per model — input, cache_read (0.1x),
 # cache_write (1.25x), output — per $/MTok. Matched by substring on model id.
@@ -109,6 +127,9 @@ def main() -> int:
                     + (usage.get("output_tokens", 0) or 0) * p["output"]
                 ) / 1_000_000
                 by_day_cost[ts.date().isoformat()] += cost
+            if rec.get("type") == "user" or msg.get("role") == "user":
+                for name in COMMAND_RE.findall(text_of(msg.get("content"))):
+                    skills[name.split(":")[-1]] += 1
             for block in msg.get("content") or []:
                 if not isinstance(block, dict) or block.get("type") != "tool_use":
                     continue
@@ -158,6 +179,7 @@ def main() -> int:
             "by_model": totals,
             "by_day_cost_usd": {k: round(v, 2) for k, v in sorted(by_day_cost.items())},
             "skill_invocations": dict(sorted(skills.items(), key=lambda kv: -kv[1])),
+            "unused_skills": [s for s in workspace_skills() if skills.get(s, 0) == 0],
             "subagent_spawns": dict(sorted(agents.items(), key=lambda kv: -kv[1])),
             "est_total_cost_usd": round(grand, 2),
         }, indent=2))
@@ -182,6 +204,10 @@ def main() -> int:
         print("\nSkill invocations (informs pruning — zero-use skills are archive candidates):")
         for name, n in sorted(skills.items(), key=lambda kv: -kv[1]):
             print(f"  {n:>4}  {name}")
+    unused = [s for s in workspace_skills() if skills.get(s, 0) == 0]
+    if unused:
+        print(f"\nUnused workspace skills in {args.days} days ({len(unused)}; archive candidates):")
+        print("  " + ", ".join(unused))
     if agents:
         print("\nSub-agent spawns (delegation health — should dominate over main-thread grinding):")
         for name, n in sorted(agents.items(), key=lambda kv: -kv[1]):

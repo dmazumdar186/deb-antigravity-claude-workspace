@@ -20,7 +20,7 @@ Measure actual Claude Code token consumption by model, day, skill, and sub-agent
 0. **Normally zero action needed:** `.claude/hooks/session-start.sh` auto-runs `--summary` at most once per 7 days (stamp file `.tmp/token_usage_last_run`) and injects the digest into the session, which surfaces it to the operator. The steps below are for on-demand deep dives.
 1. Run `python3 execution/infrastructure/token_usage_report.py` (on Windows: `py`).
 2. Read the model split: Fable's share should be mostly judgement turns; if Fable dominates raw volume, delegation is failing — re-read the token-economy rule.
-3. Read skill invocations: any skill at zero across a month is an archive candidate (`git mv` to `docs/reference/skills-archive/`).
+3. Read skill invocations: the report now lists `Unused workspace skills` directly (JSON key `unused_skills`). Run it with `--days 30` on the operator's machine (cloud sees one session only). Any skill at zero across a month is an archive candidate (`git mv` to `docs/reference/skills-archive/`).
 4. Read sub-agent spawns: healthy sessions show Explore/general-purpose spawns; zero spawns on multi-file work means the main thread is grinding.
 5. Weekly cadence (or when limits pinch): compare against the prior week's numbers.
 
@@ -33,3 +33,4 @@ Measure actual Claude Code token consumption by model, day, skill, and sub-agent
 ## Changelog
 - 2026-09-01: Created as part of the token-economy sweep (measurement loop — manage from data, not guesses).
 - 2026-09-01 (later): Added `--summary` and fully automated the weekly cadence via the SessionStart hook — no operator action required. Hook also auto-flags an oversized `CLAUDE.local.md` (>3KB) as a context-rent warning.
+- 2026-11-12: Counts operator-typed `/skill` commands (`<command-name>` in user messages), not only Skill tool calls. Before this, hand-typed skills looked unused and would have been archived by mistake. Added the `unused_skills` list (text and JSON).
