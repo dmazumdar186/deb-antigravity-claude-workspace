@@ -1,0 +1,48 @@
+{"id": "b01", "prompt": "redesign the midas site, pull their current pages and give me a concept deck on cloudflare pages", "area": "site_redesign", "kind": "task"}
+{"id": "b02", "prompt": "why did you put the client's real logo on the h2recruit concept cover, i said scrub it. fix and redeploy", "area": "site_redesign", "kind": "correction"}
+{"id": "b03", "prompt": "need a website concept for a yoga teachers directory in france, same prospectus style as gaia, go", "area": "site_redesign", "kind": "task"}
+{"id": "b04", "prompt": "create the instantly campaign for the recruitment cities list, 3 step sequence, a/b on subject, dry run first", "area": "cold_email", "kind": "task"}
+{"id": "b05", "prompt": "you again sent the test to the live list?? check instantly and tell me what actually went out", "area": "cold_email", "kind": "correction"}
+{"id": "b06", "prompt": "reply rate on the bay area campaign is low, pull the stats and tell me which variant to kill", "area": "cold_email", "kind": "task"}
+{"id": "b07", "prompt": "scrape google maps for physiotherapists in lyon, 500 leads, test small before scaling", "area": "lead_sourcing", "kind": "task"}
+{"id": "b08", "prompt": "find emails for the leads in the agent_gtm sheet that dont have one yet, verify them too", "area": "lead_sourcing", "kind": "task"}
+{"id": "b09", "prompt": "this lead list has duplicates and half are agencies not saas, you said it was classified. redo it", "area": "lead_sourcing", "kind": "correction"}
+{"id": "b10", "prompt": "top up the recruiter leads for the talent client, 2 per company max across all campaigns", "area": "recruiter", "kind": "task"}
+{"id": "b11", "prompt": "why are there 4 people from the same company in the new recruiter launch, we agreed 2. this is wrong", "area": "recruiter", "kind": "correction"}
+{"id": "b12", "prompt": "which agencies in the bay area recruitment list have we not emailed yet", "area": "recruiter", "kind": "task"}
+{"id": "b13", "prompt": "draft a reply to Les Kollegian about the Alfa intro, keep it short and warm, run redteam", "area": "partner_client_email", "kind": "task"}
+{"id": "b14", "prompt": "jacob tyler wants an update on the intro, write something and put it in drafts not send", "area": "partner_client_email", "kind": "task"}
+{"id": "b15", "prompt": "you put a made up number in that email to the client, every figure needs a source. rewrite", "area": "partner_client_email", "kind": "correction"}
+{"id": "b16", "prompt": "start on the asset voyages rfp response, outline the sections and what we need from them", "area": "proposals_rfp", "kind": "task"}
+{"id": "b17", "prompt": "turn the greenjobs letter of intent into a one page pdf, french and english", "area": "proposals_rfp", "kind": "task"}
+{"id": "b18", "prompt": "the business plan section 9 still has the billable days paragraph i told you to remove, check again", "area": "proposals_rfp", "kind": "correction"}
+{"id": "b19", "prompt": "run the preflight for the next mobile app and tell me whats blocking an eas build", "area": "mobile_apps", "kind": "task"}
+{"id": "b20", "prompt": "bump the version on the expo app and kick off a preview build for android", "area": "mobile_apps", "kind": "task"}
+{"id": "b21", "prompt": "the ios build failed again with the same signing error, why did you not fix it last time", "area": "mobile_apps", "kind": "correction"}
+{"id": "b22", "prompt": "did todays linkedin connects run, i didnt get the email", "area": "linkedin", "kind": "task"}
+{"id": "b23", "prompt": "lc fail again, it stopped after 6 sends and clicked the wrong button on the profile. look at the screenshot logs", "area": "linkedin", "kind": "correction"}
+{"id": "b24", "prompt": "change the daily connection cap to 15 for next week then back to 20, keep it idempotent", "area": "linkedin", "kind": "task"}
+{"id": "b25", "prompt": "find outlier videos in the recruiting niche from the last 30 days and give me 10 title variants", "area": "youtube", "kind": "task"}
+{"id": "b26", "prompt": "here is a youtube link, break it down, hook pacing and what we can steal https://youtu.be/xxxx", "area": "youtube", "kind": "task"}
+{"id": "b27", "prompt": "those thumbnails are the wrong size and you used the old template, i said 1280x720", "area": "youtube", "kind": "correction"}
+{"id": "b28", "prompt": "tailor the senior pm cv for a role at a fintech in paris, keep it one page", "area": "job_search", "kind": "task"}
+{"id": "b29", "prompt": "run the job search automation and show me new postings that match ai product owner", "area": "job_search", "kind": "task"}
+{"id": "b30", "prompt": "you picked the wrong cv, the dior it lead one is for IT roles not pm. redo the application", "area": "job_search", "kind": "correction"}
+{"id": "b31", "prompt": "classify these 800 leads product saas vs agency with jev, not an llm loop", "area": "jev", "kind": "task"}
+{"id": "b32", "prompt": "add a confidence floor to the jev reply triage so low confidence goes to me", "area": "jev", "kind": "task"}
+{"id": "b33", "prompt": "jev gated those leads wrong, half the rejects have no evidence quote. fix the gate", "area": "jev", "kind": "correction"}
+{"id": "b34", "prompt": "the session start hook is too big, trim it and check claude md is still under 7000 chars", "area": "infra", "kind": "task"}
+{"id": "b35", "prompt": "why is the 5 hour cap hitting so fast, run the token usage report and tell me the worst offenders", "area": "infra", "kind": "task"}
+{"id": "b36", "prompt": "you pushed straight to main without running the audit stack, why. fix the hook so it cant happen", "area": "infra", "kind": "correction"}
+{"id": "b37", "prompt": "what time is it in paris right now", "area": "negative", "kind": "negative"}
+{"id": "b38", "prompt": "whats the difference between a list and a tuple in python", "area": "negative", "kind": "negative"}
+{"id": "b39", "prompt": "thanks, that was helpful", "area": "negative", "kind": "negative"}
+{"id": "b40", "prompt": "where is the readme for the directives folder", "area": "negative", "kind": "negative"}
+{"id": "b41", "prompt": "how do i reverse a string in javascript", "area": "negative", "kind": "negative"}
+{"id": "b42", "prompt": "what does git rebase actually do, explain like im five", "area": "negative", "kind": "negative"}
+{"id": "b43", "prompt": "good morning", "area": "negative", "kind": "negative"}
+{"id": "b44", "prompt": "how many days are there until christmas", "area": "negative", "kind": "negative"}
+{"id": "b45", "prompt": "regex to match a 5 digit french postcode", "area": "negative", "kind": "negative"}
+{"id": "b46", "prompt": "whats the capital of australia", "area": "negative", "kind": "negative"}
+{"id": "b47", "prompt": "explain what a race condition is in two sentences", "area": "negative", "kind": "negative"}
+{"id": "b48", "prompt": "list the files in the deliverables folder", "area": "negative", "kind": "negative"}

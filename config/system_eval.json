@@ -148,13 +148,15 @@
     "workspace_brain": {
       "code": [
         "execution/infrastructure/brain.py",
+        "execution/infrastructure/brain_eval.py",
         ".claude/hooks/brain.sh"
       ],
       "directive": "directives/infrastructure/brain.md",
       "data": {
         "commands": {
-          "tests": "python3 -m pytest tests/test_brain.py -q -p no:cacheprovider",
-          "lint": "python3 execution/infrastructure/brain.py lint"
+          "tests": "python3 -m pytest tests/test_brain.py tests/test_brain_eval.py -q -p no:cacheprovider",
+          "lint": "python3 execution/infrastructure/brain.py lint",
+          "eval_chain": "python3 execution/infrastructure/brain_eval.py verify"
         }
       }
     }

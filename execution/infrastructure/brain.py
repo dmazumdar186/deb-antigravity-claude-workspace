@@ -33,11 +33,13 @@ Directive: directives/infrastructure/brain.md. Fails open in every hook mode (ex
 from __future__ import annotations
 
 import argparse
+import hashlib
 import datetime as dt
 import json
 import os
 import re
 import sys
+import threading
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -294,6 +296,90 @@ def retrieve(
     return scored[:top_k]
 
 
+JEV_PICK_CUT = 0.6
+JEV_PICK_TIMEOUT_S = 3.5
+JEV_DAILY_USD_CAP = 0.25
+
+
+def _spend_file() -> Path:
+    return tmp_dir() / f"brain_jev_spend_{today().isoformat()}.txt"
+
+
+def _spent_today() -> float:
+    try:
+        return float(_spend_file().read_text(encoding="utf-8").strip() or 0)
+    except (OSError, ValueError):
+        return 0.0
+
+
+_SPEND_LOCK = threading.Lock()
+
+
+def _add_spend(usd: float) -> None:
+    # Locked read-modify-write: the eval replays jev_pick on 8 threads; unlocked, updates were lost and
+    # a 48-call run recorded spend 0.0 (2026-11-12). Cross-process races remain possible but rare.
+    with _SPEND_LOCK:
+        p = _spend_file()
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(f"{_spent_today() + usd:.6f}", encoding="utf-8")
+
+
+def jev_pick(prompt: str, lessons: list[Lesson], exclude: set[str]) -> dict[str, float]:
+    """Semantic recall for one prompt: {lesson_id: p} for every lesson Jev rates relevant (one call).
+    {} when Jev is off (/jev off), unavailable, over the daily cap, slow or failing -> keywords only."""
+    pool = [x for x in active(lessons) if x.id not in exclude]
+    if not pool or not _jev_enabled() or _spent_today() >= JEV_DAILY_USD_CAP:
+        return {}
+    try:
+        sys.path.insert(0, str(ROOT))
+        from execution.modules import jev_client as jev  # noqa: PLC0415
+    except Exception as exc:  # noqa: BLE001 — optional dependency; keyword path still runs
+        print(f"brain jev_pick import: {exc}", file=sys.stderr)
+        return {}
+    if not jev.available():
+        return {}
+    qs = {
+        f"l{i}": jev.noul(
+            f"Lesson: {x.rule} -- Does following this lesson matter for doing the operator_prompt's task correctly?",
+            "the task touches what the lesson governs, so ignoring it could repeat the mistake",
+            "the lesson is about a different kind of work than this prompt",
+        )
+        for i, x in enumerate(pool[:120])
+    }
+    try:
+        r = jev.decide({"operator_prompt": prompt[:4000]}, qs, timeout_s=JEV_PICK_TIMEOUT_S)
+    except Exception as exc:  # noqa: BLE001 — never block a prompt on recall
+        print(f"brain jev_pick: {exc}", file=sys.stderr)
+        return {}
+    if r.error:
+        return {}
+    try:
+        _add_spend(float(r.cost_usd or 0))
+        jev.append_ledger({"caller": "brain_pick", "cost": r.cost_usd}, tmp_dir() / "jev_ledger.jsonl")
+    except Exception as exc:  # noqa: BLE001 — telemetry only
+        print(f"brain jev_pick ledger: {exc}", file=sys.stderr)
+    return {x.id: round(r.noul(f"l{i}"), 3) for i, x in enumerate(pool[:120]) if r.noul(f"l{i}") >= JEV_PICK_CUT}
+
+
+def retrieve_hybrid(prompt: str, lessons: list[Lesson], exclude: set[str] | None = None,
+                    use_jev: bool = True, picks: dict[str, float] | None = None) -> list[tuple[str, Lesson]]:
+    """Keyword hits + Jev picks, at most PROMPT_TOP_K. Returns (source, lesson); source is
+    kw | jev | both. Agreement ranks first, then Jev probability, then keyword score."""
+    exclude = exclude or set()
+    kw = {x.id: (sc, x) for sc, x in retrieve(prompt, lessons, exclude=exclude, top_k=PROMPT_TOP_K * 2)}
+    if picks is None:
+        picks = jev_pick(prompt, lessons, exclude) if use_jev else {}
+    by_id = {x.id: x for x in active(lessons)}
+    ids = set(kw) | {i for i in picks if i in by_id}
+    def rank(i: str) -> tuple:
+        return (-(i in kw and i in picks), -picks.get(i, 0.0), -(kw[i][0] if i in kw else 0.0), i)
+    out = []
+    for i in sorted(ids, key=rank)[:PROMPT_TOP_K]:
+        src = "both" if i in kw and i in picks else ("kw" if i in kw else "jev")
+        out.append((src, by_id[i]))
+    return out
+
+
 def core(lessons: list[Lesson]) -> list[Lesson]:
     pool = [x for x in active(lessons) if x.strength >= CORE_MIN_STRENGTH]
     pool.sort(key=lambda x: (-x.strength, x.confirmed or x.created), reverse=False)
@@ -544,11 +630,46 @@ def hook_start(payload: dict[str, Any]) -> str:
             f"Brain upkeep ({why}): run `{CAPTURE_CMD} lint --deep --apply`, resolve any conflict "
             f"with `supersede`, commit. Do it in a background sub-agent; do not mention it unless it fails."
         )
+    lines += eval_lines()
     session_put(
         str(payload.get("session_id") or ""),
         {"injected": [x.id for x in chosen], "nudges": 0},
     )
     return _ctx("SessionStart", "\n".join(lines))
+
+
+EVAL_EVERY_DAYS = 7
+EVAL_OVERDUE_DAYS = 9
+
+
+def eval_lines() -> list[str]:
+    """Weekly self-evaluation (brain_eval.py): due / overdue flags, and a non-PASS verdict surfaced to the
+    operator. The verdict is read from the hash-chained history, never recomputed or softened here."""
+    hist = brain_dir() / "eval" / "history.jsonl"
+    last: dict[str, Any] = {}
+    try:
+        rows = [ln for ln in hist.read_text(encoding="utf-8").splitlines() if ln.strip()]
+        last = json.loads(rows[-1]) if rows else {}
+    except (OSError, ValueError):
+        last = {}
+    out: list[str] = []
+    age = days_since(last["date"]) if last.get("date") else 10_000
+    cmd = "python3 execution/infrastructure/brain_eval.py run --label"
+    if age >= EVAL_OVERDUE_DAYS and last:
+        out.append(f"Brain eval OVERDUE ({age} days since {last['date']}): run `{cmd}` in a background worker, commit "
+                   f".claude/brain/eval/, and tell the operator in one line that it was overdue.")
+    elif age >= EVAL_EVERY_DAYS:
+        out.append(f"Brain eval due: run `{cmd}` in a background worker and commit .claude/brain/eval/.")
+    verdict = str(last.get("verdict", ""))
+    if verdict == "PASS-PARTIAL" and age <= 1:
+        out.append(f"Brain eval {last.get('date')}: PASS-PARTIAL (some KPIs unmeasured: "
+                   f"{', '.join(c for c in last.get('codes', []) if c != 'dead_lesson')[:120]}). "
+                   f"Tell the operator in one line in your first reply.")
+    if verdict in ("WARN", "FAIL"):
+        codes = ", ".join(last.get("codes", [])[:4])
+        out.append(f"Brain eval {last.get('date')}: {verdict} ({codes}). Tell the operator in one line in your first "
+                   f"reply and fix the top fault line (report: .claude/brain/eval/reports/{last.get('date')}.md).")
+    return out
 
 
 _MACHINE_MARKERS = ("<task-notification", "<agent-message", "[SYSTEM NOTIFICATION", "<system-reminder",
@@ -563,12 +684,17 @@ def _machine_turn(prompt: str) -> bool:
 
 def hook_prompt(payload: dict[str, Any]) -> str:
     prompt = str(payload.get("prompt") or "")
-    if len(prompt.strip()) < 12 or _machine_turn(prompt):
-        return ""
     sid = str(payload.get("session_id") or "")
+    if len(prompt.strip()) < 12 or _machine_turn(prompt):
+        st = session_get(sid)
+        if st.get("turn"):
+            st["turn"] = None  # a machine turn must not inherit the previous prompt's evidence
+            session_put(sid, st)
+        return ""
     st = session_get(sid)
     lessons, _ = load()
-    hits = retrieve(prompt, lessons, exclude=set(st.get("injected", [])))
+    hits = retrieve_hybrid(prompt, lessons, exclude=set(st.get("injected", [])))
+    sources = {x.id: src for src, x in hits}
     lines: list[str] = []
     used = 0
     for _, x in hits:
@@ -593,9 +719,23 @@ def hook_prompt(payload: dict[str, Any]) -> str:
             f"said so). No apology; state the rule you are adopting."
         )
         st["corrected"] = True
+    # Evidence for the weekly eval (brain_eval.py): kept in .tmp only; the Stop hook distils it
+    # into a text-free observation row. Lesson ids are snapshotted so a lesson written during this
+    # turn is never counted as "already known".
+    st["turns"] = int(st.get("turns", 0)) + 1
+    st["turn"] = {
+        "prompt": prompt[:2000],
+        # counter suffix: the same prompt sent twice is two turns, logged twice
+        "sha": hashlib.sha256(prompt.encode("utf-8")).hexdigest()[:12] + f"-{int(st.get('turns', 0)) + 1}",
+        "injected": [ln.rsplit("[", 1)[1].rstrip("]") for ln in lines],
+        "sources": {i: sources.get(i, "kw") for i in [ln.rsplit("[", 1)[1].rstrip("]") for ln in lines]},
+        "correction": bool(CORRECTION_RE.search(prompt)),
+        "known": [x.id for x in active(lessons)],
+        "seen": list(st.get("injected", [])),
+    }
+    session_put(sid, st)
     if not out:
         return ""
-    session_put(sid, st)
     return _ctx("UserPromptSubmit", "\n".join(out))
 
 
@@ -642,23 +782,118 @@ def _turn_messages(transcript_path: str, max_bytes: int = 3_000_000) -> tuple[st
     return "\n".join(texts), "\n".join(cmds)
 
 
+def _jev_enabled() -> bool:
+    """Respect `/jev off` (confidential work): no prompt text leaves the machine when it is off."""
+    try:
+        state = json.loads((ROOT / ".claude" / "jev" / "state.json").read_text(encoding="utf-8"))
+        return bool(state.get("enabled", True))
+    except (OSError, ValueError):
+        return True
+
+
+def judge_turn(prompt: str, injected: list[Lesson], known: list[Lesson], correction: bool) -> dict[str, Any]:
+    """Independent judge (Jev) for one turn: is each injected lesson relevant, and did an existing
+    lesson already cover the operator's correction? {} when Jev is unavailable, off, or fails."""
+    if not _jev_enabled() or not (injected or (correction and known)):
+        return {}
+    try:
+        sys.path.insert(0, str(ROOT))
+        from execution.modules import jev_client as jev  # noqa: PLC0415
+    except Exception as exc:  # noqa: BLE001 — optional dependency
+        print(f"brain judge: jev import failed: {exc}", file=sys.stderr)
+        return {}
+    if not jev.available():
+        return {}
+    qs: dict[str, Any] = {}
+    for i, x in enumerate(injected):
+        qs[f"rel_{i}"] = jev.noul(
+            f"Lesson: {x.rule} -- Does following this lesson matter for doing the operator_prompt's task correctly?",
+            "the task touches what the lesson governs, so ignoring it could repeat the mistake",
+            "the lesson is about a different kind of work than this prompt",
+        )
+    if correction and known:
+        menu = {x.id: x.rule[:200] for x in known[:100]}
+        menu["none"] = "no existing lesson covers what the operator is correcting"
+        qs["covered"] = jev.choice(
+            "The operator_prompt corrects the assistant. Which existing lesson, if followed, would have prevented this miss?",
+            menu,
+        )
+    try:
+        r = jev.decide({"operator_prompt": prompt[:4000]}, qs, timeout_s=6)
+    except Exception as exc:  # noqa: BLE001 — judging is advisory; never break the Stop hook
+        print(f"brain judge: {exc}", file=sys.stderr)
+        return {}
+    if r.error:
+        return {}
+    try:
+        jev.append_ledger({"caller": "brain_judge", "cost": r.cost_usd}, tmp_dir() / "jev_ledger.jsonl")
+    except Exception as exc:  # noqa: BLE001 — telemetry only
+        print(f"brain judge ledger: {exc}", file=sys.stderr)
+    out: dict[str, Any] = {"relevance": {x.id: round(r.noul(f"rel_{i}"), 3) for i, x in enumerate(injected)}}
+    if "covered" in qs:
+        out["covered_by"] = r.choice("covered")
+        out["covered_p"] = round(r.confidence("covered"), 3)
+    return out
+
+
+def obs_dir() -> Path:
+    return brain_dir() / "eval" / "observations"
+
+
+def log_observation(sid: str, st: dict[str, Any], admitted: bool, recorded: bool) -> None:
+    """Append one text-free evidence row for this turn (once per turn). Committed with the work so the
+    weekly eval survives ephemeral cloud containers. Never stores prompt text."""
+    turn = st.get("turn") or {}
+    injected_ids = list(turn.get("injected", []))
+    correction = bool(turn.get("correction"))
+    if not (injected_ids or correction or admitted):
+        return
+    key = f"{turn.get('sha', 'none')}:{len(st.get('logged', []))}"
+    if turn.get("sha") and turn.get("sha") in st.get("logged", []):
+        return
+    lessons, _ = load()
+    by_id = {x.id: x for x in lessons}
+    known = [by_id[i] for i in turn.get("known", []) if i in by_id]
+    sources = dict(turn.get("sources") or {})
+    # Independence: Jev never grades a lesson Jev itself picked; only keyword picks are judged live.
+    judged_ids = [i for i in injected_ids if i in by_id and sources.get(i, "kw") == "kw"]
+    verdict = judge_turn(str(turn.get("prompt", "")), [by_id[i] for i in judged_ids], known, correction)
+    covered = verdict.get("covered_by")
+    seen = set(turn.get("seen", [])) | set(injected_ids)
+    row = {
+        "v": 1, "date": today().isoformat(), "sid": re.sub(r"[^A-Za-z0-9]", "", sid)[:8],
+        "turn": turn.get("sha", key), "injected": injected_ids, "sources": sources, "correction": correction,
+        "admitted": admitted, "recorded": recorded, "judged": bool(verdict),
+        "relevance": verdict.get("relevance", {}),
+        "covered_by": covered if covered and covered != "none" else None,
+        "covered_p": verdict.get("covered_p"),
+        "covered_was_shown": bool(covered and covered in seen),
+    }
+    d = obs_dir()
+    d.mkdir(parents=True, exist_ok=True)
+    with (d / f"{row['date']}-{row['sid'] or 'nosession'}.jsonl").open("a", encoding="utf-8", newline="\n") as fh:
+        fh.write(json.dumps(row, sort_keys=True) + "\n")
+    if turn.get("sha"):
+        st["logged"] = (st.get("logged", []) + [turn["sha"]])[-200:]
+
+
 def hook_stop(payload: dict[str, Any]) -> str:
-    if payload.get("stop_hook_active"):
-        return ""
     tp = str(payload.get("transcript_path") or "")
     if not tp or not Path(tp).is_file():
         return ""
     sid = str(payload.get("session_id") or "")
     st = session_get(sid)
-    if int(st.get("nudges", 0)) >= 3:
-        return ""
     text, cmds = _turn_messages(tp)
     text = QUOTED_RE.sub(" ", text)  # quoted client words / code are not the assistant's admission
-    if (
-        not ADMISSION_RE.search(text)
-        or BRAIN_CMD_RE.search(cmds)
-        or BRAIN_CMD_RE.search(text)
-    ):
+    admitted = bool(ADMISSION_RE.search(text))
+    recorded = bool(BRAIN_CMD_RE.search(cmds) or BRAIN_CMD_RE.search(text))
+    nudge = admitted and not recorded and not payload.get("stop_hook_active") and int(st.get("nudges", 0)) < 3
+    if not nudge:
+        try:
+            log_observation(sid, st, admitted, recorded)
+        except Exception as exc:  # noqa: BLE001 — evidence logging must never break the session
+            print(f"brain observation: {exc}", file=sys.stderr)
+        session_put(sid, st)
         return ""
     st["nudges"] = int(st.get("nudges", 0)) + 1
     session_put(sid, st)
