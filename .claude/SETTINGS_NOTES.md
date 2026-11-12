@@ -436,3 +436,5 @@ findings were fixed. Cloud containers have no pytest until `pip install pytest`,
   Ledgers are `.tmp/hook_reminders_{note,documenter}.json`, written atomically.
 Verified with 19 behaviour cases. anneal-reviewer: PASS; its MEDIUM/LOW findings were fixed, except the race between a
 parallel edit and the format of the same file (tiny window; black writes all or nothing).
+
+- 2026-11-12: deleted the unwired `.claude/hooks/pre-deploy.sh` (eval-suite gate, 123 lines). Nothing referenced it. Recover it with `git show 17e719e:.claude/hooks/pre-deploy.sh`.
