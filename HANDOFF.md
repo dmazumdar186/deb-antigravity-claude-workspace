@@ -56,7 +56,7 @@ Verify with: `npx wrangler secret list` (run from `execution/infrastructure/api-
 ## What's still outstanding
 
 ### 0. Claude plugins (2026-11-12)
-- **`API_KEY_21ST` is missing**, so the 21st MCP (plugin `21st@21st-dev`) can't connect. Get a free key at 21st.dev/mcp, then set it in the local shell/`.env` and as a cloud env var.
+- **21st MCP is wired** through the project `.mcp.json`, using env `Dev_API_KEY` (key verified). The plugin's duplicate server, which reads `API_KEY_21ST`, shows as failed and is harmless.
 - **claude-mem is ON** (2026-11-12), with every model slot pinned to `claude-sonnet-5-5` in `.claude/settings.json` `env`. It makes one Sonnet call per tool use; switch it off if the 5-hour cap pinches.
 
 ### 1. Telegram bot (Bryce specifically asked for this for testing)
