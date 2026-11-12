@@ -211,6 +211,16 @@
         "hooks": [
           {
             "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/test-touched.sh\"",
+            "timeout": 90
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
             "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/documenter-prompt.sh\" \"$CLAUDE_TOOL_INPUT_FILE_PATH\"",
             "async": true
           }

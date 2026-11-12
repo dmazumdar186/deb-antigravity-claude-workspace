@@ -413,3 +413,19 @@ allow: a broad `.env*` would block the 7 tracked `.env.example` / `.env.template
 a Write to `.tmp/denytest/.env` was denied, while a control write in the same directory and a Read of `.env.example` succeeded.
 Not covered: Bash (`cat .env`). Scripts load `.env` via python-dotenv through Bash, so Bash stays open on purpose.
 Add a new secret filename here as a rule; don't widen the pattern.
+
+## 2026-11-12 — test-touched hook (pytest on edit)
+
+PostToolUse(Edit|Write) → `.claude/hooks/test-touched.sh` → `test_touched.py`. Editing `execution/**/X.py` runs
+`tests/**/test_X.py` + `test_X_*.py` (max 5 files); editing a test file runs that file. Silent on pass, no tests, or no
+pytest. A failure or a 60 s timeout comes back to Claude as additionalContext (the last 25 lines). It always exits 0.
+Sandbox: secret-looking env names (KEY/TOKEN/SECRET/PASSWORD/URL/DSN/AUTH/COOKIE/WEBHOOK...) and every such name in
+the root `.env` are set to a dummy (dotenv won't override them), `GIT_CONFIG_*` is dropped as a group (a partial drop
+makes git exit 128), and secret values are redacted from the output. A timeout kills the whole process tree.
+Verified: 27/32 scripts with tests pass and the other 5 fail the same way under direct pytest (missing httpx, langdetect
+and google-genai in cloud; cv_builder fails on its own). 15 edge cases pass. anneal-reviewer: PASS; its 4 MEDIUM
+findings were fixed. Cloud containers have no pytest until `pip install pytest`, and the hook stays silent until then.
+
+**Found while building it:** `format-python.sh`, `note-taker.sh` and `documenter-prompt.sh` take
+`"$CLAUDE_TOOL_INPUT_FILE_PATH"` as `$1`. Claude Code doesn't set that variable (hooks get JSON on stdin), so all three are
+silent no-ops. Probe 2026-11-12: a Write of `x=1` with black installed stayed `x=1`. Fix them by reading `tool_input.file_path` from stdin.
