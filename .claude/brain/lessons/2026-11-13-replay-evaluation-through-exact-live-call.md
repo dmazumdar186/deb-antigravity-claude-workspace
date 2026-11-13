@@ -6,7 +6,7 @@ strength: 2
 status: active
 created: 2026-11-13
 confirmed: 2026-11-13
-source:
+source: directives/infrastructure/brain_eval.md
 supersedes:
 ---
 Replay an evaluation through the exact live call path, with the same exclusions and session state, before trusting its numbers.
