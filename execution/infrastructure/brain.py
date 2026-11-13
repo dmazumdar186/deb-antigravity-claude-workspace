@@ -341,8 +341,8 @@ def jev_pick(prompt: str, lessons: list[Lesson], exclude: set[str]) -> dict[str,
     qs = {
         f"l{i}": jev.noul(
             # Triggers as applicability context (retriever only; the live judge below stays rule-only so it never
-            # grades with the keyword evidence). Paired replay 2026-11-13, same prompts and labels: non-core recall
-            # 0.431 -> 0.569, precision 0.55 -> 0.617.
+            # grades with the keyword evidence). Brain eval history rows 3 -> 4 (2026-11-13): non-core recall
+            # 0.431 -> 0.566, precision 0.537 -> 0.612.
             f"Lesson: {x.rule} (applies to work like: {', '.join(x.triggers)}) -- Does following this lesson "
             f"matter for doing the operator_prompt's task correctly?",
             "the task touches what the lesson governs, so ignoring it could repeat the mistake",
