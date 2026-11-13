@@ -11,4 +11,4 @@ supersedes:
 ---
 Quote version and date labels with their exact attribute: a 2020 branch is not a 2020 release of a later patch.
 
-Why: Added to the redteam lens 2026-11-11 alongside the Jacob Tyler recipient-eye fix.
+Why: Added to the redteam lens 2026-11-11 alongside the recipient-eye fix.

@@ -6,7 +6,7 @@ strength: 2
 status: active
 created: 2026-11-11
 confirmed: 2026-11-11
-source: deliverables/jacob_tyler_2026-11-11/alfa_decision_record.md
+source: private client repo (2026-11-11 decision record)
 supersedes:
 ---
 Open a cold intro with one factual observation about the prospect, never a second one that reads as a dig at their site or team.

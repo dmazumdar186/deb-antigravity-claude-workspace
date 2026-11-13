@@ -1,19 +1,19 @@
 """
-jt_leadocean_count.py
+agency_icp_leadocean_count.py
 
-description: Free LeadOcean sizing for the Jacob Tyler (San Diego brand + web agency) cold email ICP: people and distinct companies per vertical x geography (US / California / San Diego county) x decision-maker title group, plus what an export of each cell would cost in rows. Count calls only; never exports, never calls Reoon, OpenRouter or Instantly.
-inputs: env LEADOCEAN_API_KEY; flags --out PATH (default .tmp/les/jt_leadocean_counts.json), --refresh (ignore cached cells), --only VERTICAL[,VERTICAL].
+description: Free LeadOcean sizing for a brand + web agency partner's cold email ICP: people and distinct companies per vertical x geography (US / California / San Diego county) x decision-maker title group, plus what an export of each cell would cost in rows. Count calls only; never exports, never calls Reoon, OpenRouter or Instantly.
+inputs: env LEADOCEAN_API_KEY; flags --out PATH (default .tmp/referral/icp_counts.json), --refresh (ignore cached cells), --only VERTICAL[,VERTICAL].
 outputs: JSON at --out (config, account export allowance, cells, totals) and a Markdown table beside it (same stem, .md).
 usage:
-    python3 execution/lead_sourcing/jt_leadocean_count.py
-    python3 execution/lead_sourcing/jt_leadocean_count.py --only medtech --refresh
+    python3 execution/lead_sourcing/agency_icp_leadocean_count.py
+    python3 execution/lead_sourcing/agency_icp_leadocean_count.py --only medtech --refresh
 
 Reuses leadocean_leads.LeadOcean (x-api-key auth, pacing, 429/5xx retries). The sizing call is
 GET /v1/people/search?count=true&limit=1, which returns meta.credits = 0 (free; verified 2026-11-12).
 An export (POST /v1/exports) bills 1 record per row written, so the cost of exporting a cell = its row count
 (capped by the account's 5,000 export rows/day). Idempotent: each cell is cached in the output JSON and
 skipped on re-run unless --refresh.
-Directive: directives/lead_sourcing/jt_leadocean_count.md
+Directive: directives/lead_sourcing/agency_icp_leadocean_count.md
 """
 
 from __future__ import annotations
@@ -28,12 +28,12 @@ from typing import Any
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from leadocean_leads import ROOT, TODAY, LeadOcean, jload, jsave  # noqa: E402
 
-log = logging.getLogger("jt_leadocean_count")
+log = logging.getLogger("agency_icp_leadocean_count")
 
-DEFAULT_OUT = ROOT / ".tmp" / "les" / "jt_leadocean_counts.json"
+DEFAULT_OUT = ROOT / ".tmp" / "referral" / "icp_counts.json"
 SIZE = {"minEmployees": 20, "maxEmployees": 500}  # proxy for $5M-$100M revenue
 
-# Jacob Tyler's proven verticals (.tmp/les/research_jacobtyler.md section 2). Industry names come from the free
+# The agency partner's proven verticals (from its public case studies and reviews). Industry names come from the free
 # facets on a sizing call; keyword-only verticals (RIA, credit unions, supplements) also need an industry list,
 # otherwise keywords match staff profiles at unrelated employers.
 VERTICALS: dict[str, dict[str, Any]] = {
@@ -195,7 +195,7 @@ def account_allowance(lo: LeadOcean) -> dict[str, Any]:
 
 def write_md(doc: dict[str, Any], path: Path) -> None:
     cells, acct = doc["cells"], doc.get("account") or {}
-    lines = [f"# Jacob Tyler LeadOcean sizing ({doc['date']})", "",
+    lines = [f"# Agency ICP LeadOcean sizing ({doc['date']})", "",
              "Free count calls only (`meta.credits` = 0 on every call). Size 20-500 employees. "
              "Export cost = 1 LeadOcean record per row; daily export cap "
              f"{acct.get('export_rows_day_limit', '?')} rows (used today: {acct.get('export_rows_day_used', '?')}).",

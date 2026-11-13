@@ -6,7 +6,7 @@ strength: 1
 status: active
 created: 2026-11-11
 confirmed: 2026-11-11
-source: deliverables/jacob_tyler_2026-11-11/alfa_decision_record.md
+source: private client repo (2026-11-11 decision record)
 supersedes:
 ---
 Anchor urgency only to a dated, sourced event in the future; if none exists, name the event as a topic without a deadline.

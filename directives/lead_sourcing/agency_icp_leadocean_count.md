@@ -1,8 +1,8 @@
-# Jacob Tyler LeadOcean sizing
+# Agency ICP LeadOcean sizing
 
 ## Goal
-Size the LeadOcean pool for a cold email campaign booking calls for Jacob Tyler (San Diego brand + web agency,
-typical $50k-$200k rebrand + website) before any spend: people and distinct companies per vertical x geography x
+Size the LeadOcean pool for a cold email campaign booking calls for a brand + web agency partner
+(typical $50k-$200k rebrand + website) before any spend: people and distinct companies per vertical x geography x
 decision-maker title group, and what an export of each cell would cost.
 
 **Output contract:** one JSON (`cells`, `totals`, `account`, `config`) and a Markdown table beside it. Counts only;
@@ -10,17 +10,17 @@ no rows exported, no Reoon / OpenRouter / Instantly calls.
 
 ## Inputs
 - env `LEADOCEAN_API_KEY` (never printed).
-- ICP (from `.tmp/les/research_jacobtyler.md` section 2), held in the script: `VERTICALS` (medtech, construction,
+- ICP (the partner's proven verticals from its public case studies), held in the script: `VERTICALS` (medtech, construction,
   finserv, consumer, profservices), `GEOS` (US, California, San Diego county via `SD_CITIES`), `TITLE_GROUPS`
   (exec: CEO/Founder/President/Owner; marketing: CMO / VP or Head of Marketing), size 20-500 employees.
 
 ## Tools/Scripts
-`execution/lead_sourcing/jt_leadocean_count.py [--out PATH] [--refresh] [--only v1,v2]` reuses
+`execution/lead_sourcing/agency_icp_leadocean_count.py [--out PATH] [--refresh] [--only v1,v2]` reuses
 `leadocean_leads.LeadOcean`. Per cell it makes three free counts: `any` contact, `verified` work email,
 `verified_untested` work email (the Reoon-needed wave-2 pool).
 
 ## Outputs
-- `.tmp/les/jt_leadocean_counts.json` (default `--out`, relative to the repo root) and `jt_leadocean_counts.md`.
+- `.tmp/referral/icp_counts.json` (default `--out`, relative to the repo root) and `icp_counts.md`.
 
 ## Steps
 1. Run the script (about 90 free calls, a few minutes; cached per cell, so a re-run only fills gaps).
