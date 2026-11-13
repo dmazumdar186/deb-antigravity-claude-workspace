@@ -78,16 +78,16 @@ def test_bad_file_reported_not_fatal(sandbox):
 
 def test_retrieve_word_boundary_and_dedupe():
     write(
-        "les",
-        "Check the recipient's eye view before a reply to Les.",
-        "les, jacob tyler",
+        "pat",
+        "Check the recipient's eye view before a reply to Pat.",
+        "pat, acme agency",
     )
     write("dep", "Deploy to Cloudflare Pages, never github.io.", "deploy, github pages")
     lessons, _ = brain.load()
-    assert brain.retrieve("this is less important", lessons) == []  # 'les' != 'less'
-    hits = brain.retrieve("draft the reply to Les at Jacob Tyler", lessons)
-    assert [h[1].id for h in hits] == ["les"]
-    assert brain.retrieve("reply to Les", lessons, exclude={"les"}) == []
+    assert brain.retrieve("this is a pattern match", lessons) == []  # 'pat' != 'pattern'
+    hits = brain.retrieve("draft the reply to Pat at Acme Agency", lessons)
+    assert [h[1].id for h in hits] == ["pat"]
+    assert brain.retrieve("reply to Pat", lessons, exclude={"pat"}) == []
 
 
 def test_hook_prompt_injects_once_per_session():
@@ -346,10 +346,10 @@ def test_verbatim_duplicate_caught_even_when_jev_disagrees(monkeypatch):
 
 
 def test_single_generic_trigger_does_not_inject():
-    write("r", "Approver drafts list blockers first.", "reply, les", strength=3)
+    write("r", "Approver drafts list blockers first.", "reply, pat", strength=3)
     lessons, _ = brain.load()
-    assert brain.retrieve("build the mobile app for les with eas", lessons) == []
-    assert [h[1].id for h in brain.retrieve("draft the reply to les", lessons)] == ["r"]
+    assert brain.retrieve("build the mobile app for pat with eas", lessons) == []
+    assert [h[1].id for h in brain.retrieve("draft the reply to pat", lessons)] == ["r"]
 
 
 def test_restore_clears_dangling_supersedes():
@@ -370,7 +370,7 @@ def test_lint_apply_skips_weak_lexical_merge():
 
 
 def test_plural_folding_keeps_les_distinct():
-    write("c", "Never claim prospect intent in cold copy.", "cold email, campaign, les")
+    write("c", "Never claim prospect intent in cold copy.", "cold email, campaign, pat")
     lessons, _ = brain.load()
     assert [h[1].id for h in brain.retrieve("prepare cold emails for the campaigns", lessons)] == ["c"]
     assert brain.retrieve("this is less of a priority", lessons) == []

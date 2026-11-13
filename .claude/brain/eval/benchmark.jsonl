@@ -10,8 +10,8 @@
 {"id": "b10", "prompt": "top up the recruiter leads for the talent client, 2 per company max across all campaigns", "area": "recruiter", "kind": "task"}
 {"id": "b11", "prompt": "why are there 4 people from the same company in the new recruiter launch, we agreed 2. this is wrong", "area": "recruiter", "kind": "correction"}
 {"id": "b12", "prompt": "which agencies in the bay area recruitment list have we not emailed yet", "area": "recruiter", "kind": "task"}
-{"id": "b13", "prompt": "draft a reply to Les Kollegian about the Alfa intro, keep it short and warm, run redteam", "area": "partner_client_email", "kind": "task"}
-{"id": "b14", "prompt": "jacob tyler wants an update on the intro, write something and put it in drafts not send", "area": "partner_client_email", "kind": "task"}
+{"id": "b13", "prompt": "draft a reply to the agency partner about the prospect intro, keep it short and warm, run redteam", "area": "partner_client_email", "kind": "task"}
+{"id": "b14", "prompt": "the agency partner wants an update on the intro, write something and put it in drafts not send", "area": "partner_client_email", "kind": "task"}
 {"id": "b15", "prompt": "you put a made up number in that email to the client, every figure needs a source. rewrite", "area": "partner_client_email", "kind": "correction"}
 {"id": "b16", "prompt": "start on the asset voyages rfp response, outline the sections and what we need from them", "area": "proposals_rfp", "kind": "task"}
 {"id": "b17", "prompt": "turn the greenjobs letter of intent into a one page pdf, french and english", "area": "proposals_rfp", "kind": "task"}
