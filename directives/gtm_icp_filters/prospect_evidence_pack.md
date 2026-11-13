@@ -3,8 +3,8 @@
 ## Purpose
 
 Hand a prospect list to someone who will open every link (an agency founder, a client) only when every company
-has survived two independent checks and a screenshot judged as that reader would. Born 2026-11-11 (Jacob Tyler /
-Les Kollegian): a single-pass list named a company whose site was modern; the operator caught it, not the gate.
+has survived two independent checks and a screenshot judged as that reader would. Born 2026-11-11 (agency referral
+partner): a single-pass list named a company whose site was modern; the operator caught it, not the gate.
 
 ## When to invoke
 

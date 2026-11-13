@@ -11,4 +11,4 @@ supersedes:
 ---
 Build every acceptance check independently of what it checks: its own matcher, or a blind worker that never reads the finder's files.
 
-Why: job_digest 2026-09-06: a gate reusing the filter logic was a tautology; Jacob Tyler 2026-11-11: a single-pass prospect list named a modern site.
+Why: job_digest 2026-09-06: a gate reusing the filter logic was a tautology; agency referral 2026-11-11: a single-pass prospect list named a modern site.

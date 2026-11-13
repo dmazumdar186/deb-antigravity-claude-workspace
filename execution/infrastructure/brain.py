@@ -19,7 +19,7 @@ outputs: hook JSON on stdout; lesson files; .tmp/brain_sessions/<session>.json (
 
 Usage:
     python3 execution/infrastructure/brain.py status | list [--all] | core
-    python3 execution/infrastructure/brain.py search "reply to les about the evidence pdf"
+    python3 execution/infrastructure/brain.py search "reply to the partner about the evidence pdf"
     python3 execution/infrastructure/brain.py add --rule "..." --why "..." --triggers "a, b" \
         [--scope all] [--source <sha|path>] [--strength 2] [--date YYYY-MM-DD] [--force] [--dry-run]
     python3 execution/infrastructure/brain.py repeat <id> | archive <id> | restore <id>
