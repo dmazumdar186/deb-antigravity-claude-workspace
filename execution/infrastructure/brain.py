@@ -370,7 +370,7 @@ def retrieve_hybrid(prompt: str, lessons: list[Lesson], exclude: set[str] | None
     if picks is None:
         picks = jev_pick(prompt, lessons, exclude) if use_jev else {}
     by_id = {x.id: x for x in active(lessons)}
-    ids = set(kw) | {i for i in picks if i in by_id}
+    ids = set(kw) | {i for i in picks if i in by_id and i not in exclude}  # replayed picks may include excluded ids
     def rank(i: str) -> tuple:
         return (-(i in kw and i in picks), -picks.get(i, 0.0), -(kw[i][0] if i in kw else 0.0), i)
     out = []

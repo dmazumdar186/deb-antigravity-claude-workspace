@@ -444,3 +444,24 @@ def test_spend_counter_is_thread_safe():
     with ThreadPoolExecutor(max_workers=8) as pool:
         list(pool.map(lambda _: brain._add_spend(0.001), range(200)))
     assert abs(brain._spent_today() - 0.2) < 1e-9
+
+
+def test_benchmark_scores_retrieval_as_deployed_core_excluded():
+    """The live hook excludes core lessons (injected at session start); the eval must too (2026-11-13)."""
+    lesson("corelesson", "Always check the deploy log before claiming success.", "deploy, log", strength=5)
+    lesson("plain", "Scrub the client logo from concept covers.", "deploy, cover", strength=1)
+    lessons, _ = brain.load()
+    core_ids = {x.id for x in brain.core(lessons)}
+    assert core_ids == {"corelesson"}
+    prompt = "deploy the cover page and read the log"
+    labels = {ev.label_key(prompt, x): 1.0 for x in lessons}
+    rows = [{"id": "b1", "prompt": prompt, "kind": "task"}]
+    for picks in (None, {prompt: {"corelesson": 0.95, "plain": 0.9}}):
+        m = ev.benchmark_metrics(rows, lessons, labels, picks)
+        # the core lesson is relevant and keyword/Jev-matched, yet never retrieved and never a miss
+        assert m["recall"] == 1.0 and m["precision"] == 1.0, m
+        assert m["effective_recall"] == 1.0
+        assert "corelesson" in m["_relevant_any"]
+    # retrieve_hybrid drops excluded ids even when replayed picks contain them
+    out = brain.retrieve_hybrid(prompt, lessons, exclude={"corelesson"}, picks={"corelesson": 0.95})
+    assert all(x.id != "corelesson" for _, x in out)

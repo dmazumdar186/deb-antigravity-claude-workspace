@@ -180,7 +180,9 @@ def label_missing(prompts: list[str], lessons: list[brain.Lesson], labels: dict[
 def jev_picks(prompts: list[str], lessons: list[brain.Lesson]) -> tuple[dict[str, dict[str, float]], dict[str, Any]]:
     """Run the deployed semantic retriever (Jev) once per benchmark prompt. Spends ~$0.0002/prompt."""
     with ThreadPoolExecutor(max_workers=8) as pool:
-        got = list(pool.map(lambda p: brain.jev_pick(p, lessons, set()), prompts))
+        # Mirror hook_prompt: core lessons are injected at session start, so live retrieval excludes them.
+        core_ids = {x.id for x in brain.core(lessons)}
+        got = list(pool.map(lambda p: brain.jev_pick(p, lessons, core_ids), prompts))
     return dict(zip(prompts, got)), {"jev_calls": len(prompts), "jev_empty": sum(1 for g in got if not g)}
 
 
@@ -219,19 +221,24 @@ def benchmark_metrics(
                 unl.add(x.id)
         partly_unlabelled |= unl
         relevant_any |= rel
+        # Score the retriever as deployed: hook_prompt excludes the core lessons (already injected at session
+        # start), so they never compete for the per-prompt slots. Before 2026-11-13 the replay let core compete,
+        # which measured a retriever that does not exist (28 of 51 hits were always-loaded core lessons).
         if picks is None:
-            hits = brain.retrieve(prompt, lessons)
+            hits = brain.retrieve(prompt, lessons, exclude=core_ids)
         else:
-            hits = [(0.0, x) for _, x in brain.retrieve_hybrid(prompt, lessons, picks=picks.get(prompt, {}))]
+            hits = [(0.0, x) for _, x in brain.retrieve_hybrid(prompt, lessons, exclude=core_ids,
+                                                                picks=picks.get(prompt, {}))]
         got = {x.id for _, x in hits}
         chars.append(sum(len(brain.bullet(x)) for _, x in hits))
         got_l = got - unl
         if row.get("kind") == "negative" and not unl:
             author_neg += 1
             author_neg_clean += int(not rel)
-        tp += len(got_l & rel)
+        rel_nc = rel - core_ids  # per-prompt retrieval is only responsible for non-core lessons
+        tp += len(got_l & rel_nc)
         fp += len(got_l - rel)
-        fn += len(rel - got)
+        fn += len(rel_nc - got)
         rel_total += len(rel)
         eff_hit += len(rel & (got | core_ids))
         by_id = {x.id: x for x in act}
