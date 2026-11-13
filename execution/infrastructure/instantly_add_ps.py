@@ -93,7 +93,11 @@ def add_ps(body: str) -> tuple[str, str]:
             "swapped",
         )
     line = LINE_LOWER if is_lowercase_style(body) else LINE_PROPER
-    return f"{body.rstrip()}<div><br /></div><div>{line}</div>", "added"
+    base = body.rstrip()
+    if base and not base.lstrip().startswith("<"):
+        # Instantly drops bare text outside <div> on PATCH (2026-11-13: a draft's placeholder vanished), so wrap it.
+        base = "".join(f"<div>{ln}</div>" for ln in base.split("\n") if ln.strip())
+    return f"{base}<div><br /></div><div>{line}</div>", "added"
 
 
 def new_sequences(camp: dict[str, Any]) -> tuple[list[Any], dict[str, int]]:

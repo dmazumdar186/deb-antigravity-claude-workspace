@@ -58,3 +58,9 @@ def test_new_sequences_counts_every_variant():
     seqs, n = m.new_sequences(camp)
     assert n == {"kept": 1, "swapped": 0, "added": 2, "french": 0}
     assert camp["sequences"][0]["steps"][0]["variants"][0]["body"] == "<div>Hi</div>"  # input not mutated
+
+
+def test_bare_text_body_is_wrapped_not_dropped():
+    out, act = m.add_ps("PLACEHOLDER - copy pending partner approval - do not activate")
+    assert act == "added"
+    assert out.startswith("<div>PLACEHOLDER - copy pending partner approval - do not activate</div><div><br /></div>")
