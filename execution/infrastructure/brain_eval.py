@@ -223,7 +223,7 @@ def benchmark_metrics(
         relevant_any |= rel
         # Score the retriever as deployed: hook_prompt excludes the core lessons (already injected at session
         # start), so they never compete for the per-prompt slots. Before 2026-11-13 the replay let core compete,
-        # which measured a retriever that does not exist (28 of 51 hits were always-loaded core lessons).
+        # which measured a retriever that does not exist (32 of 51 hits in a 2026-11-13 replay were always-loaded core lessons).
         if picks is None:
             hits = brain.retrieve(prompt, lessons, exclude=core_ids)
         else:
