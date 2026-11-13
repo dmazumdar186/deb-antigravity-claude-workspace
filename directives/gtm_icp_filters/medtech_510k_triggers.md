@@ -49,5 +49,8 @@ the Python package is not).
   verbatim from FDA.
 - Idempotent: cached per K number + domain; re-run is a no-op. `--refresh` re-pulls and re-checks.
 - `--check`: offline, caches only, no network, no Jev spend.
+- Generator meta: a page often carries several (`Elementor`, `Site Kit`, `Yoast` plugin tags beside the CMS);
+  `page_markers` prefers the CMS tag (`CMS_GENERATOR`: WordPress, Drupal, Wix, Squarespace, Webflow...) and falls
+  back to the first tag only when none is a CMS.
 - openFDA lags FDA's own database by ~1-2 weeks (`meta.last_updated`).
 - Outward copy using these rows still goes through `/redteam`.

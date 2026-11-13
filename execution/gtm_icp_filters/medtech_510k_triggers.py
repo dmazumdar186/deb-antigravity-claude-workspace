@@ -304,19 +304,25 @@ def page_markers(html: str) -> dict:
     m = re.search(r"(?:©|&copy;|copyright)[^<]{0,60}", html, re.I)
     if m:
         years += [int(y) for y in re.findall(r"20\d\d", m.group(0))]
-    gen = re.search(
+    gens = [g.strip() for g in re.findall(
         r'<meta[^>]+name=["\']generator["\'][^>]*content=["\']([^"\']+)', html, re.I
-    ) or re.search(
+    ) + re.findall(
         r'<meta[^>]+content=["\']([^"\']+)["\'][^>]*name=["\']generator', html, re.I
-    )
+    )]
+    # Plugins (Elementor, Yoast, Site Kit, WPBakery...) add their own generator tags; the CMS tag is the claim.
+    cms = [g for g in gens if CMS_GENERATOR.search(g)]
+    gen = (cms or gens or [None])[0]
     vp = re.search(r'<meta[^>]+name=["\']viewport["\']', html, re.I)
     return {
         "copyright_year": max(years) if years else None,
-        "generator": gen.group(1).strip() if gen else None,
+        "generator": gen,
         "viewport": bool(vp),
     }
 
 
+CMS_GENERATOR = re.compile(
+    r"^(WordPress|Drupal|Joomla|Wix|Squarespace|Webflow|Shopify|HubSpot|Duda|Hugo|Gatsby|Next\.js|Ghost|"
+    r"TYPO3|Sitecore|Adobe Experience Manager|Craft CMS|Concrete ?CMS|Kentico|Umbraco|DNN|GoDaddy|Weebly)\b", re.I)
 SEARCH_PATTERNS = [
     "/?s={q}",
     "/search?q={q}",
