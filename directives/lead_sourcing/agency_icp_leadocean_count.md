@@ -48,7 +48,7 @@ no rows exported, no Reoon / OpenRouter / Instantly calls.
   Manufacturing and Civil Engineering); export per vertical with `excludeViewed` or dedupe by domain.
 
 ## Export (`export` subcommand)
-`python3 execution/lead_sourcing/jt_leadocean_count.py export [--plan-only] [--budget 6000] [--rebuild] [--sample N]`
+`python3 execution/lead_sourcing/agency_icp_leadocean_count.py export [--plan-only] [--budget 6000] [--rebuild] [--sample N]`
 
 Exports medtech then construction (US, verified work email, exec + marketing title groups) using the SAME
 `cell_filters(vertical, "us", group, "verified")` as the count, via the bulk-export endpoint from `leadocean_leads.py`.
@@ -56,16 +56,16 @@ Exports medtech then construction (US, verified work email, exec + marketing tit
   plan (marketing group first per vertical, medtech first overall; construction gets budget left after medtech),
   `--plan-only` stops there. Otherwise queue jobs, poll, download, then build outputs.
 - **Budget:** hard cap `--budget` rows over all ledgered jobs (exports bill 1 record per row; no Reoon/paid verification).
-- **Idempotent:** `.tmp/les/leads/export_ledger.json` keys each job by vertical:group:hash(filters). A re-run reuses
+- **Idempotent:** `.tmp/referral/leads/export_ledger.json` keys each job by vertical:group:hash(filters). A re-run reuses
   or downloads ledgered jobs and never re-queues them; only `failed`/`cancelled` jobs (billed 0) are re-queued.
-  Outputs are rebuilt deterministically from `.tmp/les/leads/raw/*.csv`; people deduped by email.
+  Outputs are rebuilt deterministically from `.tmp/referral/leads/raw/*.csv`; people deduped by email.
 - **Per-company cap:** 2 contacts per domain, ranked CEO/President/Owner/Founder, then CMO/VP Marketing/Marketing
   Director, then other execs. Exports cannot cap per company server-side, so raw rows exceed the post-cap rows.
-- **Drops:** `.tmp/les/leads/drop_list.json` (`{"domains": [...], "names": [...]}`, gitignored; never commit it)
+- **Drops:** `.tmp/referral/leads/drop_list.json` (`{"domains": [...], "names": [...]}`, gitignored; never commit it)
   matched by domain and normalized company name. A company in both verticals stays in medtech.
-- **Outputs (`.tmp/les/leads/`, never committed):** `jt_medtech.csv`, `jt_construction.csv`
+- **Outputs (`.tmp/referral/leads/`, never committed):** `icp_medtech.csv`, `icp_construction.csv`
   (first_name,last_name,title,email,company,domain,website,city,state,employees,linkedin,vertical),
-  `jt_companies.csv` (company,domain,website,city,state,employees,vertical,contacts).
+  `icp_companies.csv` (company,domain,website,city,state,employees,vertical,contacts).
 - **Edge cases:** exports can fail server-side with "Looking a person up by person_id is temporarily unavailable"
   (status `failed`, billed 0; observed 2026-11-13, persisted 10+ min) - re-run later. Owner/President titles match
   loosely; CA construction `hqState` filter is dropped (export is US-wide, so unaffected); `--sample N` prints N

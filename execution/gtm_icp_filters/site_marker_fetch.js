@@ -1,5 +1,5 @@
-// jt_pw_fetch.js
-// description: Headless Chromium fetch helper for jt_medtech_triggers.py (Node Playwright is the installed binding).
+// site_marker_fetch.js
+// description: Headless Chromium fetch helper for medtech_510k_triggers.py (Node Playwright is the installed binding).
 // inputs: one JSON job on stdin: {jobs:[{url, mode:"full"|"text", desk_png?, mob_png?}]}
 // outputs: JSON on stdout: [{url, status, final_url, html?, text, mobile_viewport?, error?}]
 const { chromium, devices } = require('playwright');

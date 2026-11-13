@@ -8,7 +8,7 @@ checkable fact about the company's own website. Hard facts only; never interpret
 ## Inputs
 
 - `--companies` CSV: `company,domain,website[,city,state,vertical]`. Rows filtered to `--vertical` (default
-  `medtech`) when the column exists. Production file: `.tmp/les/leads/jt_companies.csv`.
+  `medtech`) when the column exists. Production file: `.tmp/referral/leads/icp_companies.csv`.
 - `--since` (default `2026-08-01`). `--controls <json>`: gitignored fixture `{k_number: label}` of positive
   controls (the repo is public: no company names, K numbers or test CSVs in `execution/` or `directives/`).
 
@@ -18,12 +18,12 @@ See command below.
 
 ## Steps
 
-`python3 execution/gtm_icp_filters/jt_medtech_triggers.py --companies <csv> [--controls .tmp/les/triggers/controls.json]`
-Browser work runs through `execution/gtm_icp_filters/jt_pw_fetch.js` (Node Playwright is the installed binding;
+`python3 execution/gtm_icp_filters/medtech_510k_triggers.py --companies <csv> [--controls .tmp/referral/triggers/controls.json]`
+Browser work runs through `execution/gtm_icp_filters/site_marker_fetch.js` (Node Playwright is the installed binding;
 the Python package is not).
 
 1. **Pull**: every openFDA 510(k) decision with `decision_date` in [since, today] and `country_code:US`, paged with
-   skip/limit 1000; exits if rows != `meta.results.total`. Cached in `.tmp/les/triggers/fda_510k_<since>.json`.
+   skip/limit 1000; exits if rows != `meta.results.total`. Cached in `.tmp/referral/triggers/fda_510k_<since>.json`.
 2. **Match**: normalized name tokens (Inc/LLC/Corp/punctuation stripped), exact or domain-root == applicant, or
    Jaccard >= 0.8 with state agreement. 0.5-0.8 or a state clash goes to one Jev `choice` (with `none`), conf >= 0.7,
    capped by `--max-jev`, ledgered. No Jev key = ambiguous rows dropped (fail closed).
@@ -37,7 +37,7 @@ the Python package is not).
 
 ## Outputs
 
-- `.tmp/les/triggers/medtech_triggers.csv`: one row per company (newest verified clearance):
+- `.tmp/referral/triggers/medtech_triggers.csv`: one row per company (newest verified clearance):
   `company,domain,k_number,device_name,decision_date,trigger_line,site_fact,site_fact_type,evidence_urls,verified`.
 - `medtech_triggers_all.csv`: every match with verifier notes. `cache/<K>_<domain>.json`: per-pair result.
 

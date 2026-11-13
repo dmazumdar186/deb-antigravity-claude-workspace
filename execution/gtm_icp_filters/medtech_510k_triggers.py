@@ -1,5 +1,5 @@
 """
-jt_medtech_triggers.py
+medtech_510k_triggers.py
 description: FDA-first cold-email triggers for US medtech companies. Pulls every openFDA 510(k) decision since
              --since for US applicants, matches applicants to a companies CSV, checks each matched company's own
              site for ONE hard, checkable fact (site search for the device returns nothing, device absent from
@@ -7,12 +7,12 @@ description: FDA-first cold-email triggers for US medtech companies. Pulls every
              claim in an independent blind verifier pass. Only rows where finder and verifier agree ship.
 inputs:  --companies CSV (columns company,domain,website[,city,state,vertical]); --vertical filter (default medtech
          when the column exists); --since YYYY-MM-DD (default 2026-08-01)
-outputs: .tmp/les/triggers/medtech_triggers.csv (verified rows only), medtech_triggers_all.csv (every match +
+outputs: .tmp/referral/triggers/medtech_triggers.csv (verified rows only), medtech_triggers_all.csv (every match +
          verifier verdict), fda_510k_<since>.json (raw pull), cache/*.json, shots/*.png
-usage:   python3 execution/gtm_icp_filters/jt_medtech_triggers.py --companies .tmp/les/leads/jt_companies.csv
-         python3 execution/gtm_icp_filters/jt_medtech_triggers.py --companies X.csv --check   # offline, caches only
+usage:   python3 execution/gtm_icp_filters/medtech_510k_triggers.py --companies .tmp/referral/leads/icp_companies.csv
+         python3 execution/gtm_icp_filters/medtech_510k_triggers.py --companies X.csv --check   # offline, caches only
          --controls  : assert the 4 positive controls are caught (exit 1 if not)
-Directive: directives/gtm_icp_filters/jt_medtech_triggers.md
+Directive: directives/gtm_icp_filters/medtech_510k_triggers.md
 Spend: openFDA + company sites are free. Jev (paid, ~$0.00002/call) only for ambiguous name matches, capped by
        --max-jev (default 40), every call logged to .tmp/jev_ledger.jsonl. --no-jev disables it.
 """
@@ -29,7 +29,7 @@ load_dotenv()
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-OUT = ROOT / ".tmp/les/triggers"
+OUT = ROOT / ".tmp/referral/triggers"
 CACHE, SHOTS = OUT / "cache", OUT / "shots"
 FDA = "https://api.fda.gov/device/510k.json"
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
@@ -270,7 +270,7 @@ def match_companies(
                 )
                 jev.append_ledger(
                     {
-                        "script": "jt_medtech_triggers",
+                        "script": "medtech_510k_triggers",
                         "company": c["company"],
                         "cost": r.cost_usd,
                     }
@@ -328,11 +328,11 @@ NONSENSE = "qzxwvjkplm"
 
 
 def pw_fetch(jobs: list[dict]) -> list[dict]:
-    """Run Node Playwright (the installed binding) via jt_pw_fetch.js; one Chromium per call."""
+    """Run Node Playwright (the installed binding) via site_marker_fetch.js; one Chromium per call."""
     import subprocess
 
     try:
-        cp = subprocess.run(["node", str(Path(__file__).with_name("jt_pw_fetch.js"))], input=json.dumps({"jobs": jobs}),
+        cp = subprocess.run(["node", str(Path(__file__).with_name("site_marker_fetch.js"))], input=json.dumps({"jobs": jobs}),
                             capture_output=True, text=True, encoding="utf-8", errors="replace",
                             timeout=90 * len(jobs) + 30)
     except subprocess.TimeoutExpired:
