@@ -899,3 +899,8 @@ html:not(.has-js) .bar__progress{display:none}
 @keyframes ck-crown{0%{opacity:0;transform:scale(.4)}55%{opacity:.85;transform:scale(1.12)}100%{opacity:.5;transform:none}}
 @keyframes ck-spin{to{transform:rotate(360deg)}}
 @keyframes ck-breathe{from{opacity:1;transform:none}to{opacity:.72;transform:scale(1.14)}}
+
+/* chakra gate fixes 2026-11-14 */
+.sutra cite{font-size:max(var(--fs-caption),.875rem)}
+@media (min-width:900px){.sutra-scene{padding-inline:clamp(0px,6vw,110px)}}
+.chakra{-webkit-mask-image:radial-gradient(ellipse 72% 70% at 50% 50%,#000 58%,transparent 100%);mask-image:radial-gradient(ellipse 72% 70% at 50% 50%,#000 58%,transparent 100%)}

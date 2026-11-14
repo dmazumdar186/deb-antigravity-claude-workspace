@@ -29,7 +29,7 @@
     if(c.el.classList.contains('is-aligned'))return;
     const r=c.el.getBoundingClientRect();
     // begins as the root point (84% down the figure) enters the viewport, complete when its centre reaches 55%
-    const p=clamp((vh-r.height*.84-r.top)/(vh*.45+r.height*.34));
+    const p=clamp((vh-r.height*.84-r.top)/Math.max(vh*.2,vh*.45-r.height*.34)); // root enters (top=vh-.84h) -> centre at 55% (top=.55vh-.5h)
     if(p<=c.max)return;
     c.max=p;
     c.el.style.setProperty('--k',axisAt(p).toFixed(4));
