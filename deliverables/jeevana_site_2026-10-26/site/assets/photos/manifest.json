@@ -287,5 +287,11 @@
   "alt_en": "Jeevana in a blue saree, sitting on the floor and lighting a diya beside a marigold rangoli for Diwali.",
   "alt_fr": "Jeevana en saree bleu, assise par terre, allume une diya près d'une rangoli de soucis pour Diwali.",
   "upscale": "realesrgan_x4plus+realplksr_x2 blend"
+ },
+ "nataraja-bronze": {
+  "w": 665,
+  "h": 815,
+  "source": "Cleveland Museum of Art, Nataraja, Shiva as the Lord of Dance, 1930.331, CC0 (openaccess-api.clevelandart.org)",
+  "treatment": "luminance-to-alpha warm ink, S-curve, native resolution (no upscaling)"
  }
 }
