@@ -649,3 +649,92 @@ fieldset:disabled input,fieldset:disabled select,fieldset:disabled textarea{curs
 @media (max-width:899px){.practice__gallery .shot--wide{grid-column:1/-1;grid-row:1}.practice__gallery .shot--square{grid-row:2}.practice__gallery .sutra{grid-row:3}.practice__gallery .shot--tall{grid-row:4}}
 /* eye-gate polish 2026-11-14: tighter Paris section on phones */
 @media (max-width:899px){#paris.section{padding-top:var(--s7);padding-bottom:var(--s7)}#paris .paris__grid{row-gap:var(--s6)}}
+
+/* ------------------------------------------------------------ signature motion (restored from the approved build, 2026-11-14)
+   Everything below enhances a complete static page: without JS nothing is hidden, and with reduced motion
+   every reveal is shown, every ring is still, and the parallax is off. */
+.has-js [data-reveal]{opacity:0;transform:translateY(14px);transition:opacity .76s var(--ease),transform .76s var(--ease)}
+.has-js [data-reveal].is-visible{opacity:1;transform:none}
+.has-js [data-reveal].is-past{transition:none}
+.has-js [data-reveal]:nth-child(2){transition-delay:.08s}
+.has-js [data-reveal]:nth-child(3){transition-delay:.16s}
+.has-js [data-reveal]:nth-child(4){transition-delay:.24s}
+.has-js [data-reveal]:nth-child(n+5){transition-delay:.32s}
+.has-js .facts[data-reveal]>div{opacity:0;transform:translateY(10px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+.has-js .facts[data-reveal].is-visible>div{opacity:1;transform:none}
+.has-js .facts[data-reveal].is-past>div{transition:none}
+.has-js .facts[data-reveal]>div:nth-child(2){transition-delay:.08s}
+.has-js .facts[data-reveal]>div:nth-child(3){transition-delay:.16s}
+.has-js .facts[data-reveal]>div:nth-child(4){transition-delay:.24s}
+.has-js .facts[data-reveal]>div:nth-child(5){transition-delay:.32s}
+
+/* hero headline: words arrive one by one (i18n.js wraps each word in .word.wN) */
+@media (prefers-reduced-motion:no-preference){
+  .has-js .cover__copy>#h1{animation:none}
+  .has-js #h1 .word{animation:word-in .6s var(--ease) both}
+  #h1 .w1{animation-delay:40ms}#h1 .w2{animation-delay:80ms}#h1 .w3{animation-delay:120ms}#h1 .w4{animation-delay:160ms}
+  #h1 .w5{animation-delay:200ms}#h1 .w6{animation-delay:240ms}#h1 .w7{animation-delay:280ms}#h1 .w8{animation-delay:320ms}
+  #h1 .w9{animation-delay:360ms}#h1 .w10{animation-delay:400ms}#h1 .w11{animation-delay:440ms}
+}
+@keyframes word-in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* page progress: a hairline under the header; it stays at the top edge while the header is tucked away */
+.bar__progress{position:absolute;left:0;right:0;bottom:-2px;height:2px;overflow:hidden;pointer-events:none}
+.bar__progress i{display:block;height:100%;background:var(--ochre);transform:scaleX(0);transform-origin:left;will-change:transform}
+html:not(.has-js) .bar__progress{display:none}
+
+/* editorial photos: the image drifts inside its frame (main.js sets the transform; desktop landscape only) */
+.frame>.drift{position:absolute;inset:-18px 0}
+.frame>.drift .ph{height:100%}
+
+/* the twelve-breath ring: one arc per breath of the sun salutation */
+.twelve{position:absolute;max-width:none;pointer-events:none;fill:none;stroke-width:1;-webkit-mask-image:radial-gradient(closest-side,#000 78%,transparent 100%);mask-image:radial-gradient(closest-side,#000 78%,transparent 100%)}
+.twelve .spin{transform-origin:256px 256px;animation:orbit 240s linear infinite}
+.twelve .rays{transform-origin:256px 256px;animation:rays-breathe 9s ease-in-out infinite}
+.twelve .arc{stroke:var(--accent);stroke-width:1.6;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:.3;transition:opacity .4s ease-out}
+.twelve .arc.on{opacity:1;stroke-width:2.4}
+.twelve .fine{stroke:var(--ochre);stroke-opacity:.45;vector-effect:non-scaling-stroke}
+.twelve .centre{stroke:var(--ochre);stroke-opacity:.4;vector-effect:non-scaling-stroke;transform-origin:256px 256px;animation:centre-breathe 5.5s ease-in-out infinite}
+.twelve .centre .disc{fill:rgb(184 134 43 / .08);stroke-opacity:.55}
+.twelve .centre .dots{stroke-width:3;stroke-linecap:round;stroke-opacity:.6;vector-effect:none}
+@keyframes orbit{to{transform:rotate(360deg)}}
+@keyframes rays-breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
+@keyframes centre-breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+
+/* cover: the ring rises behind the portrait; its arcs light one after another, a breath each */
+.cover__media{position:relative;isolation:isolate}
+.cover__frame{z-index:1}
+.twelve--cover{z-index:0;width:min(68%,500px);aspect-ratio:1;height:auto;left:0;top:68%;transform:translate(-50%,-50%)}
+/* phones: no room beside the photo, so the sun sits in its top-right corner, where she turns her face */
+@media (max-width:899px){
+  .twelve--cover{z-index:2;width:62%;left:100%;top:0;clip-path:inset(50% 50% 0 0)}
+  .twelve--cover .arc{--arc-dim:.45;stroke:var(--on-night-accent);opacity:.45}
+  .twelve--cover .fine,.twelve--cover .centre{stroke:var(--surface);stroke-opacity:.6}
+  .twelve--cover .centre .disc{fill:rgb(251 246 238 / .1)}
+}
+@media (prefers-reduced-motion:no-preference){
+  .twelve--cover .arc,.twelve--cover .arc.on{stroke-width:2;animation:arc-breath 30s linear infinite}
+  .twelve--cover .arc[data-n="2"]{animation-delay:-27.5s}.twelve--cover .arc[data-n="3"]{animation-delay:-25s}
+  .twelve--cover .arc[data-n="4"]{animation-delay:-22.5s}.twelve--cover .arc[data-n="5"]{animation-delay:-20s}
+  .twelve--cover .arc[data-n="6"]{animation-delay:-17.5s}.twelve--cover .arc[data-n="7"]{animation-delay:-15s}
+  .twelve--cover .arc[data-n="8"]{animation-delay:-12.5s}.twelve--cover .arc[data-n="9"]{animation-delay:-10s}
+  .twelve--cover .arc[data-n="10"]{animation-delay:-7.5s}.twelve--cover .arc[data-n="11"]{animation-delay:-5s}
+  .twelve--cover .arc[data-n="12"]{animation-delay:-2.5s}
+}
+@keyframes arc-breath{0%{opacity:var(--arc-dim,.3)}2%{opacity:1}8.33%{opacity:1}16%{opacity:var(--arc-dim,.3)}100%{opacity:var(--arc-dim,.3)}}
+
+/* sequence: the ring follows the pose on screen (main.js toggles .on) */
+.sequence{position:relative;isolation:isolate}
+.twelve--strip{z-index:-1;width:clamp(220px,30vw,560px);aspect-ratio:1;height:auto;right:-7%;top:calc(var(--section) * -.35)}
+.twelve--strip .arc{stroke:var(--on-night-accent);opacity:.28}
+.twelve--strip .arc.on{opacity:1}
+.twelve--strip .fine,.twelve--strip .centre{stroke:var(--on-night-2);stroke-opacity:.28}
+.twelve--strip .centre .disc{fill:rgb(217 165 90 / .05)}
+@media (max-width:899px){.twelve--strip{width:240px;right:-96px;top:-40px}}
+
+@media (prefers-reduced-motion:reduce){
+  .has-js [data-reveal],.has-js .facts[data-reveal]>div{opacity:1;transform:none;transition:none}
+  .twelve .spin,.twelve .rays,.twelve .centre{animation:none}
+  .frame>.drift{transform:none!important}
+}
+@media print{.has-js [data-reveal],.has-js .facts[data-reveal]>div{opacity:1;transform:none}.twelve,.bar__progress{display:none}}
