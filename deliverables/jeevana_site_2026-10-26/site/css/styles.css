@@ -354,7 +354,7 @@ h2,h3,.lineage-link{text-wrap:balance}
 .vscroll__head{display:flex;align-items:center;gap:14px;margin-bottom:12px;color:var(--verm)}
 .vscroll__rule{flex:1;height:4px;border-block:1px solid rgb(166 58 34 / .5)}
 .vscroll__om{width:36px;height:36px;flex:0 0 36px}
-.vscroll__foot{margin-top:18px;text-align:center;font-family:var(--deva);font-size:1rem;letter-spacing:.04em;color:var(--verm);opacity:.85}
+.vscroll__foot{margin-top:18px;text-align:center;font-family:var(--deva);font-size:1rem;letter-spacing:.04em;color:var(--ochre-text)}
 .vscroll .contact-links{margin-top:0}
 .vscroll .contact-links>a{grid-template-columns:minmax(110px,9rem) minmax(0,1fr) 1.5rem;gap:16px;min-height:66px;padding-block:12px;border-color:rgb(120 72 30 / .28)}
 .vscroll .contact-links>a:first-child{border-top:0}.vscroll .contact-links>a:last-child{border-bottom:0}
@@ -385,9 +385,9 @@ h2,h3,.lineage-link{text-wrap:balance}
 .nataraja{--p:1;width:clamp(150px,13vw,210px);height:auto;aspect-ratio:662/745;flex:0 0 auto;overflow:visible;fill:none;stroke-linecap:round;stroke-linejoin:round}
 .nataraja path,.nataraja circle,.nataraja ellipse{stroke-width:3.4;stroke-dasharray:1 1}
 .nataraja .nj-ring>*{stroke-width:3}
-.nataraja .nj-ring>*{stroke:var(--ochre-text);stroke-opacity:.72;stroke-dashoffset:calc(1 - clamp(0,var(--p) / .55,1))}
-.nataraja .nj-figure>*{stroke:var(--ink);stroke-opacity:.82;stroke-dashoffset:calc(1 - clamp(0,(var(--p) - .2) / .7,1))}
-.nataraja .nj-base>*{stroke:var(--ink);stroke-opacity:.55;stroke-dashoffset:calc(1 - clamp(0,(var(--p) - .45) / .55,1))}
+.nataraja .nj-ring>*{stroke:var(--ochre-text);stroke-opacity:.72;stroke-dashoffset:calc(1px - 1px * clamp(0,var(--p) / .55,1))}
+.nataraja .nj-figure>*{stroke:var(--ink);stroke-opacity:.82;stroke-dashoffset:calc(1px - 1px * clamp(0,(var(--p) - .2) / .7,1))}
+.nataraja .nj-base>*{stroke:var(--ink);stroke-opacity:.55;stroke-dashoffset:calc(1px - 1px * clamp(0,(var(--p) - .45) / .55,1))}
 .nataraja .nj-agni{stroke:var(--verm);fill:var(--verm);fill-opacity:clamp(0,(var(--p) - .85) * 5,.85);stroke-dasharray:none}
 .nataraja.is-open .nj-ring{animation:nj-glow 6s cubic-bezier(.45,0,.55,1) infinite alternate}
 @keyframes nj-glow{to{opacity:.8}}
@@ -415,3 +415,4 @@ h2,h3,.lineage-link{text-wrap:balance}
 @media(max-width:520px){.testimonials .text-link{display:flex}.testimonials .text-link+.text-link{margin-left:0;margin-top:4px}}
 #about-title{text-wrap:balance}
 .vscroll .contact-links>a>span:last-child{line-height:1}
+.vscroll .contact-value{white-space:normal;overflow-wrap:anywhere}
