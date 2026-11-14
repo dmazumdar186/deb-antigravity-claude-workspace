@@ -836,3 +836,66 @@ html:not(.has-js) .bar__progress{display:none}
 .scroll .contact-value--email{font-size:clamp(.95rem,calc((100cqi - 8.75rem) / 14.5),1.85rem)}
 @media (max-width:899px){.scroll .contact-value--email{font-size:clamp(.78rem,calc((100cqi - 1.75rem) / 15),1.6rem)}}
 .paris__deity{align-items:center}
+
+/* ------------------------------------------------------------ chakra scene (2026-11-14): the Yoga Sūtra 1.2 beside a seated
+   figure whose seven lotuses light from root to crown. Complete and still by default (no JS, reduced motion);
+   ornaments.js adds .orn, lights each point (.is-lit) as the scene scrolls in and sets --k for the axis. */
+.sutra-scene{grid-column:1/-1;grid-row:2;display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);column-gap:var(--gap);row-gap:var(--s5);align-items:center}
+.practice__gallery .sutra-scene .sutra{grid-column:auto;grid-row:auto;align-self:center;padding:var(--s6) var(--s4)}
+@media (min-width:900px){
+  .practice__gallery .shot--wide{grid-row:1}
+  .practice__gallery .shot--square,.practice__gallery .shot--tall{grid-row:3}
+}
+@media (min-width:1200px){
+  .practice__gallery .shot--square{grid-column:2/7}
+  .practice__gallery .shot--tall{grid-column:8/12}
+}
+@media (max-width:899px){
+  .sutra-scene{grid-template-columns:minmax(0,1fr)}
+  .practice__gallery .sutra-scene{grid-row:2}
+  .practice__gallery .sutra-scene .sutra{padding:0 var(--s2)}
+  .practice__gallery .shot--square{grid-row:3}
+  .practice__gallery .shot--tall{grid-row:4}
+}
+.chakra{position:relative;margin:0;pointer-events:none}
+.chakra__base{display:block;width:100%;height:auto;
+  -webkit-mask-image:linear-gradient(to right,transparent,var(--mask-on) 20%,var(--mask-on) 80%,transparent),linear-gradient(to bottom,transparent,var(--mask-on) 16%,var(--mask-on) 93%,transparent);
+  -webkit-mask-composite:source-in;
+  mask-image:linear-gradient(to right,transparent,var(--mask-on) 20%,var(--mask-on) 80%,transparent),linear-gradient(to bottom,transparent,var(--mask-on) 16%,var(--mask-on) 93%,transparent);
+  mask-composite:intersect}
+.chakra__svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.chakra__svg *{transform-box:fill-box;transform-origin:center}
+.ck-ring{fill:none;stroke:#B98A45;stroke-width:2.4;stroke-linecap:round}
+.ck-ring--1{opacity:.62}
+.ck-ring--2{opacity:.44}
+.ck-ring--3{opacity:.28}
+.ck-axis{fill:none;stroke-width:1.6;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:calc(1 - var(--k,1));opacity:.8}
+.ck-axis--soft{stroke-width:8;opacity:.18}
+.ck-lead{fill:none;stroke:#B07A3A;stroke-width:2;stroke-linecap:round;stroke-dasharray:0 8;opacity:.7}
+.ck-tag--l .ck-lead{transform-origin:100% 50%}
+.ck-tag--r .ck-lead{transform-origin:0 50%}
+.ck-bija{font-family:var(--font-deva);font-size:48px;font-weight:400;fill:var(--accent);letter-spacing:0}
+.ck-tag--l .ck-bija{text-anchor:end}
+.ck-crown{opacity:.5}
+.ck-n1{--i:0}.ck-n2{--i:1}.ck-n3{--i:2}.ck-n4{--i:3}.ck-n5{--i:4}.ck-n6{--i:5}.ck-n7{--i:6}
+@media (min-width:600px){.ck-bija{font-size:32px}}
+/* scroll-linked ignition (JS + motion only) */
+.orn .chakra .ck-ig{opacity:0;transform:scale(.3)}
+.orn .chakra .ck-pt.is-lit .ck-ig{opacity:1;transform:none;animation:ck-bloom 1.9s var(--ease) var(--ld,0s) both}
+.orn .chakra .ck-tag{opacity:0;transition:opacity 1.2s var(--ease) calc(var(--ld,0s) + .3s)}
+.orn .chakra .ck-tag .ck-lead{transform:scaleX(0);transition:transform 1.3s var(--ease) calc(var(--ld,0s) + .15s)}
+.orn .chakra .ck-tag.is-lit{opacity:1}
+.orn .chakra .ck-tag.is-lit .ck-lead{transform:none}
+.orn .chakra .ck-rings{opacity:.4;transition:opacity 2.4s var(--ease) .4s}
+.orn .chakra .ck-glow{opacity:.35;transition:opacity 2.4s var(--ease) .4s}
+.orn .chakra .ck-crown{opacity:0}
+.orn .chakra.is-aligned .ck-rings,.orn .chakra.is-aligned .ck-glow{opacity:1}
+.orn .chakra.is-aligned .ck-crown{animation:ck-crown 3.4s var(--ease) calc(var(--ld,0s) + .5s) both}
+.orn .chakra.is-aligned .ck-ring--1{animation:ck-spin 96s linear infinite}
+.orn .chakra.is-aligned .ck-ring--2{animation:ck-spin 120s linear infinite reverse}
+.orn .chakra.is-aligned .ck-ring--3{animation:ck-spin 80s linear infinite}
+.orn .chakra.is-aligned .ck-halo{animation:ck-breathe 7s ease-in-out calc(1.2s + var(--i) * .85s) infinite alternate}
+@keyframes ck-bloom{0%{opacity:0;transform:scale(.3)}38%{opacity:1;transform:scale(1.45)}100%{opacity:1;transform:none}}
+@keyframes ck-crown{0%{opacity:0;transform:scale(.4)}55%{opacity:.85;transform:scale(1.12)}100%{opacity:.5;transform:none}}
+@keyframes ck-spin{to{transform:rotate(360deg)}}
+@keyframes ck-breathe{from{opacity:1;transform:none}to{opacity:.72;transform:scale(1.14)}}
