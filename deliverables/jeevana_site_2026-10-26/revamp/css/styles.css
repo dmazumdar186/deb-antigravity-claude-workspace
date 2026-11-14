@@ -462,6 +462,53 @@ fieldset:disabled input,fieldset:disabled select,fieldset:disabled textarea{curs
   .contact__portrait{width:min(60%,240px)}
   .contact-links a::after{grid-column:2;grid-row:1 / span 2;align-self:center}
 }
+/* contact scroll: the links written on an unrolled parchment. Geometry mirrors the source slices
+   (frame 1290x690: left roll 0-154, sheet 148-1140, right roll 1134-1290). */
+.scroll{grid-column:5/-1;align-self:center;justify-self:center;position:relative;isolation:isolate;display:grid;align-content:center;width:100%;max-width:900px;aspect-ratio:1290/690;padding:7.4% 15.2% 7%}
+.scroll__art{position:absolute;inset:0;z-index:-1;filter:drop-shadow(0 16px 18px rgb(34 23 15 / .14))}
+.scroll__sheet,.scroll__roll{position:absolute;top:0;bottom:0;background-position:center;background-size:100% 100%;background-repeat:no-repeat}
+.scroll__sheet{left:11.473%;width:76.899%;background-image:url('/assets/photos/scroll-sheet.webp')}
+.scroll__roll--a{left:0;width:11.938%;background-image:url('/assets/photos/scroll-roll-left.webp')}
+.scroll__roll--b{right:0;width:12.093%;background-image:url('/assets/photos/scroll-roll-right.webp')}
+.scroll .contact-links{border-top:0}
+.scroll .contact-links li{border-bottom:1px solid rgb(78 59 42 / .24)}
+.scroll .contact-links li:last-child{border-bottom:0}
+.scroll .contact-links a{grid-template-columns:5.25rem minmax(0,1fr) 1.25rem;column-gap:var(--s4);padding-block:var(--s4)}
+.scroll .contact-label{color:var(--ink-2)}
+.scroll .contact-value{font-size:clamp(1rem,calc((100cqi - 8.75rem) / 12.9),2rem)}
+.scroll .contact-links a::after{font-size:1.125rem;color:var(--ink-2)}
+.scroll .contact-links a:hover .contact-value,.scroll .contact-links a:hover::after,.scroll .contact-links a:active .contact-value{color:var(--accent-deep)}
+@media (max-width:1199px){
+  .scroll{grid-column:1/-1;width:min(100%,900px)}
+}
+@media (max-width:759px){
+  .scroll{--sw:min(calc(100% + var(--gutter) * 2 - 12px),440px);aspect-ratio:690/1290;width:var(--sw);max-width:none;justify-self:start;margin-inline:calc((100% - var(--sw)) / 2);padding:25% 12%}
+  .scroll__sheet,.scroll__roll{left:0;right:0;width:auto}
+  .scroll__sheet{top:11.473%;bottom:auto;height:76.899%;background-image:url('/assets/photos/scroll-sheet-v.webp')}
+  .scroll__roll--a{top:0;bottom:auto;height:11.938%;background-image:url('/assets/photos/scroll-roll-top.webp')}
+  .scroll__roll--b{top:auto;bottom:0;height:12.093%;background-image:url('/assets/photos/scroll-roll-bottom.webp')}
+  .scroll .contact-links a{grid-template-columns:minmax(0,1fr) 1rem;column-gap:var(--s2);row-gap:2px;padding-block:var(--s4)}
+  .scroll .contact-label{grid-column:1;grid-row:1}
+  .scroll .contact-value{grid-column:1;grid-row:2;font-size:clamp(.875rem,calc((100cqi - 1.75rem) / 12.9),1.75rem)}
+  .scroll .contact-links a::after{grid-column:2;grid-row:1 / span 2;align-self:center}
+}
+
+/* scroll-linked ornaments: active only when js/ornaments.js adds .orn (never without JS or with reduced motion) */
+.orn .scroll__roll{will-change:transform}
+.orn .scroll__sheet{clip-path:inset(0 calc((1 - var(--u,1)) * 50%))}
+.orn .scroll__roll--a{transform:translateX(calc((1 - var(--u,1)) * 318.8%))}
+.orn .scroll__roll--b{transform:translateX(calc((1 - var(--u,1)) * -313.5%))}
+.orn .scroll .contact-links{opacity:calc((var(--u,1) - .7) * 3.4)}
+@media (max-width:759px){
+  .orn .scroll__sheet{clip-path:inset(0 0 calc((1 - var(--u,1)) * 98%) 0)}
+  .orn .scroll__roll--a{transform:none}
+  .orn .scroll__roll--b{transform:translateY(calc((1 - var(--u,1)) * -628.2%))}
+}
+.orn .paris__blob{animation:deity-breathe 12s ease-in-out infinite alternate}
+.orn .paris__line{-webkit-mask-image:radial-gradient(circle at 50% 46%,#000 calc(var(--p,1) * 118% - 22%),transparent calc(var(--p,1) * 118%));mask-image:radial-gradient(circle at 50% 46%,#000 calc(var(--p,1) * 118% - 22%),transparent calc(var(--p,1) * 118%));animation:deity-float 9s ease-in-out infinite alternate}
+@keyframes deity-breathe{from{transform:none}to{transform:translate(5px,-4px) scale(1.04)}}
+@keyframes deity-float{from{transform:none}to{transform:translateY(-6px)}}
+
 .newsletter{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gap);row-gap:var(--s6);margin-top:var(--s10);padding-top:var(--s8);border-top:1px solid var(--rule-strong)}
 .newsletter__intro{grid-column:1/5}
 .newsletter__intro h3{font-size:var(--fs-h3)}
