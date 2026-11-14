@@ -5,7 +5,7 @@
   const root=document.documentElement;
   const reduce=matchMedia('(prefers-reduced-motion: reduce)');
   const scrolls=[...document.querySelectorAll('[data-unroll]')];
-  const deities=[...document.querySelectorAll('[data-reveal]')];
+  const deities=[...document.querySelectorAll('[data-draw]')];
   if(!scrolls.length&&!deities.length)return;
   const clamp=v=>v<0?0:v>1?1:v;
   const smooth=t=>t*t*(3-2*t);
