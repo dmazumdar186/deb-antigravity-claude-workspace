@@ -23,8 +23,8 @@
     }
     for(const el of deities){
       const r=el.getBoundingClientRect();
-      // starts as the figure enters, complete when its centre reaches mid-viewport
-      el.style.setProperty('--p',smooth(clamp((vh-r.top)/(vh*.5+r.height/2))).toFixed(4));
+      // starts as its top passes 95% of the viewport, complete when its centre reaches 60%
+      el.style.setProperty('--p',smooth(clamp((vh*.95-r.top)/(vh*.35+r.height/2))).toFixed(4));
     }
   }
   function queue(){if(!queued){queued=true;requestAnimationFrame(update);}}
