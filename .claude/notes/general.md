@@ -72,3 +72,4 @@ Tags: [preference] [technical] [learned] [pattern] [constraint]
 - [redteam] hook false positive: curl --noproxy '*' trips the inline-email check (the glob matches _lib.ts, which names the Brevo host); use NO_PROXY=127.0.0.1 instead.
 - [wrangler] pages dev must run with cwd = the site dir or it prints 'No Functions'; it writes .wrangler/ into cwd (gitignored, but inside the Pages output dir), so move it out before deploy.
 - [jeevana] fonts 2026-11-14: operator chose pairing C = Alegreya (display, 400 + italic) / Alegreya Sans (body 400/500), self-hosted in revamp/assets/fonts/preview/. Marcellus, Jost, Tenor Sans, Gilda Display, Karla, Outfit, Italiana lack IAST dot-under glyphs (ṛ ṣ ṇ ṭ ḍ ḥ ṃ); always check latin-ext coverage for Sanskrit sites.
+- [jeevana] 2026-11-14 production cced0008: copy + tradition fixes only (operator waiver 33b6fc1b7677). Rollback: a15d087d. Redesign still preview-only (revamp a5806180).
