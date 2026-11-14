@@ -337,11 +337,12 @@ h2,h3,.lineage-link{text-wrap:balance}
 .admin-help{max-width:72ch;font-size:var(--legal);color:var(--ink-soft);margin-top:12px}
 /* Contact: Vedic bark-manuscript scroll that unrolls with page scroll (js/vscroll.js sets --u 0..1 and --sh). */
 .contact-layout{grid-template-columns:minmax(0,1fr)}
-.vscroll{--u:1;--sh:0px;--wood-1:#8a5a32;--wood-2:#5b3519;--wood-3:#3b220f;--bark-1:#ecd8ae;--bark-2:#e1c690;--bark-3:#d4b47a;--bark-ink:rgb(110 66 28);position:relative;max-width:780px;margin-top:36px;padding-inline:22px}
+:root{--deva:'Noto Devanagari',Cormorant,serif;--wood-1:#8a5a32;--wood-2:#5b3519;--wood-3:#3b220f;--wood-hi:#c99a4a;--wood-mid:#7a4a1f;--bark-1:#ecd8ae;--bark-2:#e1c690;--bark-3:#d4b47a;--bark-4:#b48c55;--bark-5:#8f6a3a;--bark-ink:rgb(110 66 28)}
+.vscroll{--u:1;--sh:0px;position:relative;max-width:780px;margin-top:36px;padding-inline:22px}
 .vscroll__rod{position:relative;z-index:2;height:22px;margin-inline:-8px;border-radius:11px;background:linear-gradient(180deg,var(--wood-1),var(--wood-2) 48%,var(--wood-3));box-shadow:0 4px 10px rgb(43 30 20 / .28)}
-.vscroll__rod::before,.vscroll__rod::after{content:'';position:absolute;top:50%;width:30px;height:30px;border-radius:50%;transform:translateY(-50%);background:radial-gradient(circle at 35% 32%,#c99a4a,#7a4a1f 55%,var(--wood-3));box-shadow:0 2px 6px rgb(43 30 20 / .35)}
+.vscroll__rod::before,.vscroll__rod::after{content:'';position:absolute;top:50%;width:30px;height:30px;border-radius:50%;transform:translateY(-50%);background:radial-gradient(circle at 35% 32%,var(--wood-hi),var(--wood-mid) 55%,var(--wood-3));box-shadow:0 2px 6px rgb(43 30 20 / .35)}
 .vscroll__rod::before{left:-18px}.vscroll__rod::after{right:-18px}
-.vscroll__rod--bottom{height:34px;margin-top:-12px;border-radius:17px;background:linear-gradient(180deg,var(--bark-3),var(--bark-1) 30%,var(--bark-2) 55%,#b48c55 80%,#8f6a3a);transform:translate3d(0,calc((var(--u) - 1) * var(--sh)),0);will-change:transform}
+.vscroll__rod--bottom{height:34px;margin-top:-12px;border-radius:17px;background:linear-gradient(180deg,var(--bark-3),var(--bark-1) 30%,var(--bark-2) 55%,var(--bark-4) 80%,var(--bark-5));transform:translate3d(0,calc((var(--u) - 1) * var(--sh)),0);will-change:transform}
 .vscroll__rod--bottom::before,.vscroll__rod--bottom::after{width:26px;height:26px}
 .vscroll__sheet{position:relative;margin-top:-6px;-webkit-clip-path:inset(0 0 calc((1 - var(--u)) * 100%) 0);clip-path:inset(0 0 calc((1 - var(--u)) * 100%) 0);
   background:radial-gradient(ellipse at 18% 22%,rgb(120 72 30 / .12),transparent 42%),radial-gradient(ellipse at 84% 68%,rgb(120 72 30 / .14),transparent 46%),radial-gradient(ellipse at 50% 100%,rgb(90 52 20 / .16),transparent 55%),
@@ -353,7 +354,7 @@ h2,h3,.lineage-link{text-wrap:balance}
 .vscroll__head{display:flex;align-items:center;gap:14px;margin-bottom:12px;color:var(--verm)}
 .vscroll__rule{flex:1;height:4px;border-block:1px solid rgb(166 58 34 / .5)}
 .vscroll__om{width:36px;height:36px;flex:0 0 36px}
-.vscroll__foot{margin-top:18px;text-align:center;font-family:'Noto Devanagari',Cormorant,serif;font-size:1rem;letter-spacing:.04em;color:var(--verm);opacity:.85}
+.vscroll__foot{margin-top:18px;text-align:center;font-family:var(--deva);font-size:1rem;letter-spacing:.04em;color:var(--verm);opacity:.85}
 .vscroll .contact-links{margin-top:0}
 .vscroll .contact-links>a{grid-template-columns:minmax(110px,9rem) minmax(0,1fr) 1.5rem;gap:16px;min-height:66px;padding-block:12px;border-color:rgb(120 72 30 / .28)}
 .vscroll .contact-links>a:first-child{border-top:0}.vscroll .contact-links>a:last-child{border-bottom:0}
@@ -364,3 +365,32 @@ h2,h3,.lineage-link{text-wrap:balance}
 @media(max-width:760px){.vscroll{padding-inline:18px;margin-top:28px}.vscroll .contact-links>a{grid-template-columns:minmax(0,1fr) 20px;gap:4px 10px;min-height:64px;padding-block:12px}.vscroll .contact-links .small-label{grid-column:1}.vscroll .contact-value{grid-column:1;font-size:1.1rem}.vscroll .contact-links>a>span:last-child{grid-column:2;grid-row:1/3}.vscroll__inner{padding:30px 24px 24px}.vscroll__inner::before{inset:8px}.vscroll__om{width:30px;height:30px;flex-basis:30px}}
 @media(prefers-reduced-motion:reduce){.vscroll{--u:1!important}.vscroll__rod--bottom{will-change:auto}}
 @media print{.vscroll{--u:1!important}}
+/* Practice: scroll-linked opening lotus (js/lotus.js sets --p 0 bud .. 1 open). Default open (no JS / reduced motion). */
+.lotus{--p:1;width:clamp(150px,16vw,240px);height:auto;aspect-ratio:240/190;flex:0 0 auto;overflow:visible}
+.lotus__water path{fill:none;stroke:var(--ochre);stroke-width:1.2;stroke-linecap:round;opacity:calc(.2 + .35 * var(--p))}
+.lp{transform-box:fill-box;transform-origin:50% 100%;stroke:rgb(166 58 34 / .45);stroke-width:.9;stroke-linejoin:round;
+  --q:clamp(0,calc((var(--p) - var(--d,0)) / (1 - var(--d,0))),1);transform:rotate(calc(var(--c) + (var(--o) - var(--c)) * var(--q))) scale(calc(.82 + .18 * var(--q)))}
+.lp--b2l{--c:-10deg;--o:-74deg;--d:0}.lp--b2r{--c:10deg;--o:74deg;--d:0}
+.lp--b1l{--c:-6deg;--o:-40deg;--d:.08}.lp--b1r{--c:6deg;--o:40deg;--d:.08}
+.lp--m2l{--c:-5deg;--o:-56deg;--d:.18}.lp--m2r{--c:5deg;--o:56deg;--d:.18}
+.lp--m1l{--c:-3deg;--o:-24deg;--d:.28}.lp--m1r{--c:3deg;--o:24deg;--d:.28}
+.lp--c{--c:0deg;--o:0deg;--d:.35}
+.lotus__pod{fill:var(--ochre);stroke:rgb(142 47 26 / .5);stroke-width:.8;opacity:calc((var(--p) - .8) * 5);transform-box:fill-box;transform-origin:50% 50%;transform:scale(calc(.6 + .4 * var(--p)))}
+.lotus__breath{transform-box:fill-box;transform-origin:50% 100%}
+.lotus.is-open .lotus__breath{animation:lotus-breathe 8s cubic-bezier(.45,0,.55,1) infinite alternate}
+@keyframes lotus-breathe{to{transform:scale(1.025)}}
+@media(max-width:760px){.lotus{position:absolute;right:-6px;top:-96px;width:132px}}
+@media(prefers-reduced-motion:reduce){.lotus{--p:1!important}.lotus.is-open .lotus__breath{animation:none}}
+/* Paris: Nataraja line drawing that draws itself with scroll (js/lotus.js sets --p). Default finished. */
+.nataraja{--p:1;width:clamp(150px,13vw,210px);height:auto;aspect-ratio:200/210;flex:0 0 auto;overflow:visible}
+.nj-line{fill:none;stroke:var(--ink);stroke-opacity:.78;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1 1;stroke-dashoffset:calc(1 - clamp(0,(var(--p) - .15) / .85,1))}
+.nj-ring{stroke:var(--ochre-text);stroke-opacity:.7;stroke-width:1.3;stroke-dashoffset:calc(1 - clamp(0,var(--p) / .7,1))}
+.nj-base,.nj-dwarf{stroke-opacity:.55}
+.nj-flame{fill:var(--ochre);stroke:none;opacity:clamp(0,(var(--p) - .45) * 2.2,.85)}
+.nj-agni{fill:var(--verm);opacity:clamp(0,(var(--p) - .8) * 5,.9)}
+.nj-drum{stroke-width:1.2}
+.nataraja.is-open .nj-ringset{animation:nj-glow 6s cubic-bezier(.45,0,.55,1) infinite alternate}
+@keyframes nj-glow{to{opacity:.82}}
+.paris-copy .nataraja{position:static}
+@media(max-width:760px){.paris-copy .nataraja{width:124px}}
+@media(prefers-reduced-motion:reduce){.nataraja{--p:1!important}.nataraja.is-open .nj-ringset{animation:none}}
