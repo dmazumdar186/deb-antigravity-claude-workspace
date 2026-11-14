@@ -63,7 +63,7 @@ diwaliAlt:`Jeevana sitting on the floor in a blue saree, lighting a diya beside 
 parisAlt:`Jeevana in a full backbend, Chakrāsana, on a blue mat on the Champ-de-Mars, the Eiffel Tower behind her.`,
 
 practice01Alt:`Jeevana in cobra pose on a mat, chest lifted, eyes closed.`,practice02Alt:`Jeevana in child's pose on a grey mat, seen from above.`,practice03Alt:`Jeevana seated in meditation on the grass, hands in jñāna mudrā.`,
-'nav.label':`Main navigation`,'lang.label':`Language`,'foot.sig':`Designed by Debanjan Mazumdar · ProdCraft`,'nf.home':`Jeevana — Yoga in Paris`,'nf.h':`This page is resting.`,'nf.p':`The page you asked for does not exist.`
+'nav.label':`Main navigation`,'lang.label':`Language`,'foot.sig':`Designed by Debanjan Mazumdar · ProdCraft`,'nf.home':`Jeevana — Yoga in Paris`,'nf.back':`Back to home`,menu:`Menu`,'nf.h':`This page is resting.`,'nf.p':`The page you asked for does not exist.`
 };
 const fr={
 reviewsTitlePage:`Avis — Jeevana Yoga & Wellness`,navReviews:`Avis`,reviewsLink:`Tous les avis · laissez le vôtre`,
@@ -127,7 +127,7 @@ diwaliAlt:`Jeevana assise au sol en sari bleu, allumant un diya près d’une ra
 parisAlt:`Jeevana en pont complet, Chakrāsana, sur un tapis bleu au Champ-de-Mars, la tour Eiffel derrière elle.`,
 
 practice01Alt:`Jeevana en posture du cobra sur un tapis, la poitrine ouverte, les yeux fermés.`,practice02Alt:`Jeevana en posture de l'enfant sur un tapis gris, vue d'en haut.`,practice03Alt:`Jeevana assise en méditation sur l'herbe, les mains en jñāna mudrā.`,
-'nav.label':`Navigation principale`,'lang.label':`Langue`,'foot.sig':`Designed by Debanjan Mazumdar · ProdCraft`,'nf.home':`Jeevana — Yoga à Paris`,'nf.h':`Cette page se repose.`,'nf.p':`La page demandée n’existe pas.`
+'nav.label':`Navigation principale`,'lang.label':`Langue`,'foot.sig':`Designed by Debanjan Mazumdar · ProdCraft`,'nf.home':`Jeevana — Yoga à Paris`,'nf.back':`Retour à l’accueil`,menu:`Menu`,'nf.h':`Cette page se repose.`,'nf.p':`La page demandée n’existe pas.`
 };
 const positions=[
 ['प्रणामासन','Praṇāmāsana','Om Mitrāya Namaḥ','Exhale','Expirer','to the friend of all',"à l'ami de tous"],
