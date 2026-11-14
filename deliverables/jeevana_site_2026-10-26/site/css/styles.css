@@ -335,72 +335,7 @@ h2,h3,.lineage-link{text-wrap:balance}
 @media(min-width:901px){.reviews-write-layout>div:first-child{position:sticky;top:calc(var(--hh,124px) + 24px)}}
 .reviews-notice{padding-block:40px 48px}.reviews-notice .text-link{gap:6px;margin-top:12px;color:var(--ochre-text);white-space:normal}
 .admin-help{max-width:72ch;font-size:var(--legal);color:var(--ink-soft);margin-top:12px}
-/* Contact: Vedic bark-manuscript scroll that unrolls with page scroll (js/vscroll.js sets --u 0..1 and --sh). */
-.contact-layout{grid-template-columns:minmax(0,1fr)}
-:root{--deva:'Noto Devanagari',Cormorant,serif;--wood-1:#8a5a32;--wood-2:#5b3519;--wood-3:#3b220f;--wood-hi:#c99a4a;--wood-mid:#7a4a1f;--bark-1:#ecd8ae;--bark-2:#e1c690;--bark-3:#d4b47a;--bark-4:#b48c55;--bark-5:#8f6a3a;--bark-ink:rgb(110 66 28)}
-.vscroll{--u:1;--sh:0px;position:relative;max-width:780px;margin-top:36px;padding-inline:22px}
-.vscroll__rod{position:relative;z-index:2;height:22px;margin-inline:-8px;border-radius:11px;background:linear-gradient(180deg,var(--wood-1),var(--wood-2) 48%,var(--wood-3));box-shadow:0 4px 10px rgb(43 30 20 / .28)}
-.vscroll__rod::before,.vscroll__rod::after{content:'';position:absolute;top:50%;width:30px;height:30px;border-radius:50%;transform:translateY(-50%);background:radial-gradient(circle at 35% 32%,var(--wood-hi),var(--wood-mid) 55%,var(--wood-3));box-shadow:0 2px 6px rgb(43 30 20 / .35)}
-.vscroll__rod::before{left:-18px}.vscroll__rod::after{right:-18px}
-.vscroll__rod--bottom{height:34px;margin-top:-12px;border-radius:17px;background:linear-gradient(180deg,var(--bark-3),var(--bark-1) 30%,var(--bark-2) 55%,var(--bark-4) 80%,var(--bark-5));transform:translate3d(0,calc((var(--u) - 1) * var(--sh)),0);will-change:transform}
-.vscroll__rod--bottom::before,.vscroll__rod--bottom::after{width:26px;height:26px}
-.vscroll__sheet{position:relative;margin-top:-6px;-webkit-clip-path:inset(0 0 calc((1 - var(--u)) * 100%) 0);clip-path:inset(0 0 calc((1 - var(--u)) * 100%) 0);
-  background:radial-gradient(ellipse at 18% 22%,rgb(120 72 30 / .12),transparent 42%),radial-gradient(ellipse at 84% 68%,rgb(120 72 30 / .14),transparent 46%),radial-gradient(ellipse at 50% 100%,rgb(90 52 20 / .16),transparent 55%),
-  repeating-linear-gradient(0deg,rgb(110 70 30 / .05) 0 1px,transparent 1px 6px),repeating-linear-gradient(0deg,transparent 0 37px,rgb(110 70 30 / .09) 37px 38px,transparent 38px 61px),
-  repeating-linear-gradient(90deg,rgb(255 250 235 / .06) 0 2px,transparent 2px 19px),linear-gradient(180deg,var(--bark-1),var(--bark-2) 55%,var(--bark-3));
-  box-shadow:inset 0 0 46px rgb(120 72 30 / .32),inset 0 0 6px rgb(90 52 20 / .35),0 22px 44px rgb(43 30 20 / .16)}
-.vscroll__inner{position:relative;padding:clamp(28px,4vw,52px) clamp(22px,4.4vw,60px) clamp(22px,3vw,40px)}
-.vscroll__inner::before{content:'';position:absolute;inset:12px;border:3px double rgb(166 58 34 / .55);border-radius:2px;pointer-events:none}
-.vscroll__head{display:flex;align-items:center;gap:14px;margin-bottom:12px;color:var(--verm)}
-.vscroll__rule{flex:1;height:4px;border-block:1px solid rgb(166 58 34 / .5)}
-.vscroll__om{width:36px;height:36px;flex:0 0 36px}
-.vscroll__foot{margin-top:18px;text-align:center;font-family:var(--deva);font-size:1rem;letter-spacing:.04em;color:var(--ochre-text)}
-.vscroll .contact-links{margin-top:0}
-.vscroll .contact-links>a{grid-template-columns:minmax(110px,9rem) minmax(0,1fr) 1.5rem;gap:16px;min-height:66px;padding-block:12px;border-color:rgb(120 72 30 / .28)}
-.vscroll .contact-links>a:first-child{border-top:0}.vscroll .contact-links>a:last-child{border-bottom:0}
-.vscroll .contact-links .small-label{color:var(--bark-ink)}
-.vscroll .contact-value{font-size:clamp(1.15rem,1.7vw,1.65rem);letter-spacing:0}
-.vscroll .contact-links>a>span:last-child{font-size:1.15rem}
-.vscroll .contact-links>a:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
-@media(max-width:760px){.vscroll{padding-inline:18px;margin-top:28px}.vscroll .contact-links>a{grid-template-columns:minmax(0,1fr) 20px;gap:4px 10px;min-height:64px;padding-block:12px}.vscroll .contact-links .small-label{grid-column:1}.vscroll .contact-value{grid-column:1;font-size:1.1rem}.vscroll .contact-links>a>span:last-child{grid-column:2;grid-row:1/3}.vscroll__inner{padding:30px 24px 24px}.vscroll__inner::before{inset:8px}.vscroll__om{width:30px;height:30px;flex-basis:30px}}
-@media(prefers-reduced-motion:reduce){.vscroll{--u:1!important}.vscroll__rod--bottom{will-change:auto}}
-@media print{.vscroll{--u:1!important}}
-/* Practice: scroll-linked opening lotus (js/lotus.js sets --p 0 bud .. 1 open). Default open (no JS / reduced motion). */
-.lotus{--p:1;width:clamp(150px,16vw,240px);height:auto;aspect-ratio:240/190;flex:0 0 auto;overflow:visible}
-.lotus__water path{fill:none;stroke:var(--ochre);stroke-width:1.2;stroke-linecap:round;opacity:calc(.2 + .35 * var(--p))}
-.lp{transform-box:fill-box;transform-origin:50% 100%;stroke:rgb(166 58 34 / .45);stroke-width:.9;stroke-linejoin:round;
-  --q:clamp(0,calc((var(--p) - var(--d,0)) / (1 - var(--d,0))),1);transform:rotate(calc(var(--c) + (var(--o) - var(--c)) * var(--q))) scale(calc(.82 + .18 * var(--q)))}
-.lp--b2l{--c:-10deg;--o:-74deg;--d:0}.lp--b2r{--c:10deg;--o:74deg;--d:0}
-.lp--b1l{--c:-6deg;--o:-40deg;--d:.08}.lp--b1r{--c:6deg;--o:40deg;--d:.08}
-.lp--m2l{--c:-5deg;--o:-56deg;--d:.18}.lp--m2r{--c:5deg;--o:56deg;--d:.18}
-.lp--m1l{--c:-3deg;--o:-24deg;--d:.28}.lp--m1r{--c:3deg;--o:24deg;--d:.28}
-.lp--c{--c:0deg;--o:0deg;--d:.35}
-.lotus__pod{fill:var(--ochre);stroke:rgb(142 47 26 / .5);stroke-width:.8;opacity:calc((var(--p) - .8) * 5);transform-box:fill-box;transform-origin:50% 50%;transform:scale(calc(.6 + .4 * var(--p)))}
-.lotus__breath{transform-box:fill-box;transform-origin:50% 100%}
-.lotus.is-open .lotus__breath{animation:lotus-breathe 8s cubic-bezier(.45,0,.55,1) infinite alternate}
-@keyframes lotus-breathe{to{transform:scale(1.025)}}
-@media(max-width:760px){.lotus{position:absolute;right:-6px;top:-96px;width:132px}}
-@media(prefers-reduced-motion:reduce){.lotus{--p:1!important}.lotus.is-open .lotus__breath{animation:none}}
-/* Paris: Nataraja line art traced from the CC0 Cleveland Museum of Art bronze 1930.331; draws itself with scroll (js/lotus.js sets --p). Default finished. */
-.nataraja{--p:1;width:clamp(150px,13vw,210px);height:auto;aspect-ratio:662/745;flex:0 0 auto;overflow:visible;fill:none;stroke-linecap:round;stroke-linejoin:round}
-.nataraja path,.nataraja circle,.nataraja ellipse{stroke-width:3.4;stroke-dasharray:1 1}
-.nataraja .nj-ring>*{stroke-width:3}
-.nataraja .nj-ring>*{stroke:var(--ochre-text);stroke-opacity:.72;stroke-dashoffset:calc(1px - 1px * clamp(0,var(--p) / .55,1))}
-.nataraja .nj-figure>*{stroke:var(--ink);stroke-opacity:.82;stroke-dashoffset:calc(1px - 1px * clamp(0,(var(--p) - .2) / .7,1))}
-.nataraja .nj-base>*{stroke:var(--ink);stroke-opacity:.55;stroke-dashoffset:calc(1px - 1px * clamp(0,(var(--p) - .45) / .55,1))}
-.nataraja .nj-agni{stroke:var(--verm);fill:var(--verm);fill-opacity:clamp(0,(var(--p) - .85) * 5,.85);stroke-dasharray:none}
-.nataraja.is-open .nj-ring{animation:nj-glow 6s cubic-bezier(.45,0,.55,1) infinite alternate}
-@keyframes nj-glow{to{opacity:.8}}
-.paris-copy .nataraja{position:static}
-@media(max-width:760px){.paris-copy .nataraja{width:124px}}
-@media(prefers-reduced-motion:reduce){.nataraja{--p:1!important}.nataraja.is-open .nj-ring{animation:none}}
-/* Ornament placement fixes (eye review 2026-11-14): lotus sits beside its heading, visible on phones; scroll keeps clear of the screen edge. */
-#practice .section-heading{justify-content:flex-start;gap:clamp(28px,5vw,88px)}
-#practice .lotus{width:clamp(170px,17vw,250px)}
-.lotus__pod{fill:#D7B060}
-@media(max-width:760px){#practice .section-heading{flex-direction:column;align-items:flex-start;gap:6px}#practice .lotus{position:static;width:150px;margin-left:-6px}}
-@media(max-width:760px){.vscroll{padding-inline:26px}}
-.vscroll .contact-links>a>span:last-child{align-self:center}
+
 
 /* Release audit fixes 2026-11-14 */
 .legal{width:min(calc(100% - var(--gutter)*2),72ch);margin-inline:auto;padding:calc(var(--hh,124px) + 40px) 0 clamp(56px,7vw,96px)}
@@ -414,5 +349,23 @@ h2,h3,.lineage-link{text-wrap:balance}
 .testimonials .text-link+.text-link{margin-left:28px}
 @media(max-width:520px){.testimonials .text-link{display:flex}.testimonials .text-link+.text-link{margin-left:0;margin-top:4px}}
 #about-title{text-wrap:balance}
-.vscroll .contact-links>a>span:last-child{line-height:1}
-.vscroll .contact-value{white-space:normal;overflow-wrap:anywhere}
+
+/* Contact, rebuilt 2026-11-14: heading left, links right; values never wrap. */
+#contact .contact-layout{grid-template-columns:minmax(0,1fr)}
+#contact .contact-main{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(32px,6vw,120px);align-items:end}
+#contact .section-heading{margin-bottom:0}
+#contact .contact-links{margin-top:0;border-top:1px solid var(--rule)}
+#contact .contact-links>a{display:grid;grid-template-columns:minmax(7.5rem,9rem) minmax(0,1fr) 1.5rem;gap:20px;align-items:center;min-height:76px;padding-block:14px;border-top:0;border-bottom:1px solid var(--rule)}
+#contact .contact-links .small-label{color:var(--ink-soft)}
+#contact .contact-links .small-label{grid-column:1;grid-row:1}#contact .contact-value{grid-column:2;grid-row:1}#contact .contact-links>a>span:last-child{grid-column:3;grid-row:1}
+#contact .contact-value{font-size:clamp(1.25rem,1.75vw,1.85rem);line-height:1.25;letter-spacing:0;white-space:nowrap;overflow-wrap:normal}
+#contact .contact-links>a>span:last-child{font-size:1.1rem;line-height:1;color:var(--ochre-text);justify-self:end;transition:transform 180ms cubic-bezier(.22,1,.36,1)}
+#contact .contact-links>a:hover>span:last-child{transform:translate(3px,-3px)}
+#contact .contact-links>a:focus-visible{outline:2px solid var(--indigo);outline-offset:4px}
+@media(max-width:1000px){#contact .contact-main{grid-template-columns:1fr;gap:28px}}
+@media(max-width:600px){#contact .contact-links>a{grid-template-columns:minmax(0,1fr) 1.25rem;gap:2px 12px;min-height:72px}#contact .contact-links .small-label{grid-column:1;grid-row:1}#contact .contact-value{grid-column:1;grid-row:2;font-size:clamp(1.05rem,5.2vw,1.3rem)}#contact .contact-links>a>span:last-child{grid-column:2;grid-row:1/3}}
+/* Paris: the Cleveland Museum of Art Chola bronze (CC0, 1930.331) as a well-defined background behind the testimonials. */
+.paris-copy{position:relative;isolation:isolate}
+.paris-copy::before{content:'';position:absolute;z-index:-1;top:50%;right:-4%;width:min(78%,560px);aspect-ratio:665/815;transform:translateY(-50%);background:url(/assets/photos/nataraja-bronze.webp) center/contain no-repeat;opacity:.2;pointer-events:none}
+@media(max-width:900px){.paris-copy::before{right:50%;transform:translate(50%,-50%);width:min(92%,440px);opacity:.15}}
+.eyebrow::before,.eyebrow::after{content:none}
