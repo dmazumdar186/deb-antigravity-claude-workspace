@@ -20,7 +20,7 @@ export const SNAPSHOT_KEY = 'reviews:snapshot', SNAPSHOT_MAX_AGE_S = 300, STORE_
 
 export const REVIEW_CONSENT = {
   en: 'I agree that my first name, rating, review and its date are published on this site.',
-  fr: "J'accepte que mon prénom, ma note, mon avis et sa date soient publiés sur ce site.",
+  fr: 'J’accepte que mon prénom, ma note, mon avis et sa date soient publiés sur ce site.',
 };
 
 // Collapse whitespace, strip control/format characters (incl. bidi overrides) — the text is rendered with
@@ -31,18 +31,21 @@ export function clean(v: unknown, max: number, multiline = false): string {
   return s.trim().slice(0, max);
 }
 
-// Words that hold a review for Jeevana instead of publishing it (EN + FR, whole-word, accent-folded).
-const HOLD_WORDS = ['fuck', 'fucking', 'shit', 'bitch', 'cunt', 'dick', 'asshole', 'whore', 'slut', 'nigger', 'faggot', 'retard',
-  'scam', 'fraud', 'viagra', 'casino', 'crypto', 'bitcoin', 'porn', 'sex', 'escort', 'loan',
-  'merde', 'putain', 'pute', 'salope', 'connard', 'connasse', 'encule', 'batard', 'nique', 'arnaque', 'escroc', 'escroquerie', 'pd'];
+// Offensive and advertising words that hold a review for Jeevana instead of publishing it (EN + FR, whole-word, accent-folded).
+const HOLD_WORDS = ['fuck', 'fucking', 'shit', 'bitch', 'cunt', 'asshole', 'whore', 'slut', 'nigger', 'faggot',
+  'viagra', 'casino', 'crypto', 'bitcoin', 'porn', 'escort', 'loan',
+  'merde', 'putain', 'pute', 'salope', 'connard', 'connasse', 'encule', 'batard', 'pd'];
+// Not held on purpose: 'retard' (FR "en retard"), 'nique' ("pique-nique").
+// Accusation words (scam, arnaque, escroc...) are deliberately NOT held: honest negative reviews must publish like any other.
 const fold = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
 // Returns why a review must wait for moderation, or '' to publish now.
 export function holdReason(name: string, text: string): string {
   const all = name + '\n' + text;
-  if (/(https?:\/\/|www\.|\b[a-z0-9-]+\.(com|fr|net|org|io|co|ru|xyz|info|biz|me|ly|app|site|online|shop)\b)/i.test(all)) return 'link';
+  if (/(https?:\/\/|www\.|\b[a-z0-9-]{2,}\.(com|fr|net|org|io|ru|xyz|info|biz)\b)/i.test(all)) return 'link';
   if (/[^\s@]+@[^\s@]+\.[^\s@]+/.test(all)) return 'email';
-  if (/(\+?\d[\d\s().-]{7,}\d)/.test(all)) return 'phone';
+  for (const m of all.match(/\+?\d[\d\s().-]{7,}\d/g) || []) if (m.replace(/\D/g, '').length >= 9) return 'phone'; // dates like 12.10.2026 have 8 digits
+  if (fold(name).includes('jeevana')) return 'name';
   const words = new Set(fold(all).split(/[^a-z0-9]+/).filter(Boolean));
   const hit = HOLD_WORDS.find((w) => words.has(w));
   if (hit) return 'word:' + hit;
@@ -50,16 +53,29 @@ export function holdReason(name: string, text: string): string {
   return '';
 }
 
+// Every write goes through here so list metadata (status) always matches the record.
+export async function putReview(kv: KVNamespace, r: Review): Promise<void> {
+  await kv.put(`rev:${r.id}`, JSON.stringify(r), { metadata: { s: r.status } });
+}
+
+// Burst guard: when BURST_MAX reviews were published in the last hour, new ones wait for Jeevana.
+export const BURST_MAX = 5, BURST_WINDOW_MS = 60 * 60 * 1000;
+export function burst(snap: Snapshot, now = Date.now()): boolean {
+  return snap.reviews.filter((r) => now - Date.parse(r.ts) < BURST_WINDOW_MS).length >= BURST_MAX;
+}
+
 export function toPublic(r: Review): PublicReview {
   return { id: r.id, name: r.name, rating: r.rating, text: r.text, lang: r.lang, ts: r.ts };
 }
 
-export async function listAll(kv: KVNamespace): Promise<Review[]> {
+// onlyPublished: skip GETs for keys whose list metadata says pending/hidden (bounds KV reads per rebuild).
+export async function listAll(kv: KVNamespace, onlyPublished = false): Promise<Review[]> {
   const out: Review[] = [];
   let cursor: string | undefined;
   do {
-    const page = await kv.list({ prefix: 'rev:', cursor });
-    const vals = await Promise.all(page.keys.map((k) => kv.get(k.name)));
+    const page = await kv.list<{ s?: Status }>({ prefix: 'rev:', cursor });
+    const keys = onlyPublished ? page.keys.filter((k) => !k.metadata?.s || k.metadata.s === 'published') : page.keys;
+    const vals = await Promise.all(keys.map((k) => kv.get(k.name)));
     for (const v of vals) {
       if (!v) continue;
       try { out.push(JSON.parse(v) as Review); } catch (err) { logError('reviews:parse', err); }
@@ -75,7 +91,7 @@ const newestFirst = (a: { ts: string }, b: { ts: string }) => (a.ts < b.ts ? 1 :
 export async function rebuild(env: Env, fresh?: Review): Promise<Snapshot> {
   const kv = env.JEEVANA_KV as KVNamespace;
   const byId = new Map<string, Review>();
-  for (const r of await listAll(kv)) byId.set(r.id, r);
+  for (const r of await listAll(kv, true)) byId.set(r.id, r);
   if (fresh) byId.set(fresh.id, fresh);
   const reviews = [...byId.values()].filter((r) => r.status === 'published').sort(newestFirst).map(toPublic);
   const snap: Snapshot = { built: new Date().toISOString(), reviews };

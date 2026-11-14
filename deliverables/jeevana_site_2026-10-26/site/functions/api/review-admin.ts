@@ -3,11 +3,13 @@
 // POST (form: id, action=publish|hide|delete) -> applies it, rebuilds the public snapshot, 303 back to GET.
 // CSRF: Basic-auth credentials ride along on cross-site form posts, so POST requires a same-origin Origin/Referer.
 import { Env, logError } from './_lib';
-import { guard } from './_auth';
-import { Review, Status, listAll, rebuild } from './_reviews';
+import { guardFailures } from './_auth';
+import { Review, Status, listAll, rebuild, putReview } from './_reviews';
 
 const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
-const HDR = { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' };
+const HDR = { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex',
+  'Content-Security-Policy': "default-src 'none'; style-src 'self'; font-src 'self'; img-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'",
+  'X-Frame-Options': 'DENY', 'Referrer-Policy': 'same-origin' };
 const LABEL: Record<Status, string> = { pending: 'En attente', published: 'Publié', hidden: 'Masqué' };
 
 function sameOrigin(request: Request): boolean {
@@ -28,7 +30,7 @@ function page(reviews: Review[], msg: string): string {
 }
 
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
-  const denied = await guard(env, request, 30, 'radmin'); if (denied) return denied;
+  const denied = await guardFailures(env, request); if (denied) return denied;
   if (!env.JEEVANA_KV) return new Response('storage unavailable', { status: 503 });
   try {
     const msg = new URL(request.url).searchParams.get('done') === '1' ? 'Modification enregistrée.' : '';
@@ -40,7 +42,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 };
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
-  const denied = await guard(env, request, 30, 'radmin'); if (denied) return denied;
+  const denied = await guardFailures(env, request); if (denied) return denied;
   if (!sameOrigin(request)) return new Response('Forbidden', { status: 403 });
   if (!env.JEEVANA_KV) return new Response('storage unavailable', { status: 503 });
   try {
@@ -56,7 +58,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     } else {
       const r = JSON.parse(raw) as Review;
       r.status = action === 'publish' ? 'published' : 'hidden';
-      await env.JEEVANA_KV.put(key, JSON.stringify(r));
+      await putReview(env.JEEVANA_KV, r);
       await rebuild(env, r);
     }
     return new Response(null, { status: 303, headers: { Location: '/api/review-admin?done=1' } });

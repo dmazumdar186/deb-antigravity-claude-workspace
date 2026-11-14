@@ -3,10 +3,11 @@
 // POST /api/reviews  body { name, rating 1-5, text, consent, website (honeypot), lang }
 //      200 { ok:true, status:'published'|'pending' } · 400 { error: bad_name|bad_rating|bad_text|consent_required }
 //      413 too_large · 429 rate_limited · 503 storage unavailable · 500 internal.
-// Clean reviews publish at once; links, contact details or held words wait for Jeevana (/api/review-admin).
+// Clean reviews publish at once; links, contact details, held words, all-caps text, a name containing "Jeevana",
+// or a burst (>= 5 published in the last hour) wait for Jeevana (/api/review-admin).
 // Idempotent: id = sha256(name|text), so a double submit or retry upserts the same record and never re-notifies.
 import { Env, json, sha256Hex, consentOk, rateLimited, readBody, badBody, noStore, fail, notify } from './_lib';
-import { Review, NAME_MIN, NAME_MAX, TEXT_MIN, TEXT_MAX, PAGE_SIZE, PAGE_MAX, REVIEW_CONSENT, clean, holdReason, rebuild, snapshot, view } from './_reviews';
+import { Review, NAME_MIN, NAME_MAX, TEXT_MIN, TEXT_MAX, PAGE_SIZE, PAGE_MAX, REVIEW_CONSENT, clean, holdReason, rebuild, snapshot, view, putReview, burst } from './_reviews';
 
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   if (!env.JEEVANA_KV) return noStore();
@@ -44,7 +45,7 @@ export const onRequestPost: PagesFunction<Env> = async (ctx) => {
       return json({ ok: true, status: old.status === 'published' ? 'published' : 'pending' });
     }
     const lang = body.lang === 'fr' ? 'fr' : 'en';
-    const reason = holdReason(name, text);
+    const reason = holdReason(name, text) || (burst(await snapshot(env)) ? 'burst' : '');
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
     const rec: Review = {
       id, name, rating, text, lang, ts: new Date().toISOString(),
@@ -52,7 +53,7 @@ export const onRequestPost: PagesFunction<Env> = async (ctx) => {
       ip_hash: (await sha256Hex('jv::' + ip)).slice(0, 16),
     };
     if (reason) rec.hold_reason = reason;
-    await env.JEEVANA_KV.put(key, JSON.stringify(rec));
+    await putReview(env.JEEVANA_KV, rec);
     if (rec.status === 'published') await rebuild(env, rec);
     const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
     ctx.waitUntil(notify(env, reason ? `Avis à vérifier — ${name} ${stars}` : `Nouvel avis publié — ${name} ${stars}`, [

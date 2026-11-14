@@ -1,5 +1,5 @@
 // Basic auth shared by /api/export and /api/stats: env EXPORT_USER / EXPORT_PASS; unset -> always 401.
-import { Env, rateLimited } from './_lib';
+import { Env, rateLimited, sha256Hex, logError } from './_lib';
 
 export function unauthorized(): Response {
   return new Response('Authentication required', { status: 401, headers: { 'WWW-Authenticate': 'Basic realm="Jeevana export", charset="UTF-8"', 'Cache-Control': 'no-store' } });
@@ -24,4 +24,21 @@ export async function guard(env: Env, request: Request, max = 10, scope = 'expor
   try { const dec = atob(h.slice(6)); const i = dec.indexOf(':'); user = dec.slice(0, i); pass = dec.slice(i + 1); } catch { return unauthorized(); }
   const okU = safeEqual(user, env.EXPORT_USER), okP = safeEqual(pass, env.EXPORT_PASS);
   return okU && okP ? null : unauthorized();
+}
+
+// Moderation guard: only FAILED logins count (10 / 10 min / IP), so moderating many reviews never locks Jeevana out.
+export async function guardFailures(env: Env, request: Request, max = 10): Promise<Response | null> {
+  const kv = env.JEEVANA_KV;
+  const key = kv ? `rl:authfail:${await sha256Hex('jv::' + (request.headers.get('CF-Connecting-IP') || 'unknown'))}` : '';
+  let n = 0;
+  if (kv) { try { n = Number(await kv.get(key)) || 0; } catch (err) { logError('authfail:get', err); } }
+  if (n >= max) return new Response('Too many requests', { status: 429, headers: { 'Retry-After': '600' } });
+  if (!env.EXPORT_USER || !env.EXPORT_PASS) return unauthorized();
+  const h = request.headers.get('Authorization') || '';
+  let user = '', pass = '';
+  if (h.startsWith('Basic ')) { try { const dec = atob(h.slice(6)); const i = dec.indexOf(':'); user = dec.slice(0, i); pass = dec.slice(i + 1); } catch { /* malformed -> fail below */ } }
+  const okU = safeEqual(user, env.EXPORT_USER), okP = safeEqual(pass, env.EXPORT_PASS);
+  if (okU && okP) return null;
+  if (kv && h) { try { await kv.put(key, String(n + 1), { expirationTtl: 660 }); } catch (err) { logError('authfail:put', err); } }
+  return unauthorized();
 }
