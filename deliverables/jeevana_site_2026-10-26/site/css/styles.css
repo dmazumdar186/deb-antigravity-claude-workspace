@@ -394,3 +394,10 @@ h2,h3,.lineage-link{text-wrap:balance}
 .paris-copy .nataraja{position:static}
 @media(max-width:760px){.paris-copy .nataraja{width:124px}}
 @media(prefers-reduced-motion:reduce){.nataraja{--p:1!important}.nataraja.is-open .nj-ringset{animation:none}}
+/* Ornament placement fixes (eye review 2026-11-14): lotus sits beside its heading, visible on phones; scroll keeps clear of the screen edge. */
+#practice .section-heading{justify-content:flex-start;gap:clamp(28px,5vw,88px)}
+#practice .lotus{width:clamp(170px,17vw,250px)}
+.lotus__pod{fill:#D7B060}
+@media(max-width:760px){#practice .section-heading{flex-direction:column;align-items:flex-start;gap:6px}#practice .lotus{position:static;width:150px;margin-left:-6px}}
+@media(max-width:760px){.vscroll{padding-inline:26px}}
+.vscroll .contact-links>a>span:last-child{align-self:center}
