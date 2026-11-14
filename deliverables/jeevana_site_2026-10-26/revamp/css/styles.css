@@ -428,7 +428,7 @@ fieldset:disabled input,fieldset:disabled select,fieldset:disabled textarea{curs
 .paris__media .frame{flex:1 1 auto;min-height:440px;border-radius:var(--radius-photo)}
 .paris__media .ph{position:absolute;inset:0;filter:saturate(.8) sepia(.08);object-position:50% 62%}
 .paris__words{grid-column:5/10;grid-row:1;position:relative;align-self:center}
-.paris__deity{grid-column:10/-1;grid-row:1;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.paris__deity{grid-column:10/-1;grid-row:1;display:flex;align-items:flex-start;justify-content:center;pointer-events:none}
 .deity{position:relative;width:100%;max-width:470px;aspect-ratio:713/752}
 .deity__wash,.deity__glow,.deity__line{position:absolute;inset:0;width:100%;height:100%}
 .paris__words h2{max-width:10em}
