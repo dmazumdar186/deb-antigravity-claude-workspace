@@ -40,8 +40,13 @@ export const onRequestPost: PagesFunction<Env> = async (ctx) => {
     const id = (await sha256Hex('rev::' + name.toLowerCase() + '|' + text.toLowerCase())).slice(0, 20);
     const key = `rev:${id}`;
     const prev = await env.JEEVANA_KV.get(key);
-    if (prev) { // same review again: no new record, no new email
+    if (prev) { // same review again: no new record, no new email; a changed rating replaces the old one
       const old = JSON.parse(prev) as Review;
+      if (old.rating !== rating && old.status !== 'hidden') {
+        old.rating = rating;
+        await putReview(env.JEEVANA_KV, old);
+        if (old.status === 'published') await rebuild(env, old);
+      }
       return json({ ok: true, status: old.status === 'published' ? 'published' : 'pending' });
     }
     const lang = body.lang === 'fr' ? 'fr' : 'en';
