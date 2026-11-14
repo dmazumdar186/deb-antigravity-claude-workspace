@@ -14,9 +14,9 @@ export function safeEqual(a: string, b: string): boolean {
   return r === 0;
 }
 
-// null = authorised; otherwise the response to return (401 or 429). 10 attempts / 10 min / IP.
-export async function guard(env: Env, request: Request): Promise<Response | null> {
-  if (await rateLimited(env, request, 'export', 10)) return new Response('Too many requests', { status: 429, headers: { 'Retry-After': '600' } });
+// null = authorised; otherwise the response to return (401 or 429). `max` attempts / 10 min / IP (default 10).
+export async function guard(env: Env, request: Request, max = 10, scope = 'export'): Promise<Response | null> {
+  if (await rateLimited(env, request, scope, max)) return new Response('Too many requests', { status: 429, headers: { 'Retry-After': '600' } });
   if (!env.EXPORT_USER || !env.EXPORT_PASS) return unauthorized();
   const h = request.headers.get('Authorization') || '';
   if (!h.startsWith('Basic ')) return unauthorized();

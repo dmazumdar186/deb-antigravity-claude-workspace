@@ -16,6 +16,9 @@
 /privacy/
   Cache-Control: no-cache
 
+/reviews/
+  Cache-Control: no-cache
+
 /assets/*
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 
