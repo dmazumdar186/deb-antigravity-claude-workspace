@@ -383,7 +383,8 @@ h2,h3,.lineage-link{text-wrap:balance}
 @media(prefers-reduced-motion:reduce){.lotus{--p:1!important}.lotus.is-open .lotus__breath{animation:none}}
 /* Paris: Nataraja line art traced from the CC0 Cleveland Museum of Art bronze 1930.331; draws itself with scroll (js/lotus.js sets --p). Default finished. */
 .nataraja{--p:1;width:clamp(150px,13vw,210px);height:auto;aspect-ratio:662/745;flex:0 0 auto;overflow:visible;fill:none;stroke-linecap:round;stroke-linejoin:round}
-.nataraja path,.nataraja circle,.nataraja ellipse{vector-effect:non-scaling-stroke;stroke-width:1.15px;stroke-dasharray:1 1}
+.nataraja path,.nataraja circle,.nataraja ellipse{stroke-width:3.4;stroke-dasharray:1 1}
+.nataraja .nj-ring>*{stroke-width:3}
 .nataraja .nj-ring>*{stroke:var(--ochre-text);stroke-opacity:.72;stroke-dashoffset:calc(1 - clamp(0,var(--p) / .55,1))}
 .nataraja .nj-figure>*{stroke:var(--ink);stroke-opacity:.82;stroke-dashoffset:calc(1 - clamp(0,(var(--p) - .2) / .7,1))}
 .nataraja .nj-base>*{stroke:var(--ink);stroke-opacity:.55;stroke-dashoffset:calc(1 - clamp(0,(var(--p) - .45) / .55,1))}
@@ -400,3 +401,17 @@ h2,h3,.lineage-link{text-wrap:balance}
 @media(max-width:760px){#practice .section-heading{flex-direction:column;align-items:flex-start;gap:6px}#practice .lotus{position:static;width:150px;margin-left:-6px}}
 @media(max-width:760px){.vscroll{padding-inline:26px}}
 .vscroll .contact-links>a>span:last-child{align-self:center}
+
+/* Release audit fixes 2026-11-14 */
+.legal{width:min(calc(100% - var(--gutter)*2),72ch);margin-inline:auto;padding:calc(var(--hh,124px) + 40px) 0 clamp(56px,7vw,96px)}
+.legal h1{font-size:clamp(2.2rem,5vw,3.6rem);line-height:1.1;margin-bottom:12px;text-wrap:balance}
+.legal h2{font-size:clamp(1.45rem,2.6vw,2.1rem);line-height:1.2;margin:40px 0 12px}
+.legal p,.legal li{line-height:1.8;color:var(--ink-soft)}.legal p+p{margin-top:10px}
+.legal ul{padding-left:1.2em;margin:12px 0 0;display:grid;gap:8px}
+.legal a{text-decoration:underline;text-underline-offset:4px;overflow-wrap:anywhere}
+.nf-main{min-height:70svh;display:grid;place-content:center;justify-items:center;gap:16px;text-align:center;padding:calc(var(--hh,124px) + 40px) var(--gutter) 64px}
+.nf-main h1{font-size:clamp(2.2rem,6vw,4rem)}
+.testimonials .text-link+.text-link{margin-left:28px}
+@media(max-width:520px){.testimonials .text-link{display:flex}.testimonials .text-link+.text-link{margin-left:0;margin-top:4px}}
+#about-title{text-wrap:balance}
+.vscroll .contact-links>a>span:last-child{line-height:1}
