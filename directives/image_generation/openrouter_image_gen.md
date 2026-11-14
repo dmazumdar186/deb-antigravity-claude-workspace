@@ -28,7 +28,9 @@ Generate illustration or texture images (client sites, decks) with an image-outp
 - The model can return text instead of an image: logged as `FAIL no image` with the text snippet; the run continues.
 - Backgrounds come back off-white (cream ~244,237,218 or white 253-255), not transparent: colour-key them out in post.
 - Gemini 3 Pro Image returns ~1376-1408 x 768 for landscape prompts; ask for "high resolution" but do not upscale afterwards (AI-upscale look was rejected by the client 2026-11-14).
-- Observed cost 2026-11-14: about $0.138 per image (`google/gemini-3-pro-image`).
+- Observed cost 2026-11-14: about $0.138 per image (`google/gemini-3-pro-image`), $0.23 per image (`openai/gpt-5.4-image-2`, 1024x1024).
+- For client work, generate candidates from BOTH image providers (Google + OpenAI; Claude/GLM/Kimi have no image output) and let a blind reviewer rank anonymised copies. 2026-11-14 blind result: Gemini 3 Pro Image won both briefs (line-art Nataraja 9/10 vs OpenAI 8/10; parchment scroll 9/10 vs 7/10).
+- A dropped connection mid-call is logged with cost 0.00 and the run continues.
 
 ## Output Contract
 Images only in `.tmp/image_gen/`; nothing is published until a reviewed derivative is copied into a site's assets.
