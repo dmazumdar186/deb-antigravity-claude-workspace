@@ -60,7 +60,7 @@ newsletterEyebrow:`A note, now and then`,newsletterTitle:`Keep a little space\nf
 footerThought:`Steady. At ease. One breath at a time.`,backTop:`Back to top`,privacy:`Privacy & mentions légales`,designerEmail:`Email Debanjan Mazumdar`,
 heroAlt:`Jeevana, eyes closed, her face turned to the sun in front of a grey wall, in a black dress.`,
 diwaliAlt:`Jeevana sitting on the floor in a blue saree, lighting a diya beside a rangoli.`,
-parisAlt:`Jeevana in a red saree in front of the Eiffel Tower.`,
+parisAlt:`Jeevana in a full backbend, Chakrāsana, on a blue mat on the Champ-de-Mars, the Eiffel Tower behind her.`,
 lobbyAlt:`Jeevana in a green and yellow lehenga beside orchids in a hotel lobby, smiling.`,
 practice01Alt:`Jeevana in cobra pose on a mat, chest lifted, eyes closed.`,practice02Alt:`Jeevana in child's pose on a grey mat, seen from above.`,practice03Alt:`Jeevana seated in meditation on the grass, hands in jñāna mudrā.`,
 'nav.label':`Main navigation`,'lang.label':`Language`,'foot.sig':`Designed by Debanjan Mazumdar · ProdCraft`,'nf.home':`Jeevana — Yoga in Paris`,'nf.h':`This page is resting.`,'nf.p':`The page you asked for does not exist.`
@@ -124,7 +124,7 @@ newsletterEyebrow:`Un mot, de temps en temps`,newsletterTitle:`Garder une petite
 footerThought:`Stable. À l’aise. Un souffle à la fois.`,backTop:`Retour en haut`,privacy:`Confidentialité & mentions légales`,designerEmail:`Écrire à Debanjan Mazumdar`,
 heroAlt:`Jeevana, les yeux fermés, le visage tourné vers le soleil devant un mur gris, en robe noire.`,
 diwaliAlt:`Jeevana assise au sol en sari bleu, allumant un diya près d’une rangoli.`,
-parisAlt:`Jeevana en sari rouge devant la tour Eiffel.`,
+parisAlt:`Jeevana en pont complet, Chakrāsana, sur un tapis bleu au Champ-de-Mars, la tour Eiffel derrière elle.`,
 lobbyAlt:`Jeevana en lehenga vert et jaune près d’orchidées dans le hall d’un hôtel, souriante.`,
 practice01Alt:`Jeevana en posture du cobra sur un tapis, la poitrine ouverte, les yeux fermés.`,practice02Alt:`Jeevana en posture de l'enfant sur un tapis gris, vue d'en haut.`,practice03Alt:`Jeevana assise en méditation sur l'herbe, les mains en jñāna mudrā.`,
 'nav.label':`Navigation principale`,'lang.label':`Langue`,'foot.sig':`Designed by Debanjan Mazumdar · ProdCraft`,'nf.home':`Jeevana — Yoga à Paris`,'nf.h':`Cette page se repose.`,'nf.p':`La page demandée n’existe pas.`
