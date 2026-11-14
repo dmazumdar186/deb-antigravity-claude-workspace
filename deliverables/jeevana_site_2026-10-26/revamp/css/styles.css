@@ -45,6 +45,9 @@
   --scroll-shadow:rgb(34 23 15 / .14);
   --scroll-rule:rgb(78 59 42 / .24);
   --mask-on:#000;
+  --ring-disc:rgb(184 134 43 / .08);
+  --ring-disc-night:rgb(217 165 90 / .05);
+  --ring-disc-photo:rgb(251 246 238 / .1);
   --veil:rgb(30 22 17 / .55);
   --fade-right:linear-gradient(to right,#000 calc(100% - 40px),transparent);
 
@@ -653,25 +656,25 @@ fieldset:disabled input,fieldset:disabled select,fieldset:disabled textarea{curs
 /* ------------------------------------------------------------ signature motion (restored from the approved build, 2026-11-14)
    Everything below enhances a complete static page: without JS nothing is hidden, and with reduced motion
    every reveal is shown, every ring is still, and the parallax is off. */
-.has-js [data-reveal]{opacity:0;transform:translateY(14px);transition:opacity .76s var(--ease),transform .76s var(--ease)}
-.has-js [data-reveal].is-visible{opacity:1;transform:none}
-.has-js [data-reveal].is-past{transition:none}
-.has-js [data-reveal]:nth-child(2){transition-delay:.08s}
-.has-js [data-reveal]:nth-child(3){transition-delay:.16s}
-.has-js [data-reveal]:nth-child(4){transition-delay:.24s}
-.has-js [data-reveal]:nth-child(n+5){transition-delay:.32s}
-.has-js .facts[data-reveal]>div{opacity:0;transform:translateY(10px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
-.has-js .facts[data-reveal].is-visible>div{opacity:1;transform:none}
-.has-js .facts[data-reveal].is-past>div{transition:none}
-.has-js .facts[data-reveal]>div:nth-child(2){transition-delay:.08s}
-.has-js .facts[data-reveal]>div:nth-child(3){transition-delay:.16s}
-.has-js .facts[data-reveal]>div:nth-child(4){transition-delay:.24s}
-.has-js .facts[data-reveal]>div:nth-child(5){transition-delay:.32s}
+html.has-js [data-reveal]{opacity:0;transform:translateY(14px);transition:opacity .76s var(--ease),transform .76s var(--ease)}
+html.has-js [data-reveal].is-visible{opacity:1;transform:none}
+html.has-js [data-reveal].is-past{transition:none}
+html.has-js [data-reveal]:nth-child(2){transition-delay:.08s}
+html.has-js [data-reveal]:nth-child(3){transition-delay:.16s}
+html.has-js [data-reveal]:nth-child(4){transition-delay:.24s}
+html.has-js [data-reveal]:nth-child(n+5){transition-delay:.32s}
+html.has-js .facts[data-reveal]>div{opacity:0;transform:translateY(10px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+html.has-js .facts[data-reveal].is-visible>div{opacity:1;transform:none}
+html.has-js .facts[data-reveal].is-past>div{transition:none}
+html.has-js .facts[data-reveal]>div:nth-child(2){transition-delay:.08s}
+html.has-js .facts[data-reveal]>div:nth-child(3){transition-delay:.16s}
+html.has-js .facts[data-reveal]>div:nth-child(4){transition-delay:.24s}
+html.has-js .facts[data-reveal]>div:nth-child(5){transition-delay:.32s}
 
 /* hero headline: words arrive one by one (i18n.js wraps each word in .word.wN) */
 @media (prefers-reduced-motion:no-preference){
-  .has-js .cover__copy>#h1{animation:none}
-  .has-js #h1 .word{animation:word-in .6s var(--ease) both}
+  html.has-js .cover__copy>#h1{animation:none}
+  html.has-js #h1 .word{animation:word-in .6s var(--ease) both}
   #h1 .w1{animation-delay:40ms}#h1 .w2{animation-delay:80ms}#h1 .w3{animation-delay:120ms}#h1 .w4{animation-delay:160ms}
   #h1 .w5{animation-delay:200ms}#h1 .w6{animation-delay:240ms}#h1 .w7{animation-delay:280ms}#h1 .w8{animation-delay:320ms}
   #h1 .w9{animation-delay:360ms}#h1 .w10{animation-delay:400ms}#h1 .w11{animation-delay:440ms}
@@ -688,14 +691,14 @@ html:not(.has-js) .bar__progress{display:none}
 .frame>.drift .ph{height:100%}
 
 /* the twelve-breath ring: one arc per breath of the sun salutation */
-.twelve{position:absolute;max-width:none;pointer-events:none;fill:none;stroke-width:1;-webkit-mask-image:radial-gradient(closest-side,#000 78%,transparent 100%);mask-image:radial-gradient(closest-side,#000 78%,transparent 100%)}
+.twelve{position:absolute;max-width:none;pointer-events:none;fill:none;stroke-width:1;-webkit-mask-image:radial-gradient(closest-side,var(--mask-on) 78%,transparent 100%);mask-image:radial-gradient(closest-side,var(--mask-on) 78%,transparent 100%)}
 .twelve .spin{transform-origin:256px 256px;animation:orbit 240s linear infinite}
 .twelve .rays{transform-origin:256px 256px;animation:rays-breathe 9s ease-in-out infinite}
 .twelve .arc{stroke:var(--accent);stroke-width:1.6;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:.3;transition:opacity .4s ease-out}
 .twelve .arc.on{opacity:1;stroke-width:2.4}
 .twelve .fine{stroke:var(--ochre);stroke-opacity:.45;vector-effect:non-scaling-stroke}
 .twelve .centre{stroke:var(--ochre);stroke-opacity:.4;vector-effect:non-scaling-stroke;transform-origin:256px 256px;animation:centre-breathe 5.5s ease-in-out infinite}
-.twelve .centre .disc{fill:rgb(184 134 43 / .08);stroke-opacity:.55}
+.twelve .centre .disc{fill:var(--ring-disc);stroke-opacity:.55}
 .twelve .centre .dots{stroke-width:3;stroke-linecap:round;stroke-opacity:.6;vector-effect:none}
 @keyframes orbit{to{transform:rotate(360deg)}}
 @keyframes rays-breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
@@ -710,7 +713,7 @@ html:not(.has-js) .bar__progress{display:none}
   .twelve--cover{z-index:2;width:76%;left:100%;top:0;clip-path:inset(50% 50% 0 0)}
   .twelve--cover .arc{--arc-dim:.5;stroke:var(--on-night-accent);opacity:.5}
   .twelve--cover .fine,.twelve--cover .centre{stroke:var(--surface);stroke-opacity:.6}
-  .twelve--cover .centre .disc{fill:rgb(251 246 238 / .1)}
+  .twelve--cover .centre .disc{fill:var(--ring-disc-photo)}
 }
 @media (prefers-reduced-motion:no-preference){
   .twelve--cover .arc,.twelve--cover .arc.on{stroke-width:2;animation:arc-breath 30s linear infinite}
@@ -729,12 +732,12 @@ html:not(.has-js) .bar__progress{display:none}
 .twelve--strip .arc{stroke:var(--on-night-accent);opacity:.28}
 .twelve--strip .arc.on{opacity:1}
 .twelve--strip .fine,.twelve--strip .centre{stroke:var(--on-night-2);stroke-opacity:.28}
-.twelve--strip .centre .disc{fill:rgb(217 165 90 / .05)}
+.twelve--strip .centre .disc{fill:var(--ring-disc-night)}
 @media (max-width:899px){.twelve--strip{width:168px;right:8px;top:4px}}
 
 @media (prefers-reduced-motion:reduce){
-  .has-js [data-reveal],.has-js .facts[data-reveal]>div{opacity:1;transform:none;transition:none}
+  html.has-js [data-reveal],html.has-js .facts[data-reveal]>div{opacity:1;transform:none;transition:none}
   .twelve .spin,.twelve .rays,.twelve .centre{animation:none}
   .frame>.drift{transform:none!important}
 }
-@media print{.has-js [data-reveal],.has-js .facts[data-reveal]>div{opacity:1;transform:none}.twelve,.bar__progress{display:none}}
+@media print{html.has-js [data-reveal],html.has-js .facts[data-reveal]>div{opacity:1;transform:none}.twelve,.bar__progress{display:none}}
