@@ -832,3 +832,7 @@ html:not(.has-js) .bar__progress{display:none}
   .frame>.drift{transform:none!important}
 }
 @media print{html.has-js [data-reveal],html.has-js .facts[data-reveal]>div{opacity:1;transform:none}.twelve,.bar__progress{display:none}}
+/* final-gate fixes 2026-11-14 */
+.scroll .contact-value--email{font-size:clamp(.95rem,calc((100cqi - 8.75rem) / 14.5),1.85rem)}
+@media (max-width:899px){.scroll .contact-value--email{font-size:clamp(.78rem,calc((100cqi - 1.75rem) / 15),1.6rem)}}
+.paris__deity{align-items:center}
