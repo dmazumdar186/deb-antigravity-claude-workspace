@@ -707,8 +707,8 @@ html:not(.has-js) .bar__progress{display:none}
 .twelve--cover{z-index:0;width:min(68%,500px);aspect-ratio:1;height:auto;left:0;top:68%;transform:translate(-50%,-50%)}
 /* phones: no room beside the photo, so the sun sits in its top-right corner, where she turns her face */
 @media (max-width:899px){
-  .twelve--cover{z-index:2;width:62%;left:100%;top:0;clip-path:inset(50% 50% 0 0)}
-  .twelve--cover .arc{--arc-dim:.45;stroke:var(--on-night-accent);opacity:.45}
+  .twelve--cover{z-index:2;width:76%;left:100%;top:0;clip-path:inset(50% 50% 0 0)}
+  .twelve--cover .arc{--arc-dim:.5;stroke:var(--on-night-accent);opacity:.5}
   .twelve--cover .fine,.twelve--cover .centre{stroke:var(--surface);stroke-opacity:.6}
   .twelve--cover .centre .disc{fill:rgb(251 246 238 / .1)}
 }
@@ -730,7 +730,7 @@ html:not(.has-js) .bar__progress{display:none}
 .twelve--strip .arc.on{opacity:1}
 .twelve--strip .fine,.twelve--strip .centre{stroke:var(--on-night-2);stroke-opacity:.28}
 .twelve--strip .centre .disc{fill:rgb(217 165 90 / .05)}
-@media (max-width:899px){.twelve--strip{width:240px;right:-96px;top:-40px}}
+@media (max-width:899px){.twelve--strip{width:168px;right:8px;top:4px}}
 
 @media (prefers-reduced-motion:reduce){
   .has-js [data-reveal],.has-js .facts[data-reveal]>div{opacity:1;transform:none;transition:none}
