@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F3EADB">
+<title>Reviews — Jeevana Yoga &amp; Wellness</title>
+<meta name="description" content="Reviews of Jeevana Gogula's Hatha Yoga classes in Paris, and a form to leave your own.">
+<link rel="canonical" href="https://jeevana-yoga.pages.dev/reviews/">
+<link rel="icon" href="/assets/brand/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/brand/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="/assets/brand/favicon-16.png" sizes="16x16" type="image/png">
+<link rel="apple-touch-icon" href="/assets/brand/apple-touch-icon.png" sizes="180x180">
+<link rel="manifest" href="/site.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jeevana-yoga.pages.dev/reviews/">
+<meta property="og:site_name" content="Jeevana Yoga &amp; Wellness">
+<meta property="og:title" content="Reviews — Jeevana Yoga &amp; Wellness">
+<meta property="og:description" content="What students say about Jeevana's Hatha Yoga classes in Paris.">
+<meta property="og:image" content="https://jeevana-yoga.pages.dev/assets/brand/og.jpg">
+<link rel="preload" href="/assets/fonts/preview/alegreya-normal-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/preview/alegreyasans-normal-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/css/styles.css?v=3c00237091">
+<script src="/js/i18n.js?v=24194d0064"></script>
+<script defer src="/js/main.js?v=a776ca8dc7"></script>
+<script defer src="/js/reviews.js?v=f5c67820de"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"f7ff129092344aca8fd504fcca79bc05"}'></script>
+</head>
+<body class="reviews-page">
+<a class="skip-link" href="#main" data-i18n="skip">Skip to content</a>
+<header class="bar"><div class="bar__inner">
+<a class="wordmark" href="/" aria-label="Jeevana — home" data-i18n-aria="home"><img class="logo logo--header" src="/assets/brand/logo-header.svg" alt="G1A — Jeevana Yoga &amp; Wellness" width="895" height="312" decoding="async"></a>
+<div class="bar__menu" id="site-menu"><nav class="primary-nav" id="site-nav" aria-label="Main navigation" data-i18n-aria="navigation"><a href="/#about" data-i18n="navAbout">About</a><a href="/#practice" data-i18n="navPractice">Practice</a><a href="/#classes" data-i18n="navClasses">Classes</a><a href="/reviews/" aria-current="page" data-i18n="navReviews">Reviews</a><a href="/#contact" data-i18n="navContact">Contact</a></nav><div class="language-switch" role="group" aria-label="Language" data-i18n-aria="language"><button type="button" data-lang="en" lang="en" aria-label="English" aria-pressed="true">EN</button><button type="button" data-lang="fr" lang="fr" aria-label="Français" aria-pressed="false">FR</button></div></div>
+<div class="header-actions"><a class="button button-small" href="/#registration" data-i18n="register">Reserve</a><button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu" data-menu-toggle><span data-i18n="menu">Menu</span></button></div>
+</div></header>
+<main id="main" class="reviews-main">
+<section class="section reviews-hero" aria-labelledby="reviews-title"><div class="container">
+<div class="section-heading"><div><p class="eyebrow"><span data-i18n="reviewsEyebrow">Reviews</span></p><h1 id="reviews-title" class="reviews-h1" data-i18n="reviewsTitle">In their words,<br>one breath at a time.</h1></div></div>
+<div class="reviews-summary" data-summary hidden><p class="reviews-average"><span class="reviews-average__num" data-average></span><span class="stars stars--lg" data-average-stars aria-hidden="true"></span></p><p class="reviews-count" data-count></p><a class="button" href="#write"><span data-i18n="reviewsWrite">Leave a review</span><span aria-hidden="true">↓</span></a></div>
+<p class="reviews-status" data-list-status role="status" aria-live="polite"></p>
+<a class="button reviews-empty-cta" href="#write" data-empty-cta hidden><span data-i18n="reviewsWrite">Leave a review</span></a>
+</div></section>
+<section class="section reviews-featured" aria-labelledby="featured-title" data-featured-wrap hidden><div class="container">
+<h2 id="featured-title" class="reviews-h2" data-i18n="reviewsFeatured">Latest 4- and 5-star reviews</h2>
+<ul class="featured-grid" data-featured></ul>
+</div></section>
+<section class="section reviews-all" aria-labelledby="all-title" data-all-wrap hidden><div class="container">
+<h2 id="all-title" class="reviews-h2" data-i18n="reviewsAll">All reviews</h2>
+<ul class="review-list" data-list></ul>
+<button class="button button-ghost" type="button" data-more hidden><span data-i18n="reviewsMore">Show more reviews</span></button>
+</div></section>
+<section class="section reviews-write" id="write" aria-labelledby="write-title"><div class="container reviews-write-layout">
+<div><p class="eyebrow"><span data-i18n="reviewsWriteEyebrow">Your turn</span></p><h2 id="write-title" data-i18n="reviewsWriteTitle">Share your<br>experience.</h2><p class="body-copy" data-i18n="reviewsWriteBody">Took a class with me? A few honest lines help others find their way to the mat.</p></div>
+<div class="form-wrap"><form class="review-form" action="/api/reviews" method="post" data-review-form novalidate aria-labelledby="write-title"><fieldset data-fields>
+<fieldset class="star-input" data-star-input><legend data-i18n="reviewsRating">Your rating</legend><div class="star-input__row">
+<input type="radio" id="rv-1" name="rating" value="1" required><label for="rv-1"><span aria-hidden="true">★</span><span class="sr-only" data-i18n="star1">1 star</span></label>
+<input type="radio" id="rv-2" name="rating" value="2"><label for="rv-2"><span aria-hidden="true">★</span><span class="sr-only" data-i18n="star2">2 stars</span></label>
+<input type="radio" id="rv-3" name="rating" value="3"><label for="rv-3"><span aria-hidden="true">★</span><span class="sr-only" data-i18n="star3">3 stars</span></label>
+<input type="radio" id="rv-4" name="rating" value="4"><label for="rv-4"><span aria-hidden="true">★</span><span class="sr-only" data-i18n="star4">4 stars</span></label>
+<input type="radio" id="rv-5" name="rating" value="5"><label for="rv-5"><span aria-hidden="true">★</span><span class="sr-only" data-i18n="star5">5 stars</span></label>
+</div></fieldset>
+<div class="field"><label for="rv-name" data-i18n="reviewsName">First name</label><input id="rv-name" name="name" type="text" autocomplete="given-name" minlength="2" maxlength="40" required><small data-i18n="reviewsNameHint">Shown with your review. Your first name is enough.</small></div>
+<div class="field"><label for="rv-text" data-i18n="reviewsText">Your review</label><textarea id="rv-text" name="text" rows="6" minlength="20" maxlength="1200" required></textarea><small data-text-count aria-live="polite"></small></div>
+<div class="honeypot" aria-hidden="true"><label for="rv-website">Website</label><input id="rv-website" name="website" tabindex="-1" autocomplete="off"></div>
+<label class="consent" for="rv-consent"><input id="rv-consent" name="consent" type="checkbox" value="true" required><span data-i18n="reviewsConsent">I agree that my first name, rating, review and its date are published on this site.</span></label>
+<div class="form-bottom"><a class="quiet-link" href="/privacy/" data-i18n="privacyShort">Privacy information</a><button class="button" type="submit"><span data-submit-label data-i18n="reviewsSubmit">Publish my review</span><span aria-hidden="true">↗</span></button></div>
+</fieldset><p class="form-status" id="rv-err" data-err role="alert" tabindex="-1"></p></form>
+<div class="success-panel" data-review-ok hidden tabindex="-1" role="status"><span class="success-mark" aria-hidden="true">✓</span><h3 data-review-ok-title></h3><p data-review-ok-body></p></div></div>
+</div></section>
+<section class="reviews-notice" aria-labelledby="notice-title"><div class="container"><h2 id="notice-title" class="small-label" data-i18n="reviewsNoticeTitle">How reviews work</h2><p data-i18n="reviewsNotice">Reviews are written by visitors to this site and are not verified. They are shown with their date, newest first; the three latest reviews rated 4 or 5 stars are featured at the top. A review that contains a link, contact details, offensive or advertising words, text in capitals or long runs of the same character, that is signed with the name Jeevana, or that arrives during an unusual burst of reviews, is checked by Jeevana before it appears. Jeevana may hide or remove a review.</p><p data-i18n="reviewsSuperprof">More reviews from earlier students are on Superprof.</p><a class="text-link" href="https://www.superprof.fr/professeure-yoga-propose-cours-accessibles-niveaux.html" target="_blank" rel="noopener noreferrer"><span data-i18n="moreReviews">Read them on Superprof</span><span aria-hidden="true">↗</span></a></div></section>
+</main>
+<footer class="site-footer"><div class="container footer__grid"><a class="wordmark footer__mark" href="/" aria-label="Jeevana — home" data-i18n-aria="home"><img class="logo logo--stacked" src="/assets/brand/logo-stacked.svg" alt="G1A — Jeevana Yoga &amp; Wellness" width="627" height="495" decoding="async" loading="lazy"></a><p class="footer__thought" data-i18n="footerThought">Steady. At ease. One breath at a time.</p><a class="back-top quiet-link" href="#main"><span data-i18n="backTop">Back to top</span></a><div class="footer__legal"><span>© <span data-year>2026</span> Jeevana Gogula</span><a href="/privacy/" data-i18n="privacy">Privacy &amp; mentions légales</a><span class="design-credit"><a href="https://prodcraft.fyi" target="_blank" rel="noopener noreferrer">Designed by Debanjan Mazumdar · ProdCraft</a><a class="design-credit__mail" href="mailto:debanjan@prodcraft.fyi" aria-label="Email Debanjan Mazumdar" data-i18n-aria="designerEmail">↗</a></span></div></div></footer>
+</body>
+</html>

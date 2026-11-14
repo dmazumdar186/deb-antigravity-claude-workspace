@@ -147,3 +147,6 @@ data/linkedin_connect/
 deliverables/greenjobs_migration_2026-11-06/**/*.csv
 deliverables/greenjobs_migration_2026-11-06/**/*.sql.out
 **/strategies_export*/
+
+# Jeevana site: shipped brand PNGs (favicons, touch icons) in site/ and revamp/
+!deliverables/jeevana_site_2026-10-26/*/assets/brand/*.png
