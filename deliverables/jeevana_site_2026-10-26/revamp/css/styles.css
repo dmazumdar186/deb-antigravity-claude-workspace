@@ -647,3 +647,5 @@ fieldset:disabled input,fieldset:disabled select,fieldset:disabled textarea{curs
 .practice__gallery .shot--wide{order:-1;grid-row:auto}
 @media(min-width:900px){.practice__gallery .shot--wide{grid-column:2/12}}
 @media (max-width:899px){.practice__gallery .shot--wide{grid-column:1/-1;grid-row:1}.practice__gallery .shot--square{grid-row:2}.practice__gallery .sutra{grid-row:3}.practice__gallery .shot--tall{grid-row:4}}
+/* eye-gate polish 2026-11-14: tighter Paris section on phones */
+@media (max-width:899px){#paris.section{padding-top:var(--s7);padding-bottom:var(--s7)}#paris .paris__grid{row-gap:var(--s6)}}
