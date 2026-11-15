@@ -2717,3 +2717,31 @@ def test_instantly_module_send_reply_still_denied(tmp_path, state, capsys):
     assert _deny_reason(_bash("python3 s.py", capsys, tmp_path))
     send_only = src[src.index("def send_reply("):src.index("def fetch_step_analytics(")]
     assert rg.sender_hit(("https://api.instan" "tly.ai/api/v2\n" + send_only).lower())
+
+
+def _names(text):
+    return [c["text"] for c in rg.extract_names(text)]
+
+
+def test_names_sentence_initial_after_slash_break_and_label():
+    # (1) " / " line break: Come is sentence-initial, Jeevana still checked.
+    got = _names("Title: I’m Jeevana. / Come to the mat in Paris, as you are.")
+    assert "Come" not in got and "Jeevana" in got and "Paris" in got
+    got = _names("Title: Je suis Jeevana. / Venez sur le tapis, à Paris, comme vous êtes.")
+    assert "Venez" not in got and "Jeevana" in got
+    # (2) line-start label.
+    assert "Pour" not in _names("Body: Pour moi")
+    # Ellipsis ends a sentence.
+    assert "Then" not in _names("We waited… Then it rained.")
+    # (3) mid-sentence multi-word names still flagged; a bare slash is not a break.
+    assert "Sarah Lee" in _names("met with Sarah Lee yesterday")
+    assert "Lee" in _names("call Anna/Lee today")
+    # A spaced slash used as "or" mid-sentence is not a break.
+    assert "Lee" in _names("Anna / Lee met me")
+    assert "Acme" in _names("price 10 / Acme")
+    assert "Sarah Lee" in _names("Email me / Sarah Lee will call")
+
+
+def test_slash_break_draft_grounds_and_records(tmp_path, state, capsys):
+    text = "Title: I’m Jeevana. / Come to the mat in Paris, as you are."
+    _record_text(tmp_path, text, capsys, source="Jeevana teaches yoga in Paris.\n")

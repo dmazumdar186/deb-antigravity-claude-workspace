@@ -498,7 +498,7 @@ def _overlaps(s: int, e: int, spans: Iterable[tuple[int, int]]) -> bool:
 _URL_RE = re.compile(r"(?i)\b(?:https?://|www\.)\S+")
 _EMAIL_RE = re.compile(r"[A-Za-z0-9._%+'-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}")
 _WORD_RE = re.compile(r"[^\W\d_][\w'\u2019-]*")
-_SENT_END = set(".!?:;")
+_SENT_END = set(".!?:;\u2026")
 _LEAD_SKIP = set(" \t\"'\u201c\u201d\u2018\u2019\u00ab\u00bb([{*\u2022-\u2013\u2014>#")
 NAME_ALLOW_EMAILS = {"debanjan@prodcraft.fyi"}
 NAME_ALLOW = {
@@ -516,6 +516,12 @@ def _sentence_start(line: str, pos: int) -> bool:
     i = pos - 1
     while i >= 0 and line[i] in _LEAD_SKIP:
         i -= 1
+    # A spaced " / " is a flattened line break ("I'm Jeevana. / Come to the mat"), but only after a
+    # sentence end or at line start; "Anna / Lee" (slash as "or") still flags Lee.
+    if i > 0 and line[i] == "/" and line[i - 1].isspace() and line[i + 1:i + 2].isspace():
+        i -= 1
+        while i >= 0 and line[i] in _LEAD_SKIP:
+            i -= 1
     return i < 0 or line[i] in _SENT_END
 
 

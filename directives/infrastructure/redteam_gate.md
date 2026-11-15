@@ -190,6 +190,9 @@ Money, percent, number+unit, dates, quotes ≥ 3 words, names, and an EN+FR over
   month and day names. False positives are fixed by adding the thread/brief as a source.
 
 ## Edge Cases (incl. known limits)
+- Sentence-initial words are not name candidates: after line start or ". ! ? … : ;" plus space
+  (`Title: Come`, `Body: Pour`), also across a spaced " / " that follows one ("Jeevana. / Come").
+  Still flagged: mid-sentence Title-Case, multi-word names ("met with Sarah Lee"), "Anna / Lee".
 - Grounding is lexical: "€30" grounds against "UptimeRobot Solo + AI ≈ €30/month" even when the
   draft attributes it to SMS (regression test). The grounding lens checks every `source_line`.
 - Ambiguous separators ground on any reading: "1,200" ↔ {1200, 1.2}. Space thousands can merge
