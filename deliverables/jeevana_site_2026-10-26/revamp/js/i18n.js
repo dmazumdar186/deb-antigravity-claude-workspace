@@ -31,6 +31,8 @@ lineageBody:`Tapovan, in the pays de Caux, has lived Yoga and Ayurveda for more 
 taughtBody:`I have taught at Tapovan Paris 15e and at Tapovan Normandie, then in my home studio in Paris 19e. I now teach individual classes and, on request, small groups.`,
 superprofProfile:`My Superprof profile`,
 practiceEyebrow:`The practice`,practiceTitle:`Less striving.\nMore listening.`,sutra12:`Yoga is the cessation of the fluctuations of the mind.`,
+chakrasTitle:`The seven chakras`,chakra1:`basic trust`,chakra2:`creativity`,chakra3:`power`,chakra4:`love`,chakra5:`communication`,chakra6:`awareness`,chakra7:`spirituality`,verseBg248:`Evenness of mind is called yoga.`,verseBg248Ref:`Bhagavad Gītā 2.48`,verseKatha:`They regard as yoga the steady holding of the senses.`,verseKathaRef:`Kaṭha Upaniṣad 2.3.11 (6.11)`,verseHyp:`When the breath moves, the mind moves; when the breath is still, the mind is still.`,verseHypRef:`Haṭha Yoga Pradīpikā 2.2`,verseBg250:`Yoga is skill in action.`,verseBg250Ref:`Bhagavad Gītā 2.50`,
+
 practiceBody:`A session with me follows a simple shape. We begin by centring and breathing, move through postures adapted to your level, and end in relaxation or meditation. A posture is not an image to reproduce; it is a place to explore steadiness and ease. We go at your pace, and every breath is a chance to listen and begin again.`,
 factAimsT:`Aims`,factAims:`Starting yoga, mobility and flexibility, unwinding after work, easing stress, supporting a sport such as running.`,
 factLevelsT:`Levels`,factLevels:`All levels, teenagers and adults.`,factLangT:`Languages`,factLang:`French or English.`,
@@ -95,6 +97,8 @@ lineageBody:`Tapovan, dans le pays de Caux, fait vivre le Yoga et l’Ayurveda d
 taughtBody:`J’ai enseigné à Tapovan Paris 15e et à Tapovan Normandie, puis dans mon studio, à mon domicile dans le 19e. Je donne désormais des cours individuels et, sur demande, en petit groupe.`,
 superprofProfile:`Mon profil Superprof`,
 practiceEyebrow:`La pratique`,practiceTitle:`Moins chercher.\nMieux écouter.`,sutra12:`Le yoga est l’arrêt des fluctuations du mental.`,
+chakrasTitle:`Les sept chakras`,chakra1:`confiance fondamentale`,chakra2:`créativité`,chakra3:`force`,chakra4:`amour`,chakra5:`communication`,chakra6:`conscience`,chakra7:`spiritualité`,verseBg248:`L’égalité d’âme est appelée yoga.`,verseBg248Ref:`Bhagavad Gītā 2.48`,verseKatha:`On tient pour yoga la ferme maîtrise des sens.`,verseKathaRef:`Kaṭha Upaniṣad 2.3.11 (6.11)`,verseHyp:`Quand le souffle bouge, le mental bouge ; quand le souffle est immobile, le mental est immobile.`,verseHypRef:`Haṭha Yoga Pradīpikā 2.2`,verseBg250:`Le yoga est l’habileté dans l’action.`,verseBg250Ref:`Bhagavad Gītā 2.50`,
+
 practiceBody:`Une séance avec moi suit une forme simple. Nous commençons par nous centrer et respirer, puis nous traversons des postures adaptées à votre niveau, et nous terminons par une relaxation ou une méditation. Une posture n’est pas une image à reproduire ; c’est un lieu où explorer la stabilité et l’aisance. Nous avançons à votre rythme, et chaque souffle est une occasion d’écouter et de recommencer.`,
 factAimsT:`Objectifs`,factAims:`Débuter le yoga, gagner en mobilité et en souplesse, décompresser après le travail, apaiser le stress, accompagner un sport comme la course à pied.`,
 factLevelsT:`Niveaux`,factLevels:`Tous niveaux, adolescents et adultes.`,factLangT:`Langues`,factLang:`Français ou anglais.`,

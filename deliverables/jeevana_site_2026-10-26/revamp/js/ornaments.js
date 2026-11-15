@@ -1,5 +1,6 @@
 /* Scroll-linked ornaments: the line drawings draw themselves (--p on each [data-draw]), the contact scroll
-   unrolls (--u) and the chakra figure lights root to crown (.is-lit per point, --k on the axis, .is-aligned). Without this file, or with reduced motion, every drawing renders complete and static. */
+   unrolls (--u), the chakra figure lights root to crown (.is-lit per point, --k on the axis, .is-aligned) and the
+   seven-chakra chart draws its lotuses root to crown (.is-in). Without this file, or with reduced motion, every drawing renders complete and static. */
 (()=>{
   'use strict';
   const root=document.documentElement;
@@ -7,7 +8,8 @@
   const scrolls=[...document.querySelectorAll('[data-unroll]')];
   const draws=[...document.querySelectorAll('[data-draw]')];
   const chakras=[...document.querySelectorAll('[data-chakra]')];
-  if(!scrolls.length&&!draws.length&&!chakras.length)return;
+  const charts=[...document.querySelectorAll('[data-chart]')];
+  if(!scrolls.length&&!draws.length&&!chakras.length&&!charts.length)return;
   const clamp=v=>v<0?0:v>1?1:v;
   const smooth=t=>t*t*(3-2*t);
   let queued=false;
@@ -86,6 +88,12 @@
       if(p>=.999){el.dataset.drawn='1';el.style.setProperty('--p','1');el.classList.add('is-drawn');}
     }
     for(const c of ck)lightChakra(c,vh);
+    // the chart draws once, as its list of lotuses rises past 85% of the viewport (or has already been passed)
+    for(const el of charts){
+      if(el.classList.contains('is-in'))continue;
+      const list=el.querySelector('.cchart__list')||el;
+      if(list.getBoundingClientRect().top<vh*.85)el.classList.add('is-in');
+    }
   }
   function queue(){if(!queued){queued=true;requestAnimationFrame(update);}}
   function openFully(el){el.dataset.open='1';el.style.setProperty('--u','1');}
@@ -94,6 +102,7 @@
       root.classList.remove('orn');
       for(const el of [...scrolls,...draws]){el.style.removeProperty('--u');el.style.removeProperty('--p');el.classList.remove('is-drawn');delete el.dataset.drawn;}
       ck.forEach(resetChakra);
+      for(const el of charts)el.classList.remove('is-in');
       return;
     }
     root.classList.add('orn');

@@ -310,7 +310,7 @@ p{text-wrap:pretty}
 .shot figcaption{margin-top:var(--s3);font-size:var(--fs-caption);color:var(--ink-3)}
 .shot--square{grid-column:1/5;align-self:end}
 .shot--tall{grid-column:9/-1}
-.sutra{grid-column:5/9;align-self:center;display:grid;gap:var(--s2);padding:var(--s6) var(--s4);text-align:center;justify-items:center}
+.sutra{display:grid;gap:var(--s2);padding:var(--s6) var(--s4);text-align:center;justify-items:center}
 .sutra .devanagari{font-size:clamp(1.5rem,1.2rem + 1vw,2.125rem);line-height:1.6;color:var(--ink)}
 .sutra .iast{font-size:clamp(1.25rem,1.1rem + .5vw,1.625rem);color:var(--ink-2)}
 .sutra__translation{margin-top:var(--s4);font-family:var(--font-display);font-size:var(--fs-h4);line-height:1.3;color:var(--ink)}
@@ -322,14 +322,12 @@ p{text-wrap:pretty}
 @media (max-width:1199px){
   .shot--square{grid-column:1/7}
   .shot--tall{grid-column:8/-1}
-  .sutra{grid-column:1/-1;grid-row:2;padding-block:0}
 }
 @media (max-width:899px){
   .practice__head h2,.practice__head .lede{grid-column:1/-1}
   .practice__gallery{row-gap:var(--s7);margin-top:var(--s8)}
   .shot--square{grid-column:1/-1;grid-row:1}
   .shot--tall{grid-column:4/-1;grid-row:3}
-  .sutra{grid-column:1/-1;grid-row:2}
 }
 
 /* ------------------------------------------------------------ twelve breaths (sand band) */
@@ -730,7 +728,7 @@ fieldset:disabled input,fieldset:disabled select,fieldset:disabled textarea{curs
 .shot--wide{grid-column:1/-1}
 .practice__gallery .shot--wide{order:-1;grid-row:auto}
 @media(min-width:900px){.practice__gallery .shot--wide{grid-column:2/12}}
-@media (max-width:899px){.practice__gallery .shot--wide{grid-column:1/-1;grid-row:1}.practice__gallery .shot--square{grid-row:2}.practice__gallery .sutra{grid-row:3}.practice__gallery .shot--tall{grid-row:4}}
+@media (max-width:899px){.practice__gallery .shot--wide{grid-column:1/-1;grid-row:1}.practice__gallery .shot--square{grid-row:2}.practice__gallery .shot--tall{grid-row:4}}
 /* eye-gate polish 2026-11-14: tighter Paris section on phones */
 @media (max-width:899px){#paris.section{padding-top:var(--s7);padding-bottom:var(--s7)}#paris .paris__grid{row-gap:var(--s6)}}
 
@@ -827,11 +825,10 @@ html:not(.has-js) .bar__progress{display:none}
 @media (max-width:899px){.scroll .contact-value--email{font-size:clamp(.78rem,calc((100cqi - 1.75rem) / 15),1.6rem)}}
 .paris__deity{align-items:center}
 
-/* ------------------------------------------------------------ chakra scene (2026-11-14): the Yoga Sūtra 1.2 beside a seated
+/* ------------------------------------------------------------ chakra scene (2026-11-14, moved to About 2026-11-15): the Yoga Sūtra 1.2 with a seated
    figure whose seven lotuses light from root to crown. Complete and still by default (no JS, reduced motion);
    ornaments.js adds .orn, lights each point (.is-lit) as the scene scrolls in and sets --k for the axis. */
-.sutra-scene{grid-column:1/-1;grid-row:2;display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);column-gap:var(--gap);row-gap:var(--s5);align-items:center}
-.practice__gallery .sutra-scene .sutra{grid-column:auto;grid-row:auto;align-self:center;padding:var(--s6) var(--s4)}
+.practice__gallery .cchart{grid-column:1/-1;grid-row:2}
 @media (min-width:900px){
   .practice__gallery .shot--wide{grid-row:1}
   .practice__gallery .shot--square,.practice__gallery .shot--tall{grid-row:3}
@@ -841,9 +838,7 @@ html:not(.has-js) .bar__progress{display:none}
   .practice__gallery .shot--tall{grid-column:8/12}
 }
 @media (max-width:899px){
-  .sutra-scene{grid-template-columns:minmax(0,1fr)}
-  .practice__gallery .sutra-scene{grid-row:2}
-  .practice__gallery .sutra-scene .sutra{padding:0 var(--s2)}
+  .practice__gallery .cchart{grid-row:2}
   .practice__gallery .shot--square{grid-row:3}
   .practice__gallery .shot--tall{grid-row:4}
 }
@@ -892,7 +887,6 @@ html:not(.has-js) .bar__progress{display:none}
 
 /* chakra gate fixes 2026-11-14 */
 .sutra cite{font-size:max(var(--fs-caption),.875rem)}
-@media (min-width:900px){.sutra-scene{padding-inline:clamp(0px,6vw,110px)}}
 .chakra{-webkit-mask-image:radial-gradient(ellipse 72% 70% at 50% 50%,#000 58%,transparent 100%);mask-image:radial-gradient(ellipse 72% 70% at 50% 50%,#000 58%,transparent 100%)}
 
 /* paris 900-1199 (tablets, incl. Android tablets that render the desktop grid): two columns, photo | Nataraja over the words */
@@ -935,7 +929,7 @@ html:not(.has-js) .bar__progress{display:none}
 /* 4. practice gallery on tablets: 02 and 03 side by side at equal heights (1:1 beside 4:5 = 5fr:4fr), no hole */
 @media (min-width:600px) and (max-width:899px){
   .practice__gallery{grid-template-columns:minmax(0,5fr) minmax(0,4fr)}
-  .practice__gallery .shot--wide,.practice__gallery .sutra-scene{grid-column:1/-1}
+  .practice__gallery .shot--wide,.practice__gallery .cchart{grid-column:1/-1}
   .practice__gallery .shot--square{grid-column:1;grid-row:3;align-self:start}
   .practice__gallery .shot--tall{grid-column:2;grid-row:3}
 }
@@ -976,3 +970,79 @@ html:not(.has-js) .bar__progress{display:none}
 .orn .scroll .contact-links{opacity:calc((var(--u,1) - .45) * 2.2)}
 @media (max-width:899px){.scroll .contact-links a{padding-block:var(--s3)}.about__media{margin-inline:auto}}
 [data-i18n="tapovan"]{text-wrap:balance}
+
+/* ------------------------------------------------------------ 2026-11-15 (operator-approved): the chakra figure + Yoga Sūtra 1.2
+   lead the About column beside the Diwali photo; a seven-chakra chart in Practice; four verses across the page.
+   About on >=900px: the right column stretches to the photo's height; the figure absorbs the free height
+   (container query units), so the column's top and bottom meet the photo's top and bottom. */
+.chakra{--zoom:1.3;overflow:hidden}
+.chakra__base{width:calc(var(--zoom) * 100%);max-width:none;margin-left:calc((1 - var(--zoom)) * 50%)}
+.chakra__svg{left:calc((1 - var(--zoom)) * 50%);right:auto;width:calc(var(--zoom) * 100%);max-width:none}
+.about__scene{display:grid;justify-items:center;row-gap:var(--s3)}
+.about__scene .chakra{width:100%}
+.sutra--caption{gap:var(--s1);padding:0}
+.sutra--caption .devanagari{font-size:clamp(1.375rem,1.1rem + .6vw,1.75rem);line-height:1.5}
+.sutra--caption .iast{font-size:clamp(1.0625rem,.95rem + .35vw,1.3125rem)}
+.sutra--caption .sutra__translation{margin-top:var(--s2);font-size:clamp(1.0625rem,.95rem + .3vw,1.25rem);line-height:1.35}
+.about__copy h2{margin-top:var(--s7)}
+.about__copy .lede{margin-top:var(--s5)}
+.about .verse--about{grid-column:1/-1}
+@media (max-width:899px){
+  .about__media,.about__copy{width:min(100%,480px);margin-inline:auto}
+  .about__copy h2{margin-top:var(--s6)}
+}
+@media (min-width:900px){
+  .about__grid{grid-template-columns:minmax(0,5fr) minmax(0,6fr);align-items:stretch}
+  .about__media{grid-column:1;align-self:start}
+  .about__copy{grid-column:2;display:flex;flex-direction:column;min-width:0}
+  .about__scene{flex:1 1 0;min-height:var(--scene-min,150px);container-type:size;grid-template-columns:auto minmax(0,1fr);align-content:start;align-items:center;justify-items:start;column-gap:var(--s5)}
+  .about__scene .chakra{--zoom:1.65;width:min(100cqh,60cqw)}
+  .about__scene .sutra--caption{text-align:left;justify-items:start}
+  .about__copy h2{margin-top:var(--s5);max-width:none;font-size:clamp(2rem,.14rem + 3.18vw,3.75rem)}
+  .about__copy .lede{margin-top:var(--s4);font-size:clamp(1.0625rem,.425rem + 1.02vw,1.625rem);line-height:1.5;max-width:none}
+}
+
+/* verses: the Yoga Sūtra block's voice, a little quieter; centred under the intro they belong to */
+.verse{width:min(100%,44rem);margin-inline:auto;padding:0;gap:var(--s1)}
+.verse::before{content:"";width:40px;height:1px;margin-bottom:var(--s4);background:var(--ochre)}
+.verse .devanagari{font-size:clamp(1.375rem,1.15rem + .8vw,1.875rem);line-height:1.6}
+.verse .iast{font-size:clamp(1.125rem,1rem + .4vw,1.375rem)}
+.verse .sutra__translation{margin-top:var(--s3);font-size:clamp(1.125rem,1rem + .45vw,1.4375rem)}
+.verse cite{margin-top:var(--s1)}
+.sequence__head .verse{grid-column:1/-1;margin-top:var(--s6)}
+.verse--band::before{background:var(--on-band-accent)}
+.verse--band .devanagari,.verse--band .sutra__translation{color:var(--on-band)}
+.verse--band .iast,.verse--band cite{color:var(--on-band-2)}
+.classes__head .verse{grid-column:1/-1;margin-top:var(--s6)}
+.verse--chart{margin-top:var(--s8)}
+
+/* the seven-chakra chart: root to crown, drawn line-art lotuses with their bīja; names and meanings are text */
+.cchart{display:grid;justify-items:center;padding-block:var(--s6) var(--s4)}
+.cchart__title{font-size:var(--fs-h3);text-align:center}
+.cchart__list{--cg:var(--s4);display:flex;flex-wrap:wrap;justify-content:center;gap:var(--s6) var(--cg);width:100%;margin-top:var(--s7)}
+.cc{flex:0 0 calc((100% - var(--cg) * 6) / 7);display:flex;flex-direction:column;align-items:center;text-align:center;min-width:0}
+.cc__svg{width:100%;max-width:168px;height:auto;aspect-ratio:1;overflow:visible}
+.cc__name{margin-top:var(--s3);font-family:var(--font-display);font-size:clamp(1.0625rem,.95rem + .3vw,1.25rem);font-weight:500;line-height:1.25;color:var(--ink)}
+.cc__gloss{margin-top:var(--s1);font-size:var(--fs-caption);line-height:1.35;color:var(--ink-2)}
+.cc--1{--cc:#8E2F1A;--ci:0}.cc--2{--cc:#A84A22;--ci:1}.cc--3{--cc:#A26A17;--ci:2}.cc--4{--cc:#68703E;--ci:3}
+.cc--5{--cc:#4A6670;--ci:4}.cc--6{--cc:#55527A;--ci:5}.cc--7{--cc:#874766;--ci:6}
+.cc{--tint:color-mix(in srgb,var(--cc) 8%,var(--bg));--tint-2:color-mix(in srgb,var(--cc) 14%,var(--bg))}
+.cc-petal{fill:var(--tint);stroke:var(--cc);stroke-width:1.5;stroke-linejoin:round}
+.cc-vein{fill:none;stroke:var(--cc);stroke-width:.8;stroke-linecap:round;opacity:.7}
+.cc-ring{fill:var(--bg);stroke:var(--cc);stroke-width:1.6}
+.cc-fine{fill:none;stroke:var(--cc);stroke-width:.8;opacity:.55}
+.cc-geo{fill:var(--tint-2);stroke:var(--cc);stroke-width:1.5;stroke-linejoin:round}
+.cc--7 .cc-petal{stroke-width:.85}
+.cc--7 .cc-vein{stroke-width:.6}
+.cc-bindu{fill:var(--cc)}
+.cc-bija{font-family:var(--font-deva);font-weight:400;fill:var(--cc);text-anchor:middle;letter-spacing:0}
+@media (max-width:1023px){.cc{flex-basis:calc((100% - var(--cg) * 3) / 4)}.cchart__list{--cg:var(--s6)}}
+@media (max-width:599px){.cc{flex-basis:calc((100% - var(--cg)) / 2)}.cchart__list{--cg:var(--s5);row-gap:var(--s6)}.cc__svg{max-width:132px}}
+/* motion (JS + no reduced motion): each lotus traces itself, root to crown, as the chart arrives; complete otherwise */
+.orn .cchart .cc-ln{stroke-dasharray:1 1.02;stroke-dashoffset:1;fill-opacity:0;transition:stroke-dashoffset 1.5s var(--ease) calc(var(--ci) * .26s),fill-opacity 1s ease calc(var(--ci) * .26s + .7s)}
+.orn .cchart .cc-yantra .cc-ln{transition-delay:calc(var(--ci) * .26s + .4s),calc(var(--ci) * .26s + 1s)}
+.orn .cchart .cc-bija,.orn .cchart .cc-bindu{opacity:0;transition:opacity .9s ease calc(var(--ci) * .26s + 1.1s)}
+.orn .cchart .cc__name,.orn .cchart .cc__gloss{opacity:0;transform:translateY(6px);transition:opacity .8s var(--ease) calc(var(--ci) * .26s + .6s),transform .8s var(--ease) calc(var(--ci) * .26s + .6s)}
+.orn .cchart.is-in .cc-ln{stroke-dashoffset:0;fill-opacity:1}
+.orn .cchart.is-in .cc-bija,.orn .cchart.is-in .cc-bindu,.orn .cchart.is-in .cc__name,.orn .cchart.is-in .cc__gloss{opacity:1;transform:none}
+.verse .sutra__translation,.sutra--caption .sutra__translation{text-wrap:balance}
