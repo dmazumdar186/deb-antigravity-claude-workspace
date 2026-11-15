@@ -516,10 +516,13 @@ def _sentence_start(line: str, pos: int) -> bool:
     i = pos - 1
     while i >= 0 and line[i] in _LEAD_SKIP:
         i -= 1
-    if i < 0 or line[i] in _SENT_END:
-        return True
-    # " / " is a line break in flattened drafts ("I'm Jeevana. / Come to the mat").
-    return line[i] == "/" and i > 0 and line[i - 1].isspace() and line[i + 1:i + 2].isspace()
+    # A spaced " / " is a flattened line break ("I'm Jeevana. / Come to the mat"), but only after a
+    # sentence end or at line start; "Anna / Lee" (slash as "or") still flags Lee.
+    if i > 0 and line[i] == "/" and line[i - 1].isspace() and line[i + 1:i + 2].isspace():
+        i -= 1
+        while i >= 0 and line[i] in _LEAD_SKIP:
+            i -= 1
+    return i < 0 or line[i] in _SENT_END
 
 
 def extract_names(draft_text: str, is_html: bool = False) -> list[dict]:

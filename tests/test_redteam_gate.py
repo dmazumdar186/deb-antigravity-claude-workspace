@@ -2736,6 +2736,10 @@ def test_names_sentence_initial_after_slash_break_and_label():
     # (3) mid-sentence multi-word names still flagged; a bare slash is not a break.
     assert "Sarah Lee" in _names("met with Sarah Lee yesterday")
     assert "Lee" in _names("call Anna/Lee today")
+    # A spaced slash used as "or" mid-sentence is not a break.
+    assert "Lee" in _names("Anna / Lee met me")
+    assert "Acme" in _names("price 10 / Acme")
+    assert "Sarah Lee" in _names("Email me / Sarah Lee will call")
 
 
 def test_slash_break_draft_grounds_and_records(tmp_path, state, capsys):
