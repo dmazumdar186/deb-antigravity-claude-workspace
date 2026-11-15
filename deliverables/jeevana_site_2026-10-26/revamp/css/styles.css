@@ -109,8 +109,8 @@
   --font-display:'Alegreya',Georgia,serif;
   --font-body:'Alegreya Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
   --font-deva:'Noto Devanagari','Noto Serif Devanagari',serif;
-  --fs-caption:.875rem;
-  --fs-small:.9375rem;
+  --fs-caption:clamp(.875rem,.84rem + .12vw,.9375rem);
+  --fs-small:1rem;
   --fs-body:clamp(1rem,.96rem + .16vw,1.125rem);
   --fs-lede:clamp(1.3125rem,1.16rem + .62vw,1.75rem);
   --fs-h4:clamp(1.375rem,1.24rem + .5vw,1.75rem);
@@ -120,7 +120,7 @@
 
   /* space: 4px scale */
   --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;--s7:48px;--s8:64px;--s9:96px;--s10:128px;
-  --section:clamp(96px,9vw,176px);
+  --section:clamp(56px,8vw,160px);
   --gap:clamp(24px,4vw,64px);
   --gutter:clamp(20px,5vw,96px);
   --max:1520px;
@@ -190,8 +190,10 @@ p{text-wrap:pretty}
 .text-link--out::after,.lineage__link::after{content:"↗" / "";font-size:.9em;text-decoration:none;display:inline-block;margin-left:.3em}
 
 /* frames: photographs sit flat, square-cornered, on a hairline shade */
-.frame{position:relative;overflow:hidden;background:var(--bg-deep)}
-.frame .ph{display:block;width:100%;height:100%;object-fit:cover}
+/* full-image rule (2026-11-15): every photograph of Jeevana shows whole, at its natural ratio, at every width.
+   No cover-cropping, no fixed-ratio frames, no masks; the img sets its own height from width/height. */
+.frame{position:relative}
+.frame .ph{display:block;width:100%;height:auto;object-fit:contain;border-radius:var(--radius-photo);background:var(--bg-deep)}
 
 /* ------------------------------------------------------------ header */
 .bar{position:sticky;top:0;z-index:var(--z-header);background:var(--bg);border-bottom:1px solid transparent;transition:transform .4s var(--ease),border-color .3s var(--ease)}
@@ -248,10 +250,10 @@ p{text-wrap:pretty}
 .cover__sutra .devanagari{font-size:1.375rem;color:var(--ink)}
 .cover__sutra .iast{font-size:1.375rem;color:var(--ink-2)}
 .cover__ref{font-size:var(--fs-caption);color:var(--ink-3)}
-.cover__media{grid-column:7/-1;grid-row:1 / span 2;align-self:stretch;display:flex;flex-direction:column}
-.cover__frame{position:relative;overflow:hidden;flex:1;min-height:min(76svh,820px);max-height:900px;border-radius:var(--radius-photo);background:var(--bg-deep)}
-.cover__frame .ph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 28%}
-.cover__caption{display:flex;flex-wrap:wrap;justify-content:space-between;gap:var(--s1) var(--s5);padding:var(--s3) 0 0;font-size:var(--fs-caption);color:var(--ink-3)}
+.cover__media{--pw:min(100%,max(300px,calc((100svh - var(--hh) - 7rem) * .75)));grid-column:7/-1;grid-row:1 / span 2;align-self:center;display:flex;flex-direction:column;align-items:flex-end}
+.cover__frame{position:relative;width:var(--pw)}
+.cover__frame .ph{display:block;width:100%;height:auto;border-radius:var(--radius-photo);background:var(--bg-deep)}
+.cover__caption{width:var(--pw);display:flex;flex-wrap:wrap;justify-content:space-between;gap:var(--s1) var(--s5);padding:var(--s3) 0 0;font-size:var(--fs-caption);color:var(--ink-3)}
 .cover__note{font-family:var(--font-display);font-style:italic;font-size:1.0625rem;color:var(--ink-2)}
 .cover__foot{grid-column:1/7;grid-row:2;align-self:end;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--s2) var(--s5);padding-top:var(--s4);border-top:1px solid var(--rule);font-family:var(--font-display);font-style:italic;font-size:1.25rem;color:var(--ink-2)}
 .cover__foot .text-link{font-family:var(--font-body);font-style:normal;font-size:var(--fs-small)}
@@ -262,7 +264,7 @@ p{text-wrap:pretty}
   .cover__copy>*{grid-column:1/-1}
   #h1{order:1}.cover__sub{order:2;margin-top:calc(var(--s6) * -1 + var(--s4))}.cover__ctas{order:3;margin-top:0}.cover__sutra{order:5}
   .cover__media{order:4;grid-column:1/-1;grid-row:auto}
-  .cover__frame{flex:none;min-height:0;aspect-ratio:4/5;max-height:82svh}
+  .cover__media{--pw:100%;align-items:center}
   .cover__foot{order:6;grid-column:1/-1;grid-row:auto}
   .cover__sutra{margin-top:0}
 }
@@ -270,7 +272,6 @@ p{text-wrap:pretty}
 /* ------------------------------------------------------------ about */
 .about__grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gap);row-gap:var(--s9);align-items:center}
 .about__media{grid-column:1/6}
-.frame--arch{border-radius:999px 999px 0 0;aspect-ratio:1400/1810}
 .about__copy{grid-column:7/-1}
 .about__copy h2{max-width:11em}
 .about__copy .lede{margin-top:var(--s6)}
@@ -308,9 +309,7 @@ p{text-wrap:pretty}
 .practice__gallery{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gap);row-gap:var(--s7);margin-top:var(--s9);align-items:start}
 .shot figcaption{margin-top:var(--s3);font-size:var(--fs-caption);color:var(--ink-3)}
 .shot--square{grid-column:1/5;align-self:end}
-.shot--square .frame{aspect-ratio:1}
 .shot--tall{grid-column:9/-1}
-.shot--tall .frame{aspect-ratio:4/5}
 .sutra{grid-column:5/9;align-self:center;display:grid;gap:var(--s2);padding:var(--s6) var(--s4);text-align:center;justify-items:center}
 .sutra .devanagari{font-size:clamp(1.5rem,1.2rem + 1vw,2.125rem);line-height:1.6;color:var(--ink)}
 .sutra .iast{font-size:clamp(1.25rem,1.1rem + .5vw,1.625rem);color:var(--ink-2)}
@@ -321,8 +320,8 @@ p{text-wrap:pretty}
 .facts dt{font-family:var(--font-display);font-size:var(--fs-h4);font-weight:500;line-height:1.2;color:var(--ink)}
 .facts dd{margin-top:var(--s2);font-size:var(--fs-small);line-height:1.6;color:var(--ink-2)}
 @media (max-width:1199px){
-  .shot--square{grid-column:1/6}
-  .shot--tall{grid-column:6/-1}
+  .shot--square{grid-column:1/7}
+  .shot--tall{grid-column:8/-1}
   .sutra{grid-column:1/-1;grid-row:2;padding-block:0}
 }
 @media (max-width:899px){
@@ -347,7 +346,8 @@ p{text-wrap:pretty}
 .breath-strip.is-dragging{cursor:grabbing;scroll-snap-type:none;user-select:none}
 .card{flex:none;scroll-snap-align:start;width:min(clamp(240px,24vw,400px),calc((100svh - var(--hh) - var(--strip-chrome,320px) - 32px) * .75));min-width:200px;transition:opacity .4s var(--ease)}
 .card.is-out{opacity:.5}
-.step-frame{aspect-ratio:3/4;background:var(--band-2)}
+.step-frame{background:none}
+.step-frame .ph{background:var(--band-2)}
 .step-frame .ph{pointer-events:none;user-select:none}
 .step-number{position:absolute;left:0;top:0;padding:var(--s2) var(--s3);background:var(--surface);font-size:var(--fs-caption);font-variant-numeric:tabular-nums;color:var(--on-band)}
 .step-copy{padding-top:var(--s4);border-top:1px solid transparent;margin-top:var(--s3);transition:border-color .4s var(--ease)}
@@ -473,11 +473,10 @@ fieldset:disabled input,fieldset:disabled select,fieldset:disabled textarea{curs
 
 /* ------------------------------------------------------------ paris: testimonials beside the line-drawn Nataraja */
 .paris{position:relative;isolation:isolate;overflow:hidden;background:var(--bg-deep)}
-.paris__grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gap);row-gap:var(--s7);align-items:stretch}
-/* desktop: photo, words and Nataraja share one top and one bottom edge; the photo is as tall as the words */
-.paris__media{grid-column:1/5;grid-row:1;display:flex;flex-direction:column;min-height:0}
-.paris__media .frame{flex:1 1 auto;min-height:440px;border-radius:var(--radius-photo)}
-.paris__media .ph{position:absolute;inset:0;filter:saturate(.8) sepia(.08);object-position:50% 62%}
+.paris__grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gap);row-gap:var(--s7);align-items:center}
+/* desktop (>=1200): photo whole at 3:4 in its column; words and Nataraja centred against it */
+.paris__media{grid-column:1/5;grid-row:1;align-self:center}
+.paris__media .ph{filter:saturate(.8) sepia(.08)}
 .paris__words{grid-column:5/10;grid-row:1;position:relative;align-self:center}
 .paris__deity{grid-column:10/-1;grid-row:1;display:flex;align-items:flex-start;justify-content:center;pointer-events:none}
 .deity{position:relative;width:100%;max-width:470px;aspect-ratio:713/752}
@@ -492,7 +491,6 @@ fieldset:disabled input,fieldset:disabled select,fieldset:disabled textarea{curs
   .deity{width:min(62%,320px)}
   .paris__words{grid-column:1/-1;grid-row:2;align-self:start}
   .paris__media{grid-column:1/-1;grid-row:3}
-  .paris__media .frame{flex:none;aspect-ratio:4/5;min-height:0}
 }
 
 /* ------------------------------------------------------------ contact + newsletter */
@@ -716,28 +714,20 @@ fieldset:disabled input,fieldset:disabled select,fieldset:disabled textarea{curs
 
 /* ------------------------------------------------------------ motion: one hero entrance, quiet image settles */
 @media (prefers-reduced-motion:no-preference){
-  .cover__frame .ph{animation:cover-settle 1.6s var(--ease) both}
+  .cover__frame{animation:cover-settle 1.2s var(--ease) both}
   .cover__copy>*{animation:rise .9s var(--ease) both}
   .cover__copy>*:nth-child(2){animation-delay:.12s}
   .cover__copy>*:nth-child(3){animation-delay:.2s}
   .cover__copy>*:nth-child(4){animation-delay:.28s}
-  @supports (animation-timeline:view()){
-    .about__media .ph,.shot .ph,.paris__media .ph,.contact__portrait .ph{animation:settle linear both;animation-timeline:view();animation-range:entry 0% cover 45%}
-  }
 }
-@keyframes cover-settle{from{transform:scale(1.06);clip-path:inset(0 0 10% 0)}to{transform:none;clip-path:inset(0)}}
+@keyframes cover-settle{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
 @keyframes rise{from{opacity:.25;transform:translateY(16px)}to{opacity:1;transform:none}}
-@keyframes settle{from{transform:scale(1.08)}to{transform:none}}
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
 /* practice-01 back in the gallery (2026-11-14): full-width opening frame above the pair */
 .shot--wide{grid-column:1/-1}
-.shot--wide .frame{aspect-ratio:16/9}
-.shot--wide .ph{object-position:50% 40%}
-.practice__gallery .shot--wide .frame{aspect-ratio:3/2;height:auto}
-.practice__gallery .shot--wide .ph{width:100%;height:100%;object-fit:cover;object-position:50% 50%}
 .practice__gallery .shot--wide{order:-1;grid-row:auto}
 @media(min-width:900px){.practice__gallery .shot--wide{grid-column:2/12}}
 @media (max-width:899px){.practice__gallery .shot--wide{grid-column:1/-1;grid-row:1}.practice__gallery .shot--square{grid-row:2}.practice__gallery .sutra{grid-row:3}.practice__gallery .shot--tall{grid-row:4}}
@@ -777,9 +767,9 @@ html.has-js .facts[data-reveal]>div:nth-child(5){transition-delay:.32s}
 .bar__progress i{display:block;height:100%;background:var(--ochre);transform:scaleX(0);transform-origin:left;will-change:transform}
 html:not(.has-js) .bar__progress{display:none}
 
-/* editorial photos: the image drifts inside its frame (main.js sets the transform; desktop landscape only) */
-.frame>.drift{position:absolute;inset:-18px 0}
-.frame>.drift .ph{height:100%}
+/* editorial photos: the whole framed photo drifts a few px (main.js sets the transform; desktop landscape only);
+   nothing clips it, and the caption keeps clear of the drift */
+.shot>.frame[data-parallax]{margin-bottom:12px;will-change:transform}
 
 /* the twelve-breath ring: one arc per breath of the sun salutation */
 .twelve{position:absolute;max-width:none;pointer-events:none;fill:none;stroke-width:1;-webkit-mask-image:radial-gradient(closest-side,var(--mask-on) 78%,transparent 100%);mask-image:radial-gradient(closest-side,var(--mask-on) 78%,transparent 100%)}
@@ -798,7 +788,7 @@ html:not(.has-js) .bar__progress{display:none}
 /* cover: the ring rises behind the portrait; its arcs light one after another, a breath each */
 .cover__media{position:relative;isolation:isolate}
 .cover__frame{z-index:1}
-.twelve--cover{z-index:0;width:min(68%,500px);aspect-ratio:1;height:auto;left:0;top:68%;transform:translate(-50%,-50%)}
+.twelve--cover{z-index:0;width:min(68%,500px);aspect-ratio:1;height:auto;left:calc(100% - var(--pw));top:68%;transform:translate(-50%,-50%)}
 /* phones: no room beside the photo, so the sun sits in its top-right corner, where she turns her face */
 @media (max-width:899px){
   .twelve--cover{z-index:2;width:76%;left:100%;top:0;clip-path:inset(50% 50% 0 0)}
@@ -829,6 +819,160 @@ html:not(.has-js) .bar__progress{display:none}
 @media (prefers-reduced-motion:reduce){
   html.has-js [data-reveal],html.has-js .facts[data-reveal]>div{opacity:1;transform:none;transition:none}
   .twelve .spin,.twelve .rays,.twelve .centre{animation:none}
-  .frame>.drift{transform:none!important}
+  [data-parallax]{transform:none!important}
 }
 @media print{html.has-js [data-reveal],html.has-js .facts[data-reveal]>div{opacity:1;transform:none}.twelve,.bar__progress{display:none}}
+/* final-gate fixes 2026-11-14 */
+.scroll .contact-value--email{font-size:clamp(.95rem,calc((100cqi - 8.75rem) / 14.5),1.85rem)}
+@media (max-width:899px){.scroll .contact-value--email{font-size:clamp(.78rem,calc((100cqi - 1.75rem) / 15),1.6rem)}}
+.paris__deity{align-items:center}
+
+/* ------------------------------------------------------------ chakra scene (2026-11-14): the Yoga Sūtra 1.2 beside a seated
+   figure whose seven lotuses light from root to crown. Complete and still by default (no JS, reduced motion);
+   ornaments.js adds .orn, lights each point (.is-lit) as the scene scrolls in and sets --k for the axis. */
+.sutra-scene{grid-column:1/-1;grid-row:2;display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);column-gap:var(--gap);row-gap:var(--s5);align-items:center}
+.practice__gallery .sutra-scene .sutra{grid-column:auto;grid-row:auto;align-self:center;padding:var(--s6) var(--s4)}
+@media (min-width:900px){
+  .practice__gallery .shot--wide{grid-row:1}
+  .practice__gallery .shot--square,.practice__gallery .shot--tall{grid-row:3}
+}
+@media (min-width:1200px){
+  .practice__gallery .shot--square{grid-column:2/7}
+  .practice__gallery .shot--tall{grid-column:8/12}
+}
+@media (max-width:899px){
+  .sutra-scene{grid-template-columns:minmax(0,1fr)}
+  .practice__gallery .sutra-scene{grid-row:2}
+  .practice__gallery .sutra-scene .sutra{padding:0 var(--s2)}
+  .practice__gallery .shot--square{grid-row:3}
+  .practice__gallery .shot--tall{grid-row:4}
+}
+.chakra{position:relative;margin:0;pointer-events:none}
+.chakra__base{display:block;width:100%;height:auto;
+  -webkit-mask-image:linear-gradient(to right,transparent,var(--mask-on) 20%,var(--mask-on) 80%,transparent),linear-gradient(to bottom,transparent,var(--mask-on) 16%,var(--mask-on) 93%,transparent);
+  -webkit-mask-composite:source-in;
+  mask-image:linear-gradient(to right,transparent,var(--mask-on) 20%,var(--mask-on) 80%,transparent),linear-gradient(to bottom,transparent,var(--mask-on) 16%,var(--mask-on) 93%,transparent);
+  mask-composite:intersect}
+.chakra__svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.chakra__svg *{transform-box:fill-box;transform-origin:center}
+.ck-ring{fill:none;stroke:#B98A45;stroke-width:2.4;stroke-linecap:round}
+.ck-ring--1{opacity:.62}
+.ck-ring--2{opacity:.44}
+.ck-ring--3{opacity:.28}
+.ck-axis{fill:none;stroke-width:1.6;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:calc(1 - var(--k,1));opacity:.8}
+.ck-axis--soft{stroke-width:8;opacity:.18}
+.ck-lead{fill:none;stroke:#B07A3A;stroke-width:2;stroke-linecap:round;stroke-dasharray:0 8;opacity:.7}
+.ck-tag--l .ck-lead{transform-origin:100% 50%}
+.ck-tag--r .ck-lead{transform-origin:0 50%}
+.ck-bija{font-family:var(--font-deva);font-size:48px;font-weight:400;fill:var(--accent);letter-spacing:0}
+.ck-tag--l .ck-bija{text-anchor:end}
+.ck-crown{opacity:.5}
+.ck-n1{--i:0}.ck-n2{--i:1}.ck-n3{--i:2}.ck-n4{--i:3}.ck-n5{--i:4}.ck-n6{--i:5}.ck-n7{--i:6}
+@media (min-width:600px){.ck-bija{font-size:32px}}
+/* scroll-linked ignition (JS + motion only) */
+.orn .chakra .ck-ig{opacity:0;transform:scale(.3)}
+.orn .chakra .ck-pt.is-lit .ck-ig{opacity:1;transform:none;animation:ck-bloom 1.9s var(--ease) var(--ld,0s) both}
+.orn .chakra .ck-tag{opacity:0;transition:opacity 1.2s var(--ease) calc(var(--ld,0s) + .3s)}
+.orn .chakra .ck-tag .ck-lead{transform:scaleX(0);transition:transform 1.3s var(--ease) calc(var(--ld,0s) + .15s)}
+.orn .chakra .ck-tag.is-lit{opacity:1}
+.orn .chakra .ck-tag.is-lit .ck-lead{transform:none}
+.orn .chakra .ck-rings{opacity:.4;transition:opacity 2.4s var(--ease) .4s}
+.orn .chakra .ck-glow{opacity:.35;transition:opacity 2.4s var(--ease) .4s}
+.orn .chakra .ck-crown{opacity:0}
+.orn .chakra.is-aligned .ck-rings,.orn .chakra.is-aligned .ck-glow{opacity:1}
+.orn .chakra.is-aligned .ck-crown{animation:ck-crown 3.4s var(--ease) calc(var(--ld,0s) + .5s) both}
+.orn .chakra.is-aligned .ck-ring--1{animation:ck-spin 96s linear infinite}
+.orn .chakra.is-aligned .ck-ring--2{animation:ck-spin 120s linear infinite reverse}
+.orn .chakra.is-aligned .ck-ring--3{animation:ck-spin 80s linear infinite}
+.orn .chakra.is-aligned .ck-halo{animation:ck-breathe 7s ease-in-out calc(1.2s + var(--i) * .85s) infinite alternate}
+@keyframes ck-bloom{0%{opacity:0;transform:scale(.3)}38%{opacity:1;transform:scale(1.45)}100%{opacity:1;transform:none}}
+@keyframes ck-crown{0%{opacity:0;transform:scale(.4)}55%{opacity:.85;transform:scale(1.12)}100%{opacity:.5;transform:none}}
+@keyframes ck-spin{to{transform:rotate(360deg)}}
+@keyframes ck-breathe{from{opacity:1;transform:none}to{opacity:.72;transform:scale(1.14)}}
+
+/* chakra gate fixes 2026-11-14 */
+.sutra cite{font-size:max(var(--fs-caption),.875rem)}
+@media (min-width:900px){.sutra-scene{padding-inline:clamp(0px,6vw,110px)}}
+.chakra{-webkit-mask-image:radial-gradient(ellipse 72% 70% at 50% 50%,#000 58%,transparent 100%);mask-image:radial-gradient(ellipse 72% 70% at 50% 50%,#000 58%,transparent 100%)}
+
+/* paris 900-1199 (tablets, incl. Android tablets that render the desktop grid): two columns, photo | Nataraja over the words */
+@media (min-width:900px) and (max-width:1199px){
+  .paris__grid{grid-template-rows:1fr auto auto 1fr;row-gap:var(--s5)}
+  .paris__media{grid-column:1/7;grid-row:1/-1}
+  .paris__deity{grid-column:7/-1;grid-row:2;justify-content:flex-start}
+  .paris__deity .deity{width:min(52%,220px)}
+  .paris__words{grid-column:7/-1;grid-row:3;align-self:start}
+}
+
+/* ------------------------------------------------------------ polish round 2026-11-15 (eye evaluation)
+   readability floors, even vertical rhythm, no orphan cells, a larger hero portrait with the sun ring fully in view,
+   a warm grade on the Paris photo. Every photo of Jeevana stays whole at its natural ratio. */
+/* 1. body copy at body size (>=16px), sentences in the band at small size, line length capped */
+.lineage__intro p,.lineage__school p{font-size:var(--fs-body);max-width:68ch}
+.covered li,.facts dd{font-size:var(--fs-body)}
+.covered{max-width:68ch}
+.sequence__notes{font-size:var(--fs-small)}
+.sequence-hint{max-width:62ch}
+.consent{font-size:var(--fs-small)}
+.newsletter__intro p{max-width:60ch}
+.photo-cap,.shot figcaption{font-size:var(--fs-caption)}
+
+/* 4. facts: five items, no orphan cell at any width */
+.facts{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media (max-width:1199px){
+  .facts{grid-template-columns:repeat(6,minmax(0,1fr))}
+  .facts>div{grid-column:span 2}
+  .facts>div:nth-child(n+4){grid-column:span 3}
+}
+@media (max-width:599px){
+  .facts{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .facts>div,.facts>div:nth-child(n+4){grid-column:auto}
+  .facts>div:last-child{grid-column:1/-1}
+}
+@media (max-width:429px){
+  .facts{grid-template-columns:minmax(0,1fr)}
+}
+/* 4. practice gallery on tablets: 02 and 03 side by side at equal heights (1:1 beside 4:5 = 5fr:4fr), no hole */
+@media (min-width:600px) and (max-width:899px){
+  .practice__gallery{grid-template-columns:minmax(0,5fr) minmax(0,4fr)}
+  .practice__gallery .shot--wide,.practice__gallery .sutra-scene{grid-column:1/-1}
+  .practice__gallery .shot--square{grid-column:1;grid-row:3;align-self:start}
+  .practice__gallery .shot--tall{grid-column:2;grid-row:3}
+}
+@media (max-width:599px){
+  .practice__gallery .shot--tall{grid-column:1/-1}
+}
+
+/* 2 + 3. even vertical rhythm on phones and tablets */
+@media (max-width:899px){
+  .cover{padding-bottom:var(--s5)}
+  .registration{margin-top:var(--s7);padding-block:var(--s7)}
+}
+@media (max-width:599px){
+  :root{--section:48px}
+  .registration{margin-top:var(--s6);padding-block:var(--s6)}
+  .practice__gallery{margin-top:var(--s7)}
+  .facts{margin-top:var(--s7)}
+  .interlude--namaste{margin-top:var(--s7)}
+  #classes.section{padding-bottom:var(--s6)}
+  #paris.section{padding-top:var(--s6)}
+}
+@media (min-width:600px) and (max-width:1199px){
+  .facts{margin-top:var(--s8)}
+}
+
+/* 5. laptops and desktops: the portrait takes a larger share (up to 85vh tall, whole); the sun ring sits over the
+   empty wall at the portrait's upper left, where she turns her face, fully in view and clear of her face */
+@media (min-width:1200px){
+  .cover__media{grid-column:6/-1;align-self:start;--pw:min(calc((600% - var(--gap)) / 7),max(300px,calc(85svh * .75)))}
+}
+@media (min-width:900px){
+  .twelve--cover{z-index:2;width:calc(var(--pw) * .5);left:calc(100% - var(--pw));top:calc(var(--pw) * .3)}
+}
+
+/* 6. Paris: a gentle warm grade so the bright sky sits with the warm page (whole photo, no crop) */
+.paris__media .ph{filter:sepia(.18) saturate(.9) brightness(.93) contrast(.97)}
+/* final layout points 2026-11-15 */
+.orn .scroll .contact-links{opacity:calc((var(--u,1) - .45) * 2.2)}
+@media (max-width:899px){.scroll .contact-links a{padding-block:var(--s3)}.about__media{margin-inline:auto}}
+[data-i18n="tapovan"]{text-wrap:balance}

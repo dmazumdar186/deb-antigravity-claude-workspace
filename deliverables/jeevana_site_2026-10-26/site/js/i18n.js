@@ -13,7 +13,7 @@ reviewsConsent:`I agree that my first name, rating, review and its date are publ
 reviewsErrRating:`Please choose a rating from 1 to 5 stars.`,reviewsErrName:`Please enter your first name: 2 to 40 letters (spaces, hyphens, apostrophes and full stops allowed, no digits).`,reviewsErrText:`Please write at least 20 characters (1,200 at most).`,
 reviewsOkTitle:`Thank you.`,reviewsOkBody:`Your review is published.`,reviewsPendingTitle:`Thank you.`,reviewsPendingBody:`I will read your review before it appears.`,
 reviewsNoticeTitle:`How reviews work`,reviewsNotice:`Reviews are written by visitors to this site and are not verified. They are shown with their date, newest first; the three latest reviews rated 4 or 5 stars are featured at the top. A review that contains a link, contact details, offensive or advertising words, text in capitals or long runs of the same character, that is signed with the name Jeevana, or that arrives during an unusual burst of reviews, is checked by Jeevana before it appears. Jeevana may hide or remove a review.`,reviewsSuperprof:`More reviews from earlier students are on Superprof.`,
-pageTitle:`Jeevana — Yoga in Paris`,privacyTitle:`Privacy & mentions légales — Jeevana`,
+pageTitle:`Jeevana · Yoga in Paris`,privacyTitle:`Privacy & mentions légales — Jeevana`,
 description:`Hatha Yoga in Paris with Jeevana Gogula: individual sessions in Paris 19e, at your home or online, in French or English, for every level.`,
 ogDescription:`Steady. At ease. Twelve breaths at a time. Hatha Yoga in Paris with Jeevana Gogula.`,
 ogImageAlt:`Jeevana, eyes closed, her face turned to the sun, beside the Jeevana Yoga & Wellness logo.`,
@@ -58,12 +58,12 @@ quoteEgle:`“Jeevana is an amazing yoga teacher. She takes time to explain. Eve
 contactEyebrow:`Contact`,contactTitle:`Namaste.\nWrite to me.`,
 newsletterEyebrow:`A note, now and then`,newsletterTitle:`Keep a little space\nfor yoga.`,newsletterBody:`Receive my newsletter by email.`,newsletterFormTitle:`Newsletter sign-up`,yourEmail:`Your email`,subscribe:`Subscribe`,newsletterSuccessTitle:`A little space, kept.`,newsletterSuccessBody:`Thank you. You are subscribed to my newsletter. You can unsubscribe at any time.`,
 footerThought:`Steady. At ease. One breath at a time.`,backTop:`Back to top`,privacy:`Privacy & mentions légales`,designerEmail:`Email Debanjan Mazumdar`,
-heroAlt:`Jeevana, eyes closed, her face turned to the sun in front of a grey wall, in a black dress.`,
+heroAlt:`Jeevana, eyes closed, her face turned to the sun in front of a grey wall, in a black dress.`,heroPhotoAlt:`Jeevana seated in meditation outdoors, eyes closed, under a blue sky.`,
 diwaliAlt:`Jeevana sitting on the floor in a blue saree, lighting a diya beside a rangoli.`,
 parisAlt:`Jeevana in a full backbend, Cakrāsana, on a blue mat on the Champ-de-Mars, the Eiffel Tower behind her.`,
 
 practice01Alt:`Jeevana in cobra pose on a mat, chest lifted, eyes closed.`,practice02Alt:`Jeevana in child's pose on a grey mat, seen from above.`,practice03Alt:`Jeevana seated in meditation on the grass, hands in jñāna mudrā.`,
-'nav.label':`Main navigation`,'lang.label':`Language`,'foot.sig':`Designed by Debanjan Mazumdar · ProdCraft`,'nf.home':`Jeevana — Yoga in Paris`,'nf.h':`This page is resting.`,'nf.p':`The page you asked for does not exist.`
+'nav.label':`Main navigation`,'lang.label':`Language`,'foot.sig':`Designed by Debanjan Mazumdar · ProdCraft`,'nf.home':`Jeevana — Yoga in Paris`,'nf.back':`Back to home`,menu:`Menu`,'nf.h':`This page is resting.`,'nf.p':`The page you asked for does not exist.`
 };
 const fr={
 reviewsTitlePage:`Avis — Jeevana Yoga & Wellness`,navReviews:`Avis`,reviewsLink:`Tous les avis · laissez le vôtre`,
@@ -77,7 +77,7 @@ reviewsConsent:`J’accepte que mon prénom, ma note, mon avis et sa date soient
 reviewsErrRating:`Veuillez choisir une note de 1 à 5 étoiles.`,reviewsErrName:`Veuillez indiquer votre prénom : 2 à 40 lettres (espaces, traits d’union, apostrophes et points acceptés, sans chiffres).`,reviewsErrText:`Veuillez écrire au moins 20 caractères (1 200 au maximum).`,
 reviewsOkTitle:`Merci.`,reviewsOkBody:`Votre avis est publié.`,reviewsPendingTitle:`Merci.`,reviewsPendingBody:`Je lirai votre avis avant sa publication.`,
 reviewsNoticeTitle:`Comment fonctionnent les avis`,reviewsNotice:`Les avis sont rédigés par des visiteurs de ce site et ne sont pas vérifiés. Ils sont affichés avec leur date, du plus récent au plus ancien ; les trois derniers avis notés 4 ou 5 étoiles sont mis en avant en haut de la page. Un avis contenant un lien, des coordonnées, des mots injurieux ou publicitaires, un texte en majuscules ou une longue suite du même caractère, signé du nom Jeevana, ou reçu pendant un afflux inhabituel d’avis, est vérifié par Jeevana avant sa publication. Jeevana peut masquer ou supprimer un avis.`,reviewsSuperprof:`D’autres avis d’anciens élèves sont sur Superprof.`,
-pageTitle:`Jeevana — Yoga à Paris`,privacyTitle:`Confidentialité & mentions légales — Jeevana`,
+pageTitle:`Jeevana · Yoga à Paris`,privacyTitle:`Confidentialité & mentions légales — Jeevana`,
 description:`Le Hatha Yoga à Paris avec Jeevana Gogula : séances individuelles dans le 19e, chez vous ou en ligne, en français ou en anglais, pour tous les niveaux.`,
 ogDescription:`Stable. À l'aise. Douze souffles à la fois. Le Hatha Yoga à Paris avec Jeevana Gogula.`,
 ogImageAlt:`Jeevana, les yeux fermés, le visage tourné vers le soleil, à côté du logo Jeevana Yoga & Wellness.`,
@@ -122,12 +122,12 @@ quoteEgle:`« Jeevana est une professeure de yoga formidable. Elle prend le temp
 contactEyebrow:`Contact`,contactTitle:`Namasté.\nÉcrivez-moi.`,
 newsletterEyebrow:`Un mot, de temps en temps`,newsletterTitle:`Garder une petite place\npour le yoga.`,newsletterBody:`Recevez ma lettre d’information par e-mail.`,newsletterFormTitle:`Inscription à la lettre d’information`,yourEmail:`Votre e-mail`,subscribe:`S’abonner`,newsletterSuccessTitle:`Une petite place, gardée.`,newsletterSuccessBody:`Merci. Vous êtes inscrit à ma lettre d’information. Vous pouvez vous désinscrire à tout moment.`,
 footerThought:`Stable. À l’aise. Un souffle à la fois.`,backTop:`Retour en haut`,privacy:`Confidentialité & mentions légales`,designerEmail:`Écrire à Debanjan Mazumdar`,
-heroAlt:`Jeevana, les yeux fermés, le visage tourné vers le soleil devant un mur gris, en robe noire.`,
+heroAlt:`Jeevana, les yeux fermés, le visage tourné vers le soleil devant un mur gris, en robe noire.`,heroPhotoAlt:`Jeevana assise en méditation en plein air, les yeux fermés, sous un ciel bleu.`,
 diwaliAlt:`Jeevana assise au sol en sari bleu, allumant un diya près d’une rangoli.`,
 parisAlt:`Jeevana en pont complet, Cakrāsana, sur un tapis bleu au Champ-de-Mars, la tour Eiffel derrière elle.`,
 
 practice01Alt:`Jeevana en posture du cobra sur un tapis, la poitrine ouverte, les yeux fermés.`,practice02Alt:`Jeevana en posture de l'enfant sur un tapis gris, vue d'en haut.`,practice03Alt:`Jeevana assise en méditation sur l'herbe, les mains en jñāna mudrā.`,
-'nav.label':`Navigation principale`,'lang.label':`Langue`,'foot.sig':`Designed by Debanjan Mazumdar · ProdCraft`,'nf.home':`Jeevana — Yoga à Paris`,'nf.h':`Cette page se repose.`,'nf.p':`La page demandée n’existe pas.`
+'nav.label':`Navigation principale`,'lang.label':`Langue`,'foot.sig':`Designed by Debanjan Mazumdar · ProdCraft`,'nf.home':`Jeevana — Yoga à Paris`,'nf.back':`Retour à l’accueil`,menu:`Menu`,'nf.h':`Cette page se repose.`,'nf.p':`La page demandée n’existe pas.`
 };
 const positions=[
 ['प्रणामासन','Praṇāmāsana','Oṃ Mitrāya Namaḥ','Exhale','Expirer','to the friend of all',"à l'ami de tous"],

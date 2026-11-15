@@ -20,15 +20,17 @@ function card(r,featured){
   const cap=document.createElement('figcaption');cap.textContent=r.name;fig.append(top,q,cap);li.append(fig);return li;
 }
 function render(){
-  if(failed){status.textContent=t('reviewsLoadError');return;}
-  if(!data){status.textContent=t('reviewsLoading');return;}
+  const emptyCta=$('[data-empty-cta]');if(emptyCta)emptyCta.hidden=true;
+  if(failed){status.dataset.state='error';status.textContent=t('reviewsLoadError');return;}
+  if(!data){status.dataset.state='loading';status.textContent=t('reviewsLoading');return;}
   const sum=$('[data-summary]');
   if(data.total){
     sum.hidden=false;$('[data-average]').textContent=Number(data.average).toLocaleString(loc(),{minimumFractionDigits:1,maximumFractionDigits:1});
     const as=$('[data-average-stars]');as.replaceChildren(...starGlyphs(Math.round(data.average)));
     $('[data-count]').textContent=fmt(t(data.total===1?'reviewsCountOne':'reviewsCountMany'),{n:data.total,avg:Number(data.average).toLocaleString(loc())});
     status.textContent='';
-  }else{sum.hidden=true;status.textContent=t('reviewsEmpty');}
+    status.dataset.state='ready';
+  }else{sum.hidden=true;status.dataset.state='empty';status.textContent=t('reviewsEmpty');if(emptyCta)emptyCta.hidden=false;}
   $('[data-featured-wrap]').hidden=!data.featured.length;featEl.replaceChildren(...data.featured.map(r=>card(r,true)));
   $('[data-all-wrap]').hidden=!shown.length;listEl.replaceChildren(...shown.map(r=>card(r,false)));more.hidden=shown.length>=data.rest_total;
 }
