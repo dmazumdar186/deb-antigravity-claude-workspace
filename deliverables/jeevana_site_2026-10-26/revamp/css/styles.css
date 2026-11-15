@@ -109,8 +109,8 @@
   --font-display:'Alegreya',Georgia,serif;
   --font-body:'Alegreya Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
   --font-deva:'Noto Devanagari','Noto Serif Devanagari',serif;
-  --fs-caption:.875rem;
-  --fs-small:.9375rem;
+  --fs-caption:clamp(.875rem,.84rem + .12vw,.9375rem);
+  --fs-small:1rem;
   --fs-body:clamp(1rem,.96rem + .16vw,1.125rem);
   --fs-lede:clamp(1.3125rem,1.16rem + .62vw,1.75rem);
   --fs-h4:clamp(1.375rem,1.24rem + .5vw,1.75rem);
@@ -120,7 +120,7 @@
 
   /* space: 4px scale */
   --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;--s7:48px;--s8:64px;--s9:96px;--s10:128px;
-  --section:clamp(96px,9vw,176px);
+  --section:clamp(56px,8vw,160px);
   --gap:clamp(24px,4vw,64px);
   --gutter:clamp(20px,5vw,96px);
   --max:1520px;
@@ -903,3 +903,72 @@ html:not(.has-js) .bar__progress{display:none}
   .paris__deity .deity{width:min(52%,220px)}
   .paris__words{grid-column:7/-1;grid-row:3;align-self:start}
 }
+
+/* ------------------------------------------------------------ polish round 2026-11-15 (eye evaluation)
+   readability floors, even vertical rhythm, no orphan cells, a larger hero portrait with the sun ring fully in view,
+   a warm grade on the Paris photo. Every photo of Jeevana stays whole at its natural ratio. */
+/* 1. body copy at body size (>=16px), sentences in the band at small size, line length capped */
+.lineage__intro p,.lineage__school p{font-size:var(--fs-body);max-width:68ch}
+.covered li,.facts dd{font-size:var(--fs-body)}
+.covered{max-width:68ch}
+.sequence__notes{font-size:var(--fs-small)}
+.sequence-hint{max-width:62ch}
+.consent{font-size:var(--fs-small)}
+.newsletter__intro p{max-width:60ch}
+.photo-cap,.shot figcaption{font-size:var(--fs-caption)}
+
+/* 4. facts: five items, no orphan cell at any width */
+.facts{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media (max-width:1199px){
+  .facts{grid-template-columns:repeat(6,minmax(0,1fr))}
+  .facts>div{grid-column:span 2}
+  .facts>div:nth-child(n+4){grid-column:span 3}
+}
+@media (max-width:599px){
+  .facts{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .facts>div,.facts>div:nth-child(n+4){grid-column:auto}
+  .facts>div:last-child{grid-column:1/-1}
+}
+@media (max-width:429px){
+  .facts{grid-template-columns:minmax(0,1fr)}
+}
+/* 4. practice gallery on tablets: 02 and 03 side by side at equal heights (1:1 beside 4:5 = 5fr:4fr), no hole */
+@media (min-width:600px) and (max-width:899px){
+  .practice__gallery{grid-template-columns:minmax(0,5fr) minmax(0,4fr)}
+  .practice__gallery .shot--wide,.practice__gallery .sutra-scene{grid-column:1/-1}
+  .practice__gallery .shot--square{grid-column:1;grid-row:3;align-self:start}
+  .practice__gallery .shot--tall{grid-column:2;grid-row:3}
+}
+@media (max-width:599px){
+  .practice__gallery .shot--tall{grid-column:1/-1}
+}
+
+/* 2 + 3. even vertical rhythm on phones and tablets */
+@media (max-width:899px){
+  .cover{padding-bottom:var(--s5)}
+  .registration{margin-top:var(--s7);padding-block:var(--s7)}
+}
+@media (max-width:599px){
+  :root{--section:48px}
+  .registration{margin-top:var(--s6);padding-block:var(--s6)}
+  .practice__gallery{margin-top:var(--s7)}
+  .facts{margin-top:var(--s7)}
+  .interlude--namaste{margin-top:var(--s7)}
+  #classes.section{padding-bottom:var(--s6)}
+  #paris.section{padding-top:var(--s6)}
+}
+@media (min-width:600px) and (max-width:1199px){
+  .facts{margin-top:var(--s8)}
+}
+
+/* 5. laptops and desktops: the portrait takes a larger share (up to 85vh tall, whole); the sun ring sits over the
+   empty wall at the portrait's upper left, where she turns her face, fully in view and clear of her face */
+@media (min-width:1200px){
+  .cover__media{grid-column:6/-1;align-self:start;--pw:min(calc((600% - var(--gap)) / 7),max(300px,calc(85svh * .75)))}
+}
+@media (min-width:900px){
+  .twelve--cover{z-index:2;width:calc(var(--pw) * .5);left:calc(100% - var(--pw));top:calc(var(--pw) * .3)}
+}
+
+/* 6. Paris: a gentle warm grade so the bright sky sits with the warm page (whole photo, no crop) */
+.paris__media .ph{filter:sepia(.18) saturate(.9) brightness(.93) contrast(.97)}
