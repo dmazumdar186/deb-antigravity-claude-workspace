@@ -972,3 +972,7 @@ html:not(.has-js) .bar__progress{display:none}
 
 /* 6. Paris: a gentle warm grade so the bright sky sits with the warm page (whole photo, no crop) */
 .paris__media .ph{filter:sepia(.18) saturate(.9) brightness(.93) contrast(.97)}
+/* final layout points 2026-11-15 */
+.orn .scroll .contact-links{opacity:calc((var(--u,1) - .45) * 2.2)}
+@media (max-width:899px){.scroll .contact-links a{padding-block:var(--s3)}.about__media{margin-inline:auto}}
+[data-i18n="tapovan"]{text-wrap:balance}
