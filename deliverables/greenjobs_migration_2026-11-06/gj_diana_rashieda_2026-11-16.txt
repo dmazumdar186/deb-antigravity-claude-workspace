@@ -8,20 +8,24 @@ Strategies switch the sites off on 6 December and the Download page goes with th
 - Use the date fields to download a few months at a time, as Strategies suggested. Go as far back as the records go for all six types. How far back we keep candidate and application records is Keith's decision; that can be cut down later, but after 6 December Strategies only restore access for a fee. Jobs By Email has no filters, so download it in one go.
 - Members profile data is not available between 09:00 and 17:00 GMT, so that one needs an early morning or an evening.
 - Save the files in a cloud storage folder in GreenJobs' name, not only on one computer. Please don't send me the files themselves until the data processing agreement is signed.
-- For now, please send me only the header row of each file type (the column names, no data rows).
+- By Friday 20 November, please send me only the header row of each file type (the column names, no data rows).
 - How many rows does Jobs By Email have on each site?
 
 2. Domain logins
 - You said the other domains are at 123 Reg, but the eight sector domains such as conservationjobsuk.com and windjobsuk.com point to GoDaddy name servers. Could you list which domains sit in each account (Hosting Ireland, Lets Host, 123 Reg, GoDaddy) and which ones you can't log into yet?
 - Once Keith has signed the contract and the first invoice (coming with the contract by Thursday 19 November) is paid, please share the DNS logins through a password manager, not by email: the Hosting Ireland login for greenjobs.ie and the Lets Host login for greenjobs.co.uk by Monday 23 November, and the sector domain logins by Friday 27 November, so you have time to recover the ones you can't get into. With those logins, the eight domains forward to greenjobs.co.uk on 3 December; full sector sites are a separate quote.
-- The new sites run on a Cloudflare account in GreenJobs' name. Which company email address should I set it up under?
 - Please don't change any domain settings until I ask for the switch: an early change can cut off the old sites, and with them the Download page.
 
-3. Posting
+3. For the new sites (please reply by Monday 23 November)
+- The new sites run on a Cloudflare account, and application emails go out through a Resend account, both in GreenJobs' name. Which company email address should each be under?
+- Which inbox should applications go to on each board when a job has no address of its own?
+- Which staff email addresses should be able to log in to the posting console?
+
+4. Posting
 - Once Keith has agreed and I've confirmed that 3 December holds, could you let CHM Recruit and Mattinson Partnership know that from that date they send their jobs to you two to post, until employer log-ins come in the second phase?
 - Were any of the current live jobs posted through Broadbean or another tool, rather than by you two or those two clients? A yes or no is fine.
 
-4. Analytics
+5. Analytics
 Nothing needed from you for now, and authoritylabs.com isn't needed.
 
 Thanks,
