@@ -20,7 +20,9 @@ inputs:
 outputs:
     - PASS/FAIL report to stdout, listing every offending row.
     - exit 0 ONLY if every row in every tab is relevant + EN/FR + in-scope +
-      has a valid link. exit 1 on ANY violation.
+      has a valid link. exit 1 on ANY blocking violation.
+    - exit 2 (DEGRADED, 2026-11-16) when the ONLY failures are advisory
+      (ranker degraded / chunk failures / write-path flags); digest still ships.
 
 Run before claiming the system works. 5 consecutive clean runs = shippable
 (per ~/.claude/rules/front-door-synthetic.md).
@@ -488,6 +490,23 @@ DEGRADATION_THRESHOLDS = {
 }
 
 
+# 2026-11-16: ranker outages (google-genai 3.x API change) blocked the daily
+# digest for days although jobs were still scored by the profile heuristic.
+# These failure classes are ADVISORY: the run is DEGRADED (exit 2), the email
+# still ships. Everything else stays BLOCKING (exit 1, email withheld).
+ADVISORY_PREFIXES = ("RANKER DEGRADED", "RANKER CHUNK FAILURES", "WRITE FAILED")
+ADVISORY_MARKER = "[WARN][ADVISORY]"
+
+
+def classify_failures(failures: list[str]) -> tuple[list[str], list[str]]:
+    """Split failure strings into (blocking, advisory). Unknown -> blocking."""
+    blocking: list[str] = []
+    advisory: list[str] = []
+    for f in failures:
+        (advisory if f.startswith(ADVISORY_PREFIXES) else blocking).append(f)
+    return blocking, advisory
+
+
 def check_pipeline_degradation() -> list[str]:
     """Read the CURRENT run's pipeline_stats and hard-fail on quality
     regressions. Returns [] if healthy.
@@ -572,7 +591,8 @@ def check_pipeline_degradation() -> list[str]:
                 f"RANKER DEGRADED: {placeholder}/{requested} = "
                 f"{ratio:.0%} placeholder (threshold "
                 f"{DEGRADATION_THRESHOLDS['placeholder_ratio_max']:.0%}). "
-                f"Top Matches is effectively random. "
+                f"Jobs were ranked by the profile heuristic fallback "
+                f"(_profile_aware_heuristic), not the LLM. "
                 f"chunk_failures={chunk_failures}"
             )
     if chunk_failures:
@@ -787,19 +807,28 @@ def main() -> int:
     print("SILENT-DEGRADATION ALARM (run_log.jsonl -> last LIVE run's pipeline_stats)")
     print("=" * 72)
     degradation_failures = check_pipeline_degradation()
-    if degradation_failures:
-        for f in degradation_failures:
-            print(f"  [FAIL] {f}")
+    # 2026-11-16: blocking vs advisory split — see ADVISORY_PREFIXES.
+    blocking_failures, advisory_failures = classify_failures(degradation_failures)
+    for f in blocking_failures:
+        print(f"  [FAIL] {f}")
+    for f in advisory_failures:
+        print(f"  {ADVISORY_MARKER} {f}")
+    if blocking_failures:
         print("\nRESULT: FAIL — pipeline silently degraded on the last LIVE run.")
-        print("The rows may look clean, but the ranker/coverage/write path is broken.")
+        print("The rows may look clean, but the coverage/verification path is broken.")
         failed = True
-    else:
+    elif not degradation_failures:
         print("  [OK] ranker placeholder ratio, chunk failures, source coverage, "
               "and write paths all within thresholds.")
 
     if failed:
         print("\nRESULT: FAIL — see failures above. Fix before claiming done.")
         return 1
+    if advisory_failures:
+        # 2026-11-16: advisory-only -> exit 2; run.py still sends the digest.
+        print(f"\nRESULT: DEGRADED — {len(advisory_failures)} advisory failure(s); "
+              f"rows are clean, digest still ships. Fix the ranker/write path.")
+        return 2
     print("\nRESULT: PASS — every row is clean AND the pipeline shipped ranked data.")
     print("(Per front-door-synthetic rule: needs 5 consecutive PASS runs to be called shippable.)")
     return 0

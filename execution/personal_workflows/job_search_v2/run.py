@@ -815,6 +815,9 @@ def main() -> int:
     # out-of-scope / broken-link rows against a frozen corpus.
     #   - PASS → email is allowed to fire (subject to the dual-cron lock).
     #   - FAIL → email is blocked, run exits non-zero (code 3) so the cron is red.
+    #   - DEGRADED (gate rc 2, 2026-11-16) → only advisory failures (ranker
+    #     fell back to the profile heuristic / write-path flags). Email still
+    #     sends like PASS, no exit 3; the streak does not count it as PASS.
     #   - Skippable ONLY via --no-acceptance, a debugging escape hatch; never add
     #     it to the GH Actions cron YAML.
     #   - LIMITATION: rows are already on the sheet when the gate fails — the
@@ -822,6 +825,7 @@ def main() -> int:
     #     purged on the next clean run's Stage 4 clear; for an immediate scrub
     #     run purge_irrelevant_rows.py.
     acceptance_ok = True
+    acceptance_degraded = False  # 2026-11-16: rc 2 = advisory-only failures
     if not args.dry_run and not args.no_acceptance:
         try:
             import subprocess
@@ -841,8 +845,25 @@ def main() -> int:
                 capture_output=True, text=True, encoding="utf-8", errors="replace",
                 cwd=str(PROJECT_ROOT), timeout=180, env=acceptance_env,
             )
-            acceptance_ok = proc.returncode == 0
-            pipeline_stats["acceptance"] = "PASS" if acceptance_ok else "FAIL"
+            # 2026-11-16: rc 2 = DEGRADED (advisory-only, e.g. ranker outage).
+            # The digest must still ship daily, so it is treated as ok for the
+            # email + exit code; any other non-zero rc stays FAIL.
+            acceptance_degraded = proc.returncode == 2
+            acceptance_ok = proc.returncode in (0, 2)
+            pipeline_stats["acceptance"] = (
+                "DEGRADED" if acceptance_degraded else ("PASS" if acceptance_ok else "FAIL")
+            )
+            if acceptance_degraded:
+                advisory = [
+                    ln.split("[WARN][ADVISORY]", 1)[1].strip()
+                    for ln in (proc.stdout or "").splitlines()
+                    if "[WARN][ADVISORY]" in ln
+                ]
+                pipeline_stats["acceptance_advisory"] = advisory
+                logger.warning(
+                    "run: ACCEPTANCE DEGRADED — sending the digest anyway; advisory "
+                    "failures to fix: %s", "; ".join(advisory) or "(none parsed)",
+                )
             # Surface the acceptance verdict + any violation lines into the log.
             tail = "\n".join((proc.stdout or "").strip().splitlines()[-15:])
             logger.info("run: ACCEPTANCE %s\n%s", pipeline_stats["acceptance"], tail)
@@ -939,7 +960,9 @@ def main() -> int:
                 prior_streak = int(json.loads(streak_path.read_text(encoding="utf-8")).get("consecutive_pass", 0))
         except (OSError, ValueError, json.JSONDecodeError):
             prior_streak = 0
-        new_streak = (prior_streak + 1) if acceptance_ok else 0
+        # 2026-11-16: DEGRADED is not a clean PASS — it resets the streak
+        # (but, unlike FAIL, does not block the email or exit 3).
+        new_streak = (prior_streak + 1) if (acceptance_ok and not acceptance_degraded) else 0
         try:
             streak_path.parent.mkdir(parents=True, exist_ok=True)
             streak_path.write_text(json.dumps({
@@ -974,7 +997,8 @@ def main() -> int:
     # SEES every silent-failure class as a red run, not a green one. The sheet
     # write already happened in failure cases, but the alarm is loud and the
     # run-log records the verdict for forensics.
-    #   exit 3 = acceptance gate FAILED (junk in output — email was blocked)
+    #   exit 3 = acceptance gate FAILED (junk in output — email was blocked).
+    #            DEGRADED (2026-11-16) keeps acceptance_ok True, so never exit 3.
     #   exit 4 = email send was expected but did NOT happen for a generic reason
     #            (transient SMTP flake, sheet write failure, missing creds).
     #   exit 5 = SMTP AUTH FAILURE specifically — the App Password is revoked /

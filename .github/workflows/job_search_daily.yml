@@ -220,6 +220,29 @@ jobs:
           sys.exit(1)
           PY
 
+      - name: Warn on DEGRADED acceptance (non-failing)
+        # 2026-11-16: acceptance rc 2 = advisory-only failures (e.g. ranker fell
+        # back to the profile heuristic). The digest still went out; surface the
+        # reasons as a warning only — no issue, no failure email.
+        if: success()
+        continue-on-error: true
+        run: |
+          [ -f .tmp/job_search_v2/run_log.jsonl ] || exit 0
+          python - <<'PY'
+          import json, os, pathlib
+          lines = pathlib.Path(".tmp/job_search_v2/run_log.jsonl").read_text(encoding="utf-8").strip().splitlines()
+          rec = json.loads(lines[-1]) if lines else {}
+          if str(rec.get("acceptance") or "") != "DEGRADED":
+              raise SystemExit(0)
+          reasons = rec.get("acceptance_advisory") or ["(no advisory reasons recorded)"]
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as fh:
+              fh.write("\n### Acceptance DEGRADED (digest still sent)\n")
+              for r in reasons:
+                  r1 = " ".join(str(r).split())[:500]
+                  print(f"::warning::acceptance DEGRADED: {r1}")
+                  fh.write(f"- {r1}\n")
+          PY
+
       - name: Upload run-log artifact
         if: always()
         uses: actions/upload-artifact@v4
@@ -291,10 +314,29 @@ jobs:
             const search = await github.rest.search.issuesAndPullRequests({ q });
             const existing = (search.data.items || []).find(i => i.title === title);
             if (existing) {
-              await github.rest.issues.createComment({
-                owner, repo, issue_number: existing.number, body,
-              });
-              core.notice(`Bumped existing failure issue #${existing.number}.`);
+              // 2026-11-16: one comment per UTC day max — the watchdog re-dispatch
+              // used to stack several failure comments (and emails) a day.
+              // Newest-first, 100/page; stop paging once comments predate today.
+              const todayUtc = new Date().toISOString().slice(0, 10);
+              let commentedToday = false;
+              for (let page = 1; page <= 10 && !commentedToday; page++) {
+                const { data: comments } = await github.request(
+                  "GET /repos/{owner}/{repo}/issues/{issue_number}/comments",
+                  { owner, repo, issue_number: existing.number, since: `${todayUtc}T00:00:00Z`,
+                    sort: "created", direction: "desc", per_page: 100, page },
+                );
+                if (comments.some(c => c.user && c.user.login === "github-actions[bot]"
+                    && String(c.created_at).slice(0, 10) === todayUtc)) commentedToday = true;
+                if (comments.length < 100) break;
+              }
+              if (commentedToday) {
+                core.notice(`Issue #${existing.number} already has a comment today (UTC); skipping duplicate.`);
+              } else {
+                await github.rest.issues.createComment({
+                  owner, repo, issue_number: existing.number, body,
+                });
+                core.notice(`Bumped existing failure issue #${existing.number}.`);
+              }
             } else {
               const created = await github.rest.issues.create({
                 owner, repo, title, body,
