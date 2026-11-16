@@ -677,6 +677,14 @@ def refresh_top_matches(
     candidates.sort(key=lambda jr: (tier_priority.get(jr[1].tier.value, 9), -jr[1].score))
     top = candidates[:top_n]
 
+    # 2026-11-16 (run 43849989859): a run whose new jobs were all filtered out
+    # (e.g. the second same-day fire) used to overwrite Top Matches with 0 rows,
+    # blanking the operator's dashboard and failing acceptance + customer-POV.
+    # No candidates -> keep the previous list untouched (no sheet I/O at all).
+    if not top:
+        logger.info("notifier.sheet: 0 Top Matches candidates this run — keeping previous tab")
+        return 0, True
+
     if dry_run:
         logger.info("notifier.sheet [dry-run]: would refresh Top Matches with %d rows", len(top))
         return len(top), True
