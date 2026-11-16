@@ -1,19 +1,19 @@
 Hi Keith,
 
-Diana's answers cover what I need to move, apart from three decisions below. I'll write to Diana and Rashieda today, copying you, with the next steps for the domain logins and the data downloads, which stay in a folder in GreenJobs' name and reach me only once the DPA is signed.
+Diana's answers cover what I need for the 3 December switch, apart from three decisions below; the posting tools can wait for the second phase and the analytics access can come later. I'll write to Diana and Rashieda today, copying you, with the next steps for the domain logins and the data downloads, which stay in a folder in GreenJobs' name and reach me only once the DPA is signed.
 
 Two things to flag:
 
-1. Diana wasn't sure about the other sites, so I checked: the eight sector sites (ConservationJobs, EcologyJobs, EnvironmentalJobs, RenewableEnergyJobs, SolarJobs, WasteJobs, WaterJobs and WindJobs) run on the same Strategies system as greenjobs.co.uk, so they also go offline on 6 December. With the logins for those domains, I'll forward each of them to greenjobs.co.uk on 3 December, so their visitors land on your main board. If you want full sector sites later, I'll quote them separately.
+1. Diana wasn't sure about the other sites, so I checked: the eight sector sites (ConservationJobs, EcologyJobs, EnvironmentalJobs, RenewableEnergyJobs, SolarJobs, WasteJobs, WaterJobs and WindJobs) run on the same Strategies system as greenjobs.co.uk, so they go offline with it on 6 December. With the DNS logins for those domains by Friday 27 November, I'll forward each of them to greenjobs.co.uk on 3 December, so their visitors land on your main board. If you want full sector sites later, I'll quote them separately.
 
-2. CHM Recruit and Mattinson Partnership post their own jobs today. From 3 December, Rashieda can post for them through the new console until employer log-ins arrive in the second phase. Could she let them know, or would you rather tell them yourself?
+2. CHM Recruit and Mattinson Partnership post their own jobs today. From the switch, Rashieda can post for them through the new console until employer log-ins come in the second phase. Could she let them know once the date is fixed, or would you rather tell them yourself?
 
 Three quick decisions from you:
 - Which company goes on the contract and invoice: GreenJobs Ltd (as on the site footers) or Gaia Talent? Please include the registered name and address.
 - How far back should we keep candidate and application records? I'd suggest two years; a yes is enough.
-- Diana thought the employer logos and testimonials on the current boards are fine to reuse; please confirm GreenJobs holds the right to reuse them.
+- Please confirm GreenJobs holds the right to reuse the employer logos and testimonials on the current boards.
 
-The contract (€600 a month, plus the €1,500 in Q1 as we agreed), the data processing agreement and the first invoice go out by Thursday 19 November. To keep 3 December, I need them signed, the first month paid and the logins for all ten domains in a password manager by Monday 23 November. After that, items move to the second phase as in the plan; Strategies still switch off on 6 December.
+The contract (€600 a month, plus the €1,500 in Q1 2027, as on LinkedIn), the data processing agreement and the first invoice go out by Thursday 19 November. To keep 3 December, I need them signed, the first month paid and the DNS logins for greenjobs.ie (Hosting Ireland) and greenjobs.co.uk (Lets Host) in a password manager by Monday 23 November, and your sign-off on the test site by Friday 27 November, as in the plan. If any of these comes later, the build starts later, and I'll write the same day to say what still fits before Strategies switch off on 6 December.
 
 Please use debanjan@prodcraft.fyi for everything on this project, so nothing goes astray.
 

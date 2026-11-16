@@ -3,21 +3,21 @@ Hi Diana, hi Rashieda,
 Thank you both for the answers. Here are the next steps. Please use debanjan@prodcraft.fyi for everything on this project.
 
 1. Downloads (please start this week)
-Strategies switch the sites off on 6 December and the Download page goes with them, so this is the most urgent part.
+Strategies switch the sites off on 6 December and the Download page goes with them.
 - On the Download page, download all six types for greenjobs.ie and for greenjobs.co.uk: Recruiters, Members registration details, Members profile data, Jobs, Jobs By Email and Job Applications.
-- Use the date fields to do a few months at a time, as Strategies suggested: as far back as the records go for Jobs and Recruiters, and two years for the other four types unless Keith wants more.
+- Use the date fields to download a few months at a time, as Strategies suggested. Go as far back as the records go for all six types. How far back we keep candidate and application records is Keith's decision; that can be cut down later, but after 6 December Strategies only restore access for a fee. Jobs By Email has no filters, so download it in one go.
 - Members profile data is not available between 09:00 and 17:00 GMT, so that one needs an early morning or an evening.
-- Save the files in a folder in GreenJobs' name. Please don't send me the files themselves until the data processing agreement is signed.
-- For now, please send me only the header row of each file type (the column names, no data rows), so I can check the import before the real data arrives.
-- How many rows does Jobs By Email have on each site? That tells me how many people get job alerts.
+- Save the files in a cloud storage folder in GreenJobs' name, not only on one computer. Please don't send me the files themselves until the data processing agreement is signed.
+- For now, please send me only the header row of each file type (the column names, no data rows).
+- How many rows does Jobs By Email have on each site?
 
 2. Domain logins
-- Please tell me which domains each account holds (Hosting Ireland, Lets Host, 123 Reg), including the eight sector domains such as conservationjobsuk.com and windjobsuk.com, and which ones you can't log into yet.
-- Once Keith has signed the contract and the first invoice is paid, please share those logins through a password manager, not by email.
-- Please don't change any domain settings before the switch: an early change can cut off the old sites, and with them the Download page.
+- You said the other domains are at 123 Reg, but the eight sector domains such as conservationjobsuk.com and windjobsuk.com point to GoDaddy name servers. Could you list which domains sit in each account (Hosting Ireland, Lets Host, 123 Reg, GoDaddy) and which ones you can't log into yet?
+- Once Keith has signed the contract and the first invoice (coming with the contract by Thursday 19 November) is paid, please share the DNS logins through a password manager, not by email: the Hosting Ireland login for greenjobs.ie and the Lets Host login for greenjobs.co.uk by Monday 23 November, and the sector domain logins by Friday 27 November, so you have time to recover the ones you can't get into.
+- Please don't change any domain settings until I ask for the switch: an early change can cut off the old sites, and with them the Download page.
 
 3. Posting
-- Once Keith is happy with it and I've confirmed the switch date, could you let CHM Recruit and Mattinson Partnership know that from that date they send their jobs to Rashieda to post, until employer log-ins arrive in the second phase?
+- Once Keith has agreed and I've confirmed that 3 December holds, could you let CHM Recruit and Mattinson Partnership know that from that date they send their jobs to you two to post, until employer log-ins come in the second phase?
 - Were any of the current live jobs posted through Broadbean or another tool, rather than by you two or those two clients? A yes or no is fine.
 
 4. Analytics
