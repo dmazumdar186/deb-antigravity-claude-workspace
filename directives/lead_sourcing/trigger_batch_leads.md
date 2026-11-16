@@ -10,8 +10,12 @@ actually WORKABLE and why the rest drop. Region and verticals are arguments so l
 
 - `--region west|east|midwest|south|mountain` or `--states CA,OR`; `--verticals medtech,construction`; `--batch NAME`.
 - `--since 2026-08-01` (510(k) decision date floor), `--days 90` (federal award window).
+- Size: `--min-emp medtech=20,construction=10` (per-vertical floor), `--max-emp 500`, `--apollo-below 10` (second
+  opinion when LinkedIn staff is below this or missing; 0 = never), `--max-apollo 300` (calls per run).
+- Discovery: `--discover on|off` (web domain discovery for names LeadOcean cannot match), `--max-serper 300`.
 - `--drop-list .tmp/referral/leads/drop_list.json` (`{"domains": [], "names": []}`; gitignored, never committed).
-- env `LEADOCEAN_API_KEY`, `OPENROUTER_API_KEY` (Jev). Never Reoon, never Instantly.
+- env `LEADOCEAN_API_KEY`, `OPENROUTER_API_KEY` (Jev), optional `SERPER_API_KEY` (else DuckDuckGo HTML). Apollo
+  goes through the proxy (header `X-Api-Key: proxy-injected`). Never Reoon, Prospeo, Instantly or any paid source.
 
 ## Tools/Scripts
 
@@ -25,11 +29,22 @@ Reuses `execution/gtm_icp_filters/medtech_510k_triggers.py` (openFDA pull, `clea
 1. **Triggers in region**: medtech = newest 510(k) per applicant whose FDA address state is in the region; construction
    = newest original federal award per recipient (see `directives/gtm_icp_filters/construction_award_triggers.md`).
 2. **Match to a domain**: LeadOcean `GET /v1/companies/search?name=<normalized name>&hqState=<state>` (US-wide
-   fallback; d/b/a names tried separately). One exact normalized name in state = auto; anything else = one Jev
-   `choice` over up to 8 candidates plus `none`, accepted at confidence >= 0.7.
+   fallback; d/b/a names tried separately). One exact normalized name in state = auto; several exact in-state
+   records where exactly one has staff > 0 (the rest are LeadOcean stubs with 0 staff and odd domains) and no
+   staffed same-name record in another state = auto; anything else = one Jev `choice` over up to 8 candidates plus
+   `none`, accepted at confidence >= 0.7.
+2b. **Web domain discovery** (names still unmatched): one search `"<name minus Inc/LLC>" <city> <state>` (city from
+   the openFDA record, or the USAspending recipient address, cached in `recipient_loc.json`); Serper up to
+   `--max-serper`, then DuckDuckGo HTML. Directory/aggregator/.gov hits are skipped; a deeper URL is kept only when the
+   domain spells a distinctive name word. Up to 3 candidates are fetched (static, rendered fallback) and kept only if
+   the page shows the name or the record's street address; one Jev `choice` (+ `none`, conf >= 0.7) picks the
+   official site. LeadOcean `companies/search?domain=` then supplies staff/industry when it knows the domain.
 3. **Drop list + dedupe**: drop-list domain or normalized name; one trigger per domain (newest wins).
-4. **Size + vertical gate**: LeadOcean headcount 20-500 (hard; unknown = drop), then Jev `noul` "real independent
-   operating company of 20-500 staff in this vertical" >= 0.6 (drops shells, subsidiaries, universities, government).
+4. **Size + vertical gate**: LeadOcean (LinkedIn) headcount within the vertical's floor-500 (medtech 20, construction
+   10). When LinkedIn is < `--apollo-below` or missing, Apollo `GET /api/v1/organizations/enrich?domain=` (the only
+   endpoint the free key allows) supplies `estimated_num_employees`, used only for a US record; the companies CSV
+   records `size_source` (linkedin/apollo) and `apollo_flipped`. Then Jev `noul` "real independent operating company
+   of <floor>-500 staff in this vertical" >= 0.6 (drops shells, subsidiaries, universities, government).
 5. **Site fact (finder + blind verifier)**: the rendered homepage must NOT contain any trigger term (medtech: device
    name, distinctive device words, brand word, K number; construction: award id, agency names). Homepage must render
    >= 200 chars and not redirect to another site. The verifier re-queries the public record (openFDA by K number /
@@ -47,7 +62,8 @@ Reuses `execution/gtm_icp_filters/medtech_510k_triggers.py` (openFDA pull, `clea
 k_number,site_fact,evidence_urls), `<batch>_construction.csv` (... agency,date,amount,award_id,site_fact,evidence_url),
 `<batch>_<vertical>_audit.csv` (same + raw device, trigger org, match method, rank), `<batch>_companies.csv` (every
 trigger company and its outcome), `funnel.md` (step counts, drop reasons, column fill, LeadOcean usage).
-Caches: `.tmp/referral/cache/{match,jev,site,contacts,email}.json`.
+Caches: `.tmp/referral/cache/{match,jev,site,contacts,email,discover,apollo,recipient_loc}.json`. Funnel adds
+domains by source, size by source, Apollo flips, and Serper/DuckDuckGo/Apollo call counts.
 
 ## Edge Cases
 
@@ -58,8 +74,13 @@ Caches: `.tmp/referral/cache/{match,jev,site,contacts,email}.json`.
   every export returned 503 "Looking a person up by person_id is temporarily unavailable"; enrich by `linkedin_url`
   returned 500. Contacts are still written with blank email; email lookups are cached only on success, so a plain
   re-run fills them when the service recovers. Workable = rows with an email.
-- **LinkedIn headcount understates field-heavy firms** (construction crews are rarely on LinkedIn): the 20-500 gate
-  drops many real mid-size contractors as "size < 20". Check the drop-reason count before relaxing `MIN_EMP`.
+- **LinkedIn headcount understates field-heavy firms** (construction crews are rarely on LinkedIn): batch 1 lost ~30
+  contractors to "size < 20". Fix (2026-11-16): construction floor 10 plus the Apollo second opinion below 10.
+- **Apollo org enrich is domain-keyed and can return a namesake abroad** (a US domain mapped to a foreign firm):
+  only US (or country-blank) Apollo records decide size; others are shown as "ignored".
+- **About half of USAspending construction recipients are not in LeadOcean by name**: domain discovery is the
+  recovery path; every discovered domain still passes the homepage name/address check, Jev, the size gate and
+  the site fact, and new rows get a hand-read for wrong-company matches.
 - Idempotent: every stage cached (name+state, domain, trigger id + domain, person id); re-run = no-op. `--check`
   rebuilds outputs offline from caches.
 - `company` column: a mixed-case FDA applicant name minus Inc/LLC (the company's own spelling); ALL-CAPS USAspending

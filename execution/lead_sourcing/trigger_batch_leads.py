@@ -8,21 +8,25 @@ description: Trigger-first cold-email batch builder for an agency referral progr
 inputs:  --region west|east|midwest|south|mountain (or --states CA,OR); --verticals medtech,construction;
          --batch NAME (output folder); --since (510(k) decisions, default 2026-08-01); --days (awards, default 90);
          --drop-list JSON {"domains": [...], "names": [...]}; --max-jev; --try-export (one <=50-domain export when the
-         per-person email lookup is down); --check (offline: caches only). env LEADOCEAN_API_KEY, OPENROUTER_API_KEY.
+         per-person email lookup is down); --check (offline: caches only); --min-emp medtech=20,construction=10;
+         --max-emp 500; --apollo-below 10 + --max-apollo 300 (Apollo org-enrich second-opinion headcount);
+         --discover on|off + --max-serper 300 (web domain discovery for names LeadOcean cannot match).
+         env LEADOCEAN_API_KEY, OPENROUTER_API_KEY, optional SERPER_API_KEY (else DuckDuckGo HTML).
 outputs: .tmp/referral/<batch>/<batch>_<vertical>.csv (one row per contact, personalized columns), <batch>_companies.csv
          (every trigger company with its funnel outcome and drop reason), funnel.md; caches in .tmp/referral/cache/
          (match, gate, site, contacts, email; keyed by name+state / domain / K number or award id / person id).
 usage:   python3 execution/lead_sourcing/trigger_batch_leads.py --region west --batch batch1
          python3 execution/lead_sourcing/trigger_batch_leads.py --region west --batch batch1 --check   # rebuild offline
 Directive: directives/lead_sourcing/trigger_batch_leads.md
-Spend: openFDA, USAspending, company sites: free. LeadOcean search/company/email lookups bill "records" against a
+Spend: openFDA, USAspending, company sites, DuckDuckGo: free. Serper: free-tier credits, capped by --max-serper.
+       Apollo organizations/enrich: free plan via the proxy-injected key, capped by --max-apollo. LeadOcean search/company/email lookups bill "records" against a
        fair-use plan with no ceiling (whenOver: never); exports bill rows against the 10k/day quota. Jev ~$0.00002/call,
        capped by --max-jev, ledgered in .tmp/jev_ledger.jsonl. Never calls Reoon, Instantly or any sender.
 """
 
 from __future__ import annotations
 
-import argparse, csv, datetime as dt, json, re, sys, threading, time, urllib.parse
+import argparse, csv, datetime as dt, html as html_lib, json, os, re, sys, threading, time, urllib.parse
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -44,11 +48,15 @@ CACHE = ROOT / ".tmp" / "referral" / "cache"
 MONTHS = mt.MONTHS
 VERTICAL = {
     "medtech": {"label": "medical device, diagnostics or medtech manufacturer",
-                "industry_hint": "Medical Equipment Manufacturing, Medical Device, Biotechnology"},
+                "industry_hint": "Medical Equipment Manufacturing, Medical Device, Biotechnology",
+                "search_word": "medical device"},
     "construction": {"label": "construction contractor (general, heavy/civil or specialty trade)",
-                     "industry_hint": "Construction, Civil Engineering, Specialty Trade Contractors"},
+                     "industry_hint": "Construction, Civil Engineering, Specialty Trade Contractors",
+                     "search_word": "contractor"},
 }
-MIN_EMP, MAX_EMP = 20, 500
+MIN_EMP = {"medtech": 20, "construction": 10}  # LinkedIn undercounts field crews; override with --min-emp
+MAX_EMP = 500
+APOLLO_BELOW = 10      # ask Apollo for a second-opinion headcount when LinkedIn staff < this (or missing)
 JEV_MATCH_CONF = 0.7   # choice confidence needed to accept an ambiguous name match
 JEV_GATE_NOUL = 0.6    # probability "real operating company, 20-500 staff, in this vertical"
 CONTACT_SENIORITY = ["owner", "founder", "c_suite", "partner", "vp", "head", "director"]
@@ -167,7 +175,8 @@ def medtech_triggers(states: list[str], since: str, offline: bool) -> list[dict]
             continue
         key = norm_name(r["applicant"]) + "|" + r["state"].upper()
         t = by.setdefault(key, {"vertical": "medtech", "org": r["applicant"], "state": r["state"].upper(),
-                                "city": r.get("city") or "", "recs": []})
+                                "city": r.get("city") or "", "street": r.get("address_1") or "",
+                                "zip": (r.get("zip_code") or "")[:5], "recs": []})
         t["recs"].append(r)
     out = []
     for t in by.values():
@@ -259,6 +268,11 @@ def match_trigger(t: dict, cands: list[dict], jev_cache: dict, budget: list[int]
     rival = [c for c in exact if c not in exact_st]  # same name in another state
     if len(exact_st) == 1 and (not rival or (t.get("city") and exact_st[0]["city"].lower() == t["city"].lower())):
         return exact_st[0], "exact name + state"
+    # LeadOcean holds stub records (0 staff, odd domains) beside the real one; with exactly one staffed exact
+    # in-state record and no staffed same-name rival elsewhere, the stubs are not a real ambiguity.
+    staffed = [c for c in exact_st if (c.get("employees") or 0) > 0]
+    if len(exact_st) > 1 and len(staffed) == 1 and not any((c.get("employees") or 0) > 0 for c in rival):
+        return staffed[0], "exact name + state (only staffed record)"
     ck = f"match|{t['vertical']}|{t['key']}"
     if ck not in jev_cache:
         if offline or budget[0] <= 0:
@@ -290,13 +304,326 @@ def match_trigger(t: dict, cands: list[dict], jev_cache: dict, budget: list[int]
     return None, f"ambiguous match rejected by Jev ({j['pick'] or '-'} {j['conf']:.2f})"
 
 
+# ------------------------------------------------------------------ 2b. web domain discovery (unmatched companies)
+SEARCH_SKIP = re.compile(
+    r"(^|\.)(linkedin|facebook|instagram|twitter|x|youtube|yelp|bbb|zoominfo|dnb|bloomberg|buzzfile|opencorporates|"
+    r"bizapedia|manta|crunchbase|pitchbook|cbinsights|rocketreach|signalhire|apollo|glassdoor|indeed|wikipedia|"
+    r"yellowpages|chamberofcommerce|buildzoom|houzz|angi|homeadvisor|thumbtack|porch|nextdoor|google|amazon|"
+    r"mapquest|govtribe|goveagle|highergov|contractology|contractstackpro|sweetspot|usaspending|govspend|"
+    r"opengovus|corporationwiki|owler|tracxn|cortera|fdazilla|globaldata|medicaldevicesnews|fda|sam|"
+    r"dandb|companieslist|allbiz|birdeye|procore|levelset|reddit|quora|ziprecruiter|salary|comparably|"
+    r"prnewswire|businesswire|globenewswire|newswire|issuu|scribd|pdf|govcb|federalcompass|bidnet)\.[a-z.]+$"
+    r"|\.(gov|mil|edu)$")
+GENERIC_NAME = {"construction", "constructors", "contractors", "contracting", "contractor", "services", "service",
+                "group", "company", "solutions", "systems", "medical", "industries", "enterprises", "general",
+                "builders", "building", "engineering", "the", "and", "of", "usa", "us", "america", "american",
+                "international", "technologies", "technology", "national", "pacific", "western", "northwest"}
+
+
+def _visible_text(html: str) -> tuple[str, str]:
+    title = re.search(r"<title[^>]*>(.*?)</title>", html or "", flags=re.S | re.I)
+    body = re.sub(r"<script.*?</script>|<style.*?</style>|<noscript.*?</noscript>", " ", html or "", flags=re.S | re.I)
+    body = html_lib.unescape(re.sub(r"<[^>]+>", " ", body))
+    title_s = html_lib.unescape(re.sub(r"\s+", " ", title.group(1)).strip()[:150]) if title else ""
+    return title_s, re.sub(r"\s+", " ", body).strip()
+
+
+def homepage_text(dom: str) -> dict:
+    """Static fetch first (cheap), rendered fetch when the static page is thin or blocked."""
+    for url in (f"https://{dom}", f"https://www.{dom}"):
+        try:
+            h = requests.get(url, headers={"User-Agent": mt.UA}, timeout=20)
+            if h.status_code < 400:
+                title, text = _visible_text(h.text)
+                if len(text) >= 200:
+                    return {"url": h.url, "title": title, "text": text}
+        except requests.RequestException:
+            pass
+    r = mt.pw_fetch([{"url": f"https://{dom}", "mode": "text"}])[0]
+    if not r.get("error") and (r.get("status") or 0) < 400 and (r.get("text") or "").strip():
+        return {"url": r.get("final_url") or f"https://{dom}", "title": "", "text": re.sub(r"\s+", " ", r["text"])}
+    return {"url": "", "title": "", "text": ""}
+
+
+def web_search(q: str, counter: dict) -> tuple[list[dict] | None, str]:
+    """Serper (Google) while under the cap and not out of credits; DuckDuckGo HTML otherwise. Returns organic
+    [{link,title,snippet}], or None when no search engine answered (so the caller does not cache a false miss)."""
+    key = os.environ.get("SERPER_API_KEY", "")
+    with _lock:
+        use_serper = bool(key) and not counter.get("serper_dead") and counter["serper"] < counter["serper_cap"]
+        if use_serper:
+            counter["serper"] += 1
+    if use_serper:
+        try:
+            r = requests.post("https://google.serper.dev/search", json={"q": q, "num": 10}, timeout=20,
+                              headers={"X-API-KEY": key, "Content-Type": "application/json"})
+            if r.status_code == 200:
+                return [{"link": o.get("link", ""), "title": o.get("title", ""), "snippet": o.get("snippet", "")}
+                        for o in r.json().get("organic", [])], "serper"
+            with _lock:  # 400 "Not enough credits" / 401 / 403: stop calling it this run
+                counter["serper"] -= 1
+                counter["serper_dead"] = f"HTTP {r.status_code} {r.text[:80]}"
+        except (requests.RequestException, ValueError):
+            pass
+    if counter.get("ddg_dead"):
+        return None, "none"
+    try:
+        with _lock:
+            counter["ddg"] += 1
+        h = requests.post("https://html.duckduckgo.com/html/", data={"q": q}, headers={"User-Agent": mt.UA}, timeout=20)
+        if h.status_code != 200 or "result__a" not in h.text and "No results" not in h.text:
+            raise requests.RequestException(f"HTTP {h.status_code}")
+        out = []
+        for m in re.finditer(r'class="result__a" href="([^"]+)"[^>]*>(.*?)</a>', h.text, flags=re.S):
+            link = urllib.parse.unquote(re.sub(r"^.*?uddg=([^&]+).*$", r"\1", m.group(1)))
+            out.append({"link": link, "title": re.sub(r"<[^>]+>", "", m.group(2)), "snippet": ""})
+        return out, "ddg"
+    except requests.RequestException as exc:
+        with _lock:
+            counter["ddg_dead"] = str(exc)[:80]  # blocked/unreachable: do not retry every company
+        return None, "none"
+
+
+def guess_domains(org: str) -> list[str]:
+    """Free fallback when search is unavailable: the name written as a .com (with/without generic words)."""
+    out = []
+    for v in name_variants(org):
+        w = v.split()
+        core = [x for x in w if x not in GENERIC_NAME]
+        for parts in (w, core, w + ["inc"]):
+            if parts and len("".join(parts)) >= 6:
+                out.append("".join(parts) + ".com")
+    return list(dict.fromkeys(out))[:4]
+
+
+def static_homepage(dom: str) -> dict:
+    for url in (f"https://{dom}", f"https://www.{dom}"):
+        try:
+            h = requests.get(url, headers={"User-Agent": mt.UA}, timeout=12)
+            if h.status_code < 400:
+                title, text = _visible_text(h.text)
+                if len(text) >= 200:
+                    return {"url": h.url, "title": title, "text": text}
+        except requests.RequestException:
+            pass
+    return {"url": "", "title": "", "text": ""}
+
+
+def recipient_location(t: dict, cache: dict, offline: bool) -> None:
+    """Construction triggers carry no city: read the recipient address from the USAspending award (free)."""
+    if t["vertical"] != "construction" or t.get("city"):
+        return
+    gid = t["evidence_url"].rsplit("/", 1)[-1]
+    if gid not in cache and not offline:
+        try:
+            loc = (requests.get(ct.AWARD_API.format(gid), timeout=60).json().get("recipient") or {}).get("location") or {}
+            with _lock:
+                cache[gid] = {"city": (loc.get("city_name") or "").title(), "street": loc.get("address_line1") or "",
+                              "zip": loc.get("zip5") or ""}
+        except (requests.RequestException, ValueError):
+            return
+    t.update(cache.get(gid) or {})
+
+
+def name_on_page(org: str, text: str) -> bool:
+    page = " " + " ".join(mt.norm_tokens(text)) + " "
+    for v in name_variants(org):
+        if f" {v} " in page:
+            return True
+        core = [w for w in v.split() if w not in GENERIC_NAME and len(w) >= 3]
+        if core and all(f" {w} " in page for w in core) and len(core) >= 2:
+            return True
+    return False
+
+
+def address_on_page(t: dict, text: str) -> bool:
+    page = " " + " ".join(mt.norm_tokens(text)) + " "
+    street = " ".join(mt.norm_tokens(t.get("street") or ""))
+    num = (re.match(r"\d+", street) or [""])[0]
+    return bool((street and len(street) >= 8 and f" {street} " in page)
+                or (t.get("zip") and num and f" {t['zip']} " in page and f" {num} " in page))
+
+
+def candidate_domains(org: str, results: list[dict]) -> list[dict]:
+    """Company homepages only: root-URL hits, or deeper hits whose domain spells a distinctive name word."""
+    words = {w for v in name_variants(org) for w in v.split() if len(w) >= 4 and w not in GENERIC_NAME}
+    out: dict[str, dict] = {}
+    for o in results:
+        dom = norm_domain(o["link"])
+        if not dom or SEARCH_SKIP.search(dom) or dom in out:
+            continue
+        path = urllib.parse.urlparse(o["link"]).path.strip("/")
+        label = mt.domain_root(dom)
+        if path and not any(w in label for w in words):
+            continue
+        out[dom] = o
+        if len(out) >= 3:
+            break
+    return [dict(o, domain=d) for d, o in out.items()]
+
+
+def discover_domain(t: dict, cache: dict, counter: dict, budget: list[int], offline: bool) -> tuple[dict | None, str]:
+    """Search name + city/state, keep homepages that show the name or the record's street address, Jev picks one
+    (or none). Returns (candidate dict, note)."""
+    ck = f"{t['vertical']}|{t['key']}"
+    if ck in cache:
+        e = cache[ck]
+        return (e.get("pick_c"), e["note"])
+    if offline:
+        return None, "domain discovery not run (offline)"
+    if counter["serper"] >= counter["serper_cap"] and counter.get("no_ddg"):
+        return None, "domain discovery skipped (search cap)"
+    name = strip_legal(re.split(r"\b(?:d/?b/?a|doing business as)\b", t["org"], flags=re.I)[0]).strip(" ,.")
+    where = f"{t['city']} {t['state']}" if t.get("city") else t["state"]
+    hint = "" if t.get("city") else (" contractor" if t["vertical"] == "construction" else " medical")
+    queries = [f'"{name}" {where}{hint}', f"{name} {t['state']} {VERTICAL[t['vertical']]['search_word']}"]
+    res, src, cands, answered = [], "", [], False
+    for q in queries:  # second, looser query only when the first finds no homepage candidate
+        got, src = web_search(q, counter)
+        if got is None:
+            continue
+        answered, res = True, got
+        cands = candidate_domains(t["org"], res)
+        if cands:
+            break
+    if not cands:  # search unavailable or no homepage in results: try the name as a .com (validated like any hit)
+        cands = [{"domain": d, "link": f"https://{d}", "title": "", "snippet": "", "guess": True}
+                 for d in guess_domains(t["org"])]
+        src = "domain guess"
+    checked = []
+    for c in cands:
+        hp = static_homepage(c["domain"]) if c.get("guess") else homepage_text(c["domain"])
+        if not hp["text"]:
+            continue
+        fdom = norm_domain(hp["url"]) or c["domain"]
+        nm, ad = name_on_page(t["org"], hp["title"] + " " + hp["text"]), address_on_page(t, hp["text"])
+        if nm or ad:
+            checked.append(dict(c, final_domain=fdom, title=hp["title"], excerpt=hp["text"][:500], name_hit=nm,
+                                addr_hit=ad))
+    entry = {"source": src, "query_results": len(res), "candidates": [c["domain"] for c in cands],
+             "validated": [{k: c[k] for k in ("domain", "final_domain", "name_hit", "addr_hit")} for c in checked]}
+    pick = None
+    if not checked and not answered:
+        return None, "domain discovery: no search engine answered (not cached)"
+    if not checked:
+        entry["note"] = "no LeadOcean company; web search found no homepage naming it"
+    elif budget[0] <= 0:
+        entry["note"] = "domain discovery: no Jev budget"
+    else:
+        from execution.modules import jev_client as jev
+        opts = {f"d{i}": f"{c['final_domain']} | title: {c['title']} | search snippet: {c['snippet'][:200]} | "
+                         f"page shows name: {c['name_hit']}, shows record street address: {c['addr_hit']} | "
+                         f"page text: {c['excerpt'][:300]}" for i, c in enumerate(checked)}
+        opts["none"] = "none of these websites belongs to the named organisation"
+        state = {"source": "FDA 510(k) applicant" if t["vertical"] == "medtech" else "federal contract recipient",
+                 "name": t["org"], "city": t.get("city"), "state": t["state"], "street": t.get("street", ""),
+                 "context": t.get("device_raw") or t.get("description") or ""}
+        r = jev.decide(state, {"m": jev.choice("Which website is the official own website of this exact organisation "
+                                               "(same business at that city/state, not a namesake, directory, "
+                                               "parent group or customer)?", opts)})
+        budget[0] -= 1
+        jev.append_ledger({"script": "trigger_batch_leads", "step": "domain", "cost": r.cost_usd})
+        pk, conf = (r.choice("m") if not r.error else ""), r.confidence("m")
+        entry.update(jev_pick=pk, jev_conf=conf, jev_error=(r.error or "")[:200])
+        if pk.startswith("d") and conf >= JEV_MATCH_CONF and int(pk[1:]) < len(checked):
+            c = checked[int(pk[1:])]
+            pick = {"domain": c["final_domain"], "name": c["title"] or name, "city": t.get("city", ""),
+                    "state": t["state"], "employees": None, "industries": "", "description": c["excerpt"][:600],
+                    "linkedin": "", "decision_makers": None, "domain_source": src}
+            entry["note"] = f"web domain ({src}) + jev {conf:.2f}"
+        else:
+            entry["note"] = f"web candidates rejected by Jev ({pk or '-'} {conf:.2f})"
+    entry["pick_c"] = pick
+    with _lock:
+        cache[ck] = entry
+    return pick, entry["note"]
+
+
+def lo_company_by_domain(lo: LeadOcean, dom: str, cache: dict, offline: bool) -> dict | None:
+    key = f"domain|{dom}"
+    if key not in cache:
+        if offline:
+            return None
+        try:
+            j = lo.req("GET", "/v1/companies/search", params={"domain": dom, "limit": 3, "slim": "true"})
+        except RuntimeError:
+            return None
+        best = None
+        for c in j.get("data") or []:
+            d = c.get("company_data") or {}
+            if norm_domain(d.get("company_domain")) != dom:
+                continue
+            emp = (d.get("company_employees") or {}).get("number_of_employees")
+            if best is None or (emp or 0) > (best["employees"] or 0):
+                addr = d.get("company_primary_address") or {}
+                best = {"name": d.get("company_name") or "", "employees": emp, "lo_city": addr.get("city") or "",
+                        "lo_state": addr.get("state") or "",
+                        "industries": ", ".join(i.get("name3", "") for i in (d.get("company_industries") or [])[:3]),
+                        "description": (d.get("company_description") or "")[:600],
+                        "linkedin": ((d.get("company_social_links") or {}).get("linkedin") or {}).get("url") or ""}
+        with _lock:
+            cache[key] = best
+    return cache[key]
+
+
+# ------------------------------------------------------------------ 3a. Apollo second-opinion headcount
+def apollo_size(dom: str, cache: dict, counter: dict, offline: bool) -> dict:
+    """GET organizations/enrich (the only endpoint on this free key; the proxy injects the key). Cached by domain."""
+    if dom in cache:
+        return cache[dom]
+    if offline or counter["apollo"] >= counter["apollo_cap"]:
+        return {}
+    with _lock:
+        counter["apollo"] += 1
+    try:
+        r = requests.get("https://api.apollo.io/api/v1/organizations/enrich", params={"domain": dom},
+                         headers={"X-Api-Key": "proxy-injected"}, timeout=30)
+    except requests.RequestException as exc:
+        return {"error": type(exc).__name__}  # not cached: retry next run
+    if r.status_code != 200:
+        return {"error": f"HTTP {r.status_code}"}
+    o = (r.json() or {}).get("organization") or {}
+    e = {"employees": o.get("estimated_num_employees"), "name": o.get("name") or "", "country": o.get("country") or "",
+         "state": o.get("state") or "", "domain": norm_domain(o.get("primary_domain") or "")}
+    with _lock:
+        cache[dom] = e
+    return e
+
+
 # ------------------------------------------------------------------ 3. size + vertical gate
-def gate(t: dict, c: dict, jev_cache: dict, budget: list[int], offline: bool) -> tuple[bool, str]:
-    emp = c.get("employees")
-    if emp is None:
-        return False, "size unknown in LeadOcean"
-    if not (MIN_EMP <= int(emp) <= MAX_EMP):
-        return False, f"size {emp} outside {MIN_EMP}-{MAX_EMP}"
+def size_check(t: dict, c: dict, cfg: dict, apollo_cache: dict, counter: dict, offline: bool) -> tuple[bool, str]:
+    """LinkedIn (LeadOcean) headcount decides; when it is missing or below cfg['apollo_below'], an Apollo estimate for
+    the same domain (US records only) decides instead. Records which source decided and whether Apollo flipped it."""
+    lo_emp = c.get("employees")
+    lo_emp = int(lo_emp) if lo_emp not in (None, "") else None
+    lo_min, hi = cfg["min_emp"][t["vertical"]], cfg["max_emp"]
+    size, src = lo_emp, "linkedin"
+    t["size_linkedin"], t["size_apollo"] = lo_emp, ""
+    if lo_emp is None or lo_emp < cfg["apollo_below"]:
+        ap = apollo_size(c["domain"], apollo_cache, counter, offline)
+        t["size_apollo"] = ap.get("employees") if ap.get("employees") is not None else (ap.get("error") or "none")
+        us = (ap.get("country") or "United States") == "United States"
+        if ap.get("employees") and us:
+            size, src = int(ap["employees"]), "apollo"
+        elif ap.get("employees"):
+            t["size_apollo"] = f"{ap['employees']} (ignored: {ap.get('country')})"
+    t["size_source"] = src
+    ok = size is not None and lo_min <= size <= hi
+    lo_ok = lo_emp is not None and lo_min <= lo_emp <= hi
+    t["apollo_flipped"] = src == "apollo" and ok != lo_ok
+    if size is None:
+        return False, "size unknown (LinkedIn and Apollo)"
+    if not ok:
+        return False, f"size {size} ({src}) outside {lo_min}-{hi}"
+    return True, f"size {size} ({src})"
+
+
+def gate(t: dict, c: dict, jev_cache: dict, budget: list[int], offline: bool, cfg: dict, apollo_cache: dict,
+         counter: dict) -> tuple[bool, str]:
+    ok, note = size_check(t, c, cfg, apollo_cache, counter, offline)
+    if not ok:
+        return False, note
+    emp, lo_min, hi = c.get("employees"), cfg["min_emp"][t["vertical"]], cfg["max_emp"]
     ck = f"gate|{t['vertical']}|{c['domain']}"
     if ck not in jev_cache:
         if offline or budget[0] <= 0:
@@ -306,12 +633,13 @@ def gate(t: dict, c: dict, jev_cache: dict, budget: list[int], offline: bool) ->
             return False, "gate not run (Jev unavailable)"
         v = VERTICAL[t["vertical"]]
         state = {"company": c["name"], "domain": c["domain"], "hq": f"{c['city']}, {c['state']}",
-                 "linkedin_staff": emp, "industries": c["industries"], "description": c["description"],
+                 "linkedin_staff": emp, "apollo_staff_estimate": t.get("size_apollo") or "",
+                 "industries": c["industries"], "description": c["description"],
                  "public_record_name": t["org"], "parent_in_public_record": t.get("parent") or ""}
         r = jev.decide(state, {"g": jev.noul(
-            f"Is this a real, independent operating company of roughly {MIN_EMP}-{MAX_EMP} staff whose main business "
+            f"Is this a real, independent operating company of roughly {lo_min}-{hi} staff whose main business "
             f"is: {v['label']}?",
-            f"an operating business in that line of work, roughly {MIN_EMP}-{MAX_EMP} staff, its own brand/website",
+            f"an operating business in that line of work, roughly {lo_min}-{hi} staff, its own brand/website",
             "a shell or holding entity, a subsidiary/division of a large group, a university, hospital or health "
             "system, a government or tribal entity, a nonprofit, a consultancy/distributor, or a different industry")})
         budget[0] -= 1
@@ -321,7 +649,7 @@ def gate(t: dict, c: dict, jev_cache: dict, budget: list[int], offline: bool) ->
     j = jev_cache[ck]
     if j.get("error"):
         return False, "gate Jev error"
-    return (j["noul"] >= JEV_GATE_NOUL), f"jev gate {j['noul']:.2f}"
+    return (j["noul"] >= JEV_GATE_NOUL), f"{note}; jev gate {j['noul']:.2f}"
 
 
 # ------------------------------------------------------------------ 4. homepage site fact (finder + blind verifier)
@@ -536,7 +864,7 @@ P_COLS = {
     "construction": ["first_name", "last_name", "title", "email", "linkedin", "company", "website", "agency", "date",
                      "amount", "award_id", "site_fact", "evidence_url"],
 }
-STEPS = ["triggers in region", "matched to a domain", "not on drop list / not duplicate",
+STEPS = ["triggers in region", "matched to a domain", "  of which via web domain discovery", "not on drop list / not duplicate",
          "passed size + vertical gate", "site fact verified", ">=1 verified-email decision-maker",
          "email address revealed (workable)"]
 
@@ -554,12 +882,22 @@ def main() -> int:
     ap.add_argument("--max-jev", type=int, default=600)
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--try-export", action="store_true")
+    ap.add_argument("--min-emp", default=",".join(f"{k}={v}" for k, v in MIN_EMP.items()),
+                    help="per-vertical headcount floor, e.g. medtech=20,construction=10")
+    ap.add_argument("--max-emp", type=int, default=MAX_EMP)
+    ap.add_argument("--apollo-below", type=int, default=APOLLO_BELOW,
+                    help="ask Apollo org enrich when LinkedIn staff is below this or missing (0 = never)")
+    ap.add_argument("--max-apollo", type=int, default=300, help="Apollo org-enrich calls per run")
+    ap.add_argument("--discover", choices=["on", "off"], default="on",
+                    help="web domain discovery for companies LeadOcean cannot match by name")
+    ap.add_argument("--max-serper", type=int, default=300, help="Serper queries per run (then DuckDuckGo HTML)")
     ap.add_argument("--check", action="store_true", help="offline: caches only, no network, no spend")
     a = ap.parse_args()
     states = ct.REGIONS[a.region] if a.region else [s.strip().upper() for s in a.states.split(",")]
     outdir = ROOT / ".tmp" / "referral" / a.batch
     outdir.mkdir(parents=True, exist_ok=True)
-    paths = {k: CACHE / f"{k}.json" for k in ("match", "jev", "site", "contacts", "email")}
+    paths = {k: CACHE / f"{k}.json" for k in ("match", "jev", "site", "contacts", "email", "discover", "apollo",
+                                                "recipient_loc")}
     caches = {k: jload(p, {}) for k, p in paths.items()}
     drop = jload(Path(a.drop_list), {"domains": [], "names": []})
     drop_dom = {norm_domain(d) for d in drop.get("domains", [])}
@@ -567,6 +905,11 @@ def main() -> int:
     lo = None if a.check else LeadOcean()
     budget = [a.max_jev]
     breaker = {"open": False, "fails": 0, "last": ""}
+    cfg = {"min_emp": dict(MIN_EMP, **{k.strip(): int(v) for k, v in
+                                       (x.split("=") for x in a.min_emp.split(",") if "=" in x)}),
+           "max_emp": a.max_emp, "apollo_below": a.apollo_below}
+    counter = {"serper": 0, "serper_cap": a.max_serper, "ddg": 0, "apollo": 0, "apollo_cap": a.max_apollo}
+    jev0 = budget[0]
     acct0 = lo.req("GET", "/v1/account")["data"] if lo else {}
 
     def save() -> None:
@@ -586,6 +929,19 @@ def main() -> int:
         def stage_match(t: dict) -> None:
             cands = lo_company_candidates(lo, t["org"], t["state"], caches["match"], a.check)
             t["co"], t["match_how"] = match_trigger(t, cands, caches["jev"], budget, a.check)
+            t["domain_source"] = "leadocean name" if t["co"] else ""
+            if t["co"] or a.discover == "off":
+                return
+            recipient_location(t, caches["recipient_loc"], a.check)
+            pick, note = discover_domain(t, caches["discover"], counter, budget, a.check)
+            if not pick:
+                t["match_how"] = f"{t['match_how']}; {note}"
+                return
+            lo_c = lo_company_by_domain(lo, pick["domain"], caches["match"], a.check) or {}
+            t["co"] = dict(pick, **{k: v for k, v in lo_c.items() if v not in (None, "") and k in
+                                    ("employees", "industries", "description", "linkedin")})
+            t["co"]["name"] = lo_c.get("name") or pick["name"]
+            t["match_how"], t["domain_source"] = note, pick["domain_source"]
 
         with ThreadPoolExecutor(max_workers=a.workers) as pool:
             list(pool.map(stage_match, trig))
@@ -604,10 +960,11 @@ def main() -> int:
             seen_domains.add(t["co"]["domain"])
             alive.append(t)
         cnt[STEPS[1]] = sum(1 for t in trig if t["co"])
-        cnt[STEPS[2]] = len(alive)
+        cnt[STEPS[2]] = sum(1 for t in trig if t["co"] and t["domain_source"] != "leadocean name")
+        cnt[STEPS[3]] = len(alive)
 
         def stage_gate(t: dict) -> None:
-            ok, note = gate(t, t["co"], caches["jev"], budget, a.check)
+            ok, note = gate(t, t["co"], caches["jev"], budget, a.check, cfg, caches["apollo"], counter)
             t["gate"] = note
             if not ok:
                 t["outcome"] = note
@@ -616,7 +973,7 @@ def main() -> int:
             list(pool.map(stage_gate, alive))
         save()
         alive = [t for t in alive if not t["outcome"]]
-        cnt[STEPS[3]] = len(alive)
+        cnt[STEPS[4]] = len(alive)
 
         def stage_site(t: dict) -> None:
             s = site_check(t, t["co"], caches["site"], a.check)
@@ -628,7 +985,7 @@ def main() -> int:
             list(pool.map(stage_site, alive))
         save()
         alive = [t for t in alive if not t["outcome"]]
-        cnt[STEPS[4]] = len(alive)
+        cnt[STEPS[5]] = len(alive)
 
         def stage_contacts(t: dict) -> None:
             ppl = contacts_for(lo, t["co"]["domain"], caches["contacts"], a.check)
@@ -650,7 +1007,7 @@ def main() -> int:
             list(pool.map(stage_contacts, alive))
         save()
         alive = [t for t in alive if not t["outcome"]]
-        cnt[STEPS[5]] = len(alive)
+        cnt[STEPS[6]] = len(alive)
 
         rows = []
         for t in alive:
@@ -673,7 +1030,9 @@ def main() -> int:
                        "website": co["domain"], "_leadocean_name": co["name"],
                        "date": nice_date(t["date"]), "site_fact": t["site"]["fact"],
                        "_rank": contact_rank(p["title"]), "_person_id": p["person_id"], "_iso_date": t["date"],
-                       "_trigger_org": t["org"], "_match": t["match_how"]}
+                       "_trigger_org": t["org"], "_match": t["match_how"], "_domain_source": t["domain_source"],
+                       "_size_source": t.get("size_source", ""), "_size_linkedin": t.get("size_linkedin", ""),
+                       "_size_apollo": t.get("size_apollo", "")}
                 if vert == "medtech":
                     row.update(device=t["device"], k_number=t["k_number"],
                                evidence_urls=f"{t['evidence_url']} {t['site']['final_url']}", _device_raw=t["device_raw"])
@@ -689,7 +1048,7 @@ def main() -> int:
             else:
                 t["outcome"] = "WORKABLE"
         save()
-        cnt[STEPS[6]] = sum(1 for t in alive if t["outcome"] == "WORKABLE")
+        cnt[STEPS[7]] = sum(1 for t in alive if t["outcome"] == "WORKABLE")
         for t in trig:
             if t["outcome"] != "WORKABLE":
                 why[re.sub(r"\(.*?\)|\d+(\.\d+)?", "#", t["outcome"]).strip()] += 1
@@ -698,7 +1057,9 @@ def main() -> int:
             co = t.get("co") or {}
             all_companies.append({"vertical": vert, "trigger_org": t["org"], "state": t["state"],
                                   "trigger_id": t["key"], "trigger_date": t["date"], "company": co.get("name", ""),
-                                  "domain": co.get("domain", ""), "employees": co.get("employees", ""),
+                                  "domain": co.get("domain", ""), "domain_source": t.get("domain_source", ""),
+                                  "employees": co.get("employees", ""), "size_apollo": t.get("size_apollo", ""),
+                                  "size_source": t.get("size_source", ""), "apollo_flipped": t.get("apollo_flipped", ""),
                                   "match": t.get("match_how", ""), "gate": t.get("gate", ""),
                                   "site_fact": (t.get("site") or {}).get("fact", ""),
                                   "contacts": t.get("n_contacts", 0), "emails": t.get("n_emails", 0),
@@ -722,16 +1083,22 @@ def main() -> int:
         doms = sorted({r["website"] for rows in contact_rows.values() for r in rows if not r["email"]})
         export = try_export(lo, doms, CACHE / "export_ledger.json")
         export.pop("csv", None)
-    write_funnel(outdir / "funnel.md", a, states, funnel, reasons, contact_rows, breaker, acct0, acct1, budget, export)
+    stats = {"counter": counter, "cfg": cfg, "jev_calls": jev0 - budget[0], "companies": all_companies}
+    write_funnel(outdir / "funnel.md", a, states, funnel, reasons, contact_rows, breaker, acct0, acct1, budget, export,
+                 stats)
     print((outdir / "funnel.md").read_text())
     return 0
 
 
-def write_funnel(path: Path, a, states, funnel, reasons, contact_rows, breaker, acct0, acct1, budget, export) -> None:
+def write_funnel(path: Path, a, states, funnel, reasons, contact_rows, breaker, acct0, acct1, budget, export,
+                 stats) -> None:
+    cfg, counter = stats["cfg"], stats["counter"]
+    floors = ", ".join(f"{k} {v}-{cfg['max_emp']}" for k, v in cfg["min_emp"].items() if k in funnel)
     L = [f"# Trigger batch funnel: {a.batch} ({', '.join(states)})", "",
          f"Built {dt.date.today()}. 510(k) decisions since {a.since}; federal awards (original action) last {a.days} "
-         f"days. Size gate {MIN_EMP}-{MAX_EMP} LinkedIn staff + Jev noul >= {JEV_GATE_NOUL}; match Jev conf >= "
-         f"{JEV_MATCH_CONF}; max {MAX_PER_CO} contacts/company.", "",
+         f"days. Size gate ({floors}) on LinkedIn staff, Apollo estimate when LinkedIn < {cfg['apollo_below']} or "
+         f"missing, + Jev noul >= {JEV_GATE_NOUL}; match Jev conf >= {JEV_MATCH_CONF}; unmatched names get web domain "
+         f"discovery ({a.discover}); max {MAX_PER_CO} contacts/company.", "",
          "| Step | " + " | ".join(funnel) + " |", "|---|" + "---:|" * len(funnel)]
     for s in STEPS:
         L.append(f"| {s} | " + " | ".join(str(funnel[v].get(s, 0)) for v in funnel) + " |")
@@ -748,6 +1115,19 @@ def write_funnel(path: Path, a, states, funnel, reasons, contact_rows, breaker, 
             L.append(f"**{v}**: " + ", ".join(f"{c} {sum(1 for r in rows if str(r.get(c) or '').strip())}/{len(rows)}"
                                               for c in P_COLS[v]))
             L.append("")
+    L += ["## Domain discovery and size sources", ""]
+    for v in funnel:
+        cs = [r for r in stats["companies"] if r["vertical"] == v]
+        src = Counter(r["domain_source"] for r in cs if r["domain"])
+        szs = Counter(r["size_source"] for r in cs if r["size_source"])
+        flips = sum(1 for r in cs if r["apollo_flipped"] is True)
+        L.append(f"**{v}**: domains by source {dict(src)}; size decided by {dict(szs)}; Apollo changed the size "
+                 f"decision for {flips} companies")
+        L.append("")
+    L += [f"Serper queries {counter['serper']}/{counter['serper_cap']}"
+          f"{' (stopped: ' + counter['serper_dead'] + ')' if counter.get('serper_dead') else ''}; DuckDuckGo queries "
+          f"{counter['ddg']}{' (stopped: ' + counter['ddg_dead'] + ')' if counter.get('ddg_dead') else ''}; Apollo "
+          f"org-enrich calls {counter['apollo']}/{counter['apollo_cap']} (cached domains not re-called).", ""]
     if breaker["fails"]:
         L += ["## Email lookup", "", f"LeadOcean /v2/people/email/work failed {breaker['fails']}x "
               f"(breaker {'open' if breaker['open'] else 'closed'}): {breaker['last']}", ""]
@@ -757,7 +1137,7 @@ def write_funnel(path: Path, a, states, funnel, reasons, contact_rows, breaker, 
         L += [f"LeadOcean records used: {acct0['records']['used']} -> {acct1['records']['used']} "
               f"(fair use, ceiling {acct0['records']['ceiling']}); export rows today "
               f"{acct1['exports']['day']['used']}/{acct1['exports']['day']['limit']}. Jev calls this run "
-              f"{a.max_jev - budget[0]}.", ""]
+              f"{stats['jev_calls']}.", ""]
     path.write_text("\n".join(L), encoding="utf-8")
 
 
