@@ -646,6 +646,73 @@ def append_jobs(
 # ----- Top Matches dashboard -----
 
 
+TOP_MATCHES_REBUILD_MAX_AGE_DAYS = 7
+_POSTED_RE = re.compile(r"posted (\d{4}-\d{2}-\d{2})")
+
+
+def select_top_from_role_rows(
+    tab_values: dict[str, list[list[str]]],
+    *,
+    top_n: int = TOP_MATCHES_MAX,
+    max_age_days: int = TOP_MATCHES_REBUILD_MAX_AGE_DAYS,
+    today=None,
+) -> list[dict[str, str]]:
+    """Pick Top Matches rows from the role tabs' existing rows (2026-11-16).
+
+    Used when a run has zero new candidates, so the dashboard shows the best
+    recent jobs instead of going blank. Keeps rows whose Verified stamp starts
+    with "open", posted within ``max_age_days`` (stamp date, else Posted
+    column), with a numeric Fit /5. Sorted by Fit /5 desc, then newest posted.
+    The ranker tier is not stored on role tabs, so "Fit" is left blank rather
+    than guessed. Dedupes on Link.
+    """
+    from datetime import date, timedelta
+
+    today = today or datetime.now(timezone.utc).date()
+    floor = today - timedelta(days=max_age_days)
+    picked: dict[str, tuple[int, date, dict[str, str]]] = {}
+    for tab, values in tab_values.items():
+        if not values:
+            continue
+        header = values[0]
+        for raw in values[1:]:
+            rec = dict(zip(header, raw))
+            verified = (rec.get("Verified") or "").strip()
+            link = (rec.get("Link") or "").strip()
+            if not verified.lower().startswith("open") or not link:
+                continue
+            m = _POSTED_RE.search(verified)
+            posted_s = m.group(1) if m else (rec.get("Posted") or "").strip()[:10]
+            try:
+                posted = date.fromisoformat(posted_s)
+                fit5 = int(float((rec.get("Fit /5") or "").strip()))
+            except ValueError:
+                continue
+            if posted < floor or not 1 <= fit5 <= 5:
+                continue
+            payload = {
+                "Fit": "",
+                "Fit /5": str(fit5),
+                "Identity": f"{rec.get('Title', '')} @ {rec.get('Company', '')}",
+                "Title": rec.get("Title", ""),
+                "Company": rec.get("Company", ""),
+                "Location": rec.get("Location", ""),
+                "Contract": rec.get("Contract", ""),
+                "Source Tab": tab,
+                "Why": "",
+                "Link": link,
+            }
+            prev = picked.get(link)
+            if prev is None or (fit5, posted) > (prev[0], prev[1]):
+                picked[link] = (fit5, posted, payload)
+    ordered = sorted(picked.values(), key=lambda t: (-t[0], -t[1].toordinal()))[:top_n]
+    out = []
+    for rank, (_, _, payload) in enumerate(ordered, start=1):
+        payload["Rank"] = str(rank)
+        out.append(payload)
+    return out
+
+
 def refresh_top_matches(
     jobs: list[NormalizedJob],
     *,
@@ -680,11 +747,9 @@ def refresh_top_matches(
     # 2026-11-16 (run 43849989859): a run whose new jobs were all filtered out
     # (e.g. the second same-day fire) used to overwrite Top Matches with 0 rows,
     # blanking the operator's dashboard and failing acceptance + customer-POV.
-    # No candidates -> keep the previous list untouched (no sheet I/O at all).
-    if not top:
-        logger.info("notifier.sheet: 0 Top Matches candidates this run — keeping previous tab")
-        return 0, True
-
+    # Now: no candidates -> rebuild from the role tabs (recent open
+    # rows by Fit /5) after the sheet is opened below; if that finds nothing
+    # too, keep the previous tab untouched.
     if dry_run:
         logger.info("notifier.sheet [dry-run]: would refresh Top Matches with %d rows", len(top))
         return len(top), True
@@ -695,6 +760,35 @@ def refresh_top_matches(
         return 0, False
 
     import gspread  # type: ignore
+    payloads: list[dict[str, str]] = []
+    for rank, (job, ranked) in enumerate(top, start=1):
+        payloads.append({
+            "Rank": str(rank),
+            "Fit": ranked.tier.value,
+            "Fit /5": "" if ranked.fit5 is None else str(ranked.fit5),
+            "Identity": f"{job.title} @ {job.company}",
+            "Title": job.title,
+            "Company": job.company,
+            "Location": job.location,
+            "Contract": job.contract_type.value,
+            "Source Tab": route_to_tab(job.title, routing_config),
+            "Why": ranked.reasoning,
+            "Link": str(job.url),
+        })
+    if not payloads:
+        try:
+            tab_values = {t: sp.worksheet(t).get_all_values()
+                          for t in _discover_role_tabs(sp, routing_config)}
+        except Exception as exc:  # noqa: BLE001 — fall back to keeping the previous tab
+            logger.warning("notifier.sheet: Top Matches rebuild read failed (%s) — keeping previous tab", exc)
+            return 0, True
+        payloads = select_top_from_role_rows(tab_values, top_n=top_n)
+        if not payloads:
+            logger.info("notifier.sheet: 0 candidates and no recent open role rows — keeping previous Top Matches")
+            return 0, True
+        logger.info("notifier.sheet: 0 candidates this run — rebuilding Top Matches from role tabs (%d rows)",
+                    len(payloads))
+
     try:
         try:
             ws = sp.worksheet(TOP_MATCHES_TAB)
@@ -723,27 +817,9 @@ def refresh_top_matches(
         except Exception as exc:  # noqa: BLE001 — pre-clear is best-effort
             logger.warning("notifier.sheet: clear Top Matches body failed: %s", exc)
 
-        if not top:
-            logger.info("notifier.sheet: Top Matches refreshed — 0 candidates")
-            return 0, True
-
         max_col = max(header_map.values())
         rows: list[list[str]] = []
-        for rank, (job, ranked) in enumerate(top, start=1):
-            tab = route_to_tab(job.title, routing_config)
-            payload = {
-                "Rank": str(rank),
-                "Fit": ranked.tier.value,
-                "Fit /5": "" if ranked.fit5 is None else str(ranked.fit5),
-                "Identity": f"{job.title} @ {job.company}",
-                "Title": job.title,
-                "Company": job.company,
-                "Location": job.location,
-                "Contract": job.contract_type.value,
-                "Source Tab": tab,
-                "Why": ranked.reasoning,
-                "Link": str(job.url),
-            }
+        for payload in payloads:
             row = [""] * max_col
             for name, col in header_map.items():
                 if name in payload:
