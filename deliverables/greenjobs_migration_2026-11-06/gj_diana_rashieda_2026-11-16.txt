@@ -13,7 +13,8 @@ Strategies switch the sites off on 6 December and the Download page goes with th
 
 2. Domain logins
 - You said the other domains are at 123 Reg, but the eight sector domains such as conservationjobsuk.com and windjobsuk.com point to GoDaddy name servers. Could you list which domains sit in each account (Hosting Ireland, Lets Host, 123 Reg, GoDaddy) and which ones you can't log into yet?
-- Once Keith has signed the contract and the first invoice (coming with the contract by Thursday 19 November) is paid, please share the DNS logins through a password manager, not by email: the Hosting Ireland login for greenjobs.ie and the Lets Host login for greenjobs.co.uk by Monday 23 November, and the sector domain logins by Friday 27 November, so you have time to recover the ones you can't get into.
+- Once Keith has signed the contract and the first invoice (coming with the contract by Thursday 19 November) is paid, please share the DNS logins through a password manager, not by email: the Hosting Ireland login for greenjobs.ie and the Lets Host login for greenjobs.co.uk by Monday 23 November, and the sector domain logins by Friday 27 November, so you have time to recover the ones you can't get into. With those logins, the eight domains forward to greenjobs.co.uk on 3 December; full sector sites are a separate quote.
+- The new sites run on a Cloudflare account in GreenJobs' name. Which company email address should I set it up under?
 - Please don't change any domain settings until I ask for the switch: an early change can cut off the old sites, and with them the Download page.
 
 3. Posting
