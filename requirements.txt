@@ -24,7 +24,7 @@ anthropic>=0.40.0
 scenedetect>=0.6.7
 imagehash>=4.3.2
 Pillow>=10.0.0
-google-genai>=1.0.0
+google-genai>=1.0.0,<3  # 3.x defaults to API v1, which rejects system_instruction (2026-11-16)
 
 # Google Sheets (job-search-sheet pipeline)
 gspread>=6.0

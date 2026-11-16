@@ -324,7 +324,9 @@ def rank_jobs(
     # to generativelanguage.googleapis.com can eat the entire CI budget.
     client = genai.Client(
         api_key=api_key,
-        http_options=types.HttpOptions(timeout=90_000),
+        # api_version pinned: google-genai 3.x defaults to v1, which rejects
+        # system_instruction (400 INVALID_ARGUMENT) -> 100% placeholder ranks.
+        http_options=types.HttpOptions(timeout=90_000, api_version="v1beta"),
     )
 
     # v3 schema (2026-06-27): per-dimension scoring grounded in profile.json.
