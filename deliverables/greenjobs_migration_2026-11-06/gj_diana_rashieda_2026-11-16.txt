@@ -1,0 +1,29 @@
+Hi Diana, hi Rashieda,
+
+Thank you both for the answers. Here are the next steps. Please use debanjan@prodcraft.fyi for everything on this project.
+
+1. Downloads (please start this week)
+Strategies switch the sites off on 6 December and the Download page goes with them, so this is the most urgent part.
+- On the Download page, download all six types for greenjobs.ie and for greenjobs.co.uk: Recruiters, Members registration details, Members profile data, Jobs, Jobs By Email and Job Applications.
+- Use the date fields to do a few months at a time, as Strategies suggested: as far back as the records go for Jobs and Recruiters, and two years for the other four types unless Keith wants more.
+- Members profile data is not available between 09:00 and 17:00 GMT, so that one needs an early morning or an evening.
+- Save the files in a folder in GreenJobs' name. Please don't send me the files themselves until the data processing agreement is signed.
+- For now, please send me only the header row of each file type (the column names, no data rows), so I can check the import before the real data arrives.
+- How many rows does Jobs By Email have on each site? That tells me how many people get job alerts.
+
+2. Domain logins
+- Please tell me which domains each account holds (Hosting Ireland, Lets Host, 123 Reg), including the eight sector domains such as conservationjobsuk.com and windjobsuk.com, and which ones you can't log into yet.
+- Once Keith has signed the contract and the first invoice is paid, please share those logins through a password manager, not by email.
+- Please don't change any domain settings before the switch: an early change can cut off the old sites, and with them the Download page.
+
+3. Posting
+- Once Keith is happy with it and I've confirmed the switch date, could you let CHM Recruit and Mattinson Partnership know that from that date they send their jobs to Rashieda to post, until employer log-ins arrive in the second phase?
+- Were any of the current live jobs posted through Broadbean or another tool, rather than by you two or those two clients? A yes or no is fine.
+
+4. Analytics
+Nothing needed from you for now, and authoritylabs.com isn't needed.
+
+Thanks,
+Debanjan
+Founder, ProdCraft
+debanjan@prodcraft.fyi
