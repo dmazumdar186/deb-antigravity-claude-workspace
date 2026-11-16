@@ -508,7 +508,10 @@ def _open_sheet(spreadsheet_id: str | None, service_account_path: Path | None):
             str(sa_path),
             scopes=["https://www.googleapis.com/auth/spreadsheets"],
         )
-        client = gspread.authorize(creds)
+        # 2026-11-16: BackOffHTTPClient retries 429 (Sheets 'Read requests per
+        # minute per user' quota) with exponential backoff (<=128s), so a burst
+        # of reads no longer drops the Summary / Top Matches writes.
+        client = gspread.authorize(creds, http_client=gspread.BackOffHTTPClient)
         # 60s per HTTP request. gspread's default (`None`) inherits from
         # google-auth's transport which is effectively unbounded — a slow
         # Sheets 5xx can then eat the whole 30-min workflow timeout while

@@ -410,7 +410,8 @@ def _open_sheet():
     if not sid or not sa.exists():
         return None
     creds = Credentials.from_service_account_file(str(sa), scopes=["https://www.googleapis.com/auth/spreadsheets"])
-    return gspread.authorize(creds).open_by_key(sid)
+    # 2026-11-16: back off on Sheets 429 read-quota instead of failing the gate.
+    return gspread.authorize(creds, http_client=gspread.BackOffHTTPClient).open_by_key(sid)
 
 
 def _check_row(tab: str, title: str, location: str, link: str, verified: str | None = None) -> list[str]:
