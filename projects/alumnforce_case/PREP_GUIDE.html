@@ -1443,7 +1443,7 @@ a { color: #1f5f8b; text-decoration: none; word-break: break-word; }
 
 <h2 id="s40">5.2 Every alternative we considered</h2>
 
-<p>All sixteen below come from the briefing's alternatives table (section 4), the deck's exclusion slide (slide 7) and the speaker guide. For each: what it is in plain words, why it is tempting, why we said no or "not now", and what would make us look again.</p>
+<p>All seventeen below come from the briefing's alternatives table (section 4), the deck's exclusion slide (slide 7) and the speaker guide. For each: what it is in plain words, why it is tempting, why we said no or "not now", and what would make us look again.</p>
 
 <h3>A. Alternatives to the core product shape</h3>
 
@@ -1568,7 +1568,7 @@ a { color: #1f5f8b; text-decoration: none; word-break: break-word; }
   <h4>Alternative 14: a native relative-date operator in Q1</h4>
   <p><b>What it is:</b> the segmenter today has no "in the last 3 years" filter, only fixed dates. A native operator would be a real engine change.</p>
   <p><b>Its appeal:</b> clean; saved segments would never silently age.</p>
-  <p><b>Why deferred:</b> it is an engine migration that deserves its own rehearsal. In Q1 the saved segment stores the relative duration and the shared list loader re-resolves it when opened or sent. Q2 gets the operator (about 4 dev-weeks in D3b).</p>
+  <p><b>Why deferred:</b> it is an engine migration that deserves its own rehearsal. In Q1 the saved segment stores the relative duration and the shared list loader re-resolves it when opened or sent. Q2 gets the operator (part of D3b, sized "3 + 4" dev-weeks on the deck).</p>
 </div>
 
 <h3>D. Alternatives about money and measurement</h3>
@@ -1847,7 +1847,7 @@ a { color: #1f5f8b; text-decoration: none; word-break: break-word; }
 </div>
 
 <h3>Where the reliability status lives technically</h3>
-<p>A nightly batch job writes the status into one MariaDB column (<code>reliability_status</code>) and, in OpenSearch, two date fields plus a <code>reliability_status</code> keyword. Two new criteria are exposed through the existing date-filter type. No new criterion type, no cluster refactor. Each tenant is re-indexed with an "alias swap": build a new index, verify counts, then flip a pointer (like printing a new phone book and only swapping it on the shelf once it is checked). Cleaned values go in separate <code>*_norm</code> columns that never overwrite source fields.</p>
+<p>A nightly batch job writes the status into one MariaDB column and, in OpenSearch, two date fields plus a <code>reliability_status</code> keyword. Two new criteria are exposed through the existing date-filter type. No new criterion type, no cluster refactor. Each tenant is re-indexed with an "alias swap": build a new index, verify counts, then flip a pointer (like printing a new phone book and only swapping it on the shelf once it is checked). Cleaned values go in separate <code>*_norm</code> columns that never overwrite source fields.</p>
 
 <h2 id="s47">6.4 The deliverables and the budget</h2>
 
@@ -1856,7 +1856,7 @@ a { color: #1f5f8b; text-decoration: none; word-break: break-word; }
 <tr><td><b>D1 Reliability layer</b></td><td>9</td><td>Nightly status tag (profile age, last login, future dates ignored); one MariaDB column; OpenSearch two date fields + status keyword; two new criteria via the existing date filter; split = one terms aggregation; per-tenant reindex; reference tables with per-tenant overrides; <code>*_norm</code> columns; idempotent chunked backfill; status visible on the member's profile, contest via support ticket in Q1</td><td>Core</td></tr>
 <tr><td><b>D2 Sentence → filters</b></td><td>9</td><td>Gateway integration, filter contract, validator, prompt cache, relative-duration handling, Vue pre-fill</td><td>Core</td></tr>
 <tr><td><b>D3a Actions</b></td><td>2</td><td>"Send to current + to-confirm"; "Reactivate" via pre-filled Profile Update Campaign; one reactivation per member per quarter; suppression after "not me" or opt-out</td><td>Core</td></tr>
-<tr><td><b>D3b Hygiene</b></td><td>3 + 4</td><td>Duplicate detection report, stable export column order (Marc, V6) — 3; relative-date engine operator — 4. No merge UI.</td><td>Stretch / Q2</td></tr>
+<tr><td><b>D3b Hygiene</b></td><td>3 + 4</td><td>Duplicate detection report, stable export column order (Marc, V6), relative-date engine operator (the deck sizes D3b as "3 + 4" without splitting it). No merge UI.</td><td>Stretch / Q2</td></tr>
 <tr><td><b>D4 Flags, metering, evals</b></td><td>6</td><td>Two flags; per-call log; kill switch; record/replay evals + nightly live replay; campaign outcomes by segment × status; per-tenant config table with owner and change log</td><td>Core</td></tr>
 </table>
 
@@ -2145,7 +2145,7 @@ a { color: #1f5f8b; text-decoration: none; word-break: break-word; }
 <div class="assume"><b>Assumption:</b> Our dev-week estimates are right: D1 reliability layer 9, D2 sentence box 9, D3a actions 2, D4 flags/metering/evals 6, total core 26; D3b hygiene 3 + 4 is stretch or Q2.
 <p><b>Why reasonable:</b> each line was sized against what we saw in the demo instance, for example that the two reliability criteria do not exist in the engine today, so D1 is an engine change plus a reindex, not a screen tweak. That is why D1 is the heaviest and goes first.</p>
 <p><b>How we test it, and when:</b> week 1, with the Lead Developer. Our briefing is blunt: "Dev-weeks, token costs, backfill timing and the demo counts are one person's estimates from one session; the Lead Developer's numbers win."</p>
-<p><b>If wrong:</b> the pre-named cut order applies. If the engine has no extension point for a new criterion type and the relative-date operator would cost six weeks, that operator drops first (saved segments carry an "as of" date and re-resolve on open), then the Vue pre-fill. Reliability tag and metering stay.</p></div>
+<p><b>If wrong:</b> the pre-named cut order applies. If the engine has no extension point for a new criterion type and the relative-date operator would cost six weeks, that operator drops first (saved segments store the relative duration and the shared list loader re-resolves it on open and at send time), then the Vue pre-fill. Reliability tag and metering stay.</p></div>
 
 <div class="concept">
   <h4>Extension point</h4>
@@ -2337,8 +2337,8 @@ a { color: #1f5f8b; text-decoration: none; word-break: break-word; }
 <div class="say"><b>Say it like this:</b> "It's the most valuable request in the pack, which is exactly why I won't build it on data I can't trust yet. It's Q2's headline."</div>
 
 <h3>Relative-date engine operator and stable export columns</h3>
-<p><b>What:</b> a real "within the last N years" operator inside the engine (4 dev-weeks), and fixed export column order, part of D3b.</p>
-<p><b>Why not now:</b> Q1 resolves "3 years" to an absolute date at save time; the segment stores its "as of" date and re-resolves on open. That covers the need without an engine migration.</p>
+<p><b>What:</b> a real "within the last N years" operator inside the engine, and fixed export column order, both part of D3b ("3 + 4" dev-weeks on the deck).</p>
+<p><b>Why not now:</b> In Q1 the segment stores "3 years" as a relative duration, and the shared list loader re-resolves it on open and at send time; a manual date edit freezes it as a "fixed date". That covers the need without an engine migration.</p>
 <p><b>What would bring it in:</b> Q2, as a proper migration with its own rehearsal. The export column order also answers V6, the "not for me" member who wants Excel columns in order.</p>
 
 <h3>Model-written member emails</h3>
@@ -2604,7 +2604,7 @@ a { color: #1f5f8b; text-decoration: none; word-break: break-word; }
 <h3>Scope</h3>
 <p><b>12. What's in the quarter?</b> A 26 dev-week core: reliability layer 9, sentence box 9, the two actions 2, flags, metering and evals 6. Duplicate report and the relative-date operator are already Q2.</p>
 <p><b>13. If everything slips, what do you protect?</b> The two reliability criteria and the metering. Everything else is a layer on top.</p>
-<p><b>14. What slips first?</b> The sentence box, deliverable 2. Below 24 dev-weeks, the live Vue pre-fill becomes a saved-list import. The reliability layer ships regardless because it has value alone.</p>
+<p><b>14. What slips first?</b> D3b (the duplicate report, export order and the relative-date operator) is already Q2. Below 24 dev-weeks, the live Vue pre-fill becomes a saved-list import. The sentence box itself stays, and the reliability tag and metering never move.</p>
 <p><b>15. Why is reactivation core but the duplicate report stretch?</b> Reactivation is the only priced lever and the subject of the week-17 decision. The duplicate report is a renewal nicety.</p>
 <p><b>16. Why not a merge tool for duplicates?</b> Merging is multi-module and irreversible; it needs a candidate table, a reviewer and an undo window. In production it becomes a scored candidate list the admin reviews, never auto-merge.</p>
 <p><b>17. Are you asking for an engine change in Q1?</b> No. Two date fields and a status keyword through the date filter the engine already has, plus a nightly tag. The relative-date operator is Q2.</p>
@@ -2648,7 +2648,7 @@ a { color: #1f5f8b; text-decoration: none; word-break: break-word; }
 <p><b>45. Who maintains reference tables across 350 tenants?</b> One global service owned by product, with per-tenant overrides admins can edit. Overrides never overwrite the source fields.</p>
 
 <h3>You as a hire</h3>
-<p><b>46. How did you use AI to build this?</b> Truthfully, as Annex A says: drafting, data runs, a browser session on the demo, eleven review lenses. The five checks were run by an agent on my instruction and recorded in VERIFICATION.md, which I reviewed. Two automated sessions used my demo account; one created and deleted an empty test list, the other was read-only.</p>
+<p><b>46. How did you use AI to build this?</b> Truthfully, as Annex A says: drafting, data runs, two browser sessions on the demo, eleven review lenses. The five checks were run by an agent on my instruction and recorded in VERIFICATION.md, which I reviewed. Two automated sessions used my demo account; one created and deleted an empty test list, the other was read-only.</p>
 <p><b>47. Did you email us a question during the week?</b> Answer truthfully. If not: "I'd have asked two things: which tenants have already refused AI, and whether the gateway runs in the EU today."</p>
 <p><b>48. What would make you turn this down?</b> A gateway that can't be moved to the EU and a leadership that wants the chatbot anyway.</p>
 <p><b>49. What's the weakest part of your case?</b> My estimates come from one session on one demo; the Lead Developer's numbers win. Competitor claims are unverified. And the thresholds look lopsided on this synthetic file, 43 of 49 to reactivate, which is why CS hand-grading comes first.</p>

@@ -1,6 +1,6 @@
 # Speaker guide — AlumnForce case, 20-minute presentation + 30-minute Q&A
 
-Deck is 15 slides plus three annexes: A is AI usage, B is selection logic, C is the technical and compliance sheet. In the deck the feature is called **Trusted Segments**. The natural-language input is "the sentence box". Reliability words are **Current / To confirm / To reactivate**, nothing else. And in the room, never say "chat", "grade" or "stale".
+Deck is 15 slides plus four annexes: A is AI usage, B is selection logic, C is the technical and compliance sheet, D is operations and the feedback loop. In the deck the feature is called **Trusted Segments**. The natural-language input is "the sentence box". Reliability words are **Current / To confirm / To reactivate**, nothing else. And in the room, never say "chat", "grade" or "stale".
 
 Audience is the CPO and a Lead Developer. Frédéric (founder) pitched the role as senior AI PM — someone who can clean the database, run AI evals, and think about LangChain-style orchestration. They're bootstrapping, so every slide should sound cheap and prove something.
 
