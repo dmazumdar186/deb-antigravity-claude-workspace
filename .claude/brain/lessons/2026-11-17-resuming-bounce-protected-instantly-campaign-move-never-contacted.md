@@ -1,0 +1,14 @@
+---
+id: 2026-11-17-resuming-bounce-protected-instantly-campaign-move-never-contacted
+triggers: bounce protection, resume campaign, paused high bounce, instantly
+scope: all
+strength: 2
+status: active
+created: 2026-11-17
+confirmed: 2026-11-17
+source:
+supersedes:
+---
+Before resuming a bounce-protected Instantly campaign, move its never-contacted unverified leads to a holding list so only follow-ups to delivered addresses send.
+
+Why: 2026-11-17: resumed SF campaign re-paused within hours; the resume sent only new unverified leads (7.4% bounce)
