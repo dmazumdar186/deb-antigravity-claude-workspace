@@ -56,13 +56,46 @@ Reuses `execution/gtm_icp_filters/medtech_510k_triggers.py` (openFDA pull, `clea
    company domain, deduped by email; one person held twice by LeadOcean (two title records) is kept once. A circuit breaker stops after 5 failures; `--try-export` then tries one
    domain-filtered bulk export (<= 50 domains, ledgered in `.tmp/referral/cache/export_ledger.json`).
 
+8. **Size flag** (homepage fetched once per surviving company, cached in `pages.json`): headcount > 500 from LinkedIn
+   or cached Apollo, a ticker (`NASDAQ: X` / `NYSE: X`), an investor-relations link, or "publicly traded" in the
+   LeadOcean description = dropped (`--size-flag flag` keeps them, flagged). The size gate alone passes small public
+   companies, hence this step. `size_flag` column; soft note "near 500 ceiling" at >= 400 LinkedIn staff.
+9. **Title allowlist** (before any email reveal): keep CEO, President, Owner, Founder/Co-founder, Managing
+   Partner/Principal, General Manager, COO, CMO, VP/Director/Head of Marketing, Brand, Communications/PR, Business
+   Development, Sales at VP level or above. Drop HR/People, Finance/CFO/Accounting/Controller, Compliance, Quality,
+   Regulatory/Clinical, R&D, Engineering, CTO/IT/Technology, Operations below COO, Product, safety, estimating,
+   former/ex/advisor titles, sales below VP. A title with both an allowed and an excluded word, or a senior title
+   outside the list (Regional VP, Chairman, "Director - Trade"), is one cached Jev `choice` (chief_exec / growth_lead
+   / senior_general / none, conf >= 0.7, keyed by title text).
+10. **One chief executive per company**: 2+ CEO/Chief Executive titles -> fetch the about/leadership/team pages once
+   (homepage nav links, else /about, /leadership, /team), keep the one the pages name (near "CEO" wins); else keep
+   the higher title rank (Chairman/President & CEO > CEO > Chief Executive) and mark `_exec_check` UNVERIFIED.
+   LeadOcean people-search rows carry no job start/end dates, so that fallback is not available.
+11. **Cap 2 per company**: best chief exec + best marketing/BD lead first, then the rest by rank.
+12. **Role inboxes**: an email whose local part is a role address (info, contact, sales, admin, office, hello,
+   marketing, support, team, inquiries, estimating, bids ...) is dropped even with a person's name attached; the next
+   allowlisted person takes the slot. Every contact-level drop is counted in funnel "Contact gates".
+13. **Display columns**: `company_display` = record name (d/b/a part preferred) recased from the company's own pages
+   (O'Neill, VII, LGC; vowel-less ALL-CAPS-record acronyms upper-cased); a homepage og:site_name / <title> / logo-alt
+   name replaces it only via a cached Jev `choice` that includes `keep_original` (conf >= 0.7). Person names get the
+   pages' spelling when it carries inner capitals (DeBartola), initials fixed (D.J.). `device_display` <= 45 chars
+   from the FDA name: leading company word dropped before cutting the tail, word-boundary cut never ending on a
+   connector, brand casing from the company's pages, all-lowercase records capitalized; `device_raw` kept.
+
+## Rebuild without redoing network work
+
+`--check --allow-net pages,jev,email --end <window end of the original run>`: triggers, matches, size gate, site
+facts and people searches come from caches; only new page fetches, Jev title/display calls and LeadOcean email
+reveals for newly chosen contacts go online. `--end` pins the construction award window to the cached pull.
+
 ## Outputs
 
-`.tmp/referral/<batch>/`: `<batch>_medtech.csv` (first_name,last_name,title,email,linkedin,company,website,date,device,
-k_number,site_fact,evidence_urls), `<batch>_construction.csv` (... agency,date,amount,award_id,site_fact,evidence_url),
+`.tmp/referral/<batch>/`: `<batch>_medtech.csv` (first_name,last_name,title,email,linkedin,company,company_display,website,
+date,device,device_display,device_raw,k_number,site_fact,evidence_urls,size_flag), `<batch>_construction.csv` (...,
+company_display, ..., agency,date,amount,award_id,site_fact,evidence_url,size_flag),
 `<batch>_<vertical>_audit.csv` (same + raw device, trigger org, match method, rank), `<batch>_companies.csv` (every
 trigger company and its outcome), `funnel.md` (step counts, drop reasons, column fill, LeadOcean usage).
-Caches: `.tmp/referral/cache/{match,jev,site,contacts,email,discover,apollo,recipient_loc}.json`. Funnel adds
+Caches: `.tmp/referral/cache/{match,jev,site,contacts,email,discover,apollo,recipient_loc,pages}.json`. Funnel adds
 domains by source, size by source, Apollo flips, and Serper/DuckDuckGo/Apollo call counts.
 
 ## Edge Cases

@@ -10,11 +10,14 @@ inputs:  --region west|east|midwest|south|mountain (or --states CA,OR); --vertic
          --drop-list JSON {"domains": [...], "names": [...]}; --max-jev; --try-export (one <=50-domain export when the
          per-person email lookup is down); --check (offline: caches only); --min-emp medtech=20,construction=10;
          --max-emp 500; --apollo-below 10 + --max-apollo 300 (Apollo org-enrich second-opinion headcount);
-         --discover on|off + --max-serper 300 (web domain discovery for names LeadOcean cannot match).
+         --discover on|off + --max-serper 300 (web domain discovery for names LeadOcean cannot match);
+         --end YYYY-MM-DD (pin the award window); --size-flag drop|flag; --allow-net pages,jev,email (with --check:
+         the only stages allowed online). Contact gates: title allowlist (Jev for edge titles), one chief exec per
+         company (about/leadership pages), role-inbox drop, cap 2; display columns company_display/device_display.
          env LEADOCEAN_API_KEY, OPENROUTER_API_KEY, optional SERPER_API_KEY (else DuckDuckGo HTML).
 outputs: .tmp/referral/<batch>/<batch>_<vertical>.csv (one row per contact, personalized columns), <batch>_companies.csv
          (every trigger company with its funnel outcome and drop reason), funnel.md; caches in .tmp/referral/cache/
-         (match, gate, site, contacts, email; keyed by name+state / domain / K number or award id / person id).
+         (match, gate, site, contacts, email, pages; keyed by name+state / domain / K number or award id / person id).
 usage:   python3 execution/lead_sourcing/trigger_batch_leads.py --region west --batch batch1
          python3 execution/lead_sourcing/trigger_batch_leads.py --region west --batch batch1 --check   # rebuild offline
 Directive: directives/lead_sourcing/trigger_batch_leads.md
@@ -189,11 +192,13 @@ def medtech_triggers(states: list[str], since: str, offline: bool) -> list[dict]
     return out
 
 
-def construction_triggers(states: list[str], region: str, days: int, offline: bool) -> list[dict]:
+def construction_triggers(states: list[str], region: str, days: int, offline: bool, end: str = "") -> list[dict]:
     label = region or "-".join(states).lower()
     path = ROOT / ".tmp/referral/triggers/construction" / f"construction_triggers_{label}.csv"
     cmd = [sys.executable, str(ROOT / "execution/gtm_icp_filters/construction_award_triggers.py"),
            "--days", str(days)] + (["--region", region] if region else ["--states", ",".join(states)])
+    if end:
+        cmd += ["--end", end]
     if offline:
         cmd.append("--check")
     import subprocess
@@ -857,16 +862,477 @@ def try_export(lo: LeadOcean, domains: list[str], ledger_path: Path) -> dict:
     return job
 
 
+# ------------------------------------------------------------------ 6. contact + copy gates
+# Title allowlist, role-inbox drop, one chief executive per company, company/device/person display names, size flag.
+JEV_TITLE_CONF = 0.7   # choice confidence needed to keep an edge-case title (else dropped)
+JEV_DISPLAY_CONF = 0.7  # choice confidence needed to replace the record name with a homepage name
+_VP = re.compile(r"\bvice[- ]?president\b|\b[se]?vp\b|\bavp\b")
+TITLE_FORMER = re.compile(r"\b(former|retired|emeritus)\b|\bex[- ]|\bassistant to\b|\bexecutive assistant\b|\bintern\b"
+                          r"|\badvis[oe]r\b")
+TITLE_EXEC = re.compile(r"\b(ceo|chief executive|president|owner|co-?owner|founder|co-?founder|cofounder)\b")
+TITLE_SENIOR = re.compile(r"\b(managing partner|principal|general manager|gm|coo|chief operating officer|managing director)\b")
+TITLE_GROWTH_CHIEF = re.compile(r"\bcmo\b|\bchief (marketing|commercial|revenue|growth|brand|communications|"
+                                r"business development|sales) officer\b")
+TITLE_GROWTH_AREA = re.compile(r"\b(marketing|brand|branding|communications|public relations|business development|"
+                               r"growth)\b")
+TITLE_SALES = re.compile(r"\b(sales|commercial|revenue)\b")
+TITLE_DENY = re.compile(
+    r"\b(hr|human resources?|people|talent|recruit\w*|finance|financial|cfo|accounting|accountant|controller|treasurer|"
+    r"tax|payroll|compliance|quality|qa|qc|regulatory|clinical|r ?& ?d|research|engineering|engineer|cto|technology|"
+    r"technical|it|information|data|software|product|products|operations|operational|safety|hse|ehs|legal|counsel|"
+    r"procurement|purchasing|supply chain|manufacturing|production|estimat\w*|project manager|superintendent|"
+    r"scien\w*|medical affairs|preconstruction)\b")
+TITLE_EDGE = re.compile(r"\b(vp|vice president|director|head|chief|partner|chair\w*|executive)\b")
+CHIEF_EXEC = re.compile(r"\bceo\b|\bchief executive\b")
+RANK_OF = {"chief_exec": 0, "growth_lead": 1, "senior_general": 2}
+ROLE_LOCAL = {"info", "contact", "contactus", "sales", "admin", "office", "hello", "hi", "marketing", "support", "team",
+              "inquiries", "inquiry", "enquiries", "enquiry", "mail", "email", "general", "accounts", "accounting", "ar",
+              "ap", "billing", "hr", "jobs", "careers", "service", "services", "customerservice", "webmaster",
+              "noreply", "donotreply", "press", "media", "help", "orders", "estimating", "estimates", "bids", "bid",
+              "projects", "reception", "frontdesk", "main", "ops", "operations", "postmaster", "careers", "info1"}
+ROLE_PREFIX = re.compile(r"^(info|sales|admin|office|contact|support|hello|marketing|team|inquir|enquir|estimat|"
+                         r"bids?|careers|customerservice|noreply|no-reply)([._\-+]|\d|$)")
+
+
+def title_rule(title: str) -> tuple[str, str]:
+    """Deterministic title class: chief_exec / growth_lead / senior_general (keep), drop, or edge (Jev decides)."""
+    t = re.sub(r"\s+", " ", (title or "").lower().replace("&", " & "))
+    if not t.strip():
+        return "drop", "no title"
+    if TITLE_FORMER.search(t):
+        return "drop", "former/assistant/advisor title"
+    vp = bool(_VP.search(t))
+    allow = ""
+    if TITLE_EXEC.search(_VP.sub(" ", t)):
+        allow = "chief_exec"
+    elif TITLE_GROWTH_CHIEF.search(t) or (TITLE_GROWTH_AREA.search(t) and (vp or re.search(r"\b(director|head)\b", t))):
+        allow = "growth_lead"
+    elif TITLE_SALES.search(t) and (vp or re.search(r"\b(chief|head)\b", t)):
+        allow = "growth_lead"
+    elif TITLE_SENIOR.search(t):
+        allow = "senior_general"
+    deny = TITLE_DENY.search(t)
+    if allow and not deny:
+        return allow, "allowlisted title"
+    if allow and deny:
+        return "edge", f"allowlisted + excluded word ({deny.group(0)})"
+    if deny:
+        return "drop", f"excluded function ({deny.group(0)})"
+    if TITLE_SALES.search(t):
+        return "drop", "sales below VP"
+    if TITLE_EDGE.search(t):
+        return "edge", "senior title outside the allowlist"
+    return "drop", "not a buyer title"
+
+
+def title_class(title: str, jev_cache: dict, budget: list[int], offline: bool) -> tuple[str, str]:
+    """title_rule, then one cached Jev choice (with a none option) for edge cases. Returns (class|'drop', reason)."""
+    cls, why = title_rule(title)
+    if cls != "edge":
+        return cls, f"rule: {why}"
+    ck = "title|" + re.sub(r"\s+", " ", title.strip().lower())
+    if ck not in jev_cache:
+        if offline or budget[0] <= 0:
+            return "drop", "edge title not judged (offline/no Jev budget)"
+        from execution.modules import jev_client as jev
+        if not jev.available():
+            return "drop", "edge title not judged (Jev unavailable)"
+        r = jev.decide({"job_title": title, "company_size": "20-500 staff"}, {"t": jev.choice(
+            "Would a person with this job title buy or champion a new company website / brand project at a "
+            "20-500 person company? Pick their role group, or none.",
+            {"chief_exec": "CEO, president, owner or founder of the company (a founder who also holds another "
+                           "title still counts)",
+             "growth_lead": "marketing, brand, communications or business-development lead, or a sales leader at "
+                            "VP level or above",
+             "senior_general": "COO, general manager, managing partner or principal",
+             "none": "not a buyer: finance, HR/people, compliance, quality, regulatory, R&D, engineering, CTO/IT, "
+                     "product, operations below COO, sales below VP, a regional/account role, or a board, "
+                     "advisory or former role"})})
+        budget[0] -= 1
+        jev.append_ledger({"script": "trigger_batch_leads", "step": "title", "cost": r.cost_usd})
+        with _lock:
+            jev_cache[ck] = {"pick": r.choice("t") if not r.error else "", "conf": r.confidence("t"),
+                             "error": (r.error or "")[:200]}
+    j = jev_cache[ck]
+    if j.get("error"):
+        return "drop", "edge title Jev error"
+    if j["pick"] in RANK_OF and j["conf"] >= JEV_TITLE_CONF:
+        return j["pick"], f"jev {j['pick']} {j['conf']:.2f}"
+    return "drop", f"edge title: Jev {j['pick'] or '-'} {j['conf']:.2f}"
+
+
+def is_role_inbox(email: str) -> bool:
+    lp = (email or "").split("@")[0].lower()
+    return bool(lp) and (lp in ROLE_LOCAL or re.sub(r"[\d._\-+]+", "", lp) in ROLE_LOCAL or bool(ROLE_PREFIX.match(lp)))
+
+
+def chief_rank(title: str) -> int:
+    t = (title or "").lower()
+    if re.search(r"\b(chairman|chairwoman|chair|president)\b", t) and CHIEF_EXEC.search(t):
+        return 3
+    if re.search(r"\bceo\b|chief executive officer", t):
+        return 2
+    return 1
+
+
+# ---- page fetches (homepage once per output company; about/leadership pages only to resolve two chief executives)
+PEOPLE_LINK = re.compile(r"leadership|our-team|team|management|executive|people|who-we-are|about", re.I)
+
+
+def _meta(html: str, prop: str) -> str:
+    for pat in (rf'<meta[^>]+(?:property|name)=["\']{prop}["\'][^>]*content=["\']([^"\']*)',
+                rf'<meta[^>]+content=["\']([^"\']*)["\'][^>]*(?:property|name)=["\']{prop}["\']'):
+        m = re.search(pat, html or "", flags=re.I)
+        if m:
+            return html_lib.unescape(m.group(1)).strip()[:120]
+    return ""
+
+
+def _logo_alt(html: str) -> str:
+    for m in re.finditer(r"<img\b[^>]*>", html or "", flags=re.I):
+        tag = m.group(0)
+        if re.search(r"logo", tag, re.I):
+            a = re.search(r'\balt=["\']([^"\']{2,80})["\']', tag, flags=re.I)
+            if a:
+                return html_lib.unescape(a.group(1)).strip()
+    return ""
+
+
+def _page_record(url: str, final: str, html: str, text: str) -> dict:
+    title, _ = _visible_text(html) if html else ("", "")
+    links = []
+    for m in re.finditer(r'<a\b[^>]*href=["\']([^"\'#]+)["\']', html or "", flags=re.I):
+        links.append(urllib.parse.urljoin(final or url, html_lib.unescape(m.group(1))))
+    root = mt.domain_root(norm_domain(final or url))
+    people = [u for u in dict.fromkeys(links) if PEOPLE_LINK.search(urllib.parse.urlparse(u).path or "")
+              and mt.domain_root(norm_domain(u)) == root]
+    ir = [u for u in dict.fromkeys(links) if re.match(r"https?://(investors?|ir)\.", u, re.I)
+          or re.search(r"/investor-relations", urllib.parse.urlparse(u).path or "", re.I)]
+    ir += [m.group(0) for m in re.finditer(r"investor relations", text or "", flags=re.I)][:1]
+    return {"url": final or url, "title": title, "og_site_name": _meta(html, "og:site_name"),
+            "og_title": _meta(html, "og:title"), "logo_alt": _logo_alt(html), "text": (text or "")[:30000],
+            "people_links": people[:12], "ir_links": ir[:4]}
+
+
+def fetch_page(url: str, rendered: bool = True) -> dict:
+    """Static GET first; rendered (Playwright) fallback when the static page is thin or blocked."""
+    try:
+        h = requests.get(url, headers={"User-Agent": mt.UA}, timeout=15)
+        if h.status_code < 400:
+            _, text = _visible_text(h.text)
+            if len(text) >= 200:
+                return _page_record(url, h.url, h.text, text)
+    except requests.RequestException:
+        pass
+    if not rendered:
+        return {}
+    r = mt.pw_fetch([{"url": url, "mode": "full"}])[0]
+    if not r.get("error") and (r.get("status") or 0) < 400 and len((r.get("text") or "").strip()) >= 200:
+        return _page_record(url, r.get("final_url") or url, r.get("html") or "", re.sub(r"\s+", " ", r["text"]))
+    return {}
+
+
+def site_pages(dom: str, cache: dict, need_people: bool, offline: bool) -> dict:
+    """Cached per domain: {'home': page, 'people': [pages]}. Failures are cached too (re-run = no network)."""
+    e = dict(cache.get(dom) or {})
+    changed = False
+    if "home" not in e and not offline:
+        e["home"] = fetch_page(f"https://{dom}") or fetch_page(f"https://www.{dom}")
+        changed = True
+    if "ir_probe" not in e and not offline:  # listed companies run investors.<domain> / ir.<domain>
+        e.pop("ir_host", None)
+        e["ir_probe"] = ""
+        for host in (f"investors.{dom}", f"ir.{dom}"):
+            try:
+                h = requests.get(f"https://{host}", headers={"User-Agent": mt.UA}, timeout=10)
+            except requests.RequestException:
+                continue  # no such host / unreachable: not evidence either way
+            if h.status_code in (401, 403) and host in h.url:
+                e["ir_probe"] = f"{host} (HTTP {h.status_code}, bot-blocked)"
+                break
+            if h.status_code < 400 and host in h.url and re.search(
+                    r"investor|stock|shareholder|sec filing", h.text[:200000], re.I):
+                e["ir_probe"] = host
+                break
+        changed = True
+    if need_people and "people" not in e and not offline:
+        home = e.get("home") or {}
+        links = sorted(home.get("people_links") or [], key=lambda u: next(
+            (i for i, k in enumerate(("leadership", "team", "management", "executive", "people", "about"))
+             if k in u.lower()), 9))[:3]
+        pages = []
+        for u in links:
+            p = fetch_page(u)
+            if p:
+                pages.append({"url": p["url"], "text": p["text"]})
+        if not pages:  # no nav links found: try the usual paths, static only
+            base = (home.get("url") or f"https://{dom}").rstrip("/")
+            base = re.match(r"https?://[^/]+", base).group(0)
+            for path in ("about", "about-us", "leadership", "team", "our-team", "company"):
+                p = fetch_page(f"{base}/{path}", rendered=False)
+                if p:
+                    pages.append({"url": p["url"], "text": p["text"]})
+                if len(pages) >= 2:
+                    break
+        e["people"] = pages
+        changed = True
+    if changed:
+        with _lock:
+            cache[dom] = e
+    return e
+
+
+def page_texts(pages: dict) -> list[str]:
+    home = pages.get("home") or {}
+    return [x for x in [home.get("title", ""), home.get("og_site_name", ""), home.get("logo_alt", ""),
+                        home.get("text", "")] + [p.get("text", "") for p in pages.get("people") or []] if x]
+
+
+# ---- spelling from the company's own pages
+_TOK = re.compile(r"[A-Za-z0-9][A-Za-z0-9&'’.\-]*")
+
+
+def _key(s: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", (s or "").lower().replace("&", "and"))
+
+
+def site_spellings(name: str, texts: list[str]) -> Counter:
+    """Every way the pages write `name` (same letters/digits, any case/punctuation, +-1 token)."""
+    target, n = _key(name), len(_TOK.findall(name))
+    out: Counter = Counter()
+    if not target or n == 0:
+        return out
+    for text in texts:
+        if target not in _key(text):
+            continue
+        toks = _TOK.findall(text)
+        for w in {max(1, n - 1), n, n + 1}:
+            for i in range(len(toks) - w + 1):
+                seg = " ".join(toks[i:i + w])
+                if _key(seg) == target:
+                    last = toks[i + w - 1]
+                    out[seg.rstrip(".,") if len(_key(last)) > 2 else seg] += 1
+    return out
+
+
+def _has_inner_case(s: str) -> bool:
+    return any(c.isupper() for w in s.split() for c in w[1:]) and any(c.islower() for c in s) or "'" in s or "’" in s
+
+
+ROMAN = re.compile(r"^(ii|iii|iv|vi|vii|viii|ix|xi|xii)$", re.I)
+
+
+def recase_name(base: str, from_caps_record: bool, texts: list[str]) -> str:
+    """The company's own spelling of `base` from its pages; else deterministic fixes for capitalized ALL-CAPS records
+    (roman numerals and vowel-less acronyms upper-cased)."""
+    s = base
+    if from_caps_record:
+        s = " ".join(w.upper() if ROMAN.match(w) or (w.isalpha() and 2 <= len(w) <= 4 and not re.search(r"[aeiouy]", w,
+                                                                                                         re.I)) else w
+                     for w in s.split())
+    cnt = site_spellings(s, texts)
+    ntok = len(s.split())
+    mixed = [(n, v) for v, n in cnt.items() if not v.isupper()]
+    if mixed:  # most frequent; ties -> same token count as the record, then the variant with inner capitals
+        best = max(mixed, key=lambda x: (x[0], len(x[1].split()) == ntok, _has_inner_case(x[1])))[1].replace("’", "'")
+        if best != s and (best.lower() != s.lower() or _has_inner_case(best) or best.istitle() or s.isupper()
+                          or s.islower()):
+            return best
+        return s
+    caps = [v for v in cnt if v.isupper() and len(v.split()) == len(s.split())]
+    if caps:  # only ALL-CAPS on the site: take its short words (acronyms) only
+        return " ".join(c if len(_key(c)) <= 3 else w for c, w in zip(caps[0].split(), s.split()))
+    return s
+
+
+TITLE_SEP = re.compile(r"\s+[|\-–—:•·]\s+|\s*\|\s*")
+NOT_NAME = re.compile(r"^(home|homepage|welcome|about|about us|contact|official site|official website|index|company|"
+                      r"site|main|header|footer|image|untitled)$", re.I)
+
+
+def homepage_name_candidates(home: dict) -> list[str]:
+    raw = [home.get("og_site_name", ""), home.get("logo_alt", "")]
+    for t in (home.get("title", ""), home.get("og_title", "")):
+        raw += TITLE_SEP.split(t or "")
+    out = []
+    for c in raw:
+        c = re.sub(r"^(welcome to|home of)\s+", "", html_lib.unescape(c or "").strip(), flags=re.I)
+        c = re.sub(r"[\s_\-]*logo([\s_\-]*(new|white|black|dark|light|color|colour|main|header|footer|\d+))*$", "", c,
+                   flags=re.I)
+        c = re.sub(r"\s+(home|homepage)$", "", c, flags=re.I)
+        c = strip_legal(c.strip(" ,.-|"))
+        if c and not NOT_NAME.match(c) and 2 <= len(c) <= 40 and len(c.split()) <= 5 and re.search(r"[A-Za-z]", c):
+            out.append(c)
+    return list(dict.fromkeys(out))
+
+
+def company_display_name(t: dict, co: dict, pages: dict, jev_cache: dict, budget: list[int], offline: bool) -> tuple[str, str]:
+    """Merge-ready company name: record name (d/b/a part preferred) recased from the company's own pages; a homepage
+    brand name (og:site_name / <title> / logo alt) replaces it only through a Jev choice that includes keep_original."""
+    base = display_company(t["org"], co["name"])
+    parts = re.split(r"\s+\b(?:d/?b/?a|doing business as)\b\.?\s+", base, flags=re.I)
+    if len(parts) > 1:
+        base = strip_legal(parts[-1].strip(" ,"))
+    texts = page_texts(pages)
+    rec = recase_name(base, t["org"].isupper(), texts)
+    home = pages.get("home") or {}
+    dom_key = _key(mt.domain_root(co["domain"]))
+    base_tok = set(mt.norm_tokens(base)) - GENERIC_NAME
+    cands = []
+    for c in homepage_name_candidates(home):
+        ck = _key(c)
+        if ck == _key(rec):
+            if c != rec and not c.isupper() and _has_inner_case(c) and not site_spellings(rec, texts).get(rec):
+                rec = c  # the homepage's own casing of the same name (only when the pages never write rec itself)
+            continue
+        shares = bool(set(mt.norm_tokens(c)) & base_tok) or (len(ck) >= 4 and (ck in dom_key or dom_key in ck))
+        if shares:
+            cands.append(c)
+    cands = cands[:4]
+    if not cands:
+        return rec, "record name" + (" (recased)" if rec != base else "")
+    opts = {"keep_original": rec}
+    opts.update({f"c{i}": c for i, c in enumerate(cands)})
+    ck = "display|" + co["domain"] + "|" + "|".join(_key(v) for v in opts.values())
+    if ck not in jev_cache:
+        if offline or budget[0] <= 0:
+            return rec, "record name (homepage names not judged: offline/no Jev budget)"
+        from execution.modules import jev_client as jev
+        if not jev.available():
+            return rec, "record name (Jev unavailable)"
+        state = {"public_record_name": t["org"], "leadocean_name": co["name"], "domain": co["domain"],
+                 "homepage_title": home.get("title", ""), "og_site_name": home.get("og_site_name", ""),
+                 "logo_alt": home.get("logo_alt", "")}
+        r = jev.decide(state, {"d": jev.choice(
+            "Which name should a cold email use for this company: the name it calls itself on its own homepage "
+            "(its brand), with its own capitalisation and without Inc/LLC/Corp? Pick keep_original unless another "
+            "option is clearly this same company's own name and better (fixes a truncated, mis-cased or bare-word "
+            "name, or is the brand it trades under). Taglines, slogans, page names, services and other companies "
+            "are never the answer.", {k: v for k, v in opts.items()})})
+        budget[0] -= 1
+        jev.append_ledger({"script": "trigger_batch_leads", "step": "display", "cost": r.cost_usd})
+        with _lock:
+            jev_cache[ck] = {"pick": r.choice("d") if not r.error else "", "conf": r.confidence("d"),
+                             "error": (r.error or "")[:200]}
+    j = jev_cache[ck]
+    if not j.get("error") and j["pick"] in opts and j["pick"] != "keep_original" and j["conf"] >= JEV_DISPLAY_CONF:
+        return recase_name(opts[j["pick"]], False, texts), f"homepage name (jev {j['conf']:.2f})"
+    if not (j["pick"] == "keep_original" and j["conf"] >= JEV_DISPLAY_CONF):
+        dom_name = [v for k, v in opts.items() if k != "keep_original" and _key(v) == dom_key]
+        if dom_name:  # Jev unsure; the homepage name that spells the domain is the brand (legal name differs)
+            return dom_name[0], f"homepage name = domain (jev unsure {j['conf']:.2f})"
+    return rec, "record name" + (" (recased)" if rec != base else "") + f" (jev keep {j.get('conf', 0):.2f})"
+
+
+def person_display(first: str, last: str, texts: list[str], company_display: str) -> tuple[str, str]:
+    f, l = person_case(first), person_case(last)
+    f = re.sub(r"^([A-Za-z])\.\s?([A-Za-z])\.?$", lambda m: f"{m.group(1).upper()}.{m.group(2).upper()}.", f)
+    l = re.sub(r"\bMc([a-z])", lambda m: "Mc" + m.group(1).upper(), l)
+    full = site_spellings(f"{f} {l}", texts)
+    good = [(n, v) for v, n in full.items() if not v.isupper() and v != f"{f} {l}"]
+    if good:
+        v = max(good)[1].replace("’", "'").split()
+        nf = len(_TOK.findall(f))
+        if len(v) == len(_TOK.findall(f)) + len(_TOK.findall(l)) and _has_inner_case(" ".join(v)):
+            return " ".join(v[:nf]), " ".join(v[nf:])
+    if len(_key(l)) >= 4:
+        for v, _n in site_spellings(l, texts).most_common():
+            if not v.isupper() and _has_inner_case(v) and len(v.split()) == 1:
+                return f, v.replace("’", "'")
+    for w in company_display.split():
+        if _key(w) == _key(l) and w != l and not w.isupper() and _has_inner_case(w):
+            return f, w
+    return f, l
+
+
+CONNECT = {"and", "for", "with", "of", "the", "to", "in", "on", "&", "-", "a"}
+
+
+def device_display(raw: str, company: str, texts: list[str]) -> str:
+    """<= 45 chars, faithful to the FDA device name: short_device(), then a word-boundary cut that never ends on a
+    connector; brand casing as the company's own pages write it; an all-lowercase record gets word capitals."""
+    s = re.sub(r"\s+", " ", short_device(raw, company)).strip()
+    full = re.sub(r"\s+", " ", re.sub(r"\s*\([^)]*\)", "", mt.clean_device(re.sub(r"[\x80-\x9f]", "", raw)))).strip(" ,;-")
+    if len(full) > 45 and full != s:  # prefer dropping a leading company-name word over cutting the device's tail
+        co, words = set(mt.norm_tokens(company)), full.split()
+        i = 0
+        while i < len(words) - 2 and words[i].lower().strip(",.") in co:
+            i += 1
+        if i and len(" ".join(words[i:])) <= 45:
+            s = " ".join(words[i:])
+    if len(s) > 45:
+        out = []
+        for w in s.split():
+            if len(" ".join(out + [w])) > 45:
+                break
+            out.append(w)
+        while out and out[-1].lower().strip(",;:") in CONNECT:
+            out.pop()
+        s = " ".join(out).rstrip(",;:-")
+    letters = re.sub(r"[^A-Za-z]", "", raw.split(";")[0])
+    toks = []
+    for w in s.split():
+        if letters.islower() and w.isalpha():
+            w = w.capitalize()
+        if len(w) >= 3 and w.isalpha():
+            for v, _n in site_spellings(w, texts).most_common():
+                if len(v.split()) == 1 and not v.isupper() and _has_inner_case(v) and v[0].isalpha():
+                    w = v
+                    break
+        toks.append(w)
+    return " ".join(toks)
+
+
+TICKER = re.compile(r"\b(?:NASDAQ|Nasdaq|NYSE(?: American)?)\s*(?:GS|GM|CM)?\s*[:\-]\s*\(?([A-Z]{1,5})\b")
+
+
+def size_flag(c: dict, apollo_cache: dict, pages: dict) -> tuple[str, bool]:
+    """(flag text, hard). Hard = headcount > 500 from any source, or evidence of a public listing (ticker or
+    investor-relations link on the homepage, or 'publicly traded' in the LeadOcean description)."""
+    flags, hard = [], False
+    li = c.get("employees")
+    li = int(li) if li not in (None, "") else None
+    ap = (apollo_cache.get(c["domain"]) or {})
+    ap_n = ap.get("employees") if (ap.get("country") or "United States") == "United States" else None
+    if li is not None and li > 500:
+        flags.append(f"headcount {li} (LinkedIn) > 500")
+        hard = True
+    if ap_n and int(ap_n) > 500:
+        flags.append(f"headcount {ap_n} (Apollo) > 500")
+        hard = True
+    home = pages.get("home") or {}
+    text = f"{home.get('text', '')} {c.get('description', '')}"
+    m = TICKER.search(text)
+    ir = [u for u in home.get("ir_links") or [] if re.match(r"https?://(investors?|ir)\.", u, re.I)
+          or "investor-relations" in u.lower() or u.lower() == "investor relations"]
+    if m:
+        flags.append(f"publicly listed ({m.group(0)})")
+        hard = True
+    elif pages.get("ir_probe"):
+        flags.append(f"publicly listed? (investor site {pages['ir_probe']})")
+        hard = True
+    elif ir:
+        flags.append(f"publicly listed? (investor relations: {ir[0][:60]})")
+        hard = True
+    elif re.search(r"publicly[- ]traded|\bIPO\b", c.get("description", "") or ""):
+        flags.append("publicly listed? (LeadOcean description)")
+        hard = True
+    if not hard and li is not None and li >= 400:
+        flags.append(f"near 500 ceiling ({li} LinkedIn)")
+    return "; ".join(flags), hard
+
+
 # ------------------------------------------------------------------ main
 P_COLS = {
-    "medtech": ["first_name", "last_name", "title", "email", "linkedin", "company", "website", "date", "device",
-                "k_number", "site_fact", "evidence_urls"],
-    "construction": ["first_name", "last_name", "title", "email", "linkedin", "company", "website", "agency", "date",
-                     "amount", "award_id", "site_fact", "evidence_url"],
+    "medtech": ["first_name", "last_name", "title", "email", "linkedin", "company", "company_display", "website", "date",
+                "device", "device_display", "device_raw", "k_number", "site_fact", "evidence_urls", "size_flag"],
+    "construction": ["first_name", "last_name", "title", "email", "linkedin", "company", "company_display", "website",
+                     "agency", "date", "amount", "award_id", "site_fact", "evidence_url", "size_flag"],
 }
 STEPS = ["triggers in region", "matched to a domain", "  of which via web domain discovery", "not on drop list / not duplicate",
-         "passed size + vertical gate", "site fact verified", ">=1 verified-email decision-maker",
-         "email address revealed (workable)"]
+         "passed size + vertical gate", "site fact verified", "not listed / not >500 (size flag)",
+         ">=1 allowlisted decision-maker (title + one chief exec)", "email address revealed (workable)"]
+S_FLAG, S_DM, S_WORK = STEPS[6], STEPS[7], STEPS[8]
 
 
 def main() -> int:
@@ -891,18 +1357,29 @@ def main() -> int:
     ap.add_argument("--discover", choices=["on", "off"], default="on",
                     help="web domain discovery for companies LeadOcean cannot match by name")
     ap.add_argument("--max-serper", type=int, default=300, help="Serper queries per run (then DuckDuckGo HTML)")
+    ap.add_argument("--end", default="", help="award window end date for construction (default today); pin it to "
+                                               "rebuild an earlier batch from its cached award pull")
+    ap.add_argument("--size-flag", choices=["drop", "flag"], default="drop",
+                    help="drop (default) or only flag companies listed publicly or > 500 staff")
     ap.add_argument("--check", action="store_true", help="offline: caches only, no network, no spend")
+    ap.add_argument("--allow-net", default="",
+                    help="with --check: stages still allowed online, any of pages,jev,email (new page fetches, Jev "
+                         "for titles/display names, LeadOcean email reveal for newly chosen contacts); all else cached")
     a = ap.parse_args()
+    allow_net = {x.strip() for x in a.allow_net.split(",") if x.strip()}
+
+    def off(stage: str) -> bool:
+        return a.check and stage not in allow_net
     states = ct.REGIONS[a.region] if a.region else [s.strip().upper() for s in a.states.split(",")]
     outdir = ROOT / ".tmp" / "referral" / a.batch
     outdir.mkdir(parents=True, exist_ok=True)
     paths = {k: CACHE / f"{k}.json" for k in ("match", "jev", "site", "contacts", "email", "discover", "apollo",
-                                                "recipient_loc")}
+                                                "recipient_loc", "pages")}
     caches = {k: jload(p, {}) for k, p in paths.items()}
     drop = jload(Path(a.drop_list), {"domains": [], "names": []})
     drop_dom = {norm_domain(d) for d in drop.get("domains", [])}
     drop_names = {norm_name(n) for n in drop.get("names", [])}
-    lo = None if a.check else LeadOcean()
+    lo = None if off("email") else LeadOcean()
     budget = [a.max_jev]
     breaker = {"open": False, "fails": 0, "last": ""}
     cfg = {"min_emp": dict(MIN_EMP, **{k.strip(): int(v) for k, v in
@@ -916,12 +1393,12 @@ def main() -> int:
         for k, p in paths.items():
             jsave(p, caches[k])
 
-    all_companies, funnel, reasons, contact_rows = [], {}, {}, {}
+    all_companies, funnel, reasons, contact_rows, contact_gates = [], {}, {}, {}, {}
     seen_domains: set[str] = set()
     seen_emails: set[str] = set()
     for vert in [v.strip() for v in a.verticals.split(",") if v.strip()]:
         trig = (medtech_triggers(states, a.since, a.check) if vert == "medtech"
-                else construction_triggers(states, a.region, a.days, a.check))
+                else construction_triggers(states, a.region, a.days, a.check, a.end))
         cnt = Counter()
         why = Counter()
         cnt[STEPS[0]] = len(trig)
@@ -987,68 +1464,152 @@ def main() -> int:
         alive = [t for t in alive if not t["outcome"]]
         cnt[STEPS[5]] = len(alive)
 
+        def stage_pages(t: dict) -> None:  # homepage once per surviving company: size flag + display names
+            t["pages"] = site_pages(t["co"]["domain"], caches["pages"], False, off("pages"))
+            t["size_flag"], hard = size_flag(t["co"], caches["apollo"], t["pages"])
+            if hard and a.size_flag == "drop":
+                t["outcome"] = f"size flag: {t['size_flag']}"
+
+        with ThreadPoolExecutor(max_workers=a.workers) as pool:
+            list(pool.map(stage_pages, alive))
+        save()
+        alive = [t for t in alive if not t["outcome"]]
+        cnt[S_FLAG] = len(alive)
+        cg = Counter()  # contact-level drops, one count per person per gate
+
         def stage_contacts(t: dict) -> None:
             ppl = contacts_for(lo, t["co"]["domain"], caches["contacts"], a.check)
-            ranked, seen_p = [], set()
-            for p in sorted([p for p in ppl if contact_rank(p["title"]) is not None],
-                            key=lambda p: (contact_rank(p["title"]), p["title"].strip().lower() == "owner",
-                                           p["last_name"])):
-                k = (p["first_name"].strip().lower(), p["last_name"].strip().lower())
-                if k in seen_p:  # LeadOcean can hold one person twice (two title records)
+            ranked, drops = [], Counter()
+            best_rec: dict[tuple, tuple] = {}  # LeadOcean can hold one person twice (two title records): keep the best
+            for p in ppl:  # person key: first name + last surname token ("Ann Lee Smith" == "Ann Smith")
+                k = (p["first_name"].strip().lower(), (p["last_name"].strip().lower().split() or [""])[-1])
+                cls, why = title_class(p["title"], caches["jev"], budget, off("jev"))
+                lower = (p["first_name"] + p["last_name"]).islower()  # lowercase duplicates are the stale records
+                if k not in best_rec or (RANK_OF.get(cls, 9), lower) < (RANK_OF.get(best_rec[k][1], 9),
+                                                                      (best_rec[k][0]["first_name"] +
+                                                                       best_rec[k][0]["last_name"]).islower()):
+                    best_rec[k] = (p, cls, why)
+            for p, cls, why in best_rec.values():
+                if cls not in RANK_OF:
+                    drops["title: " + ("Jev none/unsure" if why.startswith("edge") else
+                                       re.sub(r"\(.*?\)", "", why.split(": ", 1)[-1]).strip())] += 1
                     continue
-                seen_p.add(k)
-                ranked.append(p)
-            t["contacts"] = ranked
+                ranked.append(dict(p, _cls=cls, _rank=RANK_OF[cls], _title_why=why))
+            # one chief executive per company: the one the company's own pages name, else the higher title rank
+            chiefs = [p for p in ranked if CHIEF_EXEC.search(p["title"].lower())]
+            t["exec_check"] = ""
+            if len(chiefs) >= 2:
+                pages = site_pages(t["co"]["domain"], caches["pages"], True, off("pages"))
+                t["pages"] = pages
+                texts = page_texts(pages)
+                joined = " ".join(texts)
+
+                def seen(p: dict) -> int:
+                    full = f"{p['first_name']} {p['last_name']}"
+                    if not site_spellings(full, texts):
+                        return 1 if len(p["last_name"]) >= 4 and re.search(
+                            r"(?<![a-z])" + re.escape(p["last_name"].lower()) + r"(?![a-z])", joined.lower()) else 0
+                    near = re.search(re.escape(_key(full)) + r".{0,60}?(ceo|chiefexecutive)|(ceo|chiefexecutive).{0,60}?"
+                                     + re.escape(_key(full)), _key(joined))
+                    return 3 if near else 2
+
+                sc = {id(p): seen(p) for p in chiefs}
+                best = max(sc.values())
+                top = [p for p in chiefs if sc[id(p)] == best]
+                if best > 0 and len(top) == 1:
+                    keep, how = top[0], "named on company pages"
+                else:
+                    keep = max(chiefs, key=lambda p: (chief_rank(p["title"]), -chiefs.index(p)))
+                    how = "UNVERIFIED: higher title rank kept, pages did not settle it"
+                t["exec_check"] = f"{len(chiefs)} chief execs; kept {keep['first_name']} {keep['last_name']} ({how})"
+                for p in chiefs:
+                    if p is not keep:
+                        ranked.remove(p)
+                        drops["stale chief exec (" + ("not on company pages" if how.startswith("named")
+                                                      else "lower title rank") + ")"] += 1
+            # order: best chief exec, best growth lead, then the rest by rank
+            def key(p: dict) -> tuple:
+                tl = p["title"].lower()
+                return (p["_rank"], 0 if CHIEF_EXEC.search(tl) or "president" in tl else 1,
+                        0 if re.search(r"cmo|chief marketing|marketing", tl) else 1, p["last_name"])
+            ranked.sort(key=key)
+            first = [next((p for p in ranked if p["_rank"] == r), None) for r in (0, 1)]
+            first = [p for p in first if p]
+            t["contacts"] = first + [p for p in ranked if p not in first]
+            t["contact_drops"] = drops
+            with _lock:
+                cg.update(drops)
             if not ranked:
-                t["outcome"] = ("no LeadOcean people at domain" if not ppl
-                                else "no decision-maker title among verified-email people")
+                t["outcome"] = ("no LeadOcean people at domain" if not ppl else
+                                "no allowlisted decision-maker (" + (drops.most_common(1)[0][0] if drops else "-") + ")")
 
         with ThreadPoolExecutor(max_workers=a.workers) as pool:
             list(pool.map(stage_contacts, alive))
         save()
         alive = [t for t in alive if not t["outcome"]]
-        cnt[STEPS[6]] = len(alive)
+        cnt[S_DM] = len(alive)
 
         rows = []
         for t in alive:
-            kept = 0
-            for p in t["contacts"]:
+            kept, co = 0, t["co"]
+            pages = t.get("pages") or site_pages(co["domain"], caches["pages"], False, True)
+            texts = page_texts(pages)
+            cdisp, cdisp_how = company_display_name(t, co, pages, caches["jev"], budget, off("jev"))
+            t["company_display"] = cdisp
+            ddisp = device_display(t["device_raw"], t["org"], texts) if vert == "medtech" else ""
+            drops = t["contact_drops"]
+            for i, p in enumerate(t["contacts"]):
                 if kept >= MAX_PER_CO:
+                    drops["over cap (2 per company)"] += len(t["contacts"]) - i
+                    cg["over cap (2 per company)"] += len(t["contacts"]) - i
                     break
-                email = reveal_email(lo, str(p["person_id"]), caches["email"], breaker, a.check) if p["person_id"] else ""
-                if email and not (email.endswith("@" + t["co"]["domain"]) or email.endswith("." + t["co"]["domain"])):
-                    continue  # address not at the company domain
-                if email and email in seen_emails:
+                email = reveal_email(lo, str(p["person_id"]), caches["email"], breaker, off("email")) if p["person_id"] else ""
+                bad = ""
+                if email and not (email.endswith("@" + co["domain"]) or email.endswith("." + co["domain"])):
+                    bad = "email not at company domain"
+                elif email and is_role_inbox(email):
+                    bad = "generic inbox"
+                elif email and email in seen_emails:
+                    bad = "duplicate email"
+                if bad:
+                    drops[bad] += 1
+                    cg[bad] += 1
                     continue
                 kept += 1
                 if email:
                     seen_emails.add(email)
-                co = t["co"]
-                row = {"first_name": person_case(p["first_name"]), "last_name": person_case(p["last_name"]),
+                fn, ln = person_display(p["first_name"], p["last_name"], texts, cdisp)
+                row = {"first_name": fn, "last_name": ln,
                        "title": person_case(p["title"]) if p["title"].islower() else p["title"], "email": email,
                        "linkedin": p["linkedin"], "company": display_company(t["org"], co["name"]),
-                       "website": co["domain"], "_leadocean_name": co["name"],
-                       "date": nice_date(t["date"]), "site_fact": t["site"]["fact"],
-                       "_rank": contact_rank(p["title"]), "_person_id": p["person_id"], "_iso_date": t["date"],
+                       "company_display": cdisp, "website": co["domain"], "_leadocean_name": co["name"],
+                       "date": nice_date(t["date"]), "site_fact": t["site"]["fact"], "size_flag": t.get("size_flag", ""),
+                       "_rank": p["_rank"], "_title_class": p["_title_why"], "_person_id": p["person_id"],
+                       "_iso_date": t["date"], "_company_display_how": cdisp_how, "_exec_check": t["exec_check"],
                        "_trigger_org": t["org"], "_match": t["match_how"], "_domain_source": t["domain_source"],
                        "_size_source": t.get("size_source", ""), "_size_linkedin": t.get("size_linkedin", ""),
                        "_size_apollo": t.get("size_apollo", "")}
                 if vert == "medtech":
-                    row.update(device=t["device"], k_number=t["k_number"],
-                               evidence_urls=f"{t['evidence_url']} {t['site']['final_url']}", _device_raw=t["device_raw"])
+                    row.update(device=t["device"], device_display=ddisp, device_raw=t["device_raw"],
+                               k_number=t["k_number"],
+                               evidence_urls=f"{t['evidence_url']} {t['site']['final_url']}")
                 else:
                     row.update(agency=t["agency"], amount=t["amount"], award_id=t["award_id"],
                                evidence_url=t["evidence_url"], _homepage=t["site"]["final_url"],
                                _description=t["description"])
                 rows.append(row)
             t["n_contacts"] = kept
-            t["n_emails"] = sum(1 for r in rows if r["website"] == t["co"]["domain"] and r["email"])
+            t["n_emails"] = sum(1 for r in rows if r["website"] == co["domain"] and r["email"])
             if not t["n_emails"]:
-                t["outcome"] = "email lookup unavailable (pending)" if breaker["open"] or breaker["fails"] else "no email returned"
+                gated = {k: v for k, v in drops.items() if k in ("generic inbox", "email not at company domain",
+                                                                 "duplicate email")}
+                t["outcome"] = ("email lookup unavailable (pending)" if breaker["open"] or breaker["fails"] else
+                                f"no usable email ({', '.join(gated)})" if gated else "no email returned")
             else:
                 t["outcome"] = "WORKABLE"
         save()
-        cnt[STEPS[7]] = sum(1 for t in alive if t["outcome"] == "WORKABLE")
+        cnt[S_WORK] = sum(1 for t in alive if t["outcome"] == "WORKABLE")
+        contact_gates[vert] = cg
         for t in trig:
             if t["outcome"] != "WORKABLE":
                 why[re.sub(r"\(.*?\)|\d+(\.\d+)?", "#", t["outcome"]).strip()] += 1
@@ -1062,6 +1623,9 @@ def main() -> int:
                                   "size_source": t.get("size_source", ""), "apollo_flipped": t.get("apollo_flipped", ""),
                                   "match": t.get("match_how", ""), "gate": t.get("gate", ""),
                                   "site_fact": (t.get("site") or {}).get("fact", ""),
+                                  "size_flag": t.get("size_flag", ""), "company_display": t.get("company_display", ""),
+                                  "exec_check": t.get("exec_check", ""),
+                                  "contact_drops": "; ".join(f"{k} {v}" for k, v in (t.get("contact_drops") or {}).items()),
                                   "contacts": t.get("n_contacts", 0), "emails": t.get("n_emails", 0),
                                   "outcome": t["outcome"]})
         with open(outdir / f"{a.batch}_{vert}.csv", "w", newline="", encoding="utf-8") as fh:
@@ -1083,7 +1647,8 @@ def main() -> int:
         doms = sorted({r["website"] for rows in contact_rows.values() for r in rows if not r["email"]})
         export = try_export(lo, doms, CACHE / "export_ledger.json")
         export.pop("csv", None)
-    stats = {"counter": counter, "cfg": cfg, "jev_calls": jev0 - budget[0], "companies": all_companies}
+    stats = {"counter": counter, "cfg": cfg, "jev_calls": jev0 - budget[0], "companies": all_companies,
+             "contact_gates": contact_gates}
     write_funnel(outdir / "funnel.md", a, states, funnel, reasons, contact_rows, breaker, acct0, acct1, budget, export,
                  stats)
     print((outdir / "funnel.md").read_text())
@@ -1108,6 +1673,18 @@ def write_funnel(path: Path, a, states, funnel, reasons, contact_rows, breaker, 
     L += ["", "## Drop reasons (companies)", ""]
     for v in funnel:
         L.append(f"**{v}**: " + "; ".join(f"{k} = {n}" for k, n in reasons[v].most_common()))
+        L.append("")
+    L += ["## Contact gates (people dropped, one count per person per gate)", ""]
+    for v, cg in stats.get("contact_gates", {}).items():
+        L.append(f"**{v}**: " + ("; ".join(f"{k} = {n}" for k, n in cg.most_common()) or "none"))
+        L.append("")
+    flagged = [r for r in stats["companies"] if r.get("size_flag")]
+    L.append(f"Size flags (public listing or > 500 staff; {'dropped' if a.size_flag == 'drop' else 'flag only'}): "
+             + ("; ".join(f"{r['domain']}: {r['size_flag']}" for r in flagged) or "none"))
+    L.append("")
+    execs = [r for r in stats["companies"] if r.get("exec_check")]
+    if execs:
+        L.append("Chief-exec conflicts: " + "; ".join(f"{r['domain']}: {r['exec_check']}" for r in execs))
         L.append("")
     L += ["## Personalized column fill (contact rows)", ""]
     for v, rows in contact_rows.items():
