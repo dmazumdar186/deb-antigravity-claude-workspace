@@ -271,13 +271,14 @@ def find(lesson_id: str, include_archive: bool = True) -> Lesson | None:
 def score(les: Lesson, prompt_norm: str, prompt_terms: set[str]) -> float:
     hits = 0.0
     phrase = False
-    n_hit = 0
+    seen: set[str] = set()  # 'plugin, plugins' is one trigger after plural folding, not two hits
     for t in les.triggers:
         tn = norm(t)
-        if tn.strip() and tn in prompt_norm:
+        if tn.strip() and tn not in seen and tn in prompt_norm:
+            seen.add(tn)
             phrase = phrase or " " in tn.strip()
-            n_hit += 1
             hits += 4.0 if " " in tn.strip() else 2.0
+    n_hit = len(seen)
     # A lone one-word trigger is not evidence: on a long live prompt the rule-overlap bonus below let one
     # generic word ('copy', 'skill', 'retry') clear PROMPT_MIN_SCORE. Live keyword picks scored 0 of 7 relevant
     # (brain eval 2026-11-13/17); benchmark prompts are <= 112 chars, so only a long-prompt replay showed it.
