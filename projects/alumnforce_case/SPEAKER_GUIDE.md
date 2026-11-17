@@ -4,6 +4,11 @@ Deck is 15 slides plus three annexes: A is AI usage, B is selection logic, C is 
 
 Audience is the CPO and a Lead Developer. Frédéric (founder) pitched the role as senior AI PM — someone who can clean the database, run AI evals, and think about LangChain-style orchestration. They're bootstrapping, so every slide should sound cheap and prove something.
 
+**Update 17 Nov: the session is with the CPO only.** The calendar slot is 45 minutes (16:30–17:15 Paris), not the brief's hour. Shift accordingly:
+- Present in 15 minutes, not 20. Compress slides 8–9 (orchestration) to one minute: the DPO sentence and "if the gateway is down, the segmenter works as today". Keep slides 1, 4 and 10 at full length: the data line, the 2 / 26 / 49 / 6, and the stop criteria are what a CPO grades.
+- Expect product questions, not engineering ones: why trust beats speed, adoption on non-expert tenants, the "no" list, pricing (sentence box included, reactivation the only priced add-on), retention at renewal, and how you'd work with CS and the Lead Developer. Technical answers (reindex, LangChain, cache keys): one sentence, then "I'd settle the detail with the Lead Developer in week 1".
+- For the recent-incidents section below, lead with the client angles: university DPOs will be stricter after Black October, and week-17 results need outage periods marked (the Microsoft 365 point). Use the PHP patch question only as a question about rollout speed across tenants.
+
 ## Timing (20 minutes)
 
 | Min | Slides | What to say |
