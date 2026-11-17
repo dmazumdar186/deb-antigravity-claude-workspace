@@ -4,6 +4,11 @@ Deck is 15 slides plus three annexes: A is AI usage, B is selection logic, C is 
 
 Audience is the CPO and a Lead Developer. Frédéric (founder) pitched the role as senior AI PM — someone who can clean the database, run AI evals, and think about LangChain-style orchestration. They're bootstrapping, so every slide should sound cheap and prove something.
 
+**Update 17 Nov: the session is with the CPO only.** The calendar slot is 45 minutes (16:30–17:15 Paris), not the brief's hour. Shift accordingly:
+- Present in 15 minutes, not 20. Compress slides 8–9 (orchestration) to one minute: the DPO sentence and "if the gateway is down, the segmenter works as today". Keep slides 1, 4 and 10 at full length: the data line, the 2 / 26 / 49 / 6, and the stop criteria are what a CPO grades.
+- Expect product questions, not engineering ones: why trust beats speed, adoption on non-expert tenants, the "no" list, pricing (sentence box included, reactivation the only priced add-on), retention at renewal, and how you'd work with CS and the Lead Developer. Technical answers (reindex, LangChain, cache keys): one sentence, then "I'd settle the detail with the Lead Developer in week 1".
+- For the recent-incidents section below, lead with the client angles: university DPOs will be stricter after Black October, and week-17 results need outage periods marked (the Microsoft 365 point). Use the PHP patch question only as a question about rollout speed across tenants.
+
 ## Timing (20 minutes)
 
 | Min | Slides | What to say |
@@ -126,6 +131,23 @@ No. Normalisation columns get backfilled for everyone, they don't derive anythin
 
 **"Are you asking for an engine change in Q1?"**
 No. Q1 adds two date fields and a status keyword to the OpenSearch mapping and exposes them through the date filter the engine already has, plus a nightly tag. The relative-date operator is Q2 with its own rehearsal. If capacity still falls short, the live Vue pre-fill goes first and becomes a saved-list import. The reliability tag and metering never move.
+
+## Recent incidents (Oct–Nov 2026): talking points, not deck content
+
+The deck stays as submitted. These four events back up designs already in it. Use them only if the panel raises resilience, security or providers, or if they fit naturally on the orchestration slide. Never suggest AlumnForce was hit or unpatched: you don't know that.
+
+| Event (source) | Fact you can state | Where it lands in the deck |
+|---|---|---|
+| PHP critical flaws, 21 Oct (The Register, CERT-EU 2026-018) | CVE-2026-109618 and CVE-2026-109619, CVSS 9.2, unauthenticated remote code execution, exploited in the wild. Fixed in 8.5.12 / 8.4.27 / 8.3.36 / 8.2.35. Highest risk is mod_php. Some European public bodies took sites offline as a precaution. | Symfony/PHP stack. Strengthens the "no LangChain" answer: every dependency is patch surface across 350 instances. Annex C security rows: tenants' DPOs and CIOs will now ask "were you exposed?" and Sales needs a written answer. |
+| "Black October" (CNBC, The Register 16 Nov) | A cluster of disclosures and attacks between 17 and 22 Oct. Education was named among the sectors. Google telemetry on one attacker's server showed interest in French education-sector websites. The PHP flaws were reportedly found with AI models. | DPO sentence: the AI feature adds no new place member data sits (no member rows in prompts, pseudonymised logs). This makes Philippe's "no" more likely, not less: the refusing-tenant path matters more. |
+| Microsoft 365 outage, 12–13 Nov (The Register 16 Nov) | Outlook/Exchange, Teams and Copilot disrupted. Root cause: a defect shipped in a July fix, plus failover load and reduced gateway capacity. | (1) "Providers change silently" is exactly why the nightly live replay exists. (2) **New point, measurement hygiene:** many alumni and tenant staff use institutional Microsoft mailboxes. A reactivation campaign sent during an outage would depress the week-17 response rate. Tag campaign outcomes with known incident windows and exclude or re-run them before the stop decision. |
+| Claude outage, 13 Nov (BusinessToday 17 Nov) | LLM providers had authentication and service errors the same week. | Degraded mode on slide 8: gateway down or timeout leaves the segmenter working exactly as today, and the kill switch belongs to the Lead Developer. The feature is additive, so a provider outage costs a convenience, not a campaign. Do not name AlumnForce's provider: you don't know it. |
+
+**One line to use on slide 8, if it fits:** "Last week was a live test of this design: one major LLM provider and Microsoft 365 both went down. Built this way, an outage costs the admin the sentence box, never the segmenter or a send."
+
+**If asked "what did you learn from the recent incidents?":** three things. Dependencies are patch surface, so keep the AI path to one function behind the gateway. Outages are normal, so the feature must degrade to today's product. And outcome metrics need incident windows, or you stop a feature because of someone else's outage.
+
+**Question for your 10 minutes (only if rapport allows):** "How did the PHP patch cycle go across 350 isolated instances? That tells me how fast we could ship a flag or a reindex wave." Ask it as a question about the rollout, not about their exposure.
 
 ## Developer split (removed from slide 12 for space)
 
