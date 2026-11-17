@@ -48,7 +48,7 @@ td.best { color: #1e7b3c; font-weight: bold; white-space: nowrap; }
 td.good { color: #8a6d00; font-weight: bold; white-space: nowrap; }
 td.weak { color: #a33; font-weight: bold; white-space: nowrap; }
 a { color: #1f5f8b; text-decoration: none; word-break: break-word; }
-.cover { height: 250mm; display: flex; flex-direction: column; justify-content: center; }
+.cover { height: 255mm; display: flex; flex-direction: column; justify-content: center; }
 .cover .kicker { font-size: 11pt; letter-spacing: 2px; text-transform: uppercase; color: #3a7ca5; }
 .cover .title { font-size: 34pt; font-weight: 700; color: #0b3d5c; line-height: 1.1; margin: 10px 0 14px; }
 .cover .sub { font-size: 13pt; color: #345; max-width: 150mm; }
@@ -56,12 +56,53 @@ a { color: #1f5f8b; text-decoration: none; word-break: break-word; }
 .toc { break-before: page; }
 .toc ol { list-style: none; padding: 0; }
 .toc li.p { font-weight: 700; margin-top: 8px; font-size: 10.5pt; }
-.toc li.c { padding-left: 16px; font-size: 9.3pt; color: #345; }
+.toc li.c { padding-left: 16px; font-size: 8.8pt; color: #345; margin-bottom: 1px; }
+.toc li { display: flex; justify-content: space-between; gap: 8px; }
+.toc li .pg { color: #567; font-variant-numeric: tabular-nums; }
+.toc li.p { margin-top: 6px; }
 """
 
 
 def slug(i: int) -> str:
     return f"s{i}"
+
+
+def norm(t: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", t.lower())
+
+
+def find_pages(toc: list) -> dict:
+    """Map heading anchor -> PDF page number by scanning extracted text in document order."""
+    from pypdf import PdfReader
+
+    texts = [norm(pg.extract_text() or "") for pg in PdfReader(str(OUT_PDF)).pages]
+    # Skip the cover and contents: start after the last page that holds the contents list.
+    start = next(i for i, t in enumerate(texts) if t.startswith("part0the60secondversion"))
+    out, cur = {}, start
+    for _, sid, t in toc:
+        key = norm(t)[:40]
+        for i in range(cur, len(texts)):
+            if key and key in texts[i]:
+                out[sid], cur = i + 1, i
+                break
+    return out
+
+
+def render() -> None:
+    js = f"""
+const {{ chromium }} = require('playwright');
+(async () => {{
+  const b = await chromium.launch();
+  const p = await b.newPage();
+  await p.goto('file://{OUT_HTML}', {{ waitUntil: 'load' }});
+  await p.pdf({{ path: '{OUT_PDF}', format: 'A4', printBackground: true, displayHeaderFooter: true,
+    headerTemplate: '<div></div>',
+    footerTemplate: '<div style="font-size:8px;width:100%;text-align:center;color:#789;">AlumnForce, inside out · <span class="pageNumber"></span> / <span class="totalPages"></span></div>',
+    margin: {{ top: '18mm', bottom: '20mm', left: '16mm', right: '16mm' }} }});
+  await b.close();
+}})();
+"""
+    subprocess.run(["node", "-e", js], check=True)
 
 
 def main() -> None:
@@ -85,11 +126,13 @@ def main() -> None:
         return f'<h{level} id="{sid}"{attrs}>{inner}</h{level}>'
 
     body = re.sub(r"<h([12])([^>]*)>(.*?)</h\1>", tag, body, flags=re.S)
-    toc_html = "".join(
-        f'<li class="{"p" if lvl == "1" else "c"}"><a href="#{sid}">{html.escape(t)}</a></li>'
-        for lvl, sid, t in toc
-    )
-    doc = f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
+    def compose(pages: dict) -> str:
+        toc_html = "".join(
+            f'<li class="{"p" if lvl == "1" else "c"}"><a href="#{sid}">{html.escape(t)}</a>'
+            f'<span class="pg">{pages.get(sid, "")}</span></li>'
+            for lvl, sid, t in toc
+        )
+        return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <title>AlumnForce: the complete prep guide</title><style>{CSS}</style></head><body>
 <div class="cover"><div class="kicker">Private preparation document · not for sending</div>
 <div class="title">AlumnForce, inside out</div>
@@ -98,22 +141,16 @@ def main() -> None:
 <nav class="toc"><h1>Contents</h1><ol>{toc_html}</ol></nav>
 {body}
 </body></html>"""
-    OUT_HTML.write_text(doc, encoding="utf-8")
 
-    js = f"""
-const {{ chromium }} = require('playwright');
-(async () => {{
-  const b = await chromium.launch();
-  const p = await b.newPage();
-  await p.goto('file://{OUT_HTML}', {{ waitUntil: 'load' }});
-  await p.pdf({{ path: '{OUT_PDF}', format: 'A4', printBackground: true, displayHeaderFooter: true,
-    headerTemplate: '<div></div>',
-    footerTemplate: '<div style="font-size:8px;width:100%;text-align:center;color:#789;">AlumnForce, inside out · <span class="pageNumber"></span> / <span class="totalPages"></span></div>',
-    margin: {{ top: '18mm', bottom: '20mm', left: '16mm', right: '16mm' }} }});
-  await b.close();
-}})();
-"""
-    subprocess.run(["node", "-e", js], check=True)
+    # Pass 1 renders with placeholder numbers (same width), pass 2 fills real page numbers.
+    OUT_HTML.write_text(compose({sid: "00" for _, sid, _ in toc}), encoding="utf-8")
+    render()
+    pages = find_pages(toc)
+    OUT_HTML.write_text(compose(pages), encoding="utf-8")
+    render()
+    missing = [t for _, sid, t in toc if sid not in pages]
+    if missing:
+        print(f"WARNING: no page found for {len(missing)} headings: {missing[:5]}")
     print(f"wrote {OUT_HTML} and {OUT_PDF} ({OUT_PDF.stat().st_size} bytes)")
 
 
