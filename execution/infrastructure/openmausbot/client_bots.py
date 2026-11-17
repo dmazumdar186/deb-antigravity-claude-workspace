@@ -21,6 +21,7 @@ import re
 import shutil
 import subprocess
 import sys
+import unicodedata
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -34,9 +35,10 @@ RULES_MARKER = (
     "Never mention, name or compare to any other ProdCraft client or prospect."
 )
 ALLOWED_EMAILS = {"debanjan@prodcraft.fyi"}
+PHONE_RE = re.compile(r"(?<![\w.])\+?\d[\d .()-]{7,}\d(?![\w.])")
 EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 SECRET_RE = re.compile(
-    r"(sk-[A-Za-z0-9_-]{16,}|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{20,}|AIza[0-9A-Za-z_-]{30,}|xox[bp]-[A-Za-z0-9-]{10,})"
+    r"(sk[-_][A-Za-z0-9_-]{16,}|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{20,}|AIza[0-9A-Za-z_-]{30,}|xox[bp]-[A-Za-z0-9-]{10,})"
 )
 
 DEFAULTS = {
@@ -98,22 +100,33 @@ def check_soul(slug: str, text: str) -> list[str]:
         problems.append("missing the confidentiality Rules block")
     for email in sorted(set(EMAIL_RE.findall(text)) - ALLOWED_EMAILS):
         problems.append(f"email address in soul: {email!r}")
+    for hit in PHONE_RE.findall(text):
+        if sum(c.isdigit() for c in hit) >= 9:
+            problems.append(f"phone-like number in soul: {hit.strip()!r}")
     for hit in SECRET_RE.findall(text):
         problems.append(f"secret-like token in soul: {hit[:6]}…")
     return problems
 
 
+def fold(text: str) -> str:
+    """Lower-case and strip accents so 'Jítendra' matches 'Jitendra'."""
+    return "".join(c for c in unicodedata.normalize("NFKD", text) if not unicodedata.combining(c)).lower()
+
+
+GENERIC = {"yoga", "wellness", "talent", "group", "studio", "the", "and", "avec", "client"}
+
+
 def name_parts(row: dict) -> set[str]:
-    """Every way a client may be named: full name, each '/'- or '()'-separated part,
-    each word of a person/company name in brackets, plus optional `aliases`."""
-    name = row["name"]
+    """Every way a client may be named: full name, each part split on / ( ) & , and
+    each word of those parts, plus `aliases` (contact people, brands, domains)."""
+    name = row["name"].strip()
     parts = {name}
-    parts |= {p.strip() for p in re.split(r"[()/&,]", name)}
-    for inner in re.findall(r"\(([^)]*)\)", name):
-        parts |= set(inner.split())  # first/last names on their own
-    parts |= set(row.get("aliases") or [])
-    generic = {"yoga", "wellness", "talent", "group", "studio", "the", "and", "avec"}
-    return {p for p in parts if len(p) >= 4 and p.lower() not in generic}
+    for piece in re.split(r"[()/&,]", name):
+        piece = piece.strip()
+        parts.add(piece)
+        parts |= set(piece.split())
+    parts |= {a.strip() for a in (row.get("aliases") or [])}
+    return {p for p in parts if len(p) >= 4 and fold(p) not in GENERIC}
 
 
 def check_isolation(rows: list[dict], souls: dict[str, str]) -> list[str]:
@@ -125,9 +138,7 @@ def check_isolation(rows: list[dict], souls: dict[str, str]) -> list[str]:
             if other is row:
                 continue
             for part in sorted(name_parts(other) - own):
-                if re.search(
-                    rf"\b{re.escape(part)}\b", souls[row["slug"]], re.IGNORECASE
-                ):
+                if re.search(rf"\b{re.escape(fold(part))}\b", fold(souls[row["slug"]])):
                     problems.append(
                         f"{row['slug']}: soul names another client ({other['slug']}): {part!r}"
                     )
@@ -137,6 +148,7 @@ def check_isolation(rows: list[dict], souls: dict[str, str]) -> list[str]:
 def build_team(rows: list[dict]) -> dict:
     teams, bots = [], []
     for row in rows:
+        row = dict(row, name=row["name"].strip())
         team = f"Client: {row['name']}"
         teams.append(
             {

@@ -23,7 +23,6 @@ Jeevana Gogula teaches Hatha Yoga in Paris: individual sessions in her home stud
 - Use real images (her photos, public-domain museum pieces), never hand-drawn figures or decorative side icons.
 
 ## Open items
-- The Reviews page copy (EN + FR) and privacy additions were prepared for her sign-off; confirm with Debanjan whether she has signed off.
 - After acceptance Debanjan may ask, as optional, for a small "Site by ProdCraft" footer credit and a LinkedIn mention; never a condition.
 
 ## Tone

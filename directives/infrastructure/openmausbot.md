@@ -73,8 +73,9 @@ One bot per evidenced client. Each sits in its own team ("Client: <name>") and r
    `--plan` = `team apply --dry-run`; `--apply` applies; `--cli <cmd>` if `openmausbot` is not on PATH.
 4. Gates (exit 2 + reason): empty roster, > 50 bots, no evidence, duplicate, missing/escaping soul file,
    soul < 300 chars or > 24 KB, missing Rules block, any email other than debanjan@prodcraft.fyi,
-   secret-like tokens, and a soul naming another client by any name part or contact person
-   (`aliases` in a row adds more names). Tests: `python3 tests/test_openmausbot_client_bots.py` (14 cases).
+   phone numbers, secret-like tokens (sk-, sk_live_, AKIA, ghp_, AIza, xox), and a soul naming another client
+   by any word of its name or any `aliases` entry (contact people, brands, domains), accent-insensitive
+   Keep `aliases` current when a client gains a contact. Tests: `python3 tests/test_openmausbot_client_bots.py` (23 cases).
 5. To add a client: add the roster row + brief, re-run with `--apply`. Re-runs are no-ops when nothing changed.
 
 Measured 2026-11-17: 4 client bots (Accessory Masters, Gaia Talent / GreenJobs, Jeevana Yoga, Yoga avec

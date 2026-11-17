@@ -180,5 +180,30 @@ case(
     {"acme": BODY.format(name="Acme") + " Sign as debanjan@prodcraft.fyi" + RULES},
 )
 
+case("bare word from a '/'-name ('Gaia') is refused", 2,
+     [row("acme", "Acme"), row("g", "Gaia Talent / GreenJobs (Keith Molony)")],
+     {"acme": BODY.format(name="Acme") + " Gaia's board." + RULES, "g": BODY.format(name="Gaia") + RULES})
+case("alias (contact person) of another client is refused", 2,
+     [row("acme", "Acme"), dict(row("am", "Accessory Masters"), aliases=["Bryce"])],
+     {"acme": BODY.format(name="Acme") + " Bryce said so." + RULES, "am": BODY.format(name="AM") + RULES})
+case("accented spelling of another client is refused", 2,
+     [row("acme", "Acme"), row("j", "Yoga avec Jitendra (Jitendra Kumar)")],
+     {"acme": BODY.format(name="Acme") + " Like Jítendra." + RULES, "j": BODY.format(name="J") + RULES})
+case("phone number in soul is refused", 2, [row("acme", "Acme")],
+     {"acme": BODY.format(name="Acme") + " Call +33 6 12 34 56 78." + RULES})
+case("sk_live secret is refused", 2, [row("acme", "Acme")],
+     {"acme": BODY.format(name="Acme") + " sk_live_abcdefghijklmnopqrstu" + RULES})
+case("oversize soul is refused", 2, [row("acme", "Acme")],
+     {"acme": BODY.format(name="Acme") * 80 + RULES})
+case("prospect gets a bot with --include-prospects", 0, [row("p", "Prospect Co", "prospect")],
+     {"p": BODY.format(name="Prospect Co") + RULES}, "--include-prospects")
+case("more than MAX_BOTS clients is refused", 2,
+     [row(f"c{i}", f"Client{i:03d}") for i in range(cb.MAX_BOTS + 1)], {})
+with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as elsewhere:
+    roster = make(Path(d), [row("acme", "Acme")], {"acme": good["acme"]})
+    code = cb.main(["--roster", str(roster), "--out", str(Path(elsewhere) / "t.json")])
+    results.append(code == 2)
+    print(f"{'PASS' if code == 2 else 'FAIL'}: --out outside roster folder is refused (exit {code})")
+
 print(f"\n{sum(results)}/{len(results)} passed")
 sys.exit(0 if all(results) else 1)
