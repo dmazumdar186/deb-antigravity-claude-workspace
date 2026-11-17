@@ -103,19 +103,34 @@ def check_soul(slug: str, text: str) -> list[str]:
     return problems
 
 
+def name_parts(row: dict) -> set[str]:
+    """Every way a client may be named: full name, each '/'- or '()'-separated part,
+    each word of a person/company name in brackets, plus optional `aliases`."""
+    name = row["name"]
+    parts = {name}
+    parts |= {p.strip() for p in re.split(r"[()/&,]", name)}
+    for inner in re.findall(r"\(([^)]*)\)", name):
+        parts |= set(inner.split())  # first/last names on their own
+    parts |= set(row.get("aliases") or [])
+    generic = {"yoga", "wellness", "talent", "group", "studio", "the", "and", "avec"}
+    return {p for p in parts if len(p) >= 4 and p.lower() not in generic}
+
+
 def check_isolation(rows: list[dict], souls: dict[str, str]) -> list[str]:
     """A client's soul must not name another client (confidentiality)."""
     problems = []
     for row in rows:
+        own = name_parts(row)
         for other in rows:
             if other is row:
                 continue
-            if re.search(
-                rf"\b{re.escape(other['name'])}\b", souls[row["slug"]], re.IGNORECASE
-            ):
-                problems.append(
-                    f"{row['slug']}: soul names another client {other['name']!r}"
-                )
+            for part in sorted(name_parts(other) - own):
+                if re.search(
+                    rf"\b{re.escape(part)}\b", souls[row["slug"]], re.IGNORECASE
+                ):
+                    problems.append(
+                        f"{row['slug']}: soul names another client ({other['slug']}): {part!r}"
+                    )
     return problems
 
 

@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "defaults": {
+    "model": "claude/claude-opus-5-5",
+    "effort": "low",
+    "approval": "ask",
+    "computer": "off"
+  },
+  "teams": [
+    {
+      "name": "Client: Accessory Masters (Elite Broker Group)",
+      "brief": "Account workspace for Accessory Masters (Elite Broker Group) (Small-business acquisition / brokerage). Confidential: nothing here is shared with other clients."
+    },
+    {
+      "name": "Client: Gaia Talent / GreenJobs (Keith Molony)",
+      "brief": "Account workspace for Gaia Talent / GreenJobs (Keith Molony) (Recruitment (engineering, green jobs boards), Ireland and UK). Confidential: nothing here is shared with other clients."
+    },
+    {
+      "name": "Client: Jeevana Yoga & Wellness (Jeevana Gogula)",
+      "brief": "Account workspace for Jeevana Yoga & Wellness (Jeevana Gogula) (Hatha yoga teacher, Paris). Confidential: nothing here is shared with other clients."
+    },
+    {
+      "name": "Client: Yoga avec Jitendra (Jitendra Kumar)",
+      "brief": "Account workspace for Yoga avec Jitendra (Jitendra Kumar) (Hatha yoga teacher, Paris). Confidential: nothing here is shared with other clients."
+    }
+  ],
+  "bots": [
+    {
+      "name": "Accessory Masters (Elite Broker Group)",
+      "team": "Client: Accessory Masters (Elite Broker Group)",
+      "title": "Accessory Masters (Elite Broker Group) account assistant",
+      "description": "Built and handed off a cold-email acquisition pipeline: lead sourcing, verification, AI openers, Instantly sending, reply classification, GoHighLevel routing, dashboard and marketing site.",
+      "soul": {
+        "file": "clients/accessory_masters.md"
+      }
+    },
+    {
+      "name": "Gaia Talent / GreenJobs (Keith Molony)",
+      "team": "Client: Gaia Talent / GreenJobs (Keith Molony)",
+      "title": "Gaia Talent / GreenJobs (Keith Molony) account assistant",
+      "description": "Radar candidate-sourcing shortlists for Gaia Talent, and the move of the greenjobs.ie / greenjobs.co.uk boards off their current vendor by early December 2026.",
+      "soul": {
+        "file": "clients/gaia_talent.md"
+      }
+    },
+    {
+      "name": "Jeevana Yoga & Wellness (Jeevana Gogula)",
+      "team": "Client: Jeevana Yoga & Wellness (Jeevana Gogula)",
+      "title": "Jeevana Yoga & Wellness (Jeevana Gogula) account assistant",
+      "description": "Bilingual FR/EN website with a moderated reviews page, plus a full redesign promoted to production on 2026-11-15.",
+      "soul": {
+        "file": "clients/jeevana_yoga.md"
+      }
+    },
+    {
+      "name": "Yoga avec Jitendra (Jitendra Kumar)",
+      "team": "Client: Yoga avec Jitendra (Jitendra Kumar)",
+      "title": "Yoga avec Jitendra (Jitendra Kumar) account assistant",
+      "description": "Bilingual FR/EN website with Google-review sync and dashboard; end-of-contract handover to his own accounts prepared 2026-11-03.",
+      "soul": {
+        "file": "clients/yoga_jitendra.md"
+      }
+    }
+  ]
+}

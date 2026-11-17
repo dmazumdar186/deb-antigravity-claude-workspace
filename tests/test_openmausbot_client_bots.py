@@ -156,6 +156,24 @@ case(
     {"acme": good["acme"]},
 )
 case(
+    "partial name of another client (bracketed form) is refused",
+    2,
+    [row("acme", "Acme"), row("am", "Accessory Masters (Elite Broker Group)")],
+    {
+        "acme": BODY.format(name="Acme") + " Like Accessory Masters did." + RULES,
+        "am": BODY.format(name="Accessory Masters") + RULES,
+    },
+)
+case(
+    "contact person of another client is refused",
+    2,
+    [row("acme", "Acme"), row("g", "Gaia Talent (Keith Molony)")],
+    {
+        "acme": BODY.format(name="Acme") + " Ask Keith about it." + RULES,
+        "g": BODY.format(name="Gaia") + RULES,
+    },
+)
+case(
     "allowed signature email passes",
     0,
     [row("acme", "Acme")],

@@ -23,6 +23,7 @@ headless from scripts. This directive records the 2026-11-17 evaluation and how 
 ## Tools/Scripts
 
 - npm `openmausbot` CLI (pinned 0.1.166); team file `execution/infrastructure/openmausbot/outreach_lab_team.yaml`.
+- `execution/infrastructure/openmausbot/client_bots.py`: one bot per client (see Per-client bots).
 
 ## Steps
 
@@ -58,6 +59,32 @@ openmausbot run Lead "<job>" --timeout 8m --export .tmp/omb_job
   accounts.openmausbot.com. None fire without a login or key. Do not enable them without a budget guard.
 - The decision-model router defaults to Jev (`OMB_JEV_API_KEY`, or OpenRouter as fallback). Not yet tested with our key.
 - Very fast release cadence (several releases a day). Pin the version (`openmausbot@0.1.166`) in any script.
+
+## Per-client bots (`client_bots.py`)
+
+One bot per evidenced client. Each sits in its own team ("Client: <name>") and runs on
+`claude/claude-opus-5-5` at effort low, `approval: ask`, `computer: off` (the bot sees only its brief).
+
+1. Roster: `execution/infrastructure/openmausbot/clients.json` (slug, name, status client|prospect|internal,
+   evidence quote + source line, soul_file). Only `client` rows get a bot; `--include-prospects` adds prospects.
+2. Briefs: `clients/<slug>.md`, ≤ 3,500 chars of source-traced facts, ending in the fixed Rules block
+   (no invented facts, never name another client, draft only, signature).
+3. `python3 execution/infrastructure/openmausbot/client_bots.py`: validate + write `client_team.json` (offline).
+   `--plan` = `team apply --dry-run`; `--apply` applies; `--cli <cmd>` if `openmausbot` is not on PATH.
+4. Gates (exit 2 + reason): empty roster, > 50 bots, no evidence, duplicate, missing/escaping soul file,
+   soul < 300 chars or > 24 KB, missing Rules block, any email other than debanjan@prodcraft.fyi,
+   secret-like tokens, and a soul naming another client by any name part or contact person
+   (`aliases` in a row adds more names). Tests: `python3 tests/test_openmausbot_client_bots.py` (14 cases).
+5. To add a client: add the roster row + brief, re-run with `--apply`. Re-runs are no-ops when nothing changed.
+
+Measured 2026-11-17: 4 client bots (Accessory Masters, Gaia Talent / GreenJobs, Jeevana Yoga, Yoga avec
+Jitendra) applied; a re-apply printed `No changes.`. Probes: the Gaia bot answered status from its brief and
+refused to compare with another client. The Jitendra bot refused to invent visitor/revenue numbers.
+
+**Known leak:** OpenMausBot shows every bot the workspace roster, so a bot can name another client's *bot*
+(the Gaia bot said "the Accessory Masters assistant"). Fine while Debanjan is the only user. **Never pair a
+client (`pair --client`, `access add`) into this workspace.** Client-facing access needs one workspace per
+client (`openmausbot fleet create`), which has not been built.
 
 ## Apinex (apinex.bond): rejected, do not use
 
