@@ -71,6 +71,13 @@ _DEAREST = max(PRICE_TABLE.values())
 
 # Cumulative spend (USD) for this process, across all calls.
 _spent_usd: float = 0.0
+# Notional spend (USD list price the CLI reports) of subscription calls this process.
+# Nothing is billed; callers use it as a budget guard on subscription batches.
+_notional_usd: float = 0.0
+
+
+def notional_spent() -> float:
+    return _notional_usd
 
 
 class LLMBudgetExceeded(RuntimeError):
@@ -173,6 +180,11 @@ def _claude_binary() -> str:
 
 def _record_subscription(model: str, effort: str, data: dict, latency_ms: int) -> None:
     """Ledger row for a subscription call. No money spent, so _spent_usd is untouched."""
+    global _notional_usd
+    try:
+        _notional_usd += float(data.get("total_cost_usd") or 0.0)
+    except (TypeError, ValueError):
+        pass
     try:
         usage = data.get("usage") or {}
         row = {
@@ -195,14 +207,17 @@ def _record_subscription(model: str, effort: str, data: dict, latency_ms: int) -
         logger.debug("ledger write failed: %s", exc)
 
 
-def _claude_cli_completion(system: str, user: str, timeout: int = CLAUDE_CLI_TIMEOUT_S) -> str:
-    """Run one prompt down CLAUDE_CHAIN on the subscription. Returns the result text.
+def _claude_cli_completion(system: str, user: str, timeout: int = CLAUDE_CLI_TIMEOUT_S,
+                           chain: tuple[tuple[str, str], ...] | None = None) -> str:
+    """Run one prompt down CLAUDE_CHAIN (or `chain`, e.g. the bulk tier
+    (("claude-sonnet-5-5", "low"),)) on the subscription. Returns the result text.
 
     Moves to the next tier only on a usage/rate/quota/overload error and marks
     that tier exhausted for the rest of the process. Any other failure raises.
     """
     exe = _claude_binary()
-    for model, effort in CLAUDE_CHAIN:
+    tiers = chain or CLAUDE_CHAIN
+    for model, effort in tiers:
         with _exhausted_lock:
             if model in _exhausted:
                 continue
@@ -257,7 +272,7 @@ def _claude_cli_completion(system: str, user: str, timeout: int = CLAUDE_CLI_TIM
         return str(data.get("result") or "").strip()
     raise ClaudeLimitReached(
         "All Claude subscription tiers are at their usage limit "
-        f"({', '.join(m for m, _ in CLAUDE_CHAIN)}). Wait for the limit to reset, "
+        f"({', '.join(m for m, _ in tiers)}). Wait for the limit to reset, "
         "or set CLAUDE_VIA=openrouter to pay per call."
     )
 

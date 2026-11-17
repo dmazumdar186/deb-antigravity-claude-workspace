@@ -17,7 +17,10 @@ description: Turn an operator-supplied contact export (Apollo-style CSV: First N
                5. personalization per company: (a) cached public trigger (FDA 510(k) / federal award) matched by
                   resolved domain or exact name + state, homepage silent on it (finder + blind verifier from
                   trigger_batch_leads); else (b) a hard homepage fact confirmed on a rendered page: footer copyright
-                  year <= --copyright-max, an old CMS version in the generator meta, or no viewport meta; else none.
+                  year <= --copyright-max, an old CMS version in the generator meta, or no viewport meta; else
+                  (c) company_description: a factual "Saw that / Noticed {company} ..." line from the company's own
+                  description (subscription bulk tier, 25 per call, cached), gated by rules + two Jev nouls; else none.
+               Construction keeps bare VP / SVP / EVP titles (operator 2026-11-17), ranked after exec + growth leads.
 inputs:  --job VERTICAL:STATES:PATH (repeatable, e.g. medtech:CA,TX,NY:.tmp/x.csv); --out DIR; --drop-list JSON
          {"domains": [], "names": []}; --cache-dir (default .tmp/import_list/cache; jev.json/site.json/pages.json are
          shared with trigger_batch_leads when pointed at its cache); --min-emp 20 --max-emp 500; --max-fetch N (new
@@ -25,7 +28,7 @@ inputs:  --job VERTICAL:STATES:PATH (repeatable, e.g. medtech:CA,TX,NY:.tmp/x.cs
          --max-jev 3000; --max-lo 6000 (LeadOcean person lookups per run); --offline (caches only, no network);
          --fda-since 2026-08-01 (cached openFDA pull); --award-csv GLOB (construction_award_triggers output);
          --award-days 90; --trigger-map GLOB (trigger_batch_leads *_companies.csv: trigger -> resolved domain);
-         --copy-to DIR (copy every output there). env LEADOCEAN_API_KEY, OPENROUTER_API_KEY.
+         --copy-to DIR (copy every output there); --max-usd 5 (first-line generation guard, notional USD). env LEADOCEAN_API_KEY, OPENROUTER_API_KEY.
 outputs: OUT/{vertical}_{STATE}.csv (+ _other.csv for rows whose company HQ / person state is outside STATES; split
          into _partN when > 2 MB), OUT/companies.csv (every company with outcome), OUT/funnel.md.
 usage:   python3 execution/lead_sourcing/import_list_leads.py --job medtech:CA,TX,NY:in.csv --out .tmp/x
@@ -38,7 +41,7 @@ Spend: company sites, DNS-over-HTTPS, openFDA/USAspending re-checks: free. LeadO
 
 from __future__ import annotations
 
-import argparse, csv, datetime as dt, glob, json, re, shutil, sys, threading
+import argparse, csv, datetime as dt, glob, hashlib, json, re, shutil, sys, threading
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -109,7 +112,48 @@ CMS_OLD = [  # (regex on generator content, display name, is_old(version_tuple))
     (re.compile(r"^drupal\s+(\d+)", re.I), "Drupal", lambda v: v[0] <= 7),
     (re.compile(r"^joomla!?\s*(\d+)\.(\d+)", re.I), "Joomla", lambda v: v[0] <= 3),
 ]
-PTYPES = ["trigger_fda", "trigger_award", "site_copyright", "site_cms", "site_viewport", "none"]
+PTYPES = ["trigger_fda", "trigger_award", "site_copyright", "site_cms", "site_viewport", "company_description", "none"]
+
+# ---- construction: bare VP titles (operator decision 2026-11-17). Ranked after chief exec and growth leads.
+BARE_VP = re.compile(r"^(?:(?:senior|sr|executive|exec)\s+)?(?:vice president|vp)$|^(?:svp|evp)$")
+RANK = {**tb.RANK_OF, "vp_general": 3}
+
+
+def bare_vp(title: str) -> bool:
+    t = re.sub(r"\s+", " ", re.sub(r"[^a-z ]+", " ", (title or "").lower().replace("-", " "))).strip()
+    return bool(BARE_VP.match(t))
+
+
+# ---- company_description first line (operator decision 2026-11-17, option a)
+DESC_PROMPT_VERSION = "v1"
+DESC_BATCH = 25
+DESC_CHAIN = (("claude-sonnet-5-5", "low"),)  # bulk tier on the subscription
+DESC_SUPPORTED_MIN, DESC_OPINION_MAX = 0.7, 0.3
+DESC_BANNED = re.compile(r"\b(leading|innovative|premier|top|best|great|impressive|amazing|world[- ]class|trusted|"
+                         r"needs?|needed|needing|struggl\w*|grow|grows|growing|growth|scale|scales|scaling)\b", re.I)
+DESC_SYSTEM = """You write the first line of a cold email from a company's OWN description. Return JSON only.
+
+Input: a JSON array of companies: {"id", "company", "opener", "description"}.
+Output: a JSON array with one object per input, same order: {"id": <id>, "first_line": "<line or empty>"}.
+
+Hard rules for first_line:
+- One sentence, 8-22 words, ends with a period. Start EXACTLY with the given opener followed by the company name as
+  given: opener "Saw that" -> "Saw that {company} ...", opener "Noticed" -> "Noticed {company} ...".
+- State only WHAT THE COMPANY DOES / MAKES / BUILDS / WHERE, taken from its description. Prefer the most specific
+  thing stated (a product line, project type, niche, region) over a generic summary.
+  Good: "Saw that Acme Builders specializes in tilt-up warehouses across the Central Valley."
+- NEVER: claims about intent, needs, plans, growth, pain or their website; praise or adjectives of quality
+  (leading, innovative, premier, top, best, great, trusted, impressive, quality, award-winning...); numbers, years,
+  awards or client names unless the description states them verbatim; anything not in the description. Do not use
+  the words need, struggle, grow, growth or scale. No questions, no exclamation marks, plain ASCII punctuation only,
+  no em dashes, no quotes.
+- Write in plain present tense ("builds", "makes", "designs", "focuses on", "works on", "specializes in").
+- Aim for 10-18 words: name the one or two most specific things, not every item in a list. Avoid "-scale" compounds
+  (large-scale, utility-scale): say "large" or drop it.
+- An input may carry "fix": the reason an earlier line was rejected. Write a new line that avoids it.
+- If the description is missing, too vague ("we provide quality services"), a list of buzzwords with no concrete
+  activity, or clearly about a different company, return "first_line": "".
+"""
 
 OUT_COLS = ["first_name", "last_name", "email", "title", "company_display", "website", "city", "state", "employees",
             "linkedin", "vertical", "email_check", "email_tier", "personalization_type", "first_line", "evidence",
@@ -178,7 +222,8 @@ def parse_page(html: str, final_url: str) -> dict:
             cr.append({"year": y, "snippet": re.sub(r"\s+", " ", zone[max(0, m.start() - 20):m.end() + 40]).strip()})
     gens = [html_unescape(a or b) for a, b in GENERATOR.findall(html or "")]
     title = tb._visible_text(html)[0]
-    return {"final_url": final_url, "text": text[:20000], "title": re.sub(r"\s+", " ", title or "")[:160],
+    return {"meta_description": meta_content(html, "description"), "og_description": meta_content(html, "og:description"),
+            "final_url": final_url, "text": text[:20000], "title": re.sub(r"\s+", " ", title or "")[:160],
             "og_site_name": tb._meta(html, "og:site_name"), "logo_alt": tb._logo_alt(html),
             "viewport": bool(VIEWPORT.search(html or "")), "generator": gens[:4], "copyright": cr[:6],
             "mail_domains": sorted({d.lower().rstrip(".") for d in MAILDOM.findall(html or "")})[:30],
@@ -273,6 +318,182 @@ def site_fact(dom: str, e: dict, cr_max: int) -> dict:
     return {}
 
 
+# ------------------------------------------------------------------ company_description first line
+def meta_content(html: str, prop: str, limit: int = 500) -> str:
+    for pat in (rf'<meta[^>]+(?:property|name)=["\']{prop}["\'][^>]*content=["\']([^"\']*)',
+                rf'<meta[^>]+content=["\']([^"\']*)["\'][^>]*(?:property|name)=["\']{prop}["\']'):
+        m = re.search(pat, html or "", flags=re.I)
+        if m:
+            return re.sub(r"\s+", " ", html_unescape(m.group(1))).strip()[:limit]
+    return ""
+
+
+def meta_get(dom: str, url: str) -> dict:
+    """Homepage meta description / og:description (static GET, free). {} on failure (re-run retries)."""
+    for u in [x for x in (url, f"https://{dom}", f"https://www.{dom}") if x]:
+        try:
+            h = requests.get(u, headers={"User-Agent": mt.UA}, timeout=15)
+        except requests.RequestException:
+            continue
+        if h.status_code < 400 and h.text:
+            if mt.domain_root(norm_domain(h.url)) != mt.domain_root(dom):
+                return {"url": h.url, "description": "", "og_description": "", "note": "redirects off-domain"}
+            html = h.text[:2_000_000]
+            return {"url": h.url, "description": meta_content(html, "description"),
+                    "og_description": meta_content(html, "og:description")}
+    return {}
+
+
+def _clean_desc(x: str) -> str:
+    return re.sub(r"\s+", " ", (x or "").replace("’", "'")).strip()
+
+
+def company_description(r: dict, home: dict) -> tuple[str, str, str]:
+    """(description, keywords, source) for one company: the export's own description first, homepage meta second."""
+    short, seo = _clean_desc(r.get("Company Short Description")), _clean_desc(r.get("Company SEO Description"))
+    parts = [short] + ([seo] if seo and seo[:80].lower() not in short.lower() else [])
+    desc = " ".join(p for p in parts if p)[:1500]
+    kw = _clean_desc(r.get("Keywords"))[:400]
+    if len(desc) >= 40:
+        return desc, kw, "export description"
+    meta = home.get("meta") or {}
+    st = home.get("static") or {}
+    md = [meta.get("description") or st.get("meta_description") or "",
+          meta.get("og_description") or st.get("og_description") or ""]
+    md = [m for i, m in enumerate(md) if m and (i == 0 or m[:60].lower() not in md[0].lower())]
+    mdesc = _clean_desc(" ".join(md))
+    if len(mdesc) >= 40:
+        return mdesc[:1000], kw, f"homepage meta ({meta.get('url') or st.get('final_url') or ''})"
+    return desc, kw, "export description"
+
+
+def desc_opener(dom: str) -> str:
+    return "Saw that" if int(hashlib.sha1(dom.encode()).hexdigest(), 16) % 2 == 0 else "Noticed"
+
+
+def desc_key(dom: str, cdisp: str, desc: str, kw: str) -> str:
+    h = hashlib.sha1(f"{DESC_PROMPT_VERSION}|{cdisp}|{desc}|{kw}".encode()).hexdigest()[:16]
+    return f"{dom}|{h}"
+
+
+def _parse_json_array(text: str) -> list:
+    t = re.sub(r"^```(?:json)?|```$", "", (text or "").strip(), flags=re.M).strip()
+    i, j = t.find("["), t.rfind("]")
+    if i < 0 or j < i:
+        raise ValueError("no JSON array in reply")
+    data = json.loads(t[i:j + 1])
+    if not isinstance(data, list):
+        raise ValueError("reply is not a list")
+    return data
+
+
+def generate_lines(items: list[dict], cache: dict, max_usd: float, workers: int = 4) -> dict:
+    """items: {key, dom, company, opener, description}. Batches of DESC_BATCH to the subscription bulk tier.
+    Writes cache[key] = {"line", "model"}; returns stats. Stops new calls once notional spend >= max_usd."""
+    from execution.modules import llm_client as llm
+    todo = [it for it in items if it["key"] not in cache]
+    batches = [todo[i:i + DESC_BATCH] for i in range(0, len(todo), DESC_BATCH)]
+    stats = {"calls": 0, "failed": 0, "skipped_budget": 0, "start_usd": llm.notional_spent()}
+
+    def run(batch: list[dict]) -> None:
+        if llm.notional_spent() - stats["start_usd"] >= max_usd:
+            with _lock:
+                stats["skipped_budget"] += 1
+            return
+        payload = [{"id": i, "company": it["company"], "opener": it["opener"],
+                    "description": (it["description"] + (f" Keywords: {it['keywords']}" if it["keywords"] else ""))[:1800],
+                    **({"fix": it["fix"]} if it.get("fix") else {})}
+                   for i, it in enumerate(batch)]
+        try:
+            reply = llm._claude_cli_completion(DESC_SYSTEM, json.dumps(payload, ensure_ascii=False), chain=DESC_CHAIN)
+            data = _parse_json_array(reply)
+        except Exception as exc:  # helper degrades: those companies stay `none` this run, re-run retries
+            print(f"  first-line batch failed: {str(exc)[:160]}", flush=True)
+            with _lock:
+                stats["calls"] += 1
+                stats["failed"] += 1
+            return
+        got = {}
+        for d in data:
+            try:
+                got[int(d.get("id"))] = str(d.get("first_line") or "").strip()
+            except (TypeError, ValueError, AttributeError):
+                continue
+        with _lock:
+            stats["calls"] += 1
+            for i, it in enumerate(batch):
+                if i in got:
+                    cache[it["key"]] = {"line": got[i], "model": DESC_CHAIN[0][0]}
+
+    if batches:
+        print(f"first-line generation: {len(todo)} companies in {len(batches)} calls", flush=True)
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            list(pool.map(run, batches))
+    stats["usd"] = round(llm.notional_spent() - stats["start_usd"], 4)
+    return stats
+
+
+def line_rule_check(line: str, cdisp: str, desc: str) -> str:
+    """Deterministic gate. Returns '' when the line passes, else the reject reason."""
+    if not line:
+        return "generator: no usable description"
+    if not (line.startswith(f"Saw that {cdisp} ") or line.startswith(f"Noticed {cdisp} ")):
+        return "rule: wrong opener / company name"
+    if not line.isascii():
+        return "rule: non-ASCII character"
+    if "?" in line or "!" in line or not line.endswith("."):
+        return "rule: punctuation"
+    n = len(line.split())
+    if not 8 <= n <= 22:
+        return f"rule: {n} words (8-22)"
+    rest = line.replace(cdisp, " ", 1)
+    if re.search(r"[.;]\s+[A-Z]", rest[:-1]) and not re.search(r"\b(?:[A-Z]\.){2,}", rest):
+        return "rule: more than one sentence"
+    m = DESC_BANNED.search(rest)
+    if m:
+        return f"rule: banned word ({m.group(0).lower()})"
+    for num in re.findall(r"\d[\d,.]*", rest):
+        if num.rstrip(".,") not in desc:
+            return f"rule: number not in description ({num})"
+    return ""
+
+
+def evidence_snippet(line: str, desc: str, source: str) -> str:
+    sents = [x.strip() for x in re.split(r"(?<=[.!?])\s+", desc) if x.strip()] or [desc]
+    lt = set(re.findall(r"[a-z]{4,}", line.lower()))
+    best = max(sents, key=lambda x: len(lt & set(re.findall(r"[a-z]{4,}", x.lower()))))
+    return f"{source}: {best[:300]}"
+
+
+def verify_lines(items: list[dict], jev_cache: dict, budget: list[int], jev_on: bool) -> None:
+    """Independent check (not the generator): two Jev nouls per line, cached by line + description."""
+    from execution.modules import jev_client as jev
+    q = {"supported": jev.noul(
+            "Every fact in first_line is stated in description.",
+            "every claim in first_line (what the company does, makes, builds, where, any name or number) is stated "
+            "in the description or its keywords",
+            "first_line says something the description does not state, or describes a different company"),
+         "opinion": jev.noul(
+            "first_line contains praise, a claim about the company's needs or intent, or an opinion.",
+            "first_line praises the company, uses a quality adjective, or claims what it needs, wants, plans or "
+            "struggles with, or gives an opinion",
+            "first_line only states plain facts about what the company does, makes, builds or where")}
+    for it in items:
+        it["jkey"] = "descline|" + hashlib.sha1(f"{it['line']}|{it['description']}|{it['keywords']}".encode()).hexdigest()[:20]
+    todo = [it for it in items if it["jkey"] not in jev_cache]
+    if todo and jev_on:
+        todo = todo[:max(0, budget[0])]
+        states = [{"company": it["company"], "description": it["description"][:1500],
+                   "keywords": it["keywords"][:400], "first_line": it["line"]} for it in todo]
+        res = jev.decide_many(states, q, workers=8)
+        budget[0] -= len(todo)
+        for it, rr in zip(todo, res):
+            jev.append_ledger({"script": "import_list_leads", "step": "first_line_verify", "cost": rr.cost_usd})
+            if rr.error:
+                continue  # not cached: re-run retries; this run the line is dropped
+            jev_cache[it["jkey"]] = {"supported": rr.noul("supported"), "opinion": rr.noul("opinion")}
+
+
 # ------------------------------------------------------------------ triggers
 def load_triggers(vertical: str, states: list[str], a) -> list[dict]:
     if vertical == "medtech":
@@ -338,12 +559,14 @@ def main() -> int:
     ap.add_argument("--trigger-map", default=".tmp/referral/batch*/*_companies.csv")
     ap.add_argument("--offline", action="store_true", help="caches only: no fetch, Jev, MX or LeadOcean calls")
     ap.add_argument("--copy-to", default="")
+    ap.add_argument("--max-usd", type=float, default=5.0,
+                    help="budget guard for company_description first lines (notional USD of subscription calls)")
     a = ap.parse_args()
 
     cdir = ROOT / a.cache_dir
     out = ROOT / a.out
     out.mkdir(parents=True, exist_ok=True)
-    paths = {k: cdir / f"{k}.json" for k in ("jev", "site", "pages", "home", "mx", "lo_person")}
+    paths = {k: cdir / f"{k}.json" for k in ("jev", "site", "pages", "home", "mx", "lo_person", "desc_line")}
     caches = {k: jload(p, {}) for k, p in paths.items()}
 
     def save() -> None:
@@ -354,6 +577,8 @@ def main() -> int:
     drop_dom = {norm_domain(d) for d in drop.get("domains", [])}
     drop_names = {tb.norm_name(n) for n in drop.get("names", [])}
     budget = [a.max_jev]
+    desc_stats: dict[str, Counter] = {}
+    llm_stats = {"calls": 0, "failed": 0, "skipped_budget": 0, "usd": 0.0}
     lo_budget = [a.max_lo]
     from execution.modules import jev_client as jev
     jev_on = not a.offline and jev.available()
@@ -447,9 +672,12 @@ def main() -> int:
 
         # 3. person gates: title + role inbox
         for r in alive():
-            cls, why = tb.title_class(r.get("Title") or "", caches["jev"], budget, not jev_on)
+            if vertical == "construction" and bare_vp(r.get("Title") or ""):
+                cls, why = "vp_general", "rule: bare VP title (construction, operator 2026-11-17)"
+            else:
+                cls, why = tb.title_class(r.get("Title") or "", caches["jev"], budget, not jev_on)
             r["_cls"], r["_title_why"] = cls, why
-            if cls not in tb.RANK_OF:
+            if cls not in RANK:
                 kill(r, STEPS[7], "title: edge title, Jev not a buyer / unsure" if "Jev" in why else
                      "title: " + re.sub(r"\(.*?\)", "", why.split(": ", 1)[-1]).strip())
             elif REGIONAL.search(r.get("Title") or ""):
@@ -585,10 +813,10 @@ def main() -> int:
 
             def key(p: dict) -> tuple:
                 tl = (p.get("Title") or "").lower()
-                return (tb.RANK_OF[p["_cls"]], 0 if tb.CHIEF_EXEC.search(tl) or "president" in tl else 1,
+                return (RANK[p["_cls"]], 0 if tb.CHIEF_EXEC.search(tl) or "president" in tl else 1,
                         0 if re.search(r"cmo|chief marketing|marketing", tl) else 1, p.get("Last Name") or "")
             ranked.sort(key=key)
-            first = [next((p for p in ranked if tb.RANK_OF[p["_cls"]] == k), None) for k in (0, 1)]
+            first = [next((p for p in ranked if RANK[p["_cls"]] == k), None) for k in (0, 1)]
             first = [p for p in first if p]
             order = first + [p for p in ranked if p not in first]
             for p in order[2:]:
@@ -718,15 +946,105 @@ def main() -> int:
                 if f:
                     pers[d] = f
 
+        # 5c. company_description first line for every company still without one (generator + independent Jev gate)
+        def disp(r: dict) -> tuple[str, list[str]]:
+            s = (caches["home"].get(r["_dom"]) or {}).get("static") or {}
+            texts = [x for x in (s.get("title"), s.get("og_site_name"), s.get("logo_alt"), s.get("text")) if x]
+            name = r.get("Company Name") or ""
+            return tb.recase_name(tb.display_company(clean_company(name), ""), name.isupper(), texts), texts
+
+        rej = desc_stats.setdefault(vertical, Counter())
+        need_meta = []
+        items = []
+        for d in final_doms:
+            if d in pers:
+                continue
+            r = co_first[d]
+            home = caches["home"].get(d) or {}
+            desc, kw, src = company_description(r, home)
+            if len(desc) < 40 and "meta" not in home and not a.offline:
+                need_meta.append(d)
+            items.append({"dom": d, "r": r})
+        if need_meta:
+            print(f"[{vertical}] homepage meta fetch {len(need_meta)}", flush=True)
+
+            def mg(d: str) -> None:
+                m = meta_get(d, ((caches["home"].get(d) or {}).get("static") or {}).get("final_url") or "")
+                if m:
+                    with _lock:
+                        caches["home"].setdefault(d, {})["meta"] = m
+            with ThreadPoolExecutor(max_workers=a.workers) as pool:
+                list(pool.map(mg, need_meta))
+            jsave(paths["home"], caches["home"])
+        gen = []
+        for it in items:
+            r = it["r"]
+            desc, kw, src = company_description(r, caches["home"].get(it["dom"]) or {})
+            cdisp, _ = disp(r)
+            it.update(company=cdisp, description=desc, keywords=kw, source=src, opener=desc_opener(it["dom"]),
+                      key=desc_key(it["dom"], cdisp, desc, kw))
+            if len(desc) < 40:
+                rej["no description"] += 1
+                continue
+            gen.append(it)
+        if gen and not a.offline:
+            st = generate_lines(gen, caches["desc_line"], a.max_usd - llm_stats["usd"])
+            for k in ("calls", "failed", "skipped_budget"):
+                llm_stats[k] += st[k]
+            llm_stats["usd"] += st["usd"]
+            jsave(paths["desc_line"], caches["desc_line"])
+        # one repair pass for lines that fail the deterministic rules (cached under key|r1)
+        retry = []
+        for it in gen:
+            c = caches["desc_line"].get(it["key"])
+            if c and c["line"]:
+                why = line_rule_check(c["line"], it["company"], it["description"] + " " + it["keywords"])
+                if why:
+                    retry.append({**it, "key": it["key"] + "|r1", "orig_key": it["key"],
+                                  "fix": f"{why}; rejected line: {c['line']}"})
+        if retry and not a.offline:
+            st = generate_lines(retry, caches["desc_line"], a.max_usd - llm_stats["usd"])
+            for k in ("calls", "failed", "skipped_budget"):
+                llm_stats[k] += st[k]
+            llm_stats["usd"] += st["usd"]
+            jsave(paths["desc_line"], caches["desc_line"])
+        for rt in retry:
+            c = caches["desc_line"].get(rt["key"])
+            if c and c["line"] and not line_rule_check(c["line"], rt["company"], rt["description"] + " " + rt["keywords"]):
+                rej["repaired after rule fail"] += 1
+                next(it for it in gen if it["key"] == rt["orig_key"])["key"] = rt["key"]
+        checked = []
+        for it in gen:
+            c = caches["desc_line"].get(it["key"])
+            if c is None:
+                rej["generator: not run (offline / budget / failed batch)"] += 1
+                continue
+            it["line"] = c["line"]
+            why = line_rule_check(it["line"], it["company"], it["description"] + " " + it["keywords"])
+            if why:
+                rej[re.sub(r" \(.*", "", why) if why.startswith("rule: number") else why] += 1
+                continue
+            checked.append(it)
+        verify_lines(checked, caches["jev"], budget, jev_on)
+        for it in checked:
+            j = caches["jev"].get(it["jkey"])
+            if not j:
+                rej["jev: not verified (unavailable / budget)"] += 1
+            elif j["supported"] < DESC_SUPPORTED_MIN:
+                rej["jev: fact not in description"] += 1
+            elif j["opinion"] > DESC_OPINION_MAX:
+                rej["jev: praise / intent / opinion"] += 1
+            else:
+                rej["kept"] += 1
+                pers[it["dom"]] = {"type": "company_description", "first_line": it["line"],
+                                   "evidence": evidence_snippet(it["line"], it["description"], it["source"])
+                                   + f" | jev supported {j['supported']:.2f}, opinion {j['opinion']:.2f}"}
+        save()
+
         # rows out
         for r in final:
             d = r["_dom"]
-            e = caches["home"].get(d) or {}
-            s = e.get("static") or {}
-            texts = [x for x in (s.get("title"), s.get("og_site_name"), s.get("logo_alt"), s.get("text")) if x]
-            name = r.get("Company Name") or ""
-            base = tb.display_company(clean_company(name), "")
-            cdisp = tb.recase_name(base, name.isupper(), texts)
+            cdisp, texts = disp(r)
             fn, ln = tb.person_display(r.get("First Name") or "", r.get("Last Name") or "", texts, cdisp)
             fn, ln = fix_name_case(fn), fix_name_case(ln)
             p = pers.get(d) or {}
@@ -829,6 +1147,9 @@ def main() -> int:
             c = Counter(r["_state"] for r in sel)
             md.append(f"| {ec} | " + " | ".join(str(c[b]) for b in buckets)
                       + f" | {len(sel)} | {len({r['_dom'] for r in sel})} |")
+        dc = desc_stats.get(vertical) or Counter()
+        md += ["", "**company_description first lines** (companies; generator then rule check then Jev):", "",
+               "| outcome | companies |", "|---|---|"] + [f"| {k} | {v} |" for k, v in dc.most_common()]
         lc = Counter(r["_lo_status"] for r in final)
         md += ["", "LeadOcean person status: " + ", ".join(f"{k} {v}" for k, v in lc.most_common()), ""]
     (out / "funnel.md").write_text("\n".join(md) + "\n", encoding="utf-8")
@@ -840,6 +1161,14 @@ def main() -> int:
         for f in files:
             shutil.copy2(f, dst / f.name)
         print(f"copied {len(files)} files to {dst}")
+    print(f"first-line LLM: {llm_stats['calls']} calls ({llm_stats['failed']} failed, {llm_stats['skipped_budget']} "
+          f"skipped by budget), notional ${llm_stats['usd']:.4f} of ${a.max_usd:.2f} (subscription, not billed)")
+    if llm_stats["calls"]:  # a cache-only re-run spends nothing and writes no row
+        with open(ROOT / ".tmp" / "cost_ledger.jsonl", "a", encoding="utf-8") as fh:
+            fh.write(json.dumps({"ts": dt.datetime.now().isoformat(timespec="seconds"), "script": "import_list_leads",
+                                 "step": "company_description first lines", "model": DESC_CHAIN[0][0],
+                                 "billing": "subscription", "calls": llm_stats["calls"],
+                                 "notional_usd": round(llm_stats["usd"], 4), "max_usd": a.max_usd}) + "\n")
     print(f"Jev calls left {budget[0]}/{a.max_jev}; LeadOcean person lookups left {lo_budget[0]}/{a.max_lo}")
     return 0
 

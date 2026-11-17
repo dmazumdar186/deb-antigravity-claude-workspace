@@ -21,7 +21,7 @@ states, incl. non-US HQs), `companies.csv` (every company with its outcome), `fu
 `python3 execution/lead_sourcing/import_list_leads.py --job medtech:CA,TX,NY:<csv> --job construction:CA,NY:<csv>
  --out .tmp/<dir> --drop-list <json> --cache-dir <dir> [--copy-to <private repo dir>] [--offline]`
 Limits: `--max-fetch` (new homepage fetches), `--max-jev`, `--max-lo` (LeadOcean lookups), `--workers 12`,
-`--render-workers 8`. `--offline` rebuilds from caches with zero network (re-run = no-op).
+`--render-workers 8`, `--max-usd 5` (first-line generation guard). `--offline` rebuilds from caches with zero network (re-run = no-op).
 Uses `site_marker_fetch.js` with `no_mobile` + `timeout_ms` (20 s) for rendered confirmation.
 
 ## Steps (each drop is counted with its reason in funnel.md)
@@ -46,7 +46,20 @@ Uses `site_marker_fetch.js` with `no_mobile` + `timeout_ms` (20 s) for rendered 
    b. Homepage fact, only when the rendered page shows it (and the static page agrees when readable): footer copyright
       year <= `--copyright-max` ("-present" ranges skipped, "2012 2021" reads 2021), CMS generator meta WordPress < 6 /
       Drupal <= 7 / Joomla <= 3, no viewport meta. Evidence = URL + snippet.
-   c. Else `personalization_type=none`, `first_line` empty.
+   c. Company description (operator decision 2026-11-17, option a): the company's OWN description (export Company
+      Short + SEO Description + Keywords; else homepage meta description / og:description, fetched once and cached as
+      `home.json[dom].meta`). Generator: subscription bulk tier `claude-sonnet-5-5` effort low (`llm_client.
+      _claude_cli_completion(chain=...)`), 25 companies per call, JSON in/out, cached in `desc_line.json` by domain +
+      hash(prompt version, display name, description, keywords), so re-runs cost 0. Line: one sentence, 8-22 words,
+      opens "Saw that {company_display}" or "Noticed {company_display}" (picked by domain hash), only what the
+      company does / makes / builds / where. Gates, in order: deterministic (opener, ASCII, no ?/!, word count,
+      one sentence, banned words leading/innovative/premier/top/best/great/impressive/amazing/world-class/trusted/
+      need/struggle/grow/scale, every number present in the description), then an independent Jev check (two nouls:
+      "every fact is stated in description" >= 0.7, "praise / needs / intent / opinion" <= 0.3). Any fail -> empty +
+      `none`. Evidence = source + best-matching description sentence + Jev scores. Budget guard `--max-usd` (default 5,
+      notional USD the CLI reports; subscription is not billed); one summary row per run in `.tmp/cost_ledger.jsonl`,
+      per-call rows in `.tmp/llm_ledger.jsonl`.
+   d. Else `personalization_type=none`, `first_line` empty.
 
 ## Outputs (columns)
 first_name, last_name, email, title, company_display, website, city, state, employees, linkedin, vertical,
@@ -57,8 +70,10 @@ trigger_url. State = company HQ state, else person state.
 - Titles with a region/territory (EMEA, Middle East, "Western Region", district...) are dropped as regional roles.
 - Display: (R)/TM marks dropped, "Acme HG Inc. Acme" merged records cut at the mid legal suffix, O'hara -> O'Hara.
 - A homepage that redirects to another domain gives no site fact (the fact would be about another site).
-- Bare "Vice President" / "Executive Vice President" / "Senior Vice President" are edge titles; Jev is unsure on them
-  (0.25-0.47) so they drop (~730 construction rows on 2026-11-17). Loosen only on the operator's word.
+- Construction only (operator decision 2026-11-17): bare "Vice President" / "Senior (Sr.) Vice President" / "Executive
+  Vice President" / VP / SVP / EVP are kept as `vp_general`, ranked after chief exec and growth leads in the cap-2
+  order. A VP title that names a function goes through the normal rule (excluded functions drop; others are edge ->
+  Jev). Medtech keeps them as edge titles (Jev unsure 0.25-0.47 -> drop).
 - First run 2026-11-17 (medtech 5,381 rows, construction 6,012): biggest drops are headcount (< 20 and > 500), then
   industry, title and off-domain email. LeadOcean returns `untested` for most of these people; `verified` is rare.
 - Copyright years rendered by JS differ from static HTML: a fact is only claimed when the rendered DOM shows it.
