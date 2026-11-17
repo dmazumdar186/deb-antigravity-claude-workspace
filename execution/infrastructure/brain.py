@@ -13,8 +13,12 @@ description: Stores one short behavioural lesson per file in .claude/brain/lesso
              (strength >= 3 joins the core); `lint` dedupes, decays and finds conflicts.
 inputs: hook JSON on stdin (session_id, prompt, transcript_path, stop_hook_active);
         .claude/brain/lessons/*.md; env OPENROUTER_API_KEY (optional, Jev conflict checks);
-        env BRAIN_DIR / BRAIN_TODAY / BRAIN_TMP (tests).
+        env BRAIN_DIR / BRAIN_TODAY / BRAIN_TMP (tests); BRAIN_HOLDOUT_RATE (% of turns whose per-prompt
+        lessons are withheld, default 10, 0 disables); BRAIN_GRADE_RATE (default 100) / BRAIN_GRADE_OFF=1
+        (independent Sonnet grader of Jev/withheld picks, detached, subscription via the `claude` CLI).
 outputs: hook JSON on stdout; lesson files; .tmp/brain_sessions/<session>.json (dedupe state);
+         .claude/brain/eval/observations/<date>-<sid>.jsonl (one text-free row per operator turn) and
+         <date>-<sid>.grades.jsonl (grader rows); .tmp/brain_grader.log;
          .tmp/jev_ledger.jsonl rows (caller=brain).
 
 Usage:
@@ -26,6 +30,7 @@ Usage:
     python3 execution/infrastructure/brain.py supersede <old_id> <new_id>
     python3 execution/infrastructure/brain.py lint [--deep] [--apply]
     python3 execution/infrastructure/brain.py hook-start|hook-prompt|hook-stop   # stdin = hook JSON
+    python3 execution/infrastructure/brain.py grade      # stdin = grade job JSON (spawned by the Stop hook)
 
 Directive: directives/infrastructure/brain.md. Fails open in every hook mode (exit 0, no output).
 """
@@ -53,6 +58,9 @@ CORE_MAX_CHARS = 2200
 PROMPT_TOP_K = 3
 PROMPT_MAX_CHARS = 900
 PROMPT_MIN_SCORE = 3.5
+HOLDOUT_RATE_DEFAULT = 10  # % of operator turns whose per-prompt lessons are withheld (BRAIN_HOLDOUT_RATE)
+GRADE_MODEL = "claude-sonnet-5-5"  # independent grader of Jev picks; never Jev (see grade_turn)
+GRADE_TIMEOUT_S = 180
 MAX_ACTIVE = 120
 DECAY_DAYS = 180
 DEEP_EVERY_DAYS = 7
@@ -721,15 +729,16 @@ def hook_prompt(payload: dict[str, Any]) -> str:
             break
         lines.append(b)
         used += len(b)
+    ids = [ln.rsplit("[", 1)[1].rstrip("]") for ln in lines]
+    # counter suffix: the same prompt sent twice is two turns, logged twice
+    turn_sha = hashlib.sha256(prompt.encode("utf-8")).hexdigest()[:12] + f"-{int(st.get('turns', 0)) + 2}"
+    # Holdout arm (causal test of per-prompt injection): the hits are computed as usual but withheld.
+    # Core lessons loaded at SessionStart are unaffected, so this measures per-prompt injection only.
+    holdout = holdout_arm(turn_sha)
     out: list[str] = []
-    if lines:
+    if lines and not holdout:
         out.append("Brain — lessons that apply to this prompt:\n" + "\n".join(lines))
-        st["injected"] = list(
-            dict.fromkeys(
-                st.get("injected", [])
-                + [ln.rsplit("[", 1)[1].rstrip("]") for ln in lines]
-            )
-        )
+        st["injected"] = list(dict.fromkeys(st.get("injected", []) + ids))
     if CORRECTION_RE.search(prompt):
         out.append(
             f"Brain: this reads like an operator correction. Verify against the source first; if it is a "
@@ -741,20 +750,47 @@ def hook_prompt(payload: dict[str, Any]) -> str:
     # into a text-free observation row. Lesson ids are snapshotted so a lesson written during this
     # turn is never counted as "already known".
     st["turns"] = int(st.get("turns", 0)) + 1
+    shown = [] if holdout else ids
     st["turn"] = {
         "prompt": prompt[:2000],
-        # counter suffix: the same prompt sent twice is two turns, logged twice
-        "sha": hashlib.sha256(prompt.encode("utf-8")).hexdigest()[:12] + f"-{int(st.get('turns', 0)) + 1}",
-        "injected": [ln.rsplit("[", 1)[1].rstrip("]") for ln in lines],
-        "sources": {i: sources.get(i, "kw") for i in [ln.rsplit("[", 1)[1].rstrip("]") for ln in lines]},
+        "sha": turn_sha,
+        "injected": shown,
+        "sources": {i: sources.get(i, "kw") for i in shown},
+        "holdout": holdout,
+        # a correction on this turn grades the PREVIOUS answer, so the eval attributes it to that turn's arm
+        "prev_holdout": st.get("last_arm"),
+        "withheld": ids if holdout else [],
+        "withheld_sources": {i: sources.get(i, "kw") for i in ids} if holdout else {},
         "correction": bool(CORRECTION_RE.search(prompt)),
         "known": [x.id for x in active(lessons)],
         "seen": list(st.get("injected", [])),
     }
+    st["last_arm"] = holdout
     session_put(sid, st)
     if not out:
         return ""
     return _ctx("UserPromptSubmit", "\n".join(out))
+
+
+def _env_rate(name: str, default: int) -> int:
+    """Percent 0..100 from env; a malformed value falls back to the default (logged, never raised)."""
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return default
+    try:
+        return max(0, min(100, int(raw)))
+    except ValueError:
+        print(f"brain: {name}={raw!r} is not an integer; using {default}", file=sys.stderr)
+        return default
+
+
+def holdout_arm(turn_sha: str) -> bool:
+    """Deterministic per turn: int(sha[:8], 16) % 100 < BRAIN_HOLDOUT_RATE (default 10; 0 disables)."""
+    rate = _env_rate("BRAIN_HOLDOUT_RATE", HOLDOUT_RATE_DEFAULT)
+    try:
+        return rate > 0 and int(turn_sha[:8], 16) % 100 < rate
+    except ValueError:
+        return False
 
 
 def _turn_messages(transcript_path: str, max_bytes: int = 3_000_000) -> tuple[str, str]:
@@ -859,16 +895,17 @@ def obs_dir() -> Path:
 
 
 def log_observation(sid: str, st: dict[str, Any], admitted: bool, recorded: bool) -> None:
-    """Append one text-free evidence row for this turn (once per turn). Committed with the work so the
-    weekly eval survives ephemeral cloud containers. Never stores prompt text."""
+    """Append one text-free evidence row for EVERY operator turn (once per turn; machine and short prompts
+    leave no turn). Committed with the work so the weekly eval survives ephemeral cloud containers.
+    Never stores prompt text. Jev/both picks and withheld (holdout) ids go to an independent grader that
+    runs detached, so it can never block or slow this hook."""
     turn = st.get("turn") or {}
+    if not turn.get("sha"):
+        return  # no operator turn since the last row (machine turn, short prompt, or no hook_prompt)
+    if turn["sha"] in st.get("logged", []):
+        return
     injected_ids = list(turn.get("injected", []))
     correction = bool(turn.get("correction"))
-    if not (injected_ids or correction or admitted):
-        return
-    key = f"{turn.get('sha', 'none')}:{len(st.get('logged', []))}"
-    if turn.get("sha") and turn.get("sha") in st.get("logged", []):
-        return
     lessons, _ = load()
     by_id = {x.id: x for x in lessons}
     known = [by_id[i] for i in turn.get("known", []) if i in by_id]
@@ -880,19 +917,170 @@ def log_observation(sid: str, st: dict[str, Any], admitted: bool, recorded: bool
     seen = set(turn.get("seen", [])) | set(injected_ids)
     row = {
         "v": 1, "date": today().isoformat(), "sid": re.sub(r"[^A-Za-z0-9]", "", sid)[:8], "scorer": SCORER_ID,
-        "turn": turn.get("sha", key), "injected": injected_ids, "sources": sources, "correction": correction,
+        "turn": turn["sha"], "injected": injected_ids, "sources": sources, "correction": correction,
         "admitted": admitted, "recorded": recorded, "judged": bool(verdict),
         "relevance": verdict.get("relevance", {}),
         "covered_by": covered if covered and covered != "none" else None,
         "covered_p": verdict.get("covered_p"),
         "covered_was_shown": bool(covered and covered in seen),
+        "every_turn": True,  # rows before 2026-11-17 were written only for turns with an event
+        "holdout": bool(turn.get("holdout")),
+        "prev_holdout": turn.get("prev_holdout"),
+        "withheld": list(turn.get("withheld", [])),
+        "withheld_sources": dict(turn.get("withheld_sources") or {}),
     }
     d = obs_dir()
     d.mkdir(parents=True, exist_ok=True)
     with (d / f"{row['date']}-{row['sid'] or 'nosession'}.jsonl").open("a", encoding="utf-8", newline="\n") as fh:
         fh.write(json.dumps(row, sort_keys=True) + "\n")
-    if turn.get("sha"):
-        st["logged"] = (st.get("logged", []) + [turn["sha"]])[-200:]
+    st["logged"] = (st.get("logged", []) + [turn["sha"]])[-200:]
+    grade_ids = [i for i in injected_ids if sources.get(i) in ("jev", "both")] + row["withheld"]
+    grade_ids = [i for i in dict.fromkeys(grade_ids) if i in by_id]
+    if grade_ids and grade_sampled(turn["sha"]):
+        spawn_grader({"date": row["date"], "sid": row["sid"], "turn": row["turn"],
+                      "prompt": str(turn.get("prompt", ""))[:4000], "ids": grade_ids})
+
+
+# ---------------------------------------------------------------------------------------------
+# independent grader (Claude Sonnet on the subscription, detached from the Stop hook)
+GRADE_SYSTEM = (
+    "You audit a lesson-retrieval system. Given an operator prompt to a coding/business assistant and a numbered "
+    "list of lessons learned from past mistakes, list the lessons that genuinely matter for doing THIS prompt's "
+    "task correctly (ignoring it could repeat the mistake). Be strict: topical overlap is not enough. "
+    'Reply with JSON only: {"relevant": ["L0", ...]} (empty list if none).'
+)
+
+
+def grade_off_reason() -> str:
+    """Why grading is skipped, or "" when it may run. /jev off means confidential: no prompt text leaves."""
+    if os.environ.get("BRAIN_GRADE_OFF", "") == "1":
+        return "BRAIN_GRADE_OFF=1"
+    if _env_rate("BRAIN_GRADE_RATE", 100) == 0:
+        return "BRAIN_GRADE_RATE=0"
+    if not _jev_enabled():
+        return "jev router off (confidential)"
+    if os.environ.get("PYTEST_CURRENT_TEST") and os.environ.get("BRAIN_GRADE_TEST") != "1":
+        return "under pytest (never spend from tests)"
+    return ""
+
+
+def grade_sampled(turn_sha: str) -> bool:
+    if grade_off_reason():
+        return False
+    rate = _env_rate("BRAIN_GRADE_RATE", 100)
+    # independent of the holdout bits: hash the sha again rather than reuse its leading hex
+    return int(hashlib.sha256(f"grade:{turn_sha}".encode()).hexdigest()[:8], 16) % 100 < rate
+
+
+def _grader_cmd() -> list[str]:
+    return [sys.executable, str(Path(__file__).resolve()), "grade"]
+
+
+def _grader_log() -> Path:
+    return tmp_dir() / "brain_grader.log"
+
+
+def spawn_grader(job: dict[str, Any]) -> bool:
+    """Start the grader detached and return at once. The prompt goes over stdin, never argv. Any failure is
+    logged to stderr and the grader log; nothing raises into the Stop hook."""
+    import subprocess  # noqa: PLC0415
+
+    kw: dict[str, Any] = {}
+    if os.name == "nt":
+        kw["creationflags"] = getattr(subprocess, "DETACHED_PROCESS", 0x8) | getattr(
+            subprocess, "CREATE_NEW_PROCESS_GROUP", 0x200)
+    else:
+        kw["start_new_session"] = True
+    try:
+        _grader_log().parent.mkdir(parents=True, exist_ok=True)
+        with _grader_log().open("a", encoding="utf-8") as log:
+            proc = subprocess.Popen(_grader_cmd(), stdin=subprocess.PIPE, stdout=log, stderr=log,
+                                    text=True, encoding="utf-8", errors="replace", **kw)
+        assert proc.stdin is not None
+        proc.stdin.write(json.dumps(job))  # a few KB: fits the pipe buffer, never blocks on a live child
+        proc.stdin.close()
+        return True
+    except Exception as exc:  # noqa: BLE001 — grading is advisory; the hook must finish regardless
+        msg = f"brain grader spawn failed: {type(exc).__name__}: {exc}"
+        print(msg, file=sys.stderr)
+        try:
+            with _grader_log().open("a", encoding="utf-8") as log:
+                log.write(f"{dt.datetime.now(dt.timezone.utc).isoformat()} {msg}\n")
+        except OSError as exc2:  # the log is best-effort; stderr above already carries the failure
+            print(f"brain grader log: {exc2}", file=sys.stderr)
+        return False
+
+
+def _claude_grade(system: str, user: str) -> str:
+    """One call to Claude Sonnet via the Claude Code CLI on the operator's subscription. Called directly, not via
+    llm_client.chat_completion: that path walks CLAUDE_CHAIN (Opus first) and ignores the model argument, and
+    CLAUDE_VIA=openrouter would bill OpenRouter. Hooks, settings, MCP and tools are kept out of the child."""
+    import shutil  # noqa: PLC0415
+    import subprocess  # noqa: PLC0415
+
+    exe = shutil.which("claude")
+    if not exe:
+        raise RuntimeError("Claude Code CLI not on PATH")
+    cmd = [exe, "-p", "--model", GRADE_MODEL, "--effort", "low", "--output-format", "json",
+           "--no-session-persistence", "--setting-sources", "", "--strict-mcp-config", "--tools", "",
+           "--system-prompt", system]
+    proc = subprocess.run(cmd, input=user, capture_output=True, text=True, encoding="utf-8", errors="replace", check=False,
+                          timeout=GRADE_TIMEOUT_S)
+    try:
+        data = json.loads((proc.stdout or "").strip())
+    except ValueError as exc:
+        raise RuntimeError(f"claude CLI returned no JSON (exit {proc.returncode}): "
+                           f"{(proc.stderr or proc.stdout or '')[:200]}") from exc
+    if not isinstance(data, dict) or data.get("is_error") or proc.returncode != 0:
+        raise RuntimeError(f"claude CLI error (exit {proc.returncode}): {str(data)[:200]}")
+    return str(data.get("result") or "")
+
+
+_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def grade_turn(job: dict[str, Any]) -> dict[str, Any] | None:
+    """Grade one turn's Jev/both/withheld ids with the independent model; append a text-free row to
+    observations/<date>-<sid>.grades.jsonl. Returns the row, or None when nothing was written."""
+    if "jev" in GRADE_MODEL.lower():
+        raise SystemExit("refused: the grader may not be the model that picks lessons (self-grading)")
+    date, sid, turn = str(job.get("date", "")), str(job.get("sid", "")), str(job.get("turn", ""))
+    if not _DATE_RE.match(date) or not re.fullmatch(r"[A-Za-z0-9]{0,8}", sid) or not turn:
+        raise ValueError("grade job: bad date/sid/turn")
+    by_id = {x.id: x for x in load()[0]}
+    chunk = [by_id[i] for i in job.get("ids", []) if i in by_id][:20]
+    if not chunk:
+        return None
+    menu = "\n".join(f"L{i}: {x.rule}" for i, x in enumerate(chunk))
+    text = _claude_grade(GRADE_SYSTEM, f"PROMPT:\n{str(job.get('prompt', ''))[:4000]}\n\nLESSONS:\n{menu}")
+    m = re.search(r"\{.*\}", text or "", re.S)
+    if not m:
+        raise RuntimeError(f"grader returned no JSON: {text[:80]!r}")
+    picked = set(json.loads(m.group(0)).get("relevant", []))
+    row = {"v": 1, "date": date, "sid": sid, "turn": turn, "grader": GRADE_MODEL,
+           "relevance_indep": {x.id: int(f"L{i}" in picked) for i, x in enumerate(chunk)}}
+    d = obs_dir()
+    d.mkdir(parents=True, exist_ok=True)
+    with (d / f"{date}-{sid or 'nosession'}.grades.jsonl").open("a", encoding="utf-8", newline="\n") as fh:
+        fh.write(json.dumps(row, sort_keys=True) + "\n")
+    return row
+
+
+def cmd_grade() -> int:
+    """`brain.py grade`: JSON job on stdin (from spawn_grader). Logs failures; exit 1 on failure."""
+    reason = grade_off_reason()
+    if reason:
+        print(f"brain grade: skipped ({reason})", file=sys.stderr)
+        return 0
+    try:
+        job = json.loads(sys.stdin.read() or "{}")
+        row = grade_turn(job if isinstance(job, dict) else {})
+        print(f"{dt.datetime.now(dt.timezone.utc).isoformat()} brain grade: {'wrote ' + row['turn'] if row else 'nothing to grade'}",
+              file=sys.stderr)
+        return 0
+    except Exception as exc:  # noqa: BLE001 — detached worker: log the failure, never retry-loop
+        print(f"{dt.datetime.now(dt.timezone.utc).isoformat()} brain grade failed: {type(exc).__name__}: {exc}", file=sys.stderr)
+        return 1
 
 
 def hook_stop(payload: dict[str, Any]) -> str:
@@ -1143,6 +1331,8 @@ def cmd_status(_: argparse.Namespace) -> int:
 def main(argv: list[str]) -> int:
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
+    if argv and argv[0] == "grade":
+        return cmd_grade()
     if argv and argv[0] in ("hook-start", "hook-prompt", "hook-stop"):
         try:
             payload = json.loads(sys.stdin.read() or "{}")

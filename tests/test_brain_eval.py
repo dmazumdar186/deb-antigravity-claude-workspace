@@ -19,6 +19,8 @@ def sandbox(tmp_path, monkeypatch):
     monkeypatch.setenv("BRAIN_DIR", str(tmp_path / "brain"))
     monkeypatch.setenv("BRAIN_TMP", str(tmp_path / "tmp"))
     monkeypatch.setenv("BRAIN_TODAY", "2026-11-12")
+    monkeypatch.setenv("BRAIN_HOLDOUT_RATE", "0")  # these tests assert injection; the holdout has its own file
+    monkeypatch.setenv("BRAIN_GRADE_OFF", "1")
     for k in ("OPENROUTER_API_KEY", "OPENROUTER_API_TOKEN", "OPENROUTER_API_TOEKN"):
         monkeypatch.delenv(k, raising=False)
 

@@ -17,7 +17,8 @@ description: Scores the brain (execution/infrastructure/brain.py) with an algori
                  thresholds or the evaluator change ("goalposts moved") or evidence rows disappear;
                  verdict PASS/WARN/FAIL computed from thresholds.json; every fault line is printed first.
 inputs: .claude/brain/lessons/*.md, .claude/brain/eval/{benchmark.jsonl,thresholds.json,labels.json,
-        history.jsonl,observations/*.jsonl}; env OPENROUTER_API_KEY (only with --label).
+        history.jsonl,observations/*.jsonl (turn rows), observations/*.grades.jsonl (independent grader
+        rows, merged by sid+turn)}; env OPENROUTER_API_KEY (only with --label).
 outputs: .claude/brain/eval/reports/<date>.md, a history.jsonl row, labels.json (cache);
          .tmp/jev_ledger.jsonl rows (caller=brain_eval). Never writes lessons.
 
@@ -275,12 +276,101 @@ def benchmark_metrics(
     }
 
 
+def per_set_metrics(bench: list[dict[str, Any]], lessons: list[brain.Lesson], labels: dict[str, float],
+                    picks: dict[str, dict[str, float]] | None) -> dict[str, Any]:
+    """precision_<set>, recall_<set>, f1_<set> for the deployed hybrid, scored exactly like the overall numbers.
+    Only when some benchmark row carries a `set` field; a row without one is set "v1". Unmeasured (None) when
+    the hybrid could not be replayed this run."""
+    if not any("set" in b for b in bench):
+        return {}
+    sets: dict[str, list[dict[str, Any]]] = {}
+    for b in bench:
+        name = re.sub(r"[^A-Za-z0-9_]", "_", str(b.get("set") or "v1"))[:20] or "v1"
+        sets.setdefault(name, []).append(b)
+    out: dict[str, Any] = {}
+    for name, rows in sorted(sets.items()):
+        m = benchmark_metrics(rows, lessons, labels, picks) if picks is not None else {}
+        for k in ("precision", "recall", "f1"):
+            out[f"{k}_{name}"] = m.get(k)
+        out[f"prompts_{name}"] = len(rows)
+    return out
+
+
 def _r(v: float | None, n: int = 3) -> float | None:
     return None if v is None else round(v, n)
 
 
-def live_metrics(obs: list[dict[str, Any]], since: str, scorer: str | None = None) -> dict[str, Any]:
+HOLDOUT_MIN_CORRECTIONS = 10  # per arm, before the holdout comparison says anything
+
+
+def is_grade_file(p: Path) -> bool:
+    return p.name.endswith(".grades.jsonl")
+
+
+def obs_files() -> list[Path]:
+    """Observation rows only: *.grades.jsonl (independent grader rows) are read separately."""
+    d = eval_dir() / "observations"
+    return [p for p in sorted(d.glob("*.jsonl")) if not is_grade_file(p)] if d.is_dir() else []
+
+
+def grade_files() -> list[Path]:
+    d = eval_dir() / "observations"
+    return sorted(d.glob("*.grades.jsonl")) if d.is_dir() else []
+
+
+def _per100(n: int, d: int) -> float | None:
+    return _r(100 * n / d, 2) if d else None
+
+
+def holdout_metrics(week: list[dict[str, Any]]) -> dict[str, Any]:
+    """Per-arm outcomes. A correction on turn N grades turn N-1's answer, so it is attributed to the arm of the
+    previous operator turn (`prev_holdout`); a correction with no previous turn in the session is unattributed.
+    Only rows written under the log-every-turn regime count (older rows lack the arm)."""
+    rows = [o for o in week if o.get("every_turn") and "holdout" in o]
+    out: dict[str, Any] = {}
+    for arm, flag in (("injected", False), ("holdout", True)):
+        turns = sum(1 for o in rows if bool(o.get("holdout")) is flag)
+        corr = [o for o in rows if o.get("correction") and o.get("prev_holdout") is flag]
+        rep_ = [o for o in corr if o.get("covered_by") and (o.get("covered_p") or 0) >= 0.6]
+        out[f"arm_{arm}_turns"] = turns
+        out[f"arm_{arm}_corrections"] = len(corr)
+        out[f"arm_{arm}_repeat_mistakes"] = len(rep_)
+        out[f"arm_{arm}_corrections_per_100"] = _per100(len(corr), turns)
+        out[f"arm_{arm}_repeats_per_100"] = _per100(len(rep_), turns)
+    out["holdout_min_sample_ok"] = (out["arm_injected_corrections"] >= HOLDOUT_MIN_CORRECTIONS
+                                    and out["arm_holdout_corrections"] >= HOLDOUT_MIN_CORRECTIONS)
+    return out
+
+
+def grade_metrics(week: list[dict[str, Any]], grades: list[dict[str, Any]]) -> dict[str, Any]:
+    """Independent (non-Jev) grades of Jev/both injected picks and of holdout-withheld ids, merged by (sid, turn).
+    These never feed live_precision_kw, which stays Jev-judged keyword picks only."""
+    by_turn: dict[tuple[str, str], dict[str, Any]] = {}
+    for g in grades:
+        if "_corrupt" in g or not isinstance(g.get("relevance_indep"), dict):
+            continue
+        by_turn.setdefault((str(g.get("sid", "")), str(g.get("turn", ""))), {}).update(g["relevance_indep"])
+    jev_vals: list[float] = []
+    wh_vals: list[float] = []
+    for o in week:
+        rel = by_turn.get((str(o.get("sid", "")), str(o.get("turn", ""))))
+        if not rel:
+            continue
+        src = o.get("sources") or {}
+        jev_vals += [float(rel[i]) for i in (o.get("injected") or []) if src.get(i) in ("jev", "both") and i in rel]
+        wh_vals += [float(rel[i]) for i in (o.get("withheld") or []) if i in rel]
+    return {
+        "graded_injections_jev": len(jev_vals),
+        "live_precision_jev": _r(sum(1 for p in jev_vals if p >= REL_CUT) / len(jev_vals) if jev_vals else None),
+        "graded_withheld": len(wh_vals),
+        "live_precision_withheld": _r(sum(1 for p in wh_vals if p >= REL_CUT) / len(wh_vals) if wh_vals else None),
+    }
+
+
+def live_metrics(obs: list[dict[str, Any]], since: str, scorer: str | None = None,
+                 grades: list[dict[str, Any]] | None = None) -> dict[str, Any]:
     week = [o for o in obs if str(o.get("date", "")) >= since and "_corrupt" not in o]
+    every = [o for o in week if o.get("every_turn")]
     # live_precision_kw grades the keyword scorer that is shipped now: rows judged under an earlier scorer
     # (no or another `scorer` id) are reported as *_prior and never count toward the floor.
     def current(o: dict[str, Any]) -> bool:
@@ -328,6 +418,12 @@ def live_metrics(obs: list[dict[str, Any]], since: str, scorer: str | None = Non
             if not o.get("judged") and (o.get("injected") or o.get("correction"))
         ),
         "corrupt_rows": sum(1 for o in obs if "_corrupt" in o),
+        # turns_all / corrections_per_100 use only rows from the log-every-turn regime (2026-11-17), whose
+        # denominator is every operator turn; older rows exist only for turns with an event.
+        "turns_all": len(every),
+        "corrections_per_100": _per100(sum(1 for o in every if o.get("correction")), len(every)),
+        **holdout_metrics(week),
+        **grade_metrics(week, grades or []),
     }
 
 
@@ -398,7 +494,7 @@ def _git(*args: str) -> tuple[int, str]:
         return 1, str(exc)
 
 
-def git_anchor(history: list[dict[str, Any]], obs_total: int) -> list[tuple[str, str]]:
+def git_anchor(history: list[dict[str, Any]], obs_total: int, grades_total: int | None = None) -> list[tuple[str, str]]:
     """Compare the working copy with what git already holds, so deleting or truncating the history or
     the evidence cannot start a clean chain. Only for the real brain dir (tests use temp dirs)."""
     try:
@@ -417,10 +513,26 @@ def git_anchor(history: list[dict[str, Any]], obs_total: int) -> list[tuple[str,
         out.append(("evidence_deleted", f"history.jsonl was deleted in commit {deleted.split()[0]}"))
     code, counts = _git("grep", "-c", "", "HEAD", "--", f"{rel}/observations")
     if code == 0:
-        committed_rows = sum(int(ln.rsplit(":", 1)[1]) for ln in counts.splitlines() if ln.rsplit(":", 1)[-1].isdigit())
-        if obs_total < committed_rows:
-            out.append(("evidence_deleted", f"observation rows {obs_total} < {committed_rows} committed at HEAD"))
+        obs_c, grade_c = _committed_counts(counts)
+        if obs_total < obs_c:
+            out.append(("evidence_deleted", f"observation rows {obs_total} < {obs_c} committed at HEAD"))
+        if grades_total is not None and grades_total < grade_c:
+            out.append(("evidence_deleted", f"grader rows {grades_total} < {grade_c} committed at HEAD"))
     return out
+
+
+def _committed_counts(git_grep_c: str) -> tuple[int, int]:
+    """(observation rows, grader rows) from `git grep -c "" HEAD -- <dir>` output (`HEAD:path:count`)."""
+    obs = grades = 0
+    for ln in git_grep_c.splitlines():
+        path, _, n = ln.rpartition(":")
+        if not n.isdigit():
+            continue
+        if path.endswith(".grades.jsonl"):
+            grades += int(n)
+        else:
+            obs += int(n)
+    return obs, grades
 
 
 BENCH_METRICS = {"precision", "recall", "f1", "effective_recall", "noise_rate", "avg_inject_chars", "judge_sanity",
@@ -490,6 +602,8 @@ def judge(
         add(code, msg)
     if ctx["obs_total"] < ctx["prev_obs_total"]:
         add("evidence_deleted", f"observation rows fell from {ctx['prev_obs_total']} to {ctx['obs_total']}")
+    if ctx.get("grades_total", 0) < ctx.get("prev_grades_total", 0):
+        add("evidence_deleted", f"grader rows fell from {ctx['prev_grades_total']} to {ctx['grades_total']}")
     if not history and ctx.get("orphan_reports"):
         add("evidence_deleted", f"no history but {ctx['orphan_reports']} earlier report(s) exist: history was removed")
     for name, cur, old in ctx["moved"]:
@@ -613,12 +727,15 @@ def run(label: bool, dry_run: bool, acks: list[str] | None = None,
     bm = benchmark_metrics(bench, lessons, labels, picks) if picks is not None else {
         **kw, **{m: None for m in ("precision", "recall", "f1", "effective_recall", "noise_rate", "avg_inject_chars")}}
     obs_rows: list[dict[str, Any]] = []
-    for p in sorted((eval_dir() / "observations").glob("*.jsonl")):
+    for p in obs_files():
         obs_rows += read_jsonl(p)
+    grade_rows: list[dict[str, Any]] = []
+    for p in grade_files():
+        grade_rows += read_jsonl(p)
     since = (
         brain.today() - __import__("datetime").timedelta(days=LIVE_WINDOW_DAYS)
     ).isoformat()
-    lm = live_metrics(obs_rows, since, brain.SCORER_ID)
+    lm = live_metrics(obs_rows, since, brain.SCORER_ID, grade_rows)
     live_ever = {i for o in obs_rows for i in (o.get("injected") or [])}
     core = brain.core(lessons)
     rep = brain.lint(lessons, errors)
@@ -645,6 +762,7 @@ def run(label: bool, dry_run: bool, acks: list[str] | None = None,
     kpis: dict[str, Any] = {
         **{k: v for k, v in bm.items() if not k.startswith("_")},
         **{f"kw_{m}": kw[m] for m in ("precision", "recall", "f1", "effective_recall", "noise_rate", "n_ret", "n_rel")},
+        **per_set_metrics(bench, lessons, labels, picks),
         "trigger_overlap": _r(overlap / len(act) if act else None),
         "lessons_after_freeze": sorted(x.id for x in act if bench_meta().get("frozen") and x.created >= bench_meta()["frozen"]),
         "turns_logged_ever": len(obs_rows),
@@ -674,10 +792,12 @@ def run(label: bool, dry_run: bool, acks: list[str] | None = None,
                 for c in (acks or [])]
     ctx = {
         "chain_problems": verify_chain(history),
-        "anchor": git_anchor(history, len(obs_rows)),
+        "anchor": git_anchor(history, len(obs_rows), len(grade_rows)),
         "orphan_reports": len(list((eval_dir() / "reports").glob("*.md"))) if (eval_dir() / "reports").is_dir() else 0,
         "obs_total": len(obs_rows),
         "prev_obs_total": int((prev or {}).get("obs_total", 0)),
+        "grades_total": len(grade_rows),
+        "prev_grades_total": int((prev or {}).get("grades_total", 0)),
         "moved": moved,
         "today": today,
         "bench_hash": hashes["benchmark"],
@@ -697,6 +817,7 @@ def run(label: bool, dry_run: bool, acks: list[str] | None = None,
         "snapshot": snapshot,
         "hashes": hashes,
         "obs_total": len(obs_rows),
+        "grades_total": len(grade_rows),
         "spend_usd": round(spend["usd"] + float(spend.get("jev_usd", 0) or 0), 6),
         "notes": list(notes or []),
         "acks": ack_rows,
@@ -737,13 +858,25 @@ def _fmt(v: Any) -> str:
     return str(v)
 
 
-KPI_ORDER = ["precision", "recall", "f1", "effective_recall", "noise_rate", "avg_inject_chars", "kw_precision", "kw_recall", "kw_f1", "kw_effective_recall", "kw_noise_rate", "judge_sanity", "label_coverage_gap", "live_precision_kw", "live_precision_kw_prior", "judged_injections_prior", "corrections", "repeat_mistakes_week", "capture_leak", "turns_logged", "injections", "jev_picked_injections", "judged_injections", "unjudged_rows", "sessions", "active", "core", "core_chars", "added", "strengthened", "retired", "dead_lessons", "trigger_overlap", "unlabelled_pairs"]
+KPI_ORDER = ["precision", "recall", "f1", "effective_recall", "noise_rate", "avg_inject_chars", "kw_precision", "kw_recall", "kw_f1", "kw_effective_recall", "kw_noise_rate", "judge_sanity", "label_coverage_gap", "live_precision_kw", "live_precision_kw_prior", "judged_injections_prior", "corrections", "repeat_mistakes_week", "capture_leak", "turns_logged", "turns_all", "corrections_per_100", "arm_injected_turns", "arm_holdout_turns", "arm_injected_corrections", "arm_holdout_corrections", "arm_injected_corrections_per_100", "arm_holdout_corrections_per_100", "arm_injected_repeat_mistakes", "arm_holdout_repeat_mistakes", "arm_injected_repeats_per_100", "arm_holdout_repeats_per_100", "holdout_min_sample_ok", "live_precision_jev", "graded_injections_jev", "live_precision_withheld", "graded_withheld", "injections", "jev_picked_injections", "judged_injections", "unjudged_rows", "sessions", "active", "core", "core_chars", "added", "strengthened", "retired", "dead_lessons", "trigger_overlap", "unlabelled_pairs"]
 
 
 DISPLAY = {"effective_recall": "effective_recall (incl. always-loaded core)",
            "noise_rate": "noise_rate (negative prompts that still got an injection)",
            "kw_noise_rate": "kw_noise_rate (negative prompts that still got an injection)",
            "kw_effective_recall": "kw_effective_recall (incl. always-loaded core)"}
+
+
+def holdout_line(k: dict[str, Any]) -> str:
+    inj, hold = k.get("arm_injected_corrections", 0) or 0, k.get("arm_holdout_corrections", 0) or 0
+    if not k.get("holdout_min_sample_ok"):
+        return (f"- Holdout: sample too small to conclude anything ({inj} corrections in the injected arm, {hold} in "
+                f"the holdout arm; at least {HOLDOUT_MIN_CORRECTIONS} in each are needed). Do not read the per-arm "
+                f"rates as an effect of the brain.")
+    return (f"- Holdout (descriptive, no significance test): corrections per 100 turns injected "
+            f"{_fmt(k.get('arm_injected_corrections_per_100'))} vs holdout {_fmt(k.get('arm_holdout_corrections_per_100'))}; "
+            f"repeat mistakes per 100 injected {_fmt(k.get('arm_injected_repeats_per_100'))} vs holdout "
+            f"{_fmt(k.get('arm_holdout_repeats_per_100'))}.")
 
 
 def render(
@@ -762,7 +895,8 @@ def render(
         lines += ["", "## Run notes", ""] + [f"- {n}" for n in row["notes"]]
     lines += ["", "## KPIs", "", "| KPI | this run | last run | delta |", "|---|---|---|---|"]
     no_evidence = not k.get("corrections")
-    for name in KPI_ORDER:
+    set_kpis = sorted(n for n in k if re.fullmatch(r"(precision|recall|f1|prompts)_[A-Za-z0-9_]+", n))
+    for name in KPI_ORDER + set_kpis:
         a, b = k.get(name), pk.get(name) if prev else None
         delta = ""
         if isinstance(a, (int, float)) and isinstance(b, (int, float)) and not isinstance(a, bool):
@@ -785,6 +919,10 @@ def render(
          if not k.get("corrections") else
          f"- Repeat mistakes, never shown: {', '.join(k.get('repeat_never_shown', [])) or 'none'}; "
          f"shown and ignored: {', '.join(k.get('repeat_shown_ignored', [])) or 'none'}"),
+        holdout_line(k),
+        (f"- Independent grader ({brain.GRADE_MODEL}, not Jev): live_precision_jev {_fmt(k.get('live_precision_jev'))} "
+         f"on {k.get('graded_injections_jev', 0)} graded Jev/both picks; withheld (holdout) ids "
+         f"{_fmt(k.get('live_precision_withheld'))} on {k.get('graded_withheld', 0)} graded."),
         f"- Added: {', '.join(k.get('added', [])) or 'none'}; strengthened: "
         f"{', '.join(k.get('strengthened', [])) or 'none'}; retired: {', '.join(k.get('retired', [])) or 'none'}",
         f"- Sources unverifiable in this clone: {len(k.get('source_unverifiable', []))}",
@@ -800,8 +938,11 @@ def render(
         f"{k.get('trigger_overlap')} this run). Live precision and repeat mistakes are the check on that; they are "
         f"{checks}.",
         "- Live numbers only cover turns whose sessions committed their observation rows.",
-        "- live_precision_kw grades keyword picks only: Jev never grades its own picks, so Jev picks are measured "
-        "on the benchmark alone. Repeat-mistake detection is a Jev judgement and can under-count.",
+        ("- live_precision_kw grades keyword picks only (Jev-judged): Jev never grades its own picks. Jev/both picks "
+         f"are graded live by {brain.GRADE_MODEL} instead (live_precision_jev). Repeat-mistake detection is a Jev "
+         "judgement and can under-count."),
+        ("- The holdout withholds per-prompt lessons only; core lessons loaded at session start reach both arms, so "
+         "it measures the per-prompt injection, not the brain as a whole."),
         f"- A drop smaller than max(configured tolerance, 2 standard errors of the smaller sample) is not called a "
         f"regression, and drift since the first baseline tolerates double: on this sample about {f1_tol:.2f} for f1 "
         f"week-on-week and {2 * f1_tol:.2f} since baseline. Floors still apply.",
