@@ -5,8 +5,8 @@ Turn a contact export the operator already owns (Apollo-style CSV) into cold-ema
 non-personalized merge columns and at most one evidence-backed personalization line per company. Reuses the gates of
 `trigger_batch_leads.py` and the triggers of `medtech_510k_triggers.py` / `construction_award_triggers.py`.
 
-**Output contract:** `{vertical}_{STATE}.csv` per target state, `{vertical}_other.csv` (company HQ outside the target
-states, incl. non-US HQs), `companies.csv` (every company with its outcome), `funnel.md`. Each CSV < 2 MB (split into
+**Output contract:** `{vertical}_{STATE}.csv` per target state, `{vertical}_other.csv` (US company HQ outside the target
+states; non-US HQs are dropped), `companies.csv` (every company with its outcome), `funnel.md`. Each CSV < 2 MB (split into
 `_partN`). No uploads, no sends.
 
 ## Inputs
@@ -40,7 +40,28 @@ Uses `site_marker_fetch.js` with `no_mobile` + `timeout_ms` (20 s) for rendered 
    higher title rank (`stale second CEO`). Then LeadOcean `GET /v1/people/search?q=<name>&domain=<domain>&limit=5`
    per kept person: `verified` -> `email_check=verified_leadocean`; otherwise `mx_ok`; LeadOcean `catch_all` ->
    `catch_all=yes`. No SMTP probing ever.
-5. Personalization per company, first that holds:
+4c. US headquarters only (operator 2026-11-17): `Company Country` set and not United States (Puerto Rico counts as
+   US) -> dropped from every output, `_other.csv` included. Blank country keeps the row.
+4d. Maker / builder fit (operator hand-read 2026-11-17): one Jev call per company on its own description: noul
+   (`FIT[vertical]`: medtech = designs/makes its own medical products incl. contract manufacturers, reprocessors,
+   O&P fabricators, medical software; construction = builds or manufactures building products) + choice `kind`
+   (`FIT_KIND`). Drop when noul < `FIT_MIN` 0.5 unless kind = maker_or_builder (conf >= 0.6), or noul < `FIT_SOFT`
+   0.65 and kind names a non-maker (incubator, sales rep / distributor, consultancy / engineering / design / CM,
+   VC/PE, union / association, service provider) at conf >= 0.6. Funnel reason = `not a maker / builder: {kind}`.
+   Jev down -> company kept (helper fails open), not cached, re-run retries. Cache key `fit2|{vertical}|{domain}`.
+4e. `company_casual` (operator 2026-11-17: "Brandon Lever LLC has to be referred to as Brandon Lever only in mails
+   and communication"): `casual_candidates()` from the record name: tagline cut ("X - tagline", "X | tagline",
+   "X / tagline"; initials before a spelled-out name take the spelled-out name: "BCI (Berkeley Cement, Inc.)" ->
+   Berkeley Cement), "X by Parent" -> X, leading "The", legal suffixes (LLC, Inc, Corp, Co., Ltd, LP, PLLC, GmbH,
+   AB...) and trailing "&" fragments; generic tail words (Group, Holdings, Services, Solutions, Associates,
+   Industries, International, USA, America(s), Technologies) only when the rest stays distinctive (not initials, not
+   one plain word); industry words (Construction, Electric, Medical...) are never removed. Bare initials keep
+   "& Company" / "Corp" ("MG & Company", "CM Corp"). Casing: the homepage's own spelling of the same letters
+   (L.C. -> LC), acronyms the record and site both write upper (WHPM, IBEW), lowercase URL slugs ignored. When the
+   rule, the aggressive short form, a homepage name and the display disagree, one Jev choice ("how the company refers
+   to itself in short form") picks at conf >= 0.6, never to bare initials or a bare-word short form; else the rule.
+   Never a generic fallback. `casual_source` in companies.csv says which won. First names are not casualized.
+5. Personalization per company, first that holds (every line names the company as `company_casual`):
    a. Trigger: resolved trigger domain (trigger batch `*_companies.csv`) or exact normalized name + same state; the
       trigger-batch finder + blind verifier must confirm the homepage does not mention it.
    b. Homepage fact, only when the rendered page shows it (and the static page agrees when readable): footer copyright
@@ -56,13 +77,15 @@ Uses `site_marker_fetch.js` with `no_mobile` + `timeout_ms` (20 s) for rendered 
       one sentence, banned words leading/innovative/premier/top/best/great/impressive/amazing/world-class/trusted/
       need/struggle/grow/scale, every number present in the description), then an independent Jev check (two nouls:
       "every fact is stated in description" >= 0.7, "praise / needs / intent / opinion" <= 0.3). Any fail -> empty +
-      `none`. Evidence = source + best-matching description sentence + Jev scores. Budget guard `--max-usd` (default 5,
+      `none`. Evidence = source + best-matching description sentence + Jev scores. The generator and Jev see
+      `company_display` (cache keys unchanged); the kept line then swaps `company_display` -> `company_casual`
+      (substitution only, re-checked by the deterministic rules; a fail is counted `casual swap: ...`). Budget guard `--max-usd` (default 5,
       notional USD the CLI reports; subscription is not billed); one summary row per run in `.tmp/cost_ledger.jsonl`,
       per-call rows in `.tmp/llm_ledger.jsonl`.
    d. Else `personalization_type=none`, `first_line` empty.
 
 ## Outputs (columns)
-first_name, last_name, email, title, company_display, website, city, state, employees, linkedin, vertical,
+first_name, last_name, email, title, company_display, company_casual, website, city, state, employees, linkedin, vertical,
 email_check, email_tier, personalization_type, first_line, evidence, trigger_date, trigger_subject, trigger_id,
 trigger_url. State = company HQ state, else person state.
 

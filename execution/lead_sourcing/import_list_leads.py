@@ -155,14 +155,52 @@ Hard rules for first_line:
   activity, or clearly about a different company, return "first_line": "".
 """
 
-OUT_COLS = ["first_name", "last_name", "email", "title", "company_display", "website", "city", "state", "employees",
+OUT_COLS = ["first_name", "last_name", "email", "title", "company_display", "company_casual", "website", "city", "state", "employees",
             "linkedin", "vertical", "email_check", "email_tier", "personalization_type", "first_line", "evidence",
             "trigger_date", "trigger_subject", "trigger_id", "trigger_url"]
-CO_COLS = ["vertical", "company", "company_display", "domain", "state", "employees", "industry", "contacts_in",
+CO_COLS = ["vertical", "company", "company_display", "company_casual", "casual_source", "domain", "state", "employees", "industry", "contacts_in",
            "contacts_out", "outcome", "personalization_type", "first_line", "evidence"]
 STEPS = ["raw rows", "unique email + person", "has company domain", "not on drop list",
          "headcount in range", "not public (market cap)", "industry fits", "buyer title", "not a role inbox",
-         "email on company domain", "not public (homepage listing)", "email check passed", "cap 2 per company"]
+         "email on company domain", "not public (homepage listing)", "email check passed", "cap 2 per company",
+         "US headquarters", "maker / builder fit"]
+
+# Fit cleanup (operator hand-read 2026-11-17): keep makers / builders only. One Jev call per company: a noul gates
+# (drop below FIT_MIN), a choice labels the reason counted in funnel.md.
+FIT_MIN = 0.5  # below: drop unless the kind pick says maker / builder (conf >= FIT_KIND_CONF)
+FIT_SOFT, FIT_KIND_CONF = 0.65, 0.6  # below FIT_SOFT: drop when the kind pick names a non-maker kind
+FIT = {
+    "medtech": (
+        "Is this company a maker: does it design, develop or manufacture its own medical products?",
+        "the description says the company designs, develops, makes or manufactures medical or health products itself "
+        "(devices, implants, instruments, diagnostics, equipment, supplies, digital health or medical software), "
+        "including contract manufacturers, device reprocessors, custom orthotics / prosthetics fabricators and "
+        "medical software or AI products",
+        "the company is an incubator, accelerator, venture capital or private equity firm, an independent sales-rep "
+        "agency, a distributor or reseller of other companies' products only, a consultancy, a regulatory / CRO / "
+        "service provider, staffing, or a clinic, hospital or care provider that makes no products"),
+    "construction": (
+        "Is this company a builder: does it perform construction work itself?",
+        "the company builds: general contractor, construction manager or design-build firm, home or commercial "
+        "builder, or specialty trade contractor (electrical, mechanical, plumbing, HVAC, roofing, concrete, steel, "
+        "glazing, paving, excavation, restoration, controls / systems installation...), or it manufactures or "
+        "fabricates construction or building products, materials or equipment",
+        "the company does not build: an engineering, architecture, design, inspection, testing or consulting firm "
+        "without construction work, a construction-management / estimating / safety / permitting consultant, a "
+        "distributor, dealer, supplier or sales-rep agency that makes nothing, a labor union, trade association or "
+        "training nonprofit, an incubator or accelerator, a venture capital or private equity firm, or staffing"),
+}
+FIT_KIND = {"maker_or_builder": "makes or manufactures products (incl. building products or medical software) or "
+                                "performs construction work itself",
+            "incubator_accelerator": "incubator, accelerator or startup studio",
+            "sales_rep_distributor": "sales-rep agency, distributor, reseller or supplier only",
+            "consultancy_engineering_design": "consulting, engineering, architecture, design, testing or inspection "
+                                              "firm that does not build or make",
+            "investor_vc_pe": "venture capital, private equity or investment firm",
+            "union_association": "labor union or trade association",
+            "service_provider": "service provider (care, staffing, regulatory, CRO, software services) making no "
+                                "product and doing no construction",
+            "none": "none of these"}
 
 
 # ------------------------------------------------------------------ helpers
@@ -184,6 +222,143 @@ def clean_company(name: str) -> str:
 def fix_name_case(s: str) -> str:
     """O'hara -> O'Hara, El-gohary -> El-Gohary (only a lowercase letter right after ' or - is raised)."""
     return re.sub(r"(?<=[A-Za-z]['’\-])([a-z])", lambda m: m.group(1).upper(), s or "")
+
+
+# ------------------------------------------------------------------ company_casual (operator 2026-11-17: "Brandon
+# Lever LLC has to be referred to as Brandon Lever only in mails and communication")
+CASUAL_LEGAL = re.compile(r"[,\s]+(inc|incorporated|llc|l\.\s?l\.\s?c|corp|corporation|co|company|ltd|limited|lp|l\.p|"
+                          r"llp|pllc|pc|p\.c|plc|gmbh|ag|ab|bv|b\.v|s\.a|sa|srl|pty|pte|oy|as|a/s|aps)\.?$", re.I)
+CASUAL_GENERIC = {"group", "holdings", "holding", "enterprises", "enterprise", "services", "service", "solutions",
+                  "associates", "industries", "international", "intl", "usa", "us", "u.s.", "america", "americas",
+                  "technologies", "technology"}
+CASUAL_TAG = re.compile(r"\s+[|–—/]\s+|\s+-\s+|\s*\|\s*")
+JEV_CASUAL_CONF = 0.6
+
+
+def _initial_tok(w: str) -> bool:
+    k = tb._key(w)
+    return len(k) <= 3 and (w.isupper() or "." in w or len(k) == 1)
+
+
+def casual_weak(s: str) -> bool:
+    """True when `s` alone may not identify a company: initials only, or one plain word (a surname, first name or
+    dictionary word cannot be told apart without a word list, so every single plain word counts as weak)."""
+    toks = [w for w in tb._TOK.findall(s) if tb._key(w)]
+    if not toks or all(_initial_tok(w) for w in toks):
+        return True
+    if len(toks) == 1:
+        w = toks[0]
+        coined = bool(re.search(r"\d", w)) or any(c.isupper() for c in w[1:]) and any(c.islower() for c in w)
+        return not coined
+    return False
+
+
+def casual_strip(raw: str) -> tuple[str, str]:
+    """(conservative, aggressive) casual forms of a record name. Conservative keeps a generic tail word when removing
+    it would leave a weak name; aggressive always removes it (a candidate for the Jev pick only)."""
+    s = html_unescape(clean_company(raw))
+    def initials(x: str) -> bool:
+        toks = [w for w in tb._TOK.findall(x) if tb._key(w)]
+        return bool(toks) and all(_initial_tok(w) for w in toks)
+
+    paren = re.match(r"^(.*?)\s*\(([^)]+)\)\s*$", s)
+    if paren and initials(paren.group(1)) and len(paren.group(2).split()) >= 2:
+        s = paren.group(2)  # "BCI (Berkeley Cement, Inc.)" -> the spelled-out name
+    parts = CASUAL_TAG.split(s)
+    if len(parts) > 1 and initials(parts[0]) and len(parts[1].split()) >= 2:
+        s = parts[1]  # "E2 - Endovascular Engineering", "SBI | Siegfried's Basement" -> the spelled-out name
+    elif len(parts) > 1 and len(tb._key(parts[0])) >= 2:
+        s = parts[0]  # "CARPL - Radiology AI Platform", "ClearFlow | Improve ..." -> the name before the tagline
+    by = re.split(r",?\s+by\s+", s, maxsplit=1, flags=re.I)
+    if len(by) == 2 and len(tb._key(by[0])) >= 3:
+        s = by[0]  # "Perfect Derma Peel by Bella Medical Products", "Veev, By Lennar" -> the brand
+    m = re.search(r"\b(?:d/?b/?a|doing business as)\b\.?\s+(.+)$", s, re.I)
+    if m:
+        s = m.group(1)
+    s = re.sub(r"^the\s+", "", s.strip(), flags=re.I)
+    s = re.sub(r"\s*\([^)]*\)", "", s).strip()  # "Aidite (Qinhuangdao) Technology"
+    full = s
+    while True:
+        t = CASUAL_LEGAL.sub("", s).strip(" ,")
+        t = re.sub(r"\s*(?:&|\+|\band)$", "", t, flags=re.I).strip(" ,")
+        if t == s:
+            break
+        s = t
+    if casual_weak(s):
+        co = re.match(r"(.*?&\s*(?:co\b|company\b))", full, re.I)
+        if co:  # "MG & Company": the "& Co" is part of the brand when the rest is initials / one word
+            s = co.group(1).strip()
+        elif s and all(_initial_tok(w) for w in s.split()) and full != s:
+            nxt = full[len(s):].strip(" ,").split()
+            w = nxt[0].strip(",.") if nxt else ""
+            if w.lower() in ("corp", "corporation", "company", "co"):
+                s = f"{s} {w.capitalize() if w.isupper() else w}"  # "CM CORP" -> "CM Corp"; "ZDG, LLC" -> "ZDG"
+    s = re.sub(r"\.com$", "", s, flags=re.I) if not casual_weak(re.sub(r"\.com$", "", s, flags=re.I)) else s
+    cons = aggr = s
+    while True:
+        toks = aggr.split()
+        if len(toks) < 2 or toks[-1].lower().strip(",.") not in CASUAL_GENERIC:
+            break
+        aggr = " ".join(toks[:-1]).strip(" ,&")
+        aggr = re.sub(r"\s*(?:&|\+|\band)$", "", aggr, flags=re.I).strip(" ,")
+        if not casual_weak(aggr):
+            cons = aggr
+    return cons, aggr
+
+
+def casual_case(s: str, raw: str, texts: list[str]) -> str:
+    """Casing as the company writes itself: its pages first, else deterministic fixes (ALL-CAPS records capitalised
+    with acronyms kept upper, spaced single initials joined, a lowercase first word raised)."""
+    base_raw = CASUAL_LEGAL.sub("", clean_company(raw)).strip(" ,.")
+    caps = base_raw.isupper() and len(tb._key(base_raw)) > 3
+    if caps:
+        s = " ".join(w if len(tb._key(w)) <= 2 or re.search(r"\d", w) or w in ("USA", "U.S.") else w.capitalize()
+                     for w in s.split())
+    s = re.sub(r"\b([A-Z]) (?=[A-Z]\b)", r"\1", s)  # "E A Davidovits" -> "EA Davidovits"
+    out = tb.recase_name(s, caps, texts)
+    if (len(out.split()) != len(s.split()) or (out.islower() and not s.islower())
+            or out.replace("'", "") == s.replace("'", "").lower() or "-" in out and "-" not in s
+            or any(sw[:1].isupper() and ow[:1].islower() and ow.lower() not in ("and", "of", "the", "for", "by")
+                   for sw, ow in zip(s.split()[1:], out.split()[1:]))):  # "Allwin Medical devices"
+        out = s  # a URL slug or handle on the page ("alpha mechanical", "think-construction"), not a spelling
+    blob = " ".join(texts)
+    toks = out.split()
+    for i, w in enumerate(toks):  # a word the record and the site both write in capitals is an acronym (IBEW, WHPM)
+        k = re.sub(r"[^A-Za-z]", "", w)
+        if k and not w.isupper() and len(k) <= 5 and re.search(rf"\b{re.escape(w.upper())}\b", blob) \
+                and w.upper() in base_raw:
+            toks[i] = w.upper()
+    out = " ".join(toks)
+    if out.split()[0].islower() and not re.search(rf"\b{re.escape(out.split()[0])}\b", blob):
+        out = out[:1].upper() + out[1:]  # "mai Services" -> "Mai Services" unless the site writes it lowercase
+    return out
+
+
+def casual_candidates(raw: str, cdisp: str, home_static: dict, dom: str, texts: list[str]) -> dict:
+    """Deterministic casual name plus the options Jev picks from when they disagree."""
+    cons, aggr = casual_strip(raw)
+    rule = casual_case(cons, raw, texts)
+    opts = {"rule": rule}
+    if tb._key(aggr) != tb._key(cons):
+        opts["short"] = casual_case(aggr, raw, texts)
+    dom_key = tb._key(mt.domain_root(dom))
+    base_tok = set(mt.norm_tokens(cons)) - tb.GENERIC_NAME
+    for i, c in enumerate(tb.homepage_name_candidates(home_static)[:6]):
+        hc, ha = casual_strip(c)
+        if (c.isupper() and len(tb._key(c)) > 4) or (c.islower() and not rule.islower()):
+            continue  # an all-caps banner is styling, not the spelling
+        if tb._key(hc) == tb._key(rule) or tb._key(ha) == tb._key(rule):
+            if hc != rule and not hc.isupper() and tb._key(hc) == tb._key(rule) and (not hc.islower() or rule.islower()) \
+                    and len(hc.split()) == len(rule.split()) and not any(
+                        sw[:1].isupper() and hw[:1].islower() for sw, hw in zip(rule.split()[1:], hc.split()[1:])):
+                opts["rule"] = rule = hc  # the homepage's own spelling of the same name (L.C. -> LC)
+            continue
+        shares = bool(set(mt.norm_tokens(hc)) & base_tok) or (len(tb._key(hc)) >= 4 and tb._key(hc) in dom_key)
+        if shares and not any(tb._key(hc) == tb._key(v) for v in opts.values()):
+            opts[f"home{i}"] = hc
+    if cdisp and not any(tb._key(cdisp) == tb._key(v) for v in opts.values()) and not re.search(r"[(|]| - ", cdisp):
+        opts["display"] = cdisp
+    return opts
 
 
 def us_state(s: str) -> str:
@@ -291,8 +466,10 @@ def candidates(p: dict, cr_max: int) -> list[str]:
     return out
 
 
-def site_fact(dom: str, e: dict, cr_max: int) -> dict:
-    """Pick the first confirmed fact in brief order. A fact counts only when the rendered page shows it."""
+def site_fact(dom: str, e: dict, cr_max: int, name: str = "") -> dict:
+    """Pick the first confirmed fact in brief order. A fact counts only when the rendered page shows it.
+    `name` is the company_casual used in the line (the domain when absent)."""
+    name = name or dom
     s, r = e.get("static") or {}, e.get("rendered") or {}
     if not r or r.get("error"):
         return {}
@@ -305,15 +482,15 @@ def site_fact(dom: str, e: dict, cr_max: int) -> dict:
         url = r.get("final_url") or f"https://{dom}"
         if kind == "site_copyright":
             c = max_copyright(r)
-            line = f"I noticed the copyright year in the {dom} footer is still {c['year']}."
+            line = f"I noticed the copyright year in the {name} site footer is still {c['year']}."
             return {"type": kind, "first_line": line, "evidence": f"{url} | footer: \"{c['snippet'][:140]}\""}
         if kind == "site_cms":
-            name, g = old_cms(r)
-            line = f"I noticed the {dom} homepage is still built on {name}."
+            cms, g = old_cms(r)
+            line = f"I noticed the {name} homepage is still built on {cms}."
             return {"type": kind, "first_line": line, "evidence": f"{url} | <meta name=\"generator\" content=\"{g[:80]}\">"}
         if len(r.get("text") or "") < 200:
             continue
-        line = f"I noticed the {dom} homepage has no mobile viewport tag, so phones get the desktop layout."
+        line = f"I noticed the {name} homepage has no mobile viewport tag, so phones get the desktop layout."
         return {"type": kind, "first_line": line, "evidence": f"{url} | no <meta name=\"viewport\"> in rendered HTML"}
     return {}
 
@@ -823,6 +1000,41 @@ def main() -> int:
                 kill(p, STEPS[12], "over 2 per company")
         save()
 
+        # 4c. US headquarters only (operator 2026-11-17): a non-US company country drops from every output
+        for r in alive():
+            cc = (r.get("Company Country") or "").strip()
+            if cc and cc not in ("United States", "United States of America", "USA", "US", "Puerto Rico"):
+                kill(r, STEPS[13], f"HQ outside the US ({cc})")
+        # 4d. maker / builder fit (Jev on the company's own description; threshold FIT_MIN in code)
+        fit_q = {"fit": jev.noul(*FIT[vertical]), "kind": jev.choice("What kind of company is this?", FIT_KIND)}
+        fit_ask = {}
+        for r in alive():
+            fit_ask.setdefault(r["_dom"], r)
+        todo = [d for d in fit_ask if f"fit2|{vertical}|{d}" not in caches["jev"]]
+        if todo and jev_on:
+            todo = todo[:max(0, budget[0])]
+            states_in = [{"company": fit_ask[d].get("Company Name"), "domain": d,
+                          "linkedin_industry": fit_ask[d].get("Industry"),
+                          "description": ((fit_ask[d].get("Company Short Description") or "") + " "
+                                          + (fit_ask[d].get("Company SEO Description") or ""))[:900],
+                          "keywords": (fit_ask[d].get("Keywords") or "")[:300]} for d in todo]
+            res = jev.decide_many(states_in, fit_q, workers=8)
+            budget[0] -= len(todo)
+            for d, rr in zip(todo, res):
+                jev.append_ledger({"script": "import_list_leads", "step": "fit", "cost": rr.cost_usd})
+                if rr.error:
+                    continue  # not cached: re-run retries; this run the company is kept (helper fails open)
+                caches["jev"][f"fit2|{vertical}|{d}"] = {"noul": rr.noul("fit"), "kind": rr.choice("kind"),
+                                                        "conf": rr.confidence("kind")}
+            save()
+        for r in alive():
+            j = caches["jev"].get(f"fit2|{vertical}|{r['_dom']}")
+            maker_pick = j and j["kind"] == "maker_or_builder" and j["conf"] >= FIT_KIND_CONF
+            named_non = j and j["kind"] not in ("maker_or_builder", "none", "") and j["conf"] >= FIT_KIND_CONF
+            if j and ((j["noul"] < FIT_MIN and not maker_pick) or (j["noul"] < FIT_SOFT and named_non)):
+                kind = j["kind"] if j["kind"] not in ("maker_or_builder", "none", "") else "other / unclear"
+                kill(r, STEPS[14], f"not a maker / builder: {kind}")
+
         final = alive()
         final_doms = sorted({r["_dom"] for r in final})
 
@@ -874,10 +1086,62 @@ def main() -> int:
                 else "mx_ok"
             r["_tier"] = "catch_all" if st in ("catch_all", "catch_all_valid") else r["_email_check"]
 
+        def disp(r: dict) -> tuple[str, list[str]]:
+            s = (caches["home"].get(r["_dom"]) or {}).get("static") or {}
+            texts = [x for x in (s.get("title"), s.get("og_site_name"), s.get("logo_alt"), s.get("text")) if x]
+            name = r.get("Company Name") or ""
+            return tb.recase_name(tb.display_company(clean_company(name), ""), name.isupper(), texts), texts
+
+        # 4e. company_casual: deterministic rules; Jev picks only when the candidates disagree
+        co_first = {d: next(r for r in final if r["_dom"] == d) for d in final_doms}
+        cas_opts = {}
+        for d, r in co_first.items():
+            cdisp, texts = disp(r)
+            hs = (caches["home"].get(d) or {}).get("static") or {}
+            cas_opts[d] = casual_candidates(r.get("Company Name") or "", cdisp, hs, d, texts)
+        ambiguous = {d: o for d, o in cas_opts.items() if len(o) > 1}
+        ckey = {d: "casual|" + d + "|" + "|".join(f"{k}={tb._key(v)}" for k, v in o.items()) for d, o in ambiguous.items()}
+        todo = [d for d in ambiguous if ckey[d] not in caches["jev"]]
+        if todo and jev_on:
+            todo = todo[:max(0, budget[0])]
+            hs_of = {d: (caches["home"].get(d) or {}).get("static") or {} for d in todo}
+            states_in = [{"record_name": co_first[d].get("Company Name"), "domain": d,
+                          "homepage_title": hs_of[d].get("title", ""), "og_site_name": hs_of[d].get("og_site_name", ""),
+                          "homepage_start": (hs_of[d].get("text") or "")[:300],
+                          "description": (co_first[d].get("Company Short Description") or "")[:300]} for d in todo]
+            casual_q = ("Which option is how this company refers to itself in short form, the name a person would "
+                        "use for it in a short email? It must still clearly identify this company: a bare common "
+                        "word, bare surname or bare initials is not enough unless the company itself goes by that "
+                        "form on its homepage. Legal suffixes (Inc, LLC, Corp) are never needed. Taglines, slogans, "
+                        "page names, services and other companies are never the answer.")
+            with ThreadPoolExecutor(max_workers=8) as pool:  # options differ per company: one call each
+                res = list(pool.map(lambda x: jev.decide(x[1], {"name": jev.choice(casual_q, dict(ambiguous[x[0]]))}),
+                                    zip(todo, states_in)))
+            budget[0] -= len(todo)
+            for d, rr in zip(todo, res):
+                jev.append_ledger({"script": "import_list_leads", "step": "company_casual", "cost": rr.cost_usd})
+                if not rr.error:
+                    caches["jev"][ckey[d]] = {"pick": rr.choice("name"), "conf": rr.confidence("name")}
+            save()
+        casual: dict[str, tuple[str, str]] = {}
+        for o in cas_opts.values():  # "K L Masters" -> "KL Masters" whichever option wins
+            for k in o:
+                o[k] = re.sub(r"\b([A-Z]) (?=[A-Z]\b)", r"\1", o[k])
+        for d, o in cas_opts.items():
+            j = caches["jev"].get(ckey.get(d, "")) if d in ambiguous else None
+            pick = o.get(j["pick"], "") if j else ""
+            to_initials = pick and all(_initial_tok(w) or (w.isupper() and len(w) <= 5) for w in pick.split()) \
+                and not casual_weak(o["rule"])
+            to_initials = to_initials or (j and j["pick"] == "short" and casual_weak(pick))  # "Petretti & Associates"
+            if j and pick and j["conf"] >= JEV_CASUAL_CONF and not to_initials:
+                casual[d] = (o[j["pick"]], f"jev {j['pick']} {j['conf']:.2f}")
+            else:
+                casual[d] = (o["rule"], "rule" + (f" (jev unsure {j['conf']:.2f})" if j else
+                                                  " (not judged)" if d in ambiguous else ""))
+
         # 5. personalization per company
         trigs = load_triggers(vertical, states, a)
         by_dom_t, by_name_t = trigger_index(vertical, trigs, a)
-        co_first = {d: next(r for r in final if r["_dom"] == d) for d in final_doms}
         pers: dict[str, dict] = {}
         for d, r in co_first.items():
             t = by_dom_t.get(d)
@@ -896,12 +1160,12 @@ def main() -> int:
                 if vertical == "medtech":
                     subj = re.sub(r"^the\s+", "", tb.device_display(t["device_raw"], t["org"], texts), flags=re.I)
                     line = (f"Congratulations on the {tb.nice_date(t['date'])} FDA clearance for the {subj}. "
-                            f"I noticed the {d} homepage doesn't mention it yet.")
+                            f"I noticed the {casual[d][0]} homepage doesn't mention it yet.")
                     ptype, tid = "trigger_fda", t["k_number"]
                 else:
                     subj = t["agency"]
                     line = (f"Congratulations on the {subj} contract awarded on {tb.nice_date(t['date'])}. "
-                            f"I noticed the {d} homepage doesn't mention it yet.")
+                            f"I noticed the {casual[d][0]} homepage doesn't mention it yet.")
                     ptype, tid = "trigger_award", t["award_id"]
                 pers[d] = {"type": ptype, "first_line": line, "trigger_date": t["date"], "trigger_subject": subj,
                            "trigger_id": tid, "trigger_url": t["evidence_url"],
@@ -942,17 +1206,11 @@ def main() -> int:
             jsave(paths["home"], caches["home"])
         for d in final_doms:
             if d not in pers:
-                f = site_fact(d, caches["home"].get(d) or {}, a.copyright_max)
+                f = site_fact(d, caches["home"].get(d) or {}, a.copyright_max, casual[d][0])
                 if f:
                     pers[d] = f
 
         # 5c. company_description first line for every company still without one (generator + independent Jev gate)
-        def disp(r: dict) -> tuple[str, list[str]]:
-            s = (caches["home"].get(r["_dom"]) or {}).get("static") or {}
-            texts = [x for x in (s.get("title"), s.get("og_site_name"), s.get("logo_alt"), s.get("text")) if x]
-            name = r.get("Company Name") or ""
-            return tb.recase_name(tb.display_company(clean_company(name), ""), name.isupper(), texts), texts
-
         rej = desc_stats.setdefault(vertical, Counter())
         need_meta = []
         items = []
@@ -1035,8 +1293,17 @@ def main() -> int:
             elif j["opinion"] > DESC_OPINION_MAX:
                 rej["jev: praise / intent / opinion"] += 1
             else:
+                # verified with the record display name (cache key); the mail says the casual name (operator
+                # 2026-11-17). Substitution only: the facts do not change, so no new generator or Jev call.
+                cn = casual[it["dom"]][0]
+                line = it["line"].replace(it["company"], cn) if it["company"] in it["line"] else ""
+                why = line_rule_check(line, cn, it["description"] + " " + it["keywords"]) if line else \
+                    "casual swap: name not in line"
+                if why:
+                    rej["casual swap: " + why] += 1
+                    continue
                 rej["kept"] += 1
-                pers[it["dom"]] = {"type": "company_description", "first_line": it["line"],
+                pers[it["dom"]] = {"type": "company_description", "first_line": line,
                                    "evidence": evidence_snippet(it["line"], it["description"], it["source"])
                                    + f" | jev supported {j['supported']:.2f}, opinion {j['opinion']:.2f}"}
         save()
@@ -1049,9 +1316,10 @@ def main() -> int:
             fn, ln = fix_name_case(fn), fix_name_case(ln)
             p = pers.get(d) or {}
             src_company = r["_state_src"] == "company"
+            r["_casual_how"] = re.sub(r" [\d.]+$| \(.*", "", casual[d][1])
             r["_out"] = {
                 "first_name": fn, "last_name": ln, "email": r["_email"], "title": (r.get("Title") or "").strip(),
-                "company_display": cdisp, "website": d,
+                "company_display": cdisp, "company_casual": casual[d][0], "website": d,
                 "city": (r.get("Company City") if src_company else r.get("City")) or "",
                 "state": r["_state_raw"], "employees": r["_emp"], "linkedin": r.get("LinkedIn") or "",
                 "vertical": vertical, "email_check": r["_email_check"], "email_tier": r["_tier"],
@@ -1070,7 +1338,9 @@ def main() -> int:
             r0 = kept[0] if kept else max(ppl, key=lambda r: r["_step"])
             p = pers.get(d) or {}
             co_rows.append({"vertical": vertical, "company": r0.get("Company Name"),
-                            "company_display": (r0.get("_out") or {}).get("company_display", ""), "domain": d,
+                            "company_display": (r0.get("_out") or {}).get("company_display", ""),
+                            "company_casual": (r0.get("_out") or {}).get("company_casual", ""),
+                            "casual_source": casual[d][1] if kept and d in casual else "", "domain": d,
                             "state": r0["_state_raw"], "employees": r0.get("Employees Count"),
                             "industry": r0.get("Industry"), "contacts_in": len(ppl), "contacts_out": len(kept),
                             "outcome": "kept" if kept else r0["_drop"],
@@ -1150,6 +1420,8 @@ def main() -> int:
         dc = desc_stats.get(vertical) or Counter()
         md += ["", "**company_description first lines** (companies; generator then rule check then Jev):", "",
                "| outcome | companies |", "|---|---|"] + [f"| {k} | {v} |" for k, v in dc.most_common()]
+        cs = Counter(r["_casual_how"] for r in final)
+        md += ["", "company_casual source (people): " + ", ".join(f"{k} {v}" for k, v in cs.most_common())]
         lc = Counter(r["_lo_status"] for r in final)
         md += ["", "LeadOcean person status: " + ", ".join(f"{k} {v}" for k, v in lc.most_common()), ""]
     (out / "funnel.md").write_text("\n".join(md) + "\n", encoding="utf-8")
