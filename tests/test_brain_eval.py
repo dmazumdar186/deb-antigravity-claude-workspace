@@ -521,3 +521,15 @@ def test_observation_rows_carry_the_scorer_id():
     assert len(brain.SCORER_ID) == 10
     import inspect as _i
     assert '"scorer": SCORER_ID' in _i.getsource(brain.log_observation)
+
+
+def test_core_lesson_is_never_dead_but_orphan_still_is(sandbox):
+    setup_world()
+    # Neither lesson matches any benchmark prompt or live row; only strength differs.
+    lesson("corecase", "Demo exactly the platform the client named.", "zzqplatform", strength=3)
+    lesson("orphan", "Pull container images via a mirror in cloud sessions.", "zzqdocker", strength=1)
+    _, row = ev.run(label=True, dry_run=True)
+    dead = row["kpis"]["dead_lessons"]
+    assert "corecase" in {x.id for x in brain.core(brain.load()[0])}
+    assert "corecase" not in dead, "core lessons load every session; never dead"
+    assert "orphan" in dead, "the dead-lesson check must still fire on a real orphan"
