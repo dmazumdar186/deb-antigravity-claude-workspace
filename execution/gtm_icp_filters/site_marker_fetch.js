@@ -1,6 +1,7 @@
 // site_marker_fetch.js
 // description: Headless Chromium fetch helper for medtech_510k_triggers.py (Node Playwright is the installed binding).
-// inputs: one JSON job on stdin: {jobs:[{url, mode:"full"|"text", desk_png?, mob_png?}]}
+// inputs: one JSON job on stdin: {jobs:[{url, mode:"full"|"text", desk_png?, mob_png?, timeout_ms?, no_mobile?}]}
+//         timeout_ms: page.goto timeout (default 45000); no_mobile: skip the iPhone pass in full mode
 // outputs: JSON on stdout: [{url, status, final_url, html?, text, mobile_viewport?, error?}]
 const { chromium, devices } = require('playwright');
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36';
@@ -13,7 +14,7 @@ const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
     const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, userAgent: UA, ignoreHTTPSErrors: true });
     try {
       const page = await ctx.newPage();
-      const resp = await page.goto(j.url, { waitUntil: 'domcontentloaded', timeout: 45000 });
+      const resp = await page.goto(j.url, { waitUntil: 'domcontentloaded', timeout: j.timeout_ms || 45000 });
       await page.waitForTimeout(j.mode === 'full' ? 2500 : 1500);
       r.status = resp ? resp.status() : 0; r.final_url = page.url();
       r.text = await page.innerText('body');
@@ -23,7 +24,7 @@ const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
       }
     } catch (e) { r.error = String(e).slice(0, 200); }
     await ctx.close();
-    if (j.mode === 'full' && !r.error) {
+    if (j.mode === 'full' && !r.error && !j.no_mobile) {
       const m = await browser.newContext({ ...devices['iPhone 13'], ignoreHTTPSErrors: true });
       try {
         const p = await m.newPage();
