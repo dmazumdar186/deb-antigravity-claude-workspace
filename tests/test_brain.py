@@ -371,6 +371,12 @@ def test_lone_trigger_on_long_prompt_does_not_inject():
     ] == ["p"]
 
 
+def test_duplicate_triggers_count_once():
+    write("d", "Vet a plugin before enabling it.", "plugin, plugins, Plugin")
+    lessons, _ = brain.load()
+    assert brain.retrieve("enable the plugin", lessons) == []
+
+
 def test_restore_clears_dangling_supersedes():
     write("old", "Old rule.", "t")
     write("new", "New rule.", "t")
