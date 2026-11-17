@@ -1,1 +1,22 @@
-{"frozen": "2026-11-12", "prompts": 48, "kinds": {"task": 24, "correction": 12, "negative": 12}, "written_by": "a worker with no access to .claude/brain, brain*.py or .claude/notes (blind to the lessons)"}
+{
+  "frozen": "2026-11-17",
+  "prompts": 96,
+  "kinds": {
+    "task": 48,
+    "correction": 24,
+    "negative": 24
+  },
+  "written_by": "v1 + v2, both blind; v2 is the held-out set for lessons written up to 2026-11-17",
+  "sets": {
+    "v1": {
+      "frozen": "2026-11-12",
+      "prompts": 48,
+      "written_by": "a worker with no access to .claude/brain, brain*.py or .claude/notes (blind to the lessons)"
+    },
+    "v2": {
+      "frozen": "2026-11-17",
+      "prompts": 48,
+      "written_by": "a worker blind to .claude/brain, .claude/notes, .claude/memory, brain*.py, brain directives, tests and git history; it read only directives/README.md and top-level folder names"
+    }
+  }
+}

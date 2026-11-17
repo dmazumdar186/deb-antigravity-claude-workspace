@@ -46,3 +46,51 @@
 {"id": "b46", "prompt": "whats the capital of australia", "area": "negative", "kind": "negative"}
 {"id": "b47", "prompt": "explain what a race condition is in two sentences", "area": "negative", "kind": "negative"}
 {"id": "b48", "prompt": "list the files in the deliverables folder", "area": "negative", "kind": "negative"}
+{"id": "c01", "prompt": "pull dentists in tampa from google maps, 300 max, need website + phone, drop chains", "area": "lead_sourcing", "kind": "task", "set": "v2"}
+{"id": "c02", "prompt": "find emails for the roofing list in the sheet and verify them, skip catchalls", "area": "enrichment", "kind": "task", "set": "v2"}
+{"id": "c03", "prompt": "write a 3 step cold sequence for boutique gyms offering the ai booking bot, load it into instantly as draft", "area": "personalization", "kind": "task", "set": "v2"}
+{"id": "c04", "prompt": "personalize first lines for the 80 bakery leads, reference something real from their site not generic fluff", "area": "personalization", "kind": "task", "set": "v2"}
+{"id": "c05", "prompt": "score the saas list against our icp, only keep 10-50 employees w/ recent hiring signal", "area": "gtm_icp_filters", "kind": "task", "set": "v2"}
+{"id": "c06", "prompt": "rerun the ecommerce gtm pipeline for northpeak outfitters with the new niche list, same settings as last week", "area": "gtm_client_workflows", "kind": "task", "set": "v2"}
+{"id": "c07", "prompt": "scrape all product pages off greenleaf supply sitemap into a csv, name price sku stock", "area": "custom_scrapers", "kind": "task", "set": "v2"}
+{"id": "c08", "prompt": "scrape the member directory from that skool community, paginate everything pls", "area": "custom_scrapers", "kind": "task", "set": "v2"}
+{"id": "c09", "prompt": "run the lead pipeline in docker on the vps instead of my laptop, cron it nightly", "area": "infrastructure", "kind": "task", "set": "v2"}
+{"id": "c10", "prompt": "hand over the bramble cafe site to the client, move the cloudflare pages project to their account and send them the handoff doc", "area": "infrastructure", "kind": "task", "set": "v2"}
+{"id": "c11", "prompt": "write a case study for the harbor dental voice agent build, mention which models and tools we used w/ versions", "area": "content", "kind": "task", "set": "v2"}
+{"id": "c12", "prompt": "draft replies to the 3 new google reviews on the client's listing, one is a 1 star rant, keep it calm", "area": "content", "kind": "task", "set": "v2"}
+{"id": "c13", "prompt": "make a youtube thumbnail for the 'i automated my inbox' video, big face, 3 words max", "area": "image_generation", "kind": "task", "set": "v2"}
+{"id": "c14", "prompt": "cut a 60s showcase video of the redesign we did for lumen yoga, scroll thru the site, music, no voiceover", "area": "video", "kind": "task", "set": "v2"}
+{"id": "c15", "prompt": "grab transcripts for the last 20 videos on this channel and pull out the hooks", "area": "video", "kind": "task", "set": "v2"}
+{"id": "c16", "prompt": "set up my morning briefing to also include unpaid invoices and todays calls", "area": "personal_workflows", "kind": "task", "set": "v2"}
+{"id": "c17", "prompt": "build an n8n flow: typeform submit -> enrich -> slack ping -> add row to crm", "area": "n8n_workflows", "kind": "task", "set": "v2"}
+{"id": "c18", "prompt": "invoice oakridge plumbing for phase 1, 50% upfront net 7, create the clickup task for phase 2 too", "area": "crm_and_pm", "kind": "task", "set": "v2"}
+{"id": "c19", "prompt": "dedupe the leads master sheet and add a status column with dropdown", "area": "google", "kind": "task", "set": "v2"}
+{"id": "c20", "prompt": "book a 30 min call with the meadowbrook guy thursday afternoon and send the meet link", "area": "google", "kind": "task", "set": "v2"}
+{"id": "c21", "prompt": "index all our past proposals so i can ask 'what did we charge for x' and get an answer", "area": "rag", "kind": "task", "set": "v2"}
+{"id": "c22", "prompt": "kick off an eas build for the habit tracker app, ios + android, push ios to testflight", "area": "mobile_apps", "kind": "task", "set": "v2"}
+{"id": "c23", "prompt": "the expo app crashes on launch on android 14, fix it and do a preview build", "area": "mobile_apps", "kind": "task", "set": "v2"}
+{"id": "c24", "prompt": "build a voice agent for a vet clinic that books appts and answers hours, test call me when done", "area": "voice_agents", "kind": "task", "set": "v2"}
+{"id": "c25", "prompt": "you sent the proposal with the wrong price, i said 50/50 split not full upfront. fix and resend", "area": "crm_and_pm", "kind": "correction", "set": "v2"}
+{"id": "c26", "prompt": "no thats wrong, the lead list has like 40 dupes, you said it was deduped", "area": "lead_sourcing", "kind": "correction", "set": "v2"}
+{"id": "c27", "prompt": "you put the site on github pages again?? i told you cloudflare only", "area": "infrastructure", "kind": "correction", "set": "v2"}
+{"id": "c28", "prompt": "the email went out signed 'the team', it should be signed by me. dont do that again", "area": "personalization", "kind": "correction", "set": "v2"}
+{"id": "c29", "prompt": "that summary had a bunch of debug counts in it, i just wanted the 5 fields i asked for", "area": "personal_workflows", "kind": "correction", "set": "v2"}
+{"id": "c30", "prompt": "you only scraped page 1, there are 12 pages of results. redo it", "area": "custom_scrapers", "kind": "correction", "set": "v2"}
+{"id": "c31", "prompt": "wrong, the testflight build is still the old version number. you didnt bump it", "area": "mobile_apps", "kind": "correction", "set": "v2"}
+{"id": "c32", "prompt": "the case study says we used gpt, we didnt. check what we actually ran before writing stuff", "area": "content", "kind": "correction", "set": "v2"}
+{"id": "c33", "prompt": "you overwrote the sheet instead of appending, half my notes r gone", "area": "google", "kind": "correction", "set": "v2"}
+{"id": "c34", "prompt": "you said the icp filter kept 200 but the file has 37 rows. which is it", "area": "gtm_icp_filters", "kind": "correction", "set": "v2"}
+{"id": "c35", "prompt": "the showcase video has the client's old logo at the end, i told u to use the new one", "area": "video", "kind": "correction", "set": "v2"}
+{"id": "c36", "prompt": "the voice agent quoted the wrong opening hours on the test call, it should be 8-6 not 9-5", "area": "voice_agents", "kind": "correction", "set": "v2"}
+{"id": "c37", "prompt": "whats 72 fahrenheit in celsius", "area": "general", "kind": "negative", "set": "v2"}
+{"id": "c38", "prompt": "rename `tmp_list` to `pending_rows` in this function", "area": "general", "kind": "negative", "set": "v2"}
+{"id": "c39", "prompt": "hey hows it going", "area": "general", "kind": "negative", "set": "v2"}
+{"id": "c40", "prompt": "whats the difference between a list and a tuple in python", "area": "general", "kind": "negative", "set": "v2"}
+{"id": "c41", "prompt": "how many hours ahead is london from kolkata rn", "area": "general", "kind": "negative", "set": "v2"}
+{"id": "c42", "prompt": "explain what a regex lookahead does, short", "area": "general", "kind": "negative", "set": "v2"}
+{"id": "c43", "prompt": "convert 250 usd to inr roughly", "area": "general", "kind": "negative", "set": "v2"}
+{"id": "c44", "prompt": "give me a good name for a cat, orange one", "area": "general", "kind": "negative", "set": "v2"}
+{"id": "c45", "prompt": "what does http 429 mean", "area": "general", "kind": "negative", "set": "v2"}
+{"id": "c46", "prompt": "fix the typo in this comment: 'recieve the paylaod'", "area": "general", "kind": "negative", "set": "v2"}
+{"id": "c47", "prompt": "whats a good book on stoicism thats not too dense", "area": "general", "kind": "negative", "set": "v2"}
+{"id": "c48", "prompt": "how do i undo the last git commit but keep the changes", "area": "general", "kind": "negative", "set": "v2"}
