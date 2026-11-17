@@ -33,10 +33,14 @@ def req(method, path, body=None, params=None):
         "-w",
         "\n%{http_code}",
     ]
-    if body is not None:
-        cmd += ["-H", "Content-Type: application/json", "--data", json.dumps(body)]
+    data = None
+    if body is not None:  # body via stdin: large lead batches exceed the OS argv limit (E2BIG)
+        cmd += ["-H", "Content-Type: application/json", "--data-binary", "@-"]
+        data = json.dumps(body)
     for a in range(5):
-        out = subprocess.run(cmd, capture_output=True, text=True, timeout=90).stdout
+        out = subprocess.run(
+            cmd, input=data, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=90
+        ).stdout
         text, _, code = out.rpartition("\n")
         code = int(code or 0)
         if code == 429 or code >= 500 or code == 0:

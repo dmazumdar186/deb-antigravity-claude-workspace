@@ -196,23 +196,27 @@ def main(argv=None):
     for x in ws:
         e = (x.get("email") or "").strip().lower()
         if x.get("campaign") in targets:
-            in_target.setdefault(x["campaign"], set()).add(e)
+            in_target.setdefault(x["campaign"], {})[e] = x
             continue
         other_emails.add(e)
         ts = x.get("timestamp_last_contact")
         if ts and datetime.fromisoformat(ts.replace("Z", "+00:00")) >= cutoff:
             recent_dom.add(dom(e.split("@")[-1]))
-    todo, per_company = {}, {}
+    todo, per_company, resync = {}, {}, {}
     for c in plan["campaigns"]:
         key = (c["segment"], c["tier"])
         sk = skips.setdefault(key, {})
-        keep, already = [], in_target.get(c.get("id"), set())
+        keep, already = [], in_target.get(c.get("id"), {})
         for r in rows.get(key, []):
             e = r["email"].strip().lower()
             d = dom(r["website"])
             per_company.setdefault(d, set()).add(e)
             if e in already:
                 sk["already in this campaign"] = sk.get("already in this campaign", 0) + 1
+                want = lead_payload(r)["custom_variables"]
+                have = already[e].get("payload") or {}
+                if any(str(have.get(k, "")) != v for k, v in want.items()):  # CSV fixed after upload: upsert vars
+                    resync.setdefault(c["name"], []).append((already[e]["id"], want))
             elif e in other_emails:
                 sk["already in workspace"] = sk.get("already in workspace", 0) + 1
             elif d in recent_dom or dom(e.split("@")[-1]) in recent_dom:
@@ -228,6 +232,7 @@ def main(argv=None):
     for c in plan["campaigns"]:
         k = (c["segment"], c["tier"])
         print(f"{c['name']} | id={c.get('id') or 'new'} | eligible={len(rows.get(k, []))} upload={len(todo[c['name']])} "
+              f"resync_vars={len(resync.get(c['name'], []))} "
               f"| skipped={skips.get(k, {})}")
     st["filter"] = {c["name"]: {"eligible": len(rows.get((c["segment"], c["tier"]), [])),
                                 "to_upload": len(todo[c["name"]]), "skipped": skips.get((c["segment"], c["tier"]), {})}
@@ -249,6 +254,10 @@ def main(argv=None):
             c["id"] = req("POST", "/campaigns", body)["id"]
         rec["id"] = c["id"]
         save()
+        for lid, cv in resync.get(c["name"], []):
+            req("PATCH", f"/leads/{lid}", {"custom_variables": cv})
+            rec.setdefault("vars_resynced", []).append(lid)
+            save()
         new = [lead_payload(r) for r in todo[c["name"]]]
         res = rec.setdefault("uploaded", {})
         for i in range(0, len(new), 500):
