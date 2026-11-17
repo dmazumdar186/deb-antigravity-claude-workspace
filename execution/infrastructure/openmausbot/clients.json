@@ -1,0 +1,225 @@
+[
+  {
+    "slug": "accessory_masters",
+    "name": "Accessory Masters (Elite Broker Group)",
+    "status": "client",
+    "sector": "Small-business acquisition / brokerage",
+    "scope": "Built and handed off a cold-email acquisition pipeline: lead sourcing, verification, AI openers, Instantly sending, reply classification, GoHighLevel routing, dashboard and marketing site.",
+    "evidence": [
+      {
+        "quote": "**Contract:** $2,500 fixed — 2 milestones of $1,250 each via Upwork",
+        "source": "directives/gtm_client_workflows/accessory_masters_prd.md:7"
+      },
+      {
+        "quote": "**Client:** Aleksandar & Simon (Accessory Masters)",
+        "source": "directives/gtm_client_workflows/accessory_masters_prd.md:4"
+      },
+      {
+        "quote": "# Accessory Masters — Handoff to Bryce",
+        "source": "HANDOFF.md:1"
+      }
+    ],
+    "soul_file": "clients/accessory_masters.md",
+    "aliases": [
+      "Bryce",
+      "Lindberg",
+      "Aleksandar",
+      "Simon",
+      "Hedgestone",
+      "elitebrokergroup"
+    ]
+  },
+  {
+    "slug": "gaia_talent",
+    "name": "Gaia Talent / GreenJobs (Keith Molony)",
+    "status": "client",
+    "sector": "Recruitment (engineering, green jobs boards), Ireland and UK",
+    "scope": "Radar candidate-sourcing shortlists for Gaia Talent, and the move of the greenjobs.ie / greenjobs.co.uk boards off their current vendor by early December 2026.",
+    "evidence": [
+      {
+        "quote": "Keith (Oct 29): Hi Deb, I appreciate your offer and yes it should be doable.",
+        "source": "deliverables/greenjobs_migration_2026-11-06/keith_linkedin_thread_2026-11-06.txt:6"
+      },
+      {
+        "quote": "Our side of the deal (LinkedIn): **€600/month from now, plus €1,500 in Q1 2027**, written into a contract.",
+        "source": "deliverables/greenjobs_migration_2026-11-06/FEASIBILITY_MATRIX.md:23"
+      },
+      {
+        "quote": "Keith's written feedback on the 20 Aug shortlist recorded: \"too senior, some not in Ireland\"",
+        "source": "deliverables/gaia_2026-09-10/ENGAGEMENT_RECORD_2026-09-11.md:33"
+      },
+      {
+        "quote": "Deliver evidence-verified, brief-matched shortlists of passive candidates for Gaia Talent's engineering roles",
+        "source": "directives/gtm_client_workflows/gaia_sourcing.md:4"
+      }
+    ],
+    "soul_file": "clients/gaia_talent.md",
+    "aliases": [
+      "Keith",
+      "Molony",
+      "GreenJobs"
+    ]
+  },
+  {
+    "slug": "jeevana_yoga",
+    "name": "Jeevana Yoga & Wellness (Jeevana Gogula)",
+    "status": "client",
+    "sector": "Hatha yoga teacher, Paris",
+    "scope": "Bilingual FR/EN website with a moderated reviews page, plus a full redesign promoted to production on 2026-11-15.",
+    "evidence": [
+      {
+        "quote": "Live client sites (real, paid): yogaavecjitendra.fr (Jitendra), v4.jeevana-yoga.pages.dev (Jeevana Yoga & Wellness, Jeevana Gogula).",
+        "source": ".claude/memory/client_confidentiality.md:4"
+      },
+      {
+        "quote": "[jeevana] LAUNCHED 2026-11-14: production deploy ea72a5c2 (v5.1 site + reviews, main 881753b).",
+        "source": ".claude/notes/general.md:69"
+      },
+      {
+        "quote": "[jeevana] v4 rollback 2026-11-10: client preferred v5.1 (Diwali/saree strip) over v6",
+        "source": ".claude/notes/general.md:62"
+      }
+    ],
+    "soul_file": "clients/jeevana_yoga.md",
+    "aliases": [
+      "Jeevana",
+      "Gogula"
+    ]
+  },
+  {
+    "slug": "yoga_jitendra",
+    "name": "Yoga avec Jitendra (Jitendra Kumar)",
+    "status": "client",
+    "sector": "Hatha yoga teacher, Paris",
+    "scope": "Bilingual FR/EN website with Google-review sync and dashboard; end-of-contract handover to his own accounts prepared 2026-11-03.",
+    "evidence": [
+      {
+        "quote": "Personal website for Jitendra Kumar, Paris-based Hatha Yoga teacher.",
+        "source": "directives/personal_workflows/yoga_jitendra_site.md:3"
+      },
+      {
+        "quote": "End-of-contract handover: the client (GitHub `kumarjitendra`) gets his own repo, his own Cloudflare Pages project and his own DNS zone",
+        "source": "directives/personal_workflows/yoga_jitendra_site.md:200"
+      },
+      {
+        "quote": "Live client sites (real, paid): yogaavecjitendra.fr (Jitendra)",
+        "source": ".claude/memory/client_confidentiality.md:4"
+      }
+    ],
+    "soul_file": "clients/yoga_jitendra.md",
+    "aliases": [
+      "Jitendra",
+      "Kumar"
+    ]
+  },
+  {
+    "slug": "midas_france",
+    "name": "Midas France (local franchisee)",
+    "status": "prospect",
+    "sector": "Auto repair franchise",
+    "scope": "Concept redesign built to pitch a local franchisee; no agreement.",
+    "evidence": [
+      {
+        "quote": "Prospect: the local franchisee near the operator's flat",
+        "source": "deliverables/midas_redesign_2026-10-05/HANDOFF.md:5"
+      },
+      {
+        "quote": "Pitch concepts (not clients): GreenJobs/Gaia redesigns, Evolution Exhibits v4, MISB, Midas, h2/GTM People.",
+        "source": ".claude/memory/client_confidentiality.md:4"
+      }
+    ],
+    "soul_file": null
+  },
+  {
+    "slug": "h2_recruit",
+    "name": "h2 Recruit (Ian Harwood)",
+    "status": "prospect",
+    "sector": "SaaS sales recruitment, London / New York",
+    "scope": "Concept redesign; prospect replied once to cold outreach, then went quiet.",
+    "evidence": [
+      {
+        "quote": "Prospect: Ian Harwood (replied once to the candidate-outreach cold email, then went quiet).",
+        "source": "deliverables/h2recruit_redesign_2026-09-30/HANDOFF.md:5"
+      }
+    ],
+    "soul_file": null
+  },
+  {
+    "slug": "gtm_people",
+    "name": "GTM People (Ian Harwood)",
+    "status": "prospect",
+    "sector": "SaaS GTM recruitment, London",
+    "scope": "Concept redesign (one-page command deck) with a pitch page; no agreement.",
+    "evidence": [
+      {
+        "quote": "Prospect: Ian Harwood.",
+        "source": "deliverables/gtm_people_redesign_2026-10-06/HANDOFF.md:6"
+      }
+    ],
+    "soul_file": null
+  },
+  {
+    "slug": "asset_voyages",
+    "name": "ASSET Voyages",
+    "status": "prospect",
+    "sector": "Business travel / MICE agency, France",
+    "scope": "RFP response and concept mock-up; lost to another bidder on 2026-11-09.",
+    "evidence": [
+      {
+        "quote": "# Post-mortem: ASSET picked https://demo.voyagedemo.site/ (9 Nov 2026)",
+        "source": "deliverables/asset_voyages_rfp_2026-10-28/30_Postmortem_Lost_to_voyagedemo.md:1"
+      }
+    ],
+    "soul_file": null
+  },
+  {
+    "slug": "misb",
+    "name": "MISB (Mash International School of Business)",
+    "status": "prospect",
+    "sector": "Private business school, Paris / Lyon",
+    "scope": "Concept redesign + 20-post social set, built as a portfolio piece for the operator's job application there; no agreement.",
+    "evidence": [
+      {
+        "quote": "Purpose: operator applies for their Social Media Marketing Manager role; the two links are the portfolio piece for the application email.",
+        "source": "deliverables/misb_redesign_2026-10-15/HANDOFF.md:6"
+      },
+      {
+        "quote": "Pitch concepts (not clients): GreenJobs/Gaia redesigns, Evolution Exhibits v4, MISB, Midas, h2/GTM People.",
+        "source": ".claude/memory/client_confidentiality.md:4"
+      }
+    ],
+    "soul_file": null
+  },
+  {
+    "slug": "evolution_exhibits",
+    "name": "Evolution Exhibits",
+    "status": "prospect",
+    "sector": "Exhibitions",
+    "scope": "Pitch concept (v4); no source files in this repo, no agreement.",
+    "evidence": [
+      {
+        "quote": "Pitch concepts (not clients): GreenJobs/Gaia redesigns, Evolution Exhibits v4, MISB, Midas, h2/GTM People.",
+        "source": ".claude/memory/client_confidentiality.md:4"
+      }
+    ],
+    "soul_file": null
+  },
+  {
+    "slug": "prodcraft",
+    "name": "ProdCraft",
+    "status": "internal",
+    "sector": "Own studio",
+    "scope": "ProdCraft's own site (prodcraft.fyi), outbound and lead-gen systems.",
+    "evidence": [
+      {
+        "quote": "prodcraft.fyi (own company) may always be cited.",
+        "source": ".claude/memory/client_confidentiality.md:5"
+      },
+      {
+        "quote": "[learned] prodcraft.fyi hosting (2026-10-19): the live site is Cloudflare Pages project `prodcraft` in the workspace account",
+        "source": ".claude/notes/general.md:43"
+      }
+    ],
+    "soul_file": null
+  }
+]
