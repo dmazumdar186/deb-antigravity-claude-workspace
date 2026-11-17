@@ -79,7 +79,7 @@ was were be been being do does did done have has had this that these those it it
 we our i me my they them their he she his her can could should would will shall may might must just only
 also very more most less than so such any all each every some what which who whom whose when where why
 how about after before again out up down off here there now new use using used get got make made want
-need please thanks thank okay ok let lets go going one two""".split()
+need please thanks thank okay ok let lets go going one two""".split()  # noqa: SIM905 — a 100-word list literal is less readable
 )
 
 CORRECTION_RE = re.compile(
@@ -462,8 +462,8 @@ def jev_relations(new: Lesson, others: list[Lesson]) -> dict[str, tuple[str, flo
         jev.append_ledger(
             {"caller": "brain", "cost": r.cost_usd}, tmp_dir() / "jev_ledger.jsonl"
         )
-    except Exception:  # noqa: BLE001
-        pass
+    except Exception as exc:  # noqa: BLE001 — ledger is telemetry only; the relations result stands
+        print(f"brain jev_relations ledger: {exc}", file=sys.stderr)
     return {
         o.id: (r.choice(f"rel_{i}"), r.confidence(f"rel_{i}"))
         for i, o in enumerate(others)

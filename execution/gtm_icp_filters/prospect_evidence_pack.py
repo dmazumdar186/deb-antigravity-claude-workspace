@@ -23,7 +23,8 @@ os.makedirs(os.path.join(base, "img"), exist_ok=True)
 rows = []
 for f in sorted(glob.glob(os.path.join(base, "rows", "*.json"))):
     try:
-        rows += json.load(open(f, encoding="utf-8"))
+        with open(f, encoding="utf-8") as fh:
+            rows += json.load(fh)
     except (OSError, json.JSONDecodeError) as exc:
         sys.exit(f"bad row file {f}: {exc}")
 def qualified(r):
@@ -56,5 +57,6 @@ for r in rows:
     out.append(f"<p><b>Independent verifier:</b> {e(r.get('verifier_status'))}: {e(r.get('verifier_notes'))}</p>")
     imgs = "".join(f"<img class='{c}' src='{e(r.get(k))}'>" for k, c in (("desk_png_rel","d"),("mob_png_rel","m")) if r.get(k))
     out.append(f"<div class='shots'>{imgs}</div></div>")
-open(os.path.join(base, "pack.html"), "w", encoding="utf-8").write("\n".join(out))
+with open(os.path.join(base, "pack.html"), "w", encoding="utf-8") as fh:
+    fh.write("\n".join(out))
 print(f"rows={len(rows)} qualified={sum(r['qualified'] for r in rows)}")
