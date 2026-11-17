@@ -352,6 +352,25 @@ def test_single_generic_trigger_does_not_inject():
     assert [h[1].id for h in brain.retrieve("draft the reply to pat", lessons)] == ["r"]
 
 
+def test_lone_trigger_on_long_prompt_does_not_inject():
+    # Long live prompts share many words with a rule; that overlap must not stand in for a second trigger.
+    write(
+        "p",
+        "Before enabling a third-party plugin, grep it for model defaults and installers.",
+        "plugin, marketplace",
+    )
+    lessons, _ = brain.load()
+    long_prompt = (
+        "fix the eval report: the plugin flag is wrong, check model defaults, grep the installers, "
+        "third-party notes and re-run before enabling anything else"
+    ) * 2
+    assert brain.retrieve(long_prompt, lessons) == []
+    assert [
+        h[1].id
+        for h in brain.retrieve("install the plugin from the marketplace", lessons)
+    ] == ["p"]
+
+
 def test_restore_clears_dangling_supersedes():
     write("old", "Old rule.", "t")
     write("new", "New rule.", "t")

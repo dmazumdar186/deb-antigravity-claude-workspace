@@ -1,6 +1,6 @@
 ---
 id: 2026-11-14-jeevana-yoga-site-phrase-pass-tradition
-triggers: copy, phrasing, yoga, sanskrit, sutra, veda, text, redteam, lens, jeevana
+triggers: yoga, sanskrit, sutra, veda, iast, jeevana, yoga copy, tradition lens
 scope: all
 strength: 2
 status: active

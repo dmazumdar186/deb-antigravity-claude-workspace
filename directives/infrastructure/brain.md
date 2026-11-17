@@ -49,6 +49,7 @@ Commit `.claude/brain/` together with the work that taught the lesson.
 - A cloud container has no `.tmp` history, so per-session dedupe starts fresh. That is harmless.
 - Sub-agents get no hooks: the main session copies the relevant injected lessons into each brief.
 - Triggers are whole-word matches (`les` does not match `less`), so choose specific words over generic ones.
+- A keyword pick needs a multi-word trigger or two distinct trigger hits; one lone single-word trigger never fires, however much the rule's wording overlaps a long prompt (2026-11-17: live keyword picks were 0 of 7 relevant).
 - `/jev off` turns off every Jev call that carries prompt text (per-prompt recall and the live judge); keywords keep working.
 
 ## Output contract

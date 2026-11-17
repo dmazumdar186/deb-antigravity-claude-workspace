@@ -1,6 +1,6 @@
 ---
 id: 2026-11-14-redesign-inventory-signature-motion-features-reveals
-triggers: redesign, revamp, animation, motion, parallax, reveal, original, regression, jeevana
+triggers: redesign, revamp, animation, motion, parallax, reveal, jeevana
 scope: all
 strength: 2
 status: active

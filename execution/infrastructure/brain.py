@@ -270,11 +270,18 @@ def find(lesson_id: str, include_archive: bool = True) -> Lesson | None:
 # retrieval
 def score(les: Lesson, prompt_norm: str, prompt_terms: set[str]) -> float:
     hits = 0.0
+    phrase = False
+    n_hit = 0
     for t in les.triggers:
         tn = norm(t)
         if tn.strip() and tn in prompt_norm:
+            phrase = phrase or " " in tn.strip()
+            n_hit += 1
             hits += 4.0 if " " in tn.strip() else 2.0
-    if hits == 0:
+    # A lone one-word trigger is not evidence: on a long live prompt the rule-overlap bonus below let one
+    # generic word ('copy', 'skill', 'retry') clear PROMPT_MIN_SCORE. Live keyword picks scored 0 of 7 relevant
+    # (brain eval 2026-11-13/17); benchmark prompts are <= 112 chars, so only a long-prompt replay showed it.
+    if not phrase and n_hit < 2:
         return 0.0
     overlap = len(content_words(les.rule) & prompt_terms)
     return hits + min(2.0, 0.5 * overlap) + 0.25 * les.strength
