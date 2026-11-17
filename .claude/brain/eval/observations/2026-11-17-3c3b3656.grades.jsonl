@@ -1,3 +1,4 @@
 {"date": "2026-11-17", "grader": "claude-sonnet-5-5", "relevance_indep": {"2026-11-05-one-number-one-meaning": 1}, "sid": "3c3b3656", "turn": "711ddbb3ef32-2", "v": 1}
 {"date": "2026-11-17", "grader": "claude-sonnet-5-5", "relevance_indep": {"2026-11-13-copy-patch-re-read-full-live-body": 1, "2026-11-14-never-hand-operator-preview-release-link": 1}, "sid": "3c3b3656", "turn": "416e6a647208-3", "v": 1}
 {"date": "2026-11-17", "grader": "claude-sonnet-5-5", "relevance_indep": {"2026-11-11-approver-gets-pre-send-blockers": 0, "2026-11-16-ad-hoc-call-paid-data-api-filter": 1, "2026-11-17-saying-key-tool-missing-search-env": 1}, "sid": "3c3b3656", "turn": "5a96c45d0da9-4", "v": 1}
+{"date": "2026-11-17", "grader": "claude-sonnet-5-5", "relevance_indep": {"2026-09-06-mark-state-after-confirmed-send": 0}, "sid": "3c3b3656", "turn": "12085ffe4faf-3", "v": 1}
