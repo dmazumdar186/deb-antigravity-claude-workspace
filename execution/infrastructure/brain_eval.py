@@ -659,9 +659,12 @@ def run(label: bool, dry_run: bool, acks: list[str] | None = None,
         "retired": sorted(set(prev_snap) - set(snapshot)) if prev else [],
         "retired_unexplained": sorted(
             i for i in (set(prev_snap) - set(snapshot)) if not any(i in x.supersedes for x in act)) if prev else [],
+        # Core lessons are injected at every SessionStart, which writes no observation row, so "never injected"
+        # is false for them by construction (2026-11-17: build-the-named-platform, strength 3, flagged dead).
         "dead_lessons": sorted(
             i for i in snapshot
-            if i not in bm["_relevant_any"] and i not in kw["_relevant_any"]
+            if i not in {x.id for x in core}
+            and i not in bm["_relevant_any"] and i not in kw["_relevant_any"]
             and i not in kw["_partly_unlabelled"] and i not in live_ever
         ),
         "all_misses": bm.get("_all_misses", []),
