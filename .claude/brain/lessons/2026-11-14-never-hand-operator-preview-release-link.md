@@ -6,7 +6,7 @@ strength: 2
 status: active
 created: 2026-11-14
 confirmed: 2026-11-14
-source:
+source: c46820893d8a jeevana revamp: stale CSS hid ornaments on phones after preview was sent
 supersedes:
 ---
 Never hand the operator a preview or release link until an independent human-eye review of the FINAL build passes on Android, iPhone and laptop, scrolling the whole page in a fresh browser; builder self-tests are not that gate.

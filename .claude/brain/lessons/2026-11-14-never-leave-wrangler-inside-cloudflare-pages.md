@@ -6,7 +6,7 @@ strength: 2
 status: active
 created: 2026-11-14
 confirmed: 2026-11-14
-source:
+source: 7501c8180d1e jeevana reviews build: .dev.vars/.wrangler kept out of Pages output dir
 supersedes:
 ---
 Never leave .dev.vars or .wrangler/ inside a Cloudflare Pages output dir (pages_build_output_dir='.'): Pages publishes every file there; pass dev secrets as --binding flags and move .wrangler out before deploy.

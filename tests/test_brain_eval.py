@@ -465,3 +465,59 @@ def test_benchmark_scores_retrieval_as_deployed_core_excluded():
     # retrieve_hybrid drops excluded ids even when replayed picks contain them
     out = brain.retrieve_hybrid(prompt, lessons, exclude={"corelesson"}, picks={"corelesson": 0.95})
     assert all(x.id != "corelesson" for _, x in out)
+
+
+def _judge_moved(history, acks, msg_new="benchmark"):
+    ctx = {"chain_problems": [], "obs_total": 0, "prev_obs_total": 0,
+           "moved": [(msg_new, "new1", "old1")], "acks": acks}
+    return ev.judge({"core_chars": 10}, history, ev.DEFAULT_THRESHOLDS, ctx)
+
+
+def test_old_ack_does_not_cover_a_different_later_change():
+    """2026-11-17: an evaluator ack from 11-13 made the 11-13 benchmark rewording print 'acknowledged'."""
+    old_msg = "evaluator changed since last run (oldE -> newE); acknowledge with --ack if intended"
+    history = [{"acks": [{"code": "goalposts_moved", "reason": "evaluator fix", "keys": [old_msg]}]}]
+    verdict, faults, _ = _judge_moved(history, [])
+    assert verdict == "FAIL" and not any("(acknowledged)" in f for f in faults)
+
+
+def test_legacy_ack_without_keys_does_not_carry_over():
+    history = [{"acks": [{"code": "goalposts_moved", "reason": "old style"}]}]
+    verdict, _, _ = _judge_moved(history, [])
+    assert verdict == "FAIL"
+
+
+def test_ack_carries_over_for_the_identical_fault_line():
+    msg = "benchmark changed since last run (old1 -> new1); acknowledge with --ack if intended"
+    history = [{"acks": [{"code": "goalposts_moved", "reason": "x", "keys": [msg]}]}]
+    verdict, faults, _ = _judge_moved(history, [])
+    assert verdict != "FAIL" and any("(acknowledged)" in f for f in faults)
+
+
+def test_this_run_ack_covers_its_code_and_is_bound_to_lines():
+    setup_world()
+    ev.run(label=True, dry_run=False)
+    p = ev.eval_dir() / "thresholds.json"
+    p.write_text(json.dumps({**ev.DEFAULT_THRESHOLDS, "floors": {}}), encoding="utf-8")
+    _, row = ev.run(label=True, dry_run=True, acks=["goalposts_moved: loosened floors"])
+    assert row["verdict"] != "FAIL"
+    assert row["acks"][0]["keys"] and all("thresholds changed" in k for k in row["acks"][0]["keys"])
+
+
+def test_live_precision_counts_only_the_current_scorer():
+    obs = [
+        {"date": "2026-11-10", "injected": ["a"], "sources": {"a": "kw"}, "relevance": {"a": 0.1}},  # old scorer
+        {"date": "2026-11-10", "injected": ["b"], "sources": {"b": "kw"}, "relevance": {"b": 0.2}, "scorer": "old"},
+        {"date": "2026-11-17", "injected": ["c"], "sources": {"c": "kw"}, "relevance": {"c": 0.9}, "scorer": "cur"},
+    ]
+    m = ev.live_metrics(obs, "2026-11-05", "cur")
+    assert m["live_precision_kw"] == 1.0 and m["judged_injections"] == 1
+    assert m["live_precision_kw_prior"] == 0.0 and m["judged_injections_prior"] == 2
+    m2 = ev.live_metrics(obs[:2], "2026-11-05", "cur")
+    assert m2["live_precision_kw"] is None and m2["live_precision_kw_prior"] == 0.0
+
+
+def test_observation_rows_carry_the_scorer_id():
+    assert len(brain.SCORER_ID) == 10
+    import inspect as _i
+    assert '"scorer": SCORER_ID' in _i.getsource(brain.log_observation)

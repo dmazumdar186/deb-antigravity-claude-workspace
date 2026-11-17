@@ -6,7 +6,7 @@ strength: 2
 status: active
 created: 2026-11-14
 confirmed: 2026-11-14
-source:
+source: 82f3e6067b60 jeevana reviews red-team round 1: hold filter stops holding accusations and FR false positives
 supersedes:
 ---
 In a public review/comment hold-filter, never hold accusation or negative words (scam, arnaque, escroc) and run every blocklist word against everyday text in each site language (FR 'en retard', 'pique-nique') before shipping.

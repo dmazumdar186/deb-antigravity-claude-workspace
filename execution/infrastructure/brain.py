@@ -37,6 +37,7 @@ import hashlib
 import datetime as dt
 import json
 import os
+import inspect
 import re
 import sys
 import threading
@@ -286,6 +287,11 @@ def score(les: Lesson, prompt_norm: str, prompt_terms: set[str]) -> float:
         return 0.0
     overlap = len(content_words(les.rule) & prompt_terms)
     return hits + min(2.0, 0.5 * overlap) + 0.25 * les.strength
+
+
+# Identity of the keyword scorer that is shipped: live observation rows carry it so the eval grades only the
+# current scorer (rows judged under an earlier one are reported separately). Changes when score() changes.
+SCORER_ID = hashlib.sha1(inspect.getsource(score).encode("utf-8")).hexdigest()[:10]
 
 
 def retrieve(
@@ -873,7 +879,7 @@ def log_observation(sid: str, st: dict[str, Any], admitted: bool, recorded: bool
     covered = verdict.get("covered_by")
     seen = set(turn.get("seen", [])) | set(injected_ids)
     row = {
-        "v": 1, "date": today().isoformat(), "sid": re.sub(r"[^A-Za-z0-9]", "", sid)[:8],
+        "v": 1, "date": today().isoformat(), "sid": re.sub(r"[^A-Za-z0-9]", "", sid)[:8], "scorer": SCORER_ID,
         "turn": turn.get("sha", key), "injected": injected_ids, "sources": sources, "correction": correction,
         "admitted": admitted, "recorded": recorded, "judged": bool(verdict),
         "relevance": verdict.get("relevance", {}),

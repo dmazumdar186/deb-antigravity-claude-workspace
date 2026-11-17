@@ -6,7 +6,7 @@ strength: 2
 status: active
 created: 2026-11-14
 confirmed: 2026-11-14
-source:
+source: ffb3b71df946 jeevana revamp: restore sun portrait as hero
 supersedes:
 ---
 In a redesign, keep the client's chosen hero / signature photo (the one in og:image and the current hero) unless the operator says to replace it; improve its treatment, never swap it for another photo.

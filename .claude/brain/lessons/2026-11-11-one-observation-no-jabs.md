@@ -6,7 +6,7 @@ strength: 2
 status: active
 created: 2026-11-11
 confirmed: 2026-11-11
-source: private client repo (2026-11-11 decision record)
+source: 4ec9d0d89eec Alfa decision record row 7: 2016 news-page line cut as a jab
 supersedes:
 ---
 Open a cold intro with one factual observation about the prospect, never a second one that reads as a dig at their site or team.

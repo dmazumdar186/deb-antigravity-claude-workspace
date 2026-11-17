@@ -279,9 +279,14 @@ def _r(v: float | None, n: int = 3) -> float | None:
     return None if v is None else round(v, n)
 
 
-def live_metrics(obs: list[dict[str, Any]], since: str) -> dict[str, Any]:
+def live_metrics(obs: list[dict[str, Any]], since: str, scorer: str | None = None) -> dict[str, Any]:
     week = [o for o in obs if str(o.get("date", "")) >= since and "_corrupt" not in o]
-    rel_vals = [p for o in week for p in (o.get("relevance") or {}).values()]
+    # live_precision_kw grades the keyword scorer that is shipped now: rows judged under an earlier scorer
+    # (no or another `scorer` id) are reported as *_prior and never count toward the floor.
+    def current(o: dict[str, Any]) -> bool:
+        return scorer is None or o.get("scorer") == scorer
+    rel_vals = [p for o in week if current(o) for p in (o.get("relevance") or {}).values()]
+    rel_prior = [p for o in week if not current(o) for p in (o.get("relevance") or {}).values()]
     injected = sum(len(o.get("injected") or []) for o in week)
     corrections = [o for o in week if o.get("correction")]
     repeats = [
@@ -295,6 +300,8 @@ def live_metrics(obs: list[dict[str, Any]], since: str) -> dict[str, Any]:
         "sessions": len({o.get("sid") for o in week}),
         "injections": injected,
         "judged_injections": len(rel_vals),
+        "judged_injections_prior": len(rel_prior),
+        "live_precision_kw_prior": _r(sum(1 for p in rel_prior if p >= REL_CUT) / len(rel_prior) if rel_prior else None),
         "jev_picked_injections": sum(
             1 for o in week for i in (o.get("injected") or []) if (o.get("sources") or {}).get(i) == "jev"),
         "live_precision_kw": _r(
@@ -464,11 +471,18 @@ def judge(
     but is still printed with its reason."""
     faults: list[tuple[str, str, str]] = []  # (code, level, message)
     fail_on = set(th.get("fail_on", []))
-    acked = {a.get("code") for r in history for a in (r.get("acks") or [])} | {a["code"] for a in ctx.get("acks", [])}
+    # An ack from this run covers its code. An ack from an earlier row covers only the exact fault lines it was
+    # given for (its `keys`), so a later, different change under the same code is not silently pre-acknowledged
+    # (2026-11-17: the 11-13 benchmark rewording printed "acknowledged" off an older evaluator ack). Legacy acks
+    # without keys no longer carry over.
+    run_acked = {a["code"] for a in ctx.get("acks", [])}
+    hist_keys = {(a.get("code"), k) for r in history for a in (r.get("acks") or []) for k in (a.get("keys") or [])}
 
     def add(code: str, msg: str) -> None:
-        level = "FAIL" if code in fail_on and code not in acked else "WARN"
-        faults.append((code, level, msg + (" (acknowledged)" if code in acked and code in fail_on else "")))
+        is_acked = code in run_acked or (code, msg) in hist_keys
+        level = "FAIL" if code in fail_on and not is_acked else "WARN"
+        faults.append((code, level, msg + (" (acknowledged)" if is_acked and code in fail_on else "")))
+        ctx.setdefault("fault_msgs", []).append((code, msg))
 
     for p in ctx["chain_problems"]:
         add("history_tampered", f"history: {p}")
@@ -535,7 +549,9 @@ def judge(
     if k.get("live_precision_kw") is None:
         add("unmeasured", f"live_precision_kw unmeasured: {k.get('injections', 0)} live injections in "
                           f"{k.get('turns_logged', 0)} turn(s), {k.get('jev_picked_injections', 0)} Jev-picked (never "
-                          f"self-graded), {k.get('judged_injections', 0)} judged; not a pass")
+                          f"self-graded), {k.get('judged_injections', 0)} judged under the current scorer; "
+                          f"earlier scorer: {k.get('live_precision_kw_prior')} on {k.get('judged_injections_prior', 0)} "
+                          f"judged; not a pass")
     if k.get("capture_leak") is None:
         add("unmeasured", "capture_leak unmeasured: no admitted misses logged this week; not a pass")
     if not k.get("corrections"):
@@ -602,7 +618,7 @@ def run(label: bool, dry_run: bool, acks: list[str] | None = None,
     since = (
         brain.today() - __import__("datetime").timedelta(days=LIVE_WINDOW_DAYS)
     ).isoformat()
-    lm = live_metrics(obs_rows, since)
+    lm = live_metrics(obs_rows, since, brain.SCORER_ID)
     live_ever = {i for o in obs_rows for i in (o.get("injected") or [])}
     core = brain.core(lessons)
     rep = brain.lint(lessons, errors)
@@ -670,6 +686,8 @@ def run(label: bool, dry_run: bool, acks: list[str] | None = None,
         "skipped_budget": spend.get("skipped_budget", 0),
     }
     verdict, faults, codes = judge(kpis, history, th, ctx)
+    for a in ack_rows:  # bind each ack to the exact fault lines it covered this run
+        a["keys"] = [m for c, m in ctx.get("fault_msgs", []) if c == a["code"]]
 
     row = {
         "date": today,
@@ -719,7 +737,7 @@ def _fmt(v: Any) -> str:
     return str(v)
 
 
-KPI_ORDER = ["precision", "recall", "f1", "effective_recall", "noise_rate", "avg_inject_chars", "kw_precision", "kw_recall", "kw_f1", "kw_effective_recall", "kw_noise_rate", "judge_sanity", "label_coverage_gap", "live_precision_kw", "corrections", "repeat_mistakes_week", "capture_leak", "turns_logged", "injections", "jev_picked_injections", "judged_injections", "unjudged_rows", "sessions", "active", "core", "core_chars", "added", "strengthened", "retired", "dead_lessons", "trigger_overlap", "unlabelled_pairs"]
+KPI_ORDER = ["precision", "recall", "f1", "effective_recall", "noise_rate", "avg_inject_chars", "kw_precision", "kw_recall", "kw_f1", "kw_effective_recall", "kw_noise_rate", "judge_sanity", "label_coverage_gap", "live_precision_kw", "live_precision_kw_prior", "judged_injections_prior", "corrections", "repeat_mistakes_week", "capture_leak", "turns_logged", "injections", "jev_picked_injections", "judged_injections", "unjudged_rows", "sessions", "active", "core", "core_chars", "added", "strengthened", "retired", "dead_lessons", "trigger_overlap", "unlabelled_pairs"]
 
 
 DISPLAY = {"effective_recall": "effective_recall (incl. always-loaded core)",

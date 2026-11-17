@@ -6,7 +6,7 @@ strength: 2
 status: active
 created: 2026-11-11
 confirmed: 2026-11-11
-source: private client repo (2026-11-11 decision record)
+source: 4ec9d0d89eec Alfa decision record: addressee conflict + simulated 30-min/Poway view for Les to confirm
 supersedes:
 ---
 When drafting for a partner's approval, list conflicting-source facts and any commitment of their time (call length, travel) as named pre-send blockers; never pick silently.

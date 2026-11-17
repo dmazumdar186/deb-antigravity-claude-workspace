@@ -6,7 +6,7 @@ strength: 2
 status: active
 created: 2026-11-14
 confirmed: 2026-11-14
-source:
+source: 616e40d896a3 jeevana: motion restored in revamp
 supersedes:
 ---
 Before a redesign, inventory the original's signature motion and features (reveals, parallax, animated rings, progress bars, carousels) and carry each over unless the operator drops it; 'restrained' never means remove.

@@ -6,7 +6,7 @@ strength: 2
 status: active
 created: 2026-11-13
 confirmed: 2026-11-13
-source:
+source: 4d300fb5131db6906c6bc82aa6625fc73222cfaa instantly P.S. fix: wrap bare-text bodies so PATCH keeps them
 supersedes:
 ---
 After any copy PATCH, re-read the full live body and check the original text survived, not just that the new text landed.

@@ -6,7 +6,7 @@ strength: 2
 status: active
 created: 2026-11-16
 confirmed: 2026-11-16
-source:
+source: 61e90489c841 (lesson-add commit; incident not recorded elsewhere in repo)
 supersedes:
 ---
 Before an ad-hoc call to a paid data API, use only filter keys the workspace script already sends and probe with count=true or limit=1; an unrecognised filter can be silently dropped and billed per row.

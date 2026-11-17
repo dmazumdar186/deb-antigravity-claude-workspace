@@ -6,7 +6,7 @@ strength: 2
 status: active
 created: 2026-11-14
 confirmed: 2026-11-14
-source:
+source: 6b653c99cd84 (lesson-add commit; operator instruction not recorded elsewhere in repo)
 supersedes:
 ---
 Report every cost and bill to the operator in euros (EUR), converted from USD at the day's ECB reference rate, stating the rate and date used.

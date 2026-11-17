@@ -6,7 +6,7 @@ strength: 2
 status: active
 created: 2026-11-14
 confirmed: 2026-11-14
-source:
+source: 3f5437a67fb0 jeevana revamp integration: Paris section aligned
 supersedes:
 ---
 In a multi-column section, align every column (photo, text, illustration) to a shared top and bottom edge and size photos to the text block; never leave a small bottom-aligned photo floating beside tall text.

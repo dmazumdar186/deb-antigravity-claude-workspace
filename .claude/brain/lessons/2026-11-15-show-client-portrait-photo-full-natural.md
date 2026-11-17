@@ -6,7 +6,7 @@ strength: 2
 status: active
 created: 2026-11-15
 confirmed: 2026-11-15
-source:
+source: 9b2f8fffd669 jeevana revamp: every photo of her shown whole at natural ratio
 supersedes:
 ---
 Show every client portrait/photo in full at its natural aspect ratio on all devices (phone, tablet, laptop); never crop with object-fit:cover, fixed-ratio frames or shape masks unless the operator asks.

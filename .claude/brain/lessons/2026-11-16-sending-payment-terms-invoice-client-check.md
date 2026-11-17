@@ -6,7 +6,7 @@ strength: 2
 status: active
 created: 2026-11-16
 confirmed: 2026-11-16
-source:
+source: 167b73cae9ca GreenJobs review: EUR600 upfront vs permit no-invoicing clause
 supersedes:
 ---
 Before sending payment terms or an invoice to a client, check the operator's own legal constraints on invoicing (residence permit, entity, VAT) in deliverables/ and resolve any conflict first
