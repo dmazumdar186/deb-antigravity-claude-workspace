@@ -95,3 +95,20 @@ gamification, a white-label resale kit (APInexGate), Yandex Metrika tracking, no
 and terms/privacy pages that render no text. Every prompt would pass through an unknown operator,
 and below-cost frontier access usually means abused or resold accounts. It conflicts with spend
 discipline (Claude calls go through the subscription) and with confidentiality of client data. No account was created.
+
+## Per-client workspaces (`openmausbot fleet`): findings 2026-11-17, not built
+
+- **Repo vs runtime:** this repo stays the source of truth (roster, briefs, generator). Fleet is only the
+  runtime: one Linux server, one OS user + systemd service + data folder + sign-in list per client, at
+  `<client>.<domain>` behind Caddy, with an nftables fence between workspaces. Nothing in the repo moves.
+- **Fleet itself is open source** (`server/fleet.ts`, Apache-2.0). `fleet init|create --dry-run` print the plan.
+- **`--cap USD` is a silent no-op without a licence:** `server/spend.ts:36` returns null unless the
+  enterprise `budgets` entitlement is present. Budget guard instead: one Anthropic Console workspace per
+  client with its own monthly spend limit, and the key from it via `--anthropic-key-file`.
+- **Licence:** `enterprise/` (whitelabel branding, budgets, admin "Installations" panel) needs a licence key
+  in production, and *hosting it for third parties* needs a partner agreement (LICENSING.md). The
+  OpenMausBot/MausBot names are trademarks: a client-facing product needs its own name.
+- **Claude access for client workspaces:** use a per-client API key, never Debanjan's subscription login.
+  The subscription is for his own use, and client traffic must be billed and capped per client.
+- **Needs from the operator:** a Linux VPS with root, wildcard DNS (e.g. `*.bots.prodcraft.fyi`) with ports 80/443,
+  a per-client Anthropic key + spend limit, a licence decision, and which clients actually want access.
