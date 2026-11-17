@@ -112,3 +112,6 @@ discipline (Claude calls go through the subscription) and with confidentiality o
   The subscription is for his own use, and client traffic must be billed and capped per client.
 - **Needs from the operator:** a Linux VPS with root, wildcard DNS (e.g. `*.bots.prodcraft.fyi`) with ports 80/443,
   a per-client Anthropic key + spend limit, a licence decision, and which clients actually want access.
+- **Decision (operator, 2026-11-17):** wait for demand. The 4 client bots stay in Debanjan's private workspace;
+  a client gets a workspace only when they sign up for it as a paid add-on. When that happens: domain
+  `<client>.bots.prodcraft.fyi`, Anthropic Console spend limit per client, then `fleet init` / `fleet create`.
