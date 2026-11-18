@@ -272,8 +272,8 @@ function vLists(){
  const filters=`<div class="card" id="filtersCard"><h3>${t('filters')}</h3>
   <div class="diff f-nl" id="diff" style="${S.filled?'display:block':''}"><b>${t('yourSentence')}:</b> “${esc(t('nlEx'))}” → ${t('sector')}, ${t('city')}, ${t('start')}<div class="mut">${t('unmapped')}</div></div>
   <div class="grid2" style="margin-top:10px"><div>
-  <div class="filter" id="fCity"><div class="k">${t('city')}</div><div class="v">London <span class="badge b-clean">${t('cleanedGroups')}</span></div>
-   <button class="link" id="spBtn" style="font-size:12.5px">${t('showSp')} (8)</button><div class="exp ${S.spOpen?'open':''}" id="spExp">${spellList('f')}</div></div>
+  <div class="filter" id="fCity"><div class="k">${t('city')}</div><div class="v">London <span class="badge b-clean f-rel">${t('cleanedGroups')}</span></div>
+   <button class="link f-rel" id="spBtn" style="font-size:12.5px">${t('showSp')} (8)</button><div class="exp f-rel ${S.spOpen?'open':''}" id="spExp">${spellList('f')}</div></div>
   <div class="and">${t('and')}</div>
   <div class="filter" id="fSector"><div class="k">${t('sector')}</div><div class="v">Finance</div><div class="mut">${t('sectorNote')}</div></div>
   <div class="and">${t('and')}</div>
@@ -284,15 +284,15 @@ function vLists(){
   </div></div>`;
  const rs=rowsShown();
  const body=rs.map(r=>{const c=countryClean(r);const pt=r.pays||t('blank');return `<tr data-m="${r.member_id}"><td><button class="link" data-mem="${r.member_id}">${t('memb')} ${r.member_id}</button></td><td>${esc(r.poste)}</td><td>${r.entreprise?esc(r.entreprise):'<span class="mut">—</span>'}</td>
-  <td title="${esc(t('asTypedT')+r.ville)}" class="hov">${esc(cityClean(r.ville))}<span class="orig">${t('asTyped')}${esc(r.ville)}</span></td>
-  <td title="${esc(t('asTypedT')+pt)}" class="hov">${c.v}${c.sugg?` <span class="badge b-sugg">${t('sugg')}</span>`:''}<span class="orig">${t('asTyped')}${esc(pt)}</span></td>
+  ${S.flags.rel?`<td title="${esc(t('asTypedT')+r.ville)}" class="hov">${esc(cityClean(r.ville))}<span class="orig">${t('asTyped')}${esc(r.ville)}</span></td>
+  <td title="${esc(t('asTypedT')+pt)}" class="hov">${c.v}${c.sugg?` <span class="badge b-sugg">${t('sugg')}</span>`:''}<span class="orig">${t('asTyped')}${esc(pt)}</span></td>`:`<td>${esc(r.ville)}</td><td>${r.pays?esc(r.pays):''}</td>`}
   <td><span class="badge">${finChip(r.finance_src)}</span></td>
   <td class="f-rel nw" title="${fmtDate(r.date_maj_profil)}">${ago(r.date_maj_profil)}</td>
   <td class="f-rel nw" title="${fmtDate(r.derniere_connexion)}">${ago(r.derniere_connexion)}</td>
   <td class="f-rel">${lab(r.reliability)}</td><td>${r.cotisant==='oui'?t('yes'):t('no')}</td></tr>`;}).join('');
  const chips=['A','B','C'].map(k=>`<button class="chipbtn ${S.chip===k?'on':''}" data-chip="${k}">${t(k)} ${count('reliability',k)}</button>`).join('');
  const res=`<div class="card" id="resCard"><div class="row" id="resHead" style="justify-content:space-between"><h3 style="margin:0">${ROWS.length} ${t('members')}${S.chip&&S.flags.rel?` · ${rs.length} ${t(S.chip)}`:''}</h3><span class="row f-rel" id="chips">${chips}</span>
-   <label class="switch" id="origSw"><input type="checkbox" id="origCb" ${S.orig?'checked':''}><span class="tr"></span>${t('showOrig')}</label></div>
+   <label class="switch f-rel" id="origSw"><input type="checkbox" id="origCb" ${S.orig?'checked':''}><span class="tr"></span>${t('showOrig')}</label></div>
   <div class="row" id="actions" style="margin:10px 0"><button class="btn pri f-rel" id="aSend">${t('send')} (${count('reliability','A')+count('reliability','B')})</button><button class="btn f-rel" id="aReact">${t('react')}</button><button class="btn" id="aSave">${t('save')}</button><button class="btn" id="aExp">${t('exp')}</button></div>
   <div class="tablewrap ${S.orig?'':'hide-orig'}" id="resTable"><table class="t"><thead><tr><th>${t('cMember')}</th><th>${t('cJob')}</th><th>${t('cEmp')}</th><th>${t('cCity')}</th><th>${t('cCountry')}</th><th>${t('cFin')}</th><th class="f-rel">${t('cUpd')}</th><th class="f-rel">${t('cLog')}</th><th class="f-rel">${t('cLab')}</th><th>${t('cDues')}</th></tr></thead><tbody>${body}</tbody></table></div></div>`;
  return `<h1>${t('newList')}</h1><p class="sub">${t('newSub')}</p>${nl}${filters}${res}`;
@@ -394,7 +394,7 @@ const STEPS=[
  ['lists','#origSw','4. "Show as typed"','One switch, off by default, prints the member\'s original entry under every cleaned value.',()=>{S.orig=true;}],
  ['lists','#drawer','5. Member drawer','Member M0495: "London, UK" / Royaume-Uni as typed, London / United Kingdom as used. The label comes with its reason: updated 20 May 2023, 3 years ago → À confirmer.',()=>{S.orig=false;S.member='M0495';S.drawer=true;}],
  ['dq','#dqQueue','6. Review only the uncertain','To review · 2 items · 17 members: 9 countries inferred from the city, 8 members with no employer. One "Confirm all (17 members)"; auto-cleaned items stay collapsed.',()=>{S.flags.rel=true;S.autoOpen=false;}],
- ['lists','#scrub','7. What leaves the platform','Before anything reaches the AI model, the scrubber removes e-mails, phones and members\' full names, swaps other names for placeholders it restores locally, and keeps place and sector words. Every hit is logged; nothing is blocked.',()=>{S.ex='A';S.isMember=false;S.filled=true;S.scrub=true;S.nlText=exText('A');}],
+ ['lists','#scrub','7. What leaves the platform','Before anything reaches the AI model, the scrubber removes e-mails, phones and exact first-and-last-name matches from the school\'s member list, swaps any other capitalised two-word sequence for a placeholder the validator re-substitutes locally, and keeps place and sector words. Every hit is logged; nothing is blocked.',()=>{S.ex='A';S.isMember=false;S.filled=true;S.scrub=true;S.nlText=exText('A');}],
  ['dq','#dqDecide','8. Two choices, to confirm or overturn','Cleaned values help admins, with guard rails: as typed always reachable, suggestions confirmed, per-school changes logged and reversible, profiles never edited. The two design choices are shown on screen.']];
 function placeCard(e){const c=$('#tourCard');c.style.display='block';const W=Math.min(260,innerWidth-32);c.style.width=W+'px';const H=c.offsetHeight,g=10,top=60,vw=innerWidth,vh=innerHeight;
  if(!e){c.style.left='228px';c.style.top=(vh-H-18)+'px';return;}const r=e.getBoundingClientRect();
@@ -412,8 +412,8 @@ const tour=window.tour={count:STEPS.length,cur:0,
  next(){this.go(this.cur+1);},prev(){this.go(this.cur-1);},
  close(){this.cur=0;$('#tourCard').style.display='none';document.querySelectorAll('.tourhl').forEach(e=>e.classList.remove('tourhl'));}};
 const rr=render;render=function(){rr();if(tour.cur){const e=document.querySelector(STEPS[tour.cur-1][1]);if(e&&S.scr===STEPS[tour.cur-1][0])e.classList.add('tourhl');}};
-function renderPhone(){const fr=S.lang==='fr';const P=fr?{t:'Trusted Segments · Concept',p:'Ce concept est conçu pour un écran d’ordinateur.',v:'Voir la démo (moins de 90 secondes)',b:'Comment on le construit (EN)',l:['Les valeurs nettoyées sont visibles des admins ; la ville et le pays saisis sont à un survol ; aucun champ saisi par le membre n’est jamais écrasé.','Les nettoyages incertains sont marqués « suggéré » et se confirment en un clic.','Les admins ne revoient que les exceptions.','Avant que l’IA ne voie une phrase, e-mails, téléphones et noms complets des membres sont retirés ; les autres noms deviennent des marqueurs.']}
- :{t:'Trusted Segments · Concept',p:'This concept is built for a laptop screen.',v:'Watch the walkthrough (under 90 seconds)',b:'How it gets built',l:['Cleaned values are visible to admins; the city and country the member typed are one hover away; no field a member typed is ever overwritten.','Uncertain clean-ups are marked "suggested" with one-click confirm.','Admins review only the exceptions.','Before the AI sees a sentence, e-mails, phones and members\' full names are removed; other names become placeholders.']};
+function renderPhone(){const fr=S.lang==='fr';const P=fr?{t:'Trusted Segments · Concept',p:'Ce concept est conçu pour un écran d’ordinateur.',v:'Voir la démo (moins de 90 secondes)',b:'Comment on le construit (EN)',l:['Les valeurs nettoyées sont visibles des admins ; la ville et le pays saisis sont à un survol ; aucun champ saisi par le membre n’est jamais écrasé.','Les nettoyages incertains sont marqués « suggéré » et se confirment en un clic.','Les admins ne revoient que les exceptions.','Avant que l’IA ne voie une phrase, e-mails, téléphones et correspondances exactes prénom + nom avec la liste des membres de l’école sont retirés ; toute autre suite de deux mots à majuscule devient un marqueur.']}
+ :{t:'Trusted Segments · Concept',p:'This concept is built for a laptop screen.',v:'Watch the walkthrough (under 90 seconds)',b:'How it gets built',l:['Cleaned values are visible to admins; the city and country the member typed are one hover away; no field a member typed is ever overwritten.','Uncertain clean-ups are marked "suggested" with one-click confirm.','Admins review only the exceptions.','Before the AI sees a sentence, e-mails, phones and exact first-and-last-name matches from the school\'s member list are removed; any other capitalised two-word sequence becomes a placeholder.']};
  $('#phT').textContent=P.t;$('#phP').textContent=P.p;$('#phV').textContent=P.v;$('#phB').textContent=P.b;$('#phL').innerHTML=P.l.map(x=>`<li>${esc(x)}</li>`).join('');
  $('#pfr').classList.toggle('on',fr);$('#pen').classList.toggle('on',!fr);}
 const q=new URLSearchParams(location.search);

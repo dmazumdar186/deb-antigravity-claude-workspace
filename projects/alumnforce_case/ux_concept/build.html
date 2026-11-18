@@ -87,7 +87,7 @@ code{font:12.5px ui-monospace,Consolas,monospace;background:var(--soft);padding:
   <div class="arr">↓</div>
   <div class="box os"><b>OpenSearch: 6 new fields</b><span class="mut">3 cleaned values, 2 dates, label · copy-and-switch rebuild per school</span></div>
   <div class="arr">↓</div>
-  <div class="box"><b>Segmenter</b><span class="mut">City filter reads <code>city_norm</code> · 2 new date filters via the existing date filter type · 3 label counts in the same search</span></div>
+  <div class="box"><b>Segmenter</b><span class="mut">Flag on: City filter reads <code>city_norm</code> · 2 new date filters via the existing date filter type · 3 label counts in the same search</span></div>
   <div class="loop">
     <div class="lt">Correction loop</div>
     <div class="chain">
@@ -129,7 +129,7 @@ code{font:12.5px ui-monospace,Consolas,monospace;background:var(--soft);padding:
 <div class="kv"><span class="k">Why this way</span>Nobody searches a half-built index. Afterwards, nightly partial updates only for members whose label changed.</div></div>
 
 <div class="card sc"><h3><span class="num">6</span>Segmenter</h3>
-<div class="kv"><span class="k">What</span>The City filter reads <code>city_norm</code>: pick London once, see what was grouped. Two new date filters. Three label counts.</div>
+<div class="kv"><span class="k">What</span>With <code>reliability</code> on, the City filter reads <code>city_norm</code>: pick London once, see what was grouped. Two new date filters. Three label counts.</div>
 <div class="kv"><span class="k">Where it runs</span>Vue.js segmenter. The date filters reuse the existing date filter type; the three counts come from the same search.</div>
 <div class="kv"><span class="k">Why this way</span>Existing building blocks, no extra search.</div></div>
 
@@ -139,9 +139,9 @@ code{font:12.5px ui-monospace,Consolas,monospace;background:var(--soft);padding:
 <div class="kv"><span class="k">Why this way</span>Logged, undoable, and applies to that school only.</div></div>
 
 <div class="card sc"><h3><span class="num">8</span>Switches</h3>
-<div class="kv"><span class="k">What</span>Cleaned columns are filled for all schools. Labels are only computed and shown when the school switches <code>reliability</code> on.</div>
+<div class="kv"><span class="k">What</span>Cleaned columns are filled in the background for all schools, unseen. The cleaned filters, the review screen and the labels appear only when the school switches <code>reliability</code> on. With it off, the segmenter is exactly as today.</div>
 <div class="kv"><span class="k">Where it runs</span>School settings.</div>
-<div class="kv"><span class="k">Why this way</span>Consistent spelling infers nothing about a person. A reliability label is derived personal data, so the school decides.</div></div>
+<div class="kv"><span class="k">Why this way</span>Consistent spelling infers nothing about a person. A reliability label is derived personal data, so the school decides. And the brief requires the segmenter to stay identical when the feature is off.</div></div>
 
 <div class="card sc"><h3><span class="num">9</span>Checks per school</h3>
 <div class="kv"><span class="k">What</span><ul>

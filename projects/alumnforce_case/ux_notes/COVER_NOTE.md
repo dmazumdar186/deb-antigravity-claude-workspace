@@ -8,16 +8,19 @@ First, the cleaned values. They do a different job from the two new date filters
 
 https://trusted-segments-concept.pages.dev
 
-It is clickable. The "Visite" button runs a seven-step tour, and the pins (in English) explain the key elements. Three rules keep it light for admins:
+It is clickable. The "Visite" button runs an eight-step tour, and the pins (in English) explain the key elements. Four rules:
 - The city and country the member typed are one hover away, and no field a member typed is ever overwritten.
 - Uncertain clean-ups are marked "suggested" until an admin confirms them.
 - Admins review only those exceptions, sorted by members affected. AlumnForce maintains the shared lists.
+- All of it sits behind the reliability flag: with the flag off, the segmenter is unchanged, as on slide 6.
 
 Second, how exactly it gets built. This page walks through the nine steps on your stack, with the checks to run on each school:
 
 https://trusted-segments-concept.pages.dev/build
 
-The video, under 90 seconds, covers both:
+The prototype also shows the scrubber. Under the sentence box, run one of the two fictional examples: "What leaves the platform" puts what the admin typed next to what the AI model receives: e-mails, phones and exact matches of a member's first and last name from that school's member list are removed, any other capitalised two-word sequence becomes a placeholder restored locally, and every hit is logged rather than blocked.
+
+The video, under 90 seconds, walks through all of it:
 
 https://trusted-segments-concept.pages.dev/demo.mp4
 
