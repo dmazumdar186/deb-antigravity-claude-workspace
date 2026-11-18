@@ -320,7 +320,10 @@ function reason(r){const L=t(r.reliability);const u=r.date_maj_profil,l=r.dernie
 function vDrawer(){const r=ROWS.find(x=>x.member_id===S.member)||ROWS[0];const c=countryClean(r);
  const sec={'finance:declared':t('fD'),'finance:employer':t('fE'),'finance:title':t('fT')}[r.finance_src];
  return `<div class="row" style="justify-content:space-between"><h2 style="margin:0;font-size:17px">${t('memb')} ${r.member_id}</h2><button class="btn" id="drClose">✕</button></div><p class="sub">${esc(r.poste)} · ${t('memTitle')}</p>
- <div class="card" id="memTwo"><h3>${t('asEntered')} / ${t('cleanedUsed')}</h3><div class="two">
+ ${S.flags.rel?``:`<div class="card" id="memTyped"><h3>${t('asEntered')}</h3><div class="two" style="grid-template-columns:120px 1fr">
+  <div>${t('cCity')}</div><div>${esc(r.ville)}</div><div>${t('cCountry')}</div><div>${r.pays?esc(r.pays):'—'}</div>
+  <div>${t('sector')}</div><div>${r.finance_src==='finance:declared'?'Finance':'—'}</div><div>${t('cEmp')}</div><div>${r.entreprise?esc(r.entreprise):'—'}</div></div></div>`}
+ <div class="card f-rel" id="memTwo"><h3>${t('asEntered')} / ${t('cleanedUsed')}</h3><div class="two">
   <div class="h">${t('field')}</div><div class="h">${t('asEntered')}</div><div class="h">${t('cleanedUsed')}</div>
   <div>${t('cCity')}</div><div>${esc(r.ville)}</div><div>${esc(cityClean(r.ville))}</div>
   <div>${t('cCountry')}</div><div>${r.pays?esc(r.pays):t('blank')}</div><div>${c.v}${c.sugg?` <span class="badge b-sugg">${t('sugg')}</span>`:''}</div>
@@ -330,7 +333,7 @@ function vDrawer(){const r=ROWS.find(x=>x.member_id===S.member)||ROWS[0];const c
   <div>${t('lastUpd')}: <b>${fmtDate(r.date_maj_profil)}</b> <span class="mut">(${ago(r.date_maj_profil)})</span></div>
   <div>${t('lastLog')}: <b>${fmtDate(r.derniere_connexion)}</b> <span class="mut">(${ago(r.derniere_connexion)})</span></div>
   <div style="margin:6px 0">${t('label')}: ${lab(r.reliability)}</div><div class="mut">${t('reason')}: ${reason(r)}</div></div>
- <div class="card" id="memPrev"><h3>${t('memSees')}</h3><div class="preview">${t('memLine')} ${ago(r.date_maj_profil)} · <button class="btn pri" title="concept">${t('memConfirm')}</button> <button class="btn" title="concept">${t('memCorrect')}</button></div>
+ <div class="card f-rel" id="memPrev"><h3>${t('memSees')}</h3><div class="preview">${t('memLine')} ${ago(r.date_maj_profil)} · <button class="btn pri" title="concept">${t('memConfirm')}</button> <button class="btn" title="concept">${t('memCorrect')}</button></div>
  <p class="mut" style="margin-bottom:0">${S.lang==='fr'?'Aucun libellé n’est montré au membre.':'No label word is shown to the member.'}</p></div>`;}
 function vSettings(){
  const it=(id,key,name,desc)=>`<div class="card" id="${id}"><h3>${name}</h3><p class="mut" style="margin-top:0">${desc}</p>
