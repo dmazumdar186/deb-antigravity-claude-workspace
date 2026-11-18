@@ -104,6 +104,8 @@ body.f-off-nl .f-nl{display:none!important}
 .modal{background:#fff;border-radius:10px;width:min(640px,92vw);max-height:84vh;overflow:auto;padding:18px}
 .modal h2{margin:0 0 10px;font-size:17px}
 .variant{border:1px solid var(--line);border-radius:6px;padding:10px;font-size:13px;background:#fafbfc}
+.drawer{position:fixed;top:52px;right:0;bottom:0;width:520px;background:var(--bg);border-left:1px solid var(--line);box-shadow:-8px 0 24px rgba(0,0,0,.12);padding:16px;overflow-y:auto;z-index:35;display:none}.drawer.open{display:block}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px;font-size:12.5px}.grid3 h4{margin:0 0 6px;font-size:13px}.grid3 td{padding:2px 10px 2px 0}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1c2230;color:#fff;padding:10px 16px;border-radius:8px;display:none;z-index:60}
 .tourcard{position:fixed;left:228px;bottom:18px;width:420px;background:#fff;border:2px solid #e0901c;border-radius:10px;padding:14px;z-index:40;display:none;box-shadow:0 8px 28px rgba(0,0,0,.18)}
 .tourcard h4{margin:0 0 6px;font-size:15px}
@@ -117,7 +119,7 @@ body.f-off-nl .f-nl{display:none!important}
 <header class="top">
   <span class="brand">Back-office <small>Concept · Trusted Segments</small></span>
   <span class="sp"></span>
-  <button class="tbtn" id="whyBtn" data-i18n="whyBtn"></button>
+  <a class="tbtn" id="buildLink" href="build.html" data-i18n="build" style="text-decoration:none">How it gets built</a>
   <button class="tbtn" id="tourBtn" data-i18n="tour"></button>
   <button class="tbtn on" id="annBtn">Annotations</button>
   <span class="seg"><button id="lfr" class="on">FR</button><button id="len">EN</button></span>
@@ -128,17 +130,13 @@ body.f-off-nl .f-nl{display:none!important}
   <a data-scr="lists" data-i18n="nNew"></a>
   <div class="grp f-rel" data-i18n="gData"></div>
   <a data-scr="dq" class="f-rel" data-i18n="nDq"></a>
-  <div class="grp" data-i18n="gMembers"></div>
-  <a data-scr="member" data-i18n="nMember"></a>
-  <div class="grp" data-i18n="gSettings"></div>
-  <a data-scr="settings" data-i18n="nFeat"></a>
-  <a data-scr="why" data-i18n="nWhy"></a>
 </nav>
 <main id="main"></main>
 <aside id="annPanel"></aside>
 </div>
 <div class="modal-bg" id="modalBg"><div class="modal" id="modal"></div></div>
 <div class="toast" id="toast"></div>
+<div class="drawer" id="drawer"></div>
 <div class="tourcard" id="tourCard"><h4 id="tTitle"></h4><p id="tText"></p>
   <div class="ft"><span id="tCount"></span><button class="btn" id="tPrev">Prev</button><button class="btn pri" id="tNext">Next</button><button class="btn" id="tClose">✕</button></div></div>
 <script src="data.js"></script>
@@ -146,18 +144,18 @@ body.f-off-nl .f-nl{display:none!important}
 (function(){
 const ROWS=window.ROWS;
 const REF=new Date('2026-10-12T00:00:00');
-const S={lang:'fr',ann:true,scr:'lists',flags:{rel:true,nl:true},chip:null,orig:true,filled:false,dqTab:'city',member:'M0495',overrides:{},confirmed:{}};
+const S={lang:'fr',ann:true,scr:'lists',flags:{rel:true,nl:true},chip:null,orig:false,filled:false,more:{},drawer:false,spOpen:false,autoOpen:false,dqTab:'city',member:'M0495',overrides:{},confirmed:{}};
 // ---------- i18n ----------
-const D={fr:{whyBtn:'Pourquoi visible',tour:'Visite',gLists:'Listes',nNew:'Nouvelle liste',gData:'Qualité des données',nDq:'Valeurs nettoyées',gMembers:'Membres',nMember:'Fiche membre',gSettings:'Paramètres',nFeat:'Fonctionnalités',nWhy:'Pourquoi visible',
+const D={fr:{build:'Comment on le construit',whyBtn:'Pourquoi visible',tour:'Visite',gLists:'Listes',nNew:'Nouvelle liste',gData:'Qualité des données',nDq:'Valeurs nettoyées · à revoir',gMembers:'Membres',nMember:'Fiche membre',gSettings:'Paramètres',nFeat:'Fonctionnalités',nWhy:'Pourquoi visible',
 newList:'Nouvelle liste',newSub:'Segmenteur · filtres combinés en ET',nlPh:'Décrivez votre cible…',nlEx:'Diplômés qui travaillent dans la finance à Londres depuis plus de 3 ans',useEx:'Exemple',fill:'Remplir les filtres',
 s1:'Pré-contrôle',s2:'Traduit par l’IA',s3:'Vérifié',yourSentence:'Votre phrase',unmapped:'Partie non traduite : (aucune)',
 filters:'Filtres',city:'Ville (lieu de travail)',cleanedGroups:'nettoyé · regroupe 8 orthographes',showSp:'Voir les orthographes',sector:'Secteur (poste actuel)',sectorNote:'aussi trouvé via l’employeur (17) et l’intitulé de poste (8)',
 start:'Date de début du poste',before:'avant le 12/10/2023 (3 ans et plus)',relGrp:'Fiabilité',lastUpd:'Dernière mise à jour du profil',lastLog:'Dernière connexion',any:'Toutes dates',nw:'NOUVEAU',and:'ET',
-members:'membres',A:'À jour',B:'À confirmer',C:'À réactiver',showOrig:'Afficher les valeurs d’origine',
+members:'membres',A:'À jour',B:'À confirmer',C:'À réactiver',showOrig:'Afficher la saisie',asTypedT:'Saisi : ',more:'de plus',toReview:'À revoir',confAll:'Tout confirmer',autoTitle:'Nettoyé automatiquement (aucune action)',
 cMember:'Membre',cJob:'Poste',cEmp:'Employeur',cCity:'Ville',cCountry:'Pays',cFin:'Signal finance',cUpd:'Mise à jour profil',cLog:'Dernière connexion',cLab:'Libellé',cDues:'Cotisant',
 asTyped:'saisi : ',sugg:'suggéré',yes:'oui',no:'non',fD:'Déclaré',fE:'Via employeur',fT:'Via intitulé',ago:'il y a',y:'a',m:'mois',
 send:'Envoyer à À jour + À confirmer',react:'Réactiver 43 membres',save:'Enregistrer la liste',exp:'Exporter',
-dqTitle:'Valeurs nettoyées',dqSub:'Ce que la plateforme regroupe, et ce que vous pouvez corriger pour votre école',banner:'Les valeurs nettoyées servent aux listes et aux comptages. Ce que les membres ont saisi n’est jamais modifié.',
+dqTitle:'Valeurs nettoyées · à revoir',dqSub:'Ce que la plateforme regroupe, et ce que vous pouvez corriger pour votre école',banner:'AlumnForce maintient les listes de nettoyage partagées. Vous ne revoyez que ce qui est incertain pour votre école. Ce que les membres ont saisi n’est jamais modifié.',
 tCity:'Ville',tCountry:'Pays',tSector:'Secteur via employeur',hOrig:'Valeur d’origine',hClean:'Valeur nettoyée',hCount:'Membres (cette liste)',hSrc:'Source',hStat:'Statut',hAct:'Action',
 global:'Table globale',yours:'Votre correction',auto:'Auto',confByYou:'Confirmé par vous',suggCity:'Suggéré · déduit de la ville',confirm:'Confirmer',change:'Modifier',notThis:'Pas ce lieu',confirm9:'Confirmer les 9',notMapped:'non associé',blank:'(vide)',noEmp:'(sans employeur)',
 summary:'8 orthographes → 1 ville · 3 orthographes de pays + 9 vides → 1 pays',
@@ -166,16 +164,16 @@ relCard:'Fiabilité',label:'Libellé',reason:'Raison',memSees:'Ce que voit le me
 setTitle:'Fonctionnalités',setSub:'Activées par école',fRel:'Fiabilité (reliability)',fRelD:'Affiche depuis quand chaque profil n’a pas été mis à jour, et les libellés À jour / À confirmer / À réactiver.',fNl:'Ciblage par phrase (nl_targeting)',fNlD:'Permet de décrire une cible en une phrase qui remplit les filtres existants.',
 appears:'Ce qui apparaît',
 whyTitle:'Pourquoi rendre les valeurs nettoyées visibles',ok:'OK',cancel:'Annuler',close:'Fermer'},
-en:{whyBtn:'Why visible',tour:'Tour',gLists:'Lists',nNew:'New list',gData:'Data quality',nDq:'Cleaned values',gMembers:'Members',nMember:'Member record',gSettings:'Settings',nFeat:'Features',nWhy:'Why visible',
+en:{build:'How it gets built',whyBtn:'Why visible',tour:'Tour',gLists:'Lists',nNew:'New list',gData:'Data quality',nDq:'Cleaned values · to review',gMembers:'Members',nMember:'Member record',gSettings:'Settings',nFeat:'Features',nWhy:'Why visible',
 newList:'New list',newSub:'Segmenter · filters combined with AND',nlPh:'Describe your audience…',nlEx:'Alumni working in finance in London for more than 3 years',useEx:'Example',fill:'Fill in filters',
 s1:'Pre-flight',s2:'AI translated',s3:'Checked',yourSentence:'Your sentence',unmapped:'Unmapped part: (none)',
 filters:'Filters',city:'City (workplace)',cleanedGroups:'cleaned · groups 8 spellings',showSp:'Show spellings',sector:'Sector (current job)',sectorNote:'also matched from employer (17) and job title (8)',
 start:'Job start date',before:'before 12 Oct 2023 (3+ years)',relGrp:'Reliability',lastUpd:'Last profile update',lastLog:'Last login',any:'Any date',nw:'NEW',and:'AND',
-members:'members',A:'Current',B:'To confirm',C:'To reactivate',showOrig:'Show original values',
+members:'members',A:'Current',B:'To confirm',C:'To reactivate',showOrig:'Show as typed',asTypedT:'As typed: ',more:'more',toReview:'To review',confAll:'Confirm all',autoTitle:'Auto-cleaned (no action needed)',
 cMember:'Member',cJob:'Job',cEmp:'Employer',cCity:'City',cCountry:'Country',cFin:'Finance signal',cUpd:'Last profile update',cLog:'Last login',cLab:'Label',cDues:'Dues member',
 asTyped:'as typed: ',sugg:'suggested',yes:'yes',no:'no',fD:'Declared',fE:'From employer',fT:'From job title',ago:'',y:'y ago',m:'mo ago',
 send:'Send to Current + To confirm',react:'Reactivate 43 members',save:'Save list',exp:'Export',
-dqTitle:'Cleaned values',dqSub:'What the platform groups, and what you can correct for your school',banner:'Cleaned values are used for lists and counts. What members typed is never changed.',
+dqTitle:'Cleaned values · to review',dqSub:'What the platform groups, and what you can correct for your school',banner:'AlumnForce maintains the shared clean-up lists. You only review what is uncertain for your school. What members typed is never changed.',
 tCity:'City',tCountry:'Country',tSector:'Sector from employer',hOrig:'Original value',hClean:'Cleaned value',hCount:'Members (in this list)',hSrc:'Source',hStat:'Status',hAct:'Action',
 global:'Global table',yours:'Your override',auto:'Auto',confByYou:'Confirmed by you',suggCity:'Suggested · inferred from city',confirm:'Confirm',change:'Change',notThis:'Not this place',confirm9:'Confirm 9',notMapped:'not mapped',blank:'(blank)',noEmp:'(no employer)',
 summary:'8 spellings → 1 city · 3 country spellings + 9 blanks → 1 country',
@@ -200,51 +198,42 @@ function countryClean(r){return r.pays?{v:'United Kingdom',sugg:false}:{v:'Unite
 const SPELL=[...new Set(ROWS.map(r=>r.ville))].map(v=>[v,count('ville',v)]).sort((a,b)=>b[1]-a[1]);
 const CSP=[['UK',count('pays','UK')],['Royaume-Uni',count('pays','Royaume-Uni')],['United Kingdom',count('pays','United Kingdom')],['',count('pays','')]];
 const EMP=(()=>{const m={};ROWS.forEach(r=>{const k=r.entreprise||'';m[k]=m[k]||{n:0,e:0};m[k].n++;if(r.finance_src==='finance:employer')m[k].e++;});return Object.entries(m).sort((a,b)=>(a[0]===''?1:b[0]===''?-1:b[1].n-a[1].n||a[0].localeCompare(b[0])));})();
-function toast(msg){const e=$('#toast');e.textContent=msg;e.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(()=>e.style.display='none',3200);}
+function toast(msg,undo){const e=$('#toast');e.innerHTML=esc(msg)+(undo?' <button class="link" id="undoBtn" style="color:#9fb8ff;margin-left:8px">'+(S.lang==='fr'?'Annuler':'Undo')+'</button>':'');e.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(()=>e.style.display='none',3200);}
 function modal(html){$('#modal').innerHTML=html+`<div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" data-close>${t('close')}</button></div>`;$('#modalBg').classList.add('open');}
 function closeModal(){$('#modalBg').classList.remove('open');}
 // ---------- annotations ----------
 const ANN={
 lists:[
  ['#nlBox','Sentence box (flag nl_targeting)','Admins describe the audience in one sentence; the platform fills in the existing filters. Only the sentence and filter names go to the model, never a member. The AI steps shown here are simulated.','Slide 7, D2'],
- ['#fCity','City filter on the cleaned value','One "London" groups 8 spellings, so the count is complete. The expander shows exactly what was grouped: this is the answer to "cleaned values help admins".','Slide 6, D1 · Annex C'],
+ ['#fCity','City filter on the cleaned value','One "London" groups 8 spellings, so the count is complete. The expander shows what was grouped, sorted by impact (top 5, then "+ 3 more"). Real schools will have many more spellings; the list is sorted by impact.','Slide 6, D1 · Annex C'],
  ['#fSector','Sector matched three ways','Finance is found from the declared sector (24), the employer (17) and the job title (8). The chip in the table says which.','Slide 6, D1'],
  ['#fRelGrp','Two new date filters','Last profile update and Last login are recorded automatically by the platform, never typed by anyone. They reuse the existing date filter component.','Slide 5, D3'],
  ['#resHead','Results and label chips','49 members, split by label. Rule (reference date 12 Oct 2026): Current = profile updated < 2 years ago or login < 1 year; To confirm = updated 2–4 years ago; To reactivate = older or no date; future dates ignored. Thresholds are per-school settings. Final FR strings (À jour / À confirmer / À réactiver) are decided with CS in week 1.','Slide 5, D3'],
- ['#origSw','Original values switch','On by default: the member\'s own entry sits under every cleaned value. Off = cleaned only. Names are hidden in this concept (privacy); the real product shows the member\'s name as today.','Guard rail 1'],
+ ['#origSw','"Show as typed" switch','Cleaned values are the default display. Hover any city or country to see what the member typed; this switch (off by default) prints it under every cell. Names are hidden in this concept (privacy); the real product shows the member\'s name as today. Click a member to open the record drawer.','Guard rail 1'],
  ['#actions','Actions','Send only to the 6 trustworthy profiles, or reactivate the 43 through the existing Profile Update Campaign. Save keeps the sentence and the computation date; relative dates recalculate when opened or sent.','Slide 8, D4']],
 dq:[
- ['#dqBanner','Promise to the member','Cleaning never writes back to the profile. Lists and counts use the cleaned value; the original stays visible.','Guard rail 1'],
- ['#dqSummary','What was grouped','8 spellings → 1 city; 3 country spellings + 9 blanks → 1 country. All counts come from the 49-member list.','Annex B'],
- ['#dqTabs','Reference tables, admin view','Deck D1 already promised reference tables with per-tenant overrides; this screen is that override surface, made visible.','Slide 6, D1 · Annex C'],
- ['#dqTable','Status and actions','Auto = global table. Suggested = low confidence (e.g. country inferred from city) until you confirm. Change creates a per-school override, logged and reversible.','Guard rails 2 & 3']],
-member:[
- ['#memTwo','Side by side','What the member typed vs. the cleaned value used for lists. Nothing on the left is ever overwritten.','Guard rail 1'],
- ['#relCard','Reliability, in words','The label comes with its reason, so an admin can explain it. Dates are recorded by the platform.','Slide 5, D3'],
- ['#memPrev','What the member sees','A neutral nudge with Confirm / Correct. No label word is ever shown to members.','Slide 8, D4']],
-settings:[
- ['#flagRel','Flag: reliability','Per-school switch. Off hides the label chips, the label column, the two new date filters and the Data quality page.','Slide 9, rollout'],
- ['#flagNl','Flag: nl_targeting','Per-school switch. Off hides the sentence box. Flag off = today\'s segmenter, unchanged.','Slide 9, rollout']],
-why:[
- ['#whyCard','Design decision','Cleaned values become admin-visible, with three guard rails. No extra build: the override screen was already in D1.','Slide 6, D1 · Annex C']]};
+ ['#dqBanner','Shared lists, local review','The platform maintains the shared clean-up lists. A school only reviews what is uncertain for it. Cleaning never writes back to a profile.','Slide 6, D1 · Annex C'],
+ ['#dqQueue','Exceptions queue','Only items needing a decision (status Suggested), sorted by members affected, with a bulk "Confirm all". The admin\'s job is minutes, not a data project. Every change is per school, logged and can be undone.','Guard rails 2 & 3'],
+ ['#dqAuto','Auto-cleaned, collapsed','The 8 London spellings, the 3 country spellings and the employer→Finance mappings need no action. Real schools will have many more spellings; the list is sorted by impact.','Slide 6, D1']]};
 function renderAnn(){const list=ANN[S.scr]||[];document.querySelectorAll('.pin').forEach(p=>p.remove());
  const vis=list.filter(a=>{const e=document.querySelector(a[0]);return e&&e.offsetParent!==null;});
- $('#annPanel').innerHTML='<h3 style="margin:0 0 10px;font-size:14px">Annotations</h3>'+vis.map((a,i)=>`<div class="ann" data-sel="${a[0]}"><b><span class="pin">${i+1}</span>${esc(a[1])}</b><div><i>Why:</i> ${esc(a[2])}</div><div class="r">Deck ref: ${esc(a[3])}</div></div>`).join('')+'<p class="mut">Annotations are always in English. Prototype only: no real AI call, no real member data beyond the case list.</p>';
+ $('#annPanel').innerHTML='<h3 style="margin:0 0 10px;font-size:14px">Annotations</h3>'+vis.map((a,i)=>`<div class="ann" data-sel="${a[0]}"><b><span class="pin">${i+1}</span>${esc(a[1])}</b><div><i>Why:</i> ${esc(a[2])}</div><div class="r">Deck ref: ${esc(a[3])}</div></div>`).join('')+'<p class="mut">Annotations are always in English. Prototype only: no real AI call, no member data beyond the case list (49 rows).</p>';
  vis.forEach((a,i)=>{const e=document.querySelector(a[0]);const p=document.createElement('span');p.className='pin';p.textContent=i+1;p.dataset.sel=a[0];const tgt=e.querySelector('h3')||e;tgt.prepend(p);});
 }
 function flash(sel){document.querySelectorAll('.hl').forEach(e=>e.classList.remove('hl'));document.querySelectorAll('.ann').forEach(a=>a.classList.toggle('on',a.dataset.sel===sel));const e=document.querySelector(sel);if(!e)return;e.classList.add('hl');e.scrollIntoView({block:'center',behavior:'instant'});setTimeout(()=>e.classList.remove('hl'),2200);}
 // ---------- screens ----------
 function rowsShown(){return S.chip&&S.flags.rel?ROWS.filter(r=>r.reliability===S.chip):ROWS;}
+function spellList(id){const top=SPELL.slice(0,5),rest=SPELL.slice(5);const tr=([v,n])=>`<tr><td>${esc(v)}</td><td>${n}</td></tr>`;
+ return `<table>${top.map(tr).join('')}${S.more[id]?rest.map(tr).join(''):''}</table>${rest.length&&!S.more[id]?`<button class="link" data-more="${id}" style="font-size:12.5px">+ ${rest.length} ${t('more')}</button>`:''}`;}
 function vLists(){
  const nl=`<div class="card f-nl" id="nlBox"><h3>${t('newList')} · Trusted Segments</h3>
   <div class="nl"><input type="text" id="nlIn" placeholder="${t('nlPh')}" value="${S.filled?esc(t('nlEx')):''}"><button class="btn" id="exBtn">${t('useEx')}</button><button class="btn pri" id="fillBtn">${t('fill')}</button></div>
   <div class="steps" id="steps"><span class="step ${S.filled?'done':''}">${t('s1')}</span><span class="step ${S.filled?'done':''}">${t('s2')}</span><span class="step ${S.filled?'done':''}">${t('s3')}</span></div></div>`;
- const sp=SPELL.map(([v,n])=>`<tr><td>${esc(v)}</td><td>${n}</td></tr>`).join('');
  const filters=`<div class="card" id="filtersCard"><h3>${t('filters')}</h3>
   <div class="diff f-nl" id="diff" style="${S.filled?'display:block':''}"><b>${t('yourSentence')}:</b> “${esc(t('nlEx'))}” → ${t('sector')}, ${t('city')}, ${t('start')}<div class="mut">${t('unmapped')}</div></div>
   <div class="grid2" style="margin-top:10px"><div>
   <div class="filter" id="fCity"><div class="k">${t('city')}</div><div class="v">London <span class="badge b-clean">${t('cleanedGroups')}</span></div>
-   <button class="link" id="spBtn" style="font-size:12.5px">${t('showSp')} (8)</button><div class="exp" id="spExp"><table>${sp}</table></div></div>
+   <button class="link" id="spBtn" style="font-size:12.5px">${t('showSp')} (8)</button><div class="exp ${S.spOpen?'open':''}" id="spExp">${spellList('f')}</div></div>
   <div class="and">${t('and')}</div>
   <div class="filter" id="fSector"><div class="k">${t('sector')}</div><div class="v">Finance</div><div class="mut">${t('sectorNote')}</div></div>
   <div class="and">${t('and')}</div>
@@ -254,44 +243,44 @@ function vLists(){
    <div class="filter"><div class="k">${t('lastLog')} <span class="badge b-new">${t('nw')}</span></div><select title="concept"><option>${t('any')}</option></select></div></div>
   </div></div>`;
  const rs=rowsShown();
- const body=rs.map(r=>{const c=countryClean(r);return `<tr data-m="${r.member_id}"><td><button class="link" data-mem="${r.member_id}">Member ${r.member_id}</button></td><td>${esc(r.poste)}</td><td>${r.entreprise?esc(r.entreprise):'<span class="mut">—</span>'}</td>
-  <td>${esc(cityClean(r.ville))}<span class="orig">${t('asTyped')}${esc(r.ville)}</span></td>
-  <td>${c.v}${c.sugg?` <span class="badge b-sugg">${t('sugg')}</span>`:''}<span class="orig">${t('asTyped')}${r.pays?esc(r.pays):t('blank')}</span></td>
+ const body=rs.map(r=>{const c=countryClean(r);const pt=r.pays||t('blank');return `<tr data-m="${r.member_id}"><td><button class="link" data-mem="${r.member_id}">Member ${r.member_id}</button></td><td>${esc(r.poste)}</td><td>${r.entreprise?esc(r.entreprise):'<span class="mut">—</span>'}</td>
+  <td title="${esc(t('asTypedT')+r.ville)}" class="hov">${esc(cityClean(r.ville))}<span class="orig">${t('asTyped')}${esc(r.ville)}</span></td>
+  <td title="${esc(t('asTypedT')+pt)}" class="hov">${c.v}${c.sugg?` <span class="badge b-sugg">${t('sugg')}</span>`:''}<span class="orig">${t('asTyped')}${esc(pt)}</span></td>
   <td><span class="badge">${finChip(r.finance_src)}</span></td>
   <td class="f-rel">${ago(r.date_maj_profil)}<span class="mut" style="display:block">${fmtDate(r.date_maj_profil)}</span></td>
   <td class="f-rel">${ago(r.derniere_connexion)}<span class="mut" style="display:block">${fmtDate(r.derniere_connexion)}</span></td>
   <td class="f-rel">${lab(r.reliability)}</td><td>${r.cotisant==='oui'?t('yes'):t('no')}</td></tr>`;}).join('');
  const chips=['A','B','C'].map(k=>`<button class="chipbtn ${S.chip===k?'on':''}" data-chip="${k}">${t(k)} ${count('reliability',k)}</button>`).join('');
- const res=`<div class="card"><div class="row" id="resHead" style="justify-content:space-between"><h3 style="margin:0">${ROWS.length} ${t('members')}${S.chip&&S.flags.rel?` · ${rs.length} ${t(S.chip)}`:''}</h3><span class="row f-rel">${chips}</span>
+ const res=`<div class="card" id="resCard"><div class="row" id="resHead" style="justify-content:space-between"><h3 style="margin:0">${ROWS.length} ${t('members')}${S.chip&&S.flags.rel?` · ${rs.length} ${t(S.chip)}`:''}</h3><span class="row f-rel" id="chips">${chips}</span>
    <label class="switch" id="origSw"><input type="checkbox" id="origCb" ${S.orig?'checked':''}><span class="tr"></span>${t('showOrig')}</label></div>
   <div class="row" id="actions" style="margin:10px 0"><button class="btn pri f-rel" id="aSend">${t('send')} (${count('reliability','A')+count('reliability','B')})</button><button class="btn f-rel" id="aReact">${t('react')}</button><button class="btn" id="aSave">${t('save')}</button><button class="btn" id="aExp">${t('exp')}</button></div>
   <div class="tablewrap ${S.orig?'':'hide-orig'}" id="resTable"><table class="t"><thead><tr><th>${t('cMember')}</th><th>${t('cJob')}</th><th>${t('cEmp')}</th><th>${t('cCity')}</th><th>${t('cCountry')}</th><th>${t('cFin')}</th><th class="f-rel">${t('cUpd')}</th><th class="f-rel">${t('cLog')}</th><th class="f-rel">${t('cLab')}</th><th>${t('cDues')}</th></tr></thead><tbody>${body}</tbody></table></div></div>`;
  return `<h1>${t('newList')}</h1><p class="sub">${t('newSub')}</p>${nl}${filters}${res}`;
 }
 function vDq(){
- const st=k=>S.confirmed[k]?`<span class="badge b-ok">${t('confByYou')}</span>`:`<span class="badge">${t('auto')}</span>`;
- let tbl='';
- if(S.dqTab==='city'){tbl=`<table class="t"><thead><tr><th>${t('hOrig')}</th><th>${t('hClean')}</th><th>${t('hCount')}</th><th>${t('hSrc')}</th><th>${t('hStat')}</th><th>${t('hAct')}</th></tr></thead><tbody>`+
-  SPELL.map(([v,n])=>{const ov=S.overrides['city:'+v];return `<tr><td>${esc(v)}</td><td data-cell="${esc(v)}">${esc(ov||'London')}</td><td>${n}</td><td>${ov?t('yours'):t('global')}</td><td>${ov?`<span class="badge b-ok">${t('confByYou')}</span>`:st('city:'+v)}</td>
-  <td><button class="link" data-conf="city:${esc(v)}">${t('confirm')}</button> · <button class="link" data-chg="${esc(v)}">${t('change')}</button> · <button class="link" data-not="${esc(v)}">${t('notThis')}</button></td></tr>`;}).join('')+'</tbody></table>';}
- else if(S.dqTab==='country'){tbl=`<table class="t"><thead><tr><th>${t('hOrig')}</th><th>${t('hClean')}</th><th>${t('hCount')}</th><th>${t('hSrc')}</th><th>${t('hStat')}</th><th>${t('hAct')}</th></tr></thead><tbody>`+
-  CSP.map(([v,n])=>`<tr><td>${v?esc(v):t('blank')}</td><td>United Kingdom</td><td>${n}</td><td>${t('global')}</td><td>${v?st('country:'+v):(S.confirmed.blank?`<span class="badge b-ok">${t('confByYou')}</span>`:`<span class="badge b-sugg">${t('suggCity')}</span>`)}</td>
-  <td>${v?`<button class="link" data-conf="country:${esc(v)}">${t('confirm')}</button>`:`<button class="btn pri" id="conf9" ${S.confirmed.blank?'disabled':''}>${t('confirm9')}</button>`}</td></tr>`).join('')+'</tbody></table>';}
- else{tbl=`<table class="t"><thead><tr><th>${t('cEmp')}</th><th>${t('hClean')}</th><th>${t('hCount')}</th><th>${t('fE')}</th><th>${t('hSrc')}</th></tr></thead><tbody>`+
-  EMP.map(([k,o])=>`<tr><td>${k?esc(k):t('noEmp')}</td><td>${k&&o.e?'Finance':`<span class="badge">${t('notMapped')}</span>`}</td><td>${o.n}</td><td>${o.e}</td><td>${k?t('global'):'—'}</td></tr>`).join('')+'</tbody></table><p class="mut">Members column = all members of this list with that employer; "'+t('fE')+'" = members whose finance match came from the employer.</p>';}
+ const noEmp=EMP.find(e=>e[0]==='');const empMapped=EMP.filter(([k,o])=>k&&o.e);
+ const Q=[{id:'blank',orig:t('blank')+' · '+t('cCountry'),clean:'United Kingdom',why:t('suggCity'),n:count('pays','')},
+          {id:'noemp',orig:t('noEmp'),clean:t('notMapped'),why:S.lang==='fr'?'Pas d’employeur saisi · trouvé via secteur déclaré ou intitulé':'No employer typed · matched from declared sector or job title',n:noEmp?noEmp[1].n:0}]
+   .filter(q=>!S.confirmed[q.id]).sort((a,b)=>b.n-a.n);
+ const queue=Q.length?`<table class="t"><thead><tr><th>${t('hOrig')}</th><th>${t('hClean')}</th><th>${t('hStat')}</th><th>${t('hCount')}</th><th>${t('hAct')}</th></tr></thead><tbody>`+
+  Q.map(q=>`<tr><td>${esc(q.orig)}</td><td>${esc(q.clean)}</td><td><span class="badge b-sugg">${esc(q.why)}</span></td><td><b>${q.n}</b></td><td><button class="btn pri" data-qc="${q.id}">${q.id==='blank'?t('confirm9'):t('confirm')}</button> <button class="link" data-qx="${q.id}">${t('change')}</button></td></tr>`).join('')+'</tbody></table>'
+  :`<p class="mut">${S.lang==='fr'?'Rien à revoir. Tout est confirmé pour votre école.':'Nothing to review. Everything is confirmed for your school.'}</p>`;
+ const autoN=SPELL.length+3+empMapped.length;
+ const cityT=`<h4>${t('tCity')} → London</h4>${spellList('a')}`;
+ const ctryT=`<h4>${t('tCountry')} → United Kingdom</h4><table>${CSP.filter(c=>c[0]).map(([v,n])=>`<tr><td>${esc(v)}</td><td>${n}</td></tr>`).join('')}</table>`;
+ const empT=`<h4>${t('tSector')} → Finance</h4><table>${empMapped.slice(0,S.more.e?99:5).map(([k,o])=>`<tr><td>${esc(k)}</td><td>${o.e}</td></tr>`).join('')}</table>${empMapped.length>5&&!S.more.e?`<button class="link" data-more="e" style="font-size:12.5px">+ ${empMapped.length-5} ${t('more')}</button>`:''}`;
  return `<h1>${t('dqTitle')}</h1><p class="sub">${t('dqSub')}</p><div class="banner" id="dqBanner">${t('banner')}</div>
- <div class="card" id="dqSummary"><h3>${t('summary')}</h3><div class="mut">49 ${t('members')} · Finance · London · 3+</div></div>
- <div class="card"><div class="tabs" id="dqTabs"><button data-tab="city" class="${S.dqTab==='city'?'on':''}">${t('tCity')}</button><button data-tab="country" class="${S.dqTab==='country'?'on':''}">${t('tCountry')}</button><button data-tab="sector" class="${S.dqTab==='sector'?'on':''}">${t('tSector')}</button></div><div id="dqTable" class="tablewrap">${tbl}</div></div>`;
+ <div class="card" id="dqQueue"><div class="row" style="justify-content:space-between"><h3 style="margin:0">${t('toReview')} (${Q.length})</h3>${Q.length?`<button class="btn pri" id="confAll">${t('confAll')}</button>`:''}</div><div class="tablewrap" style="margin-top:10px">${queue}</div></div>
+ <div class="card" id="dqAuto"><button class="link" id="autoBtn" style="font-weight:600;text-decoration:none">${S.autoOpen?'▾':'▸'} ${t('autoTitle')} · ${autoN}</button>
+  <div class="mut">${t('summary')}</div>${S.autoOpen?`<div class="grid3">${cityT ? `<div class="filter">${cityT}</div>`:''}<div class="filter">${ctryT}</div><div class="filter">${empT}</div></div>`:''}</div>`;
 }
 function reason(r){const L=t(r.reliability);const u=r.date_maj_profil,l=r.derniere_connexion;
  if(S.lang==='fr')return `Profil mis à jour le ${fmtDate(u)}, il y a ${yrs(u)} an${yrs(u)>1?'s':''} · dernière connexion le ${fmtDate(l)} → ${L}`;
  return `Profile updated ${fmtDate(u)}, ${yrs(u)} year${yrs(u)===1?'':'s'} ago · last login ${fmtDate(l)} → ${L}`;}
-function vMember(){const r=ROWS.find(x=>x.member_id===S.member)||ROWS[0];const c=countryClean(r);
- const opts=ROWS.map(x=>`<option ${x.member_id===r.member_id?'selected':''}>${x.member_id}</option>`).join('');
+function vDrawer(){const r=ROWS.find(x=>x.member_id===S.member)||ROWS[0];const c=countryClean(r);
  const sec={'finance:declared':t('fD'),'finance:employer':t('fE'),'finance:title':t('fT')}[r.finance_src];
- return `<h1>${t('memTitle')}</h1><p class="sub">Member ${r.member_id} · ${esc(r.poste)}</p>
- <div class="card"><div class="row"><label>${t('pick')} <select id="memSel">${opts}</select></label></div></div>
- <div class="grid2"><div class="card" id="memTwo"><h3>${t('asEntered')} / ${t('cleanedUsed')}</h3><div class="two">
+ return `<div class="row" style="justify-content:space-between"><h2 style="margin:0;font-size:17px">Member ${r.member_id}</h2><button class="btn" id="drClose">✕</button></div><p class="sub">${esc(r.poste)} · ${t('memTitle')}</p>
+ <div class="card" id="memTwo"><h3>${t('asEntered')} / ${t('cleanedUsed')}</h3><div class="two">
   <div class="h">${t('field')}</div><div class="h">${t('asEntered')}</div><div class="h">${t('cleanedUsed')}</div>
   <div>${t('cCity')}</div><div>${esc(r.ville)}</div><div>${esc(cityClean(r.ville))}</div>
   <div>${t('cCountry')}</div><div>${r.pays?esc(r.pays):t('blank')}</div><div>${c.v}${c.sugg?` <span class="badge b-sugg">${t('sugg')}</span>`:''}</div>
@@ -300,85 +289,74 @@ function vMember(){const r=ROWS.find(x=>x.member_id===S.member)||ROWS[0];const c
  <div class="card f-rel" id="relCard"><h3>${t('relCard')}</h3>
   <div>${t('lastUpd')}: <b>${fmtDate(r.date_maj_profil)}</b> <span class="mut">(${ago(r.date_maj_profil)})</span></div>
   <div>${t('lastLog')}: <b>${fmtDate(r.derniere_connexion)}</b> <span class="mut">(${ago(r.derniere_connexion)})</span></div>
-  <div style="margin:6px 0">${t('label')}: ${lab(r.reliability)}</div><div class="mut">${t('reason')}: ${reason(r)}</div></div></div>
- <div class="card" id="memPrev"><h3>${t('memSees')}</h3><div class="preview">${t('memLine')} ${S.lang==='fr'?ago(r.date_maj_profil):'<b>'+yrs(r.date_maj_profil)+' years ago</b>'} · <button class="btn pri" title="concept">${t('memConfirm')}</button> <button class="btn" title="concept">${t('memCorrect')}</button></div></div>`;}
+  <div style="margin:6px 0">${t('label')}: ${lab(r.reliability)}</div><div class="mut">${t('reason')}: ${reason(r)}</div></div>
+ <div class="card" id="memPrev"><h3>${t('memSees')}</h3><div class="preview">${t('memLine')} ${S.lang==='fr'?ago(r.date_maj_profil):yrs(r.date_maj_profil)+' years ago'} · <button class="btn pri" title="concept">${t('memConfirm')}</button> <button class="btn" title="concept">${t('memCorrect')}</button></div>
+ <p class="mut" style="margin-bottom:0">No label word is shown to the member.</p></div>`;}
 function vSettings(){
- const it=(id,key,name,desc,list)=>`<div class="card" id="${id}"><h3>${name}</h3><p class="mut" style="margin-top:0">${desc}</p>
-  <label class="switch"><input type="checkbox" data-flag="${key}" ${S.flags[key]?'checked':''}><span class="tr"></span>${S.flags[key]?'ON':'OFF'}</label>
-  <div style="margin-top:8px;font-size:13px"><b>${t('appears')}:</b><ul style="margin:4px 0 0 18px;padding:0">${list.map(x=>`<li>${x}</li>`).join('')}</ul></div></div>`;
- const relL=S.lang==='fr'?['Puces À jour / À confirmer / À réactiver','Colonnes Mise à jour profil, Dernière connexion, Libellé','Les deux nouveaux filtres de date','La page Qualité des données','Boutons Envoyer / Réactiver']:['Current / To confirm / To reactivate chips','Columns Last profile update, Last login, Label','The two new date filters','The Data quality page','Send / Reactivate buttons'];
- const nlL=S.lang==='fr'?['La zone de phrase au-dessus des filtres','La vue phrase ↔ filtres']:['The sentence box above the filters','The sentence ↔ filters diff view'];
- return `<h1>${t('setTitle')}</h1><p class="sub">${t('setSub')}</p>${it('flagRel','rel',t('fRel'),t('fRelD'),relL)}${it('flagNl','nl',t('fNl'),t('fNlD'),nlL)}`;}
-function vWhy(){return `<h1>${t('whyTitle')}</h1><p class="sub">Design decision · plain English</p><div class="card why" id="whyCard"><h3>Cleaned values: visible to admins</h3><ul>
- <li><b>Your point: cleaned values help admins. Adopted.</b> Admins filter by one clean city, see what was grouped, and fix it.</li>
- <li><b>Two different jobs.</b> The two new date filters do freshness (is this still true?). Cleaned columns do consistency (is it written the same way?). Both are needed; neither replaces the other.</li>
- <li><b>Guard rails.</b> The original entry is always visible; suggestions need confirmation; overrides are per school, logged and reversible; the member's profile is never edited.</li>
- <li><b>Cost: no extra build.</b> The override screen was already in D1's "reference tables with per-tenant overrides"; this makes it the admin's view.</li></ul></div>`;}
-const V={lists:vLists,dq:vDq,member:vMember,settings:vSettings,why:vWhy};
+ const it=(id,key,name,desc)=>`<div class="card" id="${id}"><h3>${name}</h3><p class="mut" style="margin-top:0">${desc}</p>
+  <label class="switch"><input type="checkbox" data-flag="${key}" ${S.flags[key]?'checked':''}><span class="tr"></span>${S.flags[key]?'ON':'OFF'}</label></div>`;
+ return `<h1>Dev · ${t('setTitle')}</h1><p class="sub">${t('setSub')} · flag off = today's segmenter, unchanged</p>${it('flagRel','rel',t('fRel'),t('fRelD'))}${it('flagNl','nl',t('fNl'),t('fNlD'))}`;}
+const V={lists:vLists,dq:vDq,settings:vSettings};
 function render(){if(S.scr==='dq'&&!S.flags.rel)S.scr='lists';
  document.body.classList.toggle('f-off-rel',!S.flags.rel);document.body.classList.toggle('f-off-nl',!S.flags.nl);document.body.classList.toggle('noann',!S.ann);
  document.documentElement.lang=S.lang;document.querySelectorAll('[data-i18n]').forEach(e=>e.textContent=t(e.dataset.i18n));
  $('#lfr').classList.toggle('on',S.lang==='fr');$('#len').classList.toggle('on',S.lang==='en');$('#annBtn').classList.toggle('on',S.ann);
  document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.dataset.scr===S.scr));
- $('#main').innerHTML=V[S.scr]();renderAnn();}
-function go(scr){S.scr=scr;render();window.scrollTo(0,0);}
+ $('#main').innerHTML=V[S.scr]();$('#drawer').innerHTML=S.drawer?vDrawer():'';$('#drawer').classList.toggle('open',!!S.drawer);renderAnn();}
+function go(scr){S.scr=scr;S.drawer=false;render();window.scrollTo(0,0);}
+const SAVED=()=>S.lang==='fr'?'Enregistré pour votre école uniquement · journalisé · annuler':'Saved for your school only · logged · undo';
 // ---------- events ----------
 document.addEventListener('click',e=>{const x=e.target.closest('button,a,.ann,.pin,[data-close]');if(!x)return;const d=x.dataset;
- if(x.matches('[data-close]')||x.id==='modalBg'){closeModal();return;}
+ if(x.matches('[data-close]')){closeModal();return;}
  if(d.scr){go(d.scr);return;}
  if(x.classList.contains('pin')&&d.sel){flash(d.sel);return;}
  if(x.classList.contains('ann')){flash(d.sel);return;}
  if(d.chip){S.chip=S.chip===d.chip?null:d.chip;render();return;}
- if(d.mem){S.member=d.mem;go('member');return;}
- if(d.tab){S.dqTab=d.tab;render();return;}
- if(d.conf){S.confirmed[d.conf]=true;render();toast(S.lang==='fr'?'Confirmé pour votre école. Journalisé.':'Confirmed for your school. Logged.');return;}
- if(d.chg){const cell=document.querySelector(`[data-cell="${CSS.escape(d.chg)}"]`);cell.innerHTML=`<input type="text" value="${esc(cityClean(d.chg))}" style="width:130px"> <button class="btn pri" data-savechg="${esc(d.chg)}">${t('ok')}</button>`;return;}
- if(d.savechg){const v=x.previousElementSibling.value.trim()||'London';S.overrides['city:'+d.savechg]=v;render();toast('Override saved for your school. The member\'s entry is unchanged.');return;}
- if(d.not){S.overrides['city:'+d.not]=S.lang==='fr'?'(non associé)':'(not mapped)';render();toast('Override saved for your school. The member\'s entry is unchanged.');return;}
+ if(d.mem){S.member=d.mem;S.drawer=true;render();return;}
+ if(d.more){S.more[d.more]=true;render();return;}
+ if(d.qc){S.confirmed[d.qc]=true;S.last=[d.qc];render();toast(SAVED(),true);return;}
+ if(d.qx){toast(S.lang==='fr'?'Concept : modification en ligne, enregistrée pour votre école uniquement.':'Concept: inline change, saved for your school only.');return;}
  switch(x.id){
  case 'lfr':S.lang='fr';render();break;case 'len':S.lang='en';render();break;
  case 'annBtn':S.ann=!S.ann;render();break;
- case 'whyBtn':go('why');break;case 'tourBtn':tour.go(1);break;
+ case 'tourBtn':tour.go(1);break;
+ case 'drClose':S.drawer=false;render();break;
+ case 'confAll':S.last=['blank','noemp'].filter(k=>!S.confirmed[k]);S.last.forEach(k=>S.confirmed[k]=true);render();toast(SAVED(),true);break;
+ case 'undoBtn':(S.last||[]).forEach(k=>delete S.confirmed[k]);S.last=[];render();$('#toast').style.display='none';break;
+ case 'autoBtn':S.autoOpen=!S.autoOpen;render();break;
  case 'exBtn':$('#nlIn').value=t('nlEx');break;
  case 'fillBtn':{if(!$('#nlIn').value)$('#nlIn').value=t('nlEx');const st=document.querySelectorAll('#steps .step');st.forEach(s=>s.classList.remove('done'));
   st.forEach((s,i)=>setTimeout(()=>s.classList.add('done'),300*(i+1)));setTimeout(()=>{S.filled=true;$('#diff').style.display='block';},1000);break;}
- case 'spBtn':$('#spExp').classList.toggle('open');break;
+ case 'spBtn':S.spOpen=!S.spOpen;$('#spExp').classList.toggle('open');break;
  case 'aSend':toast(S.lang==='fr'?'Concept : envoi aux 6 membres À jour + À confirmer.':'Concept: send to the 6 Current + To confirm members.');break;
  case 'aReact':modal(`<h2>Profile Update Campaign · 43</h2><p class="mut">Existing campaign, pre-filled with the 43 To reactivate members. Text is written by the school; the two variants below are placeholders.</p>
   <div class="grid2"><div class="variant"><b>Variant A</b><br>Subject: Is your profile still up to date?<br><br>[School-written text] Your profile was last updated some time ago. Two minutes to confirm or correct it.</div>
   <div class="variant"><b>Variant B</b><br>Subject: Help your classmates find you<br><br>[School-written text] Alumni in London are looking for contacts. Check your current job and city.</div></div>
   <p class="mut">Split 50/50 (illustrative). No message is sent from this prototype.</p>`);break;
  case 'aSave':modal(`<h2>${t('save')}</h2><label>Name<br><input type="text" value="Finance · London · 3+ yrs" style="width:100%"></label><p><b>Description:</b> ${esc(t('nlEx'))}</p><p class="mut">Computed on 12/10/2026 · relative dates recalculated when opened or sent</p>`);break;
- case 'aExp':modal(`<h2>${t('exp')} · 49</h2><p>Columns:</p><label><input type="radio" name="ex"> Cleaned</label><br><label><input type="radio" name="ex"> Original</label><br><label><input type="radio" name="ex" checked> Both</label><p class="mut">Concept: no file is generated.</p>`);break;
- case 'conf9':S.confirmed.blank=true;render();toast(S.lang==='fr'?'9 pays confirmés pour votre école. Le profil du membre est inchangé.':'9 countries confirmed for your school. The member\'s entry is unchanged.');break;
+ case 'aExp':modal(`<h2>${t('exp')} · 49</h2><p>Columns:</p><label><input type="radio" name="ex" checked> Cleaned</label><br><label><input type="radio" name="ex"> As typed</label><br><label><input type="radio" name="ex"> Both</label><p class="mut">Concept: no file is generated.</p>`);break;
  case 'tPrev':tour.go(tour.cur-1);break;case 'tNext':tour.cur>=tour.count?tour.close():tour.go(tour.cur+1);break;case 'tClose':tour.close();break;
  default: if(x.title==='concept')toast('Concept only');}
 });
 $('#modalBg').addEventListener('click',e=>{if(e.target.id==='modalBg')closeModal();});
+document.addEventListener('keydown',e=>{if(e.key==='D'&&e.shiftKey&&e.altKey)go('settings');});
 document.addEventListener('change',e=>{const x=e.target;
  if(x.id==='origCb'){S.orig=x.checked;$('#resTable').classList.toggle('hide-orig',!S.orig);}
- if(x.id==='memSel'){S.member=x.value;render();}
  if(x.dataset.flag){S.flags[x.dataset.flag]=x.checked;render();}});
 // ---------- tour ----------
+const DECIDE=`<b>Two decisions for you</b><br>(a) As typed on hover, or a visible second column?<br>(b) Use suggested clean-ups in lists before an admin confirms them, or only after?<br><span style="font-size:12px">Why visible: cleaned values help admins (adopted). Date filters do freshness, cleaned values do consistency; both needed. Guard rails: as typed always reachable, suggestions need confirmation, per-school changes logged and reversible, profiles never edited. No extra build: D1 already had the override tables.</span>`;
 const STEPS=[
- ['lists','#nlBox','1. Describe the audience','The admin types one sentence instead of building filters by hand. Pressing "Fill in filters" runs a pre-flight, an AI translation and a check (simulated here).',()=>{S.filled=true;}],
- ['lists','#filtersCard','2. Filters, filled in','The sentence is shown next to the filters it produced, with an "unmapped part" line (empty here). Nothing goes to the model except the sentence and filter names.'],
- ['lists','#fCity','3. One clean city','"London" groups 8 spellings: Londres (Royaume-Uni) 10, london 9, London, UK 6, LONDON 6, Greater London 6, Londres 5, London - Canary Wharf 4, London 3. Open the expander to see them.',()=>{setTimeout(()=>{const e=$('#spExp');e&&e.classList.add('open');},0);}],
- ['lists','#fSector','4. Finance, matched three ways','Declared sector 24, employer 17, job title 8. Each row carries a chip saying where the match came from.'],
- ['lists','#fRelGrp','5. Two new date filters','Last profile update and Last login: recorded by the platform, never typed. They reuse the existing date filter.'],
- ['lists','#resHead','6. 49 members, three labels','Current 1 · To confirm 5 · To reactivate 43, against the reference date 12 Oct 2026. Click a chip to filter the table.'],
- ['lists','#resTable','7. Cleaned and original, together','Each cleaned city and country shows what the member typed underneath. The 9 blank countries are marked "suggested" until an admin confirms.'],
- ['lists','#actions','8. Act on the split','Send to the 6 trustworthy profiles, or reactivate the 43 with the existing Profile Update Campaign. Save keeps the sentence and the computation date.'],
- ['dq','#dqTable','9. Cleaned values page','The 8 London spellings, their counts, source and status. "Change" creates a per-school override; the member\'s entry is never touched.',()=>{S.dqTab='city';}],
- ['dq','#dqTable','10. Suggestions need you','UK 13, Royaume-Uni 13 and United Kingdom 14 map automatically. The 9 blanks are inferred from the city and wait for "Confirm 9".',()=>{S.dqTab='country';}],
- ['member','#memTwo','11. One member, side by side','Member M0495: "London, UK" / Royaume-Uni as typed, London / United Kingdom as used for lists.',()=>{S.member='M0495';}],
- ['member','#relCard','12. The label, explained','Profile updated 20 May 2023, 3 years ago → To confirm. The member only sees "Profile last updated 3 years ago · Confirm / Correct".',()=>{S.member='M0495';}],
- ['settings','#flagRel','13. Per-school flags','reliability and nl_targeting switch on per school. With both off, the segmenter is today\'s, unchanged.'],
- ['why','#whyCard','14. Why visible','Cleaned values help admins: adopted, with guard rails. Freshness and consistency are different jobs; both are needed. No extra build.']];
+ ['lists','#fCity','1. One clean City filter','"London" groups 8 spellings, so nobody is missed. The list is sorted by members affected: top 5, then "+ 3 more".',()=>{S.spOpen=true;}],
+ ['lists','#resHead','2. Three labels: 1 / 5 / 43','À jour 1 · À confirmer 5 · À réactiver 43, from the profile-update and login dates against 12 Oct 2026. Click a chip to filter.'],
+ ['lists','#resTable','3. Clean by default','The table shows one clean city and country. Hover a cell to see what the member typed, e.g. "As typed: Londres (Royaume-Uni)".',()=>{S.orig=false;}],
+ ['lists','#origSw','4. "Show as typed"','One switch, off by default, prints the member\'s original entry under every cleaned value.',()=>{S.orig=true;}],
+ ['lists','#drawer','5. Member drawer','Member M0495: "London, UK" / Royaume-Uni as typed, London / United Kingdom as used. The label comes with its reason: updated 20 May 2023, 3 years ago → À confirmer.',()=>{S.orig=false;S.member='M0495';S.drawer=true;}],
+ ['dq','#dqQueue','6. Review only the uncertain','The queue holds only suggestions, by members affected: 9 countries inferred from the city, 8 members with no employer. "Confirm 9" takes seconds; auto-cleaned items stay collapsed.',()=>{S.flags.rel=true;S.autoOpen=false;}],
+ ['dq','#dqBanner','7. Two decisions for you','',null,DECIDE]];
 const tour=window.tour={count:STEPS.length,cur:0,
- go(n){n=Math.max(1,Math.min(STEPS.length,n|0));this.cur=n;const s=STEPS[n-1];if(s[0]==='dq')S.flags.rel=true;if(s[4])s[4]();S.scr=s[0];render();
-  document.querySelectorAll('.tourhl').forEach(e=>e.classList.remove('tourhl'));const e=document.querySelector(s[1]);if(e){e.classList.add('tourhl');e.scrollIntoView({block:'center',behavior:'instant'});}
-  $('#tTitle').textContent=s[2];$('#tText').textContent=s[3];$('#tCount').textContent=`Step ${n}/${STEPS.length}`;$('#tNext').textContent=n===STEPS.length?'Done':'Next';$('#tPrev').disabled=n===1;$('#tourCard').style.display='block';},
+ go(n){n=Math.max(1,Math.min(STEPS.length,n|0));this.cur=n;const s=STEPS[n-1];S.drawer=false;if(s[4])s[4]();S.scr=s[0];render();
+  document.querySelectorAll('.tourhl').forEach(e=>e.classList.remove('tourhl'));const e=document.querySelector(s[1]);if(e){e.classList.add('tourhl');if(s[1]!=='#drawer')e.scrollIntoView({block:'center',behavior:'instant'});}
+  $('#tTitle').textContent=s[2];if(s[5])$('#tText').innerHTML=s[5];else $('#tText').textContent=s[3];$('#tCount').textContent=`Step ${n}/${STEPS.length}`;$('#tNext').textContent=n===STEPS.length?'Done':'Next';$('#tPrev').disabled=n===1;$('#tourCard').style.display='block';},
  next(){this.go(this.cur+1);},prev(){this.go(this.cur-1);},
  close(){this.cur=0;$('#tourCard').style.display='none';document.querySelectorAll('.tourhl').forEach(e=>e.classList.remove('tourhl'));}};
 const rr=render;render=function(){rr();if(tour.cur){const e=document.querySelector(STEPS[tour.cur-1][1]);if(e&&S.scr===STEPS[tour.cur-1][0])e.classList.add('tourhl');}};
