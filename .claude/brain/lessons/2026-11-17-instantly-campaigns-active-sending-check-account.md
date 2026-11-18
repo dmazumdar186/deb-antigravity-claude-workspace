@@ -6,7 +6,7 @@ strength: 2
 status: active
 created: 2026-11-17
 confirmed: 2026-11-17
-source:
+source: de85557e2952 Instantly slow-ramp stall diagnosis 2026-11-17 (lesson-add commit)
 supersedes:
 ---
 When Instantly campaigns are active but not sending, check account enable_slow_ramp, account daily sends and campaign not_sending_status before changing campaign settings.
