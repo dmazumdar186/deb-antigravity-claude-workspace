@@ -135,3 +135,6 @@ A short design-decision card, plain English:
 4. Scale: top 5 spellings then "+ N more", sorted by impact.
 5. Tour: 7 steps, ending with two decisions for Frédéric: originals on hover vs second column; use suggested clean-ups before confirmation or only after.
 6. Deliverables: prototype link + video ≤ 90 s. Storyboard PDF dropped.
+
+## Amendment 7 (18 Nov, after the cover-note red team)
+Step 7 states two choices for Frédéric to confirm or overturn instead of open questions: (a) originals on hover rather than a second column; (b) suggested clean-ups count in lists, marked "suggested", with a one-click confirm, so a list never silently shrinks. No time-to-review claims anywhere.

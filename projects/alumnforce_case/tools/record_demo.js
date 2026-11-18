@@ -47,7 +47,7 @@ font-family:Inter,'Helvetica Neue',Arial,sans-serif;text-align:center">
       await page.evaluate(y => scrollTo({ top: y, behavior: 'smooth' }), Math.round(total * (s + 1) / 10));
       await page.waitForTimeout(1000);
     }
-    await page.setContent(card('Two decisions for you', 'Originals on hover, or a visible second column? Use suggested clean-ups before an admin confirms, or only after?'));
+    await page.setContent(card('Two choices, to confirm or overturn', 'Originals on hover rather than a second column. Suggested clean-ups count in lists, marked "suggested", with a one-click confirm.'));
     await page.waitForTimeout(4000);
   } finally {
     const video = page.video();
