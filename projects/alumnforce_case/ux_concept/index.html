@@ -117,9 +117,21 @@ body.f-off-nl .f-nl{display:none!important}
 .tourcard .ft{display:flex;align-items:center;gap:8px}
 .tourcard .ft span{flex:1;color:var(--ink3);font-size:12px}
 [title]{}
+.phone{display:none}
+@media (max-width:820px){html,body{overflow-x:hidden;max-width:100%}.top,.wrap,.tourcard,.drawer,.modal-bg,.toast{display:none!important}
+.phone{display:block;min-height:100vh;background:var(--bg);padding:0 0 32px}
+.phone .ph{background:#1c2230;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px}
+.phone .ph b{font-size:15px}
+.phone .pb{padding:20px 16px;max-width:520px;margin:0 auto}
+.phone h1{font-size:22px;margin:0 0 8px}.phone p{margin:0 0 18px;color:var(--ink2)}
+.phone .cta{display:block;text-align:center;background:var(--acc);color:#fff;border-radius:8px;padding:13px 14px;text-decoration:none;font-weight:600;margin-bottom:10px}
+.phone .sec{display:block;text-align:center;border:1px solid var(--line);background:#fff;color:var(--acc);border-radius:8px;padding:12px 14px;text-decoration:none;font-weight:600}
+.phone ul{margin:22px 0 0;padding:0;list-style:none}.phone li{background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:10px;font-size:14px}}
 </style>
 </head>
 <body>
+<div class="phone" id="phone"><div class="ph"><b>Trusted Segments · Concept</b><span class="seg"><button id="pfr">FR</button><button id="pen">EN</button></span></div>
+<div class="pb"><h1 id="phT"></h1><p id="phP"></p><a class="cta" href="demo.mp4" id="phV"></a><a class="sec" href="build.html" id="phB"></a><ul id="phL"></ul></div></div>
 <header class="top">
   <span class="brand">Back-office <small>Concept · Trusted Segments</small></span>
   <span class="sp"></span>
@@ -306,7 +318,7 @@ function render(){if(S.scr==='dq'&&!S.flags.rel)S.scr='lists';
  document.documentElement.lang=S.lang;document.querySelectorAll('[data-i18n]').forEach(e=>e.textContent=t(e.dataset.i18n));
  $('#lfr').classList.toggle('on',S.lang==='fr');$('#len').classList.toggle('on',S.lang==='en');$('#annBtn').classList.toggle('on',S.ann);
  document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.dataset.scr===S.scr));
- $('#main').innerHTML=V[S.scr]();$('#drawer').innerHTML=S.drawer?vDrawer():'';$('#drawer').classList.toggle('open',!!S.drawer);renderAnn();}
+ renderPhone();$('#main').innerHTML=V[S.scr]();$('#drawer').innerHTML=S.drawer?vDrawer():'';$('#drawer').classList.toggle('open',!!S.drawer);renderAnn();}
 function go(scr){S.scr=scr;S.drawer=false;render();window.scrollTo(0,0);}
 const SAVED=()=>S.lang==='fr'?'Enregistré pour votre école uniquement · journalisé · annuler':'Saved for your school only · logged · undo';
 // ---------- events ----------
@@ -321,7 +333,7 @@ document.addEventListener('click',e=>{const x=e.target.closest('button,a,.ann,.p
  if(d.qc){S.confirmed[d.qc]=true;S.last=[d.qc];render();toast(SAVED(),true);return;}
  if(d.qx){toast(S.lang==='fr'?'Concept : modification en ligne, enregistrée pour votre école uniquement.':'Concept: inline change, saved for your school only.');return;}
  switch(x.id){
- case 'lfr':S.lang='fr';render();break;case 'len':S.lang='en';render();break;
+ case 'lfr':case 'pfr':S.lang='fr';render();break;case 'len':case 'pen':S.lang='en';render();break;
  case 'annBtn':S.ann=!S.ann;render();break;
  case 'tourBtn':tour.go(1);break;
  case 'drClose':S.drawer=false;render();break;
@@ -373,6 +385,10 @@ const tour=window.tour={count:STEPS.length,cur:0,
  next(){this.go(this.cur+1);},prev(){this.go(this.cur-1);},
  close(){this.cur=0;$('#tourCard').style.display='none';document.querySelectorAll('.tourhl').forEach(e=>e.classList.remove('tourhl'));}};
 const rr=render;render=function(){rr();if(tour.cur){const e=document.querySelector(STEPS[tour.cur-1][1]);if(e&&S.scr===STEPS[tour.cur-1][0])e.classList.add('tourhl');}};
+function renderPhone(){const fr=S.lang==='fr';const P=fr?{t:'Trusted Segments · Concept',p:'Ce concept est conçu pour un écran d’ordinateur.',v:'Voir la démo (moins de 90 secondes)',b:'Comment on le construit',l:['Les valeurs nettoyées sont visibles des admins ; la saisie d’origine est à un survol et n’est jamais modifiée.','Les nettoyages incertains sont marqués « suggéré » et se confirment en un clic.','Les admins ne revoient que les exceptions.']}
+ :{t:'Trusted Segments · Concept',p:'This concept is built for a laptop screen.',v:'Watch the walkthrough (under 90 seconds)',b:'How it gets built',l:['Cleaned values are visible to admins; the original is one hover away and never changed.','Uncertain clean-ups are marked "suggested" with one-click confirm.','Admins review only the exceptions.']};
+ $('#phT').textContent=P.t;$('#phP').textContent=P.p;$('#phV').textContent=P.v;$('#phB').textContent=P.b;$('#phL').innerHTML=P.l.map(x=>`<li>${esc(x)}</li>`).join('');
+ $('#pfr').classList.toggle('on',fr);$('#pen').classList.toggle('on',!fr);}
 const q=new URLSearchParams(location.search);
 render();
 if(q.get('tour')==='1')tour.go(+q.get('step')||1);
