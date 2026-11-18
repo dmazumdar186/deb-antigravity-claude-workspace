@@ -68,10 +68,10 @@ table.t{width:100%;border-collapse:collapse;font-size:13px}
 .orig{display:block;font-size:11.5px;color:var(--ink3)}
 .hide-orig .orig{display:none}
 .tablewrap{overflow-x:auto;max-height:430px;overflow-y:auto}
-#resTable .t th{white-space:normal;padding:6px 5px}#resTable .t td{padding:6px 5px}
+#resTable .t{font-size:12.5px}#resTable .t th{white-space:normal;padding:6px 4px;hyphens:none;word-break:normal}#resTable .t td{padding:5px 4px}#resTable td.nw{white-space:nowrap}
 #resTable:not(.hide-orig) td.hov{min-width:150px}
 #dqQueue .t th{white-space:normal}
-@media (max-width:1400px){aside{width:280px!important}main{padding:16px 14px 120px}}
+@media (max-width:1400px){aside{width:260px!important}.wrap{grid-template-columns:176px 1fr auto}main{padding:16px 14px 120px}}
 .mut{color:var(--ink3);font-size:12px}
 .banner{background:var(--ok-soft);color:var(--ok);border-radius:6px;padding:9px 12px;margin-bottom:12px}
 .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:12px}
@@ -142,7 +142,7 @@ body.f-off-nl .f-nl{display:none!important}
 <div class="toast" id="toast"></div>
 <div class="drawer" id="drawer"></div>
 <div class="tourcard" id="tourCard"><h4 id="tTitle"></h4><p id="tText"></p>
-  <div class="ft"><span><span id="tCount"></span> · Annotations in English</span><button class="btn" id="tPrev">Prev</button><button class="btn pri" id="tNext">Next</button><button class="btn" id="tClose">✕</button></div></div>
+  <div class="ft"><span><span id="tCount"></span><span id="tNote" style="display:block;white-space:nowrap">Annotations in English</span></span><button class="btn" id="tPrev">Prev</button><button class="btn pri" id="tNext">Next</button><button class="btn" id="tClose">✕</button></div></div>
 <script src="data.js"></script>
 <script>
 (function(){
@@ -156,7 +156,7 @@ s1:'Pré-contrôle',s2:'Traduit par l’IA',s3:'Vérifié',yourSentence:'Votre p
 filters:'Filtres',city:'Ville (lieu de travail)',cleanedGroups:'nettoyé · regroupe 8 orthographes',showSp:'Voir les orthographes',sector:'Secteur (poste actuel)',sectorNote:'aussi trouvé via l’employeur (17) et l’intitulé de poste (8)',
 start:'Date de début du poste',before:'avant le 12/10/2023 (3 ans et plus)',relGrp:'Fiabilité',lastUpd:'Dernière mise à jour du profil',lastLog:'Dernière connexion',any:'Toutes dates',nw:'NOUVEAU',and:'ET',
 members:'membres',A:'À jour',B:'À confirmer',C:'À réactiver',showOrig:'Afficher la saisie',asTypedT:'Saisi : ',more:'de plus',toReview:'À revoir',confAll:'Tout confirmer',autoTitle:'Nettoyé automatiquement (aucune action)',
-cMember:'Membre',memb:'Membre',hMem:'Membres',cJob:'Poste',cEmp:'Employeur',cCity:'Ville',cCountry:'Pays',cFin:'Signal finance',cUpd:'Mise à jour profil',cLog:'Dernière connexion',cLab:'Libellé',cDues:'Cotisant',
+cMember:'Membre',memb:'Membre',hMem:'Membres',cJob:'Poste',cEmp:'Employeur',cCity:'Ville',cCountry:'Pays',cFin:'Signal finance',cUpd:'MAJ profil',cLog:'Connexion',cLab:'Libellé',cDues:'Cotisant',
 asTyped:'saisi : ',sugg:'suggéré',yes:'oui',no:'non',fD:'Déclaré',fE:'Via employeur',fT:'Via intitulé',ago:'il y a',y:'a',m:'mois',
 send:'Envoyer à À jour + À confirmer',react:'Réactiver 43 membres',save:'Enregistrer la liste',exp:'Exporter',
 dqTitle:'Valeurs nettoyées · à revoir',dqSub:'Ce que la plateforme regroupe, et ce que vous pouvez corriger pour votre école',banner:'AlumnForce maintient les listes de nettoyage partagées. Vous ne revoyez que ce qui est incertain pour votre école. Ce que les membres ont saisi n’est jamais modifié.',
@@ -174,7 +174,7 @@ s1:'Pre-flight',s2:'AI translated',s3:'Checked',yourSentence:'Your sentence',unm
 filters:'Filters',city:'City (workplace)',cleanedGroups:'cleaned · groups 8 spellings',showSp:'Show spellings',sector:'Sector (current job)',sectorNote:'also matched from employer (17) and job title (8)',
 start:'Job start date',before:'before 12 Oct 2023 (3+ years)',relGrp:'Reliability',lastUpd:'Last profile update',lastLog:'Last login',any:'Any date',nw:'NEW',and:'AND',
 members:'members',A:'Current',B:'To confirm',C:'To reactivate',showOrig:'Show as typed',asTypedT:'As typed: ',more:'more',toReview:'To review',confAll:'Confirm all',autoTitle:'Auto-cleaned (no action needed)',
-cMember:'Member',memb:'Member',hMem:'Members',cJob:'Job',cEmp:'Employer',cCity:'City',cCountry:'Country',cFin:'Finance signal',cUpd:'Last profile update',cLog:'Last login',cLab:'Label',cDues:'Dues member',
+cMember:'Member',memb:'Member',hMem:'Members',cJob:'Job',cEmp:'Employer',cCity:'City',cCountry:'Country',cFin:'Finance signal',cUpd:'Profile update',cLog:'Last login',cLab:'Label',cDues:'Dues member',
 asTyped:'as typed: ',sugg:'suggested',yes:'yes',no:'no',fD:'Declared',fE:'From employer',fT:'From job title',ago:'',y:'y ago',m:'mo ago',
 send:'Send to Current + To confirm',react:'Reactivate 43 members',save:'Save list',exp:'Export',
 dqTitle:'Cleaned values · to review',dqSub:'What the platform groups, and what you can correct for your school',banner:'AlumnForce maintains the shared clean-up lists. You only review what is uncertain for your school. What members typed is never changed.',
@@ -251,8 +251,8 @@ function vLists(){
   <td title="${esc(t('asTypedT')+r.ville)}" class="hov">${esc(cityClean(r.ville))}<span class="orig">${t('asTyped')}${esc(r.ville)}</span></td>
   <td title="${esc(t('asTypedT')+pt)}" class="hov">${c.v}${c.sugg?` <span class="badge b-sugg">${t('sugg')}</span>`:''}<span class="orig">${t('asTyped')}${esc(pt)}</span></td>
   <td><span class="badge">${finChip(r.finance_src)}</span></td>
-  <td class="f-rel">${ago(r.date_maj_profil)}<span class="mut" style="display:block">${fmtDate(r.date_maj_profil)}</span></td>
-  <td class="f-rel">${ago(r.derniere_connexion)}<span class="mut" style="display:block">${fmtDate(r.derniere_connexion)}</span></td>
+  <td class="f-rel nw" title="${fmtDate(r.date_maj_profil)}">${ago(r.date_maj_profil)}</td>
+  <td class="f-rel nw" title="${fmtDate(r.derniere_connexion)}">${ago(r.derniere_connexion)}</td>
   <td class="f-rel">${lab(r.reliability)}</td><td>${r.cotisant==='oui'?t('yes'):t('no')}</td></tr>`;}).join('');
  const chips=['A','B','C'].map(k=>`<button class="chipbtn ${S.chip===k?'on':''}" data-chip="${k}">${t(k)} ${count('reliability',k)}</button>`).join('');
  const res=`<div class="card" id="resCard"><div class="row" id="resHead" style="justify-content:space-between"><h3 style="margin:0">${ROWS.length} ${t('members')}${S.chip&&S.flags.rel?` · ${rs.length} ${t(S.chip)}`:''}</h3><span class="row f-rel" id="chips">${chips}</span>
@@ -275,7 +275,7 @@ function vDq(){
  const empT=`<h4>${t('tSector')} → Finance</h4><table>${empMapped.slice(0,S.more.e?99:5).map(([k,o])=>`<tr><td>${esc(k)}</td><td>${o.e}</td></tr>`).join('')}</table>${empMapped.length>5&&!S.more.e?`<button class="link" data-more="e" style="font-size:12.5px">+ ${empMapped.length-5} ${t('more')}</button>`:''}`;
  return `<h1>${t('dqTitle')}</h1><p class="sub">${t('dqSub')}</p><div class="banner" id="dqBanner">${t('banner')}</div>
  <div class="card" id="dqQueue"><div class="row" style="justify-content:space-between"><h3 style="margin:0">${t('toReview')} · ${Q.length} ${S.lang==='fr'?'éléments':'items'} · ${Q.reduce((a,q)=>a+q.n,0)} ${t('members')}</h3>${Q.length?`<button class="btn pri" id="confAll">${t('confAll')} (${Q.reduce((a,q)=>a+q.n,0)} ${t('members')})</button>`:''}</div><div class="tablewrap" style="margin-top:10px">${queue}</div></div>
- ${tour.cur===7?`<div class="card" id="dqDecide" style="border-color:#e0901c"><h3>Two decisions for you</h3><div>(a) Originals on hover, or a visible second column?</div><div>(b) Use suggested clean-ups in lists before an admin confirms, or only after?</div></div>`:''}<div class="card" id="dqAuto"><button class="link" id="autoBtn" style="font-weight:600;text-decoration:none">${S.autoOpen?'▾':'▸'} ${t('autoTitle')} · ${autoN}</button>
+ ${tour.cur===7?`<div class="card" id="dqDecide" style="border-color:#e0901c"><h3>${S.lang==='fr'?'Deux décisions pour vous':'Two decisions for you'}</h3><div>1) ${S.lang==='fr'?'Valeurs saisies au survol, ou une seconde colonne visible ?':'Originals on hover, or a visible second column?'}</div><div>2) ${S.lang==='fr'?'Utiliser les nettoyages suggérés dans les listes avant confirmation par un admin, ou seulement après ?':'Use suggested clean-ups in lists before an admin confirms, or only after?'}</div></div>`:''}<div class="card" id="dqAuto"><button class="link" id="autoBtn" style="font-weight:600;text-decoration:none">${S.autoOpen?'▾':'▸'} ${t('autoTitle')} · ${autoN}</button>
   <div class="mut">${t('summary')}</div>${S.autoOpen?`<div class="grid3">${cityT ? `<div class="filter">${cityT}</div>`:''}<div class="filter">${ctryT}</div><div class="filter">${empT}</div></div>`:''}</div>`;
 }
 function reason(r){const L=t(r.reliability);const u=r.date_maj_profil,l=r.derniere_connexion;
@@ -369,7 +369,7 @@ addEventListener('resize',()=>{if(tour.cur)placeCard(document.querySelector(STEP
 const tour=window.tour={count:STEPS.length,cur:0,
  go(n){n=Math.max(1,Math.min(STEPS.length,n|0));this.cur=n;const s=STEPS[n-1];S.drawer=false;if(s[4])s[4]();S.scr=s[0];render();
   document.querySelectorAll('.tourhl').forEach(e=>e.classList.remove('tourhl'));const e=document.querySelector(s[1]);if(e){e.classList.add('tourhl');if(s[1]!=='#drawer')e.scrollIntoView({block:e.offsetHeight>innerHeight-140?'start':'center',behavior:'instant'});}
-  $('#tTitle').textContent=s[2];$('#tText').textContent=s[3];$('#tCount').textContent=`Step ${n}/${STEPS.length}`;placeCard(e);$('#tNext').textContent=n===STEPS.length?'Done':'Next';$('#tPrev').disabled=n===1;$('#tourCard').style.display='block';},
+  $('#tTitle').textContent=s[2];$('#tText').textContent=s[3];$('#tCount').textContent=`Step ${n}/${STEPS.length}`;$('#tNote').style.display=n===1?'block':'none';placeCard(e);$('#tNext').textContent=n===STEPS.length?'Done':'Next';$('#tPrev').disabled=n===1;$('#tourCard').style.display='block';},
  next(){this.go(this.cur+1);},prev(){this.go(this.cur-1);},
  close(){this.cur=0;$('#tourCard').style.display='none';document.querySelectorAll('.tourhl').forEach(e=>e.classList.remove('tourhl'));}};
 const rr=render;render=function(){rr();if(tour.cur){const e=document.querySelector(STEPS[tour.cur-1][1]);if(e&&S.scr===STEPS[tour.cur-1][0])e.classList.add('tourhl');}};
