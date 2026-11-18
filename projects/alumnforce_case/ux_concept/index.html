@@ -117,9 +117,21 @@ body.f-off-nl .f-nl{display:none!important}
 .tourcard .ft{display:flex;align-items:center;gap:8px}
 .tourcard .ft span{flex:1;color:var(--ink3);font-size:12px}
 [title]{}
+.phone{display:none}
+@media (max-width:820px){html,body{overflow-x:hidden;max-width:100%}.top,.wrap,.tourcard,.drawer,.modal-bg,.toast{display:none!important}
+.phone{display:block;min-height:100vh;background:var(--bg);padding:0 0 32px}
+.phone .ph{background:#1c2230;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px}
+.phone .ph b{font-size:15px}
+.phone .pb{padding:20px 16px;max-width:520px;margin:0 auto}
+.phone h1{font-size:22px;margin:0 0 8px}.phone p{margin:0 0 18px;color:var(--ink2)}
+.phone .cta{display:block;text-align:center;background:var(--acc);color:#fff;border-radius:8px;padding:13px 14px;text-decoration:none;font-weight:600;margin-bottom:10px}
+.phone .sec{display:block;text-align:center;border:1px solid var(--line);background:#fff;color:var(--acc);border-radius:8px;padding:12px 14px;text-decoration:none;font-weight:600}
+.phone ul{margin:22px 0 0;padding:0;list-style:none}.phone li{background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:10px;font-size:14px}}
 </style>
 </head>
 <body>
+<div class="phone" id="phone"><div class="ph"><b>Concept</b><span class="seg"><button id="pfr">FR</button><button id="pen">EN</button></span></div>
+<div class="pb"><h1 id="phT"></h1><p id="phP"></p><a class="cta" href="demo.mp4" id="phV"></a><a class="sec" href="build.html" id="phB"></a><ul id="phL"></ul></div></div>
 <header class="top">
   <span class="brand">Back-office <small>Concept · Trusted Segments</small></span>
   <span class="sp"></span>
@@ -150,7 +162,7 @@ const ROWS=window.ROWS;
 const REF=new Date('2026-10-12T00:00:00');
 const S={lang:'fr',ann:true,scr:'lists',flags:{rel:true,nl:true},chip:null,orig:false,filled:false,more:{},drawer:false,spOpen:false,autoOpen:false,dqTab:'city',member:'M0495',overrides:{},confirmed:{}};
 // ---------- i18n ----------
-const D={fr:{build:'Comment on le construit',whyBtn:'Pourquoi visible',tour:'Visite',gLists:'Listes',nNew:'Nouvelle liste',gData:'Qualité des données',nDq:'Valeurs nettoyées · à revoir',gMembers:'Membres',nMember:'Fiche membre',gSettings:'Paramètres',nFeat:'Fonctionnalités',nWhy:'Pourquoi visible',
+const D={fr:{build:'Comment on le construit (EN)',whyBtn:'Pourquoi visible',tour:'Visite',gLists:'Listes',nNew:'Nouvelle liste',gData:'Qualité des données',nDq:'Valeurs nettoyées · à revoir',gMembers:'Membres',nMember:'Fiche membre',gSettings:'Paramètres',nFeat:'Fonctionnalités',nWhy:'Pourquoi visible',
 newList:'Nouvelle liste',newSub:'Segmenteur · filtres combinés en ET',nlPh:'Décrivez votre cible…',nlEx:'Diplômés qui travaillent dans la finance à Londres depuis plus de 3 ans',useEx:'Exemple',fill:'Remplir les filtres',
 s1:'Pré-contrôle',s2:'Traduit par l’IA',s3:'Vérifié',yourSentence:'Votre phrase',unmapped:'Partie non traduite : (aucune)',
 filters:'Filtres',city:'Ville (lieu de travail)',cleanedGroups:'nettoyé · regroupe 8 orthographes',showSp:'Voir les orthographes',sector:'Secteur (poste actuel)',sectorNote:'aussi trouvé via l’employeur (17) et l’intitulé de poste (8)',
@@ -208,16 +220,16 @@ function closeModal(){$('#modalBg').classList.remove('open');}
 // ---------- annotations ----------
 const ANN={
 lists:[
- ['#nlBox','Sentence box (flag nl_targeting)','Admins describe the audience in one sentence; the platform fills in the existing filters. Only the sentence and filter names go to the model, never a member. The AI steps shown here are simulated.','Slide 7, D2'],
+ ['#nlBox','Sentence box (flag nl_targeting)','Admins describe the audience in one sentence; the platform fills in the existing filters. Only the sentence and filter names go to the model, never a member. The AI steps shown here are simulated.','Slide 6, D2'],
  ['#fCity','City filter on the cleaned value','One "London" groups 8 spellings, so the count is complete. The expander shows what was grouped, sorted by impact (top 5, then "+ 3 more"). Real schools will have many more spellings; the list is sorted by impact.','Slide 6, D1 · Annex C'],
  ['#fSector','Sector matched three ways','Finance is found from the declared sector (24), the employer (17) and the job title (8). The chip in the table says which.','Slide 6, D1'],
- ['#fRelGrp','Two new date filters','Last profile update and Last login are recorded automatically by the platform, never typed by anyone. They reuse the existing date filter component.','Slide 5, D3'],
- ['#resHead','Results and label chips','49 members, split by label. Rule (reference date 12 Oct 2026): Current = profile updated < 2 years ago or login < 1 year; To confirm = updated 2–4 years ago; To reactivate = older or no date; future dates ignored. Thresholds are per-school settings. Final FR strings (À jour / À confirmer / À réactiver) are decided with CS in week 1.','Slide 5, D3'],
- ['#origSw','"Show as typed" switch','Cleaned values are the default display. Hover any city or country to see what the member typed; this switch (off by default) prints it under every cell. Names are hidden in this concept (privacy); the real product shows the member\'s name as today. Click a member to open the record drawer.','Guard rail 1'],
- ['#actions','Actions','Send only to the 6 trustworthy profiles, or reactivate the 43 through the existing Profile Update Campaign. Save keeps the sentence and the computation date; relative dates recalculate when opened or sent.','Slide 8, D4']],
+ ['#fRelGrp','Two new date filters','Last profile update and Last login are recorded automatically by the platform, never typed by anyone. They reuse the existing date filter component.','Slide 6, D1'],
+ ['#resHead','Results and label chips','49 members, split by label. Rule (reference date 12 Oct 2026): Current = profile updated < 2 years ago or login < 1 year; To confirm = updated 2–4 years ago; To reactivate = older or no date; future dates ignored. Thresholds are per-school settings. Final FR strings (À jour / À confirmer / À réactiver) are decided with CS in week 1.','Slide 6, D1'],
+ ['#origSw','"Show as typed" switch','Cleaned values are the default display. Hover any city or country to see what the member typed; this switch (off by default) prints it under every cell. Names are hidden in this concept (privacy); the real product shows the member\'s name as today. Click a member to open the record drawer.','Slide 6, flag-off box'],
+ ['#actions','Actions','Send only to the 6 trustworthy profiles, or reactivate the 43 through the existing Profile Update Campaign. Save keeps the sentence and the computation date; relative dates recalculate when opened or sent.','Slide 6, D3a']],
 dq:[
  ['#dqBanner','Shared lists, local review','The platform maintains the shared clean-up lists. A school only reviews what is uncertain for it. Cleaning never writes back to a profile.','Slide 6, D1 · Annex C'],
- ['#dqQueue','Exceptions queue','Only items needing a decision (status Suggested), sorted by members affected, with a bulk "Confirm all". The admin\'s job is minutes, not a data project. Every change is per school, logged and can be undone.','Guard rails 2 & 3'],
+ ['#dqQueue','Exceptions queue','Only items needing a decision (status Suggested), sorted by members affected, with a bulk "Confirm all". Every change is per school, logged and can be undone.','Slide 6, D1 overrides'],
  ['#dqAuto','Auto-cleaned, collapsed','The 8 London spellings, the 3 country spellings and the employer→Finance mappings need no action. Real schools will have many more spellings; the list is sorted by impact.','Slide 6, D1']]};
 function renderAnn(){const list=ANN[S.scr]||[];document.querySelectorAll('.pin').forEach(p=>p.remove());
  const vis=list.filter(a=>{const e=document.querySelector(a[0]);return e&&e.offsetParent!==null;});
@@ -275,7 +287,7 @@ function vDq(){
  const empT=`<h4>${t('tSector')} → Finance</h4><table>${empMapped.slice(0,S.more.e?99:5).map(([k,o])=>`<tr><td>${esc(k)}</td><td>${o.e}</td></tr>`).join('')}</table>${empMapped.length>5&&!S.more.e?`<button class="link" data-more="e" style="font-size:12.5px">+ ${empMapped.length-5} ${t('more')}</button>`:''}`;
  return `<h1>${t('dqTitle')}</h1><p class="sub">${t('dqSub')}</p><div class="banner" id="dqBanner">${t('banner')}</div>
  <div class="card" id="dqQueue"><div class="row" style="justify-content:space-between"><h3 style="margin:0">${t('toReview')} · ${Q.length} ${S.lang==='fr'?'éléments':'items'} · ${Q.reduce((a,q)=>a+q.n,0)} ${t('members')}</h3>${Q.length?`<button class="btn pri" id="confAll">${t('confAll')} (${Q.reduce((a,q)=>a+q.n,0)} ${t('members')})</button>`:''}</div><div class="tablewrap" style="margin-top:10px">${queue}</div></div>
- ${tour.cur===7?`<div class="card" id="dqDecide" style="border-color:#e0901c"><h3>${S.lang==='fr'?'Deux décisions pour vous':'Two decisions for you'}</h3><div>1) ${S.lang==='fr'?'Valeurs saisies au survol, ou une seconde colonne visible ?':'Originals on hover, or a visible second column?'}</div><div>2) ${S.lang==='fr'?'Utiliser les nettoyages suggérés dans les listes avant confirmation par un admin, ou seulement après ?':'Use suggested clean-ups in lists before an admin confirms, or only after?'}</div></div>`:''}<div class="card" id="dqAuto"><button class="link" id="autoBtn" style="font-weight:600;text-decoration:none">${S.autoOpen?'▾':'▸'} ${t('autoTitle')} · ${autoN}</button>
+ ${tour.cur===7?`<div class="card" id="dqDecide" style="border-color:#e0901c"><h3>${S.lang==='fr'?'Deux choix, à confirmer ou à renverser':'Two choices, to confirm or overturn'}</h3><div>1) ${S.lang==='fr'?'Valeurs saisies au survol plutôt qu’en seconde colonne : le tableau reste lisible.':'Originals on hover rather than a second column: the table stays readable.'}</div><div>2) ${S.lang==='fr'?'Les nettoyages suggérés comptent dans les listes, marqués « suggéré », confirmables en un clic : une liste ne rétrécit jamais en silence.':'Suggested clean-ups count in lists, marked "suggested", with a one-click confirm: a list never silently shrinks.'}</div></div>`:''}<div class="card" id="dqAuto"><button class="link" id="autoBtn" style="font-weight:600;text-decoration:none">${S.autoOpen?'▾':'▸'} ${t('autoTitle')} · ${autoN}</button>
   <div class="mut">${t('summary')}</div>${S.autoOpen?`<div class="grid3">${cityT ? `<div class="filter">${cityT}</div>`:''}<div class="filter">${ctryT}</div><div class="filter">${empT}</div></div>`:''}</div>`;
 }
 function reason(r){const L=t(r.reliability);const u=r.date_maj_profil,l=r.derniere_connexion;
@@ -306,7 +318,7 @@ function render(){if(S.scr==='dq'&&!S.flags.rel)S.scr='lists';
  document.documentElement.lang=S.lang;document.querySelectorAll('[data-i18n]').forEach(e=>e.textContent=t(e.dataset.i18n));
  $('#lfr').classList.toggle('on',S.lang==='fr');$('#len').classList.toggle('on',S.lang==='en');$('#annBtn').classList.toggle('on',S.ann);
  document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.dataset.scr===S.scr));
- $('#main').innerHTML=V[S.scr]();$('#drawer').innerHTML=S.drawer?vDrawer():'';$('#drawer').classList.toggle('open',!!S.drawer);renderAnn();}
+ renderPhone();$('#main').innerHTML=V[S.scr]();$('#drawer').innerHTML=S.drawer?vDrawer():'';$('#drawer').classList.toggle('open',!!S.drawer);renderAnn();}
 function go(scr){S.scr=scr;S.drawer=false;render();window.scrollTo(0,0);}
 const SAVED=()=>S.lang==='fr'?'Enregistré pour votre école uniquement · journalisé · annuler':'Saved for your school only · logged · undo';
 // ---------- events ----------
@@ -321,7 +333,7 @@ document.addEventListener('click',e=>{const x=e.target.closest('button,a,.ann,.p
  if(d.qc){S.confirmed[d.qc]=true;S.last=[d.qc];render();toast(SAVED(),true);return;}
  if(d.qx){toast(S.lang==='fr'?'Concept : modification en ligne, enregistrée pour votre école uniquement.':'Concept: inline change, saved for your school only.');return;}
  switch(x.id){
- case 'lfr':S.lang='fr';render();break;case 'len':S.lang='en';render();break;
+ case 'lfr':case 'pfr':S.lang='fr';render();break;case 'len':case 'pen':S.lang='en';render();break;
  case 'annBtn':S.ann=!S.ann;render();break;
  case 'tourBtn':tour.go(1);break;
  case 'drClose':S.drawer=false;render();break;
@@ -334,7 +346,7 @@ document.addEventListener('click',e=>{const x=e.target.closest('button,a,.ann,.p
  case 'spBtn':S.spOpen=!S.spOpen;$('#spExp').classList.toggle('open');break;
  case 'aSend':toast(S.lang==='fr'?'Concept : envoi aux 6 membres À jour + À confirmer.':'Concept: send to the 6 Current + To confirm members.');break;
  case 'aReact':modal(`<h2>${S.lang==='fr'?'Campagne de mise à jour du profil':'Profile Update Campaign'} · 43</h2><p class="mut">${S.lang==='fr'?'Campagne existante, pré-remplie avec les 43 membres À réactiver. Le texte est écrit par l’école ; les deux variantes ci-dessous sont des exemples.':'Existing campaign, pre-filled with the 43 To reactivate members. Text is written by the school; the two variants below are placeholders.'}</p>
-  <div class="grid2"><div class="variant">${S.lang==='fr'?'<b>Variante A</b><br>Objet : Votre profil est-il toujours à jour ?<br><br>[Texte de l’école] Votre profil n’a pas été mis à jour depuis un moment. Deux minutes pour le confirmer ou le corriger.':'<b>Variant A</b><br>Subject: Is your profile still up to date?<br><br>[School-written text] Your profile was last updated some time ago. Two minutes to confirm or correct it.'}</div>
+  <div class="grid2"><div class="variant">${S.lang==='fr'?'<b>Variante A</b><br>Objet : Votre profil est-il toujours à jour ?<br><br>[Texte de l’école] Votre profil n’a pas été mis à jour depuis un moment. Confirmez-le ou corrigez-le en un clic.':'<b>Variant A</b><br>Subject: Is your profile still up to date?<br><br>[School-written text] Your profile was last updated some time ago. Confirm or correct it in one click.'}</div>
   <div class="variant">${S.lang==='fr'?'<b>Variante B</b><br>Objet : Aidez vos camarades à vous retrouver<br><br>[Texte de l’école] Des diplômés à Londres cherchent des contacts. Vérifiez votre poste et votre ville.':'<b>Variant B</b><br>Subject: Help your classmates find you<br><br>[School-written text] Alumni in London are looking for contacts. Check your current job and city.'}</div></div>
   <p class="mut">${S.lang==='fr'?'Répartition 50/50 (illustratif). Aucun message n’est envoyé depuis ce prototype.':'Split 50/50 (illustrative). No message is sent from this prototype.'}</p>`);break;
  case 'aSave':modal(`<h2>${t('save')}</h2><label>${S.lang==='fr'?'Nom':'Name'}<br><input type="text" value="Finance · London · 3+ yrs" style="width:100%"></label><p><b>Description :</b> ${esc(t('nlEx'))}</p><p class="mut">${S.lang==='fr'?'Calculée le 12/10/2026 · dates relatives recalculées à l’ouverture ou à l’envoi':'Computed on 12/10/2026 · relative dates recalculated when opened or sent'}</p>`);break;
@@ -348,15 +360,15 @@ document.addEventListener('change',e=>{const x=e.target;
  if(x.id==='origCb'){S.orig=x.checked;$('#resTable').classList.toggle('hide-orig',!S.orig);}
  if(x.dataset.flag){S.flags[x.dataset.flag]=x.checked;render();}});
 // ---------- tour ----------
-const DECIDE=`<b>Two decisions for you</b><br>(a) As typed on hover, or a visible second column?<br>(b) Use suggested clean-ups in lists before an admin confirms them, or only after?<br><span style="font-size:12px">Why visible: cleaned values help admins (adopted). Date filters do freshness, cleaned values do consistency; both needed. Guard rails: as typed always reachable, suggestions need confirmation, per-school changes logged and reversible, profiles never edited. No extra build: D1 already had the override tables.</span>`;
+const DECIDE=`<b>Two choices, to confirm or overturn</b><br>(a) As typed on hover rather than a second column: the table stays readable.<br>(b) Suggested clean-ups count in lists, marked "suggested", with a one-click confirm: a list never silently shrinks.<br><span style="font-size:12px">Why visible: cleaned values help admins (adopted). Date filters do freshness, cleaned values do consistency; both needed. Guard rails: as typed always reachable, suggestions marked until confirmed, per-school changes logged and reversible, profiles never edited. No extra build: D1 already had the override tables.</span>`;
 const STEPS=[
  ['lists','#fCity','1. One clean City filter','"London" groups 8 spellings, so nobody is missed. The list is sorted by members affected: top 5, then "+ 3 more".',()=>{S.spOpen=true;}],
  ['lists','#resHead','2. Three labels: 1 / 5 / 43','À jour 1 · À confirmer 5 · À réactiver 43, from the profile-update and login dates against 12 Oct 2026. Click a chip to filter.'],
  ['lists','#resTable','3. Clean by default','The table shows one clean city and country. Hover a cell to see what the member typed, e.g. "As typed: Londres (Royaume-Uni)".',()=>{S.orig=false;}],
  ['lists','#origSw','4. "Show as typed"','One switch, off by default, prints the member\'s original entry under every cleaned value.',()=>{S.orig=true;}],
  ['lists','#drawer','5. Member drawer','Member M0495: "London, UK" / Royaume-Uni as typed, London / United Kingdom as used. The label comes with its reason: updated 20 May 2023, 3 years ago → À confirmer.',()=>{S.orig=false;S.member='M0495';S.drawer=true;}],
- ['dq','#dqQueue','6. Review only the uncertain','To review · 2 items · 17 members: 9 countries inferred from the city, 8 members with no employer. "Confirm all (17 members)" takes seconds; auto-cleaned items stay collapsed.',()=>{S.flags.rel=true;S.autoOpen=false;}],
- ['dq','#dqDecide','7. Two decisions for you','Cleaned values help admins, with guard rails: as typed always reachable, suggestions confirmed, per-school changes logged and reversible, profiles never edited. Two choices remain for you, shown on screen.']];
+ ['dq','#dqQueue','6. Review only the uncertain','To review · 2 items · 17 members: 9 countries inferred from the city, 8 members with no employer. One "Confirm all (17 members)"; auto-cleaned items stay collapsed.',()=>{S.flags.rel=true;S.autoOpen=false;}],
+ ['dq','#dqDecide','7. Two choices, to confirm or overturn','Cleaned values help admins, with guard rails: as typed always reachable, suggestions confirmed, per-school changes logged and reversible, profiles never edited. The two design choices are shown on screen.']];
 function placeCard(e){const c=$('#tourCard');c.style.display='block';const W=Math.min(260,innerWidth-32);c.style.width=W+'px';const H=c.offsetHeight,g=10,top=60,vw=innerWidth,vh=innerHeight;
  if(!e){c.style.left='228px';c.style.top=(vh-H-18)+'px';return;}const r=e.getBoundingClientRect();
  const sp={right:vw-r.right,left:r.left,below:vh-r.bottom,above:r.top-top};const fitX=k=>sp[k]>=W+g*2,fitY=k=>sp[k]>=H+g*2;
@@ -373,6 +385,10 @@ const tour=window.tour={count:STEPS.length,cur:0,
  next(){this.go(this.cur+1);},prev(){this.go(this.cur-1);},
  close(){this.cur=0;$('#tourCard').style.display='none';document.querySelectorAll('.tourhl').forEach(e=>e.classList.remove('tourhl'));}};
 const rr=render;render=function(){rr();if(tour.cur){const e=document.querySelector(STEPS[tour.cur-1][1]);if(e&&S.scr===STEPS[tour.cur-1][0])e.classList.add('tourhl');}};
+function renderPhone(){const fr=S.lang==='fr';const P=fr?{t:'Trusted Segments · Concept',p:'Ce concept est conçu pour un écran d’ordinateur.',v:'Voir la démo (moins de 90 secondes)',b:'Comment on le construit (EN)',l:['Les valeurs nettoyées sont visibles des admins ; la ville et le pays saisis sont à un survol ; aucun champ saisi par le membre n’est jamais écrasé.','Les nettoyages incertains sont marqués « suggéré » et se confirment en un clic.','Les admins ne revoient que les exceptions.']}
+ :{t:'Trusted Segments · Concept',p:'This concept is built for a laptop screen.',v:'Watch the walkthrough (under 90 seconds)',b:'How it gets built',l:['Cleaned values are visible to admins; the city and country the member typed are one hover away; no field a member typed is ever overwritten.','Uncertain clean-ups are marked "suggested" with one-click confirm.','Admins review only the exceptions.']};
+ $('#phT').textContent=P.t;$('#phP').textContent=P.p;$('#phV').textContent=P.v;$('#phB').textContent=P.b;$('#phL').innerHTML=P.l.map(x=>`<li>${esc(x)}</li>`).join('');
+ $('#pfr').classList.toggle('on',fr);$('#pen').classList.toggle('on',!fr);}
 const q=new URLSearchParams(location.search);
 render();
 if(q.get('tour')==='1')tour.go(+q.get('step')||1);
