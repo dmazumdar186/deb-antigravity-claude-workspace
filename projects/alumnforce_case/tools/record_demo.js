@@ -11,7 +11,7 @@ const path = require('path');
 const DIR = path.resolve(__dirname, '..', 'ux_concept');
 const OUT = path.join(DIR, 'demo.mp4');
 const W = 1280, H = 720;
-const STEP_MS = 9500;
+const STEP_MS = 9000;
 
 const card = (title, sub) => `<!doctype html><meta charset="utf-8"><body style="margin:0;height:100vh;display:flex;
 flex-direction:column;justify-content:center;align-items:center;background:#0f2a3d;color:#fff;
