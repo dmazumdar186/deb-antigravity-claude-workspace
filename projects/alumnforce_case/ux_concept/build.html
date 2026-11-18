@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>How It Gets Built · Concept</title>
+<style>
+:root{--bg:#f6f7f9;--panel:#fff;--ink:#1c2230;--ink2:#4a5468;--ink3:#5f6b7f;--line:#dfe3ea;--soft:#eef1f5;
+--acc:#2f5bd3;--acc-soft:#e8eefc;--ok:#1e7a4c;--ok-soft:#e3f4ea;--warn:#8a5a00;--warn-soft:#fdf1d8;--bad:#a8321f;--bad-soft:#fbe6e2;
+--pin:#7a3fc2;--pin-soft:#f1e9fb}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.45 "Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg)}
+.top{height:52px;display:flex;align-items:center;gap:12px;padding:0 16px;background:#1c2230;color:#fff;position:sticky;top:0;z-index:30}
+.top .brand{font-weight:600;letter-spacing:.2px}
+.top .brand small{font-weight:400;opacity:.75;margin-left:6px}
+.top .sp{flex:1}
+.tbtn{background:transparent;color:#fff;border:1px solid #4a5468;border-radius:6px;padding:5px 10px;text-decoration:none}
+.tbtn.on{background:#2f5bd3;border-color:#2f5bd3}
+main{max-width:1080px;margin:0 auto;padding:22px 22px 80px}
+h1{font-size:20px;margin:0 0 4px}
+h2{font-size:16px;margin:26px 0 10px}
+.sub{color:var(--ink3);margin:0 0 16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:14px}
+.card h3{margin:0 0 10px;font-size:14px}
+code{font:12.5px ui-monospace,Consolas,monospace;background:var(--soft);padding:1px 5px;border-radius:4px}
+.badge{display:inline-block;font-size:11.5px;padding:1px 7px;border-radius:10px;background:var(--soft);color:var(--ink2);font-weight:500;white-space:nowrap}
+.b-clean{background:var(--acc-soft);color:var(--acc)}.b-sugg{background:var(--warn-soft);color:var(--warn)}.b-ok{background:var(--ok-soft);color:var(--ok)}.b-bad{background:var(--bad-soft);color:var(--bad)}
+.flow{display:flex;flex-direction:column}
+.fr{display:grid;grid-template-columns:repeat(var(--n,1),minmax(0,1fr));gap:12px}
+.box{border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:6px;padding:9px 11px;background:#fff;font-size:13px}
+.box b{display:block;font-size:13.5px;margin-bottom:2px}
+.box .mut{color:var(--ink3);font-size:12px}
+.box.db{border-left-color:var(--ok)}.box.job{border-left-color:var(--warn)}.box.os{border-left-color:var(--pin)}
+.arr{text-align:center;color:var(--ink3);font-size:18px;line-height:1;padding:5px 0}
+.loop{border:1px dashed #9aa5b8;border-radius:8px;padding:10px;margin-top:10px;background:#fbfcfd}
+.loop .lt{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--ink3);margin-bottom:6px}
+.chain{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap}
+.chain .box{flex:1;min-width:150px}
+.chain .a{align-self:center;color:var(--ink3);font-size:18px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink3);margin-top:10px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.steps{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+.sc h3{display:flex;align-items:center;gap:8px}
+.num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--acc);color:#fff;font-size:12px;font-weight:700;flex:none}
+.kv{margin:0 0 8px;font-size:13px}
+.kv .k{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--ink3);margin-bottom:2px}
+.kv ul{margin:2px 0 0;padding-left:18px}
+.strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.strip div{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px 12px;font-size:13px}
+.strip b{display:block}
+.confirm{border:1px solid var(--warn);background:var(--warn-soft);border-radius:8px;padding:14px}
+.confirm h3{margin:0 0 8px;font-size:14px;color:var(--warn)}
+.confirm ul{margin:0;padding-left:18px}
+.close{border-left:3px solid var(--acc);background:var(--acc-soft);border-radius:0 6px 6px 0;padding:12px 14px;font-size:15px;margin-top:22px}
+@media (max-width:760px){.fr,.strip,.steps{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="top">
+  <span class="brand">Back-office <small>Concept · Trusted Segments</small></span>
+  <span class="sp"></span>
+  <a class="tbtn" id="backLink" href="index.html">← Back to the prototype</a>
+  <span class="tbtn on">How it gets built</span>
+</header>
+<main>
+<h1>How it gets built</h1>
+<p class="sub">On your stack: Symfony/PHP, Vue.js, MariaDB, OpenSearch. One data flow, nine steps.</p>
+
+<div class="card">
+<h3>The data flow</h3>
+<div class="flow">
+  <div class="fr" style="--n:2">
+    <div class="box db"><b>Shared clean-up lists</b><span class="mut">MariaDB · city, country, employer→sector · maintained by AlumnForce</span></div>
+    <div class="box db"><b>Per-school overrides</b><span class="mut">MariaDB · the override wins</span></div>
+  </div>
+  <div class="arr">↓</div>
+  <div class="fr" style="--n:2">
+    <div class="box job"><b>Normalisation step</b><span class="mut">on every profile save</span></div>
+    <div class="box job"><b>One-time backfill</b><span class="mut">in batches, safe to re-run</span></div>
+  </div>
+  <div class="arr">↓</div>
+  <div class="box db"><b>Cleaned columns next to untouched originals</b><span class="mut"><code>city_norm</code> <code>country_norm</code> <code>sector_norm</code> + status <span class="badge b-clean">auto</span> <span class="badge b-sugg">suggested</span> <span class="badge b-ok">confirmed</span></span></div>
+  <div class="arr">↓</div>
+  <div class="box job"><b>Nightly reliability job</b><span class="mut">reads last profile update + last login · per-school thresholds 2 / 4 years → reliability label column</span></div>
+  <div class="arr">↓</div>
+  <div class="box os"><b>OpenSearch: 6 new fields</b><span class="mut">3 cleaned values, 2 dates, label · copy-and-switch rebuild per school</span></div>
+  <div class="arr">↓</div>
+  <div class="box"><b>Segmenter</b><span class="mut">City filter reads <code>city_norm</code> · 2 new date filters via the existing date filter type · 3 label counts in the same search</span></div>
+  <div class="loop">
+    <div class="lt">Correction loop</div>
+    <div class="chain">
+      <div class="box"><b>Admin review screen</b><span class="mut">suggested values only</span></div><span class="a">→</span>
+      <div class="box db"><b>Override</b><span class="mut">per-school table</span></div><span class="a">→</span>
+      <div class="box job"><b>Background recompute</b></div><span class="a">→</span>
+      <div class="box os"><b>Affected members updated</b><span class="mut">in OpenSearch</span></div>
+    </div>
+  </div>
+  <div class="legend"><span><i style="background:var(--ok)"></i>MariaDB</span><span><i style="background:var(--warn)"></i>Background step</span><span><i style="background:var(--pin)"></i>OpenSearch</span><span><i style="background:var(--acc)"></i>Screen</span></div>
+</div>
+</div>
+
+<h2>Nine steps</h2>
+<div class="steps">
+<div class="card sc"><h3><span class="num">1</span>Shared clean-up lists, maintained by AlumnForce</h3>
+<div class="kv"><span class="k">What</span>Collect every distinct raw value per field across schools, with member counts (read-only). Match cities via the segmenter's existing map lookup (canonical city + map point + country), countries via a fixed variant list, sector via the NAF industry code already on the current job, else a company list. People review the most frequent values first; rare ones stay <span class="badge b-sugg">suggested</span>.</div>
+<div class="kv"><span class="k">Where it runs</span>MariaDB tables: city, country, employer→sector, plus a per-school override table (school, field, raw value → cleaned value, who, when).</div>
+<div class="kv"><span class="k">Why this way</span>One shared list serves every school. The override wins, so each school keeps the last word on its own data.</div></div>
+
+<div class="card sc"><h3><span class="num">2</span>Cleaned columns next to the originals</h3>
+<div class="kv"><span class="k">What</span><code>city_norm</code>, <code>country_norm</code>, <code>sector_norm</code> + status.</div>
+<div class="kv"><span class="k">Where it runs</span>MariaDB, beside the original profile fields.</div>
+<div class="kv"><span class="k">Why this way</span>Originals are never touched. The member's own entry stays exactly as typed.</div></div>
+
+<div class="card sc"><h3><span class="num">3</span>Filling the columns</h3>
+<div class="kv"><span class="k">What</span>A small step in every profile save, plus a one-time backfill.</div>
+<div class="kv"><span class="k">Where it runs</span>Symfony: inside the profile save; the backfill runs in batches.</div>
+<div class="kv"><span class="k">Why this way</span>New entries are clean from day one. The backfill is safe to re-run and writes only on change.</div></div>
+
+<div class="card sc"><h3><span class="num">4</span>Reliability label</h3>
+<div class="kv"><span class="k">What</span>Computes <span class="badge b-ok">Current</span> <span class="badge b-sugg">To confirm</span> <span class="badge b-bad">To reactivate</span> from per-school thresholds into one column. Future dates are treated as unknown.</div>
+<div class="kv"><span class="k">Where it runs</span>A nightly job. The two dates are already recorded by the platform: the exercise export contains <code>date_maj_profil</code> and <code>derniere_connexion</code>.</div>
+<div class="kv"><span class="k">Why this way</span>Nightly because time passes: a label changes even when nobody edits the profile.</div></div>
+
+<div class="card sc"><h3><span class="num">5</span>OpenSearch</h3>
+<div class="kv"><span class="k">What</span>Six new fields per school index.</div>
+<div class="kv"><span class="k">Where it runs</span>Rebuilt as a copy, switched over only after checks (same member count, spot checks). Test schools first, then waves.</div>
+<div class="kv"><span class="k">Why this way</span>Nobody searches a half-built index. Afterwards, nightly partial updates only for members whose label changed.</div></div>
+
+<div class="card sc"><h3><span class="num">6</span>Segmenter</h3>
+<div class="kv"><span class="k">What</span>The City filter reads <code>city_norm</code>: pick London once, see what was grouped. Two new date filters. Three label counts.</div>
+<div class="kv"><span class="k">Where it runs</span>Vue.js segmenter. The date filters reuse the existing date filter type; the three counts come from the same search.</div>
+<div class="kv"><span class="k">Why this way</span>Existing building blocks, no extra search.</div></div>
+
+<div class="card sc"><h3><span class="num">7</span>Admin review screen</h3>
+<div class="kv"><span class="k">What</span>Shows <span class="badge b-sugg">suggested</span> values only; the admin confirms or changes them.</div>
+<div class="kv"><span class="k">Where it runs</span>Back-office → override table → background recompute → search index update.</div>
+<div class="kv"><span class="k">Why this way</span>Logged, undoable, and applies to that school only.</div></div>
+
+<div class="card sc"><h3><span class="num">8</span>Switches</h3>
+<div class="kv"><span class="k">What</span>Cleaned columns are filled for all schools. Labels are only computed and shown when the school switches <code>reliability</code> on.</div>
+<div class="kv"><span class="k">Where it runs</span>School settings.</div>
+<div class="kv"><span class="k">Why this way</span>Consistent spelling infers nothing about a person. A reliability label is derived personal data, so the school decides.</div></div>
+
+<div class="card sc"><h3><span class="num">9</span>Checks per school</h3>
+<div class="kv"><span class="k">What</span><ul>
+<li>Member counts equal before and after the rebuild.</li>
+<li>No raw field changed (fingerprint before and after).</li>
+<li>Before/after on a known question: the brief's own sentence returns 2 on raw values and 26 with clean spellings (Annex B).</li>
+<li>CS hand-checks 100 members on two schools to validate the 2/4-year cut-offs.</li></ul></div>
+<div class="kv"><span class="k">Where it runs</span>At each school's switch-over.</div>
+<div class="kv"><span class="k">Why this way</span>Each school goes live on evidence.</div></div>
+</div>
+
+<h2>Who and when</h2>
+<div class="strip" style="grid-template-columns:1fr">
+<div><b>Backend developer</b>Steps 1–5 (lists, cleaned columns, backfill, nightly label, OpenSearch rebuild)</div>
+<div><b>Front-end developer</b>Steps 6–7 (segmenter filters, review screen)</div>
+<div><b>Inside deliverable 1, weeks 3–7</b>The shared lists keep improving after launch.</div>
+</div>
+
+<h2>Open points</h2>
+<div class="confirm"><h3>To confirm with your Lead Developer in week 1</h3><ul>
+<li>Real table and field names.</li>
+<li>Whether profile saves can trigger the clean-up step.</li>
+<li>Rebuild time for the largest school (80,000 members), measured on a test copy in week 5.</li></ul></div>
+
+<p class="close">Shared clean-up lists AlumnForce maintains; three cleaned columns next to the originals, filled on save and backfilled once; a nightly label from two dates you already record; six new fields in OpenSearch through a copy-and-switch rebuild, school by school; the segmenter reads the clean fields. The member's original entry is never touched.</p>
+</main>
+</body>
+</html>
