@@ -173,7 +173,7 @@ members:'membres',A:'À jour',B:'À confirmer',C:'À réactiver',showOrig:'Affic
 cMember:'Membre',memb:'Membre',hMem:'Membres',cJob:'Poste',cEmp:'Employeur',cCity:'Ville',cCountry:'Pays',cFin:'Signal finance',cUpd:'MAJ profil',cLog:'Connexion',cLab:'Libellé',cDues:'Cotisant',
 asTyped:'saisi : ',sugg:'suggéré',yes:'oui',no:'non',fD:'Déclaré',fE:'Via employeur',fT:'Via intitulé',ago:'il y a',y:'a',m:'mois',
 send:'Envoyer à À jour + À confirmer',react:'Réactiver 43 membres',save:'Enregistrer la liste',exp:'Exporter',
-dqTitle:'Valeurs nettoyées · à revoir',dqSub:'Ce que la plateforme regroupe, et ce que vous pouvez corriger pour votre école',banner:'AlumnForce maintient les listes de nettoyage partagées. Vous ne revoyez que ce qui est incertain pour votre école. Ce que les membres ont saisi n’est jamais modifié.',
+dqTitle:'Valeurs nettoyées · à revoir',dqSub:'Ce que la plateforme regroupe, et ce que vous pouvez corriger pour votre école',banner:'Les listes partagées partent des tables de référence d’AlumnForce et s’enrichissent des confirmations des écoles. Vous ne revoyez que ce qui est incertain pour votre école. Ce que les membres ont saisi n’est jamais modifié.',
 tCity:'Ville',tCountry:'Pays',tSector:'Secteur via employeur',hOrig:'Valeur d’origine',hClean:'Valeur nettoyée',hCount:'Membres (cette liste)',hSrc:'Source',hStat:'Statut',hAct:'Action',
 global:'Table globale',yours:'Votre correction',auto:'Auto',confByYou:'Confirmé par vous',suggCity:'Suggéré · déduit de la ville',confirm:'Confirmer',change:'Modifier',notThis:'Pas ce lieu',confirm9:'Confirmer les 9',notMapped:'non associé',blank:'(vide)',noEmp:'(sans employeur)',
 summary:'8 orthographes → 1 ville · 3 orthographes de pays + 9 vides → 1 pays',
@@ -191,7 +191,7 @@ members:'members',A:'Current',B:'To confirm',C:'To reactivate',showOrig:'Show as
 cMember:'Member',memb:'Member',hMem:'Members',cJob:'Job',cEmp:'Employer',cCity:'City',cCountry:'Country',cFin:'Finance signal',cUpd:'Profile update',cLog:'Last login',cLab:'Label',cDues:'Dues member',
 asTyped:'as typed: ',sugg:'suggested',yes:'yes',no:'no',fD:'Declared',fE:'From employer',fT:'From job title',ago:'',y:'y ago',m:'mo ago',
 send:'Send to Current + To confirm',react:'Reactivate 43 members',save:'Save list',exp:'Export',
-dqTitle:'Cleaned values · to review',dqSub:'What the platform groups, and what you can correct for your school',banner:'AlumnForce maintains the shared clean-up lists. You only review what is uncertain for your school. What members typed is never changed.',
+dqTitle:'Cleaned values · to review',dqSub:'What the platform groups, and what you can correct for your school',banner:'The shared lists start from AlumnForce’s reference tables and grow from schools’ confirmations. You only review what is uncertain for your school. What members typed is never changed.',
 tCity:'City',tCountry:'Country',tSector:'Sector from employer',hOrig:'Original value',hClean:'Cleaned value',hCount:'Members (in this list)',hSrc:'Source',hStat:'Status',hAct:'Action',
 global:'Global table',yours:'Your override',auto:'Auto',confByYou:'Confirmed by you',suggCity:'Suggested · inferred from city',confirm:'Confirm',change:'Change',notThis:'Not this place',confirm9:'Confirm 9',notMapped:'not mapped',blank:'(blank)',noEmp:'(no employer)',
 summary:'8 spellings → 1 city · 3 country spellings + 9 blanks → 1 country',
@@ -231,7 +231,7 @@ lists:[
  ['#origSw','"Show as typed" switch','Cleaned values are the default display. Hover any city or country to see what the member typed; this switch (off by default) prints it under every cell. Names are hidden in this concept (privacy); the real product shows the member\'s name as today. Click a member to open the record drawer.','Slide 6, flag-off box'],
  ['#actions','Actions','Send only to the 6 trustworthy profiles, or reactivate the 43 through the existing Profile Update Campaign. Save keeps the sentence and the computation date; relative dates recalculate when opened or sent.','Slide 6, D3a']],
 dq:[
- ['#dqBanner','Shared lists, local review','The platform maintains the shared clean-up lists. A school only reviews what is uncertain for it. Cleaning never writes back to a profile.','Slide 6, D1 · Annex C'],
+ ['#dqBanner','Shared lists, local review','The shared lists start from AlumnForce’s reference tables; a mapping confirmed by several schools is promoted to them (Annex D). A school only reviews what is uncertain for it. Cleaning never writes back to a profile.','Slide 6, D1 · Annex C'],
  ['#dqQueue','Exceptions queue','Only items needing a decision (status Suggested), sorted by members affected, with a bulk "Confirm all". Every change is per school, logged and can be undone.','Slide 6, D1 overrides'],
  ['#dqAuto','Auto-cleaned, collapsed','The 8 London spellings, the 3 country spellings and the employer→Finance mappings need no action. Real schools will have many more spellings; the list is sorted by impact.','Slide 6, D1']]};
 function renderAnn(){const list=ANN[S.scr]||[];document.querySelectorAll('.pin').forEach(p=>p.remove());

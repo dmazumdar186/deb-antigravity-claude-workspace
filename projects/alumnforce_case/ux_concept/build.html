@@ -72,7 +72,7 @@ code{font:12.5px ui-monospace,Consolas,monospace;background:var(--soft);padding:
 <h3>The data flow</h3>
 <div class="flow">
   <div class="fr" style="--n:2">
-    <div class="box db"><b>Shared clean-up lists</b><span class="mut">MariaDB · city, country, employer→sector · maintained by AlumnForce</span></div>
+    <div class="box db"><b>Shared clean-up lists</b><span class="mut">MariaDB · city, country, employer→sector · AlumnForce reference tables + school confirmations</span></div>
     <div class="box db"><b>Per-school overrides</b><span class="mut">MariaDB · the override wins</span></div>
   </div>
   <div class="arr">↓</div>
@@ -103,10 +103,10 @@ code{font:12.5px ui-monospace,Consolas,monospace;background:var(--soft);padding:
 
 <h2>Nine steps</h2>
 <div class="steps">
-<div class="card sc"><h3><span class="num">1</span>Shared clean-up lists, maintained by AlumnForce</h3>
+<div class="card sc"><h3><span class="num">1</span>Shared clean-up lists</h3>
 <div class="kv"><span class="k">What</span>Collect every distinct raw value per field across schools, with member counts (read-only). Match cities via the segmenter's existing map lookup (canonical city + map point + country), countries via a fixed variant list, sector via the NAF industry code already on the current job, else a company list. People review the most frequent values first; rare ones stay <span class="badge b-sugg">suggested</span>.</div>
 <div class="kv"><span class="k">Where it runs</span>MariaDB tables: city, country, employer→sector, plus a per-school override table (school, field, raw value → cleaned value, who, when).</div>
-<div class="kv"><span class="k">Why this way</span>One shared list serves every school. The override wins, so each school keeps the last word on its own data.</div></div>
+<div class="kv"><span class="k">Why this way</span>One shared list serves every school. The override wins, so each school keeps the last word on its own data. A mapping confirmed by several schools is promoted to the shared list (Annex D), so the lists grow from schools' own confirmations.</div></div>
 
 <div class="card sc"><h3><span class="num">2</span>Cleaned columns next to the originals</h3>
 <div class="kv"><span class="k">What</span><code>city_norm</code>, <code>country_norm</code>, <code>sector_norm</code> + status.</div>
@@ -181,7 +181,7 @@ code{font:12.5px ui-monospace,Consolas,monospace;background:var(--soft);padding:
 <li>Whether profile saves can trigger the clean-up step.</li>
 <li>Rebuild time for the largest school (80,000 members), measured on a test copy in week 5.</li></ul></div>
 
-<p class="close">Shared clean-up lists AlumnForce maintains; three cleaned columns next to the originals, filled on save and backfilled once; a nightly label from two dates you already record; six new fields in OpenSearch through a copy-and-switch rebuild, school by school; the segmenter reads the clean fields. The member's original entry is never touched.</p>
+<p class="close">Shared clean-up lists that start from AlumnForce's reference tables and grow from schools' confirmations; three cleaned columns next to the originals, filled on save and backfilled once; a nightly label from two dates you already record; six new fields in OpenSearch through a copy-and-switch rebuild, school by school; the segmenter reads the clean fields. The member's original entry is never touched.</p>
 </main>
 </body>
 </html>
