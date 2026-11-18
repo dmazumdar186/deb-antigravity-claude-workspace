@@ -152,6 +152,22 @@ code{font:12.5px ui-monospace,Consolas,monospace;background:var(--soft);padding:
 <div class="kv"><span class="k">Why this way</span>Each school goes live on evidence.</div></div>
 </div>
 
+<h2>The scrubber: what leaves the platform</h2>
+<div class="card">
+<ol style="margin:0 0 10px 18px;padding:0;font-size:14px">
+<li>Flag and quota check; length cap.</li>
+<li>Remove e-mails and phone numbers.</li>
+<li>Remove exact full-name matches (first + last token) against this school's member table.</li>
+<li>Replace any other capitalised two-word sequence with a placeholder the admin sees (e.g. {{P1}}); the validator re-substitutes it locally.</li>
+<li>Keep place and sector words (allow-listed).</li>
+<li>Log every hit, never block (surnames like Paris, Martin or Finance would block constantly); then cache lookup.</li></ol>
+<p style="font-size:13px;margin:0 0 8px"><b>Example A (fictional):</b> "Diplômés 2015–2018 qui travaillent chez Goldman Sachs à Londres, contact : prenom.nom@example.com" → "Diplômés 2015–2018 qui travaillent chez {{P1}} à Londres, contact : [removed]"</p>
+<p style="font-size:13px;margin:0 0 8px"><b>Sent:</b> the scrubbed question, filter (criterion) and operator names, closed list values (sectors, countries, degree types), school-defined filters as typed ids (e.g. "custom_12: amount"). <b>Never sent:</b> member fields, employer lists.</p>
+<div class="confirm" style="font-size:13px;margin-bottom:8px">"Only the administrator's question, scrubbed of identifiers and full names, and the names of the filters leave the platform, to a model hosted in the EU under a no-retention, no-training contract. No member profile is ever sent; residual hits in the question are logged and reviewed." <span class="mut">(DPO sentence, slide 9)</span></div>
+<div class="kv"><span class="k">Measured</span>False-flag rate on the eval set.</div>
+<div class="kv"><span class="k">Where it runs</span>Pre-flight, in AlumnForce's code, before the AI gateway.</div>
+</div>
+
 <h2>Who and when</h2>
 <div class="strip" style="grid-template-columns:1fr">
 <div><b>Backend developer</b>Steps 1–5 (lists, cleaned columns, backfill, nightly label, OpenSearch rebuild)</div>

@@ -118,6 +118,8 @@ body.f-off-nl .f-nl{display:none!important}
 .tourcard .ft span{flex:1;color:var(--ink3);font-size:12px}
 [title]{}
 .phone{display:none}
+.scbox{border:1px solid var(--line);border-radius:6px;padding:9px 10px;background:#fafbfc;font-size:13px;min-height:44px}
+mark{border-radius:3px;padding:0 3px}.sc-r{background:var(--bad-soft);color:var(--bad);text-decoration:line-through}.scout .sc-r{text-decoration:none}.sc-p{background:var(--pin-soft);color:var(--pin)}.sc-k{background:var(--ok-soft);color:var(--ok)}
 @media (max-width:820px){html,body{overflow-x:hidden;max-width:100%}.top,.wrap,.tourcard,.drawer,.modal-bg,.toast{display:none!important}
 .phone{display:block;min-height:100vh;background:var(--bg);padding:0 0 32px}
 .phone .ph{background:#1c2230;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px}
@@ -160,7 +162,7 @@ body.f-off-nl .f-nl{display:none!important}
 (function(){
 const ROWS=window.ROWS;
 const REF=new Date('2026-10-12T00:00:00');
-const S={lang:'fr',ann:true,scr:'lists',flags:{rel:true,nl:true},chip:null,orig:false,filled:false,more:{},drawer:false,spOpen:false,autoOpen:false,dqTab:'city',member:'M0495',overrides:{},confirmed:{}};
+const S={lang:'fr',ann:true,scr:'lists',flags:{rel:true,nl:true},chip:null,orig:false,filled:false,ex:'base',isMember:false,scrub:false,nlText:'',more:{},drawer:false,spOpen:false,autoOpen:false,dqTab:'city',member:'M0495',overrides:{},confirmed:{}};
 // ---------- i18n ----------
 const D={fr:{build:'Comment on le construit (EN)',whyBtn:'Pourquoi visible',tour:'Visite',gLists:'Listes',nNew:'Nouvelle liste',gData:'Qualité des données',nDq:'Valeurs nettoyées · à revoir',gMembers:'Membres',nMember:'Fiche membre',gSettings:'Paramètres',nFeat:'Fonctionnalités',nWhy:'Pourquoi visible',
 newList:'Nouvelle liste',newSub:'Segmenteur · filtres combinés en ET',nlPh:'Décrivez votre cible…',nlEx:'Diplômés qui travaillent dans la finance à Londres depuis plus de 3 ans',useEx:'Exemple',fill:'Remplir les filtres',
@@ -221,6 +223,7 @@ function closeModal(){$('#modalBg').classList.remove('open');}
 const ANN={
 lists:[
  ['#nlBox','Sentence box (flag nl_targeting)','Admins describe the audience in one sentence; the platform fills in the existing filters. Only the sentence and filter names go to the model, never a member. The AI steps shown here are simulated.','Slide 6, D2'],
+ ['#scrub','What leaves the platform','Pre-flight scrubber: e-mails, phones and exact full-name matches from this school\'s member table are removed; any other capitalised two-word name becomes a placeholder re-substituted locally by the validator; place and sector words are allow-listed. Every hit is logged, never blocked (surnames like Paris or Martin would block constantly). Examples are fictional.','Slide 8, pre-flight · Annex C'],
  ['#fCity','City filter on the cleaned value','One "London" groups 8 spellings, so the count is complete. The expander shows what was grouped, sorted by impact (top 5, then "+ 3 more"). Real schools will have many more spellings; the list is sorted by impact.','Slide 6, D1 · Annex C'],
  ['#fSector','Sector matched three ways','Finance is found from the declared sector (24), the employer (17) and the job title (8). The chip in the table says which.','Slide 6, D1'],
  ['#fRelGrp','Two new date filters','Last profile update and Last login are recorded automatically by the platform, never typed by anyone. They reuse the existing date filter component.','Slide 6, D1'],
@@ -241,10 +244,31 @@ function flash(sel){document.querySelectorAll('.hl').forEach(e=>e.classList.remo
 function rowsShown(){return S.chip&&S.flags.rel?ROWS.filter(r=>r.reliability===S.chip):ROWS;}
 function spellList(id){const top=SPELL.slice(0,5),rest=SPELL.slice(5);const tr=([v,n])=>`<tr><td>${esc(v)}</td><td>${n}</td></tr>`;
  return `<table>${top.map(tr).join('')}${S.more[id]?rest.map(tr).join(''):''}</table>${rest.length&&!S.more[id]?`<button class="link" data-more="${id}" style="font-size:12.5px">+ ${rest.length} ${t('more')}</button>`:''}`;}
+
+const EXS={fr:{base:[['Diplômés qui travaillent dans la '],['finance','k'],[' à '],['Londres','k'],[' depuis plus de 3 ans']],
+ A:[['Diplômés 2015–2018 qui travaillent chez '],['Goldman Sachs','p'],[' à '],['Londres','k'],[', contact : '],['prenom.nom@example.com','r']],
+ B:[['Les amis de '],['Simon Russell','n'],[' en '],['finance','k'],[' à '],['Paris','k'],[', tél. '],['06 12 34 56 78','r']]},
+ en:{base:[['Alumni working in '],['finance','k'],[' in '],['London','k'],[' for more than 3 years']],
+ A:[['Alumni 2015–2018 working at '],['Goldman Sachs','p'],[' in '],['London','k'],[', contact: '],['prenom.nom@example.com','r']],
+ B:[['Friends of '],['Simon Russell','n'],[' in '],['finance','k'],[' in '],['Paris','k'],[', tel. '],['06 12 34 56 78','r']]}};
+const exText=k=>EXS[S.lang][k].map(x=>x[0]).join('');
+function scrubPanel(){if(!S.scrub)return '';const fr=S.lang==='fr';const segs=EXS[S.lang][S.ex];
+ const typ=x=>x[1]==='n'?(S.isMember?'r':'p'):x[1];
+ const left=segs.map(x=>{const ty=typ(x);return ty?`<mark class="sc-${ty}">${esc(x[0])}</mark>`:esc(x[0]);}).join('');
+ const right=segs.map(x=>{const ty=typ(x);if(ty==='r')return `<mark class="sc-r">${fr?'[retiré]':'[removed]'}</mark>`;if(ty==='p')return `<mark class="sc-p">{{P1}}</mark>`;if(ty==='k')return `<mark class="sc-k">${esc(x[0])}</mark>`;return esc(x[0]);}).join('');
+ const tog=S.ex==='B'?`<div class="row" style="margin:8px 0;font-size:13px">${fr?'Simon Russell est membre de cette école :':'Simon Russell is a member of this school:'} <span class="seg2"><button class="chipbtn ${S.isMember?'on':''}" data-mbr="1">${fr?'oui':'yes'}</button><button class="chipbtn ${S.isMember?'':'on'}" data-mbr="0">${fr?'non':'no'}</button></span>
+  <span class="mut">${S.isMember?(fr?'oui = retiré (correspondance exacte prénom + nom dans la table des membres)':'yes = removed (full-name match against the member table)'):(fr?'non = remplacé par {{P1}}, rétabli localement par le validateur':'no = placeholder {{P1}}, restored locally by the validator')}</span></div>
+  <div class="mut" style="font-size:12px">${fr?'« Paris » et « finance » sont conservés (liste autorisée). Paris est aussi un nom de famille : c’est pourquoi le filtre journalise au lieu de bloquer.':'"Paris" and "finance" are kept (allow-listed). Paris is also a surname, which is why the scrubber logs rather than blocks.'}</div>`:'';
+ return `<div class="card f-nl" id="scrub"><h3>${fr?'Ce qui sort de la plateforme':'What leaves the platform'}${S.ex!=='base'?` <span class="badge">${fr?'exemple fictif':'fictional example'}</span>`:''}</h3>
+ <div class="grid2"><div><div class="k mut">${fr?'Saisi par l’admin':'Typed by the admin'}</div><div class="scbox">${left}</div></div><div><div class="k mut">${fr?'Envoyé au modèle d’IA':'Sent to the AI model'}</div><div class="scbox scout">${right}</div></div></div>${tog}
+ <div class="row" style="font-size:12px;margin:8px 0"><span><mark class="sc-r">${fr?'retiré':'removed'}</mark> ${fr?'e-mail, téléphone, nom complet d’un membre':'e-mail, phone, member\'s full name'}</span><span><mark class="sc-p">${fr?'remplacé':'placeholder'}</mark> ${fr?'autre nom de deux mots en majuscules, rétabli localement par le validateur':'other two-word capitalised name, restored locally by the validator'}</span><span><mark class="sc-k">${fr?'conservé':'kept'}</mark> ${fr?'lieux et secteurs (liste autorisée)':'place and sector words, allow-listed'}</span></div>
+ <div class="mut" style="font-size:12.5px">${fr?'Envoyé aussi : noms des filtres et opérateurs, listes fermées (secteurs, pays, types de diplôme), filtres propres à l’école sous forme d’identifiants (ex. custom_12). Jamais envoyé : fiches membres, listes d’employeurs.':'Also sent: filter names and operators, closed lists (sectors, countries, degree types), school\'s own filters as typed ids (e.g. custom_12). Never sent: member records, employer lists.'}</div>
+ <div style="font-size:12.5px;margin-top:4px"><b>${fr?'Chaque détection est journalisée ; rien n’est bloqué.':'Every hit is logged; nothing is blocked.'}</b></div></div>`;}
 function vLists(){
  const nl=`<div class="card f-nl" id="nlBox"><h3>${t('newList')} · Trusted Segments</h3>
-  <div class="nl"><input type="text" id="nlIn" placeholder="${t('nlPh')}" value="${S.filled?esc(t('nlEx')):''}"><button class="btn" id="exBtn">${t('useEx')}</button><button class="btn pri" id="fillBtn">${t('fill')}</button></div>
-  <div class="steps" id="steps"><span class="step ${S.filled?'done':''}">${t('s1')}</span><span class="step ${S.filled?'done':''}">${t('s2')}</span><span class="step ${S.filled?'done':''}">${t('s3')}</span></div></div>`;
+  <div class="nl"><input type="text" id="nlIn" placeholder="${t('nlPh')}" value="${esc(S.nlText||(S.filled?t('nlEx'):''))}"><button class="btn" id="exBtn">${t('useEx')}</button><button class="btn pri" id="fillBtn">${t('fill')}</button></div>
+  <div class="steps" id="steps"><span class="step ${S.filled?'done':''}">${t('s1')}</span><span class="step ${S.filled?'done':''}">${t('s2')}</span><span class="step ${S.filled?'done':''}">${t('s3')}</span></div>
+  <div class="row" style="margin-top:8px;font-size:12.5px"><span class="mut">${S.lang==='fr'?'Exemples fictifs :':'Fictional examples:'}</span><button class="chipbtn" data-exs="A">${S.lang==='fr'?'Exemple fictif A':'Fictional example A'}</button><button class="chipbtn" data-exs="B">${S.lang==='fr'?'Exemple fictif B':'Fictional example B'}</button></div></div>${scrubPanel()}`;
  const filters=`<div class="card" id="filtersCard"><h3>${t('filters')}</h3>
   <div class="diff f-nl" id="diff" style="${S.filled?'display:block':''}"><b>${t('yourSentence')}:</b> “${esc(t('nlEx'))}” → ${t('sector')}, ${t('city')}, ${t('start')}<div class="mut">${t('unmapped')}</div></div>
   <div class="grid2" style="margin-top:10px"><div>
@@ -287,7 +311,7 @@ function vDq(){
  const empT=`<h4>${t('tSector')} → Finance</h4><table>${empMapped.slice(0,S.more.e?99:5).map(([k,o])=>`<tr><td>${esc(k)}</td><td>${o.e}</td></tr>`).join('')}</table>${empMapped.length>5&&!S.more.e?`<button class="link" data-more="e" style="font-size:12.5px">+ ${empMapped.length-5} ${t('more')}</button>`:''}`;
  return `<h1>${t('dqTitle')}</h1><p class="sub">${t('dqSub')}</p><div class="banner" id="dqBanner">${t('banner')}</div>
  <div class="card" id="dqQueue"><div class="row" style="justify-content:space-between"><h3 style="margin:0">${t('toReview')} · ${Q.length} ${S.lang==='fr'?'éléments':'items'} · ${Q.reduce((a,q)=>a+q.n,0)} ${t('members')}</h3>${Q.length?`<button class="btn pri" id="confAll">${t('confAll')} (${Q.reduce((a,q)=>a+q.n,0)} ${t('members')})</button>`:''}</div><div class="tablewrap" style="margin-top:10px">${queue}</div></div>
- ${tour.cur===7?`<div class="card" id="dqDecide" style="border-color:#e0901c"><h3>${S.lang==='fr'?'Deux choix, à confirmer ou à renverser':'Two choices, to confirm or overturn'}</h3><div>1) ${S.lang==='fr'?'Valeurs saisies au survol plutôt qu’en seconde colonne : le tableau reste lisible.':'Originals on hover rather than a second column: the table stays readable.'}</div><div>2) ${S.lang==='fr'?'Les nettoyages suggérés comptent dans les listes, marqués « suggéré », confirmables en un clic : une liste ne rétrécit jamais en silence.':'Suggested clean-ups count in lists, marked "suggested", with a one-click confirm: a list never silently shrinks.'}</div></div>`:''}<div class="card" id="dqAuto"><button class="link" id="autoBtn" style="font-weight:600;text-decoration:none">${S.autoOpen?'▾':'▸'} ${t('autoTitle')} · ${autoN}</button>
+ ${tour.cur===8?`<div class="card" id="dqDecide" style="border-color:#e0901c"><h3>${S.lang==='fr'?'Deux choix, à confirmer ou à renverser':'Two choices, to confirm or overturn'}</h3><div>1) ${S.lang==='fr'?'Valeurs saisies au survol plutôt qu’en seconde colonne : le tableau reste lisible.':'Originals on hover rather than a second column: the table stays readable.'}</div><div>2) ${S.lang==='fr'?'Les nettoyages suggérés comptent dans les listes, marqués « suggéré », confirmables en un clic : une liste ne rétrécit jamais en silence.':'Suggested clean-ups count in lists, marked "suggested", with a one-click confirm: a list never silently shrinks.'}</div></div>`:''}<div class="card" id="dqAuto"><button class="link" id="autoBtn" style="font-weight:600;text-decoration:none">${S.autoOpen?'▾':'▸'} ${t('autoTitle')} · ${autoN}</button>
   <div class="mut">${t('summary')}</div>${S.autoOpen?`<div class="grid3">${cityT ? `<div class="filter">${cityT}</div>`:''}<div class="filter">${ctryT}</div><div class="filter">${empT}</div></div>`:''}</div>`;
 }
 function reason(r){const L=t(r.reliability);const u=r.date_maj_profil,l=r.derniere_connexion;
@@ -329,6 +353,8 @@ document.addEventListener('click',e=>{const x=e.target.closest('button,a,.ann,.p
  if(x.classList.contains('ann')){flash(d.sel);return;}
  if(d.chip){S.chip=S.chip===d.chip?null:d.chip;render();return;}
  if(d.mem){S.member=d.mem;S.drawer=true;render();return;}
+ if(d.exs){S.ex=d.exs;S.scrub=false;S.nlText=exText(d.exs);render();return;}
+ if(d.mbr){S.isMember=d.mbr==='1';render();return;}
  if(d.more){S.more[d.more]=true;render();return;}
  if(d.qc){S.confirmed[d.qc]=true;S.last=[d.qc];render();toast(SAVED(),true);return;}
  if(d.qx){toast(S.lang==='fr'?'Concept : modification en ligne, enregistrée pour votre école uniquement.':'Concept: inline change, saved for your school only.');return;}
@@ -340,9 +366,9 @@ document.addEventListener('click',e=>{const x=e.target.closest('button,a,.ann,.p
  case 'confAll':S.last=['blank','noemp'].filter(k=>!S.confirmed[k]);S.last.forEach(k=>S.confirmed[k]=true);render();toast(SAVED(),true);break;
  case 'undoBtn':(S.last||[]).forEach(k=>delete S.confirmed[k]);S.last=[];render();$('#toast').style.display='none';break;
  case 'autoBtn':S.autoOpen=!S.autoOpen;render();break;
- case 'exBtn':$('#nlIn').value=t('nlEx');break;
+ case 'exBtn':S.ex='base';S.scrub=false;S.nlText=t('nlEx');$('#nlIn').value=S.nlText;break;
  case 'fillBtn':{if(!$('#nlIn').value)$('#nlIn').value=t('nlEx');const st=document.querySelectorAll('#steps .step');st.forEach(s=>s.classList.remove('done'));
-  st.forEach((s,i)=>setTimeout(()=>s.classList.add('done'),300*(i+1)));setTimeout(()=>{S.filled=true;$('#diff').style.display='block';},1000);break;}
+  st.forEach((s,i)=>setTimeout(()=>s.classList.add('done'),300*(i+1)));setTimeout(()=>{S.filled=true;S.nlText=$('#nlIn').value;if(S.nlText!==exText(S.ex))S.ex='base';S.scrub=true;render();},1000);break;}
  case 'spBtn':S.spOpen=!S.spOpen;$('#spExp').classList.toggle('open');break;
  case 'aSend':toast(S.lang==='fr'?'Concept : envoi aux 6 membres À jour + À confirmer.':'Concept: send to the 6 Current + To confirm members.');break;
  case 'aReact':modal(`<h2>${S.lang==='fr'?'Campagne de mise à jour du profil':'Profile Update Campaign'} · 43</h2><p class="mut">${S.lang==='fr'?'Campagne existante, pré-remplie avec les 43 membres À réactiver. Le texte est écrit par l’école ; les deux variantes ci-dessous sont des exemples.':'Existing campaign, pre-filled with the 43 To reactivate members. Text is written by the school; the two variants below are placeholders.'}</p>
@@ -368,7 +394,8 @@ const STEPS=[
  ['lists','#origSw','4. "Show as typed"','One switch, off by default, prints the member\'s original entry under every cleaned value.',()=>{S.orig=true;}],
  ['lists','#drawer','5. Member drawer','Member M0495: "London, UK" / Royaume-Uni as typed, London / United Kingdom as used. The label comes with its reason: updated 20 May 2023, 3 years ago → À confirmer.',()=>{S.orig=false;S.member='M0495';S.drawer=true;}],
  ['dq','#dqQueue','6. Review only the uncertain','To review · 2 items · 17 members: 9 countries inferred from the city, 8 members with no employer. One "Confirm all (17 members)"; auto-cleaned items stay collapsed.',()=>{S.flags.rel=true;S.autoOpen=false;}],
- ['dq','#dqDecide','7. Two choices, to confirm or overturn','Cleaned values help admins, with guard rails: as typed always reachable, suggestions confirmed, per-school changes logged and reversible, profiles never edited. The two design choices are shown on screen.']];
+ ['lists','#scrub','7. What leaves the platform','Before anything reaches the AI model, the scrubber removes e-mails, phones and members\' full names, swaps other names for placeholders it restores locally, and keeps place and sector words. Every hit is logged; nothing is blocked.',()=>{S.ex='A';S.isMember=false;S.filled=true;S.scrub=true;S.nlText=exText('A');}],
+ ['dq','#dqDecide','8. Two choices, to confirm or overturn','Cleaned values help admins, with guard rails: as typed always reachable, suggestions confirmed, per-school changes logged and reversible, profiles never edited. The two design choices are shown on screen.']];
 function placeCard(e){const c=$('#tourCard');c.style.display='block';const W=Math.min(260,innerWidth-32);c.style.width=W+'px';const H=c.offsetHeight,g=10,top=60,vw=innerWidth,vh=innerHeight;
  if(!e){c.style.left='228px';c.style.top=(vh-H-18)+'px';return;}const r=e.getBoundingClientRect();
  const sp={right:vw-r.right,left:r.left,below:vh-r.bottom,above:r.top-top};const fitX=k=>sp[k]>=W+g*2,fitY=k=>sp[k]>=H+g*2;
@@ -385,8 +412,8 @@ const tour=window.tour={count:STEPS.length,cur:0,
  next(){this.go(this.cur+1);},prev(){this.go(this.cur-1);},
  close(){this.cur=0;$('#tourCard').style.display='none';document.querySelectorAll('.tourhl').forEach(e=>e.classList.remove('tourhl'));}};
 const rr=render;render=function(){rr();if(tour.cur){const e=document.querySelector(STEPS[tour.cur-1][1]);if(e&&S.scr===STEPS[tour.cur-1][0])e.classList.add('tourhl');}};
-function renderPhone(){const fr=S.lang==='fr';const P=fr?{t:'Trusted Segments · Concept',p:'Ce concept est conçu pour un écran d’ordinateur.',v:'Voir la démo (moins de 90 secondes)',b:'Comment on le construit (EN)',l:['Les valeurs nettoyées sont visibles des admins ; la ville et le pays saisis sont à un survol ; aucun champ saisi par le membre n’est jamais écrasé.','Les nettoyages incertains sont marqués « suggéré » et se confirment en un clic.','Les admins ne revoient que les exceptions.']}
- :{t:'Trusted Segments · Concept',p:'This concept is built for a laptop screen.',v:'Watch the walkthrough (under 90 seconds)',b:'How it gets built',l:['Cleaned values are visible to admins; the city and country the member typed are one hover away; no field a member typed is ever overwritten.','Uncertain clean-ups are marked "suggested" with one-click confirm.','Admins review only the exceptions.']};
+function renderPhone(){const fr=S.lang==='fr';const P=fr?{t:'Trusted Segments · Concept',p:'Ce concept est conçu pour un écran d’ordinateur.',v:'Voir la démo (moins de 90 secondes)',b:'Comment on le construit (EN)',l:['Les valeurs nettoyées sont visibles des admins ; la ville et le pays saisis sont à un survol ; aucun champ saisi par le membre n’est jamais écrasé.','Les nettoyages incertains sont marqués « suggéré » et se confirment en un clic.','Les admins ne revoient que les exceptions.','Avant que l’IA ne voie une phrase, e-mails, téléphones et noms complets des membres sont retirés ; les autres noms deviennent des marqueurs.']}
+ :{t:'Trusted Segments · Concept',p:'This concept is built for a laptop screen.',v:'Watch the walkthrough (under 90 seconds)',b:'How it gets built',l:['Cleaned values are visible to admins; the city and country the member typed are one hover away; no field a member typed is ever overwritten.','Uncertain clean-ups are marked "suggested" with one-click confirm.','Admins review only the exceptions.','Before the AI sees a sentence, e-mails, phones and members\' full names are removed; other names become placeholders.']};
  $('#phT').textContent=P.t;$('#phP').textContent=P.p;$('#phV').textContent=P.v;$('#phB').textContent=P.b;$('#phL').innerHTML=P.l.map(x=>`<li>${esc(x)}</li>`).join('');
  $('#pfr').classList.toggle('on',fr);$('#pen').classList.toggle('on',!fr);}
 const q=new URLSearchParams(location.search);
