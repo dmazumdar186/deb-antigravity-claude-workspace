@@ -127,3 +127,11 @@ A short design-decision card, plain English:
 - Text contrast WCAG AA; tables readable; nothing overflows at 1280×720.
 - No real AlumnForce logo or brand assets. No names. No claims about AlumnForce internals beyond the deck.
 - `<meta name="robots" content="noindex">`.
+
+## Amendments after red-team (18 Nov) — these override the sections above
+1. Two screens only: Lists → New list, and Data quality → "Cleaned values · to review". Settings/flags page dropped; member record is a side drawer.
+2. Cleaned values by default; originals on hover and via one "Show as typed" switch (off by default).
+3. Review page is an exceptions queue (Suggested only, sorted by members affected, bulk confirm). Auto-cleaned mappings collapsed. AlumnForce maintains shared clean-up lists; admins review only the uncertain.
+4. Scale: top 5 spellings then "+ N more", sorted by impact.
+5. Tour: 7 steps, ending with two decisions for Frédéric: originals on hover vs second column; use suggested clean-ups before confirmation or only after.
+6. Deliverables: prototype link + video ≤ 90 s. Storyboard PDF dropped.
