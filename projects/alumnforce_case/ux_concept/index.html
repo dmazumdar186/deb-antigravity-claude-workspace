@@ -261,7 +261,7 @@ function scrubPanel(){if(!S.scrub)return '';const fr=S.lang==='fr';const segs=EX
   <div class="mut" style="font-size:12px">${fr?'« Paris » et « finance » sont conservés (liste autorisée). Paris est aussi un nom de famille : c’est pourquoi le filtre journalise au lieu de bloquer.':'"Paris" and "finance" are kept (allow-listed). Paris is also a surname, which is why the scrubber logs rather than blocks.'}</div>`:'';
  return `<div class="card f-nl" id="scrub"><h3>${fr?'Ce qui sort de la plateforme':'What leaves the platform'}${S.ex!=='base'?` <span class="badge">${fr?'exemple fictif':'fictional example'}</span>`:''}</h3>
  <div class="grid2"><div><div class="k mut">${fr?'Saisi par l’admin':'Typed by the admin'}</div><div class="scbox">${left}</div></div><div><div class="k mut">${fr?'Envoyé au modèle d’IA':'Sent to the AI model'}</div><div class="scbox scout">${right}</div></div></div>${tog}
- <div class="row" style="font-size:12px;margin:8px 0"><span><mark class="sc-r">${fr?'retiré':'removed'}</mark> ${fr?'e-mail, téléphone, nom complet d’un membre':'e-mail, phone, member\'s full name'}</span><span><mark class="sc-p">${fr?'remplacé':'placeholder'}</mark> ${fr?'autre nom de deux mots en majuscules, rétabli localement par le validateur':'other two-word capitalised name, restored locally by the validator'}</span><span><mark class="sc-k">${fr?'conservé':'kept'}</mark> ${fr?'lieux et secteurs (liste autorisée)':'place and sector words, allow-listed'}</span></div>
+ <div class="row" style="font-size:12px;margin:8px 0"><span><mark class="sc-r">${fr?'retiré':'removed'}</mark> ${fr?'e-mail, téléphone, correspondance exacte prénom + nom dans la table des membres':'e-mail, phone, exact first + last-name match in the school\'s member table'}</span><span><mark class="sc-p">${fr?'remplacé':'placeholder'}</mark> ${fr?'autre nom de deux mots en majuscules, rétabli localement par le validateur':'other two-word capitalised name, restored locally by the validator'}</span><span><mark class="sc-k">${fr?'conservé':'kept'}</mark> ${fr?'lieux et secteurs (liste autorisée)':'place and sector words, allow-listed'}</span></div>
  <div class="mut" style="font-size:12.5px">${fr?'Envoyé aussi : noms des filtres et opérateurs, listes fermées (secteurs, pays, types de diplôme), filtres propres à l’école sous forme d’identifiants (ex. custom_12). Jamais envoyé : fiches membres, listes d’employeurs.':'Also sent: filter names and operators, closed lists (sectors, countries, degree types), school\'s own filters as typed ids (e.g. custom_12). Never sent: member records, employer lists.'}</div>
  <div style="font-size:12.5px;margin-top:4px"><b>${fr?'Chaque détection est journalisée ; rien n’est bloqué.':'Every hit is logged; nothing is blocked.'}</b></div></div>`;}
 function vLists(){
@@ -275,7 +275,7 @@ function vLists(){
   <div class="filter" id="fCity"><div class="k">${t('city')}</div><div class="v">London <span class="badge b-clean f-rel">${t('cleanedGroups')}</span></div>
    <button class="link f-rel" id="spBtn" style="font-size:12.5px">${t('showSp')} (8)</button><div class="exp f-rel ${S.spOpen?'open':''}" id="spExp">${spellList('f')}</div></div>
   <div class="and">${t('and')}</div>
-  <div class="filter" id="fSector"><div class="k">${t('sector')}</div><div class="v">Finance</div><div class="mut">${t('sectorNote')}</div></div>
+  <div class="filter" id="fSector"><div class="k">${t('sector')}</div><div class="v">Finance</div><div class="mut f-rel">${t('sectorNote')}</div></div>
   <div class="and">${t('and')}</div>
   <div class="filter"><div class="k">${t('start')}</div><div class="v">${t('before')}</div></div></div>
   <div class="f-rel" id="fRelGrp"><div class="mut" style="margin-bottom:6px;font-weight:600">${t('relGrp')} <span class="badge b-new">${t('nw')}</span></div>
@@ -286,7 +286,7 @@ function vLists(){
  const body=rs.map(r=>{const c=countryClean(r);const pt=r.pays||t('blank');return `<tr data-m="${r.member_id}"><td><button class="link" data-mem="${r.member_id}">${t('memb')} ${r.member_id}</button></td><td>${esc(r.poste)}</td><td>${r.entreprise?esc(r.entreprise):'<span class="mut">—</span>'}</td>
   ${S.flags.rel?`<td title="${esc(t('asTypedT')+r.ville)}" class="hov">${esc(cityClean(r.ville))}<span class="orig">${t('asTyped')}${esc(r.ville)}</span></td>
   <td title="${esc(t('asTypedT')+pt)}" class="hov">${c.v}${c.sugg?` <span class="badge b-sugg">${t('sugg')}</span>`:''}<span class="orig">${t('asTyped')}${esc(pt)}</span></td>`:`<td>${esc(r.ville)}</td><td>${r.pays?esc(r.pays):''}</td>`}
-  <td><span class="badge">${finChip(r.finance_src)}</span></td>
+  <td class="f-rel"><span class="badge">${finChip(r.finance_src)}</span></td>
   <td class="f-rel nw" title="${fmtDate(r.date_maj_profil)}">${ago(r.date_maj_profil)}</td>
   <td class="f-rel nw" title="${fmtDate(r.derniere_connexion)}">${ago(r.derniere_connexion)}</td>
   <td class="f-rel">${lab(r.reliability)}</td><td>${r.cotisant==='oui'?t('yes'):t('no')}</td></tr>`;}).join('');
@@ -294,7 +294,7 @@ function vLists(){
  const res=`<div class="card" id="resCard"><div class="row" id="resHead" style="justify-content:space-between"><h3 style="margin:0">${ROWS.length} ${t('members')}${S.chip&&S.flags.rel?` · ${rs.length} ${t(S.chip)}`:''}</h3><span class="row f-rel" id="chips">${chips}</span>
    <label class="switch f-rel" id="origSw"><input type="checkbox" id="origCb" ${S.orig?'checked':''}><span class="tr"></span>${t('showOrig')}</label></div>
   <div class="row" id="actions" style="margin:10px 0"><button class="btn pri f-rel" id="aSend">${t('send')} (${count('reliability','A')+count('reliability','B')})</button><button class="btn f-rel" id="aReact">${t('react')}</button><button class="btn" id="aSave">${t('save')}</button><button class="btn" id="aExp">${t('exp')}</button></div>
-  <div class="tablewrap ${S.orig?'':'hide-orig'}" id="resTable"><table class="t"><thead><tr><th>${t('cMember')}</th><th>${t('cJob')}</th><th>${t('cEmp')}</th><th>${t('cCity')}</th><th>${t('cCountry')}</th><th>${t('cFin')}</th><th class="f-rel">${t('cUpd')}</th><th class="f-rel">${t('cLog')}</th><th class="f-rel">${t('cLab')}</th><th>${t('cDues')}</th></tr></thead><tbody>${body}</tbody></table></div></div>`;
+  <div class="tablewrap ${S.orig?'':'hide-orig'}" id="resTable"><table class="t"><thead><tr><th>${t('cMember')}</th><th>${t('cJob')}</th><th>${t('cEmp')}</th><th>${t('cCity')}</th><th>${t('cCountry')}</th><th class="f-rel">${t('cFin')}</th><th class="f-rel">${t('cUpd')}</th><th class="f-rel">${t('cLog')}</th><th class="f-rel">${t('cLab')}</th><th>${t('cDues')}</th></tr></thead><tbody>${body}</tbody></table></div></div>`;
  return `<h1>${t('newList')}</h1><p class="sub">${t('newSub')}</p>${nl}${filters}${res}`;
 }
 function vDq(){
