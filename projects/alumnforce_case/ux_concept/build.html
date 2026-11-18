@@ -72,7 +72,7 @@ code{font:12.5px ui-monospace,Consolas,monospace;background:var(--soft);padding:
 <h3>The data flow</h3>
 <div class="flow">
   <div class="fr" style="--n:2">
-    <div class="box db"><b>Shared clean-up lists</b><span class="mut">MariaDB · city, country, employer→sector · maintained by AlumnForce</span></div>
+    <div class="box db"><b>Shared clean-up lists</b><span class="mut">MariaDB · city, country, employer→sector · AlumnForce reference tables + school confirmations</span></div>
     <div class="box db"><b>Per-school overrides</b><span class="mut">MariaDB · the override wins</span></div>
   </div>
   <div class="arr">↓</div>
@@ -87,7 +87,7 @@ code{font:12.5px ui-monospace,Consolas,monospace;background:var(--soft);padding:
   <div class="arr">↓</div>
   <div class="box os"><b>OpenSearch: 6 new fields</b><span class="mut">3 cleaned values, 2 dates, label · copy-and-switch rebuild per school</span></div>
   <div class="arr">↓</div>
-  <div class="box"><b>Segmenter</b><span class="mut">City filter reads <code>city_norm</code> · 2 new date filters via the existing date filter type · 3 label counts in the same search</span></div>
+  <div class="box"><b>Segmenter</b><span class="mut">Flag on: City filter reads <code>city_norm</code> · 2 new date filters via the existing date filter type · 3 label counts in the same search</span></div>
   <div class="loop">
     <div class="lt">Correction loop</div>
     <div class="chain">
@@ -103,10 +103,10 @@ code{font:12.5px ui-monospace,Consolas,monospace;background:var(--soft);padding:
 
 <h2>Nine steps</h2>
 <div class="steps">
-<div class="card sc"><h3><span class="num">1</span>Shared clean-up lists, maintained by AlumnForce</h3>
+<div class="card sc"><h3><span class="num">1</span>Shared clean-up lists</h3>
 <div class="kv"><span class="k">What</span>Collect every distinct raw value per field across schools, with member counts (read-only). Match cities via the segmenter's existing map lookup (canonical city + map point + country), countries via a fixed variant list, sector via the NAF industry code already on the current job, else a company list. People review the most frequent values first; rare ones stay <span class="badge b-sugg">suggested</span>.</div>
 <div class="kv"><span class="k">Where it runs</span>MariaDB tables: city, country, employer→sector, plus a per-school override table (school, field, raw value → cleaned value, who, when).</div>
-<div class="kv"><span class="k">Why this way</span>One shared list serves every school. The override wins, so each school keeps the last word on its own data.</div></div>
+<div class="kv"><span class="k">Why this way</span>One shared list serves every school. The override wins, so each school keeps the last word on its own data. A mapping confirmed by several schools is promoted to the shared list (Annex D), so the lists grow from schools' own confirmations.</div></div>
 
 <div class="card sc"><h3><span class="num">2</span>Cleaned columns next to the originals</h3>
 <div class="kv"><span class="k">What</span><code>city_norm</code>, <code>country_norm</code>, <code>sector_norm</code> + status.</div>
@@ -129,7 +129,7 @@ code{font:12.5px ui-monospace,Consolas,monospace;background:var(--soft);padding:
 <div class="kv"><span class="k">Why this way</span>Nobody searches a half-built index. Afterwards, nightly partial updates only for members whose label changed.</div></div>
 
 <div class="card sc"><h3><span class="num">6</span>Segmenter</h3>
-<div class="kv"><span class="k">What</span>The City filter reads <code>city_norm</code>: pick London once, see what was grouped. Two new date filters. Three label counts.</div>
+<div class="kv"><span class="k">What</span>With <code>reliability</code> on, the City filter reads <code>city_norm</code>: pick London once, see what was grouped. Two new date filters. Three label counts. With it off, the segmenter is exactly as today.</div>
 <div class="kv"><span class="k">Where it runs</span>Vue.js segmenter. The date filters reuse the existing date filter type; the three counts come from the same search.</div>
 <div class="kv"><span class="k">Why this way</span>Existing building blocks, no extra search.</div></div>
 
@@ -139,9 +139,9 @@ code{font:12.5px ui-monospace,Consolas,monospace;background:var(--soft);padding:
 <div class="kv"><span class="k">Why this way</span>Logged, undoable, and applies to that school only.</div></div>
 
 <div class="card sc"><h3><span class="num">8</span>Switches</h3>
-<div class="kv"><span class="k">What</span>Cleaned columns are filled for all schools. Labels are only computed and shown when the school switches <code>reliability</code> on.</div>
+<div class="kv"><span class="k">What</span>Cleaned columns are filled in the background for all schools, unseen. The cleaned filters, the review screen and the labels appear only when the school switches <code>reliability</code> on. With it off, the segmenter is exactly as today.</div>
 <div class="kv"><span class="k">Where it runs</span>School settings.</div>
-<div class="kv"><span class="k">Why this way</span>Consistent spelling infers nothing about a person. A reliability label is derived personal data, so the school decides.</div></div>
+<div class="kv"><span class="k">Why this way</span>Consistent spelling infers nothing about a person. A reliability label is derived personal data, so the school decides. And the brief requires the segmenter to stay identical when the feature is off.</div></div>
 
 <div class="card sc"><h3><span class="num">9</span>Checks per school</h3>
 <div class="kv"><span class="k">What</span><ul>
@@ -150,6 +150,22 @@ code{font:12.5px ui-monospace,Consolas,monospace;background:var(--soft);padding:
 <li>Before/after on a known question: the brief's own sentence returns 2 on raw values and 26 with clean city and sector (Annex B).</li></ul><p style="margin:8px 0 0"><b>Once, before launch (weeks 1–2):</b> CS hand-checks 100 members on two schools; the 2/4-year cut-offs ship only if they agree at least 80% of the time.</p></div>
 <div class="kv"><span class="k">Where it runs</span>At each school's switch-over.</div>
 <div class="kv"><span class="k">Why this way</span>Each school goes live on evidence.</div></div>
+</div>
+
+<h2>The scrubber: what leaves the platform</h2>
+<div class="card">
+<ol style="margin:0 0 10px 18px;padding:0;font-size:14px">
+<li>Flag and quota check; length cap.</li>
+<li>Remove e-mails and phone numbers.</li>
+<li>Remove exact full-name matches (first + last token) against this school's member table.</li>
+<li>Replace any other capitalised two-word sequence with a placeholder the admin sees (e.g. {{P1}}); the validator re-substitutes it locally.</li>
+<li>Keep place and sector words (allow-listed).</li>
+<li>Log every hit, never block (surnames like Paris, Martin or Finance would block constantly); then cache lookup.</li></ol>
+<p style="font-size:13px;margin:0 0 8px"><b>Example A (fictional):</b> "Diplômés 2015–2018 qui travaillent chez Goldman Sachs à Londres, contact : prenom.nom@example.com" → "Diplômés 2015–2018 qui travaillent chez {{P1}} à Londres, contact : [removed]"</p>
+<p style="font-size:13px;margin:0 0 8px"><b>Sent:</b> the scrubbed question, filter (criterion) and operator names, closed list values (sectors, countries, degree types), school-defined filters as typed ids (e.g. "custom_12: amount"). <b>Never sent:</b> member fields, employer lists.</p>
+<div class="confirm" style="font-size:13px;margin-bottom:8px">"Only the administrator's question, scrubbed of identifiers and full names, and the names of the filters leave the platform, to a model hosted in the EU under a no-retention, no-training contract. No member profile is ever sent; residual hits in the question are logged and reviewed." <span class="mut">(DPO sentence, slide 9)</span></div>
+<div class="kv"><span class="k">Measured</span>False-flag rate on the eval set.</div>
+<div class="kv"><span class="k">Where it runs</span>Pre-flight, in AlumnForce's code, before the AI gateway.</div>
 </div>
 
 <h2>Who and when</h2>
@@ -165,7 +181,7 @@ code{font:12.5px ui-monospace,Consolas,monospace;background:var(--soft);padding:
 <li>Whether profile saves can trigger the clean-up step.</li>
 <li>Rebuild time for the largest school (80,000 members), measured on a test copy in week 5.</li></ul></div>
 
-<p class="close">Shared clean-up lists AlumnForce maintains; three cleaned columns next to the originals, filled on save and backfilled once; a nightly label from two dates you already record; six new fields in OpenSearch through a copy-and-switch rebuild, school by school; the segmenter reads the clean fields. The member's original entry is never touched.</p>
+<p class="close">Shared clean-up lists that start from AlumnForce's reference tables and grow from schools' confirmations; three cleaned columns next to the originals, filled on save and backfilled once; a nightly label from two dates you already record; six new fields in OpenSearch through a copy-and-switch rebuild, school by school; the segmenter reads the clean fields. The member's original entry is never touched.</p>
 </main>
 </body>
 </html>

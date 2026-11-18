@@ -11,7 +11,7 @@ const path = require('path');
 const DIR = path.resolve(__dirname, '..', 'ux_concept');
 const OUT = path.join(DIR, 'demo.mp4');
 const W = 1280, H = 720;
-const STEP_MS = 9000;
+const STEP_MS = 7500;
 
 const card = (title, sub) => `<!doctype html><meta charset="utf-8"><body style="margin:0;height:100vh;display:flex;
 flex-direction:column;justify-content:center;align-items:center;background:#0f2a3d;color:#fff;
@@ -28,7 +28,7 @@ font-family:Inter,'Helvetica Neue',Arial,sans-serif;text-align:center">
   const errors = [];
   page.on('pageerror', e => errors.push(String(e)));
   try {
-    await page.setContent(card('Cleaned values, visible to admins', 'How a list shows what was cleaned, how admins review only what is uncertain, and how it gets built.'));
+    await page.setContent(card('Cleaned values, visible to admins', 'How a list shows what was cleaned, what admins review, what leaves the platform, and how it gets built.'));
     await page.waitForTimeout(3500);
 
     await page.goto('file://' + path.join(DIR, 'index.html'));
