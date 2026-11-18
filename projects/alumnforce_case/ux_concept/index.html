@@ -257,7 +257,7 @@ function scrubPanel(){if(!S.scrub)return '';const fr=S.lang==='fr';const segs=EX
  const left=segs.map(x=>{const ty=typ(x);return ty?`<mark class="sc-${ty}">${esc(x[0])}</mark>`:esc(x[0]);}).join('');
  const right=segs.map(x=>{const ty=typ(x);if(ty==='r')return `<mark class="sc-r">${fr?'[retiré]':'[removed]'}</mark>`;if(ty==='p')return `<mark class="sc-p">{{P1}}</mark>`;if(ty==='k')return `<mark class="sc-k">${esc(x[0])}</mark>`;return esc(x[0]);}).join('');
  const tog=S.ex==='B'?`<div class="row" style="margin:8px 0;font-size:13px">${fr?'Simon Russell est membre de cette école :':'Simon Russell is a member of this school:'} <span class="seg2"><button class="chipbtn ${S.isMember?'on':''}" data-mbr="1">${fr?'oui':'yes'}</button><button class="chipbtn ${S.isMember?'':'on'}" data-mbr="0">${fr?'non':'no'}</button></span>
-  <span class="mut">${S.isMember?(fr?'oui = retiré (correspondance exacte prénom + nom dans la table des membres)':'yes = removed (full-name match against the member table)'):(fr?'non = remplacé par {{P1}}, rétabli localement par le validateur':'no = placeholder {{P1}}, restored locally by the validator')}</span></div>
+  <span class="mut">${S.isMember?(fr?'oui = retiré (correspondance exacte prénom + nom dans la table des membres)':'yes = removed (exact full-name match against the member table)'):(fr?'non = remplacé par {{P1}}, rétabli localement par le validateur':'no = placeholder {{P1}}, restored locally by the validator')}</span></div>
   <div class="mut" style="font-size:12px">${fr?'« Paris » et « finance » sont conservés (liste autorisée). Paris est aussi un nom de famille : c’est pourquoi le filtre journalise au lieu de bloquer.':'"Paris" and "finance" are kept (allow-listed). Paris is also a surname, which is why the scrubber logs rather than blocks.'}</div>`:'';
  return `<div class="card f-nl" id="scrub"><h3>${fr?'Ce qui sort de la plateforme':'What leaves the platform'}${S.ex!=='base'?` <span class="badge">${fr?'exemple fictif':'fictional example'}</span>`:''}</h3>
  <div class="grid2"><div><div class="k mut">${fr?'Saisi par l’admin':'Typed by the admin'}</div><div class="scbox">${left}</div></div><div><div class="k mut">${fr?'Envoyé au modèle d’IA':'Sent to the AI model'}</div><div class="scbox scout">${right}</div></div></div>${tog}
@@ -353,7 +353,7 @@ document.addEventListener('click',e=>{const x=e.target.closest('button,a,.ann,.p
  if(x.classList.contains('ann')){flash(d.sel);return;}
  if(d.chip){S.chip=S.chip===d.chip?null:d.chip;render();return;}
  if(d.mem){S.member=d.mem;S.drawer=true;render();return;}
- if(d.exs){S.ex=d.exs;S.scrub=false;S.nlText=exText(d.exs);render();return;}
+ if(d.exs){S.ex=d.exs;S.scrub=false;S.nlText=exText(d.exs);render();$('#fillBtn').click();return;}
  if(d.mbr){S.isMember=d.mbr==='1';render();return;}
  if(d.more){S.more[d.more]=true;render();return;}
  if(d.qc){S.confirmed[d.qc]=true;S.last=[d.qc];render();toast(SAVED(),true);return;}
@@ -368,7 +368,7 @@ document.addEventListener('click',e=>{const x=e.target.closest('button,a,.ann,.p
  case 'autoBtn':S.autoOpen=!S.autoOpen;render();break;
  case 'exBtn':S.ex='base';S.scrub=false;S.nlText=t('nlEx');$('#nlIn').value=S.nlText;break;
  case 'fillBtn':{if(!$('#nlIn').value)$('#nlIn').value=t('nlEx');const st=document.querySelectorAll('#steps .step');st.forEach(s=>s.classList.remove('done'));
-  st.forEach((s,i)=>setTimeout(()=>s.classList.add('done'),300*(i+1)));setTimeout(()=>{S.filled=true;S.nlText=$('#nlIn').value;if(S.nlText!==exText(S.ex))S.ex='base';S.scrub=true;render();},1000);break;}
+  st.forEach((s,i)=>setTimeout(()=>s.classList.add('done'),300*(i+1)));setTimeout(()=>{S.filled=true;S.nlText=$('#nlIn').value;if(S.nlText!==exText(S.ex))S.ex='base';S.scrub=true;render();const sc=$('#scrub');if(sc)sc.scrollIntoView({behavior:'smooth',block:'nearest'});},1000);break;}
  case 'spBtn':S.spOpen=!S.spOpen;$('#spExp').classList.toggle('open');break;
  case 'aSend':toast(S.lang==='fr'?'Concept : envoi aux 6 membres À jour + À confirmer.':'Concept: send to the 6 Current + To confirm members.');break;
  case 'aReact':modal(`<h2>${S.lang==='fr'?'Campagne de mise à jour du profil':'Profile Update Campaign'} · 43</h2><p class="mut">${S.lang==='fr'?'Campagne existante, pré-remplie avec les 43 membres À réactiver. Le texte est écrit par l’école ; les deux variantes ci-dessous sont des exemples.':'Existing campaign, pre-filled with the 43 To reactivate members. Text is written by the school; the two variants below are placeholders.'}</p>
