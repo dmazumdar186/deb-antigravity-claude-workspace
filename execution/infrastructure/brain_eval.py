@@ -112,6 +112,7 @@ def thresholds() -> dict[str, Any]:
 
 # ---------------------------------------------------------------------------------------------
 # labels (independent judge)
+DEAD_GRACE_DAYS = 14  # days a new lesson gets to meet its situation before it can be called dead
 JUDGE_MODEL = "claude-sonnet-5-5"  # must never be the retriever's model (Jev): see assert_independent()
 
 
@@ -759,12 +760,37 @@ def run(label: bool, dry_run: bool, acks: list[str] | None = None,
         for n in ("benchmark", "thresholds", "evaluator")
         if prev and (prev.get("hashes") or {}).get(n) not in (None, hashes[n])
     ]
+    unexercised = [
+        i
+        for i in snapshot
+        if i not in {x.id for x in core}
+        and i not in bm["_relevant_any"]
+        and i not in kw["_relevant_any"]
+        and i not in kw["_partly_unlabelled"]
+        and i not in live_ever
+    ]
+    created = {x.id: x.created for x in act}
     kpis: dict[str, Any] = {
         **{k: v for k, v in bm.items() if not k.startswith("_")},
-        **{f"kw_{m}": kw[m] for m in ("precision", "recall", "f1", "effective_recall", "noise_rate", "n_ret", "n_rel")},
+        **{
+            f"kw_{m}": kw[m]
+            for m in (
+                "precision",
+                "recall",
+                "f1",
+                "effective_recall",
+                "noise_rate",
+                "n_ret",
+                "n_rel",
+            )
+        },
         **per_set_metrics(bench, lessons, labels, picks),
         "trigger_overlap": _r(overlap / len(act) if act else None),
-        "lessons_after_freeze": sorted(x.id for x in act if bench_meta().get("frozen") and x.created >= bench_meta()["frozen"]),
+        "lessons_after_freeze": sorted(
+            x.id
+            for x in act
+            if bench_meta().get("frozen") and x.created >= bench_meta()["frozen"]
+        ),
         "turns_logged_ever": len(obs_rows),
         **lm,
         "active": len(act),
@@ -775,15 +801,29 @@ def run(label: bool, dry_run: bool, acks: list[str] | None = None,
             i for i in snapshot if i in prev_snap and snapshot[i] > prev_snap[i]
         ),
         "retired": sorted(set(prev_snap) - set(snapshot)) if prev else [],
-        "retired_unexplained": sorted(
-            i for i in (set(prev_snap) - set(snapshot)) if not any(i in x.supersedes for x in act)) if prev else [],
+        "retired_unexplained": (
+            sorted(
+                i
+                for i in (set(prev_snap) - set(snapshot))
+                if not any(i in x.supersedes for x in act)
+            )
+            if prev
+            else []
+        ),
         # Core lessons are injected at every SessionStart, which writes no observation row, so "never injected"
         # is false for them by construction (2026-11-17: build-the-named-platform, strength 3, flagged dead).
+        # A lesson younger than DEAD_GRACE_DAYS has had no chance to meet its situation live; calling it dead
+        # flagged two-day-old lessons whose triggers did fire on realistic prompts (2026-11-19). Young ones are
+        # listed as unexercised (info) and turn dead if still unexercised once the grace period ends.
         "dead_lessons": sorted(
-            i for i in snapshot
-            if i not in {x.id for x in core}
-            and i not in bm["_relevant_any"] and i not in kw["_relevant_any"]
-            and i not in kw["_partly_unlabelled"] and i not in live_ever
+            i
+            for i in unexercised
+            if brain.days_since(created.get(i, "")) >= DEAD_GRACE_DAYS
+        ),
+        "unexercised_young": sorted(
+            i
+            for i in unexercised
+            if brain.days_since(created.get(i, "")) < DEAD_GRACE_DAYS
         ),
         "all_misses": bm.get("_all_misses", []),
         "all_noise": bm.get("_all_noise", []),
@@ -861,7 +901,7 @@ def _fmt(v: Any) -> str:
     return str(v)
 
 
-KPI_ORDER = ["precision", "recall", "f1", "effective_recall", "noise_rate", "avg_inject_chars", "kw_precision", "kw_recall", "kw_f1", "kw_effective_recall", "kw_noise_rate", "judge_sanity", "label_coverage_gap", "live_precision_kw", "live_precision_kw_prior", "judged_injections_prior", "corrections", "repeat_mistakes_week", "capture_leak", "turns_logged", "turns_all", "corrections_per_100", "arm_injected_turns", "arm_holdout_turns", "arm_injected_corrections", "arm_holdout_corrections", "arm_injected_corrections_per_100", "arm_holdout_corrections_per_100", "arm_injected_repeat_mistakes", "arm_holdout_repeat_mistakes", "arm_injected_repeats_per_100", "arm_holdout_repeats_per_100", "holdout_min_sample_ok", "live_precision_jev", "graded_injections_jev", "live_precision_withheld", "graded_withheld", "injections", "jev_picked_injections", "judged_injections", "unjudged_rows", "sessions", "active", "core", "core_chars", "added", "strengthened", "retired", "dead_lessons", "trigger_overlap", "unlabelled_pairs"]
+KPI_ORDER = ["precision", "recall", "f1", "effective_recall", "noise_rate", "avg_inject_chars", "kw_precision", "kw_recall", "kw_f1", "kw_effective_recall", "kw_noise_rate", "judge_sanity", "label_coverage_gap", "live_precision_kw", "live_precision_kw_prior", "judged_injections_prior", "corrections", "repeat_mistakes_week", "capture_leak", "turns_logged", "turns_all", "corrections_per_100", "arm_injected_turns", "arm_holdout_turns", "arm_injected_corrections", "arm_holdout_corrections", "arm_injected_corrections_per_100", "arm_holdout_corrections_per_100", "arm_injected_repeat_mistakes", "arm_holdout_repeat_mistakes", "arm_injected_repeats_per_100", "arm_holdout_repeats_per_100", "holdout_min_sample_ok", "live_precision_jev", "graded_injections_jev", "live_precision_withheld", "graded_withheld", "injections", "jev_picked_injections", "judged_injections", "unjudged_rows", "sessions", "active", "core", "core_chars", "added", "strengthened", "retired", "dead_lessons", "unexercised_young", "trigger_overlap", "unlabelled_pairs"]
 
 
 DISPLAY = {"effective_recall": "effective_recall (incl. always-loaded core)",

@@ -1,6 +1,6 @@
 ---
 id: 2026-11-14-public-review-comment-hold-filter-never-hold
-triggers: reviews, moderation, blocklist, profanity filter, hold words, comments, jeevana
+triggers: reviews, review, moderation, blocklist, profanity filter, hold words, bad words, review form, comments, jeevana
 scope: all
 strength: 2
 status: active

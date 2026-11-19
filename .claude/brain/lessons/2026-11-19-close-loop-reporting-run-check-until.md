@@ -6,7 +6,7 @@ strength: 3
 status: active
 created: 2026-11-19
 confirmed: 2026-11-19
-source:
+source: a261302300f6 operator 'no not verified ever again' 2026-11-19 (lesson-add commit)
 supersedes: 2026-09-16-no-done-claims-list-honest-gaps
 ---
 Close every loop before reporting: run each check until it passes (CI green, live probe, replay). Never claim done on an unchecked item; list a gap only if it needs what only the operator holds (credential, decision, future event)

@@ -41,7 +41,7 @@ def sandbox(tmp_path, monkeypatch):
     return tmp_path
 
 
-def lesson(lid, rule, triggers, strength=2):
+def lesson(lid, rule, triggers, strength=2, created="2026-11-01"):
     brain.save(
         brain.Lesson(
             id=lid,
@@ -49,8 +49,8 @@ def lesson(lid, rule, triggers, strength=2):
             why="w",
             triggers=brain._split_list(triggers),
             strength=strength,
-            created="2026-11-01",
-            confirmed="2026-11-01",
+            created=created,
+            confirmed=created,
             source="CLAUDE.md",
         )
     )
@@ -529,9 +529,23 @@ def test_core_lesson_is_never_dead_but_orphan_still_is(sandbox):
     setup_world()
     # Neither lesson matches any benchmark prompt or live row; only strength differs.
     lesson("corecase", "Demo exactly the platform the client named.", "zzqplatform", strength=3)
-    lesson("orphan", "Pull container images via a mirror in cloud sessions.", "zzqdocker", strength=1)
+    lesson("orphan", "Pull container images via a mirror in cloud sessions.", "zzqdocker", strength=1,
+           created="2026-10-01")
     _, row = ev.run(label=True, dry_run=True)
     dead = row["kpis"]["dead_lessons"]
     assert "corecase" in {x.id for x in brain.core(brain.load()[0])}
     assert "corecase" not in dead, "core lessons load every session; never dead"
     assert "orphan" in dead, "the dead-lesson check must still fire on a real orphan"
+
+
+def test_young_unexercised_lesson_is_not_dead_until_grace_ends(sandbox, monkeypatch):
+    setup_world()  # BRAIN_TODAY 2026-11-12
+    lesson("young", "Hold the cache key per tenant.", "zzqtenant", strength=1, created="2026-11-10")
+    lesson("old", "Mirror container pulls.", "zzqmirror", strength=1, created="2026-10-01")
+    _, row = ev.run(label=True, dry_run=True)
+    k = row["kpis"]
+    assert "young" not in k["dead_lessons"] and "young" in k["unexercised_young"]
+    assert "old" in k["dead_lessons"] and "old" not in k["unexercised_young"]
+    monkeypatch.setenv("BRAIN_TODAY", "2026-11-24")  # 14 days after creation: grace over
+    _, row2 = ev.run(label=True, dry_run=True)
+    assert "young" in row2["kpis"]["dead_lessons"]

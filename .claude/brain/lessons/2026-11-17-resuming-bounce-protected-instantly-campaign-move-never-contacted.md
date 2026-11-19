@@ -1,6 +1,6 @@
 ---
 id: 2026-11-17-resuming-bounce-protected-instantly-campaign-move-never-contacted
-triggers: bounce protection, resume campaign, paused high bounce, instantly
+triggers: bounce protection, resume campaign, paused high bounce, instantly, resume, unpause, bounce, bounces, paused
 scope: all
 strength: 2
 status: active
