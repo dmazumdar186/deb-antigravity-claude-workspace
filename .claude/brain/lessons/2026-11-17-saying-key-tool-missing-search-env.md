@@ -2,7 +2,7 @@
 id: 2026-11-17-saying-key-tool-missing-search-env
 triggers: missing key, need api key, verifier, reoon, millionverifier, credential not set
 scope: all
-strength: 2
+strength: 3
 status: active
 created: 2026-11-17
 confirmed: 2026-11-17
