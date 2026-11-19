@@ -236,9 +236,10 @@ function renderComposition(width, height, seed, variant, brandRgb) {
       const grain = grainMap[by * blocksX + bx];
       color = [color[0] + grain, color[1] + grain, color[2] + grain];
 
-      // Light posterization trims entropy for DEFLATE without visibly
-      // banding the gradient.
-      const STEP = 2;
+      // Posterization trims entropy for DEFLATE; the +/-8 grain dithers the
+      // steps so the gradient does not band. STEP 2 -> 4 (2026-11-19) brought
+      // every hero under the 250 KB budget and the page under 1.5 MB.
+      const STEP = 4;
       const idx = (y * width + x) * 3;
       buf[idx] = Math.max(0, Math.min(255, Math.round(Math.round(color[0] / STEP) * STEP)));
       buf[idx + 1] = Math.max(0, Math.min(255, Math.round(Math.round(color[1] / STEP) * STEP)));

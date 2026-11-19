@@ -59,25 +59,50 @@ export function encodePng(width, height, rgb) {
   ihdr.writeUInt8(0, 11); // filter
   ihdr.writeUInt8(0, 12); // interlace
 
-  // Raw scanlines: row 0 uses filter type None, subsequent rows use filter
-  // type Up (byte = raw - prior, mod 256) which compresses our smooth
-  // gradient content far better than None does.
+  // Raw scanlines: each row picks the filter (None/Sub/Up/Average/Paeth) whose
+  // output has the smallest sum of absolute signed bytes (the libpng
+  // heuristic). Lossless: pixels are identical, only DEFLATE input changes.
+  // Up-only output pushed hero-01 to 317 KB vs the 250 KB budget (2026-11-19).
   const stride = width * 3;
+  const bpp = 3;
   const src = Buffer.isBuffer(rgb) ? rgb : Buffer.from(rgb.buffer, rgb.byteOffset, rgb.byteLength);
   const raw = Buffer.alloc((stride + 1) * height);
+  const cand = [0, 1, 2, 3, 4].map(() => Buffer.alloc(stride));
   for (let y = 0; y < height; y++) {
-    const rowStart = y * (stride + 1);
-    const srcStart = y * stride;
-    if (y === 0) {
-      raw[rowStart] = 0; // None
-      src.copy(raw, rowStart + 1, srcStart, srcStart + stride);
-    } else {
-      raw[rowStart] = 2; // Up
-      const priorStart = srcStart - stride;
+    const cur = y * stride;
+    const prev = cur - stride;
+    let best = 0;
+    let bestScore = Infinity;
+    for (let f = 0; f <= 4; f++) {
+      const out = cand[f];
+      let score = 0;
       for (let i = 0; i < stride; i++) {
-        raw[rowStart + 1 + i] = (src[srcStart + i] - src[priorStart + i]) & 0xff;
+        const x = src[cur + i];
+        const a = i >= bpp ? src[cur + i - bpp] : 0;
+        const b = y > 0 ? src[prev + i] : 0;
+        const c = y > 0 && i >= bpp ? src[prev + i - bpp] : 0;
+        let pred = 0;
+        if (f === 1) pred = a;
+        else if (f === 2) pred = b;
+        else if (f === 3) pred = (a + b) >> 1;
+        else if (f === 4) {
+          const pa = Math.abs(b - c);
+          const pb = Math.abs(a - c);
+          const pc = Math.abs(a + b - 2 * c);
+          pred = pa <= pb && pa <= pc ? a : pb <= pc ? b : c;
+        }
+        const v = (x - pred) & 0xff;
+        out[i] = v;
+        score += v < 128 ? v : 256 - v;
+      }
+      if (score < bestScore) {
+        bestScore = score;
+        best = f;
       }
     }
+    const rowStart = y * (stride + 1);
+    raw[rowStart] = best;
+    cand[best].copy(raw, rowStart + 1);
   }
 
   const idatData = zlib.deflateSync(raw, { level: 9 });

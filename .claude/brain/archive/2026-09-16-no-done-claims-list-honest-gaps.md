@@ -3,7 +3,7 @@ id: 2026-09-16-no-done-claims-list-honest-gaps
 triggers: done, shipped, complete, finished, status update, handoff, panel
 scope: all
 strength: 3
-status: active
+status: archived
 created: 2026-09-16
 confirmed: 2026-09-16
 source: .claude/memory/panel_roster.md
