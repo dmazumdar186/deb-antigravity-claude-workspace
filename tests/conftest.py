@@ -79,3 +79,21 @@ def skip_if_upstream_exhausted(exc):
     for m in markers:
         if m.lower() in low:
             pytest.skip(f"upstream quota/credits exhausted (environmental): {m}")
+
+
+# 2026-11-19: the cloud environment carries the real TELEGRAM_BOT_TOKEN/CHAT_ID, so running
+# the med-spa suite posted hundreds of fixture alerts ("SEND HALTED", "Test Med Spa") to the
+# operator's Telegram. Strip every real notifier credential for the whole test run; tests that
+# exercise a sender set fake values themselves via monkeypatch and mock the HTTP call.
+import pytest  # noqa: E402
+
+_NOTIFIER_ENV_PREFIXES = ("TELEGRAM_",)
+
+
+@pytest.fixture(autouse=True)
+def _no_real_notifications(monkeypatch):
+    import os
+
+    for key in list(os.environ):
+        if key.startswith(_NOTIFIER_ENV_PREFIXES):
+            monkeypatch.delenv(key, raising=False)
