@@ -93,7 +93,8 @@ def render_page(
                         logger.info("playwright_helpers: clicked consent selector %s", sel)
                         page.wait_for_timeout(500)
                         break
-                except Exception:  # noqa: BLE001 — selector miss is normal
+                except Exception as err:  # noqa: BLE001 — selector miss is normal
+                    logger.debug("playwright_helpers: consent selector %s not clickable: %s", sel, err)
                     continue
 
             # 2. Wait for at least one content selector to be visible.
@@ -104,7 +105,8 @@ def render_page(
                     content_seen = True
                     logger.info("playwright_helpers: content selector %s appeared", sel)
                     break
-                except Exception:  # noqa: BLE001 — selector miss continues to next
+                except Exception as err:  # noqa: BLE001 — selector miss continues to next
+                    logger.debug("playwright_helpers: content selector %s not seen: %s", sel, err)
                     continue
 
             if not content_seen and wait_selectors:
@@ -114,8 +116,8 @@ def render_page(
             # 3. Extra settle time for late-binding XHRs.
             try:
                 page.wait_for_load_state("networkidle", timeout=10000)
-            except Exception:  # noqa: BLE001 — networkidle is best-effort
-                pass
+            except Exception as err:  # noqa: BLE001 — networkidle is best-effort
+                logger.debug("playwright_helpers: networkidle wait did not settle (ignored): %s", err)
             page.wait_for_timeout(extra_wait_ms)
 
             html = page.content()

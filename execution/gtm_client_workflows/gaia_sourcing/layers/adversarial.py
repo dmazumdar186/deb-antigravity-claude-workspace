@@ -338,9 +338,7 @@ def unverified_lines(
     )
 
     for g in gate_results:
-        if not g.passed and g.note:
-            out.append(g.note)
-        elif g.passed and g.note:
+        if not g.passed and g.note or g.passed and g.note:
             out.append(g.note)
     return out
 

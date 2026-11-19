@@ -51,9 +51,7 @@ class Country:
             a = re.escape(_fold(alias))
             if re.search(rf"(?<![a-z0-9]){a}(?![a-z0-9])", hay):
                 return True
-        if self.location_regex is not None and self.location_regex.search(location or ""):
-            return True
-        return False
+        return bool(self.location_regex is not None and self.location_regex.search(location or ""))
 
 
 _GLOBAL_REMOTE = ("remoteok", "weworkremotely")

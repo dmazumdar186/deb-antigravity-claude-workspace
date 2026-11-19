@@ -430,9 +430,8 @@ def _call_f5_modal(modal_cls, ref_wav: Path, ref_text: str, gen_text: str, remov
         gen_text=gen_text,
         remove_silence=remove_silence,
     )
-    tmp = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
-    tmp.write(wav_bytes)
-    tmp.close()
+    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+        tmp.write(wav_bytes)
     return Path(tmp.name)
 
 

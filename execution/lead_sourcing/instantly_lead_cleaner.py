@@ -173,9 +173,7 @@ def looks_like_given_name(tok: str) -> bool:
     if low in COMMON_WORDS:
         return False
     # concatenated brand handles like cocoonyoga / puppyyogabordeaux / yogabss
-    if any(w in low for w in ("yoga", "yogi", "pilates", "studio", "zen", "bordeaux", "lille", "lyon", "paris", "club", "centre")):
-        return False
-    return True
+    return not any(w in low for w in ("yoga", "yogi", "pilates", "studio", "zen", "bordeaux", "lille", "lyon", "paris", "club", "centre"))
 
 
 def domain_of(url: str) -> str:

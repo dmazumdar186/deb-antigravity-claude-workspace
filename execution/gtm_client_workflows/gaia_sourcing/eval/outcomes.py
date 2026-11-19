@@ -68,9 +68,8 @@ def record_outcome(
         by=by,
     )
     path.parent.mkdir(parents=True, exist_ok=True)
-    with _WRITE_LOCK:
-        with path.open("a", encoding="utf-8") as fh:
-            fh.write(outcome.model_dump_json() + "\n")
+    with _WRITE_LOCK, path.open("a", encoding="utf-8") as fh:
+        fh.write(outcome.model_dump_json() + "\n")
     return outcome
 
 

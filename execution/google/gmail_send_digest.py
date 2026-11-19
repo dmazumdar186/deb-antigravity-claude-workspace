@@ -64,8 +64,9 @@ def _build_smtp_config(override: "dict | None" = None) -> dict:
             base["port"] = int(smtp_cfg["port"])
         if "use_tls" in smtp_cfg:
             base["use_tls"] = bool(smtp_cfg["use_tls"])
-    except Exception:
-        pass  # Config file missing or malformed — rely on env / defaults
+    except Exception as exc:
+        # Config file missing or malformed — rely on env / defaults
+        logger.debug("SMTP config file missing or malformed, using env/defaults: %s", exc)
 
     # Layer 2: environment variables
     env_user = os.environ.get("GMAIL_SMTP_USER", "").strip()

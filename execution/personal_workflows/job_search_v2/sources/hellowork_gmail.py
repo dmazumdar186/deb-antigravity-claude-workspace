@@ -313,8 +313,8 @@ def fetch_via_imap(
     finally:
         try:
             imap.logout()
-        except Exception:  # noqa: BLE001 — best-effort cleanup
-            pass
+        except Exception as err:  # noqa: BLE001 — best-effort cleanup
+            logger.debug("hellowork_gmail: IMAP logout failed (ignored): %s", err)
 
     logger.info("hellowork_gmail [imap]: emitted %d jobs", len(jobs))
     return jobs

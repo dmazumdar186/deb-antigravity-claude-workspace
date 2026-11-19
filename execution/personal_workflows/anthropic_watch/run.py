@@ -168,9 +168,7 @@ def _heuristic_tag(items: list[dict]) -> list[dict]:
         title_lower = (item["title"] + " " + item["raw_excerpt"][:200]).lower()
         if "deprecat" in title_lower or "sunset" in title_lower or "end of life" in title_lower:
             item["priority"], item["tag"] = "high", "deprecation"
-        elif item["source"].startswith("npm/") or item["source"].startswith("github/"):
-            item["priority"], item["tag"] = "high", "release"
-        elif "model" in title_lower and ("new" in title_lower or "introducing" in title_lower or "launch" in title_lower):
+        elif item["source"].startswith("npm/") or item["source"].startswith("github/") or "model" in title_lower and ("new" in title_lower or "introducing" in title_lower or "launch" in title_lower):
             item["priority"], item["tag"] = "high", "release"
         else:
             item["priority"], item["tag"] = "low", "announcement"

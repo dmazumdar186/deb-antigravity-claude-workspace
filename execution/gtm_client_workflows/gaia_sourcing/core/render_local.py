@@ -98,8 +98,8 @@ def _get_browser():
             logger.warning("render_local: browser launch failed (%s)", type(exc).__name__)
             try:
                 pw.stop()  # type: ignore[possibly-undefined]
-            except Exception:
-                pass
+            except Exception as stop_exc:
+                logger.debug("render_local: playwright stop after failed launch failed: %s", stop_exc)
             _STATE["unavailable"] = True
             return None
 
@@ -115,15 +115,15 @@ def _close_browser() -> None:
         if browser is not None:
             try:
                 browser.close()
-            except Exception:
+            except Exception as exc:
                 # Best-effort cleanup at interpreter exit; nothing downstream
                 # depends on this succeeding.
-                pass
+                logger.debug("render_local: browser close at exit failed: %s", exc)
         if pw is not None:
             try:
                 pw.stop()
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.debug("render_local: playwright stop at exit failed: %s", exc)
         _STATE["browser"] = None
         _STATE["playwright"] = None
 
@@ -153,19 +153,19 @@ def render_page_text(
         page.wait_for_timeout(wait_ms)
         try:
             page.wait_for_load_state("networkidle", timeout=10000)
-        except Exception:
+        except Exception as err:
             # Some directories keep a long-poll or analytics beacon open
             # forever; networkidle never fires and that's fine -- the
             # domcontentloaded + fixed wait above already got the content.
-            pass
+            logger.debug("render_local: networkidle wait did not settle (ignored): %s", err)
 
         # Lazy-loaded directories (infinite scroll, "load more on scroll")
         # only populate once scrolled into view at least once.
         try:
             page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
             page.wait_for_timeout(300)
-        except Exception:
-            pass
+        except Exception as err:
+            logger.debug("render_local: scroll-to-bottom failed (ignored): %s", err)
 
         text = page.evaluate("document.body.innerText")
         title = page.title()
@@ -177,5 +177,5 @@ def render_page_text(
         if page is not None:
             try:
                 page.close()
-            except Exception:
-                pass
+            except Exception as err:
+                logger.debug("render_local: page close failed: %s", err)

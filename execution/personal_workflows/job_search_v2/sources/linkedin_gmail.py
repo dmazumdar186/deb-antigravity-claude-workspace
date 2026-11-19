@@ -674,8 +674,8 @@ def fetch_via_imap(
     finally:
         try:
             imap.logout()
-        except Exception:  # noqa: BLE001 — best-effort cleanup
-            pass
+        except Exception as err:  # noqa: BLE001 — best-effort cleanup
+            logger.debug("linkedin_gmail: IMAP logout failed (ignored): %s", err)
 
     logger.info("linkedin_gmail [imap]: emitted %d SourceJob(s)", len(jobs))
     return jobs

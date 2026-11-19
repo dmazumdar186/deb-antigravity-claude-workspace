@@ -519,8 +519,8 @@ def _open_sheet(spreadsheet_id: str | None, service_account_path: Path | None):
             # Older gspread — patch session directly.
             try:
                 client.session.request = _timeout_wrap(client.session.request, 60)
-            except Exception:  # noqa: BLE001 — best effort
-                pass
+            except Exception as err:  # noqa: BLE001 — best effort
+                logger.debug("could not patch gspread session timeout: %s", err)
         return client.open_by_key(spreadsheet_id), None
     except Exception as exc:  # noqa: BLE001 — auth or open failure
         return None, f"setup failed: {exc}"

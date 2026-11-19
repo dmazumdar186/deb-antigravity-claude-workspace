@@ -146,9 +146,7 @@ def _exact_key_conflict(a: RawPersonRecord, b: RawPersonRecord) -> bool:
     """True when a and b are barred from ever being merged, by any rule."""
     if a.register_number and b.register_number and a.register_number.strip() != b.register_number.strip():
         return True
-    if a.linkedin_url and b.linkedin_url and _normalise_token(a.linkedin_url) != _normalise_token(b.linkedin_url):
-        return True
-    return False
+    return bool(a.linkedin_url and b.linkedin_url and _normalise_token(a.linkedin_url) != _normalise_token(b.linkedin_url))
 
 
 def _exact_match(a: RawPersonRecord, b: RawPersonRecord) -> Optional[str]:

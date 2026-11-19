@@ -32,6 +32,7 @@ import asyncio
 import base64
 import hashlib
 import json
+import logging
 import os
 from dataclasses import dataclass
 from datetime import datetime, time as dt_time, timedelta, timezone
@@ -39,6 +40,8 @@ from pathlib import Path
 from typing import Any
 
 import modal
+
+logger = logging.getLogger(__name__)
 
 APP_NAME = "gemini-live-dental-fr"
 CLINIC_NAME = "Cabinet Dentylis"
@@ -378,8 +381,8 @@ def fastapi_app():
             try:
                 await websocket.send_json({"type": "error", "detail": str(exc)[:300]})
                 await websocket.close()
-            except Exception:
-                pass
+            except Exception as send_exc:
+                logger.debug("could not send error to websocket client: %s", send_exc)
 
     return api
 

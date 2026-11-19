@@ -7,9 +7,12 @@ outputs: Pure functions over an HTML string — no filesystem or network side ef
 
 from __future__ import annotations
 
+import logging
 import re
 from datetime import datetime, timezone
 from html.parser import HTMLParser
+
+logger = logging.getLogger(__name__)
 
 MAX_SITE_TEXT_CHARS = 6000
 _CURRENT_YEAR = datetime.now(timezone.utc).year
@@ -91,8 +94,8 @@ def site_text(html: str) -> str:
     parser = _VisibleTextParser()
     try:
         parser.feed(html)
-    except Exception:  # noqa: BLE001 — malformed HTML must never crash the audit; return what we got
-        pass
+    except Exception as exc:  # noqa: BLE001 — malformed HTML must never crash the audit; return what we got
+        logger.debug("HTML parser stopped on malformed input: %s", exc)
     text = " ".join(parser.chunks)
     text = re.sub(r"\s+", " ", text).strip()
     return text[:MAX_SITE_TEXT_CHARS]

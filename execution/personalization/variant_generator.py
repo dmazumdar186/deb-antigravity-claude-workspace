@@ -115,9 +115,7 @@ def validate_variant(body: str, constraints: dict) -> bool:
     max_sentences = constraints.get("max_sentences", 3)
     if len(sentences) > max_sentences:
         return False
-    if constraints.get("no_exclamation_marks", True) and "!" in body:
-        return False
-    return True
+    return not (constraints.get("no_exclamation_marks", True) and "!" in body)
 
 
 def generate_mock_variant(human_variants: list[dict]) -> dict:

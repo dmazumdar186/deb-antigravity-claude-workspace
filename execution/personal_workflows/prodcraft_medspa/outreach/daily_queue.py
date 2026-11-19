@@ -319,9 +319,7 @@ def _needs_operator_input(row: dict) -> bool:
     if not notes.get("needs_operator_input"):
         return False
     lint_parked = int(notes.get("lint_fail_count") or 0) >= LINT_FAIL_LIMIT
-    if notes.get("loom_url") and not lint_parked:
-        return False
-    return True
+    return not (notes.get("loom_url") and not lint_parked)
 
 
 def _preview_evidence(row: dict, st: Any) -> str:

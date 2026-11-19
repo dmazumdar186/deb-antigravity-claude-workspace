@@ -7,12 +7,15 @@ outputs: PNG files under .tmp/prodcraft_medspa/screenshots/ and (Supabase store)
 
 from __future__ import annotations
 
+import logging
 import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
 
 from execution.personal_workflows.prodcraft_medspa.common import config, http
+
+logger = logging.getLogger(__name__)
 
 os.environ.setdefault("PLAYWRIGHT_BROWSERS_PATH", "/opt/pw-browsers")
 _LOCAL_CHROMIUM = "/opt/pw-browsers/chromium"
@@ -62,7 +65,8 @@ def _cta_above_fold(page) -> bool:  # noqa: ANN001 — playwright Page, optional
             box = el.bounding_box()
             if box and box["y"] < MOBILE_VIEWPORT["height"] and box["y"] >= -box["height"]:
                 return True
-        except Exception:  # noqa: BLE001 — a single stale/detached element must not abort the check
+        except Exception as exc:  # noqa: BLE001 — a single stale/detached element must not abort the check
+            logger.debug("element visibility check failed, skipping element: %s", exc)
             continue
     return False
 

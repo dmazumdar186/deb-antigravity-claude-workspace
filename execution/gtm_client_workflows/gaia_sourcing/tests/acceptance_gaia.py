@@ -20,12 +20,15 @@ import io
 import json
 import re
 import html as html_mod
+import logging
 import sys
 from pathlib import Path
 
 from ..core.config import CONFIG, PKG_ROOT, PRIVACY_NOTICE_URL, WORKSPACE_ROOT
 from ..layers import gates
 from ..roles import ROLE1, ROLE2, is_client_side
+
+logger = logging.getLogger(__name__)
 
 OUT = CONFIG.deliverables_dir  # per campaign (GAIA_CAMPAIGN_ID)
 RUN = CONFIG.run_dir  # per campaign (GAIA_CAMPAIGN_ID)
@@ -305,7 +308,8 @@ def main() -> int:
                 continue
             try:
                 rec = json.loads(line)
-            except Exception:
+            except Exception as exc:
+                logger.debug("skipping unparseable JSONL line: %s", exc)
                 continue
             if rec.get("text_source") == "ocr" and rec["doc_id"] in cited_doc_ids:
                 ocr_ids.add(rec["doc_id"])

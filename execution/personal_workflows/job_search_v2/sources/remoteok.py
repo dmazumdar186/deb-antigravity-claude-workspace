@@ -72,9 +72,7 @@ def _is_relevant(job: dict) -> bool:
     if any(s in title_low for s in RELEVANT_TITLE_SUBSTRS):
         return True
     tags = {str(t).lower() for t in (job.get("tags") or [])}
-    if tags & RELEVANT_TAGS:
-        return True
-    return False
+    return bool(tags & RELEVANT_TAGS)
 
 
 def _to_source_job(job: dict) -> SourceJob | None:

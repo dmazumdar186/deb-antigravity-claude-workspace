@@ -20,6 +20,7 @@ Roles, not model names, are what callers ask for.
 from __future__ import annotations
 
 import json
+import logging
 import threading
 import time
 import urllib.error
@@ -29,6 +30,8 @@ from pathlib import Path
 from typing import Any, Optional
 
 from .config import CONFIG, PKG_ROOT, secret
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Persistent cross-run spend ledger (the operator has exactly $30 of
@@ -52,9 +55,8 @@ def _append_ledger(campaign_id: str, role: str, model: str, cost_eur: float) -> 
     }
     try:
         LEDGER_PATH.parent.mkdir(parents=True, exist_ok=True)
-        with _LEDGER_LOCK:
-            with LEDGER_PATH.open("a", encoding="utf-8") as fh:
-                fh.write(json.dumps(record, ensure_ascii=False) + "\n")
+        with _LEDGER_LOCK, LEDGER_PATH.open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(record, ensure_ascii=False) + "\n")
     except OSError as exc:
         # A read-only/full filesystem must not fail the call that already
         # happened and already spent real money -- but a silent ledger gap
@@ -604,8 +606,9 @@ def call_role(
             body = b""
             try:
                 body = exc.read()[:300]
-            except Exception:
-                pass  # error body is diagnostic only; absence must not mask `exc`
+            except Exception as read_exc:
+                # error body is diagnostic only; absence must not mask `exc`
+                logger.debug("could not read HTTP error body: %s", read_exc)
             raise RuntimeError(
                 "LLM " + provider + "/" + model + " HTTP " + str(code) + ": "
                 + body.decode("utf-8", errors="replace")

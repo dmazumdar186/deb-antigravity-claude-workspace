@@ -277,9 +277,8 @@ def lens_code_health(files: list[Path], timeout: int) -> dict[str, Any]:
                 broad = node.type is None or (isinstance(node.type, ast.Name) and node.type.id in ("Exception", "BaseException"))
                 if node.type is None or (broad and swallow):
                     bare += 1
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                if (getattr(node, "end_lineno", node.lineno) - node.lineno) > 120:
-                    long_fn += 1
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and (getattr(node, "end_lineno", node.lineno) - node.lineno) > 120:
+                long_fn += 1
     metrics.update({"ruff_errors": ruff_errors, "bare_excepts": bare, "long_functions": long_fn, "todo_fixme": todo, "py_files": len(py)})
     score = 5.0
     if ruff_errors:

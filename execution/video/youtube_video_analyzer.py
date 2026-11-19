@@ -57,8 +57,8 @@ from pathlib import Path
 try:
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
-except Exception:
-    pass
+except Exception as exc:
+    logging.getLogger("yt_analyzer").debug("stdout/stderr UTF-8 reconfigure skipped: %s", exc)
 
 from dotenv import load_dotenv
 

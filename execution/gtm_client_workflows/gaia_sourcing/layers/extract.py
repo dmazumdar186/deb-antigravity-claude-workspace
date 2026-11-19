@@ -13,6 +13,7 @@ text. Nothing in this module is trusted.
 from __future__ import annotations
 
 import hashlib
+import logging
 import re
 from typing import Optional
 
@@ -24,6 +25,8 @@ from ..core.providers import ROLE_EXTRACT, call_role
 # and org-name-strip patterns rather than re-deriving them, so the two
 # modules can never drift on what counts as residence evidence.
 from .gates import _IE_RE, _IE_ORG_STRIP_RE, _RESIDENCE_SHAPE_RE
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -499,9 +502,10 @@ def extract_from_document(
                     confidence=raw.get("confidence", "inferred"),
                 )
             )
-        except Exception:
+        except Exception as exc:
             # A malformed item is dropped, never repaired. Repairing an
             # LLM's structural error is how invented data enters a pipeline.
+            logger.debug("dropping malformed extracted item: %s", exc)
             continue
 
     hints = {
@@ -724,7 +728,8 @@ def extract_directory(
                         confidence=raw.get("confidence", "inferred"),
                     )
                 )
-            except Exception:
+            except Exception as err:
+                logger.debug("dropping malformed extracted item: %s", err)
                 continue  # malformed item dropped, never repaired
 
         # Turn the firm-default location into real, quoted evidence when the

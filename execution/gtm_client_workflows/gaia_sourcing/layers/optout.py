@@ -85,9 +85,8 @@ def add_optout(
     )
     p = Path(path) if path else DEFAULT_OPTOUT_PATH
     p.parent.mkdir(parents=True, exist_ok=True)
-    with _LOCK:
-        with p.open("a", encoding="utf-8") as fh:
-            fh.write(json.dumps(asdict(record), ensure_ascii=False) + "\n")
+    with _LOCK, p.open("a", encoding="utf-8") as fh:
+        fh.write(json.dumps(asdict(record), ensure_ascii=False) + "\n")
     return record
 
 

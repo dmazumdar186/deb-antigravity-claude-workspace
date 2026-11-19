@@ -26,6 +26,7 @@ import argparse
 import csv
 import html
 import json
+import logging
 import re
 import sys
 from datetime import date
@@ -36,6 +37,8 @@ from ..core.cache import head_ok
 from ..layers.extract import strip_postnominals
 from ..core.config import CONFIG, PKG_ROOT, PRIVACY_NOTICE_URL, WORKSPACE_ROOT
 from ..roles import ROLE1, ROLE2
+
+logger = logging.getLogger(__name__)
 
 RUN_DIR = PKG_ROOT / "run" / CONFIG.campaign_id
 OUT_DIR = CONFIG.deliverables_dir  # per campaign; see core/config.py
@@ -441,7 +444,8 @@ def load_ocr_doc_ids() -> set[str]:
             continue
         try:
             rec = json.loads(line)
-        except Exception:
+        except Exception as exc:
+            logger.debug("skipping torn JSONL line: %s", exc)
             continue  # a torn line loses one document, never the store
         if rec.get("text_source") == "ocr" and rec.get("doc_id"):
             out.add(rec["doc_id"])

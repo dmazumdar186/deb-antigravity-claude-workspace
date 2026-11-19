@@ -237,10 +237,9 @@ def main() -> int:
     parser.add_argument("--reset", action="store_true", help="DROP and recreate the seen table (loses all history).")
     args = parser.parse_args()
 
-    if args.reset:
-        if args.db.exists():
-            args.db.unlink()
-            print(f"reset: deleted {args.db}", file=sys.stderr)
+    if args.reset and args.db.exists():
+        args.db.unlink()
+        print(f"reset: deleted {args.db}", file=sys.stderr)
 
     conn = _open_db(args.db)
     try:

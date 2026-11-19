@@ -34,6 +34,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import logging
 import re
 import shutil
 import subprocess
@@ -42,6 +43,8 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 
 from dotenv import load_dotenv
+
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -520,8 +523,8 @@ def main() -> int:
         try:
             if args.out:
                 append_run_log(args.out.resolve(), "error", {"code": e.code, "message": str(e)})
-        except Exception:  # noqa: BLE001 -- audit-log write is best-effort; main error already surfaced.
-            pass
+        except Exception as exc:  # noqa: BLE001 -- audit-log write is best-effort; main error already surfaced.
+            logger.debug("run-log write failed after error (ignored): %s", exc)
         # Machine-readable exit code lookup for tests + orchestrators.
         return 2
 

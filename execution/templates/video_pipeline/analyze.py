@@ -41,8 +41,8 @@ from pathlib import Path
 try:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
-except Exception:  # noqa: BLE001 — Windows-only reconfigure; safe fallback for non-Windows.
-    pass
+except Exception as exc:  # noqa: BLE001 — Windows-only reconfigure; safe fallback for non-Windows.
+    logging.getLogger("analyze").debug("stdout/stderr UTF-8 reconfigure skipped: %s", exc)
 
 from dotenv import load_dotenv
 

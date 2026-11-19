@@ -10,11 +10,14 @@ outputs: enrich.context.StepResult; on a hit, email_source="contact_page".
 
 from __future__ import annotations
 
+import logging
 import re
 from urllib.parse import urljoin
 
 from .context import StepContext, StepResult
 from .names import extract_emails, extract_name_candidates, strip_html
+
+logger = logging.getLogger(__name__)
 
 NAV_PATHS = ["/about", "/about-us", "/contact", "/team", "/our-team"]
 NAV_LINK_RE = re.compile(r'href=["\']([^"\']*(?:about|contact|team|meet)[^"\']*)["\']', re.IGNORECASE)
@@ -49,7 +52,8 @@ def _fetch_live(business: dict, ctx: StepContext) -> str:
             resp = ctx.session.get(page_url, timeout=10)
             if resp.status_code == 200:
                 pages.append(resp.text)
-        except Exception:  # noqa: BLE001 — a missing subpage is a normal case, not an error
+        except Exception as exc:  # noqa: BLE001 — a missing subpage is a normal case, not an error
+            logger.debug("subpage fetch failed for %s: %s", page_url, exc)
             continue
     return "\n".join(pages)
 

@@ -40,6 +40,7 @@ exact requirement Role 2 is gated on.
 from __future__ import annotations
 
 import json
+import logging
 import re
 from dataclasses import dataclass
 from typing import Iterable, Optional
@@ -48,6 +49,8 @@ from urllib.parse import unquote, urljoin
 from ..core.cache import fetch, fetch_raw
 from ..core.config import CONFIG, secret
 from ..core.contracts import RawDocument
+
+logger = logging.getLogger(__name__)
 
 BASE = "https://www.pleanala.ie"
 
@@ -260,9 +263,7 @@ def witness_statements(case_no: str) -> list[ACPDoc]:
         titled_as_evidence = _is_person_document(d.filename)
         # Inside an oral-hearing folder, a resolvable personal name is enough:
         # ACP does not consistently title these "Witness Statement".
-        if in_oh_folder and d.person_hint:
-            keep.append(d)
-        elif titled_as_evidence and d.person_hint:
+        if in_oh_folder and d.person_hint or titled_as_evidence and d.person_hint:
             keep.append(d)
     return keep
 
@@ -312,7 +313,8 @@ def discover_cases_serper(queries: Iterable[str], per_query: int = 20) -> list[s
             if r.status_code != 200:
                 continue
             payload = r.json()
-        except Exception:
+        except Exception as exc:
+            logger.debug("ACP search query failed, skipping: %s", exc)
             continue
         for item in payload.get("organic", []):
             link = item.get("link", "")

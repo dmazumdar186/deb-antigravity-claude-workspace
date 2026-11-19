@@ -13,12 +13,15 @@ outputs: Stdout report of [OK] / [--MISSING] per check; exit code 0 if all OK, 1
 
 import argparse
 import json
+import logging
 import os
 import re
 import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
+
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -150,8 +153,8 @@ def _check_sheets_api(verbose: bool) -> tuple[bool, str, object]:
                     with key_path.open(encoding="utf-8", errors="replace") as _fh:
                         _key_data = json.load(_fh)
                     sa_email = _key_data.get("client_email", "unknown")
-            except Exception:  # noqa: BLE001 — fallback to generic message is safe
-                pass
+            except Exception as err:  # noqa: BLE001 — fallback to generic message is safe
+                logger.debug("could not read service-account email from key file: %s", err)
             hint = f"403 Forbidden — share the spreadsheet with {sa_email} (Editor)"
         elif "404" in hint or "not found" in hint.lower():
             hint = "404 Not Found — verify SHEETS_SPREADSHEET_ID is the correct spreadsheet ID"

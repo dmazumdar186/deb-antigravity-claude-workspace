@@ -47,24 +47,7 @@ from execution.modules.llm_client import chat_completion  # noqa: E402
 
 CANDIDATE_YEARS = 15
 
-STOP = set("""
-a an and the of to in for with on at by or from as is are be this that de des du la le les un une
-et ou en au aux pour par sur avec dans vous nous vos nos votre notre est sont être avoir plus ans
-years year experience expérience minimum least strong solid good excellent proven ability skills
-skill compétences compétence capacité connaissance connaissances bonne bon maîtrise niveau
-you your will our we work working environment équipe team teams across within including related
-etc ideally idéalement required requis souhaité plus
-reads read took take takes willing step outside traditional past large company demonstrated used
-built build understands understand nuances discuss about care thrives small uses equivalent daily
-himself herself pulls sets not managed owned define defines decides brought deep early stage
-material disposition exceptional excellent strong compelling navigate simplify complex problems
-mindset orientation oriented track record ability able comfortable savvy fluent fluency literacy
-thinking focus focused driven empathy intuition taste judgement judgment before background
-capable capacité force forte fort réelle vraie bonne excellente solide avéré avérée justifier
-justifiez idéalement notamment ainsi aussi également très bien savoir faire être avoir sens goût
-appétence esprit envie souhaitez aimez capacité aptitude démontrée reconnue significative
-approach approche solides concrète concrete plusieurs several création creating
-""".split())
+STOP = set(["a", "an", "and", "the", "of", "to", "in", "for", "with", "on", "at", "by", "or", "from", "as", "is", "are", "be", "this", "that", "de", "des", "du", "la", "le", "les", "un", "une", "et", "ou", "en", "au", "aux", "pour", "par", "sur", "avec", "dans", "vous", "nous", "vos", "nos", "votre", "notre", "est", "sont", "être", "avoir", "plus", "ans", "years", "year", "experience", "expérience", "minimum", "least", "strong", "solid", "good", "excellent", "proven", "ability", "skills", "skill", "compétences", "compétence", "capacité", "connaissance", "connaissances", "bonne", "bon", "maîtrise", "niveau", "you", "your", "will", "our", "we", "work", "working", "environment", "équipe", "team", "teams", "across", "within", "including", "related", "etc", "ideally", "idéalement", "required", "requis", "souhaité", "plus", "reads", "read", "took", "take", "takes", "willing", "step", "outside", "traditional", "past", "large", "company", "demonstrated", "used", "built", "build", "understands", "understand", "nuances", "discuss", "about", "care", "thrives", "small", "uses", "equivalent", "daily", "himself", "herself", "pulls", "sets", "not", "managed", "owned", "define", "defines", "decides", "brought", "deep", "early", "stage", "material", "disposition", "exceptional", "excellent", "strong", "compelling", "navigate", "simplify", "complex", "problems", "mindset", "orientation", "oriented", "track", "record", "ability", "able", "comfortable", "savvy", "fluent", "fluency", "literacy", "thinking", "focus", "focused", "driven", "empathy", "intuition", "taste", "judgement", "judgment", "before", "background", "capable", "capacité", "force", "forte", "fort", "réelle", "vraie", "bonne", "excellente", "solide", "avéré", "avérée", "justifier", "justifiez", "idéalement", "notamment", "ainsi", "aussi", "également", "très", "bien", "savoir", "faire", "être", "avoir", "sens", "goût", "appétence", "esprit", "envie", "souhaitez", "aimez", "capacité", "aptitude", "démontrée", "reconnue", "significative", "approach", "approche", "solides", "concrète", "concrete", "plusieurs", "several", "création", "creating"])
 
 # Equivalences so an EN JD term can be satisfied by the FR CV wording and vice-versa, and so
 # common abbreviations count.

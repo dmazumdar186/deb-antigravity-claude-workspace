@@ -22,12 +22,15 @@ from __future__ import annotations
 import argparse
 import ast
 import json
+import logging
 import os
 import re
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 # Semgrep on Windows Python 3.14 calls Path.home() which raises
 # RuntimeError when neither HOME nor USERPROFILE is set (e.g. in
@@ -307,24 +310,23 @@ def _rule_subprocess_encoding() -> list[dict]:
                 call_text = "\n".join(call_lines)
 
                 # Only flag if a trigger kwarg is present
-                if _SUBPROC_TRIGGER.search(call_text):
-                    # Check if encoding= is also present
-                    if not _SUBPROC_ENCODING.search(call_text):
-                        rel = str(py_path.relative_to(WORKSPACE_ROOT)).replace("\\", "/")
-                        findings.append(
-                            {
-                                "severity": "warn",
-                                "file": rel,
-                                "line": start_lineno,
-                                "rule_id": "subprocess-encoding",
-                                "message": (
-                                    'subprocess.run() with text=True or capture_output=True '
-                                    'is missing encoding="utf-8", errors="replace". '
-                                    "Windows cp1252 default crashes on bytes >= 0x80."
-                                ),
-                                "tool": "workspace-native",
-                            }
-                        )
+                # Check if encoding= is also present
+                if _SUBPROC_TRIGGER.search(call_text) and not _SUBPROC_ENCODING.search(call_text):
+                    rel = str(py_path.relative_to(WORKSPACE_ROOT)).replace("\\", "/")
+                    findings.append(
+                        {
+                            "severity": "warn",
+                            "file": rel,
+                            "line": start_lineno,
+                            "rule_id": "subprocess-encoding",
+                            "message": (
+                                'subprocess.run() with text=True or capture_output=True '
+                                'is missing encoding="utf-8", errors="replace". '
+                                "Windows cp1252 default crashes on bytes >= 0x80."
+                            ),
+                            "tool": "workspace-native",
+                        }
+                    )
                 i = j  # skip past the call block
             else:
                 i += 1
@@ -697,7 +699,8 @@ def _rule_personal_mode_with_pii() -> list[dict]:
                 continue
             try:
                 func_src = ast.get_source_segment(text, node) or ""
-            except Exception:
+            except Exception as exc:
+                logger.debug("could not extract function source: %s", exc)
                 continue
             if not personal_mode_re.search(func_src):
                 continue

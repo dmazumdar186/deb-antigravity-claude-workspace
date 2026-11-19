@@ -36,6 +36,7 @@ indefinitely.
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 from datetime import datetime, timezone
@@ -48,6 +49,8 @@ from ..core.config import PKG_ROOT, secret
 from ..core.contracts import JobSpec, Person, ValidatedClaim
 from ..roles import ROLES
 from . import gates as gates_layer
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Endpoint auth -- a shared-secret header, checked in a pure function so the
@@ -239,7 +242,8 @@ def recut(extract: dict, validate: dict, spec: JobSpec, overrides: dict) -> dict
             continue
         try:
             person = Person(**{k: v for k, v in rec.items() if k in person_fields})
-        except Exception:
+        except Exception as err:
+            logger.debug("skipping person record that failed validation: %s", err)
             continue
         pclaims = by_person.get(pid, [])
         results = gates_layer.run_gates(person, pclaims, working_spec)

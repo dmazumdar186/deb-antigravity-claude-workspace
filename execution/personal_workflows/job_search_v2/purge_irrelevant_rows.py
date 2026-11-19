@@ -592,8 +592,8 @@ def reverify_rows(sp, tabs: list[str] | None = None, dry_run: bool = False, *,
         if browser_cm is not None:
             try:
                 browser_cm.__exit__(None, None, None)
-            except Exception:  # noqa: BLE001 — teardown must never mask the sweep result
-                pass
+            except Exception as err:  # noqa: BLE001 — teardown must never mask the sweep result
+                logger.debug("browser teardown failed (ignored): %s", err)
     return stats
 
 

@@ -137,9 +137,8 @@ def _pull(
 
     if dry_run:
         # Never open the destination; count fetches and short-circuit.
-        page_count = 0
         latest_watermark = since
-        for record in adapter.list_records(since_watermark=since):
+        for page_count, record in enumerate(adapter.list_records(since_watermark=since), start=1):
             stats["records_fetched"] += 1
             internal = to_internal(
                 record,
@@ -153,7 +152,6 @@ def _pull(
                 latest_watermark is None or internal["watermark"] > latest_watermark
             ):
                 latest_watermark = internal["watermark"]
-            page_count += 1
             if page_count >= cfg.sync.max_pages * 100:
                 break
         stats["would_upsert"] = stats["records_fetched"]

@@ -28,6 +28,7 @@ makes `cohen_kappa` meaningful.
 from __future__ import annotations
 
 import json
+import logging
 import threading
 from datetime import datetime, timezone
 from pathlib import Path
@@ -36,6 +37,8 @@ from typing import Literal, Optional, Sequence
 from pydantic import BaseModel, Field
 
 from ..layers.gates import _GRADE_ORDER
+
+logger = logging.getLogger(__name__)
 
 # The exact ladder gates._GRADE_ORDER uses, plus "unknown" for a labeller who
 # cannot tell from the source text. gates._grade_from_title itself returns
@@ -76,9 +79,8 @@ def append_label(label: Label, path: Path = LABELS_PATH) -> None:
     """Append one label. Never overwrites -- two labellers append to the
     same file (or their own files, then get compared via cohen_kappa)."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    with _WRITE_LOCK:
-        with path.open("a", encoding="utf-8") as fh:
-            fh.write(label.model_dump_json() + "\n")
+    with _WRITE_LOCK, path.open("a", encoding="utf-8") as fh:
+        fh.write(label.model_dump_json() + "\n")
 
 
 def load_labels(path: Path = LABELS_PATH) -> list[Label]:
@@ -92,10 +94,11 @@ def load_labels(path: Path = LABELS_PATH) -> list[Label]:
             continue
         try:
             out.append(Label(**json.loads(line)))
-        except Exception:
+        except Exception as exc:
             # A malformed line must not take down the whole scorecard; it is
             # simply not counted as a label. Nothing here can silently
             # fabricate ground truth, so skipping is safe.
+            logger.debug("skipping malformed label line: %s", exc)
             continue
     return out
 
