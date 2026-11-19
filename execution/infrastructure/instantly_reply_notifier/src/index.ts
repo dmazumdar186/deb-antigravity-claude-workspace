@@ -285,7 +285,7 @@ async function handleWebhook(request: Request, env: Env, ctx: ExecutionContext, 
     replySnippet: replyText || "(no text extracted - open the thread in Instantly)",
     category: result.category,
     autoReplied,
-    accountLabel: source === "client" ? (env.CLIENT_ACCOUNT_LABEL || "Client Account") : undefined,
+    accountLabel: undefined, // client-route replies return before this point (never Telegram, 2026-11-19)
   });
 
   let notified = false;
