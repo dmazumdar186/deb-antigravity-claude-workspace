@@ -58,6 +58,9 @@ CORE_MAX_CHARS = 2200
 PROMPT_TOP_K = 3
 PROMPT_MAX_CHARS = 900
 PROMPT_MIN_SCORE = 3.5
+LONG_PROMPT_TERMS = (
+    20  # content words above which two lone one-word trigger hits are not evidence
+)
 HOLDOUT_RATE_DEFAULT = 10  # % of operator turns whose per-prompt lessons are withheld (BRAIN_HOLDOUT_RATE)
 GRADE_MODEL = "claude-sonnet-5-5"  # independent grader of Jev picks; never Jev (see grade_turn)
 GRADE_TIMEOUT_S = 180
@@ -292,6 +295,11 @@ def score(les: Lesson, prompt_norm: str, prompt_terms: set[str]) -> float:
     # generic word ('copy', 'skill', 'retry') clear PROMPT_MIN_SCORE. Live keyword picks scored 0 of 7 relevant
     # (brain eval 2026-11-13/17); benchmark prompts are <= 112 chars, so only a long-prompt replay showed it.
     if not phrase and n_hit < 2:
+        return 0.0
+    # Two generic one-word triggers co-occur by chance in a long prompt or a paste ('reply'+'email' in pasted
+    # alerts, 'hook'+'settings.json' in a pasted explainer): live keyword precision was 1 of 7 (brain eval
+    # 2026-11-19; both 2026-11-19 misses replayed). On a long prompt, demand a phrase trigger or 3 distinct hits.
+    if not phrase and n_hit < 3 and len(prompt_terms) > LONG_PROMPT_TERMS:
         return 0.0
     overlap = len(content_words(les.rule) & prompt_terms)
     return hits + min(2.0, 0.5 * overlap) + 0.25 * les.strength

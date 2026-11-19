@@ -371,6 +371,29 @@ def test_lone_trigger_on_long_prompt_does_not_inject():
     ] == ["p"]
 
 
+def test_two_generic_triggers_on_long_paste_do_not_inject():
+    # 2026-11-19 live misses: 'reply' + 'email' in pasted alert lines injected a red-team lesson.
+    write(
+        "h",
+        "Reject red-team fixes that add hedges.",
+        "reply, email, red team",
+        strength=3,
+    )
+    lessons, _ = brain.load()
+    paste = (
+        "hundreds of these alerts: send halted, bounce rate over threshold, candidates have unapproved "
+        "previews, live sends blocked, reply negative from test spa, owner declined, preview link, "
+        "gmail thread link, email status deliverable, nothing to send today"
+    )
+    assert brain.retrieve(paste, lessons) == []
+    # Short prompt: two one-word hits still count.
+    assert [h[1].id for h in brain.retrieve("draft the reply email", lessons)] == ["h"]
+    # Long prompt with a phrase trigger still counts.
+    assert [
+        h[1].id for h in brain.retrieve(paste + " then run the red team gate", lessons)
+    ] == ["h"]
+
+
 def test_duplicate_triggers_count_once():
     write("d", "Vet a plugin before enabling it.", "plugin, plugins, Plugin")
     lessons, _ = brain.load()
