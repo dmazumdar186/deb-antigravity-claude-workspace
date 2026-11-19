@@ -148,7 +148,7 @@ operator opts into `auto_approve_previews`.
     `PRODCRAFT_RECIPIENT_OVERRIDE` unset (round-3 audit item 8; see CONTRACTS.md "Live-recipients gate"). From here
     the loop is unattended: discover, audit, build, approve (dashboard, or the operator's `approve.py`), pick 5,
     send, scan.
-11. **What the operator does:** read Telegram. A positive or neutral reply arrives as one message (business, owner,
+11. **What the operator does:** read Telegram. Since 2026-11-19 Telegram carries prospect replies only (`notify.reply`); `notify.error` and the weekly report go to the run log instead, and a failed GitHub run is surfaced by GitHub's own failure email. Set `PRODCRAFT_TELEGRAM_ALERTS=all` to restore them. A positive or neutral reply arrives as one message (business, owner,
     summary, suggested next step, preview link, Gmail thread link); answer that thread yourself. Negative replies and
     remove requests both close the row, take the preview down within the 30-minute scan and mark the business
     do-not-contact (they differ only in how the Telegram alert is labelled); bounces feed the 2% halt.

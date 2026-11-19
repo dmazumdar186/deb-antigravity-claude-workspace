@@ -7,6 +7,8 @@ description: Telegram notifier. error() is the error-channel notifier every scri
     compact weekly summary (or "not enough data yet" message) on the same transport.
 inputs: --sample / --sample-reply (CLI); env TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, PRODCRAFT_ENV.
 outputs: A Telegram sendMessage call; stderr log line and False return when env is unset (no-op, no crash).
+    Since 2026-11-19 only reply() posts by default; error()/weekly_report() go to stderr unless
+    PRODCRAFT_TELEGRAM_ALERTS=all (operator: "only alert me on replies").
 """
 
 from __future__ import annotations
@@ -53,6 +55,12 @@ def _is_ci_env(environment: str | None) -> bool:
     return (environment or os.environ.get("PRODCRAFT_ENV") or "local") == "github-actions"
 
 
+def _non_reply_alerts_enabled() -> bool:
+    """Operator decision 2026-11-19: Telegram carries prospect replies only. error() and
+    weekly_report() log to stderr instead of posting, unless PRODCRAFT_TELEGRAM_ALERTS=all."""
+    return os.environ.get("PRODCRAFT_TELEGRAM_ALERTS", "replies").strip().lower() == "all"
+
+
 def error(service: str, error: str, count: int = 1, environment: str | None = None) -> bool:
     """Post `service / environment / error / count` to the Telegram error channel.
 
@@ -66,6 +74,10 @@ def error(service: str, error: str, count: int = 1, environment: str | None = No
     line1 = f"{service} / {env} / {error} / {count}"
     text = f"{line1}\n{timestamp}"
     stderr_text = f"{service} / {env} / [redacted for CI log] / {count}" if _is_ci_env(env) else text
+
+    if not _non_reply_alerts_enabled():
+        print(f"[notify.error, not posted: Telegram is replies-only] {stderr_text}", file=sys.stderr)
+        return False
 
     token = os.environ.get("TELEGRAM_BOT_TOKEN")
     chat_id = os.environ.get("TELEGRAM_CHAT_ID")
@@ -171,6 +183,10 @@ def weekly_report(lines: list[str], environment: str | None = None) -> bool:
     env = environment or os.environ.get("PRODCRAFT_ENV") or "local"
     timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     text = "\n".join(lines[:6] + [f"{env} / {timestamp}"])
+
+    if not _non_reply_alerts_enabled():
+        print(f"[notify.weekly_report, not posted: Telegram is replies-only] {text}", file=sys.stderr)
+        return False
 
     token = os.environ.get("TELEGRAM_BOT_TOKEN")
     chat_id = os.environ.get("TELEGRAM_CHAT_ID")

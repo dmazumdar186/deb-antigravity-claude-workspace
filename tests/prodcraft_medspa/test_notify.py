@@ -124,3 +124,46 @@ def test_sample_reply_cli_runs_without_env(monkeypatch, capsys):
     assert captured.out.strip() == "False"
     assert "ProdCraft reply: POSITIVE from Sample Med Spa" in captured.err
     assert "—" not in captured.err
+
+
+def _arm_fake_telegram(monkeypatch):
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "fake-token")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "fake-chat")
+    posts = []
+
+    class _Resp:
+        def raise_for_status(self):
+            return None
+
+    def _fake_post(url, json, timeout):
+        posts.append(json["text"])
+        return _Resp()
+
+    monkeypatch.setattr("requests.post", _fake_post)
+    return posts
+
+
+def test_error_and_weekly_are_not_posted_by_default(monkeypatch, capsys):
+    monkeypatch.delenv("PRODCRAFT_TELEGRAM_ALERTS", raising=False)
+    posts = _arm_fake_telegram(monkeypatch)
+
+    assert notify.error("prodcraft_medspa.send", "0 candidates, nothing to send today") is False
+    assert notify.weekly_report(["weekly line"]) is False
+    assert posts == []
+    assert "replies-only" in capsys.readouterr().err
+
+
+def test_reply_still_posted_by_default(monkeypatch):
+    monkeypatch.delenv("PRODCRAFT_TELEGRAM_ALERTS", raising=False)
+    posts = _arm_fake_telegram(monkeypatch)
+
+    assert notify.reply(**_sample_reply_kwargs()) is True
+    assert len(posts) == 1 and posts[0].startswith("ProdCraft reply:")
+
+
+def test_all_alerts_opt_in_restores_error_posts(monkeypatch):
+    monkeypatch.setenv("PRODCRAFT_TELEGRAM_ALERTS", "all")
+    posts = _arm_fake_telegram(monkeypatch)
+
+    assert notify.error("svc", "boom") is True
+    assert len(posts) == 1
