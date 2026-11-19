@@ -643,6 +643,16 @@ def test_replies_workflow_guarded_by_cron_enabled_variable():
 # ---------------------------------------------------------------------------
 
 
+# These chains build real previews (`npm run build` -> `next build`). Without the template's
+# node_modules every preview errors, nothing is queued and `sent` is 0, which reads as a pipeline
+# bug. Skip with the fix instead; CI installs the template first (prodcraft_medspa_ci.yml).
+_NEXT_BIN = PKG_ROOT / "template" / "node_modules" / ".bin" / "next"
+requires_template_build = pytest.mark.skipif(
+    not _NEXT_BIN.exists(),
+    reason="template deps missing: run `npm ci` in execution/personal_workflows/prodcraft_medspa/template",
+)
+
+
 def _run(cmd: list[str]) -> subprocess.CompletedProcess:
     # Generous timeout: run_metro.py --mock does a real `npm run build` per preview, which can
     # take well over 5 minutes under concurrent load from other agents' test runs in this repo.
@@ -651,6 +661,7 @@ def _run(cmd: list[str]) -> subprocess.CompletedProcess:
     )
 
 
+@requires_template_build
 def test_daily_mock_chain_ends_with_sent_rows(tmp_path):
     store_root = tmp_path / "store"
 
@@ -724,6 +735,7 @@ def test_daily_exits_nonzero_on_invalid_config_before_any_stage(tmp_path):
     assert "daily_queue output" not in daily.stdout
 
 
+@requires_template_build
 def test_daily_queue_starvation_fix_two_day_simulation(tmp_path):
     """C4 proof, end-to-end: apply_schema -> run_metro --mock -> daily.py (day 1) sends the
     funnel's 4 businesses; a day-2 run with no new eligible businesses drafts 0 (no starvation,

@@ -32,6 +32,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      # The daily mock-chain tests build real previews (`npm run build` -> `next build`),
+      # so the template's node_modules must exist or every preview errors and 0 rows send.
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: npm ci (template, needed by the mock-chain preview build)
+        working-directory: execution/personal_workflows/prodcraft_medspa/template
+        run: npm ci --no-audit --no-fund
+
       - name: pytest
         run: python -m pytest tests/prodcraft_medspa -q
 
