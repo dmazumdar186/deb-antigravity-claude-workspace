@@ -5,6 +5,7 @@ name: prodcraft-medspa-replies
 # the operator flips the `PRODCRAFT_CRON_ENABLED` repo variable to "true" — see
 # directives/personal_workflows/prodcraft_medspa_pipeline.md for the one-time setup this depends on
 # (Supabase project + schema, R2 bucket, Worker deploy, Gmail OAuth token, Telegram channel).
+# Telegram gets positive replies only (operator, 2026-11-19); a failed run shows in the Actions log.
 
 on:
   schedule:
@@ -70,17 +71,3 @@ jobs:
           DASHBOARD_PASS: ${{ secrets.DASHBOARD_PASS }}
         run: |
           python execution/personal_workflows/prodcraft_medspa/scripts/daily.py --replies-only
-
-      - name: Notify Telegram on failure
-        if: failure()
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          PRODCRAFT_ENV: github-actions
-        run: |
-          python -c "
-          import sys
-          sys.path.insert(0, '.')
-          from execution.personal_workflows.prodcraft_medspa.common import notify
-          notify.error('prodcraft_medspa_replies', 'GitHub Actions run failed — see workflow run for details', 1)
-          "

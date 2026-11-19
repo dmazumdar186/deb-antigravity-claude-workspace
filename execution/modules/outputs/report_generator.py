@@ -15,7 +15,6 @@ from email.mime.text import MIMEText
 
 import requests
 
-from modules.outputs.telegram import send_message as telegram_send_message
 from modules.pipeline_utils import retry_with_backoff
 
 logger = logging.getLogger(__name__)
@@ -593,25 +592,12 @@ def send_report_slack(report_slack: str, webhook_url: str) -> bool:
 def send_report_telegram(
     report_text: str, bot_token: str, chat_id: str,
 ) -> bool:
-    """Send a formatted Telegram report via the telegram module.
-
-    Args:
-        report_text: Formatted Telegram message string.
-        bot_token: Telegram Bot API token.
-        chat_id: Telegram chat ID to send to.
-
-    Returns:
-        True on success, False on failure.
+    """Never sends: operator order 2026-11-19 ("any telegram alert should only come from
+    positive replies for my campaigns only, nothing else ever"). Logs the report and returns
+    False. Signature kept so existing callers/configs keep working.
     """
-    if not bot_token or not chat_id:
-        logger.warning("TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not set — skipping report Telegram send.")
-        return False
-
-    try:
-        return telegram_send_message(bot_token, chat_id, report_text, parse_mode="Markdown")
-    except Exception:
-        logger.exception("Failed to send report via Telegram")
-        return False
+    logger.info("Report not sent to Telegram (positive-campaign-replies only):\n%s", report_text)
+    return False
 
 
 # ---------------------------------------------------------------------------

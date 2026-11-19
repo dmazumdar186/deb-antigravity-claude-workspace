@@ -17,7 +17,8 @@ name: prodcraft-medspa-daily
 # "Run metro" step's discovery/audit/enrich/preview chain), well inside the ~64 min sum of the
 # per-step timeouts below and the 75-minute job-level backstop. Steps are ordered and individually
 # timed out so a stuck stage is SIGKILLed on its own step (visible in the run log as *that* step
-# failing) instead of silently eating the whole job budget and skipping sync_sheets/Telegram.
+# failing) instead of silently eating the whole job budget and skipping sync_sheets. Failures show
+# in the Actions run log only: Telegram carries positive campaign replies only (operator, 2026-11-19).
 
 on:
   schedule:
@@ -163,14 +164,3 @@ jobs:
         timeout-minutes: 5
         run: |
           python execution/personal_workflows/prodcraft_medspa/scripts/sync_sheets.py --store supabase
-
-      - name: Notify Telegram on failure
-        if: failure() || cancelled()
-        timeout-minutes: 2
-        run: |
-          python -c "
-          import sys
-          sys.path.insert(0, '.')
-          from execution.personal_workflows.prodcraft_medspa.common import notify
-          notify.error('github-actions.daily', 'workflow failed or was cancelled', 1)
-          "

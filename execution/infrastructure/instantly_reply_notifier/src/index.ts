@@ -2,9 +2,11 @@
  * Instantly Reply Notifier - Cloudflare Worker
  *
  * Receives Instantly reply webhooks, classifies replies with hybrid
- * rules + LLM logic, and sends a Telegram notification only for replies
- * a human actually needs to see (positive / booking-ready / ambiguous).
- * Out-of-office and not-interested replies are silently dropped.
+ * rules + LLM logic, and sends a Telegram notification ONLY for positive /
+ * booking-ready replies to the operator's own campaigns (operator order
+ * 2026-11-19: "positive replies for my campaigns only, nothing else ever").
+ * Neutral, unknown, OOO and not-interested replies, and every reply on the
+ * /webhook/client route, are logged only.
  *
  * Endpoint: POST /webhook          - your primary Instantly account
  * Endpoint: POST /webhook/client   - a second Instantly account (e.g. a client's), notify-only
@@ -223,8 +225,9 @@ async function handleWebhook(request: Request, env: Env, ctx: ExecutionContext, 
   }
 
   // --- Decide whether to notify ---
-  if (!shouldNotify(result)) {
-    console.log(`[webhook] Not notifying - category: ${result.category}`);
+  // Client-account replies are not the operator's campaigns: never Telegram (2026-11-19).
+  if (source === "client" || !shouldNotify(result)) {
+    console.log(`[webhook] Not notifying - source: ${source} | category: ${result.category}`);
     return Response.json({
       ok: true,
       notified: false,

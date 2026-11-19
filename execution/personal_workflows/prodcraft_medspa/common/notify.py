@@ -1,14 +1,13 @@
 """
 notify.py
-description: Telegram notifier. error() is the error-channel notifier every script's top-level
-    failure calls. reply() posts the human-takeover alert scan_replies.py sends the moment a
-    prospect replies positive or neutral (or asks for a call) — the operator's cue to step in
-    manually per the 2026-09-16 operator decision. weekly_report() posts scripts/fit_weights.py's
-    compact weekly summary (or "not enough data yet" message) on the same transport.
+description: Telegram notifier. Operator order 2026-11-19: "any telegram alert should only come
+    from positive replies for my campaigns only, nothing else ever". reply() posts the
+    human-takeover alert ONLY when sentiment == "positive"; every other sentiment (neutral,
+    negative, remove, ...) is logged to stderr. error() (every script's top-level failure path)
+    and weekly_report() (scripts/fit_weights.py's summary) never post: stderr/run log only.
 inputs: --sample / --sample-reply (CLI); env TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, PRODCRAFT_ENV.
-outputs: A Telegram sendMessage call; stderr log line and False return when env is unset (no-op, no crash).
-    Since 2026-11-19 only reply() posts by default; error()/weekly_report() go to stderr unless
-    PRODCRAFT_TELEGRAM_ALERTS=all (operator: "only alert me on replies").
+outputs: A Telegram sendMessage call for positive replies only; otherwise a stderr log line and
+    False return (no opt-in flag restores other alerts: "nothing else ever").
 """
 
 from __future__ import annotations
@@ -55,19 +54,11 @@ def _is_ci_env(environment: str | None) -> bool:
     return (environment or os.environ.get("PRODCRAFT_ENV") or "local") == "github-actions"
 
 
-def _non_reply_alerts_enabled() -> bool:
-    """Operator decision 2026-11-19: Telegram carries prospect replies only. error() and
-    weekly_report() log to stderr instead of posting, unless PRODCRAFT_TELEGRAM_ALERTS=all."""
-    return os.environ.get("PRODCRAFT_TELEGRAM_ALERTS", "replies").strip().lower() == "all"
-
-
 def error(service: str, error: str, count: int = 1, environment: str | None = None) -> bool:
-    """Post `service / environment / error / count` to the Telegram error channel.
-
-    Returns True on a successful send, False on any failure or missing config
-    (in which case the message is also printed to stderr so it isn't lost — redacted to
-    `service / sentiment=n/a / count` under PRODCRAFT_ENV=github-actions, since that stderr is a
-    persisted CI log; the full text still goes to Telegram either way).
+    """Log `service / environment / error / count` to stderr. Never posts to Telegram
+    (operator order 2026-11-19: Telegram carries positive campaign replies only). Always returns
+    False. Under PRODCRAFT_ENV=github-actions the error text is redacted, since that stderr is a
+    persisted CI log.
     """
     env = environment or os.environ.get("PRODCRAFT_ENV") or "local"
     timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -75,29 +66,8 @@ def error(service: str, error: str, count: int = 1, environment: str | None = No
     text = f"{line1}\n{timestamp}"
     stderr_text = f"{service} / {env} / [redacted for CI log] / {count}" if _is_ci_env(env) else text
 
-    if not _non_reply_alerts_enabled():
-        print(f"[notify.error, not posted: Telegram is replies-only] {stderr_text}", file=sys.stderr)
-        return False
-
-    token = os.environ.get("TELEGRAM_BOT_TOKEN")
-    chat_id = os.environ.get("TELEGRAM_CHAT_ID")
-    if not token or not chat_id:
-        print(f"[notify.error, no-op — Telegram not configured] {stderr_text}", file=sys.stderr)
-        return False
-
-    try:
-        import requests
-
-        resp = requests.post(
-            TELEGRAM_API.format(token=token),
-            json={"chat_id": chat_id, "text": text},
-            timeout=20,
-        )
-        resp.raise_for_status()
-        return True
-    except Exception as exc:  # noqa: BLE001 — notify must never raise; log and report failure instead
-        print(f"[notify.error failed: {exc}] {stderr_text}", file=sys.stderr)
-        return False
+    print(f"[notify.error, not posted: Telegram is positive-replies-only] {stderr_text}", file=sys.stderr)
+    return False
 
 
 def reply(
@@ -112,7 +82,9 @@ def reply(
     preview_url: str,
     environment: str | None = None,
 ) -> bool:
-    """Post the human-takeover alert for a positive/neutral reply to the Telegram channel.
+    """Post the human-takeover alert for a POSITIVE reply to the Telegram channel. Any other
+    sentiment (neutral, negative, remove, bounce, ooo) is logged to stderr only and returns False
+    (operator order 2026-11-19: positive campaign replies only, nothing else ever).
 
     Fixed, scannable shape (7 lines, no em-dash anywhere):
         ProdCraft reply: <SENTIMENT> from <business>
@@ -150,6 +122,10 @@ def reply(
         else text
     )
 
+    if (sentiment or "").strip().lower() != "positive":
+        print(f"[notify.reply, not posted: only positive replies go to Telegram] {stderr_text}", file=sys.stderr)
+        return False
+
     token = os.environ.get("TELEGRAM_BOT_TOKEN")
     chat_id = os.environ.get("TELEGRAM_CHAT_ID")
     if not token or not chat_id:
@@ -172,58 +148,37 @@ def reply(
 
 
 def weekly_report(lines: list[str], environment: str | None = None) -> bool:
-    """Post a compact weekly fit_weights summary to the Telegram error channel.
+    """Log a compact weekly fit_weights summary to stderr. Never posts to Telegram (operator
+    order 2026-11-19: positive campaign replies only). Always returns False.
 
     7-line max total (mirrors reply()'s fixed shape): up to 6 content `lines` plus one trailing
     `<environment> / <UTC timestamp>` line appended here. A longer `lines` list is truncated
     rather than raising, since a summary is better than a failed send. No line may contain
-    U+2014 (em-dash) per the workspace's Telegram formatting convention — enforced by the caller
-    (scripts/fit_weights.py), not here. Same transport/env/no-op behavior as error()/reply().
+    U+2014 (em-dash), enforced by the caller (scripts/fit_weights.py), not here.
     """
     env = environment or os.environ.get("PRODCRAFT_ENV") or "local"
     timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     text = "\n".join(lines[:6] + [f"{env} / {timestamp}"])
 
-    if not _non_reply_alerts_enabled():
-        print(f"[notify.weekly_report, not posted: Telegram is replies-only] {text}", file=sys.stderr)
-        return False
-
-    token = os.environ.get("TELEGRAM_BOT_TOKEN")
-    chat_id = os.environ.get("TELEGRAM_CHAT_ID")
-    if not token or not chat_id:
-        print(f"[notify.weekly_report, no-op: Telegram not configured] {text}", file=sys.stderr)
-        return False
-
-    try:
-        import requests
-
-        resp = requests.post(
-            TELEGRAM_API.format(token=token),
-            json={"chat_id": chat_id, "text": text},
-            timeout=20,
-        )
-        resp.raise_for_status()
-        return True
-    except Exception as exc:  # noqa: BLE001 -- notify must never raise; log and report failure instead
-        print(f"[notify.weekly_report failed: {exc}] {text}", file=sys.stderr)
-        return False
+    print(f"[notify.weekly_report, not posted: Telegram is positive-replies-only] {text}", file=sys.stderr)
+    return False
 
 
 def main() -> None:
-    """description: CLI entry — send a sample wire-up check message.
+    """description: CLI entry — local wire-up check that never posts to Telegram.
     inputs: --sample, --sample-reply
-    outputs: stdout True/False of the send result.
+    outputs: stderr log of what would be sent; stdout False (nothing posted).
     """
     parser = argparse.ArgumentParser(description="Telegram notifier")
     parser.add_argument(
         "--sample",
         action="store_true",
-        help="Send 'prodcraft_medspa / local / sample wire-up check / 1' and print the result",
+        help="Log 'prodcraft_medspa / local / sample wire-up check / 1' to stderr (never posted)",
     )
     parser.add_argument(
         "--sample-reply",
         action="store_true",
-        help="Send one synthetic reply() notification (synthetic names only) and print the result",
+        help="Log one synthetic reply() alert to stderr (never posted: a sample is not a real positive reply)",
     )
     args = parser.parse_args()
 
@@ -237,7 +192,7 @@ def main() -> None:
             business_name="Sample Med Spa",
             owner_name="Jordan Sample",
             owner_email="jordan@sample-medspa.test",
-            sentiment="positive",
+            sentiment="sample",  # not "positive": a wire-up sample must never reach Telegram
             summary="Sample reply for the wire-up check, no real prospect involved.",
             suggested_next_step="book_call",
             wants_call=True,

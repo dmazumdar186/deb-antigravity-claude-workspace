@@ -100,13 +100,6 @@ post notify "asks for a call back"              "Can you call me at 555-123-4567
 post notify "wants more info"                   "tell me more about what you do"
 post notify "enthusiastic - 'sooo' not OOO"     "Sooo interested, lets talk this week!"
 post notify "ROI question - not an OOO"         "What is the return on investment for this?"
-post notify "ambiguous - who is this"           "Who is this and how did you get my email?"
-# Annoyance is not a decline. These were classified "negative" by the LLM on
-# 2026-08-25 and silently dropped - a curious lead vanishing is the worst
-# failure this tool has. Keep them pinned.
-post notify "suspicious but engaging"           "How did you get my email address?"
-post notify "terse question mark"               "What is this about?"
-post notify "blunt but no decline"              "I have no idea who you are."
 # Regressions found by code review on 2026-08-25. Every one of these was
 # silently dropped as not_interested / ooo by the shipped classifier while
 # containing explicit buying or scheduling intent. Verified live before the fix.
@@ -121,6 +114,13 @@ post notify "HR-tech lead says leave"                "we build leave management 
 
 echo
 echo "=== MUST STAY SILENT ==="
+# Neutral replies (classifier category "neutral"): since the 2026-11-19 operator
+# order ("positive replies for my campaigns only, nothing else ever") these are
+# logged, not sent to Telegram.
+post drop   "ambiguous - who is this"           "Who is this and how did you get my email?"
+post drop   "suspicious but engaging"           "How did you get my email address?"
+post drop   "terse question mark"               "What is this about?"
+post drop   "blunt but no decline"              "I have no idea who you are."
 post drop   "classic out of office"             "I am currently out of office until Monday."
 post drop   "on leave"                          "I am on leave, be back on the 5th of next month."
 post drop   "not interested + remove"           "Not interested, please remove me."

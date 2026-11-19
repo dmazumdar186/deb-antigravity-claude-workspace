@@ -89,12 +89,12 @@ def test_reply_message_has_fixed_shape_and_no_em_dash(monkeypatch):
 
     monkeypatch.setattr("requests.post", _fake_post)
 
-    result = notify.reply(**_sample_reply_kwargs(sentiment="neutral", wants_call=False))
+    result = notify.reply(**_sample_reply_kwargs(sentiment="positive", wants_call=False))
 
     assert result is True
     text = sent["json"]["text"]
     lines = text.splitlines()
-    assert lines[0] == "ProdCraft reply: NEUTRAL from Glow Aesthetics"
+    assert lines[0] == "ProdCraft reply: POSITIVE from Glow Aesthetics"
     assert "Dana Ortiz" in lines[1]
     assert "owner1@example-medspa-1.test" in lines[1]
     assert lines[2] == "Wants to see more and book a call this week."
@@ -122,7 +122,7 @@ def test_sample_reply_cli_runs_without_env(monkeypatch, capsys):
 
     captured = capsys.readouterr()
     assert captured.out.strip() == "False"
-    assert "ProdCraft reply: POSITIVE from Sample Med Spa" in captured.err
+    assert "ProdCraft reply: SAMPLE from Sample Med Spa" in captured.err
     assert "—" not in captured.err
 
 
@@ -143,27 +143,39 @@ def _arm_fake_telegram(monkeypatch):
     return posts
 
 
-def test_error_and_weekly_are_not_posted_by_default(monkeypatch, capsys):
-    monkeypatch.delenv("PRODCRAFT_TELEGRAM_ALERTS", raising=False)
+def test_error_and_weekly_are_never_posted(monkeypatch, capsys):
+    """Operator order 2026-11-19: no opt-in restores error/weekly alerts ("nothing else ever")."""
+    for flag in (None, "all"):
+        if flag is None:
+            monkeypatch.delenv("PRODCRAFT_TELEGRAM_ALERTS", raising=False)
+        else:
+            monkeypatch.setenv("PRODCRAFT_TELEGRAM_ALERTS", flag)
+        posts = _arm_fake_telegram(monkeypatch)
+
+        assert notify.error("prodcraft_medspa.send", "0 candidates, nothing to send today") is False
+        assert notify.weekly_report(["weekly line"]) is False
+        assert posts == []
+    assert "positive-replies-only" in capsys.readouterr().err
+
+
+def test_only_positive_reply_is_posted(monkeypatch, capsys):
     posts = _arm_fake_telegram(monkeypatch)
 
-    assert notify.error("prodcraft_medspa.send", "0 candidates, nothing to send today") is False
-    assert notify.weekly_report(["weekly line"]) is False
+    for sentiment in ("neutral", "negative", "remove", "bounce", "ooo", "sample", ""):
+        assert notify.reply(**_sample_reply_kwargs(sentiment=sentiment)) is False
+    # wants_call on a non-positive reply is still not posted
+    assert notify.reply(**_sample_reply_kwargs(sentiment="neutral", wants_call=True)) is False
     assert posts == []
-    assert "replies-only" in capsys.readouterr().err
+    assert "only positive replies go to Telegram" in capsys.readouterr().err
+
+    assert notify.reply(**_sample_reply_kwargs(sentiment="positive")) is True
+    assert len(posts) == 1 and posts[0].startswith("ProdCraft reply: POSITIVE from")
 
 
-def test_reply_still_posted_by_default(monkeypatch):
-    monkeypatch.delenv("PRODCRAFT_TELEGRAM_ALERTS", raising=False)
+def test_cli_samples_never_post(monkeypatch, capsys):
     posts = _arm_fake_telegram(monkeypatch)
-
-    assert notify.reply(**_sample_reply_kwargs()) is True
-    assert len(posts) == 1 and posts[0].startswith("ProdCraft reply:")
-
-
-def test_all_alerts_opt_in_restores_error_posts(monkeypatch):
-    monkeypatch.setenv("PRODCRAFT_TELEGRAM_ALERTS", "all")
-    posts = _arm_fake_telegram(monkeypatch)
-
-    assert notify.error("svc", "boom") is True
-    assert len(posts) == 1
+    for flag in ("--sample", "--sample-reply"):
+        monkeypatch.setattr(sys, "argv", ["notify.py", flag])
+        notify.main()
+    assert posts == []
+    assert capsys.readouterr().out.split() == ["False", "False"]

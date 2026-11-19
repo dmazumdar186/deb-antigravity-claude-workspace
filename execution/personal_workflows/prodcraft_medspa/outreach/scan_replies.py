@@ -7,16 +7,16 @@ description: Poll Gmail for replies to `sent` outreach rows, classify each with
     closed_lost + do_not_contact + a preview takedown via the same real unpublish path as remove
     — round-4 audit (Dario lens): the preview watermark promises "Reply 'no' and this preview
     comes down", so a negative reply IS an opt-out; negative and remove differ only in Telegram
-    routing/classification, not in what happens to the business). Per the 2026-09-16 operator decision, a positive or neutral reply (or
-    any reply asking for a call) posts a Telegram alert via common.notify.reply() and the operator
-    takes over manually from there; this script itself never auto-replies. A remove reply also
-    posts the same alert (sentiment forced to "remove") and stamps the row's
+    routing/classification, not in what happens to the business). Per the 2026-09-16 operator decision the operator takes over
+    replies manually (this script never auto-replies). Since the 2026-11-19 operator order only a
+    POSITIVE reply posts a Telegram alert via common.notify.reply(); neutral/negative/remove/
+    wants_call-without-positive are routed through the same call but notify.reply() logs them to
+    stderr only (store event reply_notify_skipped). A remove reply is labeled "remove" and stamps the row's
     `notes.remove_source` ("keyword" under --mock's deterministic matcher, "llm" on the live
     classifier path) so an operator auditing a takedown knows which classifier flagged it.
 inputs: CLI: [--mock] [--store {local,supabase}] [--store-root PATH] [--since-days 14].
 outputs: Store mutations via state_machine.transition / store.update_outreach /
-    store.upsert_business; a Telegram reply alert for positive/neutral/remove (or wants_call)
-    replies; stdout stat line {"script":"scan_replies","checked":n,"positive":n,"neutral":n,
+    store.upsert_business; a Telegram reply alert for positive replies only; stdout stat line {"script":"scan_replies","checked":n,"positive":n,"neutral":n,
     "negative":n,"bounce":n,"ooo":n,"remove":n,"takedowns":[...]}.
 
 Mock classification note (per CONTRACTS.md): common.llm.call(mock=True) always returns the SAME
@@ -346,6 +346,12 @@ def _send_reply_notification(st: Any, updated_row: dict, business: dict, classif
 
     if ok:
         st.update_outreach(updated_row["id"], {"notified_at": _now_iso()})
+    elif classification["sentiment"] != "positive":
+        # Operator order 2026-11-19: Telegram carries positive replies only; notify.reply() logs
+        # every other sentiment to stderr. Record that as a skip, not a delivery failure.
+        st.log_event(
+            "outreach", updated_row["id"], "reply_notify_skipped", {"sentiment": classification["sentiment"]}
+        )
     else:
         st.log_event(
             "outreach", updated_row["id"], "reply_notify_failed", {"sentiment": classification["sentiment"]}

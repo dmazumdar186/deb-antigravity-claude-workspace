@@ -3,7 +3,8 @@
  * ===========================
  * Cloudflare Worker that receives Instantly webhook events for the
  * self_outbound_system_v2 campaign, HMAC-verifies the signature, persists the
- * event to KV (SUPP_EVENTS binding), and fires a Telegram alert.
+ * event to KV (SUPP_EVENTS binding), and logs an alert line (never Telegram since
+ * 2026-11-19: Telegram carries positive campaign replies only).
  *
  * Endpoints:
  *   GET  /health        -> 200 {ok, ts}
@@ -82,29 +83,12 @@ function randomSuffix() {
   return buf[0].toString(36).padStart(6, "0").slice(0, 6);
 }
 
+// Operator order 2026-11-19: "any telegram alert should only come from positive
+// replies for my campaigns only, nothing else ever". Every event this Worker sees
+// is a suppression (negative reply, bounce, unsubscribe, spam), so it never posts:
+// the alert text goes to the Worker log only.
 async function telegramAlert(env, text) {
-  const token = env.TELEGRAM_BOT_TOKEN;
-  const chatId = env.TELEGRAM_CHAT_ID;
-  if (!token || !chatId) return; // alerts optional
-  const url = `https://api.telegram.org/bot${token}/sendMessage`;
-  try {
-    const body = new URLSearchParams({
-      chat_id: chatId,
-      text,
-      parse_mode: "Markdown",
-    });
-    const res = await fetch(url, {
-      method: "POST",
-      body,
-      headers: { "content-type": "application/x-www-form-urlencoded" },
-    });
-    if (!res.ok) {
-      console.warn("telegram alert non-2xx:", res.status);
-    }
-  } catch (err) {
-    // Alert is nice-to-have. Log and swallow — don't fail the webhook write.
-    console.warn("telegram alert failed (swallowed):", err.message);
-  }
+  console.log("[alert, not posted: Telegram is positive-replies-only]", text);
 }
 
 function extractEmail(payload) {

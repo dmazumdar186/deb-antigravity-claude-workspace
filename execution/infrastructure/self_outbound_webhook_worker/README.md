@@ -1,6 +1,6 @@
 # self_outbound_webhook_worker
 
-Cloudflare Worker that receives Instantly webhook events for the `self_outbound_system_v2` campaign, HMAC-verifies the signature, persists the event to KV, and fires a Telegram alert.
+Cloudflare Worker that receives Instantly webhook events for the `self_outbound_system_v2` campaign, HMAC-verifies the signature, persists the event to KV, and logs an alert line (never Telegram since 2026-11-19: Telegram carries positive campaign replies only; the TELEGRAM_* secrets below are unused).
 
 Local sync (Python) reads KV, calls `suppression_writer.add_bulk()`, then deletes consumed KV keys.
 

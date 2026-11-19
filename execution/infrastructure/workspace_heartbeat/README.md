@@ -9,7 +9,7 @@ Three surfaces in one folder:
 
 | File | Runs where | What it does |
 |---|---|---|
-| `src/index.js` + `wrangler.toml` | Cloudflare Worker, scheduled daily at 06:00 UTC | Live-URL probes of every project in `manifest.json`. Persists reports to KV; posts to Telegram if degraded. |
+| `src/index.js` + `wrangler.toml` | Cloudflare Worker, scheduled daily at 06:00 UTC | Live-URL probes of every project in `manifest.json`. Persists reports to KV; logs degraded runs. Never posts to Telegram (operator order 2026-11-19: positive campaign replies only). |
 | `../freshness_monitor.py` | Locally + pre-push hook + weekly report | Reads the SAME manifest, computes git-log + run-log freshness. |
 | `../weekly_hardening_report.py` | Locally (or GH Actions weekly) | Regenerates the workspace HARDENING report each Monday: SAST + freshness + shipped-claim commit sampling + untracked-Pages-Functions scan. |
 
@@ -44,9 +44,7 @@ cd execution/infrastructure/workspace_heartbeat
 npx wrangler kv namespace create HEARTBEAT_KV
 # copy the returned id into wrangler.toml under [[kv_namespaces]] id = "..."
 
-# Optional secrets — omit to disable Telegram alerts.
-npx wrangler secret put TELEGRAM_BOT_TOKEN
-npx wrangler secret put TELEGRAM_CHAT_ID
+# No Telegram secrets: the heartbeat never posts to Telegram (operator order 2026-11-19).
 
 # Required secret — gates POST /run so anyone can't force-run the pipeline.
 npx wrangler secret put PROBE_SECRET
@@ -135,7 +133,7 @@ Update the manifest, re-run `inline_manifest.py`, redeploy. No code change neede
 ## Blockers / owed
 
 - **KV namespace id** — needs `wrangler kv namespace create HEARTBEAT_KV` and paste into `wrangler.toml`. Operator action.
-- **Telegram secrets** — optional. Without them, degraded runs write to KV only (`GET /latest`).
+- **Telegram** — not used. Degraded runs write to KV (`GET /latest`) and the Worker log only.
 - **`PROBE_SECRET`** — required before deploy; blocks `POST /run` from strangers.
 - **Placeholder URLs in `manifest.json`** — a few `<subdomain>` / `debanjan186.workers.dev` guesses need operator verification. `freshness_monitor.py` uses local `git_path` and doesn't care; the Worker probes will just return `PROBE_ERROR` until the URL is correct.
 - **`gh_repo` for `job_search_v2`** — the manifest guesses `dmazumdar186/job_search_v2`; correct if the actual GH username differs.

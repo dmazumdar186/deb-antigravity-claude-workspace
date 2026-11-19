@@ -1,10 +1,11 @@
 name: prodcraft-medspa-weekly
 
-# Every Monday 15:00 UTC: fit_weights.py against the live store, posting the compact weekly
-# summary to Telegram (item 5, learning-systems + long-horizon lenses). Inert until the operator
+# Every Monday 15:00 UTC: fit_weights.py against the live store, writing the compact weekly
+# summary to the run log (item 5). Never posts to Telegram: operator order 2026-11-19, Telegram
+# carries positive campaign replies only. Inert until the operator
 # flips the `PRODCRAFT_CRON_ENABLED` repo variable to "true" — see
 # directives/personal_workflows/prodcraft_medspa_pipeline.md for the one-time setup this depends
-# on (Supabase project + schema, Telegram channel). Mirrors prodcraft_medspa_replies.yml's shape.
+# on (Supabase project + schema). Mirrors prodcraft_medspa_replies.yml's shape.
 
 on:
   schedule:
@@ -48,21 +49,5 @@ jobs:
           PRODCRAFT_LIVE_RECIPIENTS: ${{ vars.PRODCRAFT_LIVE_RECIPIENTS }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           python execution/personal_workflows/prodcraft_medspa/scripts/fit_weights.py --store supabase --report-telegram
-
-      - name: Notify Telegram on failure
-        if: failure()
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          PRODCRAFT_ENV: github-actions
-        run: |
-          python -c "
-          import sys
-          sys.path.insert(0, '.')
-          from execution.personal_workflows.prodcraft_medspa.common import notify
-          notify.error('prodcraft_medspa_weekly', 'GitHub Actions run failed — see workflow run for details', 1)
-          "

@@ -113,28 +113,11 @@ class _FileLock:
 
 
 def _telegram_alert(text: str) -> None:
-    """Fire-and-forget Telegram alert. Silently no-ops if env not configured
-    or if network fails (this is a nice-to-have, not a hard requirement)."""
-    token = os.environ.get("TELEGRAM_BOT_TOKEN")
-    chat_id = os.environ.get("TELEGRAM_CHAT_ID")
-    if not (token and chat_id):
-        log.info("telegram: TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID not set, skipping alert")
-        return
-    try:
-        import urllib.parse
-        import urllib.request
-        url = f"https://api.telegram.org/bot{token}/sendMessage"
-        data = urllib.parse.urlencode({
-            "chat_id": chat_id,
-            "text": text,
-            "parse_mode": "Markdown",
-        }).encode("utf-8")
-        req = urllib.request.Request(url, data=data, method="POST")
-        with urllib.request.urlopen(req, timeout=5) as resp:
-            _ = resp.read()
-    except Exception as e:  # noqa: BLE001
-        # Alert is a nice-to-have. Log and swallow — don't block the suppression write.
-        log.warning(f"telegram alert failed (swallowed to not block suppression write): {e}")
+    """Log-only. Operator order 2026-11-19: "any telegram alert should only come from
+    positive replies for my campaigns only, nothing else ever". A suppression is never a
+    positive reply, so this never posts to Telegram."""
+
+    log.info(f"alert (not posted: Telegram is positive-replies-only): {text}")
 
 
 def add_suppression(

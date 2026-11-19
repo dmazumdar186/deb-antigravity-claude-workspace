@@ -20,7 +20,7 @@ Instantly (reply_received webhook)
         -> Telegram sendMessage, for the categories a human needs to see
 ```
 
-**You get pinged for:** `booking_ready`, `positive`, `neutral` (ambiguous questions like "who is this?"), and `unknown` (LLM error, fails open so nothing is ever silently lost).
+**You get pinged for:** `booking_ready` and `positive` replies on your own (`/webhook`) campaigns only. Operator order 2026-11-19: "any telegram alert should only come from positive replies for my campaigns only, nothing else ever". `neutral`, `unknown` (LLM error / no text), OOO, not-interested, and every `/webhook/client` reply are logged (`wrangler tail`), never sent.
 
 **You do not get pinged for:** `ooo` (out of office, auto-replies), `not_interested` (remove me, unsubscribe, wrong person, etc.).
 
@@ -44,7 +44,7 @@ Hey, sounds interesting! When can we hop on a call this week?
 ### Two accounts, one worker
 
 - `POST /webhook` - your own Instantly account.
-- `POST /webhook/client` - a second Instantly account (a client's, a partner's). **Notify-only.** Messages from this route get a `🏢 CLIENT ACCOUNT 🏢` banner on top so you can never confuse them with your own. Rename the banner with the `CLIENT_ACCOUNT_LABEL` var in `wrangler.toml`.
+- `POST /webhook/client` - a second Instantly account (a client's, a partner's). **Log-only since 2026-11-19** (not the operator's campaigns, so never Telegram). Historically messages from this route got a `🏢 CLIENT ACCOUNT 🏢` banner on top so you can never confuse them with your own. Rename the banner with the `CLIENT_ACCOUNT_LABEL` var in `wrangler.toml`.
 
 Each route has its own webhook secret on purpose: a leak on one account's webhook config cannot forge requests to the other.
 

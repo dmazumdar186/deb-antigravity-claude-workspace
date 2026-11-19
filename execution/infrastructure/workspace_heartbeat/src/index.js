@@ -1,7 +1,7 @@
 // workspace_heartbeat — daily health probe of every deployed project in the
-// workspace. Emits DEGRADED/OK per project, then posts a summary to Telegram
-// (if TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID are set), and always writes the
-// most recent report to KV under `heartbeat:latest` + `heartbeat:<YYYY-MM-DD>`.
+// workspace. Emits DEGRADED/OK per project, logs a summary (never Telegram:
+// operator order 2026-11-19, Telegram carries positive campaign replies only),
+// and always writes the most recent report to KV under `heartbeat:latest` + `heartbeat:<YYYY-MM-DD>`.
 //
 // Two systemic patterns this closes (per HARDENING_BACKLOG_WORKSPACE_2026-08-04):
 //   Pattern A — untracked deployed artifacts (probed here by asserting the
@@ -216,14 +216,10 @@ async function runHeartbeat(env) {
   return summary;
 }
 
+// Operator order 2026-11-19: "any telegram alert should only come from positive
+// replies for my campaigns only, nothing else ever". The degraded summary is
+// logged (wrangler tail) and kept in KV (GET /latest); it is never posted.
 async function notify(env, summary) {
-  const bot = env.TELEGRAM_BOT_TOKEN;
-  const chat = env.TELEGRAM_CHAT_ID;
-  if (!bot || !chat) {
-    console.log("Telegram not configured; skipping alert.");
-    return;
-  }
-
   const lines = [];
   lines.push("*Workspace heartbeat — DEGRADED*");
   lines.push(
@@ -241,26 +237,7 @@ async function notify(env, summary) {
     if (r.freshness && r.freshness.reason) bits.push(r.freshness.reason.slice(0, 120));
     lines.push("- " + bits.join(" · "));
   }
-  const text = lines.join("\n");
-
-  try {
-    const resp = await fetch(`https://api.telegram.org/bot${bot}/sendMessage`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        chat_id: chat,
-        text,
-        parse_mode: "Markdown",
-        disable_web_page_preview: true,
-      }),
-      signal: AbortSignal.timeout(10_000),
-    });
-    if (!resp.ok) {
-      console.error("Telegram sendMessage non-ok:", resp.status, await resp.text());
-    }
-  } catch (err) {
-    console.error("Telegram notify failed:", err.message);
-  }
+  console.log(lines.join("\n"));
 }
 
 export default {

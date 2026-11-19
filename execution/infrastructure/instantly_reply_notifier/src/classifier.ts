@@ -219,11 +219,9 @@ Return only valid JSON: {"category": "positive"|"negative"|"neutral", "confidenc
   }
 }
 
+// Operator order 2026-11-19: "any telegram alert should only come from positive
+// replies for my campaigns only, nothing else ever". Neutral and unknown (fail-open)
+// replies are logged, not sent.
 export function shouldNotify(result: ClassifyResult): boolean {
-  return (
-    result.category === "booking_ready" ||
-    result.category === "positive" ||
-    result.category === "neutral" || // ambiguous/questions - human needs to see these too
-    result.category === "unknown" // fail open
-  );
+  return result.category === "booking_ready" || result.category === "positive";
 }

@@ -1,7 +1,7 @@
 """
 digest.py
-description: Build the daily or weekly digest message from today's .tmp/self_outbound/*.json artifacts. Dry-run prints to stdout; live mode (STUB) would send to Telegram + CC debolshop@gmail.com. Includes anomaly flags (opens<10%, replies<1%, bounces>3%, canary FAIL).
-inputs: --period <daily|weekly>, --tmp <path>, --dry-run/--live. Env (live only): TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID.
+description: Build the daily or weekly digest message from today's .tmp/self_outbound/*.json artifacts. Dry-run prints to stdout; live mode (STUB) would email it (CC debolshop@gmail.com); never Telegram (operator order 2026-11-19: positive campaign replies only). Includes anomaly flags (opens<10%, replies<1%, bounces>3%, canary FAIL).
+inputs: --period <daily|weekly>, --tmp <path>, --dry-run/--live.
 outputs: stdout (dry-run) and .tmp/self_outbound/digest_<date>.txt.
 
 Reads directive: directives/personal_workflows/self_outbound_system.md (Phase 3 script #8).
@@ -112,10 +112,12 @@ def format_digest_text(digest: dict) -> str:
 
 
 def send_live(text: str) -> dict:
-    """Send digest via Telegram + email CC. STUBBED."""
+    """Send digest by email. STUBBED. Never Telegram: operator order 2026-11-19, Telegram
+    carries positive campaign replies only, so a digest must not be wired to it."""
+
     raise NotImplementedError(
-        "Live digest send not implemented. Would POST to Telegram bot API "
-        "and mail via Gmail API. Run --dry-run for now."
+        "Live digest send not implemented (email only when built; never Telegram). "
+        "Run --dry-run for now."
     )
 
 
@@ -127,8 +129,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
                    help="Directory holding today's tmp artifacts.")
     p.add_argument("--dry-run", dest="dry_run", action="store_true", default=True,
                    help="Dry-run (default). Prints to stdout.")
-    p.add_argument("--live", dest="dry_run", action="store_false",
-                   help="Live mode. Sends to Telegram + email.")
+    p.add_argument(
+        "--live",
+        dest="dry_run",
+        action="store_false",
+        help="Live mode (stub). Email only; never Telegram.",
+    )
     return p.parse_args(argv)
 
 

@@ -1,6 +1,8 @@
 """
 telegram.py
-description: Reusable Telegram Bot API notification sender.
+description: Reusable Telegram Bot API notification sender. Since 2026-11-19 (operator order)
+    Telegram may carry ONLY positive replies to the operator's own campaigns; use
+    notify_positive_reply() for that and nothing else. The CLI only prints a sample.
 inputs: Bot token, chat ID, message text or reply data with optional template.
 outputs: HTTP response status.
 """
@@ -95,7 +97,5 @@ if __name__ == "__main__":
 
     formatted = format_positive_reply(sample_reply)
 
-    if args.mock:
-        print(formatted)
-    else:
-        notify_positive_reply(args.bot_token, args.chat_id, sample_reply)
+    # A sample is not a real positive reply: never post it (operator order 2026-11-19).
+    print(formatted)

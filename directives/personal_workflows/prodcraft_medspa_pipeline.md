@@ -24,7 +24,7 @@ daily manual work is sending 10-20 emails from the dashboard's drafts and taking
   `PREVIEW_BASE_DOMAIN`, `GMAIL_CREDENTIALS_JSON`, `GMAIL_TOKEN_JSON`, `TELEGRAM_BOT_TOKEN`,
   `TELEGRAM_CHAT_ID`, `GOOGLE_SHEETS_MIRROR_ID`, `DASHBOARD_USER`, `DASHBOARD_PASS`.
 - `PRODCRAFT_STORE` (`local` | `supabase`, default `local`) and `PRODCRAFT_ENV` (free text, used in
-  Telegram error lines).
+  the stderr error lines).
 - Discovery tiles: `execution/personal_workflows/prodcraft_medspa/discovery/tiles/{metro}.json`.
 - Chain exclusion list: `db/seed_chains.json`. Seeded config (phase0 gate, proof lines, sender
   identity, touch-day plan): `db/seed_config.json`.
@@ -52,7 +52,7 @@ Every script supports `--mock` (fixtures, no network, no secrets) and `--store {
 | `scripts/run_metro.py` | Chains discovery -> audit -> enrich -> preview for one metro; prints the funnel table. |
 | `scripts/daily.py` | The unattended daily loop: advance -> scan_replies -> takedowns -> daily_queue -> send. `--no-send` keeps drafts only; `--recipient-override EMAIL`, `--limit N` pass through to send. |
 | `scripts/doctor.py` | Env-presence + (with `--live`) one cheap authenticated call per service, Node/Chromium/node_modules checks. |
-| `scripts/fit_weights.py` | Per-signal reply rate + point-biserial correlation from real outreach outcomes (never changes weights). `--report-telegram` posts the weekly summary; its last line is `sends vs cap (7d): S/C, per day s/c ...` (from `outreach/send.py`'s `sends_vs_cap`, warmup-ramped cap per day), also on the not-enough-data path. |
+| `scripts/fit_weights.py` | Per-signal reply rate + point-biserial correlation from real outreach outcomes (never changes weights). `--report-telegram` writes the weekly summary to the run log (never Telegram since 2026-11-19); its last line is `sends vs cap (7d): S/C, per day s/c ...` (from `outreach/send.py`'s `sends_vs_cap`, warmup-ramped cap per day), also on the not-enough-data path. |
 | `scripts/set_loom.py` | Touch-2 operator path: `--prospect-id <outreach id or business id> --url https://www.loom.com/share/...` records `notes.loom_url` (https + loom.com only, one validation path, exit 2 when invalid), redrafts a `drafted` row via `state_machine.redraft` only when the URL changed, prints the row state as one JSON line. `--touch N` (default 2) selects which touch's open row a business id resolves to. Idempotent: an unchanged URL neither patches nor redrafts. |
 | `scripts/sync_sheets.py` | Mirrors two tabs, `pipeline` (v_pipeline + outreach/reply columns) and `daily_log` (one row per send), to the Google Sheet `GOOGLE_SHEETS_MIRROR_ID`; `--mock` writes CSVs; `--xlsx PATH` also writes a workbook. |
 | `db/apply_schema.py` | Applies `db/schema.sql` and seeds chains/config into the target store. |
@@ -89,8 +89,8 @@ Every script supports `--mock` (fixtures, no network, no secrets) and `--store {
    `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, then `npm run deploy`.
 4. Gmail OAuth: run the standard Google OAuth installed-app flow for the aged Workspace inbox;
    save the resulting token as `GMAIL_TOKEN_JSON`, the client secret as `GMAIL_CREDENTIALS_JSON`.
-5. Create the Telegram error channel, set `TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID`, then verify:
-   `python3 -m execution.personal_workflows.prodcraft_medspa.common.notify --sample`.
+5. Create the Telegram channel for positive-reply alerts, set `TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID`, then check
+   the wiring locally (logs to stderr, never posts): `python3 -m execution.personal_workflows.prodcraft_medspa.common.notify --sample-reply`.
 6a. Set the sender identity once (CAN-SPAM rules 1 and 3; every draft fails `lint_draft` until this is
    set, and `doctor.py --stages outreach` reports it): from the dashboard Config tab, or
    `python3 -c "from execution.personal_workflows.prodcraft_medspa.common.store import get_store; get_store().set_config('sender', {'name': 'Your Name, ProdCraft', 'physical_address': 'Street, City, ST ZIP', 'signature': ''})"`.
@@ -143,23 +143,23 @@ operator opts into `auto_approve_previews`.
 10. **Arm the crons.** Set `PRODCRAFT_CRON_ENABLED=true` and every secret named in
     `.github/workflows/prodcraft_medspa_daily.yml` (daily 9am Chicago: run_metro -> daily.py -> sync_sheets) and
     `prodcraft_medspa_replies.yml` (every 30 minutes: advance -> scan_replies -> takedowns). They share one
-    concurrency group and post to Telegram on failure. Also set the repo variable `PRODCRAFT_LIVE_RECIPIENTS=true`
+    concurrency group; a failed run shows in the Actions log only (no Telegram). Also set the repo variable `PRODCRAFT_LIVE_RECIPIENTS=true`
     once you're ready for real sends — without it `send.py` refuses to send in `github-actions` even with
     `PRODCRAFT_RECIPIENT_OVERRIDE` unset (round-3 audit item 8; see CONTRACTS.md "Live-recipients gate"). From here
     the loop is unattended: discover, audit, build, approve (dashboard, or the operator's `approve.py`), pick 5,
     send, scan.
-11. **What the operator does:** read Telegram. Since 2026-11-19 Telegram carries prospect replies only (`notify.reply`); `notify.error` and the weekly report go to the run log instead, and a failed GitHub run is surfaced by GitHub's own failure email. Set `PRODCRAFT_TELEGRAM_ALERTS=all` to restore them. A positive or neutral reply arrives as one message (business, owner,
+11. **What the operator does:** read Telegram. Operator order 2026-11-19: "any telegram alert should only come from positive replies for my campaigns only, nothing else ever". Only a `positive` reply posts (`notify.reply`); neutral, negative, remove, bounce and OOO replies, `notify.error`, the weekly report and every workflow failure go to stderr / the Actions run log (a failed GitHub run is surfaced by GitHub's own failure email). There is no flag to restore them. A positive reply arrives as one message (business, owner,
     summary, suggested next step, preview link, Gmail thread link); answer that thread yourself. Negative replies and
     remove requests both close the row, take the preview down within the 30-minute scan and mark the business
-    do-not-contact (they differ only in how the Telegram alert is labelled); bounces feed the 2% halt.
+    do-not-contact (neither posts to Telegram; both are logged); bounces feed the 2% halt.
     Weekly, open the Google Sheet (`pipeline` and `daily_log` tabs).
 11b. **Touch 2 parks until you record a Loom.** Record the walkthrough, then run
     `python3 execution/personal_workflows/prodcraft_medspa/scripts/set_loom.py --store supabase --prospect-id <outreach id or business id> --url https://www.loom.com/share/... [--touch N]`
     (`--store local --store-root $R` for a mock store; `--touch N` defaults to 2 and only matters when you pass a
     business id, picking that touch's newest open row). It validates the URL, writes `notes.loom_url`, redrafts the
     parked row (only if the URL changed; re-running with the same URL is a no-op) and prints its state; the next
-    `daily.py` re-renders and sends it. `send.py` posts one Telegram line
-    per day with the parked count so you know when this is due.
+    `daily.py` re-renders and sends it. `send.py` logs one line
+    per day with the parked count (run log, not Telegram) so you know when this is due.
 12. If a prospect replies interested but cannot meet before the preview expires, extend it:
     `python3 -m execution.personal_workflows.prodcraft_medspa.preview.publish extend --preview-id ID --days 30`
     (renews `expires_at` on the Worker and the store, logs an `extended` event, warns if touch 4 already stated the
@@ -169,7 +169,7 @@ operator opts into `auto_approve_previews`.
     email/offer per PROJECT_SPEC.md §3 step 5 before widening.
 14. Weekly: `scripts/sync_sheets.py`; after >= 50 touch-1 sends, `scripts/fit_weights.py` (rows with
     `test_recipient` set are your own dry runs and must be excluded from any reply-rate statistic). The Monday
-    Telegram report (`prodcraft_medspa_weekly.yml`) ends with `sends vs cap (7d): S/C, per day s/c ...`; the same
+    run-log report (`prodcraft_medspa_weekly.yml`) ends with `sends vs cap (7d): S/C, per day s/c ...`; the same
     number on demand: `python3 execution/personal_workflows/prodcraft_medspa/outreach/send.py --store supabase --stats`.
 
 ### Next metro

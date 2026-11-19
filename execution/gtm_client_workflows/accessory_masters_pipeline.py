@@ -41,7 +41,7 @@ from modules.outputs.instantly import (  # noqa: E402
 )
 from modules.outputs.ghl import route_positive_reply, suggest_booking  # noqa: E402
 from modules.outputs.slack import notify_positive_reply  # noqa: E402
-from modules.outputs.telegram import notify_positive_reply as telegram_notify  # noqa: E402
+from modules.outputs.telegram import notify_positive_reply as telegram_notify  # noqa: E402,F401 (unused since 2026-11-19; kept for test patch targets)
 from modules.outputs.auto_reply import handle_reply as auto_reply_handle  # noqa: E402
 from modules.outputs.report_generator import run_weekly_report  # noqa: E402
 from modules.reply_classifier import classify  # noqa: E402
@@ -323,13 +323,11 @@ def _handle_positive_reply(reply: dict, ghl_config: dict, notif_config: dict, mo
         logger.warning("GHL_API_KEY not set — skipping CRM routing.")
 
     if notif_config.get("telegram_enabled", False):
-        bot_token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
-        chat_id = os.environ.get("TELEGRAM_CHAT_ID", "")
-        telegram_notify(
-            bot_token=bot_token,
-            chat_id=chat_id,
-            reply=reply,
-            template=notif_config.get("telegram_template"),
+        # Operator order 2026-11-19: Telegram carries positive replies to the operator's OWN
+        # campaigns only. This is a client pipeline, so the Telegram alert is logged, not sent.
+        logger.info(
+            "Telegram alert not sent (client campaign; Telegram is operator-campaigns-only): %s",
+            reply.get("from_email"),
         )
 
     if notif_config.get("slack_enabled", False):
