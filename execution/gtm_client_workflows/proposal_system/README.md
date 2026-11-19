@@ -11,7 +11,7 @@ order: Cloudflare only) instead of Vercel.
 | `proposals/<slug>.json` | One file per proposal: parties, dates, and an ordered list of blocks (`h1`, `h2`, `h3`, `p`, `note`, `bullets`, `numbered`, `table`, `kv`, `signature`, `pagebreak`). `**bold**` is the only inline markup. |
 | `build_proposal.py` | Renders `out/<slug>/<slug>.docx` (Arial, plain styling, Google-Docs friendly), `.html` (tracked web copy) and `.md` (paste-ready). Refuses unknown block types and ragged tables. |
 | `publish_proposal.py` | Uploads the HTML to the Worker's KV and prints the tracked URL; `--opens` lists opens; `--delete` removes. |
-| `worker/` | Cloudflare Worker `proposal-tracker`: `GET /p/<slug>` serves the proposal, `GET /o/<slug>.gif` is an open pixel, `POST /api/track` accepts `{slug, client, event, extra}` exactly like the reference `api/track.js`. Every open, payment and signature is logged to KV (`/api/opens/<slug>`) and the Worker log, never Telegram (operator order 2026-11-19: Telegram carries positive campaign replies only). |
+| `worker/` | Cloudflare Worker `proposal-tracker`: `GET /p/<slug>` serves the proposal, `GET /o/<slug>.gif` is an open pixel, `POST /api/track` accepts `{slug, client, event, extra}` exactly like the reference `api/track.js`. Every open, payment and signature is logged to KV (`/api/opens/<slug>`) and the Worker log. Telegram (operator 2026-11-19): only a signed proposal posts (the signed PDF via sendDocument); opens and payments never post. |
 
 ## Section order (same as the reference template)
 
@@ -36,4 +36,4 @@ wrangler deploy
 ```
 
 Then `PROPOSAL_WORKER_URL=https://proposal-tracker.debanjan186.workers.dev PROPOSAL_PUBLISH_SECRET=... python3 publish_proposal.py greenjobs-keith-v1`.
-Health: `GET /health`. The Google Doc itself cannot fire a webhook on open; send Keith the `/p/<slug>` link (or embed the pixel URL as a linked image in the Doc) to get the Telegram ping.
+Health: `GET /health`. The Google Doc itself cannot fire a webhook on open; send Keith the `/p/<slug>` link (or embed the pixel URL as a linked image in the Doc) to log opens (opens no longer ping Telegram since 2026-11-19).

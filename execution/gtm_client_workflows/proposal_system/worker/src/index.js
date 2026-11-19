@@ -1,5 +1,5 @@
-// proposal-tracker: hosts proposal HTML and logs every open to KV + the Worker log
-// (no Telegram since 2026-11-19: Telegram carries positive campaign replies only).
+// proposal-tracker: hosts proposal HTML; logs opens/payments to KV + the Worker log.
+// Telegram (2026-11-19): ONLY the signed-proposal PDF is posted; opens/payments never post.
 //
 // Routes
 //   GET  /health              -> {ok, kv_bound, telegram_bound}
@@ -63,9 +63,9 @@ export default {
       const tok = await sha(`${slug}:${id}:${env.PUBLISH_SECRET || ""}`);
       const dl = `${url.origin}/signed/${slug}/${id}.pdf?k=${tok}`;
       const cf = request.cf || {};
-      // No Telegram (operator order 2026-11-19): success = the signed PDF is stored in KV.
-      const ok = Boolean(kv);
-      console.log(`[signed] ${slug} by ${name} (${cf.city || "?"}, ${cf.country || "?"}) stored=${ok}`);
+      // Signed proposals DO go to Telegram (operator 2026-11-19: "signed proposals come to Telegram").
+      const ok = await telegramDocument(env, buf, `${slug}_signed.pdf`,
+        `✅ *Proposal ACCEPTED & SIGNED*: \`${slug}\`\nSigned by: *${name}*\n📍 ${cf.city || "?"}, ${cf.country || "?"} · ${new Date().toUTCString()}\n⬇️ [Download signed contract](${dl})`);
       ctx.waitUntil(recordOpen(request, env, slug, "signed_pdf", url, `by ${name}`));
       return json({ ok, url: dl });
     }
@@ -182,6 +182,16 @@ async function recordOpen(request, env, slug, kind, url, extra) {
     entry.referer ? `↩ ${entry.referer}` : null,
   ].filter(Boolean).join("\n");
   await telegram(env, text);
+}
+
+async function telegramDocument(env, buf, filename, caption) {
+  const token = env.TELEGRAM_BOT_TOKEN, chatId = env.TELEGRAM_CHAT_ID;
+  if (!token || !chatId) return false;
+  const form = new FormData();
+  form.append("chat_id", chatId); form.append("caption", caption); form.append("parse_mode", "Markdown");
+  form.append("document", new Blob([buf], { type: "application/pdf" }), filename);
+  try { const r = await fetch(`https://api.telegram.org/bot${token}/sendDocument`, { method: "POST", body: form }); return r.ok; }
+  catch (e) { console.warn("sendDocument failed", e.message); return false; }
 }
 
 async function stripeVerify(raw, header, secret) {
