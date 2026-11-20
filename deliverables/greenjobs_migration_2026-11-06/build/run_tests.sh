@@ -31,8 +31,8 @@ assert c.execute("PRAGMA foreign_key_check").fetchall() == []
 print(f"ok: schema x2, {len(stmts)} upserts, {len(migs)} migration(s) x2 + schema again")
 EOF
 
-echo "== 2/4 import validator + static job-page apply mode (pytest)"
-"$PY" -m pytest -q tests/greenjobs_redesign/test_strategies_import.py tests/greenjobs_redesign/test_strategies_real_headers.py tests/greenjobs_redesign/test_apply_mode_site.py || fail=1
+echo "== 2/4 import validator + apply mode + Gaia feed sync (pytest)"
+"$PY" -m pytest -q tests/greenjobs_redesign/test_strategies_import.py tests/greenjobs_redesign/test_strategies_real_headers.py tests/greenjobs_redesign/test_apply_mode_site.py tests/greenjobs_redesign/test_gaia_feed_sync.py || fail=1
 
 echo "== 3/4 Worker unit tests + BDD features (node --test)"
 node --no-warnings --test 'tests/greenjobs_redesign/platform/*.test.mjs' || fail=1
