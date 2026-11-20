@@ -812,8 +812,23 @@ def _config_stop(day: str, reason: str, dry_run: bool, data_dir: Path | None = N
 
 
 def _run_locked(data_dir: Path, store: Q.Store, day: str, dry_run: bool) -> int:
-    log.info("run %s%s: %d already sent today, cap %d", day, " (dry-run)" if dry_run else "",
-             len(Q._sent_on(store.load_ledger(), day)), Q.DAILY_CAP)
+    log.info(
+        "run %s%s: %d already sent today, cap %d",
+        day,
+        " (dry-run)" if dry_run else "",
+        len(Q._sent_on(store.load_ledger(), day)),
+        Q.DAILY_CAP,
+    )
+    if (
+        not dry_run
+    ):  # new prospect lists from Gmail ("LC list" + .csv); fail-open: today sends from the current master
+        cfg = smtp_config()
+        try:
+            Q.intake_gmail(store, cfg[0], cfg[1], log=log.info)
+        except (
+            Exception
+        ) as exc:  # IMAP down / bad file: log it; a missed intake retries next run, sending must go on
+            log.warning("list intake skipped: %s", _err(exc))
 
     code, res = 0, DayResult()
     try:
