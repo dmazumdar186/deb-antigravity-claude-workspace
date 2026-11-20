@@ -357,7 +357,7 @@ def validate(site: Path, jobs_by_edition: dict[str, list[dict[str, Any]]], data_
         m = re.match(r"^(ie|uk)/jobs/([^/]+)/index\.html$", rel)
         if m:
             job_pages[m.group(1)] = job_pages.get(m.group(1), 0) + 1
-            if 'rel="noopener"' not in raw or "Apply on" not in raw:
+            if 'rel="noopener' not in raw or "Apply on" not in raw:  # link mode: rel="noopener nofollow"
                 fails.append(f"{rel}: job page has no apply link")
             for block in doc.jsonld:
                 try:

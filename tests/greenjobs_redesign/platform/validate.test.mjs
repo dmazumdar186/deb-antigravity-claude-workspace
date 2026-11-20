@@ -84,8 +84,8 @@ test('validateJob: valid create, bounded closing date, salary order, apply_url r
   assert.deepEqual(errs({ closing: '2026-02-30' }), ['closing']);
   assert.deepEqual(errs({ sal_min: 50000, sal_max: 40000 }), ['sal_max']);
   assert.deepEqual(errs({ sal_min: -1 }), ['sal_min']);
-  assert.deepEqual(errs({ apply_mode: 'url' }), ['apply_url']);
-  assert.deepEqual(errs({ apply_mode: 'url', apply_url: 'javascript:alert(1)' }), ['apply_url']);
+  assert.deepEqual(errs({ apply_mode: 'link' }), ['apply_url']);
+  assert.deepEqual(errs({ apply_mode: 'link', apply_url: 'javascript:alert(1)' }), ['apply_url']);
   assert.deepEqual(errs({ apply_email: 'nope' }), ['apply_email']);
   assert.deepEqual(errs({ status: 'closed' }), ['status']);
   assert.deepEqual(errs({ sectors: 'Wind' }), ['sectors']);

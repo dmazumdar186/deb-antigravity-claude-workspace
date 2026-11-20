@@ -33,6 +33,15 @@ function parseSectors(s) {
   }
 }
 
+/**
+ * Public apply fields. apply_url only for link mode; apply_email is never selected (LIVE_SQL) nor returned:
+ * an email-mode job applies through the on-site form and the Worker routes it server-side.
+ */
+export function publicApply(r) {
+  const link = (r.apply_mode === 'link' || r.apply_mode === 'url') && typeof r.apply_url === 'string' && r.apply_url.startsWith('https://');
+  return { apply_mode: link ? 'link' : 'email', apply_url: link ? r.apply_url : null };
+}
+
 /** Shape of one entry in the static site's data/jobs.json. */
 export function toJobsJson(r) {
   return {
@@ -81,8 +90,7 @@ export async function getJob(env, site, rawId, now, cors) {
       ...toJobsJson(r),
       description: r.description,
       description_html: renderDescription(r.description),
-      apply_mode: r.apply_mode === 'url' ? 'url' : 'form',
-      apply_url: r.apply_mode === 'url' ? r.apply_url : null,
+      ...publicApply(r),
     },
     200,
     { ...cors, 'Cache-Control': 'public, max-age=60' },
@@ -117,8 +125,7 @@ export async function exportJobs(request, env, now) {
       cur: r.currency || '',
       period: r.period || '',
       description: r.description,
-      apply_mode: r.apply_mode === 'url' ? 'url' : 'form',
-      apply_url: r.apply_mode === 'url' ? r.apply_url : null,
+      ...publicApply(r),
     })),
   });
 }

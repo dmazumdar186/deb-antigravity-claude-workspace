@@ -58,13 +58,38 @@ Feature: Applications are routed to an inbox
     Then 1 application is stored routed to "jobs@greenjobs.ie"
     And there is 1 audit row for action "application.route_fallback"
 
-  Scenario: A job that applies on an external site refuses on-site applications
+  Scenario: An email-mode job sends the application to its own apply email (per client, Q8)
+    Given a live job "ie:strat:1005" titled "Client Role" on site "ie" with apply email "hr@client.ie"
+    And the candidate is applying to job "ie:strat:1005"
+    When the candidate submits the application on host "greenjobs.ie"
+    Then the response status is 201
+    And 1 application is stored routed to "hr@client.ie"
+    And the application delivery status is "dry_run"
+    And no email is sent
+
+  Scenario: An email-mode job with no apply email uses the site default inbox
+    When the candidate submits the application on host "greenjobs.ie"
+    Then 1 application is stored routed to "jobs@greenjobs.ie"
+    And there are 0 audit rows for action "application.route_fallback"
+
+  Scenario: A link-mode job (external ATS) refuses on-site applications
     Given a live job "ie:strat:1003" titled "External Role" on site "ie" applying via "https://careers.example.ie/3"
     And the candidate is applying to job "ie:strat:1003"
     When the candidate submits the application on host "greenjobs.ie"
     Then the response status is 409
     And the response error is "apply_externally"
+    And the response field "apply_url" is "https://careers.example.ie/3"
     And 0 applications are stored
+
+  Scenario: A link-mode job refuses even with both live switches set, and nothing is sent
+    Given the worker setting "DRY_RUN" is "0"
+    And the worker setting "LIVE_CONFIRM" is "send-applications"
+    And a live job "ie:strat:1006" titled "ATS Role" on site "ie" applying via "https://ats.example.com/6"
+    And the candidate is applying to job "ie:strat:1006"
+    When the candidate submits the application on host "greenjobs.ie"
+    Then the response status is 409
+    And no email is sent
+    And the spend ledger shows 0 sends
 
   Scenario: A closed job takes no applications
     Given a closed job "ie:strat:1004" titled "Closed Role" on site "ie"

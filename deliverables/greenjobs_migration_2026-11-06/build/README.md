@@ -17,7 +17,9 @@ off Strategies. Switch Thu 3 Dec 2026, buffer Fri 4 Dec, Strategies off Sun 6 De
 | `run_tests.sh` | One-command offline test run (all tiers) |
 | `d1/schema.sql` | D1 schema; idempotent (`IF NOT EXISTS`) |
 | `d1/upserts.sql` | Canonical prepared-statement upserts used by the Worker and the import emitter |
+| `d1/migrations/0001_apply_mode_consent_alerts.sql` | One-off, idempotent rebuild for a D1 created before 2026-11-20 (per-job apply mode, Consent column, alerts import) |
 | `import/IMPORT_MAPPING.md` | Strategies report columns mapped to D1 fields |
+| `import/REAL_HEADERS_2026-11-19.json` | The client's real Strategies header rows, IE and UK (names only, no data) |
 | `features/*.feature` | BDD scenarios for posting, applying, import and auth |
 
 ## Code and tests (outside `build/`)

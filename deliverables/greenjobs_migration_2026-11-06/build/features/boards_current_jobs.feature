@@ -49,6 +49,21 @@ Feature: Boards on Keith's domains show current jobs
     Then the response status is 200
     And the response field "description_html" does not contain "<script>"
 
+  Scenario: An email-mode job's detail never reveals its apply email
+    Given a live job "ie:strat:1008" titled "Consultant Role" on site "ie" with apply email "consultant@agency.ie"
+    When a visitor requests "/api/jobs/ie:strat:1008" on host "greenjobs.ie"
+    Then the response status is 200
+    And the response field "apply_mode" is "email"
+    And the response body does not contain "consultant@agency.ie"
+    And the response body does not contain "apply_email"
+
+  Scenario: A link-mode job's detail carries its ATS link
+    Given a live job "ie:strat:1009" titled "ATS Role" on site "ie" applying via "https://ats.example.com/9"
+    When a visitor requests "/api/jobs/ie:strat:1009" on host "greenjobs.ie"
+    Then the response status is 200
+    And the response field "apply_mode" is "link"
+    And the response field "apply_url" is "https://ats.example.com/9"
+
   Scenario: An Irish job is not served on the UK domain
     When a visitor requests "/api/jobs/ie:strat:1001" on host "greenjobs.co.uk"
     Then the response status is 404

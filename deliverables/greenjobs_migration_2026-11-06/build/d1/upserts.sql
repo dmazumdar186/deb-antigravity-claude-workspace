@@ -13,7 +13,8 @@ ON CONFLICT (id) DO UPDATE SET
 WHERE employers.name IS NOT excluded.name OR employers.contact_email IS NOT excluded.contact_email
    OR employers.last_active_at IS NOT excluded.last_active_at OR employers.website IS NOT excluded.website;
 
--- jobs (import): keyed on id; never resurrects a job staff closed in the console
+-- jobs (import): keyed on id; never resurrects a job staff closed in the console.
+-- apply_mode is 'email' | 'link' (schema CHECK: link carries apply_url only; email never carries apply_url).
 INSERT INTO jobs (id, site, source, source_id, employer_id, title, location, region, job_type, sal_min, sal_max, currency, period, sal_text, sectors_json, summary, description, apply_mode, apply_email, apply_url, status, posted_at, closing_at, created_by, created_at, updated_at)
 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?25)
 ON CONFLICT (id) DO UPDATE SET
@@ -21,6 +22,7 @@ ON CONFLICT (id) DO UPDATE SET
   sal_min = excluded.sal_min, sal_max = excluded.sal_max, currency = excluded.currency, period = excluded.period,
   sal_text = excluded.sal_text, sectors_json = excluded.sectors_json, summary = excluded.summary,
   description = excluded.description, closing_at = excluded.closing_at,
+  apply_mode = excluded.apply_mode, apply_email = excluded.apply_email, apply_url = excluded.apply_url,
   status = CASE WHEN jobs.status = 'closed' THEN 'closed' ELSE excluded.status END,
   version = jobs.version + 1, updated_at = excluded.updated_at
 WHERE jobs.source = 'strategies';  -- console-owned rows are never overwritten by an import
@@ -37,9 +39,10 @@ WHERE id = ?1 AND version = ?2;
 UPDATE jobs SET status = 'closed', closed_at = ?2, version = version + 1, updated_at = ?2
 WHERE id = ?1 AND status <> 'closed';
 
--- candidates: keyed on (site, email_norm); registration + profile reports merge into one row
-INSERT INTO candidates (id, site, source, source_id, email_norm, first_name, last_name, phone, location, headline, sectors_json, consent_marketing, consent_at, registered_at, last_active_at, created_at, updated_at)
-VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?16)
+-- candidates: keyed on (site, email_norm); registration + profile reports merge into one row.
+-- strategies_consent (?17) comes from the registration report only; a profile row (NULL) never clears it.
+INSERT INTO candidates (id, site, source, source_id, email_norm, first_name, last_name, phone, location, headline, sectors_json, consent_marketing, consent_at, registered_at, last_active_at, created_at, updated_at, strategies_consent)
+VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?16, ?17)
 ON CONFLICT (site, email_norm) DO UPDATE SET
   first_name = COALESCE(excluded.first_name, candidates.first_name),
   last_name = COALESCE(excluded.last_name, candidates.last_name),
@@ -48,6 +51,7 @@ ON CONFLICT (site, email_norm) DO UPDATE SET
   headline = COALESCE(excluded.headline, candidates.headline),
   sectors_json = CASE WHEN excluded.sectors_json <> '[]' THEN excluded.sectors_json ELSE candidates.sectors_json END,
   last_active_at = NULLIF(MAX(COALESCE(candidates.last_active_at, ''), COALESCE(excluded.last_active_at, '')), ''),
+  strategies_consent = COALESCE(excluded.strategies_consent, candidates.strategies_consent),
   updated_at = excluded.updated_at;
 
 -- applications: dedupe_key makes a double submit (or a re-imported CSV) a no-op
@@ -55,7 +59,8 @@ INSERT INTO applications (id, site, source, source_id, job_id, candidate_id, app
 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?16)
 ON CONFLICT (dedupe_key) DO NOTHING;
 
--- alert_subscriptions: keyed on (site, email_norm, query_hash)
+-- alert_subscriptions: keyed on (site, email_norm, query_hash). Always inserted 'pending': an imported
+-- Jobs By Email row is re-confirmed (double opt-in) before any send.
 INSERT INTO alert_subscriptions (id, site, email_norm, query_json, query_hash, frequency, status, confirm_token_hash, unsub_token_hash, consent_at, created_at, updated_at)
 VALUES (?1, ?2, ?3, ?4, ?5, ?6, 'pending', ?7, ?8, ?9, ?10, ?10)
 ON CONFLICT (site, email_norm, query_hash) DO UPDATE SET frequency = excluded.frequency, updated_at = excluded.updated_at

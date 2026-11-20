@@ -159,7 +159,7 @@ def test_formula_rules():
 
 def test_header_aliases_insensitive():
     rep = si.load_mapping(si.DEFAULT_MAPPING)["reports"]["candidates"]
-    mapped, _, unmapped, _ = si.map_headers("candidates", rep, ["  candidate_id ", "E-MAIL ADDRESS", "last login", "Shoe Size"])
+    mapped, _, unmapped, _ = si.map_headers("candidates", rep, ["  candidatepk ", "E-MAIL", "last_logged_in", "Shoe Size"])
     assert mapped == {"strategies_id": 0, "email": 1, "last_login": 2}
     assert unmapped == ["Shoe Size"]
 
@@ -225,7 +225,7 @@ def test_retention_bounds_ok(capsys, months):
 
 
 def test_low_yield_gate(capsys, tmp_path):
-    p = write_csv(tmp_path / "old.csv", ["Candidate ID", "Email", "Last Login"],
+    p = write_csv(tmp_path / "old.csv", ["CandidatePK", "email", "LastLoggedIn"],
                   [[str(i), f"old{i}@example.com", "01/01/2019"] for i in range(30)])
     code, d, _ = run(capsys, *base("candidates", p), "--emit-sql", tmp_path / "o.sql")
     assert code == 3 and d["status"] == "gate_failed" and not (tmp_path / "o.sql").exists()
@@ -237,7 +237,7 @@ def test_low_yield_gate(capsys, tmp_path):
 
 def test_reject_ceiling_gate(capsys, tmp_path):
     rows = [[str(i), f"ok{i}@example.com" if i % 2 else "broken-address", "01/10/2026"] for i in range(20)]
-    p = write_csv(tmp_path / "bad.csv", ["Candidate ID", "Email", "Last Login"], rows)
+    p = write_csv(tmp_path / "bad.csv", ["CandidatePK", "email", "LastLoggedIn"], rows)
     code, d, out = run(capsys, *base("candidates", p))
     assert code == 3
     g = [x for x in d["gates"]["failures"] if x["gate"] == "max_reject_rate"][0]
@@ -338,11 +338,12 @@ def test_emitted_sql_idempotent(capsys, tmp_path):
     assert status["7001"] == "live" and status["7002"] == "closed"
     emp = dict(con.execute("SELECT source_id, employer_id FROM jobs").fetchall())
     assert emp["7001"] == "ie:strat:501" and emp["7007"] is None   # unknown employer -> NULL, FK safe
-    assert con.execute("SELECT logo_key FROM employers WHERE source_id='501'").fetchone()[0] == \
-        "strategies/ie/logos/example-energy.png"
+    modes = {r[0]: r[1:] for r in con.execute("SELECT source_id, apply_mode, apply_email, apply_url FROM jobs")}
+    assert modes["7001"] == ("email", "jobs@example.com", None)            # Email set, AppLink empty
+    assert modes["7002"] == ("link", None, "https://apply.example.com/7002")  # AppLink https wins
     app = con.execute("SELECT source_id, candidate_id, delivery_status, dedupe_key FROM applications "
                       "WHERE job_id='ie:strat:7001' AND applicant_email='test.candidate.one@example.com'").fetchone()
-    assert app[0] == "9002" and app[1] == "ie:strat:1001" and app[2] == "imported"
+    assert app[0] is None and app[1] == "ie:strat:1001" and app[2] == "imported"  # the export has no application id
     assert app[3] == si.hashlib.sha256(b"ie|ie:strat:7001|test.candidate.one@example.com").hexdigest()
 
 
@@ -387,5 +388,246 @@ def test_cli_subprocess_and_no_network_imports():
                        encoding="utf-8", errors="replace", timeout=60)
     assert r.returncode == 0 and json.loads(r.stdout)["status"] == "ok"
     src = SCRIPT.read_text(encoding="utf-8")
-    for banned in ("import requests", "urllib.request", "http.client", "socket", "except:", "except Exception"):
+    for banned in (
+        "import requests",
+        "urllib.request",
+        "http.client",
+        "socket",
+        "except:",
+        "except Exception",
+    ):
         assert banned not in src, banned
+
+
+# --------------------------------------------------------------------------- --sniff and header tolerance (2026-11-20)
+
+JOBS_HEADER = [
+    "JobPK",
+    "JobTitle",
+    "sVicinityDesc",
+    "JobDescription",
+    "Email",
+    "AppLink",
+    "ExpiryDate",
+]
+PII_ROW = [
+    "8001",
+    "Test Role Seán",
+    "Cork",
+    "A synthetic description long enough for the validator.",
+    "secret.person@example.com",
+    "",
+    "30/12/2026",
+]
+
+
+def sniff(capsys, report, path):
+    return run(capsys, "--report", report, "--sniff", path)
+
+
+def test_sniff_reports_mapped_missing_unknown_and_never_values(capsys, tmp_path):
+    p = tmp_path / "c.csv"
+    write_csv(
+        p,
+        ["CandidatePK", "FirstName", "Shoe Size", "LastLoggedIn"],
+        [["1001", "Aoibheann", "42", "01/10/2026"]],
+    )
+    code, d, out = sniff(capsys, "candidates", p)
+    assert code == 2 and d["status"] == "missing_required" and d["mode"] == "sniff"
+    assert [m["field"] for m in d["missing_required"]] == ["email"] and d[
+        "missing_required"
+    ][0]["aliases"]
+    assert d["unknown_headers"] == ["Shoe Size"]
+    assert {
+        "header": "CandidatePK",
+        "verdict": "mapped",
+        "field": "strategies_id",
+    } in d["headers"]
+    assert {"header": "Shoe Size", "verdict": "unmapped"} in d["headers"]
+    assert d["first_row"] == {"cells": 4, "width_matches": True}
+    for v in ("Aoibheann", "1001", "01/10/2026"):
+        assert v not in out
+
+
+def test_sniff_ok_exit_0_and_header_variants(capsys, tmp_path):
+    p = tmp_path / "j.csv"
+    write_csv(
+        p,
+        [
+            "  JOB_PK ",
+            "job-title",
+            "S VICINITY DESC:",
+            "Job  Description",
+            "app.link",
+            "expiry_date",
+        ],
+        [PII_ROW[:4] + ["", "30/12/2026"]],
+    )
+    code, d, out = sniff(capsys, "jobs", p)
+    assert code == 0 and d["status"] == "ok" and d["missing_required"] == []
+    assert (
+        d["mapped"]["strategies_id"] == "JOB_PK"
+        and d["mapped"]["apply_url"] == "app.link"
+    )
+    assert d["mapped"]["closing"] == "expiry_date" and d["unknown_headers"] == []
+    assert "Seán" not in out and "synthetic" not in out
+
+
+def test_sniff_bom_semicolon_cp1252(capsys, tmp_path):
+    bom = tmp_path / "bom.csv"
+    bom.write_bytes(
+        b"\xef\xbb\xbf"
+        + (",".join(JOBS_HEADER) + "\r\n" + ",".join(PII_ROW) + "\r\n").encode("utf-8")
+    )
+    code, d, out = sniff(capsys, "jobs", bom)
+    assert (
+        code == 0
+        and d["bom"] is True
+        and d["encoding"] == "utf-8"
+        and d["mapped"]["strategies_id"] == "JobPK"
+    )
+    assert "secret.person" not in out
+    semi = tmp_path / "semi.csv"  # leading blank line before the header
+    semi.write_bytes(
+        ("\r\n" + ";".join(JOBS_HEADER) + "\r\n" + ";".join(PII_ROW) + "\r\n").encode(
+            "utf-8"
+        )
+    )
+    code, d, out = sniff(capsys, "jobs", semi)
+    assert (
+        code == 0 and d["delimiter"] == ";" and d["first_row"]["width_matches"] is True
+    )
+    cp = tmp_path / "cp.csv"
+    cp.write_bytes(
+        (";".join(JOBS_HEADER) + "\r\n" + ";".join(PII_ROW) + "\r\n").encode("cp1252")
+    )
+    code, d, out = sniff(capsys, "jobs", cp)
+    assert (
+        code == 0
+        and d["encoding"] == "cp1252"
+        and d["bom"] is False
+        and d["delimiter"] == ";"
+    )
+    assert "secret.person" not in out and "Seán" not in out
+
+
+def test_sniff_width_mismatch_and_headerless_file_is_masked(capsys, tmp_path):
+    p = tmp_path / "noheader.csv"
+    write_csv(
+        p,
+        ["1001", "someone.real@example.com", "0871234567"],
+        [["1002", "other@example.com", "0879999999"]],
+    )
+    code, d, out = sniff(capsys, "candidates", p)
+    assert code == 2
+    assert (
+        "someone.real" not in out
+        and "0871234567" not in out
+        and "other@example.com" not in out
+    )
+    m = tmp_path / "mixed.csv"
+    m.write_text(
+        "CandidatePK;email;LastLoggedIn\n1001,a@example.com,01/10/2026\n",
+        encoding="utf-8",
+    )
+    code, d, out = sniff(capsys, "candidates", m)
+    assert code == 0 and d["first_row"] == {"cells": 1, "width_matches": False}
+    assert "a@example.com" not in out
+
+
+def test_sniff_reads_only_first_rows_and_refuses_misuse(capsys, tmp_path):
+    p = tmp_path / "big.csv"
+    with p.open("w", encoding="utf-8", newline="") as fh:
+        fh.write(",".join(JOBS_HEADER) + "\n" + ",".join(PII_ROW) + "\n")
+        fh.write(
+            '\x00garbage,"unterminated\n' * 10
+        )  # never parsed: only header + first data row are read
+    code, d, _ = sniff(capsys, "jobs", p)
+    assert code == 0
+    code, d, _ = run(capsys, "--report", "jobs", "--sniff", p, "--csv", p)
+    assert code == 2 and "--sniff" in d["error"]
+    code, d, _ = run(capsys, "--report", "jobs", "--sniff", REPO / "CLAUDE.md")
+    assert code == 2 and "outside the git repo" in d["error"]
+    code, d, _ = run(capsys, "--report", "jobs", "--csv", FIX / "jobs.csv")
+    assert code == 2 and "--site" in d["error"]
+
+
+def test_decode_truncated_multibyte_tail_is_not_cp1252():
+    raw = "Intitulé".encode("utf-8")
+    text, enc, _ = si.decode_bytes(raw[:-1], "x", truncated=True)
+    assert enc == "utf-8" and text == "Intitul"
+    assert (
+        si.decode_bytes(raw[:-1], "x")[1] == "cp1252"
+    )  # a whole file ending mid-character is not UTF-8
+
+
+def test_missing_required_message_masks_values(capsys, tmp_path):
+    p = tmp_path / "noheader.csv"
+    write_csv(p, ["1001", "someone.real@example.com"], [["1002", "x@example.com"]])
+    code, d, out = run(capsys, *base("candidates", p))
+    assert code == 2 and "--sniff" in d["error"] and "someone.real" not in out
+
+
+def test_jobs_apply_mode_import(capsys, tmp_path):
+    p = tmp_path / "jobs.csv"
+    desc = "A synthetic description long enough for the validator to keep."
+    rows = [
+        [
+            "9001",
+            "Link Role",
+            "Cork",
+            desc,
+            "",
+            "https://ats.example.com/9001",
+            "30/12/2026",
+        ],
+        [
+            "9002",
+            "Both Role",
+            "Cork",
+            desc,
+            "HR@Example.com",
+            "https://ats.example.com/9002",
+            "30/12/2026",
+        ],
+        [
+            "9003",
+            "Http Role",
+            "Cork",
+            desc,
+            "",
+            "http://ats.example.com/9003",
+            "30/12/2026",
+        ],
+        ["9004", "Script Role", "Cork", desc, "", "javascript:alert(1)", "30/12/2026"],
+        ["9005", "Email Role", "Cork", desc, "Jobs@Client.ie", "", "30/12/2026"],
+        ["9006", "Default Role", "Cork", desc, "", "", "30/12/2026"],
+        ["9007", "Data Role", "Cork", desc, "", "data:text/html,x", "30/12/2026"],
+    ]
+    write_csv(p, JOBS_HEADER, rows)
+    out = tmp_path / "jobs.sql"
+    code, d, _ = run(capsys, *base("jobs", p), "--emit-sql", out)
+    assert code == 0 and d["sql_written"], d.get("error")
+    reasons = [w["reason"] for w in d["warnings"]]
+    assert (
+        reasons.count("invalid_url_dropped") == 3
+        and "apply_email_dropped_link_mode" in reasons
+    )
+    con = fresh_db()
+    con.executescript(out.read_text(encoding="utf-8"))
+    con.executescript(out.read_text(encoding="utf-8"))
+    got = {
+        r[0]: r[1:]
+        for r in con.execute(
+            "SELECT source_id, apply_mode, apply_email, apply_url FROM jobs"
+        )
+    }
+    assert got == {
+        "9001": ("link", None, "https://ats.example.com/9001"),
+        "9002": ("link", None, "https://ats.example.com/9002"),
+        "9003": ("email", None, None),
+        "9004": ("email", None, None),
+        "9005": ("email", "jobs@client.ie", None),
+        "9006": ("email", None, None),
+        "9007": ("email", None, None),
+    }

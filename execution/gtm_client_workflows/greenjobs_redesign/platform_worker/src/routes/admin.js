@@ -27,6 +27,7 @@ ON CONFLICT (id) DO UPDATE SET
   sal_min = excluded.sal_min, sal_max = excluded.sal_max, currency = excluded.currency, period = excluded.period,
   sal_text = excluded.sal_text, sectors_json = excluded.sectors_json, summary = excluded.summary,
   description = excluded.description, closing_at = excluded.closing_at,
+  apply_mode = excluded.apply_mode, apply_email = excluded.apply_email, apply_url = excluded.apply_url,
   status = CASE WHEN jobs.status = 'closed' THEN 'closed' ELSE excluded.status END,
   version = jobs.version + 1, updated_at = excluded.updated_at
 WHERE jobs.source = 'strategies'`;
