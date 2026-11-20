@@ -433,6 +433,9 @@ class Smoke:
                 "email": "smoke-test@example.com",
                 "cover_note": f"Automated staging smoke test for {self.sha[:12]}.",
                 "consent": "yes",
+                # The real form stamps its render time (anti-bot); the Worker rejects
+                # submissions under 3 s old or without it (validate.js checkRenderTs).
+                "ts": str(int(time.time() * 1000) - 5000),
             }
         )
         return self.send(

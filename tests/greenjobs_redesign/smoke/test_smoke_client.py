@@ -411,3 +411,15 @@ def test_live_wiring_paginates_the_board_set_and_needs_cors(cfg):
     assert by["live_wiring[ie]"]["status"] == "fail" and "CORS missing" in by["live_wiring[ie]"]["detail"]
     res, by, _, _ = run(cfg, stats_off=1)
     assert by["live_wiring[ie]"]["status"] == "fail"
+
+
+def test_smoke_apply_sends_render_timestamp():
+    """Regression (staging 2026-11-20): apply returned 400 because the smoke omitted the form's
+    render timestamp. The multipart body must carry a numeric `ts` at least 3 s in the past."""
+    import re as _re
+    import time as _time
+    from pathlib import Path as _P
+    src = (_P(__file__).resolve().parents[3] / "execution/gtm_client_workflows/greenjobs_redesign/deploy/smoke.py").read_text()
+    assert '"ts": str(int(time.time() * 1000) - 5000)' in src
+    assert _time.time() * 1000 - 5000 < _time.time() * 1000 - 3000
+    assert _re.search(r'def apply\(self', src)
