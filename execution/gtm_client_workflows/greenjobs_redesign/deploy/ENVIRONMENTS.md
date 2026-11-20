@@ -83,6 +83,22 @@ job (Access service token), poll until public (15 min ceiling, 30 s poll), apply
   the Worker table's job in production; Pages matches paths only.
 - Staging is noindex (`robots_index: false`); production builds with `--robots-index --live-api`.
 
+## Staging as deployed (2026-11-20, ledger: build/release_ledger/staging_2026-11-20.jsonl)
+
+- Worker `https://greenjobs-platform-staging.debanjan186.workers.dev` (IE host), D1 `greenjobs-staging` (WEUR),
+  boards `https://greenjobs-staging-ie.pages.dev`, `https://greenjobs-staging-uk.pages.dev`. Staff console path
+  `/admin/` answers 401/503 until Access exists (fail closed).
+- First deploy: wrangler 4.166 uploaded the Worker, then failed on a follow-up API call (code 10007) because
+  workers.dev was not yet enabled for the new script; enabling it once (`POST .../workers/scripts/<name>/subdomain`
+  `{"enabled":true}`) fixed every later run.
+- Blocked on operator inputs: Cloudflare Access is not enabled on our account (Zero Trust "Enable Access"), so
+  there is no staging team domain, AUD or smoke service token and the smoke `write_flow` fails by design;
+  R2 is not enabled (CV uploads answer 503 on staging). Once Access exists: set `ACCESS_TEAM_DOMAIN`,
+  `ACCESS_AUD`, `STAFF_EMAILS`, `ACCESS_SERVICE_TOKEN_IDS` (the token's Client ID) in `[env.staging.vars]`,
+  export `GREENJOBS_SMOKE_ACCESS_CLIENT_ID/_SECRET`, re-run `stage.sh --execute`.
+- The staging BUILD_TOKEN secret is set on the Worker; its value is held outside the repo (pass it to smoke as
+  `GREENJOBS_SMOKE_BUILD_TOKEN`).
+
 ## Placeholders to fill before the first live run
 
 `REPLACE_WORKERS_SUBDOMAIN` (environments.json + wrangler.toml), `REPLACE_WITH_STAGING_D1_ID`,
