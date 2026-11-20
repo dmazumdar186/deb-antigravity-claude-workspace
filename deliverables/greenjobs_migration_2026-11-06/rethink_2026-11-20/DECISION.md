@@ -30,8 +30,11 @@ v1 (buy a hosted job board, Cavuno) is **withdrawn**. The operator's ruling: the
 The end-to-end test must pass by **Mon 30 Nov**:
 - post → visible on the board within 15 minutes → apply delivered → close → 410;
 - old URLs redirect;
-- every sector domain forwards;
-- the uptime and email probes are green.
+- the uptime and email probes are green;
+- job alerts: sign-up, confirmation and digest work on staging;
+- every step passes in the release pipeline on staging before any promote.
+
+Sector-domain forwards are excluded from the gate: they are out of scope until Keith answers (RECORD P12).
 
 Keith signs off on the test site by **Fri 27 Nov**.
 
