@@ -641,3 +641,199 @@ def test_jobs_apply_mode_import(capsys, tmp_path):
         "9006": ("email", None, None),
         "9007": ("email", None, None),
     }
+# --------------------------------------------------------------------------- sterling: UK roles on the IE board (2026-11-20)
+
+STERLING_HEADER = [
+    "JobPK",
+    "ClientFK",
+    "CompanyName",
+    "JobTitle",
+    "sVicinityDesc",
+    "sRegionDesc",
+    "SalaryMin",
+    "SalaryMax",
+    "SalaryDesc",
+    "JobDescription",
+    "AppLink",
+    "LiveDate",
+    "ExpiryDate",
+]
+DESC = (
+    "A synthetic description for the sterling rule test, long enough for the importer's length gate to pass. "
+    * 2
+)
+
+
+def _row(pk, company, title, town, region, lo, hi, desc=""):
+    return [
+        pk,
+        "501",
+        company,
+        title,
+        town,
+        region,
+        lo,
+        hi,
+        desc,
+        DESC,
+        f"https://apply.example.com/{pk}",
+        "01/11/2026",
+        "30/12/2026",
+    ]
+
+
+def _jobs(d):
+    return {r["source_id"]: r for r in d["_records"]}
+
+
+def run_records(capsys, monkeypatch, *argv):
+    """The importer's run() with its records kept (the summary never carries them)."""
+    seen = {}
+    real = si.apply_sterling_rule
+
+    def spy(records, twins):
+        seen["records"] = records
+        return real(records, twins)
+
+    monkeypatch.setattr(si, "apply_sterling_rule", spy)
+    code, d, _ = run(capsys, *argv)
+    d["_records"] = seen.get("records", [])
+    return code, d
+
+
+def test_uk_roles_on_the_ie_board_keep_sterling(capsys, monkeypatch, tmp_path):
+    ie = write_csv(
+        tmp_path / "ie_jobs.csv",
+        STERLING_HEADER,
+        [
+            _row(
+                "9001",
+                "Acme Engineering",
+                "Associate Civil Engineer",
+                "London",
+                "England",
+                "55000",
+                "60000",
+                "£55k - £60k",
+            ),
+            _row(
+                "9002",
+                "Mattinson Partnership",
+                "Senior Ecologist",
+                "Manchester",
+                "England",
+                "45000",
+                "50000",
+            ),
+            _row(
+                "9003",
+                "Leeds Water",
+                "Water Analyst",
+                "Leeds",
+                "England",
+                "30000",
+                "35000",
+            ),
+            _row(
+                "9004",
+                "Dublin Solar",
+                "Solar Engineer",
+                "Dublin",
+                "Leinster",
+                "40000",
+                "50000",
+                "€40k - €50k",
+            ),
+        ],
+    )
+    uk = write_csv(
+        tmp_path / "uk_jobs.csv",
+        STERLING_HEADER,
+        [
+            _row(
+                "8002",
+                "Mattinson Partnership",
+                "Senior Ecologist",
+                "Manchester",
+                "England",
+                "45000",
+                "50000",
+                "£45,000 - £50,000",
+            ),
+            _row(
+                "8099",
+                "Leeds Water",
+                "Water Analyst",
+                "Leeds",
+                "England",
+                "31000",
+                "36000",
+                "£31k - £36k",
+            ),  # other figures: no twin
+        ],
+    )
+    code, d = run_records(capsys, monkeypatch, *base("jobs", ie), "--uk-jobs-csv", uk)
+    assert code == 0, d.get("gates")
+    j = _jobs(d)
+    assert j["9001"]["currency"] == "GBP"  # the advert's own £ text
+    assert (
+        j["9002"]["currency"] == "GBP" and j["9002"]["sal_text"] == "£45,000 - £50,000"
+    )  # the greenjobs.co.uk twin
+    assert j["9003"]["currency"] == "EUR"  # no matching twin: never invent sterling
+    assert j["9004"]["currency"] == "EUR"  # an Irish role
+    assert d["sterling"] == {
+        "uk_roles": 3,
+        "kept_gbp": 1,
+        "restored_gbp": 1,
+        "eur_unverified": 1,
+    }
+    assert d["reference_inputs"]["uk_jobs"]["kept"] == 2
+
+
+def test_sterling_rule_matches_build_site_twin_correction():
+    bs = si._bs()
+    twins = si.sterling_twin_index(
+        [
+            {
+                "source_id": "8",
+                "title": "Ecologist",
+                "_employer": "Acme",
+                "currency": "GBP",
+                "sal_min": 40000,
+                "sal_max": 45000,
+                "sal_text": "£40k",
+                "posted_at": "2026-11-01T00:00:00Z",
+            }
+        ]
+    )
+    job = {
+        "source_id": "9",
+        "title": "Ecologist",
+        "_employer": "Acme",
+        "currency": "EUR",
+        "sal_min": 40000,
+        "sal_max": 45000,
+    }
+    assert bs.sterling_correction(si._as_raw(job), "uk", twins)["currency"] == "GBP"
+    assert si.text_currency("£40k") == "GBP" and si.text_currency("€40k") == "EUR"
+    assert si.text_currency("£40k (≈ €46k)") is None and si.text_currency("") is None
+
+
+def test_uk_jobs_csv_is_only_for_the_ie_jobs_report(capsys, tmp_path):
+    uk = write_csv(tmp_path / "uk_jobs.csv", STERLING_HEADER, [])
+    code = si.main(
+        [
+            "--site",
+            "uk",
+            "--report",
+            "jobs",
+            "--as-of",
+            AS_OF,
+            "--csv",
+            str(FIX / "jobs.csv"),
+            "--uk-jobs-csv",
+            str(uk),
+        ]
+    )
+    assert code == 2
+    capsys.readouterr()

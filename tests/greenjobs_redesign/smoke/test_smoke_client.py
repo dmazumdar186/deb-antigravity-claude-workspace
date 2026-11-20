@@ -65,7 +65,10 @@ class MockGreenJobs:
         markers=True,
         extra_marker=None,
         no_job_page=False,
+        old_link=None,
+        alerts_status=202,
     ):
+        self.old_link, self.alerts_status = old_link, alerts_status
         self.no_cors = no_cors
         self.markers, self.extra_marker, self.no_job_page = markers, extra_marker, no_job_page
         self.cfg, self.clock = cfg, clock
@@ -146,6 +149,11 @@ class MockGreenJobs:
             return self.r(200, f'<html><p data-stat="live_jobs">{n:,}</p><b class="kpi__v num" data-stat="kpis.live">{n}</b>{extra}</html>')
         if re.fullmatch(r"/(ie|uk)/", path) and self.markers:
             return self.r(200, f'<html><span data-live="n_jobs" data-stat="salary.n_jobs">{len(self.live_ids())}</span></html>')
+        if re.fullmatch(r"/(ie|uk)/jobs/", path) and self.markers:
+            n = len(self.live_ids())
+            return self.r(200, f'<html><p class="lede"><span data-stat="salary.n_jobs">{n}</span> green roles</p><p><b data-stat="salary.n_jobs">{n}</b> live roles are indexed</p></html>')
+        if self.old_link and path == "/ie/employers/":
+            return self.r(200, f'<html><a href="{self.old_link}">rates</a></html>')
         jm = re.fullmatch(r"/(ie|uk)/jobs/([^/]+)/", path)
         if jm and jm.group(2) in self.live_ids():  # production: the Worker route on the board host
             return self.job_page(jm.group(2))
@@ -167,6 +175,11 @@ class MockGreenJobs:
         m = re.fullmatch(r"/(ie|uk)/jobs/([^/]+)/", path)
         if m and method == "GET":
             return self.job_page(m.group(2))
+        if path == "/api/alerts" and method == "POST":
+            data = json.loads(body or b"{}")
+            assert data.get("consent") is True and headers.get("Content-Type") == "application/json"
+            ok = 200 <= self.alerts_status < 300
+            return self.r(self.alerts_status, {"ok": True, "next": "check_email"} if ok else {"error": "not_found"})
         if path == "/api/config":
             acao = {} if self.no_cors else {"access-control-allow-origin": headers.get("Origin", "")}
             return self.r(200, {"site": q["site"][0], "alerts": False, "newsletter": False}, acao)
@@ -307,10 +320,10 @@ def test_full_staging_pass(cfg):
     for name in ("health[uk]", "jobs_api[uk]", "stats_parity[uk]", "job_page[ie]", "job_page[uk]", "security_headers[worker:uk]"):
         assert by[name]["status"] == "pass", (name, by[name])
     assert [c["name"] for c in res["checks"] if c["status"] == "skip"] == []
-    assert "figures compared: 3 (0 differ)" in by["stats_parity[uk]"]["detail"]
+    assert "figures compared: 5 (0 differ)" in by["stats_parity[uk]"]["detail"]
     assert any("staging-uk.debanjan186.workers.dev/api/health" in u for _, u in mock.requests)
     assert "1500 jobs over 2 page(s)" in by["jobs_api[ie]"]["detail"]
-    assert "figures compared: 3 (0 differ)" in by["stats_parity[ie]"]["detail"]
+    assert "figures compared: 5 (0 differ)" in by["stats_parity[ie]"]["detail"]
     assert "20/20 ok" in by["redirects[ie]"]["detail"]
     assert 0 < clock.sleeps <= 900 // 30
 
@@ -393,7 +406,7 @@ def test_network_error_is_a_failed_check_not_a_crash(cfg):
 def test_staging_full_without_access_token_fails(cfg):
     _res, by, mock, _ = run(cfg, secrets={"build_token": "bt"})
     assert by["write_flow"]["status"] == "fail"
-    assert not any(m == "POST" for m, _ in mock.requests)
+    assert not any(m == "POST" and "/api/alerts" not in u for m, u in mock.requests)  # the public alert sign-up needs no token
 
 
 def test_production_read_only_writes_nothing(cfg):
@@ -465,7 +478,7 @@ def test_stats_parity_marker_with_unknown_key_fails(cfg):
 def test_stats_parity_compares_every_marker_dotted_and_flat(cfg):
     res, by, *_ = run(cfg, dashboard_live=7)
     d = by["stats_parity[ie]"]["detail"]
-    assert "dashboard live_jobs=7" in d and "dashboard kpis.live=7" in d and "figures compared: 3 (2 differ)" in d
+    assert "dashboard live_jobs=7" in d and "dashboard kpis.live=7" in d and "figures compared: 5 (2 differ)" in d
 
 
 def test_job_page_must_render(cfg):
@@ -481,3 +494,43 @@ def test_stat_lookup_matches_build_site():
     stats = {"live_jobs": 3, "salary": {"n_jobs": 3, "median": "€5k"}, "kpis": {"days_to_close": None}}
     for key in ("live_jobs", "salary.n_jobs", "salary.median", "kpis.days_to_close", "kpis.nope", "salary.n_jobs.x"):
         assert smoke._stat_lookup(stats, key) == build_site.stat_lookup(stats, key), key
+
+
+def test_alert_signup_must_answer_2xx_on_both_boards(cfg):
+    res, by, mock, _ = run(cfg)
+    assert by["alert_signup[ie]"]["status"] == "pass" and by["alert_signup[uk]"]["status"] == "pass"
+    posts = [u for m, u in mock.requests if m == "POST" and "/api/alerts" in u]
+    assert any("site=ie" in u for u in posts) and any("staging-uk" in u and "site=uk" in u for u in posts)
+    res, by, _, _ = run(cfg, alerts_status=404)
+    assert "alert_signup[ie]" in failed(res) and "alert_signup[uk]" in failed(res)
+
+
+def test_alert_signup_is_not_run_on_production(cfg):
+    res, by, mock, _ = run(cfg, env="production", mode="read_only")
+    assert not any(n.startswith("alert_signup") for n in by)
+    assert not any(m == "POST" and "/api/alerts" in u for m, u in mock.requests)
+
+
+@pytest.mark.parametrize("link", [
+    "https://www.greenjobs.ie/for-employers.asp",
+    "//greenjobs.co.uk/jobs/12/x.asp?a=1",
+    "https://jobs.strategiesuk.net/apply?id=1",
+    "https://www.greenjobs.ie/browse-jobs/acme",
+])
+def test_old_platform_link_on_a_page_fails(cfg, link):
+    res, by, _, _ = run(cfg, old_link=link)
+    assert "no_old_platform_links[ie]" in failed(res), by["no_old_platform_links[ie]"]
+    assert by["no_old_platform_links[uk]"]["status"] == "pass"
+
+
+def test_no_old_platform_links_scans_job_pages_too(cfg):
+    res, by, mock, _ = run(cfg)
+    assert by["no_old_platform_links[ie]"]["status"] == "pass", by["no_old_platform_links[ie]"]
+    assert "(5 job pages)" in by["no_old_platform_links[ie]"]["detail"]
+    assert any(re.search(r"workers\.dev/ie/jobs/ie:seed-\d+/$", u) for _, u in mock.requests)
+
+
+def test_jobs_page_without_figures_fails_parity(cfg):
+    import smoke as _s
+    res, by, _, _ = run(cfg, markers=False)
+    assert "stats_parity[ie]" in failed(res)

@@ -4,12 +4,12 @@
   <p class="lede">Compare disclosed salaries across sectors and bands, and see which employers commit to pay transparency.</p>
 </div>
 <div class="wrap viz" data-insights style="padding-bottom:var(--pad-y)">
-  <p class="keyline reveal" data-keyline><strong class="num" data-s-n><span data-live="n_jobs">{{n_jobs}}</span></strong> live roles · <strong class="num" data-s-disc><span data-live="disc_pct">{{disc_pct}}</span>%</strong> disclose a salary (<span class="num" data-s-cnt><span data-live="n_disc">{{n_sal}}</span></span> roles) · median <strong class="num" data-s-med><span data-live="median">{{median}}</span></strong>, taken at the midpoint of each range.</p>
+  <p class="keyline reveal" data-keyline><strong class="num" data-s-n><span data-live="n_jobs" data-stat="salary.n_jobs">{{n_jobs}}</span></strong> live roles · <strong class="num" data-s-disc><span data-live="disc_pct" data-stat="salary.disc_pct">{{disc_pct}}</span>%</strong> disclose a salary (<span class="num" data-s-cnt><span data-live="n_disc" data-stat="salary.n_disc">{{n_sal}}</span></span> roles) · median <strong class="num" data-s-med><span data-live="median" data-stat="salary.median">{{median}}</span></strong>, taken at the midpoint of each range.</p>
   <div class="figs">
     <figure class="fig reveal" data-fig="hist"><h3>Disclosed salaries by band</h3><p>How many roles fall in each band, using the midpoint of any range.</p></figure>
     <figure class="fig reveal" data-fig="sector"><h3>Median by sector</h3><p>Only sectors with three or more disclosed salaries are shown; a role tagged to two sectors counts in both.</p></figure>
     <figure class="fig reveal" data-fig="disc"><h3>Pay transparency by sector</h3><p>Share of roles in each sector that publish a salary figure.</p></figure>
     <figure class="fig reveal" data-fig="region"><h3>Live roles by {{unit}}</h3><p>A role listed in two places counts in each.</p></figure>
   </div>
-  <p class="muted viz__fn">Method: every figure comes from the <span data-live="n_jobs">{{n_jobs}}</span> live listings as of <time datetime="{{fetched}}">{{fetched_long}}</time>. All figures are in {{cur}} per year; hourly and monthly rates are annualised on full-time hours.</p>
+  <p class="muted viz__fn">Method: every figure comes from the <span data-live="n_jobs" data-stat="salary.n_jobs">{{n_jobs}}</span> live listings. All figures are in {{cur}} per year; hourly and monthly rates are annualised on full-time hours.</p>
 </div>

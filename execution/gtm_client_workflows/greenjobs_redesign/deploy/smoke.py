@@ -2,7 +2,9 @@
 
 description: Black-box checks of a deployed GreenJobs environment over HTTPS. Read checks (both envs):
     health, job list (Worker API + board page), security headers, KPI dashboard, /api/stats parity
-    with the paginated job list and every data-stat figure on the home page and dashboard (none = fail),
+    with the paginated job list and every data-stat figure on the home page, dashboard and jobs page (none = fail),
+    no rendered page links into the retired platform (.asp / Strategies hosts), and on staging the job-alert
+    sign-up answers 2xx on both boards (DRY_RUN: no mail),
     a Worker-rendered job page per site, 20 sampled legacy redirects -> 301 -> 200,
     build-export auth. Write checks (staging `full` mode only): create an email-mode and a link-mode job
     through the admin API with the staging Access service token, poll until public (<= 15 min), apply
@@ -20,6 +22,7 @@ outputs: JSON {env, mode, sha, status, checks:[{name,status,detail}]} to --out a
 from __future__ import annotations
 
 import argparse
+import html as html_lib
 import http.client
 import json
 import random
@@ -37,6 +40,13 @@ from urllib.parse import urljoin, urlsplit
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
+# pages whose data-stat figures are compared with /api/stats (home, KPI dashboard, jobs page: intro + quick match)
+STAT_PAGES = ("board_home", "board_dashboard", "board_list")
+# pages scanned for links into the retired platform (eye review M3), per board, plus a sample of job pages
+LINK_PAGES = ("/{ed}/", "/{ed}/jobs/", "/{ed}/employers/", "/{ed}/dashboard/", "/{ed}/insights/", "/{ed}/sectors/")
+LINK_JOB_SAMPLE = 5
+URL_RE = re.compile(r"""(?:https?:)?//[A-Za-z0-9.-]+\.[A-Za-z]{2,}[^\s"'<>)\]]*""")
+ALERT_SMOKE_EMAIL = "smoke-alerts@example.com"  # one fixed address: a re-run converges on one pending row (DRY_RUN: no mail)
 NS = uuid.UUID(
     "6f1c3a52-7d0e-4f53-9a51-0e5b0c1d2a77"
 )  # fixed namespace: same sha -> same idempotency keys
@@ -228,23 +238,27 @@ class Smoke:
                 ok, detail = False, f"{detail}; {'; '.join(bad[:3])}"
             if not compared:
                 ok = False
-                detail += "; figures compared: none (no data-stat markers on home or dashboard): FAIL"
+                detail += "; figures compared: none (no data-stat markers on home, dashboard or jobs page): FAIL"
             else:
                 detail += f"; figures compared: {compared} ({len(bad)} differ)"
             self.rec(f"stats_parity[{site}]", ok, detail)
 
     def compare_figures(self, board: str, site: str, stats: dict[str, Any]) -> tuple[int, list[str]]:
-        """Every data-stat figure slot on the board's home page and KPI dashboard against /api/stats: the key is a
+        """Every data-stat figure slot on the board's home page, KPI dashboard and jobs page against /api/stats: the key is a
         dotted path into the stats body (salary.n_jobs, kpis.live; a flat key such as live_jobs works too) and the
         printed text must equal the value as the pages print it (thousands separators and a trailing % ignored,
         null = n/a). A key /api/stats does not have is a difference, not a skip. Returns (compared, differences)."""
         compared, bad = 0, []
-        for page in ("board_home", "board_dashboard"):
+        for page in STAT_PAGES:
             r = self.get(board + self.p(page, ed=site))
             if r.status != 200:
                 bad.append(f"{self.p(page, ed=site)} HTTP {r.status}")
                 continue
-            for _tag, key, text in re.findall(self.sc["dashboard_stat_regex"], r.text):
+            found_on_page = re.findall(self.sc["dashboard_stat_regex"], r.text)
+            if page == "board_list" and not found_on_page:
+                # the jobs-page intro "N green roles" and the quick-match "N live roles are indexed" (eye review B3)
+                bad.append("list: no data-stat figure (intro + quick-match counts)")
+            for _tag, key, text in found_on_page:
                 compared += 1
                 found, want = _stat_lookup(stats, key)
                 got = text.strip().replace(",", "")
@@ -314,6 +328,61 @@ class Smoke:
                 total is not None and not after and n == total == live,
                 f"alerts={cfg.get('alerts')}, newsletter={cfg.get('newsletter')}; board set {n} over {pages} page(s), total {total}, stats {live}",
             )
+
+    def check_alert_signup(self) -> None:
+        """Staging (require_dry_run): the job-alert sign-up of each board answers 2xx through its API origin, as
+        the board's form posts it (api.js: POST /api/alerts?site=, JSON, consent). DRY_RUN keeps the confirmation
+        mail unsent; the fixed address converges on one pending row. Production writes nothing: not run there."""
+        if not self.ec.get("require_dry_run"):
+            return
+        api = self.ec.get("api_base") or {}
+        for site, board in self.sites("board_urls"):
+            base = (api.get(site) or board).rstrip("/")
+            body = json.dumps({"email": ALERT_SMOKE_EMAIL, "consent": True, "website": ""}).encode()
+            r = self.send("POST", f"{base}/api/alerts?site={site}", {"Origin": board, "Content-Type": "application/json"}, body)
+            got = r.json() if isinstance(r.json(), dict) else {}
+            self.rec(f"alert_signup[{site}]", 200 <= r.status < 300 and got.get("ok") is True,
+                     f"HTTP {r.status} {got.get('error') or got.get('next') or ''}".strip())
+
+    def old_platform_links(self, html_text: str) -> list[str]:
+        pkg = str(HERE.parent)
+        if pkg not in sys.path:
+            sys.path.insert(0, pkg)
+        import validate_site  # noqa: PLC0415  (the one old-platform rule, shared with build_site and the Worker)
+
+        out = []
+        for raw in URL_RE.findall(html_lib.unescape(html_text)):
+            u = ("https:" + raw) if raw.startswith("//") else raw
+            if validate_site.is_old_platform_url(u.rstrip(".,;")):
+                out.append(u)
+        return out
+
+    def check_no_old_platform_links(self) -> None:
+        """No rendered page links into the retired platform (greenjobs.ie / greenjobs.co.uk *.asp, /browse-jobs/,
+        /jobboard/, or a Strategies host): the board's main pages plus LINK_JOB_SAMPLE job pages per site as the
+        Worker renders them (eye review M3)."""
+        workers = dict(self.sites("worker_urls"))
+        for site, board in self.sites("board_urls"):
+            urls = [board + p.format(ed=site) for p in LINK_PAGES]
+            base = workers.get(site) or board
+            r = self.get(f"{base}/api/jobs?view=board&site={site}&limit={LINK_JOB_SAMPLE}&text=0", {"Origin": board})
+            jobs = (r.json() or {}).get("jobs") if r.status == 200 and isinstance(r.json(), dict) else None
+            ids = [str(j.get("id")) for j in (jobs or []) if isinstance(j, dict) and re.fullmatch(r"[A-Za-z0-9_:-]{1,120}", str(j.get("id") or ""))]
+            urls += [base + self.p("board_job", ed=site, slug=i) for i in ids[:LINK_JOB_SAMPLE]]
+            hits, errors = [], []
+            for url in urls:
+                g = self.get(url)
+                if g.status != 200:
+                    errors.append(f"{urlsplit(url).path} HTTP {g.status}")
+                    continue
+                hits += [f"{urlsplit(url).path} -> {h}" for h in self.old_platform_links(g.text)]
+            ok = not hits and not errors and len(ids) >= min(LINK_JOB_SAMPLE, 1)
+            detail = f"{len(urls) - len(errors)}/{len(urls)} pages scanned ({len(ids)} job pages); old-platform links: {len(hits)}"
+            if hits:
+                detail += f"; first: {hits[0]}"
+            if errors:
+                detail += f"; {errors[0]}"
+            self.rec(f"no_old_platform_links[{site}]", ok, detail)
 
     def check_boards(self) -> None:
         for site, base in self.sites("board_urls"):
@@ -636,6 +705,8 @@ class Smoke:
         self.check_jobs_and_stats()
         self.check_job_pages()
         self.check_live_wiring()
+        self.check_no_old_platform_links()
+        self.check_alert_signup()
         self.check_redirects()
         self.check_export()
         if self.mode == "full":

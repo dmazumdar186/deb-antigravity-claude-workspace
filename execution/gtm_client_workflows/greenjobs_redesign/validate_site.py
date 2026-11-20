@@ -30,6 +30,7 @@ import re
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 FORBIDDEN = [
     (r"\bAI\b", "AI"),
@@ -132,6 +133,26 @@ class _Doc(HTMLParser):
             self.dataset_blocks[-1] += data
         if self._in_title:
             self.title_text += data
+
+
+# Links into the retired Strategies platform (eye review 2026-11-20 M3); build_site.is_old_platform_url is this.
+_OLD_BOARD_HOST_RE = re.compile(r"(?:www\.)?greenjobs\.(?:ie|co\.uk)", re.I)
+_OLD_STRATEGIES_HOST_RE = re.compile(r"(?:^|.*\.)(?:strategiesuk\.net|strategies\.co\.uk|strategies\.net)", re.I)
+_OLD_PATH_RE = re.compile(r"(?:\.asp(?:$|[?#])|^/browse-jobs/|^/jobboard/)", re.I)
+
+
+def is_old_platform_url(url: Any) -> bool:
+    """True for a URL on the retired Strategies platform (see above)."""
+    try:
+        u = urlsplit(str(url or ""))
+    except ValueError:
+        return False
+    host = (u.hostname or "").lower()
+    if not host:
+        return False
+    if _OLD_STRATEGIES_HOST_RE.fullmatch(host):
+        return True
+    return bool(_OLD_BOARD_HOST_RE.fullmatch(host)) and bool(_OLD_PATH_RE.search(u.path + (f"?{u.query}" if u.query else "")))
 
 
 def _is_local(value: str) -> bool:
@@ -324,6 +345,9 @@ def validate(site: Path, jobs_by_edition: dict[str, list[dict[str, Any]]], data_
                 continue
             if stripped.startswith("/"):
                 fails.append(f"{rel}: absolute path {attr}=\"{stripped}\" (relative paths only)")
+                continue
+            if is_old_platform_url(stripped):
+                fails.append(f"{rel}: {attr}=\"{stripped[:80]}\" links into the retired Strategies platform")
                 continue
             if not _is_local(stripped):
                 if tag in THIRD_PARTY_TAGS:

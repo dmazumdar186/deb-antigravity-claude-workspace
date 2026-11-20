@@ -358,12 +358,57 @@ def build_seed_sql(env: str, sources: dict[str, Path], as_of: str) -> tuple[str,
     return sql, n
 
 
+def _staging_seed_module() -> Any:
+    pkg = str(Path(__file__).resolve().parents[1])
+    if pkg not in sys.path:
+        sys.path.insert(0, pkg)
+    import staging_seed  # noqa: PLC0415  (staging only: the seed file's own gate)
+
+    return staging_seed
+
+
+def _seed_job_apply(stmt: str) -> tuple[Any, Any, Any]:
+    """(apply_mode, apply_email, apply_url) of one staging_seed.py jobs upsert, read by SQLite itself."""
+    import sqlite3  # noqa: PLC0415
+
+    m = re.match(r"INSERT INTO jobs \(([^)]*)\)", stmt)
+    cols = [c.strip() for c in m.group(1).split(",")] if m else []
+    if not {"id", "apply_mode", "apply_email", "apply_url"} <= set(cols):
+        raise GateError("seed job row lacks its apply columns")
+    c = sqlite3.connect(":memory:")
+    try:
+        c.execute(f"CREATE TABLE jobs ({', '.join(cols)}, UNIQUE (id))")
+        c.execute(stmt)
+        return c.execute("SELECT apply_mode, apply_email, apply_url FROM jobs").fetchone()
+    except sqlite3.Error as e:
+        raise GateError(f"seed job statement does not parse: {type(e).__name__}") from e
+    finally:
+        c.close()
+
+
 def assert_seed_safe(sql: str) -> None:
-    """Fail closed: the seed may only INSERT OR IGNORE into the public tables."""
-    # One statement per line (descriptions are whitespace-collapsed); "--" lines are the header comment.
+    """Fail closed. Two seed forms are accepted, one statement per line ("--" lines are comments):
+    - the legacy build_seed_sql file: INSERT OR IGNORE into the public tables, link-mode jobs, no apply_email;
+    - the staging_seed.py file (what `stage` seeds since the 2026-11-20 eye review): upserts
+      (INSERT ... ON CONFLICT DO UPDATE) into the public tables plus the one close scoped to earlier seed rows,
+      checked by staging_seed.assert_seed_safe, and every job row stores no apply email and never links into the
+      retired platform."""
     for stmt in (
         s.strip() for s in sql.splitlines() if s.strip() and not s.startswith("--")
     ):
+        if not stmt.startswith("INSERT OR IGNORE INTO "):
+            ss = _staging_seed_module()
+            try:
+                ss.assert_seed_safe(stmt + "\n")
+            except ss.SeedError as e:
+                raise GateError(str(e)) from e
+            if stmt.startswith("INSERT INTO jobs "):
+                mode, email, url = _seed_job_apply(stmt)
+                if email is not None or mode not in ("link", "email"):
+                    raise GateError("seed job must store no apply_email (link or email mode)")
+                if mode == "link" and (not str(url or "").startswith("https://") or ss.bs.is_old_platform_url(url)):
+                    raise GateError("seed job links into the retired platform or not https")
+            continue
         m = re.match(r"INSERT OR IGNORE INTO (\w+) \(([^)]*)\) VALUES \(", stmt)
         if not m or m.group(1) not in SEED_TABLES or not stmt.endswith(");"):
             raise GateError(f"seed statement not allowed: {stmt[:80]}")
@@ -540,6 +585,10 @@ def urllib_api(method: str, path: str, token: str, account: str) -> dict[str, An
         ) from e
 
 
+def _rel(p: Path) -> str:
+    return str(p.relative_to(ROOT) if p.is_relative_to(ROOT) else p)
+
+
 class Release:
     """One release run. dry-run prints every command; --execute runs them in order and stops at the first failure."""
 
@@ -672,23 +721,44 @@ class Release:
         self.record["d1_migration_level"] = migration_level(mdir)
 
     def seed(self) -> None:
+        """Staging only: the current public Gaia jobs (gaia_feed_sync --no-jev: public read, no Jev, no spend) plus
+        the re-based September test data, normalised ONCE by staging_seed.py into seed.sql (D1) and data/{ie,uk}.json
+        (the static boards; deploy_boards passes --data-dir + --today), so D1 and the boards hold the same set
+        (eye review 2026-11-20 B1-B3, M1, M4, M6; STAGING_FLAGS_NOTE.md section 2). Never seed without rebuilding."""
         if not self.ec.get("seed_public_jobs"):
             return
-        srcs = {k: ROOT / v for k, v in self.cfg["seed_sources"].items()}
-        sql, n = build_seed_sql(self.env, srcs, as_of="2026-11-20T00:00:00Z")
+        if self.env != "staging":
+            raise GateError("the seed is staging-only: production data never comes from a seed")
+        tool = "execution/gtm_client_workflows/greenjobs_redesign"
+        feed_dir, seed_dir = self.workdir / "gaia_feed", self.workdir / "staging_seed"
+        self.seed_date = self.environ.get("GREENJOBS_SEED_DATE") or utc_now()[:10]
+        dt.date.fromisoformat(self.seed_date)  # a bad override fails here, before anything runs
         self.workdir.mkdir(parents=True, exist_ok=True)
-        f = self.workdir / "seed_staging.sql"
-        f.write_text(sql, encoding="utf-8")
         self.run(
-            f"D1 staging seed: {n} public jobs (INSERT OR IGNORE)",
-            self.wr(
-                "d1",
-                "execute",
-                self.ec["d1"],
-                "--remote",
-                "--file",
-                str(f.relative_to(ROOT) if f.is_relative_to(ROOT) else f),
-            ),
+            "current public Gaia Talent jobs (public read; no Jev, no spend)",
+            ["python3", f"{tool}/gaia_feed_sync.py", "--no-jev", "--out", _rel(feed_dir)],
+        )
+        self.run(
+            f"staging seed set for {self.seed_date}: seed.sql + data/{{ie,uk}}.json from one normalised set",
+            ["python3", f"{tool}/staging_seed.py", "--env", "staging", "--seed-date", self.seed_date,
+             "--gaia-feed", _rel(feed_dir / "feed.json"), "--out", _rel(seed_dir)],
+        )
+        f = seed_dir / "seed.sql"
+        self.seed_data_dir = seed_dir / "data"
+        if self.execute:
+            if not f.is_file() or not all((self.seed_data_dir / f"{s}.json").is_file() for s in ("ie", "uk")):
+                raise StepError("staging_seed.py wrote no seed.sql / data/{ie,uk}.json")
+            assert_seed_safe(f.read_text(encoding="utf-8"))
+            try:
+                manifest = json.loads((seed_dir / "manifest.json").read_text(encoding="utf-8"))
+            except (OSError, ValueError) as e:
+                raise StepError(f"staging_seed manifest unreadable: {type(e).__name__}") from e
+            if manifest.get("env") != "staging" or manifest.get("seed_date") != self.seed_date:
+                raise StepError("staging_seed manifest is not this run's staging seed")
+            self.record["seed"] = {"seed_date": self.seed_date, "counts": manifest.get("counts")}
+        self.run(
+            "D1 staging seed (upserts; closes earlier seed rows no longer in the set)",
+            self.wr("d1", "execute", self.ec["d1"], "--remote", "--file", _rel(f)),
         )
 
     def deploy_worker(self) -> None:
@@ -747,6 +817,10 @@ class Release:
             "execution/gtm_client_workflows/greenjobs_redesign/deploy_cloudflare.sh"
         )
         stats = self.fetch_board_stats()
+        data_dir = getattr(self, "seed_data_dir", None)
+        if data_dir is not None and (self.env != "staging" or self.ec.get("robots_index") or self.ec.get("analytics") == "production"):
+            raise GateError("seed data (test data) is staging-only: a production build never gets --data-dir")
+        seed_args = ["--data-dir", _rel(data_dir), "--today", self.seed_date] if data_dir is not None else []
         stat_args = [a for ed, f in sorted(stats.items()) for a in ("--stats-json", f"{ed}={f.relative_to(ROOT) if f.is_relative_to(ROOT) else f}")]
         for site, project in sorted(self.ec["pages"].items()):
             out_dir = self.workdir / f"site-{site}"
@@ -776,6 +850,7 @@ class Release:
                     "--analytics",
                     "production" if self.ec.get("analytics") == "production" else "off",
                     *stat_args,
+                    *seed_args,
                 ],
             )
             self.run(

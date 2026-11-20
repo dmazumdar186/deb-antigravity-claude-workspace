@@ -104,13 +104,13 @@ export function shellPage(ctx, content, scripts) {
 
 const APPLY_FORM = (id) => `<form class="job__apply-form" id="apply-form" method="post" action="/api/apply" enctype="multipart/form-data" data-apply-form data-ev="apply_submit" data-ev-job="${id}">
 <input type="hidden" name="job_id" value="${id}"><input type="hidden" name="ts" value="" data-apply-ts>
-<div hidden aria-hidden="true"><label>Leave blank <input name="website" tabindex="-1" autocomplete="off"></label></div>
-<label>Name <input name="name" required maxlength="120" autocomplete="name"></label>
-<label>Email <input name="email" type="email" required maxlength="254" autocomplete="email"></label>
-<label>Phone <input name="phone" type="tel" maxlength="40" autocomplete="tel"></label>
-<label>Cover note <textarea name="cover_note" maxlength="5000" rows="4"></textarea></label>
-<label>CV (PDF or Word) <input name="cv" type="file" accept=".pdf,.doc,.docx"></label>
-<label><input type="checkbox" name="consent" value="yes" required> Send my application to the advertiser of this job</label>
+<div hidden aria-hidden="true"><label for="ap-website">Leave blank <input id="ap-website" name="website" tabindex="-1" autocomplete="off"></label></div>
+<label for="ap-name">Name <input id="ap-name" name="name" required maxlength="120" autocomplete="name"></label>
+<label for="ap-email">Email <input id="ap-email" name="email" type="email" required maxlength="254" autocomplete="email"></label>
+<label for="ap-phone">Phone <input id="ap-phone" name="phone" type="tel" maxlength="40" autocomplete="tel"></label>
+<label for="ap-cover">Cover note <textarea id="ap-cover" name="cover_note" maxlength="5000" rows="4"></textarea></label>
+<label for="ap-cv">CV (PDF or Word) <input id="ap-cv" name="cv" type="file" accept=".pdf,.doc,.docx"></label>
+<label for="ap-consent"><input id="ap-consent" type="checkbox" name="consent" value="yes" required> Send my application to the advertiser of this job</label>
 <button class="btn btn--lime btn--sm" type="submit">Send application</button>
 <p role="status" data-apply-status></p>
 </form>`;
@@ -161,7 +161,8 @@ export function jobPage(j, jobs, { site, today, canonical, indexable, reqHost = 
     jsonld, title: esc(noBreakDash(j.title)), employer: esc(j.employer), logo: logoImg(j, '/', 'job__logo'), sal_caveat: salCaveat, closed_chip: closedChip,
     meta, dl, desc_html: bodyHtml, ...applyCtx(j, domain), domain, id: esc(j.id), region: esc(j.regions[0] || ''), closing: esc(j.closing || ''),
     sal_sticky: `<span class="job__sticky-sal">${esc(sal || 'Salary not disclosed')}</span>`,
-    similar: similar.map((s) => roleCard(s, '/', '', today, ed.currency)).join('') || '<p class="muted">No similar live roles this week.</p>',
+    similar: similar.map((s) => roleCard(s, '/', '', today, ed.currency)).join(''),
+    similar_hidden: similar.length ? '' : ' hidden', // eye M5: no empty block when nothing is similar
     sector_link: `../index.html?sector=${qs(sector)}`, sector: esc(sector),
     posted_line: j.posted ? esc(`Posted ${dateLong(j.posted)}` + (j.closing ? ` · closes ${dateLong(j.closing)}` : '')) : '',
     sits: sector ? salaryStrip(j, jobs, ed.sym, ed.unit, new Set(ed.regions), ed.currency) : '',

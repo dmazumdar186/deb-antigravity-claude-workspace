@@ -113,7 +113,7 @@ OPS_ALERT_EMAIL = ""
 RATE_APPLY_PER_10MIN = "5"
 RATE_ADMIN_PER_MIN = "60"
 MAX_CV_BYTES = "5242880"
-ALERTS_ENABLED = "0"
+ALERTS_ENABLED = "1"       # staging: sign-up testable end to end; DRY_RUN="1" + MAIL_PROVIDER="none" keep every mail unsent (needs secret LIST_MAIL_SIGNING_KEY)
 NEWSLETTER_ENABLED = "0"
 ROBOTS_INDEX = "0"         # pinned: staging is never indexed (Worker pages + Pages _headers X-Robots-Tag)
 CANONICAL_ORIGIN_IE = ""
@@ -173,7 +173,7 @@ OPS_ALERT_EMAIL = ""
 RATE_APPLY_PER_10MIN = "5"
 RATE_ADMIN_PER_MIN = "60"
 MAX_CV_BYTES = "5242880"
-ALERTS_ENABLED = "0"
+ALERTS_ENABLED = "1"       # staging: sign-up testable end to end; DRY_RUN="1" + MAIL_PROVIDER="none" keep every mail unsent (needs secret LIST_MAIL_SIGNING_KEY)
 NEWSLETTER_ENABLED = "0"
 ROBOTS_INDEX = "0"         # pinned: staging is never indexed (Worker pages + Pages _headers X-Robots-Tag)
 CANONICAL_ORIGIN_IE = ""

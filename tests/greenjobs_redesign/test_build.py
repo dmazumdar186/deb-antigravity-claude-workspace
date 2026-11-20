@@ -182,12 +182,12 @@ def test_client_wall(tmp_root: Path):
     validator catches a wrong badge, a missing wall and a short wall."""
     clients = [{"name": "Acme Water", "file": "a.png", "source": "s", "lw": 120, "lh": 60, "live": True},
                {"name": "Bee & Co", "file": "b.png", "source": "s", "lw": 120, "lh": 60, "live": False}]
-    wall = build_site.client_wall({"site": "x.ie", "fetched": "2026-09-22", "clients": clients}, "../")
+    wall = build_site.client_wall({"site": "x.ie", "ed": "ie", "fetched": "2026-09-22", "clients": clients}, "../")
     h = _wall_unique(wall["html"])
     check(wall["mode"] == "clients" and wall["title"] == "Organisations GreenJobs has helped with talent attraction" and wall["sub"].startswith("Logos as shown on x.ie, ") and 'data-strip="clients"' in h and 'data-tiles="2"' in h and 'data-live="1"' in h,
           "client_wall: mode/title/sub and the data-strip=clients grid")
-    check(h.count('href="https://x.ie/for-employers.asp"') == 2 and 'alt="Acme Water"' in h and 'alt="Bee &amp; Co"' in h and h.count("Hiring this week") == 1 and 'emp--live" href' in h and "../assets/logos/clients/a.png" in h,
-          "client_wall: every tile links to the live for-employers page, alt = employer name, badge only on the live employer")
+    check(h.count('href="../ie/employers/index.html"') == 2 and "for-employers.asp" not in h and 'alt="Acme Water"' in h and 'alt="Bee &amp; Co"' in h and h.count("Hiring this week") == 1 and 'emp--live" href' in h and "../assets/logos/clients/a.png" in h,
+          "client_wall: every tile links to the new employer page (never the old .asp, eye M3), alt = employer name, badge only on the live employer")
     many = _wall_unique(build_site.client_wall({"site": "x.ie", "fetched": "2026-09-22", "clients": [dict(clients[1], file=f"{i}.png") for i in range(20)]}, "../")["html"])
     check(many.count('loading="eager"') == 20 and many.count('loading="lazy"') == 0, "client_wall: a carousel pre-loads every tile (no lazy images)")
     check(build_site.client_wall({"site": "x.ie", "fetched": "2026-09-22", "clients": []}, "../")["html"] == "", "client_wall: no clients -> empty html (callers fall back to employers_strip)")
@@ -351,7 +351,7 @@ def test_validator_catches_injected_faults(tmp_root: Path):
     check(not any("outside its inclusion rule" in f for f in with_patch(lambda t: t.replace("</main>", '<span class="tag tag--loc" data-loc="uk">UK</span></main>'))), "faults: a UK role card on an IE page is allowed (IE shows every class with a label)")
     check("countyies" not in clean and "counties" in clean, "home: unit pluralised as 'counties'")
     check("For Keith" not in clean and "for-keith" not in clean, "home: for-keith is not linked from the public shell")
-    check("Snapshot of" in clean, "home: hero carries the snapshot date")
+    check("Snapshot of" not in clean and "snapshot of" not in clean, "home: no frozen 'Snapshot of <date>' wording (eye review B3: figures are live)")
     check('class="hero"' in clean and clean.index('class="hero"') < clean.index('id="h-insight"'), "home: opens on the light hero; the compact insight band replaced the film (2026-09-28)")
     check('id="s-q"' in clean and 'hero__cta' not in clean and 'hdr__post' in clean, "home: hero keeps the search only; Post a job lives in the header (design review 2026-09-29)")
     check(clean.count('<article class="row"') == min(8, len(jobs["ie"])) and "tag--lvl" in clean, "home: compact rows (up to eight) with career-level chips")
@@ -572,7 +572,7 @@ def test_similar_jobs_and_landings(tmp_root: Path):
     site_map = (out / "sitemap.xml").read_text(encoding="utf-8")
     check("ecology-jobs-ireland/index.html" in site_map and "guides/salary-guide/index.html" in site_map, "landing: sitemap lists landing pages and the salary guide")
     guide = (out / "ie" / "guides" / "salary-guide" / "index.html").read_text(encoding="utf-8")
-    check("Last updated" in guide and "disclosed salaries" in guide and 'name="robots" content="noindex' in guide, "guide: salary guide has a last-updated date and stays noindex")
+    check("Last updated" not in guide and "disclosed salaries" in guide and 'name="robots" content="noindex' in guide, "guide: salary guide carries no frozen last-updated date (eye B3; figures are data-live) and stays noindex")
     ld = json.loads(re.search(r'<script type="application/ld\+json">(.*?)</script>', eco.read_text(encoding="utf-8"), re.S).group(1))
     check(ld["@type"] == "ItemList" and ld["itemListElement"][0]["item"]["@type"] == "JobPosting", "landing: ItemList of JobPosting JSON-LD")
 
@@ -812,11 +812,11 @@ def test_pf_a_similar_jobs_rules():
     pool = [mk(1, "Ecologist", "A", ["Ecology, nature recovery & biodiversity"], "2026-09-05"),  # same title+employer as me -> hidden
             mk(2, "Senior Ecologist", "B", ["Ecology, nature recovery & biodiversity"], "2026-09-03"),
             mk(3, "Senior Ecologist", "B", ["Ecology, nature recovery & biodiversity"], "2026-09-02"),  # duplicate of 2 -> hidden
-            mk(4, "Wind Technician", "C", ["Wind energy"], "2026-09-04"),  # same region, no shared sector -> hidden
+            mk(4, "Wind Technician", "C", ["Wind energy"], "2026-09-04"),  # same region, no shared sector -> after every sector match (eye M5)
             mk(5, "Bat Surveyor", "D", ["Ecology, nature recovery & biodiversity"], ""),  # no posted date -> last
             mk(6, "Botanist", "E", ["Ecology, nature recovery & biodiversity"], "2026-09-04")]
     sim = [s["id"] for s in build_site.similar_jobs(me, pool + [me], "EUR", 6)]
-    check(sim == ["6", "2", "5"], f"pf-A9: similar jobs dedupe on (title, employer), need a shared sector, newest first, empty posted last (got {sim})")
+    check(sim == ["6", "2", "5", "4"], f"pf-A9 / eye M5: similar jobs dedupe on (title, employer), share a sector or a region, sector matches first, newest first, empty posted last (got {sim})")
 
 
 def test_pf_a_employer_count_phrase(tmp_root: Path):
@@ -1364,7 +1364,7 @@ def test_r2b_visitor_voice_and_shell(tmp_root: Path):
     check("Find a job" not in hero and "Post a job" not in hero and 'hero__search' in hero, "r2b visual 18 (superseded 2026-09-29): hero has no CTA pills, search only")
     # 19: footer wordmark carries the leaf and a long-form date
     ftr = home.split('<footer class="ftr">')[1]
-    check('class="logo logo--ftr"><svg' in ftr and re.search(r'<time datetime="\d{4}-\d{2}-\d{2}">\d{1,2} [A-Z][a-z]+ \d{4}</time>', ftr), "r2b visual 19: footer logo has the leaf icon; the as-of date is rendered server-side as '22 September 2026' (r3 N4: was client-side data-date-long)")
+    check('class="logo logo--ftr"><svg' in ftr and not re.search(r'live roles on [^<]* as of', ftr) and 'data-live="n_jobs"' in ftr, "r2b visual 19 / eye B3: footer logo has the leaf icon; the live-roles count is data-live with no frozen as-of date")
     # 21: client sentence verbatim beside the input; share note honest about contents
     check("Your information is processed on your device and is not uploaded or stored." in jobs and "The link contains your search words." in jobs, "r2b R036 / visual 21: fit hint verbatim, share note names the search words")
     # 26: guides: empty heading gone, closing line once
@@ -1641,7 +1641,7 @@ def test_round4_b_copy_css_js(tmp_root: Path):
     # G. P3 rows
     check("Skip to results" in jobs and jobs.index("Skip to results") < jobs.index("data-rail-home"), "r4b G: jobs page has a skip-to-results link before the filter rail")
     check("lives in this link" not in compass and "Loosened" not in compass, "r4b G: compass result drops the raw URL and developer phrasing")
-    check("Data: Snapshot of" in guides and "Last updated: Snapshot" not in guides, "r4b G: guides index shows one date label")
+    check("Snapshot of" not in guides and "Last updated: Snapshot" not in guides, "r4b G / eye B3: guides index carries no frozen snapshot date")
     check('action="jobs/"' in home, "r4b G: hero search posts to jobs/ (no index.html in the shared URL)")
     check("{{posted_line}}<br>Description as published" in _read(SRC / "templates" / "job.html"), "r4b G: job page separates the posted line from the description note")
     check("tag--lvl" in jobs_js, "r4b G: desktop list rows carry the career-level chip like the cards")

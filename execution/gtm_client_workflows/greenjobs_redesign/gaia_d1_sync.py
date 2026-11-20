@@ -148,7 +148,7 @@ def record_to_job(
         and len(email) <= 254
     ):
         mode, a_email, a_url = "email", email, None
-    elif url.startswith("https://") and len(url) <= 2000 and not re.search(r"\s", url):
+    elif url.startswith("https://") and len(url) <= 2000 and not re.search(r"\s", url) and not bs.is_old_platform_url(url):
         mode, a_email, a_url = "link", None, url
     else:
         return None, "no usable apply route (no valid email, no https link)"

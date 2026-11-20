@@ -16,6 +16,8 @@ import { TAXONOMY, UNVERIFIED_SOURCE, dashboardKpis, edition, salaryStats, secto
 import { datasetFacets, gonePage, jobPage, listPage, sitemap, slim } from '../render/pages.js';
 import { err, json, SECURITY_HEADERS, todayUtc } from '../util.js';
 import { renderDescription } from '../validate.js';
+import { isLive, liveWhere } from '../live.js';
+import { isOldPlatformUrl } from '../oldplatform.js';
 
 export const PAGE_SIZE = 25;
 export const CACHE_SECONDS = 300; // edge TTL: a console write is public within 5 minutes
@@ -77,12 +79,14 @@ export function toJob(r, site, origin) {
   const d = derived(r, origin);
   const text = r.f_text != null ? r.f_text : d.text();
   const sectors = parseList(r.f_sectors);
-  const link = r.apply_mode === 'link' && typeof r.apply_url === 'string' && r.apply_url.startsWith('https://');
+  // Render-time guard: a link into the retired Strategies platform is never rendered (email mode instead).
+  const link = r.apply_mode === 'link' && typeof r.apply_url === 'string' && r.apply_url.startsWith('https://') && !isOldPlatformUrl(r.apply_url);
   return {
     id: r.id, slug, title: r.title, employer: r.employer || 'Confidential employer', location: r.location,
     regions: parseList(r.f_regions), type: r.f_type || '', sal_min: r.sal_min ?? null, sal_max: r.sal_max ?? null, cur: r.currency || null,
     period: r.period || null, sal_text: (r.sal_text || '').trim(), sectors, color: sectors[0] ? sectorColor(sectors[0]) : '',
-    posted: (r.posted_at || r.created_at || '').slice(0, 10), closing: r.closing_at ? r.closing_at.slice(0, 10) : '',
+    // The source's own posted date (Strategies LiveDate/CreateDate, Gaia date_gmt); never the import time.
+    posted: (r.posted_at || '').slice(0, 10), closing: r.closing_at ? r.closing_at.slice(0, 10) : '',
     summary: (r.summary || '').trim() || text.slice(0, 180), text: text.slice(0, 1500),
     // Sanitised on demand: a page renders one description, not the whole board's (Workers CPU budget).
     get description_html() { return d.html(); },
@@ -97,9 +101,9 @@ export function toJob(r, site, origin) {
 
 /** Every live, unexpired job of a site, newest first (normalise()'s sort: posted desc, then title desc). */
 export async function liveJobs(env, site, today, origin) {
-  const { results } = await env.DB.prepare(`${SELECT} WHERE j.site = ?1 AND j.status = 'live' AND (j.closing_at IS NULL OR j.closing_at >= ?2) LIMIT ?3`)
+  const { results } = await env.DB.prepare(`${SELECT} WHERE j.site = ?1 AND ${liveWhere('j', '?2')} LIMIT ?3`)
     .bind(site, today, MAX_LIVE).all();
-  const jobs = results.map((r) => toJob(r, site, origin));
+  const jobs = results.filter((r) => isLive(r, today)).map((r) => toJob(r, site, origin));
   jobs.sort((a, b) => (a.posted < b.posted ? 1 : a.posted > b.posted ? -1 : a.title < b.title ? 1 : a.title > b.title ? -1 : 0));
   return jobs;
 }
