@@ -266,7 +266,7 @@ def _check_dashboard(raw: str, rel: str, data: dict[str, Any] | None, kpis: Any,
         if isinstance(v, (int, float)) and not isinstance(v, bool):
             allowed |= {str(v), f"{v}%", f"{v:,}"}
     allowed |= {"n/a", "—"}
-    for val in re.findall(r'<div class="kpi(?: kpi--flag)?"><span class="kpi__l">[^<]*</span><b class="kpi__v num">([^<]*)</b>', raw):
+    for val in re.findall(r'<div class="kpi(?: kpi--flag)?"><span class="kpi__l">[^<]*</span><b class="kpi__v num"(?: data-stat="[a-z0-9_.]+")?>([^<]*)</b>', raw):
         bare = re.sub(r"^[€£$]", "", val.strip())
         if bare not in allowed:
             fails.append(f"{rel}: live tile value {val!r} is not a value of dashboard_kpis(data)")

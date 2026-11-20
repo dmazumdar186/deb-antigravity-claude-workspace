@@ -2078,6 +2078,80 @@ DASHBOARD_REWRITES = [
 ]
 
 
+# The eight live-now tiles in render order; one list with dashboard.js TILE_KEYS (parity.test.mjs pins the order).
+DASH_TILE_KEYS = ("live", "new7", "closing7", "sal_pct", "days_to_close", "remote_pct", "top_share", "agency_pct")
+
+# ---- data-stat figure slots (2026-11-20). Every live figure on the home page and the KPI dashboard carries
+# data-stat="<path into GET /api/stats>" (salary.n_jobs, kpis.live, ...). The live scripts write the API value
+# into it; release.py can pass the deployed Worker's /api/stats (--stats-json) so the static HTML carries the
+# same figures; the release smoke compares every marked figure with /api/stats (zero markers = fail).
+STAT_MARKER_RE = re.compile(r'<([a-z0-9]+)\b([^>]*\bdata-stat="([a-z0-9_.]+)"[^>]*)>([^<]*)</\1>')
+
+
+def stat_lookup(stats: dict[str, Any], path: str) -> tuple[bool, Any]:
+    """(found, value) for a dotted /api/stats path."""
+    cur: Any = stats
+    for part in path.split("."):
+        if not isinstance(cur, dict) or part not in cur:
+            return False, None
+        cur = cur[part]
+    return True, cur
+
+
+def stat_text(value: Any, pct: bool = False) -> str:
+    """A figure as the pages print it: n/a for null, the plain value otherwise, '%' kept when the slot has one."""
+    if value is None:
+        return "n/a"
+    return f"{value}%" if pct else str(value)
+
+
+def fill_stat_markers(html_text: str, stats: dict[str, Any]) -> tuple[str, int, list[str]]:
+    """Write each data-stat slot (and its data-count) with its /api/stats value. Returns (html, filled, unknown keys)."""
+    filled, unknown = 0, []
+
+    def sub(m: re.Match[str]) -> str:
+        nonlocal filled
+        tag, attrs, key, text = m.group(1), m.group(2), m.group(3), m.group(4)
+        ok, v = stat_lookup(stats, key)
+        if not ok or isinstance(v, (dict, list)):
+            unknown.append(key)
+            return m.group(0)
+        new = stat_text(v, text.strip().endswith("%"))
+        attrs = re.sub(r'\bdata-count="[^"]*"', f'data-count="{esc(str(v))}"', attrs) if v is not None else attrs
+        filled += 1
+        return f"<{tag}{attrs}>{esc(new)}</{tag}>"
+
+    return STAT_MARKER_RE.sub(sub, html_text), filled, unknown
+
+
+def apply_stats_overlay(out: Path, stats_by_ed: dict[str, dict[str, Any]]) -> list[str]:
+    """--stats-json: write the deployed Worker's figures into every data-stat slot of each edition, and its KPI
+    payload into the dashboard's gj-dash block (the charts and CSV), after validation (which checks the build's
+    own dataset). Problems (a marker key /api/stats lacks, an edition with no marker) fail the build."""
+    problems = []
+    for ed_key, stats in sorted(stats_by_ed.items()):
+        if stats.get("site") != ed_key:
+            problems.append(f"--stats-json {ed_key}: the file is for site {stats.get('site')!r}")
+            continue
+        total = 0
+        for f in sorted((out / ed_key).rglob("*.html")):
+            raw = f.read_text(encoding="utf-8")
+            if "data-stat=" not in raw:
+                continue
+            new, n, unknown = fill_stat_markers(raw, stats)
+            problems += [f"{f.relative_to(out)}: data-stat={k!r} is not a figure of /api/stats" for k in sorted(set(unknown))]
+            if f.parent.name == "dashboard" and isinstance(stats.get("kpis"), dict):
+                m = re.search(r'(<script type="application/json" id="gj-dash">)(.*?)(</script>)', new, re.S)
+                if m:
+                    merged = {**json.loads(m.group(2)), **stats["kpis"]}
+                    new = new[: m.start(2)] + json_embed(merged) + new[m.end(2):]
+            total += n
+            f.write_text(new, encoding="utf-8")
+        if not total:
+            problems.append(f"--stats-json {ed_key}: no data-stat figure slot in the {ed_key} pages")
+    return problems
+
+
 def render_dashboard(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str], brief: dict[str, Any], site_base: str) -> None:
     """Client KPI dashboard at /{ed}/dashboard/: live-now tiles from the dataset plus
     the event spec for launch. Not in the primary nav; linked from for-keith."""
@@ -2089,6 +2163,7 @@ def render_dashboard(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, 
     real_case = {j["employer"].lower(): j["employer"] for j in data["jobs"]}
     agency_names = ", ".join(real_case.get(n) or AGENCY_DISPLAY.get(n) or n.title() for n in sorted(AGENCY_NAMES))
     agency_words = ", ".join(w for w in AGENCY_WORDS if " " not in w)
+    # data-stat="kpis.<key>": the /api/stats path of each live figure (dashboard.js and the release smoke read it)
     tiles = [
         ("Live roles", str(k["live"]), "Listings with a page in this edition on the snapshot date.", ""),
         ("New this week", str(k["new7"]), "Roles posted within the 7 days up to the snapshot. Line: roles posted per week over the last 4 weeks.", sparkline_svg(k["weeks"], 120, 34)),
@@ -2100,8 +2175,8 @@ def render_dashboard(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, 
         ("Agency share", f'{k["agency_pct"]}%', "Roles posted by recruitment agencies rather than the employer directly.", ""),
     ]
     tile_html = "".join(
-        f'<div class="kpi{" kpi--flag" if flag and lbl == "Top employer share" else ""}"><span class="kpi__l">{lbl}</span><b class="kpi__v num">{val}</b>{spark}<p class="kpi__d" title="{how}">{how}</p></div>'
-        for lbl, val, how, spark in tiles)
+        f'<div class="kpi{" kpi--flag" if flag and lbl == "Top employer share" else ""}"><span class="kpi__l">{lbl}</span><b class="kpi__v num" data-stat="kpis.{key}">{val}</b>{spark}<p class="kpi__d" title="{how}">{how}</p></div>'
+        for (lbl, val, how, spark), key in zip(tiles, DASH_TILE_KEYS, strict=True))
     root = "../../"
     ctx = shell_ctx(data, 2, "dashboard", f"KPI dashboard — what GreenJobs {ed['short']} measures | GreenJobs {ed['short']}",
                     "Live figures from this week's listings, and the measures reported once analytics is switched on.", brief=brief, site_base=site_base, same_path="dashboard/index.html")
@@ -2822,7 +2897,8 @@ def load_templates(src: Path) -> dict[str, str]:
 
 
 def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = None, site_base: str = "", today: date | None = None,
-          board_site: str | None = None, robots_index: bool = False, analytics: str = "off") -> int:
+          board_site: str | None = None, robots_index: bool = False, analytics: str = "off",
+          stats: dict[str, dict[str, Any]] | None = None) -> int:
     if not src.is_dir():
         print(f"FAIL  source directory not found: {src}", file=sys.stderr)
         return 2
@@ -2969,6 +3045,14 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
         for line in failures[:80]:
             print(f"  - {line}", file=sys.stderr)
         return 1
+    if stats:
+        problems = apply_stats_overlay(out, {k: v for k, v in stats.items() if k in data_by_ed})
+        if problems:
+            print(f"FAIL  {len(problems)} --stats-json problem(s):", file=sys.stderr)
+            for line in problems[:40]:
+                print(f"  - {line}", file=sys.stderr)
+            return 1
+        print(f"…  figure slots written from /api/stats for {', '.join(sorted(k for k in stats if k in data_by_ed))}")
     css = sum(p.stat().st_size for p in (out / "css").glob("*.css"))
     js = sum(p.stat().st_size for p in (out / "js").glob("*.js"))
     pages = len(list(out.rglob("*.html")))
@@ -3146,7 +3230,20 @@ def main() -> int:
     parser.add_argument("--robots-index", action="store_true", default=os.environ.get("ROBOTS_INDEX") == "1",
                         help="production only: pages index,follow and robots.txt allows crawling (default: noindex; env ROBOTS_INDEX=1)")
     parser.add_argument("--analytics", choices=["off", "production"], default=os.environ.get("GJ_ANALYTICS", "off"), help="production: GA4 tag + Search Console meta + robots sitemaps (default off = staging)")
+    parser.add_argument("--stats-json", action="append", default=[], metavar="ED=PATH",
+                        help="an edition's GET /api/stats body (release.py, staging): the data-stat figure slots carry its values")
     args = parser.parse_args()
+    stats: dict[str, dict[str, Any]] = {}
+    for item in args.stats_json:
+        ed_key, _, path = item.partition("=")
+        if ed_key not in ("ie", "uk") or not path:
+            parser.error(f"--stats-json takes ED=PATH with ED ie|uk, got {item!r}")
+        try:
+            stats[ed_key] = json.loads(Path(path).read_text(encoding="utf-8"))
+        except (OSError, ValueError) as e:
+            parser.error(f"--stats-json {ed_key}: {type(e).__name__}")
+        if not isinstance(stats[ed_key], dict):
+            parser.error(f"--stats-json {ed_key}: not a JSON object")
     global LIVE_API, API_BASE
     LIVE_API = bool(args.live_api)
     API_BASE = args.api_base.rstrip("/")
@@ -3154,7 +3251,7 @@ def main() -> int:
         parser.error(f"--api-base must be an https origin, got {args.api_base!r}")
     editions = ["ie", "uk"] if args.edition == "both" else [args.edition]
     return build(args.src.resolve(), args.out.resolve(), editions=editions, fixture=args.data_fixture.resolve() if args.data_fixture else None, site_base=args.site_base, today=args.today,
-                 board_site=args.board_site, robots_index=args.robots_index, analytics=args.analytics)
+                 board_site=args.board_site, robots_index=args.robots_index, analytics=args.analytics, stats=stats or None)
 
 
 if __name__ == "__main__":
