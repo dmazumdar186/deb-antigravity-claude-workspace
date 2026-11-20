@@ -55,3 +55,11 @@ M1–M11 and E1–E3 as in SYNTHESIS §4, with the CPO and CDO additions. Graded
 
 1. The contract and DPA with Keith. The data downloads wait on them.
 2. Nothing else. The Cavuno trial is cancelled.
+
+## Keith pack schedule (plan of record, 20 Nov)
+
+- Default dates for Keith's answers, each set before the step that depends on it:
+  - Tue 24 Nov: who opens the Cloudflare and Resend accounts, and who sends the CHM/Mattinson notices.
+  - Wed 25 Nov: candidate records, sector sites (default: forward), logos.
+  - Fri 27 Nov: the 11 change-list inputs, the CRM, test-site sign-off.
+- Change-list inputs received after go-live are applied within two business days (Proposal:140).
