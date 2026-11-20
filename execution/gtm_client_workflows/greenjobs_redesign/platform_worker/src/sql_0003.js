@@ -1,0 +1,90 @@
+// Statements for the migration-0003 tables (feed import, facets, review queue, employer self-posting).
+// Same text as build/d1/upserts_0003.sql (the Python emitters render that file); a node test asserts the
+// two are equal after whitespace normalisation, so edit both together. Always bound, never concatenated.
+
+export const FEED_JOB_UPSERT = `INSERT INTO jobs (id, site, source, source_id, employer_id, title, location, region, job_type, sal_min, sal_max, currency, period, sal_text, sectors_json, summary, description, apply_mode, apply_email, apply_url, status, posted_at, closing_at, created_by, created_at, updated_at)
+VALUES (?1, ?2, 'feed', ?3, COALESCE((SELECT e.id FROM employers e WHERE e.site = ?2 AND e.name_norm = ?5 AND e.source = 'strategies' ORDER BY e.id LIMIT 1), ?4), ?6, ?7, ?8, ?9, NULL, NULL, NULL, NULL, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, 'feed', ?20, ?20)
+ON CONFLICT (id) DO UPDATE SET
+  title = excluded.title, location = excluded.location, region = excluded.region, job_type = excluded.job_type,
+  sal_text = excluded.sal_text, summary = excluded.summary, description = excluded.description,
+  apply_mode = excluded.apply_mode, apply_email = excluded.apply_email, apply_url = excluded.apply_url,
+  closing_at = excluded.closing_at,
+  sectors_json = CASE WHEN EXISTS (SELECT 1 FROM job_review r WHERE r.job_id = jobs.id AND r.status <> 'queued')
+                      THEN jobs.sectors_json ELSE excluded.sectors_json END,
+  status = CASE WHEN jobs.status IN ('closed','live') THEN jobs.status ELSE excluded.status END,
+  posted_at = COALESCE(jobs.posted_at, excluded.posted_at),
+  version = jobs.version + 1, updated_at = excluded.updated_at
+WHERE jobs.source = 'feed' AND (
+     jobs.title IS NOT excluded.title OR jobs.location IS NOT excluded.location OR jobs.region IS NOT excluded.region
+  OR jobs.job_type IS NOT excluded.job_type OR jobs.sal_text IS NOT excluded.sal_text OR jobs.summary IS NOT excluded.summary
+  OR jobs.description IS NOT excluded.description OR jobs.apply_mode IS NOT excluded.apply_mode
+  OR jobs.apply_email IS NOT excluded.apply_email OR jobs.apply_url IS NOT excluded.apply_url
+  OR jobs.closing_at IS NOT excluded.closing_at
+  OR (jobs.status = 'draft' AND excluded.status = 'live')
+  OR (jobs.sectors_json IS NOT excluded.sectors_json
+      AND NOT EXISTS (SELECT 1 FROM job_review r WHERE r.job_id = jobs.id AND r.status <> 'queued')))`;
+
+export const FEED_CLOSE_MISSING = `UPDATE jobs SET status = 'closed', closed_at = ?3, version = version + 1, updated_at = ?3
+WHERE site = ?1 AND source = 'feed' AND source_id LIKE ?2 AND status <> 'closed'
+  AND source_id NOT IN (SELECT value FROM json_each(?4))`;
+
+export const JOB_FACETS_UPSERT = `INSERT INTO job_facets (job_id, site, regions_json, loc_class, workplace, contract_json, source_sectors_json, sector_confidence, sector_method, taxonomy_version, updated_at)
+VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)
+ON CONFLICT (job_id) DO UPDATE SET
+  regions_json = excluded.regions_json, loc_class = excluded.loc_class, workplace = excluded.workplace,
+  contract_json = excluded.contract_json, source_sectors_json = excluded.source_sectors_json,
+  sector_confidence = excluded.sector_confidence, sector_method = excluded.sector_method,
+  taxonomy_version = excluded.taxonomy_version, updated_at = excluded.updated_at
+WHERE job_facets.regions_json IS NOT excluded.regions_json OR job_facets.loc_class IS NOT excluded.loc_class
+   OR job_facets.workplace IS NOT excluded.workplace OR job_facets.contract_json IS NOT excluded.contract_json
+   OR job_facets.source_sectors_json IS NOT excluded.source_sectors_json
+   OR job_facets.sector_confidence IS NOT excluded.sector_confidence OR job_facets.sector_method IS NOT excluded.sector_method
+   OR job_facets.taxonomy_version IS NOT excluded.taxonomy_version`;
+
+export const REVIEW_UPSERT = `INSERT INTO job_review (job_id, site, reason, suggested_json, confidence, hold, status, created_at, updated_at)
+VALUES (?1, ?2, ?3, ?4, ?5, ?6, 'queued', ?7, ?7)
+ON CONFLICT (job_id) DO UPDATE SET
+  reason = excluded.reason, suggested_json = excluded.suggested_json, confidence = excluded.confidence,
+  hold = excluded.hold, updated_at = excluded.updated_at
+WHERE job_review.status = 'queued' AND (job_review.reason IS NOT excluded.reason
+   OR job_review.suggested_json IS NOT excluded.suggested_json OR job_review.confidence IS NOT excluded.confidence
+   OR job_review.hold IS NOT excluded.hold)`;
+
+export const REVIEW_CLEAR = `DELETE FROM job_review WHERE job_id = ?1 AND status = 'queued'`;
+
+export const REVIEW_APPROVE_JOB = `UPDATE jobs SET sectors_json = ?3, status = CASE WHEN status = 'draft' THEN 'live' ELSE status END,
+  posted_at = COALESCE(posted_at, ?4), version = version + 1, updated_at = ?4
+WHERE id = ?1 AND site = ?2 AND status <> 'closed'
+  AND EXISTS (SELECT 1 FROM job_review r WHERE r.job_id = ?1 AND r.status = 'queued')`;
+
+export const REVIEW_DECIDE = `UPDATE job_review SET status = ?3, decided_by = ?4, decided_sectors_json = ?5, decided_at = ?6, updated_at = ?6
+WHERE job_id = ?1 AND site = ?2 AND status = 'queued'
+  AND EXISTS (SELECT 1 FROM jobs j WHERE j.id = ?1 AND j.status <> 'closed')`;
+
+export const LINK_UPSERT = `INSERT INTO job_links (site, feed_source_id, board_job_id, method, created_at, updated_at)
+VALUES (?1, ?2, ?3, ?4, ?5, ?5)
+ON CONFLICT (site, feed_source_id, board_job_id) DO UPDATE SET method = excluded.method, updated_at = excluded.updated_at
+WHERE job_links.method IS NOT excluded.method AND job_links.method <> 'staff'`;
+
+export const LINK_PRUNE = `DELETE FROM job_links WHERE site = ?1 AND feed_source_id LIKE ?2 AND method <> 'staff'
+  AND (feed_source_id || '|' || board_job_id) NOT IN (SELECT value FROM json_each(?3))`;
+
+export const TAXONOMY_DEACTIVATE = `UPDATE taxonomy_terms SET active = 0 WHERE kind = ?1 AND active = 1 AND value NOT IN (SELECT value FROM json_each(?2))`;
+
+export const TAXONOMY_UPSERT = `INSERT INTO taxonomy_terms (kind, value, version, active) VALUES (?1, ?2, ?3, 1)
+ON CONFLICT (kind, value) DO UPDATE SET version = excluded.version, active = 1
+WHERE taxonomy_terms.version IS NOT excluded.version OR taxonomy_terms.active = 0`;
+
+export const EMPLOYER_SCOPE = `SELECT ea.employer_id AS employer_id, e.name AS name FROM employer_accounts ea JOIN employers e ON e.id = ea.employer_id
+WHERE ea.email_norm = ?1 AND ea.status = 'active' AND (ea.expires_at IS NULL OR ea.expires_at > ?2) AND e.site = ?3
+ORDER BY ea.employer_id`;
+
+export const EMPLOYER_ACCOUNT_UPSERT = `INSERT INTO employer_accounts (email_norm, employer_id, status, expires_at, created_by, created_at, updated_at)
+VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?6)
+ON CONFLICT (email_norm, employer_id) DO UPDATE SET status = excluded.status, expires_at = excluded.expires_at,
+  updated_at = excluded.updated_at
+WHERE employer_accounts.status IS NOT excluded.status OR employer_accounts.expires_at IS NOT excluded.expires_at`;
+
+export const EMPLOYER_JOB_INSERT = `INSERT INTO jobs (id, site, source, source_id, employer_id, title, location, region, job_type, sal_min, sal_max, currency, period, sal_text, sectors_json, summary, description, apply_mode, apply_email, apply_url, status, posted_at, closing_at, created_by, created_at, updated_at)
+VALUES (?1, ?2, 'console', NULL, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?23)
+ON CONFLICT (id) DO NOTHING`;

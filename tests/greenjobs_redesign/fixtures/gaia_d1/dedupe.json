@@ -1,0 +1,13 @@
+{
+ "pairs": [
+  {
+   "source_id": "gaia:105",
+   "board_site": "ie",
+   "board_id": "11500002",
+   "verdict": "queue",
+   "method": "rule",
+   "reason": "same title"
+  }
+ ],
+ "board_only": []
+}

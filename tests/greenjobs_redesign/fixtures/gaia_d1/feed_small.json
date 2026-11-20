@@ -1,0 +1,275 @@
+{
+ "source": "gaiatalent.com",
+ "generated": "2026-11-10T09:00:00Z",
+ "count": 5,
+ "jobs": [
+  {
+   "source_id": "gaia:101",
+   "source": "gaia",
+   "title": "Senior Ecologist",
+   "url": "https://gaiatalent.com/job/101/",
+   "description_html": "<p>Lead ecology surveys of habitats and protected species across Munster. Permanent, hybrid working from our Cork office.</p>",
+   "location": "Cork",
+   "sector": "Ecology, nature recovery & biodiversity",
+   "region": "Cork",
+   "job_type": "Permanent",
+   "salary_text": "EUR 50,000",
+   "posted_at": "2026-11-10T09:00:00Z",
+   "modified_at": "2026-11-10T09:00:00Z",
+   "expires_at": null,
+   "apply": {
+    "method": "url",
+    "url": "https://gaiatalent.com/job/101/"
+   },
+   "boards": [
+    "ie"
+   ],
+   "gaia_terms": {
+    "location": [
+     "Cork"
+    ],
+    "sector": [],
+    "category": [],
+    "type": [
+     "Permanent"
+    ]
+   },
+   "mapping": {
+    "sector": {
+     "value": "Ecology, nature recovery & biodiversity",
+     "method": "dict",
+     "confidence": 1.0
+    },
+    "region": {
+     "value": "Cork",
+     "method": "dict",
+     "confidence": 1.0
+    },
+    "job_type": {
+     "value": "Permanent",
+     "method": "dict",
+     "confidence": 1.0
+    }
+   },
+   "on_board": [],
+   "status": "ready",
+   "content_hash": "x"
+  },
+  {
+   "source_id": "gaia:102",
+   "source": "gaia",
+   "title": "Project Coordinator",
+   "url": "https://gaiatalent.com/job/102/",
+   "description_html": "<p>Coordinate a busy team, keep the diary and run weekly meetings for our client in Cork.</p>",
+   "location": "Cork",
+   "sector": null,
+   "region": "Cork",
+   "job_type": "Permanent",
+   "salary_text": "EUR 50,000",
+   "posted_at": "2026-11-10T09:00:00Z",
+   "modified_at": "2026-11-10T09:00:00Z",
+   "expires_at": null,
+   "apply": {
+    "method": "url",
+    "url": "https://gaiatalent.com/job/102/"
+   },
+   "boards": [
+    "ie"
+   ],
+   "gaia_terms": {
+    "location": [
+     "Cork"
+    ],
+    "sector": [],
+    "category": [],
+    "type": [
+     "Permanent"
+    ]
+   },
+   "mapping": {
+    "sector": {
+     "value": null,
+     "method": "queue",
+     "confidence": 0.0
+    },
+    "region": {
+     "value": "Cork",
+     "method": "dict",
+     "confidence": 1.0
+    },
+    "job_type": {
+     "value": "Permanent",
+     "method": "dict",
+     "confidence": 1.0
+    }
+   },
+   "on_board": [],
+   "status": "ready",
+   "content_hash": "x"
+  },
+  {
+   "source_id": "gaia:103",
+   "source": "gaia",
+   "title": "Wind Turbine Technician",
+   "url": "https://gaiatalent.com/job/103/",
+   "description_html": "<p>Maintain onshore wind turbines across the south west. Field based, full driving licence needed.</p>",
+   "location": "Cork",
+   "sector": "Renewable energy & storage",
+   "region": "Cork",
+   "job_type": "Permanent",
+   "salary_text": "EUR 50,000",
+   "posted_at": "2026-11-10T09:00:00Z",
+   "modified_at": "2026-11-10T09:00:00Z",
+   "expires_at": null,
+   "apply": {
+    "method": "url",
+    "url": "https://gaiatalent.com/job/103/"
+   },
+   "boards": [
+    "ie"
+   ],
+   "gaia_terms": {
+    "location": [
+     "Cork"
+    ],
+    "sector": [],
+    "category": [],
+    "type": [
+     "Permanent"
+    ]
+   },
+   "mapping": {
+    "sector": {
+     "value": "Renewable energy & storage",
+     "method": "dict",
+     "confidence": 1.0
+    },
+    "region": {
+     "value": "Cork",
+     "method": "dict",
+     "confidence": 1.0
+    },
+    "job_type": {
+     "value": "Permanent",
+     "method": "dict",
+     "confidence": 1.0
+    }
+   },
+   "on_board": [
+    {
+     "site": "ie",
+     "board_id": "11500001",
+     "method": "rule"
+    }
+   ],
+   "status": "ready",
+   "content_hash": "x"
+  },
+  {
+   "source_id": "gaia:104",
+   "source": "gaia",
+   "title": "Solar PV Designer",
+   "url": "https://gaiatalent.com/job/104/",
+   "description_html": "<p>Design utility-scale solar PV farms and grid connections. 12 month fixed-term contract.</p>",
+   "location": "Cork",
+   "sector": "Renewable energy & storage",
+   "region": "Cork",
+   "job_type": "Permanent",
+   "salary_text": "EUR 50,000",
+   "posted_at": "2026-11-10T09:00:00Z",
+   "modified_at": "2026-11-10T09:00:00Z",
+   "expires_at": null,
+   "apply": {
+    "method": "email",
+    "email": "Jobs@GaiaTalent.com",
+    "url": "https://gaiatalent.com/job/104/"
+   },
+   "boards": [
+    "ie"
+   ],
+   "gaia_terms": {
+    "location": [
+     "Cork"
+    ],
+    "sector": [],
+    "category": [],
+    "type": [
+     "Permanent"
+    ]
+   },
+   "mapping": {
+    "sector": {
+     "value": "Renewable energy & storage",
+     "method": "dict",
+     "confidence": 1.0
+    },
+    "region": {
+     "value": "Cork",
+     "method": "dict",
+     "confidence": 1.0
+    },
+    "job_type": {
+     "value": "Permanent",
+     "method": "dict",
+     "confidence": 1.0
+    }
+   },
+   "on_board": [],
+   "status": "ready",
+   "content_hash": "x"
+  },
+  {
+   "source_id": "gaia:105",
+   "source": "gaia",
+   "title": "Water Engineer",
+   "url": "https://gaiatalent.com/job/105/",
+   "description_html": "<p>Design water and wastewater networks and flood schemes for a consultancy in Limerick.</p>",
+   "location": "Cork",
+   "sector": "Water & flood",
+   "region": "Cork",
+   "job_type": "Permanent",
+   "salary_text": "EUR 50,000",
+   "posted_at": "2026-11-10T09:00:00Z",
+   "modified_at": "2026-11-10T09:00:00Z",
+   "expires_at": null,
+   "apply": {
+    "method": "url",
+    "url": "https://gaiatalent.com/job/105/"
+   },
+   "boards": [
+    "ie",
+    "uk"
+   ],
+   "gaia_terms": {
+    "location": [
+     "Cork"
+    ],
+    "sector": [],
+    "category": [],
+    "type": [
+     "Permanent"
+    ]
+   },
+   "mapping": {
+    "sector": {
+     "value": "Water & flood",
+     "method": "dict",
+     "confidence": 1.0
+    },
+    "region": {
+     "value": "Cork",
+     "method": "dict",
+     "confidence": 1.0
+    },
+    "job_type": {
+     "value": "Permanent",
+     "method": "dict",
+     "confidence": 1.0
+    }
+   },
+   "on_board": [],
+   "status": "ready",
+   "content_hash": "x"
+  }
+ ]
+}

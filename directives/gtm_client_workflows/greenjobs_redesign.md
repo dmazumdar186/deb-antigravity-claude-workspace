@@ -238,6 +238,47 @@ never enter the go/no-go gate, the overall status grade, SLA figures or incident
 ## Changelog
 
 - 2026-11-20 (ops): redirects (bulk list + Worker table + M2 coverage), DNS watcher, uptime/posting probe with incidents and service levels, metrics runner + status page + client measures object, daily D1 backup + restore drill, 10-day acceptance checks, weekly and monthly report renderers; network domains marked optional.
+## Classifier, D1 import, review queue, employer posting (migration, 2026-11-20)
+
+Scope per the engagement record (`deliverables/engagement_record_2026-11-20/RECORD.md` §2): candidate import only of
+the records Keith chooses; employer self-posting is phase 2; the Gaia feed was never promised. So all three are built,
+tested, and OFF by default. Migration `build/d1/migrations/0003_classifier_feed_review_employers.sql` (additive, new
+tables only) must run before any of them; statements live in `build/d1/upserts_0003.sql` = `platform_worker/src/sql_0003.js`.
+
+- **Classifier** `execution/gtm_client_workflows/greenjobs_redesign/job_classifier.py`: imports `build_site.py`
+  (`assign_sectors`, `loc_class`, `resolve_regions`, `workplace_of`, `contract_of`, `canon_type`), adds a sector
+  confidence (0 on assign_sectors' fallback; 0.45 + 0.30 title hit + 0.25 x margin), takes an upstream hint (Gaia
+  dictionary/Jev, Strategies labels mapped through the taxonomy). Below the cut 0.6, a hint conflict, an unmappable
+  sector or (feed only) an unfrozen taxonomy -> `needs_review`, suggestions kept, never a guess. Vocabulary: the frozen
+  `platform_worker/src/taxonomy.json` when present (tolerant shape: names or `{name, aliases}`; malformed = exit 2),
+  else `build_site.TAXONOMY` marked not frozen. Optional Jev (`--jev`), cached; any failure stays queued.
+- **Gaia feed -> D1** `gaia_d1_sync.py --feed feed.json | --once [--offline SNAPSHOT]` -> `--emit-sql` / `--emit-json` /
+  `--post URL` (bearer `BUILD_TOKEN`). Ids `{site}:gaia:<wp id>` (`source='feed'`, `source_id='gaia:<wp id>'`); review
+  jobs are `draft` with a `job_review` row (`hold=1`); E2 duplicates become `job_links`, not jobs; E2 `queue` pairs are
+  reviewed as possible duplicates; jobs gone from the feed are closed (never deleted, never reopened); a staff review
+  decision is never overwritten. Gates (exit 3): empty feed, every job rejected, API non-200. Live: `--post --live` needs
+  `GAIA_FEED_ENABLED=1` here AND `FEED_IMPORT_ENABLED="1"` on the Worker; the Worker also refuses a batch that would
+  close more than `IMPORT_MAX_CLOSE_SHARE` (0.5) of open feed jobs. Cron later: `--once` every 10 min.
+- **Review queue** `/admin/review` (staff): Approve = suggested sectors, Change & approve = 1..3 active `taxonomy_terms`.
+  A held job goes live; a closed job never does; a decided review is final.
+- **Strategies import** (`strategies_import.py`): jobs are classified (`sectors_json`, `job_type`, plus `job_facets` and,
+  when unsure, a `job_review` row with `hold=0` — the job stays live) and only LIVE jobs are emitted (`--include-closed`
+  to override). Recruiters -> employers as before. Candidates / profiles / applications: `--emit-sql` refuses without
+  `--candidate-config` (Keith's choice: `reports`, `active_since`, `registered_from/to`, `categories` (needs
+  `--profiles-csv`), `fields` (default names, headline, sectors, preferred region; phone / home location / cover note
+  only if listed)). Only consented rows: no explicit 0 in Consent or Marketing and at least one 1. Jobs By Email ->
+  `alert_subscriptions` `pending` under the same rule (join on CandidatePK via `--candidates-csv`). Sniff mode unchanged.
+- **Employer self-posting** (phase 2, `EMPLOYER_POSTING_ENABLED="0"` = 404): Access JWT + `employer_accounts`
+  (email -> employer row of that site, `expires_at` = contract end). Own jobs only (another employer's: 403), only on
+  boards with a mapping; staff see all. Staff post for CHM Recruit and Mattinson in `/admin/` on 3 Dec.
+- Tests: `tests/greenjobs_redesign/test_d1_classifier_import.py` and `platform/feed_review_employer.test.mjs` (both in
+  `build/run_tests.sh`; the node test also proves the Python SQL and the API write identical rows).
+- Learned: JSON written to D1 must be compact (`strategies_import.cjson`, = `JSON.stringify`) or the Python and Worker
+  writers disagree byte-wise and the change-guarded upserts bump versions on every run.
+
+## Changelog
+
+- 2026-11-20 (classifier / D1 import): `job_classifier.py`, `gaia_d1_sync.py`, migration 0003, `/api/admin/import`, `/admin/review`, `/api/employer/*`; Strategies import live-only jobs, classified; personal data and Gaia feed and employer posting off by default (engagement record §2).
 
 - 2026-11-07 (migration platform): `platform_worker/` skeleton (console post/edit/close, `/api/apply`, Access JWT, rate limits, dry-run default), D1 schema + idempotent upserts, BDD features + 121 offline node tests, frozen red-team checklist, SAST report, decision table for the twelve questions.
 - 2026-09-28 (client wall): `scrape_greenjobs.py` gains `parse_client_logos()` / `download_client_logos()`

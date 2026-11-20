@@ -1,0 +1,22 @@
+{
+ "version": "test-1",
+ "frozen": true,
+ "note": "TEST FIXTURE: the build_site sector names as a frozen list",
+ "sectors": [
+  "Wind energy",
+  "Solar energy",
+  "Renewable energy & storage",
+  "Water & flood",
+  "Waste & circular economy",
+  "Ecology, nature recovery & biodiversity",
+  "Environmental engineering",
+  "Sustainable infrastructure & transport",
+  "Health, safety & environment",
+  "Climate & carbon",
+  "Environmental science & consulting",
+  "Sustainability & ESG",
+  "Built environment & energy efficiency",
+  "Energy networks & utilities",
+  "Policy, planning & advisory"
+ ]
+}

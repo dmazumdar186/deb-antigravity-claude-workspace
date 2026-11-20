@@ -43,6 +43,9 @@ LIST_MAIL_RUN_CAP = "20"   # list mails per cron tick (and the */10 cron drains 
 LIST_MAIL_DAILY_CAP = "100" # list mails per UTC day (also bounded by MAIL_DAILY_CAP)
 LIST_DIGEST_HOUR_UTC = "7" # weekly digest opens Monday at this hour
 RATE_ALERTS_PER_10MIN = "5"
+FEED_IMPORT_ENABLED = "0"       # POST /api/admin/import writes only when "1" (Gaia feed: never promised for 3 Dec; dry runs always work)
+IMPORT_MAX_CLOSE_SHARE = "0.5"  # a feed batch that would close more than this share of open feed jobs is refused (409)
+EMPLOYER_POSTING_ENABLED = "0"  # /employer + /api/employer: phase 2 (CHM Recruit, Mattinson); "0" = 404
 ALLOWED_ORIGINS = "https://greenjobs.ie,https://www.greenjobs.ie,https://greenjobs.co.uk,https://www.greenjobs.co.uk"
 
 [[d1_databases]]

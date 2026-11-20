@@ -28,6 +28,8 @@ REPO = Path(__file__).resolve().parents[2]
 SCRIPT = REPO / "execution" / "gtm_client_workflows" / "greenjobs_redesign" / "strategies_import.py"
 SCHEMA = REPO / "deliverables" / "greenjobs_migration_2026-11-06" / "build" / "d1" / "schema.sql"
 FIX = Path(__file__).resolve().parent / "fixtures" / "strategies"
+CFG = FIX / "candidate_config_all.json"  # test-only: every personal report and field (import is off without it)
+MIG3 = SCHEMA.parent / "migrations" / "0003_classifier_feed_review_employers.sql"
 AS_OF = "2026-11-07"
 
 spec = importlib.util.spec_from_file_location("strategies_import", SCRIPT)
@@ -69,6 +71,7 @@ def write_csv(path: Path, header, rows):
 def fresh_db() -> sqlite3.Connection:
     con = sqlite3.connect(":memory:")
     con.executescript(SCHEMA.read_text(encoding="utf-8"))
+    con.executescript(MIG3.read_text(encoding="utf-8"))  # job_facets / job_review for classified jobs
     con.execute("PRAGMA foreign_keys = ON")
     return con
 
@@ -227,7 +230,7 @@ def test_retention_bounds_ok(capsys, months):
 def test_low_yield_gate(capsys, tmp_path):
     p = write_csv(tmp_path / "old.csv", ["CandidatePK", "email", "LastLoggedIn"],
                   [[str(i), f"old{i}@example.com", "01/01/2019"] for i in range(30)])
-    code, d, _ = run(capsys, *base("candidates", p), "--emit-sql", tmp_path / "o.sql")
+    code, d, _ = run(capsys, *base("candidates", p), "--emit-sql", tmp_path / "o.sql", "--candidate-config", CFG)
     assert code == 3 and d["status"] == "gate_failed" and not (tmp_path / "o.sql").exists()
     g = d["gates"]["failures"][0]
     assert g["gate"] == "min_yield" and g["excluded"] == {"outside_retention": 30}
@@ -254,7 +257,8 @@ def test_bad_ratio_flag_is_usage_error(capsys):
 
 
 def test_zero_rows_is_noop(capsys, tmp_path):
-    code, d, _ = run(capsys, *base("candidates", FIX / "candidates_header_only.csv"), "--emit-sql", tmp_path / "z.sql")
+    code, d, _ = run(capsys, *base("candidates", FIX / "candidates_header_only.csv"), "--emit-sql", tmp_path / "z.sql",
+                     "--candidate-config", CFG)
     assert code == 0 and d["status"] == "noop" and not (tmp_path / "z.sql").exists()
 
 
@@ -304,10 +308,11 @@ def test_paths(capsys, tmp_path):
 def emit_all(capsys, tmp_path) -> list[Path]:
     plan = [
         ("recruiters", [FIX / "recruiters.csv"], []),
-        ("jobs", [FIX / "jobs.csv"], []),
-        ("candidates", [FIX / "candidates_batch1.csv", FIX / "candidates_batch2_cp1252.csv"], []),
-        ("profiles", [FIX / "profiles.csv"], ["--candidates-csv", FIX / "candidates_batch1.csv"]),
-        ("applications", [FIX / "applications.csv"], ["--jobs-csv", FIX / "jobs.csv"]),
+        ("jobs", [FIX / "jobs.csv"], ["--include-closed"]),
+        ("candidates", [FIX / "candidates_batch1.csv", FIX / "candidates_batch2_cp1252.csv"], ["--candidate-config", CFG]),
+        ("profiles", [FIX / "profiles.csv"], ["--candidates-csv", FIX / "candidates_batch1.csv", "--candidate-config", CFG]),
+        ("applications", [FIX / "applications.csv"], ["--jobs-csv", FIX / "jobs.csv", "--candidates-csv",
+                                                      FIX / "candidates_batch1.csv", "--candidate-config", CFG]),
     ]
     files = []
     for report, csvs, extra in plan:
@@ -324,16 +329,19 @@ def test_emitted_sql_idempotent(capsys, tmp_path):
     for f in files:
         con.executescript(f.read_text(encoding="utf-8"))
     first = counts(con)
-    assert first == {"employers": 4, "jobs": 5, "candidates": 18, "applications": 6, "import_batches": 6}
+    # Only consented candidates (Marketing/Consent 1, no explicit 0) reach D1: 1001, 1010, 1021 of 23; the
+    # applications of everyone else stay in the raw archive (engagement record §2, exec_CTO_CDO.md).
+    assert first == {"employers": 4, "jobs": 5, "candidates": 3, "applications": 1, "import_batches": 6}
     for f in files:
         con.executescript(f.read_text(encoding="utf-8"))
     assert counts(con) == first
     # values
-    row = con.execute("SELECT first_name, last_name, headline FROM candidates WHERE email_norm = ?",
-                      ("test.candidate.two@example.com",)).fetchone()
-    assert row == ("Seán", "Ó Tester", "Energy analyst")  # cp1252 batch is newer; profile merged
+    assert con.execute("SELECT first_name FROM candidates WHERE source_id='1021'").fetchone()[0] == "Zoë"  # cp1252 batch
+    row = con.execute("SELECT headline FROM candidates WHERE source_id='1001'").fetchone()
+    assert row == ("Senior solar engineer",)  # profile merged into the registration row
     assert con.execute("SELECT last_name FROM candidates WHERE source_id='1010'").fetchone()[0] == "O'Candidate Ten"
-    assert con.execute("SELECT first_name FROM candidates WHERE source_id='1004'").fetchone()[0].startswith("=")  # raw, flagged only
+    gone = con.execute("SELECT COUNT(*) FROM candidates WHERE source_id IN ('1002','1004','1022')").fetchone()[0]
+    assert gone == 0  # Marketing No / formula row without consent / Marketing 0: never imported
     status = dict(con.execute("SELECT source_id, status FROM jobs").fetchall())
     assert status["7001"] == "live" and status["7002"] == "closed"
     emp = dict(con.execute("SELECT source_id, employer_id FROM jobs").fetchall())

@@ -28,11 +28,19 @@ for m in migs:
         c.executescript("BEGIN;\n" + sql + "\nCOMMIT;")
 c.executescript(schema)
 assert c.execute("PRAGMA foreign_key_check").fetchall() == []
-print(f"ok: schema x2, {len(stmts)} upserts, {len(migs)} migration(s) x2 + schema again")
+# statements for the migration-0003 tables compile against the migrated schema
+parts = re.split(r"^-- name: (\w+)\s*$", open(base + "upserts_0003.sql", encoding="utf-8").read(), flags=re.M)
+named = 0
+for name, body in zip(parts[1::2], parts[2::2]):
+    s = re.sub(r"--[^\n]*", "", body).strip().rstrip(";")
+    n = max([int(x) for x in re.findall(r"\?(\d+)", s)] or [0])
+    c.execute("EXPLAIN " + s, [None] * n); named += 1
+assert named >= 14, named
+print(f"ok: schema x2, {len(stmts)} upserts, {len(migs)} migration(s) x2 + schema again, {named} 0003 statements")
 EOF
 
-echo "== 2/5 import validator + apply mode + Gaia feed sync (pytest)"
-"$PY" -m pytest -q tests/greenjobs_redesign/test_strategies_import.py tests/greenjobs_redesign/test_strategies_real_headers.py tests/greenjobs_redesign/test_apply_mode_site.py tests/greenjobs_redesign/test_gaia_feed_sync.py || fail=1
+echo "== 2/5 import validator + apply mode + Gaia feed sync + classifier / D1 import (pytest)"
+"$PY" -m pytest -q tests/greenjobs_redesign/test_strategies_import.py tests/greenjobs_redesign/test_strategies_real_headers.py tests/greenjobs_redesign/test_apply_mode_site.py tests/greenjobs_redesign/test_gaia_feed_sync.py tests/greenjobs_redesign/test_d1_classifier_import.py || fail=1
 
 echo "== 3/5 Worker unit tests + BDD features (node --test)"
 node --no-warnings --test 'tests/greenjobs_redesign/platform/*.test.mjs' || fail=1
