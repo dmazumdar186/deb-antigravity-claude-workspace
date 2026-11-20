@@ -13,12 +13,17 @@ import { apply, deliverApplication } from './routes/apply.js';
 import { consoleAsset, consoleHtml } from './routes/console.js';
 import { exportJobs, getJob, listJobs } from './routes/public.js';
 import { corsHeaders, preflight, siteForHost } from './site.js';
-import { clientIp, err, intVar, nowIso, UUID_RE } from './util.js';
+import { clientIp, err, intVar, json, nowIso, sha256Hex, UUID_RE } from './util.js';
+import { alertsRoute, runAlerts } from './listmail/alerts.js';
+import { newRun } from './listmail/core.js';
+import { listMeasures, writeMeasures } from './listmail/measures.js';
+import { newsletterAdmin, newsletterConsoleHtml, newsletterConsoleJs, newsletterRoute, runNewsletter } from './listmail/newsletter.js';
 
 const JOB_PATH = /^\/api\/jobs\/([^/]+)$/;
 const ADMIN_JOB_PATH = /^\/api\/admin\/jobs\/([^/]+)$/;
 const ADMIN_CLOSE_PATH = /^\/api\/admin\/jobs\/([^/]+)\/close$/;
 const PUBLIC_PREFLIGHT = /^\/api\/(jobs(\/[^/]+)?|apply|alerts|newsletter)$/;
+const NEWSLETTER_ADMIN = /^\/api\/admin\/newsletters(\/|$)/;
 
 export function createHandler(deps = {}) {
   const getKey = createJwksCache(deps.jwksFetcher || defaultJwksFetcher);
@@ -39,6 +44,10 @@ export function createHandler(deps = {}) {
     if (method === 'GET') {
       if (path === '/admin') return new Response(null, { status: 301, headers: { Location: '/admin/' } });
       if (path === '/admin/') return consoleHtml(site, auth.email);
+      if (path === '/admin/newsletter') return env.NEWSLETTER_ENABLED === '1' ? newsletterConsoleHtml(site, auth.email) : err('not_found', 404);
+      if (path === '/admin/newsletter.js') return env.NEWSLETTER_ENABLED === '1' ? newsletterConsoleJs() : err('not_found', 404);
+      if (path === '/api/admin/list-measures') return json({ measures: await listMeasures(env, now) });
+      if (NEWSLETTER_ADMIN.test(path)) return newsletterAdmin(ctx, path);
       if (path.startsWith('/admin/')) return consoleAsset(path.slice(7)) || err('not_found', 404);
       if (path === '/api/admin/jobs') return listAdminJobs(ctx);
       const m = ADMIN_JOB_PATH.exec(path);
@@ -55,6 +64,7 @@ export function createHandler(deps = {}) {
     ctx.idemKey = idemKey.toLowerCase();
 
     if (method === 'POST' && path === '/api/admin/jobs') return createJob(ctx);
+    if (NEWSLETTER_ADMIN.test(path)) return newsletterAdmin({ ...ctx, transport: deps.mailTransport }, path);
     const close = ADMIN_CLOSE_PATH.exec(path);
     if (method === 'POST' && close) return closeJob(ctx, close[1]);
     const edit = ADMIN_JOB_PATH.exec(path);
@@ -82,13 +92,15 @@ export function createHandler(deps = {}) {
     const m = JOB_PATH.exec(path);
     if (method === 'GET' && m) return getJob(env, site, m[1], now, cors);
     if (method === 'POST' && path === '/api/apply') return apply({ env, site, now, request, cors, rate, mailer });
-    if (path === '/api/alerts') {
+    if (path === '/api/alerts' || path.startsWith('/api/alerts/')) {
       if (env.ALERTS_ENABLED !== '1') return err('not_found', 404, cors);
-      return err('not_implemented', 501, cors); // out of floor scope: stub behind the trim switch
+      const clientKey = await sha256Hex(clientIp(request));
+      return alertsRoute({ env, site, now, request, cors, rate, transport: deps.mailTransport, path, url, clientKey });
     }
-    if (path === '/api/newsletter') {
+    if (path === '/api/newsletter' || path.startsWith('/api/newsletter/')) {
       if (env.NEWSLETTER_ENABLED !== '1') return err('not_found', 404, cors);
-      return err('not_implemented', 501, cors);
+      const clientKey = await sha256Hex(clientIp(request));
+      return newsletterRoute({ env, site, now, request, cors, rate, transport: deps.mailTransport, path, url, clientKey });
     }
     return err('not_found', 404, cors);
   }
@@ -126,7 +138,15 @@ export function createHandler(deps = {}) {
         if (status === 'failed') failed++;
       }
       if (failed) console.error('cron: deliveries still failing', failed);
-      return { retried: results.length, failed };
+      const out = { retried: results.length, failed };
+      // Job alerts + newsletter (listmail/): one shared per-run cap; off (and absent from the result) unless flagged on.
+      if (env.ALERTS_ENABLED === '1' || env.NEWSLETTER_ENABLED === '1') {
+        const lctx = { env, db: env.DB, now, run: newRun(env), transport: deps.mailTransport };
+        out.alerts = await runAlerts(lctx);
+        out.newsletter = await runNewsletter(lctx);
+        await writeMeasures(env, now);
+      }
+      return out;
     },
   };
 }
