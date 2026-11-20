@@ -120,3 +120,21 @@ Idempotency-Key, so a retry cannot double-send.
   closing, apply mode/email/url, salary, status); employer is fixed after creation. A job with
   `source='strategies'` edited in the console is overwritten by the next import upsert.
 - Applications do not create `candidates` rows (no extra PII copy); `candidate_id` stays NULL.
+
+## Job alerts and newsletter (src/listmail/, 2026-11-20)
+
+Behind `ALERTS_ENABLED` / `NEWSLETTER_ENABLED` (both `"0"`). Needs migration `d1/migrations/0004_job_alerts_newsletter.sql`
+and the secret `LIST_MAIL_SIGNING_KEY`; without the key both channels answer 503 and the cron does nothing. Live mail uses
+the same switch as applications (`DRY_RUN="0"` + `LIVE_CONFIRM="send-applications"` + Resend key) plus the channel flag
+and a `LIST_FROM_{IE,UK}` sender; anything less records `dry_run` in `list_mail_ledger` and sends nothing.
+
+- Alerts: double opt-in sign-up (`POST /api/alerts`), confirm page + POST, one-click unsubscribe (permanent, suppressed by
+  email hash). Imported Jobs By Email rows get ONE re-confirmation per person, only when the matching `candidates` row
+  has `consent_marketing = 1` and `strategies_consent <> 0` (no candidate row = no mail); no reply in 30 days = deleted
+  and suppressed. Weekly digest from Monday 07:00 UTC, drained by the existing `*/10` cron under the caps.
+- Newsletter: separate consent (`POST /api/newsletter`); staff compose at `/admin/newsletter`, preview, test-to-self
+  (required per version), send with the subject typed back; the cron sends it once per subscriber.
+- Guards: `LIST_MAIL_RUN_CAP`, `LIST_MAIL_DAILY_CAP`, the shared `MAIL_DAILY_CAP`; one retry per provider failure,
+  then `list.mail_failed` in `audit_log`; retried on later ticks up to 4 attempts.
+- Metrics: `GET /api/admin/list-measures` and the D1 table `list_measures`; keys and null rules in `src/listmail/measures.js`.
+- Open: the job link in mails is `{base}/jobs/?id={id}` until the static site's job URL scheme is final.

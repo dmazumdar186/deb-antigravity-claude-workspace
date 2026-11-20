@@ -20,6 +20,9 @@ Subcommands
                                         (acquire exits 4 if a live lock < LOCK_TTL_MIN old exists)
   health [--json]                       invariants: no double terminal rows, today's sent <= cap,
                                         master present, lock not stale; exit 1 on any breach
+  intake [--dry-run]                    pull new prospect lists from Gmail (subject contains "LC list",
+                                        .csv attached), keep leaders only, merge into master.csv; each
+                                        attachment is ingested once (intake.csv, keyed by sha256)
 
 State lives in --data-dir (default .tmp/linkedin_connect, gitignored):
   master.csv   ledger.csv   aliases.csv   queue_YYYY-MM-DD.csv   report_YYYY-MM-DD.md
@@ -27,13 +30,19 @@ State lives in --data-dir (default .tmp/linkedin_connect, gitignored):
 from __future__ import annotations
 
 import argparse
+import contextlib
 import csv
+import gzip
+import hashlib
+import imaplib
 import datetime as dt
 import os
 import random
 import re
 import sys
+from email import message_from_bytes, policy
 from pathlib import Path
+from typing import Callable
 from urllib.parse import unquote
 
 DAILY_CAP = 20
@@ -123,11 +132,14 @@ def pick_url_column(headers: list[str], rows: list[dict[str, str]]) -> str | Non
 
 
 def write_csv(path: Path, rows: list[dict], fields: tuple[str, ...]) -> None:
+    # Atomic: master.csv now also grows unattended (intake); a crash mid-write must never leave a half file.
     path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", newline="", encoding="utf-8") as fh:
+    tmp = path.with_name(path.name + ".tmp")
+    with tmp.open("w", newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(fh, fieldnames=list(fields), extrasaction="ignore")
         w.writeheader()
         w.writerows(rows)
+    os.replace(tmp, path)
 
 
 class Store:
@@ -137,6 +149,20 @@ class Store:
         self.ledger = data_dir / "ledger.csv"
         self.aliases = data_dir / "aliases.csv"
         self.lock = data_dir / "run.lock"
+        self.intake = data_dir / "intake.csv"
+        self.lists = data_dir / "lists"
+
+    def load_intake(self) -> list[dict[str, str]]:
+        return read_csv(self.intake) if self.intake.exists() else []
+
+    def append_intake(self, row: dict) -> None:
+        new = not self.intake.exists()
+        self.dir.mkdir(parents=True, exist_ok=True)
+        with self.intake.open("a", newline="", encoding="utf-8") as fh:
+            w = csv.DictWriter(fh, fieldnames=list(INTAKE_FIELDS), extrasaction="ignore")
+            if new:
+                w.writeheader()
+            w.writerow(row)
 
     def load_aliases(self) -> dict[str, str]:
         """redirected slug -> master slug (LinkedIn canonicalises some profile URLs on load)."""
@@ -170,6 +196,11 @@ class Store:
 
 
 def cmd_consolidate(store: Store, paths: list[str]) -> int:
+    return 0 if consolidate(store, paths) is not None else 2
+
+
+def consolidate(store: Store, paths: list[str]) -> int | None:
+    """Merge CSVs into master.csv; returns the number of new people, None if a file has no URL column."""
     existing = {r["slug"]: r for r in store.load_master()}
     aliases = store.load_aliases()
     added = skipped_nourl = dupes = 0
@@ -185,7 +216,7 @@ def cmd_consolidate(store: Store, paths: list[str]) -> int:
         c_co, c_pos = _find(headers, "company"), _find(headers, "position")
         if not c_url:
             print(f"[error] {path}: no LinkedIn URL column (headers: {headers})", file=sys.stderr)
-            return 2
+            return None
         for r in rows:
             slug = slug_of(r.get(c_url, ""))
             if not slug:
@@ -217,7 +248,144 @@ def cmd_consolidate(store: Store, paths: list[str]) -> int:
     write_csv(store.master, list(existing.values()), FIELDS)
     print(f"master.csv: {len(existing)} people (+{added} new, {dupes} duplicates merged, "
           f"{skipped_nourl} rows without a LinkedIn URL skipped)")
-    return 0
+    return added
+
+
+# --------------------------------------------------------------------------- list intake
+# Operator order 2026-11-20: "I add files with new lists and you add to the existing list", no HITL.
+# Transport = the Gmail mailbox the job already reports from (GMAIL_SMTP_USER + app password, over IMAP):
+# any message or draft whose subject contains "LC list" with a .csv (or .csv.gz) attached. The Gmail
+# connector silently drops a ~1.3 MB attachment on create_draft (2026-11-20), so cloud drafts carry .csv.gz. Prospect lists never go
+# through git (public repo). Read-only on the mailbox; idempotent through intake.csv (sha256 per file).
+INTAKE_QUERY = '"subject:(LC list) has:attachment"'  # extension filter in csv_attachments
+INTAKE_FIELDS = ("ts", "sha256", "filename", "rows_in", "rows_kept", "added", "note")
+LEADER_SENIORITY = frozenset({"c_suite", "owner", "founder", "partner", "vp"})
+NOT_LEADER_RE = re.compile(r"assistant|president.?s (?:club|council)|\bintern\b|territory|chief of staff"
+                           r"|account (?:manager|executive)|sales rep", re.I)
+INTAKE_FLOOR = 0.02  # a file of >= 50 rows keeping < 2% = unknown seniority vocabulary: hold it, merge nothing
+_LIST_RE = re.compile(r'\((?P<flags>[^)]*)\) (?:"[^"]*"|NIL) (?P<name>.+)$')
+
+
+def leaders_only(rows: list[dict[str, str]]) -> list[dict[str, str]]:
+    """Top leaders only. An export's Seniority column (Apollo / LeadOcean vocabulary) gates when present;
+    the title veto (assistants, assistant VPs, chiefs of staff, reps with "President's Club" titles) always."""
+    if not rows:
+        return []
+    headers = list(rows[0])
+    c_sen = next((h for h in headers if _norm(h) == "seniority"), None)
+    c_pos = _find(headers, "position")
+    return [r for r in rows
+            if (not c_sen or r.get(c_sen, "").strip().lower() in LEADER_SENIORITY)
+            and not (c_pos and NOT_LEADER_RE.search(r.get(c_pos, "")))]
+
+
+def gmail_folders(list_lines: list) -> list[str]:
+    """All Mail and Drafts by IMAP special-use flag (names are localised: "Brouillons", "Tous les messages")."""
+    found: dict[str, str] = {}
+    for raw in list_lines or []:
+        line = raw.decode("utf-8", "replace") if isinstance(raw, bytes) else str(raw)
+        m = _LIST_RE.match(line)
+        if m:
+            for flag in ("\\All", "\\Drafts"):
+                if flag in m.group("flags").split():
+                    found[flag] = m.group("name").strip()
+    return [found[f] for f in ("\\All", "\\Drafts") if f in found]
+
+
+def csv_attachments(raw_msg: bytes) -> list[tuple[str, bytes]]:
+    msg = message_from_bytes(raw_msg, policy=policy.default)
+    out = []
+    for part in msg.iter_attachments():
+        name = part.get_filename() or ""
+        low = name.lower()
+        data = part.get_payload(decode=True) if low.endswith((".csv", ".csv.gz")) else None
+        if data and low.endswith(".gz"):
+            data, name = gzip.decompress(data), name[:-3]
+        if data:
+            out.append((name, data))
+    return out
+
+
+def ingest_file(store: Store, name: str, data: bytes, dry_run: bool = False) -> dict:
+    """One attachment -> leaders -> master.csv. Returns the intake row (appended to intake.csv unless dry_run)."""
+    sha = hashlib.sha256(data).hexdigest()
+    safe = re.sub(r"[^\w.-]+", "_", Path(name).name)[:80] or "list.csv"
+    row = {"ts": dt.datetime.now().isoformat(timespec="seconds"), "sha256": sha, "filename": name,
+           "rows_in": 0, "rows_kept": 0, "added": 0, "note": ""}
+    raw_path = store.lists / f"{_today()}_{sha[:8]}_{safe}"
+    raw_path.parent.mkdir(parents=True, exist_ok=True)
+    raw_path.write_bytes(data)
+    rows = read_csv(raw_path)
+    kept = leaders_only(rows)
+    row["rows_in"], row["rows_kept"] = len(rows), len(kept)
+    if len(rows) >= 50 and len(kept) < INTAKE_FLOOR * len(rows):
+        row["note"] = f"held: leader filter kept {len(kept)}/{len(rows)} (unknown seniority values?)"
+    elif not kept:
+        row["note"] = "no leader rows"
+    elif dry_run:
+        row["note"] = "dry-run"
+    else:
+        clean = raw_path.with_name(raw_path.stem + "_leaders.csv")
+        write_csv(clean, kept, tuple(rows[0].keys()))
+        added = consolidate(store, [str(clean)])
+        row["added"] = added or 0
+        row["note"] = "ok" if added is not None else "held: no LinkedIn URL column"
+    if dry_run:
+        raw_path.unlink(missing_ok=True)
+    else:
+        store.append_intake(row)
+    return row
+
+
+def intake_gmail(store: Store, user: str, password: str, dry_run: bool = False,
+                 log: Callable[[str], None] = print, imap_factory: Callable | None = None) -> list[dict]:
+    """Pull every not-yet-ingested "LC list" CSV from the mailbox into master.csv. Raises on IMAP errors;
+    the daily run logs them and keeps sending from the current master (fail-open helper)."""
+    seen = {r.get("sha256", "") for r in store.load_intake()}
+    done: list[dict] = []
+    imap = (imap_factory or (lambda: imaplib.IMAP4_SSL("imap.gmail.com", 993, timeout=60)))()
+    try:
+        imap.login(user, password)
+        for folder in gmail_folders(imap.list()[1]):
+            if imap.select(folder, readonly=True)[0] != "OK":
+                continue
+            typ, data = imap.search(None, "X-GM-RAW", INTAKE_QUERY)
+            ids = (data[0] or b"").split() if typ == "OK" and data else []
+            for mid in ids:
+                typ, parts = imap.fetch(mid, "(BODY.PEEK[])")
+                raw = next((p[1] for p in parts or [] if isinstance(p, tuple)), None)
+                if typ != "OK" or not raw:
+                    continue
+                for name, blob in csv_attachments(raw):
+                    sha = hashlib.sha256(blob).hexdigest()
+                    if sha in seen:
+                        continue
+                    seen.add(sha)
+                    row = ingest_file(store, name, blob, dry_run)
+                    log(f"intake {name}: {row['rows_in']} rows, {row['rows_kept']} leaders, "
+                        f"+{row['added']} new ({row['note']})")
+                    done.append(row)
+    finally:
+        try:
+            imap.logout()
+        except Exception as exc:  # logout after a dropped connection: nothing left to clean up
+            log(f"intake: imap logout failed ({type(exc).__name__})")
+    if not done:
+        log("intake: no new lists")
+    return done
+
+
+def cmd_intake(store: Store, dry_run: bool) -> int:
+    with contextlib.suppress(ImportError):  # python-dotenv is optional, env vars may already be set
+        from dotenv import load_dotenv
+        load_dotenv(Path(__file__).resolve().parents[2] / ".env")
+    user = os.environ.get("GMAIL_SMTP_USER", "").strip()
+    pw = os.environ.get("GMAIL_SMTP_APP_PASSWORD", "").strip()
+    if not (user and pw):
+        print("GMAIL_SMTP_USER / GMAIL_SMTP_APP_PASSWORD not set", file=sys.stderr)
+        return 3
+    rows = intake_gmail(store, user, pw, dry_run)
+    return 1 if any(r["note"].startswith("held") for r in rows) else 0
 
 
 def _today() -> str:
@@ -484,6 +652,7 @@ def main(argv: list[str] | None = None) -> int:
     y = sub.add_parser("sync"); y.add_argument("--ledger"); y.add_argument("--aliases")
     lk = sub.add_parser("lock"); lk.add_argument("action", choices=("acquire", "release", "show"))
     h = sub.add_parser("health"); h.add_argument("--json", action="store_true")
+    it = sub.add_parser("intake"); it.add_argument("--dry-run", action="store_true")
     a = ap.parse_args(argv)
     store = Store(Path(a.data_dir))
     if a.cmd == "consolidate":
@@ -500,6 +669,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_lock(store, a.action)
     if a.cmd == "health":
         return cmd_health(store, a.json)
+    if a.cmd == "intake":
+        return cmd_intake(store, a.dry_run)
     return cmd_status(store)
 
 

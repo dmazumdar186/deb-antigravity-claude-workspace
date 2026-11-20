@@ -36,6 +36,13 @@ RATE_ADMIN_PER_MIN = "60"
 MAX_CV_BYTES = "5242880"
 ALERTS_ENABLED = "0"
 NEWSLETTER_ENABLED = "0"
+# Job alerts + newsletter (src/listmail/, migration 0004). Secret: wrangler secret put LIST_MAIL_SIGNING_KEY (>= 32 chars).
+LIST_FROM_IE = ""          # e.g. "GreenJobs.ie <alerts@mail.greenjobs.ie>"; empty = never sent live
+LIST_FROM_UK = ""          # e.g. "GreenJobs.co.uk <alerts@mail.greenjobs.co.uk>"
+LIST_MAIL_RUN_CAP = "20"   # list mails per cron tick (and the */10 cron drains the weekly digest)
+LIST_MAIL_DAILY_CAP = "100" # list mails per UTC day (also bounded by MAIL_DAILY_CAP)
+LIST_DIGEST_HOUR_UTC = "7" # weekly digest opens Monday at this hour
+RATE_ALERTS_PER_10MIN = "5"
 ALLOWED_ORIGINS = "https://greenjobs.ie,https://www.greenjobs.ie,https://greenjobs.co.uk,https://www.greenjobs.co.uk"
 
 [[d1_databases]]

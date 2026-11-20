@@ -87,12 +87,12 @@ test('export needs the bearer BUILD_TOKEN (constant-time compare) and a valid si
   assert.equal((await w2.fetch(get('greenjobs.ie', url, { Authorization: 'Bearer ' }))).status, 503);
 });
 
-test('trim switches: alerts and newsletter 404 when off, stub 501 when on', async () => {
+test('trim switches: alerts and newsletter 404 when off; on without a signing key they fail closed (503)', async () => {
   const w = await makeWorld();
   assert.equal((await w.fetch(new Request('https://greenjobs.ie/api/alerts', { method: 'POST' }))).status, 404);
   assert.equal((await w.fetch(new Request('https://greenjobs.ie/api/newsletter', { method: 'POST' }))).status, 404);
   const on = await makeWorld({ ALERTS_ENABLED: '1' });
-  assert.equal((await on.fetch(new Request('https://greenjobs.ie/api/alerts', { method: 'POST' }))).status, 501);
+  assert.equal((await on.fetch(new Request('https://greenjobs.ie/api/alerts', { method: 'POST' }))).status, 503); // listmail.test.mjs covers the rest
 });
 
 // ---------- console ----------
