@@ -59,3 +59,84 @@ bucket_name = "greenjobs-cvs"
 # [[kv_namespaces]]
 # binding = "RATE"
 # id = "..."
+
+# ── Release environments (deploy/ENVIRONMENTS.md, deploy/release.py) ─────────────────────────
+# Wrangler does NOT inherit vars or bindings into an [env.*] section: each env repeats every var
+# (deploy/release.py check-config fails if one is missing) and its own D1 / R2 bindings.
+# The account comes from CLOUDFLARE_ACCOUNT_ID at deploy time (staging: ours; production: GreenJobs').
+
+[env.staging]
+name = "greenjobs-platform-staging"
+workers_dev = true
+
+[env.staging.vars]
+DRY_RUN = "1"              # pinned: staging never sends mail (check-config enforces)
+LIVE_CONFIRM = ""
+HOST_SITE_MAP = '{"greenjobs-platform-staging.REPLACE_WORKERS_SUBDOMAIN.workers.dev":"ie"}'
+ACCESS_TEAM_DOMAIN = ""    # staging Access team domain (staff console + smoke service token)
+ACCESS_AUD = ""
+STAFF_EMAILS = ""
+APPLY_ROUTING = "inbox"
+APPLY_INBOX_IE = ""
+APPLY_INBOX_UK = ""
+MAIL_PROVIDER = "none"     # pinned: no mail provider on staging
+MAIL_FROM = ""
+MAIL_DAILY_CAP = "0"
+OPS_ALERT_EMAIL = ""
+RATE_APPLY_PER_10MIN = "5"
+RATE_ADMIN_PER_MIN = "60"
+MAX_CV_BYTES = "5242880"
+ALERTS_ENABLED = "0"
+NEWSLETTER_ENABLED = "0"
+ALLOWED_ORIGINS = "https://greenjobs-staging-ie.pages.dev,https://greenjobs-staging-uk.pages.dev"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "greenjobs-staging"
+database_id = "REPLACE_WITH_STAGING_D1_ID"
+migrations_dir = "../../../../deliverables/greenjobs_migration_2026-11-06/build/d1/migrations"
+
+[[env.staging.r2_buckets]]
+binding = "CVS"
+bucket_name = "greenjobs-cvs-staging"
+
+[env.production]
+name = "greenjobs-platform"
+workers_dev = false
+routes = [
+  { pattern = "greenjobs.ie/api/*", zone_name = "greenjobs.ie" },
+  { pattern = "greenjobs.ie/admin*", zone_name = "greenjobs.ie" },
+  { pattern = "greenjobs.co.uk/api/*", zone_name = "greenjobs.co.uk" },
+  { pattern = "greenjobs.co.uk/admin*", zone_name = "greenjobs.co.uk" },
+]
+
+[env.production.vars]
+DRY_RUN = "1"              # flipping to "0" is a go-live decision with the operator's word (CUTOVER_RUNBOOK)
+LIVE_CONFIRM = ""
+HOST_SITE_MAP = '{"greenjobs.ie":"ie","www.greenjobs.ie":"ie","greenjobs.co.uk":"uk","www.greenjobs.co.uk":"uk"}'
+ACCESS_TEAM_DOMAIN = ""
+ACCESS_AUD = ""
+STAFF_EMAILS = ""
+APPLY_ROUTING = "inbox"
+APPLY_INBOX_IE = ""
+APPLY_INBOX_UK = ""
+MAIL_PROVIDER = "none"
+MAIL_FROM = ""
+MAIL_DAILY_CAP = "200"
+OPS_ALERT_EMAIL = ""
+RATE_APPLY_PER_10MIN = "5"
+RATE_ADMIN_PER_MIN = "60"
+MAX_CV_BYTES = "5242880"
+ALERTS_ENABLED = "0"
+NEWSLETTER_ENABLED = "0"
+ALLOWED_ORIGINS = "https://greenjobs.ie,https://www.greenjobs.ie,https://greenjobs.co.uk,https://www.greenjobs.co.uk"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "greenjobs"
+database_id = "REPLACE_WITH_PRODUCTION_D1_ID"
+migrations_dir = "../../../../deliverables/greenjobs_migration_2026-11-06/build/d1/migrations"
+
+[[env.production.r2_buckets]]
+binding = "CVS"
+bucket_name = "greenjobs-cvs"
