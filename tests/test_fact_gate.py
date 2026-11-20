@@ -494,3 +494,8 @@ def test_live_regression_known_false_caught_and_records_pass():
         if got[c["claim_id"]].get("verdict", "PASS") != c["expected"]
     ]
     assert not bad, bad
+
+
+def test_de_novo_called_510k_is_false():
+    c = fda_claim(k_number="DEN261111", claim_text="FDA 510(k) clearance DEN261111 on August 26")
+    assert fg.gate_claim(c, FakeFetcher())["verdict"] == "FALSE"

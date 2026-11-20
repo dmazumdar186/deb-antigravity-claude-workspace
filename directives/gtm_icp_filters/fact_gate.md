@@ -20,7 +20,7 @@ hidden dropdown menu or a linked page. The finder only read the visible homepage
 
 | claim_type | needs | re-derived from | PASS when |
 |---|---|---|---|
-| `fda_clearance` | k_number, company, product, date | openFDA `device/510k.json?search=k_number:` | applicant name score >= 0.80, device_name covers >= 80% of product tokens and every distinctive one, decision_date == date |
+| `fda_clearance` | k_number (K or DEN number; a DEN described as "510(k)"/"clearance" is FALSE), company, product, date | openFDA `device/510k.json?search=k_number:` | applicant name score >= 0.80, device_name covers >= 80% of product tokens and every distinctive one, decision_date == date |
 | `federal_award` | award_id, company, agency, date | USAspending `spending_by_award` (award_ids) + `/awards/{generated_id}/` | a recipient of that id scores >= 0.80 (shared PIIDs: best-matching recipient), agency named in toptier/subtier/office (aliases + acronyms), `date_signed` == date ("awarded on") |
 | `site_copyright` | domain, year | fresh Chromium render (`fact_gate_render.js`) | newest year in the copyright line (ranges -> newest) == year |
 | `site_viewport_missing` | domain | rendered DOM + raw HTML with desktop and mobile UA | no `<meta name=viewport>` anywhere |
@@ -87,5 +87,5 @@ No sends, no paid calls.
 
 ## Learnings
 
-- 2026-11-20: the four historical false "not mention" claims are all caught; see the client repo's
+- 2026-11-20: the four historical false "not mention" claims are all caught (regression CSV in the client repo);
   `sources/evidence/2026-11-20/` for the re-run measurement and yield cost.

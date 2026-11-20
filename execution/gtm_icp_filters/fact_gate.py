@@ -140,7 +140,9 @@ cranial cardiac vascular venous arterial coronary peripheral surgical surgery me
 disposable reusable sterile single use patient home hospital portable wireless digital electronic automated manual
 decompression stabilization reconstruction repair replacement treatment therapy obturation antimicrobial
 electrocardiograph ecg ekg skin clinic wart warts tag tags clear care health wound
-hearing aid eye lens contact nasal ear throat breast blood glucose urine pressure temperature oxygen
+hearing aid eye lens contact nasal ear throat breast
+eeg emg analysis analyzer matrix control controls box identifier reprocessed reperfusion aspiration
+panel alignment isolation chamber negative protection embolic heat elite full length technology limb salvage blood glucose urine pressure temperature oxygen
 """
 GENERIC = set(_GENERIC_WORDS.split())
 # Agency labels -> extra regexes that count as a "mention" of that agency on a website.
@@ -534,8 +536,11 @@ def V(verdict: str, reason: str, url: str = "", quote: str = "") -> dict:
 # ============================================================ public-record checks
 def check_fda(c: dict, f: Fetcher) -> dict:
     k = (c.get("k_number") or "").strip().upper()
-    if not re.fullmatch(r"K\d{6}", k):
+    if not re.fullmatch(r"(?:K|DEN)\d{6}", k):
         return V("UNSUPPORTED", f"k_number missing or malformed: {k!r}")
+    if k.startswith("DEN") and re.search(r"510\(k\)|clearance|cleared", c.get("claim_text") or "", re.I):
+        return V("FALSE", f"{k} is a De Novo grant, not a 510(k) clearance", FDA_HUMAN.format(k),
+                 (c.get("claim_text") or "")[:200])
     url = f"{FDA_API}?search=k_number:{k}"
     r = f.get(url)
     if r.get("error"):
@@ -958,7 +963,7 @@ def text_consistent(c: dict) -> str:
     t = c.get("claim_text") or ""
     for fld in ("k_number", "award_id"):
         v = (c.get(fld) or "").strip()
-        ids = re.findall(r"\bK\d{6}\b", t) if fld == "k_number" else []
+        ids = re.findall(r"\b(?:K|DEN)\d{6}\b", t) if fld == "k_number" else []
         if v and ids and any(i.upper() != v.upper() for i in ids):
             return f"claim_text names {ids} but {fld} is {v}"
     want = parse_date(c.get("date", ""))
