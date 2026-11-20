@@ -44,8 +44,13 @@
       return i % 2 ? '<mark>' + G.esc(piece) + '</mark>' : G.esc(piece);
     }).join('');
   }
-  var TODAY = Date.parse(data.today || '') || Date.now();
-  function isClosed(j) { var t = j.closing ? Date.parse(j.closing) : NaN; return !isNaN(t) && t + 864e5 <= TODAY; }
+  /* The one live rule (build_site.is_live, Worker live.js): closing date not passed, UTC calendar days. "Today" is
+     the later of the data's date and the visitor's UTC date, the same clock the job page's closed check (main.js)
+     uses, so the list never shows a role whose page says it has closed (eye review B1). */
+  function liveToday(iso) { var b = Date.parse(iso || ''), n = Math.floor(Date.now() / 864e5) * 864e5; return isNaN(b) ? n : Math.max(b, n); }
+  var TODAY = liveToday(data.today);
+  function isClosed(j) { var t = j.closing ? Date.parse(String(j.closing).slice(0, 10)) : NaN; return (j.status && j.status !== 'live') || (!isNaN(t) && t + 864e5 <= TODAY); }
+  jobs = data.jobs = jobs.filter(function (j) { return !isClosed(j); });
   var CUR_SYM = { euros: '\u20ac', sterling: '\u00a3', pounds: '\u00a3', EUR: '\u20ac', GBP: '\u00a3' };
   /* "€5.1k–6k/mo (advertised in euros, about £4.4k–5.1k/mo)" -> the salary chip plus a muted "advertised in €" chip
      (the currency glyph sits in the dot slot so every chip shares one anatomy). */
@@ -206,7 +211,7 @@
      paginated set and re-render with the same filters; any failure keeps the snapshot. */
   if (window.GJApi) window.GJApi.board(doc, true).then(function (d) {
     if (!d) return;
-    data = d; jobs = d.jobs; TODAY = Date.parse(d.today || '') || TODAY;
+    TODAY = liveToday(d.today); data = d; jobs = d.jobs = d.jobs.filter(function (j) { return !isClosed(j); });
     ON_MAP = {}; (d.regions || []).forEach(function (r) { ON_MAP[r.name] = true; });
     board.setAttribute('data-live', '');
     render();

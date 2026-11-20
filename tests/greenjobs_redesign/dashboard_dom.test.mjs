@@ -83,7 +83,7 @@ try {
     const csv = await text;
     const lines = csv.split('\r\n');
     check(name === `greenjobs-kpis-${k.asof}.csv`, `${ed}: Download CSV names the file after the snapshot date (${name})`);
-    check(lines[0] === 'metric,value,how we measure it' && lines[1] === `Live roles,${k.live},listings with a page on the snapshot date` && lines.filter((l) => l.replace(/^"/, '').startsWith('Sector: ')).length === k.sectors.length && csv.endsWith('\r\n'), `${ed}: CSV has the header, the live-roles row and one row per sector (${lines.length - 1} lines; first: ${JSON.stringify(lines.slice(0, 2))})`);
+    check(lines[0] === 'metric,value,how we measure it' && lines[1] === `Live roles,${k.live},listings with a page in this edition today` && lines.filter((l) => l.replace(/^"/, '').startsWith('Sector: ')).length === k.sectors.length && csv.endsWith('\r\n'), `${ed}: CSV has the header, the live-roles row and one row per sector (${lines.length - 1} lines; first: ${JSON.stringify(lines.slice(0, 2))})`);
     const requests = [];
     page.on('request', (r) => requests.push(r.url()));
     await page.click('[data-csv]');

@@ -10,7 +10,7 @@
       <button class="btn btn--lime" type="submit" data-magnet>Find jobs<span class="arw" aria-hidden="true">→</span></button>
       <div class="ta" id="s-ta" role="listbox" aria-label="Suggestions" data-ta hidden></div>
     </form>
-    <p class="hero__facts"><span><b class="num"><span data-live="n_jobs">{{n_jobs}}</span></b> live roles</span>{{hero_facts}}<span class="hero__snap">{{snapshot}}</span></p>
+    <p class="hero__facts"><span><b class="num"><span data-live="n_jobs">{{n_jobs}}</span></b> live roles</span>{{hero_facts}}</p>
     <div class="hero__trust">
       {{hero_bcorp}}
       <p>B Corps are businesses independently certified for social and environmental performance, accountability and transparency.</p>
@@ -38,7 +38,7 @@
 
 <section class="band band--tight band--rule" aria-labelledby="h-insight">
   <div class="wrap">
-    <div class="sec-head"><div><h2 id="h-insight">Salary insight</h2><p>Compare disclosed salaries and identify employers committed to greater pay transparency. Figures come from the <span data-live="n_jobs">{{n_jobs}}</span> live listings, {{snapshot_short}}.</p></div><a class="btn btn--ghost" href="insights/index.html">Salary explorer<span class="arw" aria-hidden="true">→</span></a></div>
+    <div class="sec-head"><div><h2 id="h-insight">Salary insight</h2><p>Compare disclosed salaries and identify employers committed to greater pay transparency. Figures come from the <span data-live="n_jobs">{{n_jobs}}</span> live listings.</p></div><a class="btn btn--ghost" href="insights/index.html">Salary explorer<span class="arw" aria-hidden="true">→</span></a></div>
     <div class="insight stagger">
       <a class="insight__tile reveal" href="insights/index.html"><span class="insight__n num" data-count="{{n_disc}}" data-live="n_disc">{{n_disc}}</span><span class="insight__l">of <span data-live="n_jobs">{{n_jobs}}</span> roles disclose a salary (<span data-live="disc_pct">{{disc_pct}}</span>%)</span><span class="insight__s">Median disclosed salary <span data-live="median">{{median}}</span></span></a>
       <a class="insight__tile reveal" href="sectors/index.html"><span class="insight__n num" data-count="{{n_sectors}}">{{n_sectors}}</span><span class="insight__l">sectors with live work</span><span class="insight__s">Median pay by sector in the explorer</span></a>

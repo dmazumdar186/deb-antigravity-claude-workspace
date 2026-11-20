@@ -2,12 +2,14 @@
 
 import { err, json, safeEqual, todayUtc } from '../util.js';
 import { renderDescription, safeParam } from '../validate.js';
+import { liveWhere } from '../live.js';
+import { isOldPlatformUrl } from '../oldplatform.js';
 
 const LIVE_SQL = `SELECT j.id, j.title, e.name AS employer, j.location, j.region, j.job_type, j.sal_min, j.sal_max,
   j.currency, j.period, j.sal_text, j.sectors_json, j.posted_at, j.closing_at, j.created_at, j.summary,
   j.description, j.apply_mode, j.apply_url
   FROM jobs j LEFT JOIN employers e ON e.id = j.employer_id
-  WHERE j.site = ?1 AND j.status = 'live' AND (j.closing_at IS NULL OR j.closing_at >= ?2)`;
+  WHERE j.site = ?1 AND ${liveWhere('j', '?2')}`;
 // Keyset pagination (#22): ?limit= (default 500, floor 1, ceiling 1000) and ?after=<job id> cursor.
 // Every page returns `next` (the last id on the page) or null at the end; callers follow it until null.
 export const PAGE_DEFAULT = 500;
@@ -38,7 +40,7 @@ function parseSectors(s) {
  * an email-mode job applies through the on-site form and the Worker routes it server-side.
  */
 export function publicApply(r) {
-  const link = (r.apply_mode === 'link' || r.apply_mode === 'url') && typeof r.apply_url === 'string' && r.apply_url.startsWith('https://');
+  const link = (r.apply_mode === 'link' || r.apply_mode === 'url') && typeof r.apply_url === 'string' && r.apply_url.startsWith('https://') && !isOldPlatformUrl(r.apply_url);
   return { apply_mode: link ? 'link' : 'email', apply_url: link ? r.apply_url : null };
 }
 
@@ -52,7 +54,7 @@ export function toJobsJson(r) {
     type: r.job_type || '',
     sal_text: r.sal_text || '',
     sectors: parseSectors(r.sectors_json),
-    posted: (r.posted_at || r.created_at || '').slice(0, 10),
+    posted: (r.posted_at || '').slice(0, 10), // the source's posted date, never the import time
     closing: r.closing_at ? r.closing_at.slice(0, 10) : '',
     summary: r.summary || '',
   };
@@ -62,11 +64,11 @@ export async function listJobs(env, site, now, cors, url) {
   const today = todayUtc(now);
   const pg = parsePage(url ? url.searchParams : new URLSearchParams(), cors);
   if (!pg.ok) return pg.res;
-  const SORT = 'COALESCE(j.posted_at, j.created_at)';
+  const SORT = "COALESCE(j.posted_at, '')";
   let stmt;
   if (pg.after) {
     // The cursor's sort key is read from jobs without the live filter, so a job closed between pages still anchors.
-    const cur = await env.DB.prepare('SELECT COALESCE(posted_at, created_at) AS k FROM jobs WHERE id = ?1 AND site = ?2').bind(pg.after, site).first();
+    const cur = await env.DB.prepare("SELECT COALESCE(posted_at, '') AS k FROM jobs WHERE id = ?1 AND site = ?2").bind(pg.after, site).first();
     if (!cur) return err('invalid_cursor', 400, cors);
     stmt = env.DB.prepare(`${LIVE_SQL} AND (${SORT} < ?4 OR (${SORT} = ?4 AND j.id > ?5)) ORDER BY ${SORT} DESC, j.id LIMIT ?3`)
       .bind(site, today, pg.limit + 1, cur.k, pg.after);

@@ -13,6 +13,7 @@
 //      with jobs posted since the last digest that match; an empty digest is recorded and not sent
 
 import { intVar, nowIso, sha256Hex, todayUtc, err, json } from '../util.js';
+import { liveWhere } from '../live.js';
 import { isValidEmail, normEmail } from '../validate.js';
 import {
   CONFIRM_TTL_DAYS, DAY_MS, DONE_SQL, addDays, board, channelLive, emailHash, esc, isSuppressed, isoWeek, ledgerMark,
@@ -356,9 +357,9 @@ async function liveJobs(db, site, since, now) {
   const { results } = await db.prepare(`SELECT j.id, j.title, j.location, j.region, j.job_type, j.sal_min, j.sal_max, j.sectors_json, j.summary,
       j.description, COALESCE(j.posted_at, j.created_at) AS posted, e.name AS employer
     FROM jobs j LEFT JOIN employers e ON e.id = j.employer_id
-    WHERE j.site = ?1 AND j.status = 'live' AND (j.closing_at IS NULL OR j.closing_at >= ?3)
+    WHERE j.site = ?1 AND ${liveWhere('j', '?4')}
       AND COALESCE(j.posted_at, j.created_at) > ?2 AND COALESCE(j.posted_at, j.created_at) <= ?3
-    ORDER BY posted DESC, j.id LIMIT 2000`).bind(site, since, nowIso(now)).all();
+    ORDER BY posted DESC, j.id LIMIT 2000`).bind(site, since, nowIso(now), nowIso(now).slice(0, 10)).all();
   return results;
 }
 

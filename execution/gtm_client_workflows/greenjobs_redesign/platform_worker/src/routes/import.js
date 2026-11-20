@@ -16,6 +16,7 @@ import * as Q from '../sql_0003.js';
 import { TAXONOMY } from '../render/lib.js';
 import { facetsParams } from '../facets.js';
 import { SQL_AUDIT } from './admin.js';
+import { isOldPlatformUrl } from '../oldplatform.js';
 
 export const IMPORT_MAX_BYTES = 8 * 1024 * 1024;
 export const MAX_JOBS = 500;
@@ -68,6 +69,11 @@ export function validateImportJob(j, src, sectorsAllowed) {
   out.sectors = sectors;
   if (j.apply_mode === 'email') {
     if (j.apply_url != null) return { ok: false, field: 'apply_url' };
+    if (j.apply_email != null && !isValidEmail(j.apply_email)) return { ok: false, field: 'apply_email' };
+    Object.assign(out, { apply_mode: 'email', apply_email: j.apply_email == null ? null : normEmail(j.apply_email), apply_url: null });
+  } else if (j.apply_mode === 'link' && isOldPlatformUrl(j.apply_url)) {
+    // Import-time guard: a link into the retired Strategies platform (greenjobs.* *.asp, strategies hosts) is
+    // never stored as a link; the job applies by email (its own address, else the site default inbox).
     if (j.apply_email != null && !isValidEmail(j.apply_email)) return { ok: false, field: 'apply_email' };
     Object.assign(out, { apply_mode: 'email', apply_email: j.apply_email == null ? null : normEmail(j.apply_email), apply_url: null });
   } else if (j.apply_mode === 'link') {

@@ -12,7 +12,7 @@ ON CONFLICT (id) DO UPDATE SET
   sectors_json = CASE WHEN EXISTS (SELECT 1 FROM job_review r WHERE r.job_id = jobs.id AND r.status <> 'queued')
                       THEN jobs.sectors_json ELSE excluded.sectors_json END,
   status = CASE WHEN jobs.status IN ('closed','live') THEN jobs.status ELSE excluded.status END,
-  posted_at = COALESCE(jobs.posted_at, excluded.posted_at),
+  posted_at = COALESCE(excluded.posted_at, jobs.posted_at),
   version = jobs.version + 1, updated_at = excluded.updated_at
 WHERE jobs.source = 'feed' AND (
      jobs.title IS NOT excluded.title OR jobs.location IS NOT excluded.location OR jobs.region IS NOT excluded.region
@@ -20,6 +20,7 @@ WHERE jobs.source = 'feed' AND (
   OR jobs.description IS NOT excluded.description OR jobs.apply_mode IS NOT excluded.apply_mode
   OR jobs.apply_email IS NOT excluded.apply_email OR jobs.apply_url IS NOT excluded.apply_url
   OR jobs.closing_at IS NOT excluded.closing_at
+  OR (excluded.posted_at IS NOT NULL AND jobs.posted_at IS NOT excluded.posted_at)
   OR (jobs.status = 'draft' AND excluded.status = 'live')
   OR (jobs.sectors_json IS NOT excluded.sectors_json
       AND NOT EXISTS (SELECT 1 FROM job_review r WHERE r.job_id = jobs.id AND r.status <> 'queued')))`;

@@ -655,11 +655,26 @@ def join_name(*parts) -> str | None:
     return s or None
 
 
+def _old_platform(url: str) -> bool:
+    """validate_site.is_old_platform_url (one rule with build_site and the Worker's oldplatform.js)."""
+    here = str(Path(__file__).resolve().parent)
+    if here not in sys.path:
+        sys.path.insert(0, here)
+    import validate_site  # noqa: PLC0415  (stdlib-only module; imported late so this script stays standalone)
+
+    return validate_site.is_old_platform_url(url)
+
+
 def apply_fields(v: dict, ctx: Ctx) -> dict:
     """jobs.apply_mode: 'link' when the row has an https apply URL (convert() already refused http,
     javascript: and data:), else 'email' (apply_email, or NULL = the Worker's APPLY_ROUTING default).
     Exactly one target per mode: a row with both keeps the link and drops the email (warning, no value)."""
     url, email = v.get("apply_url"), v.get("apply_email")
+    if url and _old_platform(url):
+        # Import-time guard (eye review 2026-11-20 M3): a link into the retired Strategies platform (greenjobs.*
+        # *.asp, strategies hosts) dies with it; the job applies by email (its own address, else the default inbox).
+        ctx.warn("apply_url", "apply_url_old_platform_email_mode", "")
+        return {"apply_mode": "email", "apply_email": email, "apply_url": None}
     if url:
         if email:
             ctx.warn("apply_email", "apply_email_dropped_link_mode", "")

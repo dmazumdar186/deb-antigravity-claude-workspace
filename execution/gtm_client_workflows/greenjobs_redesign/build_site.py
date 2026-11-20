@@ -804,6 +804,13 @@ def is_closed(j: dict[str, Any], today: date) -> bool:
     return d is not None and d < 0
 
 
+def is_live(j: dict[str, Any], today: date) -> bool:
+    """THE live rule (eye review 2026-11-20 B1), shared with platform_worker/src/live.js isLive() and the
+    D1 predicate liveWhere(): status 'live' (a dataset row without a status is live) AND the closing date
+    has not passed, compared as UTC calendar days (the closing day itself is live)."""
+    return str(j.get("status") or "live") == "live" and not is_closed(j, today)
+
+
 def closing_within(j: dict[str, Any], today: date, n: int = 7) -> bool:
     """Closing date within the next n days: 0..n inclusive (today counts)."""
     d = days_until(j.get("closing") or "", today)
@@ -816,11 +823,11 @@ def new_this_week(j: dict[str, Any], today: date) -> bool:
     return d is not None and -6 <= d <= 0
 
 
-def sterling_twins(src: Path) -> dict[str, dict[str, Any]]:
+def sterling_twins(src: Path, data_dir: Path | None = None) -> dict[str, dict[str, Any]]:
     """Index of the greenjobs.co.uk dataset (src/data/uk.json) for
     sterling_correction(): by id, by slug and by (title, employer), lower-cased.
     Empty when the file is absent (fixture builds)."""
-    path = src / "data" / "uk.json"
+    path = (data_dir or src / "data") / "uk.json"
     if not path.is_file():
         return {}
     try:
@@ -877,13 +884,13 @@ def sterling_correction(j: dict[str, Any], lc: str, twins: dict[str, dict[str, A
             "salary_text": repair_pounds(str(twin.get("salary_text") or "")) or "", "period": twin.get("period") or j.get("period")}
 
 
-def normalise(raw: dict[str, Any], ed_key: str, src: Path, logos_dir: Path, today: date | None = None) -> dict[str, Any]:
+def normalise(raw: dict[str, Any], ed_key: str, src: Path, logos_dir: Path, today: date | None = None, data_dir: Path | None = None) -> dict[str, Any]:
     ed = EDITIONS[ed_key]
     table = load_region_table(src, ed_key)
     ie_places, uk_places = place_words(src)
     ni_places = ni_place_words(src)
     today = build_today(raw, today)
-    twins = sterling_twins(src) if ed_key == "ie" else {}
+    twins = sterling_twins(src, data_dir) if ed_key == "ie" else {}
     jobs_out: list[dict[str, Any]] = []
     excluded: list[dict[str, str]] = []
     closed: list[dict[str, str]] = []
@@ -898,7 +905,7 @@ def normalise(raw: dict[str, Any], ed_key: str, src: Path, logos_dir: Path, toda
              "salary_text": repair_pounds(str(j.get("salary_text") or "")), "title": tidy_text(repair_pounds(str(j.get("title") or ""))),
              "location": tidy_text(j.get("location") or "")}
         closing = parse_date(j.get("closing"))
-        if is_closed({"closing": closing}, today):
+        if not is_live({"status": j.get("status"), "closing": closing}, today):
             closed.append({"id": jid, "title": str(j["title"]).strip(), "closing": closing})
             continue
         sectors = assign_sectors(j)
@@ -989,29 +996,39 @@ norm_org = validate_site.norm_org  # shared with the validator's badge rule
 
 SAFE_APPLY_URL_RE = re.compile(r"https://[^\s\x00-\x1f\x7f<>\"'`]+", re.I)
 
+# Links into the retired Strategies platform (eye review 2026-11-20 M3): once greenjobs.ie / greenjobs.co.uk
+# serve the new board, every *.asp page, /browse-jobs/<employer> page and /jobboard/ asset is gone, and the
+# strategies hosts go with the contract. Never rendered: an apply link becomes email mode (the job's own
+# address, else the site default inbox), an employer link becomes the new employer page. Mirrors
+# platform_worker/src/oldplatform.js (tests/greenjobs_redesign/test_eye_review_fixes.py proves both agree).
+is_old_platform_url = validate_site.is_old_platform_url  # one rule, shared with the validator's no-old-link gate
+
 
 def apply_of(j: dict[str, Any]) -> dict[str, Any]:
     """Per-job apply mode from the platform export (client answer Q8: per client, an email or an ATS link).
     'link' needs an https URL (javascript:, data:, http: fall back to email); 'email' = the on-site form;
-    a row without apply_mode (the Strategies scrape) keeps the legacy link to its own job URL."""
+    a row without apply_mode (a scrape) keeps the link to its own job URL, unless that URL (or the ATS link)
+    is on the retired Strategies platform: then it is email mode (import-time guard, eye review M3)."""
     mode = str(j.get("apply_mode") or "").strip().lower()
     url = str(j.get("apply_url") or "").strip()
-    if mode == "link" and SAFE_APPLY_URL_RE.fullmatch(url) and urlsplit(url).hostname:
+    if mode == "link" and SAFE_APPLY_URL_RE.fullmatch(url) and urlsplit(url).hostname and not is_old_platform_url(url):
         return {"apply_mode": "link", "apply_url": url}
     if mode in ("link", "email"):
+        return {"apply_mode": "email", "apply_url": ""}
+    if is_old_platform_url(j.get("url")) or not SAFE_APPLY_URL_RE.fullmatch(str(j.get("url") or "")):
         return {"apply_mode": "email", "apply_url": ""}
     return {"apply_mode": "legacy", "apply_url": ""}
 
 
 APPLY_FORM = """<form class="job__apply-form" id="apply-form" method="post" action="/api/apply" enctype="multipart/form-data" data-apply-form data-ev="apply_submit" data-ev-job="{id}">
 <input type="hidden" name="job_id" value="{id}"><input type="hidden" name="ts" value="" data-apply-ts>
-<div hidden aria-hidden="true"><label>Leave blank <input name="website" tabindex="-1" autocomplete="off"></label></div>
-<label>Name <input name="name" required maxlength="120" autocomplete="name"></label>
-<label>Email <input name="email" type="email" required maxlength="254" autocomplete="email"></label>
-<label>Phone <input name="phone" type="tel" maxlength="40" autocomplete="tel"></label>
-<label>Cover note <textarea name="cover_note" maxlength="5000" rows="4"></textarea></label>
-<label>CV (PDF or Word) <input name="cv" type="file" accept=".pdf,.doc,.docx"></label>
-<label><input type="checkbox" name="consent" value="yes" required> Send my application to the advertiser of this job</label>
+<div hidden aria-hidden="true"><label for="ap-website">Leave blank <input id="ap-website" name="website" tabindex="-1" autocomplete="off"></label></div>
+<label for="ap-name">Name <input id="ap-name" name="name" required maxlength="120" autocomplete="name"></label>
+<label for="ap-email">Email <input id="ap-email" name="email" type="email" required maxlength="254" autocomplete="email"></label>
+<label for="ap-phone">Phone <input id="ap-phone" name="phone" type="tel" maxlength="40" autocomplete="tel"></label>
+<label for="ap-cover">Cover note <textarea id="ap-cover" name="cover_note" maxlength="5000" rows="4"></textarea></label>
+<label for="ap-cv">CV (PDF or Word) <input id="ap-cv" name="cv" type="file" accept=".pdf,.doc,.docx"></label>
+<label for="ap-consent"><input id="ap-consent" type="checkbox" name="consent" value="yes" required> Send my application to the advertiser of this job</label>
 <button class="btn btn--lime btn--sm" type="submit">Send application</button>
 <p role="status" data-apply-status></p>
 </form>"""
@@ -1020,6 +1037,9 @@ APPLY_FORM = """<form class="job__apply-form" id="apply-form" method="post" acti
 def apply_ctx(j: dict[str, Any], domain: str) -> dict[str, str]:
     """Template fields for the job page's two apply buttons and the on-site form (email mode only)."""
     mode = j.get("apply_mode", "legacy")
+    # Render-time guard (eye review M3): a link into the retired Strategies platform is never rendered.
+    if (mode == "link" and is_old_platform_url(j.get("apply_url"))) or (mode == "legacy" and is_old_platform_url(j.get("url"))):
+        mode = "email"
     if mode == "link":
         host = urlsplit(j["apply_url"]).hostname or ""
         return {"apply_url": esc(j["apply_url"]), "apply_rel": "noopener nofollow", "apply_label": f"Apply on {esc(host)}", "apply_form": "", "apply_ev": ' data-ev="apply_click"'}
@@ -1445,7 +1465,7 @@ def employers_strip(data: dict[str, Any], root: str, cap: int | None = 12) -> di
         # an employer without a logo gets a monogram disc so text and logo tiles align (visual 7).
         inner = (f'<img src="{root}assets/logos/{esc(e["logo"])}" alt="{esc(e["name"])}" width="{e["lw"] or 200}" height="{e["lh"] or 80}" loading="{"eager" if i < 8 else "lazy"}" decoding="async">'
                  if e["logo"] else f'<span class="mono" aria-hidden="true">{esc(e["name"][:1].upper())}</span><span>{esc(e["name"])}</span>')
-        url = e["url"] if str(e["url"]).startswith("http") else ""
+        url = e["url"] if str(e["url"]).startswith("http") and not is_old_platform_url(e["url"]) else ""  # eye M3: no old .asp / browse-jobs pages
         cells.append(f'<a class="emp" href="{esc(url)}" rel="noopener">{inner}</a>' if url else f'<div class="emp">{inner}</div>')
     track = "".join(cells)
     if len(items) < 6:
@@ -1464,7 +1484,7 @@ CLIENT_WALL_EAGER = 10_000  # a carousel must be fully pre-loaded (752 KB total)
 def client_wall(data: dict[str, Any], root: str) -> dict[str, str]:
     """The full client-logo wall (Keith E3 / A4): every organisation the board
     itself publishes on /for-employers.asp, as a grid of uniform white tiles.
-    Each tile links to that page on the live site (not to a per-employer page);
+    Each tile links to the new board's employer page (never the old .asp page);
     the employer name is the alt text; a "Hiring this week" badge marks any
     organisation with a live role in this edition's dataset. Same return shape
     as employers_strip(); html is '' when data["clients"] is empty."""
@@ -1472,7 +1492,7 @@ def client_wall(data: dict[str, Any], root: str) -> dict[str, str]:
     sub = f"Logos as shown on {esc(data['site'])}, {esc(date_long(data.get('today') or data['fetched']))}."
     if not clients:
         return {"html": "", "title": CLIENT_WALL_TITLE, "sub": sub, "mode": "clients"}
-    href = f"https://{data['site']}/for-employers.asp"
+    href = f"{root}{data['ed'] + '/' if data.get('ed') else ''}employers/index.html"  # eye M3: the new employer page, never the old /for-employers.asp
     cells = []
     for i, c in enumerate(clients):
         badge = '<span class="emp__badge">Hiring this week</span>' if c["live"] else ""
@@ -1656,6 +1676,8 @@ def job_jsonld_payload(j: dict[str, Any], data: dict[str, Any]) -> dict[str, Any
         "jobLocation": {"@type": "Place", "address": {"@type": "PostalAddress", "addressLocality": j["location"], "addressCountry": country}},
         "url": j["url"], "directApply": j.get("apply_mode") == "email",
     }
+    if is_old_platform_url(j["url"]):
+        payload.pop("url")  # eye M3: never point a crawler at the retired .asp page (the page's canonical names it)
     if j["posted"]:
         payload["datePosted"] = j["posted"]
     if j["closing"]:
@@ -1683,8 +1705,9 @@ def job_jsonld(j: dict[str, Any], data: dict[str, Any]) -> str:
 
 
 def similar_jobs(j: dict[str, Any], jobs: list[dict[str, Any]], ed_cur: str = "", limit: int = 4) -> list[dict[str, Any]]:
-    """Up to `limit` other live roles: same primary sector first, then a shared
-    region, then closeness of annualised salary (D2). Deterministic."""
+    """Up to `limit` other live roles sharing a sector or a region: same primary
+    sector first, then a shared region, then closeness of annualised salary
+    (D2). Deterministic. The job page hides the block when this is empty."""
     mine = annual_mid(j, ed_cur)
     my_regions = set(j.get("regions") or [])
     my_sectors = set(j.get("sectors") or [])
@@ -1695,13 +1718,14 @@ def similar_jobs(j: dict[str, Any], jobs: list[dict[str, Any]], ed_cur: str = ""
         if o["id"] == j["id"]:
             continue
         key = (str(o.get("title") or "").strip().lower(), str(o.get("employer") or "").strip().lower())
-        if key in seen_keys or not (my_sectors & set(o.get("sectors") or [])):
-            continue  # one card per (title, employer); a similar role shares at least one sector
+        shares_sector = bool(my_sectors & set(o.get("sectors") or []))
+        if key in seen_keys or not (shares_sector or my_regions & set(o.get("regions") or [])):
+            continue  # one card per (title, employer); a similar role shares a sector or a region (eye M5)
         seen_keys.add(key)
         score = 0.0
-        if o["sectors"][0] == j["sectors"][0]:
+        if o["sectors"] and j["sectors"] and o["sectors"][0] == j["sectors"][0]:
             score += 4
-        else:
+        elif shares_sector:
             score += 1.5
         if my_regions & set(o.get("regions") or []):
             score += 2
@@ -2013,7 +2037,7 @@ def _median_int(vals: list[float]) -> float | None:
 
 def dashboard_kpis(data: dict[str, Any]) -> dict[str, Any]:
     """Live-now KPIs for the client dashboard, computed from the normalised dataset
-    relative to the snapshot date (so the build is deterministic). Agency and
+    relative to the build date (so the build is deterministic). Agency and
     remote/hybrid shares come from the stored j["agency"] / j["workplace"]
     fields (one rule, shared with the board's facets); the median uses
     annual_mid() in the edition currency so euro and sterling roles compare."""
@@ -2045,7 +2069,7 @@ def dashboard_kpis(data: dict[str, Any]) -> dict[str, Any]:
         score = int(j["sal_min"] is not None or j["sal_max"] is not None) + int(bool(j["closing"])) + int(bool(j["logo"])) + int(len(j["text"]) >= 400)
         quality[score] += 1
     return {
-        "asof": data["fetched"], "live": n, "new7": new7, "weeks": sparkline_weeks(jobs, asof, 4), "closing7": closing7,
+        "asof": data.get("today") or data["fetched"], "live": n, "new7": new7, "weeks": sparkline_weeks(jobs, asof, 4), "closing7": closing7,
         "sal_n": sal_n, "sal_pct": round(100 * sal_n / max(1, n)), "sal_median": round(med) if med is not None else None,
         "sectors": [{"l": s["name"], "v": s["n"]} for s in data["sectors"] if s["n"]],
         "regions": [{"l": r["name"], "v": r["n"]} for r in data["regions"] if r["on_map"]][:12],
@@ -2078,6 +2102,21 @@ DASHBOARD_REWRITES = [
 ]
 
 
+def kpi_notes(k: dict[str, Any], sym: str) -> list[str]:
+    """The eight "Live now" tile notes, in tile order, as plain text; dashboard.js tileNotes() is the same."""
+    med = f'{sym}{k["sal_median"]:,}' if k.get("sal_median") is not None else "n/a"
+    return [
+        "Listings with a page in this edition today.",
+        "Roles posted within the last 7 days. Line: roles posted per week over the last 4 weeks.",
+        "Roles whose closing date falls within the next 7 days.",
+        f'Roles publishing a figure ({k["sal_n"]} of {k["live"]}); median of the disclosed annualised midpoints {med}.',
+        "Median of closing date minus posted date across roles that publish both: how long a listing is advertised, not how long it takes to fill.",
+        "Roles whose advert mentions remote or hybrid working.",
+        f'{k["top_employer"]} holds this share of live roles across {k["employers"]} employers.' + (" Most roles come from one employer." if k["top_share"] > 50 else ""),
+        "Roles posted by recruitment agencies rather than the employer directly.",
+    ]
+
+
 def render_dashboard(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str], brief: dict[str, Any], site_base: str) -> None:
     """Client KPI dashboard at /{ed}/dashboard/: live-now tiles from the dataset plus
     the event spec for launch. Not in the primary nav; linked from for-keith."""
@@ -2085,20 +2124,17 @@ def render_dashboard(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, 
     k = dashboard_kpis(data)
     sym = ed["sym"]
     flag = k["top_share"] > 50
-    med = f'{sym}{k["sal_median"]:,}' if k["sal_median"] is not None else "n/a"
     real_case = {j["employer"].lower(): j["employer"] for j in data["jobs"]}
     agency_names = ", ".join(real_case.get(n) or AGENCY_DISPLAY.get(n) or n.title() for n in sorted(AGENCY_NAMES))
     agency_words = ", ".join(w for w in AGENCY_WORDS if " " not in w)
-    tiles = [
-        ("Live roles", str(k["live"]), "Listings with a page in this edition on the snapshot date.", ""),
-        ("New this week", str(k["new7"]), "Roles posted within the 7 days up to the snapshot. Line: roles posted per week over the last 4 weeks.", sparkline_svg(k["weeks"], 120, 34)),
-        ("Closing within 7 days", str(k["closing7"]), "Roles whose closing date falls within the 7 days after the snapshot.", ""),
-        ("Salary disclosure", f'{k["sal_pct"]}%', f'Roles publishing a figure ({k["sal_n"]} of {k["live"]}); median of the disclosed annualised midpoints {med}.', ""),
-        ("Advertised window, days", str(k["days_to_close"]) if k["days_to_close"] is not None else "n/a", "Median of closing date minus posted date across roles that publish both: how long a listing is advertised, not how long it takes to fill.", ""),
-        ("Remote or hybrid option", f'{k["remote_pct"]}%', "Roles whose advert mentions remote or hybrid working.", ""),
-        ("Top employer share", f'{k["top_share"]}%', f'{esc(k["top_employer"])} holds this share of live roles across {k["employers"]} employers.' + (" Most roles come from one employer." if flag else ""), ""),
-        ("Agency share", f'{k["agency_pct"]}%', "Roles posted by recruitment agencies rather than the employer directly.", ""),
-    ]
+    # The notes come from kpi_notes(), which dashboard.js tileNotes() mirrors: when /api/stats refreshes a
+    # tile value it rewrites the note from the same payload, so a value never sits over another dataset's
+    # numbers (eye review B3: "7%" over "27 of 88").
+    notes = kpi_notes(k, sym)
+    vals = [str(k["live"]), str(k["new7"]), str(k["closing7"]), f'{k["sal_pct"]}%',
+            str(k["days_to_close"]) if k["days_to_close"] is not None else "n/a", f'{k["remote_pct"]}%', f'{k["top_share"]}%', f'{k["agency_pct"]}%']
+    labels = ["Live roles", "New this week", "Closing within 7 days", "Salary disclosure", "Advertised window, days", "Remote or hybrid option", "Top employer share", "Agency share"]
+    tiles = [(lbl, val, esc(note), sparkline_svg(k["weeks"], 120, 34) if lbl == "New this week" else "") for lbl, val, note in zip(labels, vals, notes)]
     tile_html = "".join(
         f'<div class="kpi{" kpi--flag" if flag and lbl == "Top employer share" else ""}"><span class="kpi__l">{lbl}</span><b class="kpi__v num">{val}</b>{spark}<p class="kpi__d" title="{how}">{how}</p></div>'
         for lbl, val, how, spark in tiles)
@@ -2259,7 +2295,7 @@ def shell_ctx(data: dict[str, Any], depth: int, page: str, title: str, desc: str
         "lang": ed["lang"], "title": esc(title), "desc": esc(desc), "root": root, "home": home, "ed": data["ed"], "ED": ed["short"],
         "domain": esc(data["site"]), "nav": nav, "menu_links": menu_links, "edsw": edsw, "hdr_cls": " hdr--dark" if dark_header else "",
         "body_attrs": body_attrs, "live_api": "1" if (LIVE_API or API_BASE) else "0", "api_base": esc(API_BASE), "net_sites": net, "phones": phones, "emails": emails, "bcorp": bcorp, "hdr_bcorp": hdr_bcorp, "social": social,
-        "year": str(data.get("today", data["fetched"])[:4]), "n_jobs": str(len(data["jobs"])), "fetched": esc(data["fetched"]), "fetched_long": esc(date_long(data["fetched"])),
+        "year": str(data.get("today", data["fetched"])[:4]), "n_jobs": str(len(data["jobs"])), "fetched": esc(data["today"]), "fetched_long": esc(date_long(data["today"])),  # the build date = the live data's date (eye B3)
         "social_wrap": f'<div class="ftr__social">{social}</div>' if social else "",
         "canonical": esc(f"{site_base}{data['ed']}/{same_path or 'index.html'}") if site_base else "",
         "nav_list": "".join(f'<li><a href="{home}{href}">{label}</a></li>' for href, label in NAV),
@@ -2330,7 +2366,7 @@ def landing_jsonld(jobs: list[dict[str, Any]], data: dict[str, Any], site_base: 
     for i, j in enumerate(jobs[:50]):
         jp = job_jsonld_payload(j, data)
         jp.pop("@context", None)
-        items.append({"@type": "ListItem", "position": i + 1, "url": f"{site_base}{data['ed']}/jobs/{j['href']}" if site_base else j["url"], "item": jp})
+        items.append({"@type": "ListItem", "position": i + 1, "url": f"{site_base}{data['ed']}/jobs/{j['href']}" if site_base or is_old_platform_url(j["url"]) else j["url"], "item": jp})
     return f'<script type="application/ld+json">{json_ld({"@context": "https://schema.org", "@type": "ItemList", "itemListElement": items})}</script>'
 
 
@@ -2534,7 +2570,8 @@ def build_edition(
                   {
                       "jsonld": job_jsonld(j, data), "title": esc(no_break_dash(j["title"])), "employer": esc(j["employer"]), "logo": logo_img(j, "../../../", "job__logo"), "sal_caveat": sal_caveat, "closed_chip": closed_chip,
                       "meta": meta_tags, "dl": dl, "desc_html": body_html, **apply_ctx(j, esc(data["site"])), "domain": esc(data["site"]), "id": esc(j["id"]), "region": esc((j.get("regions") or [""])[0]), "closing": esc(j.get("closing") or ""), "sal_sticky": f'<span class="job__sticky-sal">{esc(sal or "Salary not disclosed")}</span>',
-                      "similar": "".join(role_card(s, "../../../", "../", today, ed["currency"]) for s in similar) or '<p class="muted">No similar live roles this week.</p>',
+                      "similar": "".join(role_card(s, "../../../", "../", today, ed["currency"]) for s in similar),
+                      "similar_hidden": "" if similar else " hidden",  # eye M5: no empty block when nothing is similar
                       "sector_link": f'../index.html?sector={qs(j["sectors"][0])}', "sector": esc(j["sectors"][0]),
                       "posted_line": esc(f"Posted {date_long(j['posted'])}" + (f" · closes {date_long(j['closing'])}" if j["closing"] else "")) if j["posted"] else "",
                       "sits": salary_strip(j, jobs, ed["sym"], ed["unit"], set(data["region_table"]["regions"]), ed["currency"]),
@@ -2822,7 +2859,7 @@ def load_templates(src: Path) -> dict[str, str]:
 
 
 def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = None, site_base: str = "", today: date | None = None,
-          board_site: str | None = None, robots_index: bool = False, analytics: str = "off") -> int:
+          board_site: str | None = None, robots_index: bool = False, analytics: str = "off", data_dir: Path | None = None) -> int:
     if not src.is_dir():
         print(f"FAIL  source directory not found: {src}", file=sys.stderr)
         return 2
@@ -2843,13 +2880,17 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
 
     data_by_ed: dict[str, dict[str, Any]] = {}
     for ed_key in editions:
-        path = fixture if fixture else src / "data" / f"{ed_key}.json"
+        path = fixture if fixture else (data_dir or src / "data") / f"{ed_key}.json"
         if not path.exists():
             print(f"FAIL  dataset missing: {path}", file=sys.stderr)
             return 2
         raw = json.loads(path.read_text(encoding="utf-8"))
+        if raw.get("test_data") and (robots_index or analytics == "production"):
+            # staging_seed.py flags re-based September jobs as test data: they never reach a production build
+            print(f"FAIL  {path} is flagged test_data (staging seed only); refusing a production build", file=sys.stderr)
+            return 2
         today = build_today(raw, today)  # first dataset's fetched date unless --today was given
-        data = normalise(raw, ed_key, src, logos_dir, today)
+        data = normalise(raw, ed_key, src, logos_dir, today, data_dir)
         problems = check_dataset(data)
         if problems:
             print(f"FAIL  {ed_key}.json has {len(problems)} problem(s):", file=sys.stderr)
@@ -3135,6 +3176,9 @@ def main() -> int:
     parser.add_argument("--edition", choices=["ie", "uk", "both"], default="both",
                         help="a single edition renders a partial site (cross-edition links dangle); ship 'both'")
     parser.add_argument("--data-fixture", type=Path, default=None, help="tests only: render this JSON as every edition")
+    parser.add_argument("--data-dir", type=Path, default=None,
+                        help="read {ie,uk}.json from this directory instead of <src>/data (staging: the staging_seed.py "
+                             "output, so the static fallback equals the seeded D1 live set; pass --today with it)")
     parser.add_argument("--site-base", default="", help="absolute base URL for sitemap/canonical (overrides config.json)")
     parser.add_argument("--today", type=date.fromisoformat, default=None, help="build date YYYY-MM-DD (default: the dataset's fetched date); closed roles are dropped relative to it")
     parser.add_argument("--live-api", action="store_true",
@@ -3154,7 +3198,8 @@ def main() -> int:
         parser.error(f"--api-base must be an https origin, got {args.api_base!r}")
     editions = ["ie", "uk"] if args.edition == "both" else [args.edition]
     return build(args.src.resolve(), args.out.resolve(), editions=editions, fixture=args.data_fixture.resolve() if args.data_fixture else None, site_base=args.site_base, today=args.today,
-                 board_site=args.board_site, robots_index=args.robots_index, analytics=args.analytics)
+                 board_site=args.board_site, robots_index=args.robots_index, analytics=args.analytics,
+                 data_dir=args.data_dir.resolve() if args.data_dir else None)
 
 
 if __name__ == "__main__":

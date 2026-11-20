@@ -17,8 +17,8 @@
   /* Flatten the KPI payload into [metric, value, definition] rows. */
   function kpiRows(k, sym) {
     var rows = [['metric', 'value', 'how we measure it'],
-      ['Live roles', k.live, 'listings with a page on the snapshot date'],
-      ['New this week', k.new7, 'posted within 7 days of the snapshot'],
+      ['Live roles', k.live, 'listings with a page in this edition today'],
+      ['New this week', k.new7, 'posted within the last 7 days'],
       ['Closing within 7 days', k.closing7, 'closing date within the next 7 days'],
       ['Salary disclosure %', k.sal_pct, k.sal_n + ' roles publish a figure'],
       ['Median disclosed salary', k.sal_median == null ? '' : sym + k.sal_median, 'median of annualised midpoints'],
@@ -39,6 +39,21 @@
       if (v == null) return 'n/a';
       return /_pct$|^top_share$/.test(key) ? v + '%' : String(v);
     });
+  }
+  /* The eight tile notes in tile order, word for word as build_site.kpi_notes(): a refreshed value always
+     carries its own note (eye review B3: a live "7%" never sits over the build's "27 of 88"). */
+  function thousands(v) { return String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+  function tileNotes(k, sym) {
+    var med = k.sal_median == null ? 'n/a' : sym + thousands(k.sal_median);
+    return [
+      'Listings with a page in this edition today.',
+      'Roles posted within the last 7 days. Line: roles posted per week over the last 4 weeks.',
+      'Roles whose closing date falls within the next 7 days.',
+      'Roles publishing a figure (' + k.sal_n + ' of ' + k.live + '); median of the disclosed annualised midpoints ' + med + '.',
+      'Median of closing date minus posted date across roles that publish both: how long a listing is advertised, not how long it takes to fill.',
+      'Roles whose advert mentions remote or hybrid working.',
+      k.top_employer + ' holds this share of live roles across ' + k.employers + ' employers.' + (k.top_share > 50 ? ' Most roles come from one employer.' : ''),
+      'Roles posted by recruitment agencies rather than the employer directly.'];
   }
   /* "Measures to come" slots fed by /api/stats `measures` (applications, alert sign-ups, advertiser
      enquiries); null = not collected yet, shown as the page's dash ("collected from launch"). */
@@ -74,6 +89,10 @@
     if (s) {
       var vals = tileTexts(k);
       Array.prototype.forEach.call(host.querySelectorAll('.kpis:not([data-wired]) .kpi__v'), function (el, i) { if (i < vals.length) el.textContent = vals[i]; });
+      var notes = tileNotes(k, sym);
+      Array.prototype.forEach.call(host.querySelectorAll('.kpis:not([data-wired]) .kpi__d'), function (el, i) {
+        if (i < notes.length) { el.textContent = notes[i]; el.setAttribute('title', notes[i]); }
+      });
       var t = host.querySelector('.dash__bar time');
       if (t) {
         t.setAttribute('datetime', k.asof);
@@ -108,5 +127,5 @@
   if (typeof document !== 'undefined') {
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
   }
-  return { csvCell: csvCell, toCsv: toCsv, kpiRows: kpiRows, tileTexts: tileTexts, measureText: measureText, fetchStats: fetchStats, TILE_KEYS: TILE_KEYS };
+  return { csvCell: csvCell, toCsv: toCsv, kpiRows: kpiRows, tileTexts: tileTexts, tileNotes: tileNotes, measureText: measureText, fetchStats: fetchStats, TILE_KEYS: TILE_KEYS };
 });
