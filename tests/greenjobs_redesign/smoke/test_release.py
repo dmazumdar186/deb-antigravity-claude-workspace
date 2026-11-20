@@ -244,6 +244,9 @@ def test_seed_is_public_only_idempotent_and_valid(cfg):
     assert c.execute("SELECT count(*) FROM jobs WHERE id NOT GLOB '[iu][ek]:strat:[0-9]*'").fetchone()[0] == 0
     assert c.execute("SELECT count(*) FROM job_facets WHERE taxonomy_version = 1 AND set_by = 'import' AND json_array_length(sectors_json) BETWEEN 1 AND 3").fetchone()[0] == n
     assert c.execute("PRAGMA foreign_key_check").fetchall() == []
+    # closing dates survive (the data writes dd/mm/yyyy): a closed advert is not live on staging
+    assert c.execute("SELECT count(*) FROM jobs WHERE closing_at IS NULL").fetchone()[0] == 0
+    assert c.execute("SELECT count(*) FROM jobs WHERE closing_at < '2026-11-20'").fetchone()[0] > 0
     assert (
         c.execute("SELECT count(*) FROM jobs WHERE apply_email IS NOT NULL").fetchone()[
             0

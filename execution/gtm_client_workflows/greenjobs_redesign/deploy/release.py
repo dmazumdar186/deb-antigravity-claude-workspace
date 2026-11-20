@@ -275,7 +275,7 @@ def build_seed_sql(env: str, sources: dict[str, Path], as_of: str) -> tuple[str,
                 if j.get("period") in ("year", "day", "hour", "month")
                 else None
             )
-            closing = str(j.get("closing") or "")[:10]
+            closing = jc.bs.parse_date(j.get("closing"))  # the data says dd/mm/yyyy; build_site's own parser
             closing_at = f"{closing}T23:59:59Z" if re.fullmatch(r"\d{4}-\d{2}-\d{2}", closing) else None
             job_id = f"{site}:strat:{jid}" if jid.isdigit() else f"{site}:seed:{jid}"
             lines.append(
