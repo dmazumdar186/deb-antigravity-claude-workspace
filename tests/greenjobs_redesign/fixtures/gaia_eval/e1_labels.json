@@ -1,0 +1,520 @@
+{
+ "set": "E1",
+ "snapshot": "gaia_snapshot_2026-11-20.json",
+ "n": 83,
+ "rule": {
+  "labeller": "Claude, hand-reading the title and full advert text of every job in the snapshot on 2026-11-20, independent of the Gaia taxonomy terms",
+  "sector": "The GreenJobs sector (build_site.TAXONOMY) a job seeker would browse to find the role. Title first, then the work described; specific sector over umbrella. Calibrated to the Keith-reviewed tests/greenjobs_redesign/golden_sectors.json where titles overlap. House rules: civil, roads, rail, bridges, transport programme roles -> Sustainable infrastructure & transport; drainage, flood, hydrogeology, water utilities -> Water & flood; structural (buildings), building services, MEP, QS, fire safety, landscape architecture -> Built environment & energy efficiency; town planning, consents, land access, LVIA -> Policy, planning & advisory; EIA, acoustics, archaeology, geochemistry, generic environmental consultant -> Environmental science & consulting; civil & environmental, geotechnical -> Environmental engineering; HV, substations, energy-project BIM -> Energy networks & utilities.",
+  "region": "GreenJobs region (regions_ie.json county) where the advert is based. The Gaia location term stands unless the advert's own Location line lists places that exclude it (then the first listed place). Ireland-wide, remote, or multi-county with no base (e.g. 'across the Midlands') -> 'Nationwide / remote'. Town -> its county (Naas, Newbridge -> Kildare; Castlerea -> Roscommon; Kilcoole -> Wicklow).",
+  "job_type": "GreenJobs job type. Explicit advert text wins over the term: fixed-term, specified-purpose, or a stated duration in months (incl. a 12-18 month project engagement) -> Contract; part-time -> Part Time; otherwise Permanent ('Full-time, Permanent' is Permanent).",
+  "known_ambiguous": [
+   "9113 (title consultant, body remediation)",
+   "9128 vs 9292 (environment and planning PM)",
+   "9293 archaeologist (no archaeology sector)",
+   "9296 geochemistry",
+   "9305 mine waste",
+   "9312 type (project length)",
+   "9315 landscape architect"
+  ]
+ },
+ "labels": [
+  {
+   "source_id": "gaia:9097",
+   "sector": "Built environment & energy efficiency",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9098",
+   "sector": "Sustainable infrastructure & transport",
+   "region": "Cork",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9100",
+   "sector": "Sustainable infrastructure & transport",
+   "region": "Westmeath",
+   "job_type": "Contract"
+  },
+  {
+   "source_id": "gaia:9101",
+   "sector": "Water & flood",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9102",
+   "sector": "Sustainable infrastructure & transport",
+   "region": "Carlow",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9105",
+   "sector": "Waste & circular economy",
+   "region": "Meath",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9106",
+   "sector": "Sustainable infrastructure & transport",
+   "region": "Carlow",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9107",
+   "sector": "Environmental engineering",
+   "region": "Carlow",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9108",
+   "sector": "Renewable energy & storage",
+   "region": "Carlow",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9109",
+   "sector": "Ecology, nature recovery & biodiversity",
+   "region": "Cork",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9111",
+   "sector": "Sustainable infrastructure & transport",
+   "region": "Dublin",
+   "job_type": "Contract"
+  },
+  {
+   "source_id": "gaia:9112",
+   "sector": "Water & flood",
+   "region": "Cork",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9113",
+   "sector": "Environmental science & consulting",
+   "region": "Wicklow",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9114",
+   "sector": "Sustainable infrastructure & transport",
+   "region": "Galway",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9115",
+   "sector": "Built environment & energy efficiency",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9120",
+   "sector": "Environmental engineering",
+   "region": "Carlow",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9123",
+   "sector": "Ecology, nature recovery & biodiversity",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9125",
+   "sector": "Policy, planning & advisory",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9128",
+   "sector": "Environmental science & consulting",
+   "region": "Galway",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9129",
+   "sector": "Environmental science & consulting",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9132",
+   "sector": "Environmental science & consulting",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9134",
+   "sector": "Ecology, nature recovery & biodiversity",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9135",
+   "sector": "Built environment & energy efficiency",
+   "region": "Nationwide / remote",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9137",
+   "sector": "Sustainable infrastructure & transport",
+   "region": "Wexford",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9139",
+   "sector": "Built environment & energy efficiency",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9141",
+   "sector": "Water & flood",
+   "region": "Nationwide / remote",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9142",
+   "sector": "Policy, planning & advisory",
+   "region": "Galway",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9143",
+   "sector": "Water & flood",
+   "region": "Galway",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9144",
+   "sector": "Environmental engineering",
+   "region": "Carlow",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9147",
+   "sector": "Environmental science & consulting",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9148",
+   "sector": "Ecology, nature recovery & biodiversity",
+   "region": "Cork",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9149",
+   "sector": "Health, safety & environment",
+   "region": "Galway",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9154",
+   "sector": "Water & flood",
+   "region": "Meath",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9156",
+   "sector": "Built environment & energy efficiency",
+   "region": "Limerick",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9178",
+   "sector": "Ecology, nature recovery & biodiversity",
+   "region": "Cork",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9192",
+   "sector": "Waste & circular economy",
+   "region": "Cavan",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9217",
+   "sector": "Sustainability & ESG",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9218",
+   "sector": "Built environment & energy efficiency",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9219",
+   "sector": "Environmental science & consulting",
+   "region": "Roscommon",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9264",
+   "sector": "Sustainable infrastructure & transport",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9265",
+   "sector": "Energy networks & utilities",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9267",
+   "sector": "Sustainable infrastructure & transport",
+   "region": "Galway",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9268",
+   "sector": "Sustainable infrastructure & transport",
+   "region": "Galway",
+   "job_type": "Contract"
+  },
+  {
+   "source_id": "gaia:9269",
+   "sector": "Environmental science & consulting",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9270",
+   "sector": "Built environment & energy efficiency",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9271",
+   "sector": "Sustainable infrastructure & transport",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9272",
+   "sector": "Sustainable infrastructure & transport",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9274",
+   "sector": "Sustainable infrastructure & transport",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9276",
+   "sector": "Sustainable infrastructure & transport",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9277",
+   "sector": "Sustainable infrastructure & transport",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9279",
+   "sector": "Sustainable infrastructure & transport",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9287",
+   "sector": "Climate & carbon",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9288",
+   "sector": "Ecology, nature recovery & biodiversity",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9289",
+   "sector": "Environmental science & consulting",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9290",
+   "sector": "Policy, planning & advisory",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9291",
+   "sector": "Policy, planning & advisory",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9292",
+   "sector": "Policy, planning & advisory",
+   "region": "Kildare",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9293",
+   "sector": "Environmental science & consulting",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9294",
+   "sector": "Water & flood",
+   "region": "Kildare",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9295",
+   "sector": "Sustainable infrastructure & transport",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9296",
+   "sector": "Environmental science & consulting",
+   "region": "Kildare",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9297",
+   "sector": "Renewable energy & storage",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9298",
+   "sector": "Ecology, nature recovery & biodiversity",
+   "region": "Kildare",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9299",
+   "sector": "Water & flood",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9300",
+   "sector": "Sustainable infrastructure & transport",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9301",
+   "sector": "Environmental science & consulting",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9302",
+   "sector": "Environmental engineering",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9305",
+   "sector": "Waste & circular economy",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9306",
+   "sector": "Water & flood",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9307",
+   "sector": "Sustainable infrastructure & transport",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9308",
+   "sector": "Water & flood",
+   "region": "Galway",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9309",
+   "sector": "Health, safety & environment",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9310",
+   "sector": "Ecology, nature recovery & biodiversity",
+   "region": "Galway",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9311",
+   "sector": "Sustainable infrastructure & transport",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9312",
+   "sector": "Energy networks & utilities",
+   "region": "Dublin",
+   "job_type": "Contract"
+  },
+  {
+   "source_id": "gaia:9313",
+   "sector": "Environmental science & consulting",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9314",
+   "sector": "Ecology, nature recovery & biodiversity",
+   "region": "Nationwide / remote",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9315",
+   "sector": "Built environment & energy efficiency",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9316",
+   "sector": "Policy, planning & advisory",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9317",
+   "sector": "Ecology, nature recovery & biodiversity",
+   "region": "Dublin",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9318",
+   "sector": "Policy, planning & advisory",
+   "region": "Kildare",
+   "job_type": "Permanent"
+  },
+  {
+   "source_id": "gaia:9359",
+   "sector": "Solar energy",
+   "region": "Dublin",
+   "job_type": "Part Time"
+  },
+  {
+   "source_id": "gaia:9360",
+   "sector": "Ecology, nature recovery & biodiversity",
+   "region": "Roscommon",
+   "job_type": "Permanent"
+  }
+ ]
+}

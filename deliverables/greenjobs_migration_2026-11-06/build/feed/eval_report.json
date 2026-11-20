@@ -1,0 +1,331 @@
+{
+ "e1": {
+  "n": 83,
+  "sector": {
+   "dict": {
+    "n": 58,
+    "correct": 57
+   },
+   "jev_on_rest": {
+    "n": 21,
+    "correct": 15,
+    "queued": 4
+   },
+   "pipeline": {
+    "auto": 79,
+    "correct": 72,
+    "queued": 4,
+    "n": 83
+   },
+   "errors": [
+    {
+     "source_id": "gaia:9101",
+     "method": "jev",
+     "got": "Environmental science & consulting",
+     "gold": "Water & flood"
+    },
+    {
+     "source_id": "gaia:9125",
+     "method": "jev",
+     "got": "Sustainable infrastructure & transport",
+     "gold": "Policy, planning & advisory"
+    },
+    {
+     "source_id": "gaia:9142",
+     "method": "jev",
+     "got": "Environmental science & consulting",
+     "gold": "Policy, planning & advisory"
+    },
+    {
+     "source_id": "gaia:9217",
+     "method": "jev",
+     "got": "Built environment & energy efficiency",
+     "gold": "Sustainability & ESG"
+    },
+    {
+     "source_id": "gaia:9265",
+     "method": "dict",
+     "got": "Built environment & energy efficiency",
+     "gold": "Energy networks & utilities"
+    },
+    {
+     "source_id": "gaia:9270",
+     "method": "jev",
+     "got": "Health, safety & environment",
+     "gold": "Built environment & energy efficiency"
+    },
+    {
+     "source_id": "gaia:9292",
+     "method": "jev",
+     "got": "Environmental science & consulting",
+     "gold": "Policy, planning & advisory"
+    }
+   ],
+   "jev_alone": {
+    "n": 83,
+    "answered": 76,
+    "correct": 65,
+    "not_run": 0,
+    "sweep": [
+     {
+      "cut": 0.0,
+      "covered": 83,
+      "correct": 70
+     },
+     {
+      "cut": 0.4,
+      "covered": 81,
+      "correct": 69
+     },
+     {
+      "cut": 0.5,
+      "covered": 78,
+      "correct": 66
+     },
+     {
+      "cut": 0.6,
+      "covered": 76,
+      "correct": 65
+     },
+     {
+      "cut": 0.7,
+      "covered": 72,
+      "correct": 65
+     },
+     {
+      "cut": 0.8,
+      "covered": 66,
+      "correct": 60
+     },
+     {
+      "cut": 0.9,
+      "covered": 59,
+      "correct": 55
+     }
+    ]
+   }
+  },
+  "region": {
+   "dict": {
+    "n": 79,
+    "correct": 79
+   },
+   "jev_on_rest": {
+    "n": 4,
+    "correct": 4,
+    "queued": 0
+   },
+   "pipeline": {
+    "auto": 83,
+    "correct": 83,
+    "queued": 0,
+    "n": 83
+   },
+   "errors": [],
+   "jev_alone": {
+    "n": 83,
+    "answered": 82,
+    "correct": 80,
+    "not_run": 0,
+    "sweep": [
+     {
+      "cut": 0.0,
+      "covered": 83,
+      "correct": 80
+     },
+     {
+      "cut": 0.4,
+      "covered": 83,
+      "correct": 80
+     },
+     {
+      "cut": 0.5,
+      "covered": 83,
+      "correct": 80
+     },
+     {
+      "cut": 0.6,
+      "covered": 82,
+      "correct": 80
+     },
+     {
+      "cut": 0.7,
+      "covered": 80,
+      "correct": 78
+     },
+     {
+      "cut": 0.8,
+      "covered": 78,
+      "correct": 78
+     },
+     {
+      "cut": 0.9,
+      "covered": 78,
+      "correct": 78
+     }
+    ]
+   }
+  },
+  "job_type": {
+   "dict": {
+    "n": 79,
+    "correct": 79
+   },
+   "jev_on_rest": {
+    "n": 4,
+    "correct": 3,
+    "queued": 0
+   },
+   "pipeline": {
+    "auto": 83,
+    "correct": 82,
+    "queued": 0,
+    "n": 83
+   },
+   "errors": [
+    {
+     "source_id": "gaia:9312",
+     "method": "jev",
+     "got": "Permanent",
+     "gold": "Contract"
+    }
+   ],
+   "jev_alone": {
+    "n": 83,
+    "answered": 83,
+    "correct": 82,
+    "not_run": 0,
+    "sweep": [
+     {
+      "cut": 0.0,
+      "covered": 83,
+      "correct": 82
+     },
+     {
+      "cut": 0.4,
+      "covered": 83,
+      "correct": 82
+     },
+     {
+      "cut": 0.5,
+      "covered": 83,
+      "correct": 82
+     },
+     {
+      "cut": 0.6,
+      "covered": 83,
+      "correct": 82
+     },
+     {
+      "cut": 0.7,
+      "covered": 83,
+      "correct": 82
+     },
+     {
+      "cut": 0.8,
+      "covered": 82,
+      "correct": 82
+     },
+     {
+      "cut": 0.9,
+      "covered": 80,
+      "correct": 80
+     }
+    ]
+   }
+  }
+ },
+ "e2": {
+  "pairs": 1183,
+  "positives": 101,
+  "unsure_excluded": 8,
+  "rule": {
+   "tp": 80,
+   "fp": 0,
+   "fn": 2,
+   "tn": 1049,
+   "queued": 52,
+   "queued_positive": 19,
+   "precision": [
+    80,
+    80
+   ],
+   "recall_auto": [
+    80,
+    101
+   ],
+   "errors": [
+    {
+     "source_id": "gaia:9132",
+     "board": "ie:11513670",
+     "feed_title": "Senior EIA Project Manager",
+     "board_title": "Senior EIAR Project Manager – Environment & Planning",
+     "label": 1,
+     "verdict": "not",
+     "method": "rule",
+     "jev_noul": null
+    },
+    {
+     "source_id": "gaia:9132",
+     "board": "uk:11513816",
+     "feed_title": "Senior EIA Project Manager",
+     "board_title": "Senior EIAR Project Manager – Environment & Planning",
+     "label": 1,
+     "verdict": "not",
+     "method": "rule",
+     "jev_noul": null
+    }
+   ]
+  },
+  "pipeline": {
+   "tp": 96,
+   "fp": 1,
+   "fn": 2,
+   "tn": 1068,
+   "queued": 16,
+   "queued_positive": 3,
+   "precision": [
+    96,
+    97
+   ],
+   "recall_auto": [
+    96,
+    101
+   ],
+   "errors": [
+    {
+     "source_id": "gaia:9132",
+     "board": "ie:11513670",
+     "feed_title": "Senior EIA Project Manager",
+     "board_title": "Senior EIAR Project Manager – Environment & Planning",
+     "label": 1,
+     "verdict": "not",
+     "method": "rule",
+     "jev_noul": null
+    },
+    {
+     "source_id": "gaia:9132",
+     "board": "uk:11513816",
+     "feed_title": "Senior EIA Project Manager",
+     "board_title": "Senior EIAR Project Manager – Environment & Planning",
+     "label": 1,
+     "verdict": "not",
+     "method": "rule",
+     "jev_noul": null
+    },
+    {
+     "source_id": "gaia:9316",
+     "board": "uk:11513782",
+     "feed_title": "Senior Planner",
+     "board_title": "Senior Planner",
+     "label": 0,
+     "verdict": "dup",
+     "method": "jev",
+     "jev_noul": 0.83
+    }
+   ]
+  },
+  "jev_calls_on_pairs": 52
+ },
+ "jev": "RUN (typesafe Jev via OpenRouter; 0 new calls, 0 errors, $0.0000 this run; answers cached in jev_cache_eval.json)"
+}
