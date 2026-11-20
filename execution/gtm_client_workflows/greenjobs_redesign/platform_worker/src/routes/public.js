@@ -84,7 +84,13 @@ export async function getJob(env, site, rawId, now, cors) {
   if (!id.ok) return err('invalid_id', 400, cors);
   if (!id.value.startsWith(`${site}:`)) return err('not_found', 404, cors);
   const r = await env.DB.prepare(`${LIVE_SQL} AND j.id = ?3`).bind(site, todayUtc(now), id.value).first();
-  if (!r) return err('not_found', 404, cors);
+  if (!r) {
+    // A job that was public and is now closed or past its closing date is 410 Gone (the board page says the same);
+    // a draft or an unknown id stays 404, so a held job's existence is never revealed.
+    const g = await env.DB.prepare(`SELECT status FROM jobs WHERE id = ?1 AND site = ?2`).bind(id.value, site).first();
+    if (g && g.status !== 'draft') return err('gone', 410, cors);
+    return err('not_found', 404, cors);
+  }
   return json(
     {
       ...toJobsJson(r),

@@ -68,6 +68,7 @@ class _Doc(HTMLParser):
         self.title_text = ""
         self._in_title = False
         self.robots = False
+        self.robots_index = False
         self.lang = ""
         self.jsonld: list[str] = []
         self._in_ld = False
@@ -90,6 +91,7 @@ class _Doc(HTMLParser):
             self.h1 += 1
         elif tag == "meta" and a.get("name", "").lower() == "robots":
             self.robots = "noindex" in a.get("content", "").lower()
+            self.robots_index = a.get("content", "").lower().replace(" ", "") == "index,follow"
         elif tag == "img":
             self.images.append(a)
         if tag == "script":
@@ -236,7 +238,7 @@ def _check_dashboard(raw: str, rel: str, data: dict[str, Any] | None, kpis: Any,
     """Wired-at-launch tiles show no live number (digits only inside the
     labelled target or a <code> event name); the live tiles and the embedded
     gj-dash block equal a fresh dashboard_kpis() recomputation."""
-    for tile in re.findall(r'<div class="kpi kpi--wired">(.*?)</div>', raw, re.S):
+    for tile in re.findall(r'<div class="kpi kpi--wired"[^>]*>(.*?)</div>', raw, re.S):
         body = re.sub(r'<span class="kpi__t">.*?</span>', "", tile, flags=re.S)
         body = re.sub(r"<code>[^<]*</code>", "", body)
         body = re.sub(r'<span class="kpi__l">[^<]*</span>', "", body)  # the tile's name may carry a window ("(30d)"); its value and description may not
@@ -288,6 +290,10 @@ def validate(site: Path, jobs_by_edition: dict[str, list[dict[str, Any]]], data_
     pages = sorted(p for p in site.rglob("*.html"))
     if not pages:
         return [f"no HTML pages found under {site}"]
+    # Indexed (production) build: build_site --robots-index writes a _headers file WITHOUT X-Robots-Tag and
+    # flips every page to index,follow. Everything else (demo, staging) must stay noindex.
+    hdr = (site / "_headers").read_text(encoding="utf-8") if (site / "_headers").exists() else None
+    indexed = hdr is not None and "X-Robots-Tag" not in hdr
     job_pages: dict[str, int] = {}
     alternates_by_rel: dict[str, list[tuple[str, str]]] = {}
     for page in pages:
@@ -304,7 +310,9 @@ def validate(site: Path, jobs_by_edition: dict[str, list[dict[str, Any]]], data_
             fails.append(f"{rel}: expected exactly one non-empty <title>, found {doc.titles}")
         if doc.h1 != 1:
             fails.append(f"{rel}: expected exactly one <h1>, found {doc.h1}")
-        if not doc.robots:
+        if indexed and not doc.robots_index:
+            fails.append(f"{rel}: indexed build (production) but no <meta name=robots content=index,follow>")
+        elif not indexed and not doc.robots:
             fails.append(f"{rel}: missing <meta name=robots content=noindex,...>")
         for tag, attr, value in doc.refs:
             stripped = value.strip()
@@ -471,7 +479,10 @@ def validate(site: Path, jobs_by_edition: dict[str, list[dict[str, Any]]], data_
         if not (site / required).exists():
             fails.append(f"{required} is missing")
     robots = (site / "robots.txt").read_text(encoding="utf-8") if (site / "robots.txt").exists() else ""
-    if "Disallow: /" not in robots:
+    if indexed:
+        if "Allow: /" not in robots or re.search(r"(?m)^Disallow: /\s*$", robots):
+            fails.append("robots.txt blocks crawling although the build is the indexed (production) one")
+    elif "Disallow: /" not in robots:
         fails.append("robots.txt does not disallow crawling (the demo is noindex)")
     font_dir = site / "assets" / "fonts"
     fonts = sorted(font_dir.glob("*.woff2")) if font_dir.is_dir() else []

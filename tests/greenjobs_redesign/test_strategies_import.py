@@ -29,6 +29,7 @@ SCRIPT = REPO / "execution" / "gtm_client_workflows" / "greenjobs_redesign" / "s
 SCHEMA = REPO / "deliverables" / "greenjobs_migration_2026-11-06" / "build" / "d1" / "schema.sql"
 FIX = Path(__file__).resolve().parent / "fixtures" / "strategies"
 CFG = FIX / "candidate_config_all.json"  # test-only: every personal report and field (import is off without it)
+MIG2 = SCHEMA.parent / "migrations" / "0002_job_facets.sql"
 MIG3 = SCHEMA.parent / "migrations" / "0003_classifier_feed_review_employers.sql"
 AS_OF = "2026-11-07"
 
@@ -71,7 +72,8 @@ def write_csv(path: Path, header, rows):
 def fresh_db() -> sqlite3.Connection:
     con = sqlite3.connect(":memory:")
     con.executescript(SCHEMA.read_text(encoding="utf-8"))
-    con.executescript(MIG3.read_text(encoding="utf-8"))  # job_facets / job_review for classified jobs
+    con.executescript(MIG2.read_text(encoding="utf-8"))  # job_facets (the one facet table) for classified jobs
+    con.executescript(MIG3.read_text(encoding="utf-8"))  # job_review for classified jobs
     con.execute("PRAGMA foreign_keys = ON")
     return con
 

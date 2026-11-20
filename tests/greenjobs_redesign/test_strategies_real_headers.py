@@ -38,6 +38,7 @@ SCHEMA = (
     / "d1"
     / "schema.sql"
 )
+MIG2 = SCHEMA.parent / "migrations" / "0002_job_facets.sql"  # job_facets: the one facet table
 MIG3 = SCHEMA.parent / "migrations" / "0003_classifier_feed_review_employers.sql"
 CFG = Path(__file__).resolve().parent / "fixtures" / "strategies" / "candidate_config_all.json"  # test-only config
 REAL = json.loads(
@@ -247,9 +248,13 @@ def test_ie_and_uk_job_orders_import_identically(capsys, tmp_path):
         re.sub(r"'[0-9a-f]{64}'", "'SHA'", x) for x in a
     ]  # import_batches row: the files differ by design
     b = [re.sub(r"'[0-9a-f]{64}'", "'SHA'", x) for x in b]
+    # the generation timestamp (updated_at) differs when the two runs straddle a second: not part of the claim
+    a = [re.sub(r"'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ'", "'NOW'", x) for x in a]
+    b = [re.sub(r"'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ'", "'NOW'", x) for x in b]
     assert a == b
     con = sqlite3.connect(":memory:")
     con.executescript(SCHEMA.read_text(encoding="utf-8"))
+    con.executescript(MIG2.read_text(encoding="utf-8"))
     con.executescript(MIG3.read_text(encoding="utf-8"))
     con.executescript(outs[1].read_text(encoding="utf-8"))
     got = {
@@ -467,6 +472,7 @@ def emit_all(capsys, tmp_path, site="ie") -> sqlite3.Connection:
     ds = dataset(tmp_path, site)
     con = sqlite3.connect(":memory:")
     con.executescript(SCHEMA.read_text(encoding="utf-8"))
+    con.executescript(MIG2.read_text(encoding="utf-8"))
     con.executescript(MIG3.read_text(encoding="utf-8"))
     con.execute("PRAGMA foreign_keys = ON")
     cfg = ["--candidate-config", CFG]

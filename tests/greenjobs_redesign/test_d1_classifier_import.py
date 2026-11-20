@@ -37,7 +37,7 @@ D1 = REPO / "deliverables" / "greenjobs_migration_2026-11-06" / "build" / "d1"
 FX = Path(__file__).resolve().parent / "fixtures"
 G = FX / "gaia_d1"
 ST = FX / "strategies"
-FROZEN = G / "taxonomy_frozen.json"
+FROZEN = jc.TAXONOMY_PATH  # the one vocabulary (platform_worker/src/taxonomy.json); no test copy
 TODAY = date(2026, 11, 20)
 
 
@@ -76,7 +76,7 @@ def test_confident_title_is_published_with_derived_fields():
         and c["workplace"] == "hybrid"
     )
     assert "fixed-term" in c["contract"] and c["job_type"] == "Contract"
-    assert c["taxonomy_frozen"] is True and c["taxonomy_version"] == "frozen-test-1"
+    assert c["taxonomy_frozen"] is True and c["taxonomy_version"] == "frozen-1" and c["taxonomy_number"] == 1
 
 
 def test_no_sector_keyword_is_queued_not_guessed():

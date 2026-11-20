@@ -619,6 +619,10 @@ def classify_job(ctx, v: dict, rec: dict) -> dict:
         except jc.TaxonomyError as e:
             raise UsageError(str(e)) from e
     tax = _CLASSIFIER[key]
+    try:
+        jc.assert_canonical(tax)  # D1 facets are written with taxonomy.json only (one source of truth)
+    except jc.TaxonomyError as e:
+        raise UsageError(str(e)) from e
     labels = [str(x) for x in json.loads(rec.get("sectors_json") or "[]")]
     mapped = [tax.canon(x) for x in labels if tax.canon(x)]
     hint = {"sectors": mapped, "confidence": 1.0, "method": "source"} if mapped else None
@@ -766,6 +770,7 @@ def build(report: str, rep: dict, v: dict, ctx: Ctx, aux: dict) -> dict:
         rec["sectors_json"] = cjson(c["sectors"] or c["suggested_sectors"])
         rec["job_type"] = c["job_type"]
         rec["_class"] = c
+        rec["_employer"] = v.get("company_name") or ""
         rec["_key"], rec["_key2"] = sid, None
     elif report == "alerts":
         email = v["email"]
@@ -1012,12 +1017,15 @@ def params_for(report: str, site: str, r: dict, now: str) -> tuple[str, list]:
 
 
 def class_sql(site: str, r: dict, t3: dict, now: str) -> list[str]:
-    """job_facets + job_review (hold 0: a Strategies job is already live) for one classified job."""
+    """job_facets (migration 0002, the one facet table) + job_review (hold 0: a Strategies job is already live)
+    for one classified job. The facet row is job_classifier.facet_row(): taxonomy.json vocabulary only."""
     c = r["_class"]
-    out = [render(t3["job_facets_upsert"], [r["id"], site, cjson(c["regions"]), c["loc_class"],
-                                           c["workplace"], cjson(c["contract"]),
-                                           cjson(c["source_sectors"]),
-                                           float(c["sector_confidence"]), c["sector_method"], c["taxonomy_version"], now])]
+    jc = _CLASSIFIER["jc"]
+    job = {"title": r["title"], "employer": r.get("_employer") or "", "description_html": r["description"],
+           "sal_min": r.get("sal_min"), "sal_max": r.get("sal_max"), "currency": r.get("currency"),
+           "period": r.get("period"), "sal_text": r.get("sal_text")}
+    f = jc.facet_row(job, site, c, "import")
+    out = [render(t3["job_facets_upsert"], jc.facet_params(r["id"], f, now))]
     if c["needs_review"]:
         out.append(render(t3["review_upsert"], [r["id"], site, c["review_reason"],
                                                 cjson(c["suggested_sectors"]),
@@ -1033,7 +1041,7 @@ def emit_sql(report: str, site: str, result: dict, templates: dict, now: str, in
              "-- Idempotent: canonical upserts from d1/upserts.sql; re-running converges. Contains PII: never commit.",
              "-- Apply: npx wrangler@4 d1 execute greenjobs --file=THIS_FILE   (order: recruiters, jobs, candidates, profiles, applications, alerts)"]
     if report == "jobs":
-        lines.append("-- Jobs need migrations/0003_classifier_feed_review_employers.sql (job_facets, job_review).")
+        lines.append("-- Jobs need migrations/0002_job_facets.sql (job_facets) and 0003 (job_review).")
     for r in result["records"]:
         if report == "jobs" and r.get("status") != "live" and not include_closed:
             continue  # live jobs only: a closed Strategies advert stays in the raw archive

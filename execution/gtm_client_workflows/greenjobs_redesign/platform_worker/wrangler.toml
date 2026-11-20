@@ -7,12 +7,24 @@ compatibility_date = "2026-09-01"
 #   wrangler secret put BUILD_TOKEN
 
 # Routes are added at go-live (README "Deploy"); staging uses the workers.dev host in HOST_SITE_MAP.
+# Job pages are rendered by this Worker from D1 (ARCHITECTURE.md §3.1), so the board paths route here too;
+# everything else (home, guides, assets) stays on Pages. Repeat each pattern for the www. host.
 # routes = [
 #   { pattern = "greenjobs.ie/api/*", zone_name = "greenjobs.ie" },
 #   { pattern = "greenjobs.ie/admin*", zone_name = "greenjobs.ie" },
+#   { pattern = "greenjobs.ie/jobs*", zone_name = "greenjobs.ie" },
+#   { pattern = "greenjobs.ie/ie/jobs*", zone_name = "greenjobs.ie" },
+#   { pattern = "greenjobs.ie/ie/sectors/*", zone_name = "greenjobs.ie" },
+#   { pattern = "greenjobs.ie/sitemap-jobs.xml", zone_name = "greenjobs.ie" },
 #   { pattern = "greenjobs.co.uk/api/*", zone_name = "greenjobs.co.uk" },
 #   { pattern = "greenjobs.co.uk/admin*", zone_name = "greenjobs.co.uk" },
+#   { pattern = "greenjobs.co.uk/jobs*", zone_name = "greenjobs.co.uk" },
+#   { pattern = "greenjobs.co.uk/uk/jobs*", zone_name = "greenjobs.co.uk" },
+#   { pattern = "greenjobs.co.uk/uk/sectors/*", zone_name = "greenjobs.co.uk" },
+#   { pattern = "greenjobs.co.uk/sitemap-jobs.xml", zone_name = "greenjobs.co.uk" },
 # ]
+# Note: the /{site}/sectors/<slug>/ route must not shadow the static /{site}/sectors/index.html page: the
+# Worker answers only /{site}/sectors/<slug>/ and passes /{site}/sectors/ (index.html) through to the origin.
 
 [triggers]
 crons = ["*/10 * * * *"]   # retries 'pending'/'failed' deliveries (dry run records 'dry_run')
@@ -24,6 +36,7 @@ HOST_SITE_MAP = '{"greenjobs.ie":"ie","www.greenjobs.ie":"ie","greenjobs.co.uk":
 ACCESS_TEAM_DOMAIN = ""    # e.g. "greenjobs.cloudflareaccess.com"
 ACCESS_AUD = ""            # the Access application's AUD tag
 STAFF_EMAILS = ""          # comma list; empty = nobody (fail closed)
+ACCESS_SERVICE_TOKEN_IDS = "" # comma list of Access service-token Client IDs (JWT common_name) allowed on import + smoke paths only
 APPLY_ROUTING = "inbox"    # inbox | consultant | advertiser: default for an email-mode job with no apply_email
 APPLY_INBOX_IE = ""
 APPLY_INBOX_UK = ""
@@ -34,6 +47,9 @@ OPS_ALERT_EMAIL = ""       # delivery-failure alert inbox; empty = audit_log row
 RATE_APPLY_PER_10MIN = "5"
 RATE_ADMIN_PER_MIN = "60"
 MAX_CV_BYTES = "5242880"
+ROBOTS_INDEX = "0"         # "1" at go-live: job pages drop the demo shell's noindex so Google indexes JobPosting
+CANONICAL_ORIGIN_IE = ""   # e.g. "https://www.greenjobs.ie"; empty = the request's own origin
+CANONICAL_ORIGIN_UK = ""   # e.g. "https://www.greenjobs.co.uk"
 ALERTS_ENABLED = "0"
 NEWSLETTER_ENABLED = "0"
 # Job alerts + newsletter (src/listmail/, migration 0004). Secret: wrangler secret put LIST_MAIL_SIGNING_KEY (>= 32 chars).
@@ -82,10 +98,11 @@ workers_dev = true
 [env.staging.vars]
 DRY_RUN = "1"              # pinned: staging never sends mail (check-config enforces)
 LIVE_CONFIRM = ""
-HOST_SITE_MAP = '{"greenjobs-platform-staging.REPLACE_WORKERS_SUBDOMAIN.workers.dev":"ie"}'
+HOST_SITE_MAP = '{"greenjobs-platform-staging.debanjan186.workers.dev":"ie"}'
 ACCESS_TEAM_DOMAIN = ""    # staging Access team domain (staff console + smoke service token)
 ACCESS_AUD = ""
 STAFF_EMAILS = ""
+ACCESS_SERVICE_TOKEN_IDS = ""
 APPLY_ROUTING = "inbox"
 APPLY_INBOX_IE = ""
 APPLY_INBOX_UK = ""
@@ -98,17 +115,32 @@ RATE_ADMIN_PER_MIN = "60"
 MAX_CV_BYTES = "5242880"
 ALERTS_ENABLED = "0"
 NEWSLETTER_ENABLED = "0"
+ROBOTS_INDEX = "0"         # pinned: staging is never indexed (Worker pages + Pages _headers X-Robots-Tag)
+CANONICAL_ORIGIN_IE = ""
+CANONICAL_ORIGIN_UK = ""
+LIST_FROM_IE = ""
+LIST_FROM_UK = ""
+LIST_MAIL_RUN_CAP = "20"
+LIST_MAIL_DAILY_CAP = "100"
+LIST_DIGEST_HOUR_UTC = "7"
+RATE_ALERTS_PER_10MIN = "5"
+FEED_IMPORT_ENABLED = "0"
+IMPORT_MAX_CLOSE_SHARE = "0.5"
+EMPLOYER_POSTING_ENABLED = "0"
 ALLOWED_ORIGINS = "https://greenjobs-staging-ie.pages.dev,https://greenjobs-staging-uk.pages.dev"
+
+[env.staging.version_metadata]
+binding = "CF_VERSION_METADATA"   # /api/health reports the Worker version id
 
 [[env.staging.d1_databases]]
 binding = "DB"
 database_name = "greenjobs-staging"
-database_id = "REPLACE_WITH_STAGING_D1_ID"
+database_id = "d94a690a-286a-4608-b563-8329fdc37382"
 migrations_dir = "../../../../deliverables/greenjobs_migration_2026-11-06/build/d1/migrations"
 
-[[env.staging.r2_buckets]]
-binding = "CVS"
-bucket_name = "greenjobs-cvs-staging"
+# [[env.staging.r2_buckets]]   # R2 not enabled on our account yet (environments.json _r2_note); CVs -> 503 on staging
+# binding = "CVS"
+# bucket_name = "greenjobs-cvs-staging"
 
 [env.production]
 name = "greenjobs-platform"
@@ -116,8 +148,18 @@ workers_dev = false
 routes = [
   { pattern = "greenjobs.ie/api/*", zone_name = "greenjobs.ie" },
   { pattern = "greenjobs.ie/admin*", zone_name = "greenjobs.ie" },
+  { pattern = "greenjobs.ie/employer*", zone_name = "greenjobs.ie" },
+  { pattern = "greenjobs.ie/jobs*", zone_name = "greenjobs.ie" },
+  { pattern = "greenjobs.ie/ie/jobs*", zone_name = "greenjobs.ie" },
+  { pattern = "greenjobs.ie/ie/sectors/*", zone_name = "greenjobs.ie" },
+  { pattern = "greenjobs.ie/sitemap-jobs.xml", zone_name = "greenjobs.ie" },
   { pattern = "greenjobs.co.uk/api/*", zone_name = "greenjobs.co.uk" },
   { pattern = "greenjobs.co.uk/admin*", zone_name = "greenjobs.co.uk" },
+  { pattern = "greenjobs.co.uk/employer*", zone_name = "greenjobs.co.uk" },
+  { pattern = "greenjobs.co.uk/jobs*", zone_name = "greenjobs.co.uk" },
+  { pattern = "greenjobs.co.uk/uk/jobs*", zone_name = "greenjobs.co.uk" },
+  { pattern = "greenjobs.co.uk/uk/sectors/*", zone_name = "greenjobs.co.uk" },
+  { pattern = "greenjobs.co.uk/sitemap-jobs.xml", zone_name = "greenjobs.co.uk" },
 ]
 
 [env.production.vars]
@@ -127,6 +169,7 @@ HOST_SITE_MAP = '{"greenjobs.ie":"ie","www.greenjobs.ie":"ie","greenjobs.co.uk":
 ACCESS_TEAM_DOMAIN = ""
 ACCESS_AUD = ""
 STAFF_EMAILS = ""
+ACCESS_SERVICE_TOKEN_IDS = ""
 APPLY_ROUTING = "inbox"
 APPLY_INBOX_IE = ""
 APPLY_INBOX_UK = ""
@@ -139,7 +182,22 @@ RATE_ADMIN_PER_MIN = "60"
 MAX_CV_BYTES = "5242880"
 ALERTS_ENABLED = "0"
 NEWSLETTER_ENABLED = "0"
+ROBOTS_INDEX = "1"         # production is indexed (go-live)
+CANONICAL_ORIGIN_IE = ""   # set at go-live to the canonical host
+CANONICAL_ORIGIN_UK = ""
+LIST_FROM_IE = ""
+LIST_FROM_UK = ""
+LIST_MAIL_RUN_CAP = "20"
+LIST_MAIL_DAILY_CAP = "100"
+LIST_DIGEST_HOUR_UTC = "7"
+RATE_ALERTS_PER_10MIN = "5"
+FEED_IMPORT_ENABLED = "0"
+IMPORT_MAX_CLOSE_SHARE = "0.5"
+EMPLOYER_POSTING_ENABLED = "0"
 ALLOWED_ORIGINS = "https://greenjobs.ie,https://www.greenjobs.ie,https://greenjobs.co.uk,https://www.greenjobs.co.uk"
+
+[env.production.version_metadata]
+binding = "CF_VERSION_METADATA"
 
 [[env.production.d1_databases]]
 binding = "DB"

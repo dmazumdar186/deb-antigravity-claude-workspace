@@ -407,7 +407,7 @@ def test_dashboard_renders_per_edition(tmp_root: Path):
         check(all(k.get(key) == val for key, val in want.items()), f"dashboard: {ed} headline KPIs match an independent recomputation ({want})")
         check(sum(k["quality"]) == k["live"] and len(k["weeks"]) == 4 and k["asof"] == str(raw["fetched"])[:10], f"dashboard: {ed} quality distribution sums to live roles, 4-week trend, data-as-of date")
         check(f'>{k["live"]}</b>' in html_text and f'>{k["sal_pct"]}%</b>' in html_text and "Data as of" in html_text, f"dashboard: {ed} tiles carry the computed numbers and the as-of line")
-        wired = re.findall(r'<div class="kpi kpi--wired">(.*?)</div>', html_text, re.S)
+        wired = re.findall(r'<div class="kpi kpi--wired"[^>]*>(.*?)</div>', html_text, re.S)
         check(len(wired) >= 14, f"dashboard: {ed} has the wired-at-launch tiles ({len(wired)})")
         for tile in wired:
             body = re.sub(r'<span class="kpi__t">.*?</span>', "", tile, flags=re.S)
@@ -642,7 +642,7 @@ def test_pf_a_agency_rule():
     check(build_site.job_is_agency({"agency": False, "employer": "Acme Recruitment"}) is False and build_site.job_is_agency({"employer": "Acme Recruitment"}) is True, "pf-A1: job_is_agency reads the stored field first, derives otherwise")
     check(build_site.job_is_remote_or_hybrid({"workplace": "hybrid"}) and not build_site.job_is_remote_or_hybrid({"workplace": "site"}), "pf-A1: job_is_remote_or_hybrid reads the stored workplace")
     src_text = (SCRIPT_DIR / "build_site.py").read_text(encoding="utf-8")
-    check(src_text.count("AGENCY_NAMES = {") == 1 and "AGENCY_RE" not in src_text, "pf-A1: AGENCY_NAMES is defined once; the dashboard's shadowing copy is gone")
+    check(src_text.count("AGENCY_NAMES: set[str] = set(FROZEN_TAXONOMY") == 1 and "AGENCY_NAMES = {" not in src_text and "AGENCY_RE" not in src_text, "pf-A1: AGENCY_NAMES is defined once (from taxonomy.json); the dashboard's shadowing copy is gone")
 
 
 def test_pf_a_loc_class_probes():
@@ -1103,7 +1103,7 @@ def test_panel_b_copy_and_consent(tmp_root: Path):
     # Re-worded in round 2 B (visual 8 / R044): visitor voice, no "connects at launch" copy.
     for label, page_html, needle in (("home alerts", home, "Meanwhile, browse all roles"), ("subscribe dialog", home, "data-subscribe"), ("employers", emp_uk, "Preview only. Rates and posting are handled by the GreenJobs team")):
         pre = page_html.find('data-demo-pre'); btn = page_html.find('type="submit"', pre)
-        check(0 <= pre < btn and "Job alerts are available today on" in home and needle in page_html, f"panel B5: {label} form shows the where-to-sign-up note before the button (round 4: points at the live site, no 'opens at launch')")
+        check(0 <= pre < btn and "Job alerts are double opt-in" in home and needle in page_html, f"panel B5: {label} form shows the sign-up note before the button (2026-11-20: the board's own double opt-in alerts, no dead Strategies link, no 'opens at launch')")
     check(home.count("Meanwhile, browse all roles") >= 2, "panel B5: alert and subscribe forms carry the browse-all fallback link")
     # 6. employers page copy
     emp_ie = _read(out / "ie" / "employers" / "index.html")
@@ -1357,7 +1357,7 @@ def test_r2b_visitor_voice_and_shell(tmp_root: Path):
     # 8: one voice, no team-facing copy in visitor dialogs; no fake success anywhere
     for bad in ("analytics provider is chosen", "connects to your email provider", "connects to the GreenJobs team", "Nothing was sent", "Sign-ups open at launch", "Posting opens at launch"):
         check(bad not in home and bad not in emp, f"r2b visual 8: '{bad}' is gone from visitor-facing copy")
-    check("Off. Helps us see which pages are useful." in home and "reported once analytics is connected" not in home and "ck-marketing" not in home and home.count("Job alerts are available today on") >= 1 and "You can also set up job alerts by email on" in home, "r2b visual 8 / r1a 24+23: cookie settings show Essential + Analytics only, alert forms use the one-line visitor sentence")
+    check("Off. Helps us see which pages are useful." in home and "reported once analytics is connected" not in home and "ck-marketing" not in home and home.count("Job alerts are double opt-in") >= 1 and '#h-alert">job alerts by email</a>' in home, "r2b visual 8 / r1a 24+23: cookie settings show Essential + Analytics only, alert forms use the one-line visitor sentence")
     check(emp.count("Preview only. Rates and posting are handled by the GreenJobs team") == 2 and "Thank you" not in emp, "r2b R044: the Post-a-job preview keeps one quiet line (pre-submit + post-submit variants), no fake success")
     # 18: hero keeps search + Post a job only
     hero = home.split('class="hero"')[1].split('class="hero__alerts"')[0]
@@ -1613,8 +1613,11 @@ def test_round4_b_copy_css_js(tmp_root: Path):
     check('content:"Certified B Corp"' not in css and ".hdr__bcorp::after" not in css, "r4b A: header shows the B Corp mark only (no CSS text label)")
     # B. visitor voice
     check("when the new site launches" not in home and "when the new site launches" not in uk_home, "r4b B: no 'when the new site launches' build note anywhere on home")
-    check(home.count("Job alerts are available today on <a") == 1 and home.count("You can also set up job alerts by email on <a") == 1 and home.count('href="https://www.greenjobs.ie/newsletter-signup.asp"') == 2, "r4b B / r3 #9: IE alert + subscribe forms point at the live newsletter sign-up (subscribe dialog: one quiet sentence)")
-    check("/newsletter-signup.asp" in uk_home and "when the new site launches" not in uk_home, "r4b B: UK forms point at the live newsletter sign-up (domain follows the edition)")
+    # 2026-11-20 integration: the old Strategies newsletter-signup.asp dies at cutover; the forms point at the new
+    # board's own alert sign-up (double opt-in, listmail) instead of a dead link.
+    check("newsletter-signup.asp" not in home and "newsletter-signup.asp" not in uk_home, "integration e: no dead newsletter-signup.asp link on either home page")
+    check(home.count("Job alerts are double opt-in") == 1 and home.count('#h-alert">job alerts by email</a>') == 1 and 'id="h-alert"' in home, "integration e: IE alert form explains double opt-in; subscribe dialog links to the board's alert sign-up")
+    check('#h-alert">job alerts by email</a>' in uk_home and "when the new site launches" not in uk_home, "integration e: UK subscribe dialog links to the board's own alert sign-up")
     for f in (home.split('data-demo-form')[1], home.split('data-demo-form')[2]):
         check(f.find("data-demo-pre") < f.find('type="submit"') and "Your address has not been stored." in f, "r4b B: sign-up note sits above the button; post-submit line keeps 'not been stored'")
     check("published at launch" not in emp and "looking for green work" not in emp and "Thousands of visitors" not in emp and "Candidate audience: ask us for current monthly visitor and subscriber figures." in emp, "r4b B: employer audience tiles ask for figures instead of promising them")
@@ -1685,9 +1688,14 @@ def test_r1_pages_agree_and_job_ctx(tmp_root: Path):
     ed = build_site.EDITIONS["ie"]
     data = build_site.normalise(json.loads((SRC / "data" / "ie.json").read_text(encoding="utf-8")), "ie", SRC, SRC / "assets" / "logos")
     st = build_site.salary_stats(data["jobs"], ed)
-    home = _read(out / "ie" / "index.html")
-    ins = _read(out / "ie" / "insights" / "index.html")
-    guide = _read(out / "ie" / "guides" / "salary-guide" / "index.html")
+    # live.js figures sit in <span data-live="key">N</span> (refreshed from /api/stats where the Worker serves the
+    # host); the printed build-time number is what this check compares, so the wrapper is unwrapped first.
+    def unlive(t: str) -> str:
+        return re.sub(r'<span data-live="[a-z_]+">([^<]*)</span>', r"\1", t)
+
+    home = unlive(_read(out / "ie" / "index.html"))
+    ins = unlive(_read(out / "ie" / "insights" / "index.html"))
+    guide = unlive(_read(out / "ie" / "guides" / "salary-guide" / "index.html"))
     dash = json.loads(_read(out / "ie" / "dashboard" / "index.html").split('id="gj-dash">')[1].split("</script>")[0])
     check(f'data-count="{st["n_disc"]}"' in home and f"({st['disc_pct']}%)" in home, f"r1 #3: home band shows {st['n_disc']} disclosed ({st['disc_pct']}%)")
     check(f'data-s-cnt>{st["n_disc"]}<' in ins and f'data-s-disc>{st["disc_pct"]}%' in ins, f"r1 #3: insights keyline shows {st['n_disc']} / {st['disc_pct']}%")

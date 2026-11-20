@@ -28,7 +28,9 @@ CLI:
 from __future__ import annotations
 
 import argparse
+import base64
 import gzip
+import hashlib
 import html
 import json
 import os
@@ -66,26 +68,13 @@ EDITIONS = {
 # description. Colours: the warm-earth data set (sky, honey, sage, clay,
 # terracotta and their deeper cuts); the third field says the swatch is dark
 # enough to carry light text.
-TAXONOMY: list[tuple[str, str, bool, list[str]]] = [
-    ("Wind energy", "#5b95b8", False, ["wind", "offshore wind", "onshore wind", "turbine", "turbines"]),
-    ("Solar energy", "#d99a1c", False, ["solar", "photovoltaic", "pv"]),
-    ("Renewable energy & storage", "#6f8f6a", False, ["renewable", "renewables", "battery", "storage", "hydrogen", "hydro", "hydropower", "bioenergy", "biomass", "biogas", "anaerobic", "green energy", "clean energy", "alternative energy", "marine energy", "tidal", "wave"]),
-    ("Water & flood", "#3f7ea6", True, ["water", "flood", "flooding", "drainage", "wastewater", "coastal", "hydrology", "hydrogeology", "hydrogeologist", "hydrologist", "sewer", "sewerage", "catchment"]),
-    ("Waste & circular economy", "#b7774e", False, ["waste", "waste management", "recycling", "circular", "circular economy", "landfill", "resource management", "reuse", "lgv driver", "hgv driver", "refuse", "epa licensing", "epa licence", "waste licensing", "waste permitting", "waste compliance", "waste facility", "waste facilities"]),
-    ("Ecology, nature recovery & biodiversity", "#5c7a57", True, ["ecology", "ecologist", "ecological", "conservation", "biodiversity", "habitat", "habitats", "wildlife", "species", "ornithologist", "ornithology", "botanist", "botany", "arboriculture", "arboriculturist", "arborist", "nature", "nature recovery", "rewilding", "peatland", "forestry", "woodland", "marine biology", "landscape restoration", "ecosystem", "ecosystems", "land restoration", "regenerative"]),
-    # Keith 2026-09-28 (B1): engineering, infrastructure, HSE and climate roles were
-    # landing in "Sustainability" or "Built environment". Each now has a home, placed
-    # ahead of the umbrella sectors so a tie on score resolves to the specific one.
-    ("Environmental engineering", "#8a6d3b", True, ["environmental engineer", "environmental engineers", "environmental engineering", "civil & environmental", "civil and environmental", "remediation", "contaminated land", "geo-environmental", "geoenvironmental", "geotechnical", "land reclamation", "site investigation"]),
-    ("Sustainable infrastructure & transport", "#b08a3e", True, ["highway", "highways", "road", "roads", "rail", "railway", "railways", "metro", "metrolink", "transport", "transportation", "active travel", "cycling", "cycle", "greenway", "greenways", "bridge", "bridges", "civil engineer", "civil engineers", "civil engineering", "infrastructure", "pavement", "tunnel", "tunnelling", "maritime", "port", "ports", "coastal"]),
-    ("Health, safety & environment", "#a34a3a", True, ["health & safety", "health and safety", "health, safety", "hse", "ehs", "safety", "cdm", "construction safety", "safety consultant", "safety advisor", "safety adviser", "occupational health"]),
-    ("Climate & carbon", "#4f7362", True, ["climate", "climate change", "climate action", "carbon", "net zero", "net-zero", "decarbonisation", "decarbonization", "emissions", "greenhouse", "carbon accounting", "carbon footprint", "climate adaptation", "climate resilience"]),
-    ("Environmental science & consulting", "#7f9c7a", False, ["environmental", "environment", "eia", "eiar", "impact assessment", "air quality", "acoustics", "noise", "geologist", "geology", "environmental scientist", "environmental consultant"]),
-    ("Sustainability & ESG", "#a3653c", True, ["sustainability", "sustainable", "esg", "csrd", "responsible business", "corporate responsibility", "circularity"]),
-    ("Built environment & energy efficiency", "#c65d3b", True, ["building", "buildings", "built environment", "energy efficiency", "retrofit", "breeam", "leed", "heat pump", "heat pumps", "insulation", "mechanical", "electrical", "hvac", "facilities", "architect", "architecture", "construction", "quantity surveyor", "surveyor"]),
-    ("Energy networks & utilities", "#4a86ab", True, ["grid", "utility", "utilities", "transmission", "distribution", "substation", "energy network", "energy networks", "energy management", "energy manager", "power station", "electricity", "smart meter", "district heating"]),
-    ("Policy, planning & advisory", "#9a8a6a", False, ["policy", "planning", "planner", "enforcement officer", "enforcement officers", "advisor", "adviser", "advisory", "regulation", "regulatory", "consents", "permitting", "compliance", "legal", "economist", "campaign", "communications", "fundraising", "education"]),
-]
+# The vocabularies (sectors + keywords + colours, job-type canon, contract,
+# workplace and level labels) are FROZEN in one versioned file shared with the
+# platform Worker, the staff console and the import classifier (2026-11-20):
+# platform_worker/src/taxonomy.json. Edit that file, never a copy here.
+TAXONOMY_PATH = Path(__file__).resolve().parent / "platform_worker" / "src" / "taxonomy.json"
+FROZEN_TAXONOMY: dict[str, Any] = json.loads(TAXONOMY_PATH.read_text(encoding="utf-8"))
+TAXONOMY: list[tuple[str, str, bool, list[str]]] = [(s["name"], s["color"], bool(s["dark"]), list(s["keywords"])) for s in FROZEN_TAXONOMY["sectors"]]
 BUILT_ENV = "Built environment & energy efficiency"
 PRIMARY_MIN = 2  # score a sector needs before a job carries it
 # Secondary tags (R010/R087, 2026-09-28): a civil/highways role was carrying
@@ -169,16 +158,18 @@ REMOTE_WORDS = ["remote", "home based", "home-based", "work from home", "working
 # Recruitment agencies (Keith D1). Rule: the named agencies plus any employer
 # whose name contains a staffing word. "Consultancy" alone is not a staffing
 # word (environmental consultancies are direct employers).
-AGENCY_NAMES = {"gaia talent", "mattinson partnership", "chm recruit"}
+AGENCY_NAMES: set[str] = set(FROZEN_TAXONOMY["agency"]["names"])
 AGENCY_DISPLAY = {"chm recruit": "CHM Recruit", "gaia talent": "Gaia Talent", "mattinson partnership": "Mattinson Partnership"}  # real casing when no live role carries the name (visual 25)
-AGENCY_WORDS = ["recruit", "recruitment", "recruiters", "talent", "staffing", "resourcing", "headhunt", "personnel", "appointments", "search & selection"]  # "partnership" dropped 2026-09-28 (Mattinson is in AGENCY_NAMES)
+AGENCY_WORDS: list[str] = list(
+    FROZEN_TAXONOMY["agency"]["words"]
+)  # "partnership" dropped 2026-09-28 (Mattinson is in AGENCY_NAMES)
 
-WORKPLACE_LABEL = {"office": "Office-based", "hybrid": "Hybrid", "remote": "Remote", "site": "Site-based", "unspecified": "Not stated"}
-LEVEL_ORDER = ["Graduate/Early career", "Mid-level", "Senior/Principal", "Director/Associate"]  # level_of() labels, facet order
+WORKPLACE_LABEL: dict[str, str] = dict(FROZEN_TAXONOMY["workplace"])
+LEVEL_ORDER: list[str] = list(FROZEN_TAXONOMY["levels"])  # level_of() labels, facet order
 # One "Contract" facet (visual 31, 2026-09-28): the scraped job type folds into
 # these tags (Home Based -> workplace=remote via REMOTE_WORDS); the URL param
 # `type` stays as an alias in lib.js normaliseState().
-CONTRACT_LABEL = {"permanent": "Permanent", "contract": "Contract", "fixed-term": "Fixed-term", "full-time": "Full-time", "part-time": "Part-time", "volunteer": "Volunteer"}
+CONTRACT_LABEL: dict[str, str] = dict(FROZEN_TAXONOMY["contract"])
 
 NAV = [("jobs/index.html", "Jobs"), ("sectors/index.html", "Sectors"), ("insights/index.html", "Salary explorer"),
        ("compass/index.html", "Career compass"), ("employers/index.html", "Employers")]
@@ -319,7 +310,18 @@ def sanitise_html(markup: str, base_url: str) -> str:
                     keep = f' href="{esc(href)}" rel="noopener nofollow"'
         return f"<{tag}{keep}>"
 
-    out = re.sub(r"<(/?)([a-zA-Z][a-zA-Z0-9]*)((?:\s+[^>]*)?)\s*/?>", clean_tag, out)
+    # clean_tag pass, repeated until stable: removing one tag can splice a new one together
+    # ("<a<x> onmouseover=...>" becomes "<a onmouseover=...>" after one pass). Same loop as the Worker's
+    # platform_worker/src/render/sanitise.js (ported 2026-11-20; tests/greenjobs_redesign/test_sanitise_xss.py).
+    for _ in range(8):
+        nxt = re.sub(r"<(/?)([a-zA-Z][a-zA-Z0-9]*)((?:\s+[^>]*)?)\s*/?>", clean_tag, out)
+        if nxt == out:
+            break
+        out = nxt
+    # A stray "<" that never formed a tag (e.g. a truncated "<img src=x onerror=..." at the end) can no longer
+    # open one inside the page template.
+    out = re.sub(r"<(?![/a-z])", "&lt;", out, flags=re.I)
+    out = re.sub(r"<(/?)([a-z][a-z0-9]*)(?=[^>]*\Z)", r"&lt;\1\2", out, flags=re.I)
     out = re.sub(r"[ \t]+", " ", out)
     out = divs_to_paragraphs(out)
     out = unwrap_bold_lines(out)
@@ -647,8 +649,7 @@ _OFFICE_RE = re.compile(r"\bbased (?:in|at|from) (?:our|the) (?:\w+[ -]){0,2}off
 OFFICE_WORDS = ["office-based", "office based", "in the office", "in our office", "in office", "based in our office", "based at our office", "based in the office", "our offices in", "our office in"]  # bare "office" is not a signal
 
 
-TYPE_CANON = {"full time": "Full-time", "full-time": "Full-time", "part time": "Part-time", "part-time": "Part-time", "fixed term": "Fixed-term", "fixed-term": "Fixed-term",
-              "permanent": "Permanent", "contract": "Contract", "volunteer": "Volunteer", "home based": "Home Based", "home-based": "Home Based"}
+TYPE_CANON: dict[str, str] = dict(FROZEN_TAXONOMY["job_types"]["canon"])
 
 
 def canon_type(raw: Any) -> str:
@@ -1404,7 +1405,7 @@ def sector_tiles(data: dict[str, Any], jobs_href: str, today: date, sym: str = "
         in_sector = [j for j in data["jobs"] if s["name"] in j["sectors"]]
         spark = sparkline_svg(sparkline_weeks(in_sector, today))
         out.append(
-            f'<a class="sect reveal{" sect--lead" if i == 0 else ""}" href="{jobs_href}?sector={qs(s["name"])}" style="--sc:{s["color"]}">'
+            f'<a class="sect reveal{" sect--lead" if i == 0 else ""}" data-live-sector="{esc(s["name"])}" href="{jobs_href}?sector={qs(s["name"])}" style="--sc:{s["color"]}">'
             f'<span class="arw" aria-hidden="true">&#8599;</span><h3>{esc(s["name"])}</h3>'
             f'<p class="n num">{s["n"]}<small>{"role" if s["n"] == 1 else "roles"} · {esc(sector_stat(in_sector, sym))}</small></p>'
             f'{spark}<span class="vh">Postings over the last eight weeks</span></a>')
@@ -2223,7 +2224,7 @@ def shell_ctx(data: dict[str, Any], depth: int, page: str, title: str, desc: str
         "head_extra": head_extra,
         "lang": ed["lang"], "title": esc(title), "desc": esc(desc), "root": root, "home": home, "ed": data["ed"], "ED": ed["short"],
         "domain": esc(data["site"]), "nav": nav, "menu_links": menu_links, "edsw": edsw, "hdr_cls": " hdr--dark" if dark_header else "",
-        "body_attrs": body_attrs, "net_sites": net, "phones": phones, "emails": emails, "bcorp": bcorp, "hdr_bcorp": hdr_bcorp, "social": social,
+        "body_attrs": body_attrs, "live_api": "1" if LIVE_API else "0", "net_sites": net, "phones": phones, "emails": emails, "bcorp": bcorp, "hdr_bcorp": hdr_bcorp, "social": social,
         "year": str(data.get("today", data["fetched"])[:4]), "n_jobs": str(len(data["jobs"])), "fetched": esc(data["fetched"]), "fetched_long": esc(date_long(data["fetched"])),
         "social_wrap": f'<div class="ftr__social">{social}</div>' if social else "",
         "canonical": esc(f"{site_base}{data['ed']}/{same_path or 'index.html'}") if site_base else "",
@@ -2343,8 +2344,32 @@ def guide_salary_body(data: dict[str, Any], ed: dict[str, Any]) -> dict[str, str
     }
 
 
-def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str], brief: dict[str, Any], site_base: str, today: date,
-                  evidence: dict[str, Any]) -> None:
+# Quick job match panel examples (module level so the platform Worker's asset export reads the same strings).
+FIT_EXAMPLES = {
+    "ie": ["ecologist Dublin", "solar project manager", "water engineer flood risk"],
+    "uk": [
+        "ecologist Bristol",
+        "sustainability consultant London",
+        "flood risk engineer Manchester",
+        "renewable energy Scotland",
+    ],
+}
+FIT_PLACEHOLDER = {
+    "ie": "e.g. Ecologist, five years of Phase 1 habitat surveys and EIA chapters, Dublin",
+    "uk": "e.g. Ecologist, five years of Phase 1 habitat surveys and EIA chapters, Bristol",
+}
+
+
+def build_edition(
+    data: dict[str, Any],
+    src: Path,
+    out: Path,
+    tpl: dict[str, str],
+    brief: dict[str, Any],
+    site_base: str,
+    today: date,
+    evidence: dict[str, Any],
+) -> None:
     ed_key = data["ed"]
     ed = EDITIONS[ed_key]
     edir = out / ed_key
@@ -2361,7 +2386,8 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(html_text, encoding="utf-8")
 
-    SCRIPTS = {"home": ["landscape"], "jobs": ["jobs", "fit"], "sectors": ["charts", "explore"], "insights": ["charts", "explore"], "compass": ["compass"], "employers": ["adbuilder"]}
+    # "live": GET /api/stats replaces the build-time figures ([data-live]) once jobs come from the platform Worker.
+    SCRIPTS = {"home": ["landscape", "live"], "jobs": ["jobs", "fit"], "sectors": ["charts", "explore"], "insights": ["charts", "explore", "live"], "guide_salary": ["live"], "compass": ["compass"], "employers": ["adbuilder"]}
 
     def page(name: str, depth: int, page_key: str, title: str, desc: str, body: dict[str, str], **kw: Any) -> str:
         ctx = shell_ctx(data, depth, page_key, title, desc, brief=brief, site_base=site_base, **kw)
@@ -2387,11 +2413,6 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
         '<p class="muted" style="margin:14px 0 24px;max-width:44ch">Explore current vacancies by UK region, including nationwide and remote opportunities. '
         f'Hover or tab through the map for counts; choose one to open the filtered list.{off_map_note(data, "jobs/index.html")}</p>'
         f'<div class="maplist">{map_list(data, "jobs/index.html")}</div></div><div class="reveal">{map_svg(src, ed_key, map_counts)}</div></div></section>')
-
-    FIT_EXAMPLES = {"ie": ["ecologist Dublin", "solar project manager", "water engineer flood risk"],
-                    "uk": ["ecologist Bristol", "sustainability consultant London", "flood risk engineer Manchester", "renewable energy Scotland"]}
-    FIT_PLACEHOLDER = {"ie": "e.g. Ecologist, five years of Phase 1 habitat surveys and EIA chapters, Dublin",
-                       "uk": "e.g. Ecologist, five years of Phase 1 habitat surveys and EIA chapters, Bristol"}
 
     def fit_panel(jobs_href: str, fit_id: str) -> str:
         return render(tpl["_fit"], {"jobs_href": jobs_href, "sym": ed["sym"], "fit_id": fit_id, "n_jobs": str(len(jobs)), "fit_map": map_svg(src, ed_key),
@@ -2684,8 +2705,11 @@ def run_node_tests(src: Path) -> tuple[int, int] | None:
     if not test.exists():
         return None
     try:
+        # A build started from inside `node --test` (tests/greenjobs_redesign/dashboard_dom.test.mjs) inherits
+        # NODE_TEST_CONTEXT, which turns this child runner into a reporter-less subtest and its counts unreadable.
+        child_env = {k: v for k, v in os.environ.items() if k != "NODE_TEST_CONTEXT"}
         proc = subprocess.run(["node", "--test", "lib.test.js"], cwd=str(src / "js"), capture_output=True, text=True,
-                              encoding="utf-8", errors="replace", timeout=180)
+                              encoding="utf-8", errors="replace", timeout=180, env=child_env)
     except (OSError, subprocess.SubprocessError) as exc:
         print(f"      node tests not run: {type(exc).__name__}: {exc}")
         return None
@@ -2763,7 +2787,8 @@ def load_templates(src: Path) -> dict[str, str]:
     return {p.stem: p.read_text(encoding="utf-8") for p in (src / "templates").glob("*.html")}
 
 
-def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = None, site_base: str = "", today: date | None = None) -> int:
+def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = None, site_base: str = "", today: date | None = None,
+          board_site: str | None = None, robots_index: bool = False) -> int:
     if not src.is_dir():
         print(f"FAIL  source directory not found: {src}", file=sys.stderr)
         return 2
@@ -2904,6 +2929,11 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
     css = sum(p.stat().st_size for p in (out / "css").glob("*.css"))
     js = sum(p.stat().st_size for p in (out / "js").glob("*.js"))
     pages = len(list(out.rglob("*.html")))
+    try:
+        write_pages_files(out, board_site, robots_index, site_base)
+    except (OSError, ValueError) as e:
+        print(f"FAIL  Pages files (_redirects/_headers): {e}", file=sys.stderr)
+        return 1
     (out / OK_MARKER).write_text(site_tree_sha(out) + "\n", encoding="utf-8")
     print("PASS  all checks green")
     print(f"      {sum(len(d['jobs']) for d in data_by_ed.values())} roles · {pages} pages · css {css / 1024:.1f} KB (budget {validate_site.CSS_BUDGET // 1024}) · js {js / 1024:.1f} KB (budget {validate_site.JS_BUDGET // 1024})")
@@ -2911,6 +2941,110 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
         print(f"      node tests: {tests[0]} passed, {tests[1]} failed")
     print(f"      site: {out}")
     return 0
+
+
+
+# ---------------------------------------------------------------- Pages: _redirects, _headers, robots (2026-11-20)
+# One Pages project serves one board's domain (deploy/environments.json "pages"); the build is the same
+# two-edition tree for both, so the legacy redirects are chosen per board (--board-site) and the indexing
+# policy per environment (--robots-index / ROBOTS_INDEX=1: production only; staging stays noindex).
+LIVE_API = False  # set by --live-api: the Worker answers /api/* on the board's own host (production routes)
+OPS_BULK_REDIRECTS = Path(__file__).resolve().parent / "ops" / "generated" / "bulk_redirects.json"
+BOARD_APEX = {"ie": "greenjobs.ie", "uk": "greenjobs.co.uk"}
+PAGES_MAX_REDIRECTS = 2000  # Cloudflare Pages static redirect ceiling (_redirects)
+
+
+def pages_redirect_rules(bulk: dict[str, Any], site: str, job_ids: set[str] | None = None) -> list[tuple[str, str]]:
+    """(old path, board path) pairs for one board from ops/redirects.py's Bulk Redirects list.
+
+    The ops list is written for the production zone (targets drop the edition prefix: www.greenjobs.ie/jobs/);
+    the Pages tree keeps it (/ie/jobs/), so a target gains /{site} unless it already has it. Sources with a
+    query string are the Worker table's job (Pages matches paths only); other hosts (the sector domains) are
+    zone rules, not this board's. Floor: at least one rule; ceiling: PAGES_MAX_REDIRECTS.
+    job_ids: the job pages this board actually serves; a legacy job URL whose job is not among them goes to the
+    board list instead (the ops rule "/jobs/<id>/ when live, else /jobs/"), never to a 404.
+    """
+    if site not in BOARD_APEX:
+        raise ValueError(f"site must be ie|uk, got {site!r}")
+    out: dict[str, str] = {}
+    for item in bulk.get("items") or []:
+        r = item.get("redirect") or {}
+        host, _, rest = str(r.get("source_url") or "").partition("/")
+        if host != BOARD_APEX[site] or r.get("subpath_matching"):
+            continue
+        old = "/" + rest
+        if "?" in old or re.search(r"[\s#]", old):
+            continue
+        t = urlsplit(str(r.get("target_url") or ""))
+        if t.scheme != "https" or not t.path.startswith("/"):
+            continue
+        path = t.path if t.path == f"/{site}" or t.path.startswith(f"/{site}/") else f"/{site}{t.path}"
+        jm = re.fullmatch(rf"/{site}/jobs/([A-Za-z0-9_-]+)/", path)
+        if jm and job_ids is not None and jm.group(1) not in job_ids:
+            path = f"/{site}/jobs/"
+        target = path + (f"?{t.query}" if t.query else "")
+        if target != old:
+            out.setdefault(old, target)
+    rules = sorted(out.items())
+    if not rules or len(rules) > PAGES_MAX_REDIRECTS:
+        raise ValueError(f"{site}: {len(rules)} Pages redirect rules (floor 1, ceiling {PAGES_MAX_REDIRECTS})")
+    return rules
+
+
+def inline_script_hashes(out: Path) -> list[str]:
+    """CSP 'sha256-...' sources for every inline executable <script> in the built pages (JSON-LD is data, not code)."""
+    found: set[str] = set()
+    for page in out.rglob("*.html"):
+        for attrs, body in re.findall(r"<script\b([^>]*)>(.*?)</script>", page.read_text(encoding="utf-8"), flags=re.S | re.I):
+            if re.search(r"\bsrc\s*=", attrs, re.I) or re.search(r"type\s*=\s*[\"']?application/(ld\+)?json", attrs, re.I):
+                continue
+            found.add("'sha256-" + base64.b64encode(hashlib.sha256(body.encode("utf-8")).digest()).decode("ascii") + "'")
+    return sorted(found)
+
+
+def pages_headers(out: Path, robots_index: bool) -> str:
+    """The Pages _headers file: security headers on every path, noindex unless this build is the indexed one."""
+    csp = "; ".join([
+        "default-src 'self'", "script-src 'self' " + " ".join(inline_script_hashes(out)), "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' data:", "font-src 'self'", "media-src 'self'", "connect-src 'self'", "manifest-src 'self'",
+        "form-action 'self'", "frame-ancestors 'none'", "base-uri 'self'", "object-src 'none'", "upgrade-insecure-requests",
+    ])
+    lines = ["/*", f"  Content-Security-Policy: {csp}", "  Strict-Transport-Security: max-age=31536000; includeSubDomains",
+             "  X-Content-Type-Options: nosniff", "  X-Frame-Options: DENY", "  Referrer-Policy: strict-origin-when-cross-origin",
+             "  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()"]
+    if not robots_index:
+        lines.append("  X-Robots-Tag: noindex, nofollow")
+    return "\n".join(lines) + "\n"
+
+
+def apply_robots_policy(out: Path, robots_index: bool, site_base: str) -> None:
+    """Indexed build: pages say index,follow and robots.txt allows crawling + names the sitemaps. Otherwise
+    the validated noindex tree is left exactly as validate_site checked it."""
+    if not robots_index:
+        return
+    for page in out.rglob("*.html"):
+        text = page.read_text(encoding="utf-8")
+        new = re.sub(r'<meta name="robots" content="noindex,nofollow">', '<meta name="robots" content="index,follow">', text)
+        if new != text:
+            page.write_text(new, encoding="utf-8")
+    robots = "User-agent: *\nAllow: /\n"
+    if site_base:
+        robots += f"Sitemap: {site_base}sitemap.xml\n"
+    (out / "robots.txt").write_text(robots, encoding="utf-8")
+
+
+def write_pages_files(out: Path, board_site: str | None, robots_index: bool, site_base: str) -> None:
+    """_redirects (when the build is for one board's domain) and _headers, after validation."""
+    apply_robots_policy(out, robots_index, site_base)
+    if board_site:
+        bulk = json.loads(OPS_BULK_REDIRECTS.read_text(encoding="utf-8"))
+        jobs_json = out / board_site / "data" / "jobs.json"
+        ids = {str(j["id"]) for j in json.loads(jobs_json.read_text(encoding="utf-8")).get("jobs", [])} if jobs_json.exists() else None
+        rules = pages_redirect_rules(bulk, board_site, ids)
+        (out / "_redirects").write_text(
+            f"# generated by build_site.py from ops/generated/bulk_redirects.json ({board_site}); {len(rules)} rules\n"
+            + "".join(f"{old} {new} 301\n" for old, new in rules), encoding="utf-8")
+    (out / "_headers").write_text(pages_headers(out, robots_index), encoding="utf-8")
 
 
 def main() -> int:
@@ -2923,9 +3057,18 @@ def main() -> int:
     parser.add_argument("--data-fixture", type=Path, default=None, help="tests only: render this JSON as every edition")
     parser.add_argument("--site-base", default="", help="absolute base URL for sitemap/canonical (overrides config.json)")
     parser.add_argument("--today", type=date.fromisoformat, default=None, help="build date YYYY-MM-DD (default: the dataset's fetched date); closed roles are dropped relative to it")
+    parser.add_argument("--live-api", action="store_true",
+                        help="the platform Worker serves /api/* on the board host: pages refresh figures from /api/stats")
+    parser.add_argument("--board-site", choices=["ie", "uk"], default=None,
+                        help="the board domain this build is deployed to: writes its legacy-URL _redirects")
+    parser.add_argument("--robots-index", action="store_true", default=os.environ.get("ROBOTS_INDEX") == "1",
+                        help="production only: pages index,follow and robots.txt allows crawling (default: noindex; env ROBOTS_INDEX=1)")
     args = parser.parse_args()
+    global LIVE_API
+    LIVE_API = bool(args.live_api)
     editions = ["ie", "uk"] if args.edition == "both" else [args.edition]
-    return build(args.src.resolve(), args.out.resolve(), editions=editions, fixture=args.data_fixture.resolve() if args.data_fixture else None, site_base=args.site_base, today=args.today)
+    return build(args.src.resolve(), args.out.resolve(), editions=editions, fixture=args.data_fixture.resolve() if args.data_fixture else None, site_base=args.site_base, today=args.today,
+                 board_site=args.board_site, robots_index=args.robots_index)
 
 
 if __name__ == "__main__":

@@ -4,8 +4,12 @@
 -- as d1/migrations/NNNN_*.sql (each idempotent, run once per DB created before it, after this file).
 --   0001_apply_mode_consent_alerts.sql (2026-11-20) jobs.apply_mode -> email|link; candidates.strategies_consent;
 --                                      import_batches.report_type + 'alerts'
---   0003_classifier_feed_review_employers.sql (2026-11-20) new tables job_facets, job_review, job_links,
---                                      employer_accounts, taxonomy_terms (statements: upserts_0003.sql)
+--   0002_job_facets.sql (2026-11-20)    job_facets: canonical sectors/regions/type/workplace/contract/... per job, set at
+--                                      write time from taxonomy.json (console, classifier, feed); read by the Worker-rendered
+--                                      job pages and /api/stats. The ONE facet table (0003 no longer defines its own).
+--   0003_classifier_feed_review_employers.sql (2026-11-20) new tables job_review, job_links, employer_accounts,
+--                                      taxonomy_terms (statements: upserts_0003.sql)
+--   0004_job_alerts_newsletter.sql (2026-11-20) alert_meta, newsletter_* (listmail)
 -- Apply:  npx wrangler@4 d1 execute greenjobs --file=schema.sql   (local: add --local)
 --
 -- Stable IDs (the upsert key for every table):

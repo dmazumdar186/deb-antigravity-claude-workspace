@@ -265,15 +265,41 @@ class Smoke:
                 f"HTTP {r.status}; missing: {', '.join(missing) or 'none'}",
             )
 
-    def redirect_sample(self, site: str) -> list[tuple[str, str]]:
+    def redirect_rules(self, site: str) -> list[tuple[str, str]]:
+        """(old, target) pairs the board must answer 301 for. With `redirect_source` (the ops Bulk Redirects
+        list) these are exactly the rules build_site.py writes to the board's _redirects (one source);
+        otherwise the snapshot redirect_map's mapped entries."""
+        if self.cfg.get("redirect_source"):
+            pkg = str(HERE.parent)
+            if pkg not in sys.path:
+                sys.path.insert(0, pkg)
+            import build_site  # noqa: PLC0415  (only for the redirect rules)
+
+            bulk = json.loads((ROOT / self.cfg["redirect_source"]).read_text(encoding="utf-8"))
+            return build_site.pages_redirect_rules(bulk, site, self.board_job_ids(site))
         data = json.loads((ROOT / self.cfg["redirect_map"]).read_text(encoding="utf-8"))
-        entries = [
+        return [
             (e["old"], e["target"])
             for e in data["sites"][site]["entries"]
             if e.get("status") == "mapped"
             and e.get("target")
             and e.get("old") != e.get("target")
         ]
+
+    def board_job_ids(self, site: str) -> set[str] | None:
+        """The job ids the deployed board serves (its own /{site}/data/jobs.json), so a legacy job URL is expected
+        to land where build_site.py sent it. None (unknown) when the board does not answer."""
+        base = dict(self.sites("board_urls")).get(site)
+        if not base:
+            return None
+        r = self.get(f"{base}/{site}/data/jobs.json")
+        body = r.json() if r.status == 200 else None
+        if not isinstance(body, dict) or not isinstance(body.get("jobs"), list):
+            return None
+        return {str(j.get("id")) for j in body["jobs"] if isinstance(j, dict)}
+
+    def redirect_sample(self, site: str) -> list[tuple[str, str]]:
+        entries = self.redirect_rules(site)
         rng = random.Random(
             f"{self.sha}:{site}"
         )  # deterministic per sha: a re-run checks the same 20
@@ -399,7 +425,7 @@ class Smoke:
             "summary": "Automated staging smoke job.",
             "description": f"Automated staging smoke test job for release {tag}. Safe to ignore; closed by the same run.",
             "status": "live",
-            "sectors": [],
+            "sectors": ["Environmental science & consulting"],  # 1..3 taxonomy.json names (console contract)
         }
         jobs = {
             "email": {
@@ -492,7 +518,7 @@ class Smoke:
             "status": "draft",
             "apply_mode": "link",
             "apply_url": "https://example.com/canary",
-            "sectors": [],
+            "sectors": ["Environmental science & consulting"],  # 1..3 taxonomy.json names (console contract)
         }
         r = self.admin("POST", base, self.p("admin_jobs"), body, "canary-create")
         jid = (r.json() or {}).get("id") if r.status in (200, 201) else None

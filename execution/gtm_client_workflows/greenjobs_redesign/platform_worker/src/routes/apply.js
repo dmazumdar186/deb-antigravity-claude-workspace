@@ -115,6 +115,8 @@ export async function apply(ctx) {
     return err('cv_empty', 400, cors);
   }
   if (file && typeof file === 'object' && typeof file.arrayBuffer === 'function' && file.size > 0) {
+    // An environment without CV storage (staging before R2 is enabled) refuses a CV loudly, never drops it.
+    if (!env.CVS) return err('cv_storage_unavailable', 503, cors);
     if (file.size > maxCv) return err('cv_too_large', 413, cors);
     const bytes = new Uint8Array(await file.arrayBuffer());
     if (bytes.length > maxCv) return err('cv_too_large', 413, cors);

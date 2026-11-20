@@ -42,24 +42,24 @@ The plan (9 Nov) governs 3 Dec. The proposal (30 Sep) governs the service.
 | # | Promise | Source | Status | Action |
 |---|---|---|---|---|
 | P1 | Both boards on Keith's domains, current jobs, our design | Plan:30; Proposal:60 | In build (job pages from D1) | Keep |
-| P2 | Staff console: post, edit, close | Plan:30 | In build (fixes) | Keep |
+| P2 | Staff console: post, edit, close | Plan:30 | Built (platform_worker/src/routes/admin.js + console.js; tests/greenjobs_redesign/platform/e2e_board.test.mjs post -> edit -> close 410 -> reopen) | Keep |
 | P3 | Applications to the inbox Keith chooses | Plan:30 | Built (per-job email or link) | Default inbox asked of Diana |
 | P4 | Job alert emails on 3 Dec. Trim order: alerts first, then candidate import (Plan:33); FEAS:109 adds newsletter third | Plan:30,33 | Built (merged 86c441e; flag off; DRY_RUN default) | Add to the go/no-go gate. Trim only with same-day written notice |
 | P5a | The candidate records Keith chooses to keep (3 Dec) | Plan:30,33 | In build (consented import, off by default). Archiving everything is a permitted trim only with same-day written notice | Keith decides retention in writing (REVIEW:20) |
 | P5b | Candidate accounts with stored CV, one-click apply, saved roles | Proposal:64; Brief:157 ("Yes, that stays") | Phase 2 (Plan:31) | Keep in phase 2 |
-| P6 | KPI dashboard, figures live from job data | Proposal:42,60,127 | In build (/api/stats) | Keep |
+| P6 | KPI dashboard, figures live from job data | Proposal:42,60,127 | Built (GET /api/stats in platform_worker/src/routes/board.js; src/js/dashboard.js + live.js refresh where the Worker serves the host, build_site.py --live-api; tests: platform/parity.test.mjs, platform/integration_gaps.test.mjs, src/js/live.test.js) | Keep |
 | P7 | 301 for every indexed URL; full export and import | Proposal:64,83 | Importer built; redirect map generated; 301 serving In build (ops stream) | Keep |
 | P8 | Weekly update throughout, and a monthly report | Proposal:92 (weekly); 68,127 (monthly) | In build | **Both** are owed |
 | P9 | Daily backups, quarterly restore drill, uptime monitoring | Proposal:68,127,135 | In build | Keep |
 | P10 | Broadbean, Idibu, LogicMelon and one CRM | Proposal:64,83 | Phase 2 (Plan:31) | Phase 2 |
-| P11 | Employer logins (CHM, Mattinson) | Plan:31 phase 2; REVIEW:21 (notice by 25 Nov) | In build (behind a flag, off); not merged | Staff post for them on 3 Dec. They are told by 25 Nov |
+| P11 | Employer logins (CHM, Mattinson) | Plan:31 phase 2; REVIEW:21 (notice by 25 Nov) | Built behind EMPLOYER_POSTING_ENABLED (off; platform_worker/src/routes/employer.js, merged; tests: platform/feed_review_employer.test.mjs) | Staff post for them on 3 Dec. They are told by 25 Nov |
 | P12 | 8 network domains | Proposal:105 out of scope; Plan:37 "quoted separately" | Configuration only | Question for Keith |
 | P13 | Gaia jobs fed in automatically | Not promised | Standalone sync script, not wired to the board | Offer to Keith as a time saver |
 | P14 | Platform costs: Cloudflare ~$5 and Resend ~$20 at cost +3%, billed to GreenJobs | Proposal:148-151; JSON:99 | DECISION.md corrected to the proposal costs (DECISION.md:7) | Use as proposed |
 | P15 | Newsletter sends | Proposal:83,149; FEAS:109; REVIEW:34 (paid advertiser feature) | Built (merged 86c441e; NEWSLETTER_ENABLED=0) | Add to the alerts build (third in the trim order) |
 | P16 | Export archive in storage in GreenJobs' name before 6 Dec | Plan:33 | In build (export bot and R2, after the DPA) | Keep |
 | P17 | 10 working days of daily checks after 3 Dec, against the acceptance list | Plan:24; Proposal:91 | In build (probes, status) | Add a 10-day check schedule and the acceptance list |
-| P18 | JobPosting structured data on every role, plus sitemaps | Proposal:34,82,138 | In build (Worker pages) | Keep. Validated in the pipeline smoke tests |
+| P18 | JobPosting structured data on every role, plus sitemaps | Proposal:34,82,138 | Built (platform_worker/src/render/pages.js JobPosting JSON-LD per job page; /sitemap-jobs.xml in routes/board.js; static sitemap.xml in build_site.py; tests: platform/e2e_board.test.mjs, platform/parity.test.mjs) | Keep. Validated in the pipeline smoke tests |
 | P19 | Handover: runbook, test register, source repository, everything in GreenJobs-owned accounts | Proposal:85,161 | Partial | Produce the handover pack before go-live |
 | P20 | Service levels: 99.9% uptime; 1 business day response (4 h for a posting outage); 2 business-day changes | Proposal:92,134,137,140 | In build (monitoring) | Alerting thresholds set to these |
 | P21 | All 100 change-document items done, 11 waiting on Keith's input | Proposal:60,82 | Done items exist on the demo site | Re-verify on the new build. The 11 inputs go in the Keith question list |

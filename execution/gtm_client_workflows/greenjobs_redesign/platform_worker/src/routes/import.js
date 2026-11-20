@@ -1,11 +1,11 @@
 // POST /api/admin/import: a classified feed batch (gaia_d1_sync.py --post) -> D1, server to server.
-// Auth: bearer BUILD_TOKEN (constant-time compare), not the Access JWT: the caller is a cron, not a person.
-//   Cloudflare Access must therefore let exactly this path through with a service token or bypass rule
-//   (README "Feed import"); every other /api/admin/* path stays behind Access + STAFF_EMAILS.
+// Auth (either): a Cloudflare Access JWT (a staff email on STAFF_EMAILS, or a service token whose Client ID is on
+//   ACCESS_SERVICE_TOKEN_IDS; index.js verifies it and passes `actor`), or bearer BUILD_TOKEN (constant-time
+//   compare) for a cron without an Access token. A present but bad Access JWT is refused, never retried as bearer.
 // Sandboxed: dry run unless the body says dry_run:false AND the Worker var FEED_IMPORT_ENABLED is "1". A dry run
 //   reads D1 and answers the plan (insert / update / close / held / links); it writes nothing.
 // Guards (each has a positive test): token, body size, batch ceilings, field floors/ceilings, sectors only from
-//   the batch taxonomy, a held (review) job is never live, links only to this site's jobs, an empty batch and
+//   taxonomy.json (the batch must name the bundled version: one vocabulary), a held (review) job is never live, links only to this site's jobs, an empty batch and
 //   a mass close (> IMPORT_MAX_CLOSE_SHARE of the open feed jobs, default 0.5) are refused with 409.
 // Writes use the statements of sql_0003.js (= build/d1/upserts_0003.sql, also rendered by the Python emitter),
 //   so the SQL file and the API converge on the same rows; every statement is an idempotent upsert.
@@ -13,6 +13,8 @@
 import { err, json, nowIso, safeEqual, sha256Hex } from '../util.js';
 import { cleanText, isValidEmail, normEmail, safeParam, validHttpsUrl } from '../validate.js';
 import * as Q from '../sql_0003.js';
+import { TAXONOMY } from '../render/lib.js';
+import { facetsParams } from '../facets.js';
 import { SQL_AUDIT } from './admin.js';
 
 export const IMPORT_MAX_BYTES = 8 * 1024 * 1024;
@@ -22,6 +24,11 @@ const SOURCES = { gaia: { prefix: 'gaia:%', idRe: /^gaia:\d{1,12}$/, employer: '
 const ISO_TS = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
 const WORKPLACES = ['office', 'hybrid', 'remote', 'site', 'unspecified'];
 const LOC_CLASSES = ['ie', 'uk', 'ni', 'remote', 'cross', 'intl', 'unspecified'];
+const LEVELS = TAXONOMY.levels;
+const CONTRACTS = Object.keys(TAXONOMY.contract);
+/** The batch's taxonomy label for the bundled taxonomy.json (job_classifier.load_taxonomy: 'frozen-<version>'). */
+export const TAXONOMY_LABEL = `frozen-${TAXONOMY.version}`;
+export const SECTOR_NAMES = TAXONOMY.sectors.map((s) => s.name);
 const CHUNK = 50;
 
 function strList(v, { max, itemMax, min = 0 }) {
@@ -89,23 +96,36 @@ export function validateImportJob(j, src, sectorsAllowed) {
   }
   // A job held for review is never published by an import: only a staff approval takes it live.
   if (out.review && out.review.hold === 1 && out.status !== 'draft') return { ok: false, field: 'status' };
+  // facets = the job_facets row job_classifier.facet_row() computed (migration 0002); every field bounded here.
   const f = j.facets;
   if (!f || typeof f !== 'object') return { ok: false, field: 'facets' };
-  const regions = strList(f.regions ?? [], { max: 20, itemMax: 80 });
+  const fs = strList(f.sectors ?? [], { max: 3, itemMax: 80 });
+  const regions = strList(f.regions ?? [], { max: 10, itemMax: 80 });
   const contract = strList(f.contract ?? [], { max: 6, itemMax: 20 });
   const srcSectors = strList(f.source_sectors ?? [], { max: 20, itemMax: 120 });
+  if (!fs || fs.some((s) => !sectorsAllowed.has(s))) return { ok: false, field: 'facets.sectors' };
   if (!regions) return { ok: false, field: 'facets.regions' };
-  if (!contract) return { ok: false, field: 'facets.contract' };
+  if (!contract || contract.some((c) => !CONTRACTS.includes(c))) return { ok: false, field: 'facets.contract' };
   if (!srcSectors) return { ok: false, field: 'facets.source_sectors' };
-  if (f.loc_class != null && !LOC_CLASSES.includes(f.loc_class)) return { ok: false, field: 'facets.loc_class' };
+  const loc = f.loc_class ?? 'unspecified';
+  if (!LOC_CLASSES.includes(loc)) return { ok: false, field: 'facets.loc_class' };
   if (!WORKPLACES.includes(f.workplace)) return { ok: false, field: 'facets.workplace' };
+  const jt = f.job_type == null ? { ok: true, value: null } : cleanText(f.job_type, { min: 1, max: 40 });
+  if (!jt.ok) return { ok: false, field: 'facets.job_type' };
+  if (f.level != null && !LEVELS.includes(f.level)) return { ok: false, field: 'facets.level' };
+  if (f.is_agency !== 0 && f.is_agency !== 1) return { ok: false, field: 'facets.is_agency' };
+  if (f.unverified_cur !== 0 && f.unverified_cur !== 1) return { ok: false, field: 'facets.unverified_cur' };
+  const sal = f.salary_display == null ? { ok: true, value: null } : cleanText(f.salary_display, { min: 1, max: 200 });
+  if (!sal.ok) return { ok: false, field: 'facets.salary_display' };
+  const st = f.search_text == null ? { ok: true, value: null } : cleanText(f.search_text, { min: 1, max: 1500, multiline: true });
+  if (!st.ok) return { ok: false, field: 'facets.search_text' };
   if (!num01(f.sector_confidence)) return { ok: false, field: 'facets.sector_confidence' };
   const method = cleanText(f.sector_method, { min: 1, max: 40 });
-  const tv = cleanText(f.taxonomy_version, { min: 1, max: 64 });
   if (!method.ok) return { ok: false, field: 'facets.sector_method' };
-  if (!tv.ok) return { ok: false, field: 'facets.taxonomy_version' };
-  out.facets = { regions, loc_class: f.loc_class ?? null, workplace: f.workplace, contract, source_sectors: srcSectors,
-    sector_confidence: f.sector_confidence, sector_method: method.value, taxonomy_version: tv.value };
+  if (f.taxonomy_version !== TAXONOMY.version) return { ok: false, field: 'facets.taxonomy_version' };
+  out.facets = { sectors: fs, regions, job_type: jt.value, workplace: f.workplace, contract, loc_class: loc, level: f.level ?? null,
+    is_agency: f.is_agency, salary_display: sal.value, unverified_cur: f.unverified_cur, search_text: st.value,
+    source_sectors: srcSectors, sector_confidence: f.sector_confidence, sector_method: method.value };
   return { ok: true, job: out };
 }
 
@@ -122,7 +142,9 @@ export function validateBatch(body) {
   const tv = cleanText(t?.version, { min: 1, max: 64 });
   const sectors = strList(t?.sectors, { min: 1, max: 100, itemMax: 80 });
   if (!tv.ok || !sectors) return bad('taxonomy');
-  const allowed = new Set(sectors);
+  // One vocabulary: the batch must have been classified with the taxonomy.json this Worker bundles.
+  if (tv.value !== TAXONOMY_LABEL || JSON.stringify(sectors) !== JSON.stringify(SECTOR_NAMES)) return bad('taxonomy.version');
+  const allowed = new Set(SECTOR_NAMES);
   if (!Array.isArray(body.jobs) || body.jobs.length > MAX_JOBS) return bad('jobs');
   if (!Array.isArray(body.links ?? []) || (body.links ?? []).length > MAX_LINKS) return bad('links');
   const jobs = [];
@@ -160,13 +182,11 @@ export function feedJobId(site, sourceId) {
   return `${site}:${sourceId.split(':')[0]}:${sourceId.split(':')[1]}`;
 }
 
-/** Statements for one validated batch, in apply order (taxonomy, employer, jobs, links, close, prune). */
+/** Statements for one validated batch, in apply order (employer, jobs + facets + review, links, close, prune). */
 export function batchStatements(db, b, ts) {
   const s = [];
   const site = b.site;
   const srcName = b.source;
-  s.push(db.prepare(Q.TAXONOMY_DEACTIVATE).bind('sector', JSON.stringify(b.taxonomy.sectors)));
-  for (const name of b.taxonomy.sectors) s.push(db.prepare(Q.TAXONOMY_UPSERT).bind('sector', name, b.taxonomy.version));
   const empId = `${site}:feed:${srcName}`;
   s.push(db.prepare(`INSERT INTO employers (id, site, source, source_id, name, name_norm, website, created_at, updated_at)
     VALUES (?1, ?2, 'feed', ?3, ?4, ?5, ?6, ?7, ?7) ON CONFLICT (id) DO NOTHING`)
@@ -178,9 +198,7 @@ export function batchStatements(db, b, ts) {
       JSON.stringify(j.sectors), j.summary, j.description, j.apply_mode, j.apply_email, j.apply_url, j.status,
       j.posted_at, j.closing_at, ts,
     ));
-    const f = j.facets;
-    s.push(db.prepare(Q.JOB_FACETS_UPSERT).bind(id, site, JSON.stringify(f.regions), f.loc_class, f.workplace,
-      JSON.stringify(f.contract), JSON.stringify(f.source_sectors), f.sector_confidence, f.sector_method, f.taxonomy_version, ts));
+    s.push(db.prepare(Q.JOB_FACETS_UPSERT).bind(...facetsParams(id, j.facets, 'feed', ts)));
     if (j.review) {
       s.push(db.prepare(Q.REVIEW_UPSERT).bind(id, site, j.review.reason, JSON.stringify(j.review.suggested), j.review.confidence, j.review.hold, ts));
     } else s.push(db.prepare(Q.REVIEW_CLEAR).bind(id));
@@ -193,11 +211,13 @@ export function batchStatements(db, b, ts) {
   return s;
 }
 
-export async function importBatch({ request, env, now }) {
+export async function importBatch({ request, env, now, actor = null }) {
   if (request.method !== 'POST') return err('method_not_allowed', 405);
-  const auth = request.headers.get('Authorization') || '';
-  const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
-  if (!env.BUILD_TOKEN || !(await safeEqual(token, env.BUILD_TOKEN))) return err('unauthenticated', 401);
+  if (!actor) {
+    const auth = request.headers.get('Authorization') || '';
+    const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
+    if (!env.BUILD_TOKEN || !(await safeEqual(token, env.BUILD_TOKEN))) return err('unauthenticated', 401);
+  }
   if (!(request.headers.get('Content-Type') || '').toLowerCase().startsWith('application/json')) return err('unsupported_media_type', 415);
   if (Number(request.headers.get('Content-Length') || 0) > IMPORT_MAX_BYTES) return err('payload_too_large', 413);
   const text = await request.text();
@@ -240,7 +260,7 @@ export async function importBatch({ request, env, now }) {
   const stmts = batchStatements(db, b, ts);
   for (let i = 0; i < stmts.length; i += CHUNK) await db.batch(stmts.slice(i, i + CHUNK));
   const digest = await sha256Hex(JSON.stringify({ site: b.site, jobs: b.jobs, links: b.links, taxonomy: b.taxonomy }));
-  await db.prepare(SQL_AUDIT).bind(ts, `import:${b.source}`, 'import.batch', 'import', `${b.source}:${b.site}`, `api:${digest}`,
+  await db.prepare(SQL_AUDIT).bind(ts, actor || `import:${b.source}`, 'import.batch', 'import', `${b.source}:${b.site}`, `api:${digest}`,
     JSON.stringify({ jobs: b.jobs.length, links: b.links.length, held: plan.held, closed: plan.close })).run();
   return json({ dry_run: false, site: b.site, plan, written: true });
 }

@@ -59,7 +59,9 @@ class Taxonomy:
         version: str,
         frozen: bool,
         path: str | None,
+        number: int | None = None,
     ):
+        self.number = number  # taxonomy.json "version" (int) -> job_facets.taxonomy_version; None = not that file's shape
         self.sectors = sectors
         self.aliases = aliases
         self.version = version
@@ -76,7 +78,8 @@ def _builtin() -> Taxonomy:
     names = [t[0] for t in bs.TAXONOMY]
     digest = hashlib.sha256(json.dumps(names).encode()).hexdigest()[:12]
     return Taxonomy(
-        names, {n.lower(): n for n in names}, f"build_site-{digest}", False, None
+        names, {n.lower(): n for n in names}, f"build_site-{digest}", False, None,
+        int(bs.FROZEN_TAXONOMY["version"]),
     )
 
 
@@ -124,13 +127,32 @@ def load_taxonomy(path: Path | None = TAXONOMY_PATH) -> Taxonomy:
         str(data.get("version") or "")
         or hashlib.sha256(Path(path).read_bytes()).hexdigest()[:12]
     )
+    raw_v = data.get("version")
+    number = raw_v if isinstance(raw_v, int) and not isinstance(raw_v, bool) and raw_v >= 1 else None
     return Taxonomy(
         sectors,
         aliases,
         f"frozen-{version}"[:64],
         bool(data.get("frozen", True)),
         str(path),
+        number,
     )
+
+
+def canonical_taxonomy() -> Taxonomy:
+    """taxonomy.json, the one vocabulary every D1 writer uses (build_site.py loads the same file)."""
+    return load_taxonomy(TAXONOMY_PATH)
+
+
+def assert_canonical(tax: Taxonomy) -> None:
+    """Fail loud when a D1 writer was handed a vocabulary other than taxonomy.json: job_facets rows must be
+    written with the vocabulary the Worker renders and validates with (one source of truth)."""
+    want = [s["name"] for s in bs.FROZEN_TAXONOMY["sectors"]]
+    if tax.number != int(bs.FROZEN_TAXONOMY["version"]) or tax.sectors != want:
+        raise TaxonomyError(
+            f"taxonomy {tax.path or 'built-in'} is not platform_worker/src/taxonomy.json "
+            f"(version {tax.number!r} vs {bs.FROZEN_TAXONOMY['version']}): D1 facets are written with taxonomy.json only"
+        )
 
 
 # ------------------------------------------------------------------ build_site adapters
@@ -340,9 +362,62 @@ def classify(
         "contract": contract,
         "source_sectors": [str(s) for s in (job.get("source_sectors") or [])][:20],
         "taxonomy_version": tax.version,
+        "taxonomy_number": tax.number,
         "taxonomy_frozen": tax.frozen,
         "classifier_version": CLASSIFIER_VERSION,
     }
+
+
+def facet_row(job: dict[str, Any], site: str, c: dict[str, Any], set_by: str) -> dict[str, Any]:
+    """The job_facets row (migration 0002) for one classified job: the classifier's taxonomy fields plus the
+    display fields build_site.normalise() derives (level, agency, salary label, unverified-currency flag,
+    search text). Params order = upserts_0003.sql job_facets_upsert, see facet_params().
+
+    job: title, employer, description_html | description, sal_min, sal_max, currency, period, sal_text.
+    Sectors: the confident sectors, else the suggestion (a held feed job is draft and never shown; a queued
+    Strategies job stays live with its best guess until staff decide, exactly as jobs.sectors_json).
+    """
+    if set_by not in ("import", "feed"):
+        raise ValueError("set_by must be import|feed (console rows are written by the Worker)")
+    if c.get("taxonomy_number") is None:
+        raise TaxonomyError("facets need taxonomy.json's integer version (job_facets.taxonomy_version)")
+    bj = to_board_job(job)
+    lo = job.get("sal_min") if isinstance(job.get("sal_min"), (int, float)) else None
+    hi = job.get("sal_max") if isinstance(job.get("sal_max"), (int, float)) else None
+    cur = job.get("currency") or None
+    sal = {"sal_min": lo, "sal_max": hi, "cur": cur, "period": job.get("period") or None,
+           "sal_text": str(job.get("sal_text") or "")}
+    lc = c.get("loc_class") or "unspecified"
+    unverified = int(site == "ie" and lc == "uk" and cur == "EUR" and (lo is not None or hi is not None))
+    text = bs.strip_tags(bs.sanitise_html(bj["description_html"], "https://greenjobs.invalid/"))[:1500]
+    sectors = (c.get("sectors") or c.get("suggested_sectors") or [])[:MAX_SECTORS]
+    return {
+        "sectors": sectors,
+        "regions": list(c.get("regions") or [])[:10],
+        "job_type": c.get("job_type"),
+        "workplace": c.get("workplace") or "unspecified",
+        "contract": list(c.get("contract") or []),
+        "loc_class": lc,
+        "level": bs.level_of(bj["title"]) or None,
+        "is_agency": int(bool(bs.is_agency(bj["employer"]))),
+        "salary_display": bs.salary_label(sal, bs.EDITIONS[site]["currency"]) or None,
+        "unverified_cur": unverified,
+        "taxonomy_version": int(c["taxonomy_number"]),
+        "set_by": set_by,
+        "search_text": text or None,
+        "source_sectors": list(c.get("source_sectors") or [])[:20],
+        "sector_confidence": float(c.get("sector_confidence") or 0.0),
+        "sector_method": str(c.get("sector_method") or "keyword")[:40],
+    }
+
+
+def facet_params(job_id: str, f: dict[str, Any], now: str) -> list[Any]:
+    """?1..?18 of upserts_0003.sql job_facets_upsert (= sql_0003.js JOB_FACETS_UPSERT)."""
+    def dumps(v: Any) -> str:
+        return json.dumps(v, ensure_ascii=False, separators=(",", ":"))
+    return [job_id, dumps(f["sectors"]), dumps(f["regions"]), f["job_type"], f["workplace"], dumps(f["contract"]),
+            f["loc_class"], f["level"], f["is_agency"], f["salary_display"], f["unverified_cur"], f["taxonomy_version"],
+            f["set_by"], now, f["search_text"], dumps(f["source_sectors"]), f["sector_confidence"], f["sector_method"]]
 
 
 def main(argv: list[str] | None = None) -> int:

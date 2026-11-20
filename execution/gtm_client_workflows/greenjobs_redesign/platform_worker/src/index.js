@@ -5,7 +5,7 @@
 // createHandler(deps) lets tests inject: jwksFetcher (host -> async () => JWKS), mailTransport
 // (async (payload, env, key) => {ok}), now (() => Date). The default export uses the real ones.
 
-import { authenticateStaff, createJwksCache, defaultJwksFetcher } from './auth.js';
+import { authenticateAccess, createJwksCache, defaultJwksFetcher } from './auth.js';
 import { createMailer } from './mail.js';
 import { createRateLimiter } from './ratelimit.js';
 import { closeJob, createJob, editJob, getAdminJob, listAdminJobs } from './routes/admin.js';
@@ -14,6 +14,7 @@ import { consoleAsset, consoleHtml } from './routes/console.js';
 import { employerRoute } from './routes/employer.js';
 import { importBatch } from './routes/import.js';
 import { decideReview, listReview, REVIEW_DECIDE_PATH, reviewAsset, reviewHtml } from './routes/review.js';
+import { boardRoute, statsRoute } from './routes/board.js';
 import { exportJobs, getJob, listJobs } from './routes/public.js';
 import { corsHeaders, preflight, siteForHost } from './site.js';
 import { clientIp, err, intVar, json, nowIso, sha256Hex, UUID_RE } from './util.js';
@@ -25,21 +26,72 @@ import { newsletterAdmin, newsletterConsoleHtml, newsletterConsoleJs, newsletter
 const JOB_PATH = /^\/api\/jobs\/([^/]+)$/;
 const ADMIN_JOB_PATH = /^\/api\/admin\/jobs\/([^/]+)$/;
 const ADMIN_CLOSE_PATH = /^\/api\/admin\/jobs\/([^/]+)\/close$/;
-const PUBLIC_PREFLIGHT = /^\/api\/(jobs(\/[^/]+)?|apply|alerts|newsletter)$/;
 const NEWSLETTER_ADMIN = /^\/api\/admin\/newsletters(\/|$)/;
+const STATIC_UNDER_ROUTE = /^\/(ie|uk)\/sectors\/(index\.html)?$/;
+// Paths an Access SERVICE token may reach (release-pipeline smoke: create, read back, close one job). Everything
+// else under /admin and /api/admin is staff only. The import path is handled before admin() (see route()).
+const SERVICE_SCOPES = [
+  ['POST', /^\/api\/admin\/jobs$/],
+  ['GET', ADMIN_JOB_PATH],
+  ['POST', ADMIN_CLOSE_PATH],
+];
+export const serviceAllowed = (method, path) => SERVICE_SCOPES.some(([m, re]) => m === method && re.test(path));
+export const RELEASE = { name: 'greenjobs-platform', schema: '0004' };
+const PUBLIC_PREFLIGHT = /^\/api\/(jobs(\/[^/]+)?|apply|alerts|newsletter|stats)$/;
+
+/**
+ * Edge cache for public GET pages and /api/stats (Cache API; the responses carry s-maxage <= 300 s, so a
+ * console write is public within 5 minutes). Requests with an Origin header are not cached (CORS varies).
+ * Absent Cache API (tests, local) = no caching. `produce` may return null (not a board path).
+ */
+async function cached(request, ctx, produce) {
+  const cache = typeof caches !== 'undefined' && caches && caches.default ? caches.default : null;
+  if (!cache || request.method !== 'GET' || request.headers.get('Origin')) return produce();
+  const hit = await cache.match(request);
+  if (hit) return hit;
+  const res = await produce();
+  if (res && [200, 404, 410].includes(res.status) && ctx && typeof ctx.waitUntil === 'function') ctx.waitUntil(cache.put(request, res.clone()));
+  return res;
+}
+
+/**
+ * GET /api/health: no auth, no secrets. Release + Worker version and whether D1 answers (SELECT 1 and the newest
+ * migration's tables). 200 {ok:true} when D1 is reachable, 503 {ok:false} when not. Never cached.
+ */
+async function health(request, env, now) {
+  if (request.method !== 'GET' && request.method !== 'HEAD') return err('method_not_allowed', 405);
+  const t0 = Date.now();
+  let d1 = false;
+  let migrated = null;
+  try {
+    const r = await env.DB.prepare(`SELECT 1 AS one, (SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name IN ('job_facets','job_review','alert_meta')) AS mig`).first();
+    d1 = Boolean(r && r.one === 1);
+    migrated = Boolean(r && r.mig === 3);
+  } catch {
+    d1 = false; // reported as {ok:false, d1.reachable:false}; the error text is never echoed
+  }
+  const meta = env.CF_VERSION_METADATA && typeof env.CF_VERSION_METADATA === 'object' ? env.CF_VERSION_METADATA : {};
+  const release = /^[0-9a-f]{7,40}$/.test(String(env.RELEASE_SHA || '')) ? env.RELEASE_SHA : null;
+  const body = {
+    ok: d1, service: RELEASE.name, version: { release, worker_version: typeof meta.id === 'string' ? meta.id : null },
+    d1: { reachable: d1, migrated, ms: Date.now() - t0 }, time: nowIso(now),
+  };
+  return json(body, d1 ? 200 : 503);
+}
 
 export function createHandler(deps = {}) {
   const getKey = createJwksCache(deps.jwksFetcher || defaultJwksFetcher);
   const rate = createRateLimiter();
   const mailer = createMailer({ transport: deps.mailTransport });
   const clock = deps.now || (() => new Date());
+  const originFetch = deps.originFetch || ((req) => fetch(req));
 
   async function admin(request, env, site, path, now) {
     const allowed = await rate(env, {
       scope: 'admin', key: clientIp(request), limit: intVar(env, 'RATE_ADMIN_PER_MIN', 60), windowSec: 60, nowMs: now.getTime(),
     });
     if (!allowed) return err('rate_limited', 429, { 'Retry-After': '60' });
-    const auth = await authenticateStaff(request, env, { getKey, nowMs: now.getTime() });
+    const auth = await authenticateAccess(request, env, { getKey, nowMs: now.getTime() }, { allowService: serviceAllowed(request.method, path) });
     if (!auth.ok) return err(auth.code, auth.status);
     const method = request.method;
     const ctx = { env, site, now, request, actor: auth.email };
@@ -80,16 +132,26 @@ export function createHandler(deps = {}) {
     return err('not_found', 404);
   }
 
-  async function route(request, env) {
+  async function route(request, env, ctx) {
     const url = new URL(request.url);
+    if (url.pathname === '/api/health') return health(request, env, clock());
     const site = siteForHost(env, url.hostname);
     if (!site) return err('unknown_host', 404);
     const path = url.pathname;
     const now = clock();
     const method = request.method;
 
-    // Feed import is server to server (bearer BUILD_TOKEN), so it is routed before the Access-gated admin block.
-    if (path === '/api/admin/import') return importBatch({ request, env, now });
+    // Feed import is server to server: an Access JWT (staff or an allow-listed service token) or bearer BUILD_TOKEN.
+    if (path === '/api/admin/import') {
+      if (request.headers.get('Cf-Access-Jwt-Assertion')) {
+        const allowed = await rate(env, { scope: 'admin', key: clientIp(request), limit: intVar(env, 'RATE_ADMIN_PER_MIN', 60), windowSec: 60, nowMs: now.getTime() });
+        if (!allowed) return err('rate_limited', 429, { 'Retry-After': '60' });
+        const auth = await authenticateAccess(request, env, { getKey, nowMs: now.getTime() }, { allowService: true });
+        if (!auth.ok) return err(auth.code, auth.status);
+        return importBatch({ request, env, now, actor: auth.actor });
+      }
+      return importBatch({ request, env, now });
+    }
     if (path === '/employer' || path.startsWith('/employer/') || path.startsWith('/api/employer/')) {
       return employerRoute({ request, env, site, path, now, getKey, rate });
     }
@@ -98,9 +160,16 @@ export function createHandler(deps = {}) {
     }
     if (method === 'OPTIONS' && PUBLIC_PREFLIGHT.test(path)) return preflight(request, env);
     if (method === 'GET' && path === '/api/export/jobs') return exportJobs(request, env, now);
+    if (!path.startsWith('/api/')) {
+      const page = await cached(request, ctx, () => boardRoute(request, env, site, now));
+      if (page) return page;
+      // The /{site}/sectors/* route also covers the static sectors overview: hand it back to the origin (Pages).
+      if (STATIC_UNDER_ROUTE.test(path)) return originFetch(request);
+    }
 
     const cors = corsHeaders(request, env);
     if (cors === null) return err('origin_not_allowed', 403);
+    if (method === 'GET' && path === '/api/stats') return cached(request, ctx, () => statsRoute(env, site, now, url, cors));
     if (method === 'GET' && path === '/api/jobs') return listJobs(env, site, now, cors, url);
     const m = JOB_PATH.exec(path);
     if (method === 'GET' && m) return getJob(env, site, m[1], now, cors);
@@ -119,9 +188,9 @@ export function createHandler(deps = {}) {
   }
 
   return {
-    async fetch(request, env) {
+    async fetch(request, env, ctx) {
       try {
-        return await route(request, env);
+        return await route(request, env, ctx);
       } catch (e) {
         console.error('worker: unhandled', e && e.name ? e.name : 'Error');
         return err('internal', 500);
@@ -143,7 +212,7 @@ export function createHandler(deps = {}) {
       let failed = 0;
       for (const r of results) {
         let cv = null;
-        if (r.cv_key) {
+        if (r.cv_key && env.CVS) {
           const obj = await env.CVS.get(r.cv_key);
           if (obj) cv = { ext: r.cv_key.split('.').pop(), bytes: new Uint8Array(await obj.arrayBuffer()) };
         }

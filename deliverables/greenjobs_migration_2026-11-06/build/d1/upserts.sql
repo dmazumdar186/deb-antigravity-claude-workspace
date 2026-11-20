@@ -30,8 +30,13 @@ WHERE jobs.source = 'strategies';  -- console-owned rows are never overwritten b
 -- jobs (console edit): optimistic lock; 0 rows changed = stale version -> HTTP 409.
 -- Sets source = 'console' so a later Strategies re-import (guard above) never overwrites the edit.
 -- No UNIQUE (site, source, source_id) collision: an imported source_id is unique per site via its id.
+-- Every create field is editable (2026-11-20); a reopen (closed -> live/draft) clears closed_at.
+-- The job_facets upsert for console writes lives in platform_worker/src/facets.js (table from migration 0002).
 UPDATE jobs SET title = ?3, location = ?4, description = ?5, closing_at = ?6, apply_mode = ?7, apply_email = ?8,
   apply_url = ?9, sal_min = ?10, sal_max = ?11, currency = ?12, sal_text = ?13, status = ?14,
+  employer_id = ?16, region = ?17, job_type = ?18, summary = ?19, sectors_json = ?20, period = ?21,
+  closed_at = CASE WHEN ?14 = 'closed' THEN closed_at ELSE NULL END,
+  posted_at = CASE WHEN ?14 = 'live' AND posted_at IS NULL THEN ?15 ELSE posted_at END,
   source = 'console', version = version + 1, updated_at = ?15
 WHERE id = ?1 AND version = ?2;
 

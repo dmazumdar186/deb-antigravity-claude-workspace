@@ -31,10 +31,54 @@
     (k.quality || []).forEach(function (n, i) { rows.push(['Quality score ' + i + '/4', n, 'roles']); });
     return rows;
   }
+  /* The eight "Live now" tile values in render_dashboard()'s order and format. */
+  var TILE_KEYS = ['live', 'new7', 'closing7', 'sal_pct', 'days_to_close', 'remote_pct', 'top_share', 'agency_pct'];
+  function tileTexts(k) {
+    return TILE_KEYS.map(function (key) {
+      var v = k[key];
+      if (v == null) return 'n/a';
+      return /_pct$|^top_share$/.test(key) ? v + '%' : String(v);
+    });
+  }
+  /* "Measures to come" slots fed by /api/stats `measures` (applications, alert sign-ups, advertiser
+     enquiries); null = not collected yet, shown as the page's dash ("collected from launch"). */
+  function measureText(v) {
+    return v == null ? '—' : String(v);
+  }
+  /* Live figures: GET /api/stats from the platform Worker replaces the build-time payload so the
+     dashboard never goes stale; any failure (no Worker on this host, offline) keeps the embedded one. */
+  function fetchStats(ed, timeoutMs) {
+    if (typeof fetch !== 'function' || (ed !== 'ie' && ed !== 'uk')) return Promise.resolve(null);
+    var timer = new Promise(function (res) { setTimeout(function () { res(null); }, timeoutMs); });
+    var req = fetch('/api/stats?site=' + ed, { credentials: 'omit' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (s) { return s && s.site === ed && s.kpis ? s : null; })
+      .catch(function () { return null; });
+    return Promise.race([req, timer]);
+  }
   function init() {
     var host = document.querySelector('[data-dash]'), src = document.getElementById('gj-dash');
     if (!host || !src || !window.GJCharts) return;
-    var C = window.GJCharts, k = JSON.parse(src.textContent), sym = document.documentElement.lang === 'en-GB' ? '£' : '€';
+    var ed = document.body.getAttribute('data-edition');
+    // /api/stats only where the platform Worker serves this host (build_site --live-api); else the embedded figures.
+    if (document.body.getAttribute('data-live-api') !== '1') { draw(host, src, null); return; }
+    fetchStats(ed, 4000).then(function (s) { draw(host, src, s); });
+  }
+  function draw(host, src, s) {
+    var C = window.GJCharts, k = s ? s.kpis : JSON.parse(src.textContent), sym = document.documentElement.lang === 'en-GB' ? '£' : '€';
+    if (s) {
+      var vals = tileTexts(k);
+      Array.prototype.forEach.call(host.querySelectorAll('.kpis:not([data-wired]) .kpi__v'), function (el, i) { if (i < vals.length) el.textContent = vals[i]; });
+      var t = host.querySelector('.dash__bar time');
+      if (t) {
+        t.setAttribute('datetime', k.asof);
+        t.textContent = new Date(k.asof + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+      }
+      Array.prototype.forEach.call(host.querySelectorAll('[data-measure]'), function (el) {
+        var key = el.getAttribute('data-measure'), v = el.querySelector('.kpi__v');
+        if (v && s.measures && Object.prototype.hasOwnProperty.call(s.measures, key)) v.textContent = measureText(s.measures[key]);
+      });
+    }
     function fig(key, rows, label, unit) {
       var f = host.querySelector('[data-fig="' + key + '"]');
       if (!f) return;
@@ -59,5 +103,5 @@
   if (typeof document !== 'undefined') {
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
   }
-  return { csvCell: csvCell, toCsv: toCsv, kpiRows: kpiRows };
+  return { csvCell: csvCell, toCsv: toCsv, kpiRows: kpiRows, tileTexts: tileTexts, measureText: measureText, fetchStats: fetchStats, TILE_KEYS: TILE_KEYS };
 });

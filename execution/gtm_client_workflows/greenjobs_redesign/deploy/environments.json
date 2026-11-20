@@ -8,20 +8,24 @@
     "uk": "deliverables/greenjobs_redesign_2026-09-22/src/data/uk.json"
   },
   "redirect_map": "deliverables/greenjobs_migration_2026-11-06/build/live_snapshot_2026-11-20/redirect_map.json",
+  "redirect_source": "execution/gtm_client_workflows/greenjobs_redesign/ops/generated/bulk_redirects.json",
   "envs": {
     "staging": {
       "wrangler_env": "staging",
       "worker": "greenjobs-platform-staging",
       "d1": "greenjobs-staging",
-      "r2": "greenjobs-cvs-staging",
+      "r2": "",
+      "_r2_note": "R2 is not enabled on our account yet (API code 10042): staging runs without CV storage; an apply with a CV answers 503 cv_storage_unavailable. Set to greenjobs-cvs-staging and restore the wrangler binding once R2 is enabled.",
       "backup_bucket": "",
       "pages": {"ie": "greenjobs-staging-ie", "uk": "greenjobs-staging-uk"},
       "board_urls": {"ie": "https://greenjobs-staging-ie.pages.dev", "uk": "https://greenjobs-staging-uk.pages.dev"},
-      "worker_urls": {"ie": "https://greenjobs-platform-staging.REPLACE_WORKERS_SUBDOMAIN.workers.dev", "uk": ""},
+      "worker_urls": {"ie": "https://greenjobs-platform-staging.debanjan186.workers.dev", "uk": ""},
       "account_id_env": "CLOUDFLARE_ACCOUNT_ID",
       "api_token_env": "CLOUDFLARE_API_TOKEN",
       "require_dry_run": true,
       "seed_public_jobs": true,
+      "robots_index": false,
+      "live_api": false,
       "smoke_mode": "full"
     },
     "production": {
@@ -37,6 +41,8 @@
       "api_token_env": "GREENJOBS_PROD_CLOUDFLARE_API_TOKEN",
       "require_dry_run": false,
       "seed_public_jobs": false,
+      "robots_index": true,
+      "live_api": true,
       "smoke_mode": "read_only"
     }
   },
@@ -47,7 +53,7 @@
       "job_api": "/api/jobs/{id}",
       "stats_api": "/api/stats",
       "apply_api": "/api/apply",
-      "export_api": "/api/export/jobs",
+      "export_api": "/api/export/jobs?site=ie&limit=1",
       "admin_jobs": "/api/admin/jobs",
       "admin_job": "/api/admin/jobs/{id}",
       "admin_close": "/api/admin/jobs/{id}/close",

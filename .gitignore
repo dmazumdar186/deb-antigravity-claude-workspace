@@ -120,6 +120,8 @@ deliverables/ad_creative/**/renders/
 
 # greenjobs redesign: the site's own logos are content, not screenshot scratch
 !deliverables/greenjobs_redesign_2026-09-22/src/assets/logos/*.png
+# GreenJobs client-logo wall (validate_site MIN_CLIENT_TILES=24): the build reads these on every clone (CI, staging)
+!deliverables/greenjobs_redesign_2026-09-22/src/assets/logos/clients/*.png
 !deliverables/greenjobs_redesign_2026-09-22/site/**/*.png
 
 # Jev local indexes (written next to the corpus)

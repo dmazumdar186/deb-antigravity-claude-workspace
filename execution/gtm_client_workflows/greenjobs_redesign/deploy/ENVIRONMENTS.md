@@ -8,7 +8,7 @@ disagree, or if an env section is missing a var (wrangler does not inherit vars 
 
 | Resource | Name |
 |---|---|
-| Worker | `greenjobs-platform-staging` on `greenjobs-platform-staging.REPLACE_WORKERS_SUBDOMAIN.workers.dev` |
+| Worker | `greenjobs-platform-staging` on `greenjobs-platform-staging.debanjan186.workers.dev` |
 | D1 | `greenjobs-staging` (`database_id` = `REPLACE_WITH_STAGING_D1_ID` in wrangler.toml) |
 | R2 (CVs) | `greenjobs-cvs-staging` (smoke applies send no CV, so it stays empty) |
 | Pages | `greenjobs-staging-ie` -> `https://greenjobs-staging-ie.pages.dev`, `greenjobs-staging-uk` -> `https://greenjobs-staging-uk.pages.dev` (each hosts the full two-edition build) |
@@ -71,14 +71,33 @@ answers 200, export auth (401 anonymous, 200 with token). Staging adds: create a
 job (Access service token), poll until public (15 min ceiling, 30 s poll), apply in both modes (link: 409
 `apply_externally`; email: 201 `dry_run`), close both (always, even after a failed check), expect 410.
 
-## Known gaps at 2026-11-20 (staging smoke fails on these until the Worker / build owners close them)
+## Closed at integration (2026-11-20)
 
-- `/api/health` and `/api/stats` (`live_jobs`) are not routes yet (paths are in `environments.json`).
-- A closed job answers 404 from `GET /api/jobs/{id}`; the smoke contract is 410 (`closed_job_status`).
-- `authenticateStaff` needs an Access JWT email in `STAFF_EMAILS`; an Access service token carries
-  `common_name`, not an email, so the smoke admin calls get 403 until the Worker accepts an allow-listed
-  service-token `common_name` (staging only).
-- The boards ship no `_redirects` / `_headers`, so the redirect and board header checks fail.
+- `GET /api/health` (no auth: release sha, Worker version, D1 reachability) and `/api/stats` `live_jobs` exist.
+- A closed job answers 410 from `GET /api/jobs/{id}` (a draft stays 404).
+- Access service tokens: a JWT whose `common_name` is on `ACCESS_SERVICE_TOKEN_IDS` reaches only the smoke paths
+  (create, read, close a job) and `/api/admin/import`; everything else stays staff-only.
+- The boards ship `_redirects` (this board's legacy URLs from `ops/generated/bulk_redirects.json`; the smoke
+  samples the same rules) and `_headers` (CSP with inline-script hashes, HSTS, nosniff, Referrer-Policy,
+  frame-ancestors; `X-Robots-Tag: noindex` unless `robots_index`). Query-string legacy URLs (`*.asp?...`) are
+  the Worker table's job in production; Pages matches paths only.
+- Staging is noindex (`robots_index: false`); production builds with `--robots-index --live-api`.
+
+## Staging as deployed (2026-11-20, ledger: build/release_ledger/staging_2026-11-20.jsonl)
+
+- Worker `https://greenjobs-platform-staging.debanjan186.workers.dev` (IE host), D1 `greenjobs-staging` (WEUR),
+  boards `https://greenjobs-staging-ie.pages.dev`, `https://greenjobs-staging-uk.pages.dev`. Staff console path
+  `/admin/` answers 401/503 until Access exists (fail closed).
+- First deploy: wrangler 4.166 uploaded the Worker, then failed on a follow-up API call (code 10007) because
+  workers.dev was not yet enabled for the new script; enabling it once (`POST .../workers/scripts/<name>/subdomain`
+  `{"enabled":true}`) fixed every later run.
+- Blocked on operator inputs: Cloudflare Access is not enabled on our account (Zero Trust "Enable Access"), so
+  there is no staging team domain, AUD or smoke service token and the smoke `write_flow` fails by design;
+  R2 is not enabled (CV uploads answer 503 on staging). Once Access exists: set `ACCESS_TEAM_DOMAIN`,
+  `ACCESS_AUD`, `STAFF_EMAILS`, `ACCESS_SERVICE_TOKEN_IDS` (the token's Client ID) in `[env.staging.vars]`,
+  export `GREENJOBS_SMOKE_ACCESS_CLIENT_ID/_SECRET`, re-run `stage.sh --execute`.
+- The staging BUILD_TOKEN secret is set on the Worker; its value is held outside the repo (pass it to smoke as
+  `GREENJOBS_SMOKE_BUILD_TOKEN`).
 
 ## Placeholders to fill before the first live run
 

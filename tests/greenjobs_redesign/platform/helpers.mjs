@@ -2,7 +2,7 @@
 // schema.sql, R2 as a Map, a recording mail transport, a local RS256 key pair for Access JWTs,
 // and a fixed clock. Nothing here touches the network.
 
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DatabaseSync } from 'node:sqlite';
@@ -15,6 +15,9 @@ const WORKER = resolve(REPO, 'execution/gtm_client_workflows/greenjobs_redesign/
 export const workerModule = (name) => import(resolve(WORKER, name));
 
 const SCHEMA = readFileSync(SCHEMA_PATH, 'utf8');
+export const MIGRATIONS_DIR = resolve(REPO, 'deliverables/greenjobs_migration_2026-11-06/build/d1/migrations');
+// Every migration in order, as a D1 created from schema.sql and migrated would be (each runs as one transaction).
+export const MIGRATIONS = readdirSync(MIGRATIONS_DIR).filter((f) => f.endsWith('.sql')).sort().map((f) => readFileSync(resolve(MIGRATIONS_DIR, f), 'utf8'));
 
 class FakeStmt {
   constructor(db, sql, params = []) {
@@ -53,9 +56,10 @@ class FakeStmt {
 }
 
 export class FakeD1 {
-  constructor() {
+  constructor(opts = {}) {
     this.sqlite = new DatabaseSync(':memory:');
     this.sqlite.exec(SCHEMA);
+    if (opts.migrate !== false) for (const m of MIGRATIONS) this.sqlite.exec('BEGIN;\n' + m + '\nCOMMIT;');
     this.log = [];
   }
   prepare(sql) {
@@ -78,7 +82,7 @@ export class FakeD1 {
 }
 
 export class FakeR2 {
-  constructor() {
+  constructor(opts = {}) {
     this.objects = new Map();
   }
   async put(key, bytes, opts = {}) {
@@ -95,7 +99,7 @@ export class FakeR2 {
 }
 
 export class FakeKV {
-  constructor() {
+  constructor(opts = {}) {
     this.map = new Map();
   }
   async get(k) {
@@ -202,6 +206,7 @@ export async function makeWorld(envOverrides = {}) {
       return { ok: mail.ok, status: mail.ok ? 200 : 500 };
     },
     now: () => new Date(clock.now),
+    originFetch: async (req) => new Response('origin:' + new URL(req.url).pathname, { status: 200, headers: { 'X-Test-Origin': '1' } }),
   });
   const world = {
     env, db, r2, mail, clock, handler, jwksFetches,
@@ -283,7 +288,7 @@ export function validJobBody(over = {}) {
     description: 'Manage utility-scale solar PV builds from grid connection to energisation.',
     summary: 'Utility-scale solar PV delivery.',
     sal_text: 'EUR 65,000',
-    sectors: ['Solar'],
+    sectors: ['Solar energy'],
     closing: '2026-12-15',
     status: 'live',
     ...over,

@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="{{root}}css/styles.css">
 <script>(function(){var d=document.documentElement;d.className+=' has-js';var t=(location.search.match(/[?&]theme=(dark|light)/)||[])[1]||null;try{if(t)localStorage.setItem('gj-theme',t);else t=localStorage.getItem('gj-theme')}catch(e){}if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';d.setAttribute('data-theme',t);})();</script>
 </head>
-<body data-edition="{{ed}}" data-root="{{root}}" data-page="{{page}}"{{body_attrs}}>
+<body data-edition="{{ed}}" data-root="{{root}}" data-page="{{page}}" data-live-api="{{live_api}}"{{body_attrs}}>
 <a class="skip" href="#main">Skip to content</a>
 <header class="hdr{{hdr_cls}}" data-header>
   <div class="hdr__prog" data-progress aria-hidden="true"></div>
@@ -69,9 +69,9 @@
     <h2 id="sb-h">Get the weekly green jobs email</h2>
     <p>The week's green roles across {{country}}, once a week, free. Unsubscribe any time.</p>
     <form data-demo-form novalidate>
-      <p class="note note--quiet" data-demo-pre>You can also set up job alerts by email on <a href="https://www.{{domain}}/newsletter-signup.asp" rel="noopener">{{domain}}</a>.</p>
+      <p class="note note--quiet" data-demo-pre>You can also set up <a href="{{home}}#h-alert">job alerts by email</a> for the sectors you pick.</p>
       <div class="row"><div class="field"><label for="sb-email" class="vh">Email</label><input class="in" id="sb-email" name="email" type="email" placeholder="you@example.com" required autocomplete="email"></div><button class="btn btn--lime" type="submit" data-ev="newsletter_signup">Subscribe</button></div>
-      <p class="note note--live" data-demo-note tabindex="-1" hidden>Your address has not been stored. Use the link above to set up alerts today.</p>
+      <p class="note note--live" data-demo-note tabindex="-1" hidden>Your address has not been stored.</p>
       <p class="note__fallback"><a href="{{home}}jobs/index.html">Meanwhile, browse all roles →</a></p>
     </form>
   </div>
