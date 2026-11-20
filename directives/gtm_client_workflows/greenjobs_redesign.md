@@ -119,6 +119,49 @@ Schema `deliverables/greenjobs_migration_2026-11-06/build/d1/schema.sql`; build 
 - Keith's twelve answers map to config in `build/DECISION_TABLE.md`; audits run against the frozen
   `build/REDTEAM_CHECKLIST.md`, at most 2 rounds.
 
+## Gaia feed sync (migration, 2026-11-20)
+
+Ends Gaia Talent's double posting: it posts on gaiatalent.com (WordPress, public `/wp-json/wp/v2/jobs`, 83 jobs on
+20 Nov) and retypes most of them on greenjobs.ie. Destination-agnostic: it writes files a destination pulls (Cavuno's
+recurring XML import, or our D1 via the Worker). Nothing is posted anywhere.
+
+- Command: `python3 execution/gtm_client_workflows/greenjobs_redesign/gaia_feed_sync.py [--offline SNAPSHOT]
+  [--board-jobs ie.json --board-jobs uk.json] [--out .tmp/gaia_feed] [--no-jev] [--save-fixture PATH]`.
+  Board jobs = `scrape_greenjobs.py` output (full advert text matters for dedupe) or a GreenJobs RSS `.xml` with
+  `--board-site` (RSS has no employer, so every match lands in review).
+- Fetch: paginates `per_page=100` to `X-WP-TotalPages`, fails (exit 3) if rows ≠ `X-WP-Total`; four taxonomies
+  (`job_location`, `job_category`, `job_type`, `job_sector`) read from their own endpoints. Honest UA, 20 s timeout,
+  3 tries with backoff on 429/5xx.
+- Record: `source_id` = `gaia:<wp id>` (stable), sanitised html (allow-list; no scripts, attributes, `javascript:`),
+  dates in UTC, apply = mailto in the advert, else the job page URL (the page carries a Formidable application form;
+  Gaia shows no public recruiter email). Gaia has no salary or closing date on any job (all 83 blank on 20 Nov).
+- Mapping order (never guessed): sector = title keywords from `build_site.TAXONOMY` when the title names exactly one
+  sector and does not contradict the Gaia terms, else the term dictionary `gaia_feed_mapping.json` (edit the JSON, not
+  code); region = location term → county (aliases + Gaia towns), unless the advert's own `Location:` line excludes it;
+  job type = term, unless the text says fixed-term / contract / N months. Conflicts and unmatched values go to Jev
+  (`jev.choice` with a `none` option; Gaia's region options are Irish counties only); below `--jev-cut 0.6` →
+  `review_queue.json` for Rashieda.
+- Dedupe: auto-duplicate only on a copied advert by Gaia Talent (5-word-shingle containment ≥ 0.5); a same-title
+  rewrite is ambiguous (Gaia runs same-title roles for several clients) and goes to Jev noul (≥ 0.8 dup, ≤ 0.2 not,
+  between → review). One advert is one vacancy: a board advert copied from one feed job is not a duplicate of another.
+  Both directions are reported: feed jobs already on a board (`on_board`) and Gaia board adverts missing from the feed
+  (`dedupe.json` `board_only`).
+- Outputs in `--out`: `feed.json`, `feed.xml` (id, title, description, location, region, category, type, salary, url,
+  apply, date, updated, expiry, boards, status), `sync_report.json` (fetched, mapped deterministically / by Jev, queued,
+  duplicates, new / updated / removed vs the previous run), `review_queue.json`, `dedupe.json`, `jev_cache.json`.
+  Files are rewritten only when their bytes change and carry no wall-clock time; a no-change re-run is byte-identical
+  (the report converges after the run that records the change). Gates (exit 3): 0 jobs fetched, a count mismatch, or
+  more than `--max-removed-share 0.5` of the previous feed removed.
+- Evals: `python3 execution/gtm_client_workflows/greenjobs_redesign/gaia_feed_eval.py [--no-jev]` scores E1/E2 on the
+  hand-labelled fixtures in `tests/greenjobs_redesign/fixtures/gaia_eval/` (labelling rules inside `e1_labels.json`,
+  `e2_pairs.json`) and writes `deliverables/greenjobs_migration_2026-11-06/build/feed/eval_report.md`. Jev answers are
+  cached in `jev_cache_eval.json`, so a re-run is offline. No key and no cache → the Jev tier reads NOT RUN.
+- Tests: `python3 -m pytest tests/greenjobs_redesign/test_gaia_feed_sync.py -q` (in `build/run_tests.sh`).
+- Edge cases learned 20 Nov: Gaia's location term can contradict the advert (term Meath, advert Mullingar,
+  Co. Westmeath; term Ennis, advert Dublin or Dundalk); job-type term "Permanent" on fixed-term roles; job_type
+  taxonomy holds stray terms ("Land Acquisition"); board copies are often rewritten, so title + location alone
+  over-merges (two live "Senior Town Planner" roles for different clients); RSS descriptions are truncated.
+
 ## Changelog
 
 - 2026-11-07 (migration platform): `platform_worker/` skeleton (console post/edit/close, `/api/apply`, Access JWT, rate limits, dry-run default), D1 schema + idempotent upserts, BDD features + 121 offline node tests, frozen red-team checklist, SAST report, decision table for the twelve questions.
@@ -226,3 +269,4 @@ Schema `deliverables/greenjobs_migration_2026-11-06/build/d1/schema.sql`; build 
   `deliverables/greenjobs_migration_2026-11-06/build/import/IMPORT_MAPPING.md`; tests
   `tests/greenjobs_redesign/test_strategies_import.py` (synthetic fixtures). Header aliases are guesses until the
   first real export.
+- 2026-11-20 (Gaia feed sync): `gaia_feed_sync.py` (wp-json → canonical feed.json + feed.xml, dictionary/title/Jev mapping with review queue, copied-advert dedupe + Jev noul, idempotent outputs, gates), `gaia_feed_mapping.json`, `gaia_feed_eval.py` + hand-labelled E1 (83 jobs) / E2 (1,183 pairs) fixtures, 25 offline tests in `build/run_tests.sh`.

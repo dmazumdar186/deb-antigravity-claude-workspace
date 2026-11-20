@@ -1,5 +1,9 @@
 -- GreenJobs D1 schema (Cloudflare D1 = SQLite). Written 2026-11-07.
 -- Idempotent: every statement is IF NOT EXISTS; re-running the file is a no-op.
+-- Changing a CHECK on an existing table needs a table rebuild, which IF NOT EXISTS cannot do: such changes ship
+-- as d1/migrations/NNNN_*.sql (each idempotent, run once per DB created before it, after this file).
+--   0001_apply_mode_consent_alerts.sql (2026-11-20) jobs.apply_mode -> email|link; candidates.strategies_consent;
+--                                      import_batches.report_type + 'alerts'
 -- Apply:  npx wrangler@4 d1 execute greenjobs --file=schema.sql   (local: add --local)
 --
 -- Stable IDs (the upsert key for every table):
@@ -49,9 +53,13 @@ CREATE TABLE IF NOT EXISTS jobs (
   sectors_json   TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(sectors_json)),
   summary        TEXT,
   description    TEXT NOT NULL CHECK (length(description) BETWEEN 20 AND 20000), -- plain text / limited markdown, escaped on render
-  apply_mode     TEXT NOT NULL DEFAULT 'inbox' CHECK (apply_mode IN ('inbox','consultant','advertiser','url')),
-  apply_email    TEXT,
-  apply_url      TEXT CHECK (apply_url IS NULL OR apply_url LIKE 'https://%'),
+  -- Per-job apply mode (client answer Q8, 10-11 Nov: per client, an email or an ATS link).
+  --   email : on-site form; routed to apply_email, or the APPLY_ROUTING default when apply_email is NULL
+  --   link  : external ATS; apply_url required, /api/apply answers 409, apply_email never stored
+  apply_mode     TEXT NOT NULL DEFAULT 'email' CHECK (apply_mode IN ('email','link')),
+  apply_email    TEXT CHECK (apply_email IS NULL OR (length(apply_email) BETWEEN 3 AND 254
+                   AND apply_email LIKE '%_@_%' AND apply_email = lower(trim(apply_email)))),  -- never public
+  apply_url      TEXT CHECK (apply_url IS NULL OR (apply_url LIKE 'https://%' AND length(apply_url) <= 2000)),
   status         TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','live','closed')),
   posted_at      TEXT,
   closing_at     TEXT,
@@ -61,6 +69,8 @@ CREATE TABLE IF NOT EXISTS jobs (
   created_at     TEXT NOT NULL,
   updated_at     TEXT NOT NULL,
   CHECK (sal_min IS NULL OR sal_max IS NULL OR sal_min <= sal_max),
+  CHECK ((apply_mode = 'link' AND apply_url IS NOT NULL AND apply_email IS NULL)
+      OR (apply_mode = 'email' AND apply_url IS NULL)),                -- exactly one target per mode
   UNIQUE (site, source, source_id)
 ) STRICT;
 CREATE INDEX IF NOT EXISTS jobs_live ON jobs (site, status, closing_at);
@@ -82,6 +92,7 @@ CREATE TABLE IF NOT EXISTS candidates (
   consent_at        TEXT,
   registered_at     TEXT,
   last_active_at    TEXT,                             -- retention filter reads this
+  strategies_consent INTEGER CHECK (strategies_consent IS NULL OR strategies_consent IN (0,1)), -- Strategies 'Consent' (1/0/unknown); 0 = never email
   created_at        TEXT NOT NULL,
   updated_at        TEXT NOT NULL,
   UNIQUE (site, email_norm)
@@ -142,7 +153,7 @@ CREATE TABLE IF NOT EXISTS audit_log (
 CREATE TABLE IF NOT EXISTS import_batches (
   sha256       TEXT PRIMARY KEY,
   site         TEXT NOT NULL CHECK (site IN ('ie','uk')),
-  report_type  TEXT NOT NULL CHECK (report_type IN ('recruiters','candidates','profiles','jobs','applications')),
+  report_type  TEXT NOT NULL CHECK (report_type IN ('recruiters','candidates','profiles','jobs','applications','alerts')),
   rows_in      INTEGER NOT NULL,
   rows_kept    INTEGER NOT NULL,
   imported_at  TEXT NOT NULL

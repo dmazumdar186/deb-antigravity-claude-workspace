@@ -52,7 +52,8 @@ test('GET /api/jobs/:id: live 200 with escaped description, closed 404, traversa
   seedJob(w, { id: 'ie:strat:2', status: 'closed' });
   const r = await body(await w.fetch(get('greenjobs.ie', '/api/jobs/ie:strat:1')));
   assert.ok(r.description_html.startsWith('<p>&lt;img'));
-  assert.equal(r.apply_mode, 'form');
+  assert.equal(r.apply_mode, 'email');
+  assert.equal(r.apply_url, null);
   assert.equal('apply_email' in r, false);
   assert.equal((await w.fetch(get('greenjobs.ie', '/api/jobs/ie:strat:2'))).status, 404);
   assert.equal((await w.fetch(get('greenjobs.co.uk', '/api/jobs/ie:strat:1'))).status, 404);
@@ -158,7 +159,7 @@ test('create -> idempotent replay -> list -> audit holds field names only', asyn
 
 test('create rejects bad input with field names and unknown fields', async () => {
   const w = await makeWorld();
-  const r = await w.fetch(await adminRequest('POST', '/api/admin/jobs', { body: validJobBody({ title: 'x', apply_mode: 'url', apply_url: 'javascript:alert(1)' }) }));
+  const r = await w.fetch(await adminRequest('POST', '/api/admin/jobs', { body: validJobBody({ title: 'x', apply_mode: 'link', apply_url: 'javascript:alert(1)' }) }));
   assert.equal(r.status, 400);
   assert.deepEqual((await body(r)).fields.sort(), ['apply_url', 'title']);
   const u = await w.fetch(await adminRequest('POST', '/api/admin/jobs', { body: { ...validJobBody(), created_by: 'x' } }));
@@ -292,7 +293,7 @@ test('application gates: honeypot, too fast, consent, closed job, url-mode 409, 
   const w = await makeWorld();
   seedJob(w, { id: 'ie:strat:1' });
   seedJob(w, { id: 'ie:strat:2', status: 'closed' });
-  seedJob(w, { id: 'ie:strat:3', apply_mode: 'url', apply_url: 'https://careers.example.ie/3' });
+  seedJob(w, { id: 'ie:strat:3', apply_mode: 'link', apply_url: 'https://careers.example.ie/3' });
   seedJob(w, { id: 'uk:strat:1', site: 'uk' });
   const cases = [
     [{ job_id: 'ie:strat:1', website: 'http://spam.example' }, 400, 'rejected'],
@@ -353,7 +354,10 @@ test('routing: inbox per site; consultant uses apply_email, falls back to the in
   assert.deepEqual(routeApplication(env, 'uk', { apply_email: 'Sam@Agency.co.uk' }), { to: 'sam@agency.co.uk', fallback: null });
   assert.deepEqual(routeApplication(env, 'ie', { apply_email: null }), { to: 'jobs@greenjobs.ie', fallback: 'apply_email_missing' });
   assert.deepEqual(routeApplication(env, 'ie', { apply_email: 'bad\r\n@x' }), { to: 'jobs@greenjobs.ie', fallback: 'apply_email_invalid' });
-  assert.deepEqual(routeApplication({ ...env, APPLY_ROUTING: 'inbox' }, 'uk', { apply_email: 'sam@agency.co.uk' }), { to: 'jobs@greenjobs.co.uk', fallback: null });
+  // Per-job apply_email (Q8: per client) wins over APPLY_ROUTING; blank apply_email uses the APPLY_ROUTING default.
+  assert.deepEqual(routeApplication({ ...env, APPLY_ROUTING: 'inbox' }, 'uk', { apply_mode: 'email', apply_email: 'sam@agency.co.uk' }), { to: 'sam@agency.co.uk', fallback: null });
+  assert.deepEqual(routeApplication({ ...env, APPLY_ROUTING: 'inbox' }, 'uk', { apply_mode: 'email', apply_email: null }), { to: 'jobs@greenjobs.co.uk', fallback: null });
+  assert.deepEqual(routeApplication({ ...env, APPLY_ROUTING: 'bogus' }, 'ie', { apply_email: null }), { to: 'jobs@greenjobs.ie', fallback: 'unknown_routing' });
 
   const w = await makeWorld({ APPLY_ROUTING: 'advertiser' });
   seedJob(w, { id: 'ie:strat:1', apply_email: null });

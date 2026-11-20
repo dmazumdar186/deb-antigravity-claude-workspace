@@ -8,7 +8,9 @@ description: Validates one Strategies report type (recruiters, candidates, profi
   email, name or phone. --emit-sql writes idempotent SQL (the exact upsert shapes of
   d1/upserts.sql) plus an import_batches skip-if-done row per input file.
   No network, no D1 call: the operator applies the SQL with `npx wrangler@4 d1 execute`.
-inputs: --site ie|uk, --report TYPE, --csv PATH (repeatable; outside the repo, or tests/**/fixtures/)
+inputs: --site ie|uk, --report TYPE (alerts = Jobs By Email; needs --candidates-csv), --csv PATH (repeatable; outside the repo, or tests/**/fixtures/)
+  or --report TYPE --sniff FILE: header row + first data row only; prints header names with a
+  mapped/unmapped verdict, missing required fields and unknown headers, never a cell value
 outputs: stdout JSON summary; optional --report-out (no PII; outside repo or <repo>/.tmp/);
   optional --emit-sql (outside the repo only)
 exit codes: 0 ok / no-op, 2 usage, config or mapping error, 3 gate failure
@@ -50,7 +52,7 @@ REPO_ROOT = _find_repo_root()
 DEFAULT_MAPPING = HERE / "strategies_mapping.json"
 DEFAULT_UPSERTS = REPO_ROOT / "deliverables" / "greenjobs_migration_2026-11-06" / "build" / "d1" / "upserts.sql"
 
-REPORTS = ("recruiters", "candidates", "profiles", "jobs", "applications")
+REPORTS = ("recruiters", "candidates", "profiles", "jobs", "applications", "alerts")
 TYPES = {"text", "email", "date", "int", "money", "bool", "list", "id", "url", "filename"}
 MAX_FILE_BYTES = 200 * 1024 * 1024
 RETENTION_MIN, RETENTION_MAX = 6, 84
@@ -151,8 +153,13 @@ def load_mapping(path: Path) -> dict:
         raise UsageError("mapping: needs 'reports' and 'date_formats'")
     for r in REPORTS:
         rep = m["reports"].get(r)
-        if not isinstance(rep, dict) or not isinstance(rep.get("fields"), dict) or not rep.get("activity_chain"):
-            raise UsageError(f"mapping: report '{r}' needs 'fields' and 'activity_chain'")
+        if not isinstance(rep, dict) or not isinstance(rep.get("fields"), dict):
+            raise UsageError(f"mapping: report '{r}' needs 'fields'")
+        if not rep.get("activity_chain") and rep.get("activity_from") != "candidates":
+            raise UsageError(f"mapping: report '{r}' needs 'activity_chain' (or activity_from: candidates)")
+        ign = rep.get("ignored_headers", [])
+        if not isinstance(ign, list) or not all(isinstance(h, str) and norm_header(h) for h in ign):
+            raise UsageError(f"mapping: report '{r}' ignored_headers must be a list of header names")
         for fname, spec in rep["fields"].items():
             if spec.get("type") not in TYPES:
                 raise UsageError(f"mapping: {r}.{fname} has unknown type {spec.get('type')!r}")
@@ -163,28 +170,42 @@ def load_mapping(path: Path) -> dict:
             aliases = spec.get("aliases")
             if not aliases or not all(isinstance(a, str) and norm_header(a) for a in aliases):
                 raise UsageError(f"mapping: {r}.{fname} needs non-empty aliases")
-        for f in rep["activity_chain"]:
+        for f in rep.get("activity_chain", []):
             if f not in rep["fields"]:
                 raise UsageError(f"mapping: {r} activity_chain names unknown field {f}")
     return m
 
 
-def map_headers(report: str, rep: dict, header: list[str]) -> tuple[dict[str, int], dict[str, str], list[str], list[str]]:
-    """Return (field->column index, field->header text, unmapped headers, duplicate headers)."""
-    index: dict[str, int] = {}
-    dupes: list[str] = []
-    for i, h in enumerate(header):
+def show_header(h: str) -> str:
+    """A header name safe to print. A headerless export puts a data row here: mask emails and digit runs."""
+    h = h.strip()
+    if EMAIL_IN_TEXT_RE.search(h) or DIGITS_RE.search(h) or CONTROL_RE.search(h):
+        return safe_text_evidence(h)
+    return h[:60]
+
+
+def match_headers(rep: dict, header: list[str]) -> tuple[dict[str, int], list[str], list[str]]:
+    """Match headers to fields without raising. Returns (field->column index, missing required, duplicate headers).
+
+    Matching is case/whitespace/punctuation-insensitive (norm_header) and alias order is a priority:
+    the most specific alias of every field is tried before any field's second alias."""
+    # A header that appears more than once is ambiguous (the real Jobs export lists ReferralAmount twice):
+    # neither copy is mapped, so the import can never silently pick one; process() warns once per file.
+    seen: dict[str, int] = {}
+    for h in header:
         n = norm_header(h)
-        if not n:
-            continue
-        if n in index:
-            dupes.append(h[:60])
-            continue
-        index[n] = i
+        if n:
+            seen[n] = seen.get(n, 0) + 1
+    index = {norm_header(h): i for i, h in enumerate(header) if norm_header(h) and seen[norm_header(h)] == 1}
+    dupes: list[str] = []
+    for h in header:
+        n = norm_header(h)
+        if n and seen[n] > 1 and show_header(h) not in dupes:
+            dupes.append(show_header(h))
     fields = rep["fields"]
     mapped: dict[str, int] = {}
     claimed: set[int] = set()
-    max_rank = max(len(s["aliases"]) for s in fields.values())
+    max_rank = max(len(f["aliases"]) for f in fields.values())
     for rank in range(max_rank):  # most specific alias first across all fields
         for fname, spec in fields.items():
             if fname in mapped or rank >= len(spec["aliases"]):
@@ -197,36 +218,71 @@ def map_headers(report: str, rep: dict, header: list[str]) -> tuple[dict[str, in
     for group in rep.get("require_one_of", []):
         if not any(g in mapped for g in group):
             missing.append("one of " + "/".join(group))
+    return mapped, missing, dupes
+
+
+def map_headers(report: str, rep: dict, header: list[str]) -> tuple[dict[str, int], dict[str, str], list[str], list[str]]:
+    """Return (field->column index, field->header text, unmapped headers, duplicate headers).
+    A required field with no matching header fails loud (UsageError, exit 2)."""
+    fields = rep["fields"]
+    mapped, missing, dupes = match_headers(rep, header)
     if missing:
         detail = "; ".join(
             f"{f} (aliases: {', '.join(fields[f]['aliases'])})" if f in fields else f for f in missing
         )
         raise UsageError(
             f"mapping: report '{report}' has no header for required field(s): {detail}. "
-            f"Headers seen: {[h[:60] for h in header]}. Add the real header as an alias in strategies_mapping.json."
+            f"Headers seen: {[show_header(h) for h in header]}. Duplicated (never mapped): {dupes}. "
+            f"Add the real header as an alias in strategies_mapping.json "
+            f"(run --sniff FILE to see every header's verdict)."
         )
-    unmapped = [header[i][:60] for i in range(len(header)) if i not in claimed and norm_header(header[i])]
-    return mapped, {f: header[i][:60] for f, i in mapped.items()}, unmapped, dupes
+    claimed = set(mapped.values())
+    ignored = {norm_header(h) for h in rep.get("ignored_headers", [])}
+    dup_norm = {norm_header(d) for d in dupes}
+    unmapped = [show_header(header[i]) for i in range(len(header))
+                if i not in claimed and norm_header(header[i]) and norm_header(header[i]) not in ignored | dup_norm]
+    return mapped, {f: show_header(header[i]) for f, i in mapped.items()}, unmapped, dupes
+
+
+def ignored_in(rep: dict, header: list[str], mapped: dict[str, int]) -> list[str]:
+    """Real headers present in the file that the mapping deliberately does not import."""
+    ignored = {norm_header(h) for h in rep.get("ignored_headers", [])}
+    claimed = set(mapped.values())
+    return [show_header(h) for i, h in enumerate(header) if i not in claimed and norm_header(h) in ignored]
 
 
 # --------------------------------------------------------------------------- reading
+
+def decode_bytes(raw: bytes, name: str, truncated: bool = False) -> tuple[str, str, bool]:
+    """UTF-8 (BOM stripped) first, then Windows-1252. Returns (text, encoding, had_bom).
+    truncated=True: raw is a prefix of the file, so a multi-byte char cut at the very end is not an error."""
+    bom = raw.startswith(b"\xef\xbb\xbf")
+    try:
+        return raw.decode("utf-8-sig"), "utf-8", bom
+    except UnicodeDecodeError as e:
+        if truncated and e.start >= len(raw) - 3 and e.reason == "unexpected end of data":
+            return raw[:e.start].decode("utf-8-sig"), "utf-8", bom
+    try:
+        return raw.decode("cp1252"), "cp1252", bom
+    except UnicodeDecodeError as e:
+        raise UsageError(f"{name}: neither UTF-8 nor Windows-1252: {e}") from e
+
+
+def sniff_delimiter(text: str) -> str:
+    """The most frequent of , ; TAB | on the first non-blank line (the header); ',' when none."""
+    first = next((ln for ln in io.StringIO(text) if ln.strip()), "")
+    counts = {d: first.count(d) for d in (",", ";", "\t", "|")}
+    return max(counts, key=lambda d: counts[d]) if max(counts.values()) else ","
+
 
 def read_csv(path: Path) -> dict:
     raw = path.read_bytes()
     if len(raw) > MAX_FILE_BYTES:
         raise UsageError(f"{path.name}: {len(raw)} bytes exceeds the {MAX_FILE_BYTES}-byte ceiling; split the batch")
-    try:
-        text, encoding = raw.decode("utf-8-sig"), "utf-8"
-    except UnicodeDecodeError:
-        try:
-            text, encoding = raw.decode("cp1252"), "cp1252"
-        except UnicodeDecodeError as e:
-            raise UsageError(f"{path.name}: neither UTF-8 nor Windows-1252: {e}") from e
+    text, encoding, _ = decode_bytes(raw, path.name)
     nul = text.count("\x00")
     text = text.replace("\x00", "")
-    first = text.split("\n", 1)[0]
-    counts = {d: first.count(d) for d in (",", ";", "\t", "|")}
-    delimiter = max(counts, key=lambda d: counts[d]) if max(counts.values()) else ","
+    delimiter = sniff_delimiter(text)
     csv.field_size_limit(10 * 1024 * 1024)
     reader = csv.reader(io.StringIO(text, newline=""), delimiter=delimiter)
     rows: list[tuple[int, list[str]]] = []
@@ -246,6 +302,68 @@ def read_csv(path: Path) -> dict:
     return {"sha256": hashlib.sha256(raw).hexdigest(), "encoding": encoding,
             "delimiter": {"\t": "tab"}.get(delimiter, delimiter), "header": header or [],
             "rows": rows, "nul_removed": nul}
+
+
+# --------------------------------------------------------------------------- --sniff (header check, no values)
+
+SNIFF_BYTES = 1024 * 1024
+
+
+def sniff(path: Path, report: str, mapping: dict) -> tuple[int, dict]:
+    """Read only the header row and the first data row of one file and say how its headers map.
+
+    Prints header NAMES and a mapped/unmapped verdict per header, the required fields with no header,
+    and the first data row's cell count against the header width (a wrong delimiter shows up here).
+    No cell value is ever returned: candidate exports hold PII. Exit 0 when every required field maps,
+    2 when one is missing (the same fail-loud rule the import applies)."""
+    with path.open("rb") as fh:
+        raw = fh.read(SNIFF_BYTES + 1)
+    truncated = len(raw) > SNIFF_BYTES
+    text, encoding, bom = decode_bytes(raw[:SNIFF_BYTES], path.name, truncated=truncated)
+    text = text.replace("\x00", "")
+    delimiter = sniff_delimiter(text)
+    header: list[str] | None = None
+    first: list[str] | None = None
+    reader = csv.reader(io.StringIO(text, newline=""), delimiter=delimiter)
+    try:
+        for cells in reader:
+            if not any(c.strip() for c in cells):
+                continue
+            if header is None:
+                header = [c.strip() for c in cells]
+                continue
+            first = cells
+            break
+    except csv.Error as e:
+        raise UsageError(f"{path.name}: CSV parse error in the first rows: {e}") from e
+    rep_ = mapping["reports"][report]
+    fields = rep_["fields"]
+    header = header or []
+    mapped, missing, dupes = match_headers(rep_, header)
+    by_col = {i: f for f, i in mapped.items()}
+    ignored = {norm_header(h) for h in rep_.get("ignored_headers", [])}
+    dup_norm = {norm_header(d) for d in dupes}
+
+    def verdict(i: int, h: str) -> str:
+        if i in by_col:
+            return "mapped"
+        n = norm_header(h)
+        return "duplicate" if n in dup_norm else ("ignored" if n in ignored else "unmapped")
+    verdicts = [{"header": show_header(h), "verdict": verdict(i, h), **({"field": by_col[i]} if i in by_col else {})}
+                for i, h in enumerate(header) if norm_header(h)]
+    status = "ok" if header and not missing else ("no_header" if not header else "missing_required")
+    out = {
+        "tool": "strategies_import", "mode": "sniff", "report": report, "file": path.name,
+        "status": status, "exit_code": EXIT_OK if status == "ok" else EXIT_USAGE,
+        "encoding": encoding, "bom": bom, "delimiter": {"\t": "tab"}.get(delimiter, delimiter),
+        "headers": verdicts,
+        "mapped": {f: show_header(header[i]) for f, i in mapped.items()},
+        "missing_required": [{"field": f, "aliases": fields[f]["aliases"]} if f in fields else {"field": f} for f in missing],
+        "unknown_headers": [v["header"] for v in verdicts if v["verdict"] == "unmapped"],
+        "duplicate_headers": dupes,
+        "first_row": None if first is None else {"cells": len(first), "width_matches": len(first) == len(header)},
+    }
+    return out["exit_code"], out
 
 
 # --------------------------------------------------------------------------- cell conversion
@@ -422,9 +540,37 @@ def join_name(*parts) -> str | None:
     return s or None
 
 
+def apply_fields(v: dict, ctx: Ctx) -> dict:
+    """jobs.apply_mode: 'link' when the row has an https apply URL (convert() already refused http,
+    javascript: and data:), else 'email' (apply_email, or NULL = the Worker's APPLY_ROUTING default).
+    Exactly one target per mode: a row with both keeps the link and drops the email (warning, no value)."""
+    url, email = v.get("apply_url"), v.get("apply_email")
+    if url:
+        if email:
+            ctx.warn("apply_email", "apply_email_dropped_link_mode", "")
+        return {"apply_mode": "link", "apply_email": None, "apply_url": url}
+    return {"apply_mode": "email", "apply_email": email, "apply_url": None}
+
+
+def job_location(v: dict) -> str:
+    """sVicinityDesc, else sRegionDesc (both optional headers; one must exist, a row needs one value)."""
+    loc = v.get("location") or v.get("region")
+    if not loc:
+        raise RowReject("missing_required", "location", "")
+    return loc
+
+
 def build(report: str, rep: dict, v: dict, ctx: Ctx, aux: dict) -> dict:
     site = ctx.site
-    act = activity(rep, v)
+    if report == "alerts":
+        cand = (aux.get("candidates") or {}).get(v["candidate_id"])
+        if cand is None:
+            raise RowExclude("candidate_not_retained")
+        if cand["consent"] == 0:
+            raise RowExclude("candidate_consent_0")
+        act = cand["act"]
+    else:
+        act = activity(rep, v)
     if act is None:
         raise RowExclude("no_activity_date")
     if act < ctx.cutoff_iso:
@@ -446,7 +592,8 @@ def build(report: str, rep: dict, v: dict, ctx: Ctx, aux: dict) -> dict:
         rec.update(id=stable_id(site, sid), source_id=sid, email_norm=v["email"], first_name=v.get("first_name"),
                    last_name=v.get("last_name"), phone=v.get("phone"), location=v.get("location"), headline=None,
                    sectors_json=v.get("sectors") or "[]", consent_marketing=v.get("consent_marketing") or 0,
-                   consent_at=None, registered_at=v.get("registered"), last_active_at=act)
+                   consent_at=None, registered_at=v.get("registered"), last_active_at=act,
+                   strategies_consent=v.get("consent"))
         rec["_key"], rec["_key2"] = v["email"], sid
     elif report == "profiles":
         cid = v["candidate_id"]
@@ -459,7 +606,7 @@ def build(report: str, rep: dict, v: dict, ctx: Ctx, aux: dict) -> dict:
         rec.update(id=stable_id(site, cid), source_id=cid, email_norm=email, first_name=None, last_name=None,
                    phone=None, location=v.get("location"), headline=v.get("headline"),
                    sectors_json=v.get("sectors") or "[]", consent_marketing=0, consent_at=None,
-                   registered_at=None, last_active_at=act)
+                   registered_at=None, last_active_at=act, strategies_consent=None)
         rec["_key"], rec["_key2"] = cid, None
     elif report == "jobs":
         sid = v["strategies_id"]
@@ -476,12 +623,26 @@ def build(report: str, rep: dict, v: dict, ctx: Ctx, aux: dict) -> dict:
         emp = v.get("employer_id")
         rec.update(id=stable_id(site, sid), source_id=sid,
                    employer_id=Raw(f"(SELECT id FROM employers WHERE id = {sql_lit(stable_id(site, emp))})") if emp else None,
-                   title=v["title"], location=v["location"], region=v.get("region"), job_type=v.get("job_type"),
+                   title=v["title"], location=job_location(v), region=v.get("region"), job_type=v.get("job_type"),
                    sal_min=sal_min, sal_max=sal_max, currency=cur, period=period, sal_text=v.get("sal_text"),
                    sectors_json=v.get("sectors") or "[]", summary=v.get("summary"), description=v["description"],
-                   apply_mode="url" if v.get("apply_url") else "inbox", apply_email=v.get("apply_email"),
-                   apply_url=v.get("apply_url"), status=status, posted_at=v.get("posted"), closing_at=closing)
+                   **apply_fields(v, ctx), status=status, posted_at=v.get("posted"), closing_at=closing)
         rec["_key"], rec["_key2"] = sid, None
+    elif report == "alerts":
+        email = v["email"]
+        query = {k: val for k, val in (
+            ("label", v.get("search_name")), ("keywords", v.get("keywords")), ("sal_min", v.get("sal_min")),
+            ("sal_max", v.get("sal_max")),
+            ("period", PERIOD_MAP.get(re.sub(r"[^a-z]", "", (v.get("period") or "").lower()))),
+            ("job_type", v.get("job_type")), ("sectors", json.loads(v["sectors"]) if v.get("sectors") else None),
+            ("category", v.get("category")), ("region", v.get("region")), ("vicinity", v.get("vicinity")),
+        ) if val not in (None, "", [])}
+        qjson = json.dumps(query, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+        qhash = hashlib.sha256(qjson.encode("utf-8")).hexdigest()
+        aid = hashlib.sha256(f"{site}|{email}|{qhash}".encode("utf-8")).hexdigest()[:24]
+        rec.update(id=stable_id(site, f"alert-{aid}"), source_id=v["candidate_id"], email_norm=email,
+                   query_json=qjson, query_hash=qhash)
+        rec["_key"], rec["_key2"] = f"{email}|{qhash}", None
     elif report == "applications":
         job_sid = v["job_id"]
         known = aux.get("job_ids")
@@ -565,7 +726,13 @@ def process(report: str, paths: list[Path], mapping: dict, ctx: Ctx, aux: dict, 
         if not data["header"]:
             continue
         colmap, mapped_headers, unmapped, dupes = map_headers(report, rep, data["header"])
-        summ["headers"] = {"mapped": mapped_headers, "unmapped": unmapped, "duplicate": dupes}
+        summ["headers"] = {"mapped": mapped_headers, "unmapped": unmapped, "duplicate": dupes,
+                           "ignored": ignored_in(rep, data["header"], colmap)}
+        for d in dupes:
+            ctx.line = 1
+            ctx.warn(None, "duplicate_header_ignored", d)
+        tags: dict[str, int] = {}
+        summ["site_tags"] = tags
         width = len(data["header"])
         for line, cells in data["rows"]:
             ctx.line = line
@@ -583,6 +750,12 @@ def process(report: str, paths: list[Path], mapping: dict, ctx: Ctx, aux: dict, 
                     values[fname] = convert(fname, fields[fname], cells[idx], ctx)
                     if fields[fname].get("required") and values[fname] is None:
                         raise RowReject("missing_required", fname, "")
+                tag = values.get("site_tag")
+                if "site_tag" in colmap:
+                    key = safe_text_evidence(str(tag)) if tag is not None else ""
+                    tags[key] = tags.get(key, 0) + 1
+                    if aux.get("expect_site_tag") is not None and str(tag or "") != aux["expect_site_tag"]:
+                        raise RowExclude("other_site_tag")
                 rec = build(report, rep, values, ctx, aux)
             except RowReject as r:
                 ctx.rejects.append({"file": path.name, "row": line, "column": r.column, "reason": r.reason,
@@ -633,7 +806,8 @@ def load_upserts(path: Path) -> dict[str, str]:
     body = re.sub(r"--[^\n]*", "", text)
     stmts = [re.sub(r"\s+", " ", s).strip() for s in body.split(";") if s.strip()]
     want = {"employers": "INSERT INTO employers ", "jobs": "INSERT INTO jobs ", "candidates": "INSERT INTO candidates ",
-            "applications": "INSERT INTO applications ", "import_batches": "INSERT OR IGNORE INTO import_batches "}
+            "applications": "INSERT INTO applications ", "alert_subscriptions": "INSERT INTO alert_subscriptions ",
+            "import_batches": "INSERT OR IGNORE INTO import_batches "}
     out: dict[str, str] = {}
     for key, prefix in want.items():
         hits = [s for s in stmts if s.startswith(prefix)]
@@ -657,7 +831,11 @@ def params_for(report: str, site: str, r: dict, now: str) -> tuple[str, list]:
     if report in ("candidates", "profiles"):
         return "candidates", [r["id"], site, "strategies", r["source_id"], r["email_norm"], r["first_name"],
                               r["last_name"], r["phone"], r["location"], r["headline"], r["sectors_json"],
-                              r["consent_marketing"], r["consent_at"], r["registered_at"], r["last_active_at"], now]
+                              r["consent_marketing"], r["consent_at"], r["registered_at"], r["last_active_at"], now,
+                              r["strategies_consent"]]
+    if report == "alerts":
+        return "alert_subscriptions", [r["id"], site, r["email_norm"], r["query_json"], r["query_hash"], "weekly",
+                                       None, None, None, now]
     if report == "jobs":
         return "jobs", [r["id"], site, "strategies", r["source_id"], r["employer_id"], r["title"], r["location"],
                         r["region"], r["job_type"], r["sal_min"], r["sal_max"], r["currency"], r["period"],
@@ -671,7 +849,7 @@ def params_for(report: str, site: str, r: dict, now: str) -> tuple[str, list]:
 def emit_sql(report: str, site: str, result: dict, templates: dict, now: str) -> str:
     lines = [f"-- GreenJobs Strategies import: site={site} report={report} generated={now}",
              "-- Idempotent: canonical upserts from d1/upserts.sql; re-running converges. Contains PII: never commit.",
-             "-- Apply: npx wrangler@4 d1 execute greenjobs --file=THIS_FILE   (order: recruiters, jobs, candidates, profiles, applications)"]
+             "-- Apply: npx wrangler@4 d1 execute greenjobs --file=THIS_FILE   (order: recruiters, jobs, candidates, profiles, applications, alerts)"]
     for r in result["records"]:
         table, params = params_for(report, site, r, now)
         lines.append(render(templates[table], params))
@@ -752,15 +930,19 @@ def ratio(lo: float, hi: float, name: str):
 
 def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(description="Strategies CSV -> GreenJobs D1 (offline; dry run by default)")
-    ap.add_argument("--site", required=True, choices=["ie", "uk"])
+    ap.add_argument("--site", choices=["ie", "uk"], help="required unless --sniff")
     ap.add_argument("--report", required=True, choices=list(REPORTS))
-    ap.add_argument("--csv", required=True, action="append", help="report CSV (repeat for date batches)")
+    ap.add_argument("--csv", action="append", help="report CSV (repeat for date batches); required unless --sniff")
+    ap.add_argument("--sniff", metavar="FILE", help="read only the header row + first data row of FILE and print "
+                    "which fields map, which required fields are missing and which headers are unknown (no cell values)")
     ap.add_argument("--as-of", help="YYYY-MM-DD (default: today UTC)")
     ap.add_argument("--retention-months", type=int, default=24, help=f"{RETENTION_MIN}..{RETENTION_MAX}")
     ap.add_argument("--min-yield", type=ratio(0.0, 1.0, "--min-yield"), default=0.05)
     ap.add_argument("--max-reject-rate", type=ratio(0.0, 1.0, "--max-reject-rate"), default=0.20)
     ap.add_argument("--allow-low-yield", action="store_true")
-    ap.add_argument("--candidates-csv", action="append", default=[], help="profiles: candidate id -> email source")
+    ap.add_argument("--candidates-csv", action="append", default=[],
+                    help="profiles: CandidatePK -> email; alerts (required): CandidatePK -> activity date + Consent")
+    ap.add_argument("--expect-site-tag", help="keep only rows whose SiteTag/SiteFK equals this value (others excluded)")
     ap.add_argument("--jobs-csv", action="append", default=[], help="applications: kept-jobs source (orphan check)")
     ap.add_argument("--known-job-ids", help="applications: text file, one Strategies job id per line")
     ap.add_argument("--done-sha256", help="text file of sha256 already in import_batches (skip those files)")
@@ -781,6 +963,12 @@ def read_id_list(path: Path) -> set[str]:
 
 
 def run(args: argparse.Namespace) -> tuple[int, dict]:
+    if args.sniff:
+        if args.csv or args.emit_sql or args.report_out:
+            raise UsageError("--sniff reads one file and writes nothing: drop --csv, --emit-sql and --report-out")
+        return sniff(check_input(args.sniff), args.report, load_mapping(Path(args.mapping)))
+    if not args.site or not args.csv:
+        raise UsageError("--site and --csv are required (or use --sniff FILE)")
     if not RETENTION_MIN <= args.retention_months <= RETENTION_MAX:
         raise UsageError(f"--retention-months must be {RETENTION_MIN}..{RETENTION_MAX}, got {args.retention_months}")
     today = datetime.now(timezone.utc).date()
@@ -804,20 +992,32 @@ def run(args: argparse.Namespace) -> tuple[int, dict]:
     templates = load_upserts(Path(args.upserts)) if sql_out else None
     if args.report != "applications" and (args.jobs_csv or args.known_job_ids):
         raise UsageError("--jobs-csv / --known-job-ids apply to --report applications only")
-    if args.report != "profiles" and args.candidates_csv:
-        raise UsageError("--candidates-csv applies to --report profiles only")
+    if args.report not in ("profiles", "alerts") and args.candidates_csv:
+        raise UsageError("--candidates-csv applies to --report profiles or alerts only")
+    if args.report == "alerts" and not args.candidates_csv:
+        raise UsageError("alerts needs --candidates-csv (the registration report): Jobs By Email has no date "
+                         "column, so retention and the Consent gate come from the candidate row")
 
     cutoff = months_before(as_of, args.retention_months)
     ctx = Ctx(site=args.site, report=args.report, as_of=as_of, cutoff_iso=f"{cutoff.isoformat()}T00:00:00Z",
               date_formats=mapping["date_formats"])
-    aux: dict = {}
+    aux: dict = {"expect_site_tag": args.expect_site_tag}
     reference: dict = {}
+    if args.report == "alerts":
+        sub = Ctx(site=args.site, report="candidates", as_of=as_of, cutoff_iso=ctx.cutoff_iso,
+                  date_formats=mapping["date_formats"])
+        res = process("candidates", [check_input(c) for c in args.candidates_csv], mapping, sub,
+                      {"expect_site_tag": args.expect_site_tag}, set())
+        aux["candidates"] = {r["source_id"]: {"act": r["last_active_at"], "consent": r["strategies_consent"]}
+                             for r in res["records"]}
+        reference["candidates"] = {"kept": len(res["records"]), "rejected": len(sub.rejects)}
     if args.report == "profiles":
         has_email_alias = True
         if args.candidates_csv:
             sub = Ctx(site=args.site, report="candidates", as_of=as_of, cutoff_iso=ctx.cutoff_iso,
                       date_formats=mapping["date_formats"])
-            res = process("candidates", [check_input(c) for c in args.candidates_csv], mapping, sub, {}, set())
+            res = process("candidates", [check_input(c) for c in args.candidates_csv], mapping, sub,
+                          {"expect_site_tag": args.expect_site_tag}, set())
             aux["candidate_emails"] = {r["source_id"]: r["email_norm"] for r in res["records"]}
             reference["candidates"] = {"kept": len(res["records"]), "rejected": len(sub.rejects)}
         else:
@@ -833,7 +1033,8 @@ def run(args: argparse.Namespace) -> tuple[int, dict]:
         if args.jobs_csv:
             sub = Ctx(site=args.site, report="jobs", as_of=as_of, cutoff_iso=ctx.cutoff_iso,
                       date_formats=mapping["date_formats"])
-            res = process("jobs", [check_input(c) for c in args.jobs_csv], mapping, sub, {}, set())
+            res = process("jobs", [check_input(c) for c in args.jobs_csv], mapping, sub,
+                          {"expect_site_tag": args.expect_site_tag}, set())
             ids = {r["source_id"] for r in res["records"]}
             reference["jobs"] = {"kept": len(ids), "rejected": len(sub.rejects)}
         if known_path:
@@ -901,7 +1102,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"error: {e}", file=sys.stderr)
         return EXIT_USAGE
     out = dict(summary)
-    for k in ("rejects", "warnings"):
+    for k in ("rejects", "warnings") if out.get("mode") != "sniff" else ():
         if len(out[k]) > STDOUT_ISSUE_CAP:
             out[k + "_truncated"] = len(out[k]) - STDOUT_ISSUE_CAP
             out[k] = out[k][:STDOUT_ISSUE_CAP]

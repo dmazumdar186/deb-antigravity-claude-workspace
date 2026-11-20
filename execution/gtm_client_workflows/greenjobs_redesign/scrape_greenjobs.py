@@ -9,7 +9,8 @@ description: Polite crawler for the two GreenJobs boards (sjbimg.com job-board
     downloads brand and employer logos into an assets folder with a manifest,
     plus the client-logo wall from /for-employers.asp (the organisations the
     board publishes as its clients) into {assets}/clients/.
-inputs: --site ie|uk|both (default both); --max-jobs N (cap per site, default 400);
+inputs: --snapshot [--snapshot-out DIR] [--dry-run] [--snapshot-from-data DIR] (public live-board
+    snapshot: <=1 req/s, honest UA, robots honoured, JSON only; see run_snapshot); --site ie|uk|both (default both); --max-jobs N (cap per site, default 400);
     --out DIR (data output dir); --assets DIR (logo folder; omit to skip logos);
     --concurrency N (default 4); --sleep S (default 0.3); --clients-only (refresh
     only the client-logo wall, leaving the job snapshot untouched). No secrets.
@@ -602,6 +603,855 @@ def download_logos(key: str, home: str, employers: list, base: str, assets_dir: 
     write_json_atomic(manifest_path, manifest)  # never a half-written logos.json (round 4)
 
 
+# ---------------------------------------------------------------- live snapshot (2026-11-20)
+# Public pages only, read-only, <= 1 request/second, honest generic User-Agent,
+# robots.txt honoured. Enabled by --snapshot; the default crawl above is unchanged.
+SNAPSHOT_UA = (
+    "GreenJobsMigrationSnapshot/1.0 (read-only copy of public pages for the site owner)"
+)
+SNAPSHOT_MIN_SLEEP = 1.0
+KEITH_COUNTS = {
+    "told": {"uk": 105, "ie": 133},
+    "observed_2026-11-16": {"uk": 78, "ie": 145},
+}
+
+# Multiposter / feed vendors (a hit means a job may arrive by feed) versus
+# employer ATS hosts (a hit only means the apply link goes to the employer's own system).
+FEED_VENDORS = {
+    "broadbean": r"broadbean|adcourier|aplitrak",
+    "idibu": r"idibu",
+    "logicmelon": r"logic-?melon",
+    "jobg8": r"jobg8",
+    "multiposter_other": r"multiposting|jobmultiposter|jobtarget|veritone|jobiak",
+}
+ATS_HOSTS = {
+    "workday": r"myworkdayjobs\.com|myworkday\.com",
+    "oracle_cloud": r"oraclecloud\.com",
+    "greenhouse": r"greenhouse\.io",
+    "lever": r"lever\.co",
+    "smartrecruiters": r"smartrecruiters\.com",
+    "successfactors": r"successfactors|sapsf\.",
+    "taleo": r"taleo\.net",
+    "icims": r"icims\.com",
+    "workable": r"workable\.com",
+    "bullhorn": r"bullhorn|bhhosted",
+    "tribepad": r"tribepad",
+    "eploy": r"eploy\.",
+    "jobadder": r"jobadder",
+    "cezanne": r"cezanne",
+    "hireful": r"hireful",
+    "teamtailor": r"teamtailor",
+    "pinpoint": r"pinpointhq",
+    "recruitee": r"recruitee\.com",
+    "brassring": r"brassring",
+    "jobvite": r"jobvite",
+    "ukg": r"ultipro|ukg\.com",
+    "dayforce": r"dayforcehcm",
+    "avature": r"avature",
+    "csod": r"csod\.com",
+    "aecom_jobs": r"^aecom\.jobs$",
+}
+TRACKING_PARAM_RE = re.compile(
+    r"[?&](utm_\w+|source|src|trackid|tracking\w*|xs|bbid|aplitrak\w*|ref|referrer|via)=",
+    re.I,
+)
+EMAIL_RE = re.compile(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}")
+APPLY_CONTEXT_RE = re.compile(
+    r"apply|application|send|submit|forward|CV|resume|curriculum|cover letter|enquir|contact",
+    re.I,
+)
+OWN_DOMAINS = ("greenjobs.ie", "greenjobs.co.uk")
+
+
+def _host(url: str) -> str:
+    h = (urllib.parse.urlparse(url).hostname or "").lower()
+    return h[4:] if h.startswith("www.") else h
+
+
+def hidden_fields(page: str) -> dict:
+    """name -> value for every hidden input on the page (first occurrence wins)."""
+    out = {}
+    for tag in re.findall(r"<input\b[^>]*>", page, re.I):
+        if not re.search(r'type\s*=\s*["\']?hidden', tag, re.I):
+            continue
+        name = first(r'\bname\s*=\s*"([^"]*)"', tag)
+        if name and name not in out:
+            out[name] = html.unescape(first(r'\bvalue\s*=\s*"([^"]*)"', tag) or "")
+    return out
+
+
+def classify_apply(page: str, desc_html: str, own_hosts=OWN_DOMAINS) -> dict:
+    """Deterministic apply-mechanism rules, in priority order:
+    1. hidden strAppLink = mailto:  -> email;  http(s) to a foreign host -> link;  own host -> falls through.
+    2. no usable strAppLink and the description carries a mailto: link, or an e-mail address within
+       120 chars of an apply word (apply/send/CV/...) -> email.
+    3. otherwise the 'Apply Now' button posts the site's own form (JobApplyLink.asp) -> onsite_form.
+    Returns {mode, email, link, link_host, evidence}; evidence is the snippet that decided it.
+    """
+    hid = hidden_fields(page)
+    raw = (hid.get("strAppLink") or "").strip()
+    if raw.lower().startswith("mailto:"):
+        addr = raw[7:].split("?")[0].strip()
+        return {
+            "mode": "email",
+            "email": addr,
+            "link": None,
+            "link_host": None,
+            "evidence": f'strAppLink="{raw[:160]}"',
+        }
+    if re.match(r"https?://", raw, re.I):
+        host = _host(raw)
+        if not any(host == d or host.endswith("." + d) for d in own_hosts):
+            return {
+                "mode": "link",
+                "email": None,
+                "link": raw,
+                "link_host": host,
+                "evidence": f'strAppLink="{raw[:200]}"',
+            }
+    text = desc_html or ""
+    m = re.search(r'mailto:([^"\'?>\s]+)', text, re.I)
+    if m:
+        return {
+            "mode": "email",
+            "email": m.group(1).strip(),
+            "link": None,
+            "link_host": None,
+            "evidence": re.sub(
+                r"\s+", " ", strip_tags(text[max(0, m.start() - 80) : m.end() + 40])
+            )[:200]
+            or m.group(0),
+        }
+    plain = strip_tags(text)
+    for em in EMAIL_RE.finditer(plain):
+        ctx = plain[max(0, em.start() - 120) : em.end() + 60]
+        if APPLY_CONTEXT_RE.search(ctx):
+            return {
+                "mode": "email",
+                "email": em.group(0),
+                "link": None,
+                "link_host": None,
+                "evidence": re.sub(r"\s+", " ", ctx).strip()[:200],
+            }
+    form = first(r'action="(/jobboard/cands/JobApplyLink\.asp[^"]*)"', page)
+    return {
+        "mode": "onsite_form",
+        "email": None,
+        "link": None,
+        "link_host": None,
+        "evidence": (
+            ("form action=" + html.unescape(form)[:120])
+            if form
+            else "no strAppLink, no e-mail in description; Apply Now form"
+        ),
+    }
+
+
+def detect_feed_markers(
+    page: str, apply: dict, job_ref: str | None, hidden: dict | None = None
+) -> dict:
+    """Markers that a job came in through a multiposter feed. Reports vendor hits (Broadbean, Idibu,
+    LogicMelon, JobG8 ...) found in the page source or apply URL, tracking parameters on the apply URL,
+    the employer ATS behind an apply link, the job-ref shape and any unexpected hidden field.
+    `feed_vendor` is set only on a vendor hit; an ATS host alone is NOT a feed marker.
+    """
+    hid = hidden if hidden is not None else hidden_fields(page)
+    markers = []
+    haystack = [
+        ("apply_url", apply.get("link") or ""),
+        ("job_ref", job_ref or ""),
+        ("hidden_fields", " ".join(f"{k}={v}" for k, v in hid.items())),
+        (
+            "page_source",
+            re.sub(r"<(script|style)[^>]*>.*?</\1>", " ", page, flags=re.S | re.I),
+        ),
+    ]
+    for vendor, pat in FEED_VENDORS.items():
+        for where, text in haystack:
+            m = re.search(pat, text, re.I)
+            if m:
+                markers.append(
+                    {
+                        "kind": "vendor",
+                        "vendor": vendor,
+                        "where": where,
+                        "evidence": text[max(0, m.start() - 40) : m.end() + 40].strip()[
+                            :160
+                        ],
+                    }
+                )
+                break
+    link = apply.get("link") or ""
+    host = apply.get("link_host") or ""
+    ats = None
+    for name, pat in ATS_HOSTS.items():
+        if host and re.search(pat, host, re.I):
+            ats = name
+            break
+    if link and TRACKING_PARAM_RE.search(link):
+        markers.append(
+            {
+                "kind": "tracking_param",
+                "vendor": None,
+                "where": "apply_url",
+                "evidence": ",".join(
+                    sorted(
+                        {m.group(1).lower() for m in TRACKING_PARAM_RE.finditer(link)}
+                    )
+                ),
+            }
+        )
+    extra = sorted(k for k in hid if k not in ("strAppLink", "cookie"))
+    if extra:
+        markers.append(
+            {
+                "kind": "extra_hidden_field",
+                "vendor": None,
+                "where": "hidden_fields",
+                "evidence": ",".join(extra),
+            }
+        )
+    ref_shape = None
+    if job_ref:
+        ref_shape = re.sub(r"[A-Za-z]", "A", re.sub(r"\d", "9", job_ref.strip()))[:30]
+    vendors = sorted({m["vendor"] for m in markers if m["kind"] == "vendor"})
+    return {
+        "feed_vendor": vendors[0] if vendors else None,
+        "vendors": vendors,
+        "employer_ats": ats,
+        "job_ref_shape": ref_shape,
+        "markers": markers,
+    }
+
+
+def day_first_iso(raw: str | None) -> str | None:
+    """'31/10/2026' -> '2026-10-31' (day-first only); None when not a date."""
+    m = re.match(r"\s*(\d{1,2})/(\d{1,2})/(\d{4})\s*$", raw or "")
+    if not m:
+        return None
+    d, mo, y = int(m.group(1)), int(m.group(2)), int(m.group(3))
+    if not (1 <= d <= 31 and 1 <= mo <= 12):
+        return None
+    return f"{y:04d}-{mo:02d}-{d:02d}"
+
+
+def employer_class(name: str | None) -> str:
+    """'gaia' (Gaia Talent's own jobs), 'chm_recruit', 'mattinson', 'third_party' or 'unknown' from the employer field."""
+    n = (name or "").strip().lower()
+    if not n:
+        return "unknown"
+    if re.search(r"\bgaia\s+talent\b", n):
+        return "gaia"
+    if re.search(r"\bchm\s+recruit", n):
+        return "chm_recruit"
+    if re.search(r"\bmattinson\s+partnership\b", n):
+        return "mattinson"
+    return "third_party"
+
+
+def snapshot_record(job: dict, page: str, site: str, fetched_at: str) -> dict:
+    """Extend a parse_job() dict with the snapshot fields: ISO dates, employer link, apply mode with
+    evidence, feed markers and the source URL. Pure function of the page."""
+    base = SITES[site]["base"]
+    apply = classify_apply(page, job.get("description_html") or "")
+    hid = hidden_fields(page)
+    sec = re.search(
+        r'<div id="JBcontent" class="jobView">(.*?)<div id="right"', page, re.S
+    )
+    body = sec.group(1) if sec else page
+    emp_href = first(r'<div class="jobLogo"><a href="(/browse-jobs/[^"]+)"', body)
+    return {
+        "id": job["id"],
+        "site": site,
+        "source_url": job["url"],
+        "fetched_at": fetched_at,
+        "title": job["title"],
+        "employer": job["employer"],
+        "employer_class": employer_class(job["employer"]),
+        "employer_url": base + emp_href if emp_href else None,
+        "employer_logo_url": job.get("logo_url"),
+        "location": job["location"],
+        "region": job["region"],
+        "country": job["country"],
+        "job_type": job["type"],
+        "salary_text": job["salary_text"],
+        "closing": job["closing"],
+        "closing_iso": day_first_iso(job["closing"]),
+        "posted": job["posted"],
+        "posted_iso": day_first_iso(job["posted"]),
+        "sectors": job["sectors"],
+        "categories": job["categories"],
+        "job_ref": job["job_ref"],
+        "description_html": job["description_html"],
+        "featured": job["featured"],
+        "apply": apply,
+        "feed": detect_feed_markers(page, apply, job["job_ref"], hid),
+    }
+
+
+# --- URL inventory -> redirect map -------------------------------------------------
+STATIC_TARGETS = (
+    {  # old static page -> page the build actually produces (edition-relative)
+        "/": "",
+        "/for-employers.asp": "employers/",
+        "/recruiter-zone-advertising.cms.asp": "employers/",
+        "/recruiter-zone-advertising-form.asp": "employers/",
+        "/green-job-sectors.cms.asp": "sectors/",
+        "/company-az/": "employers/",
+    }
+)
+NON_PAGE_PATTERNS = (
+    r"^/jobboard/(scripts/(?!vbs/adredirect)|public|images|css|js)",
+    r"^/(images|css|js|scripts)/",
+    r"\.(png|jpe?g|gif|svg|css|js|ico|woff2?)$",
+)
+ACCOUNT_PATTERN = r"^/jobboard/cands/(candLogin|candRegister|cookie-policy|jobWishList|searchCriteria|JobApplyLink|tellafriend)\.asp"
+
+
+def url_pattern(path_qs: str) -> tuple[str, str]:
+    """(kind, pattern) for an old-site path (with query). Pattern replaces ids with {id} and slugs with {slug}."""
+    u = urllib.parse.urlparse(path_qs)
+    p = u.path
+    if re.match(r"^/jobs/\d+/[^/]+\.asp$", p):
+        return "job", "/jobs/{id}/{slug}.asp"
+    if re.match(r"^/jobboard/cands/jobview\.asp$", p, re.I):
+        return "job", "/jobboard/cands/jobview.asp?v={id}"
+    if re.match(r"^/jobboard/cands/jobresults\.asp$", p, re.I):
+        q = urllib.parse.parse_qs(u.query)
+        if "lstRegion" in q or "lstVicinity" in q:
+            return (
+                "location",
+                "/jobboard/cands/JobResults.asp?c=1&lstRegion={region}[&lstVicinity={vicinity}]",
+            )
+        return "listing", "/jobboard/cands/jobresults.asp?pg={n}"
+    if re.match(r"^/browse-jobs/[^/]+/?$", p):
+        return "facet", "/browse-jobs/{slug}/"
+    if re.match(ACCOUNT_PATTERN, p, re.I):
+        return "account", p
+    if re.match(r"^/jobboard/scripts/vbs/adredirect\.asp$", p, re.I):
+        return "banner_redirect", "/jobboard/scripts/vbs/adredirect.asp?b={id}&u={url}"
+    if any(re.search(pt, p, re.I) for pt in NON_PAGE_PATTERNS):
+        return "asset", "(static asset)"
+    if p.startswith("/company-az"):
+        return "employer_index", "/company-az/"
+    if p == "/" or p.endswith(".asp"):
+        return "static", p
+    return "other", p
+
+
+def facet_kinds(facets: dict) -> dict:
+    """slug -> kind (sector / category / region / location / job_type) from the homepage facet lists."""
+    out = {}
+    label = {
+        "sector": "sector",
+        "industry sector": "sector",
+        "job category": "category",
+        "region": "region",
+        "location": "location",
+        "job type": "job_type",
+    }
+    for key, items in (facets or {}).items():
+        for it in items:
+            out.setdefault(it["slug"], label.get(key, key))
+    return out
+
+
+def build_landings(ed: str) -> list:
+    """The landing pages build_site.py produces for this edition, with the old board sector/location
+    slugs that feed each (explicit, so no path is invented). Keep in step with build_site.LANDINGS.
+    """
+    if ed == "ie":
+        return [
+            {"slug": "ecology-jobs-ireland", "live_slugs": ["ecology-jobs"]},
+            {"slug": "environmental-jobs-dublin", "live_slugs": ["dublin"]},
+            {
+                "slug": "renewable-energy-jobs-ireland",
+                "live_slugs": ["renewable-energy-jobs", "solar-jobs", "wind-jobs"],
+            },
+            {
+                "slug": "sustainability-jobs-ireland",
+                "live_slugs": ["sustainability-jobs"],
+            },
+        ]
+    return [
+        {"slug": "ecology-jobs-uk", "live_slugs": ["ecology-jobs"]},
+        {"slug": "environmental-jobs-london", "live_slugs": ["london"]},
+        {
+            "slug": "renewable-energy-jobs-uk",
+            "live_slugs": ["renewable-energy-jobs", "solar-jobs", "wind-jobs"],
+        },
+        {"slug": "sustainability-jobs-uk", "live_slugs": ["sustainability-jobs"]},
+    ]
+
+
+def landing_for_slug(ed: str, slug: str) -> str | None:
+    for l in build_landings(ed):
+        if slug in l["live_slugs"]:
+            return l["slug"]
+    return None
+
+
+def map_old_url(
+    path_qs: str, site: str, live_ids: set, kinds: dict, employer_slugs: set
+) -> dict:
+    """Map one old URL to a path the build produces, or mark it unmapped with a proposed target.
+    Paths are edition-prefixed as in deliverables/greenjobs_redesign_2026-09-22/site (/{ie|uk}/...).
+    """
+    ed = site
+    kind, pattern = url_pattern(path_qs)
+    u = urllib.parse.urlparse(path_qs)
+    p = u.path
+    res = {"old": path_qs, "kind": kind, "pattern": pattern}
+    if kind == "job":
+        m = re.match(r"^/jobs/(\d+)/", p)
+        jid = m.group(1) if m else (urllib.parse.parse_qs(u.query).get("v") or [""])[0]
+        if jid in live_ids:
+            return {
+                **res,
+                "status": "mapped",
+                "target": f"/{ed}/jobs/{jid}/",
+                "reason": "live job page in the new build",
+            }
+        return {
+            **res,
+            "status": "mapped",
+            "target": f"/{ed}/jobs/",
+            "reason": "job not in the live set (closed/unknown): send to the board",
+        }
+    if kind == "listing":
+        return {
+            **res,
+            "status": "mapped",
+            "target": f"/{ed}/jobs/",
+            "reason": "paged results -> board",
+        }
+    if kind in ("facet", "location"):
+        q = urllib.parse.parse_qs(u.query)
+        slug = (
+            slugify(p)
+            if kind == "facet"
+            else re.sub(
+                r"[^a-z0-9]+",
+                "-",
+                (q.get("lstVicinity") or q.get("lstRegion") or [""])[0].lower(),
+            ).strip("-")
+        )
+        fk = kinds.get(slug) or ("employer" if slug in employer_slugs else "unknown")
+        res["facet_kind"] = fk
+        hit = landing_for_slug(ed, slug)
+        if hit:
+            return {
+                **res,
+                "status": "mapped",
+                "target": f"/{ed}/{hit}/",
+                "reason": f"{fk} slug matches a built landing page",
+            }
+        if fk == "employer":
+            return {
+                **res,
+                "status": "unmapped",
+                "target": None,
+                "proposed": f"/{ed}/employers/",
+                "reason": "the build has no per-employer pages; only /employers/ (advertise page)",
+            }
+        return {
+            **res,
+            "status": "unmapped",
+            "target": None,
+            "proposed": f"/{ed}/jobs/",
+            "reason": f"the build has no {fk} page for this slug; board root until a filter URL exists",
+        }
+    if kind in ("static", "employer_index"):
+        if p in STATIC_TARGETS:
+            return {
+                **res,
+                "status": "mapped",
+                "target": f"/{ed}/{STATIC_TARGETS[p]}",
+                "reason": "equivalent page in the build",
+            }
+        return {
+            **res,
+            "status": "unmapped",
+            "target": None,
+            "proposed": f"/{ed}/",
+            "reason": "no equivalent static page in the build (about/contact/terms/privacy/cookie etc.)",
+        }
+    if kind in ("account", "banner_redirect"):
+        return {
+            **res,
+            "status": "unmapped",
+            "target": None,
+            "proposed": f"/{ed}/",
+            "reason": "candidate account / banner tracker: no equivalent (no candidate data is kept)",
+        }
+    if kind == "asset":
+        return {
+            **res,
+            "status": "skip",
+            "target": None,
+            "reason": "static asset, not redirected",
+        }
+    return {
+        **res,
+        "status": "unmapped",
+        "target": None,
+        "proposed": f"/{ed}/",
+        "reason": "unrecognised pattern",
+    }
+
+
+def collect_internal_paths(page: str, base: str) -> set:
+    """Every same-site href (path + query) on a page, fragments dropped."""
+    out = set()
+    host = _host(base)
+    for h in re.findall(r'href="([^"#]+)', page):
+        h = html.unescape(h).strip()
+        if h.startswith(("mailto:", "tel:", "javascript:")):
+            continue
+        if h.startswith("//"):
+            h = "https:" + h
+        if re.match(r"https?://", h):
+            if _host(h) != host:
+                continue
+            u = urllib.parse.urlparse(h)
+            h = u.path + ("?" + u.query if u.query else "")
+        if h.startswith("/"):
+            out.add(h)
+    return out
+
+
+def parse_sitemap(xml: str) -> tuple[list, list]:
+    """(page urls, child sitemap urls) from a sitemap or sitemap index."""
+    locs = [
+        html.unescape(x).strip()
+        for x in re.findall(r"<loc>\s*([^<]+?)\s*</loc>", xml or "")
+    ]
+    if re.search(r"<sitemapindex", xml or "", re.I):
+        return [], locs
+    return locs, []
+
+
+def build_redirect_map(
+    site: str,
+    paths: set,
+    live_ids: set,
+    facets: dict,
+    employer_slugs: set,
+    provenance: str,
+) -> dict:
+    kinds = facet_kinds(facets)
+    entries = [
+        map_old_url(p, site, live_ids, kinds, employer_slugs) for p in sorted(paths)
+    ]
+    pats = {}
+    for e in entries:
+        r = pats.setdefault(
+            e["pattern"],
+            {
+                "pattern": e["pattern"],
+                "kind": e["kind"],
+                "count": 0,
+                "example": e["old"],
+                "mapped": 0,
+                "unmapped": 0,
+                "skipped": 0,
+                "target_rule": None,
+                "proposed": None,
+                "reason": e["reason"],
+            },
+        )
+        r["count"] += 1
+        r[
+            (
+                "mapped"
+                if e["status"] == "mapped"
+                else "skipped" if e["status"] == "skip" else "unmapped"
+            )
+        ] += 1
+        if e["status"] == "mapped" and not r["target_rule"]:
+            r["target_rule"] = e["target"]
+        if e["status"] == "unmapped" and not r["proposed"]:
+            r["proposed"] = e.get("proposed")
+    return {
+        "site": site,
+        "provenance": provenance,
+        "edition_prefix": f"/{site}/",
+        "entries": entries,
+        "patterns": sorted(pats.values(), key=lambda r: (-r["count"], r["pattern"])),
+        "unmapped": [e for e in entries if e["status"] == "unmapped"],
+    }
+
+
+# --- robots + polite fetch ------------------------------------------------------------
+def robots_allows(robots_txt: str | None, url: str, ua: str = SNAPSHOT_UA) -> bool:
+    """True when robots.txt permits `url` for `ua`. No robots.txt (None/empty) = allowed."""
+    if not robots_txt:
+        return True
+    import urllib.robotparser
+
+    rp = urllib.robotparser.RobotFileParser()
+    rp.parse(robots_txt.splitlines())
+    return rp.can_fetch(ua, url)
+
+
+def robots_sitemaps(robots_txt: str | None) -> list:
+    return re.findall(r"(?im)^\s*sitemap:\s*(\S+)", robots_txt or "")
+
+
+def aggregate_employers(jobs_by_site: dict) -> dict:
+    """employers.json payload from the snapshot job records: per site, per employer: job count,
+    logo URL, employer page URL, class; plus the Gaia / third-party split of jobs."""
+    out = {"sites": {}}
+    for site, jobs in jobs_by_site.items():
+        emp = {}
+        for j in jobs:
+            name = j.get("employer") or "(none)"
+            e = emp.setdefault(
+                name,
+                {
+                    "name": name,
+                    "class": j.get("employer_class") or employer_class(name),
+                    "jobs": 0,
+                    "job_ids": [],
+                    "logo_url": None,
+                    "employer_url": None,
+                },
+            )
+            e["jobs"] += 1
+            e["job_ids"].append(j["id"])
+            e["logo_url"] = e["logo_url"] or j.get("employer_logo_url")
+            e["employer_url"] = e["employer_url"] or j.get("employer_url")
+        lst = sorted(emp.values(), key=lambda e: (-e["jobs"], e["name"].lower()))
+        split = {}
+        for j in jobs:
+            c = j.get("employer_class") or employer_class(j.get("employer"))
+            split[c] = split.get(c, 0) + 1
+        out["sites"][site] = {
+            "employers": lst,
+            "distinct_employers": len(lst),
+            "jobs": len(jobs),
+            "class_split_jobs": split,
+        }
+    return out
+
+
+def snapshot_crawl(key: str, sleep_s: float, max_jobs: int, fetched_at: str) -> dict:
+    """Crawl one site read-only: robots, sitemap(s), homepage, every results page, every job page."""
+    cfg = SITES[key]
+    base = cfg["base"]
+    errors = []
+    robots = fetch(base + "/robots.txt", sleep_s, retries=0)
+    if robots is None:
+        errors.append("robots.txt not fetched (treated as allow-all)")
+    sitemap_urls, queue = [], list(robots_sitemaps(robots)) or [base + "/sitemap.xml"]
+    seen_sm = set()
+    while queue and len(seen_sm) < 20:
+        sm = queue.pop(0)
+        if sm in seen_sm or not robots_allows(robots, sm):
+            continue
+        seen_sm.add(sm)
+        xml = fetch(sm, sleep_s, retries=0)
+        if not xml:
+            errors.append(f"sitemap not available: {sm}")
+            continue
+        pages, kids = parse_sitemap(xml)
+        sitemap_urls.extend(pages)
+        queue.extend(kids)
+    empty = {
+        "jobs": [],
+        "source_total": None,
+        "listing_ids": [],
+        "paths": set(),
+        "facets": {},
+        "robots": robots,
+        "sitemap_urls": sitemap_urls,
+        "errors": errors,
+        "employer_slugs": set(),
+    }
+    home = fetch(base + "/", sleep_s)
+    if not home:
+        errors.append("homepage not fetched")
+        return empty
+    facets = parse_facets(home, base)
+    paths = collect_internal_paths(home, base)
+    listing, total, pg, seen_ids = [], None, 1, set()
+    while pg <= 200:
+        url = f"{base}/jobboard/cands/jobresults.asp?pg={pg}"
+        if not robots_allows(robots, url):
+            errors.append(f"robots.txt disallows {url}")
+            break
+        page = fetch(url, sleep_s)
+        if not page:
+            errors.append(f"results page {pg} not fetched")
+            break
+        paths |= collect_internal_paths(page, base)
+        jobs_pg, total = parse_results(page, base)
+        new = [j for j in jobs_pg if j["id"] not in seen_ids]
+        if not new:
+            break
+        seen_ids |= {j["id"] for j in new}
+        listing.extend(new)
+        if total and len(listing) >= total:
+            break
+        pg += 1
+    listing = [j for j in listing if j["url"]]
+    out_jobs = []
+    for meta in listing[:max_jobs]:
+        if not robots_allows(robots, meta["url"]):
+            errors.append(f"robots.txt disallows job {meta['id']}")
+            continue
+        page = fetch(meta["url"], sleep_s)
+        if not page:
+            errors.append(f"job page {meta['id']} not fetched")
+            continue
+        paths |= collect_internal_paths(page, base)
+        j = parse_job(
+            page,
+            base,
+            meta,
+            "Ireland" if key == "ie" else "United Kingdom",
+            cfg["currency"],
+        )
+        out_jobs.append(snapshot_record(j, page, key, fetched_at))
+    emp_slugs = {slugify(j["employer_url"]) for j in out_jobs if j.get("employer_url")}
+    return {
+        **empty,
+        "jobs": out_jobs,
+        "source_total": total,
+        "listing_ids": [j["id"] for j in listing],
+        "paths": paths,
+        "facets": facets,
+        "employer_slugs": emp_slugs,
+    }
+
+
+def snapshot_stats(jobs: list) -> dict:
+    modes, feeds, hosts = {}, {}, {}
+    for j in jobs:
+        modes[j["apply"]["mode"]] = modes.get(j["apply"]["mode"], 0) + 1
+        v = j["feed"]["feed_vendor"] or "none"
+        feeds[v] = feeds.get(v, 0) + 1
+        if j["apply"]["link_host"]:
+            hosts[j["apply"]["link_host"]] = hosts.get(j["apply"]["link_host"], 0) + 1
+    return {
+        "jobs": len(jobs),
+        "apply_modes": modes,
+        "feed_vendor_hits": feeds,
+        "link_hosts": dict(sorted(hosts.items(), key=lambda kv: -kv[1])),
+    }
+
+
+def redirect_map_from_data(k: str, data_dir: str) -> dict:
+    """Offline: redirect map for site k from an earlier {k}.json snapshot (patterns from its jobs, facets, employers)."""
+    with open(os.path.join(data_dir, f"{k}.json"), encoding="utf-8") as fh:
+        d = json.load(fh)
+    paths = {"/", "/jobboard/cands/jobresults.asp?pg=1", "/company-az/"} | {
+        "/" + p.lstrip("/") for p in INFO_PAGES
+    }
+    paths |= {f"/jobs/{j['id']}/{j['slug']}.asp" for j in d["jobs"]}
+    for key in ("sectors", "categories", "regions", "locations", "job_types"):
+        paths |= {
+            "/browse-jobs/" + i["slug"] + "/" for i in d.get(key, []) if i.get("slug")
+        }
+    slugs = {slugify(e["url"]) for e in d.get("employers", []) if e.get("url")}
+    paths |= {"/browse-jobs/" + s + "/" for s in slugs}
+    facets = {
+        "sector": d.get("sectors", []),
+        "job category": d.get("categories", []),
+        "region": d.get("regions", []),
+        "location": d.get("locations", []),
+        "job type": d.get("job_types", []),
+    }
+    return build_redirect_map(
+        k,
+        paths,
+        {j["id"] for j in d["jobs"]},
+        facets,
+        slugs,
+        f"derived from the {d.get('fetched')} snapshot in {data_dir}; NOT a live crawl",
+    )
+
+
+def run_snapshot(
+    out_dir: str,
+    sites: list,
+    sleep_s: float,
+    max_jobs: int,
+    dry_run: bool,
+    from_data: str | None = None,
+) -> int:
+    """--snapshot driver. dry_run prints the plan and makes no request. from_data=DIR builds only the
+    redirect map from an earlier {site}.json snapshot (offline). Writes JSON only (never CSV).
+    """
+    global UA
+    fetched_at = time.strftime("%Y-%m-%d")
+    sleep_s = max(sleep_s, SNAPSHOT_MIN_SLEEP)
+    if dry_run:
+        for k in sites:
+            LOG.info(
+                "DRY RUN %s: would fetch robots.txt, sitemap, homepage, results pages 1..N, every job page "
+                "at <= %.1f req/s with UA %r; writing nothing",
+                k,
+                1 / sleep_s,
+                SNAPSHOT_UA,
+            )
+        return 0
+    os.makedirs(out_dir, exist_ok=True)
+    if from_data:
+        rm = {k: redirect_map_from_data(k, from_data) for k in sites}
+        write_json_atomic(
+            os.path.join(out_dir, "redirect_map.json"),
+            {"generated": fetched_at, "sites": rm},
+        )
+        return 0
+    UA = SNAPSHOT_UA
+    results, rc = {}, 0
+    for k in sites:
+        r = snapshot_crawl(k, sleep_s, max_jobs, fetched_at)
+        results[k] = r
+        if not r["jobs"]:
+            rc = 3
+        write_json_atomic(
+            os.path.join(out_dir, f"jobs_{k}.json"),
+            {
+                "site": SITES[k]["site"],
+                "fetched_at": fetched_at,
+                "ua": SNAPSHOT_UA,
+                "source_total": r["source_total"],
+                "listing_ids": len(r["listing_ids"]),
+                "parsed": len(r["jobs"]),
+                "errors": r["errors"],
+                "stats": snapshot_stats(r["jobs"]),
+                "jobs": r["jobs"],
+            },
+        )
+    write_json_atomic(
+        os.path.join(out_dir, "employers.json"),
+        {
+            "generated": fetched_at,
+            **aggregate_employers({k: results[k]["jobs"] for k in sites}),
+        },
+    )
+    rm = {}
+    for k in sites:
+        r = results[k]
+        paths = set(r["paths"]) | {
+            urllib.parse.urlparse(u).path for u in r["sitemap_urls"]
+        }
+        rm[k] = build_redirect_map(
+            k,
+            paths,
+            {j["id"] for j in r["jobs"]},
+            r["facets"],
+            r["employer_slugs"],
+            f"live crawl {fetched_at}",
+        )
+        rm[k]["sitemap_urls"] = len(r["sitemap_urls"])
+    write_json_atomic(
+        os.path.join(out_dir, "redirect_map.json"),
+        {"generated": fetched_at, "sites": rm},
+    )
+    return rc
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--site", choices=["ie", "uk", "both"], default="both")
@@ -611,8 +1461,14 @@ def main(argv=None) -> int:
     ap.add_argument("--concurrency", type=int, default=4)
     ap.add_argument("--sleep", type=float, default=0.3)
     ap.add_argument("--clients-only", action="store_true", help="refresh only the /for-employers.asp client-logo wall (needs --assets)")
+    ap.add_argument("--snapshot", action="store_true", help="public live-board snapshot (jobs, apply modes, feed markers, redirect map) into --snapshot-out")
+    ap.add_argument("--snapshot-out", default="deliverables/greenjobs_migration_2026-11-06/build/live_snapshot_2026-11-20")
+    ap.add_argument("--dry-run", action="store_true", help="with --snapshot: print the plan, make no request, write nothing")
+    ap.add_argument("--snapshot-from-data", default=None, help="with --snapshot: build only redirect_map.json from an earlier {site}.json snapshot dir (offline)")
     a = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
+    if a.snapshot:
+        return run_snapshot(a.snapshot_out, ["ie", "uk"] if a.site == "both" else [a.site], a.sleep, a.max_jobs, a.dry_run, a.snapshot_from_data)
     os.makedirs(a.out, exist_ok=True)
     rc = 0
     if a.clients_only:

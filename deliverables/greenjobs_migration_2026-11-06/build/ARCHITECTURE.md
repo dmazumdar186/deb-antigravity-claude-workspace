@@ -39,22 +39,26 @@ All Cloudflare pieces live in **GreenJobs' own Cloudflare account**. We work in 
 | Route | Auth | Purpose |
 |---|---|---|
 | `GET /api/jobs` | public | Live jobs for the site resolved from the request host (`HOST_SITE_MAP`); paginated |
-| `GET /api/jobs/:id` | public | One live job; closed or other-site ids return 404 |
-| `GET /api/export/jobs?site=` | bearer `BUILD_TOKEN` | Full live job set for `build_site.py`, keyset paged: follow `next` until null |
-| `POST /api/admin/jobs`, `PUT /api/admin/jobs/:id` | Access JWT + `STAFF_EMAILS` | Create / edit (edit uses the `version` optimistic lock, stale = 409) |
+| `GET /api/jobs/:id` | public | One live job; closed or other-site ids return 404. Carries `apply_mode` (`email`/`link`) and `apply_url` (link mode only); `apply_email` is never public |
+| `GET /api/export/jobs?site=` | bearer `BUILD_TOKEN` | Full live job set for `build_site.py`, keyset paged: follow `next` until null. Same apply fields as above, never `apply_email` |
+| `POST /api/admin/jobs`, `PUT /api/admin/jobs/:id` | Access JWT + `STAFF_EMAILS` | Create / edit (edit uses the `version` optimistic lock, stale = 409). Apply mode per job: `email` (optional `apply_email`, valid address) or `link` (`apply_url`, https only, no `javascript:`/`data:`); exactly one target per mode, else 400 naming the field |
 | `POST /api/admin/jobs/:id/close` | Access JWT + `STAFF_EMAILS` | Close; idempotent |
-| `POST /api/apply` | public, rate limited | Application with optional CV |
+| `POST /api/apply` | public, rate limited | Application with optional CV, email-mode jobs only; a link-mode job answers 409 `apply_externally` with its `apply_url` |
 | `GET /admin/` | Access JWT + `STAFF_EMAILS` | Staff console page |
 
 ### Configuration
 
 - Bindings: `DB`, `CVS`, `RATE` (optional), `APPLY_LIMITER` (optional).
 - Vars: `DRY_RUN="1"` by default. Live sending needs `DRY_RUN="0"` **and** `LIVE_CONFIRM="send-applications"`.
-  `HOST_SITE_MAP`, `ACCESS_TEAM_DOMAIN`, `ACCESS_AUD`, `STAFF_EMAILS`, `APPLY_ROUTING` (`inbox|consultant|advertiser`),
+  `HOST_SITE_MAP`, `ACCESS_TEAM_DOMAIN`, `ACCESS_AUD`, `STAFF_EMAILS`, `APPLY_ROUTING` (`inbox|consultant|advertiser`:
+  the default for an email-mode job with no `apply_email` of its own),
   `APPLY_INBOX_IE`, `APPLY_INBOX_UK`, `MAIL_PROVIDER` (`resend|none`), `MAIL_FROM`, `RATE_APPLY_PER_10MIN`,
   `RATE_ADMIN_PER_MIN`, `MAX_CV_BYTES`, `ALERTS_ENABLED="0"`, `NEWSLETTER_ENABLED="0"`, `ALLOWED_ORIGINS`.
 - Secrets (Worker secrets only, never in `wrangler.toml`, git, logs or `.env` in the cloud): `RESEND_API_KEY`,
   `BUILD_TOKEN`, `DEPLOY_HOOK_URL`.
+- Per-job apply mode (client answer Q8, 10-11 Nov: per client, an email or an ATS link) lives in `jobs.apply_mode`
+  (`email` default | `link`), `jobs.apply_email`, `jobs.apply_url`; a schema CHECK allows exactly one target per mode.
+  A D1 created before 2026-11-20 runs `d1/migrations/0001_apply_mode_consent_alerts.sql` once after `schema.sql`.
 
 ## 3. Data flows
 
@@ -76,20 +80,25 @@ liveness in D1: a closed job never accepts an application, whatever the cached p
 
 ### 3.2 Application to the inbox
 
-1. Candidate submits the form on the static page to `POST /api/apply` (same host, or an origin in `ALLOWED_ORIGINS`).
+0. Link-mode jobs never reach this flow: the static page shows an external Apply button (`rel="noopener nofollow"`)
+   to the job's https `apply_url`, and `POST /api/apply` answers 409 for them.
+1. Candidate submits the on-site form (email-mode jobs) on the static page to `POST /api/apply` (same host, or an
+   origin in `ALLOWED_ORIGINS`). `main.js` stamps the form's render time on page load.
 2. Worker checks: rate limit (`APPLY_LIMITER` or `RATE`, `RATE_APPLY_PER_10MIN`), honeypot and form timestamp,
    job is live on this site, field lengths, CV type, size (`MAX_CV_BYTES`) and magic bytes.
 3. CV goes to R2 under a key the Worker generates (never from user input).
 4. Row goes to `applications` with `dedupe_key = sha256(site|job_id|applicant_email)`; a double submit is a no-op.
-5. Routing picks the address from `APPLY_ROUTING`: `APPLY_INBOX_IE/UK`, the job's `apply_email` (consultant), or
-   the advertiser's address.
+5. Routing: the job's own `apply_email` when set (per client, Q8); otherwise the `APPLY_ROUTING` default
+   (`inbox` -> `APPLY_INBOX_IE/UK`; `consultant`/`advertiser` -> the site inbox plus a `route_fallback` audit row).
 6. Mail via `MAIL_PROVIDER`. With `DRY_RUN="1"` the row is stored as `delivery_status='dry_run'` and nothing is sent.
    Live: `sent` on success, `failed` on error or timeout (see §8).
 
 ### 3.3 CSV import (after the DPA is signed)
 
 1. A named person on Keith's side runs Strategies "Download Reports" (recruiters, candidate registrations, profiles,
-   jobs, applications; per site; in batches). CSVs stay in GreenJobs' own storage (their R2 bucket or Drive). Never
+   jobs, applications, Jobs By Email; per site; in batches). The real header rows (19 Nov) are in
+   `import/REAL_HEADERS_2026-11-19.json`; `strategies_import.py --report <type> --sniff FILE` checks a file's
+   headers (no values printed) before anything else. CSVs stay in GreenJobs' own storage (their R2 bucket or Drive). Never
    in git, never in `.tmp/`.
 2. `strategies_import.py --site ie|uk --report <type> --csv <file> --as-of <date> --retention-months 24`
    validates against `strategies_mapping.json`. Dry-run by default; it writes a report with counts and
@@ -98,6 +107,10 @@ liveness in D1: a closed job never accepts an application, whatever the cached p
 4. Operator applies: `npx wrangler@4 d1 execute greenjobs --file=PATH`.
 5. `import_batches` holds the sha256 of each file. A re-run of the same file is skipped. Imports never overwrite
    console-owned rows and never reopen a job staff closed.
+6. Jobs set their apply mode from `AppLink` (https -> `link`) else `Email` (-> `email`) else the site default.
+   Registration `Consent` and `Marketing` are carried to `candidates.strategies_consent` / `consent_marketing` and gate
+   any later emailing. Jobs By Email rows become `alert_subscriptions` with status `pending` (re-confirmed before any
+   send); a candidate with `Consent = 0` gets none. Mapping: `import/IMPORT_MAPPING.md`.
 
 ### 3.4 Alerts (trimmable)
 
@@ -185,7 +198,8 @@ Staging sign-off by Keith: Fri 27 Nov. Anything not signed off moves to phase 2 
 - **Feeds (Broadbean, Idibu, LogicMelon), one CRM:** new ingest endpoints on the same Worker (for example
   `POST /api/feeds/{feed}`; not built), each with its own secret per vendor. They upsert into `jobs` with
   `source='feed'` and id `'{site}:{feed}:{ref}'`, the shape already reserved in `d1/schema.sql`. Nothing else
-  changes: the rebuild and apply paths read `jobs` whatever the source. Which feeds: answer to Q7.
+  changes: the rebuild and apply paths read `jobs` whatever the source. Which feeds: answer to Q7. Client, 19 Nov:
+  no live job comes through Broadbean or any other feed today (all posted by hand), so no feed is needed at go-live.
 - **Candidate log-ins:** `candidates` table already exists (source `phase2`). Passwords do not come across from
   Strategies, so candidates set a new one. Needs a lawful basis and notice for the reset email.
 - **Employer log-ins:** no online payment, no packages. Posting by employers writes the same `jobs` rows.

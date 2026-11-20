@@ -232,7 +232,7 @@ export function seedJob(world, o = {}) {
       id, site, o.source || 'strategies', o.source_id ?? String(1000 + seedN), emp, o.title || 'Senior Wind Engineer', o.location || 'Cork',
       o.job_type || 'Permanent', o.sal_text || 'EUR 60,000 - 70,000', JSON.stringify(o.sectors || ['Wind']), o.summary || 'Lead onshore wind projects.',
       o.description || 'Lead the design of onshore wind farms across Munster. Plenty of detail here.',
-      o.apply_mode || 'inbox', o.apply_email ?? null, o.apply_url ?? null, o.status || 'live', o.posted_at || ts,
+      o.apply_mode || 'email', o.apply_email ?? null, o.apply_url ?? null, o.status || 'live', o.posted_at || ts,
       o.closing_at === undefined ? '2026-12-31T23:59:59Z' : o.closing_at, ts,
     );
   return id;

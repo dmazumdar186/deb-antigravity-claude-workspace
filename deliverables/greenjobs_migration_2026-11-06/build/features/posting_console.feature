@@ -111,6 +111,32 @@ Feature: Staff posting console - post, edit, close
     Then the response status is 400
     And the response lists field "apply_url"
 
+  Scenario Outline: Apply mode guards: exactly one valid target per mode
+    Given I am signed in to Cloudflare Access as "keith@greenjobs.ie"
+    When <action>
+    Then the response status is 400
+    And the response lists field "<field>"
+
+    Examples:
+      | action                                                                                       | field       |
+      | I create an external-apply job with apply URL "http://ats.example.com/7"                     | apply_url   |
+      | I create an external-apply job with apply URL "data:text/html,x"                             | apply_url   |
+      | I create an external-apply job with apply URL "https://ats.example.com/7" and apply email "hr@client.ie" | apply_email |
+      | I create an email-apply job with apply email "not-an-email"                                  | apply_email |
+      | I create an email-apply job with apply URL "https://ats.example.com/7"                       | apply_url   |
+
+  Scenario: A link-mode job is stored with its https ATS link only
+    Given I am signed in to Cloudflare Access as "keith@greenjobs.ie"
+    When I create an external-apply job with apply URL "https://ats.example.com/7"
+    Then the response status is 201
+    And the created job applies by "link" to "https://ats.example.com/7"
+
+  Scenario: An email-mode job is stored with its lower-cased apply email only
+    Given I am signed in to Cloudflare Access as "keith@greenjobs.ie"
+    When I create an email-apply job with apply email "HR@Client.ie"
+    Then the response status is 201
+    And the created job applies by "email" to "hr@client.ie"
+
   Scenario: Editing a job id with path traversal is refused
     Given I am signed in to Cloudflare Access as "keith@greenjobs.ie"
     When I edit job "ie:gj:..%2f..%2fadmin" setting title to "Anything Here" at version 1

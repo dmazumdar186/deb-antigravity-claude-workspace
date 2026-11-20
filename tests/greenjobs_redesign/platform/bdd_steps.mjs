@@ -77,7 +77,7 @@ export function registerSteps({ Given, When, Then }) {
     addJob(this, id, title, site, { apply_email: email });
   });
   Given(/a live job "([^"]+)" titled "([^"]+)" on site "(ie|uk)" applying via "([^"]+)"/, function (id, title, site, url) {
-    addJob(this, id, title, site, { apply_mode: 'url', apply_url: url });
+    addJob(this, id, title, site, { apply_mode: 'link', apply_url: url });
   });
 
   // ---------- public reads ----------
@@ -137,6 +137,9 @@ export function registerSteps({ Given, When, Then }) {
   });
   Then(/there (?:is|are) (\d+) audit rows? for action "([^"]+)"/, function (n, action) {
     assert.equal(this.w.db.q('SELECT COUNT(*) AS n FROM audit_log WHERE action = ?1', action)[0].n, Number(n));
+  });
+  Then(/the response body does not contain "([^"]+)"/, function (s) {
+    assert.ok(!String(this.text).includes(s), `response body contains ${s}`);
   });
   Then(/the audit log does not contain "([^"]+)"/, function (s) {
     const all = this.w.db.q('SELECT detail_json FROM audit_log').map((r) => r.detail_json).join('\n');
@@ -198,7 +201,22 @@ export function registerSteps({ Given, When, Then }) {
     await create(this, {}, { idem: null });
   });
   When(/I create an external-apply job with apply URL "([^"]+)"/, async function (url) {
-    await create(this, { apply_mode: 'url', apply_url: url });
+    await create(this, { apply_mode: 'link', apply_url: url });
+  });
+  When(/I create an external-apply job with apply URL "([^"]+)" and apply email "([^"]+)"/, async function (url, email) {
+    await create(this, { apply_mode: 'link', apply_url: url, apply_email: email });
+  });
+  When(/I create an email-apply job with apply email "([^"]+)"/, async function (email) {
+    await create(this, { apply_mode: 'email', apply_email: email });
+  });
+  When(/I create an email-apply job with apply URL "([^"]+)"/, async function (url) {
+    await create(this, { apply_mode: 'email', apply_url: url });
+  });
+  Then(/the created job applies by "(email|link)" to "([^"]+)"/, function (mode, target) {
+    const r = this.w.db.q('SELECT apply_mode, apply_email, apply_url FROM jobs WHERE id = ?1', this.createdId)[0];
+    assert.equal(r.apply_mode, mode);
+    assert.equal(mode === 'link' ? r.apply_url : r.apply_email, target);
+    assert.equal(mode === 'link' ? r.apply_email : r.apply_url, null, 'exactly one target per mode');
   });
   When(/I edit the created job setting title to "([^"]+)" at version (\d+)/, async function (title, v) {
     await admin(this, 'PUT', `/api/admin/jobs/${encodeURIComponent(this.createdId)}`, { body: { title, version: Number(v) } });
