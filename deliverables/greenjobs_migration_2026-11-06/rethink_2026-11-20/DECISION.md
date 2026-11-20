@@ -17,13 +17,13 @@ v1 (buy a hosted job board, Cavuno) is **withdrawn**. The operator's ruling: the
   2. **One frozen taxonomy file** (sectors, regions, job types) drives the console dropdowns, rendering, filters and the import classifier. This also makes eval E1 measurable.
   3. **Apply per job:** by email (on-site form) or by the client's own link. This is already built.
   4. **Staff console fixes:** post to IE, UK or both in one form; every field editable; close asks to confirm; a closed job can be reopened.
-  5. **Gaia job feed** (gaiatalent.com every 10 minutes, review queue for Rashieda): built behind a flag, **off**. It is offered to Keith as a time saver and was not promised (RECORD P13).
+  5. **Gaia job feed:** a standalone sync script (writes a feed file and a review queue), **not wired to the board**. It is offered to Keith as a time saver and was not promised (RECORD P13).
   6. **CHM Recruit and Mattinson:** staff post for them from 3 Dec, and they are told by 25 Nov (REVIEW:21). Employer logins are phase 2 (Plan:31), built behind a flag, **off** (RECORD P11).
   7. **Data minimisation.** Live jobs and employers are imported. Alert subscribers are imported only where consent allows, and they re-confirm. Candidate records Keith chooses to keep are imported, consent-gated and minimised (RECORD P5a; Keith decides retention in writing). Everything else goes to GreenJobs' own raw archive.
   8. **About 1,200 old URLs** get 301 redirects. Forwarding config for the 8 sector domains is prepared but out of scope until Keith answers (RECORD P12).
   9. **Maintainability:** directives, runbook and tests in the repo, and a status page any operator can read.
 
-**Promise list:** deliverables/engagement_record_2026-11-20/RECORD.md v2 (P1–P22) governs scope. Where this file disagrees, the record wins.
+**Promise list:** deliverables/engagement_record_2026-11-20/RECORD.md v4 (P1–P29) governs scope. Where this file disagrees, the record wins.
 
 ## The gate (replaces the Cavuno trial)
 
