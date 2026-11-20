@@ -15,11 +15,15 @@ claim types:
   site_not_mention     domain, product | agency          -> home (rendered, incl. hidden menus) + nav/header/footer links
                        + sitemap.xml pages (<= --max-pages) searched for distinctive tokens of the product (a product
                        family / brand token counts) or the agency's names/acronyms; ANY hit -> FALSE
+domain owner (stage 2 of run(), before any site claim): the row's domain must match the trigger's primary record
+                       (legal-name core tokens AND record zip/city, or a 6+ char name token in title/footer plus the
+                       record state and no out-of-state US address). Otherwise every site claim of the row is dropped
+                       and the row renders on its trigger only ("site: unconfirmed domain").
 inputs:  --claims CSV, one row per claim: claim_id,row_id,company,domain,claim_type,k_number,award_id,product,agency,
          date (YYYY-MM-DD),year,claim_text   (unknown columns are carried through)
 outputs: <out>/pass.csv (claim + evidence_url + evidence_quote), <out>/reject.csv (+ verdict, reason),
          <out>/rows.csv (finder rows rendered ONLY from passed claims; a row needs its trigger claim passed),
-         <out>/summary.json. Fetch cache: .tmp/fact_gate/cache/ (re-runs reuse it; --refresh bypasses).
+         <out>/domain_owner.csv, <out>/summary.json. Fetch cache: .tmp/fact_gate/cache/ (re-runs reuse it; --refresh bypasses).
 usage:   python3 execution/gtm_icp_filters/fact_gate.py --claims claims.csv --out .tmp/fact_gate/run1
          python3 execution/gtm_icp_filters/fact_gate.py --claims claims.csv --limit 5      # first 5 claims only
          python3 execution/gtm_icp_filters/fact_gate.py --claims claims.csv --offline      # cache only, no network
@@ -39,7 +43,9 @@ import json
 import re
 import subprocess
 import sys
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 import unicodedata
 import urllib.parse
 from difflib import SequenceMatcher
@@ -75,7 +81,11 @@ PRODUCT_COVER_FLOOR = (
 MIN_HOME_TEXT = (
     200  # rendered home text below this = blocked / JS shell -> UNVERIFIABLE
 )
-MAX_PAGES_FLOOR, MAX_PAGES_CEILING = 1, 40  # --max-pages bounds (default 25)
+MAX_PAGES_FLOOR, MAX_PAGES_CEILING = 1, 150  # --max-pages bounds (default DEFAULT_MAX_PAGES)
+DEFAULT_MAX_PAGES = 80  # nav/footer links are fetched first; big corporate navs exceed 25
+PAGE_WORKERS = 8
+OWNER_PAGES = 4  # about/contact/location pages read by the domain-owner check
+OWNER_DISTINCT_MIN = 6  # a name token this long in title/footer can stand in for a location match
 MAX_SITEMAPS = 6  # nested sitemap files read per site
 MAX_SITEMAP_URLS = 5000  # URLs read from sitemaps per site
 REJECT_RATE_ALARM_MIN_N = 20  # with >= this many claims ...
@@ -284,7 +294,13 @@ class Fetcher:
     def __init__(self, refresh: bool = False, offline: bool = False):
         self.refresh, self.offline = refresh, offline
         CACHE.mkdir(parents=True, exist_ok=True)
-        self.s = requests.Session()
+        self._tl = threading.local()
+
+    @property
+    def s(self) -> requests.Session:
+        if not hasattr(self._tl, "s"):
+            self._tl.s = requests.Session()
+        return self._tl.s
 
     def _path(self, kind: str, key: str) -> Path:
         return CACHE / kind / (hashlib.sha1(key.encode("utf-8")).hexdigest() + ".json")
@@ -588,7 +604,10 @@ def check_fda(c: dict, f: Fetcher) -> dict:
         return V("UNSUPPORTED", f"date not ISO: {c.get('date')!r}")
     if want and want != dd:
         return V("FALSE", f"decision_date {dd} != claimed {want}", human, q)
-    return V("PASS", "openFDA record matches", human, q)
+    loc = f"{rec.get('city') or ''}, {rec.get('state') or ''} {(rec.get('zip_code') or '')[:5]}"
+    return {**V("PASS", "openFDA record matches", human, q + f" | address {loc}"),
+            "record": {"name": app, "city": rec.get("city") or "", "state": rec.get("state") or "",
+                       "zip": (rec.get("zip_code") or "")[:5], "source": human}}
 
 
 def check_award(c: dict, f: Fetcher) -> dict:
@@ -688,7 +707,11 @@ def check_award(c: dict, f: Fetcher) -> dict:
         return V("UNSUPPORTED", f"date not ISO: {c.get('date')!r}")
     if want and want != signed:
         return V("FALSE", f"date_signed {signed} != claimed {want}", human, q)
-    return V("PASS", "USAspending award matches", human, q)
+    rl = (det.get("recipient") or {}).get("location") or {}
+    loc = f"{rl.get('city_name') or ''}, {rl.get('state_code') or ''} {rl.get('zip5') or ''}"
+    return {**V("PASS", "USAspending award matches", human, q + f" | recipient location {loc}"),
+            "record": {"name": recip or "", "city": rl.get("city_name") or "", "state": rl.get("state_code") or "",
+                       "zip": rl.get("zip5") or "", "source": human}}
 
 
 # ============================================================ site checks
@@ -929,8 +952,9 @@ def check_not_mention(c: dict, f: Fetcher, max_pages: int) -> dict:
         if len(pages) >= max_pages - 1:
             break
     fetched, failed = 1, 0
-    for u in pages:
-        r = f.get(u)
+    with ThreadPoolExecutor(PAGE_WORKERS) as ex:
+        results = list(ex.map(f.get, pages))
+    for u, r in zip(pages, results):
         if r.get("error") or r["status"] >= 400:
             failed += 1
             continue
@@ -955,6 +979,107 @@ def check_not_mention(c: dict, f: Fetcher, max_pages: int) -> dict:
         f"searched {fetched} pages (home + {len(nav)} nav/footer links, {len(smap)} sitemap URLs; "
         f"{failed} failed) for {label}: 0 hits",
     )
+
+
+# ============================================================ domain owner (runs before any site claim)
+_ORG_GENERIC_WORDS = (
+    "construction constructors contractors contracting contractor services service group enterprises enterprise "
+    "medical technologies technology industries international systems solutions general builders building "
+    "company companies associates partners holdings corporate america american usa north national global "
+    "products devices health healthcare surgical labs laboratories mechanical electric electrical and of the"
+)
+ORG_GENERIC = set(_ORG_GENERIC_WORDS.split())
+OWNER_LINK = re.compile(r"about|contact|company|who-?we-?are|location|our-?story|office|find-?us", re.I)
+US_ADDR = re.compile(r"\b([A-Z]{2})\s+(\d{5})(?:-\d{4})?\b")
+
+
+US_STATES = dict(
+    AL="Alabama", AK="Alaska", AZ="Arizona", AR="Arkansas", CA="California", CO="Colorado", CT="Connecticut",
+    DE="Delaware", DC="District of Columbia", FL="Florida", GA="Georgia", HI="Hawaii", ID="Idaho", IL="Illinois",
+    IN="Indiana", IA="Iowa", KS="Kansas", KY="Kentucky", LA="Louisiana", ME="Maine", MD="Maryland",
+    MA="Massachusetts", MI="Michigan", MN="Minnesota", MS="Mississippi", MO="Missouri", MT="Montana", NE="Nebraska",
+    NV="Nevada", NH="New Hampshire", NJ="New Jersey", NM="New Mexico", NY="New York", NC="North Carolina",
+    ND="North Dakota", OH="Ohio", OK="Oklahoma", OR="Oregon", PA="Pennsylvania", RI="Rhode Island",
+    SC="South Carolina", SD="South Dakota", TN="Tennessee", TX="Texas", UT="Utah", VT="Vermont", VA="Virginia",
+    WA="Washington", WV="West Virginia", WI="Wisconsin", WY="Wyoming", PR="Puerto Rico",
+)
+
+
+def _word(tok: str) -> re.Pattern:
+    return re.compile(r"(?<![A-Za-z0-9])" + re.escape(tok) + r"(?![A-Za-z0-9])", re.I)
+
+
+def owner_core(name: str) -> list[str]:
+    toks = [t for t in name_tokens(name) if len(t) >= 2 and t != "and"]
+    core = [t for t in toks if t not in ORG_GENERIC]
+    return core or toks
+
+
+def footer_text(html: str, inner_text: str) -> str:
+    parts = re.findall(r"<footer\b.*?</footer>", html or "", re.I | re.S)
+    if parts:
+        return norm_text(" ".join(" ".join(extract(p).parts) for p in parts))
+    return norm_text((inner_text or "")[-1500:])
+
+
+def check_domain_owner(domain: str, rec: dict, f: Fetcher) -> dict:
+    """PASS only if the site matches the primary record: legal-name core tokens AND (record city or zip on the site,
+    OR a 6+ char core token in the title/footer with no US address on the site that contradicts the record state)."""
+    if not rec or not rec.get("name"):
+        return V("UNVERIFIABLE", "site: unconfirmed domain (no primary record to match)", domain)
+    home, why = render_home(domain, f)
+    if not home:
+        return V("UNVERIFIABLE", f"site: unconfirmed domain (unreachable: {why})", domain)
+    home_url = home.get("final_url") or home["url"]
+    root = site_root(urllib.parse.urlparse(home_url).netloc)
+    if root != site_root(domain) and not same_site(home_url, site_root(domain)):
+        moved = f"{site_root(domain)} redirects to {root}"
+    else:
+        moved = ""
+    html = home.get("html") or ""
+    title = norm_text(m.group(1)) if (m := re.search(r"<title[^>]*>(.*?)</title>", html, re.I | re.S)) else ""
+    foot = footer_text(html, home.get("text") or "")
+    texts = [("home", norm_text(home.get("text") or "")), ("home hidden", norm_text(home.get("all_text") or ""))]
+    cand = [l["href"].split("#")[0] for l in home.get("links") or []
+            if same_site(l.get("href", ""), root) and OWNER_LINK.search(f"{l.get('href', '')} {l.get('text', '')}")
+            and not SKIP_EXT.search(l.get("href", ""))]
+    cand = list(dict.fromkeys(cand))[:OWNER_PAGES]
+    with ThreadPoolExecutor(PAGE_WORKERS) as ex:
+        for u, r in zip(cand, ex.map(f.get, cand)):
+            if not r.get("error") and r["status"] < 400:
+                texts.append((u, norm_text(" ".join(extract(r["text"]).parts))))
+    corpus = " \n ".join(t for _, t in texts) + " \n " + title
+    core = owner_core(rec["name"])
+    missing = [t for t in core if not _word(t).search(corpus)]
+    rq = f"record '{rec['name']}' | {rec.get('city', '')}, {rec.get('state', '')} {rec.get('zip', '')}"
+    if missing:
+        return V("FALSE", f"site: unconfirmed domain (legal-name tokens {missing} not on site{'; ' + moved if moved else ''})",
+                 home_url, f"{rq} | site title '{title[:80]}'")
+    for label, val in (("zip", rec.get("zip")), ("city", rec.get("city"))):
+        if val and len(val) >= 3:
+            for where, t in texts:
+                if m := _word(val).search(t):
+                    return V("PASS", f"domain owner confirmed (name + {label})", home_url,
+                             f"{rq} | site ({where}): {quote_at(t, m)}")
+    long_toks = [t for t in core if len(t) >= OWNER_DISTINCT_MIN]
+    hit = next((t for t in long_toks if _word(t).search(f"{title} {foot}")), None)
+    if hit:
+        states = {st for st, _ in US_ADDR.findall(corpus)}
+        st = (rec.get("state") or "").upper()
+        if states and st and st not in states:
+            return V("FALSE", f"site: unconfirmed domain (site addresses in {sorted(states)}, record in {st})",
+                     home_url, f"{rq} | site title '{title[:80]}'")
+        pats = [r",\s*" + re.escape(st) + r"\b", r"\b" + re.escape(st) + r"\s+\d{5}\b"] if st else []
+        if st in US_STATES:
+            pats.append(r"\b" + re.escape(US_STATES[st]) + r"\b")
+        if not pats or not re.search("|".join(pats), corpus):
+            return V("FALSE", f"site: unconfirmed domain ('{hit}' in title/footer but record state {st or '?'} not on "
+                     "site)", home_url, f"{rq} | site title '{title[:80]}'")
+        m = _word(hit).search(f"{title} {foot}")
+        return V("PASS", f"domain owner confirmed (name + distinctive '{hit}' in title/footer)", home_url,
+                 f"{rq} | title/footer: {quote_at(title + ' ' + foot, m)}")
+    return V("FALSE", "site: unconfirmed domain (name found but no record city/zip and no distinctive name in "
+             "title/footer)", home_url, f"{rq} | site title '{title[:80]}'")
 
 
 # ============================================================ claim-text consistency
@@ -992,7 +1117,7 @@ CHECKS = {
 }
 
 
-def gate_claim(c: dict, f: Fetcher, max_pages: int = 25) -> dict:
+def gate_claim(c: dict, f: Fetcher, max_pages: int = DEFAULT_MAX_PAGES) -> dict:
     ct = (c.get("claim_type") or "").strip()
     if ct not in CHECKS:
         return V("UNSUPPORTED", f"unknown claim_type {ct!r} (fail closed)")
@@ -1043,45 +1168,69 @@ def write_csv(path: Path, rows: list[dict], cols: list[str]) -> None:
         w.writerows(rows)
 
 
-def run(
-    claims: list[dict], out: Path, f: Fetcher, max_pages: int = 25, quiet: bool = False
-) -> dict:
-    passed, rejected = [], []
+def run(claims: list[dict], out: Path, f: Fetcher, max_pages: int = DEFAULT_MAX_PAGES, quiet: bool = False) -> dict:
+    """Stage 1 trigger claims (primary records) -> stage 2 domain owner per row -> stage 3 site claims of confirmed rows."""
+    cl = []
     for i, c in enumerate(claims, 1):
         c = {k: (v or "").strip() if isinstance(v, str) else v for k, v in c.items()}
         c.setdefault("claim_id", str(i))
-        v = gate_claim(c, f, max_pages)
-        row = {**c, **v}
-        (passed if v["verdict"] == "PASS" else rejected).append(row)
+        c["row_id"] = c.get("row_id") or c["claim_id"]
+        cl.append(c)
+    verdicts: dict[int, dict] = {}
+    records: dict[str, dict] = {}
+    for i, c in enumerate(cl):  # stage 1
+        if c.get("claim_type") in TRIGGER_TYPES:
+            v = gate_claim(c, f, max_pages)
+            rec = v.pop("record", None)
+            if v["verdict"] == "PASS" and rec:
+                records.setdefault(c["row_id"], rec)
+            verdicts[i] = v
+    owners: dict[str, dict] = {}
+    for c in cl:  # stage 2
+        rid = c["row_id"]
+        if c.get("claim_type") in TRIGGER_TYPES or rid in owners:
+            continue
+        owners[rid] = check_domain_owner(c.get("domain", ""), records.get(rid, {}), f)
+    for i, c in enumerate(cl):  # stage 3
+        if i in verdicts:
+            continue
+        ov = owners.get(c["row_id"])
+        if ov and ov["verdict"] != "PASS":
+            verdicts[i] = dict(ov)
+        else:
+            verdicts[i] = gate_claim(c, f, max_pages)
+            verdicts[i].pop("record", None)
+    passed, rejected = [], []
+    for i, c in enumerate(cl):
+        v = verdicts[i]
+        (passed if v["verdict"] == "PASS" else rejected).append({**c, **v})
         if not quiet:
-            print(
-                f"[{i}/{len(claims)}] {c.get('claim_id')} {c.get('claim_type')} {c.get('domain')}: {v['verdict']} "
-                f"- {v['reason'][:110]}",
-                flush=True,
-            )
-    rows = render_rows(passed, claims)
+            print(f"[{i + 1}/{len(cl)}] {c['claim_id']} {c.get('claim_type')} {c.get('domain')}: {v['verdict']} "
+                  f"- {v['reason'][:110]}", flush=True)
+    rows = render_rows(passed, cl)
+    for r in rows:
+        ov = owners.get(r["row_id"])
+        r["site_status"] = ("site: confirmed domain" if ov and ov["verdict"] == "PASS"
+                            else "site: unconfirmed domain" if ov else "no site claims")
     write_csv(out / "pass.csv", passed, PASS_COLS)
     write_csv(out / "reject.csv", rejected, REJECT_COLS)
-    write_csv(
-        out / "rows.csv",
-        rows,
-        ["row_id", "company", "domain", "trigger", "site_facts", "claim_ids"],
-    )
+    write_csv(out / "rows.csv", rows, ["row_id", "company", "domain", "trigger", "site_facts", "site_status", "claim_ids"])
+    write_csv(out / "domain_owner.csv",
+              [{"row_id": k, "domain": next((c["domain"] for c in cl if c["row_id"] == k), ""), **v}
+               for k, v in owners.items()],
+              ["row_id", "domain", "verdict", "reason", "evidence_url", "evidence_quote"])
     counts: dict[str, int] = {}
-    for r in passed + rejected:
-        counts[r["verdict"]] = counts.get(r["verdict"], 0) + 1
     by_type: dict[str, dict] = {}
     for r in passed + rejected:
+        counts[r["verdict"]] = counts.get(r["verdict"], 0) + 1
         b = by_type.setdefault(r.get("claim_type", ""), {})
         b[r["verdict"]] = b.get(r["verdict"], 0) + 1
-    summary = {
-        "claims": len(claims),
-        "verdicts": counts,
-        "by_type": by_type,
-        "rows_rendered": len(rows),
-        "rows_in": len({c.get("row_id") or c.get("claim_id") for c in claims}),
-        "ran_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
-    }
+    oc: dict[str, int] = {}
+    for v in owners.values():
+        oc[v["verdict"]] = oc.get(v["verdict"], 0) + 1
+    summary = {"claims": len(cl), "verdicts": counts, "by_type": by_type, "domain_owner": oc,
+               "rows_rendered": len(rows), "rows_in": len({c["row_id"] for c in cl}),
+               "ran_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")}
     (out / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     return summary
 
@@ -1096,7 +1245,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument(
         "--max-pages",
         type=int,
-        default=25,
+        default=DEFAULT_MAX_PAGES,
         help=f"pages per site for site_not_mention "
         f"[{MAX_PAGES_FLOOR}..{MAX_PAGES_CEILING}]",
     )

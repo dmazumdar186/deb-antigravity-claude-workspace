@@ -499,3 +499,93 @@ def test_live_regression_known_false_caught_and_records_pass():
 def test_de_novo_called_510k_is_false():
     c = fda_claim(k_number="DEN261111", claim_text="FDA 510(k) clearance DEN261111 on August 26")
     assert fg.gate_claim(c, FakeFetcher())["verdict"] == "FALSE"
+
+
+# ------------------------------------------------------------ page cap: big corporate navs
+def test_product_on_deep_nav_page_is_caught():
+    links = [{"href": f"https://www.acme.example/p{i}", "text": f"Page {i}", "region": "navfoot"} for i in range(40)]
+    gets = {f"https://www.acme.example/p{i}": {"text": "<p>Nothing here.</p>"} for i in range(40)}
+    gets["https://www.acme.example/p35"] = {"text": '<img alt="Stacked Quorvex test kit boxes">'}
+    v = fg.gate_claim(nm("Quorvex HBsAg II quant"), FakeFetcher(gets=gets, renders=renders(home("Welcome", links=links))))
+    assert v["verdict"] == "FALSE" and v["evidence_url"].endswith("/p35")
+
+
+# ------------------------------------------------------------ domain owner
+REC_OWN = {"name": "ACME BUILDERS CORPORATION", "city": "TEKAMAH", "state": "NE", "zip": "68061", "source": "x"}
+
+
+def owner(text, title="", links=(), gets=None, rec=REC_OWN):
+    h = home(text, links=links, html=f"<html><head><title>{title}</title></head><body><footer>{title}</footer></body></html>")
+    return fg.check_domain_owner("acme.example", rec, FakeFetcher(gets=gets, renders=renders(h)))
+
+
+def test_owner_pass_on_name_and_zip_from_contact_page():
+    links = [{"href": "https://www.acme.example/contact-us", "text": "Contact", "region": "navfoot"}]
+    gets = {"https://www.acme.example/contact-us": {"text": "<p>Acme Builders, 1 Main St, Tekamah, NE 68061</p>"}}
+    v = owner("Acme Builders: concrete and steel.", links=links, gets=gets)
+    assert v["verdict"] == "PASS" and "68061" in v["evidence_quote"]
+
+
+def test_owner_rejects_same_name_other_state():
+    v = owner("Acme Builders. Visit us: 9 Oak Ave, Ontario, CA 91761", title="Acme Builders")
+    assert v["verdict"] == "FALSE"
+
+
+def test_owner_rejects_missing_legal_name():
+    v = owner("Joe Davis photography portfolio.", title="Photography")
+    assert v["verdict"] == "FALSE" and "acme" in v["reason"]
+
+
+def test_owner_distinctive_title_needs_record_state():
+    rec = dict(REC_OWN, name="QUORVEXIA SERVICES LLC")
+    assert owner("Quorvexia Services: packaging lines worldwide.", title="Quorvexia", rec=rec)["verdict"] == "FALSE"
+    v = owner("Quorvexia Services, serving Nebraska since 1990.", title="Quorvexia", rec=rec)
+    assert v["verdict"] == "PASS"
+
+
+def test_owner_unreachable_or_no_record_fails_closed():
+    assert fg.check_domain_owner("acme.example", REC_OWN, FakeFetcher())["verdict"] == "UNVERIFIABLE"
+    assert fg.check_domain_owner("acme.example", {}, FakeFetcher())["verdict"] == "UNVERIFIABLE"
+
+
+def test_run_drops_site_claims_of_unconfirmed_domain_keeps_trigger(tmp_path):
+    claims = [dict(fda_claim(), claim_id="1", row_id="r1", domain="acme.example"),
+              dict(nm("Zentrix-C Cervical Interbody Fusion System"), claim_id="2", row_id="r1")]
+    rec = dict(REC, city="Austin", state="TX", zip_code="78701")
+    f = FakeFetcher(gets=fda_get(rec), renders=renders(home("Joe Davis photography portfolio.")))
+    fg.run(claims, tmp_path, f, quiet=True)
+    rows = list(csv.DictReader((tmp_path / "rows.csv").open(encoding="utf-8")))
+    rej = list(csv.DictReader((tmp_path / "reject.csv").open(encoding="utf-8")))
+    assert rows[0]["site_status"] == "site: unconfirmed domain" and rows[0]["site_facts"] == ""
+    assert rej[0]["claim_id"] == "2" and "unconfirmed domain" in rej[0]["reason"] and rej[0]["evidence_quote"]
+
+
+def test_run_keeps_site_claims_of_confirmed_domain(tmp_path):
+    claims = [dict(fda_claim(), claim_id="1", row_id="r1", domain="acme.example"),
+              dict(nm("Zentrix-C Cervical Interbody Fusion System"), claim_id="2", row_id="r1")]
+    rec = dict(REC, city="Austin", state="TX", zip_code="78701")
+    f = FakeFetcher(gets=fda_get(rec), renders=renders(home("Acme Spine, 5 Congress Ave, Austin, TX 78701")))
+    fg.run(claims, tmp_path, f, quiet=True)
+    rows = list(csv.DictReader((tmp_path / "rows.csv").open(encoding="utf-8")))
+    assert rows[0]["site_status"] == "site: confirmed domain" and rows[0]["site_facts"]
+
+
+# ------------------------------------------------------------ live: owner labels from a blind round (client repo)
+OWN = os.environ.get("FACT_GATE_OWNER_CSV", "")
+
+
+@pytest.mark.skipif(not OWN or not Path(OWN).exists(), reason="FACT_GATE_OWNER_CSV not set")
+def test_live_owner_labels_and_deep_nav_miss():
+    claims = list(csv.DictReader(open(OWN, newline="", encoding="utf-8")))
+    out = ROOT / ".tmp/fact_gate/owner_test"
+    fg.run(claims, out, fg.Fetcher(), quiet=True)
+    own = {r["row_id"]: r["verdict"] for r in csv.DictReader((out / "domain_owner.csv").open(encoding="utf-8"))}
+    lab = {c["row_id"]: c["blind_domain_is_company"] for c in claims if c["row_id"] in own}
+    wrong = [r for r, l in lab.items() if l == "no"]
+    right = [r for r, l in lab.items() if l == "yes"]
+    assert wrong and all(own[r] != "PASS" for r in wrong), [(r, own[r]) for r in wrong]
+    kept = sum(own[r] == "PASS" for r in right)
+    assert kept >= 0.6 * len(right), (kept, len(right))  # a gate that drops everything fails
+    for c in claims:
+        if c.get("expected_direct"):
+            assert fg.gate_claim(c, fg.Fetcher())["verdict"] == c["expected_direct"], c["claim_id"]
