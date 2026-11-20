@@ -57,3 +57,21 @@ Pipeline errors:
 - E3 (routing to the 8 sector sites) is not built here: it needs the sector-site mapping decided in the destination spike.
 - Labels come from one labeller. A second, blind labeller on the E1 sector column would show how much of the error is label ambiguity (seven jobs are flagged ambiguous in the rule).
 - In-sample caveat: the term dictionary, the title-keyword conflict rule, the copied-advert threshold (0.5) and the 'one advert is one vacancy' constraint were set while reading this same data, so the deterministic numbers are optimistic. The Jev-alone column and next month's re-score on fresh Gaia jobs are the honest checks.
+
+## Blind second labeller (2026-11-20)
+
+A second agent labelled all 83 Gaia jobs without reading the first labels, the mapping or the code (`tests/greenjobs_redesign/fixtures/gaia_eval/e1_labels_blind.json`).
+
+| Dimension | Agreement | Reading |
+|---|---|---|
+| Job type | 82/83 | The one difference is Part Time vs `none` (a vocabulary gap) |
+| Region | 0/83 | Granularity differs: county (first labeller) vs country (blind) |
+| Sector | 3/83 | The two labellers built different vocabularies from the same data |
+
+**Finding:** E1 for sector and region is not yet measurable. There is no fixed target vocabulary, because the board snapshot carries no sector field. Both labellers invented one, so the 96.7% E1 figure above is scored against a vocabulary the producer wrote.
+
+**Fix:**
+1. Freeze the target taxonomy: the sector and region values of the chosen board (Cavuno categories, which we define), or the Strategies `sIndustrySectorDesc` / `sRegionDesc` values once a jobs export exists.
+2. Then re-label blind against that frozen list and re-score.
+
+Until then, every sector mapping goes to the review queue. Job type is independently confirmed.

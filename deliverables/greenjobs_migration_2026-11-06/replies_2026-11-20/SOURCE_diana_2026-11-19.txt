@@ -7,3 +7,5 @@ Diana Lupu Thu 19 Nov, 15:17: Also, Gaia talent is posting jobs by themself - ma
 Diana Lupu 19 Nov 2026, 16:39: Hi Debanjan Can you please also advise on this: share the DNS logins through a password manager? How will I do this? Thanks Diana
 
 Header file facts (computed 2026-11-20 from the attachments, build/import/REAL_HEADERS_2026-11-19.json): 6 file types per site (Recruiters, Members registration details, Members profile data, Jobs, Jobs By Email, Job Applications). Jobs By Email has exactly 13 columns on each site. Jobs has an Email column and an AppLink column.
+
+Addresses in Diana's email with the pasting spaces removed: info@greenjobs.ie, info@greenjobs.co.uk, rashieda.ely@greenjobs.ie, diana@greenjobs.ie.

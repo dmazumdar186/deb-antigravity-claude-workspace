@@ -1,21 +1,21 @@
 Hi Diana,
 
-Thank you, this is very helpful. The column names are what I needed for now, and knowing that all jobs are posted by hand, with none through Broadbean or another tool, makes the switch simpler.
+The column names are what I needed for now, and knowing that all jobs are posted by hand, with none through Broadbean or another tool, makes the switch simpler.
 
 On your questions:
 
-1. DNS login and domain login: for what we need, the account you already use at Hosting Ireland, LetsHost and 123 Reg is the one to have ready.
+1. DNS login and domain login: the domain login is the account where you renew the name (Hosting Ireland, LetsHost, 123 Reg); DNS is a setting inside it. The guide names which login each step uses.
 
-2. Password manager: you don't need one, and you don't need to share any passwords. I'll send you a short step-by-step guide for each of the three, with the exact values to copy and paste. You can do each step whenever it suits you, no call needed, and I'll check from my side and email you to confirm each one worked.
+2. Password manager: you don't need one, and I don't need any of these passwords. I'll send you a short step-by-step guide for each of the three, with the exact values to copy and paste. No call is needed: each guide says the date its step is needed by, and I'll check from my side and email you to confirm each one worked.
 
-3. Applications: sorry, my question wasn't clear. If a job has neither its own email nor an apply link, which inbox should the application go to? Unless you'd prefer Rashieda's address, I'll use the info@ inbox of each site.
+3. Applications: sorry, my question wasn't clear. If a job has neither its own email nor an apply link, which inbox should the application go to? Unless you'd prefer Rashieda's address, I'll use info@greenjobs.ie and info@greenjobs.co.uk for the two boards.
 
 4. Domain settings: thank you, that's all I meant. Please leave them as they are until the guide asks you to change them.
 
 Two small things:
 
-- Jobs By Email: the 13 is the number of columns in that file. Could you tell me roughly how many people get job alerts on each site?
-- Please don't download or send me any reports yet. I'll send a separate note on how we'll handle the data.
+- Jobs By Email: the 13 is the number of columns in that file. If the admin shows a subscriber count for job alerts on each site, could you tell me the number? If it only shows inside a report, leave it; I'll get it later.
+- No need to download or send reports for now: once the contract and data agreement are signed I'll send a separate note on how we'll handle the exports.
 
 Thanks again,
 Debanjan

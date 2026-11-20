@@ -1,0 +1,36 @@
+{
+ "sector": [
+  "Ecology & Biodiversity",
+  "Environmental Consultancy & Impact Assessment",
+  "Water & Hydrogeology",
+  "Civil & Structural Engineering",
+  "Building Services & Digital",
+  "Energy & Renewables",
+  "Transport & Rail",
+  "Planning & Landscape",
+  "Health, Safety & Sustainability",
+  "Waste & Circular Economy",
+  "Land & Construction Management"
+ ],
+ "sector_note": "board snapshot has no sector field; derived from board titles/text",
+ "region": [
+  "East Midlands",
+  "Ireland",
+  "London",
+  "North West",
+  "Scotland",
+  "South East",
+  "South West",
+  "United Kingdom",
+  "Wales",
+  "West Midlands",
+  "Yorkshire and Humber"
+ ],
+ "region_note": "'Country' dropped as scrape artifact",
+ "job_type": [
+  "Contract",
+  "Full Time",
+  "Home Based",
+  "Permanent"
+ ]
+}
