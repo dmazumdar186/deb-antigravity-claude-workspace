@@ -17,16 +17,28 @@
       "r2": "",
       "_r2_note": "R2 is not enabled on our account yet (API code 10042): staging runs without CV storage; an apply with a CV answers 503 cv_storage_unavailable. Set to greenjobs-cvs-staging and restore the wrangler binding once R2 is enabled.",
       "backup_bucket": "",
-      "pages": {"ie": "greenjobs-staging-ie", "uk": "greenjobs-staging-uk"},
-      "board_urls": {"ie": "https://greenjobs-staging-ie.pages.dev", "uk": "https://greenjobs-staging-uk.pages.dev"},
-      "worker_urls": {"ie": "https://greenjobs-platform-staging.debanjan186.workers.dev", "uk": ""},
+      "pages": {
+        "ie": "greenjobs-staging-ie",
+        "uk": "greenjobs-staging-uk"
+      },
+      "board_urls": {
+        "ie": "https://greenjobs-staging-ie.pages.dev",
+        "uk": "https://greenjobs-staging-uk.pages.dev"
+      },
+      "worker_urls": {
+        "ie": "https://greenjobs-platform-staging.debanjan186.workers.dev",
+        "uk": ""
+      },
       "account_id_env": "CLOUDFLARE_ACCOUNT_ID",
       "api_token_env": "CLOUDFLARE_API_TOKEN",
       "require_dry_run": true,
       "seed_public_jobs": true,
       "robots_index": false,
       "live_api": false,
-      "api_base": {"ie": "https://greenjobs-platform-staging.debanjan186.workers.dev", "uk": "https://greenjobs-platform-staging.debanjan186.workers.dev"},
+      "api_base": {
+        "ie": "https://greenjobs-platform-staging.debanjan186.workers.dev",
+        "uk": "https://greenjobs-platform-staging.debanjan186.workers.dev"
+      },
       "_api_base_note": "The static boards read live jobs / stats / sign-up flags from this Worker origin (CORS: the Worker's ALLOWED_ORIGINS). One workers.dev host serves both editions via ?site=.",
       "analytics": "off",
       "smoke_mode": "full"
@@ -37,16 +49,28 @@
       "d1": "greenjobs",
       "r2": "greenjobs-cvs",
       "backup_bucket": "greenjobs-backups",
-      "pages": {"ie": "greenjobs-ie", "uk": "greenjobs-uk"},
-      "board_urls": {"ie": "https://greenjobs.ie", "uk": "https://greenjobs.co.uk"},
-      "worker_urls": {"ie": "https://greenjobs.ie", "uk": "https://greenjobs.co.uk"},
+      "pages": {
+        "ie": "greenjobs-ie",
+        "uk": "greenjobs-uk"
+      },
+      "board_urls": {
+        "ie": "https://greenjobs.ie",
+        "uk": "https://greenjobs.co.uk"
+      },
+      "worker_urls": {
+        "ie": "https://greenjobs.ie",
+        "uk": "https://greenjobs.co.uk"
+      },
       "account_id_env": "GREENJOBS_PROD_CLOUDFLARE_ACCOUNT_ID",
       "api_token_env": "GREENJOBS_PROD_CLOUDFLARE_API_TOKEN",
       "require_dry_run": false,
       "seed_public_jobs": false,
       "robots_index": true,
       "live_api": true,
-      "api_base": {"ie": "", "uk": ""},
+      "api_base": {
+        "ie": "",
+        "uk": ""
+      },
       "analytics": "production",
       "smoke_mode": "read_only"
     }
@@ -72,8 +96,26 @@
     "stats_live_key": "live_jobs",
     "dashboard_stat_regex": "data-stat=\"([a-z_]+)\"[^>]*>\\s*([0-9][0-9,]*)\\s*<",
     "required_headers": {
-      "worker": ["x-content-type-options", "x-frame-options", "referrer-policy"],
-      "board": ["x-content-type-options", "x-frame-options", "referrer-policy"]
+      "worker": [
+        "x-content-type-options",
+        "x-frame-options",
+        "referrer-policy"
+      ],
+      "board": [
+        "x-content-type-options",
+        "x-frame-options",
+        "referrer-policy"
+      ]
+    }
+  },
+  "staging": {
+    "access": {
+      "team_domain": "prodcraft.cloudflareaccess.com",
+      "app_id": "7c9cbbe2-d7a6-425f-98fd-a009ea6e3b67",
+      "aud": "c59a36fec660a72cfbedc801684805b84f8d88e9e66d5bab21359ebf5dde67f5",
+      "service_token_id": "e9aa8a71-fbd6-4acd-94b8-ea0237719196",
+      "service_token_client_id": "b132c1aeefca481be2dbe0947cef5702.access",
+      "created": "2026-11-20"
     }
   }
 }
