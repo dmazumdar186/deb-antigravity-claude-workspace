@@ -8,16 +8,31 @@ disagree, or if an env section is missing a var (wrangler does not inherit vars 
 
 | Resource | Name |
 |---|---|
-| Worker | `greenjobs-platform-staging` on `greenjobs-platform-staging.debanjan186.workers.dev` |
+| Worker | `greenjobs-platform-staging` on `greenjobs-platform-staging.debanjan186.workers.dev` (IE), `greenjobs-platform-staging-uk` on `greenjobs-platform-staging-uk.debanjan186.workers.dev` (UK) |
 | D1 | `greenjobs-staging` (`database_id` = `REPLACE_WITH_STAGING_D1_ID` in wrangler.toml) |
 | R2 (CVs) | `greenjobs-cvs-staging` (smoke applies send no CV, so it stays empty) |
 | Pages | `greenjobs-staging-ie` -> `https://greenjobs-staging-ie.pages.dev`, `greenjobs-staging-uk` -> `https://greenjobs-staging-uk.pages.dev` (each hosts the full two-edition build) |
 | Mail | `DRY_RUN="1"`, `LIVE_CONFIRM=""`, `MAIL_PROVIDER="none"`, `MAIL_DAILY_CAP="0"`, pinned and checked by `check-config` |
 | Data | Public job data only: `release.py` seeds `jobs` + employer names from `deliverables/greenjobs_redesign_2026-09-22/src/data/{ie,uk}.json`, link-mode, no apply email, no contacts (`assert_seed_safe` fails closed). No candidate or application data ever goes to staging; the only applications there are the smoke test's synthetic `smoke-test@example.com`. |
 
-Staging has one Worker host, mapped to the `ie` site, so the Worker checks run for IE and are reported `skip`
-for UK. UK Worker coverage needs a second staging hostname (a custom domain on a zone we own) added to
-`HOST_SITE_MAP` and `worker_urls.uk`.
+### UK Worker (2026-11-20)
+
+The Worker picks its site from the Host (`HOST_SITE_MAP`), and a workers.dev hostname belongs to one script, so
+UK gets a second deployment of the same Worker: wrangler `[env.staging-uk]` (`environments.json`
+`extra_workers`), name `greenjobs-platform-staging-uk`, `HOST_SITE_MAP` = only its own host -> `uk`, the same
+D1 binding as `[env.staging]`. Chosen over a Worker route on a staging hostname because we own no spare zone
+on this account and a route needs one; a second script needs nothing but a second deploy, and production
+keeps its single Worker with zone routes (no production config changes).
+
+- No cron (`triggers.crons = []`): the IE Worker's `*/10` cron already drains the shared D1; two would race.
+- No Access app and empty `ACCESS_*` vars: `/admin` and `/api/admin` on the UK host answer `not_configured`
+  (fail closed). Staff and the smoke write flow use the IE host; the admin payload names the site.
+- No `BUILD_TOKEN` secret: export / import answer 503 / 401 on the UK host (the smoke's export check uses IE).
+- `release.py stage` deploys it right after the primary (same `RELEASE_SHA`); `check-config` pins name,
+  workers_dev, the D1 binding, the mail pins, every var, the single-host `HOST_SITE_MAP` and the empty cron.
+- The UK Pages project builds with `--api-base` = the UK Worker host; its IE edition reads it with `?site=ie`.
+- First deploy only: if wrangler fails with code 10007, enable workers.dev for the new script once
+  (`POST .../workers/scripts/greenjobs-platform-staging-uk/subdomain {"enabled":true}`), as for the IE script.
 
 ## Production (GreenJobs' own Cloudflare account)
 
@@ -65,7 +80,10 @@ Repository variable `GREENJOBS_STAGING_READY=true` switches CD to staging on (sk
 ## Smoke checks (`smoke.py`)
 
 health, job list (API, paginated) and board list page, KPI dashboard, security headers (Worker + boards),
-`/api/stats` parity with the paginated list and any `data-stat` figures on the dashboard, 20 sampled
+`/api/stats` parity with the paginated list and every `data-stat` figure on the board's home page and KPI
+dashboard (`data-stat="<path into /api/stats>"`, e.g. `salary.n_jobs`, `kpis.live`; a key the API lacks or a
+different value fails, and zero marked figures fails), `job_page[site]` (each Worker host renders its first
+board job at `/{site}/jobs/<slug>/` with JobPosting data), 20 sampled
 redirects from `redirect_map.json` (deterministic per sha) answering 301 to the mapped target, which
 answers 200, export auth (401 anonymous, 200 with token), `live_wiring[site]` (each board's API origin from
 `environments.json` `api_base`, "" = the board's own host: `/api/config` answers the board Origin with CORS, and
@@ -120,3 +138,16 @@ bash execution/gtm_client_workflows/greenjobs_redesign/deploy/promote.sh --stagi
 bash execution/gtm_client_workflows/greenjobs_redesign/deploy/rollback.sh --record <deploy_record.json>
 # live: GREENJOBS_RELEASE_TARGET=<env> ... --execute (clean tree, HEAD = the sha)
 ```
+
+## Board figures from /api/stats (staging, 2026-11-20)
+
+The static boards are built from the 2026-09-22 snapshot while D1 holds the seeded live set, so build-time
+figures differ from `/api/stats` (seeded `posted_at` = the seed date, no closing dates, different salary
+inputs). With `board_stats_from_api: true` (staging only) `release.py` GETs `/api/stats?site=` for each
+edition right after the Worker deploy and passes it to `build_site.py --stats-json ie=... --stats-json
+uk=...`; the build writes those values into every `data-stat` slot and the dashboard's `gj-dash` payload
+(after validation, before `_headers`, so the CSP hashes cover the final HTML). The no-JS page then shows what
+the live scripts show, and smoke `stats_parity` re-checks every marked figure. A figure that changes after the
+deploy (a job closes, the date rolls over) fails the next smoke until the next deploy: the static fallback is
+stale then, which is what the check is for. Production keeps `board_stats_from_api: false` (no behaviour
+change); decide at go-live whether its boards take the same step.

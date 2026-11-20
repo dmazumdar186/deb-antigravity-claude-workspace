@@ -41,6 +41,8 @@ class FakeCF:
     ):
         self.calls: list[list[str]] = []
         self.api_calls: list[tuple[str, str]] = []
+        self.gets: list[str] = []
+        self.stats_status = 200
         self.pending, self.fail_on, self.backup_ok, self.workdir = (
             pending,
             fail_on,
@@ -82,6 +84,13 @@ class FakeCF:
             return 0, "exported"
         return 0, "ok"
 
+    def http_get(self, url):
+        """The deployed Worker's public /api/stats (release.fetch_board_stats); offline."""
+        self.gets.append(url)
+        site = url.rsplit("site=", 1)[-1]
+        body = {"site": site, "live_jobs": 2, "salary": {"n_jobs": 2}, "kpis": {"live": 2}}
+        return self.stats_status, json.dumps(body).encode()
+
     def api(self, method, path, token, account):
         assert token == "tok-test" and account == "acct-test"
         self.api_calls.append((method, path))
@@ -105,6 +114,7 @@ def mk(cfg, env, tmp_path, fake=None, execute=True):
         execute,
         runner=fake.runner,
         api=fake.api,
+        http_get=fake.http_get,
         workdir=tmp_path / "work" / env,
         environ=environ,
     )
@@ -599,3 +609,73 @@ def test_scan_secrets(tmp_path):
     dummy = tmp_path / "dummy.mjs"
     dummy.write_text("BUILD_TOKEN: 'build-token-for-tests-only',\n", encoding="utf-8")
     assert release.scan_secrets([dummy]) == []
+
+
+# ── staging UK Worker + board figures from /api/stats (2026-11-20) ───────────
+
+
+def test_stage_deploys_the_uk_worker_after_the_primary(cfg, tmp_path, no_toml_placeholders):
+    rel, fake = mk(resolved(cfg), "staging", tmp_path)
+    rec = rel.stage()
+    deploys = [" ".join(c) for c in fake.calls if c[3:4] == ["deploy"]]
+    assert len(deploys) == 2
+    assert deploys[0].endswith("--env staging") and deploys[1].endswith("--env staging-uk")
+    assert all(f"RELEASE_SHA:{SHA}" in d for d in deploys)
+    assert rec["extra_worker_versions"] == {"greenjobs-platform-staging-uk": V_NEW}
+    # D1 schema / migrations / seed run once, against the primary env (one shared D1)
+    assert sum("migrations apply" in " ".join(c) for c in fake.calls) == 1
+
+
+def test_stage_builds_boards_with_live_stats_for_both_editions(cfg, tmp_path, no_toml_placeholders):
+    rel, fake = mk(resolved(cfg), "staging", tmp_path)
+    rel.stage()
+    assert fake.gets == [
+        "https://greenjobs-platform-staging.debanjan186.workers.dev/api/stats?site=ie",
+        "https://greenjobs-platform-staging-uk.debanjan186.workers.dev/api/stats?site=uk",
+    ]
+    builds = [c for c in fake.calls if "build_site.py" in " ".join(c)]
+    assert len(builds) == 2
+    for b in builds:
+        pairs = [b[i + 1] for i, a in enumerate(b) if a == "--stats-json"]
+        assert [x.split("=")[0] for x in pairs] == ["ie", "uk"]
+    uk_build = next(b for b in builds if b[b.index("--board-site") + 1] == "uk")
+    assert uk_build[uk_build.index("--api-base") + 1] == "https://greenjobs-platform-staging-uk.debanjan186.workers.dev"
+    assert json.loads((tmp_path / "work" / "staging" / "stats-uk.json").read_text(encoding="utf-8"))["site"] == "uk"
+
+
+def test_stage_stops_when_stats_are_unusable(cfg, tmp_path, no_toml_placeholders):
+    fake = FakeCF()
+    fake.stats_status = 503
+    rel, fake = mk(resolved(cfg), "staging", tmp_path, fake)
+    with pytest.raises(release.StepError):
+        rel.stage()
+    assert not any("deploy_cloudflare.sh" in " ".join(c) for c in fake.calls)
+
+
+def test_production_does_not_fetch_stats_or_deploy_extra_workers(cfg, tmp_path, no_toml_placeholders):
+    rel, fake = mk(resolved(cfg), "production", tmp_path, execute=False)
+    rel.deploy_worker()
+    rel.deploy_boards()
+    assert fake.gets == [] and not any("--stats-json" in l or "staging-uk" in l for l in rel.log)
+
+
+@pytest.mark.parametrize(
+    "mutate,needle",
+    [
+        (lambda t: t.replace('[env.staging-uk.triggers]\ncrons = []', '[env.staging-uk.triggers]\ncrons = ["*/10 * * * *"]'), "triggers.crons"),
+        (lambda t: t.replace('HOST_SITE_MAP = \'{"greenjobs-platform-staging-uk.debanjan186.workers.dev":"uk"}\'',
+                             'HOST_SITE_MAP = \'{"greenjobs-platform-staging-uk.debanjan186.workers.dev":"ie"}\''), "HOST_SITE_MAP"),
+        (lambda t: t.replace('name = "greenjobs-platform-staging-uk"', 'name = "greenjobs-platform"'), "name"),
+        (lambda t: t.replace("[[env.staging-uk.d1_databases]]\nbinding = \"DB\"\ndatabase_name = \"greenjobs-staging\"",
+                             "[[env.staging-uk.d1_databases]]\nbinding = \"DB\"\ndatabase_name = \"greenjobs\""), "d1_databases"),
+    ],
+)
+def test_check_config_pins_the_uk_worker(cfg, tmp_path, mutate, needle):
+    src = (ROOT / cfg["worker_dir"] / "wrangler.toml").read_text(encoding="utf-8")
+    bad = mutate(src)
+    assert bad != src, needle
+    t = tmp_path / "wrangler.toml"
+    t.write_text(bad, encoding="utf-8")
+    problems = release.check_wrangler_toml(cfg, "staging", t)
+    assert any(needle in p and "staging-uk" in p for p in problems), problems
+    assert release.check_wrangler_toml(cfg, "staging") == []

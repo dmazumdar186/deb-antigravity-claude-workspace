@@ -1691,7 +1691,7 @@ def test_r1_pages_agree_and_job_ctx(tmp_root: Path):
     # live.js figures sit in <span data-live="key">N</span> (refreshed from /api/stats where the Worker serves the
     # host); the printed build-time number is what this check compares, so the wrapper is unwrapped first.
     def unlive(t: str) -> str:
-        return re.sub(r'<span data-live="[a-z_]+">([^<]*)</span>', r"\1", t)
+        return re.sub(r'<span data-live="[a-z_]+"(?: data-stat="[a-z0-9_.]+")?>([^<]*)</span>', r"\1", t)
 
     home = unlive(_read(out / "ie" / "index.html"))
     ins = unlive(_read(out / "ie" / "insights" / "index.html"))

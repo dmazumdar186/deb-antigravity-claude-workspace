@@ -6,7 +6,7 @@ compatibility_date = "2026-09-01"
 #   wrangler secret put RESEND_API_KEY
 #   wrangler secret put BUILD_TOKEN
 
-# Routes are added at go-live (README "Deploy"); staging uses the workers.dev host in HOST_SITE_MAP.
+# Routes are added at go-live (README "Deploy"); staging uses the workers.dev hosts in HOST_SITE_MAP (IE: env.staging, UK: env.staging-uk).
 # Job pages are rendered by this Worker from D1 (ARCHITECTURE.md §3.1), so the board paths route here too;
 # everything else (home, guides, assets) stays on Pages. Repeat each pattern for the www. host.
 # routes = [
@@ -141,6 +141,62 @@ migrations_dir = "../../../../deliverables/greenjobs_migration_2026-11-06/build/
 # [[env.staging.r2_buckets]]   # R2 not enabled on our account yet (environments.json _r2_note); CVs -> 503 on staging
 # binding = "CVS"
 # bucket_name = "greenjobs-cvs-staging"
+
+# Second staging Worker: the same code and the same D1 on its own workers.dev host, mapped to the UK site, so
+# every host-scoped path (job pages, /api/jobs without ?site=, sitemaps) is testable for UK on staging
+# (deploy/ENVIRONMENTS.md "UK Worker"). A workers.dev host is per script, hence a second script rather than a
+# second HOST_SITE_MAP entry. No cron (the IE Worker's */10 cron already drains the shared D1), no Access app
+# (admin stays on the IE host), no BUILD_TOKEN secret (export/import answer 503/401 here). Staging only:
+# production keeps one Worker with zone routes per domain.
+[env.staging-uk]
+name = "greenjobs-platform-staging-uk"
+workers_dev = true
+
+[env.staging-uk.triggers]
+crons = []
+
+[env.staging-uk.vars]
+DRY_RUN = "1"              # pinned: staging never sends mail (check-config enforces)
+LIVE_CONFIRM = ""
+HOST_SITE_MAP = '{"greenjobs-platform-staging-uk.debanjan186.workers.dev":"uk"}'
+ACCESS_TEAM_DOMAIN = ""    # no Access app on this host: /admin and /api/admin answer not_configured (fail closed); staff use the IE host
+ACCESS_AUD = ""
+STAFF_EMAILS = ""
+ACCESS_SERVICE_TOKEN_IDS = ""
+APPLY_ROUTING = "inbox"
+APPLY_INBOX_IE = ""
+APPLY_INBOX_UK = ""
+MAIL_PROVIDER = "none"     # pinned: no mail provider on staging
+MAIL_FROM = ""
+MAIL_DAILY_CAP = "0"
+OPS_ALERT_EMAIL = ""
+RATE_APPLY_PER_10MIN = "5"
+RATE_ADMIN_PER_MIN = "60"
+MAX_CV_BYTES = "5242880"
+ALERTS_ENABLED = "0"
+NEWSLETTER_ENABLED = "0"
+ROBOTS_INDEX = "0"         # pinned: staging is never indexed (Worker pages + Pages _headers X-Robots-Tag)
+CANONICAL_ORIGIN_IE = ""
+CANONICAL_ORIGIN_UK = ""
+LIST_FROM_IE = ""
+LIST_FROM_UK = ""
+LIST_MAIL_RUN_CAP = "20"
+LIST_MAIL_DAILY_CAP = "100"
+LIST_DIGEST_HOUR_UTC = "7"
+RATE_ALERTS_PER_10MIN = "5"
+FEED_IMPORT_ENABLED = "0"
+IMPORT_MAX_CLOSE_SHARE = "0.5"
+EMPLOYER_POSTING_ENABLED = "0"
+ALLOWED_ORIGINS = "https://greenjobs-staging-ie.pages.dev,https://greenjobs-staging-uk.pages.dev"
+
+[env.staging-uk.version_metadata]
+binding = "CF_VERSION_METADATA"
+
+[[env.staging-uk.d1_databases]]
+binding = "DB"
+database_name = "greenjobs-staging"
+database_id = "d94a690a-286a-4608-b563-8329fdc37382"
+migrations_dir = "../../../../deliverables/greenjobs_migration_2026-11-06/build/d1/migrations"
 
 [env.production]
 name = "greenjobs-platform"

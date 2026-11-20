@@ -42,3 +42,12 @@ test('kpiRows labels the advertised window and describes the agency rule', () =>
   assert.ok(!rows.some(r => r[0] === 'Median days to close'));
   assert.ok(rows.find(r => r[0] === 'Agency share %')[2].includes('recruit/talent/staffing'));
 });
+
+test('tileText formats one live tile by its /api/stats key (data-stat="kpis.<key>")', () => {
+  assert.equal(D.tileText('live', 88), '88');
+  assert.equal(D.tileText('sal_pct', 31), '31%');
+  assert.equal(D.tileText('top_share', 72), '72%');
+  assert.equal(D.tileText('days_to_close', null), 'n/a');
+  assert.deepEqual(D.tileTexts({ live: 1, new7: 2, closing7: 3, sal_pct: 4, days_to_close: null, remote_pct: 5, top_share: 6, agency_pct: 7 }),
+    ['1', '2', '3', '4%', 'n/a', '5%', '6%', '7%']);
+});

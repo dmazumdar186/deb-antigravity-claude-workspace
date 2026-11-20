@@ -13,6 +13,14 @@
     "staging": {
       "wrangler_env": "staging",
       "worker": "greenjobs-platform-staging",
+      "extra_workers": [
+        {
+          "wrangler_env": "staging-uk",
+          "worker": "greenjobs-platform-staging-uk",
+          "site": "uk"
+        }
+      ],
+      "_extra_workers_note": "A workers.dev host is per script, so UK gets a second deployment of the same Worker (wrangler [env.staging-uk]: same D1, HOST_SITE_MAP -> uk, no cron, no Access app). release.py deploys it right after the primary; check-config pins it. Staging only.",
       "d1": "greenjobs-staging",
       "r2": "",
       "_r2_note": "R2 is not enabled on our account yet (API code 10042): staging runs without CV storage; an apply with a CV answers 503 cv_storage_unavailable. Set to greenjobs-cvs-staging and restore the wrangler binding once R2 is enabled.",
@@ -27,7 +35,7 @@
       },
       "worker_urls": {
         "ie": "https://greenjobs-platform-staging.debanjan186.workers.dev",
-        "uk": ""
+        "uk": "https://greenjobs-platform-staging-uk.debanjan186.workers.dev"
       },
       "account_id_env": "CLOUDFLARE_ACCOUNT_ID",
       "api_token_env": "CLOUDFLARE_API_TOKEN",
@@ -37,11 +45,13 @@
       "live_api": false,
       "api_base": {
         "ie": "https://greenjobs-platform-staging.debanjan186.workers.dev",
-        "uk": "https://greenjobs-platform-staging.debanjan186.workers.dev"
+        "uk": "https://greenjobs-platform-staging-uk.debanjan186.workers.dev"
       },
-      "_api_base_note": "The static boards read live jobs / stats / sign-up flags from this Worker origin (CORS: the Worker's ALLOWED_ORIGINS). One workers.dev host serves both editions via ?site=.",
+      "_api_base_note": "The static boards read live jobs / stats / sign-up flags from this Worker origin (CORS: the Worker's ALLOWED_ORIGINS). Each board reads its own edition's Worker host; the other edition on the same Pages project reads it with ?site= (both Workers share one D1).",
       "analytics": "off",
-      "smoke_mode": "full"
+      "smoke_mode": "full",
+      "board_stats_from_api": true,
+      "_board_stats_note": "release.py GETs /api/stats per edition after the Worker deploy and passes it to build_site.py --stats-json, so the static figure slots (data-stat) carry D1's figures, as the live scripts show them; smoke stats_parity compares every marked figure with /api/stats."
     },
     "production": {
       "wrangler_env": "production",
@@ -72,7 +82,8 @@
         "uk": ""
       },
       "analytics": "production",
-      "smoke_mode": "read_only"
+      "smoke_mode": "read_only",
+      "board_stats_from_api": false
     }
   },
   "smoke": {
@@ -87,14 +98,16 @@
       "admin_job": "/api/admin/jobs/{id}",
       "admin_close": "/api/admin/jobs/{id}/close",
       "board_list": "/{ed}/jobs/",
-      "board_dashboard": "/{ed}/dashboard/"
+      "board_dashboard": "/{ed}/dashboard/",
+      "board_home": "/{ed}/",
+      "board_job": "/{ed}/jobs/{slug}/"
     },
     "closed_job_status": 410,
     "job_visible_timeout_s": 900,
     "job_visible_poll_s": 30,
     "redirect_sample_size": 20,
     "stats_live_key": "live_jobs",
-    "dashboard_stat_regex": "data-stat=\"([a-z_]+)\"[^>]*>\\s*([0-9][0-9,]*)\\s*<",
+    "dashboard_stat_regex": "<([a-z0-9]+)\\b[^>]*\\bdata-stat=\"([a-z0-9_.]+)\"[^>]*>([^<]*)</\\1>",
     "required_headers": {
       "worker": [
         "x-content-type-options",

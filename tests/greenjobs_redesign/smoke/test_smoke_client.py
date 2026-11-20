@@ -62,8 +62,12 @@ class MockGreenJobs:
         dashboard_live=None,
         raise_on=None,
         no_cors=False,
+        markers=True,
+        extra_marker=None,
+        no_job_page=False,
     ):
         self.no_cors = no_cors
+        self.markers, self.extra_marker, self.no_job_page = markers, extra_marker, no_job_page
         self.cfg, self.clock = cfg, clock
         self.jobs = {
             f"ie:seed-{i}": {"status": "live", "mode": "link", "created": -1e9}
@@ -136,16 +140,33 @@ class MockGreenJobs:
                 if self.dashboard_live is None
                 else self.dashboard_live
             )
-            return self.r(200, f'<html><p data-stat="live_jobs">{n:,}</p></html>')
+            if not self.markers:
+                return self.r(200, f'<html><p class="n">{n:,}</p></html>')
+            extra = f'<b data-stat="{self.extra_marker}">5</b>' if self.extra_marker else ""
+            return self.r(200, f'<html><p data-stat="live_jobs">{n:,}</p><b class="kpi__v num" data-stat="kpis.live">{n}</b>{extra}</html>')
+        if re.fullmatch(r"/(ie|uk)/", path) and self.markers:
+            return self.r(200, f'<html><span data-live="n_jobs" data-stat="salary.n_jobs">{len(self.live_ids())}</span></html>')
+        jm = re.fullmatch(r"/(ie|uk)/jobs/([^/]+)/", path)
+        if jm and jm.group(2) in self.live_ids():  # production: the Worker route on the board host
+            return self.job_page(jm.group(2))
         if path.startswith(("/ie/", "/uk/")):
             return self.r(200, "<html><body>board</body></html>")
         return self.r(404, "<html>404</html>")
+
+    def job_page(self, slug):
+        if self.no_job_page or slug not in self.live_ids():
+            return self.r(404, "<html>gone</html>")
+        return self.r(200, '<html><script type="application/ld+json">{"@type":"JobPosting"}</script></html>')
 
     def worker(self, method, u, path, q, headers, body):
         if path == "/api/health":
             return self.r(200, {"ok": True})
         if path == "/api/stats":
-            return self.r(200, {"live_jobs": len(self.live_ids()) + self.stats_off})
+            n = len(self.live_ids()) + self.stats_off
+            return self.r(200, {"live_jobs": n, "salary": {"n_jobs": n}, "kpis": {"live": n}})
+        m = re.fullmatch(r"/(ie|uk)/jobs/([^/]+)/", path)
+        if m and method == "GET":
+            return self.job_page(m.group(2))
         if path == "/api/config":
             acao = {} if self.no_cors else {"access-control-allow-origin": headers.get("Origin", "")}
             return self.r(200, {"site": q["site"][0], "alerts": False, "newsletter": False}, acao)
@@ -261,7 +282,7 @@ def failed(res):
 
 
 def test_full_staging_pass(cfg):
-    res, by, _mock, clock = run(cfg)
+    res, by, mock, clock = run(cfg)
     assert res["status"] == "pass", failed(res)
     for name in (
         "health[ie]",
@@ -282,11 +303,14 @@ def test_full_staging_pass(cfg):
         "security_headers[board:uk]",
     ):
         assert by[name]["status"] == "pass", name
-    assert (
-        by["health[uk]"]["status"] == "skip"
-    )  # staging has one Worker host (ENVIRONMENTS.md)
+    # staging has a Worker host per site (IE + the staging-uk deployment): no Worker check skips
+    for name in ("health[uk]", "jobs_api[uk]", "stats_parity[uk]", "job_page[ie]", "job_page[uk]", "security_headers[worker:uk]"):
+        assert by[name]["status"] == "pass", (name, by[name])
+    assert [c["name"] for c in res["checks"] if c["status"] == "skip"] == []
+    assert "figures compared: 3 (0 differ)" in by["stats_parity[uk]"]["detail"]
+    assert any("staging-uk.debanjan186.workers.dev/api/health" in u for _, u in mock.requests)
     assert "1500 jobs over 2 page(s)" in by["jobs_api[ie]"]["detail"]
-    assert "live_jobs" in by["stats_parity[ie]"]["detail"]
+    assert "figures compared: 3 (0 differ)" in by["stats_parity[ie]"]["detail"]
     assert "20/20 ok" in by["redirects[ie]"]["detail"]
     assert 0 < clock.sleeps <= 900 // 30
 
@@ -423,3 +447,37 @@ def test_smoke_apply_sends_render_timestamp():
     assert '"ts": str(int(time.time() * 1000) - 5000)' in src
     assert _time.time() * 1000 - 5000 < _time.time() * 1000 - 3000
     assert _re.search(r'def apply\(self', src)
+
+
+def test_stats_parity_with_no_figure_markers_fails(cfg):
+    """A parity check that compares nothing must not pass (staging 2026-11-20: 'compared: none' was a PASS)."""
+    res, by, *_ = run(cfg, markers=False)
+    assert {"stats_parity[ie]", "stats_parity[uk]"} <= set(failed(res))
+    assert "figures compared: none" in by["stats_parity[ie]"]["detail"]
+
+
+def test_stats_parity_marker_with_unknown_key_fails(cfg):
+    res, by, *_ = run(cfg, extra_marker="kpis.no_such_figure")
+    assert "stats_parity[ie]" in failed(res)
+    assert "kpis.no_such_figure=5 vs stats: no such figure" in by["stats_parity[ie]"]["detail"]
+
+
+def test_stats_parity_compares_every_marker_dotted_and_flat(cfg):
+    res, by, *_ = run(cfg, dashboard_live=7)
+    d = by["stats_parity[ie]"]["detail"]
+    assert "dashboard live_jobs=7" in d and "dashboard kpis.live=7" in d and "figures compared: 3 (2 differ)" in d
+
+
+def test_job_page_must_render(cfg):
+    res, by, *_ = run(cfg, no_job_page=True)
+    assert {"job_page[ie]", "job_page[uk]"} <= set(failed(res))
+    assert "/uk/jobs/" in by["job_page[uk]"]["detail"] and "HTTP 404" in by["job_page[uk]"]["detail"]
+
+
+def test_stat_lookup_matches_build_site():
+    sys.path.insert(0, str(ROOT / "execution/gtm_client_workflows/greenjobs_redesign"))
+    import build_site
+
+    stats = {"live_jobs": 3, "salary": {"n_jobs": 3, "median": "€5k"}, "kpis": {"days_to_close": None}}
+    for key in ("live_jobs", "salary.n_jobs", "salary.median", "kpis.days_to_close", "kpis.nope", "salary.n_jobs.x"):
+        assert smoke._stat_lookup(stats, key) == build_site.stat_lookup(stats, key), key

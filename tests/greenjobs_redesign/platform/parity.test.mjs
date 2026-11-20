@@ -117,8 +117,11 @@ test('parity: dashboard.js rewrites the static KPI tiles with exactly the values
   for (const site of ['ie', 'uk']) {
     const html = B.sites[site].dashboard_html;
     const live = html.slice(html.indexOf('<div class="kpis">'), html.indexOf('data-wired'));
-    const printed = [...live.matchAll(/<b class="kpi__v num">([^<]*)<\/b>/g)].map((m) => m[1]);
+    const printed = [...live.matchAll(/<b class="kpi__v num"(?: data-stat="[a-z0-9_.]+")?>([^<]*)<\/b>/g)].map((m) => m[1]);
     assert.deepEqual(D.tileTexts(B.sites[site].stats.kpis), printed, site);
+    // each live tile names its /api/stats figure; dashboard.js writes by that key, in TILE_KEYS order
+    const keys = [...live.matchAll(/data-stat="kpis\.([a-z0-9_]+)"/g)].map((m) => m[1]);
+    assert.deepEqual(keys, D.TILE_KEYS, site);
     for (const key of ['applications_30d', 'alert_signups_30d', 'advertiser_enquiries_30d']) assert.match(html, new RegExp(`data-measure="${key}"`));
     assert.match(html, /Measures to come/);
   }

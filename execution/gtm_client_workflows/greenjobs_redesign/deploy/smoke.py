@@ -2,7 +2,8 @@
 
 description: Black-box checks of a deployed GreenJobs environment over HTTPS. Read checks (both envs):
     health, job list (Worker API + board page), security headers, KPI dashboard, /api/stats parity
-    with the paginated job list and the dashboard figures, 20 sampled legacy redirects -> 301 -> 200,
+    with the paginated job list and every data-stat figure on the home page and dashboard (none = fail),
+    a Worker-rendered job page per site, 20 sampled legacy redirects -> 301 -> 200,
     build-export auth. Write checks (staging `full` mode only): create an email-mode and a link-mode job
     through the admin API with the staging Access service token, poll until public (<= 15 min), apply
     in both modes (DRY_RUN, synthetic applicant, no CV), close both, expect the closed status (410).
@@ -59,6 +60,16 @@ class Resp:
 
 
 Transport = Callable[[str, str, dict[str, str], bytes | None], Resp]
+
+
+def _stat_lookup(stats: Any, path: str) -> tuple[bool, Any]:
+    """(found, value) for a dotted /api/stats path; the same rule as build_site.stat_lookup."""
+    cur = stats
+    for part in path.split("."):
+        if not isinstance(cur, dict) or part not in cur:
+            return False, None
+        cur = cur[part]
+    return True, cur
 
 
 class _NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -212,20 +223,58 @@ class Smoke:
                 )
                 continue
             ok, detail = live == n, f"stats {live} vs list {n}"
-            dash = self.get(boards[site] + self.p("board_dashboard", ed=site))
-            marks = {
-                k: int(v.replace(",", ""))
-                for k, v in re.findall(self.sc["dashboard_stat_regex"], dash.text)
-            }
-            shared = sorted(set(marks) & set(stats))
-            for k in shared:
-                if isinstance(stats[k], int) and stats[k] != marks[k]:
-                    ok, detail = (
-                        False,
-                        f"{detail}; dashboard {k}={marks[k]} vs stats {stats[k]}",
-                    )
-            detail += f"; dashboard figures compared: {', '.join(shared) or 'none (no data-stat markers)'}"
+            compared, bad = self.compare_figures(boards[site], site, stats)
+            if bad:
+                ok, detail = False, f"{detail}; {'; '.join(bad[:3])}"
+            if not compared:
+                ok = False
+                detail += "; figures compared: none (no data-stat markers on home or dashboard): FAIL"
+            else:
+                detail += f"; figures compared: {compared} ({len(bad)} differ)"
             self.rec(f"stats_parity[{site}]", ok, detail)
+
+    def compare_figures(self, board: str, site: str, stats: dict[str, Any]) -> tuple[int, list[str]]:
+        """Every data-stat figure slot on the board's home page and KPI dashboard against /api/stats: the key is a
+        dotted path into the stats body (salary.n_jobs, kpis.live; a flat key such as live_jobs works too) and the
+        printed text must equal the value as the pages print it (thousands separators and a trailing % ignored,
+        null = n/a). A key /api/stats does not have is a difference, not a skip. Returns (compared, differences)."""
+        compared, bad = 0, []
+        for page in ("board_home", "board_dashboard"):
+            r = self.get(board + self.p(page, ed=site))
+            if r.status != 200:
+                bad.append(f"{self.p(page, ed=site)} HTTP {r.status}")
+                continue
+            for _tag, key, text in re.findall(self.sc["dashboard_stat_regex"], r.text):
+                compared += 1
+                found, want = _stat_lookup(stats, key)
+                got = text.strip().replace(",", "")
+                if not found or isinstance(want, (dict, list)):
+                    bad.append(f"{page[6:]} {key}={text.strip()} vs stats: no such figure")
+                elif got.rstrip("%") != ("n/a" if want is None else str(want).replace(",", "")):
+                    bad.append(f"{page[6:]} {key}={text.strip()} vs stats {want}")
+        return compared, bad
+
+    def check_job_pages(self) -> None:
+        """Each Worker host renders a job page of its own site from D1: the first job of /api/jobs?view=board
+        answers 200 at /{site}/jobs/<slug>/ with its JobPosting structured data."""
+        for site, base in self.sites("worker_urls"):
+            if not base:
+                self.rec(f"job_page[{site}]", None, "no Worker host")
+                continue
+            r = self.get(f"{base}/api/jobs?view=board&site={site}&limit=1&text=0")
+            body = r.json() if r.status == 200 else None
+            jobs = body.get("jobs") if isinstance(body, dict) else None
+            slug = str(jobs[0].get("id") or "") if isinstance(jobs, list) and jobs and isinstance(jobs[0], dict) else ""
+            if not re.fullmatch(r"[A-Za-z0-9_:-]{1,120}", slug):
+                self.rec(f"job_page[{site}]", False, f"board list HTTP {r.status}, no job slug")
+                continue
+            path = self.p("board_job", ed=site, slug=slug)
+            g = self.get(base + path)
+            self.rec(
+                f"job_page[{site}]",
+                g.status == 200 and "<html" in g.text.lower() and '"JobPosting"' in g.text,
+                f"{path} HTTP {g.status}",
+            )
 
     def check_live_wiring(self) -> None:
         """Each static board reads live data and sign-up flags from its API origin (environments.json api_base;
@@ -585,6 +634,7 @@ class Smoke:
         self.check_boards()
         self.check_headers()
         self.check_jobs_and_stats()
+        self.check_job_pages()
         self.check_live_wiring()
         self.check_redirects()
         self.check_export()

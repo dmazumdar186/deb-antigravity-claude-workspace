@@ -2,7 +2,8 @@
 
 description: Plans and (only with --execute) runs the GreenJobs Cloudflare release steps for the
     `staging` and `production` environments in environments.json: D1 schema + migrations, Worker
-    deploy, both static boards to Pages, a pre-promote D1 backup and previous-version record, and
+    deploy (plus any extra_workers, e.g. staging-uk), both static boards to Pages (staging: built with the
+    deployed Worker's /api/stats figures), a pre-promote D1 backup and previous-version record, and
     rollback to the recorded previous Worker version + Pages deployments. Every run writes a deploy
     record (deploy_record.json) and appends to an append-only ledger (ledger.jsonl). Without
     --execute it prints the exact wrangler / API commands and touches nothing.
@@ -26,6 +27,7 @@ import re
 import shlex
 import subprocess
 import sys
+import urllib.error
 import urllib.request
 from collections.abc import Callable
 from pathlib import Path
@@ -123,7 +125,49 @@ def check_wrangler_toml(
         missing
     ):  # vars are not inherited by wrangler envs: a missing one silently becomes undefined
         problems.append(f"env.{env}.vars is missing {', '.join(missing)}")
+    for xw in ec.get("extra_workers") or []:
+        problems += _check_extra_worker(data, sec, ec, env, xw)
     return problems
+
+
+def _check_extra_worker(data: dict[str, Any], primary: dict[str, Any], ec: dict[str, Any], env: str, xw: dict[str, Any]) -> list[str]:
+    """A second Worker deployment of the same code for one site (staging-uk: its own workers.dev host, the same D1).
+    It must share the primary's D1 binding exactly, carry every var with the same mail pins, map ONLY its own
+    host to its site, and run no cron (the primary's */10 cron already drains the shared D1; two would race)."""
+    name = xw.get("wrangler_env", "")
+    sec = data.get("env", {}).get(name)
+    if sec is None:
+        return [f"wrangler.toml has no [env.{name}] section (extra Worker of {env})"]
+    out = []
+    if sec.get("name") != xw.get("worker"):
+        out.append(f"env.{name}.name is {sec.get('name')!r}, expected {xw.get('worker')!r}")
+    if sec.get("workers_dev") is not True:
+        out.append(f"env.{name}.workers_dev must be true")
+
+    def strip(ds: Any) -> list[dict[str, Any]]:
+        return [{k: d.get(k) for k in ("binding", "database_name", "database_id")} for d in ds or []]
+
+    if strip(sec.get("d1_databases")) != strip(primary.get("d1_databases")):
+        out.append(f"env.{name}.d1_databases must equal env.{ec['wrangler_env']}'s (one D1 per environment)")
+    if [b.get("bucket_name") for b in sec.get("r2_buckets") or []] != [b.get("bucket_name") for b in primary.get("r2_buckets") or []]:
+        out.append(f"env.{name}.r2_buckets must equal env.{ec['wrangler_env']}'s")
+    if (sec.get("triggers") or {}).get("crons") != []:
+        out.append(f"env.{name}.triggers.crons must be [] (the primary Worker's cron already serves the shared D1)")
+    vars_ = sec.get("vars") or {}
+    if ec.get("require_dry_run") and (vars_.get("DRY_RUN") != "1" or vars_.get("LIVE_CONFIRM") or vars_.get("MAIL_PROVIDER", "none") != "none"):
+        out.append(f'env.{name}.vars must pin DRY_RUN="1", an empty LIVE_CONFIRM and MAIL_PROVIDER="none"')
+    missing = sorted(set((data.get("vars") or {}).keys()) - set(vars_))
+    if missing:
+        out.append(f"env.{name}.vars is missing {', '.join(missing)}")
+    site, url = xw.get("site"), (ec.get("worker_urls") or {}).get(xw.get("site"), "")
+    host = re.sub(r"^https://", "", url).split("/")[0]
+    try:
+        hmap = json.loads(vars_.get("HOST_SITE_MAP") or "{}")
+    except ValueError:
+        hmap = None
+    if hmap != {host: site}:
+        out.append(f"env.{name}.vars.HOST_SITE_MAP must be exactly {{{host!r}: {site!r}}} (worker_urls.{site})")
+    return out
 
 
 # ── SQL and migrations ─────────────────────────────────────────────────────
@@ -464,6 +508,19 @@ def subprocess_runner(argv: list[str], env: dict[str, str]) -> tuple[int, str]:
 
 
 ApiCall = Callable[[str, str, str, str], dict[str, Any]]
+HttpGet = Callable[[str], tuple[int, bytes]]
+
+
+def urllib_get(url: str) -> tuple[int, bytes]:
+    """Public GET (the deployed Worker's /api/stats): status and body; a network error is a step failure."""
+    req = urllib.request.Request(url, headers={"User-Agent": "greenjobs-release/1"})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            return resp.status, resp.read(2_000_000)
+    except urllib.error.HTTPError as e:
+        return e.code, b""
+    except (OSError, ValueError) as e:
+        raise StepError(f"GET {url} failed: {type(e).__name__}") from e
 
 
 def urllib_api(method: str, path: str, token: str, account: str) -> dict[str, Any]:
@@ -496,12 +553,13 @@ class Release:
         runner: Runner = subprocess_runner,
         api: ApiCall = urllib_api,
         workdir: Path | None = None,
+        http_get: HttpGet = urllib_get,
         environ: dict[str, str] | None = None,
     ) -> None:
         self.cfg, self.env, self.sha, self.execute = cfg, env, sha, execute
         self.ec = env_cfg(cfg, env)
         self.ledger_dir = ledger_dir
-        self.runner, self.api = runner, api
+        self.runner, self.api, self.http_get = runner, api, http_get
         self.workdir = workdir or (ROOT / ".tmp" / "greenjobs_release" / env)
         self.environ = dict(os.environ) if environ is None else dict(environ)
         self.record = new_record(env, sha, execute)
@@ -534,7 +592,7 @@ class Release:
                 encoding="utf-8"
             )
         )
-        for d in toml["env"][self.ec["wrangler_env"]].get("d1_databases", []):
+        for d in [d for e in self.wrangler_envs() for d in toml["env"][e].get("d1_databases", [])]:
             if "REPLACE_" in str(d.get("database_id", "")):
                 ph.append(
                     f"wrangler.toml env.{self.env} database_id={d.get('database_id')}"
@@ -576,15 +634,18 @@ class Release:
             raise StepError(f"{desc}: API answered success=false")
         return res
 
-    def wr(self, *args: str) -> list[str]:
+    def wr(self, *args: str, wrangler_env: str | None = None) -> list[str]:
         return [
             *WRANGLER,
             *args,
             "--config",
             f"{self.cfg['worker_dir']}/wrangler.toml",
             "--env",
-            self.ec["wrangler_env"],
+            wrangler_env or self.ec["wrangler_env"],
         ]
+
+    def wrangler_envs(self) -> list[str]:
+        return [self.ec["wrangler_env"], *(x["wrangler_env"] for x in self.ec.get("extra_workers") or [])]
 
     def latest_pages_deployment(self, project: str) -> str | None:
         res = self.call_api(
@@ -639,12 +700,54 @@ class Release:
                 "could not read the new Worker version id from wrangler output"
             )
         self.record["worker_version_id"] = vid
+        for xw in self.ec.get("extra_workers") or []:
+            out = self.run(
+                f"Worker deploy -> {xw['worker']} (site {xw['site']}, same D1)",
+                self.wr("deploy", "--var", f"RELEASE_SHA:{self.sha}", wrangler_env=xw["wrangler_env"]),
+            )
+            xid = DRY if not self.execute else parse_worker_version(out)
+            if not xid:
+                raise StepError(f"could not read the {xw['worker']} version id from wrangler output")
+            self.record.setdefault("extra_worker_versions", {})[xw["worker"]] = xid
+
+    def fetch_board_stats(self) -> dict[str, Path]:
+        """Staging (board_stats_from_api): GET each edition's /api/stats from the just-deployed Worker, so the
+        board build writes its data-stat figure slots with the values the live scripts would show (the static
+        board's own dataset is a snapshot; D1 is the truth). The smoke then compares every marked figure with
+        /api/stats again. Returns {edition: stats file}; {} when the environment does not opt in."""
+        if not self.ec.get("board_stats_from_api"):
+            return {}
+        self.workdir.mkdir(parents=True, exist_ok=True)
+        files: dict[str, Path] = {}
+        for site in sorted(self.ec["pages"]):
+            base = ((self.ec.get("api_base") or {}).get(site) or self.ec["worker_urls"].get(site) or "").rstrip("/")
+            if not base.startswith("https://"):
+                raise GateError(f"board_stats_from_api: no https Worker origin for {site}")
+            url = f"{base}/api/stats?site={site}"
+            f = self.workdir / f"stats-{site}.json"
+            print(f"[{self.env}] live figures for the {site} board build\n  $ GET {url} -> {f.name}")
+            self.log.append(f"GET {url}")
+            files[site] = f
+            if not self.execute:
+                continue
+            status, body = self.http_get(url)
+            try:
+                stats = json.loads(body.decode("utf-8")) if status == 200 else None
+            except ValueError:
+                stats = None
+            if not (isinstance(stats, dict) and stats.get("site") == site and isinstance(stats.get("live_jobs"), int)
+                    and isinstance(stats.get("kpis"), dict) and isinstance(stats.get("salary"), dict)):
+                raise StepError(f"/api/stats?site={site} answered HTTP {status} without a usable stats body")
+            f.write_text(json.dumps(stats, ensure_ascii=False), encoding="utf-8")
+        return files
 
     def deploy_boards(self) -> None:
         build = "execution/gtm_client_workflows/greenjobs_redesign/build_site.py"
         deploy = (
             "execution/gtm_client_workflows/greenjobs_redesign/deploy_cloudflare.sh"
         )
+        stats = self.fetch_board_stats()
+        stat_args = [a for ed, f in sorted(stats.items()) for a in ("--stats-json", f"{ed}={f.relative_to(ROOT) if f.is_relative_to(ROOT) else f}")]
         for site, project in sorted(self.ec["pages"].items()):
             out_dir = self.workdir / f"site-{site}"
             rel = (
@@ -672,6 +775,7 @@ class Release:
                     # GA4 only in production builds; staging stays analytics-free
                     "--analytics",
                     "production" if self.ec.get("analytics") == "production" else "off",
+                    *stat_args,
                 ],
             )
             self.run(

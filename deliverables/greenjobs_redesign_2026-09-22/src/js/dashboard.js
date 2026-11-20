@@ -33,12 +33,12 @@
   }
   /* The eight "Live now" tile values in render_dashboard()'s order and format. */
   var TILE_KEYS = ['live', 'new7', 'closing7', 'sal_pct', 'days_to_close', 'remote_pct', 'top_share', 'agency_pct'];
+  function tileText(key, v) {
+    if (v == null) return 'n/a';
+    return /_pct$|^top_share$/.test(key) ? v + '%' : String(v);
+  }
   function tileTexts(k) {
-    return TILE_KEYS.map(function (key) {
-      var v = k[key];
-      if (v == null) return 'n/a';
-      return /_pct$|^top_share$/.test(key) ? v + '%' : String(v);
-    });
+    return TILE_KEYS.map(function (key) { return tileText(key, k[key]); });
   }
   /* "Measures to come" slots fed by /api/stats `measures` (applications, alert sign-ups, advertiser
      enquiries); null = not collected yet, shown as the page's dash ("collected from launch"). */
@@ -72,8 +72,11 @@
   function draw(host, src, s) {
     var C = window.GJCharts, k = s ? s.kpis : JSON.parse(src.textContent), sym = document.documentElement.lang === 'en-GB' ? '£' : '€';
     if (s) {
-      var vals = tileTexts(k);
-      Array.prototype.forEach.call(host.querySelectorAll('.kpis:not([data-wired]) .kpi__v'), function (el, i) { if (i < vals.length) el.textContent = vals[i]; });
+      /* each live tile names its /api/stats figure (data-stat="kpis.<key>", build_site DASH_TILE_KEYS) */
+      Array.prototype.forEach.call(host.querySelectorAll('[data-stat^="kpis."]'), function (el) {
+        var key = el.getAttribute('data-stat').slice(5);
+        if (Object.prototype.hasOwnProperty.call(k, key)) el.textContent = tileText(key, k[key]);
+      });
       var t = host.querySelector('.dash__bar time');
       if (t) {
         t.setAttribute('datetime', k.asof);
@@ -108,5 +111,5 @@
   if (typeof document !== 'undefined') {
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
   }
-  return { csvCell: csvCell, toCsv: toCsv, kpiRows: kpiRows, tileTexts: tileTexts, measureText: measureText, fetchStats: fetchStats, TILE_KEYS: TILE_KEYS };
+  return { csvCell: csvCell, toCsv: toCsv, kpiRows: kpiRows, tileTexts: tileTexts, tileText: tileText, measureText: measureText, fetchStats: fetchStats, TILE_KEYS: TILE_KEYS };
 });
