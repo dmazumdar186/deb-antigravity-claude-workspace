@@ -99,7 +99,7 @@ FACT_ORDER = [
     "generator",
     "viewport_missing",
 ]
-MONTHS = "January February March April May June July August September October November December".split()
+MONTHS = [dt.date(2000, m, 1).strftime("%B") for m in range(1, 13)]
 
 
 # ---------------------------------------------------------------- openFDA

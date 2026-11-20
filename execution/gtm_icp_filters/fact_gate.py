@@ -96,7 +96,7 @@ PASS_COLS = [
 ]
 REJECT_COLS = PASS_COLS[:6] + ["verdict", "reason", "evidence_url", "evidence_quote"]
 TRIGGER_TYPES = {"fda_clearance", "federal_award"}
-MONTHS = "january february march april may june july august september october november december".split()
+MONTHS = [dt.date(2000, m, 1).strftime("%B").lower() for m in range(1, 13)]
 
 SUFFIX = {
     "inc",
@@ -120,7 +120,7 @@ SUFFIX = {
     "c",
 }
 # Device-category / anatomy / filler words: never distinctive on their own (a brand or family token is).
-GENERIC = set("""
+_GENERIC_WORDS = """
 a an and or of for with the in on to by from new plus pro ii iii iv mini max ultra advanced next gen generation
 system systems device devices kit kits set sets assay test tests cassette instrument instruments accessory accessories
 tray trays pack component components unit model series family platform solution solutions product products
@@ -141,7 +141,8 @@ disposable reusable sterile single use patient home hospital portable wireless d
 decompression stabilization reconstruction repair replacement treatment therapy obturation antimicrobial
 electrocardiograph ecg ekg skin clinic wart warts tag tags clear care health wound
 hearing aid eye lens contact nasal ear throat breast blood glucose urine pressure temperature oxygen
-""".split())
+"""
+GENERIC = set(_GENERIC_WORDS.split())
 # Agency labels -> extra regexes that count as a "mention" of that agency on a website.
 AGENCY_ALIASES = {
     "coast guard": [r"\bCoast Guard\b", r"\bUSCG\b"],
