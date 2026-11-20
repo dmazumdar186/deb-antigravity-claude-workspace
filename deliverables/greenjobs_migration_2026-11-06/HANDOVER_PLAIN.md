@@ -36,45 +36,25 @@ All of it sits in a **rented shopping centre called Strategies**. Strategies has
 
 We built a **photocopier robot** that watches Gaia's window and copies each new ad into GreenJobs automatically, so Rashieda writes it once. When the robot is not sure which aisle (sector) an ad belongs in, it leaves a sticky note and Rashieda confirms it with one click.
 
-## The big decision: rent a ready-fitted unit, don't build from bricks
+## The big decision: finish the shop we already fitted
 
-- **The first plan** was to build the new shop ourselves, brick by brick: our own website code. When our advisory panel inspected it, they found:
-  - the "post an ad" desk was not connected to the shop window (ads never appeared);
-  - the "Apply" buttons still pointed to the old shopping centre, which closes on 6 Dec;
-  - staff would have had *more* work, not less;
-  - only one person (Debanjan) could ever repair it.
-- **The new plan** is to rent a **ready-fitted shop unit**, Cavuno, a ready-made job-board service, like a franchise kiosk that comes with shelves, tills and lights already working. It costs about $39–79 a month per branch. We then build only what is special to GreenJobs around it:
-  - the photocopier robot;
-  - moving the filing cabinets;
-  - the "we've moved" signs;
-  - changing the post-office address book safely;
+- **We already designed and fitted the new shop.** In September we built the new GreenJobs website and showed it to Keith. That is what won the contract, and it is the shop we are moving into. Keith will not pay for a rented third-party unit, and he does not need to: it runs on Cloudflare's free tier, in GreenJobs' own account.
+- **What the advisers found wrong inside it, and how we fix it:**
+  - **The "post an ad" desk was not connected to the window.** Now the window reads straight from the stock room (the database), so an ad is up within minutes.
+  - **The "Apply" buttons pointed to the old shopping centre.** Now every ad sends applicants to the employer's own email or own website.
+  - **Rashieda had to post each ad twice, once per branch.** Now one form covers both branches, and every field can be corrected later.
+  - **Only one person could repair it.** Now there are written instructions, tests and a status page anyone can read.
+- **What we add around it:**
+  - the photocopier robot for Gaia's ads;
+  - logins for CHM and Mattinson so they keep putting up their own ads;
+  - "we've moved" signs on about 1,200 old doors;
+  - the 8 kiosks turned into signposts to the right aisle;
   - a daily check that the doors are open.
-- **Why rent:**
-  - it already works;
-  - anyone can maintain it;
-  - employers (CHM Recruit, Mattinson) keep putting up their own ads;
-  - job alerts already exist;
-  - the client can take all their data out and leave at any time.
+- **Private files:** only live ads and the employer list move into the new shop. Old candidate files and applications go into a locked archive that GreenJobs owns. Job-alert subscribers move only if they agreed to emails, and they are asked to confirm again.
 
-  With 13 days left, a fitted unit is far safer than building from bricks.
-- **The catch:** the unit's landlord keeps its storeroom in the US. That is legal with the standard EU contract clauses, and we keep very little private data there anyway. Applications go straight to each employer's own email or link, and the 178,000 old candidate files go into a locked archive that GreenJobs owns. They are not moved into the new shop.
+## The final check before move day
 
-## Why the Cavuno trial matters, and why only you can start it
-
-The trial is a **test drive before signing the lease**. Cavuno gives 14 days free, no card. On Mon 23 – Tue 24 Nov we use it to run **8 checks**:
-
-1. Does "Apply" work on a phone?
-2. Do Gaia's ads arrive without duplicates?
-3. Do both branches and a kiosk signpost work?
-4. Do job alerts arrive?
-5. Does email from the shop avoid spam folders?
-6. Can we take all the data out again?
-7. What is the real price at GreenJobs' size?
-8. Is the data agreement in hand?
-
-All 8 pass → we rent it. Any fails → we fall back to finishing our own build, which must pass its own full test by Mon 30 Nov.
-
-**Why you:** signing up sends a "confirm your email" message, and it goes to your ProdCraft inbox, which this workspace cannot read. It takes two minutes and needs no card. Use the ProdCraft address for the trial only. When we buy, the real account is opened **in GreenJobs' name and paid by Keith**, so the client owns its shop and we are only the fitters.
+By **Mon 30 Nov** our own end-to-end test must pass: an ad is posted, appears within 15 minutes, someone applies and the application arrives, the ad is closed and disappears. On top of that: the old doors redirect, every kiosk signpost works, and the doors-open and letters-delivered checks are green. Keith walks round the test shop by **Fri 27 Nov**.
 
 ## How Diana is involved, without calls or passwords
 
@@ -94,7 +74,7 @@ All 8 pass → we rent it. Any fails → we fall back to finishing our own build
 
 | When | What happens |
 |---|---|
-| Mon 23 – Tue 24 Nov | Test drive. Rent or build decided by Tuesday |
+| Mon 23 – Tue 24 Nov | Finish fixing the shop. Test version goes up for Keith |
 | Wed 25 Nov | Diana's guides go out. CHM and Mattinson get their own posting logins |
 | Thu 26 – Fri 27 Nov | New shop fitted and stocked. Keith walks round the test shop |
 | Mon 30 Nov – Tue 1 Dec | Post-office address book changes. Old shop still open; letters checked first |
@@ -105,5 +85,4 @@ All 8 pass → we rent it. Any fails → we fall back to finishing our own build
 
 ## What only the boss (Debanjan) does
 
-1. Starts the Cavuno test drive: sign up with the ProdCraft email.
-2. Signs the lease and the private-files rule sheet with Keith: the contract and the DPA. The cabinets cannot be emptied until then, so a signature after about 1 December puts some files at risk.
+1. Signs the lease and the private-files rule sheet with Keith: the contract and the DPA. The cabinets cannot be emptied until then, so a signature after about 1 December puts some files at risk.

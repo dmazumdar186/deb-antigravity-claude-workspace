@@ -19,33 +19,35 @@ Keith's company, Gaia Talent, owns two job websites: greenjobs.ie (Ireland) and 
 
 Gaia posts each job twice, by hand. It goes up once on Gaia's own website (gaiatalent.com) and is typed again on GreenJobs: **81 of Gaia's 83 jobs are on both.** That is wasted staff time every week. We built a robot that reads Gaia's website and puts the jobs on GreenJobs automatically, so Rashieda posts once.
 
-## 4. The big decision: buy the website, build the automation
+## 4. The big decision: our own site, fixed
 
-**Before (the old plan):** we would write the whole job website ourselves.
+**The site we designed in September won the contract and is the product.** Keith will not pay for a third-party service, so there is none. It runs on Cloudflare's free tier, in GreenJobs' own account.
 
-**What the 12-person advisory panel found when we tested that plan:**
-- A job posted by staff never actually appeared on the website. The link between the two was never built.
-- The "Apply" buttons pointed to the old Strategies pages, which die on 6 December.
-- It would have given staff *more* work, not less: about 20 hours a month against about 14 today. These are estimates.
-- Only Debanjan could ever fix it.
+**What the 12-person advisory panel found in our build, and the fix:**
 
-**Now (the new plan):** rent a ready-made job-board website, Cavuno, which costs about $39–79 a month per board, and build only what is special to GreenJobs around it:
-
-| Ready-made (Cavuno does it) | Built by us (our automation) |
+| Defect | Fix |
 |---|---|
-| Job pages, search and apply buttons that work on phones | The robot that copies Gaia's jobs automatically |
-| Employers posting their own jobs (CHM and Mattinson keep doing this) | Moving the old data from Strategies into the new site |
-| Job alert emails to candidates | Forwarding the 8 sector websites to the right job lists |
-| Google for Jobs listing | Moving the 10 domain names safely, without breaking email |
-| Exporting everything if Keith ever wants to leave | A daily health check and a weekly 5-line report to Keith |
+| A job posted by staff never appeared on the website | Job pages are now read straight from the database, so a post is live within minutes |
+| Apply buttons pointed to the old Strategies pages | Each job applies by its own email or its own link |
+| Staff typed each job once per board; fields could not be edited | One form for both boards, every field editable, a closed job can be reopened |
+| Only Debanjan could maintain it | Written instructions, tests and a status page |
 
-**Why buy:** it already works, it is cheaper to run, anyone can maintain it, and it is ready in days rather than weeks. With 13 days left, that matters most.
+**What we add around it:**
+- Gaia's jobs copied in automatically;
+- CHM and Mattinson posting through their own logins;
+- 1,200 old addresses redirected;
+- the 8 sector sites forwarding to filtered lists;
+- daily health checks.
 
-**The catch, and how we handle it:**
-- Cavuno stores data in the US. That is legal under standard EU contract clauses (plus the UK version for UK data). We also keep the data that goes there small: applications go straight to each employer's own email or link, and we **do not** upload the ~178,000 old candidate records. Those stay in a private archive that GreenJobs owns.
-- Job alert subscribers must re-confirm. We will lose some, but this is the safe position under privacy law.
+**Private data:** only live jobs and employers go into the new site. Alert subscribers go in only with consent, and they re-confirm. Old candidates and applications go to GreenJobs' own locked archive.
 
-**The test before we commit (Mon 23 – Tue 24 Nov, free 14-day trial, no card):** 8 checks must pass. They include: applying works on a phone, Gaia's jobs arrive without duplicates, alerts arrive, the sender email passes spam checks, and a full export works. If any check fails, we fall back to finishing our own build, and that must pass its full test by Mon 30 Nov.
+**The final check, by Mon 30 Nov:**
+- our end-to-end test passes: post, visible within 15 minutes, apply delivered, close;
+- old addresses redirect;
+- all sector sites forward;
+- uptime and email checks are green.
+
+Keith checks the test site by Fri 27 Nov.
 
 ## 5. No calls, no passwords
 
@@ -103,7 +105,7 @@ Every number is checked by a script, never by an AI judging itself. Debanjan get
 | When | What |
 |---|---|
 | Fri 20 Nov | Reply to Diana, once it passes the red-team gate |
-| Mon 23 – Tue 24 Nov | Cavuno trial: 8 checks. Buy or build decided by Tue 24 |
+| Mon 23 – Tue 24 Nov | Build fixes finished; test site up for Keith |
 | Wed 25 Nov | Diana's guides go out. CHM and Mattinson get their own posting accounts |
 | Thu 26 – Fri 27 Nov | Test site complete. Domain records copied. Keith checks the test site |
 | Mon 30 Nov – Tue 1 Dec | Domains move (websites unchanged; email checked first) |
@@ -114,5 +116,4 @@ Every number is checked by a script, never by an AI judging itself. Debanjan get
 
 ## 10. What only you can do
 
-1. **Sign up for the Cavuno free trial** with your ProdCraft email. The verification email goes to an inbox this workspace cannot read, and no card is needed.
-2. **The contract and the data agreement with Keith.** The data download cannot start before they are signed. A signature after about 1 December puts some data at risk.
+1. **The contract and the data agreement with Keith.** The data download cannot start before they are signed. A signature after about 1 December puts some data at risk.
