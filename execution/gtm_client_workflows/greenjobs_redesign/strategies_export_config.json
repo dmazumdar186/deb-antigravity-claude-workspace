@@ -1,0 +1,49 @@
+{
+  "_comment": "Page flow for strategies_export_bot.py. URLs, field names and option labels below are GUESSES: nobody has seen the Strategies admin yet. Run `--live --discover --out DIR` once per site, read DIR/discover_<site>.json, correct this file, then set verified=true. Live downloads refuse while verified=false. Report keys match strategies_import.py; header_sheet is the prefix of the sheet name in build/import/REAL_HEADERS_2026-11-19.json.",
+  "verified": false,
+  "date_format": "%d/%m/%Y",
+  "earliest": "2005-01-01",
+  "timeout_s": 180,
+  "sites": {
+    "ie": {
+      "base_url": "https://www.greenjobs.ie",
+      "user_env": "STRATEGIES_USER_IE",
+      "pass_env": "STRATEGIES_PASS_IE",
+      "code_env": "STRATEGIES_CODE_IE"
+    },
+    "uk": {
+      "base_url": "https://www.greenjobs.co.uk",
+      "user_env": "STRATEGIES_USER_UK",
+      "pass_env": "STRATEGIES_PASS_UK",
+      "code_env": "STRATEGIES_CODE_UK"
+    }
+  },
+  "login": {
+    "path": "/admin/",
+    "form_has_field": "password",
+    "user_field": "username",
+    "pass_field": "password",
+    "ok_marker": "Download Reports",
+    "code_marker": "code",
+    "code_form_has_field": "code",
+    "code_field": "code"
+  },
+  "reports_page": {
+    "path": "/admin/reports.asp",
+    "link_text": "Download Reports",
+    "form_has_field": "ReportType"
+  },
+  "fields": {
+    "type": "ReportType",
+    "from": "DateFrom",
+    "to": "DateTo"
+  },
+  "reports": {
+    "recruiters": {"option_label": "Recruiters", "header_sheet": "Recruiters", "dated": true, "total_regex": null},
+    "candidates": {"option_label": "Members registration", "header_sheet": "Members registration", "dated": true, "total_regex": null},
+    "profiles": {"option_label": "Members profile", "header_sheet": "Members profile", "dated": true, "quiet_hours_utc": [9, 17], "total_regex": null},
+    "jobs": {"option_label": "Jobs (All", "header_sheet": "Jobs (All", "dated": true, "total_regex": null},
+    "applications": {"option_label": "Job Applications", "header_sheet": "Job Applications", "dated": true, "total_regex": null},
+    "alerts": {"option_label": "Jobs By Email", "header_sheet": "Jobs By Email", "dated": false, "total_regex": null}
+  }
+}

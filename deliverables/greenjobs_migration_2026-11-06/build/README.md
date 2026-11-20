@@ -28,10 +28,12 @@ off Strategies. Switch Thu 3 Dec 2026, buffer Fri 4 Dec, Strategies off Sun 6 De
 |---|---|
 | `execution/gtm_client_workflows/greenjobs_redesign/platform_worker/` | Worker `greenjobs-platform` (API, apply, console, cron rebuild) |
 | `execution/gtm_client_workflows/greenjobs_redesign/strategies_import.py` | CSV validator and SQL emitter (dry-run by default) |
+| `execution/gtm_client_workflows/greenjobs_redesign/strategies_export_bot.py` (+ `strategies_export_config.json`) | Strategies "Download Reports" export bot: windowed CSV downloads, header check, manifest, R2, resume, M1 reconciliation (dry-run by default) |
 | `execution/gtm_client_workflows/greenjobs_redesign/strategies_mapping.json` | Column mapping read by the validator |
 | `execution/gtm_client_workflows/greenjobs_redesign/build_site.py`, `deploy_cloudflare.sh` | Static site build and Pages deploy (deploy refuses without `.greenjobs-build-ok` and a passing `validate_site.py`) |
 | `tests/greenjobs_redesign/platform/` | Worker unit tests and feature runners (`node --test`) |
 | `tests/greenjobs_redesign/test_strategies_import.py` | Import validator tests (pytest) |
+| `tests/greenjobs_redesign/test_strategies_export_bot.py` | Export bot tests against a local mock admin + mock R2 (pytest) |
 
 ## Run the tests (offline, no `.env`, no network)
 

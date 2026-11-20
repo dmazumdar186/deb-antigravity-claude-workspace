@@ -162,8 +162,56 @@ recurring XML import, or our D1 via the Worker). Nothing is posted anywhere.
   taxonomy holds stray terms ("Land Acquisition"); board copies are often rewritten, so title + location alone
   over-merges (two live "Senior Town Planner" roles for different clients); RSS descriptions are truncated.
 
+## Strategies export bot (migration, 2026-11-20)
+
+Promise P16: every Strategies export is in GreenJobs-owned storage before the sites go off (Sun 6 Dec 2026). The bot
+follows Strategies' own instructions (admin → Download Reports → report type → date fields → Download → CSV, per type,
+per site, a few months at a time). Code: `execution/gtm_client_workflows/greenjobs_redesign/strategies_export_bot.py`;
+page flow (URLs, field names, option labels): `strategies_export_config.json` next to it.
+
+- Command: `python3 execution/gtm_client_workflows/greenjobs_redesign/strategies_export_bot.py --out DIR [--r2]
+  [--live] [--sites ie,uk] [--reports recruiters,candidates,profiles,jobs,applications,alerts] [--months 3]
+  [--since YYYY-MM-DD] [--until YYYY-MM-DD] [--pace 3] [--admin-totals FILE] [--code-file PATH]`. Without `--live`
+  it is an offline plan (window count, env names set or missing, manifest state); nothing is contacted. No paid API.
+- Credentials: env `STRATEGIES_USER_IE` / `STRATEGIES_PASS_IE`, `STRATEGIES_USER_UK` / `STRATEGIES_PASS_UK`, held in
+  memory only and redacted from every line printed. Emailed login code: env `STRATEGIES_CODE_IE` / `_UK`, else
+  `--code-file PATH` (the operator writes the code into it; polled up to `--code-wait 600` s, read once, deleted),
+  else a hidden stdin prompt on a terminal, else exit 2 naming the env var.
+- Destination: `--out DIR` refuses any path inside this repo, inside any git working tree, or under a `.tmp` dir; and/or
+  `--r2` (env `R2_BUCKET`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_ENDPOINT` or `CLOUDFLARE_ACCOUNT_ID`;
+  keys under `--r2-prefix strategies_export/`, SigV4 from `prodcraft_medspa/preview/r2.py`). R2-only runs stage in a
+  system temp dir that is deleted. Layout: `<site>/<report>/<start>_<end>.csv` (`all.csv` for Jobs By Email, which has
+  no date filter), `manifest.json`, `reconciliation.{json,md}`, `discover_<site>.json`.
+- Per window: submit the report form with the parsed hidden fields, stream to `.part`, refuse HTML (re-login once,
+  then exit 3), retry transport errors and short bodies 3x with backoff, check the header row equals
+  `build/import/REAL_HEADERS_2026-11-19.json` exactly (names and order; exit 3 naming only expected columns), count
+  rows (multi-line cells handled), then record `site, report, window_start, window_end, rows, sha256, bytes,
+  downloaded_at, file`. The manifest is rewritten atomically after every window.
+- Idempotent: a window whose stored file (local hash, or R2 `x-amz-meta-sha256`) matches the manifest is skipped; a
+  tampered or missing file is fetched again; a leftover `.part` is discarded. The last window ends today, so a run on a
+  later day re-fetches it and marks the earlier one `superseded_by` (never double counted).
+- "Members profile data": refused from 08:45 to 17:00 UTC (`--profile-margin-min 15`); alone → exit 2; in a mixed run
+  the other reports finish and the run ends exit 4 "deferred, run again after 17:00 UTC".
+- M1 reconciliation: per site and report, windows done/planned, rows, the admin's own total (scraped by the
+  config's `total_regex` where the Download Reports page shows one, or typed by the operator into `--admin-totals
+  {"ie": {"recruiters": 418}}`, which wins), delta and MATCH / MISMATCH / NO_ADMIN_TOTAL / INCOMPLETE. Any INCOMPLETE
+  or MISMATCH → exit 4. `--reconcile` rebuilds it offline from the manifest. A MISMATCH with a negative delta usually
+  means records dated before `--since` (config `earliest`, 2005-01-01) or an export row cap: halve `--months`.
+- Exit: 0 ok / no-op, 2 usage or refusal, 3 data contract (header mismatch, HTML instead of CSV), 4 incomplete, 5 transport.
+- First live use (nobody has seen the admin): `--live --discover --out DIR --sites ie` saves only forms, field
+  names, option labels and nav link paths (no values, no hidden-token values, no page text; selects with more than 50
+  options keep only a count). Fix `strategies_export_config.json` from it, set `"verified": true` (live downloads
+  refuse until then), set each report's `total_regex` if the page shows totals, then run one site, one report, one
+  window (`--reports jobs --since 2026-09-01`) before the full walk. `needs_browser_hint: true` means the form is
+  driven by JavaScript and a Playwright driver is needed (not built).
+- Tests: `python3 -m pytest -q tests/greenjobs_redesign/test_strategies_export_bot.py` (in `build/run_tests.sh`): a
+  local mock admin (login, code, Download Reports form, fixture CSVs from the real headers) and a mock R2 that
+  re-checks SigV4. Covers header mismatch, crash resume, skip done windows, tamper, supersede, re-login, short body,
+  profile guard, in-repo `--out`, unverified config, discover, R2-only, M1, and no secret or cell value in any output.
+
 ## Changelog
 
+- 2026-11-20 (export bot, P16): `strategies_export_bot.py` + config + 22 mock-site tests; selectors unverified until a `--discover` run on the real admin.
 - 2026-11-07 (migration platform): `platform_worker/` skeleton (console post/edit/close, `/api/apply`, Access JWT, rate limits, dry-run default), D1 schema + idempotent upserts, BDD features + 121 offline node tests, frozen red-team checklist, SAST report, decision table for the twelve questions.
 - 2026-09-28 (client wall): `scrape_greenjobs.py` gains `parse_client_logos()` / `download_client_logos()`
   and a `--clients-only` flag: fetches /for-employers.asp on both boards (112 logos, all served from
