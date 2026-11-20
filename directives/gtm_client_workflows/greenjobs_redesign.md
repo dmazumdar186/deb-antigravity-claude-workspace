@@ -162,7 +162,82 @@ recurring XML import, or our D1 via the Worker). Nothing is posted anywhere.
   taxonomy holds stray terms ("Land Acquisition"); board copies are often rewritten, so title + location alone
   over-merges (two live "Senior Town Planner" roles for different clients); RSS descriptions are truncated.
 
+## Ops: redirects, DNS watcher, probe + service levels, metrics, backups, acceptance, reports (migration, 2026-11-20)
+
+Scripts in `execution/gtm_client_workflows/greenjobs_redesign/ops/`, tests in `tests/greenjobs_redesign/ops/` (in
+`build/run_tests.sh`, tier 4). Everything is offline or dry-run by default and tested without network or `.env`.
+Scratch state (state files, outbox, ledgers, probe log, status page) lives in `.tmp/greenjobs_ops/` (`--state-dir`).
+Sold scope (engagement record 2026-11-20 §2): the two boards. **The 8 network domains are optional** ("quoted
+separately", P11): their forwards are prepared config only, every check on them is labelled `optional`, and they
+never enter the go/no-go gate, the overall status grade, SLA figures or incidents.
+
+- **Redirects** `redirects.py build [--live-ids d1_export.json] [--routes routes.json]` → `ops/generated/`
+  `bulk_redirects.json` (Cloudflare Bulk Redirects list; recorded spelling + lowercase of every old path; sector
+  domains 301 to `/sectors/<slug>/` on www.greenjobs.co.uk with subpath matching), `worker_redirects.json` (table for
+  `ops/worker/`, routes `*/jobboard/*` and `*/browse-jobs/*`: ASP query strings, case/slash variants, retired job ids)
+  and `redirect_coverage.json`. Facets map with `build_site.py`'s own vocabulary (TAXONOMY keywords via
+  `assign_sectors`, region aliases via `resolve_regions`, `contract_of`, client names); no keyword → `/jobs/`.
+  Every target is checked against `common.Routes` (static pages from `PAGES_FOR_SITEMAP` + `LANDINGS` +
+  `/sectors/<slug>/`, `/jobs/<id>/` for live ids, `/jobs/?sector=&region=&type=&employer=` with known values); an
+  unserved target aborts (exit 2). When the site engineer publishes the real route list, pass it as `--routes`.
+  Before loading: re-run with `--live-ids` from a D1 export (default ids are the Sept snapshot, marked ASSUMED).
+  20 Nov: 1,206 old URLs, 100% to a served page, 58.8% to a specific page or filter, 497 to board/home/employers.
+  `crawl --live` measures the graded M2 after the switch (read-only GETs). Apex records on wastejobsuk.com and
+  waterjobsuk.com do not exist today: add proxied records for apex and www when (if) those zones move.
+- **DNS watcher** `dns_watcher.py [--send]`, every 10 min: DoH NS/MX/TXT for the 10 domains vs
+  `zone_inventory_2026-11-20.json`. Target = NS on `*.ns.cloudflare.com` and MX + SPF identical. First arrival drafts
+  one "done, checked" email to Diana (`dns-done:<domain>`, never twice: state file + outbox key). MX/SPF drift → an
+  operator alert per distinct drift and exit 2; 6 failed lookups in a row → alert. A failed lookup is never "moved".
+  An approved mail change goes in `--baseline`, not by editing the inventory.
+- **Notifier** `notify.py`: outbox first. Live only with `--send` + `RESEND_API_KEY` + `OPS_MAIL_FROM` + the
+  recipient var (`DIANA_EMAIL`, `OPS_ALERT_EMAIL`); client-facing templates also need their sha256 in
+  `approved_templates.json`, added only after `/redteam` passes (empty today, so no client email can go live). Cap 12
+  sends a run; each send writes a cost-ledger row. A dry-run draft does not consume the live send.
+- **Probe + service levels** `uptime_probe.py --live [--send]`, every 5 min: 20 hostnames must end on 200 at the
+  canonical host (sector domains on their sector page), MX/SPF vs inventory, and per board the sev-1 posting checks
+  (`/admin/` not 5xx/404, `GET /api/jobs` 200, `OPTIONS /api/apply` 2xx). `incidents.py` opens one incident per
+  failing core check and alerts at once: sev-1 (posting outage) respond within 4 h, sev-2 within 1 business day
+  (Proposal :92/:137); `incidents.py ack <id>` records the response. SLA1 = 99.9% monthly uptime, SLA2 = responses
+  on time; both on the status page and in the overall grade.
+- **Metrics** `metrics.py [--inputs DIR] [--send]`, daily: SLA1-2, M1-M11 (SYNTHESIS §4 thresholds), B1 backup age
+  (≤26 h PASS, ≤48 h WARN), B2 restore drill (passed within 92 days), NET1 (optional domains, INFO), CPO1-4 and
+  CDO1-4 (INFO: no §4 threshold). A missing input is UNMEASURED with value null; `metric()` forces that, so nothing
+  unmeasured can show PASS or a number. M3/M4/SLA1 are graded only after 24 h of probes; M4 needs the test mail too.
+  Writes `status.json` + `status.html` (operator only, `noindex`, phone-width) and one red alert per metric per day.
+  Inputs (all optional) in `--inputs`: `d1_export.json` `{"tables": {table: [rows with D1 column names]}}`;
+  `reconciliation.json` `{exported:{type:n}, imported:{type:n}, sample_field_diffs, fields_exported, fields_migrated}`;
+  `mail_test.json {sent, arrived}`; `visibility_probe.jsonl {job_id, created_at, visible_at}`;
+  `staff_checkin.json {month, minutes}`; `link_check.json` / `jsonld_check.json {checked, valid}`;
+  `alert_sends.jsonl {site, sent_at, consent_marketing, opened_at}` (unknown consent counts as a breach);
+  `search_console.json {baseline:{indexed, clicks}, current:{...}, weeks_since_switch}`;
+  `gdpr.json {erasure_requests:[{received_at, closed_at}], archive_access_entries, unsubscribes_exported, unsubscribes_carried}`.
+- **Client measures (dashboard contract)**: `metrics.py` also writes `measures_ie.json` / `measures_uk.json`, shape
+  fixed by `ops/measures.schema.json` (schema_version 1): `{schema_version, site, as_of, measures: {live_jobs,
+  jobs_posted_30d, applications_7d, applications_30d, applications_per_job_30d, alerts_sent_7d, alerts_opened_7d,
+  live_duplicates, expired_still_showing, staff_minutes_month}}`. `GET /api/stats?site=ie|uk` serves the object
+  unchanged (another engineer adds the endpoint); the board dashboard's "Measures to come" tiles read it and render
+  null as "coming". Adding a key bumps schema_version and the schema file in the same commit.
+- **Backups (P8)** `d1_backup.py --live`, daily outside 09:00-17:00 UTC: counts every schema table, `wrangler d1
+  export --remote`, uploads `d1/<date>.sql` to GreenJobs' R2 bucket (`GJ_BACKUP_BUCKET`, default
+  `greenjobs-backups`); once per day (skip if done). `d1_restore_drill.py --live`, quarterly: restores the newest
+  backup into a fresh `greenjobs-drill-<date>` database, checks restored counts ≥ recorded, deletes only that
+  scratch database. `--sqlite DUMP` runs the same check offline. Needs `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID`.
+- **Acceptance (P17)** `acceptance_check.py [--date]`, daily after `metrics.py` for the 10 working days from Thu 3 Dec
+  (to Wed 16 Dec): grades every item of `ops/acceptance_list.json` from the day's status, probes, measures and the
+  operator's dated `acceptance_evidence.json` (`{"A3": {"2026-12-03": {"ok": true, "note": "..."}}}`); no
+  evidence = UNMEASURED. History in `acceptance_history.json`, one entry per date. The list is derived from the
+  9 Nov plan and the 30 Sep proposal: reconcile it with the contract's acceptance list before 3 Dec.
+- **Reports (renderers only, never send; outward text goes through /redteam)**: `keith_weekly.py --next-step TEXT`
+  (5 lines: red items, applications, alerts sent, staff hours, next step) and `monthly_report.py --month YYYY-MM
+  --changes FILE` (uptime, traffic from `traffic_<month>.json`, applications, posting routes, needs attention, what
+  changed). Both read the same measures and status; a missing figure prints "not measured yet".
+- Edge cases: `renewablejobsuk.com` is NXDOMAIN, the real domain is `renewableenergyjobsuk.com`; Cloudflare Bulk
+  Redirects cannot match query strings (the Worker takes them); a probe row with a lookup error is `ok: null` (never a
+  pass); the redteam hook blocks shell commands that mention the mail API host, so run the committed scripts directly.
+
 ## Changelog
+
+- 2026-11-20 (ops): redirects (bulk list + Worker table + M2 coverage), DNS watcher, uptime/posting probe with incidents and service levels, metrics runner + status page + client measures object, daily D1 backup + restore drill, 10-day acceptance checks, weekly and monthly report renderers; network domains marked optional.
 
 - 2026-11-07 (migration platform): `platform_worker/` skeleton (console post/edit/close, `/api/apply`, Access JWT, rate limits, dry-run default), D1 schema + idempotent upserts, BDD features + 121 offline node tests, frozen red-team checklist, SAST report, decision table for the twelve questions.
 - 2026-09-28 (client wall): `scrape_greenjobs.py` gains `parse_client_logos()` / `download_client_logos()`

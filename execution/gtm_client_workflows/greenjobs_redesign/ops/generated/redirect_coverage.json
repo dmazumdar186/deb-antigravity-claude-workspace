@@ -1,0 +1,3008 @@
+{
+ "metric": "M2 (static pre-check; the graded M2 is the live crawl)",
+ "old_urls": 1206,
+ "targets_served": 1206,
+ "served_pct": 100.0,
+ "specific_match_pct": 58.79,
+ "facets": 986,
+ "facets_specific": 511,
+ "by_class": {
+  "exact:job": 186,
+  "exact:landing": 12,
+  "exact:page": 12,
+  "fallback:board": 455,
+  "fallback:employers": 20,
+  "fallback:home": 22,
+  "filter:employer": 6,
+  "filter:region": 58,
+  "filter:sector": 428,
+  "filter:type": 7
+ },
+ "unserved": [],
+ "leftovers": [
+  {
+   "site": "ie",
+   "old": "/about-us.cms.asp",
+   "kind": "static",
+   "target": "/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/Antrim/",
+   "kind": "location",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/Armagh/",
+   "kind": "location",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/Belfast/",
+   "kind": "location",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/Derry/",
+   "kind": "location",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/Down/",
+   "kind": "location",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/Fermanagh/",
+   "kind": "location",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/International/",
+   "kind": "location",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/Tyrone/",
+   "kind": "location",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/United+Kingdom/",
+   "kind": "location",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/academic/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/accounting/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/administration-clerical/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/agricultural-engineering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/agriculture-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/air-pollution-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/analyst/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/animal-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/apprenticeship/",
+   "kind": "location",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/aquaculture-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/asbestos-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/assessor/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/auditor/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/automotive-and-motoring/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/aviation-and-aerospace/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/banking/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/bid-manager/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/biofuel-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/biologist/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/biology-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/business-strategic-management/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/cad/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/call-centre/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/campaigning/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/cartographer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/charity-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/clean-air-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/clean-tech-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/climatologist/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/climatology-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/combined-heat-and-power-chp-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/commissioning-engineer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/commonland/",
+   "kind": "employer",
+   "target": "/employers/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/consultancy/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/contract/",
+   "kind": "location",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/corporate-social-responsibility-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/countryside-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/countryside-management-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/countryside-ranger/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/course-listing/",
+   "kind": "location",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/courses/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/customer-service/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/customer-support-client-care/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/deforestation-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/design-engineer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/design/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/development/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/earth-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/earth-science-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/east-of-england/",
+   "kind": "region",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/eco-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/economics/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/educational/",
+   "kind": "location",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/eirgrid/",
+   "kind": "employer",
+   "target": "/employers/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/electric-vehicle-ev-charging-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/electric-vehicle-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/electrician/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/electronics-engineering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/energy-engineering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/energy-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/energy-saving-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/energy-trading-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/enforcement/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/engineering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/estate-management-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/estate-manager/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/ethical-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/ev-installer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/fairtrade-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/farm-manager/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/farming-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/field-service-engineer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/finance-investment/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/fisheries-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/food-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/forest-ranger/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/forester/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/freelance/",
+   "kind": "location",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/full-time/",
+   "kind": "location",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/gaia-talent/",
+   "kind": "employer",
+   "target": "/employers/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/gardener/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/gardening-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/geoengineering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/geographical-information-system-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/geography-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/geological-engineering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/geoscience-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/geospatial/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/geothermal-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/gis-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/global-heating-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/global-warming-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/government-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/graduate-junior-trainee/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/graduate/",
+   "kind": "location",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/green-finance-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/green-investment-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/green-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/grounds-maintenance/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/groundskeeper/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/healthcare-and-medical/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/heating-engineer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/heating-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/heritage-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/home-based/",
+   "kind": "location",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/horticulture-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/horticulturist/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/hospitality-and-catering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/housing/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/human-resources/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/impact-investment-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/industrial-engineering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/installation-maintenance-repair/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/insurance/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/intern/",
+   "kind": "location",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/it-software-development/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/laboratory/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/land-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/land-management-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/landscape-design-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/landscape-designer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/landscape-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/landscaping-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/law/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/legionella-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/legionella-risk-assessor/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/leisure-and-sports/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/local-authority-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/london/",
+   "kind": "region",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/maintenance-engineer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/management/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/manufacturing-engineering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/manufacturing/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/marine-biologist/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/marine-engineering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/marine-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/marine-science-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/marine-scientist/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/marketing/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/materials-engineering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/media-digital-and-creative/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/meteorologist/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/meteorology-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/microgeneration-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/modeling/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/monitoring/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/multilingual/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/natural-capital-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/north-west/",
+   "kind": "region",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/ocean-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/oceanographer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/oceanography-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/officer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/offshore-engineering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/offshore-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/operations-management/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/organic-farm-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/organic-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/other/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/park-ranger/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/parks-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/part-time/",
+   "kind": "location",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/passive-house-passivhaus/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/permanent/",
+   "kind": "location",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/pharmaceutical/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/pollution-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/power-engineer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/power-generation-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/power-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/power-ni/",
+   "kind": "employer",
+   "target": "/employers/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/power-plant-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/process-engineer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/procurement/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/product-development/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/production-engineering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/production-operations/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/project-engineer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/project-management/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/property-and-real-estate/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/public-sector-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/purchasing/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/quality-assurance/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/quality-engineer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/recruitment/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/regeneration-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/remote-sensing/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/reporting/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/research-and-development/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/responsible-investment-ri-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/retail-and-fmcg/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/retrofitting-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/river-engineering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/river-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/sales-business-development/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/sales-engineer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/sampling/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/science-scientist/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/scotland/",
+   "kind": "region",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/seasonal/",
+   "kind": "location",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/secretarial-and-pa/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/security/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/self-employed/",
+   "kind": "location",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/senior-appointments/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/service-engineer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/services/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/sewage-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/shipping/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/skilled-manual/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/socially-responsible-investing-sri-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/soil-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/south-east/",
+   "kind": "region",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/specialist-and-technical/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/stakeholder-engagement-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/structural-engineering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/supply-chain/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/surveying/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/systems-engineering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/teaching/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/technology/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/telecoms/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/temporary/",
+   "kind": "location",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/toxicology-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/trades/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/training-instruction/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/training/",
+   "kind": "location",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/travel-and-tourism/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/tree-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/tree-surgeon/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/veolia/",
+   "kind": "employer",
+   "target": "/employers/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/volunteer/",
+   "kind": "location",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/west-midlands/",
+   "kind": "region",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/yorkshire-and-the-humber/",
+   "kind": "region",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/zoologist/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/browse-jobs/zoology-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "ie",
+   "old": "/client-testimonials.cms.asp",
+   "kind": "static",
+   "target": "/"
+  },
+  {
+   "site": "ie",
+   "old": "/contact-us.cms.asp",
+   "kind": "static",
+   "target": "/"
+  },
+  {
+   "site": "ie",
+   "old": "/cv-writing-service.cms.asp",
+   "kind": "static",
+   "target": "/"
+  },
+  {
+   "site": "ie",
+   "old": "/job-distribution-partners.cms.asp",
+   "kind": "static",
+   "target": "/"
+  },
+  {
+   "site": "ie",
+   "old": "/join-our-social-media-network.cms.asp",
+   "kind": "static",
+   "target": "/"
+  },
+  {
+   "site": "ie",
+   "old": "/newsletter-signup.asp",
+   "kind": "static",
+   "target": "/"
+  },
+  {
+   "site": "ie",
+   "old": "/one-percent-for-the-planet-member.cms.asp",
+   "kind": "static",
+   "target": "/"
+  },
+  {
+   "site": "ie",
+   "old": "/partners-and-links.cms.asp",
+   "kind": "static",
+   "target": "/"
+  },
+  {
+   "site": "ie",
+   "old": "/talent-finder-network.cms.asp",
+   "kind": "static",
+   "target": "/"
+  },
+  {
+   "site": "ie",
+   "old": "/the-greenjobs-network-of-websites.cms.asp",
+   "kind": "static",
+   "target": "/"
+  },
+  {
+   "site": "uk",
+   "old": "/about-us.cms.asp",
+   "kind": "static",
+   "target": "/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/academic/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/accounting/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/administration-clerical/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/agricultural-engineering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/agriculture-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/air-pollution-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/analyst/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/animal-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/apprenticeship/",
+   "kind": "job_type",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/aquaculture-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/asbestos-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/assessor/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/auditor/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/automotive-and-motoring/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/aviation-and-aerospace/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/banking/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/bid-manager/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/biofuel-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/biologist/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/biology-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/business-strategic-management/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/cad/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/call-centre/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/campaigning/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/cartographer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/charity-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/chm-recruit/",
+   "kind": "employer",
+   "target": "/employers/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/clean-air-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/clean-tech-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/climatologist/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/climatology-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/combined-heat-and-power-chp-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/commissioning-engineer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/commonland/",
+   "kind": "employer",
+   "target": "/employers/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/consultancy/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/corporate-social-responsibility-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/country/",
+   "kind": "region",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/countryside-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/countryside-management-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/countryside-ranger/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/course-listing/",
+   "kind": "job_type",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/courses/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/customer-service/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/customer-support-client-care/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/dacorum-borough-council/",
+   "kind": "employer",
+   "target": "/employers/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/deforestation-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/design-engineer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/design/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/development/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/earth-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/earth-science-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/eco-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/economics/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/educational/",
+   "kind": "job_type",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/electric-vehicle-ev-charging-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/electric-vehicle-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/electrician/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/electronics-engineering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/energy-engineering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/energy-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/energy-saving-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/energy-trading-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/enforcement/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/engineering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/environmental-standards-scotland-ess/",
+   "kind": "employer",
+   "target": "/employers/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/estate-management-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/estate-manager/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/eth-zurich/",
+   "kind": "employer",
+   "target": "/employers/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/ethical-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/ev-installer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/fairtrade-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/farm-manager/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/farming-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/field-service-engineer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/finance-investment/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/fisheries-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/food-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/forest-ranger/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/forester/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/gaia-talent/",
+   "kind": "employer",
+   "target": "/employers/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/gardener/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/gardening-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/geoengineering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/geographical-information-system-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/geography-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/geological-engineering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/geoscience-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/geospatial/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/geothermal-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/gis-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/global-heating-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/global-warming-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/government-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/graduate-junior-trainee/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/graduate/",
+   "kind": "job_type",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/green-finance-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/green-investment-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/green-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/grounds-maintenance/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/groundskeeper/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/grundon-waste-management/",
+   "kind": "employer",
+   "target": "/employers/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/haskoning/",
+   "kind": "employer",
+   "target": "/employers/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/healthcare-and-medical/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/heating-engineer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/heating-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/heritage-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/home-based/",
+   "kind": "job_type",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/horticulture-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/horticulturist/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/hospitality-and-catering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/housing/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/human-resources/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/impact-investment-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/industrial-engineering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/installation-maintenance-repair/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/insurance/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/intern/",
+   "kind": "job_type",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/ireland/",
+   "kind": "region",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/it-software-development/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/jacobs/",
+   "kind": "employer",
+   "target": "/employers/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/laboratory/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/land-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/land-management-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/landscape-design-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/landscape-designer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/landscape-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/landscaping-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/law/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/legionella-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/legionella-risk-assessor/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/leisure-and-sports/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/local-authority-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/maintenance-engineer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/management/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/manufacturing-engineering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/manufacturing/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/marine-biologist/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/marine-engineering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/marine-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/marine-science-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/marine-scientist/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/marketing/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/materials-engineering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/media-digital-and-creative/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/meteorologist/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/meteorology-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/microgeneration-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/modeling/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/monitoring/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/multilingual/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/naked-solar/",
+   "kind": "employer",
+   "target": "/employers/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/natural-capital-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/ocean-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/oceanographer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/oceanography-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/officer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/offshore-engineering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/offshore-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/operations-management/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/organic-farm-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/organic-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/other/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/park-ranger/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/parks-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/passive-house-passivhaus/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/pharmaceutical/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/pollution-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/power-engineer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/power-generation-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/power-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/power-plant-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/powercor/",
+   "kind": "employer",
+   "target": "/employers/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/process-engineer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/procurement/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/product-development/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/production-engineering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/production-operations/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/project-engineer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/project-management/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/property-and-real-estate/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/public-sector-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/purchasing/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/quality-assurance/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/quality-engineer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/recruitment/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/regeneration-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/remote-sensing/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/reporting/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/research-and-development/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/responsible-investment-ri-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/retail-and-fmcg/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/retrofitting-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/river-engineering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/river-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/sales-business-development/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/sales-engineer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/sampling/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/science-scientist/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/seasonal/",
+   "kind": "job_type",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/secretarial-and-pa/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/security/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/self-employed/",
+   "kind": "job_type",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/senior-appointments/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/service-engineer/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/services/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/sewage-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/shipping/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/skilled-manual/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/socially-responsible-investing-sri-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/soil-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/south-ken-culture-quarter/",
+   "kind": "employer",
+   "target": "/employers/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/specialist-and-technical/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/stakeholder-engagement-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/structural-engineering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/supply-chain/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/surveying/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/systems-engineering/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/teaching/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/technology/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/telecoms/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/the-wildlife-for-all-trust/",
+   "kind": "employer",
+   "target": "/employers/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/toxicology-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/trades/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/training-instruction/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/training/",
+   "kind": "job_type",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/travel-and-tourism/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/tree-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/tree-surgeon/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/veolia/",
+   "kind": "employer",
+   "target": "/employers/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/welsh-government-llywodraeth-cymru/",
+   "kind": "employer",
+   "target": "/employers/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/zoologist/",
+   "kind": "category",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/browse-jobs/zoology-jobs/",
+   "kind": "sector",
+   "target": "/jobs/"
+  },
+  {
+   "site": "uk",
+   "old": "/client-testimonials.cms.asp",
+   "kind": "static",
+   "target": "/"
+  },
+  {
+   "site": "uk",
+   "old": "/contact-us.cms.asp",
+   "kind": "static",
+   "target": "/"
+  },
+  {
+   "site": "uk",
+   "old": "/cv-writing-service.cms.asp",
+   "kind": "static",
+   "target": "/"
+  },
+  {
+   "site": "uk",
+   "old": "/job-distribution-partners.cms.asp",
+   "kind": "static",
+   "target": "/"
+  },
+  {
+   "site": "uk",
+   "old": "/join-our-social-media-network.cms.asp",
+   "kind": "static",
+   "target": "/"
+  },
+  {
+   "site": "uk",
+   "old": "/newsletter-signup.asp",
+   "kind": "static",
+   "target": "/"
+  },
+  {
+   "site": "uk",
+   "old": "/one-percent-for-the-planet-member.cms.asp",
+   "kind": "static",
+   "target": "/"
+  },
+  {
+   "site": "uk",
+   "old": "/partners-and-links.cms.asp",
+   "kind": "static",
+   "target": "/"
+  },
+  {
+   "site": "uk",
+   "old": "/talent-finder-network.cms.asp",
+   "kind": "static",
+   "target": "/"
+  },
+  {
+   "site": "uk",
+   "old": "/the-greenjobs-network-of-websites.cms.asp",
+   "kind": "static",
+   "target": "/"
+  }
+ ],
+ "live_ids_source": "ASSUMED: job ids redirect_map.json marks mapped (2026-09 snapshot), not a live list",
+ "route_set_source": "build_site.py vocabulary (PAGES_FOR_SITEMAP, LANDINGS, TAXONOMY, regions, CONTRACT_LABEL, clients)"
+}

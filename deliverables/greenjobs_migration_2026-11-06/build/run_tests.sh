@@ -7,7 +7,7 @@ cd "$ROOT"
 PY="${PYTHON:-python3}"
 fail=0
 
-echo "== 1/4 D1 schema: applies twice (idempotent), all upserts compile, migrations apply twice"
+echo "== 1/5 D1 schema: applies twice (idempotent), all upserts compile, migrations apply twice"
 "$PY" - <<'EOF' || fail=1
 import re, sqlite3, sys
 base = "deliverables/greenjobs_migration_2026-11-06/build/d1/"
@@ -31,13 +31,17 @@ assert c.execute("PRAGMA foreign_key_check").fetchall() == []
 print(f"ok: schema x2, {len(stmts)} upserts, {len(migs)} migration(s) x2 + schema again")
 EOF
 
-echo "== 2/4 import validator + apply mode + Gaia feed sync (pytest)"
+echo "== 2/5 import validator + apply mode + Gaia feed sync (pytest)"
 "$PY" -m pytest -q tests/greenjobs_redesign/test_strategies_import.py tests/greenjobs_redesign/test_strategies_real_headers.py tests/greenjobs_redesign/test_apply_mode_site.py tests/greenjobs_redesign/test_gaia_feed_sync.py || fail=1
 
-echo "== 3/4 Worker unit tests + BDD features (node --test)"
+echo "== 3/5 Worker unit tests + BDD features (node --test)"
 node --no-warnings --test 'tests/greenjobs_redesign/platform/*.test.mjs' || fail=1
 
-echo "== 4/4 no candidate data staged"
+echo "== 4/5 ops: redirects, DNS watcher, probe + incidents, metrics + status page, backups, acceptance, reports"
+"$PY" -m pytest -q tests/greenjobs_redesign/ops || fail=1
+node --no-warnings --test tests/greenjobs_redesign/ops/redirect_rules.test.mjs || fail=1
+
+echo "== 5/5 no candidate data staged"
 if git ls-files --cached --others --exclude-standard | grep -E '^deliverables/greenjobs_migration_2026-11-06/.*\.csv$'; then
   echo "FAIL: CSV under the migration deliverable"; fail=1
 else echo "ok: no CSV in the migration deliverable"; fi

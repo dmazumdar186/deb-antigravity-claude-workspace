@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "greenjobs/measures/1",
+  "title": "GreenJobs client-facing measures (GET /api/stats?site=ie|uk)",
+  "description": "Written by ops/metrics.py as measures_<site>.json; served unchanged by GET /api/stats?site=. Read by the board's dashboard (src/templates/dashboard.html, 'Measures to come') and by ops/keith_weekly.py. A null value means not measured yet and renders as 'coming'; a number is always computed from a real source, never estimated.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "site", "as_of", "measures"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "site": {"enum": ["ie", "uk"]},
+    "as_of": {"type": "string", "format": "date-time", "description": "UTC time the measures were computed"},
+    "measures": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["live_jobs", "jobs_posted_30d", "applications_7d", "applications_30d", "applications_per_job_30d", "alerts_sent_7d", "alerts_opened_7d", "live_duplicates", "expired_still_showing", "staff_minutes_month"],
+      "properties": {
+        "live_jobs": {"type": ["integer", "null"], "minimum": 0, "description": "Jobs with status live on this board now (D1 jobs)."},
+        "jobs_posted_30d": {"type": ["integer", "null"], "minimum": 0, "description": "Jobs posted in the last 30 days through the console or the Gaia feed (imports excluded)."},
+        "applications_7d": {"type": ["integer", "null"], "minimum": 0, "description": "Apply submissions on this board in the last 7 days (D1 applications, source apply)."},
+        "applications_30d": {"type": ["integer", "null"], "minimum": 0, "description": "Apply submissions on this board in the last 30 days."},
+        "applications_per_job_30d": {"type": ["number", "null"], "minimum": 0, "description": "applications_30d divided by live_jobs, 2 decimals; null when either is null or live_jobs is 0."},
+        "alerts_sent_7d": {"type": ["integer", "null"], "minimum": 0, "description": "Job-alert emails sent in the last 7 days (alert send log)."},
+        "alerts_opened_7d": {"type": ["integer", "null"], "minimum": 0, "description": "Of those, the ones opened (provider open events)."},
+        "live_duplicates": {"type": ["integer", "null"], "minimum": 0, "description": "Extra live copies of a job with the same employer and title on this board; target 0."},
+        "expired_still_showing": {"type": ["integer", "null"], "minimum": 0, "description": "Live jobs whose closing date has passed; target 0."},
+        "staff_minutes_month": {"type": ["integer", "null"], "minimum": 0, "description": "Staff minutes this calendar month from the monthly check-in; the whole operation, so both boards carry the same value."}
+      }
+    }
+  }
+}
