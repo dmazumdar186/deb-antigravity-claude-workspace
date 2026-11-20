@@ -1,0 +1,19 @@
+{
+  "_note": "Daily checks for 10 working days after the 3 Dec switch (engagement record P17; Plan:24, Proposal:91). Derived from the 9 Nov plan wording and the 30 Sep proposal; reconcile with the acceptance list in the contract before 3 Dec (the contract wins). Evidence items need a dated entry in acceptance_evidence.json for the day checked; without one they are UNMEASURED, never PASS.",
+  "start": "2026-12-03",
+  "working_days": 10,
+  "items": [
+    {"id": "A1", "text": "Both boards answer on their own domains, apex and www", "source": "9 Nov plan; P1", "check": {"type": "probe", "kind": "http", "min_ok": 0.999}},
+    {"id": "A2-ie", "text": "Current jobs are live on greenjobs.ie", "source": "9 Nov plan; P1", "check": {"type": "measure", "site": "ie", "key": "live_jobs", "op": ">", "value": 0}},
+    {"id": "A2-uk", "text": "Current jobs are live on greenjobs.co.uk", "source": "9 Nov plan; P1", "check": {"type": "measure", "site": "uk", "key": "live_jobs", "op": ">", "value": 0}},
+    {"id": "A3", "text": "Staff can post, edit and close a job in the console", "source": "9 Nov plan; P2", "check": {"type": "evidence"}},
+    {"id": "A4", "text": "Console, jobs API and apply endpoint up on both boards", "source": "P2, P3, P20", "check": {"type": "probe", "kind": "posting", "min_ok": 0.999}},
+    {"id": "A5", "text": "A test application reaches the inbox Keith chose", "source": "9 Nov plan; P3", "check": {"type": "evidence"}},
+    {"id": "A6", "text": "A test subscriber receives a job alert email", "source": "9 Nov plan; P4 (first in the trim order)", "check": {"type": "evidence"}},
+    {"id": "A7", "text": "The candidate records Keith chose to keep are present, and no others", "source": "9 Nov plan; P5", "check": {"type": "evidence"}},
+    {"id": "A8", "text": "Old URLs reach a live page in two hops or fewer", "source": "30 Sep proposal; P7", "check": {"type": "metric", "metric": "M2", "accept": ["PASS"]}},
+    {"id": "A9", "text": "Every live job carries valid JobPosting data", "source": "P18", "check": {"type": "metric", "metric": "M10", "accept": ["PASS"]}},
+    {"id": "A10", "text": "Email on both board domains is intact", "source": "runbook; M4", "check": {"type": "metric", "metric": "M4", "accept": ["PASS"]}},
+    {"id": "A11", "text": "Last night's backup is in GreenJobs' storage", "source": "P8", "check": {"type": "metric", "metric": "B1", "accept": ["PASS"]}}
+  ]
+}

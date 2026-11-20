@@ -1,0 +1,4 @@
+{
+ "_comment": "client-facing template id -> sha256 of the template text that passed /redteam. Empty = live sends of that template are blocked (drafts still go to the outbox). Operator alerts are internal and need no entry.",
+ "diana_dns_done": []
+}
