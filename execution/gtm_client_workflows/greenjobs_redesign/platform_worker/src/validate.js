@@ -155,7 +155,9 @@ export function isIsoDate(s) {
 
 const PHONE_RE = /^[0-9+() .-]{5,40}$/;
 const SITES = ['ie', 'uk'];
-const APPLY_MODES = ['inbox', 'consultant', 'advertiser', 'url'];
+// Per-job apply mode (client answer Q8): 'email' = on-site form routed to apply_email (blank = the
+// APPLY_ROUTING default), 'link' = external ATS at apply_url. Exactly one target per mode.
+export const APPLY_MODES = ['email', 'link'];
 const PERIODS = ['year', 'day', 'hour', 'month'];
 const CURRENCIES = ['EUR', 'GBP'];
 const SAL_CEILING = 10_000_000;
@@ -233,7 +235,7 @@ export function validateJob(input, opts) {
     out.sectors = clean;
   }
 
-  const mode = input.apply_mode ?? 'inbox';
+  const mode = input.apply_mode === undefined || input.apply_mode === null || input.apply_mode === '' ? 'email' : input.apply_mode;
   if (!APPLY_MODES.includes(mode)) errors.push('apply_mode');
   out.apply_mode = mode;
 
@@ -249,7 +251,14 @@ export function validateJob(input, opts) {
     if (!r.ok) errors.push('apply_url');
     else out.apply_url = r.value;
   }
-  if (mode === 'url' && !out.apply_url && !errors.includes('apply_url')) errors.push('apply_url');
+  // Exactly one target per mode: link needs an https apply_url and no apply_email; email takes no apply_url
+  // (apply_email optional: blank routes to the APPLY_ROUTING default, so imported rows keep working).
+  if (mode === 'link') {
+    if (!out.apply_url) errors.push('apply_url');
+    if (ae !== null && ae !== '') errors.push('apply_email');
+  } else if (mode === 'email' && au !== null && au !== '') {
+    errors.push('apply_url');
+  }
 
   const closing = input.closing ?? null;
   if (closing === null || closing === '') out.closing = null;

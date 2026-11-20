@@ -24,7 +24,7 @@ HOST_SITE_MAP = '{"greenjobs.ie":"ie","www.greenjobs.ie":"ie","greenjobs.co.uk":
 ACCESS_TEAM_DOMAIN = ""    # e.g. "greenjobs.cloudflareaccess.com"
 ACCESS_AUD = ""            # the Access application's AUD tag
 STAFF_EMAILS = ""          # comma list; empty = nobody (fail closed)
-APPLY_ROUTING = "inbox"    # inbox | consultant | advertiser
+APPLY_ROUTING = "inbox"    # inbox | consultant | advertiser: default for an email-mode job with no apply_email
 APPLY_INBOX_IE = ""
 APPLY_INBOX_UK = ""
 MAIL_PROVIDER = "none"     # resend | none

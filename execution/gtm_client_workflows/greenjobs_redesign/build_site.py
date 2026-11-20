@@ -42,7 +42,7 @@ from datetime import date
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 from typing import Any
-from urllib.parse import quote, urljoin
+from urllib.parse import quote, urljoin, urlsplit
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -936,6 +936,7 @@ def normalise(raw: dict[str, Any], ed_key: str, src: Path, logos_dir: Path, toda
             "logo": logo, "lw": lw, "lh": lh, "url": str(j["url"]).strip(), "href": f"{jid}/index.html",
             "loc_class": lc, "workplace": workplace_of(j), "level": level_of(j["title"]), "contract": contract_of(j),
             "agency": is_agency(j.get("employer") or ""), "currency_source": currency_source,
+            **apply_of(j),
         })
     jobs_out.sort(key=lambda x: (x["posted"], x["title"]), reverse=True)
     sector_counts = Counter(s for j in jobs_out for s in j["sectors"])
@@ -983,6 +984,47 @@ def normalise(raw: dict[str, Any], ed_key: str, src: Path, logos_dir: Path, toda
 
 
 norm_org = validate_site.norm_org  # shared with the validator's badge rule
+
+
+SAFE_APPLY_URL_RE = re.compile(r"https://[^\s\x00-\x1f\x7f<>\"'`]+", re.I)
+
+
+def apply_of(j: dict[str, Any]) -> dict[str, Any]:
+    """Per-job apply mode from the platform export (client answer Q8: per client, an email or an ATS link).
+    'link' needs an https URL (javascript:, data:, http: fall back to email); 'email' = the on-site form;
+    a row without apply_mode (the Strategies scrape) keeps the legacy link to its own job URL."""
+    mode = str(j.get("apply_mode") or "").strip().lower()
+    url = str(j.get("apply_url") or "").strip()
+    if mode == "link" and SAFE_APPLY_URL_RE.fullmatch(url) and urlsplit(url).hostname:
+        return {"apply_mode": "link", "apply_url": url}
+    if mode in ("link", "email"):
+        return {"apply_mode": "email", "apply_url": ""}
+    return {"apply_mode": "legacy", "apply_url": ""}
+
+
+APPLY_FORM = """<form class="job__apply-form" id="apply-form" method="post" action="/api/apply" enctype="multipart/form-data" data-apply-form>
+<input type="hidden" name="job_id" value="{id}"><input type="hidden" name="ts" value="" data-apply-ts>
+<div hidden aria-hidden="true"><label>Leave blank <input name="website" tabindex="-1" autocomplete="off"></label></div>
+<label>Name <input name="name" required maxlength="120" autocomplete="name"></label>
+<label>Email <input name="email" type="email" required maxlength="254" autocomplete="email"></label>
+<label>Phone <input name="phone" type="tel" maxlength="40" autocomplete="tel"></label>
+<label>Cover note <textarea name="cover_note" maxlength="5000" rows="4"></textarea></label>
+<label>CV (PDF or Word) <input name="cv" type="file" accept=".pdf,.doc,.docx"></label>
+<label><input type="checkbox" name="consent" value="yes" required> Send my application to the advertiser of this job</label>
+<button class="btn btn--lime btn--sm" type="submit">Send application</button>
+<p role="status" data-apply-status></p>
+</form>"""
+
+
+def apply_ctx(j: dict[str, Any], domain: str) -> dict[str, str]:
+    """Template fields for the job page's two apply buttons and the on-site form (email mode only)."""
+    mode = j.get("apply_mode", "legacy")
+    if mode == "link":
+        host = urlsplit(j["apply_url"]).hostname or ""
+        return {"apply_url": esc(j["apply_url"]), "apply_rel": "noopener nofollow", "apply_label": f"Apply on {esc(host)}", "apply_form": ""}
+    if mode == "email":
+        return {"apply_url": "#apply-form", "apply_rel": "noopener", "apply_label": f"Apply on {domain}", "apply_form": APPLY_FORM.format(id=esc(j["id"]))}
+    return {"apply_url": esc(j["url"]), "apply_rel": "noopener", "apply_label": f"Apply on {domain}", "apply_form": ""}
 
 
 def load_clients(src: Path, ed_key: str, logos_dir: Path, jobs: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -1611,7 +1653,7 @@ def job_jsonld_payload(j: dict[str, Any], data: dict[str, Any]) -> dict[str, Any
         "@context": "https://schema.org", "@type": "JobPosting", "title": j["title"], "description": j["text"][:1000] or j["summary"],
         "hiringOrganization": {"@type": "Organization", "name": j["employer"]},
         "jobLocation": {"@type": "Place", "address": {"@type": "PostalAddress", "addressLocality": j["location"], "addressCountry": country}},
-        "url": j["url"], "directApply": False,
+        "url": j["url"], "directApply": j.get("apply_mode") == "email",
     }
     if j["posted"]:
         payload["datePosted"] = j["posted"]
@@ -2436,7 +2478,7 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
         jp = page("job", 3, "jobs", f"{j['title']} — {j['employer']} | GreenJobs {ed['short']}", (j["summary"] or j["title"])[:155],
                   {
                       "jsonld": job_jsonld(j, data), "title": esc(no_break_dash(j["title"])), "employer": esc(j["employer"]), "logo": logo_img(j, "../../../", "job__logo"), "sal_caveat": sal_caveat, "closed_chip": closed_chip,
-                      "meta": meta_tags, "dl": dl, "desc_html": body_html, "apply_url": esc(j["url"]), "domain": esc(data["site"]), "id": esc(j["id"]), "region": esc((j.get("regions") or [""])[0]), "closing": esc(j.get("closing") or ""), "sal_sticky": f'<span class="job__sticky-sal">{esc(sal or "Salary not disclosed")}</span>',
+                      "meta": meta_tags, "dl": dl, "desc_html": body_html, **apply_ctx(j, esc(data["site"])), "domain": esc(data["site"]), "id": esc(j["id"]), "region": esc((j.get("regions") or [""])[0]), "closing": esc(j.get("closing") or ""), "sal_sticky": f'<span class="job__sticky-sal">{esc(sal or "Salary not disclosed")}</span>',
                       "similar": "".join(role_card(s, "../../../", "../", today, ed["currency"]) for s in similar) or '<p class="muted">No similar live roles this week.</p>',
                       "sector_link": f'../index.html?sector={qs(j["sectors"][0])}', "sector": esc(j["sectors"][0]),
                       "posted_line": esc(f"Posted {date_long(j['posted'])}" + (f" · closes {date_long(j['closing'])}" if j["closing"] else "")) if j["posted"] else "",

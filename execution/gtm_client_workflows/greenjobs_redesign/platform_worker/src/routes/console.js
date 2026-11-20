@@ -31,9 +31,9 @@ export function consoleHtml(site, email) {
 <label>Summary <input name="summary" maxlength="300"></label>
 <label>Description <textarea name="description" required minlength="20" maxlength="20000" rows="10"></textarea></label>
 <label>Closing date <input name="closing" type="date"></label>
-<label>Apply via <select name="apply_mode"><option value="inbox">Site inbox</option><option value="consultant">Consultant email</option><option value="advertiser">Advertiser email</option><option value="url">External URL</option></select></label>
-<label>Apply email <input name="apply_email" type="email" maxlength="254"></label>
-<label>Apply URL (https) <input name="apply_url" type="url" maxlength="2000"></label>
+<label>Apply via <select name="apply_mode"><option value="email">Email (on-site form)</option><option value="link">External link (ATS)</option></select></label>
+<label data-apply-for="email">Apply email (blank = site default inbox) <input name="apply_email" type="email" maxlength="254"></label>
+<label data-apply-for="link" hidden>Apply URL (https only) <input name="apply_url" type="url" maxlength="2000" pattern="https://.+"></label>
 <label>Status <select name="status"><option value="live">Live</option><option value="draft">Draft</option></select></label>
 <button type="submit">Save</button> <button type="button" id="reset">New job</button>
 <p id="msg" role="status"></p>
@@ -88,6 +88,18 @@ const CONSOLE_JS = `'use strict';
       tbody.append(tr);
     }
   }
+  // Exactly one apply target per mode: show the matching field, clear the other so the API never sees both.
+  function syncMode() {
+    const mode = form.elements.apply_mode.value;
+    for (const label of form.querySelectorAll('[data-apply-for]')) {
+      const on = label.getAttribute('data-apply-for') === mode;
+      label.hidden = !on;
+      const input = label.querySelector('input');
+      input.required = on && mode === 'link';
+      if (!on) input.value = '';
+    }
+  }
+  form.elements.apply_mode.addEventListener('change', syncMode);
   function fill(j) {
     for (const el of form.elements) {
       if (!el.name) continue;
@@ -95,20 +107,25 @@ const CONSOLE_JS = `'use strict';
       el.value = v == null ? '' : String(v);
     }
     form.elements.employer.disabled = true;
+    syncMode();
     document.getElementById('form-title').textContent = 'Edit job';
   }
   document.getElementById('reset').addEventListener('click', () => {
     form.reset(); form.elements.id.value = ''; form.elements.version.value = '';
     form.elements.employer.disabled = false;
+    syncMode();
     document.getElementById('form-title').textContent = 'Post a job';
   });
   form.addEventListener('submit', async (ev) => {
     ev.preventDefault();
     const f = form.elements;
     const body = {};
-    for (const k of ['title', 'location', 'description', 'closing', 'apply_mode', 'apply_email', 'apply_url', 'sal_text', 'status']) {
+    for (const k of ['title', 'location', 'description', 'closing', 'apply_mode', 'sal_text', 'status']) {
       if (f[k].value !== '') body[k] = f[k].value;
     }
+    // Always sent, blank included, so switching mode on an edit clears the old target.
+    body.apply_email = f.apply_email.value;
+    body.apply_url = f.apply_url.value;
     let r;
     if (f.id.value) {
       body.version = Number(f.version.value);

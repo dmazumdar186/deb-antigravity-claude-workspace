@@ -61,10 +61,13 @@ failure only, sends one alert to `OPS_ALERT_EMAIL` when set (never in dry run; c
 Secrets: `RESEND_API_KEY`, `BUILD_TOKEN`. Bindings: `DB` (D1), `CVS` (R2), optional `RATE` (KV),
 optional `APPLY_LIMITER` (Rate Limiting).
 
-Routing: `inbox` -> the site inbox. `consultant`/`advertiser` -> `jobs.apply_email` if set and
-valid, else the site inbox plus an `application.route_fallback` audit row. A missing site inbox
-is a loud 503 (`routing_not_configured`), never a silent drop. `apply_mode='url'` jobs answer
-409 `apply_externally` with the external URL.
+Apply mode is per job (client answer Q8): `jobs.apply_mode` is `email` (on-site form) or `link`
+(external ATS at the https `apply_url`; `POST /api/apply` answers 409 `apply_externally` with the
+URL). Email-mode routing: the job's own `apply_email` when set and valid; otherwise the
+`APPLY_ROUTING` default (`inbox` -> the site inbox; `consultant`/`advertiser` -> the site inbox
+plus an `application.route_fallback` audit row). A missing site inbox is a loud 503
+(`routing_not_configured`), never a silent drop. `apply_email` is never in any public JSON.
+A D1 created before 2026-11-20 runs `d1/migrations/0001_apply_mode_consent_alerts.sql` once.
 
 ## Tests (offline, no installs)
 

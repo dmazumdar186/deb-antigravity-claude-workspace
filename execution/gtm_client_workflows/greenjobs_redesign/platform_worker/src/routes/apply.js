@@ -1,6 +1,6 @@
 // POST /api/apply (multipart/form-data). Order of gates:
 //   origin -> content type/size -> IP rate limit -> parse -> honeypot -> render ts -> fields
-//   -> job live + apply mode -> email rate limit -> dedupe -> routing -> CV sniff + R2 -> insert
+//   -> job live + apply mode (link -> 409 apply_externally) -> email rate limit -> dedupe -> routing -> CV sniff + R2 -> insert
 //   -> audit -> mail (dry by default) -> delivery_status.
 // A duplicate (same site|job|email) returns 200 "already_received" and sends nothing.
 
@@ -20,15 +20,25 @@ export function dedupeKey(site, jobId, emailNorm) {
   return sha256Hex(`${site}|${jobId}|${emailNorm}`);
 }
 
-/** Pick the inbox for an application. Returns {to, fallback: null|reason}. */
+/**
+ * Pick the inbox for an email-mode application. Returns {to, fallback: null|reason}.
+ * The job's own apply_email (per-client address, Q8) wins; a blank apply_email falls back to the
+ * APPLY_ROUTING default (inbox -> site inbox; consultant/advertiser -> site inbox + a route_fallback audit row).
+ */
 export function routeApplication(env, site, job) {
   const inbox = inboxFor(env, site);
-  const mode = env.APPLY_ROUTING || 'inbox';
-  if (mode === 'consultant' || mode === 'advertiser') {
-    if (job.apply_email && isValidEmail(job.apply_email)) return { to: normEmail(job.apply_email), fallback: null };
-    return { to: inbox, fallback: job.apply_email ? 'apply_email_invalid' : 'apply_email_missing' };
+  if (job.apply_email) {
+    if (isValidEmail(job.apply_email)) return { to: normEmail(job.apply_email), fallback: null };
+    return { to: inbox, fallback: 'apply_email_invalid' };
   }
+  const mode = env.APPLY_ROUTING || 'inbox';
+  if (mode === 'consultant' || mode === 'advertiser') return { to: inbox, fallback: 'apply_email_missing' };
   return { to: inbox, fallback: mode === 'inbox' ? null : 'unknown_routing' };
+}
+
+/** True when the job applies on an external ATS ('url' is the pre-migration-0001 spelling). */
+export function isLinkMode(job) {
+  return job.apply_mode === 'link' || job.apply_mode === 'url';
 }
 
 function field(form, name) {
@@ -79,7 +89,7 @@ export async function apply(ctx) {
     .bind(jid.value, site, todayUtc(now))
     .first();
   if (!job) return err('job_not_found', 404, cors);
-  if (job.apply_mode === 'url') return json({ error: 'apply_externally', apply_url: job.apply_url }, 409, cors);
+  if (isLinkMode(job)) return json({ error: 'apply_externally', apply_url: job.apply_url }, 409, cors);
 
   const emailKey = await sha256Hex(v.value.email);
   if (!(await rate(env, { scope: 'apply-email', key: emailKey, limit, windowSec: 600, nowMs, binding: env.APPLY_LIMITER }))) {

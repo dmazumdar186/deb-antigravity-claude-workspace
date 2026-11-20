@@ -1,176 +1,880 @@
 {
-  "version": "2026-11-07",
-  "note": "Strategies 'Download Reports' CSV -> GreenJobs D1. Headers are matched case/space/punctuation-insensitively against aliases. Real headers are unknown until the first export: add aliases here, never edit the code. on_invalid: reject_row | drop_value. on_too_long: reject_row | truncate.",
+  "version": "2026-11-20",
+  "note": "Strategies 'Download Reports' CSV -> GreenJobs D1. Aliases are the REAL header names from the client's 19 Nov header rows (build/import/REAL_HEADERS_2026-11-19.json), IE and UK. Matching is case/space/punctuation-insensitive and by name only, never by position. A header listed twice is never mapped. ignored_headers are real columns deliberately not imported. Add aliases here, never edit the code. on_invalid: reject_row | drop_value. on_too_long: reject_row | truncate.",
   "id_rule": "{site}:strat:{strategies_id}",
   "date_formats": [
-    "%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M", "%Y-%m-%d",
-    "%d/%m/%Y %H:%M:%S", "%d/%m/%Y %H:%M", "%d/%m/%Y %I:%M:%S %p", "%d/%m/%Y %I:%M %p", "%d/%m/%Y", "%d/%m/%y",
-    "%d-%m-%Y", "%d.%m.%Y", "%d-%b-%Y", "%d-%b-%y", "%d %b %Y", "%d %B %Y", "%d %b %Y %H:%M", "%d %B %Y %H:%M"
+    "%Y-%m-%dT%H:%M:%SZ",
+    "%Y-%m-%dT%H:%M:%S",
+    "%Y-%m-%d %H:%M:%S",
+    "%Y-%m-%d %H:%M",
+    "%Y-%m-%d",
+    "%d/%m/%Y %H:%M:%S",
+    "%d/%m/%Y %H:%M",
+    "%d/%m/%Y %I:%M:%S %p",
+    "%d/%m/%Y %I:%M %p",
+    "%d/%m/%Y",
+    "%d/%m/%y",
+    "%d-%m-%Y",
+    "%d.%m.%Y",
+    "%d-%b-%Y",
+    "%d-%b-%y",
+    "%d %b %Y",
+    "%d %B %Y",
+    "%d %b %Y %H:%M",
+    "%d %B %Y %H:%M"
   ],
   "date_order_note": "Day-first only (IE/UK). A US-ordered export fails parsing loudly rather than importing swapped dates.",
   "reports": {
     "recruiters": {
       "target_table": "employers",
-      "dedupe": "site + strategies_id; warn on duplicate name_norm",
-      "activity_chain": ["last_login", "updated", "registered"],
-      "require_one_of": [["last_login", "updated", "registered"]],
+      "source_report": "Recruiters",
+      "dedupe": "site + strategies_id (ClientPK); warn on duplicate name_norm",
+      "activity_chain": [
+        "last_job_live",
+        "registered"
+      ],
+      "require_one_of": [
+        [
+          "last_job_live",
+          "registered"
+        ]
+      ],
       "fields": {
-        "strategies_id": {"column": "source_id", "required": true, "type": "id", "max_len": 40,
-          "aliases": ["Recruiter ID", "RecruiterID", "Client ID", "Advertiser ID", "Company ID", "Employer ID", "ID", "Account ID"]},
-        "name": {"column": "name", "required": true, "type": "text", "max_len": 200,
-          "aliases": ["Company Name", "Company", "Recruiter Name", "Recruiter", "Organisation", "Organization", "Employer", "Employer Name", "Client Name"]},
-        "contact_name": {"column": "contact_name", "type": "text", "max_len": 120, "pii": true,
-          "aliases": ["Contact Name", "Contact", "Full Name", "Name", "Main Contact"]},
-        "contact_first_name": {"column": null, "type": "text", "max_len": 60, "pii": true,
-          "aliases": ["Contact First Name", "First Name", "Forename", "FirstName"]},
-        "contact_last_name": {"column": null, "type": "text", "max_len": 60, "pii": true,
-          "aliases": ["Contact Last Name", "Contact Surname", "Last Name", "Surname", "LastName"]},
-        "contact_email": {"column": "contact_email", "type": "email", "max_len": 254, "pii": true, "on_invalid": "drop_value",
-          "aliases": ["Email", "Email Address", "E-mail", "Contact Email", "Recruiter Email", "Login Email", "Username"]},
-        "phone": {"column": "phone", "type": "text", "max_len": 40, "pii": true, "on_too_long": "reject_row",
-          "aliases": ["Phone", "Telephone", "Tel", "Phone Number", "Contact Number", "Mobile"]},
-        "website": {"column": "website", "type": "url", "max_len": 300, "on_invalid": "drop_value",
-          "aliases": ["Website", "Web Site", "URL", "Web Address", "Company Website", "Homepage"]},
-        "logo": {"column": "logo_key", "type": "filename", "max_len": 200, "on_invalid": "drop_value",
-          "aliases": ["Logo", "Logo File", "Logo Filename", "Logo Image", "Company Logo", "Image"]},
-        "last_login": {"column": "last_active_at", "type": "date", "on_invalid": "drop_value",
-          "aliases": ["Last Login", "Last Logged In", "Last Login Date", "Last Visit", "Last Active", "Last Activity"]},
-        "updated": {"column": null, "type": "date", "on_invalid": "drop_value",
-          "aliases": ["Last Updated", "Updated", "Date Updated", "Modified", "Date Modified", "Last Modified"]},
-        "registered": {"column": null, "type": "date", "on_invalid": "drop_value",
-          "aliases": ["Date Registered", "Registered", "Registration Date", "Date Created", "Created", "Created Date", "Join Date", "Date Joined"]}
-      }
+        "strategies_id": {
+          "column": "source_id",
+          "type": "id",
+          "required": true,
+          "max_len": 40,
+          "aliases": [
+            "ClientPK"
+          ]
+        },
+        "site_tag": {
+          "column": null,
+          "type": "text",
+          "max_len": 40,
+          "on_too_long": "truncate",
+          "note": "site marker; values counted per file (--expect-site-tag filters)",
+          "aliases": [
+            "SiteTag"
+          ]
+        },
+        "name": {
+          "column": "name",
+          "type": "text",
+          "required": true,
+          "max_len": 200,
+          "aliases": [
+            "CompanyName"
+          ]
+        },
+        "contact_name": {
+          "column": "contact_name",
+          "type": "text",
+          "max_len": 120,
+          "pii": true,
+          "aliases": [
+            "contactName"
+          ]
+        },
+        "contact_email": {
+          "column": "contact_email",
+          "type": "email",
+          "max_len": 254,
+          "pii": true,
+          "on_invalid": "drop_value",
+          "aliases": [
+            "email"
+          ]
+        },
+        "phone": {
+          "column": "phone",
+          "type": "text",
+          "max_len": 40,
+          "pii": true,
+          "aliases": [
+            "telephone"
+          ]
+        },
+        "website": {
+          "column": "website",
+          "type": "url",
+          "max_len": 300,
+          "on_invalid": "drop_value",
+          "aliases": [
+            "website"
+          ]
+        },
+        "registered": {
+          "column": null,
+          "type": "date",
+          "on_invalid": "drop_value",
+          "aliases": [
+            "CreateDate"
+          ]
+        },
+        "last_job_live": {
+          "column": "last_active_at",
+          "type": "date",
+          "on_invalid": "drop_value",
+          "aliases": [
+            "LastJobLiveDate"
+          ]
+        }
+      },
+      "ignored_headers": [
+        "expiryEmail",
+        "Pending",
+        "fax",
+        "address1",
+        "address2",
+        "address3",
+        "address4",
+        "postcode",
+        "country",
+        "RemotePostID",
+        "featureScore",
+        "FeaturedAllowance",
+        "AdAccess",
+        "AdExpiry",
+        "CVAccess",
+        "CVExpiry",
+        "NoJobs",
+        "NoLiveJobs",
+        "NoApps",
+        "JobCredits",
+        "CVCredits",
+        "LastJobPK"
+      ]
     },
     "candidates": {
       "target_table": "candidates",
-      "dedupe": "site + lower(trim(email)); same strategies_id with a different email keeps the latest and warns",
-      "activity_chain": ["last_login", "updated", "registered"],
-      "require_one_of": [["last_login", "updated", "registered"]],
+      "source_report": "Members registration details",
+      "dedupe": "site + lower(trim(email)); same CandidatePK with a different email keeps the latest and warns",
+      "activity_chain": [
+        "last_login",
+        "registered"
+      ],
+      "require_one_of": [
+        [
+          "last_login",
+          "registered"
+        ]
+      ],
       "fields": {
-        "strategies_id": {"column": "source_id", "required": true, "type": "id", "max_len": 40,
-          "aliases": ["Candidate ID", "CandidateID", "Jobseeker ID", "Job Seeker ID", "Member ID", "User ID", "Registration ID", "ID"]},
-        "email": {"column": "email_norm", "required": true, "type": "email", "max_len": 254, "pii": true,
-          "aliases": ["Email", "Email Address", "E-mail", "E-mail Address", "Candidate Email", "Login Email", "Username"]},
-        "first_name": {"column": "first_name", "type": "text", "max_len": 60, "pii": true,
-          "aliases": ["First Name", "Forename", "FirstName", "Given Name", "Christian Name"]},
-        "last_name": {"column": "last_name", "type": "text", "max_len": 60, "pii": true,
-          "aliases": ["Last Name", "Surname", "LastName", "Family Name"]},
-        "phone": {"column": "phone", "type": "text", "max_len": 40, "pii": true,
-          "aliases": ["Phone", "Telephone", "Tel", "Phone Number", "Mobile", "Mobile Number", "Contact Number"]},
-        "location": {"column": "location", "type": "text", "max_len": 120, "pii": true, "on_too_long": "truncate",
-          "aliases": ["Location", "Town", "City", "Town/City", "County", "Area", "Address"]},
-        "sectors": {"column": "sectors_json", "type": "list", "max_len": 2000,
-          "aliases": ["Sectors", "Sector", "Job Sectors", "Categories", "Category", "Industries", "Industry"]},
-        "consent_marketing": {"column": "consent_marketing", "type": "bool", "on_invalid": "drop_value",
-          "aliases": ["Newsletter", "Receive Newsletter", "Opt In", "Opt-in", "Marketing", "Marketing Consent", "Job Alerts", "Subscribe"]},
-        "cv_filename": {"column": null, "type": "filename", "max_len": 200, "pii": false,
-          "aliases": ["CV", "CV File", "CV Filename", "Resume", "CV Name", "Attachment"]},
-        "registered": {"column": "registered_at", "type": "date", "on_invalid": "drop_value",
-          "aliases": ["Date Registered", "Registered", "Registration Date", "Date Created", "Created", "Join Date", "Date Joined"]},
-        "last_login": {"column": "last_active_at", "type": "date", "on_invalid": "drop_value",
-          "aliases": ["Last Login", "Last Logged In", "Last Login Date", "Last Visit", "Last Active", "Last Activity"]},
-        "updated": {"column": null, "type": "date", "on_invalid": "drop_value",
-          "aliases": ["Last Updated", "Updated", "Date Updated", "Modified", "Date Modified", "Last Modified"]}
-      }
+        "strategies_id": {
+          "column": "source_id",
+          "type": "id",
+          "required": true,
+          "max_len": 40,
+          "aliases": [
+            "CandidatePK"
+          ]
+        },
+        "site_tag": {
+          "column": null,
+          "type": "text",
+          "max_len": 40,
+          "on_too_long": "truncate",
+          "note": "site marker; values counted per file (--expect-site-tag filters)",
+          "aliases": [
+            "SiteTag"
+          ]
+        },
+        "email": {
+          "column": "email_norm",
+          "type": "email",
+          "required": true,
+          "max_len": 254,
+          "pii": true,
+          "aliases": [
+            "email"
+          ]
+        },
+        "first_name": {
+          "column": "first_name",
+          "type": "text",
+          "max_len": 60,
+          "pii": true,
+          "aliases": [
+            "FirstName"
+          ]
+        },
+        "last_name": {
+          "column": "last_name",
+          "type": "text",
+          "max_len": 60,
+          "pii": true,
+          "aliases": [
+            "LastName"
+          ]
+        },
+        "full_name": {
+          "column": null,
+          "type": "text",
+          "max_len": 120,
+          "pii": true,
+          "on_too_long": "truncate",
+          "note": "read, not stored; FirstName/LastName are stored",
+          "aliases": [
+            "FullName"
+          ]
+        },
+        "phone": {
+          "column": "phone",
+          "type": "text",
+          "max_len": 40,
+          "pii": true,
+          "aliases": [
+            "Mobile",
+            "HomePhone"
+          ]
+        },
+        "location": {
+          "column": "location",
+          "type": "text",
+          "max_len": 120,
+          "pii": true,
+          "on_too_long": "truncate",
+          "aliases": [
+            "town",
+            "county"
+          ]
+        },
+        "consent_marketing": {
+          "column": "consent_marketing",
+          "type": "bool",
+          "on_invalid": "drop_value",
+          "note": "gates any marketing email",
+          "aliases": [
+            "Marketing"
+          ]
+        },
+        "consent": {
+          "column": "strategies_consent",
+          "type": "bool",
+          "on_invalid": "drop_value",
+          "note": "Strategies 'Consent' flag carried as-is (1/0/NULL); 0 excludes the candidate's alerts and gates any later emailing",
+          "aliases": [
+            "Consent"
+          ]
+        },
+        "has_alerts": {
+          "column": null,
+          "type": "bool",
+          "on_invalid": "drop_value",
+          "note": "informational; the alerts report carries the subscriptions",
+          "aliases": [
+            "HasJobsByEmail"
+          ]
+        },
+        "cv_filename": {
+          "column": null,
+          "type": "filename",
+          "max_len": 200,
+          "aliases": [
+            "CVName"
+          ]
+        },
+        "registered": {
+          "column": "registered_at",
+          "type": "date",
+          "on_invalid": "drop_value",
+          "aliases": [
+            "registerDate"
+          ]
+        },
+        "last_login": {
+          "column": "last_active_at",
+          "type": "date",
+          "on_invalid": "drop_value",
+          "aliases": [
+            "LastLoggedIn"
+          ]
+        }
+      },
+      "ignored_headers": [
+        "ReferenceNo",
+        "address1",
+        "address2",
+        "county",
+        "postcode",
+        "country",
+        "HomePhone",
+        "anon",
+        "HTML",
+        "HasCV"
+      ]
     },
     "profiles": {
       "target_table": "candidates",
-      "merge": "by strategies candidate id -> email (from --candidates-csv kept rows) or the profile's own email column",
-      "dedupe": "site + candidate strategies_id, latest wins",
-      "activity_chain": ["updated", "registered"],
-      "require_one_of": [["updated", "registered"]],
+      "source_report": "Members profile data",
+      "merge": "by CandidatePK -> email (from --candidates-csv kept rows) or the profile's own sEmail",
+      "dedupe": "site + CandidatePK, latest wins",
+      "activity_chain": [
+        "updated",
+        "registered"
+      ],
+      "require_one_of": [
+        [
+          "updated",
+          "registered"
+        ]
+      ],
       "fields": {
-        "candidate_id": {"column": "source_id", "required": true, "type": "id", "max_len": 40,
-          "aliases": ["Candidate ID", "CandidateID", "Jobseeker ID", "Member ID", "User ID", "ID"]},
-        "email": {"column": "email_norm", "type": "email", "max_len": 254, "pii": true,
-          "aliases": ["Email", "Email Address", "E-mail", "Candidate Email"]},
-        "headline": {"column": "headline", "type": "text", "max_len": 200, "on_too_long": "truncate",
-          "aliases": ["Headline", "Profile Title", "Title", "Profile Headline", "Current Job Title", "Job Title", "Summary"]},
-        "location": {"column": "location", "type": "text", "max_len": 120, "pii": true, "on_too_long": "truncate",
-          "aliases": ["Location", "Preferred Location", "Town", "City", "Region"]},
-        "sectors": {"column": "sectors_json", "type": "list", "max_len": 2000,
-          "aliases": ["Sectors", "Sector", "Preferred Sectors", "Categories", "Category", "Industries"]},
-        "cv_filename": {"column": null, "type": "filename", "max_len": 200,
-          "aliases": ["CV", "CV File", "CV Filename", "Resume", "Attachment"]},
-        "updated": {"column": "last_active_at", "type": "date", "on_invalid": "drop_value",
-          "aliases": ["Last Updated", "Updated", "Date Updated", "Profile Updated", "Modified", "Date Modified"]},
-        "registered": {"column": null, "type": "date", "on_invalid": "drop_value",
-          "aliases": ["Date Created", "Created", "Date Registered", "Registered"]}
-      }
+        "candidate_id": {
+          "column": "source_id",
+          "type": "id",
+          "required": true,
+          "max_len": 40,
+          "aliases": [
+            "CandidatePK"
+          ]
+        },
+        "email": {
+          "column": "email_norm",
+          "type": "email",
+          "max_len": 254,
+          "pii": true,
+          "aliases": [
+            "sEmail"
+          ]
+        },
+        "headline": {
+          "column": "headline",
+          "type": "text",
+          "max_len": 200,
+          "on_too_long": "truncate",
+          "aliases": [
+            "sCurrentJobTitleDesc",
+            "sDesiredJobTitleDesc"
+          ]
+        },
+        "location": {
+          "column": "location",
+          "type": "text",
+          "max_len": 120,
+          "on_too_long": "truncate",
+          "note": "IE sPreferredWorkRegionDesc = UK sPreferredWorkLocationDesc. The preferred work area, not the home address (data minimisation)",
+          "aliases": [
+            "sPreferredWorkRegionDesc",
+            "sPreferredWorkLocationDesc"
+          ]
+        },
+        "sectors": {
+          "column": "sectors_json",
+          "type": "list",
+          "max_len": 2000,
+          "aliases": [
+            "sPreferredIndustrySectorDesc"
+          ]
+        },
+        "cv_filename": {
+          "column": null,
+          "type": "filename",
+          "max_len": 200,
+          "aliases": [
+            "sCVName"
+          ]
+        },
+        "updated": {
+          "column": "last_active_at",
+          "type": "date",
+          "on_invalid": "drop_value",
+          "aliases": [
+            "dLastLoggedIn"
+          ]
+        },
+        "registered": {
+          "column": null,
+          "type": "date",
+          "on_invalid": "drop_value",
+          "aliases": [
+            "dRegisterDate"
+          ]
+        }
+      },
+      "ignored_headers": [
+        "FullName",
+        "FirstName",
+        "LastName",
+        "sAddress1",
+        "sAddress2",
+        "sTown",
+        "sCounty",
+        "sPostCode",
+        "sCountry",
+        "sHomePhone",
+        "sMobile",
+        "nSalaryMin",
+        "nSalaryMax",
+        "nSalaryFrame",
+        "sSynopsis",
+        "sSalary",
+        "sReferenceNo",
+        "bAnon",
+        "bMarketing",
+        "bHasCV",
+        "bActive",
+        "bnew_marketingVal",
+        "bukEligableVal",
+        "sCareerLevelDesc",
+        "beuEligableVal",
+        "sWhereHeardAboutDesc",
+        "sManagementExperienceDesc",
+        "scareer_experience_sectorDesc",
+        "scareer_experience_job_categoryDesc",
+        "sEducationLevelDesc",
+        "sInstitutionDesc",
+        "sCourseTitleDesc",
+        "sLastYearofStudyDesc",
+        "sCertification_1Desc",
+        "sAwardingBodyCollege_1Desc",
+        "sDateAwarded_1Desc",
+        "sCertification_2Desc",
+        "sAwardingBodyCollege_2Desc",
+        "sDateAwarded_2Desc",
+        "sCertification_3Desc",
+        "sAwardingBodyCollege_3Desc",
+        "sDateAwarded_3Desc",
+        "sProfessionalAssociationsDesc",
+        "sDesiredJobTitleDesc",
+        "scurrent_job_typeDesc",
+        "sTimeInCurrentRoleDesc",
+        "sCurrentSalaryDesc",
+        "sOrganisationNameDesc",
+        "scurrent_regionDesc",
+        "scurrent_vicinityDesc",
+        "sDesiredJobTypeDesc",
+        "sPreferredSalaryDesc",
+        "sPreferredWorkVicinityDesc",
+        "sPreferredJobCategoryDesc",
+        "sNoticePeriodDesc",
+        "bWillingToRelocateVal"
+      ]
     },
     "jobs": {
       "target_table": "jobs",
-      "dedupe": "site + strategies job id, latest wins",
-      "activity_chain": ["updated", "posted", "closing"],
-      "require_one_of": [["updated", "posted", "closing"]],
+      "source_report": "Jobs (All jobs only)",
+      "dedupe": "site + JobPK, latest wins",
+      "activity_chain": [
+        "updated",
+        "posted",
+        "closing"
+      ],
+      "require_one_of": [
+        [
+          "updated",
+          "posted",
+          "closing"
+        ],
+        [
+          "location",
+          "region"
+        ]
+      ],
+      "apply_mode_rule": "AppLink non-empty and https -> 'link'; else Email valid -> 'email' routed to it; else 'email' with NULL apply_email -> the site default inbox (APPLY_ROUTING)",
       "fields": {
-        "strategies_id": {"column": "source_id", "required": true, "type": "id", "max_len": 40,
-          "aliases": ["Job ID", "JobID", "Vacancy ID", "Job Ref ID", "Advert ID", "ID"]},
-        "employer_id": {"column": "employer_id", "type": "id", "max_len": 40, "on_invalid": "drop_value",
-          "aliases": ["Recruiter ID", "RecruiterID", "Client ID", "Advertiser ID", "Company ID", "Employer ID"]},
-        "title": {"column": "title", "required": true, "type": "text", "max_len": 160, "min_len": 3,
-          "aliases": ["Job Title", "Title", "Position", "Vacancy Title", "Role"]},
-        "location": {"column": "location", "required": true, "type": "text", "max_len": 120, "on_too_long": "truncate",
-          "aliases": ["Location", "Job Location", "Town", "City", "Place"]},
-        "region": {"column": "region", "type": "text", "max_len": 80, "on_too_long": "truncate",
-          "aliases": ["Region", "County", "Area"]},
-        "job_type": {"column": "job_type", "type": "text", "max_len": 40, "on_too_long": "truncate",
-          "aliases": ["Job Type", "Type", "Contract Type", "Employment Type", "Hours"]},
-        "sal_min": {"column": "sal_min", "type": "money", "on_invalid": "drop_value",
-          "aliases": ["Salary From", "Salary Min", "Min Salary", "Minimum Salary", "Salary Low"]},
-        "sal_max": {"column": "sal_max", "type": "money", "on_invalid": "drop_value",
-          "aliases": ["Salary To", "Salary Max", "Max Salary", "Maximum Salary", "Salary High"]},
-        "currency": {"column": "currency", "type": "text", "max_len": 8, "on_too_long": "truncate",
-          "aliases": ["Currency", "Salary Currency"]},
-        "period": {"column": "period", "type": "text", "max_len": 20, "on_too_long": "truncate",
-          "aliases": ["Salary Period", "Period", "Per", "Salary Per", "Pay Period"]},
-        "sal_text": {"column": "sal_text", "type": "text", "max_len": 120, "on_too_long": "truncate",
-          "aliases": ["Salary", "Salary Text", "Salary Description", "Pay", "Remuneration"]},
-        "sectors": {"column": "sectors_json", "type": "list", "max_len": 2000,
-          "aliases": ["Sectors", "Sector", "Categories", "Category", "Job Sectors", "Industry"]},
-        "summary": {"column": "summary", "type": "text", "max_len": 500, "on_too_long": "truncate",
-          "aliases": ["Summary", "Short Description", "Job Summary", "Intro", "Teaser"]},
-        "description": {"column": "description", "required": true, "type": "text", "max_len": 20000, "min_len": 20,
-          "aliases": ["Description", "Job Description", "Full Description", "Details", "Body", "Advert Text"]},
-        "apply_email": {"column": "apply_email", "type": "email", "max_len": 254, "on_invalid": "drop_value",
-          "aliases": ["Apply Email", "Application Email", "Contact Email", "Email", "Response Email"]},
-        "apply_url": {"column": "apply_url", "type": "url", "max_len": 500, "on_invalid": "drop_value",
-          "aliases": ["Apply URL", "Application URL", "External URL", "Apply Link", "Redirect URL"]},
-        "posted": {"column": "posted_at", "type": "date", "on_invalid": "drop_value",
-          "aliases": ["Date Posted", "Posted", "Posted Date", "Start Date", "Live Date", "Date Created", "Created"]},
-        "closing": {"column": "closing_at", "type": "date", "on_invalid": "drop_value",
-          "aliases": ["Closing Date", "Close Date", "Expiry Date", "Expires", "End Date", "Deadline"]},
-        "updated": {"column": null, "type": "date", "on_invalid": "drop_value",
-          "aliases": ["Last Updated", "Updated", "Date Updated", "Modified", "Date Modified"]}
-      }
+        "strategies_id": {
+          "column": "source_id",
+          "type": "id",
+          "required": true,
+          "max_len": 40,
+          "aliases": [
+            "JobPK"
+          ]
+        },
+        "employer_id": {
+          "column": "employer_id",
+          "type": "id",
+          "max_len": 40,
+          "on_invalid": "drop_value",
+          "aliases": [
+            "ClientFK"
+          ]
+        },
+        "site_tag": {
+          "column": null,
+          "type": "text",
+          "max_len": 40,
+          "on_too_long": "truncate",
+          "note": "site marker",
+          "aliases": [
+            "SiteFK"
+          ]
+        },
+        "title": {
+          "column": "title",
+          "type": "text",
+          "required": true,
+          "max_len": 160,
+          "min_len": 3,
+          "aliases": [
+            "JobTitle"
+          ]
+        },
+        "location": {
+          "column": "location",
+          "type": "text",
+          "max_len": 120,
+          "on_too_long": "truncate",
+          "note": "falls back to sRegionDesc when empty",
+          "aliases": [
+            "sVicinityDesc"
+          ]
+        },
+        "region": {
+          "column": "region",
+          "type": "text",
+          "max_len": 80,
+          "on_too_long": "truncate",
+          "aliases": [
+            "sRegionDesc"
+          ]
+        },
+        "job_type": {
+          "column": "job_type",
+          "type": "text",
+          "max_len": 40,
+          "on_too_long": "truncate",
+          "aliases": [
+            "sJobTypeDesc"
+          ]
+        },
+        "sal_min": {
+          "column": "sal_min",
+          "type": "money",
+          "on_invalid": "drop_value",
+          "aliases": [
+            "SalaryMin"
+          ]
+        },
+        "sal_max": {
+          "column": "sal_max",
+          "type": "money",
+          "on_invalid": "drop_value",
+          "aliases": [
+            "SalaryMax"
+          ]
+        },
+        "period": {
+          "column": "period",
+          "type": "text",
+          "max_len": 20,
+          "on_too_long": "truncate",
+          "aliases": [
+            "SalaryFrame"
+          ]
+        },
+        "sal_text": {
+          "column": "sal_text",
+          "type": "text",
+          "max_len": 120,
+          "on_too_long": "truncate",
+          "aliases": [
+            "SalaryDesc"
+          ]
+        },
+        "sectors": {
+          "column": "sectors_json",
+          "type": "list",
+          "max_len": 2000,
+          "aliases": [
+            "sIndustrySectorDesc"
+          ]
+        },
+        "description": {
+          "column": "description",
+          "type": "text",
+          "required": true,
+          "max_len": 20000,
+          "min_len": 20,
+          "aliases": [
+            "JobDescription"
+          ]
+        },
+        "apply_email": {
+          "column": "apply_email",
+          "type": "email",
+          "max_len": 254,
+          "on_invalid": "drop_value",
+          "note": "apply-mode source (client 19 Nov): used when AppLink is empty",
+          "aliases": [
+            "Email"
+          ]
+        },
+        "apply_url": {
+          "column": "apply_url",
+          "type": "url",
+          "max_len": 500,
+          "on_invalid": "drop_value",
+          "note": "apply-mode source: https -> link mode; http/javascript:/data: dropped",
+          "aliases": [
+            "AppLink"
+          ]
+        },
+        "job_status": {
+          "column": null,
+          "type": "text",
+          "max_len": 40,
+          "on_too_long": "truncate",
+          "note": "values unseen; status comes from ExpiryDate",
+          "aliases": [
+            "JobStatus"
+          ]
+        },
+        "job_ref": {
+          "column": null,
+          "type": "text",
+          "max_len": 80,
+          "on_too_long": "truncate",
+          "aliases": [
+            "JobRef"
+          ]
+        },
+        "company_name": {
+          "column": null,
+          "type": "text",
+          "max_len": 200,
+          "on_too_long": "truncate",
+          "note": "the employer row comes from ClientFK",
+          "aliases": [
+            "CompanyName"
+          ]
+        },
+        "posted": {
+          "column": "posted_at",
+          "type": "date",
+          "on_invalid": "drop_value",
+          "aliases": [
+            "LiveDate",
+            "CreateDate"
+          ]
+        },
+        "closing": {
+          "column": "closing_at",
+          "type": "date",
+          "on_invalid": "drop_value",
+          "aliases": [
+            "ExpiryDate"
+          ]
+        },
+        "updated": {
+          "column": null,
+          "type": "date",
+          "on_invalid": "drop_value",
+          "aliases": [
+            "LastChange"
+          ]
+        }
+      },
+      "ignored_headers": [
+        "FeatureScore",
+        "FeaturedAdvert",
+        "PremiumJob",
+        "CreateDate",
+        "HideContactDetails",
+        "JobLogo",
+        "nIndustrySectorVal",
+        "nEducationLevelVal",
+        "sEducationLevelDesc",
+        "nRegionVal",
+        "nJobTypeVal",
+        "nVicinityVal",
+        "nJobCategoryVal",
+        "sJobCategoryDesc",
+        "NoApplications",
+        "NoSearches",
+        "NoViews",
+        "EditedBy"
+      ],
+      "duplicate_note": "ReferralAmount appears twice in both sites' exports: a duplicated header is never mapped (both copies ignored, one warning per file)"
     },
     "applications": {
       "target_table": "applications",
-      "dedupe": "dedupe_key = sha256(site|job_id|applicant_email_norm), job_id = the D1 job id '{site}:strat:{job id}'; latest submitted wins",
-      "activity_chain": ["submitted"],
-      "require_one_of": [["submitted"], ["applicant_name", "first_name", "last_name"]],
+      "source_report": "Job Applications",
+      "dedupe": "dedupe_key = sha256(site|job_id|CandEmail), job_id = '{site}:strat:{JobPk}'; latest ApplicationDate wins. No CV file in the export.",
+      "activity_chain": [
+        "submitted"
+      ],
+      "require_one_of": [
+        [
+          "submitted"
+        ]
+      ],
       "fields": {
-        "strategies_id": {"column": "source_id", "type": "id", "max_len": 40, "on_invalid": "drop_value",
-          "aliases": ["Application ID", "ApplicationID", "Response ID", "Apply ID", "ID"]},
-        "job_id": {"column": "job_id", "required": true, "type": "id", "max_len": 40,
-          "aliases": ["Job ID", "JobID", "Vacancy ID", "Advert ID"]},
-        "applicant_name": {"column": "applicant_name", "type": "text", "max_len": 120, "pii": true,
-          "aliases": ["Name", "Applicant Name", "Candidate Name", "Full Name", "Applicant"]},
-        "first_name": {"column": null, "type": "text", "max_len": 60, "pii": true,
-          "aliases": ["First Name", "Forename", "FirstName"]},
-        "last_name": {"column": null, "type": "text", "max_len": 60, "pii": true,
-          "aliases": ["Last Name", "Surname", "LastName"]},
-        "applicant_email": {"column": "applicant_email", "required": true, "type": "email", "max_len": 254, "pii": true,
-          "aliases": ["Email", "Email Address", "E-mail", "Applicant Email", "Candidate Email"]},
-        "phone": {"column": "phone", "type": "text", "max_len": 40, "pii": true,
-          "aliases": ["Phone", "Telephone", "Tel", "Phone Number", "Mobile", "Contact Number"]},
-        "cover_note": {"column": "cover_note", "type": "text", "max_len": 5000, "pii": true, "on_too_long": "truncate",
-          "aliases": ["Cover Letter", "Cover Note", "Covering Letter", "Message", "Comments", "Notes"]},
-        "cv_filename": {"column": null, "type": "filename", "max_len": 200,
-          "aliases": ["CV", "CV File", "CV Filename", "Resume", "Attachment"]},
-        "submitted": {"column": "submitted_at", "type": "date", "on_invalid": "drop_value",
-          "aliases": ["Date Applied", "Applied", "Application Date", "Date Submitted", "Submitted", "Date", "Response Date", "Created"]}
-      }
+        "job_id": {
+          "column": "job_id",
+          "type": "id",
+          "required": true,
+          "max_len": 40,
+          "aliases": [
+            "JobPk"
+          ]
+        },
+        "applicant_name": {
+          "column": "applicant_name",
+          "type": "text",
+          "required": true,
+          "max_len": 120,
+          "pii": true,
+          "aliases": [
+            "Name"
+          ]
+        },
+        "applicant_email": {
+          "column": "applicant_email",
+          "type": "email",
+          "required": true,
+          "max_len": 254,
+          "pii": true,
+          "aliases": [
+            "CandEmail"
+          ]
+        },
+        "submitted": {
+          "column": "submitted_at",
+          "type": "date",
+          "on_invalid": "drop_value",
+          "aliases": [
+            "ApplicationDate"
+          ]
+        }
+      },
+      "ignored_headers": [
+        "JobTitle",
+        "JobRef",
+        "CompanyName",
+        "ExpiryDate"
+      ]
+    },
+    "alerts": {
+      "target_table": "alert_subscriptions",
+      "source_report": "Jobs By Email",
+      "dedupe": "site + email + query_hash; imported as status 'pending' (double opt-in before any send); candidate Consent=0 excluded",
+      "activity_from": "candidates",
+      "activity_chain": [],
+      "fields": {
+        "candidate_id": {
+          "column": null,
+          "type": "id",
+          "required": true,
+          "max_len": 40,
+          "aliases": [
+            "CandidatePK"
+          ]
+        },
+        "email": {
+          "column": "email_norm",
+          "type": "email",
+          "required": true,
+          "max_len": 254,
+          "pii": true,
+          "aliases": [
+            "Email"
+          ]
+        },
+        "name": {
+          "column": null,
+          "type": "text",
+          "max_len": 120,
+          "pii": true,
+          "on_too_long": "truncate",
+          "note": "not stored",
+          "aliases": [
+            "Name"
+          ]
+        },
+        "search_name": {
+          "column": null,
+          "type": "text",
+          "max_len": 120,
+          "on_too_long": "truncate",
+          "aliases": [
+            "SearchName"
+          ]
+        },
+        "keywords": {
+          "column": null,
+          "type": "text",
+          "max_len": 200,
+          "on_too_long": "truncate",
+          "aliases": [
+            "Keywords"
+          ]
+        },
+        "sal_min": {
+          "column": null,
+          "type": "money",
+          "on_invalid": "drop_value",
+          "aliases": [
+            "SalaryMin"
+          ]
+        },
+        "sal_max": {
+          "column": null,
+          "type": "money",
+          "on_invalid": "drop_value",
+          "aliases": [
+            "SalaryMax"
+          ]
+        },
+        "period": {
+          "column": null,
+          "type": "text",
+          "max_len": 20,
+          "on_too_long": "truncate",
+          "aliases": [
+            "SalaryFrame"
+          ]
+        },
+        "job_type": {
+          "column": null,
+          "type": "text",
+          "max_len": 40,
+          "on_too_long": "truncate",
+          "aliases": [
+            "sJobTypeDesc"
+          ]
+        },
+        "sectors": {
+          "column": null,
+          "type": "list",
+          "max_len": 2000,
+          "aliases": [
+            "sIndustrySectorDesc"
+          ]
+        },
+        "category": {
+          "column": null,
+          "type": "text",
+          "max_len": 80,
+          "on_too_long": "truncate",
+          "aliases": [
+            "sJobCategoryDesc"
+          ]
+        },
+        "region": {
+          "column": null,
+          "type": "text",
+          "max_len": 80,
+          "on_too_long": "truncate",
+          "aliases": [
+            "sRegionDesc"
+          ]
+        },
+        "vicinity": {
+          "column": null,
+          "type": "text",
+          "max_len": 80,
+          "on_too_long": "truncate",
+          "aliases": [
+            "sVicinityDesc"
+          ]
+        }
+      },
+      "ignored_headers": []
     }
-  }
+  },
+  "headers_source": "REAL_HEADERS_2026-11-19.json (header rows only; no data rows seen: date formats and value sets are unverified)"
 }

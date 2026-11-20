@@ -7,7 +7,7 @@ cd "$ROOT"
 PY="${PYTHON:-python3}"
 fail=0
 
-echo "== 1/4 D1 schema: applies twice (idempotent), all upserts compile"
+echo "== 1/4 D1 schema: applies twice (idempotent), all upserts compile, migrations apply twice"
 "$PY" - <<'EOF' || fail=1
 import re, sqlite3, sys
 base = "deliverables/greenjobs_migration_2026-11-06/build/d1/"
@@ -19,11 +19,20 @@ stmts = [s.strip() for s in ups.split(";") if s.strip()]
 for s in stmts:
     n = max([int(x) for x in re.findall(r"\?(\d+)", s)] or [0])
     c.execute("EXPLAIN " + s, [None] * n)
-print(f"ok: schema x2, {len(stmts)} upserts")
+import glob
+migs = sorted(glob.glob(base + "migrations/*.sql"))
+c.isolation_level = None
+for m in migs:
+    sql = open(m, encoding="utf-8").read()
+    for _ in range(2):  # each migration is idempotent and runs as one transaction, as D1 runs a --file
+        c.executescript("BEGIN;\n" + sql + "\nCOMMIT;")
+c.executescript(schema)
+assert c.execute("PRAGMA foreign_key_check").fetchall() == []
+print(f"ok: schema x2, {len(stmts)} upserts, {len(migs)} migration(s) x2 + schema again")
 EOF
 
-echo "== 2/4 import validator (pytest)"
-"$PY" -m pytest -q tests/greenjobs_redesign/test_strategies_import.py || fail=1
+echo "== 2/4 import validator + static job-page apply mode (pytest)"
+"$PY" -m pytest -q tests/greenjobs_redesign/test_strategies_import.py tests/greenjobs_redesign/test_strategies_real_headers.py tests/greenjobs_redesign/test_apply_mode_site.py || fail=1
 
 echo "== 3/4 Worker unit tests + BDD features (node --test)"
 node --no-warnings --test 'tests/greenjobs_redesign/platform/*.test.mjs' || fail=1
