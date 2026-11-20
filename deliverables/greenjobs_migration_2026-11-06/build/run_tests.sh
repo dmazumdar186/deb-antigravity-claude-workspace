@@ -4,10 +4,11 @@
 set -euo pipefail
 ROOT="$(git -C "$(dirname "$0")" rev-parse --show-toplevel)"
 cd "$ROOT"
+mkdir -p .tmp
 PY="${PYTHON:-python3}"
 fail=0
 
-echo "== 1/5 D1 schema: applies twice (idempotent), all upserts compile, migrations 0001..000N apply twice on a fresh DB and on the old schema"
+echo "== 1/6 D1 schema: applies twice (idempotent), all upserts compile, migrations 0001..000N apply twice on a fresh DB and on the old schema"
 "$PY" - <<'EOF' || fail=1
 import re, sqlite3, sys
 base = "deliverables/greenjobs_migration_2026-11-06/build/d1/"
@@ -59,19 +60,24 @@ print(f"ok: schema x2, {len(stmts)} upserts, {len(migs)} migration(s) x2 + schem
       f"old schema + {names[0]}..{names[-1]} x2 keeps data")
 EOF
 
-echo "== 2/5 import validator + apply mode + Gaia feed sync + classifier / D1 import + frozen taxonomy (pytest)"
+echo "== 2/6 import validator + apply mode + Gaia feed sync + classifier / D1 import + frozen taxonomy (pytest)"
 "$PY" -m pytest -q tests/greenjobs_redesign/test_strategies_import.py tests/greenjobs_redesign/test_strategies_real_headers.py tests/greenjobs_redesign/test_apply_mode_site.py tests/greenjobs_redesign/test_gaia_feed_sync.py tests/greenjobs_redesign/test_d1_classifier_import.py tests/greenjobs_redesign/test_platform_taxonomy.py || fail=1
 
-echo "== 3/5 Worker unit tests + BDD features + D1-rendered board: parity with build_site.py and the E2E deploy gate (node --test)"
+echo "== 3/6 Worker unit tests + BDD features + D1-rendered board: parity with build_site.py and the E2E deploy gate (node --test)"
 node --no-warnings --test 'tests/greenjobs_redesign/platform/*.test.mjs' || fail=1
 # live figures on the static pages (live.js) and the KPI dashboard's /api/stats refresh (dashboard.js)
 (cd deliverables/greenjobs_redesign_2026-09-22/src/js && node --test live.test.js dashboard.test.js) || fail=1
 
-echo "== 4/5 ops: redirects, DNS watcher, probe + incidents, metrics + status page, backups, acceptance, reports"
+echo "== 4/6 ops: redirects, DNS watcher, probe + incidents, metrics + status page, backups, acceptance, reports"
 "$PY" -m pytest -q tests/greenjobs_redesign/ops || fail=1
 node --no-warnings --test tests/greenjobs_redesign/ops/redirect_rules.test.mjs || fail=1
 
-echo "== 5/5 no candidate data staged"
+echo "== 5/6 static boards + release pipeline: build + validator, sanitiser XSS port, Pages _redirects/_headers/robots, dashboard DOM, release + smoke client"
+"$PY" tests/greenjobs_redesign/test_build.py > .tmp/greenjobs_test_build.log 2>&1 && grep "Unit+Integration" .tmp/greenjobs_test_build.log || { tail -20 .tmp/greenjobs_test_build.log; fail=1; }
+"$PY" -m pytest -q tests/greenjobs_redesign/test_sanitise_xss.py tests/greenjobs_redesign/test_pages_files.py tests/greenjobs_redesign/smoke || fail=1
+node --no-warnings --test tests/greenjobs_redesign/dashboard_dom.test.mjs || fail=1
+
+echo "== 6/6 no candidate data staged"
 if git ls-files --cached --others --exclude-standard | grep -E '^deliverables/greenjobs_migration_2026-11-06/.*\.csv$'; then
   echo "FAIL: CSV under the migration deliverable"; fail=1
 else echo "ok: no CSV in the migration deliverable"; fi

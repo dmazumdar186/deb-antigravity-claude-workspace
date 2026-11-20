@@ -248,6 +248,9 @@ def test_ie_and_uk_job_orders_import_identically(capsys, tmp_path):
         re.sub(r"'[0-9a-f]{64}'", "'SHA'", x) for x in a
     ]  # import_batches row: the files differ by design
     b = [re.sub(r"'[0-9a-f]{64}'", "'SHA'", x) for x in b]
+    # the generation timestamp (updated_at) differs when the two runs straddle a second: not part of the claim
+    a = [re.sub(r"'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ'", "'NOW'", x) for x in a]
+    b = [re.sub(r"'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ'", "'NOW'", x) for x in b]
     assert a == b
     con = sqlite3.connect(":memory:")
     con.executescript(SCHEMA.read_text(encoding="utf-8"))

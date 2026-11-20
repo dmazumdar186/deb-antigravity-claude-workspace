@@ -81,15 +81,8 @@ class MockGreenJobs:
         self.applications: set[str] = set()
         self.requests: list[tuple[str, str]] = []
         self.idem: dict[str, str] = {}
-        rm = json.loads((ROOT / cfg["redirect_map"]).read_text(encoding="utf-8"))
-        self.redirects = {
-            site: {
-                e["old"]: e["target"]
-                for e in s["entries"]
-                if e.get("status") == "mapped" and e.get("target")
-            }
-            for site, s in rm["sites"].items()
-        }
+        probe = smoke.Smoke(cfg, "staging", "full", "0" * 40)  # the same rule source the smoke samples from
+        self.redirects = {site: dict(probe.redirect_rules(site)) for site in ("ie", "uk")}
 
     def r(self, status, body=b"", headers=None, kind="json"):
         h = dict(SEC_HEADERS)

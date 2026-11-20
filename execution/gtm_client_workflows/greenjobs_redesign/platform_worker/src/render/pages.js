@@ -66,7 +66,7 @@ export function shellCtx(site, { page, title, desc, samePath = '', switchPath = 
   return {
     head_extra: canonical ? `<link rel="canonical" href="${esc(canonical)}">` : '',
     lang: ed.lang, title: esc(title), desc: esc(desc), root, home, ed: site, ED: ed.short, domain: esc(data.site), nav, menu_links: nav, edsw,
-    hdr_cls: '', body_attrs: bodyAttrs, net_sites: net, phones, emails, bcorp, hdr_bcorp: hdrBcorp, social,
+    hdr_cls: '', body_attrs: bodyAttrs, live_api: '1', net_sites: net, phones, emails, bcorp, hdr_bcorp: hdrBcorp, social,
     year: today.slice(0, 4), n_jobs: String(nJobs), fetched: esc(today), fetched_long: esc(dateLong(today)),
     social_wrap: social ? `<div class="ftr__social">${social}</div>` : '', canonical: canonical ? esc(canonical) : '',
     nav_list: NAV.map(([href, label]) => `<li><a href="${home}${href}">${label}</a></li>`).join(''),

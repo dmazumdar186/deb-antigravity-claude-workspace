@@ -71,14 +71,17 @@ answers 200, export auth (401 anonymous, 200 with token). Staging adds: create a
 job (Access service token), poll until public (15 min ceiling, 30 s poll), apply in both modes (link: 409
 `apply_externally`; email: 201 `dry_run`), close both (always, even after a failed check), expect 410.
 
-## Known gaps at 2026-11-20 (staging smoke fails on these until the Worker / build owners close them)
+## Closed at integration (2026-11-20)
 
-- `/api/health` and `/api/stats` (`live_jobs`) are not routes yet (paths are in `environments.json`).
-- A closed job answers 404 from `GET /api/jobs/{id}`; the smoke contract is 410 (`closed_job_status`).
-- `authenticateStaff` needs an Access JWT email in `STAFF_EMAILS`; an Access service token carries
-  `common_name`, not an email, so the smoke admin calls get 403 until the Worker accepts an allow-listed
-  service-token `common_name` (staging only).
-- The boards ship no `_redirects` / `_headers`, so the redirect and board header checks fail.
+- `GET /api/health` (no auth: release sha, Worker version, D1 reachability) and `/api/stats` `live_jobs` exist.
+- A closed job answers 410 from `GET /api/jobs/{id}` (a draft stays 404).
+- Access service tokens: a JWT whose `common_name` is on `ACCESS_SERVICE_TOKEN_IDS` reaches only the smoke paths
+  (create, read, close a job) and `/api/admin/import`; everything else stays staff-only.
+- The boards ship `_redirects` (this board's legacy URLs from `ops/generated/bulk_redirects.json`; the smoke
+  samples the same rules) and `_headers` (CSP with inline-script hashes, HSTS, nosniff, Referrer-Policy,
+  frame-ancestors; `X-Robots-Tag: noindex` unless `robots_index`). Query-string legacy URLs (`*.asp?...`) are
+  the Worker table's job in production; Pages matches paths only.
+- Staging is noindex (`robots_index: false`); production builds with `--robots-index --live-api`.
 
 ## Placeholders to fill before the first live run
 

@@ -8,6 +8,7 @@
     "uk": "deliverables/greenjobs_redesign_2026-09-22/src/data/uk.json"
   },
   "redirect_map": "deliverables/greenjobs_migration_2026-11-06/build/live_snapshot_2026-11-20/redirect_map.json",
+  "redirect_source": "execution/gtm_client_workflows/greenjobs_redesign/ops/generated/bulk_redirects.json",
   "envs": {
     "staging": {
       "wrangler_env": "staging",
@@ -22,6 +23,8 @@
       "api_token_env": "CLOUDFLARE_API_TOKEN",
       "require_dry_run": true,
       "seed_public_jobs": true,
+      "robots_index": false,
+      "live_api": false,
       "smoke_mode": "full"
     },
     "production": {
@@ -37,6 +40,8 @@
       "api_token_env": "GREENJOBS_PROD_CLOUDFLARE_API_TOKEN",
       "require_dry_run": false,
       "seed_public_jobs": false,
+      "robots_index": true,
+      "live_api": true,
       "smoke_mode": "read_only"
     }
   },

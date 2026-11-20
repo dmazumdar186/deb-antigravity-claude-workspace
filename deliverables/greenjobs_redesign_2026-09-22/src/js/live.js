@@ -42,6 +42,9 @@
   }
   function init() {
     var ed = document.body && document.body.getAttribute('data-edition');
+    // Only where the platform Worker answers /api/* on this host (build_site --live-api): a static host
+    // (the demo, staging Pages) would log a 404 on every page.
+    if (document.body.getAttribute('data-live-api') !== '1') return;
     if ((ed !== 'ie' && ed !== 'uk') || typeof fetch !== 'function') return;
     fetch('/api/stats?site=' + ed, { credentials: 'omit' })
       .then(function (r) { return r.ok ? r.json() : null; })

@@ -655,6 +655,10 @@ class Release:
                     rel,
                     "--site-base",
                     self.ec["board_urls"][site].rstrip("/") + "/",
+                    "--board-site",
+                    site,
+                    *(["--robots-index"] if self.ec.get("robots_index") else []),
+                    *(["--live-api"] if self.ec.get("live_api") else []),
                 ],
             )
             self.run(

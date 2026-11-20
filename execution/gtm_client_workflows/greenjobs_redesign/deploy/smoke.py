@@ -265,15 +265,29 @@ class Smoke:
                 f"HTTP {r.status}; missing: {', '.join(missing) or 'none'}",
             )
 
-    def redirect_sample(self, site: str) -> list[tuple[str, str]]:
+    def redirect_rules(self, site: str) -> list[tuple[str, str]]:
+        """(old, target) pairs the board must answer 301 for. With `redirect_source` (the ops Bulk Redirects
+        list) these are exactly the rules build_site.py writes to the board's _redirects (one source);
+        otherwise the snapshot redirect_map's mapped entries."""
+        if self.cfg.get("redirect_source"):
+            pkg = str(HERE.parent)
+            if pkg not in sys.path:
+                sys.path.insert(0, pkg)
+            import build_site  # noqa: PLC0415  (only for the redirect rules)
+
+            bulk = json.loads((ROOT / self.cfg["redirect_source"]).read_text(encoding="utf-8"))
+            return build_site.pages_redirect_rules(bulk, site)
         data = json.loads((ROOT / self.cfg["redirect_map"]).read_text(encoding="utf-8"))
-        entries = [
+        return [
             (e["old"], e["target"])
             for e in data["sites"][site]["entries"]
             if e.get("status") == "mapped"
             and e.get("target")
             and e.get("old") != e.get("target")
         ]
+
+    def redirect_sample(self, site: str) -> list[tuple[str, str]]:
+        entries = self.redirect_rules(site)
         rng = random.Random(
             f"{self.sha}:{site}"
         )  # deterministic per sha: a re-run checks the same 20

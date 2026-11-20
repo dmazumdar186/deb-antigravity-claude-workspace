@@ -60,6 +60,8 @@
     var host = document.querySelector('[data-dash]'), src = document.getElementById('gj-dash');
     if (!host || !src || !window.GJCharts) return;
     var ed = document.body.getAttribute('data-edition');
+    // /api/stats only where the platform Worker serves this host (build_site --live-api); else the embedded figures.
+    if (document.body.getAttribute('data-live-api') !== '1') { draw(host, src, null); return; }
     fetchStats(ed, 4000).then(function (s) { draw(host, src, s); });
   }
   function draw(host, src, s) {
