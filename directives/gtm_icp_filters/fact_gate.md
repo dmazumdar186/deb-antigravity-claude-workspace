@@ -18,6 +18,10 @@ hidden dropdown menu or a linked page. The finder only read the visible homepage
 `claim_id,row_id,company,domain,claim_type,k_number,award_id,product,agency,date,year,claim_text`
 (`date` ISO `YYYY-MM-DD`; extra columns are carried through). `row_id` groups the claims of one finder row.
 
+CLI flags: `--claims` (required), `--out` (default `.tmp/fact_gate/out`), `--limit N` (first N claims, 0 = all),
+`--max-pages` (1..150, default 80), `--refresh` (ignore fetch cache), `--offline` (cache only; uncached fetches ->
+UNVERIFIABLE), `--dry-run` (no-op; the gate is read-only). No env vars or keys needed.
+
 | claim_type | needs | re-derived from | PASS when |
 |---|---|---|---|
 | `fda_clearance` | k_number (K or DEN number; a DEN described as "510(k)"/"clearance" is FALSE), company, product, date | openFDA `device/510k.json?search=k_number:` | applicant name score >= 0.80, device_name covers >= 80% of product tokens and every distinctive one, decision_date == date |
@@ -29,7 +33,9 @@ hidden dropdown menu or a linked page. The finder only read the visible homepage
 Anything else (e.g. company descriptions) -> UNSUPPORTED, dropped.
 
 **What counts as a mention.** Product: every token that is not a generic category/anatomy word (the `GENERIC` set),
-not the company's own name, not a bare number; hyphenated brands also match their stem (`Name-C` -> `Name`), marks
+not the company's own name, not a bare number; `GENERIC` was widened 2026-11-20 to cover more device categories,
+anatomy, consumables, instruments and filler words (`clear`, `care`, `elite`, `technology`, ...) so only brand/family
+tokens remain; hyphenated brands also match their stem (`Name-C` -> `Name`), marks
 (R)/(TM) are stripped, hyphen/space are interchangeable. So a product-family name counts. Agency: the agency phrase,
 its alias list (`AGENCY_ALIASES`, e.g. Coast Guard -> `USCG`, Public Buildings Service -> `GSA`) and its 3+ word
 acronym; 2-4 letter acronyms are case-sensitive so `gsap` CSS never matches `GSA`.
@@ -96,6 +102,10 @@ Fetch cache `.tmp/fact_gate/cache/{http,post,render}/` (failures are never cache
 - `date_signed` can differ from the finder's Mod-0 `action_date`; the gate checks `date_signed` ("awarded on").
 - JS-injected copyright years (`new Date()`) show the current year in the render -> stale-year claim FALSE.
 - A product word that is also English (e.g. a brand like `Vantage`) still counts: precision over yield.
+- Known limitation: a parent and a subsidiary that share a name core and a city can pass the domain-owner check
+  (name + city both match), so a subsidiary's record can confirm the parent's site or vice versa.
+- Domain owner fails closed: no primary record (trigger failed), unreachable home, legal-name token absent,
+  name-only match without city/zip, or out-of-state US address on the site -> every site claim of the row dropped.
 - Repo is public: no company names, K numbers or award ids in this directive, the code or the tests. Labelled
   fixtures live in the client repo.
 
@@ -108,3 +118,6 @@ No sends, no paid calls.
 
 - 2026-11-20: the four historical false "not mention" claims are all caught (regression CSV in the client repo);
   `sources/evidence/2026-11-20/` for the re-run measurement and yield cost.
+- 2026-11-20: added the domain-owner stage (name + zip/city, or 6+ char name token in title/footer + record state with
+  no out-of-state address; fail -> site claims dropped, row keeps `site: unconfirmed domain`); `--max-pages` default
+  25 -> 80 with nav/footer links crawled first; DEN numbers described as "510(k)" -> FALSE; wider `GENERIC` list.
