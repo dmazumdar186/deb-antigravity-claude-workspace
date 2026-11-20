@@ -1,22 +1,20 @@
-Subject: Re: GreenJobs answers
-
 Hi Diana,
 
-Thank you, this is very helpful. The column names are exactly what I needed, and knowing that no jobs come in through Broadbean or another tool makes the switch simpler.
+Thank you, this is very helpful. The column names are what I needed for now, and knowing that no jobs come in through Broadbean or another tool makes the switch simpler.
 
 On your questions:
 
-1. DNS login and domain login: for you they're the same thing. It's the account you already use at Hosting Ireland, LetsHost and 123 Reg.
+1. DNS login and domain login: for what we need, the account you already use at Hosting Ireland, LetsHost and 123 Reg is the one to have ready. If one of them sends you to another company for the DNS settings, we'll sort it out together on the call.
 
-2. Password manager: you don't need one. Let's keep it simpler and safer: you keep your logins, and I don't need your passwords at all. When it's time, we do a short screen-share. You log in (the codes stay in your own inbox), and I tell you exactly what to click. We'll need two of these: one around Thursday 26 November to save a copy of each domain's settings, and one on Monday 30 November to point the domains to the new setup. The sites keep running on Strategies until the switch on Thursday 3 December. Before then I'll send you a short guide to open a free Cloudflare account in GreenJobs' name.
+2. Password manager: you don't need one. You keep your logins, and I don't need your passwords. Instead we do a short screen-share: you log in (the codes stay in your own inbox), and I tell you exactly what to click. Before the switch we'll need two of these: one on Thursday 26 November to save a copy of each domain's settings, and one on Monday 30 November to move the domains' settings to the new account (the sites don't change that day). Which time suits you on each day? I'll send the invites. Before then I'll send you a short guide to open a Cloudflare account in GreenJobs' name.
 
 3. Applications: sorry, my question wasn't clear. Most jobs have their own email or apply link. If a job has neither, which inbox should the application go to? Unless you'd prefer Rashieda's address, I'll use the info@ inbox of each site.
 
-4. Domain settings: thank you, that's all I meant. Please leave them as they are until we change them together.
+4. Domain settings: thank you, that's all I meant. Please leave them as they are until we change them together. The sites keep running on Strategies until the switch, planned for Thursday 3 December.
 
 Two small things:
 
-- Jobs By Email: I think the 13 is the number of columns in that file. Could you tell me roughly how many people get job alerts on each site?
+- Jobs By Email: the 13 is the number of columns in that file. Could you tell me roughly how many people get job alerts on each site?
 - If you have time, you could start downloading the reports now, a few months at a time as Strategies suggested, into a GreenJobs folder in your own storage. Please don't send me any files yet; I'll tell you when and how.
 
 Thanks again,
