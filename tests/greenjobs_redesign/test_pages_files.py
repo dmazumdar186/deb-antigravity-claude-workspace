@@ -66,6 +66,25 @@ def test_rules_prefix_the_edition_and_skip_what_pages_cannot_match() -> None:
     assert b.pages_redirect_rules(bulk, "uk") == [("/", "/uk/")]
 
 
+def test_job_rules_fall_back_to_the_list_when_the_board_does_not_serve_the_job() -> (
+    None
+):
+    bulk = {
+        "items": [
+            item("greenjobs.ie/jobs/111/a.asp", "https://www.greenjobs.ie/jobs/111/"),
+            item("greenjobs.ie/jobs/222/b.asp", "https://www.greenjobs.ie/jobs/222/"),
+        ]
+    }
+    assert b.pages_redirect_rules(bulk, "ie", {"111"}) == [
+        ("/jobs/111/a.asp", "/ie/jobs/111/"),
+        ("/jobs/222/b.asp", "/ie/jobs/"),
+    ]
+    assert b.pages_redirect_rules(bulk, "ie") == [
+        ("/jobs/111/a.asp", "/ie/jobs/111/"),
+        ("/jobs/222/b.asp", "/ie/jobs/222/"),
+    ]
+
+
 def test_rules_have_a_floor_and_a_ceiling() -> None:
     with pytest.raises(ValueError):
         b.pages_redirect_rules({"items": []}, "ie")

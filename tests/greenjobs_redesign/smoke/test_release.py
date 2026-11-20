@@ -224,6 +224,14 @@ def test_parsers():
     )
 
 
+def _closed_before(raw, fetched: str) -> bool:
+    import re as _re
+
+    m = _re.match(r"^(\d{1,2})/(\d{1,2})/(\d{4})", str(raw or ""))
+    iso = f"{m.group(3)}-{int(m.group(2)):02d}-{int(m.group(1)):02d}" if m else str(raw or "")[:10]
+    return bool(iso) and iso < fetched
+
+
 def test_seed_is_public_only_idempotent_and_valid(cfg):
     srcs = {k: ROOT / v for k, v in cfg["seed_sources"].items()}
     sql, n = release.build_seed_sql("staging", srcs, "2026-11-20T00:00:00Z")
@@ -244,9 +252,13 @@ def test_seed_is_public_only_idempotent_and_valid(cfg):
     assert c.execute("SELECT count(*) FROM jobs WHERE id NOT GLOB '[iu][ek]:strat:[0-9]*'").fetchone()[0] == 0
     assert c.execute("SELECT count(*) FROM job_facets WHERE taxonomy_version = 1 AND set_by = 'import' AND json_array_length(sectors_json) BETWEEN 1 AND 3").fetchone()[0] == n
     assert c.execute("PRAGMA foreign_key_check").fetchall() == []
-    # closing dates survive (the data writes dd/mm/yyyy): a closed advert is not live on staging
-    assert c.execute("SELECT count(*) FROM jobs WHERE closing_at IS NULL").fetchone()[0] == 0
-    assert c.execute("SELECT count(*) FROM jobs WHERE closing_at < '2026-11-20'").fetchone()[0] > 0
+    # the static board's snapshot: adverts closed at the dataset's fetched date (dd/mm/yyyy in the data) are not seeded
+    for site, src in srcs.items():
+        data = json.loads(src.read_text(encoding="utf-8"))
+        fetched = str(data["fetched"])[:10]
+        open_ids = {f"{site}:strat:{j['id']}" for j in data["jobs"] if not _closed_before(j.get("closing"), fetched)}
+        seeded = {r[0] for r in c.execute("SELECT id FROM jobs WHERE site = ?", (site,))}
+        assert seeded <= open_ids and len(seeded) >= len(open_ids) - 5, site
     assert (
         c.execute("SELECT count(*) FROM jobs WHERE apply_email IS NOT NULL").fetchone()[
             0

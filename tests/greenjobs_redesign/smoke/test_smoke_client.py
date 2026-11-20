@@ -81,7 +81,8 @@ class MockGreenJobs:
         self.applications: set[str] = set()
         self.requests: list[tuple[str, str]] = []
         self.idem: dict[str, str] = {}
-        probe = smoke.Smoke(cfg, "staging", "full", "0" * 40)  # the same rule source the smoke samples from
+        # the same rule source the smoke samples from; offline (the mock board serves no data/jobs.json)
+        probe = smoke.Smoke(cfg, "staging", "full", "0" * 40, transport=lambda *a: smoke.Resp(404, {}))
         self.redirects = {site: dict(probe.redirect_rules(site)) for site in ("ie", "uk")}
 
     def r(self, status, body=b"", headers=None, kind="json"):

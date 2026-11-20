@@ -239,6 +239,7 @@ def build_seed_sql(env: str, sources: dict[str, Path], as_of: str) -> tuple[str,
     n = 0
     for site, path in sorted(sources.items()):
         data = json.loads(Path(path).read_text(encoding="utf-8"))
+        fetched = jc.bs.parse_date(data.get("fetched")) or as_of[:10]
         cur_ok = {"ie": "EUR", "uk": "GBP"}[site]
         for j in data.get("jobs", []):
             title, loc = (
@@ -275,8 +276,13 @@ def build_seed_sql(env: str, sources: dict[str, Path], as_of: str) -> tuple[str,
                 if j.get("period") in ("year", "day", "hour", "month")
                 else None
             )
+            # The seed is the static board's snapshot (build_site normalise() today = the dataset's fetched date):
+            # an advert already closed at the snapshot is not seeded; the rest stay open on staging, exactly as the
+            # static board shows them (closing_at NULL; the snapshot's real closing dates are all in the past now).
             closing = jc.bs.parse_date(j.get("closing"))  # the data says dd/mm/yyyy; build_site's own parser
-            closing_at = f"{closing}T23:59:59Z" if re.fullmatch(r"\d{4}-\d{2}-\d{2}", closing) else None
+            if closing and closing < fetched:
+                continue
+            closing_at = None
             job_id = f"{site}:strat:{jid}" if jid.isdigit() else f"{site}:seed:{jid}"
             lines.append(
                 "INSERT OR IGNORE INTO jobs (id, site, source, source_id, employer_id, title, location, region, job_type, "

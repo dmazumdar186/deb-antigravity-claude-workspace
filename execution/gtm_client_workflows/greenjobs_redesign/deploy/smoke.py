@@ -276,7 +276,7 @@ class Smoke:
             import build_site  # noqa: PLC0415  (only for the redirect rules)
 
             bulk = json.loads((ROOT / self.cfg["redirect_source"]).read_text(encoding="utf-8"))
-            return build_site.pages_redirect_rules(bulk, site)
+            return build_site.pages_redirect_rules(bulk, site, self.board_job_ids(site))
         data = json.loads((ROOT / self.cfg["redirect_map"]).read_text(encoding="utf-8"))
         return [
             (e["old"], e["target"])
@@ -285,6 +285,18 @@ class Smoke:
             and e.get("target")
             and e.get("old") != e.get("target")
         ]
+
+    def board_job_ids(self, site: str) -> set[str] | None:
+        """The job ids the deployed board serves (its own /{site}/data/jobs.json), so a legacy job URL is expected
+        to land where build_site.py sent it. None (unknown) when the board does not answer."""
+        base = dict(self.sites("board_urls")).get(site)
+        if not base:
+            return None
+        r = self.get(f"{base}/{site}/data/jobs.json")
+        body = r.json() if r.status == 200 else None
+        if not isinstance(body, dict) or not isinstance(body.get("jobs"), list):
+            return None
+        return {str(j.get("id")) for j in body["jobs"] if isinstance(j, dict)}
 
     def redirect_sample(self, site: str) -> list[tuple[str, str]]:
         entries = self.redirect_rules(site)
