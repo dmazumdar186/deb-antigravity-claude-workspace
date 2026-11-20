@@ -1,0 +1,37 @@
+{
+  "generated": "2026-11-20",
+  "target_host": "https://www.greenjobs.co.uk",
+  "path_assumption": "Paths assume the UK edition (site/uk/) is served at the root of greenjobs.co.uk. The 22 Sep staging build serves it under /uk/<slug>/index.html on greenjobs-redesign.pages.dev; confirm the production path prefix and trailing-slash form before loading the list.",
+  "source_of_pages": [
+    "execution/gtm_client_workflows/greenjobs_redesign/build_site.py (LANDING for the UK edition; TAXONOMY; landing_search_href)",
+    "deliverables/greenjobs_redesign_2026-09-22/site/uk/ (ecology-jobs-uk, renewable-energy-jobs-uk, sustainability-jobs-uk, environmental-jobs-london, sectors/, jobs/)"
+  ],
+  "note_no_per_sector_pages": "The new build has no dedicated page per sector. Real UK landing pages: /ecology-jobs-uk/, /renewable-energy-jobs-uk/, /sustainability-jobs-uk/, /environmental-jobs-london/. All other sectors exist only as board filters: /jobs/?sector=<taxonomy name> (the same links the /sectors/ tiles use).",
+  "domains": [
+    {"domain": "conservationjobsuk.com", "target": "https://www.greenjobs.co.uk/ecology-jobs-uk/", "match": "closest", "reason": "No conservation page. The Ecology, nature recovery & biodiversity sector (landing /ecology-jobs-uk/) lists 'conservation' among its keywords."},
+    {"domain": "ecologyjobsuk.com", "target": "https://www.greenjobs.co.uk/ecology-jobs-uk/", "match": "exact", "reason": "Landing page 'Ecology jobs in the UK' covers the Ecology, nature recovery & biodiversity sector."},
+    {"domain": "environmentaljobsuk.com", "target": "https://www.greenjobs.co.uk/jobs/?sector=Environmental%20science%20%26%20consulting", "match": "closest", "reason": "No UK-wide environmental landing page: /environmental-jobs-london/ is London only. Board filter for the Environmental science & consulting sector. Alternative: /jobs/ (whole board)."},
+    {"domain": "renewableenergyjobsuk.com", "target": "https://www.greenjobs.co.uk/renewable-energy-jobs-uk/", "match": "exact", "reason": "Landing page 'Renewable energy jobs in the UK' (Wind, Solar, Renewable energy & storage). The brief's name renewablejobsuk.com does not exist (NXDOMAIN)."},
+    {"domain": "windjobsuk.com", "target": "https://www.greenjobs.co.uk/jobs/?sector=Wind%20energy", "match": "closest", "reason": "No wind page; 'Wind energy' is a taxonomy sector reachable as a board filter. Alternative: /renewable-energy-jobs-uk/ (a real page that includes wind)."},
+    {"domain": "solarjobsuk.com", "target": "https://www.greenjobs.co.uk/jobs/?sector=Solar%20energy", "match": "closest", "reason": "No solar page; 'Solar energy' board filter. Alternative: /renewable-energy-jobs-uk/."},
+    {"domain": "wastejobsuk.com", "target": "https://www.greenjobs.co.uk/jobs/?sector=Waste%20%26%20circular%20economy", "match": "closest", "reason": "No waste page; 'Waste & circular economy' board filter."},
+    {"domain": "waterjobsuk.com", "target": "https://www.greenjobs.co.uk/jobs/?sector=Water%20%26%20flood", "match": "closest", "reason": "No water page; 'Water & flood' board filter."}
+  ],
+  "not_a_domain": [{"domain": "renewablejobsuk.com", "status": "NXDOMAIN; RDAP 404; not linked from greenjobs.co.uk or greenjobs.ie"}],
+  "cloudflare_bulk_redirect_list": {
+    "name": "greenjobs_network_forwards",
+    "kind": "redirect",
+    "description": "Network domain forwards to greenjobs.co.uk sector pages (2026-11-20 plan; do not load before the zones are in Cloudflare)",
+    "items": [
+      {"redirect": {"source_url": "conservationjobsuk.com/", "target_url": "https://www.greenjobs.co.uk/ecology-jobs-uk/", "status_code": 301, "include_subdomains": true, "subpath_matching": false, "preserve_query_string": false, "preserve_path_suffix": false}},
+      {"redirect": {"source_url": "ecologyjobsuk.com/", "target_url": "https://www.greenjobs.co.uk/ecology-jobs-uk/", "status_code": 301, "include_subdomains": true, "subpath_matching": false, "preserve_query_string": false, "preserve_path_suffix": false}},
+      {"redirect": {"source_url": "environmentaljobsuk.com/", "target_url": "https://www.greenjobs.co.uk/jobs/?sector=Environmental%20science%20%26%20consulting", "status_code": 301, "include_subdomains": true, "subpath_matching": false, "preserve_query_string": false, "preserve_path_suffix": false}},
+      {"redirect": {"source_url": "renewableenergyjobsuk.com/", "target_url": "https://www.greenjobs.co.uk/renewable-energy-jobs-uk/", "status_code": 301, "include_subdomains": true, "subpath_matching": false, "preserve_query_string": false, "preserve_path_suffix": false}},
+      {"redirect": {"source_url": "windjobsuk.com/", "target_url": "https://www.greenjobs.co.uk/jobs/?sector=Wind%20energy", "status_code": 301, "include_subdomains": true, "subpath_matching": false, "preserve_query_string": false, "preserve_path_suffix": false}},
+      {"redirect": {"source_url": "solarjobsuk.com/", "target_url": "https://www.greenjobs.co.uk/jobs/?sector=Solar%20energy", "status_code": 301, "include_subdomains": true, "subpath_matching": false, "preserve_query_string": false, "preserve_path_suffix": false}},
+      {"redirect": {"source_url": "wastejobsuk.com/", "target_url": "https://www.greenjobs.co.uk/jobs/?sector=Waste%20%26%20circular%20economy", "status_code": 301, "include_subdomains": true, "subpath_matching": false, "preserve_query_string": false, "preserve_path_suffix": false}},
+      {"redirect": {"source_url": "waterjobsuk.com/", "target_url": "https://www.greenjobs.co.uk/jobs/?sector=Water%20%26%20flood", "status_code": 301, "include_subdomains": true, "subpath_matching": false, "preserve_query_string": false, "preserve_path_suffix": false}}
+    ]
+  },
+  "rule_expression_note": "One Bulk Redirect rule enables the list: `http.request.full_uri in $greenjobs_network_forwards` (the dashboard Bulk Redirects UI builds this). Include-subdomains matches www and any other host under the source domain."
+}

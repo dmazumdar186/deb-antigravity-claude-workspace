@@ -1,0 +1,4842 @@
+{
+ "generated": "2026-11-20T09:30:45.646200Z",
+ "resolver": "cloudflare-dns.com DoH",
+ "domains": [
+  {
+   "domain": "greenjobs.ie",
+   "retrieved": "2026-11-20T09:29:41.442440Z",
+   "dns": {
+    "greenjobs.ie|NS": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "NS",
+       "ttl": 86400,
+       "data": "ns1.webhostingireland.ie."
+      },
+      {
+       "type": "NS",
+       "ttl": 86400,
+       "data": "ns4.webhostingireland.eu."
+      },
+      {
+       "type": "NS",
+       "ttl": 86400,
+       "data": "ns3.webhostingireland.ie."
+      },
+      {
+       "type": "NS",
+       "ttl": 86400,
+       "data": "ns2.webhostingireland.ie."
+      }
+     ]
+    },
+    "greenjobs.ie|SOA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "SOA",
+       "ttl": 86400,
+       "data": "ns1.webhostingireland.ie. admins.hostingireland.ie. 2026112002 86400 7200 3600000 86400"
+      }
+     ]
+    },
+    "greenjobs.ie|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "A",
+       "ttl": 14400,
+       "data": "212.250.3.80"
+      }
+     ]
+    },
+    "greenjobs.ie|AAAA": {
+     "status": 0,
+     "answers": []
+    },
+    "greenjobs.ie|CNAME": {
+     "status": 0,
+     "answers": []
+    },
+    "greenjobs.ie|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "MX",
+       "ttl": 3600,
+       "data": "20 filter2.webhostingireland.ie."
+      },
+      {
+       "type": "MX",
+       "ttl": 3600,
+       "data": "10 filter1.webhostingireland.ie."
+      }
+     ]
+    },
+    "greenjobs.ie|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "TXT",
+       "ttl": 14400,
+       "data": "\"v=spf1 ip4:185.43.232.13 include:spf.webhostingireland.ie ip4:81.17.241.90 +mx +a +include:spf.strategiesuk.net -all\""
+      }
+     ]
+    },
+    "greenjobs.ie|CAA": {
+     "status": 0,
+     "answers": []
+    },
+    "www.greenjobs.ie|NS": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 14400,
+       "data": "www-greenjobs-ie.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.greenjobs.ie|SOA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 14400,
+       "data": "www-greenjobs-ie.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.greenjobs.ie|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 14400,
+       "data": "www-greenjobs-ie.cname.strategiesuk.net."
+      },
+      {
+       "type": "A",
+       "ttl": 300,
+       "data": "64.253.47.65"
+      }
+     ]
+    },
+    "www.greenjobs.ie|AAAA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 14400,
+       "data": "www-greenjobs-ie.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.greenjobs.ie|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 14400,
+       "data": "www-greenjobs-ie.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.greenjobs.ie|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 14400,
+       "data": "www-greenjobs-ie.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.greenjobs.ie|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 14400,
+       "data": "www-greenjobs-ie.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.greenjobs.ie|CAA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 14400,
+       "data": "www-greenjobs-ie.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "_dmarc.greenjobs.ie|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "default._domainkey.greenjobs.ie|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "TXT",
+       "ttl": 14400,
+       "data": "\"v=DKIM1; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyq2snLXxuLmH8FjrUKkITYD1XQG5XUOBGU+OqA3ZGPB66uvCZ6a5+jxPrKT8G4IRGDZL60klrxszNoiYxqohJLiIDceTXyZloZWGa6NHjwcUTYua90MKEIxV8JdyZ8WvT7/CRzEc34VIph40STQN48lWlRhhzOzWt24uTFDn8gvR9jDBCucpxAzfm3mzjQM5x\" \"7oVdQluhLYoxPRZYZtjkxBiEts9qoT2hI692Ln1N4kwvKEIZ5o33trF7jc7q3Tl/OMYB1jmAO+e/OIw7jOeqXqXvehAq9fQQ0VH9WWtmrB+/RHYoEpTb7Py/ZYkEDDeOMz3svk1uosWEWRsRqb6owIDAQAB;\""
+      }
+     ]
+    },
+    "default._domainkey.greenjobs.ie|CNAME": {
+     "status": 0,
+     "answers": []
+    },
+    "selector1._domainkey.greenjobs.ie|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "selector1._domainkey.greenjobs.ie|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "selector2._domainkey.greenjobs.ie|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "selector2._domainkey.greenjobs.ie|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "google._domainkey.greenjobs.ie|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "google._domainkey.greenjobs.ie|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "k1._domainkey.greenjobs.ie|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "k1._domainkey.greenjobs.ie|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "mail._domainkey.greenjobs.ie|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "mail._domainkey.greenjobs.ie|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "dkim._domainkey.greenjobs.ie|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "dkim._domainkey.greenjobs.ie|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "mail.greenjobs.ie|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "A",
+       "ttl": 14400,
+       "data": "185.43.232.13"
+      }
+     ]
+    },
+    "mail.greenjobs.ie|CNAME": {
+     "status": 0,
+     "answers": []
+    },
+    "mail.greenjobs.ie|MX": {
+     "status": 0,
+     "answers": []
+    },
+    "webmail.greenjobs.ie|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "A",
+       "ttl": 14400,
+       "data": "185.43.232.13"
+      }
+     ]
+    },
+    "webmail.greenjobs.ie|CNAME": {
+     "status": 0,
+     "answers": []
+    },
+    "webmail.greenjobs.ie|MX": {
+     "status": 0,
+     "answers": []
+    },
+    "admin.greenjobs.ie|A": {
+     "status": 3,
+     "answers": []
+    },
+    "admin.greenjobs.ie|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "admin.greenjobs.ie|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "ftp.greenjobs.ie|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "A",
+       "ttl": 14400,
+       "data": "185.43.232.13"
+      }
+     ]
+    },
+    "ftp.greenjobs.ie|CNAME": {
+     "status": 0,
+     "answers": []
+    },
+    "ftp.greenjobs.ie|MX": {
+     "status": 0,
+     "answers": []
+    },
+    "cpanel.greenjobs.ie|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "A",
+       "ttl": 14400,
+       "data": "185.43.232.13"
+      }
+     ]
+    },
+    "cpanel.greenjobs.ie|CNAME": {
+     "status": 0,
+     "answers": []
+    },
+    "cpanel.greenjobs.ie|MX": {
+     "status": 0,
+     "answers": []
+    },
+    "autodiscover.greenjobs.ie|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "A",
+       "ttl": 14400,
+       "data": "185.43.232.13"
+      }
+     ]
+    },
+    "autodiscover.greenjobs.ie|CNAME": {
+     "status": 0,
+     "answers": []
+    },
+    "autodiscover.greenjobs.ie|MX": {
+     "status": 0,
+     "answers": []
+    }
+   },
+   "http": [
+    {
+     "url": "https://greenjobs.ie/",
+     "hops": [
+      {
+       "url": "https://greenjobs.ie/",
+       "rc": 35,
+       "out": "000|",
+       "err": "curl: (35) Recv failure: Connection reset by peer"
+      }
+     ]
+    },
+    {
+     "url": "https://www.greenjobs.ie/",
+     "hops": [
+      {
+       "url": "https://www.greenjobs.ie/",
+       "rc": 0,
+       "out": "200|",
+       "err": ""
+      }
+     ]
+    },
+    {
+     "url": "http://greenjobs.ie/",
+     "hops": [
+      {
+       "url": "http://greenjobs.ie/",
+       "rc": 0,
+       "out": "301|https://www.greenjobs.ie/",
+       "err": ""
+      },
+      {
+       "url": "https://www.greenjobs.ie/",
+       "rc": 0,
+       "out": "200|",
+       "err": ""
+      }
+     ]
+    },
+    {
+     "url": "http://www.greenjobs.ie/",
+     "hops": [
+      {
+       "url": "http://www.greenjobs.ie/",
+       "rc": 0,
+       "out": "301|https://www.greenjobs.ie/",
+       "err": ""
+      },
+      {
+       "url": "https://www.greenjobs.ie/",
+       "rc": 0,
+       "out": "200|",
+       "err": ""
+      }
+     ]
+    }
+   ],
+   "tls_observed_via_egress_gateway_NOT_ORIGIN": [
+    {
+     "host": "greenjobs.ie",
+     "verified": true,
+     "subject": {
+      "commonName": "greenjobs.ie"
+     },
+     "issuer": {
+      "organizationName": "Anthropic",
+      "commonName": "Egress Gateway SDS Issuing CA (production)"
+     },
+     "san": [
+      "greenjobs.ie"
+     ],
+     "not_after": "Dec 20 09:29:56 2026 GMT"
+    },
+    {
+     "host": "www.greenjobs.ie",
+     "verified": true,
+     "subject": {
+      "commonName": "*.greenjobs.ie"
+     },
+     "issuer": {
+      "organizationName": "Anthropic",
+      "commonName": "Egress Gateway SDS Issuing CA (production)"
+     },
+     "san": [
+      "www.greenjobs.ie"
+     ],
+     "not_after": "Dec 20 09:29:56 2026 GMT"
+    }
+   ],
+   "tls": "UNVERIFIABLE from sandbox: egress gateway re-terminates TLS (issuer 'Anthropic Egress Gateway SDS Issuing CA'); origin certificate not observable. Run openssl s_client from an operator machine."
+  },
+  {
+   "domain": "greenjobs.co.uk",
+   "retrieved": "2026-11-20T09:29:41.440524Z",
+   "dns": {
+    "greenjobs.co.uk|NS": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "NS",
+       "ttl": 86400,
+       "data": "ns6.dnsireland.com."
+      },
+      {
+       "type": "NS",
+       "ttl": 86400,
+       "data": "ns5.dnsireland.com."
+      },
+      {
+       "type": "NS",
+       "ttl": 86400,
+       "data": "ns7.dnsireland.ie."
+      }
+     ]
+    },
+    "greenjobs.co.uk|SOA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "SOA",
+       "ttl": 86400,
+       "data": "ns5.dnsireland.com. admin.letshost.ie. 2024110700 86400 7200 3600000 86400"
+      }
+     ]
+    },
+    "greenjobs.co.uk|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "A",
+       "ttl": 14400,
+       "data": "212.250.3.80"
+      }
+     ]
+    },
+    "greenjobs.co.uk|AAAA": {
+     "status": 0,
+     "answers": []
+    },
+    "greenjobs.co.uk|CNAME": {
+     "status": 0,
+     "answers": []
+    },
+    "greenjobs.co.uk|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "MX",
+       "ttl": 14400,
+       "data": "0 mail.greenjobs.co.uk."
+      }
+     ]
+    },
+    "greenjobs.co.uk|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "TXT",
+       "ttl": 14400,
+       "data": "\"v=spf1 +a +mx +include:spf.strategiesuk.net -all\""
+      }
+     ]
+    },
+    "greenjobs.co.uk|CAA": {
+     "status": 0,
+     "answers": []
+    },
+    "www.greenjobs.co.uk|NS": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 14400,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.greenjobs.co.uk|SOA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 14400,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.greenjobs.co.uk|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 14400,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      },
+      {
+       "type": "A",
+       "ttl": 300,
+       "data": "64.253.47.65"
+      }
+     ]
+    },
+    "www.greenjobs.co.uk|AAAA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 14400,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.greenjobs.co.uk|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 14400,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.greenjobs.co.uk|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 14400,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.greenjobs.co.uk|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 14400,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.greenjobs.co.uk|CAA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 14400,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "_dmarc.greenjobs.co.uk|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "TXT",
+       "ttl": 14400,
+       "data": "\"v=DMARC1; p=none;\""
+      }
+     ]
+    },
+    "default._domainkey.greenjobs.co.uk|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "default._domainkey.greenjobs.co.uk|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "selector1._domainkey.greenjobs.co.uk|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "selector1._domainkey.greenjobs.co.uk|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "selector2._domainkey.greenjobs.co.uk|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "selector2._domainkey.greenjobs.co.uk|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "google._domainkey.greenjobs.co.uk|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "google._domainkey.greenjobs.co.uk|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "k1._domainkey.greenjobs.co.uk|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "k1._domainkey.greenjobs.co.uk|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "mail._domainkey.greenjobs.co.uk|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "mail._domainkey.greenjobs.co.uk|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "dkim._domainkey.greenjobs.co.uk|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "dkim._domainkey.greenjobs.co.uk|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "mail.greenjobs.co.uk|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "A",
+       "ttl": 14400,
+       "data": "185.43.232.13"
+      }
+     ]
+    },
+    "mail.greenjobs.co.uk|CNAME": {
+     "status": 0,
+     "answers": []
+    },
+    "mail.greenjobs.co.uk|MX": {
+     "status": 0,
+     "answers": []
+    },
+    "webmail.greenjobs.co.uk|A": {
+     "status": 3,
+     "answers": []
+    },
+    "webmail.greenjobs.co.uk|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "webmail.greenjobs.co.uk|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "admin.greenjobs.co.uk|A": {
+     "status": 3,
+     "answers": []
+    },
+    "admin.greenjobs.co.uk|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "admin.greenjobs.co.uk|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "ftp.greenjobs.co.uk|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 14400,
+       "data": "greenjobs.co.uk."
+      },
+      {
+       "type": "A",
+       "ttl": 14400,
+       "data": "212.250.3.80"
+      }
+     ]
+    },
+    "ftp.greenjobs.co.uk|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 14400,
+       "data": "greenjobs.co.uk."
+      }
+     ]
+    },
+    "ftp.greenjobs.co.uk|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 14400,
+       "data": "greenjobs.co.uk."
+      },
+      {
+       "type": "MX",
+       "ttl": 14400,
+       "data": "0 mail.greenjobs.co.uk."
+      }
+     ]
+    },
+    "cpanel.greenjobs.co.uk|A": {
+     "status": 3,
+     "answers": []
+    },
+    "cpanel.greenjobs.co.uk|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "cpanel.greenjobs.co.uk|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "autodiscover.greenjobs.co.uk|A": {
+     "status": 3,
+     "answers": []
+    },
+    "autodiscover.greenjobs.co.uk|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "autodiscover.greenjobs.co.uk|MX": {
+     "status": 3,
+     "answers": []
+    }
+   },
+   "http": [
+    {
+     "url": "https://greenjobs.co.uk/",
+     "hops": [
+      {
+       "url": "https://greenjobs.co.uk/",
+       "rc": 35,
+       "out": "000|",
+       "err": "curl: (35) Recv failure: Connection reset by peer"
+      }
+     ]
+    },
+    {
+     "url": "https://www.greenjobs.co.uk/",
+     "hops": [
+      {
+       "url": "https://www.greenjobs.co.uk/",
+       "rc": 0,
+       "out": "200|",
+       "err": ""
+      }
+     ]
+    },
+    {
+     "url": "http://greenjobs.co.uk/",
+     "hops": [
+      {
+       "url": "http://greenjobs.co.uk/",
+       "rc": 0,
+       "out": "301|https://www.greenjobs.co.uk/",
+       "err": ""
+      },
+      {
+       "url": "https://www.greenjobs.co.uk/",
+       "rc": 0,
+       "out": "200|",
+       "err": ""
+      }
+     ]
+    },
+    {
+     "url": "http://www.greenjobs.co.uk/",
+     "hops": [
+      {
+       "url": "http://www.greenjobs.co.uk/",
+       "rc": 0,
+       "out": "301|https://www.greenjobs.co.uk/",
+       "err": ""
+      },
+      {
+       "url": "https://www.greenjobs.co.uk/",
+       "rc": 0,
+       "out": "200|",
+       "err": ""
+      }
+     ]
+    }
+   ],
+   "tls_observed_via_egress_gateway_NOT_ORIGIN": [
+    {
+     "host": "greenjobs.co.uk",
+     "verified": true,
+     "subject": {
+      "commonName": "*.co.uk"
+     },
+     "issuer": {
+      "organizationName": "Anthropic",
+      "commonName": "Egress Gateway SDS Issuing CA (production)"
+     },
+     "san": [
+      "greenjobs.co.uk"
+     ],
+     "not_after": "Dec 20 09:29:58 2026 GMT"
+    },
+    {
+     "host": "www.greenjobs.co.uk",
+     "verified": true,
+     "subject": {
+      "commonName": "*.greenjobs.co.uk"
+     },
+     "issuer": {
+      "organizationName": "Anthropic",
+      "commonName": "Egress Gateway SDS Issuing CA (production)"
+     },
+     "san": [
+      "www.greenjobs.co.uk"
+     ],
+     "not_after": "Dec 20 09:29:59 2026 GMT"
+    }
+   ],
+   "tls": "UNVERIFIABLE from sandbox: egress gateway re-terminates TLS (issuer 'Anthropic Egress Gateway SDS Issuing CA'); origin certificate not observable. Run openssl s_client from an operator machine."
+  },
+  {
+   "domain": "conservationjobsuk.com",
+   "retrieved": "2026-11-20T09:29:41.442803Z",
+   "dns": {
+    "conservationjobsuk.com|NS": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "NS",
+       "ttl": 3600,
+       "data": "ns31.domaincontrol.com."
+      },
+      {
+       "type": "NS",
+       "ttl": 3600,
+       "data": "ns32.domaincontrol.com."
+      }
+     ]
+    },
+    "conservationjobsuk.com|SOA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "SOA",
+       "ttl": 3600,
+       "data": "ns31.domaincontrol.com. dns.jomax.net. 2026062400 28800 7200 604800 600"
+      }
+     ]
+    },
+    "conservationjobsuk.com|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "A",
+       "ttl": 600,
+       "data": "212.250.3.80"
+      }
+     ]
+    },
+    "conservationjobsuk.com|AAAA": {
+     "status": 0,
+     "answers": []
+    },
+    "conservationjobsuk.com|CNAME": {
+     "status": 0,
+     "answers": []
+    },
+    "conservationjobsuk.com|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "MX",
+       "ttl": 3600,
+       "data": "0 smtp.secureserver.net."
+      },
+      {
+       "type": "MX",
+       "ttl": 3600,
+       "data": "10 mailstore1.secureserver.net."
+      }
+     ]
+    },
+    "conservationjobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "TXT",
+       "ttl": 3600,
+       "data": "\"D6911740\""
+      },
+      {
+       "type": "TXT",
+       "ttl": 3600,
+       "data": "\"v=spf1 mx a include:secureserver.net -all\""
+      }
+     ]
+    },
+    "conservationjobsuk.com|CAA": {
+     "status": 0,
+     "answers": []
+    },
+    "www.conservationjobsuk.com|NS": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.conservationjobsuk.com|SOA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.conservationjobsuk.com|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      },
+      {
+       "type": "A",
+       "ttl": 300,
+       "data": "64.253.47.65"
+      }
+     ]
+    },
+    "www.conservationjobsuk.com|AAAA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.conservationjobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.conservationjobsuk.com|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.conservationjobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.conservationjobsuk.com|CAA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "_dmarc.conservationjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "default._domainkey.conservationjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "default._domainkey.conservationjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "selector1._domainkey.conservationjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "selector1._domainkey.conservationjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "selector2._domainkey.conservationjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "selector2._domainkey.conservationjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "google._domainkey.conservationjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "google._domainkey.conservationjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "k1._domainkey.conservationjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "k1._domainkey.conservationjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "mail._domainkey.conservationjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "mail._domainkey.conservationjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "dkim._domainkey.conservationjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "dkim._domainkey.conservationjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "mail.conservationjobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "mail.conservationjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "mail.conservationjobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "webmail.conservationjobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "webmail.conservationjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "webmail.conservationjobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "admin.conservationjobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "admin.conservationjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "admin.conservationjobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "ftp.conservationjobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "ftp.conservationjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "ftp.conservationjobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "cpanel.conservationjobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "cpanel.conservationjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "cpanel.conservationjobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "autodiscover.conservationjobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "autodiscover.conservationjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "autodiscover.conservationjobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    }
+   },
+   "http": [
+    {
+     "url": "https://conservationjobsuk.com/",
+     "hops": [
+      {
+       "url": "https://conservationjobsuk.com/",
+       "rc": 35,
+       "out": "000|",
+       "err": "curl: (35) Recv failure: Connection reset by peer"
+      }
+     ]
+    },
+    {
+     "url": "https://www.conservationjobsuk.com/",
+     "hops": [
+      {
+       "url": "https://www.conservationjobsuk.com/",
+       "rc": 60,
+       "out": "000|",
+       "err": "curl: (60) SSL: no alternative certificate subject name matches target host name 'www.conservationjobsuk.com'\nMore details here: https://curl.se/docs/sslcerts.html\n\ncurl failed to verify the legitimac"
+      }
+     ]
+    },
+    {
+     "url": "http://conservationjobsuk.com/",
+     "hops": [
+      {
+       "url": "http://conservationjobsuk.com/",
+       "rc": 0,
+       "out": "301|https://www.conservationjobsuk.com/",
+       "err": ""
+      },
+      {
+       "url": "https://www.conservationjobsuk.com/",
+       "rc": 60,
+       "out": "000|",
+       "err": "curl: (60) SSL: no alternative certificate subject name matches target host name 'www.conservationjobsuk.com'\nMore details here: https://curl.se/docs/sslcerts.html\n\ncurl failed to verify the legitimac"
+      }
+     ]
+    },
+    {
+     "url": "http://www.conservationjobsuk.com/",
+     "hops": [
+      {
+       "url": "http://www.conservationjobsuk.com/",
+       "rc": 0,
+       "out": "301|https://www.conservationjobsuk.com/",
+       "err": ""
+      },
+      {
+       "url": "https://www.conservationjobsuk.com/",
+       "rc": 60,
+       "out": "000|",
+       "err": "curl: (60) SSL: no alternative certificate subject name matches target host name 'www.conservationjobsuk.com'\nMore details here: https://curl.se/docs/sslcerts.html\n\ncurl failed to verify the legitimac"
+      }
+     ]
+    }
+   ],
+   "tls_observed_via_egress_gateway_NOT_ORIGIN": [
+    {
+     "host": "conservationjobsuk.com",
+     "verified": true,
+     "subject": {
+      "commonName": "conservationjobsuk.com"
+     },
+     "issuer": {
+      "organizationName": "Anthropic",
+      "commonName": "Egress Gateway SDS Issuing CA (production)"
+     },
+     "san": [
+      "conservationjobsuk.com"
+     ],
+     "not_after": "Dec 20 09:29:50 2026 GMT"
+    },
+    {
+     "host": "www.conservationjobsuk.com",
+     "verified": true,
+     "subject": {
+      "commonName": "*.conservationjobsuk.com"
+     },
+     "issuer": {
+      "organizationName": "Anthropic",
+      "commonName": "Egress Gateway SDS Issuing CA (production)"
+     },
+     "san": [
+      "www.conservationjobsuk.com"
+     ],
+     "not_after": "Dec 20 09:29:50 2026 GMT"
+    }
+   ],
+   "tls": "UNVERIFIABLE from sandbox: egress gateway re-terminates TLS (issuer 'Anthropic Egress Gateway SDS Issuing CA'); origin certificate not observable. Run openssl s_client from an operator machine."
+  },
+  {
+   "domain": "ecologyjobsuk.com",
+   "retrieved": "2026-11-20T09:29:41.443526Z",
+   "dns": {
+    "ecologyjobsuk.com|NS": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "NS",
+       "ttl": 3600,
+       "data": "ns15.domaincontrol.com."
+      },
+      {
+       "type": "NS",
+       "ttl": 3600,
+       "data": "ns16.domaincontrol.com."
+      }
+     ]
+    },
+    "ecologyjobsuk.com|SOA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "SOA",
+       "ttl": 3600,
+       "data": "ns15.domaincontrol.com. dns.jomax.net. 2024011102 28800 7200 604800 600"
+      }
+     ]
+    },
+    "ecologyjobsuk.com|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "A",
+       "ttl": 8600,
+       "data": "212.250.3.80"
+      }
+     ]
+    },
+    "ecologyjobsuk.com|AAAA": {
+     "status": 0,
+     "answers": []
+    },
+    "ecologyjobsuk.com|CNAME": {
+     "status": 0,
+     "answers": []
+    },
+    "ecologyjobsuk.com|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "MX",
+       "ttl": 3600,
+       "data": "0 smtp.secureserver.net."
+      },
+      {
+       "type": "MX",
+       "ttl": 3600,
+       "data": "10 mailstore1.secureserver.net."
+      }
+     ]
+    },
+    "ecologyjobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "TXT",
+       "ttl": 3600,
+       "data": "\"D4604583\""
+      },
+      {
+       "type": "TXT",
+       "ttl": 3600,
+       "data": "\"v=spf1 mx a include:secureserver.net -all\""
+      }
+     ]
+    },
+    "ecologyjobsuk.com|CAA": {
+     "status": 0,
+     "answers": []
+    },
+    "www.ecologyjobsuk.com|NS": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.ecologyjobsuk.com|SOA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.ecologyjobsuk.com|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      },
+      {
+       "type": "A",
+       "ttl": 300,
+       "data": "64.253.47.65"
+      }
+     ]
+    },
+    "www.ecologyjobsuk.com|AAAA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.ecologyjobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.ecologyjobsuk.com|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.ecologyjobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.ecologyjobsuk.com|CAA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "_dmarc.ecologyjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "default._domainkey.ecologyjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "default._domainkey.ecologyjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "selector1._domainkey.ecologyjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "selector1._domainkey.ecologyjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "selector2._domainkey.ecologyjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "selector2._domainkey.ecologyjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "google._domainkey.ecologyjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "google._domainkey.ecologyjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "k1._domainkey.ecologyjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "k1._domainkey.ecologyjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "mail._domainkey.ecologyjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "mail._domainkey.ecologyjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "dkim._domainkey.ecologyjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "dkim._domainkey.ecologyjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "mail.ecologyjobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "mail.ecologyjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "mail.ecologyjobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "webmail.ecologyjobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "webmail.ecologyjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "webmail.ecologyjobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "admin.ecologyjobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "admin.ecologyjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "admin.ecologyjobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "ftp.ecologyjobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "ftp.ecologyjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "ftp.ecologyjobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "cpanel.ecologyjobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "cpanel.ecologyjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "cpanel.ecologyjobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "autodiscover.ecologyjobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "autodiscover.ecologyjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "autodiscover.ecologyjobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    }
+   },
+   "http": [
+    {
+     "url": "https://ecologyjobsuk.com/",
+     "hops": [
+      {
+       "url": "https://ecologyjobsuk.com/",
+       "rc": 35,
+       "out": "000|",
+       "err": "curl: (35) Recv failure: Connection reset by peer"
+      }
+     ]
+    },
+    {
+     "url": "https://www.ecologyjobsuk.com/",
+     "hops": [
+      {
+       "url": "https://www.ecologyjobsuk.com/",
+       "rc": 0,
+       "out": "200|",
+       "err": ""
+      }
+     ]
+    },
+    {
+     "url": "http://ecologyjobsuk.com/",
+     "hops": [
+      {
+       "url": "http://ecologyjobsuk.com/",
+       "rc": 0,
+       "out": "301|https://www.ecologyjobsuk.com/",
+       "err": ""
+      },
+      {
+       "url": "https://www.ecologyjobsuk.com/",
+       "rc": 0,
+       "out": "200|",
+       "err": ""
+      }
+     ]
+    },
+    {
+     "url": "http://www.ecologyjobsuk.com/",
+     "hops": [
+      {
+       "url": "http://www.ecologyjobsuk.com/",
+       "rc": 0,
+       "out": "301|https://www.ecologyjobsuk.com/",
+       "err": ""
+      },
+      {
+       "url": "https://www.ecologyjobsuk.com/",
+       "rc": 0,
+       "out": "200|",
+       "err": ""
+      }
+     ]
+    }
+   ],
+   "tls_observed_via_egress_gateway_NOT_ORIGIN": [
+    {
+     "host": "ecologyjobsuk.com",
+     "verified": true,
+     "subject": {
+      "commonName": "ecologyjobsuk.com"
+     },
+     "issuer": {
+      "organizationName": "Anthropic",
+      "commonName": "Egress Gateway SDS Issuing CA (production)"
+     },
+     "san": [
+      "ecologyjobsuk.com"
+     ],
+     "not_after": "Dec 20 09:29:49 2026 GMT"
+    },
+    {
+     "host": "www.ecologyjobsuk.com",
+     "verified": true,
+     "subject": {
+      "commonName": "*.ecologyjobsuk.com"
+     },
+     "issuer": {
+      "organizationName": "Anthropic",
+      "commonName": "Egress Gateway SDS Issuing CA (production)"
+     },
+     "san": [
+      "www.ecologyjobsuk.com"
+     ],
+     "not_after": "Dec 20 09:29:49 2026 GMT"
+    }
+   ],
+   "tls": "UNVERIFIABLE from sandbox: egress gateway re-terminates TLS (issuer 'Anthropic Egress Gateway SDS Issuing CA'); origin certificate not observable. Run openssl s_client from an operator machine."
+  },
+  {
+   "domain": "environmentaljobsuk.com",
+   "retrieved": "2026-11-20T09:29:41.448181Z",
+   "dns": {
+    "environmentaljobsuk.com|NS": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "NS",
+       "ttl": 3600,
+       "data": "ns09.domaincontrol.com."
+      },
+      {
+       "type": "NS",
+       "ttl": 3600,
+       "data": "ns10.domaincontrol.com."
+      }
+     ]
+    },
+    "environmentaljobsuk.com|SOA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "SOA",
+       "ttl": 3600,
+       "data": "ns09.domaincontrol.com. dns.jomax.net. 2024030600 28800 7200 604800 600"
+      }
+     ]
+    },
+    "environmentaljobsuk.com|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "A",
+       "ttl": 600,
+       "data": "212.250.3.80"
+      }
+     ]
+    },
+    "environmentaljobsuk.com|AAAA": {
+     "status": 0,
+     "answers": []
+    },
+    "environmentaljobsuk.com|CNAME": {
+     "status": 0,
+     "answers": []
+    },
+    "environmentaljobsuk.com|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "MX",
+       "ttl": 3600,
+       "data": "0 smtp.secureserver.net."
+      },
+      {
+       "type": "MX",
+       "ttl": 3600,
+       "data": "10 mailstore1.secureserver.net."
+      }
+     ]
+    },
+    "environmentaljobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "TXT",
+       "ttl": 3600,
+       "data": "\"v=spf1 mx a include:secureserver.net -all\""
+      },
+      {
+       "type": "TXT",
+       "ttl": 3600,
+       "data": "\"D6760365\""
+      }
+     ]
+    },
+    "environmentaljobsuk.com|CAA": {
+     "status": 0,
+     "answers": []
+    },
+    "www.environmentaljobsuk.com|NS": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.environmentaljobsuk.com|SOA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.environmentaljobsuk.com|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      },
+      {
+       "type": "A",
+       "ttl": 300,
+       "data": "64.253.47.65"
+      }
+     ]
+    },
+    "www.environmentaljobsuk.com|AAAA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.environmentaljobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.environmentaljobsuk.com|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.environmentaljobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.environmentaljobsuk.com|CAA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "_dmarc.environmentaljobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "default._domainkey.environmentaljobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "default._domainkey.environmentaljobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "selector1._domainkey.environmentaljobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "selector1._domainkey.environmentaljobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "selector2._domainkey.environmentaljobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "selector2._domainkey.environmentaljobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "google._domainkey.environmentaljobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "google._domainkey.environmentaljobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "k1._domainkey.environmentaljobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "k1._domainkey.environmentaljobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "mail._domainkey.environmentaljobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "mail._domainkey.environmentaljobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "dkim._domainkey.environmentaljobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "dkim._domainkey.environmentaljobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "mail.environmentaljobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "mail.environmentaljobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "mail.environmentaljobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "webmail.environmentaljobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "webmail.environmentaljobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "webmail.environmentaljobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "admin.environmentaljobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "admin.environmentaljobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "admin.environmentaljobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "ftp.environmentaljobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "ftp.environmentaljobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "ftp.environmentaljobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "cpanel.environmentaljobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "cpanel.environmentaljobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "cpanel.environmentaljobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "autodiscover.environmentaljobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "autodiscover.environmentaljobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "autodiscover.environmentaljobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    }
+   },
+   "http": [
+    {
+     "url": "https://environmentaljobsuk.com/",
+     "hops": [
+      {
+       "url": "https://environmentaljobsuk.com/",
+       "rc": 35,
+       "out": "000|",
+       "err": "curl: (35) Recv failure: Connection reset by peer"
+      }
+     ]
+    },
+    {
+     "url": "https://www.environmentaljobsuk.com/",
+     "hops": [
+      {
+       "url": "https://www.environmentaljobsuk.com/",
+       "rc": 0,
+       "out": "200|",
+       "err": ""
+      }
+     ]
+    },
+    {
+     "url": "http://environmentaljobsuk.com/",
+     "hops": [
+      {
+       "url": "http://environmentaljobsuk.com/",
+       "rc": 0,
+       "out": "301|https://www.environmentaljobsuk.com/",
+       "err": ""
+      },
+      {
+       "url": "https://www.environmentaljobsuk.com/",
+       "rc": 0,
+       "out": "200|",
+       "err": ""
+      }
+     ]
+    },
+    {
+     "url": "http://www.environmentaljobsuk.com/",
+     "hops": [
+      {
+       "url": "http://www.environmentaljobsuk.com/",
+       "rc": 0,
+       "out": "301|https://www.environmentaljobsuk.com/",
+       "err": ""
+      },
+      {
+       "url": "https://www.environmentaljobsuk.com/",
+       "rc": 0,
+       "out": "200|",
+       "err": ""
+      }
+     ]
+    }
+   ],
+   "tls_observed_via_egress_gateway_NOT_ORIGIN": [
+    {
+     "host": "environmentaljobsuk.com",
+     "verified": true,
+     "subject": {
+      "commonName": "environmentaljobsuk.com"
+     },
+     "issuer": {
+      "organizationName": "Anthropic",
+      "commonName": "Egress Gateway SDS Issuing CA (production)"
+     },
+     "san": [
+      "environmentaljobsuk.com"
+     ],
+     "not_after": "Dec 20 09:29:50 2026 GMT"
+    },
+    {
+     "host": "www.environmentaljobsuk.com",
+     "verified": true,
+     "subject": {
+      "commonName": "*.environmentaljobsuk.com"
+     },
+     "issuer": {
+      "organizationName": "Anthropic",
+      "commonName": "Egress Gateway SDS Issuing CA (production)"
+     },
+     "san": [
+      "www.environmentaljobsuk.com"
+     ],
+     "not_after": "Dec 20 09:29:50 2026 GMT"
+    }
+   ],
+   "tls": "UNVERIFIABLE from sandbox: egress gateway re-terminates TLS (issuer 'Anthropic Egress Gateway SDS Issuing CA'); origin certificate not observable. Run openssl s_client from an operator machine."
+  },
+  {
+   "domain": "renewablejobsuk.com",
+   "retrieved": "2026-11-20T09:29:41.452205Z",
+   "dns": {
+    "renewablejobsuk.com|NS": {
+     "status": 3,
+     "answers": []
+    },
+    "renewablejobsuk.com|SOA": {
+     "status": 3,
+     "answers": []
+    },
+    "renewablejobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "renewablejobsuk.com|AAAA": {
+     "status": 3,
+     "answers": []
+    },
+    "renewablejobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "renewablejobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "renewablejobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "renewablejobsuk.com|CAA": {
+     "status": 3,
+     "answers": []
+    },
+    "www.renewablejobsuk.com|NS": {
+     "status": 3,
+     "answers": []
+    },
+    "www.renewablejobsuk.com|SOA": {
+     "status": 3,
+     "answers": []
+    },
+    "www.renewablejobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "www.renewablejobsuk.com|AAAA": {
+     "status": 3,
+     "answers": []
+    },
+    "www.renewablejobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "www.renewablejobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "www.renewablejobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "www.renewablejobsuk.com|CAA": {
+     "status": 3,
+     "answers": []
+    },
+    "_dmarc.renewablejobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "default._domainkey.renewablejobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "default._domainkey.renewablejobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "selector1._domainkey.renewablejobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "selector1._domainkey.renewablejobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "selector2._domainkey.renewablejobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "selector2._domainkey.renewablejobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "google._domainkey.renewablejobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "google._domainkey.renewablejobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "k1._domainkey.renewablejobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "k1._domainkey.renewablejobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "mail._domainkey.renewablejobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "mail._domainkey.renewablejobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "dkim._domainkey.renewablejobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "dkim._domainkey.renewablejobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "mail.renewablejobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "mail.renewablejobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "mail.renewablejobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "webmail.renewablejobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "webmail.renewablejobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "webmail.renewablejobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "admin.renewablejobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "admin.renewablejobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "admin.renewablejobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "ftp.renewablejobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "ftp.renewablejobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "ftp.renewablejobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "cpanel.renewablejobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "cpanel.renewablejobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "cpanel.renewablejobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "autodiscover.renewablejobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "autodiscover.renewablejobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "autodiscover.renewablejobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    }
+   },
+   "http": [
+    {
+     "url": "https://renewablejobsuk.com/",
+     "hops": [
+      {
+       "url": "https://renewablejobsuk.com/",
+       "rc": 56,
+       "out": "000|",
+       "err": "curl: (56) CONNECT tunnel failed, response 502"
+      }
+     ]
+    },
+    {
+     "url": "https://www.renewablejobsuk.com/",
+     "hops": [
+      {
+       "url": "https://www.renewablejobsuk.com/",
+       "rc": 56,
+       "out": "000|",
+       "err": "curl: (56) CONNECT tunnel failed, response 502"
+      }
+     ]
+    },
+    {
+     "url": "http://renewablejobsuk.com/",
+     "hops": [
+      {
+       "url": "http://renewablejobsuk.com/",
+       "rc": 6,
+       "out": "000|",
+       "err": "curl: (6) Could not resolve host: renewablejobsuk.com"
+      }
+     ]
+    },
+    {
+     "url": "http://www.renewablejobsuk.com/",
+     "hops": [
+      {
+       "url": "http://www.renewablejobsuk.com/",
+       "rc": 6,
+       "out": "000|",
+       "err": "curl: (6) Could not resolve host: www.renewablejobsuk.com"
+      }
+     ]
+    }
+   ],
+   "tls_observed_via_egress_gateway_NOT_ORIGIN": [
+    {
+     "host": "renewablejobsuk.com",
+     "error": "gaierror: [Errno -2] Name or service not known"
+    },
+    {
+     "host": "www.renewablejobsuk.com",
+     "error": "gaierror: [Errno -2] Name or service not known"
+    }
+   ],
+   "tls": "UNVERIFIABLE from sandbox: egress gateway re-terminates TLS (issuer 'Anthropic Egress Gateway SDS Issuing CA'); origin certificate not observable. Run openssl s_client from an operator machine."
+  },
+  {
+   "domain": "renewableenergyjobsuk.com",
+   "retrieved": "2026-11-20T09:29:45.702104Z",
+   "dns": {
+    "renewableenergyjobsuk.com|NS": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "NS",
+       "ttl": 3600,
+       "data": "ns67.domaincontrol.com."
+      },
+      {
+       "type": "NS",
+       "ttl": 3600,
+       "data": "ns68.domaincontrol.com."
+      }
+     ]
+    },
+    "renewableenergyjobsuk.com|SOA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "SOA",
+       "ttl": 3600,
+       "data": "ns67.domaincontrol.com. dns.jomax.net. 2024030600 28800 7200 604800 600"
+      }
+     ]
+    },
+    "renewableenergyjobsuk.com|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "A",
+       "ttl": 600,
+       "data": "212.250.3.80"
+      }
+     ]
+    },
+    "renewableenergyjobsuk.com|AAAA": {
+     "status": 0,
+     "answers": []
+    },
+    "renewableenergyjobsuk.com|CNAME": {
+     "status": 0,
+     "answers": []
+    },
+    "renewableenergyjobsuk.com|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "MX",
+       "ttl": 3600,
+       "data": "0 smtp.secureserver.net."
+      },
+      {
+       "type": "MX",
+       "ttl": 3600,
+       "data": "10 mailstore1.secureserver.net."
+      }
+     ]
+    },
+    "renewableenergyjobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "TXT",
+       "ttl": 3600,
+       "data": "\"D1195155\""
+      },
+      {
+       "type": "TXT",
+       "ttl": 3600,
+       "data": "\"v=spf1 mx a include:secureserver.net -all\""
+      }
+     ]
+    },
+    "renewableenergyjobsuk.com|CAA": {
+     "status": 0,
+     "answers": []
+    },
+    "www.renewableenergyjobsuk.com|NS": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.renewableenergyjobsuk.com|SOA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.renewableenergyjobsuk.com|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      },
+      {
+       "type": "A",
+       "ttl": 300,
+       "data": "64.253.47.65"
+      }
+     ]
+    },
+    "www.renewableenergyjobsuk.com|AAAA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.renewableenergyjobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.renewableenergyjobsuk.com|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.renewableenergyjobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.renewableenergyjobsuk.com|CAA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "_dmarc.renewableenergyjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "default._domainkey.renewableenergyjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "default._domainkey.renewableenergyjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "selector1._domainkey.renewableenergyjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "selector1._domainkey.renewableenergyjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "selector2._domainkey.renewableenergyjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "selector2._domainkey.renewableenergyjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "google._domainkey.renewableenergyjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "google._domainkey.renewableenergyjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "k1._domainkey.renewableenergyjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "k1._domainkey.renewableenergyjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "mail._domainkey.renewableenergyjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "mail._domainkey.renewableenergyjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "dkim._domainkey.renewableenergyjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "dkim._domainkey.renewableenergyjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "mail.renewableenergyjobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "mail.renewableenergyjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "mail.renewableenergyjobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "webmail.renewableenergyjobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "webmail.renewableenergyjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "webmail.renewableenergyjobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "admin.renewableenergyjobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "admin.renewableenergyjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "admin.renewableenergyjobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "ftp.renewableenergyjobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "ftp.renewableenergyjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "ftp.renewableenergyjobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "cpanel.renewableenergyjobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "cpanel.renewableenergyjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "cpanel.renewableenergyjobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "autodiscover.renewableenergyjobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "autodiscover.renewableenergyjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "autodiscover.renewableenergyjobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    }
+   },
+   "http": [
+    {
+     "url": "https://renewableenergyjobsuk.com/",
+     "hops": [
+      {
+       "url": "https://renewableenergyjobsuk.com/",
+       "rc": 35,
+       "out": "000|",
+       "err": "curl: (35) Recv failure: Connection reset by peer"
+      }
+     ]
+    },
+    {
+     "url": "https://www.renewableenergyjobsuk.com/",
+     "hops": [
+      {
+       "url": "https://www.renewableenergyjobsuk.com/",
+       "rc": 0,
+       "out": "200|",
+       "err": ""
+      }
+     ]
+    },
+    {
+     "url": "http://renewableenergyjobsuk.com/",
+     "hops": [
+      {
+       "url": "http://renewableenergyjobsuk.com/",
+       "rc": 0,
+       "out": "301|https://www.renewableenergyjobsuk.com/",
+       "err": ""
+      },
+      {
+       "url": "https://www.renewableenergyjobsuk.com/",
+       "rc": 0,
+       "out": "200|",
+       "err": ""
+      }
+     ]
+    },
+    {
+     "url": "http://www.renewableenergyjobsuk.com/",
+     "hops": [
+      {
+       "url": "http://www.renewableenergyjobsuk.com/",
+       "rc": 0,
+       "out": "301|https://www.renewableenergyjobsuk.com/",
+       "err": ""
+      },
+      {
+       "url": "https://www.renewableenergyjobsuk.com/",
+       "rc": 0,
+       "out": "200|",
+       "err": ""
+      }
+     ]
+    }
+   ],
+   "tls_observed_via_egress_gateway_NOT_ORIGIN": [
+    {
+     "host": "renewableenergyjobsuk.com",
+     "verified": true,
+     "subject": {
+      "commonName": "renewableenergyjobsuk.com"
+     },
+     "issuer": {
+      "organizationName": "Anthropic",
+      "commonName": "Egress Gateway SDS Issuing CA (production)"
+     },
+     "san": [
+      "renewableenergyjobsuk.com"
+     ],
+     "not_after": "Dec 20 09:29:55 2026 GMT"
+    },
+    {
+     "host": "www.renewableenergyjobsuk.com",
+     "verified": true,
+     "subject": {
+      "commonName": "*.renewableenergyjobsuk.com"
+     },
+     "issuer": {
+      "organizationName": "Anthropic",
+      "commonName": "Egress Gateway SDS Issuing CA (production)"
+     },
+     "san": [
+      "www.renewableenergyjobsuk.com"
+     ],
+     "not_after": "Dec 20 09:29:55 2026 GMT"
+    }
+   ],
+   "tls": "UNVERIFIABLE from sandbox: egress gateway re-terminates TLS (issuer 'Anthropic Egress Gateway SDS Issuing CA'); origin certificate not observable. Run openssl s_client from an operator machine."
+  },
+  {
+   "domain": "windjobsuk.com",
+   "retrieved": "2026-11-20T09:30:13.588739Z",
+   "dns": {
+    "windjobsuk.com|NS": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "NS",
+       "ttl": 3600,
+       "data": "ns07.domaincontrol.com."
+      },
+      {
+       "type": "NS",
+       "ttl": 3600,
+       "data": "ns08.domaincontrol.com."
+      }
+     ]
+    },
+    "windjobsuk.com|SOA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "SOA",
+       "ttl": 3600,
+       "data": "ns07.domaincontrol.com. dns.jomax.net. 2024030600 28800 7200 604800 600"
+      }
+     ]
+    },
+    "windjobsuk.com|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "A",
+       "ttl": 600,
+       "data": "212.250.3.80"
+      }
+     ]
+    },
+    "windjobsuk.com|AAAA": {
+     "status": 0,
+     "answers": []
+    },
+    "windjobsuk.com|CNAME": {
+     "status": 0,
+     "answers": []
+    },
+    "windjobsuk.com|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "MX",
+       "ttl": 3600,
+       "data": "0 smtp.secureserver.net."
+      },
+      {
+       "type": "MX",
+       "ttl": 3600,
+       "data": "10 mailstore1.secureserver.net."
+      }
+     ]
+    },
+    "windjobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "TXT",
+       "ttl": 3600,
+       "data": "\"D5463991\""
+      },
+      {
+       "type": "TXT",
+       "ttl": 3600,
+       "data": "\"v=spf1 mx a include:secureserver.net -all\""
+      }
+     ]
+    },
+    "windjobsuk.com|CAA": {
+     "status": 0,
+     "answers": []
+    },
+    "www.windjobsuk.com|NS": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.windjobsuk.com|SOA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.windjobsuk.com|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      },
+      {
+       "type": "A",
+       "ttl": 300,
+       "data": "64.253.47.65"
+      }
+     ]
+    },
+    "www.windjobsuk.com|AAAA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.windjobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.windjobsuk.com|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.windjobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.windjobsuk.com|CAA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "_dmarc.windjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "default._domainkey.windjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "default._domainkey.windjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "selector1._domainkey.windjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "selector1._domainkey.windjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "selector2._domainkey.windjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "selector2._domainkey.windjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "google._domainkey.windjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "google._domainkey.windjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "k1._domainkey.windjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "k1._domainkey.windjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "mail._domainkey.windjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "mail._domainkey.windjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "dkim._domainkey.windjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "dkim._domainkey.windjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "mail.windjobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "mail.windjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "mail.windjobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "webmail.windjobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "webmail.windjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "webmail.windjobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "admin.windjobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "admin.windjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "admin.windjobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "ftp.windjobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "ftp.windjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "ftp.windjobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "cpanel.windjobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "cpanel.windjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "cpanel.windjobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "autodiscover.windjobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "autodiscover.windjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "autodiscover.windjobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    }
+   },
+   "http": [
+    {
+     "url": "https://windjobsuk.com/",
+     "hops": [
+      {
+       "url": "https://windjobsuk.com/",
+       "rc": 35,
+       "out": "000|",
+       "err": "curl: (35) Recv failure: Connection reset by peer"
+      }
+     ]
+    },
+    {
+     "url": "https://www.windjobsuk.com/",
+     "hops": [
+      {
+       "url": "https://www.windjobsuk.com/",
+       "rc": 0,
+       "out": "200|",
+       "err": ""
+      }
+     ]
+    },
+    {
+     "url": "http://windjobsuk.com/",
+     "hops": [
+      {
+       "url": "http://windjobsuk.com/",
+       "rc": 0,
+       "out": "301|https://www.windjobsuk.com/",
+       "err": ""
+      },
+      {
+       "url": "https://www.windjobsuk.com/",
+       "rc": 0,
+       "out": "200|",
+       "err": ""
+      }
+     ]
+    },
+    {
+     "url": "http://www.windjobsuk.com/",
+     "hops": [
+      {
+       "url": "http://www.windjobsuk.com/",
+       "rc": 0,
+       "out": "301|https://www.windjobsuk.com/",
+       "err": ""
+      },
+      {
+       "url": "https://www.windjobsuk.com/",
+       "rc": 0,
+       "out": "200|",
+       "err": ""
+      }
+     ]
+    }
+   ],
+   "tls_observed_via_egress_gateway_NOT_ORIGIN": [
+    {
+     "host": "windjobsuk.com",
+     "verified": true,
+     "subject": {
+      "commonName": "windjobsuk.com"
+     },
+     "issuer": {
+      "organizationName": "Anthropic",
+      "commonName": "Egress Gateway SDS Issuing CA (production)"
+     },
+     "san": [
+      "windjobsuk.com"
+     ],
+     "not_after": "Dec 20 09:30:22 2026 GMT"
+    },
+    {
+     "host": "www.windjobsuk.com",
+     "verified": true,
+     "subject": {
+      "commonName": "*.windjobsuk.com"
+     },
+     "issuer": {
+      "organizationName": "Anthropic",
+      "commonName": "Egress Gateway SDS Issuing CA (production)"
+     },
+     "san": [
+      "www.windjobsuk.com"
+     ],
+     "not_after": "Dec 20 09:30:22 2026 GMT"
+    }
+   ],
+   "tls": "UNVERIFIABLE from sandbox: egress gateway re-terminates TLS (issuer 'Anthropic Egress Gateway SDS Issuing CA'); origin certificate not observable. Run openssl s_client from an operator machine."
+  },
+  {
+   "domain": "solarjobsuk.com",
+   "retrieved": "2026-11-20T09:30:14.054439Z",
+   "dns": {
+    "solarjobsuk.com|NS": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "NS",
+       "ttl": 3600,
+       "data": "ns67.domaincontrol.com."
+      },
+      {
+       "type": "NS",
+       "ttl": 3600,
+       "data": "ns68.domaincontrol.com."
+      }
+     ]
+    },
+    "solarjobsuk.com|SOA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "SOA",
+       "ttl": 3600,
+       "data": "ns67.domaincontrol.com. dns.jomax.net. 2024030600 28800 7200 604800 600"
+      }
+     ]
+    },
+    "solarjobsuk.com|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "A",
+       "ttl": 600,
+       "data": "212.250.3.80"
+      }
+     ]
+    },
+    "solarjobsuk.com|AAAA": {
+     "status": 0,
+     "answers": []
+    },
+    "solarjobsuk.com|CNAME": {
+     "status": 0,
+     "answers": []
+    },
+    "solarjobsuk.com|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "MX",
+       "ttl": 3600,
+       "data": "0 smtp.secureserver.net."
+      },
+      {
+       "type": "MX",
+       "ttl": 3600,
+       "data": "10 mailstore1.secureserver.net."
+      }
+     ]
+    },
+    "solarjobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "TXT",
+       "ttl": 3600,
+       "data": "\"D7908197\""
+      },
+      {
+       "type": "TXT",
+       "ttl": 3600,
+       "data": "\"v=spf1 mx a include:secureserver.net -all\""
+      }
+     ]
+    },
+    "solarjobsuk.com|CAA": {
+     "status": 0,
+     "answers": []
+    },
+    "www.solarjobsuk.com|NS": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.solarjobsuk.com|SOA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.solarjobsuk.com|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      },
+      {
+       "type": "A",
+       "ttl": 300,
+       "data": "64.253.47.65"
+      }
+     ]
+    },
+    "www.solarjobsuk.com|AAAA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.solarjobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.solarjobsuk.com|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.solarjobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.solarjobsuk.com|CAA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 3600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "_dmarc.solarjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "default._domainkey.solarjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "default._domainkey.solarjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "selector1._domainkey.solarjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "selector1._domainkey.solarjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "selector2._domainkey.solarjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "selector2._domainkey.solarjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "google._domainkey.solarjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "google._domainkey.solarjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "k1._domainkey.solarjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "k1._domainkey.solarjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "mail._domainkey.solarjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "mail._domainkey.solarjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "dkim._domainkey.solarjobsuk.com|TXT": {
+     "status": 3,
+     "answers": []
+    },
+    "dkim._domainkey.solarjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "mail.solarjobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "mail.solarjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "mail.solarjobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "webmail.solarjobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "webmail.solarjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "webmail.solarjobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "admin.solarjobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "admin.solarjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "admin.solarjobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "ftp.solarjobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "ftp.solarjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "ftp.solarjobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "cpanel.solarjobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "cpanel.solarjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "cpanel.solarjobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    },
+    "autodiscover.solarjobsuk.com|A": {
+     "status": 3,
+     "answers": []
+    },
+    "autodiscover.solarjobsuk.com|CNAME": {
+     "status": 3,
+     "answers": []
+    },
+    "autodiscover.solarjobsuk.com|MX": {
+     "status": 3,
+     "answers": []
+    }
+   },
+   "http": [
+    {
+     "url": "https://solarjobsuk.com/",
+     "hops": [
+      {
+       "url": "https://solarjobsuk.com/",
+       "rc": 35,
+       "out": "000|",
+       "err": "curl: (35) Recv failure: Connection reset by peer"
+      }
+     ]
+    },
+    {
+     "url": "https://www.solarjobsuk.com/",
+     "hops": [
+      {
+       "url": "https://www.solarjobsuk.com/",
+       "rc": 0,
+       "out": "200|",
+       "err": ""
+      }
+     ]
+    },
+    {
+     "url": "http://solarjobsuk.com/",
+     "hops": [
+      {
+       "url": "http://solarjobsuk.com/",
+       "rc": 0,
+       "out": "301|https://www.solarjobsuk.com/",
+       "err": ""
+      },
+      {
+       "url": "https://www.solarjobsuk.com/",
+       "rc": 0,
+       "out": "200|",
+       "err": ""
+      }
+     ]
+    },
+    {
+     "url": "http://www.solarjobsuk.com/",
+     "hops": [
+      {
+       "url": "http://www.solarjobsuk.com/",
+       "rc": 0,
+       "out": "301|https://www.solarjobsuk.com/",
+       "err": ""
+      },
+      {
+       "url": "https://www.solarjobsuk.com/",
+       "rc": 0,
+       "out": "200|",
+       "err": ""
+      }
+     ]
+    }
+   ],
+   "tls_observed_via_egress_gateway_NOT_ORIGIN": [
+    {
+     "host": "solarjobsuk.com",
+     "verified": true,
+     "subject": {
+      "commonName": "solarjobsuk.com"
+     },
+     "issuer": {
+      "organizationName": "Anthropic",
+      "commonName": "Egress Gateway SDS Issuing CA (production)"
+     },
+     "san": [
+      "solarjobsuk.com"
+     ],
+     "not_after": "Dec 20 09:30:21 2026 GMT"
+    },
+    {
+     "host": "www.solarjobsuk.com",
+     "verified": true,
+     "subject": {
+      "commonName": "*.solarjobsuk.com"
+     },
+     "issuer": {
+      "organizationName": "Anthropic",
+      "commonName": "Egress Gateway SDS Issuing CA (production)"
+     },
+     "san": [
+      "www.solarjobsuk.com"
+     ],
+     "not_after": "Dec 20 09:30:21 2026 GMT"
+    }
+   ],
+   "tls": "UNVERIFIABLE from sandbox: egress gateway re-terminates TLS (issuer 'Anthropic Egress Gateway SDS Issuing CA'); origin certificate not observable. Run openssl s_client from an operator machine."
+  },
+  {
+   "domain": "wastejobsuk.com",
+   "retrieved": "2026-11-20T09:30:15.119198Z",
+   "dns": {
+    "wastejobsuk.com|NS": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "NS",
+       "ttl": 3600,
+       "data": "ns31.domaincontrol.com."
+      },
+      {
+       "type": "NS",
+       "ttl": 3600,
+       "data": "ns32.domaincontrol.com."
+      }
+     ]
+    },
+    "wastejobsuk.com|SOA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "SOA",
+       "ttl": 3600,
+       "data": "ns31.domaincontrol.com. dns.jomax.net. 2024030600 28800 7200 604800 600"
+      }
+     ]
+    },
+    "wastejobsuk.com|A": {
+     "status": 0,
+     "answers": []
+    },
+    "wastejobsuk.com|AAAA": {
+     "status": 0,
+     "answers": []
+    },
+    "wastejobsuk.com|CNAME": {
+     "status": 0,
+     "answers": []
+    },
+    "wastejobsuk.com|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "MX",
+       "ttl": 3600,
+       "data": "0 smtp.secureserver.net."
+      },
+      {
+       "type": "MX",
+       "ttl": 3600,
+       "data": "10 mailstore1.secureserver.net."
+      }
+     ]
+    },
+    "wastejobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "TXT",
+       "ttl": 3600,
+       "data": "\"D6110269\""
+      },
+      {
+       "type": "TXT",
+       "ttl": 3600,
+       "data": "\"v=spf1 mx a include:secureserver.net -all\""
+      }
+     ]
+    },
+    "wastejobsuk.com|CAA": {
+     "status": 0,
+     "answers": []
+    },
+    "www.wastejobsuk.com|NS": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.wastejobsuk.com|SOA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.wastejobsuk.com|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      },
+      {
+       "type": "A",
+       "ttl": 300,
+       "data": "64.253.47.65"
+      }
+     ]
+    },
+    "www.wastejobsuk.com|AAAA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.wastejobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.wastejobsuk.com|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.wastejobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.wastejobsuk.com|CAA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "_dmarc.wastejobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "default._domainkey.wastejobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "default._domainkey.wastejobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "selector1._domainkey.wastejobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "selector1._domainkey.wastejobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "selector2._domainkey.wastejobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "selector2._domainkey.wastejobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "google._domainkey.wastejobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "google._domainkey.wastejobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "k1._domainkey.wastejobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "k1._domainkey.wastejobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "mail._domainkey.wastejobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "mail._domainkey.wastejobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "dkim._domainkey.wastejobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "dkim._domainkey.wastejobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "mail.wastejobsuk.com|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      },
+      {
+       "type": "A",
+       "ttl": 300,
+       "data": "64.253.47.65"
+      }
+     ]
+    },
+    "mail.wastejobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "mail.wastejobsuk.com|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "webmail.wastejobsuk.com|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      },
+      {
+       "type": "A",
+       "ttl": 300,
+       "data": "64.253.47.65"
+      }
+     ]
+    },
+    "webmail.wastejobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "webmail.wastejobsuk.com|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "admin.wastejobsuk.com|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      },
+      {
+       "type": "A",
+       "ttl": 300,
+       "data": "64.253.47.65"
+      }
+     ]
+    },
+    "admin.wastejobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "admin.wastejobsuk.com|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "ftp.wastejobsuk.com|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      },
+      {
+       "type": "A",
+       "ttl": 300,
+       "data": "64.253.47.65"
+      }
+     ]
+    },
+    "ftp.wastejobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "ftp.wastejobsuk.com|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "cpanel.wastejobsuk.com|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      },
+      {
+       "type": "A",
+       "ttl": 300,
+       "data": "64.253.47.65"
+      }
+     ]
+    },
+    "cpanel.wastejobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "cpanel.wastejobsuk.com|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "autodiscover.wastejobsuk.com|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      },
+      {
+       "type": "A",
+       "ttl": 300,
+       "data": "64.253.47.65"
+      }
+     ]
+    },
+    "autodiscover.wastejobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "autodiscover.wastejobsuk.com|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    }
+   },
+   "http": [
+    {
+     "url": "https://wastejobsuk.com/",
+     "hops": [
+      {
+       "url": "https://wastejobsuk.com/",
+       "rc": 56,
+       "out": "000|",
+       "err": "curl: (56) CONNECT tunnel failed, response 502"
+      }
+     ]
+    },
+    {
+     "url": "https://www.wastejobsuk.com/",
+     "hops": [
+      {
+       "url": "https://www.wastejobsuk.com/",
+       "rc": 0,
+       "out": "200|",
+       "err": ""
+      }
+     ]
+    },
+    {
+     "url": "http://wastejobsuk.com/",
+     "hops": [
+      {
+       "url": "http://wastejobsuk.com/",
+       "rc": 6,
+       "out": "000|",
+       "err": "curl: (6) Could not resolve host: wastejobsuk.com"
+      }
+     ]
+    },
+    {
+     "url": "http://www.wastejobsuk.com/",
+     "hops": [
+      {
+       "url": "http://www.wastejobsuk.com/",
+       "rc": 0,
+       "out": "301|https://www.wastejobsuk.com/",
+       "err": ""
+      },
+      {
+       "url": "https://www.wastejobsuk.com/",
+       "rc": 0,
+       "out": "200|",
+       "err": ""
+      }
+     ]
+    }
+   ],
+   "tls_observed_via_egress_gateway_NOT_ORIGIN": [
+    {
+     "host": "wastejobsuk.com",
+     "error": "gaierror: [Errno -5] No address associated with hostname"
+    },
+    {
+     "host": "www.wastejobsuk.com",
+     "verified": true,
+     "subject": {
+      "commonName": "*.wastejobsuk.com"
+     },
+     "issuer": {
+      "organizationName": "Anthropic",
+      "commonName": "Egress Gateway SDS Issuing CA (production)"
+     },
+     "san": [
+      "www.wastejobsuk.com"
+     ],
+     "not_after": "Dec 20 09:30:28 2026 GMT"
+    }
+   ],
+   "tls": "UNVERIFIABLE from sandbox: egress gateway re-terminates TLS (issuer 'Anthropic Egress Gateway SDS Issuing CA'); origin certificate not observable. Run openssl s_client from an operator machine."
+  },
+  {
+   "domain": "waterjobsuk.com",
+   "retrieved": "2026-11-20T09:30:19.348946Z",
+   "dns": {
+    "waterjobsuk.com|NS": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "NS",
+       "ttl": 3600,
+       "data": "ns45.domaincontrol.com."
+      },
+      {
+       "type": "NS",
+       "ttl": 3600,
+       "data": "ns46.domaincontrol.com."
+      }
+     ]
+    },
+    "waterjobsuk.com|SOA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "SOA",
+       "ttl": 3600,
+       "data": "ns45.domaincontrol.com. dns.jomax.net. 2024030600 28800 7200 604800 600"
+      }
+     ]
+    },
+    "waterjobsuk.com|A": {
+     "status": 0,
+     "answers": []
+    },
+    "waterjobsuk.com|AAAA": {
+     "status": 0,
+     "answers": []
+    },
+    "waterjobsuk.com|CNAME": {
+     "status": 0,
+     "answers": []
+    },
+    "waterjobsuk.com|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "MX",
+       "ttl": 3600,
+       "data": "0 smtp.secureserver.net."
+      },
+      {
+       "type": "MX",
+       "ttl": 3600,
+       "data": "10 mailstore1.secureserver.net."
+      }
+     ]
+    },
+    "waterjobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "TXT",
+       "ttl": 3600,
+       "data": "\"D8054547\""
+      },
+      {
+       "type": "TXT",
+       "ttl": 3600,
+       "data": "\"v=spf1 mx a include:secureserver.net -all\""
+      }
+     ]
+    },
+    "waterjobsuk.com|CAA": {
+     "status": 0,
+     "answers": []
+    },
+    "www.waterjobsuk.com|NS": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.waterjobsuk.com|SOA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.waterjobsuk.com|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      },
+      {
+       "type": "A",
+       "ttl": 300,
+       "data": "64.253.47.65"
+      }
+     ]
+    },
+    "www.waterjobsuk.com|AAAA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.waterjobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.waterjobsuk.com|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.waterjobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "www.waterjobsuk.com|CAA": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "_dmarc.waterjobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "default._domainkey.waterjobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "default._domainkey.waterjobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "selector1._domainkey.waterjobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "selector1._domainkey.waterjobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "selector2._domainkey.waterjobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "selector2._domainkey.waterjobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "google._domainkey.waterjobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "google._domainkey.waterjobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "k1._domainkey.waterjobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "k1._domainkey.waterjobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "mail._domainkey.waterjobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "mail._domainkey.waterjobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "dkim._domainkey.waterjobsuk.com|TXT": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "dkim._domainkey.waterjobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "mail.waterjobsuk.com|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      },
+      {
+       "type": "A",
+       "ttl": 300,
+       "data": "64.253.47.65"
+      }
+     ]
+    },
+    "mail.waterjobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "mail.waterjobsuk.com|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "webmail.waterjobsuk.com|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      },
+      {
+       "type": "A",
+       "ttl": 300,
+       "data": "64.253.47.65"
+      }
+     ]
+    },
+    "webmail.waterjobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "webmail.waterjobsuk.com|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "admin.waterjobsuk.com|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      },
+      {
+       "type": "A",
+       "ttl": 300,
+       "data": "64.253.47.65"
+      }
+     ]
+    },
+    "admin.waterjobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "admin.waterjobsuk.com|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "ftp.waterjobsuk.com|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      },
+      {
+       "type": "A",
+       "ttl": 300,
+       "data": "64.253.47.65"
+      }
+     ]
+    },
+    "ftp.waterjobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "ftp.waterjobsuk.com|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "cpanel.waterjobsuk.com|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      },
+      {
+       "type": "A",
+       "ttl": 300,
+       "data": "64.253.47.65"
+      }
+     ]
+    },
+    "cpanel.waterjobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "cpanel.waterjobsuk.com|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "autodiscover.waterjobsuk.com|A": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      },
+      {
+       "type": "A",
+       "ttl": 300,
+       "data": "64.253.47.65"
+      }
+     ]
+    },
+    "autodiscover.waterjobsuk.com|CNAME": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    },
+    "autodiscover.waterjobsuk.com|MX": {
+     "status": 0,
+     "answers": [
+      {
+       "type": "CNAME",
+       "ttl": 8600,
+       "data": "www-greenjobs-co-uk.cname.strategiesuk.net."
+      }
+     ]
+    }
+   },
+   "http": [
+    {
+     "url": "https://waterjobsuk.com/",
+     "hops": [
+      {
+       "url": "https://waterjobsuk.com/",
+       "rc": 56,
+       "out": "000|",
+       "err": "curl: (56) CONNECT tunnel failed, response 502"
+      }
+     ]
+    },
+    {
+     "url": "https://www.waterjobsuk.com/",
+     "hops": [
+      {
+       "url": "https://www.waterjobsuk.com/",
+       "rc": 0,
+       "out": "200|",
+       "err": ""
+      }
+     ]
+    },
+    {
+     "url": "http://waterjobsuk.com/",
+     "hops": [
+      {
+       "url": "http://waterjobsuk.com/",
+       "rc": 6,
+       "out": "000|",
+       "err": "curl: (6) Could not resolve host: waterjobsuk.com"
+      }
+     ]
+    },
+    {
+     "url": "http://www.waterjobsuk.com/",
+     "hops": [
+      {
+       "url": "http://www.waterjobsuk.com/",
+       "rc": 0,
+       "out": "301|https://www.waterjobsuk.com/",
+       "err": ""
+      },
+      {
+       "url": "https://www.waterjobsuk.com/",
+       "rc": 0,
+       "out": "200|",
+       "err": ""
+      }
+     ]
+    }
+   ],
+   "tls_observed_via_egress_gateway_NOT_ORIGIN": [
+    {
+     "host": "waterjobsuk.com",
+     "error": "gaierror: [Errno -5] No address associated with hostname"
+    },
+    {
+     "host": "www.waterjobsuk.com",
+     "verified": true,
+     "subject": {
+      "commonName": "*.waterjobsuk.com"
+     },
+     "issuer": {
+      "organizationName": "Anthropic",
+      "commonName": "Egress Gateway SDS Issuing CA (production)"
+     },
+     "san": [
+      "www.waterjobsuk.com"
+     ],
+     "not_after": "Dec 20 09:30:33 2026 GMT"
+    }
+   ],
+   "tls": "UNVERIFIABLE from sandbox: egress gateway re-terminates TLS (issuer 'Anthropic Egress Gateway SDS Issuing CA'); origin certificate not observable. Run openssl s_client from an operator machine."
+  }
+ ],
+ "registry_lookups_rdap": {
+  "greenjobs.ie": {
+   "error": "HTTP Error 404: Not Found"
+  },
+  "greenjobs.co.uk": {
+   "registrar": [
+    "Team Blue Internet Services IE Limited"
+   ],
+   "status": [
+    "active"
+   ],
+   "events": {
+    "registration": "1999-12-02T19:51:45Z",
+    "last changed": "2025-11-30T09:10:47.732637Z",
+    "expiration": "2027-12-02T19:51:45Z",
+    "last update of RDAP database": "2026-11-20T09:31:12.015Z"
+   },
+   "nameservers": [
+    "ns5.dnsireland.com.",
+    "ns6.dnsireland.com.",
+    "ns7.dnsireland.ie."
+   ],
+   "source": "rdap.org"
+  },
+  "conservationjobsuk.com": {
+   "registrar": [
+    "123-Reg Limited"
+   ],
+   "status": [
+    "active"
+   ],
+   "events": {
+    "registration": "2011-06-17T18:08:03Z",
+    "expiration": "2027-06-17T18:08:03Z",
+    "last changed": "2026-06-24T09:05:29Z",
+    "last update of RDAP database": "2026-11-20T09:30:57Z"
+   },
+   "nameservers": [
+    "NS31.DOMAINCONTROL.COM",
+    "NS32.DOMAINCONTROL.COM"
+   ],
+   "source": "rdap.org"
+  },
+  "ecologyjobsuk.com": {
+   "registrar": [
+    "123-Reg Limited"
+   ],
+   "status": [
+    "active"
+   ],
+   "events": {
+    "registration": "2021-11-12T14:18:22Z",
+    "expiration": "2027-11-12T14:18:22Z",
+    "last changed": "2025-11-13T09:58:36Z",
+    "last update of RDAP database": "2026-11-20T09:30:57Z"
+   },
+   "nameservers": [
+    "NS15.DOMAINCONTROL.COM",
+    "NS16.DOMAINCONTROL.COM"
+   ],
+   "source": "rdap.org"
+  },
+  "environmentaljobsuk.com": {
+   "registrar": [
+    "123-Reg Limited"
+   ],
+   "status": [
+    "active"
+   ],
+   "events": {
+    "registration": "2011-01-31T18:06:28Z",
+    "expiration": "2027-01-31T18:06:28Z",
+    "last changed": "2026-02-01T09:55:46Z",
+    "last update of RDAP database": "2026-11-20T09:30:57Z"
+   },
+   "nameservers": [
+    "NS09.DOMAINCONTROL.COM",
+    "NS10.DOMAINCONTROL.COM"
+   ],
+   "source": "rdap.org"
+  },
+  "renewablejobsuk.com": {
+   "error": "HTTP Error 404: Not Found"
+  },
+  "renewableenergyjobsuk.com": {
+   "registrar": [
+    "123-Reg Limited"
+   ],
+   "status": [
+    "active"
+   ],
+   "events": {
+    "registration": "2011-01-31T18:06:14Z",
+    "expiration": "2027-01-31T18:06:14Z",
+    "last changed": "2026-02-01T09:55:50Z",
+    "last update of RDAP database": "2026-11-20T09:30:57Z"
+   },
+   "nameservers": [
+    "NS67.DOMAINCONTROL.COM",
+    "NS68.DOMAINCONTROL.COM"
+   ],
+   "source": "rdap.org"
+  },
+  "windjobsuk.com": {
+   "registrar": [
+    "123-Reg Limited"
+   ],
+   "status": [
+    "active"
+   ],
+   "events": {
+    "registration": "2011-01-31T18:05:30Z",
+    "expiration": "2027-01-31T18:05:30Z",
+    "last changed": "2026-02-01T09:55:46Z",
+    "last update of RDAP database": "2026-11-20T09:30:57Z"
+   },
+   "nameservers": [
+    "NS07.DOMAINCONTROL.COM",
+    "NS08.DOMAINCONTROL.COM"
+   ],
+   "source": "rdap.org"
+  },
+  "solarjobsuk.com": {
+   "registrar": [
+    "123-Reg Limited"
+   ],
+   "status": [
+    "active"
+   ],
+   "events": {
+    "registration": "2011-01-31T18:06:43Z",
+    "expiration": "2027-01-31T18:06:43Z",
+    "last changed": "2026-02-01T09:55:47Z",
+    "last update of RDAP database": "2026-11-20T09:30:57Z"
+   },
+   "nameservers": [
+    "NS67.DOMAINCONTROL.COM",
+    "NS68.DOMAINCONTROL.COM"
+   ],
+   "source": "rdap.org"
+  },
+  "wastejobsuk.com": {
+   "registrar": [
+    "123-Reg Limited"
+   ],
+   "status": [
+    "active"
+   ],
+   "events": {
+    "registration": "2012-08-02T21:42:19Z",
+    "expiration": "2027-08-02T21:42:19Z",
+    "last changed": "2026-08-03T10:09:14Z",
+    "last update of RDAP database": "2026-11-20T09:30:57Z"
+   },
+   "nameservers": [
+    "NS31.DOMAINCONTROL.COM",
+    "NS32.DOMAINCONTROL.COM"
+   ],
+   "source": "rdap.org"
+  },
+  "waterjobsuk.com": {
+   "registrar": [
+    "123-Reg Limited"
+   ],
+   "status": [
+    "active"
+   ],
+   "events": {
+    "registration": "2012-08-02T21:42:21Z",
+    "expiration": "2027-08-02T21:42:21Z",
+    "last changed": "2026-08-03T10:09:14Z",
+    "last update of RDAP database": "2026-11-20T09:30:57Z"
+   },
+   "nameservers": [
+    "NS45.DOMAINCONTROL.COM",
+    "NS46.DOMAINCONTROL.COM"
+   ],
+   "source": "rdap.org"
+  }
+ },
+ "notes": "answers[].type is the record type returned; a CNAME returned for an A/NS/etc query is the alias chain, not a record of the queried type. status 0=NOERROR 3=NXDOMAIN."
+}
