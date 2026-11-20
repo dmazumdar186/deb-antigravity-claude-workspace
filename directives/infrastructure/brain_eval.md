@@ -10,7 +10,7 @@ Every week, measure whether the workspace brain (`directives/infrastructure/brai
 
 ## Inputs
 
-- `.claude/brain/eval/benchmark.jsonl`: 48 operator prompts (24 tasks, 12 corrections, 12 negatives). A worker that never saw the lessons wrote them on 2026-11-12. They are frozen: editing them raises `goalposts_moved` and suspends benchmark deltas for that run.
+- `.claude/brain/eval/benchmark.jsonl`: 96 operator prompts, set v3 (48 tasks, 24 corrections, 24 negatives, 16 long). A `claude -p` run with every file and web tool blocked, blind to the lessons, wrote them on 2026-11-20; frozen 2026-11-20T10:00:00Z (sha256 1e766569...). v1+v2 (48 prompts, 2026-11-12) are archived in `.claude/brain/eval/archive/`. Editing the frozen set raises `goalposts_moved` and suspends benchmark deltas for that run.
 - `.claude/brain/eval/thresholds.json`: floors, ceilings, regression tolerances, which alarms FAIL, and the budget. Editing it also raises `goalposts_moved`.
 - `.claude/brain/eval/observations/*.jsonl`: live evidence. The Stop hook writes one row per turn that had an injection, a correction or an admission. A row holds lesson ids, sources (kw/jev/both), judge probabilities and flags only. **It never contains prompt text.**
 - `.claude/brain/eval/labels.json`: the judge's labels, cached per (judge model, prompt, lesson id, rule-text hash). Week-on-week deltas therefore measure the brain, not judge drift, and an edited rule is re-labelled.

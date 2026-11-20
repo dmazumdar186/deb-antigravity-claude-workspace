@@ -6,7 +6,7 @@ strength: 2
 status: active
 created: 2026-11-20
 confirmed: 2026-11-20
-source:
+source: 8033737e not-found claimed after a single-spelling search 2026-11-20 (lesson-add commit)
 supersedes:
 ---
 Before saying a person or project can't be found, search spelling variants of the name, every remote branch (git grep across refs), private repos named in commit messages, and past session transcripts (list_sessions/list_events)
