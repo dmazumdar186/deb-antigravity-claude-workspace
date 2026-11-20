@@ -17,8 +17,8 @@ Abbreviations used in the citations:
 
 | Date | Event | Primary source |
 |---|---|---|
-| 20 Aug | Gaia sourcing: 13 candidates (10 for Role 1, 3 of 5 for Role 2). Keith: "too senior, some not in Ireland". He praised the interface | `gaia_2026-09-10/call_brief_2026-09-10.md:11`; `ENGAGEMENT_RECORD_2026-09-11.md:33,62` |
-| 10 Sep | 27-minute call; corrected list plus Loom for Mon 14 Sep. Our own runbook limited the scope to "no auto-sending, no voice agent, no replacement of Recruit CRM" (operator's recorded promise, not said on the call) | `transcript_2026-09-10_fathom.md:14`; `RUNBOOK_monday_delivery.md:3-6` |
+| 20 Aug | Gaia sourcing: 13 candidates (10 for Role 1, 3 of 5 for Role 2). Keith: "too senior, some not in Ireland" | `gaia_2026-09-10/call_brief_2026-09-10.md:11`; `ENGAGEMENT_RECORD_2026-09-11.md:33` |
+| 10 Sep | 27-minute call; Keith praised the interface (ER:56-62, quoting the transcript); corrected list plus Loom for Mon 14 Sep. Our own runbook limited the scope to "no auto-sending, no voice agent, no replacement of Recruit CRM" (operator's recorded promise, not said on the call) | `transcript_2026-09-10_fathom.md:14`; `RUNBOOK_monday_delivery.md:3-6` |
 | 11–14 Sep | Corrected run: Role 1 at 2 of 10, Role 2 at 0 of 5. That Keith viewed the Loom on 14 Sep is unverifiable from primary files (Gmail notification only) | `HANDOFF_SESSION_2026-09-11.md:16-17` |
 | 17 Sep | Gaia website redesign built. "Keith has NOT been sent anything" | `gaia_redesign_2026-09-17/HANDOFF.md:4` |
 | 22–28 Sep | GreenJobs redesign at greenjobs-redesign.pages.dev, including the KPI dashboard. Change document received 28 Sep | Proposal:60; `KEITH_CHANGES_CHECKLIST.md:1` |
@@ -52,10 +52,10 @@ The plan (9 Nov) governs 3 Dec. The proposal (30 Sep) governs the service.
 | P8 | Weekly update throughout, and a monthly report | Proposal:92 (weekly); 68,127 (monthly) | In build | **Both** are owed |
 | P9 | Daily backups, quarterly restore drill, uptime monitoring | Proposal:68,127,135 | In build | Keep |
 | P10 | Broadbean, Idibu, LogicMelon and one CRM | Proposal:64,83 | Phase 2 (Plan:31) | Phase 2 |
-| P11 | Employer logins (CHM, Mattinson) | Plan:31 phase 2; REVIEW:21 (notice by 25 Nov) | Built, switched off | Staff post for them on 3 Dec. They are told by 25 Nov |
+| P11 | Employer logins (CHM, Mattinson) | Plan:31 phase 2; REVIEW:21 (notice by 25 Nov) | In build (behind a flag, off); not merged | Staff post for them on 3 Dec. They are told by 25 Nov |
 | P12 | 8 network domains | Proposal:105 out of scope; Plan:37 "quoted separately" | Configuration only | Question for Keith |
 | P13 | Gaia jobs fed in automatically | Not promised | Built, switched off | Offer to Keith as a time saver |
-| P14 | Platform costs: Cloudflare ~$5 and Resend ~$20 at cost +3%, billed to GreenJobs | Proposal:148-151; JSON:99 | DECISION.md previously said "free tier"; corrected in v2 below | Use as proposed |
+| P14 | Platform costs: Cloudflare ~$5 and Resend ~$20 at cost +3%, billed to GreenJobs | Proposal:148-151; JSON:99 | DECISION.md corrected to the proposal costs (DECISION.md:7) | Use as proposed |
 | P15 | Newsletter sends | Proposal:83,149; FEAS:109; REVIEW:34 (paid advertiser feature) | Missing | Add to the alerts build (third in the trim order) |
 | P16 | Export archive in storage in GreenJobs' name before 6 Dec | Plan:33 | In build (export bot and R2, after the DPA) | Keep |
 | P17 | 10 working days of daily checks after 3 Dec, against the acceptance list | Plan:24; Proposal:91 | In build (probes, status) | Add a 10-day check schedule and the acceptance list |
@@ -63,6 +63,12 @@ The plan (9 Nov) governs 3 Dec. The proposal (30 Sep) governs the service.
 | P19 | Handover: runbook, test register, source repository, everything in GreenJobs-owned accounts | Proposal:85,161 | Partial | Produce the handover pack before go-live |
 | P20 | Service levels: 99.9% uptime; 1 business day response (4 h for a posting outage); 2 business-day changes | Proposal:92,134,137,140 | In build (monitoring) | Alerting thresholds set to these |
 | P21 | All 100 change-document items done, 11 waiting on Keith's input | Proposal:60,82 | Done items exist on the demo site | Re-verify on the new build. The 11 inputs go in the Keith question list |
+| P23 | The two site-manager fixes | Proposal:82 | Re-verify on the new build | In the acceptance list |
+| P24 | Analytics: GA4 and Search Console kept; logo use needs Keith's OK | Proposal:83; Plan:47; REVIEW:26 | In build (GA4 IDs held) | Logo OK goes in the Keith question list |
+| P25 | EU data region, firewall/DDoS/SSL, security patches as released | Proposal:68,127 | In build (Cloudflare config; D1 location hint) | Verify in the pipeline |
+| P26 | Daily test job through each posting route | Proposal:64,83 | Phase 2 (with P10) | With P10 |
+| P27 | Keith signs off on the test address by Fri 27 Nov | Plan:22 | Scheduled | Staging URL to Keith via the operator |
+| P28 | Phase-2 target dates set in the contract | Plan:31 | Operator (contract) | None for engineering |
 | P22 | 5-working-day go-live guarantee | Proposal:89; JSON:89 | Superseded by the 9 Nov plan dates | Record as superseded |
 
 ## 3. Gaia Talent sourcing: open, dormant since 14 Sep
