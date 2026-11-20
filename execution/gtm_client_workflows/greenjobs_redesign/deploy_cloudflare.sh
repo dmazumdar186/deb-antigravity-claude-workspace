@@ -32,7 +32,7 @@ fi
 [ -n "${CLOUDFLARE_ACCOUNT_ID:-}" ] || { echo "CLOUDFLARE_ACCOUNT_ID is not set (env or .env)" >&2; exit 1; }
 export CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID
 
-WRANGLER="npx -y wrangler@4"
+WRANGLER="npx --no-install --prefix $(dirname "$0")/platform_worker wrangler"   # pinned; run `npm ci` in platform_worker first
 $WRANGLER whoami >/dev/null 2>&1 || { echo "wrangler could not authenticate with the token" >&2; exit 1; }
 
 # Create the project on first run; ignore "already exists" on reruns (the

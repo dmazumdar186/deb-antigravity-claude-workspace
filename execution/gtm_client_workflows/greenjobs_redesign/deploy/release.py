@@ -47,7 +47,8 @@ except (
 ROOT = Path(__file__).resolve().parents[4]
 HERE = Path(__file__).resolve().parent
 CONFIG = HERE / "environments.json"
-WRANGLER = ["npx", "-y", "wrangler@4"]
+# pinned in platform_worker/package-lock.json; --no-install never downloads an unpinned copy (run `npm ci` there first)
+WRANGLER = ["npx", "--no-install", "--prefix=execution/gtm_client_workflows/greenjobs_redesign/platform_worker", "wrangler"]
 CF_API = "https://api.cloudflare.com/client/v4"
 UUID = r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
 DRY = "<dry-run>"

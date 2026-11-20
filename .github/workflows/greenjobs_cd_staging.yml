@@ -50,6 +50,9 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Install pinned wrangler (package-lock.json, no unpinned download)
+        run: npm ci --prefix execution/gtm_client_workflows/greenjobs_redesign/platform_worker
+
       - name: Deploy to staging (D1 schema + migrations + public seed, Worker, both boards)
         id: deploy
         run: python execution/gtm_client_workflows/greenjobs_redesign/deploy/release.py stage --execute --sha "$SHA" --ledger-dir "$LEDGER"

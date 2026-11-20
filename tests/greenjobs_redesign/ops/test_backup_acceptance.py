@@ -66,10 +66,10 @@ def test_backup_live_without_credentials_fails_loud(tmp_path):
 
 def fake_wrangler(src_dump: Path, counts: dict[str, int], uploads: list):
     def run(cmd):
-        if cmd[3:5] == ["d1", "export"]:
+        if cmd[4:6] == ["d1", "export"]:
             Path(cmd[cmd.index("--output") + 1]).write_text(src_dump.read_text())
             return 0, ""
-        if cmd[3:5] == ["d1", "execute"]:
+        if cmd[4:6] == ["d1", "execute"]:
             return 0, "wrangler noise\n" + json.dumps(
                 [
                     {
@@ -78,8 +78,8 @@ def fake_wrangler(src_dump: Path, counts: dict[str, int], uploads: list):
                     }
                 ]
             )
-        if cmd[3:6] == ["r2", "object", "put"]:
-            uploads.append(cmd[6])
+        if cmd[4:7] == ["r2", "object", "put"]:
+            uploads.append(cmd[7])
             return 0, ""
         return 1, "unexpected"
 
@@ -145,7 +145,7 @@ def test_restore_drill_live_restores_into_scratch_and_deletes_only_scratch(
 
     def run(cmd):
         seen.append(cmd)
-        if cmd[3:6] == ["r2", "object", "get"]:
+        if cmd[4:7] == ["r2", "object", "get"]:
             Path(cmd[cmd.index("--file") + 1]).write_text(dump.read_text())
             return 0, ""
         if "--command" in cmd:
@@ -156,9 +156,9 @@ def test_restore_drill_live_restores_into_scratch_and_deletes_only_scratch(
 
     row = RD.drill(tmp_path, "b", True, runner=run)
     assert row["ok"] is True and row["mode"] == "live"
-    deletes = [c for c in seen if c[3:5] == ["d1", "delete"]]
-    assert len(deletes) == 1 and deletes[0][5].startswith("greenjobs-drill-")
-    assert not any(c[3:5] == ["d1", "delete"] and c[5] == "greenjobs" for c in seen)
+    deletes = [c for c in seen if c[4:6] == ["d1", "delete"]]
+    assert len(deletes) == 1 and deletes[0][6].startswith("greenjobs-drill-")
+    assert not any(c[4:6] == ["d1", "delete"] and c[6] == "greenjobs" for c in seen)
 
 
 def test_acceptance_window_is_ten_working_days_from_3_dec():

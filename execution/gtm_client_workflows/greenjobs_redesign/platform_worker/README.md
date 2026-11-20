@@ -84,7 +84,7 @@ A D1 created before 2026-11-20 runs `d1/migrations/0001_apply_mode_consent_alert
 - Review queue: `/admin/review`. Feed jobs the classifier is unsure of arrive as `draft` (`hold=1`) and go live on approval;
   Strategies jobs stay live (`hold=0`) and only their sector is confirmed.
 - `EMPLOYER_POSTING_ENABLED="0"` (default, phase 2). Grant a login (staff, after adding the email to the Access
-  application): `npx wrangler@4 d1 execute greenjobs --command "INSERT INTO employer_accounts (email_norm, employer_id,
+  application): `npx wrangler d1 execute greenjobs --command "INSERT INTO employer_accounts (email_norm, employer_id,
   status, expires_at, created_by, created_at, updated_at) VALUES ('jobs@chm.example', 'ie:strat:123', 'active',
   '2027-01-31T23:59:59Z', 'keith@greenjobs.ie', '2026-12-01T00:00:00Z', '2026-12-01T00:00:00Z')"` (shape:
   `employer_account_upsert` in `upserts_0003.sql`). Set `status='disabled'` to revoke; access also stops at `expires_at`.
@@ -106,13 +106,13 @@ node --no-warnings --test 'tests/greenjobs_redesign/platform/*.test.mjs'
 
 ```bash
 cd execution/gtm_client_workflows/greenjobs_redesign/platform_worker
-npx wrangler@4 d1 create greenjobs                       # paste database_id into wrangler.toml
-npx wrangler@4 d1 execute greenjobs --remote \
+npx wrangler d1 create greenjobs                       # paste database_id into wrangler.toml
+npx wrangler d1 execute greenjobs --remote \
   --file=../../../../deliverables/greenjobs_migration_2026-11-06/build/d1/schema.sql   # idempotent
-npx wrangler@4 r2 bucket create greenjobs-cvs            # private bucket, no public access
-npx wrangler@4 secret put BUILD_TOKEN                    # long random string; also set in the Pages build
-npx wrangler@4 secret put RESEND_API_KEY                 # only when going live; never in wrangler.toml
-npx wrangler@4 deploy                                    # DRY_RUN="1": applications stored, nothing sent
+npx wrangler r2 bucket create greenjobs-cvs            # private bucket, no public access
+npx wrangler secret put BUILD_TOKEN                    # long random string; also set in the Pages build
+npx wrangler secret put RESEND_API_KEY                 # only when going live; never in wrangler.toml
+npx wrangler deploy                                    # DRY_RUN="1": applications stored, nothing sent
 ```
 
 Cloudflare Access (Zero Trust -> Access -> Applications -> Self-hosted):

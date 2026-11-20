@@ -101,6 +101,9 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Install pinned wrangler (package-lock.json, no unpinned download)
+        run: npm ci --prefix execution/gtm_client_workflows/greenjobs_redesign/platform_worker
+
       - name: Download the verified staging record
         uses: actions/download-artifact@v4
         with:

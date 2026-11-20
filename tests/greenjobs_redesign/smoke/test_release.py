@@ -381,13 +381,13 @@ def test_stage_failure_is_recorded_and_stops(cfg, tmp_path, no_toml_placeholders
     rel, fake = mk(resolved(cfg), "staging", tmp_path, fake)
     with pytest.raises(release.StepError):
         rel.stage()
-    assert fake.calls[-1][3:6] == [
+    assert fake.calls[-1][4:7] == [
         "d1",
         "migrations",
         "apply",
     ], "nothing runs after the failed step"
     assert not any(
-        c[3:4] == ["deploy"] or "deploy_cloudflare.sh" in " ".join(c)
+        c[4:5] == ["deploy"] or "deploy_cloudflare.sh" in " ".join(c)
         for c in fake.calls
     )
     assert release.read_ledger(tmp_path / "ledger")[-1]["status"] == "failed"
@@ -459,7 +459,7 @@ def test_promote_backup_precedes_migrations_and_records_previous(
         (tmp_path / "work" / "production").glob("d1_*.sql")
     ), "local backup (PII) must be deleted"
     assert all(
-        "--env" in c and "production" in c for c in fake.calls if "wrangler@4" in c
+        "--env" in c and "production" in c for c in fake.calls if "wrangler" in c
     )
 
 
@@ -519,7 +519,7 @@ def test_rollback_restores_previous_worker_and_pages(
 ):
     rel, fake = mk(resolved(cfg), "production", tmp_path)
     rec = rel.rollback(deployed_record())
-    assert any(c[3:5] == ["rollback", V_OLD] for c in fake.calls)
+    assert any(c[4:6] == ["rollback", V_OLD] for c in fake.calls)
     assert (
         "POST",
         "/pages/projects/greenjobs-ie/deployments/dep-ie-old/rollback",
@@ -657,7 +657,7 @@ def test_scan_secrets(tmp_path):
 def test_stage_deploys_the_uk_worker_after_the_primary(cfg, tmp_path, no_toml_placeholders):
     rel, fake = mk(resolved(cfg), "staging", tmp_path)
     rec = rel.stage()
-    deploys = [" ".join(c) for c in fake.calls if c[3:4] == ["deploy"]]
+    deploys = [" ".join(c) for c in fake.calls if c[4:5] == ["deploy"]]
     assert len(deploys) == 2
     assert deploys[0].endswith("--env staging") and deploys[1].endswith("--env staging-uk")
     assert all(f"RELEASE_SHA:{SHA}" in d for d in deploys)
