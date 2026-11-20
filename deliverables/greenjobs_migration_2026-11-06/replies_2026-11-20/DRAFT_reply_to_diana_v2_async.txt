@@ -4,15 +4,15 @@ Thank you for the answers. The column names are what I needed for now, and it he
 
 On your questions:
 
-1. DNS login and domain login: the domain login is the account where you renew the name (at Hosting Ireland, the "greenjobs.ie (Domain)" line rather than Hosting), and the nameserver setting is inside it. The guide names which login each step uses.
+1. DNS login and domain login: for you they're the same account, the one where you renew the name. The guide shows the exact screen for each step.
 
-2. You don't need a password manager. You keep the Hosting Ireland, Lets Host and 123 Reg logins; I never need them. I'll send you a short step-by-step guide for each of the three, with the exact values to copy and paste. No call is needed: each guide says the date its step is needed by, and I'll check from my side and email you to confirm each one worked.
+2. Change of plan from my earlier email: no password manager, and no codes from the info@ inboxes either. You keep the Hosting Ireland, Lets Host and 123 Reg logins; I don't need them. I'll send you a short step-by-step guide for each of the three, with the exact values to copy and paste. No call is needed: each guide says the date its step is needed by, and I'll check from my side and email you to confirm each one worked.
 
-3. Applications: thank you. Unless you tell me otherwise, I'll send applications for jobs with no address of their own to rashieda.ely@greenjobs.ie for both boards, as you named Rashieda.
+3. Applications: I meant this: when a job is posted without its own email or application link, someone at GreenJobs has to receive those applications. Unless you tell me otherwise, I'll use rashieda.ely@greenjobs.ie for both boards, the UK one included. If the UK board should use info@greenjobs.co.uk instead, just say so.
 
 4. Domain settings: thank you, that's all I meant. Please leave them as they are until the guide asks you to change them.
 
-One small thing: no need to download or send reports for now; I'll send a separate note on the exports once the paperwork with Keith is done.
+On the exports: I'll send a separate note once the paperwork with Keith is done.
 
 Thanks again,
 Debanjan
