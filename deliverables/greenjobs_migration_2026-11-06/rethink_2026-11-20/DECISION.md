@@ -59,8 +59,9 @@ M1–M11 and E1–E3 as in SYNTHESIS §4, with the CPO and CDO additions. Graded
 ## Keith pack schedule (plan of record, 20 Nov)
 
 - Default dates for Keith's answers, each set before the step that depends on it:
-  - Tue 24 Nov: who opens the Cloudflare and Resend accounts, and who sends the CHM/Mattinson notices.
+  - Mon 23 Nov: who sends the CHM/Mattinson notices (default: emailed to Rashieda on Tue 24 Nov, ready to forward).
+  - Tue 24 Nov: who opens the Cloudflare and Resend accounts.
   - Wed 25 Nov: candidate records, sector sites (default: forward), logos.
-  - Fri 27 Nov: the 11 change-list inputs, the CRM, test-site sign-off.
+  - Fri 27 Nov: the 11 change-list inputs, the CRM, test-site sign-off (default: the switch goes ahead on 3 Dec as tested, because Strategies switches off on 6 Dec).
 - Change-list inputs received after go-live are applied within two business days (Proposal:140).
 - Jobs posted on Strategies up to the switch are not lost: a final jobs-only export and import runs on Thu 3 Dec immediately before the web records switch. The full export still finishes on Wed 2 Dec. Advertisers therefore need no posting freeze or cut-off hour.

@@ -7,15 +7,15 @@ Each one says what I'll do if I don't hear by the date given.
 No call needed. Please reply to this email so we have it all in writing.
 
 1. Candidate records. Which ones should I bring across to the new boards, and how far back?
-   Every report downloaded from Strategies before 6 Dec goes into an archive in GreenJobs' own storage either way.
-   Anything you ask me to bring across is limited to records with valid consent.
+   Every report downloaded from Strategies before the switch on 3 Dec goes into an archive in GreenJobs' own storage.
+   Anything you ask me to bring across is limited to people who agreed to hear from GreenJobs, as recorded in the Strategies export.
    If I don't hear by Wed 25 Nov, I'll bring across jobs and employers only, and keep all candidate records in that archive.
 
 2. The 8 sector sites: environmentaljobsuk.com, renewableenergyjobsuk.com, solarjobsuk.com, windjobsuk.com, conservationjobsuk.com, wastejobsuk.com, waterjobsuk.com and ecologyjobsuk.com.
    All 8 run on the same Strategies hosting as greenjobs.co.uk, so they stop working on 6 Dec.
-   From 6 Dec each one can forward to its sector page on greenjobs.co.uk, or go dark. Separate full sector sites would be a later quote.
-   Forwarding uses the 123 Reg login by Thu 26 Nov, and any email on those domains is checked first.
-   If I don't hear by Wed 25 Nov, I'll set up the forwarding.
+   From 6 Dec each one can forward to its sector page on greenjobs.co.uk (included), or go dark. Separate full sector sites would be a later quote.
+   To set it up I need the login that manages these domains' DNS (123 Reg, or GoDaddy where the records are held) from Diana by Thu 26 Nov. I check any email on those domains before touching anything.
+   If I don't hear by Wed 25 Nov, I'll set up the forwarding once that login arrives.
 
 3. Employer logos. Am I OK to show the employer logos from the current boards?
    If I don't hear by Wed 25 Nov, the boards go live without the logo wall.
@@ -24,7 +24,7 @@ No call needed. Please reply to this email so we have it all in writing.
    a. Candidate audience figure (monthly visitors) for the employers page.
    b. Weekly newsletter reach (subscriber count).
    c. LinkedIn and network distribution figures.
-   d. Two or three UK employer testimonials, word for word, naming the client.
+   d. Two or three UK employer testimonials, word for word.
    e. Permission to show each employer's logo (question 3 covers this).
    f. A GB phone number for the UK site, if you want one.
    g. Examples of UK placements or campaigns (employer, role, outcome).
@@ -34,26 +34,25 @@ No call needed. Please reply to this email so we have it all in writing.
    k. Content hub: topics or copy for career-advice articles and market reports.
    If I don't hear by Fri 27 Nov, each stays as the site has it now:
    a to c read "figure supplied at launch"; d and g are not shown; f keeps the current numbers; h keeps the live count; i stays merged; j reads "Ask us"; k is the salary guide only.
-   Anything you send later goes in within two business days.
+   Any of these 11 you send later goes in within two business days.
 
 5. CRM. Which CRM does Gaia use today: Recruit CRM, or Vincere?
-   (You described Recruit CRM in September. The gaiatalent.com privacy policy names Vincere.)
    If I don't hear by Fri 27 Nov, I'll plan the second-phase CRM link for Recruit CRM.
 
 6. Your own Cloudflare and Resend accounts.
    Cloudflare hosts the boards. Resend sends the site's emails (applications, alerts, newsletter).
-   Both are opened in GreenJobs' name, so you own them. The running costs are as listed in my September proposal.
+   Both are opened in GreenJobs' name, so you own them. They cost about $5 a month (Cloudflare) and $20 a month (Resend), billed to GreenJobs.
    Who on your side will open them and invite debanjan@prodcraft.fyi?
    I'll send a short written step-by-step guide for each.
    If I don't hear by Tue 24 Nov, I'll send both guides to Diana.
 
-7. Test site sign-off. Could you try the test site and reply "signed off", or list what to fix, by Fri 27 Nov?
-   The link follows in a separate email.
-   If I don't hear by Fri 27 Nov, I'll write to you that day with which items move to the second phase.
+7. Test site sign-off. The test site is here: {STAGING_LINKS}
+   Could you try it and reply "signed off", or list what to fix, by Fri 27 Nov?
+   If I don't hear by Fri 27 Nov, the switch goes ahead on 3 Dec with the test site as it stands, because Strategies switches off on 6 Dec. Anything you flag after that goes into the second phase.
 
 8. CHM Recruit and Mattinson Partnership. A short notice for each is attached: from 3 Dec, your team posts their jobs.
    Could you or Rashieda send it from GreenJobs by Wed 25 Nov?
-   If I don't hear by Tue 24 Nov, I'll email the notices to Rashieda on Wed 25 Nov, ready to forward.
+   If I don't hear by Mon 23 Nov, I'll email the notices to Rashieda on Tue 24 Nov, ready to forward.
 
 Thanks,
 Debanjan
