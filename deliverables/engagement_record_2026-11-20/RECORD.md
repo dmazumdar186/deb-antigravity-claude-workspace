@@ -57,12 +57,6 @@ The 9 Nov wording: "Both GreenJobs boards… current jobs, your team posting, ed
 - **Role 2:** 0 of 5. Needs a paid people-data source and his go-ahead.
 - Nothing has been priced or paid. Your call: are the roles still open?
 
-## 4. Unagreed in writing
+## 4. Contract, payment and legal
 
-The 3 Dec scope and trims, upfront payment, the Q1 €1,500 term (absent from the 9 Nov email), which company signs, retention, and the network domains. All of this belongs in the contract, which is yours.
-
-## 5. Legal flag (yours)
-
-- The permit file says no work before authorisation.
-- The 9 Nov email says the build starts once the contract is signed.
-- The build is in progress without either.
+Out of scope for this record. The operator holds the contract, and a lawyer has cleared going ahead (operator, 20 Nov 2026). Engineering does not track or flag these items.
