@@ -83,7 +83,7 @@
       },
       "analytics": "production",
       "smoke_mode": "read_only",
-      "board_stats_from_api": true
+      "board_stats_from_api": false
     }
   },
   "smoke": {
