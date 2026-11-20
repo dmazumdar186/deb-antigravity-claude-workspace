@@ -625,7 +625,8 @@ class Release:
         )
 
     def deploy_worker(self) -> None:
-        out = self.run(f"Worker deploy -> {self.ec['worker']}", self.wr("deploy"))
+        # RELEASE_SHA: GET /api/health reports which commit is serving (smoke and humans compare it to the sha)
+        out = self.run(f"Worker deploy -> {self.ec['worker']}", self.wr("deploy", "--var", f"RELEASE_SHA:{self.sha}"))
         vid = DRY if not self.execute else parse_worker_version(out)
         if not vid:
             raise StepError(

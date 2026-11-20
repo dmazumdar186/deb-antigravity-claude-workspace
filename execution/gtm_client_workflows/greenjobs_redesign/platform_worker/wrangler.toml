@@ -129,6 +129,9 @@ IMPORT_MAX_CLOSE_SHARE = "0.5"
 EMPLOYER_POSTING_ENABLED = "0"
 ALLOWED_ORIGINS = "https://greenjobs-staging-ie.pages.dev,https://greenjobs-staging-uk.pages.dev"
 
+[env.staging.version_metadata]
+binding = "CF_VERSION_METADATA"   # /api/health reports the Worker version id
+
 [[env.staging.d1_databases]]
 binding = "DB"
 database_name = "greenjobs-staging"
@@ -192,6 +195,9 @@ FEED_IMPORT_ENABLED = "0"
 IMPORT_MAX_CLOSE_SHARE = "0.5"
 EMPLOYER_POSTING_ENABLED = "0"
 ALLOWED_ORIGINS = "https://greenjobs.ie,https://www.greenjobs.ie,https://greenjobs.co.uk,https://www.greenjobs.co.uk"
+
+[env.production.version_metadata]
+binding = "CF_VERSION_METADATA"
 
 [[env.production.d1_databases]]
 binding = "DB"

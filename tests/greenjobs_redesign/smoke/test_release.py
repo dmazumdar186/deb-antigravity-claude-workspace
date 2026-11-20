@@ -174,7 +174,11 @@ def test_top_level_keys_unchanged(cfg):
 
 
 def test_execute_refuses_placeholders_and_missing_target(cfg, tmp_path):
-    rel, _ = mk(cfg, "staging", tmp_path)
+    import copy
+
+    unfilled = copy.deepcopy(cfg)  # staging's placeholders are filled (2026-11-20); production's are not
+    unfilled["envs"]["staging"]["worker_urls"]["ie"] = "https://greenjobs-platform-staging.REPLACE_WORKERS_SUBDOMAIN.workers.dev"
+    rel, _ = mk(unfilled, "staging", tmp_path)
     with pytest.raises(release.GateError, match="placeholders"):
         rel.stage()
     rel, _ = mk(resolved(cfg), "staging", tmp_path)
