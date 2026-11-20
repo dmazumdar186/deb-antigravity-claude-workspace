@@ -189,11 +189,19 @@
     if (el) track(el.getAttribute('data-ev'), evProps(el));
   });
   doc.addEventListener('submit', function (e) {
-    var f = e.target, el = f.getAttribute && f.getAttribute('data-ev') ? f : (f.querySelector ? f.querySelector('[type="submit"][data-ev]') : null);
+    var f = e.target;
+    if (f.hasAttribute && f.hasAttribute('data-signup')) return; /* api.js sends alert_signup / newsletter_signup on success only */
+    var el = f.getAttribute && f.getAttribute('data-ev') ? f : (f.querySelector ? f.querySelector('[type="submit"][data-ev]') : null);
     if (el) track(el.getAttribute('data-ev'), evProps(el));
   });
   window.GJTrack = track;
-  if (body.getAttribute('data-page') === 'job') { var jv = $('a[data-apply][data-ev-job]'); track('job_view', { job_id: jv ? jv.getAttribute('data-ev-job') : '', sector: jv ? jv.getAttribute('data-ev-sector') || '' : '', src_page: window.location.pathname }); }
+  /* job_view: a job page is any page with the apply aside (static build and Worker-rendered pages both say
+     data-page="jobs"). Sent after load so the deferred analytics.js has registered window.GJAnalytics. */
+  var jv = $('.job__aside a[data-apply][data-ev-job]');
+  if (jv) {
+    var sendView = function () { track('job_view', { job_id: jv.getAttribute('data-ev-job') || '', sector: jv.getAttribute('data-ev-sector') || '', src_page: window.location.pathname }); };
+    if (doc.readyState === 'complete') sendView(); else window.addEventListener('load', sendView);
+  }
 
   /* ------------------------------------------------ closed roles (job page) */
   var aside = $('.job__aside[data-closing]');

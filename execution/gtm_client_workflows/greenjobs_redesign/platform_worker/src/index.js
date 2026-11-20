@@ -14,7 +14,7 @@ import { consoleAsset, consoleHtml } from './routes/console.js';
 import { employerRoute } from './routes/employer.js';
 import { importBatch } from './routes/import.js';
 import { decideReview, listReview, REVIEW_DECIDE_PATH, reviewAsset, reviewHtml } from './routes/review.js';
-import { boardRoute, statsRoute } from './routes/board.js';
+import { boardJobsRoute, boardRoute, configRoute, statsRoute } from './routes/board.js';
 import { exportJobs, getJob, listJobs } from './routes/public.js';
 import { corsHeaders, preflight, siteForHost } from './site.js';
 import { clientIp, err, intVar, json, nowIso, sha256Hex, UUID_RE } from './util.js';
@@ -37,7 +37,22 @@ const SERVICE_SCOPES = [
 ];
 export const serviceAllowed = (method, path) => SERVICE_SCOPES.some(([m, re]) => m === method && re.test(path));
 export const RELEASE = { name: 'greenjobs-platform', schema: '0004' };
-const PUBLIC_PREFLIGHT = /^\/api\/(jobs(\/[^/]+)?|apply|alerts|newsletter|stats)$/;
+const PUBLIC_PREFLIGHT = /^\/api\/(jobs(\/[^/]+)?|apply|alerts|newsletter|stats|config)$/;
+
+/** ?site=ie|uk on a public read (public data; the static boards on another host name their edition), else the Host's site. */
+export function readSite(url, hostSite) {
+  const s = url.searchParams.get('site');
+  return s === 'ie' || s === 'uk' ? s : hostSite;
+}
+
+/**
+ * The board a sign-up belongs to. Same-origin (production: the Worker answers /api/* on the board host): the Host
+ * decides and ?site= is ignored. Cross-origin from an ALLOWED_ORIGINS board (staging Pages -> workers.dev, where
+ * one Worker host serves both editions): ?site= names the edition. Double opt-in still gates every address.
+ */
+export function signupSite(url, hostSite, cors) {
+  return cors && cors['Access-Control-Allow-Origin'] ? readSite(url, hostSite) : hostSite;
+}
 
 /**
  * Edge cache for public GET pages and /api/stats (Cache API; the responses carry s-maxage <= 300 s, so a
@@ -170,6 +185,10 @@ export function createHandler(deps = {}) {
     const cors = corsHeaders(request, env);
     if (cors === null) return err('origin_not_allowed', 403);
     if (method === 'GET' && path === '/api/stats') return cached(request, ctx, () => statsRoute(env, site, now, url, cors));
+    if (method === 'GET' && path === '/api/config') return configRoute(env, readSite(url, site), cors);
+    if (method === 'GET' && path === '/api/jobs' && url.searchParams.get('view') === 'board') {
+      return cached(request, ctx, () => boardJobsRoute(env, readSite(url, site), now, url, cors));
+    }
     if (method === 'GET' && path === '/api/jobs') return listJobs(env, site, now, cors, url);
     const m = JOB_PATH.exec(path);
     if (method === 'GET' && m) return getJob(env, site, m[1], now, cors);
@@ -177,12 +196,12 @@ export function createHandler(deps = {}) {
     if (path === '/api/alerts' || path.startsWith('/api/alerts/')) {
       if (env.ALERTS_ENABLED !== '1') return err('not_found', 404, cors);
       const clientKey = await sha256Hex(clientIp(request));
-      return alertsRoute({ env, site, now, request, cors, rate, transport: deps.mailTransport, path, url, clientKey });
+      return alertsRoute({ env, site: signupSite(url, site, cors), now, request, cors, rate, transport: deps.mailTransport, path, url, clientKey });
     }
     if (path === '/api/newsletter' || path.startsWith('/api/newsletter/')) {
       if (env.NEWSLETTER_ENABLED !== '1') return err('not_found', 404, cors);
       const clientKey = await sha256Hex(clientIp(request));
-      return newsletterRoute({ env, site, now, request, cors, rate, transport: deps.mailTransport, path, url, clientKey });
+      return newsletterRoute({ env, site: signupSite(url, site, cors), now, request, cors, rate, transport: deps.mailTransport, path, url, clientKey });
     }
     return err('not_found', 404, cors);
   }

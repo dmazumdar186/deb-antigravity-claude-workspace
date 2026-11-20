@@ -26,6 +26,9 @@
       "seed_public_jobs": true,
       "robots_index": false,
       "live_api": false,
+      "api_base": {"ie": "https://greenjobs-platform-staging.debanjan186.workers.dev", "uk": "https://greenjobs-platform-staging.debanjan186.workers.dev"},
+      "_api_base_note": "The static boards read live jobs / stats / sign-up flags from this Worker origin (CORS: the Worker's ALLOWED_ORIGINS). One workers.dev host serves both editions via ?site=.",
+      "analytics": "off",
       "smoke_mode": "full"
     },
     "production": {
@@ -43,6 +46,8 @@
       "seed_public_jobs": false,
       "robots_index": true,
       "live_api": true,
+      "api_base": {"ie": "", "uk": ""},
+      "analytics": "production",
       "smoke_mode": "read_only"
     }
   },

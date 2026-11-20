@@ -6,8 +6,13 @@
   var G = window.GJ, C = window.GJCharts, doc = document, $ = function (s, c) { return (c || doc).querySelector(s); };
   var dataEl = $('#gj-data');
   if (!dataEl || !C) return;
-  var data = JSON.parse(dataEl.textContent), jobs = data.jobs, cur = data.currency || 'EUR';
+  var data0 = JSON.parse(dataEl.textContent), cur = data0.currency || 'EUR';
   var money = function (v) { return G.money(Math.round(v), cur); };
+  var added = [];  /* every node draw() appended, so a live redraw replaces them instead of stacking */
+  function put(parent, node) { parent.appendChild(node); added.push(node); return node; }
+  function draw(data) {
+  var jobs = data.jobs;
+  added.splice(0).forEach(function (n) { if (n.parentNode) n.parentNode.removeChild(n); });
 
   /* ---- sectors */
   /* r3 #7: tiles under 150px wide carry the sector's short name; nothing is ever truncated */
@@ -24,15 +29,15 @@
       Array.prototype.forEach.call(doc.querySelectorAll('[data-secrow]'), function (r) { r.classList.toggle('is-dim', !!picked && r.getAttribute('data-secrow') !== picked); });
       var n = $('[data-tm-note]'); if (n) n.textContent = picked ? 'Showing ' + picked + '. Press it again to clear.' : 'Choose a block to highlight that sector in the list below.';
     } });
-    tm.appendChild(svg);
+    put(tm, svg);
     items.forEach(function (it) {
       var li = doc.createElement('li'), b = doc.createElement('button'); b.type = 'button'; b.setAttribute('data-key', it.key); b.setAttribute('aria-pressed', 'false');
       b.innerHTML = '<i style="background:' + G.esc(it.color) + '"></i><span>' + G.esc(it.label) + '</span><b>' + it.v + '</b>';
       b.addEventListener('click', function () { svg._pick(it); });
       li.appendChild(b); key.appendChild(li);
     });
-    tm.appendChild(key);
-    tm.parentNode.appendChild(C.table(['Sector', 'Live roles'], items.map(function (i) { return [i.label, String(i.v)]; })));
+    put(tm, key);
+    put(tm.parentNode, C.table(['Sector', 'Live roles'], items.map(function (i) { return [i.label, String(i.v)]; })));
   }
 
   /* ---- insights */
@@ -50,24 +55,28 @@
     if (phone) bins.forEach(function (b) { b.label = Math.round(b.lo / 1000) + (b.hi ? '\u2013' + Math.round(b.hi / 1000) + 'k' : 'k+'); });
     while (bins.length > 1 && !bins[bins.length - 1].n) bins.pop(); /* an empty open-ended top band ("100k+": 0) is noise */
     var f1 = $('[data-fig="hist"]', ins);
-    f1.appendChild(C.columns(bins, { label: 'Disclosed salaries by band' }));
-    f1.appendChild(C.table(['Band (' + cur + ')', 'Roles'], bins.map(function (b) { return [b.label, String(b.n)]; })));
+    put(f1, C.columns(bins, { label: 'Disclosed salaries by band' }));
+    put(f1, C.table(['Band (' + cur + ')', 'Roles'], bins.map(function (b) { return [b.label, String(b.n)]; })));
     var bySec = {};
     withSal.forEach(function (x) { x.j.sectors.forEach(function (s) { (bySec[s] = bySec[s] || []).push(x.a.mid); }); });
     var rows = Object.keys(bySec).filter(function (s) { return bySec[s].length >= 3; }).map(function (s) { return { label: s, v: G.median(bySec[s]), sub: bySec[s].length + ' disclosed' }; }).sort(function (a, b) { return b.v - a.v; });
     var f2 = $('[data-fig="sector"]', ins);
-    if (rows.length) { f2.appendChild(C.bars(rows, { fmt: money, label: 'Median disclosed salary by sector', labelWidth: 200 })); f2.appendChild(C.table(['Sector', 'Median', 'Disclosed'], rows.map(function (r) { return [r.label, money(r.v), r.sub.split(' ')[0]]; }))); }
-    else f2.insertAdjacentHTML('beforeend', '<p class="note">Fewer than three disclosed salaries in any one sector this week, so no sector median is shown.</p>');
+    if (rows.length) { put(f2, C.bars(rows, { fmt: money, label: 'Median disclosed salary by sector', labelWidth: 200 })); put(f2, C.table(['Sector', 'Median', 'Disclosed'], rows.map(function (r) { return [r.label, money(r.v), r.sub.split(' ')[0]]; }))); }
+    else { var nt = doc.createElement('p'); nt.className = 'note'; nt.textContent = 'Fewer than three disclosed salaries in any one sector this week, so no sector median is shown.'; put(f2, nt); }
     var disc = data.sectors.filter(function (s) { return s.n >= 3; }).map(function (s) {
       var inS = jobs.filter(function (j) { return j.sectors.indexOf(s.name) >= 0; }), d = inS.filter(function (j) { return G.annual(j, cur); }).length;
       return { label: s.name, v: Math.round(100 * d / inS.length), sub: d + ' of ' + inS.length };
     }).sort(function (a, b) { return b.v - a.v; });
     var f3 = $('[data-fig="disc"]', ins);
-    f3.appendChild(C.bars(disc, { fmt: function (v) { return v + '%'; }, max: 100, label: 'Salary disclosure rate by sector', labelWidth: 200 }));
-    f3.appendChild(C.table(['Sector', 'Disclosed', 'Of'], disc.map(function (r) { return [r.label, r.v + '%', r.sub]; })));
+    put(f3, C.bars(disc, { fmt: function (v) { return v + '%'; }, max: 100, label: 'Salary disclosure rate by sector', labelWidth: 200 }));
+    put(f3, C.table(['Sector', 'Disclosed', 'Of'], disc.map(function (r) { return [r.label, r.v + '%', r.sub]; })));
     var reg = data.regions.slice(0, 12).map(function (r) { return { label: r.name, v: r.n }; });
     var f4 = $('[data-fig="region"]', ins);
-    f4.appendChild(C.bars(reg, { label: 'Live roles by region', labelWidth: 200, fmt: function (v) { return String(v); } }));
-    f4.appendChild(C.table([data.regionUnit || 'Region', 'Roles'], reg.map(function (r) { return [r.label, String(r.v)]; })));
+    put(f4, C.bars(reg, { label: 'Live roles by region', labelWidth: 200, fmt: function (v) { return String(v); } }));
+    put(f4, C.table([data.regionUnit || 'Region', 'Roles'], reg.map(function (r) { return [r.label, String(r.v)]; })));
   }
+  }
+  draw(data0);
+  /* Live job set (api.js): redraw every chart and figure from the Worker's live jobs; failure keeps the build's. */
+  if (window.GJApi) window.GJApi.board(doc, false).then(function (d) { if (d) draw(d); });
 })();

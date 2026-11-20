@@ -21,22 +21,29 @@ sys.path.insert(0, str(CODE))
 import build_site as bs  # noqa: E402
 import validate_site  # noqa: E402
 
+import pytest  # noqa: E402
+
+WORKER_ORIGIN = "https://greenjobs-platform-staging.debanjan186.workers.dev"
 
 
-def _build(tmp: Path, mode: str, token: str = "") -> Path:
+def _build(tmp: Path, mode: str, token: str = "", api_base: str = "") -> Path:
     src = tmp / f"src_{mode}"
     shutil.copytree(SRC, src)
     cfg = json.loads((src / "analytics.json").read_text(encoding="utf-8"))
     cfg["editions"]["ie"]["gsc_token"] = token
     (src / "analytics.json").write_text(json.dumps(cfg), encoding="utf-8")
-    out = REPO / ".tmp" / f"ga_test_{mode}"
-    rc = bs.build(
-        src,
-        out,
-        editions=["ie", "uk"],
-        fixture=SRC / "data" / "_fixture.json",
-        analytics=mode,
-    )
+    out = REPO / ".tmp" / f"ga_test_{mode}{'_api' if api_base else ''}"
+    bs.API_BASE = api_base
+    try:
+        rc = bs.build(
+            src,
+            out,
+            editions=["ie", "uk"],
+            fixture=SRC / "data" / "_fixture.json",
+            analytics=mode,
+        )
+    finally:
+        bs.API_BASE = ""
     assert rc == 0
     return out
 
@@ -129,3 +136,81 @@ def test_banner_choice_persists():
     assert (
         "<button" in shell.split("data-cookie")[1][:900]
     )  # real buttons: keyboard accessible
+
+
+def _csp(out: Path) -> dict[str, list[str]]:
+    line = re.search(
+        r"Content-Security-Policy: (.*)", (out / "_headers").read_text(encoding="utf-8")
+    ).group(1)
+    return {d.split()[0]: d.split()[1:] for d in line.split("; ")}
+
+
+def test_headers_csp_ga_hosts_only_in_production(tmp_path):
+    staging = _csp(_build(tmp_path, "off"))
+    assert not any("google" in h for v in staging.values() for h in v), staging
+    assert staging["connect-src"] == ["'self'"] and staging["img-src"] == [
+        "'self'",
+        "data:",
+    ]
+    prod = _csp(_build(tmp_path, "production"))
+    foreign = lambda d: [h for h in prod[d] if h.startswith("https://")]  # noqa: E731
+    assert foreign("script-src") == ["https://www.googletagmanager.com"]
+    assert foreign("connect-src") == sorted(
+        [
+            "https://analytics.google.com",
+            "https://region1.google-analytics.com",
+            "https://www.google-analytics.com",
+            "https://www.googletagmanager.com",
+        ]
+    )
+    assert foreign("img-src") == [
+        "https://www.google-analytics.com",
+        "https://www.googletagmanager.com",
+    ]
+    for d in (
+        "default-src",
+        "style-src",
+        "font-src",
+        "media-src",
+        "frame-ancestors",
+        "form-action",
+        "base-uri",
+        "object-src",
+    ):
+        assert not foreign(d) if d in prod else True, d
+    assert not any("*" in h for v in prod.values() for h in v), "no wildcards"
+
+
+def test_analytics_csp_refuses_anything_but_the_exact_ga4_origins(tmp_path):
+    src = tmp_path / "src"
+    src.mkdir()
+    for bad in (
+        {"script-src": ["https://*.googletagmanager.com"]},
+        {"connect-src": ["https://evil.example"]},
+        {"frame-src": ["https://www.googletagmanager.com"]},
+    ):
+        (src / "analytics.json").write_text(
+            json.dumps({"csp_hosts": bad}), encoding="utf-8"
+        )
+        with pytest.raises(ValueError):
+            bs.analytics_csp(src, {"ie": {}})
+    assert bs.analytics_csp(src, {}) == {}  # analytics off: nothing added
+
+
+def test_api_base_wires_the_boards_to_the_worker_origin(tmp_path):
+    out = _build(tmp_path, "off", api_base=WORKER_ORIGIN)
+    assert _csp(out)["connect-src"] == ["'self'", WORKER_ORIGIN]
+    for ed in ("ie", "uk"):
+        home = (out / ed / "index.html").read_text(encoding="utf-8")
+        assert f'data-live-api="1" data-api-base="{WORKER_ORIGIN}"' in home
+        assert (
+            'data-signup="alerts"' in home
+            and 'data-signup="newsletter"' in home
+            and "js/api.js" in home
+        )
+        assert 'name="website"' in home  # honeypot on both forms
+        assert 'aria-describedby="al-email-err"' in home and 'id="al-email-err"' in home
+    plain = _build(tmp_path / "plain", "off")
+    assert 'data-live-api="0" data-api-base=""' in (
+        plain / "ie" / "index.html"
+    ).read_text(encoding="utf-8")

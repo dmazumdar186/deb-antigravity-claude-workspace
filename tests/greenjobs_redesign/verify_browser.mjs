@@ -118,7 +118,7 @@ try {
   await hp.waitForTimeout(150);
   check(await hp.evaluate(() => document.querySelector('[data-subscribe]').open && document.activeElement && document.activeElement.id === 'sb-email'), 'subscribe: dialog opens on the 20 s timer with the email field focused');
   await hp.fill('#sb-email', 'keith@example.com'); await hp.click('[data-subscribe] button[type="submit"]');
-  check(await hp.$eval('[data-subscribe] [data-demo-note]', (n) => !n.hidden), 'subscribe: submit shows the honest demo note');
+  check(await hp.$eval('[data-subscribe] [data-signup-status]', (n) => !n.hidden), 'subscribe: submit shows the honest demo note');
   await hp.keyboard.press('Escape'); await hp.waitForTimeout(100);
   check(await hp.evaluate(() => !document.querySelector('[data-subscribe]').open && !!localStorage.getItem('gj-subscribe')), 'subscribe: Escape closes and records the dismissal');
   const layout = await hp.evaluate(() => { const h0 = document.documentElement.scrollHeight, b = document.querySelector('[data-cookie]'), d = document.querySelector('[data-subscribe]'); d.showModal(); const ok = getComputedStyle(b).position === 'fixed' && getComputedStyle(d).position === 'fixed' && document.documentElement.scrollHeight === h0; d.close(); return ok; });

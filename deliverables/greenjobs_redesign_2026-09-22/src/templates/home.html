@@ -69,12 +69,13 @@
   <div class="wrap">
     <div class="alertbox reveal">
       <div><h2 id="h-alert">{{alert_title}}</h2><p style="margin-top:12px">Up to ten job alerts by email, matched to the sectors and {{units}} you pick. Free; unsubscribe any time.</p></div>
-      <form data-demo-form novalidate>
-        <div class="row"><div class="field"><label for="al-email">Email</label><input class="in" id="al-email" name="email" type="email" placeholder="you@example.com" required></div><div class="field"><label for="al-sector">Sector</label><select class="in" id="al-sector" name="sector"><option value="">All sectors</option>{{sector_options}}</select></div></div>
-        <label class="check"><input type="checkbox" id="al-consent" name="consent"><span>Email me the weekly newsletter too</span></label>
+      <form data-signup="alerts" novalidate>
+        <div hidden aria-hidden="true"><label for="al-website">Leave blank</label><input id="al-website" name="website" tabindex="-1" autocomplete="off"></div>
+        <div class="row"><div class="field"><label for="al-email">Email</label><input class="in" id="al-email" name="email" type="email" placeholder="you@example.com" required autocomplete="email" aria-describedby="al-email-err"><p class="field__err" id="al-email-err" data-signup-error hidden></p></div><div class="field"><label for="al-sector">Sector</label><select class="in" id="al-sector" name="sector"><option value="">All sectors</option>{{sector_options}}</select></div></div>
+        <label class="check"><input type="checkbox" id="al-consent" name="newsletter" data-signup-newsletter><span>Email me the weekly newsletter too</span></label>
         <p class="note" data-demo-pre>Job alerts are double opt-in: you confirm from your inbox, and every email has a one-click unsubscribe.</p>
         <button class="btn btn--lime" type="submit" data-ev="alert_signup">Create my alert</button>
-        <p class="note note--live" data-demo-note tabindex="-1" hidden>Your address has not been stored.</p>
+        <p class="note note--live" data-signup-status role="status" aria-live="polite" hidden>Your address has not been stored.</p>
         <p class="note__fallback"><a href="jobs/index.html">Meanwhile, browse all roles →</a></p>
       </form>
     </div>

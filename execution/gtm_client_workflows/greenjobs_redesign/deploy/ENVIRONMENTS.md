@@ -67,7 +67,10 @@ Repository variable `GREENJOBS_STAGING_READY=true` switches CD to staging on (sk
 health, job list (API, paginated) and board list page, KPI dashboard, security headers (Worker + boards),
 `/api/stats` parity with the paginated list and any `data-stat` figures on the dashboard, 20 sampled
 redirects from `redirect_map.json` (deterministic per sha) answering 301 to the mapped target, which
-answers 200, export auth (401 anonymous, 200 with token). Staging adds: create an email-mode and a link-mode
+answers 200, export auth (401 anonymous, 200 with token), `live_wiring[site]` (each board's API origin from
+`environments.json` `api_base`, "" = the board's own host: `/api/config` answers the board Origin with CORS, and
+the paginated `/api/jobs?view=board` set equals `/api/stats` `live_jobs`; the detail line shows the alert /
+newsletter flags). Staging adds: create an email-mode and a link-mode
 job (Access service token), poll until public (15 min ceiling, 30 s poll), apply in both modes (link: 409
 `apply_externally`; email: 201 `dry_run`), close both (always, even after a failed check), expect 410.
 
@@ -81,7 +84,12 @@ job (Access service token), poll until public (15 min ceiling, 30 s poll), apply
   samples the same rules) and `_headers` (CSP with inline-script hashes, HSTS, nosniff, Referrer-Policy,
   frame-ancestors; `X-Robots-Tag: noindex` unless `robots_index`). Query-string legacy URLs (`*.asp?...`) are
   the Worker table's job in production; Pages matches paths only.
-- Staging is noindex (`robots_index: false`); production builds with `--robots-index --live-api`.
+- Staging is noindex (`robots_index: false`); production builds with `--robots-index --live-api --analytics production`.
+- Boards -> Worker (2026-11-20): staging boards build with `--api-base <workers.dev origin>` (`api_base` in
+  environments.json; one Worker host serves both editions through `?site=`; the Worker's `ALLOWED_ORIGINS` lists
+  both Pages origins; `_headers` `connect-src` adds exactly that origin). Production: same host, no flag. GA4 is
+  `analytics: "off"` on staging and `"production"` in production only (the Worker adds the tag only on the
+  production hosts in `src/analytics.json`).
 
 ## Staging as deployed (2026-11-20, ledger: build/release_ledger/staging_2026-11-20.jsonl)
 

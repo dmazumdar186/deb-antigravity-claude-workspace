@@ -3,7 +3,7 @@
 // (/{site}/jobs/<slug>/), so the templates' relative links (../../index.html, ../index.html?sector=)
 // land on the same pages as in the static build. Every value is escaped; descriptions are sanitised.
 
-import { BRIEF, MAPS, SHELL, TEMPLATES } from '../site_assets.gen.js';
+import { ANALYTICS, BRIEF, MAPS, SHELL, TEMPLATES } from '../site_assets.gen.js';
 import {
   CONTRACT_LABEL, LOC_LABEL, SAVE_ICON, TAXONOMY, UNVERIFIED_NOTE, UNVERIFIED_SOURCE, WORKPLACE_LABEL, ago, contractRow,
   currencyNote, dateLong, edition, esc, isClosed, jobJsonLdPayload, jsonEmbed, jsonLd, locBadge, logoImg, noBreakDash, qs,
@@ -28,8 +28,28 @@ export function render(template, ctx) {
 export const plural = (unit) => (unit.endsWith('y') && !'aeiou'.includes(unit.slice(-2, -1)) ? unit.slice(0, -1) + 'ies' : unit + 's');
 const host = (url) => url.replace(/^https?:\/\/(www\.)?/, '').split('/')[0];
 
+/**
+ * analytics_ctx(): GA4 + Consent Mode v2 banner, ONLY when the request host is one of the edition's production
+ * hosts (src/analytics.json production_hosts). Any other host (workers.dev staging, tests) gets the no-tracking
+ * banner and no tag, meta or script, exactly as build_site.py --analytics off.
+ */
+export function analyticsCtx(site, host, root = ROOT) {
+  const a = ANALYTICS[site];
+  const h = String(host || '').toLowerCase().replace(/:\d+$/, '');
+  if (!a || !h || !a.hosts.includes(h)) {
+    return { analytics_head: '', analytics_script: '', cookie_attr: '', cookie_reject: '', cookie_accept: 'Accept',
+      cookie_text: 'This site uses only essential storage (your theme, saved roles, and this choice). No tracking.' };
+  }
+  let head = `<meta name="gj-ga4" content="${esc(a.ga4)}" data-hosts="${esc(a.hosts.join(','))}">`;
+  if (a.gsc_token) head = `<meta name="google-site-verification" content="${esc(a.gsc_token)}">` + head;
+  return { analytics_head: head, analytics_script: `<script src="${root}js/analytics.js" defer></script>`,
+    cookie_attr: ' data-cookie-ga', cookie_accept: 'Accept analytics',
+    cookie_reject: '<button class="btn" type="button" data-cookie-reject>Essential only</button>',
+    cookie_text: 'We use essential storage, and with your OK Google Analytics to see which pages help. Nothing analytics-related loads until you accept.' };
+}
+
 /** shell_ctx() with absolute paths: root "/" and the edition home "/{site}/". */
-export function shellCtx(site, { page, title, desc, samePath = '', switchPath = '', canonical = '', nJobs = 0, today, bodyAttrs = '', indexable = false }) {
+export function shellCtx(site, { page, title, desc, samePath = '', switchPath = '', canonical = '', nJobs = 0, today, bodyAttrs = '', indexable = false, reqHost = '' }) {
   const ed = edition(site);
   const data = SHELL[site];
   const root = ROOT;
@@ -65,8 +85,9 @@ export function shellCtx(site, { page, title, desc, samePath = '', switchPath = 
   const social = (data.social || []).slice(0, 4).map((u) => `<a href="${esc(u)}" rel="noopener" aria-label="${esc(host(u))}"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></a>`).join('');
   return {
     head_extra: canonical ? `<link rel="canonical" href="${esc(canonical)}">` : '',
+    ...analyticsCtx(site, reqHost, root),
     lang: ed.lang, title: esc(title), desc: esc(desc), root, home, ed: site, ED: ed.short, domain: esc(data.site), nav, menu_links: nav, edsw,
-    hdr_cls: '', body_attrs: bodyAttrs, live_api: '1', net_sites: net, phones, emails, bcorp, hdr_bcorp: hdrBcorp, social,
+    hdr_cls: '', body_attrs: bodyAttrs, live_api: '1', api_base: '', net_sites: net, phones, emails, bcorp, hdr_bcorp: hdrBcorp, social,
     year: today.slice(0, 4), n_jobs: String(nJobs), fetched: esc(today), fetched_long: esc(dateLong(today)),
     social_wrap: social ? `<div class="ftr__social">${social}</div>` : '', canonical: canonical ? esc(canonical) : '',
     nav_list: NAV.map(([href, label]) => `<li><a href="${home}${href}">${label}</a></li>`).join(''),
@@ -81,7 +102,7 @@ export function shellPage(ctx, content, scripts) {
   return out;
 }
 
-const APPLY_FORM = (id) => `<form class="job__apply-form" id="apply-form" method="post" action="/api/apply" enctype="multipart/form-data" data-apply-form>
+const APPLY_FORM = (id) => `<form class="job__apply-form" id="apply-form" method="post" action="/api/apply" enctype="multipart/form-data" data-apply-form data-ev="apply_submit" data-ev-job="${id}">
 <input type="hidden" name="job_id" value="${id}"><input type="hidden" name="ts" value="" data-apply-ts>
 <div hidden aria-hidden="true"><label>Leave blank <input name="website" tabindex="-1" autocomplete="off"></label></div>
 <label>Name <input name="name" required maxlength="120" autocomplete="name"></label>
@@ -98,13 +119,13 @@ const APPLY_FORM = (id) => `<form class="job__apply-form" id="apply-form" method
 export function applyCtx(j, domain) {
   if (j.apply_mode === 'link') {
     const h = (() => { try { return new URL(j.apply_url).hostname; } catch { return ''; } })();
-    return { apply_url: esc(j.apply_url), apply_rel: 'noopener nofollow', apply_label: `Apply on ${esc(h)}`, apply_form: '' };
+    return { apply_url: esc(j.apply_url), apply_rel: 'noopener nofollow', apply_label: `Apply on ${esc(h)}`, apply_form: '', apply_ev: ' data-ev="apply_click"' };
   }
-  return { apply_url: '#apply-form', apply_rel: 'noopener', apply_label: `Apply on ${domain}`, apply_form: APPLY_FORM(esc(j.id)) };
+  return { apply_url: '#apply-form', apply_rel: 'noopener', apply_label: `Apply on ${domain}`, apply_form: APPLY_FORM(esc(j.id)), apply_ev: '' };
 }
 
 /** One job page: the per-job loop body of build_edition(). */
-export function jobPage(j, jobs, { site, today, canonical, indexable }) {
+export function jobPage(j, jobs, { site, today, canonical, indexable, reqHost = '' }) {
   const ed = edition(site);
   const domain = esc(SHELL[site].site);
   const similar = similarJobs(j, jobs, ed.currency, 4);
@@ -147,7 +168,7 @@ export function jobPage(j, jobs, { site, today, canonical, indexable }) {
   };
   const ctx = shellCtx(site, {
     page: 'jobs', title: `${j.title} — ${j.employer} | GreenJobs ${ed.short}`, desc: (j.summary || j.title).slice(0, 155),
-    samePath: `jobs/${j.slug}/index.html`, switchPath: 'jobs/index.html', canonical, nJobs: jobs.length, today, indexable,
+    samePath: `jobs/${j.slug}/index.html`, switchPath: 'jobs/index.html', canonical, nJobs: jobs.length, today, indexable, reqHost,
   });
   return shellPage(ctx, render(TEMPLATES.job, { ...ctx, ...body }), []);
 }
@@ -165,13 +186,27 @@ function selectPairs(id, label, pairs, anyLabel, selected = '') {
 }
 
 /** slim() + dataset_script(): the #gj-data block jobs.js filters client-side. */
-export function slim(j) {
+export function slim(j, { publicId = false, text = true } = {}) {
   const out = {};
   for (const k of ['id', 'title', 'employer', 'location', 'regions', 'type', 'sal_min', 'sal_max', 'cur', 'period', 'sal_text', 'sectors', 'color', 'posted', 'closing', 'summary', 'logo', 'lw', 'lh', 'href',
     'loc_class', 'workplace', 'level', 'contract', 'agency']) out[k] = j[k];
   if (j.currency_source === UNVERIFIED_SOURCE) out.unverified_cur = true;
-  out.text = j.text;
+  if (publicId) out.id = j.slug; // the static build's id (Strategies id for imports): saved roles and hrefs line up
+  if (text) out.text = j.text;
   return out;
+}
+
+/**
+ * dataset_script()'s payload minus the jobs: the facet lists jobs.js / explore.js read from #gj-data.
+ * Same rules as build_site.py (sectors with n > 0, on-map regions, types, contract_facet order).
+ */
+export function datasetFacets(site, all, tally) {
+  const ed = edition(site);
+  return {
+    sectors: tally.sectors.filter((s) => s.n > 0), regions: tally.regions.filter((r) => r.on_map), types: tally.types,
+    contracts: Object.entries(CONTRACT_LABEL).map(([k, name]) => ({ k, name, n: all.filter((j) => j.contract.includes(k)).length })).filter((c) => c.n),
+    currency: ed.currency, regionUnit: ed.unit[0].toUpperCase() + ed.unit.slice(1), home: ed.home, edition: site,
+  };
 }
 
 /** The jobs.js row() markup, server-rendered so the list works (and is crawlable) before or without JS. */
@@ -188,13 +223,14 @@ export function listRow(j, today, edCur) {
     + `<button class="save" type="button" data-save="${esc(j.id)}" data-title="${esc(j.title)}" aria-pressed="false" aria-label="Save: ${esc(j.title)}">${SAVE_ICON}</button></article>`;
 }
 
-export function listPage({ site, today, all, shown, page, pages, filters, tally, canonical, indexable, heading = '', samePath = 'jobs/index.html' }) {
+export function listPage({ site, today, all, shown, page, pages, filters, tally, canonical, indexable, heading = '', samePath = 'jobs/index.html', reqHost = '' }) {
   const ed = edition(site);
   const topRegions = tally.regions.filter((r) => r.on_map);
+  const facets = datasetFacets(site, all, tally);
   const payload = {
-    today, jobs: all.map(slim), sectors: tally.sectors.filter((s) => s.n > 0), regions: topRegions, types: tally.types,
-    contracts: Object.entries(CONTRACT_LABEL).map(([k, name]) => ({ k, name, n: all.filter((j) => j.contract.includes(k)).length })).filter((c) => c.n),
-    currency: ed.currency, regionUnit: ed.unit[0].toUpperCase() + ed.unit.slice(1), jobsHref: `/${site}/jobs/index.html`, home: ed.home, edition: site,
+    today, jobs: all.map((j) => slim(j)), sectors: facets.sectors, regions: facets.regions, types: facets.types, contracts: facets.contracts,
+    currency: facets.currency, regionUnit: facets.regionUnit, jobsHref: `/${site}/jobs/index.html`, home: facets.home, edition: site,
+    live: true, // rendered from D1 on this request: api.js does not re-fetch it
   };
   const pagesPalette = jsonEmbed([...NAV.map(([href, lbl]) => ({ t: lbl, h: `/${site}/${href}` })), { t: 'Home', h: `/${site}/index.html` }]);
   const mapList = topRegions.map((r) => `<a href="/${site}/jobs/index.html?loc=${qs(r.name)}"${r.n ? '' : ' class="is-zero"'}><span>${esc(r.name)}</span><b class="num">${r.n}</b></a>`).join('');
@@ -234,19 +270,19 @@ export function listPage({ site, today, all, shown, page, pages, filters, tally,
   const ctx = shellCtx(site, {
     page: 'jobs', title: `${heading || `Green jobs across ${ed.name}`} — search ${all.length} live roles | GreenJobs ${ed.short}`,
     desc: `Filter ${all.length} live environmental and renewable energy roles by ${ed.unit}, sector, type and salary.`,
-    samePath, canonical, nJobs: all.length, today, indexable,
+    samePath, canonical, nJobs: all.length, today, indexable, reqHost,
   });
   return shellPage(ctx, content, ['jobs', 'fit']);
 }
 
 /** 410 for a closed / expired role, 404 for an unknown one: the shell with a link back to the list. */
-export function gonePage({ site, today, status, title, nJobs }) {
+export function gonePage({ site, today, status, title, nJobs, reqHost = '' }) {
   const ed = edition(site);
   const lede = status === 410 ? 'This role is no longer advertised: the employer has closed it or its closing date has passed.' : 'We could not find that role. It may have moved or never existed.';
   const content = `<div class="wrap pagehead"><h1>${status === 410 ? 'This role has closed' : 'Role not found'}</h1>`
     + `<p class="lede">${lede}${title ? ` (${esc(title)})` : ''}</p>`
     + `<p><a class="btn btn--lime" href="/${site}/jobs/index.html">See all ${nJobs} live roles<span class="arw" aria-hidden="true">→</span></a></p></div>`;
-  const ctx = shellCtx(site, { page: 'jobs', title: `${status === 410 ? 'Role closed' : 'Not found'} | GreenJobs ${ed.short}`, desc: lede, samePath: 'jobs/index.html', nJobs, today, indexable: false });
+  const ctx = shellCtx(site, { page: 'jobs', title: `${status === 410 ? 'Role closed' : 'Not found'} | GreenJobs ${ed.short}`, desc: lede, samePath: 'jobs/index.html', nJobs, today, indexable: false, reqHost });
   return shellPage(ctx, content, []); // always noindex: a gone or missing role is never indexed
 }
 

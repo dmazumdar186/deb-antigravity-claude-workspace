@@ -409,7 +409,7 @@ def test_validator_every_message(tmp_root: Path):
         fails = validate_site.validate(site, jobs, {"ie": {"k": 1}}, lambda d: {"live": 5})
     finally:
         validate_site.CSS_BUDGET = orig_css
-        validate_site.JS_BUDGET = 125 * 1024
+        validate_site.JS_BUDGET = 132 * 1024
     expect = [
         "unrendered template key {{unrendered}}", "<html> has no lang attribute", "expected exactly one non-empty <title>, found 2", "expected exactly one <h1>, found 0", "missing <meta name=robots",
         "empty href attribute on <a>", "uses a forbidden scheme", "escapes the site root", 'has no alt attribute', "JSON-LD block 0 does not parse", "JSON-LD block 1 is empty",

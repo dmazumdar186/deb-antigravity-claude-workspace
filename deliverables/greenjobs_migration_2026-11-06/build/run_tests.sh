@@ -66,7 +66,7 @@ echo "== 2/6 import validator + apply mode + Gaia feed sync + classifier / D1 im
 echo "== 3/6 Worker unit tests + BDD features + D1-rendered board: parity with build_site.py and the E2E deploy gate (node --test)"
 node --no-warnings --test 'tests/greenjobs_redesign/platform/*.test.mjs' || fail=1
 # live figures on the static pages (live.js) and the KPI dashboard's /api/stats refresh (dashboard.js)
-(cd deliverables/greenjobs_redesign_2026-09-22/src/js && node --test live.test.js dashboard.test.js) || fail=1
+(cd deliverables/greenjobs_redesign_2026-09-22/src/js && node --test live.test.js dashboard.test.js api.test.js) || fail=1
 
 echo "== 4/6 ops: redirects, DNS watcher, probe + incidents, metrics + status page, backups, acceptance, reports"
 "$PY" -m pytest -q tests/greenjobs_redesign/ops || fail=1

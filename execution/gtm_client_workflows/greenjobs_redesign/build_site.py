@@ -2258,7 +2258,7 @@ def shell_ctx(data: dict[str, Any], depth: int, page: str, title: str, desc: str
         **analytics_ctx(data, root),
         "lang": ed["lang"], "title": esc(title), "desc": esc(desc), "root": root, "home": home, "ed": data["ed"], "ED": ed["short"],
         "domain": esc(data["site"]), "nav": nav, "menu_links": menu_links, "edsw": edsw, "hdr_cls": " hdr--dark" if dark_header else "",
-        "body_attrs": body_attrs, "live_api": "1" if LIVE_API else "0", "net_sites": net, "phones": phones, "emails": emails, "bcorp": bcorp, "hdr_bcorp": hdr_bcorp, "social": social,
+        "body_attrs": body_attrs, "live_api": "1" if (LIVE_API or API_BASE) else "0", "api_base": esc(API_BASE), "net_sites": net, "phones": phones, "emails": emails, "bcorp": bcorp, "hdr_bcorp": hdr_bcorp, "social": social,
         "year": str(data.get("today", data["fetched"])[:4]), "n_jobs": str(len(data["jobs"])), "fetched": esc(data["fetched"]), "fetched_long": esc(date_long(data["fetched"])),
         "social_wrap": f'<div class="ftr__social">{social}</div>' if social else "",
         "canonical": esc(f"{site_base}{data['ed']}/{same_path or 'index.html'}") if site_base else "",
@@ -2973,7 +2973,10 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
     js = sum(p.stat().st_size for p in (out / "js").glob("*.js"))
     pages = len(list(out.rglob("*.html")))
     try:
-        write_pages_files(out, board_site, robots_index, site_base)
+        csp_extra = analytics_csp(src, ga)
+        if API_BASE:
+            csp_extra["connect-src"] = sorted(set(csp_extra.get("connect-src", [])) | {API_BASE})
+        write_pages_files(out, board_site, robots_index, site_base, csp_extra)
     except (OSError, ValueError) as e:
         print(f"FAIL  Pages files (_redirects/_headers): {e}", file=sys.stderr)
         return 1
@@ -2986,12 +2989,42 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
     return 0
 
 
-
 # ---------------------------------------------------------------- Pages: _redirects, _headers, robots (2026-11-20)
 # One Pages project serves one board's domain (deploy/environments.json "pages"); the build is the same
 # two-edition tree for both, so the legacy redirects are chosen per board (--board-site) and the indexing
 # policy per environment (--robots-index / ROBOTS_INDEX=1: production only; staging stays noindex).
 LIVE_API = False  # set by --live-api: the Worker answers /api/* on the board's own host (production routes)
+API_BASE = ""  # set by --api-base: the Worker's origin when it is NOT the board's host (staging: workers.dev); "" = same origin
+API_BASE_RE = re.compile(r"^https://[a-z0-9.-]+$")
+GA_CSP_DIRECTIVES = ("script-src", "connect-src", "img-src")
+# Google's documented GA4 endpoints (gtag.js loader + collection). Nothing wider: no wildcard, no *.google.com.
+GA4_CSP_ORIGINS = frozenset(
+    {
+        "https://www.googletagmanager.com",
+        "https://www.google-analytics.com",
+        "https://region1.google-analytics.com",
+        "https://analytics.google.com",
+    }
+)
+
+
+def analytics_csp(src: Path, ga: dict[str, Any]) -> dict[str, list[str]]:
+    """The exact GA4 hosts (analytics.json csp_hosts) for the _headers CSP, only for an analytics build. Each host
+    must be one of GA4_CSP_ORIGINS; anything else fails the build (bounded gate)."""
+    if not ga:
+        return {}
+    cfg = json.loads((src / "analytics.json").read_text(encoding="utf-8"))
+    out: dict[str, list[str]] = {}
+    for d, hosts in (cfg.get("csp_hosts") or {}).items():
+        if d not in GA_CSP_DIRECTIVES:
+            raise ValueError(f"analytics.json csp_hosts: directive {d!r} not allowed")
+        for h in hosts:
+            if h not in GA4_CSP_ORIGINS:
+                raise ValueError(f"analytics.json csp_hosts: {h!r} is not an exact GA4 origin")
+        out[d] = sorted(set(hosts))
+    return out
+
+
 OPS_BULK_REDIRECTS = Path(__file__).resolve().parent / "ops" / "generated" / "bulk_redirects.json"
 BOARD_APEX = {"ie": "greenjobs.ie", "uk": "greenjobs.co.uk"}
 PAGES_MAX_REDIRECTS = 2000  # Cloudflare Pages static redirect ceiling (_redirects)
@@ -3045,11 +3078,15 @@ def inline_script_hashes(out: Path) -> list[str]:
     return sorted(found)
 
 
-def pages_headers(out: Path, robots_index: bool) -> str:
-    """The Pages _headers file: security headers on every path, noindex unless this build is the indexed one."""
+def pages_headers(out: Path, robots_index: bool, extra: dict[str, list[str]] | None = None) -> str:
+    """The Pages _headers file: security headers on every path, noindex unless this build is the indexed one.
+    extra: {directive: [origin, ...]} appended to script-src / connect-src / img-src (GA4 hosts in an analytics
+    build; the Worker origin when the API is on another host). Nothing else is ever widened."""
+    ex = extra or {}
+    add = lambda d: "".join(" " + h for h in ex.get(d, []))  # noqa: E731
     csp = "; ".join([
-        "default-src 'self'", "script-src 'self' " + " ".join(inline_script_hashes(out)), "style-src 'self' 'unsafe-inline'",
-        "img-src 'self' data:", "font-src 'self'", "media-src 'self'", "connect-src 'self'", "manifest-src 'self'",
+        "default-src 'self'", "script-src 'self'" + add("script-src") + " " + " ".join(inline_script_hashes(out)), "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' data:" + add("img-src"), "font-src 'self'", "media-src 'self'", "connect-src 'self'" + add("connect-src"), "manifest-src 'self'",
         "form-action 'self'", "frame-ancestors 'none'", "base-uri 'self'", "object-src 'none'", "upgrade-insecure-requests",
     ])
     lines = ["/*", f"  Content-Security-Policy: {csp}", "  Strict-Transport-Security: max-age=31536000; includeSubDomains",
@@ -3072,11 +3109,11 @@ def apply_robots_policy(out: Path, robots_index: bool, site_base: str) -> None:
             page.write_text(new, encoding="utf-8")
     robots = "User-agent: *\nAllow: /\n"
     if site_base:
-        robots += f"Sitemap: {site_base}sitemap.xml\n"
+        robots += f"Sitemap: {site_base}sitemap.xml\nSitemap: {site_base}sitemap-jobs.xml\n"
     (out / "robots.txt").write_text(robots, encoding="utf-8")
 
 
-def write_pages_files(out: Path, board_site: str | None, robots_index: bool, site_base: str) -> None:
+def write_pages_files(out: Path, board_site: str | None, robots_index: bool, site_base: str, csp_extra: dict[str, list[str]] | None = None) -> None:
     """_redirects (when the build is for one board's domain) and _headers, after validation."""
     apply_robots_policy(out, robots_index, site_base)
     if board_site:
@@ -3087,7 +3124,7 @@ def write_pages_files(out: Path, board_site: str | None, robots_index: bool, sit
         (out / "_redirects").write_text(
             f"# generated by build_site.py from ops/generated/bulk_redirects.json ({board_site}); {len(rules)} rules\n"
             + "".join(f"{old} {new} 301\n" for old, new in rules), encoding="utf-8")
-    (out / "_headers").write_text(pages_headers(out, robots_index), encoding="utf-8")
+    (out / "_headers").write_text(pages_headers(out, robots_index, csp_extra), encoding="utf-8")
 
 
 def main() -> int:
@@ -3102,14 +3139,19 @@ def main() -> int:
     parser.add_argument("--today", type=date.fromisoformat, default=None, help="build date YYYY-MM-DD (default: the dataset's fetched date); closed roles are dropped relative to it")
     parser.add_argument("--live-api", action="store_true",
                         help="the platform Worker serves /api/* on the board host: pages refresh figures from /api/stats")
+    parser.add_argument("--api-base", default="",
+                        help="the platform Worker's https origin when it is not the board's own host (staging): live data, sign-ups")
     parser.add_argument("--board-site", choices=["ie", "uk"], default=None,
                         help="the board domain this build is deployed to: writes its legacy-URL _redirects")
     parser.add_argument("--robots-index", action="store_true", default=os.environ.get("ROBOTS_INDEX") == "1",
                         help="production only: pages index,follow and robots.txt allows crawling (default: noindex; env ROBOTS_INDEX=1)")
     parser.add_argument("--analytics", choices=["off", "production"], default=os.environ.get("GJ_ANALYTICS", "off"), help="production: GA4 tag + Search Console meta + robots sitemaps (default off = staging)")
     args = parser.parse_args()
-    global LIVE_API
+    global LIVE_API, API_BASE
     LIVE_API = bool(args.live_api)
+    API_BASE = args.api_base.rstrip("/")
+    if API_BASE and not API_BASE_RE.match(API_BASE):
+        parser.error(f"--api-base must be an https origin, got {args.api_base!r}")
     editions = ["ie", "uk"] if args.edition == "both" else [args.edition]
     return build(args.src.resolve(), args.out.resolve(), editions=editions, fixture=args.data_fixture.resolve() if args.data_fixture else None, site_base=args.site_base, today=args.today,
                  board_site=args.board_site, robots_index=args.robots_index, analytics=args.analytics)

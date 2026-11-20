@@ -145,3 +145,54 @@ test('parity: the sanitiser port matches sanitise_html on employer HTML (benign 
     }
   }
 });
+
+// ---- live board set (2026-11-20): the static insights charts and board search read /api/jobs?view=board through
+// api.js instead of the build-time #gj-data. Fixture set: the live payload must equal build_site.py's dataset and
+// every figure explore.js draws (count, disclosure, median, histogram, sector medians, region bars) must match.
+const { createRequire: req0 } = await import('node:module');
+const JS = (n) => req0(import.meta.url)(resolve(REPO, `deliverables/greenjobs_redesign_2026-09-22/src/js/${n}`));
+const datasetOf = (html) => JSON.parse(/<script type="application\/json" id="gj-data">([\s\S]*?)<\/script>/.exec(html)[1]);
+
+function insightFigures(GJ, data) {
+  const cur = data.currency;
+  const withSal = data.jobs.map((j) => GJ.annual(j, cur)).filter(Boolean);
+  const mids = withSal.map((a) => a.mid);
+  const bySec = {};
+  data.jobs.forEach((j) => { const a = GJ.annual(j, cur); if (a) j.sectors.forEach((s) => { (bySec[s] = bySec[s] || []).push(a.mid); }); });
+  return {
+    n: data.jobs.length, disclosed: withSal.length, disc_pct: Math.round(100 * withSal.length / Math.max(1, data.jobs.length)),
+    median: GJ.median(mids), hist: GJ.histogram(mids, [20000, 30000, 40000, 50000, 60000, 75000, 100000]).map((b) => [b.label, b.n]),
+    sector_medians: Object.keys(bySec).filter((s) => bySec[s].length >= 3).sort().map((s) => [s, GJ.median(bySec[s])]),
+    regions: data.regions.slice(0, 12).map((r) => [r.name, r.n]), sectors: data.sectors.map((s) => [s.name, s.n]),
+  };
+}
+
+for (const site of ['ie', 'uk']) {
+  test(`parity ${site}: the live board set (paginated /api/jobs?view=board via api.js) equals build_site.py's dataset and chart figures`, async () => {
+    const w = await worldFor(site);
+    const API = JS('api.js');
+    const GJ = JS('lib.js');
+    const calls = [];
+    const fetchFn = async (url) => { calls.push(url); return w.fetch(new Request(url)); };
+    const live = await API.loadJobs(fetchFn, `https://${HOST[site]}`, site, { limit: 2 });
+    const stat = datasetOf(B.sites[site].list_html);
+    assert.ok(calls.length >= 2 && calls.every((u) => u.includes(`site=${site}`)), 'paginated, edition named');
+    const merged = API.merge(stat, live, '');
+    assert.equal(merged.today, stat.today);
+    assert.deepEqual(merged.sectors, stat.sectors);
+    assert.deepEqual(merged.regions, stat.regions);
+    assert.deepEqual(merged.types, stat.types);
+    assert.deepEqual(merged.contracts, stat.contracts);
+    assert.deepEqual(merged.jobs.map((j) => j.id), stat.jobs.map((j) => j.id), 'same jobs, same order');
+    for (let i = 0; i < stat.jobs.length; i++) {
+      const s = stat.jobs[i];
+      const m = merged.jobs[i];
+      for (const k of Object.keys(s)) if (k !== 'text') assert.deepEqual(m[k], s[k], `${site} ${s.id}.${k}`);
+    }
+    const figs = insightFigures(GJ, merged);
+    assert.deepEqual(figs, insightFigures(GJ, stat));
+    // and the figures equal what build_site.py printed (salary_stats)
+    assert.equal(figs.n, B.sites[site].stats.salary.n_jobs);
+    assert.equal(figs.disclosed, B.sites[site].stats.salary.n_disc);
+  });
+}

@@ -68,12 +68,26 @@ def payload(src: Path) -> dict:
             for ed in ("ie", "uk")
         },
         "shell": shell,
+        "analytics": analytics(src),
         "brief": {
             "b_corp": bool(brief.get("b_corp")),
             "bcorp_size": brief.get("bcorp_size"),
             "onepct_size": brief.get("onepct_size"),
         },
     }
+
+
+def analytics(src: Path) -> dict:
+    """GA4 ids + production hosts (src/analytics.json): the Worker emits the tag only on a production host."""
+    f = src / "analytics.json"
+    cfg = json.loads(f.read_text(encoding="utf-8")) if f.exists() else {}
+    hosts = cfg.get("production_hosts") or {}
+    out = {}
+    for ed, e in (cfg.get("editions") or {}).items():
+        if build_site.GA_ID_RE.match(str(e.get("ga4", ""))):
+            out[ed] = {"ga4": e["ga4"], "gsc_token": "".join(c for c in str(e.get("gsc_token") or "") if c.isalnum() or c in "_-"),
+                       "hosts": list(hosts.get(ed, []))}
+    return out
 
 
 def render_module(p: dict) -> str:

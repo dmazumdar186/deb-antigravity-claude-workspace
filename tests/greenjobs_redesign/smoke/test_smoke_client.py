@@ -61,7 +61,9 @@ class MockGreenJobs:
         bad_redirect=False,
         dashboard_live=None,
         raise_on=None,
+        no_cors=False,
     ):
+        self.no_cors = no_cors
         self.cfg, self.clock = cfg, clock
         self.jobs = {
             f"ie:seed-{i}": {"status": "live", "mode": "link", "created": -1e9}
@@ -144,6 +146,17 @@ class MockGreenJobs:
             return self.r(200, {"ok": True})
         if path == "/api/stats":
             return self.r(200, {"live_jobs": len(self.live_ids()) + self.stats_off})
+        if path == "/api/config":
+            acao = {} if self.no_cors else {"access-control-allow-origin": headers.get("Origin", "")}
+            return self.r(200, {"site": q["site"][0], "alerts": False, "newsletter": False}, acao)
+        if path == "/api/jobs" and q.get("view") == ["board"]:
+            ids = self.live_ids()
+            limit = int(q.get("limit", ["200"])[0])
+            after = q.get("after", [None])[0]
+            start = ids.index(after) + 1 if after else 0
+            page = ids[start : start + limit]
+            nxt = page[-1] if start + limit < len(ids) else None
+            return self.r(200, {"site": q["site"][0], "total": len(ids), "jobs": [{"id": i} for i in page], "next": nxt})
         if path == "/api/jobs":
             ids = self.live_ids()
             limit = int(q.get("limit", ["500"])[0])
@@ -385,3 +398,16 @@ def test_full_mode_never_runs_on_production(cfg):
 def test_transport_refuses_plain_http():
     with pytest.raises(ValueError):
         smoke.urllib_transport("GET", "http://example.com/", {}, None)
+
+
+def test_live_wiring_paginates_the_board_set_and_needs_cors(cfg):
+    res, by, mock, _ = run(cfg)
+    for site in ("ie", "uk"):
+        assert by[f"live_wiring[{site}]"]["status"] == "pass", by[f"live_wiring[{site}]"]
+        assert "board set 1500 over 3 page(s)" in by[f"live_wiring[{site}]"]["detail"]
+    # staging boards read the workers.dev origin with ?site= (one Worker host serves both editions)
+    assert any("/api/jobs?view=board&site=uk" in u and "workers.dev" in u for _, u in mock.requests)
+    res, by, _, _ = run(cfg, no_cors=True)
+    assert by["live_wiring[ie]"]["status"] == "fail" and "CORS missing" in by["live_wiring[ie]"]["detail"]
+    res, by, _, _ = run(cfg, stats_off=1)
+    assert by["live_wiring[ie]"]["status"] == "fail"
