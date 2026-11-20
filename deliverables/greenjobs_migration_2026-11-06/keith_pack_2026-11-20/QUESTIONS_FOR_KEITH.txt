@@ -1,8 +1,8 @@
-Subject: GreenJobs: 10 short questions before the 3 December switch
+Subject: GreenJobs: 9 short questions before the 3 December switch
 
 Hi Keith,
 
-Ten questions below. One line each is fine.
+Nine questions below. One line each is fine.
 Each one has our suggestion. If we don't hear by the date given, we'll go with it.
 No call needed. Please reply to this email so we have it all in writing.
 
@@ -12,7 +12,7 @@ No call needed. Please reply to this email so we have it all in writing.
    If we don't hear by Wed 25 Nov, we'll bring across jobs and employers only, and keep all candidate records in that archive.
 
 2. The 8 sector sites: environmentaljobsuk.com, renewableenergyjobsuk.com, solarjobsuk.com, windjobsuk.com, conservationjobsuk.com, wastejobsuk.com, waterjobsuk.com and ecologyjobsuk.com.
-   Six of them (all but wastejobsuk.com and waterjobsuk.com) point to the same Strategies hosting as greenjobs.co.uk, so they stop working on 6 Dec.
+   All 8 run on the same Strategies hosting as greenjobs.co.uk (for wastejobsuk.com and waterjobsuk.com only the www. address works today), so they stop working on 6 Dec.
    Forward each one to its sector page on greenjobs.co.uk, or leave them as they are?
    We suggest forwarding.
    If we don't hear by Wed 25 Nov, we'll leave them as they are.
@@ -48,26 +48,21 @@ No call needed. Please reply to this email so we have it all in writing.
    b. Ireland: Republic of Ireland only, within commuting distance of Cork, or people willing to relocate?
    If we don't hear by Fri 27 Nov, we'll take both roles as closed.
 
-7. Applications inbox. When a job has no email or application link of its own, where should its applications go?
-   (Skip this if Diana has already answered.)
-   We suggest rashieda.ely@greenjobs.ie for both boards, as Rashieda posts most of the jobs.
-   If we don't hear by Wed 25 Nov, we'll use that address.
-
-8. Your own Cloudflare and Resend accounts.
+7. Your own Cloudflare and Resend accounts.
    Cloudflare hosts the boards. Resend sends the job alerts, the newsletter and other site emails.
    Both are opened in GreenJobs' name, so you own them.
    Who on your side will open them and invite debanjan@prodcraft.fyi?
    I'll send a short written step-by-step guide for each.
    If we don't hear by Tue 24 Nov, I'll send both guides to Diana.
 
-9. Test site sign-off. Could you try the test site and reply "signed off", or list what to fix, by Fri 27 Nov?
+8. Test site sign-off. Could you try the test site and reply "signed off", or list what to fix, by Fri 27 Nov?
    The link follows in a separate email.
    If we don't hear by Fri 27 Nov, I'll write to you that day with which items move to the second phase.
 
-10. CHM Recruit and Mattinson Partnership. A short notice for them is attached: from 3 Dec, your team posts their jobs.
-    Could you or Rashieda send it from GreenJobs by Wed 25 Nov?
-    We suggest Rashieda sends it, as the jobs go to her.
-    If we don't hear by Tue 24 Nov, we'll take it that Rashieda is sending it.
+9. CHM Recruit and Mattinson Partnership. A short notice for them is attached: from 3 Dec, your team posts their jobs.
+   Could you or Rashieda send it from GreenJobs by Wed 25 Nov?
+   We suggest Rashieda sends it, as the jobs go to her.
+   If we don't hear by Tue 24 Nov, we'll take it that Rashieda is sending it.
 
 Thanks,
 Debanjan

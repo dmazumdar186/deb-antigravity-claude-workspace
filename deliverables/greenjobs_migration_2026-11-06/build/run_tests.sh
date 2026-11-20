@@ -39,8 +39,8 @@ assert named >= 14, named
 print(f"ok: schema x2, {len(stmts)} upserts, {len(migs)} migration(s) x2 + schema again, {named} 0003 statements")
 EOF
 
-echo "== 2/5 import validator + apply mode + Gaia feed sync + classifier / D1 import (pytest)"
-"$PY" -m pytest -q tests/greenjobs_redesign/test_strategies_import.py tests/greenjobs_redesign/test_strategies_real_headers.py tests/greenjobs_redesign/test_apply_mode_site.py tests/greenjobs_redesign/test_gaia_feed_sync.py tests/greenjobs_redesign/test_d1_classifier_import.py || fail=1
+echo "== 2/5 import validator + apply mode + Gaia feed sync + classifier / D1 import + export bot (pytest)"
+"$PY" -m pytest -q tests/greenjobs_redesign/test_strategies_import.py tests/greenjobs_redesign/test_strategies_real_headers.py tests/greenjobs_redesign/test_apply_mode_site.py tests/greenjobs_redesign/test_gaia_feed_sync.py tests/greenjobs_redesign/test_d1_classifier_import.py tests/greenjobs_redesign/test_strategies_export_bot.py || fail=1
 
 echo "== 3/5 Worker unit tests + BDD features (node --test)"
 node --no-warnings --test 'tests/greenjobs_redesign/platform/*.test.mjs' || fail=1
