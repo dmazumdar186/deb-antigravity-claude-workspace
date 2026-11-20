@@ -43,6 +43,10 @@ ledger); `MAIL_DAILY_CAP` is the budget guard.
 | `PUT /api/admin/jobs/:id` | as above, body carries `version` | stale version -> 409 |
 | `POST /api/admin/jobs/:id/close` | as above | idempotent (`already_closed: true`) |
 | `POST /api/alerts`, `/api/newsletter` | public | 404 unless `ALERTS_ENABLED` / `NEWSLETTER_ENABLED` = "1" (then a 501 stub) |
+| `GET /admin/review`, `GET /api/admin/review[?status=]` | staff | sector review queue: queued jobs, suggested sectors, active vocabulary (`taxonomy_terms`) |
+| `POST /api/admin/review/:id/approve` | staff, CSRF + JSON + `Idempotency-Key` | `{}` = accept the suggestion (`approved`); `{sectors:[1..3 active terms]}` = `changed`. A held (draft) job goes live; a closed job is 409; a decided review answers `already_decided` |
+| `POST /api/admin/import` | `Authorization: Bearer $BUILD_TOKEN` (NOT the Access JWT: a cron caller) | classified feed batch from `gaia_d1_sync.py --post`. Dry run unless body `dry_run:false` AND `FEED_IMPORT_ENABLED="1"`; 409 on an empty batch or a close above `IMPORT_MAX_CLOSE_SHARE` |
+| `GET /employer/`, `GET/POST /api/employer/jobs`, `PUT /api/employer/jobs/:id`, `POST .../:id/close` | Access JWT + `employer_accounts` (staff: everything) | phase 2, 404 unless `EMPLOYER_POSTING_ENABLED="1"`. Own jobs only (another employer's job: 403); only on boards where the email maps to an employer row of that site; expired or disabled account: 403 |
 
 Unknown Host -> 404 `unknown_host`. Errors are always `{"error": code}`; no stack traces, no PII
 in responses or `console.*`. Audit rows carry field NAMES only (plus prompt-injection `flags`,
@@ -54,7 +58,7 @@ also names).
 `APPLY_ROUTING` (`inbox|consultant|advertiser`), `APPLY_INBOX_IE`, `APPLY_INBOX_UK`,
 `MAIL_PROVIDER` (`resend|none`), `MAIL_FROM`, `MAIL_DAILY_CAP`, `RATE_APPLY_PER_10MIN`,
 `RATE_ADMIN_PER_MIN`, `MAX_CV_BYTES`, `ALERTS_ENABLED`, `NEWSLETTER_ENABLED`, `ALLOWED_ORIGINS`,
-`OPS_ALERT_EMAIL` (empty = no alert mail).
+`OPS_ALERT_EMAIL` (empty = no alert mail), `FEED_IMPORT_ENABLED`, `IMPORT_MAX_CLOSE_SHARE`, `EMPLOYER_POSTING_ENABLED`.
 Delivery failures: the Resend call times out after 10 s (`delivery_status='failed'`, cron retries). Any live
 failure writes one `audit_log` `delivery.failed` row per application (id + reason, no PII) and, on the first
 failure only, sends one alert to `OPS_ALERT_EMAIL` when set (never in dry run; counts against `MAIL_DAILY_CAP`).
@@ -68,6 +72,22 @@ URL). Email-mode routing: the job's own `apply_email` when set and valid; otherw
 plus an `application.route_fallback` audit row). A missing site inbox is a loud 503
 (`routing_not_configured`), never a silent drop. `apply_email` is never in any public JSON.
 A D1 created before 2026-11-20 runs `d1/migrations/0001_apply_mode_consent_alerts.sql` once.
+
+### Feed import, review queue, employer posting (2026-11-20)
+
+- Run `d1/migrations/0003_classifier_feed_review_employers.sql` once (additive: `job_facets`, `job_review`,
+  `job_links`, `employer_accounts`, `taxonomy_terms`; no FK to `jobs`). Statements: `d1/upserts_0003.sql`, mirrored in
+  `src/sql_0003.js` (a test keeps them equal).
+- `FEED_IMPORT_ENABLED="0"` (default): `/api/admin/import` answers dry runs only. Cloudflare Access gates `/api/admin/*`
+  at the edge, so before turning the feed on add an Access **service token** (or a bypass policy for exactly
+  `/api/admin/import`); the Worker still demands the bearer `BUILD_TOKEN`.
+- Review queue: `/admin/review`. Feed jobs the classifier is unsure of arrive as `draft` (`hold=1`) and go live on approval;
+  Strategies jobs stay live (`hold=0`) and only their sector is confirmed.
+- `EMPLOYER_POSTING_ENABLED="0"` (default, phase 2). Grant a login (staff, after adding the email to the Access
+  application): `npx wrangler@4 d1 execute greenjobs --command "INSERT INTO employer_accounts (email_norm, employer_id,
+  status, expires_at, created_by, created_at, updated_at) VALUES ('jobs@chm.example', 'ie:strat:123', 'active',
+  '2027-01-31T23:59:59Z', 'keith@greenjobs.ie', '2026-12-01T00:00:00Z', '2026-12-01T00:00:00Z')"` (shape:
+  `employer_account_upsert` in `upserts_0003.sql`). Set `status='disabled'` to revoke; access also stops at `expires_at`.
 
 ## Tests (offline, no installs)
 

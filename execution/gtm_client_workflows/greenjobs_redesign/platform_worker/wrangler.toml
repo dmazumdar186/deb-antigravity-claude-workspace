@@ -36,6 +36,9 @@ RATE_ADMIN_PER_MIN = "60"
 MAX_CV_BYTES = "5242880"
 ALERTS_ENABLED = "0"
 NEWSLETTER_ENABLED = "0"
+FEED_IMPORT_ENABLED = "0"       # POST /api/admin/import writes only when "1" (Gaia feed: never promised for 3 Dec; dry runs always work)
+IMPORT_MAX_CLOSE_SHARE = "0.5"  # a feed batch that would close more than this share of open feed jobs is refused (409)
+EMPLOYER_POSTING_ENABLED = "0"  # /employer + /api/employer: phase 2 (CHM Recruit, Mattinson); "0" = 404
 ALLOWED_ORIGINS = "https://greenjobs.ie,https://www.greenjobs.ie,https://greenjobs.co.uk,https://www.greenjobs.co.uk"
 
 [[d1_databases]]

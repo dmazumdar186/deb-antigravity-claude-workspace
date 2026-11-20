@@ -80,7 +80,7 @@ export function injectionFlags(obj, fields) {
   return fields.filter((f) => looksLikePromptInjection(obj?.[f]));
 }
 
-export const JOB_ID_RE = /^(ie|uk):(gj|strat|broadbean|idibu|logicmelon):[A-Za-z0-9-]{1,64}$/;
+export const JOB_ID_RE = /^(ie|uk):(gj|strat|gaia|broadbean|idibu|logicmelon):[A-Za-z0-9-]{1,64}$/;
 
 /**
  * Validate an id/key/filename taken from a URL or form. Decodes up to 3 times (so

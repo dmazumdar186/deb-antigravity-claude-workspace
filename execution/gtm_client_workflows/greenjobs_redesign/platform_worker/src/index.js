@@ -11,6 +11,9 @@ import { createRateLimiter } from './ratelimit.js';
 import { closeJob, createJob, editJob, getAdminJob, listAdminJobs } from './routes/admin.js';
 import { apply, deliverApplication } from './routes/apply.js';
 import { consoleAsset, consoleHtml } from './routes/console.js';
+import { employerRoute } from './routes/employer.js';
+import { importBatch } from './routes/import.js';
+import { decideReview, listReview, REVIEW_DECIDE_PATH, reviewAsset, reviewHtml } from './routes/review.js';
 import { exportJobs, getJob, listJobs } from './routes/public.js';
 import { corsHeaders, preflight, siteForHost } from './site.js';
 import { clientIp, err, intVar, nowIso, UUID_RE } from './util.js';
@@ -39,6 +42,9 @@ export function createHandler(deps = {}) {
     if (method === 'GET') {
       if (path === '/admin') return new Response(null, { status: 301, headers: { Location: '/admin/' } });
       if (path === '/admin/') return consoleHtml(site, auth.email);
+      if (path === '/admin/review') return reviewHtml(site, auth.email);
+      if (path === '/admin/review.js') return reviewAsset();
+      if (path === '/api/admin/review') return listReview(ctx);
       if (path.startsWith('/admin/')) return consoleAsset(path.slice(7)) || err('not_found', 404);
       if (path === '/api/admin/jobs') return listAdminJobs(ctx);
       const m = ADMIN_JOB_PATH.exec(path);
@@ -55,6 +61,8 @@ export function createHandler(deps = {}) {
     ctx.idemKey = idemKey.toLowerCase();
 
     if (method === 'POST' && path === '/api/admin/jobs') return createJob(ctx);
+    const review = REVIEW_DECIDE_PATH.exec(path);
+    if (method === 'POST' && review) return decideReview(ctx, review[1]);
     const close = ADMIN_CLOSE_PATH.exec(path);
     if (method === 'POST' && close) return closeJob(ctx, close[1]);
     const edit = ADMIN_JOB_PATH.exec(path);
@@ -70,6 +78,11 @@ export function createHandler(deps = {}) {
     const now = clock();
     const method = request.method;
 
+    // Feed import is server to server (bearer BUILD_TOKEN), so it is routed before the Access-gated admin block.
+    if (path === '/api/admin/import') return importBatch({ request, env, now });
+    if (path === '/employer' || path.startsWith('/employer/') || path.startsWith('/api/employer/')) {
+      return employerRoute({ request, env, site, path, now, getKey, rate });
+    }
     if (path === '/admin' || path.startsWith('/admin/') || path.startsWith('/api/admin/')) {
       return admin(request, env, site, path, now);
     }

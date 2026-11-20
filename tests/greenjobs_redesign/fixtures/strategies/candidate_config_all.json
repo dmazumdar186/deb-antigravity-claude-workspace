@@ -1,0 +1,6 @@
+{
+  "enabled": true,
+  "note": "TEST FIXTURE: every personal report and every field, to exercise the SQL shapes. Not a real retention choice.",
+  "reports": ["candidates", "profiles", "applications"],
+  "fields": ["first_name", "last_name", "phone", "home_location", "preferred_region", "headline", "sectors", "cover_note"]
+}

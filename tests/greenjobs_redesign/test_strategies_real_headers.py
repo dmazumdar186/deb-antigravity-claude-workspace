@@ -38,6 +38,8 @@ SCHEMA = (
     / "d1"
     / "schema.sql"
 )
+MIG3 = SCHEMA.parent / "migrations" / "0003_classifier_feed_review_employers.sql"
+CFG = Path(__file__).resolve().parent / "fixtures" / "strategies" / "candidate_config_all.json"  # test-only config
 REAL = json.loads(
     (
         REPO
@@ -237,7 +239,7 @@ def test_ie_and_uk_job_orders_import_identically(capsys, tmp_path):
     for site_order, head in (("ie", ie_h), ("uk", uk_h)):
         p = write(tmp_path / f"{site_order}.csv", head, rows)
         o = tmp_path / f"{site_order}.sql"
-        code, d, _ = imp(capsys, "ie", "jobs", p, "--emit-sql", o)
+        code, d, _ = imp(capsys, "ie", "jobs", p, "--emit-sql", o, "--include-closed")
         assert code == 0 and d["sql_written"]
         outs.append(o)
     a, b = sql_body(outs[0]), sql_body(outs[1])
@@ -248,6 +250,7 @@ def test_ie_and_uk_job_orders_import_identically(capsys, tmp_path):
     assert a == b
     con = sqlite3.connect(":memory:")
     con.executescript(SCHEMA.read_text(encoding="utf-8"))
+    con.executescript(MIG3.read_text(encoding="utf-8"))
     con.executescript(outs[1].read_text(encoding="utf-8"))
     got = {
         r[0]: r[1:]
@@ -285,7 +288,9 @@ def test_profile_preferred_region_alias(capsys, tmp_path, site, col):
         ],
     )
     o = tmp_path / "p.sql"
-    code, d, _ = imp(capsys, site, "profiles", p, "--emit-sql", o)
+    reg = write(tmp_path / "reg.csv", header(site, "candidates"), [
+        {"CandidatePK": "1001", "email": "a.candidate@example.com", "LastLoggedIn": "01/11/2026", "Consent": "1"}])
+    code, d, _ = imp(capsys, site, "profiles", p, "--emit-sql", o, "--candidates-csv", reg, "--candidate-config", CFG)
     assert code == 0 and d["files"][0]["headers"]["mapped"]["location"] == col
     sql = o.read_text(encoding="utf-8")
     assert (
@@ -462,13 +467,15 @@ def emit_all(capsys, tmp_path, site="ie") -> sqlite3.Connection:
     ds = dataset(tmp_path, site)
     con = sqlite3.connect(":memory:")
     con.executescript(SCHEMA.read_text(encoding="utf-8"))
+    con.executescript(MIG3.read_text(encoding="utf-8"))
     con.execute("PRAGMA foreign_keys = ON")
+    cfg = ["--candidate-config", CFG]
     plan = [
         ("recruiters", []),
-        ("jobs", []),
-        ("candidates", []),
-        ("profiles", ["--candidates-csv", ds["candidates"]]),
-        ("applications", ["--jobs-csv", ds["jobs"]]),
+        ("jobs", ["--include-closed"]),
+        ("candidates", cfg),
+        ("profiles", ["--candidates-csv", ds["candidates"], *cfg]),
+        ("applications", ["--jobs-csv", ds["jobs"], "--candidates-csv", ds["candidates"], *cfg]),
         ("alerts", ["--candidates-csv", ds["candidates"]]),
     ]
     sql = []
@@ -523,11 +530,8 @@ def test_end_to_end_keys_apply_mode_consent_alerts(capsys, tmp_path, site):
             "SELECT source_id, consent_marketing, strategies_consent, phone FROM candidates"
         )
     }
-    assert c == {
-        "1001": (1, 1, "087 123 4567"),
-        "1002": (0, 0, None),
-        "1003": (0, None, None),
-    }
+    # Only consented candidates reach D1 (engagement record §2): 1002 said no, 1003 never said yes
+    assert c == {"1001": (1, 1, "087 123 4567")}
     # 8. Jobs By Email -> pending alert subscriptions; Consent=0 and unknown candidates excluded; Name not stored
     alerts = con.execute(
         "SELECT email_norm, status, frequency, query_json FROM alert_subscriptions"

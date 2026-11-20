@@ -7,8 +7,15 @@ description: Validates one Strategies report type (recruiters, candidates, profi
   yield / reject-rate gates. Dry run by default: prints a JSON summary that never carries a full
   email, name or phone. --emit-sql writes idempotent SQL (the exact upsert shapes of
   d1/upserts.sql) plus an import_batches skip-if-done row per input file.
+  Jobs: classified by job_classifier.py (sectors + confidence, regions, job type, workplace, contract tags;
+  job_facets + job_review rows of migration 0003); only LIVE jobs are emitted unless --include-closed.
+  Personal data (candidates, profiles, applications) is OFF by default: --emit-sql for those reports needs
+  --candidate-config (Keith's retention choice: reports, categories, date range, fields). Only consented rows
+  (Consent/Marketing: no explicit 0 and at least one 1) and only the configured fields reach D1; the CSVs
+  themselves stay in the raw archive. Jobs By Email -> pending alert subscriptions under the same consent rule.
   No network, no D1 call: the operator applies the SQL with `npx wrangler@4 d1 execute`.
-inputs: --site ie|uk, --report TYPE (alerts = Jobs By Email; needs --candidates-csv), --csv PATH (repeatable; outside the repo, or tests/**/fixtures/)
+inputs: --site ie|uk, --report TYPE (alerts = Jobs By Email; needs --candidates-csv), --csv PATH (repeatable; outside the repo, or tests/**/fixtures/),
+  --candidate-config PATH (personal reports), --profiles-csv PATH (candidate categories), --include-closed, --taxonomy PATH
   or --report TYPE --sniff FILE: header row + first data row only; prints header names with a
   mapped/unmapped verdict, missing required fields and unknown headers, never a cell value
 outputs: stdout JSON summary; optional --report-out (no PII; outside repo or <repo>/.tmp/);
@@ -58,6 +65,11 @@ MAX_FILE_BYTES = 200 * 1024 * 1024
 RETENTION_MIN, RETENTION_MAX = 6, 84
 STDOUT_ISSUE_CAP = 50
 SITE_CURRENCY = {"ie": "EUR", "uk": "GBP"}
+DEFAULT_UPSERTS_0003 = DEFAULT_UPSERTS.parent / "upserts_0003.sql"
+PERSONAL_REPORTS = ("candidates", "profiles", "applications")
+CANDIDATE_FIELDS = ("first_name", "last_name", "phone", "home_location", "preferred_region", "headline", "sectors",
+                    "cover_note")
+DEFAULT_CANDIDATE_FIELDS = ["first_name", "last_name", "headline", "sectors", "preferred_region"]
 LOGO_KEY_TEMPLATE = "strategies/{site}/logos/{filename}"
 
 CONTROL_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
@@ -377,6 +389,7 @@ class Ctx:
     date_formats: list[str]
     file: str = ""
     line: int = 0
+    taxonomy_path: str | None = None
     rejects: list[dict] = field(default_factory=list)
     warnings: list[dict] = field(default_factory=list)
     flags: dict[str, int] = field(default_factory=lambda: {
@@ -517,6 +530,104 @@ def convert(fname: str, spec: dict, raw: str | None, ctx: Ctx):
 
 # --------------------------------------------------------------------------- record builders
 
+def consent_verdict(consent, marketing) -> str | None:
+    """None when a candidate may be imported / emailed, else the exclusion reason. Rule (engagement record +
+    exec_CTO_CDO.md): an explicit 0 in Consent or Marketing always wins; otherwise at least one must be 1."""
+    if consent == 0:
+        return "candidate_consent_0"
+    if marketing == 0:
+        return "candidate_marketing_0"
+    if consent != 1 and marketing != 1:
+        return "candidate_no_affirmative_consent"
+    return None
+
+
+def load_candidate_config(path: Path) -> dict:
+    """Keith's retention choice for personal data. Shape:
+    {"enabled": true, "reports": ["candidates", "profiles", "applications"?], "active_since": "YYYY-MM-DD"?,
+     "registered_from": "YYYY-MM-DD"?, "registered_to": "YYYY-MM-DD"?, "categories": ["Wind", ...]?,
+     "fields": [subset of CANDIDATE_FIELDS]?  (default: names, headline, sectors, preferred region; never phone
+     or home location unless listed)}"""
+    try:
+        cfg = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as e:
+        raise UsageError(f"--candidate-config unreadable: {e}") from e
+    if not isinstance(cfg, dict) or cfg.get("enabled") is not True:
+        raise UsageError("--candidate-config: 'enabled' must be true (candidate import is off by default)")
+    unknown = set(cfg) - {"enabled", "reports", "active_since", "registered_from", "registered_to", "categories",
+                          "fields", "note"}
+    if unknown:
+        raise UsageError(f"--candidate-config: unknown keys {sorted(unknown)}")
+    reports = cfg.get("reports")
+    if not isinstance(reports, list) or not reports or not set(reports) <= set(PERSONAL_REPORTS):
+        raise UsageError(f"--candidate-config: 'reports' must list some of {list(PERSONAL_REPORTS)}")
+    for k in ("active_since", "registered_from", "registered_to"):
+        if cfg.get(k) is not None:
+            try:
+                date.fromisoformat(str(cfg[k]))
+            except ValueError as e:
+                raise UsageError(f"--candidate-config: {k} must be YYYY-MM-DD") from e
+    cats = cfg.get("categories")
+    if cats is not None and (not isinstance(cats, list) or not cats
+                             or not all(isinstance(c, str) and c.strip() for c in cats)):
+        raise UsageError("--candidate-config: 'categories' must be a non-empty list of names")
+    fields = cfg.get("fields", DEFAULT_CANDIDATE_FIELDS)
+    if not isinstance(fields, list) or not set(fields) <= set(CANDIDATE_FIELDS):
+        raise UsageError(f"--candidate-config: 'fields' must be a subset of {list(CANDIDATE_FIELDS)}")
+    return {**cfg, "fields": set(fields), "categories": {c.strip().lower() for c in cats} if cats else None}
+
+
+def policy_filter(policy: dict, rec: dict, registered: str | None, sectors_json: str | None) -> None:
+    """Date range and categories of the candidate config (RowExclude on a miss)."""
+    if policy.get("active_since") and rec["_activity"][:10] < policy["active_since"]:
+        raise RowExclude("config_inactive_before_active_since")
+    if registered and policy.get("registered_from") and registered[:10] < policy["registered_from"]:
+        raise RowExclude("config_registered_before_range")
+    if registered and policy.get("registered_to") and registered[:10] > policy["registered_to"]:
+        raise RowExclude("config_registered_after_range")
+    if policy.get("categories") is not None:
+        have = {str(x).strip().lower() for x in json.loads(sectors_json or "[]")}
+        if not have & policy["categories"]:
+            raise RowExclude("config_category_not_chosen")
+
+
+def keep_field(policy: dict | None, name: str, value):
+    """Minimisation: a personal field reaches D1 only when the config lists it."""
+    if policy is None:
+        return value
+    return value if name in policy["fields"] else None
+
+
+_CLASSIFIER: dict = {}
+
+
+def classify_job(ctx, v: dict, rec: dict) -> dict:
+    """job_classifier on one Strategies job. Strategies jobs are already live on the board, so the unfrozen-taxonomy
+    rule does not hold them: only a low-confidence or conflicting sector is queued, and the job stays live
+    (job_review.hold = 0). The source's own labels are a hint when the taxonomy maps them."""
+    if "jc" not in _CLASSIFIER:
+        if str(HERE) not in sys.path:
+            sys.path.insert(0, str(HERE))
+        import job_classifier as jc  # noqa: PLC0415  (lazy: only the jobs report needs build_site)
+
+        _CLASSIFIER["jc"] = jc
+    jc = _CLASSIFIER["jc"]
+    key = ctx.taxonomy_path or str(jc.TAXONOMY_PATH)
+    if key not in _CLASSIFIER:
+        try:
+            _CLASSIFIER[key] = jc.load_taxonomy(Path(key))
+        except jc.TaxonomyError as e:
+            raise UsageError(str(e)) from e
+    tax = _CLASSIFIER[key]
+    labels = [str(x) for x in json.loads(rec.get("sectors_json") or "[]")]
+    mapped = [tax.canon(x) for x in labels if tax.canon(x)]
+    hint = {"sectors": mapped, "confidence": 1.0, "method": "source"} if mapped else None
+    job = {"title": rec["title"], "employer": v.get("company_name") or "", "location": rec["location"],
+           "region": rec.get("region") or "", "summary": rec.get("summary") or "",
+           "description_html": rec["description"], "job_type": rec.get("job_type") or "", "source_sectors": labels}
+    return jc.classify(job, ctx.site, tax, hint=hint, require_frozen=False)
+
+
 def stable_id(site: str, sid: str) -> str:
     return f"{site}:strat:{sid}"
 
@@ -566,8 +677,9 @@ def build(report: str, rep: dict, v: dict, ctx: Ctx, aux: dict) -> dict:
         cand = (aux.get("candidates") or {}).get(v["candidate_id"])
         if cand is None:
             raise RowExclude("candidate_not_retained")
-        if cand["consent"] == 0:
-            raise RowExclude("candidate_consent_0")
+        why = consent_verdict(cand["consent"], cand.get("marketing"))
+        if why:
+            raise RowExclude(why)
         act = cand["act"]
     else:
         act = activity(rep, v)
@@ -589,11 +701,23 @@ def build(report: str, rep: dict, v: dict, ctx: Ctx, aux: dict) -> dict:
         rec["_key"], rec["_key2"] = sid, None
     elif report == "candidates":
         sid = v["strategies_id"]
-        rec.update(id=stable_id(site, sid), source_id=sid, email_norm=v["email"], first_name=v.get("first_name"),
-                   last_name=v.get("last_name"), phone=v.get("phone"), location=v.get("location"), headline=None,
-                   sectors_json=v.get("sectors") or "[]", consent_marketing=v.get("consent_marketing") or 0,
+        pol = aux.get("policy")
+        if pol is not None:
+            why = consent_verdict(v.get("consent"), v.get("consent_marketing"))
+            if why:
+                raise RowExclude(why)
+            psec = (aux.get("profile_sectors") or {}).get(sid)
+            policy_filter(pol, rec, v.get("registered"), json.dumps(sorted(psec)) if psec is not None else "[]")
+        rec.update(id=stable_id(site, sid), source_id=sid, email_norm=v["email"],
+                   first_name=keep_field(pol, "first_name", v.get("first_name")),
+                   last_name=keep_field(pol, "last_name", v.get("last_name")),
+                   phone=keep_field(pol, "phone", v.get("phone")),
+                   location=keep_field(pol, "home_location", v.get("location")), headline=None,
+                   sectors_json=keep_field(pol, "sectors", v.get("sectors")) or "[]",
+                   consent_marketing=v.get("consent_marketing") or 0,
                    consent_at=None, registered_at=v.get("registered"), last_active_at=act,
                    strategies_consent=v.get("consent"))
+        rec["_marketing"] = v.get("consent_marketing")
         rec["_key"], rec["_key2"] = v["email"], sid
     elif report == "profiles":
         cid = v["candidate_id"]
@@ -603,9 +727,20 @@ def build(report: str, rep: dict, v: dict, ctx: Ctx, aux: dict) -> dict:
             email = cmap.get(cid)
         if not email:
             raise RowReject("unknown_candidate", "candidate_id", f"candidate_id={cid}"[:40])
+        pol = aux.get("policy")
+        if pol is not None:
+            cons = (aux.get("candidate_consent") or {}).get(cid)
+            if cons is None:
+                raise RowExclude("candidate_not_in_registration")
+            why = consent_verdict(*cons)
+            if why:
+                raise RowExclude(why)
+            policy_filter(pol, rec, v.get("registered"), v.get("sectors"))
         rec.update(id=stable_id(site, cid), source_id=cid, email_norm=email, first_name=None, last_name=None,
-                   phone=None, location=v.get("location"), headline=v.get("headline"),
-                   sectors_json=v.get("sectors") or "[]", consent_marketing=0, consent_at=None,
+                   phone=None, location=keep_field(pol, "preferred_region", v.get("location")),
+                   headline=keep_field(pol, "headline", v.get("headline")),
+                   sectors_json=keep_field(pol, "sectors", v.get("sectors")) or "[]", consent_marketing=0,
+                   consent_at=None,
                    registered_at=None, last_active_at=act, strategies_consent=None)
         rec["_key"], rec["_key2"] = cid, None
     elif report == "jobs":
@@ -627,6 +762,10 @@ def build(report: str, rep: dict, v: dict, ctx: Ctx, aux: dict) -> dict:
                    sal_min=sal_min, sal_max=sal_max, currency=cur, period=period, sal_text=v.get("sal_text"),
                    sectors_json=v.get("sectors") or "[]", summary=v.get("summary"), description=v["description"],
                    **apply_fields(v, ctx), status=status, posted_at=v.get("posted"), closing_at=closing)
+        c = classify_job(ctx, v, rec)
+        rec["sectors_json"] = cjson(c["sectors"] or c["suggested_sectors"])
+        rec["job_type"] = c["job_type"]
+        rec["_class"] = c
         rec["_key"], rec["_key2"] = sid, None
     elif report == "alerts":
         email = v["email"]
@@ -655,12 +794,16 @@ def build(report: str, rep: dict, v: dict, ctx: Ctx, aux: dict) -> dict:
             raise RowReject("too_long", "applicant_name", f"len={len(name)} max=120")
         job_id = stable_id(site, job_sid)
         email = v["applicant_email"]
+        pol = aux.get("policy")
+        if pol is not None and email not in (aux.get("consented_emails") or set()):
+            raise RowExclude("candidate_not_consented")
         dk = hashlib.sha256(f"{site}|{job_id}|{email}".encode("utf-8")).hexdigest()
         app_sid = v.get("strategies_id")
         rec.update(id=stable_id(site, app_sid) if app_sid else stable_id(site, f"app-{dk[:24]}"), source_id=app_sid,
                    job_id=job_id,
                    candidate_id=Raw(f"(SELECT id FROM candidates WHERE site = {sql_lit(site)} AND email_norm = {sql_lit(email)})"),
-                   applicant_name=name, applicant_email=email, phone=v.get("phone"), cover_note=v.get("cover_note"),
+                   applicant_name=name, applicant_email=email, phone=keep_field(pol, "phone", v.get("phone")),
+                   cover_note=keep_field(pol, "cover_note", v.get("cover_note")),
                    cv_key=None, routed_to=None, delivery_status="imported", dedupe_key=dk, submitted_at=act)
         rec["_key"], rec["_key2"] = dk, app_sid
     return rec
@@ -783,6 +926,12 @@ def process(report: str, paths: list[Path], mapping: dict, ctx: Ctx, aux: dict, 
 
 # --------------------------------------------------------------------------- SQL
 
+def cjson(v) -> str:
+    """JSON exactly as the Worker writes it (JSON.stringify): compact, non-ASCII kept, so a row written by either
+    side compares equal and an unchanged re-run is a no-op."""
+    return json.dumps(v, ensure_ascii=False, separators=(",", ":"))
+
+
 def sql_lit(v) -> str:
     if v is None:
         return "NULL"
@@ -792,6 +941,8 @@ def sql_lit(v) -> str:
         return "1" if v else "0"
     if isinstance(v, int):
         return str(v)
+    if isinstance(v, float):
+        return repr(v)
     s = str(v)
     if "\x00" in s:
         raise ValueError("NUL in SQL literal")
@@ -814,6 +965,20 @@ def load_upserts(path: Path) -> dict[str, str]:
         if len(hits) != 1:
             raise UsageError(f"upserts.sql: expected one '{prefix.strip()}' statement, found {len(hits)}")
         out[key] = hits[0]
+    return out
+
+
+def load_named(path: Path) -> dict[str, str]:
+    """`-- name: key` blocks of upserts_0003.sql -> one-line statements (comments stripped)."""
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as e:
+        raise UsageError(f"{path.name} unreadable: {e}") from e
+    parts = re.split(r"^-- name: (\w+)\s*$", text, flags=re.M)
+    out = {}
+    for name, body in zip(parts[1::2], parts[2::2]):
+        st = re.sub(r"--[^\n]*", "", body).strip().rstrip(";").strip()
+        out[name] = re.sub(r"\s+", " ", st)
     return out
 
 
@@ -846,13 +1011,36 @@ def params_for(report: str, site: str, r: dict, now: str) -> tuple[str, list]:
                             r["routed_to"], r["delivery_status"], r["dedupe_key"], r["submitted_at"], now]
 
 
-def emit_sql(report: str, site: str, result: dict, templates: dict, now: str) -> str:
+def class_sql(site: str, r: dict, t3: dict, now: str) -> list[str]:
+    """job_facets + job_review (hold 0: a Strategies job is already live) for one classified job."""
+    c = r["_class"]
+    out = [render(t3["job_facets_upsert"], [r["id"], site, cjson(c["regions"]), c["loc_class"],
+                                           c["workplace"], cjson(c["contract"]),
+                                           cjson(c["source_sectors"]),
+                                           float(c["sector_confidence"]), c["sector_method"], c["taxonomy_version"], now])]
+    if c["needs_review"]:
+        out.append(render(t3["review_upsert"], [r["id"], site, c["review_reason"],
+                                                cjson(c["suggested_sectors"]),
+                                                float(c["sector_confidence"]), 0, now]))
+    else:
+        out.append(render(t3["review_clear"], [r["id"]]))
+    return out
+
+
+def emit_sql(report: str, site: str, result: dict, templates: dict, now: str, include_closed: bool = False,
+             t3: dict | None = None) -> str:
     lines = [f"-- GreenJobs Strategies import: site={site} report={report} generated={now}",
              "-- Idempotent: canonical upserts from d1/upserts.sql; re-running converges. Contains PII: never commit.",
              "-- Apply: npx wrangler@4 d1 execute greenjobs --file=THIS_FILE   (order: recruiters, jobs, candidates, profiles, applications, alerts)"]
+    if report == "jobs":
+        lines.append("-- Jobs need migrations/0003_classifier_feed_review_employers.sql (job_facets, job_review).")
     for r in result["records"]:
+        if report == "jobs" and r.get("status") != "live" and not include_closed:
+            continue  # live jobs only: a closed Strategies advert stays in the raw archive
         table, params = params_for(report, site, r, now)
         lines.append(render(templates[table], params))
+        if report == "jobs" and t3 is not None:
+            lines += class_sql(site, r, t3, now)
     for f in result["files"]:
         if f["skipped"]:
             continue
@@ -946,11 +1134,38 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--jobs-csv", action="append", default=[], help="applications: kept-jobs source (orphan check)")
     ap.add_argument("--known-job-ids", help="applications: text file, one Strategies job id per line")
     ap.add_argument("--done-sha256", help="text file of sha256 already in import_batches (skip those files)")
+    ap.add_argument("--candidate-config", help="personal reports: Keith's retention choice (JSON). Without it, "
+                    "candidates/profiles/applications are never written to D1 (raw archive only)")
+    ap.add_argument("--profiles-csv", action="append", default=[],
+                    help="candidates + config categories: the profile report that holds each candidate's sectors")
+    ap.add_argument("--include-closed", action="store_true", help="jobs: also emit closed jobs (default: live only)")
+    ap.add_argument("--taxonomy", help="jobs: frozen taxonomy JSON (default platform_worker/src/taxonomy.json if present)")
     ap.add_argument("--report-out")
     ap.add_argument("--emit-sql")
     ap.add_argument("--mapping", default=str(DEFAULT_MAPPING))
     ap.add_argument("--upserts", default=str(DEFAULT_UPSERTS))
     return ap
+
+
+def profile_sectors(paths: list[Path], mapping: dict, ctx: Ctx) -> dict[str, set[str]]:
+    """CandidatePK -> lower-cased sectors from the profile report (category filter of the candidate config)."""
+    rep = mapping["reports"]["profiles"]
+    out: dict[str, set[str]] = {}
+    for p in paths:
+        data = read_csv(p)
+        colmap, _m, _u, _d = map_headers("profiles", rep, data["header"])
+        if "sectors" not in colmap:
+            raise UsageError(f"--profiles-csv {p.name}: no sectors column")
+        for line, cells in data["rows"]:
+            ctx.line = line
+            try:
+                cid = convert("candidate_id", rep["fields"]["candidate_id"], cells[colmap["candidate_id"]], ctx)
+                sec = convert("sectors", rep["fields"]["sectors"], cells[colmap["sectors"]], ctx)
+            except (RowReject, IndexError):
+                continue
+            if cid:
+                out.setdefault(str(cid), set()).update(str(x).strip().lower() for x in json.loads(sec or "[]"))
+    return out
 
 
 def read_id_list(path: Path) -> set[str]:
@@ -992,7 +1207,25 @@ def run(args: argparse.Namespace) -> tuple[int, dict]:
     templates = load_upserts(Path(args.upserts)) if sql_out else None
     if args.report != "applications" and (args.jobs_csv or args.known_job_ids):
         raise UsageError("--jobs-csv / --known-job-ids apply to --report applications only")
-    if args.report not in ("profiles", "alerts") and args.candidates_csv:
+    policy = load_candidate_config(check_input(args.candidate_config)) if args.candidate_config else None
+    if args.report in PERSONAL_REPORTS and sql_out and policy is None:
+        raise UsageError(f"{args.report}: candidate import is off by default (data minimisation, exec_CTO_CDO.md); "
+                         "the CSV stays in the raw archive. Pass --candidate-config with Keith's choice to import")
+    if policy is not None and args.report not in PERSONAL_REPORTS:
+        raise UsageError("--candidate-config applies to candidates / profiles / applications only")
+    if policy is not None and args.report not in policy["reports"]:
+        raise UsageError(f"--candidate-config does not list report '{args.report}'")
+    if policy is not None and args.report in ("profiles", "applications") and not args.candidates_csv:
+        raise UsageError(f"{args.report} with --candidate-config needs --candidates-csv (the Consent/Marketing source)")
+    if args.profiles_csv and not (policy is not None and args.report == "candidates"):
+        raise UsageError("--profiles-csv applies to --report candidates with --candidate-config only")
+    if (policy is not None and args.report == "candidates" and policy.get("categories") is not None
+            and not args.profiles_csv):
+        raise UsageError("config 'categories' on the candidates report needs --profiles-csv (where sectors live)")
+    if args.include_closed and args.report != "jobs":
+        raise UsageError("--include-closed applies to --report jobs only")
+    if (args.report not in ("profiles", "alerts") and args.candidates_csv
+            and not (policy is not None and args.report == "applications")):
         raise UsageError("--candidates-csv applies to --report profiles or alerts only")
     if args.report == "alerts" and not args.candidates_csv:
         raise UsageError("alerts needs --candidates-csv (the registration report): Jobs By Email has no date "
@@ -1000,16 +1233,26 @@ def run(args: argparse.Namespace) -> tuple[int, dict]:
 
     cutoff = months_before(as_of, args.retention_months)
     ctx = Ctx(site=args.site, report=args.report, as_of=as_of, cutoff_iso=f"{cutoff.isoformat()}T00:00:00Z",
-              date_formats=mapping["date_formats"])
-    aux: dict = {"expect_site_tag": args.expect_site_tag}
+              date_formats=mapping["date_formats"], taxonomy_path=args.taxonomy)
+    aux: dict = {"expect_site_tag": args.expect_site_tag, "policy": policy}
+    if policy is not None and args.report in ("profiles", "applications"):
+        sub = Ctx(site=args.site, report="candidates", as_of=as_of, cutoff_iso=ctx.cutoff_iso,
+                  date_formats=mapping["date_formats"])
+        res = process("candidates", [check_input(c) for c in args.candidates_csv], mapping, sub,
+                      {"expect_site_tag": args.expect_site_tag}, set())
+        aux["candidate_consent"] = {r["source_id"]: (r["strategies_consent"], r["_marketing"]) for r in res["records"]}
+        aux["consented_emails"] = {r["email_norm"] for r in res["records"]
+                                   if consent_verdict(r["strategies_consent"], r["_marketing"]) is None}
+    if policy is not None and args.report == "candidates" and args.profiles_csv:
+        aux["profile_sectors"] = profile_sectors([check_input(c) for c in args.profiles_csv], mapping, ctx)
     reference: dict = {}
     if args.report == "alerts":
         sub = Ctx(site=args.site, report="candidates", as_of=as_of, cutoff_iso=ctx.cutoff_iso,
                   date_formats=mapping["date_formats"])
         res = process("candidates", [check_input(c) for c in args.candidates_csv], mapping, sub,
                       {"expect_site_tag": args.expect_site_tag}, set())
-        aux["candidates"] = {r["source_id"]: {"act": r["last_active_at"], "consent": r["strategies_consent"]}
-                             for r in res["records"]}
+        aux["candidates"] = {r["source_id"]: {"act": r["last_active_at"], "consent": r["strategies_consent"],
+                                              "marketing": r["_marketing"]} for r in res["records"]}
         reference["candidates"] = {"kept": len(res["records"]), "rejected": len(sub.rejects)}
     if args.report == "profiles":
         has_email_alias = True
@@ -1019,6 +1262,8 @@ def run(args: argparse.Namespace) -> tuple[int, dict]:
             res = process("candidates", [check_input(c) for c in args.candidates_csv], mapping, sub,
                           {"expect_site_tag": args.expect_site_tag}, set())
             aux["candidate_emails"] = {r["source_id"]: r["email_norm"] for r in res["records"]}
+            aux.setdefault("candidate_consent", {r["source_id"]: (r["strategies_consent"], r["_marketing"])
+                                                 for r in res["records"]})
             reference["candidates"] = {"kept": len(res["records"]), "rejected": len(sub.rejects)}
         else:
             has_email_alias = False
@@ -1077,7 +1322,11 @@ def run(args: argparse.Namespace) -> tuple[int, dict]:
         "totals": {"rows_in": rows_in, "rows_kept": sum(f["rows_kept"] for f in result["files"]),
                    "rejected": len(ctx.rejects), "duplicates_collapsed": result["collapsed"],
                    "records_out": len(result["records"]),
-                   "live_jobs": sum(1 for r in result["records"] if r.get("status") == "live")},
+                   "live_jobs": sum(1 for r in result["records"] if r.get("status") == "live"),
+                   "sector_review": sum(1 for r in result["records"] if (r.get("_class") or {}).get("needs_review"))},
+        "candidate_import": ({"reports": sorted(policy["reports"]), "fields": sorted(policy["fields"])}
+                             if policy is not None else ("off: raw archive only" if args.report in PERSONAL_REPORTS
+                                                         else None)),
         "reject_reasons": reasons, "flags": ctx.flags,
         "gates": {"min_yield": args.min_yield, "max_reject_rate": args.max_reject_rate,
                   "allow_low_yield": args.allow_low_yield, "failures": gate_failures},
@@ -1085,9 +1334,13 @@ def run(args: argparse.Namespace) -> tuple[int, dict]:
     }
     if sql_out and status == "ok":
         now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-        atomic_write(sql_out, emit_sql(args.report, args.site, result, templates, now))
+        t3 = load_named(DEFAULT_UPSERTS_0003) if args.report == "jobs" else None
+        text = emit_sql(args.report, args.site, result, templates, now, args.include_closed, t3)
+        atomic_write(sql_out, text)
         summary["sql_written"] = True
-        summary["sql_statements"] = len(result["records"]) + sum(1 for f in result["files"] if not f["skipped"])
+        summary["sql_statements"] = sum(1 for ln in text.splitlines() if ln and not ln.startswith("--"))
+        if args.report == "jobs" and not args.include_closed:
+            summary["closed_jobs_not_emitted"] = sum(1 for r in result["records"] if r.get("status") != "live")
     if report_out:
         atomic_write(report_out, json.dumps(summary, indent=2, ensure_ascii=False) + "\n")
     return code, summary
