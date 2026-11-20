@@ -2,7 +2,7 @@
 
 description: link mode renders an external Apply button (rel="noopener nofollow", ATS host in the label, no
   on-site form); email mode keeps the on-site form posting to /api/apply; a scraped row with no apply_mode keeps
-  the legacy link. Unsafe URLs (http, javascript:, data:) never reach an href.
+  the legacy link unless it points into the retired Strategies platform (then email mode). Unsafe URLs (http, javascript:, data:) never reach an href.
 Run: python3 -m pytest -q tests/greenjobs_redesign/test_apply_mode_site.py
 """
 
@@ -55,7 +55,9 @@ def test_apply_of_modes_and_unsafe_urls():
         "apply_mode": "email",
         "apply_url": "",
     }
-    assert bs.apply_of({}) == {"apply_mode": "legacy", "apply_url": ""}
+    # a scraped row keeps its own job URL only when that URL is not on the retired platform (eye review M3)
+    assert bs.apply_of({"url": "https://gaiatalent.com/jobs/x"}) == {"apply_mode": "legacy", "apply_url": ""}
+    assert bs.apply_of({}) == {"apply_mode": "email", "apply_url": ""}
     for bad in (
         "http://ats.example.com/7",
         "javascript:alert(1)",
@@ -119,17 +121,20 @@ def test_email_mode_keeps_on_site_form():
     assert "data-apply-ts" in js and "form[data-apply-form]" in js
 
 
-def test_legacy_row_unchanged():
+def test_legacy_row_on_old_platform_becomes_email_form():
+    """Eye review M3: a scraped row whose own URL is an old greenjobs.ie *.asp page never renders that link."""
     html = page(JOB)
     links = apply_links(html)
-    assert len(links) == 2
-    for a in links:
-        assert (
-            'href="https://www.greenjobs.ie/job.asp?id=7001" rel="noopener"' in a
-            and a.endswith("Apply on greenjobs.ie")
-        )
-    assert "data-apply-form" not in html
+    assert len(links) == 2 and all('href="#apply-form"' in a for a in links)
+    assert "data-apply-form" in html and ".asp" not in html
     assert "{{" not in html
+
+
+def test_legacy_row_off_old_platform_keeps_its_link():
+    html = page({"id": "ie:gaia:9", "url": "https://gaiatalent.com/jobs/ecologist"})
+    links = apply_links(html)
+    assert len(links) == 2 and all('href="https://gaiatalent.com/jobs/ecologist" rel="noopener"' in a for a in links)
+    assert "data-apply-form" not in html
 
 
 def test_jsonld_direct_apply_only_for_email_mode():

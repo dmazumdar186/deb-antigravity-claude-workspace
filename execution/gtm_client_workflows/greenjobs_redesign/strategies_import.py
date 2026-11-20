@@ -15,7 +15,8 @@ description: Validates one Strategies report type (recruiters, candidates, profi
   themselves stay in the raw archive. Jobs By Email -> pending alert subscriptions under the same consent rule.
   No network, no D1 call: the operator applies the SQL with `npx wrangler@4 d1 execute`.
 inputs: --site ie|uk, --report TYPE (alerts = Jobs By Email; needs --candidates-csv), --csv PATH (repeatable; outside the repo, or tests/**/fixtures/),
-  --candidate-config PATH (personal reports), --profiles-csv PATH (candidate categories), --include-closed, --taxonomy PATH
+  --candidate-config PATH (personal reports), --profiles-csv PATH (candidate categories), --include-closed, --taxonomy PATH,
+  --uk-jobs-csv PATH (--site ie jobs: UK roles keep sterling via their greenjobs.co.uk twin, build_site's rule)
   or --report TYPE --sniff FILE: header row + first data row only; prints header names with a
   mapped/unmapped verdict, missing required fields and unknown headers, never a cell value
 outputs: stdout JSON summary; optional --report-out (no PII; outside repo or <repo>/.tmp/);
@@ -632,6 +633,78 @@ def classify_job(ctx, v: dict, rec: dict) -> dict:
     return jc.classify(job, ctx.site, tax, hint=hint, require_frozen=False)
 
 
+# --------------------------------------------------------------------------- sterling (IE board, UK roles)
+
+REDESIGN_SRC = REPO_ROOT / "deliverables" / "greenjobs_redesign_2026-09-22" / "src"
+
+
+def _bs():
+    if "bs" not in _CLASSIFIER:
+        if str(HERE) not in sys.path:
+            sys.path.insert(0, str(HERE))
+        import build_site  # noqa: PLC0415  (lazy: only the IE jobs report needs the edition rule)
+
+        _CLASSIFIER["bs"] = build_site
+        _CLASSIFIER["places"] = (*build_site.place_words(REDESIGN_SRC), build_site.ni_place_words(REDESIGN_SRC))
+    return _CLASSIFIER["bs"]
+
+
+def _as_raw(r: dict) -> dict:
+    """A Strategies jobs record in build_site's raw-job shape (what sterling_twins / sterling_correction read)."""
+    return {"id": r.get("source_id"), "slug": "", "title": r.get("title"), "employer": r.get("_employer") or "",
+            "location": r.get("location"), "region": r.get("region") or "", "summary": r.get("summary") or "",
+            "currency": r.get("currency"), "salary_min": r.get("sal_min"), "salary_max": r.get("sal_max"),
+            "salary_text": r.get("sal_text") or "", "period": r.get("period"), "posted": (r.get("posted_at") or "")[:10]}
+
+
+def sterling_twin_index(uk_records: list[dict]) -> dict:
+    """build_site.sterling_twins() over the UK site's Strategies jobs (same keys: id, slug, title + employer)."""
+    idx: dict = {}
+    for r in uk_records:
+        j = _as_raw(r)
+        if j["currency"] != "GBP" or not isinstance(j["salary_min"], (int, float)) and not isinstance(j["salary_max"], (int, float)):
+            continue
+        for key in (f"id:{str(j['id'] or '').strip()}",
+                    f"te:{str(j['title'] or '').strip().lower()}|{str(j['employer'] or '').strip().lower()}"):
+            if not key.endswith((":", "|")):
+                idx.setdefault(key, []).append(j)
+    return idx
+
+
+def apply_sterling_rule(records: list[dict], twins: dict) -> dict[str, int]:
+    """The staging seed's rule (build_site.sterling_correction): a role on the IE board whose location classes as UK
+    and whose salary reads EUR (Strategies relabels the UK site's sterling figures, or the currency defaulted to the
+    site) takes its greenjobs.co.uk twin's GBP figures when a twin with the same numbers exists. An explicit GBP
+    cell stays GBP. Without a twin the euros stay (never invent sterling). Returns counts for the summary."""
+    bs = _bs()
+    ie_p, uk_p, ni_p = _CLASSIFIER["places"]
+    out = {"uk_roles": 0, "kept_gbp": 0, "restored_gbp": 0, "eur_unverified": 0}
+    for r in records:
+        j = _as_raw(r)
+        if bs.loc_class(j, ie_p, uk_p, "ie", ni_p) != "uk":
+            continue
+        out["uk_roles"] += 1
+        if j["currency"] == "GBP":
+            out["kept_gbp"] += 1
+            continue
+        fix = bs.sterling_correction(j, "uk", twins)
+        if fix:
+            r.update(sal_min=fix["salary_min"], sal_max=fix["salary_max"], currency="GBP",
+                     sal_text=fix["salary_text"] or r.get("sal_text"), period=fix.get("period") or r.get("period"))
+            out["restored_gbp"] += 1
+        elif j["currency"] == "EUR" and (j["salary_min"] is not None or j["salary_max"] is not None):
+            out["eur_unverified"] += 1
+    return out
+
+
+def text_currency(text) -> str | None:
+    """GBP / EUR when a salary text names exactly one currency (sign or word), else None."""
+    s = str(text or "").lower()
+    gbp = "£" in s or re.search(r"\b(gbp|stg|sterling)\b", s) is not None
+    eur = "€" in s or re.search(r"\b(eur|euros?)\b", s) is not None
+    return "GBP" if gbp and not eur else ("EUR" if eur and not gbp else None)
+
+
 def stable_id(site: str, sid: str) -> str:
     return f"{site}:strat:{sid}"
 
@@ -655,11 +728,26 @@ def join_name(*parts) -> str | None:
     return s or None
 
 
+def _old_platform(url: str) -> bool:
+    """validate_site.is_old_platform_url (one rule with build_site and the Worker's oldplatform.js)."""
+    here = str(Path(__file__).resolve().parent)
+    if here not in sys.path:
+        sys.path.insert(0, here)
+    import validate_site  # noqa: PLC0415  (stdlib-only module; imported late so this script stays standalone)
+
+    return validate_site.is_old_platform_url(url)
+
+
 def apply_fields(v: dict, ctx: Ctx) -> dict:
     """jobs.apply_mode: 'link' when the row has an https apply URL (convert() already refused http,
     javascript: and data:), else 'email' (apply_email, or NULL = the Worker's APPLY_ROUTING default).
     Exactly one target per mode: a row with both keeps the link and drops the email (warning, no value)."""
     url, email = v.get("apply_url"), v.get("apply_email")
+    if url and _old_platform(url):
+        # Import-time guard (eye review 2026-11-20 M3): a link into the retired Strategies platform (greenjobs.*
+        # *.asp, strategies hosts) dies with it; the job applies by email (its own address, else the default inbox).
+        ctx.warn("apply_url", "apply_url_old_platform_email_mode", "")
+        return {"apply_mode": "email", "apply_email": email, "apply_url": None}
     if url:
         if email:
             ctx.warn("apply_email", "apply_email_dropped_link_mode", "")
@@ -755,7 +843,9 @@ def build(report: str, rep: dict, v: dict, ctx: Ctx, aux: dict) -> dict:
             sal_min = sal_max = None
         cur = CURRENCY_MAP.get((v.get("currency") or "").strip().lower().lstrip("'"))
         if cur is None and (sal_min is not None or sal_max is not None):
-            cur = SITE_CURRENCY[site]
+            # the advert's own salary text names its currency ("£55k - £60k" on a UK role on the IE board stays
+            # sterling); only a text with no sign takes the site's currency
+            cur = text_currency(v.get("sal_text")) or SITE_CURRENCY[site]
         period = PERIOD_MAP.get(re.sub(r"[^a-z]", "", (v.get("period") or "").lower()))
         closing = v.get("closing")
         status = "live" if closing and closing[:10] >= ctx.as_of.isoformat() else "closed"
@@ -1146,6 +1236,8 @@ def build_parser() -> argparse.ArgumentParser:
                     "candidates/profiles/applications are never written to D1 (raw archive only)")
     ap.add_argument("--profiles-csv", action="append", default=[],
                     help="candidates + config categories: the profile report that holds each candidate's sectors")
+    ap.add_argument("--uk-jobs-csv", action="append", default=[],
+                    help="--site ie jobs: the UK site's jobs report; a UK role on the IE board takes its twin's GBP figures")
     ap.add_argument("--include-closed", action="store_true", help="jobs: also emit closed jobs (default: live only)")
     ap.add_argument("--taxonomy", help="jobs: frozen taxonomy JSON (default platform_worker/src/taxonomy.json if present)")
     ap.add_argument("--report-out")
@@ -1302,6 +1394,18 @@ def run(args: argparse.Namespace) -> tuple[int, dict]:
                                  "evidence": "no --jobs-csv/--known-job-ids"})
 
     result = process(args.report, inputs, mapping, ctx, aux, done)
+    sterling = None
+    if args.report == "jobs" and args.site == "ie":
+        twins: dict = {}
+        if args.uk_jobs_csv:
+            sub = Ctx(site="uk", report="jobs", as_of=as_of, cutoff_iso=ctx.cutoff_iso,
+                      date_formats=mapping["date_formats"], taxonomy_path=args.taxonomy)
+            res = process("jobs", [check_input(c) for c in args.uk_jobs_csv], mapping, sub, {"expect_site_tag": None}, set())
+            twins = sterling_twin_index(res["records"])
+            reference["uk_jobs"] = {"kept": len(res["records"]), "rejected": len(sub.rejects)}
+        sterling = apply_sterling_rule(result["records"], twins)
+    elif args.uk_jobs_csv:
+        raise UsageError("--uk-jobs-csv applies to --site ie --report jobs only (the sterling twins)")
     rows_in = sum(f["rows_in"] for f in result["files"])
     gate_failures = []
     for f in result["files"]:
@@ -1340,6 +1444,8 @@ def run(args: argparse.Namespace) -> tuple[int, dict]:
                   "allow_low_yield": args.allow_low_yield, "failures": gate_failures},
         "rejects": ctx.rejects, "warnings": ctx.warnings, "sql_written": False,
     }
+    if sterling is not None:
+        summary["sterling"] = sterling
     if sql_out and status == "ok":
         now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         t3 = load_named(DEFAULT_UPSERTS_0003) if args.report == "jobs" else None

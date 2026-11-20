@@ -487,3 +487,7 @@ page flow (URLs, field names, option labels): `strategies_export_config.json` ne
   a7664723): Worker pages carry the tag only on production hosts; `_headers` adds only the GA4 origins in
   analytics builds; JS budget 132 KB. Tests: `platform/board_wiring.test.mjs`, parity (live set == build_site
   dataset + chart figures), `src/js/api.test.js`, `test_analytics.py`, smoke `live_wiring`.
+
+## Staging seed (2026-11-20)
+
+Staging D1 and the static staging boards are seeded from one normalised set by `staging_seed.py`: current Gaia jobs, plus the September jobs re-based to the seed date and flagged [Test data]. The rules and the reasons for that choice are in `directives/gtm_client_workflows/staging_seed.md`.

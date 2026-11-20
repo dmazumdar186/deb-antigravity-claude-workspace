@@ -18,7 +18,7 @@
 </div>
 {{sits}}
 <div class="job__sticky" data-sticky-apply>{{sal_sticky}}<a class="btn btn--lime" href="{{apply_url}}" rel="{{apply_rel}}" data-apply{{apply_ev}} data-ev-job="{{id}}" data-ev-employer="{{employer}}" data-ev-sector="{{sector}}" data-ev-region="{{region}}">{{apply_label}}<span class="arw" aria-hidden="true">→</span></a></div>
-<section class="band--alt similar" aria-labelledby="h-sim">
+<section class="band--alt similar" aria-labelledby="h-sim"{{similar_hidden}}>
   <div class="wrap">
     <div class="sec-head"><div><h2 id="h-sim" style="font-size:clamp(1.5rem,1.2rem + 1.4vw,2.2rem)">Similar roles</h2><p>Same sector first, then the same area, then similar pay.</p></div><a class="btn btn--ghost btn--sm" href="{{sector_link}}">All {{sector}} roles<span class="arw" aria-hidden="true">→</span></a></div>
     <div class="roles">{{similar}}</div>

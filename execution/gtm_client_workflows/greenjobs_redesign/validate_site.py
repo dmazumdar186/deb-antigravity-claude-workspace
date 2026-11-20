@@ -30,6 +30,7 @@ import re
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 FORBIDDEN = [
     (r"\bAI\b", "AI"),
@@ -132,6 +133,26 @@ class _Doc(HTMLParser):
             self.dataset_blocks[-1] += data
         if self._in_title:
             self.title_text += data
+
+
+# Links into the retired Strategies platform (eye review 2026-11-20 M3); build_site.is_old_platform_url is this.
+_OLD_BOARD_HOST_RE = re.compile(r"(?:www\.)?greenjobs\.(?:ie|co\.uk)", re.I)
+_OLD_STRATEGIES_HOST_RE = re.compile(r"(?:^|.*\.)(?:strategiesuk\.net|strategies\.co\.uk|strategies\.net)", re.I)
+_OLD_PATH_RE = re.compile(r"(?:\.asp(?:$|[?#])|^/browse-jobs/|^/jobboard/)", re.I)
+
+
+def is_old_platform_url(url: Any) -> bool:
+    """True for a URL on the retired Strategies platform (see above)."""
+    try:
+        u = urlsplit(str(url or ""))
+    except ValueError:
+        return False
+    host = (u.hostname or "").lower()
+    if not host:
+        return False
+    if _OLD_STRATEGIES_HOST_RE.fullmatch(host):
+        return True
+    return bool(_OLD_BOARD_HOST_RE.fullmatch(host)) and bool(_OLD_PATH_RE.search(u.path + (f"?{u.query}" if u.query else "")))
 
 
 def _is_local(value: str) -> bool:
@@ -324,6 +345,9 @@ def validate(site: Path, jobs_by_edition: dict[str, list[dict[str, Any]]], data_
                 continue
             if stripped.startswith("/"):
                 fails.append(f"{rel}: absolute path {attr}=\"{stripped}\" (relative paths only)")
+                continue
+            if is_old_platform_url(stripped):
+                fails.append(f"{rel}: {attr}=\"{stripped[:80]}\" links into the retired Strategies platform")
                 continue
             if not _is_local(stripped):
                 if tag in THIRD_PARTY_TAGS:
@@ -520,12 +544,28 @@ def main(argv: list[str] | None = None) -> int:
     if marker.read_text(encoding="utf-8").strip() != build_site.site_tree_sha(site):
         print(f"FAIL  {marker.name} does not match the site tree (files changed after the build); rebuild before deploying", file=sys.stderr)
         return 1
+    # a --data-dir build (staging seed) names its dataset + date; the hashes must still match the files
+    rec_file = site / build_site.DATASET_RECORD
+    data_dir, today = src / "data", None
+    if rec_file.is_file():
+        import hashlib
+        from datetime import date
+        rec = json.loads(rec_file.read_text(encoding="utf-8"))
+        d = Path(rec["data_dir"])
+        data_dir = d if d.is_absolute() else Path(__file__).resolve().parents[3] / d
+        today = date.fromisoformat(rec["today"]) if rec.get("today") else None
+        for ed_key, want in sorted((rec.get("sha256") or {}).items()):
+            f = data_dir / f"{ed_key}.json"
+            if not f.is_file() or hashlib.sha256(f.read_bytes()).hexdigest() != want:
+                print(f"FAIL  {rec_file.name}: {ed_key}.json in {rec['data_dir']} is missing or changed since the build; rebuild before deploying", file=sys.stderr)
+                return 1
     data_by_ed = {}
     for ed_key in ("ie", "uk"):
-        path = src / "data" / f"{ed_key}.json"
+        path = data_dir / f"{ed_key}.json"
         if path.exists() and (site / ed_key).is_dir():
             raw = json.loads(path.read_text(encoding="utf-8"))
-            data_by_ed[ed_key] = build_site.normalise(raw, ed_key, src, src / "assets" / "logos", build_site.build_today(raw, None))
+            data_by_ed[ed_key] = build_site.normalise(raw, ed_key, src, src / "assets" / "logos", build_site.build_today(raw, today),
+                                                      data_dir if rec_file.is_file() else None)
     # a --stats-json build (staging) embeds the deployed Worker's KPIs; its record is part of the hashed tree
     overlay_file = site / build_site.STATS_OVERLAY
     overlay = json.loads(overlay_file.read_text(encoding="utf-8")) if overlay_file.is_file() else None

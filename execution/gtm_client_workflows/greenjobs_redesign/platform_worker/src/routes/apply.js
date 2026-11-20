@@ -9,6 +9,8 @@ import { inboxFor } from '../site.js';
 import { err, intVar, json, nowIso, sha256Hex, todayUtc, clientIp } from '../util.js';
 import { cvKey, checkRenderTs, isValidEmail, normEmail, safeParam, sniffCv, validateApplication } from '../validate.js';
 import { SQL_AUDIT } from './admin.js';
+import { liveWhere } from '../live.js';
+import { isOldPlatformUrl } from '../oldplatform.js';
 
 const SQL_APP_INSERT = `INSERT INTO applications (id, site, source, source_id, job_id, candidate_id, applicant_name, applicant_email, phone, cover_note, cv_key, routed_to, delivery_status, dedupe_key, submitted_at, created_at, updated_at)
 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?16)
@@ -38,7 +40,8 @@ export function routeApplication(env, site, job) {
 
 /** True when the job applies on an external ATS ('url' is the pre-migration-0001 spelling). */
 export function isLinkMode(job) {
-  return job.apply_mode === 'link' || job.apply_mode === 'url';
+  // A link into the retired Strategies platform is treated as email mode (the job's address, else the inbox).
+  return (job.apply_mode === 'link' || job.apply_mode === 'url') && !isOldPlatformUrl(job.apply_url);
 }
 
 function field(form, name) {
@@ -84,7 +87,7 @@ export async function apply(ctx) {
   if (!jid.ok) return err('invalid_id', 400, cors);
   const job = await env.DB.prepare(
     `SELECT id, site, title, apply_mode, apply_email, apply_url FROM jobs
-     WHERE id = ?1 AND site = ?2 AND status = 'live' AND (closing_at IS NULL OR closing_at >= ?3)`,
+     WHERE id = ?1 AND site = ?2 AND ${liveWhere('', '?3')}`,
   )
     .bind(jid.value, site, todayUtc(now))
     .first();

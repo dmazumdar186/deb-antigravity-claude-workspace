@@ -87,7 +87,8 @@ def test_every_home_and_dashboard_figure_is_marked(built):
     for ed in ("ie", "uk"):
         dash = (plain / ed / "dashboard" / "index.html").read_text(encoding="utf-8")
         keys = [k for k, _ in MARK.findall(dash)]
-        assert keys == [f"kpis.{k}" for k in build_site.DASH_TILE_KEYS], keys
+        assert [k for k in keys if k.startswith("kpis.")] == [f"kpis.{k}" for k in build_site.DASH_TILE_KEYS], keys
+        assert [k for k in keys if not k.startswith("kpis.")] == ["salary.n_jobs"], keys  # the shell footer count
         live = re.findall(r'<b class="kpi__v num"[^>]*>', dash.split("data-wired")[0])
         assert len(live) == 8 and all("data-stat=" in t for t in live)
         home = (plain / ed / "index.html").read_text(encoding="utf-8")
@@ -102,8 +103,15 @@ def test_every_home_and_dashboard_figure_is_marked(built):
         assert (
             len(re.findall(r'data-live="[a-z_]+"', home))
             == len(MARK.findall(home))
-            == 9
+            == 10
         )
+        # the jobs page: the intro "N green roles" and the quick-match "N live roles are indexed" (+ the footer)
+        jobs = (plain / ed / "jobs" / "index.html").read_text(encoding="utf-8")
+        assert [k for k, _ in MARK.findall(jobs)] == ["salary.n_jobs"] * 3
+        # every data-live figure on any page carries its stats path (one source: the overlay writes them all)
+        for f in (plain / ed).rglob("*.html"):
+            raw = f.read_text(encoding="utf-8")
+            assert len(re.findall(r'data-live="[a-z_]+"', raw)) <= len(MARK.findall(raw)), f
 
 
 def test_stats_json_build_prints_the_api_figures_and_smoke_agrees(built):
@@ -130,7 +138,7 @@ def test_stats_json_build_prints_the_api_figures_and_smoke_agrees(built):
     pages = {
         f"/{ed}/{p}": (filled / ed / (p + "index.html")).read_text(encoding="utf-8")
         for ed in ("ie", "uk")
-        for p in ("", "dashboard/")
+        for p in ("", "dashboard/", "jobs/")
     }
 
     def transport(method, url, headers, body):
@@ -145,7 +153,7 @@ def test_stats_json_build_prints_the_api_figures_and_smoke_agrees(built):
     s = smoke.Smoke(cfg, "staging", "full", "0" * 40, transport=transport)
     for ed in ("ie", "uk"):
         n, bad = s.compare_figures("https://board.example", ed, stats[ed])
-        assert n == 8 + 9 and bad == [], (ed, n, bad)
+        assert n == (8 + 1) + 10 + 3 and bad == [], (ed, n, bad)
         n, bad = s.compare_figures(
             "https://board.example",
             ed,

@@ -56,6 +56,46 @@ class FakeCF:
         assert (
             "CLOUDFLARE_API_TOKEN" in env and env["CLOUDFLARE_API_TOKEN"] == "tok-test"
         )
+        if "staging_seed.py" in line and not (self.fail_on and self.fail_on in line):
+            # stand-in for staging_seed.py: the three outputs release.seed() reads, in the real upsert form
+            out = Path(argv[argv.index("--out") + 1])
+            out = out if out.is_absolute() else Path(release.ROOT) / out
+            (out / "data").mkdir(parents=True, exist_ok=True)
+            for s in ("ie", "uk"):
+                (out / "data" / f"{s}.json").write_text("{}", encoding="utf-8")
+            ss = release._staging_seed_module()
+            emp = ss._upsert(
+                "employers",
+                {"id": "ie:seed-emp-acme", "site": "ie", "name": "Acme"},
+                "id",
+            )
+            job = ss._upsert(
+                "jobs",
+                {
+                    "id": "ie:seed:1",
+                    "site": "ie",
+                    "title": "Ecologist",
+                    "apply_mode": "email",
+                    "apply_email": None,
+                    "apply_url": None,
+                    "status": "live",
+                    "created_by": "staging-seed",
+                },
+                "id",
+            )
+            (out / "seed.sql").write_text(f"-- seed\n{emp}\n{job}\n", encoding="utf-8")
+            seed_date = argv[argv.index("--seed-date") + 1]
+            (out / "manifest.json").write_text(
+                json.dumps(
+                    {
+                        "env": "staging",
+                        "seed_date": seed_date,
+                        "counts": {"ie": {"jobs": 1}},
+                    }
+                ),
+                encoding="utf-8",
+            )
+            return 0, "ok"
         if self.fail_on and self.fail_on in line:
             return 1, "boom"
         if " deploy " in f" {line} " and "wrangler" in line and "pages" not in line:
@@ -322,7 +362,7 @@ def test_stage_execute_records_versions(cfg, tmp_path, no_toml_placeholders):
     assert order.index(next(c for c in order if "schema.sql" in c)) < order.index(
         next(c for c in order if "migrations apply" in c)
     )
-    assert any("seed_staging.sql" in c for c in order)
+    assert any("staging_seed/seed.sql" in c and "d1 execute" in c for c in order)
     rows = release.read_ledger(tmp_path / "ledger")
     assert rows[-1]["event"] == "deploy" and rows[-1]["sha"] == SHA
     assert (tmp_path / "ledger" / "summary.md").read_text(encoding="utf-8").count(
@@ -679,3 +719,108 @@ def test_check_config_pins_the_uk_worker(cfg, tmp_path, mutate, needle):
     problems = release.check_wrangler_toml(cfg, "staging", t)
     assert any(needle in p and "staging-uk" in p for p in problems), problems
     assert release.check_wrangler_toml(cfg, "staging") == []
+# ── staging seed via staging_seed.py (eye review 2026-11-20; STAGING_FLAGS_NOTE.md section 2) ────────────
+
+
+def test_stage_seeds_from_gaia_and_staging_seed_then_builds_with_the_same_data(
+    cfg, tmp_path, no_toml_placeholders
+):
+    fake = FakeCF()
+    rel, fake = mk(resolved(cfg), "staging", tmp_path, fake)
+    rel.environ["GREENJOBS_SEED_DATE"] = "2026-11-20"
+    rec = rel.stage()
+    order = [" ".join(c) for c in fake.calls]
+    i_feed = next(i for i, c in enumerate(order) if "gaia_feed_sync.py --no-jev" in c)
+    i_seed = next(
+        i
+        for i, c in enumerate(order)
+        if "staging_seed.py --env staging --seed-date 2026-11-20" in c
+    )
+    i_d1 = next(
+        i
+        for i, c in enumerate(order)
+        if "d1 execute" in c and "staging_seed/seed.sql" in c
+    )
+    i_build = next(i for i, c in enumerate(order) if "build_site.py" in c)
+    assert i_feed < i_seed < i_d1 < i_build
+    builds = [c for c in fake.calls if "build_site.py" in " ".join(c)]
+    for b in builds:
+        assert b[b.index("--today") + 1] == "2026-11-20"
+        assert b[b.index("--data-dir") + 1].endswith("staging_seed/data")
+    assert rec["seed"]["seed_date"] == "2026-11-20"
+    assert not any(
+        "seed_staging.sql" in c for c in order
+    )  # the old INSERT OR IGNORE snapshot seed is gone
+
+
+def test_stage_refuses_an_unsafe_seed_file(cfg, tmp_path, no_toml_placeholders):
+    class Bad(FakeCF):
+        def runner(self, argv, env):
+            code, out = super().runner(argv, env)
+            if "staging_seed.py" in " ".join(argv):
+                f = Path(argv[argv.index("--out") + 1]) / "seed.sql"
+                f.write_text("DELETE FROM jobs;\n", encoding="utf-8")
+            return code, out
+
+    rel, fake = mk(resolved(cfg), "staging", tmp_path, Bad())
+    with pytest.raises(release.GateError):
+        rel.stage()
+    assert not any(
+        "d1 execute" in " ".join(c) and "seed.sql" in " ".join(c) for c in fake.calls
+    )
+
+
+def test_assert_seed_safe_accepts_the_upsert_file_and_refuses_bad_rows():
+    ss = release._staging_seed_module()
+    ok_job = ss._upsert(
+        "jobs",
+        {
+            "id": "ie:seed:1",
+            "site": "ie",
+            "apply_mode": "email",
+            "apply_email": None,
+            "apply_url": None,
+            "status": "live",
+            "created_by": "staging-seed",
+        },
+        "id",
+    )
+    close = (
+        "UPDATE jobs SET status = 'closed', closed_at = 'x', updated_at = 'x' WHERE created_by IN "
+        "('staging-seed', 'staging-seed-test') AND status <> 'closed' AND id NOT IN (SELECT value FROM json_each('[]'));"
+    )
+    release.assert_seed_safe(f"-- c\n{ok_job}\n{close}\n")
+    with pytest.raises(release.GateError):  # a stored apply address
+        release.assert_seed_safe(
+            ok_job.replace("'email', NULL", "'email', 'a@b.ie'") + "\n"
+        )
+    with pytest.raises(release.GateError):  # a link into the retired platform
+        release.assert_seed_safe(
+            ss._upsert(
+                "jobs",
+                {
+                    "id": "ie:seed:2",
+                    "apply_mode": "link",
+                    "apply_email": None,
+                    "apply_url": "https://www.greenjobs.ie/jobs/1/x.asp",
+                },
+                "id",
+            )
+            + "\n"
+        )
+    with pytest.raises(release.GateError):  # an unscoped close
+        release.assert_seed_safe("UPDATE jobs SET status = 'closed' WHERE 1;\n")
+    with pytest.raises(release.GateError):  # personal data
+        release.assert_seed_safe(
+            ss._upsert("employers", {"id": "e", "contact_email": "x"}, "id") + "\n"
+        )
+
+
+def test_production_never_gets_seed_data(cfg, tmp_path, no_toml_placeholders):
+    rel, fake = mk(resolved(cfg), "production", tmp_path, execute=False)
+    rel.seed()  # seed_public_jobs is false: a no-op
+    assert not any("staging_seed" in l or "gaia_feed_sync" in l for l in rel.log)
+    rel.seed_data_dir, rel.seed_date = tmp_path / "data", "2026-11-20"
+    with pytest.raises(release.GateError):
+        rel.deploy_boards()
+    assert cfg["envs"]["production"]["seed_public_jobs"] is False

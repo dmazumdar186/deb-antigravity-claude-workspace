@@ -318,9 +318,10 @@ export function similarJobs(j, jobs, edCur = '', limit = 4) {
   for (const o of pre) {
     if (o.id === j.id) continue;
     const k = key(o);
-    if (seen.has(k) || !(o.sectors || []).some((s) => mySectors.has(s))) continue;
+    const sharesSector = (o.sectors || []).some((s) => mySectors.has(s));
+    if (seen.has(k) || !(sharesSector || (o.regions || []).some((r) => myRegions.has(r)))) continue; // sector or region (eye M5)
     seen.add(k);
-    let score = o.sectors[0] === j.sectors[0] ? 4 : 1.5;
+    let score = o.sectors && o.sectors.length && j.sectors && j.sectors.length && o.sectors[0] === j.sectors[0] ? 4 : sharesSector ? 1.5 : 0;
     if ((o.regions || []).some((r) => myRegions.has(r))) score += 2;
     if (o.loc_class === j.loc_class) score += 0.5;
     const theirs = annualMid(o, edCur);
