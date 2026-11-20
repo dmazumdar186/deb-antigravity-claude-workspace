@@ -63,3 +63,4 @@ M1–M11 and E1–E3 as in SYNTHESIS §4, with the CPO and CDO additions. Graded
   - Wed 25 Nov: candidate records, sector sites (default: forward), logos.
   - Fri 27 Nov: the 11 change-list inputs, the CRM, test-site sign-off.
 - Change-list inputs received after go-live are applied within two business days (Proposal:140).
+- Jobs posted on Strategies up to the switch are not lost: a final jobs-only export and import runs on Thu 3 Dec immediately before the web records switch. The full export still finishes on Wed 2 Dec. Advertisers therefore need no posting freeze or cut-off hour.
