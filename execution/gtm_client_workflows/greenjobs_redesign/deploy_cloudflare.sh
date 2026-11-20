@@ -51,10 +51,10 @@ STAGE="$ROOT/.tmp/cloudflare-deploy-stage"
 rm -rf "$STAGE"
 mkdir -p "$STAGE"
 if command -v rsync >/dev/null 2>&1; then
-  rsync -a --exclude='.greenjobs-build' --exclude='.greenjobs-build-ok' --exclude='_shot-*' "$SITE"/ "$STAGE"/
+  rsync -a --exclude='.greenjobs-build' --exclude='.greenjobs-build-ok' --exclude='.greenjobs-dataset.json' --exclude='_shot-*' "$SITE"/ "$STAGE"/
 else
   cp -R "$SITE"/. "$STAGE"/
-  find "$STAGE" \( -name '.greenjobs-build' -o -name '.greenjobs-build-ok' -o -name '_shot-*' \) -print0 | xargs -0 -r rm -f
+  find "$STAGE" \( -name '.greenjobs-build' -o -name '.greenjobs-build-ok' -o -name '.greenjobs-dataset.json' -o -name '_shot-*' \) -print0 | xargs -0 -r rm -f
 fi
 
 $WRANGLER pages deploy "$STAGE" --project-name "$PROJECT" --branch main --commit-dirty=true

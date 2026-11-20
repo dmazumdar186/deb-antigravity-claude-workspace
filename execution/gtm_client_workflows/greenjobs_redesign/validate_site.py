@@ -544,12 +544,28 @@ def main(argv: list[str] | None = None) -> int:
     if marker.read_text(encoding="utf-8").strip() != build_site.site_tree_sha(site):
         print(f"FAIL  {marker.name} does not match the site tree (files changed after the build); rebuild before deploying", file=sys.stderr)
         return 1
+    # a --data-dir build (staging seed) names its dataset + date; the hashes must still match the files
+    rec_file = site / build_site.DATASET_RECORD
+    data_dir, today = src / "data", None
+    if rec_file.is_file():
+        import hashlib
+        from datetime import date
+        rec = json.loads(rec_file.read_text(encoding="utf-8"))
+        d = Path(rec["data_dir"])
+        data_dir = d if d.is_absolute() else Path(__file__).resolve().parents[3] / d
+        today = date.fromisoformat(rec["today"]) if rec.get("today") else None
+        for ed_key, want in sorted((rec.get("sha256") or {}).items()):
+            f = data_dir / f"{ed_key}.json"
+            if not f.is_file() or hashlib.sha256(f.read_bytes()).hexdigest() != want:
+                print(f"FAIL  {rec_file.name}: {ed_key}.json in {rec['data_dir']} is missing or changed since the build; rebuild before deploying", file=sys.stderr)
+                return 1
     data_by_ed = {}
     for ed_key in ("ie", "uk"):
-        path = src / "data" / f"{ed_key}.json"
+        path = data_dir / f"{ed_key}.json"
         if path.exists() and (site / ed_key).is_dir():
             raw = json.loads(path.read_text(encoding="utf-8"))
-            data_by_ed[ed_key] = build_site.normalise(raw, ed_key, src, src / "assets" / "logos", build_site.build_today(raw, None))
+            data_by_ed[ed_key] = build_site.normalise(raw, ed_key, src, src / "assets" / "logos", build_site.build_today(raw, today),
+                                                      data_dir if rec_file.is_file() else None)
     # a --stats-json build (staging) embeds the deployed Worker's KPIs; its record is part of the hashed tree
     overlay_file = site / build_site.STATS_OVERLAY
     overlay = json.loads(overlay_file.read_text(encoding="utf-8")) if overlay_file.is_file() else None

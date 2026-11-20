@@ -445,3 +445,28 @@ def test_strategies_import_posted_date_and_old_platform_apply(capsys, tmp_path):
     )  # no Email: the site default inbox
     assert got["7103"][:3] == ("link", None, "https://ats.example.com/7103")
     assert all(v[3] != "2026-11-07" for v in got.values())
+
+
+def test_deploy_gate_validates_a_seed_build_against_its_own_dataset(seeded):
+    """deploy_cloudflare.sh re-runs validate_site.py on the built tree: a --data-dir build records its dataset + date
+    (.greenjobs-dataset.json, inside the tree sha) so the gate checks it against the same set, not src/data; a re-seed
+    after the build fails the gate (the hashes pin the files)."""
+    import shutil
+
+    out, _ = seeded
+    data = REPO / ".tmp" / "test_seed_gate_data"
+    shutil.rmtree(data, ignore_errors=True)
+    shutil.copytree(out / "data", data)
+    site = REPO / ".tmp" / "test_seed_gate_site"
+    try:
+        assert bs.build(SRC, site, editions=["ie", "uk"], data_dir=data, today=SEED, board_site="ie") == 0
+        rec = json.loads((site / bs.DATASET_RECORD).read_text(encoding="utf-8"))
+        assert rec["today"] == SEED.isoformat() and rec["data_dir"] == ".tmp/test_seed_gate_data"
+        assert vs.main([str(site)]) == 0
+        (data / "ie.json").write_text((data / "ie.json").read_text(encoding="utf-8") + " ", encoding="utf-8")
+        assert vs.main([str(site)]) == 1
+        sh = (CODE / "deploy_cloudflare.sh").read_text(encoding="utf-8")
+        assert sh.count(".greenjobs-dataset.json") == 2  # never deployed
+    finally:
+        shutil.rmtree(site, ignore_errors=True)
+        shutil.rmtree(data, ignore_errors=True)

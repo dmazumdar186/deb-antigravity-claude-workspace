@@ -53,6 +53,7 @@ import validate_site  # noqa: E402
 MARKER = ".greenjobs-build"
 OK_MARKER = ".greenjobs-build-ok"  # written only after validate passes; holds the sha256 of the site tree (deploy gate)
 PROJECT = "greenjobs_redesign_2026-09-22"
+DATASET_RECORD = ".greenjobs-dataset.json"  # --data-dir builds: which dataset + date the pages came from (validate_site re-reads it; never deployed)
 STATS_OVERLAY = ".greenjobs-stats.json"  # --stats-json builds: the /api/stats bodies written into the data-stat slots
 
 EDITIONS = {
@@ -2941,6 +2942,13 @@ def load_templates(src: Path) -> dict[str, str]:
     return {p.stem: p.read_text(encoding="utf-8") for p in (src / "templates").glob("*.html")}
 
 
+def dataset_ref(data_dir: Path) -> str:
+    """A --data-dir as the dataset record stores it: repo-relative when inside the repo (portable), else absolute."""
+    repo = Path(__file__).resolve().parents[3]
+    d = data_dir.resolve()
+    return str(d.relative_to(repo)) if d.is_relative_to(repo) else str(d)
+
+
 def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = None, site_base: str = "", today: date | None = None,
           board_site: str | None = None, robots_index: bool = False, analytics: str = "off", data_dir: Path | None = None,
           stats: dict[str, dict[str, Any]] | None = None) -> int:
@@ -3115,6 +3123,12 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
     except (OSError, ValueError) as e:
         print(f"FAIL  Pages files (_redirects/_headers): {e}", file=sys.stderr)
         return 1
+    if data_dir is not None:
+        # staging seed builds: the deploy gate (validate_site.py) must check the pages against the SAME dataset and
+        # date, not src/data; the file hashes pin it (a re-seed after the build fails the gate). Inside the tree sha.
+        rec = {"data_dir": dataset_ref(data_dir), "today": today.isoformat() if today else None,
+               "sha256": {k: hashlib.sha256((data_dir / f"{k}.json").read_bytes()).hexdigest() for k in sorted(data_by_ed)}}
+        (out / DATASET_RECORD).write_text(json.dumps(rec, sort_keys=True) + "\n", encoding="utf-8")
     (out / OK_MARKER).write_text(site_tree_sha(out) + "\n", encoding="utf-8")
     print("PASS  all checks green")
     print(f"      {sum(len(d['jobs']) for d in data_by_ed.values())} roles · {pages} pages · css {css / 1024:.1f} KB (budget {validate_site.CSS_BUDGET // 1024}) · js {js / 1024:.1f} KB (budget {validate_site.JS_BUDGET // 1024})")
