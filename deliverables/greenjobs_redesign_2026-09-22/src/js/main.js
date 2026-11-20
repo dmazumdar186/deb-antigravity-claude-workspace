@@ -193,7 +193,7 @@
     if (el) track(el.getAttribute('data-ev'), evProps(el));
   });
   window.GJTrack = track;
-  if (body.getAttribute('data-page') === 'job') { var jv = $('[data-ev="apply_click"][data-ev-job]'); track('job_view', { job_id: jv ? jv.getAttribute('data-ev-job') : '', src_page: window.location.pathname }); }
+  if (body.getAttribute('data-page') === 'job') { var jv = $('a[data-apply][data-ev-job]'); track('job_view', { job_id: jv ? jv.getAttribute('data-ev-job') : '', sector: jv ? jv.getAttribute('data-ev-sector') || '' : '', src_page: window.location.pathname }); }
 
   /* ------------------------------------------------ closed roles (job page) */
   var aside = $('.job__aside[data-closing]');

@@ -20,7 +20,7 @@
     var opener = null;
     var root = doc.documentElement;
     function fit() { root.style.setProperty('--cookie-h', bar.offsetHeight + 'px'); }
-    function save(obj) { store('gj-consent', JSON.stringify(obj)); bar.classList.remove('is-on'); bar.setAttribute('aria-hidden', 'true'); root.removeAttribute('data-cookie-open'); }
+    function save(obj) { store('gj-consent', JSON.stringify(obj)); try { window.dispatchEvent(new Event('gj-consent')); } catch (e) {} bar.classList.remove('is-on'); bar.setAttribute('aria-hidden', 'true'); root.removeAttribute('data-cookie-open'); }
     function openSettings(from) {
       opener = from || doc.activeElement;
       var cur = consent || { essential: true, analytics: false, marketing: false };
@@ -29,7 +29,9 @@
     }
     dlg.addEventListener('close', function () { if (opener && opener.focus && doc.contains(opener)) opener.focus(); });
     dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
-    $('[data-cookie-accept]', bar).addEventListener('click', function () { consent = { essential: true, analytics: false, marketing: false, at: new Date().toISOString() }; save(consent); });
+    $('[data-cookie-accept]', bar).addEventListener('click', function () { consent = { essential: true, analytics: bar.hasAttribute('data-cookie-ga'), marketing: false, at: new Date().toISOString() }; save(consent); });
+    var rj = $('[data-cookie-reject]', bar);
+    if (rj) rj.addEventListener('click', function () { consent = { essential: true, analytics: false, marketing: false, at: new Date().toISOString() }; save(consent); });
     $('[data-cookie-settings]', bar).addEventListener('click', function (e) { openSettings(e.currentTarget); });
     $('form', dlg).addEventListener('submit', function (e) {
       e.preventDefault();

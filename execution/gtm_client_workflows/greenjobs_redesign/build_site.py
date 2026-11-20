@@ -1003,7 +1003,7 @@ def apply_of(j: dict[str, Any]) -> dict[str, Any]:
     return {"apply_mode": "legacy", "apply_url": ""}
 
 
-APPLY_FORM = """<form class="job__apply-form" id="apply-form" method="post" action="/api/apply" enctype="multipart/form-data" data-apply-form>
+APPLY_FORM = """<form class="job__apply-form" id="apply-form" method="post" action="/api/apply" enctype="multipart/form-data" data-apply-form data-ev="apply_submit" data-ev-job="{id}">
 <input type="hidden" name="job_id" value="{id}"><input type="hidden" name="ts" value="" data-apply-ts>
 <div hidden aria-hidden="true"><label>Leave blank <input name="website" tabindex="-1" autocomplete="off"></label></div>
 <label>Name <input name="name" required maxlength="120" autocomplete="name"></label>
@@ -1022,10 +1022,10 @@ def apply_ctx(j: dict[str, Any], domain: str) -> dict[str, str]:
     mode = j.get("apply_mode", "legacy")
     if mode == "link":
         host = urlsplit(j["apply_url"]).hostname or ""
-        return {"apply_url": esc(j["apply_url"]), "apply_rel": "noopener nofollow", "apply_label": f"Apply on {esc(host)}", "apply_form": ""}
+        return {"apply_url": esc(j["apply_url"]), "apply_rel": "noopener nofollow", "apply_label": f"Apply on {esc(host)}", "apply_form": "", "apply_ev": ' data-ev="apply_click"'}
     if mode == "email":
-        return {"apply_url": "#apply-form", "apply_rel": "noopener", "apply_label": f"Apply on {domain}", "apply_form": APPLY_FORM.format(id=esc(j["id"]))}
-    return {"apply_url": esc(j["url"]), "apply_rel": "noopener", "apply_label": f"Apply on {domain}", "apply_form": ""}
+        return {"apply_url": "#apply-form", "apply_rel": "noopener", "apply_label": f"Apply on {domain}", "apply_form": APPLY_FORM.format(id=esc(j["id"])), "apply_ev": ""}
+    return {"apply_url": esc(j["url"]), "apply_rel": "noopener", "apply_label": f"Apply on {domain}", "apply_form": "", "apply_ev": ' data-ev="apply_click"'}
 
 
 def load_clients(src: Path, ed_key: str, logos_dir: Path, jobs: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -2168,6 +2168,39 @@ def hero_bcorp(brief: dict[str, Any], root: str) -> str:
     return f'<img class="hero__bcorp" src="{root}assets/logos/b-corp-logo.svg" alt="{BCORP_ALT}" title="{BCORP_NOTE}" width="{w}" height="{h}">'
 
 
+GA_ID_RE = re.compile(r"^G-[A-Z0-9]{6,14}$")
+
+
+def load_analytics(src: Path, mode: str) -> dict[str, Any]:
+    """Resolve src/analytics.json. mode 'off' (staging, default) -> {} (no tag, meta or script);
+    'production' -> {ed: {ga4, gsc_token, hosts, sitemap_origin}}."""
+    if mode != "production":
+        return {}
+    f = src / "analytics.json"
+    cfg = json.loads(f.read_text(encoding="utf-8")) if f.exists() else {}
+    out: dict[str, Any] = {}
+    for ed_key, e in (cfg.get("editions") or {}).items():
+        if not GA_ID_RE.match(str(e.get("ga4", ""))):
+            raise SystemExit(f"analytics.json: edition {ed_key} has no valid GA4 id")
+        out[ed_key] = {"ga4": e["ga4"], "gsc_token": re.sub(r"[^A-Za-z0-9_-]", "", str(e.get("gsc_token") or "")),
+                       "hosts": list((cfg.get("production_hosts") or {}).get(ed_key, [])), "sitemap_origin": str(e.get("sitemap_origin") or "").rstrip("/")}
+    return out
+
+
+def analytics_ctx(data: dict[str, Any], root: str) -> dict[str, str]:
+    a = (data.get("analytics") or {}).get(data["ed"])
+    if not a:
+        return {"analytics_head": "", "analytics_script": "", "cookie_attr": "", "cookie_reject": "", "cookie_accept": "Accept",
+                "cookie_text": "This site uses only essential storage (your theme, saved roles, and this choice). No tracking."}
+    head = f'<meta name="gj-ga4" content="{esc(a["ga4"])}" data-hosts="{esc(",".join(a["hosts"]))}">'
+    if a["gsc_token"]:
+        head = f'<meta name="google-site-verification" content="{esc(a["gsc_token"])}">' + head
+    return {"analytics_head": head, "analytics_script": f'<script src="{root}js/analytics.js" defer></script>',
+            "cookie_attr": " data-cookie-ga", "cookie_accept": "Accept analytics",
+            "cookie_reject": '<button class="btn" type="button" data-cookie-reject>Essential only</button>',
+            "cookie_text": "We use essential storage, and with your OK Google Analytics to see which pages help. Nothing analytics-related loads until you accept."}
+
+
 def shell_ctx(data: dict[str, Any], depth: int, page: str, title: str, desc: str, *, dark_header: bool = False,
               body_attrs: str = "", brief: dict[str, Any] | None = None, same_path: str = "", site_base: str = "", switch_path: str = "") -> dict[str, str]:
     ed = EDITIONS[data["ed"]]
@@ -2222,6 +2255,7 @@ def shell_ctx(data: dict[str, Any], depth: int, page: str, title: str, desc: str
                            f'<link rel="alternate" hreflang="x-default" href="{esc(ie_url)}">')
     return {
         "head_extra": head_extra,
+        **analytics_ctx(data, root),
         "lang": ed["lang"], "title": esc(title), "desc": esc(desc), "root": root, "home": home, "ed": data["ed"], "ED": ed["short"],
         "domain": esc(data["site"]), "nav": nav, "menu_links": menu_links, "edsw": edsw, "hdr_cls": " hdr--dark" if dark_header else "",
         "body_attrs": body_attrs, "live_api": "1" if LIVE_API else "0", "net_sites": net, "phones": phones, "emails": emails, "bcorp": bcorp, "hdr_bcorp": hdr_bcorp, "social": social,
@@ -2788,7 +2822,7 @@ def load_templates(src: Path) -> dict[str, str]:
 
 
 def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = None, site_base: str = "", today: date | None = None,
-          board_site: str | None = None, robots_index: bool = False) -> int:
+          board_site: str | None = None, robots_index: bool = False, analytics: str = "off") -> int:
     if not src.is_dir():
         print(f"FAIL  source directory not found: {src}", file=sys.stderr)
         return 2
@@ -2800,6 +2834,7 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
     config = json.loads((src / "config.json").read_text(encoding="utf-8")) if (src / "config.json").exists() else {}
     site_base = (site_base or str(config.get("site_base") or "")).rstrip("/") + "/" if (site_base or config.get("site_base")) else ""
     tpl = load_templates(src)
+    ga = load_analytics(src, analytics)
     brief = read_brief(src)
     logos_dir = src / "assets" / "logos"
     for key, name in (("bcorp_size", "b-corp-logo.svg"), ("onepct_size", "1fortheplanet.svg")):
@@ -2821,6 +2856,7 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
             for line in problems:
                 print(f"  - {line}", file=sys.stderr)
             return 2
+        data["analytics"] = ga
         data_by_ed[ed_key] = data
         unresolved = sum(1 for j in data["jobs"] if not any(r in data["region_table"]["regions"] for r in j["regions"]))
         off_map = ", ".join(f"{r['name']} {r['n']}" for r in data["regions"] if not r["on_map"])
@@ -2867,6 +2903,12 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
     for static in ("robots.txt",):
         if (src / static).exists():
             shutil.copy2(src / static, out / static)
+    if ga:  # production: list both editions' sitemaps (Disallow flips at the DNS cutover, a separate decision)
+        extra = "".join(f"\nSitemap: {e['sitemap_origin']}/sitemap.xml\nSitemap: {e['sitemap_origin']}/sitemap-jobs.xml" for e in ga.values() if e["sitemap_origin"])
+        with open(out / "robots.txt", "a", encoding="utf-8") as fh:
+            fh.write(extra + "\n")
+    if not ga:
+        (out / "js" / "analytics.js").unlink(missing_ok=True)
 
     evidence: dict[str, Any] = {}
     for ed_key, data in data_by_ed.items():
@@ -2890,9 +2932,10 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
     if site_base:
         urls = "".join(f"<url><loc>{esc(site_base)}{ed_key}/{p}</loc></url>" for ed_key in data_by_ed for p in PAGES_FOR_SITEMAP)
         urls += "".join(f"<url><loc>{esc(site_base)}{ed_key}/{slug}/index.html</loc></url>" for ed_key, d in data_by_ed.items() for slug in d.get("landings") or [])
-        urls += "".join(f"<url><loc>{esc(site_base)}{ed_key}/jobs/{j['href']}</loc></url>" for ed_key, d in data_by_ed.items() for j in d["jobs"])
+        jobs_urls = "".join(f"<url><loc>{esc(site_base)}{ed_key}/jobs/{j['href']}</loc></url>" for ed_key, d in data_by_ed.items() for j in d["jobs"])
     else:
-        urls = ""
+        urls = jobs_urls = ""
+    (out / "sitemap-jobs.xml").write_text(f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{jobs_urls}</urlset>\n', encoding="utf-8")
     (out / "sitemap.xml").write_text(f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>\n', encoding="utf-8")
 
     # ---- evidence page last (it measures the files written above)
@@ -3063,12 +3106,13 @@ def main() -> int:
                         help="the board domain this build is deployed to: writes its legacy-URL _redirects")
     parser.add_argument("--robots-index", action="store_true", default=os.environ.get("ROBOTS_INDEX") == "1",
                         help="production only: pages index,follow and robots.txt allows crawling (default: noindex; env ROBOTS_INDEX=1)")
+    parser.add_argument("--analytics", choices=["off", "production"], default=os.environ.get("GJ_ANALYTICS", "off"), help="production: GA4 tag + Search Console meta + robots sitemaps (default off = staging)")
     args = parser.parse_args()
     global LIVE_API
     LIVE_API = bool(args.live_api)
     editions = ["ie", "uk"] if args.edition == "both" else [args.edition]
     return build(args.src.resolve(), args.out.resolve(), editions=editions, fixture=args.data_fixture.resolve() if args.data_fixture else None, site_base=args.site_base, today=args.today,
-                 board_site=args.board_site, robots_index=args.robots_index)
+                 board_site=args.board_site, robots_index=args.robots_index, analytics=args.analytics)
 
 
 if __name__ == "__main__":
