@@ -477,3 +477,13 @@ page flow (URLs, field names, option labels): `strategies_export_config.json` ne
   `tests/greenjobs_redesign/test_strategies_import.py` (synthetic fixtures). Header aliases are guesses until the
   first real export.
 - 2026-11-20 (Gaia feed sync): `gaia_feed_sync.py` (wp-json → canonical feed.json + feed.xml, dictionary/title/Jev mapping with review queue, copied-advert dedupe + Jev noul, idempotent outputs, gates), `gaia_feed_mapping.json`, `gaia_feed_eval.py` + hand-labelled E1 (83 jobs) / E2 (1,183 pairs) fixtures, 25 offline tests in `build/run_tests.sh`.
+- 2026-11-20 (boards -> Worker wiring): alert + newsletter forms are live (`src/js/api.js`): `GET /api/config`
+  gives ALERTS_ENABLED / NEWSLETTER_ENABLED; off, unknown or no API = "coming soon", nothing posted; on = JSON POST
+  (Worker CSRF: JSON only + CORS allow-list, honeypot, 5/10 min rate limit, double opt-in), field errors via
+  aria-invalid + aria-describedby. Insights charts and board search read the live set from
+  `GET /api/jobs?view=board` (keyset pages, facets on page 1, edge + sessionStorage cache <= 5 min); the build-time
+  #gj-data stays the no-JS / failure fallback. Staging boards use `--api-base` (environments.json `api_base`);
+  cross-origin sign-ups name the edition with `?site=`, same-origin ones never can. GA4 merged (worktree branch
+  a7664723): Worker pages carry the tag only on production hosts; `_headers` adds only the GA4 origins in
+  analytics builds; JS budget 132 KB. Tests: `platform/board_wiring.test.mjs`, parity (live set == build_site
+  dataset + chart figures), `src/js/api.test.js`, `test_analytics.py`, smoke `live_wiring`.

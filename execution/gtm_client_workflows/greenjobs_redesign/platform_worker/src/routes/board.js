@@ -13,7 +13,7 @@
 
 import { descriptionHtml, stripTags } from '../render/sanitise.js';
 import { TAXONOMY, UNVERIFIED_SOURCE, dashboardKpis, edition, salaryStats, sectorColor, sectorStat, tallies } from '../render/lib.js';
-import { gonePage, jobPage, listPage, sitemap } from '../render/pages.js';
+import { datasetFacets, gonePage, jobPage, listPage, sitemap, slim } from '../render/pages.js';
 import { err, json, SECURITY_HEADERS, todayUtc } from '../util.js';
 import { renderDescription } from '../validate.js';
 
@@ -161,11 +161,11 @@ export async function boardRoute(request, env, hostSite, now) {
   if (kind === 'jobs' && slug) {
     const id = idOfSlug(site, slug);
     const hit = id && jobs.find((j) => j.id === id);
-    if (hit) return htmlResponse(jobPage(hit, jobs, { site, today, canonical: hit.url, indexable }), 200);
+    if (hit) return htmlResponse(jobPage(hit, jobs, { site, today, canonical: hit.url, indexable, reqHost: url.hostname }), 200);
     let gone = null;
     if (id) gone = await env.DB.prepare(`SELECT title, status FROM jobs WHERE id = ?1 AND site = ?2`).bind(id, site).first();
     const status = gone && gone.status !== 'draft' ? 410 : 404;
-    return htmlResponse(gonePage({ site, today, status, title: status === 410 ? gone.title : '', nJobs: jobs.length, indexable }), status);
+    return htmlResponse(gonePage({ site, today, status, title: status === 410 ? gone.title : '', nJobs: jobs.length, indexable, reqHost: url.hostname }), status);
   }
 
   const q = url.searchParams;
@@ -174,7 +174,7 @@ export async function boardRoute(request, env, hostSite, now) {
   let samePath = 'jobs/index.html';
   if (kind === 'sectors') {
     const sec = TAXONOMY.sectors.find((s) => s.slug === slug);
-    if (!sec) return htmlResponse(gonePage({ site, today, status: 404, title: '', nJobs: jobs.length, indexable }), 404);
+    if (!sec) return htmlResponse(gonePage({ site, today, status: 404, title: '', nJobs: jobs.length, indexable, reqHost: url.hostname }), 404);
     filters.sector = sec.name;
     heading = `${sec.name} jobs`;
     samePath = `sectors/${slug}/index.html`;
@@ -187,7 +187,7 @@ export async function boardRoute(request, env, hostSite, now) {
   const tally = tallies(jobs, site);
   const html = listPage({
     site, today, all: jobs, shown, page: pageNo, pages, filters: { ...filters, total: matched.length, ...(kind === 'sectors' ? { sector: '' } : {}) },
-    tally, canonical, indexable, heading, samePath,
+    tally, canonical, indexable, heading, samePath, reqHost: url.hostname,
   });
   return htmlResponse(html, 200);
 }
@@ -220,4 +220,45 @@ export async function statsRoute(env, hostSite, now, url, cors) {
     kpis: dashboardKpis(jobs, t.sectors, t.regions, site, today),
     measures: { applications_30d: null, alert_signups_30d: null, advertiser_enquiries_30d: null },
   }, 200, { ...cors, 'Cache-Control': `public, max-age=60, s-maxage=${CACHE_SECONDS}` });
+}
+
+export const BOARD_PAGE_DEFAULT = 200;
+export const BOARD_PAGE_MAX = 500;
+
+/**
+ * GET /api/jobs?view=board&site=ie|uk[&limit=N][&after=<slug>][&text=0]: the live job set in the static board's
+ * #gj-data shape (slim() rows, newest first, the same live filter and sort as the board pages), so the static
+ * insights charts and board search can read live data instead of the build-time snapshot. Keyset pagination on
+ * the board sort: `next` is the last slug of the page, null at the end; an unknown cursor is 400 (the client
+ * falls back to the build-time data). The first page (no cursor) also carries `facets` (sectors, regions, types,
+ * contracts as build_site.py's dataset_script) and `total`; every page carries `total` so a client can tell the
+ * set changed between pages. Cached at the edge <= 300 s like /api/stats.
+ */
+export async function boardJobsRoute(env, site, now, url, cors) {
+  if (site !== 'ie' && site !== 'uk') return err('invalid_site', 400, cors);
+  const q = url.searchParams;
+  const n = Number.parseInt(q.get('limit') || '', 10);
+  const limit = Number.isFinite(n) ? Math.min(BOARD_PAGE_MAX, Math.max(1, n)) : BOARD_PAGE_DEFAULT;
+  const after = q.get('after');
+  if (after !== null && !SLUG_RE.test(after)) return err('invalid_cursor', 400, cors);
+  const text = q.get('text') !== '0';
+  const today = todayUtc(now);
+  const all = await liveJobs(env, site, today, canonicalOrigin(env, site, url));
+  let start = 0;
+  if (after !== null) {
+    const i = all.findIndex((j) => j.slug === after);
+    if (i < 0) return err('invalid_cursor', 400, cors);
+    start = i + 1;
+  }
+  const page = all.slice(start, start + limit);
+  const next = start + limit < all.length ? page[page.length - 1].slug : null;
+  const body = { site, today, total: all.length, jobs: page.map((j) => slim(j, { publicId: true, text })), next };
+  if (after === null) body.facets = datasetFacets(site, all, tallies(all, site));
+  return json(body, 200, { ...cors, 'Cache-Control': `public, max-age=60, s-maxage=${CACHE_SECONDS}` });
+}
+
+/** GET /api/config?site=: the public feature flags the static boards need before they post anything. */
+export function configRoute(env, site, cors) {
+  return json({ site, alerts: env.ALERTS_ENABLED === '1', newsletter: env.NEWSLETTER_ENABLED === '1' }, 200,
+    { ...cors, 'Cache-Control': 'public, max-age=60, s-maxage=300' });
 }

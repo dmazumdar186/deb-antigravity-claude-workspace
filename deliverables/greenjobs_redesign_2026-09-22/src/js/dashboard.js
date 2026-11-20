@@ -47,10 +47,15 @@
   }
   /* Live figures: GET /api/stats from the platform Worker replaces the build-time payload so the
      dashboard never goes stale; any failure (no Worker on this host, offline) keeps the embedded one. */
-  function fetchStats(ed, timeoutMs) {
+  /* '' = same origin (production); the Worker origin when the board is served elsewhere (staging, data-api-base). */
+  function apiBase(body) {
+    var b = (body && body.getAttribute('data-api-base')) || '';
+    return /^https:\/\/[a-z0-9.-]+$/i.test(b) ? b : '';
+  }
+  function fetchStats(ed, timeoutMs, base) {
     if (typeof fetch !== 'function' || (ed !== 'ie' && ed !== 'uk')) return Promise.resolve(null);
     var timer = new Promise(function (res) { setTimeout(function () { res(null); }, timeoutMs); });
-    var req = fetch('/api/stats?site=' + ed, { credentials: 'omit' })
+    var req = fetch((base || '') + '/api/stats?site=' + ed, { credentials: 'omit' })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (s) { return s && s.site === ed && s.kpis ? s : null; })
       .catch(function () { return null; });
@@ -62,7 +67,7 @@
     var ed = document.body.getAttribute('data-edition');
     // /api/stats only where the platform Worker serves this host (build_site --live-api); else the embedded figures.
     if (document.body.getAttribute('data-live-api') !== '1') { draw(host, src, null); return; }
-    fetchStats(ed, 4000).then(function (s) { draw(host, src, s); });
+    fetchStats(ed, 4000, apiBase(document.body)).then(function (s) { draw(host, src, s); });
   }
   function draw(host, src, s) {
     var C = window.GJCharts, k = s ? s.kpis : JSON.parse(src.textContent), sym = document.documentElement.lang === 'en-GB' ? '£' : '€';

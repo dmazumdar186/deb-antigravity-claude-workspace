@@ -667,6 +667,11 @@ class Release:
                     site,
                     *(["--robots-index"] if self.ec.get("robots_index") else []),
                     *(["--live-api"] if self.ec.get("live_api") else []),
+                    # staging: the Worker is on its own origin (workers.dev); production: same host, no flag
+                    *(["--api-base", self.ec["api_base"][site]] if (self.ec.get("api_base") or {}).get(site) else []),
+                    # GA4 only in production builds; staging stays analytics-free
+                    "--analytics",
+                    "production" if self.ec.get("analytics") == "production" else "off",
                 ],
             )
             self.run(

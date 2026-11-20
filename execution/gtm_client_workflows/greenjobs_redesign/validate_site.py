@@ -7,7 +7,7 @@ description: Structural, accessibility and honesty checks over the built site:
   job-page count equals the dataset length per edition, no forbidden
   vocabulary on public pages (for-keith/ exempt; employer-authored description
   blocks exempt), no third-party requests, fonts self-hosted and preloaded,
-  CSS/JS weight budgets (80 KB / 125 KB), hero footage per edition
+  CSS/JS weight budgets (80 KB / 132 KB), hero footage per edition
   (<ed>.mp4, <ed>-m.mp4, poster; HERO_BUDGET_FILE / HERO_BUDGET_TOTAL),
   canonical + hreflang links absolute with an x-default and every alternate
   target present in the other edition, every landing page carrying at least
@@ -46,7 +46,7 @@ FORBIDDEN = [
 ]
 EXEMPT_RE = re.compile(r"^(?:ie|uk)/for-keith/index\.html$")
 CSS_BUDGET = 80 * 1024
-JS_BUDGET = 125 * 1024
+JS_BUDGET = 132 * 1024  # 2026-11-20: +7 KB for api.js (live job set + alert/newsletter sign-ups) and analytics.js (production builds)
 HERO_BUDGET_FILE = 2 * 1024 * 1024  # per hero file (mp4, portrait mp4, poster)
 HERO_BUDGET_TOTAL = 6 * 1024 * 1024  # every hero file together
 HERO_REQUIRED = ("{ed}.mp4", "{ed}-m.mp4")  # plus a poster: {ed}-poster.webp|jpg

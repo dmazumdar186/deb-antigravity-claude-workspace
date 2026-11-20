@@ -1,0 +1,16 @@
+{
+  "_doc": "GA4 + Search Console per edition. Used only when the build runs with --analytics production (env GJ_ANALYTICS=production). Staging builds emit no tag, no meta, no script. The browser also checks location.hostname against production_hosts, so a production build opened on a staging host still sends nothing. gsc_token: paste the google-site-verification content value to also emit the meta tag (DNS TXT verification needs no token here).",
+  "editions": {
+    "ie": {"ga4": "G-ZQPJGM484J", "gsc_token": "", "sitemap_origin": "https://www.greenjobs.ie"},
+    "uk": {"ga4": "G-ZFW03XQE2N", "gsc_token": "", "sitemap_origin": "https://www.greenjobs.co.uk"}
+  },
+  "production_hosts": {
+    "ie": ["greenjobs.ie", "www.greenjobs.ie"],
+    "uk": ["greenjobs.co.uk", "www.greenjobs.co.uk"]
+  },
+  "csp_hosts": {
+    "script-src": ["https://www.googletagmanager.com"],
+    "connect-src": ["https://www.google-analytics.com", "https://region1.google-analytics.com", "https://analytics.google.com", "https://www.googletagmanager.com"],
+    "img-src": ["https://www.google-analytics.com", "https://www.googletagmanager.com"]
+  }
+}

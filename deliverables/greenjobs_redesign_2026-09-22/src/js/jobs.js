@@ -202,4 +202,13 @@
   /* ---- Ask GreenJobs: local smart match */
   writeForm();
   render();
+  /* Live job set (api.js): where the platform Worker answers, swap the build-time snapshot for the live,
+     paginated set and re-render with the same filters; any failure keeps the snapshot. */
+  if (window.GJApi) window.GJApi.board(doc, true).then(function (d) {
+    if (!d) return;
+    data = d; jobs = d.jobs; TODAY = Date.parse(d.today || '') || TODAY;
+    ON_MAP = {}; (d.regions || []).forEach(function (r) { ON_MAP[r.name] = true; });
+    board.setAttribute('data-live', '');
+    render();
+  });
 })();

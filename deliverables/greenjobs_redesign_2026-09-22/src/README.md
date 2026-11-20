@@ -18,7 +18,7 @@ bash execution/gtm_client_workflows/greenjobs_redesign/screenshot.sh            
 
 The build exits non-zero on any validator failure (relative paths only, every
 asset resolves, images dimensioned, JSON-LD parses, one h1, noindex, labelled
-controls, no third-party requests, forbidden vocabulary, CSS ≤ 80 KB / JS ≤ 125 KB,
+controls, no third-party requests, forbidden vocabulary, CSS ≤ 80 KB / JS ≤ 132 KB,
 any hero video referenced actually shipped). On success it writes `../site/.greenjobs-build-ok`
 (sha256 of the tree); `deploy_cloudflare.sh` refuses to ship without it and re-runs
 `validate_site.py <site>` first.

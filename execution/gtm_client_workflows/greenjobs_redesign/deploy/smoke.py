@@ -227,6 +227,45 @@ class Smoke:
             detail += f"; dashboard figures compared: {', '.join(shared) or 'none (no data-stat markers)'}"
             self.rec(f"stats_parity[{site}]", ok, detail)
 
+    def check_live_wiring(self) -> None:
+        """Each static board reads live data and sign-up flags from its API origin (environments.json api_base;
+        "" = the board's own host): /api/config answers the board's Origin with CORS, and the paginated
+        /api/jobs?view=board set has exactly /api/stats' live_jobs rows (what the charts and search show).
+        An environment without api_base (older config) skips."""
+        api = self.ec.get("api_base")
+        if not isinstance(api, dict):
+            self.rec("live_wiring", None, "no api_base in environments.json")
+            return
+        for site, board in self.sites("board_urls"):
+            base = (api.get(site) or board).rstrip("/")
+            h = {"Origin": board}
+            c = self.get(f"{base}/api/config?site={site}", h)
+            cfg = c.json() if c.status == 200 else None
+            cors_ok = base == board or c.headers.get("access-control-allow-origin") == board
+            if not (isinstance(cfg, dict) and cfg.get("site") == site and cors_ok):
+                self.rec(f"live_wiring[{site}]", False, f"config HTTP {c.status}, CORS {'ok' if cors_ok else 'missing'}")
+                continue
+            n, after, pages, total = 0, None, 0, None
+            while pages < 40:  # ceiling: 40 x 500 rows
+                q = f"/api/jobs?view=board&site={site}&limit=500&text=0" + (f"&after={after}" if after else "")
+                r = self.get(base + q, h)
+                body = r.json() if r.status == 200 else None
+                if not isinstance(body, dict) or not isinstance(body.get("jobs"), list):
+                    total = None
+                    break
+                if pages == 0:
+                    total = body.get("total")
+                n, pages, after = n + len(body["jobs"]), pages + 1, body.get("next")
+                if not after:
+                    break
+            s = self.get(f"{base}{self.p('stats_api')}?site={site}", h)
+            live = (s.json() or {}).get(self.sc["stats_live_key"]) if s.status == 200 else None
+            self.rec(
+                f"live_wiring[{site}]",
+                total is not None and not after and n == total == live,
+                f"alerts={cfg.get('alerts')}, newsletter={cfg.get('newsletter')}; board set {n} over {pages} page(s), total {total}, stats {live}",
+            )
+
     def check_boards(self) -> None:
         for site, base in self.sites("board_urls"):
             r = self.get(base + self.p("board_list", ed=site))
@@ -543,6 +582,7 @@ class Smoke:
         self.check_boards()
         self.check_headers()
         self.check_jobs_and_stats()
+        self.check_live_wiring()
         self.check_redirects()
         self.check_export()
         if self.mode == "full":

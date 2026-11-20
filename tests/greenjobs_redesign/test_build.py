@@ -264,7 +264,7 @@ def test_fixture_build(tmp_root: Path):
           "integration: for-keith evidence table states the IE shown-with-label count and the UK excluded count")
     for req in ("sitemap.xml", "manifest.webmanifest", "robots.txt", "404.html", "ie/data/jobs.json", "assets/maps"):
         pass
-    check((out / "sitemap.xml").read_text(encoding="utf-8").count("<url>") >= 2 * (6 + 6), "integration: sitemap lists pages and job pages")
+    check((out / "sitemap.xml").read_text(encoding="utf-8").count("<url>") + (out / "sitemap-jobs.xml").read_text(encoding="utf-8").count("<url>") >= 2 * (6 + 6) and "/jobs/" in (out / "sitemap-jobs.xml").read_text(encoding="utf-8"), "integration: sitemap.xml lists pages, sitemap-jobs.xml the job pages (GA branch split)")
     home = (out / "ie" / "index.html").read_text(encoding="utf-8")
     check("Nuclear Decommissioning" not in home and "(0)" not in home, "integration: zero-count sector never rendered on the home page")
     check('id="gj-data"' in (out / "ie" / "jobs" / "index.html").read_text(encoding="utf-8"), "integration: dataset embedded on the board")
@@ -1618,7 +1618,7 @@ def test_round4_b_copy_css_js(tmp_root: Path):
     check("newsletter-signup.asp" not in home and "newsletter-signup.asp" not in uk_home, "integration e: no dead newsletter-signup.asp link on either home page")
     check(home.count("Job alerts are double opt-in") == 1 and home.count('#h-alert">job alerts by email</a>') == 1 and 'id="h-alert"' in home, "integration e: IE alert form explains double opt-in; subscribe dialog links to the board's alert sign-up")
     check('#h-alert">job alerts by email</a>' in uk_home and "when the new site launches" not in uk_home, "integration e: UK subscribe dialog links to the board's own alert sign-up")
-    for f in (home.split('data-demo-form')[1], home.split('data-demo-form')[2]):
+    for f in (home.split('data-signup="')[1], home.split('data-signup="')[2]):
         check(f.find("data-demo-pre") < f.find('type="submit"') and "Your address has not been stored." in f, "r4b B: sign-up note sits above the button; post-submit line keeps 'not been stored'")
     check("published at launch" not in emp and "looking for green work" not in emp and "Thousands of visitors" not in emp and "Candidate audience: ask us for current monthly visitor and subscriber figures." in emp, "r4b B: employer audience tiles ask for figures instead of promising them")
     check("up to ten job alerts by email, free" in home.split('class="hero__alerts"')[1].split("</a>")[0].lower() and "weekly job alerts" not in home and "ten matches" not in home, "r4b B: hero alerts strip makes no weekly-matches claim")

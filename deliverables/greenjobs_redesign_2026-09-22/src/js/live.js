@@ -46,7 +46,9 @@
     // (the demo, staging Pages) would log a 404 on every page.
     if (document.body.getAttribute('data-live-api') !== '1') return;
     if ((ed !== 'ie' && ed !== 'uk') || typeof fetch !== 'function') return;
-    fetch('/api/stats?site=' + ed, { credentials: 'omit' })
+    var base = document.body.getAttribute('data-api-base') || '';
+    if (!/^https:\/\/[a-z0-9.-]+$/i.test(base)) base = ''; // '' = same origin; staging names the Worker origin
+    fetch(base + '/api/stats?site=' + ed, { credentials: 'omit' })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (s) { if (s && s.site === ed) apply(document, s); })
       .catch(function () { /* offline or no Worker on this host (the static demo): keep the build-time figures */ });
