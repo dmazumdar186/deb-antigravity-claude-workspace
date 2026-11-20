@@ -1,0 +1,23 @@
+Hi Diana,
+
+Thank you, this is very helpful. The column names are what I needed for now, and knowing that all jobs are posted by hand, with none through Broadbean or another tool, makes the switch simpler.
+
+On your questions:
+
+1. DNS login and domain login: for what we need, the account you already use at Hosting Ireland, LetsHost and 123 Reg is the one to have ready.
+
+2. Password manager: you don't need one, and you don't need to share any passwords. I'll send you a short step-by-step guide for each of the three, with the exact values to copy and paste. You can do each step whenever it suits you, no call needed, and I'll check from my side and email you to confirm each one worked.
+
+3. Applications: sorry, my question wasn't clear. If a job has neither its own email nor an apply link, which inbox should the application go to? Unless you'd prefer Rashieda's address, I'll use the info@ inbox of each site.
+
+4. Domain settings: thank you, that's all I meant. Please leave them as they are until the guide asks you to change them.
+
+Two small things:
+
+- Jobs By Email: the 13 is the number of columns in that file. Could you tell me roughly how many people get job alerts on each site?
+- Please don't download or send me any reports yet. I'll send a separate note on how we'll handle the data.
+
+Thanks again,
+Debanjan
+Founder, ProdCraft
+debanjan@prodcraft.fyi
