@@ -53,6 +53,7 @@ import validate_site  # noqa: E402
 MARKER = ".greenjobs-build"
 OK_MARKER = ".greenjobs-build-ok"  # written only after validate passes; holds the sha256 of the site tree (deploy gate)
 PROJECT = "greenjobs_redesign_2026-09-22"
+STATS_OVERLAY = ".greenjobs-stats.json"  # --stats-json builds: the /api/stats bodies written into the data-stat slots
 
 EDITIONS = {
     "ie": {"domain": "greenjobs.ie", "lang": "en-IE", "currency": "EUR", "sym": "€", "unit": "county",
@@ -2124,6 +2125,15 @@ def fill_stat_markers(html_text: str, stats: dict[str, Any]) -> tuple[str, int, 
     return STAT_MARKER_RE.sub(sub, html_text), filled, unknown
 
 
+def overlay_kpis(stats_by_ed: dict[str, dict[str, Any]] | None) -> Any:
+    """dashboard_kpis as a --stats-json build embeds it: the dataset's KPIs with the API's KPIs on top."""
+    def kpis(data: dict[str, Any]) -> dict[str, Any]:
+        k = dashboard_kpis(data)
+        extra = ((stats_by_ed or {}).get(data.get("ed") or "") or {}).get("kpis")
+        return {**k, **extra} if isinstance(extra, dict) else k
+    return kpis
+
+
 def apply_stats_overlay(out: Path, stats_by_ed: dict[str, dict[str, Any]]) -> list[str]:
     """--stats-json: write the deployed Worker's figures into every data-stat slot of each edition, and its KPI
     payload into the dashboard's gj-dash block (the charts and CSV), after validation (which checks the build's
@@ -3053,6 +3063,8 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
                 print(f"  - {line}", file=sys.stderr)
             return 1
         print(f"…  figure slots written from /api/stats for {', '.join(sorted(k for k in stats if k in data_by_ed))}")
+        # the record validate_site.py (deploy_cloudflare.sh) reads to check the overlaid dashboard; covered by the tree sha
+        (out / STATS_OVERLAY).write_text(json.dumps({k: v for k, v in sorted(stats.items()) if k in data_by_ed}, ensure_ascii=False, sort_keys=True) + "\n", encoding="utf-8")
     css = sum(p.stat().st_size for p in (out / "css").glob("*.css"))
     js = sum(p.stat().st_size for p in (out / "js").glob("*.js"))
     pages = len(list(out.rglob("*.html")))

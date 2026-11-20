@@ -526,7 +526,11 @@ def main(argv: list[str] | None = None) -> int:
         if path.exists() and (site / ed_key).is_dir():
             raw = json.loads(path.read_text(encoding="utf-8"))
             data_by_ed[ed_key] = build_site.normalise(raw, ed_key, src, src / "assets" / "logos", build_site.build_today(raw, None))
-    fails = build_site.check_built_js(site) + validate(site, {k: d["jobs"] for k, d in data_by_ed.items()}, data_by_ed, build_site.dashboard_kpis)
+    # a --stats-json build (staging) embeds the deployed Worker's KPIs; its record is part of the hashed tree
+    overlay_file = site / build_site.STATS_OVERLAY
+    overlay = json.loads(overlay_file.read_text(encoding="utf-8")) if overlay_file.is_file() else None
+    kpis = build_site.overlay_kpis(overlay) if overlay else build_site.dashboard_kpis
+    fails = build_site.check_built_js(site) + validate(site, {k: d["jobs"] for k, d in data_by_ed.items()}, data_by_ed, kpis)
     for line in fails[:80]:
         print(f"  - {line}", file=sys.stderr)
     print("FAIL" if fails else "PASS", f" validate_site: {len(fails)} problem(s) in {site}" if fails else f" validate_site: {site} is valid and matches its {marker.name} marker")

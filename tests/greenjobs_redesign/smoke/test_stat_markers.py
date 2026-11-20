@@ -163,3 +163,20 @@ def test_stats_json_with_an_unknown_marker_fails_the_build():
         assert not (base / "site" / build_site.OK_MARKER).exists()
     finally:
         shutil.rmtree(base, ignore_errors=True)
+
+
+def test_deploy_gate_accepts_the_overlaid_build_and_rejects_tampering(built):
+    """deploy_cloudflare.sh re-runs validate_site.py: an overlaid build validates against the KPIs it recorded
+    (.greenjobs-stats.json, inside the hashed tree); editing a figure afterwards still fails the gate."""
+    import validate_site
+
+    plain, filled, _ = built
+    assert (filled / build_site.STATS_OVERLAY).is_file() and not (plain / build_site.STATS_OVERLAY).exists()
+    assert validate_site.main([str(filled)]) == 0
+    dash = filled / "uk" / "dashboard" / "index.html"
+    raw = dash.read_text(encoding="utf-8")
+    dash.write_text(raw.replace('data-stat="kpis.live">4321<', 'data-stat="kpis.live">9999<'), encoding="utf-8")
+    try:
+        assert validate_site.main([str(filled)]) == 1
+    finally:
+        dash.write_text(raw, encoding="utf-8")
