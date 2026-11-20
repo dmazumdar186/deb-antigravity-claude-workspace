@@ -4,18 +4,15 @@ Thank you for the answers. The column names are what I needed for now, and it he
 
 On your questions:
 
-1. DNS login and domain login: the domain login is the account where you renew the name (Hosting Ireland, LetsHost, 123 Reg), and the nameserver setting you'll change is inside it. The guide names which login each step uses.
+1. DNS login and domain login: the domain login is the account where you renew the name (at Hosting Ireland, the "greenjobs.ie (Domain)" line rather than Hosting), and the nameserver setting is inside it. The guide names which login each step uses.
 
-2. Password manager: change of plan, please drop that request. You keep the logins and don't send them to me by any route. I'll send you a short step-by-step guide for each of the three, with the exact values to copy and paste. No call is needed: each guide says the date its step is needed by, and I'll check from my side and email you to confirm each one worked.
+2. You don't need a password manager. You keep the Hosting Ireland, Lets Host and 123 Reg logins; I never need them. I'll send you a short step-by-step guide for each of the three, with the exact values to copy and paste. No call is needed: each guide says the date its step is needed by, and I'll check from my side and email you to confirm each one worked.
 
-3. Applications: sorry, my question wasn't clear. If a job has neither its own email nor an apply link, which inbox should the application go to? Unless you tell me otherwise by Mon 23 Nov, I'll use info@greenjobs.ie and info@greenjobs.co.uk for the two boards.
+3. Applications: thank you. Unless you tell me otherwise, I'll send applications for jobs with no address of their own to rashieda.ely@greenjobs.ie for both boards, as you named Rashieda.
 
 4. Domain settings: thank you, that's all I meant. Please leave them as they are until the guide asks you to change them.
 
-Two small things:
-
-- Jobs By Email: the 13 is the number of columns in that file. If the admin shows a subscriber count for job alerts on each site, could you tell me the number? If it only shows inside a report, leave it; I'll get it later.
-- No need to download or send reports for now; I'll send a separate note on the exports once the paperwork with Keith is done.
+One small thing: no need to download or send reports for now; I'll send a separate note on the exports once the paperwork with Keith is done.
 
 Thanks again,
 Debanjan
