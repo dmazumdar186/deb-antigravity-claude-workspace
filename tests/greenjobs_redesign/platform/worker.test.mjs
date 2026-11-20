@@ -184,7 +184,7 @@ test('edit with optimistic lock: stale version 409, replayed key no second write
   assert.equal((await body(stale)).error, 'stale_version');
   assert.equal(w.db.q('SELECT version, title FROM jobs')[0].version, 2);
   assert.equal(w.db.q("SELECT COUNT(*) AS n FROM audit_log WHERE action = 'job.update'")[0].n, 1);
-  const bad = await w.fetch(await adminRequest('PUT', path, { body: { version: 2, employer: 'X' } }));
+  const bad = await w.fetch(await adminRequest('PUT', path, { body: { version: 2, source: 'strategies' } }));
   assert.equal(bad.status, 400);
   assert.equal((await w.fetch(await adminRequest('PUT', '/api/admin/jobs/ie:gj:..', { body: { version: 1 } }))).status, 400);
   assert.equal((await w.fetch(await adminRequest('PUT', '/api/admin/jobs/ie:gj:missing', { body: { version: 1 } }))).status, 404);

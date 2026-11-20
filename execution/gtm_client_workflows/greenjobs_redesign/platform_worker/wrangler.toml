@@ -7,12 +7,24 @@ compatibility_date = "2026-09-01"
 #   wrangler secret put BUILD_TOKEN
 
 # Routes are added at go-live (README "Deploy"); staging uses the workers.dev host in HOST_SITE_MAP.
+# Job pages are rendered by this Worker from D1 (ARCHITECTURE.md §3.1), so the board paths route here too;
+# everything else (home, guides, assets) stays on Pages. Repeat each pattern for the www. host.
 # routes = [
 #   { pattern = "greenjobs.ie/api/*", zone_name = "greenjobs.ie" },
 #   { pattern = "greenjobs.ie/admin*", zone_name = "greenjobs.ie" },
+#   { pattern = "greenjobs.ie/jobs*", zone_name = "greenjobs.ie" },
+#   { pattern = "greenjobs.ie/ie/jobs*", zone_name = "greenjobs.ie" },
+#   { pattern = "greenjobs.ie/ie/sectors/*", zone_name = "greenjobs.ie" },
+#   { pattern = "greenjobs.ie/sitemap-jobs.xml", zone_name = "greenjobs.ie" },
 #   { pattern = "greenjobs.co.uk/api/*", zone_name = "greenjobs.co.uk" },
 #   { pattern = "greenjobs.co.uk/admin*", zone_name = "greenjobs.co.uk" },
+#   { pattern = "greenjobs.co.uk/jobs*", zone_name = "greenjobs.co.uk" },
+#   { pattern = "greenjobs.co.uk/uk/jobs*", zone_name = "greenjobs.co.uk" },
+#   { pattern = "greenjobs.co.uk/uk/sectors/*", zone_name = "greenjobs.co.uk" },
+#   { pattern = "greenjobs.co.uk/sitemap-jobs.xml", zone_name = "greenjobs.co.uk" },
 # ]
+# Note: the /{site}/sectors/<slug>/ route must not shadow the static /{site}/sectors/index.html page: the
+# Worker answers only /{site}/sectors/<slug>/ and passes /{site}/sectors/ (index.html) through to the origin.
 
 [triggers]
 crons = ["*/10 * * * *"]   # retries 'pending'/'failed' deliveries (dry run records 'dry_run')
@@ -34,6 +46,9 @@ OPS_ALERT_EMAIL = ""       # delivery-failure alert inbox; empty = audit_log row
 RATE_APPLY_PER_10MIN = "5"
 RATE_ADMIN_PER_MIN = "60"
 MAX_CV_BYTES = "5242880"
+ROBOTS_INDEX = "0"         # "1" at go-live: job pages drop the demo shell's noindex so Google indexes JobPosting
+CANONICAL_ORIGIN_IE = ""   # e.g. "https://www.greenjobs.ie"; empty = the request's own origin
+CANONICAL_ORIGIN_UK = ""   # e.g. "https://www.greenjobs.co.uk"
 ALERTS_ENABLED = "0"
 NEWSLETTER_ENABLED = "0"
 ALLOWED_ORIGINS = "https://greenjobs.ie,https://www.greenjobs.ie,https://greenjobs.co.uk,https://www.greenjobs.co.uk"

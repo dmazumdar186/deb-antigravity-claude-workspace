@@ -31,11 +31,13 @@ assert c.execute("PRAGMA foreign_key_check").fetchall() == []
 print(f"ok: schema x2, {len(stmts)} upserts, {len(migs)} migration(s) x2 + schema again")
 EOF
 
-echo "== 2/4 import validator + apply mode + Gaia feed sync (pytest)"
-"$PY" -m pytest -q tests/greenjobs_redesign/test_strategies_import.py tests/greenjobs_redesign/test_strategies_real_headers.py tests/greenjobs_redesign/test_apply_mode_site.py tests/greenjobs_redesign/test_gaia_feed_sync.py || fail=1
+echo "== 2/4 import validator + apply mode + Gaia feed sync + frozen taxonomy (pytest)"
+"$PY" -m pytest -q tests/greenjobs_redesign/test_strategies_import.py tests/greenjobs_redesign/test_strategies_real_headers.py tests/greenjobs_redesign/test_apply_mode_site.py tests/greenjobs_redesign/test_gaia_feed_sync.py tests/greenjobs_redesign/test_platform_taxonomy.py || fail=1
 
-echo "== 3/4 Worker unit tests + BDD features (node --test)"
+echo "== 3/4 Worker unit tests + BDD features + D1-rendered board: parity with build_site.py and the E2E deploy gate (node --test)"
 node --no-warnings --test 'tests/greenjobs_redesign/platform/*.test.mjs' || fail=1
+# live figures on the static pages (live.js) and the KPI dashboard's /api/stats refresh (dashboard.js)
+(cd deliverables/greenjobs_redesign_2026-09-22/src/js && node --test live.test.js dashboard.test.js) || fail=1
 
 echo "== 4/4 no candidate data staged"
 if git ls-files --cached --others --exclude-standard | grep -E '^deliverables/greenjobs_migration_2026-11-06/.*\.csv$'; then

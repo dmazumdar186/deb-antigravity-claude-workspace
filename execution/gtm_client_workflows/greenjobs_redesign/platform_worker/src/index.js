@@ -11,6 +11,7 @@ import { createRateLimiter } from './ratelimit.js';
 import { closeJob, createJob, editJob, getAdminJob, listAdminJobs } from './routes/admin.js';
 import { apply, deliverApplication } from './routes/apply.js';
 import { consoleAsset, consoleHtml } from './routes/console.js';
+import { boardRoute, statsRoute } from './routes/board.js';
 import { exportJobs, getJob, listJobs } from './routes/public.js';
 import { corsHeaders, preflight, siteForHost } from './site.js';
 import { clientIp, err, intVar, nowIso, UUID_RE } from './util.js';
@@ -18,13 +19,30 @@ import { clientIp, err, intVar, nowIso, UUID_RE } from './util.js';
 const JOB_PATH = /^\/api\/jobs\/([^/]+)$/;
 const ADMIN_JOB_PATH = /^\/api\/admin\/jobs\/([^/]+)$/;
 const ADMIN_CLOSE_PATH = /^\/api\/admin\/jobs\/([^/]+)\/close$/;
-const PUBLIC_PREFLIGHT = /^\/api\/(jobs(\/[^/]+)?|apply|alerts|newsletter)$/;
+const STATIC_UNDER_ROUTE = /^\/(ie|uk)\/sectors\/(index\.html)?$/;
+const PUBLIC_PREFLIGHT = /^\/api\/(jobs(\/[^/]+)?|apply|alerts|newsletter|stats)$/;
+
+/**
+ * Edge cache for public GET pages and /api/stats (Cache API; the responses carry s-maxage <= 300 s, so a
+ * console write is public within 5 minutes). Requests with an Origin header are not cached (CORS varies).
+ * Absent Cache API (tests, local) = no caching. `produce` may return null (not a board path).
+ */
+async function cached(request, ctx, produce) {
+  const cache = typeof caches !== 'undefined' && caches && caches.default ? caches.default : null;
+  if (!cache || request.method !== 'GET' || request.headers.get('Origin')) return produce();
+  const hit = await cache.match(request);
+  if (hit) return hit;
+  const res = await produce();
+  if (res && [200, 404, 410].includes(res.status) && ctx && typeof ctx.waitUntil === 'function') ctx.waitUntil(cache.put(request, res.clone()));
+  return res;
+}
 
 export function createHandler(deps = {}) {
   const getKey = createJwksCache(deps.jwksFetcher || defaultJwksFetcher);
   const rate = createRateLimiter();
   const mailer = createMailer({ transport: deps.mailTransport });
   const clock = deps.now || (() => new Date());
+  const originFetch = deps.originFetch || ((req) => fetch(req));
 
   async function admin(request, env, site, path, now) {
     const allowed = await rate(env, {
@@ -62,7 +80,7 @@ export function createHandler(deps = {}) {
     return err('not_found', 404);
   }
 
-  async function route(request, env) {
+  async function route(request, env, ctx) {
     const url = new URL(request.url);
     const site = siteForHost(env, url.hostname);
     if (!site) return err('unknown_host', 404);
@@ -75,9 +93,16 @@ export function createHandler(deps = {}) {
     }
     if (method === 'OPTIONS' && PUBLIC_PREFLIGHT.test(path)) return preflight(request, env);
     if (method === 'GET' && path === '/api/export/jobs') return exportJobs(request, env, now);
+    if (!path.startsWith('/api/')) {
+      const page = await cached(request, ctx, () => boardRoute(request, env, site, now));
+      if (page) return page;
+      // The /{site}/sectors/* route also covers the static sectors overview: hand it back to the origin (Pages).
+      if (STATIC_UNDER_ROUTE.test(path)) return originFetch(request);
+    }
 
     const cors = corsHeaders(request, env);
     if (cors === null) return err('origin_not_allowed', 403);
+    if (method === 'GET' && path === '/api/stats') return cached(request, ctx, () => statsRoute(env, site, now, url, cors));
     if (method === 'GET' && path === '/api/jobs') return listJobs(env, site, now, cors, url);
     const m = JOB_PATH.exec(path);
     if (method === 'GET' && m) return getJob(env, site, m[1], now, cors);
@@ -94,9 +119,9 @@ export function createHandler(deps = {}) {
   }
 
   return {
-    async fetch(request, env) {
+    async fetch(request, env, ctx) {
       try {
-        return await route(request, env);
+        return await route(request, env, ctx);
       } catch (e) {
         console.error('worker: unhandled', e && e.name ? e.name : 'Error');
         return err('internal', 500);

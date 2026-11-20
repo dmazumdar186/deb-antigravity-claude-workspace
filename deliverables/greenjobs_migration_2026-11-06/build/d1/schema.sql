@@ -4,6 +4,8 @@
 -- as d1/migrations/NNNN_*.sql (each idempotent, run once per DB created before it, after this file).
 --   0001_apply_mode_consent_alerts.sql (2026-11-20) jobs.apply_mode -> email|link; candidates.strategies_consent;
 --                                      import_batches.report_type + 'alerts'
+--   0002_job_facets.sql (2026-11-20)    job_facets: canonical sectors/regions/type/workplace/contract/... per job, set at
+--                                      write time from taxonomy.json; read by the Worker-rendered job pages and /api/stats
 -- Apply:  npx wrangler@4 d1 execute greenjobs --file=schema.sql   (local: add --local)
 --
 -- Stable IDs (the upsert key for every table):

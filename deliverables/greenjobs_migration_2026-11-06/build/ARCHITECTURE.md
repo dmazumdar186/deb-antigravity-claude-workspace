@@ -27,7 +27,7 @@ All Cloudflare pieces live in **GreenJobs' own Cloudflare account**. We work in 
 | `RATE` | KV (optional) | Rate-limit counters if the rate-limiting binding is not used | GreenJobs | Free |
 | `APPLY_LIMITER` | Rate-limiting binding (optional) | Per-IP limit on `POST /api/apply` | GreenJobs | Free |
 | Staff auth | Cloudflare Access (Zero Trust) | Gate on `/admin/` and `/api/admin/*`; the Worker also verifies the Access JWT | GreenJobs | Free tier, up to 50 users |
-| Deploy hook | Pages deploy hook (secret `DEPLOY_HOOK_URL`) | Triggers a static rebuild after console writes | GreenJobs | Free |
+| Deploy hook | Retired 2026-11-20: job pages are rendered by the Worker from D1 (§3.1); a static rebuild is needed only for template or guide changes | GreenJobs | Free |
 | DNS | Cloudflare DNS, or the current DNS host if nameservers cannot move (answer to Q2) | Web records for both boards; MX/SPF/DKIM/DMARC copied exactly | GreenJobs / current DNS holder | Free |
 | Mail sending | Resend (`MAIL_PROVIDER=resend`), outside Cloudflare | Application emails to the inbox; alert emails if kept | GreenJobs' Resend account | Free tier at expected volume (answer to Q9) |
 | Mailboxes | Current mail host (answer to Q3) | info@ inboxes. Not changed by this project | GreenJobs | Unchanged |
@@ -45,6 +45,8 @@ All Cloudflare pieces live in **GreenJobs' own Cloudflare account**. We work in 
 | `POST /api/admin/jobs/:id/close` | Access JWT + `STAFF_EMAILS` | Close; idempotent |
 | `POST /api/apply` | public, rate limited | Application with optional CV, email-mode jobs only; a link-mode job answers 409 `apply_externally` with its `apply_url` |
 | `GET /admin/` | Access JWT + `STAFF_EMAILS` | Staff console page |
+| `GET /{site}/jobs/`, `/{site}/jobs/<slug>/`, `/{site}/sectors/<slug>/`, `/sitemap-jobs.xml` | public, edge-cached 5 min | Board pages rendered from D1 (§3.1); closed/expired job 410, unknown 404; `/jobs/...` 301s here |
+| `GET /api/stats?site=` | public, edge-cached 5 min | Every job-derived figure the static pages and the KPI dashboard print (`salary`, `sectors`, `regions`, `kpis`), same rules as `build_site.py`; `measures` (applications, alert sign-ups, advertiser enquiries) null until that feed exists |
 
 ### Configuration
 
@@ -62,21 +64,48 @@ All Cloudflare pieces live in **GreenJobs' own Cloudflare account**. We work in 
 
 ## 3. Data flows
 
-### 3.1 Job post to the static board
+### 3.1 Job post to the public board (Worker-rendered job pages, 2026-11-20)
+
+Decision (panel B/D, 20 Nov): **job pages are server-rendered by the Worker from D1**; home, guides and the other
+static pages stay the `build_site.py` build. There is no deploy hook, publish flag or `BUILD_TOKEN` rebuild in the loop.
 
 1. Staff open `/admin/`. Access authenticates them; the Worker verifies the JWT (`ACCESS_TEAM_DOMAIN`, `ACCESS_AUD`)
    and checks the email against `STAFF_EMAILS`.
-2. `POST/PUT /api/admin/jobs` writes the row to D1 with a prepared statement (`d1/upserts.sql`). Console ids are
-   `'{site}:gj:{uuid v4}'`. Every write adds an `audit_log` row keyed on the `Idempotency-Key` (replay adds nothing).
-3. The write marks a publish as pending.
-4. The cron `scheduled` handler runs every 5 minutes. If a publish is pending, it calls `DEPLOY_HOOK_URL` once
-   (debounced: many edits in 5 minutes give one rebuild).
-5. The Pages build runs `build_site.py`, which fetches `GET /api/export/jobs?site=ie|uk` with `BUILD_TOKEN`,
-   following the `next` cursor (`&after=<next>`) until it is null (pages hold at most 1000 jobs), then
-   renders, validates, and deploys. A failed build leaves the last good deploy live.
+2. One form posts to IE, UK or both (`sites`). Sector (1-3), region (per site), job type and workplace are dropdowns
+   from the frozen vocabulary `platform_worker/src/taxonomy.json` (see `platform_worker/TAXONOMY.md`). `POST /api/admin/jobs`
+   writes, per site and in one batch, the `jobs` row, its `job_facets` row (migration 0002: canonical sectors, regions,
+   type, workplace, contract tags, loc class, level, agency flag, salary label, taxonomy version) and an `audit_log` row
+   keyed on the `Idempotency-Key`. Every field stays editable (`PUT`, `version` optimistic lock); Close asks for
+   confirmation; a closed job reopens with `PUT {status: "live"}` (a passed closing date must be replaced).
+3. The Worker renders, on each board's host, with the redesign's own `_shell`/`job`/`jobs` templates (frozen into
+   `src/site_assets.gen.js` by `tools/export_site_assets.py`; `--check` runs in `run_tests.sh`):
+   `/{site}/jobs/` (list; `?sector=`, `?loc=` (alias `?region=`), `?type=`, `?q=`, `?page=`; 25 server rows a page plus the
+   `#gj-data` set `jobs.js` filters), `/{site}/jobs/<slug>/` (JobPosting JSON-LD, canonical URL; closed or expired = 410
+   with a link to the list; unknown or draft = 404), `/{site}/sectors/<slug>/` (the list for one taxonomy sector),
+   `/sitemap-jobs.xml`, and `GET /api/stats` (every job-derived figure the static pages print). `/jobs/...` and
+   `/sectors/<slug>/` 301 to the `/{site}/` paths, which keep the static tree's relative links working.
+   `<slug>` = the Strategies id for imported jobs (the URLs the demo already published), `gj-<uuid>` for console jobs.
+4. Apply: link mode = external button `rel="noopener nofollow"`; email mode = the on-site form posting to
+   `POST /api/apply` (DRY_RUN default unchanged). No page links to a Strategies URL.
+5. Freshness: responses carry `s-maxage=300` and go through the Cache API, so a post is public within 5 minutes
+   (metric M5: 15). `live.js` (home, insights, salary guide) and `dashboard.js` (KPI dashboard) replace the build-time
+   figures with `/api/stats` on load; the static numbers remain the no-JS fallback.
+6. The Worker never classifies. Import and feed rows get their `job_facets` from the Python classifier
+   (`build_site.assign_sectors`, `resolve_regions`, `canon_type`, `contract_of`, `workplace_of`, `loc_class`,
+   `level_of`, `is_agency`), which reads the same `taxonomy.json` (separate work unit). An imported job with no facet
+   row still renders (no sector chip) until the classifier writes one.
+7. Gates: `tests/greenjobs_redesign/platform/parity.test.mjs` (Worker vs `build_site.py` on the fixture: page
+   structure, JSON-LD keys, `/api/stats` figures exactly) and `e2e_board.test.mjs` (console create -> page -> list,
+   sector view, sitemap, stats -> edit -> close 410 -> reopen) run in `run_tests.sh`, which gates deploy.
 
-The static page can lag the database by up to one rebuild. This is safe because `POST /api/apply` re-checks
-liveness in D1: a closed job never accepts an application, whatever the cached page shows.
+Worker routes needed at go-live (wrangler.toml): `<host>/jobs*`, `<host>/ie/jobs*` (or `/uk/jobs*`),
+`<host>/ie/sectors/*`, `<host>/sitemap-jobs.xml`, `<host>/api/*`, `<host>/admin*` on each board host. Vars:
+`CANONICAL_ORIGIN_IE` / `CANONICAL_ORIGIN_UK` (e.g. `https://www.greenjobs.ie`; also used to 301 a request for the
+other edition's path to its own domain) and `ROBOTS_INDEX="1"` once the boards are live (the demo shell is noindex).
+`/api/export/jobs` stays for archive exports only.
+
+`POST /api/apply` re-checks liveness in D1, so a cached page (at most 5 minutes old) can never take an application
+for a closed job.
 
 ### 3.2 Application to the inbox
 
