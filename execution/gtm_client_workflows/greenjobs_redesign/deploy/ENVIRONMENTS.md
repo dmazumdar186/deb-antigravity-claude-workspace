@@ -8,7 +8,7 @@ disagree, or if an env section is missing a var (wrangler does not inherit vars 
 
 | Resource | Name |
 |---|---|
-| Worker | `greenjobs-platform-staging` on `greenjobs-platform-staging.REPLACE_WORKERS_SUBDOMAIN.workers.dev` |
+| Worker | `greenjobs-platform-staging` on `greenjobs-platform-staging.debanjan186.workers.dev` |
 | D1 | `greenjobs-staging` (`database_id` = `REPLACE_WITH_STAGING_D1_ID` in wrangler.toml) |
 | R2 (CVs) | `greenjobs-cvs-staging` (smoke applies send no CV, so it stays empty) |
 | Pages | `greenjobs-staging-ie` -> `https://greenjobs-staging-ie.pages.dev`, `greenjobs-staging-uk` -> `https://greenjobs-staging-uk.pages.dev` (each hosts the full two-edition build) |

@@ -98,7 +98,7 @@ workers_dev = true
 [env.staging.vars]
 DRY_RUN = "1"              # pinned: staging never sends mail (check-config enforces)
 LIVE_CONFIRM = ""
-HOST_SITE_MAP = '{"greenjobs-platform-staging.REPLACE_WORKERS_SUBDOMAIN.workers.dev":"ie"}'
+HOST_SITE_MAP = '{"greenjobs-platform-staging.debanjan186.workers.dev":"ie"}'
 ACCESS_TEAM_DOMAIN = ""    # staging Access team domain (staff console + smoke service token)
 ACCESS_AUD = ""
 STAFF_EMAILS = ""
@@ -132,12 +132,12 @@ ALLOWED_ORIGINS = "https://greenjobs-staging-ie.pages.dev,https://greenjobs-stag
 [[env.staging.d1_databases]]
 binding = "DB"
 database_name = "greenjobs-staging"
-database_id = "REPLACE_WITH_STAGING_D1_ID"
+database_id = "d94a690a-286a-4608-b563-8329fdc37382"
 migrations_dir = "../../../../deliverables/greenjobs_migration_2026-11-06/build/d1/migrations"
 
-[[env.staging.r2_buckets]]
-binding = "CVS"
-bucket_name = "greenjobs-cvs-staging"
+# [[env.staging.r2_buckets]]   # R2 not enabled on our account yet (environments.json _r2_note); CVs -> 503 on staging
+# binding = "CVS"
+# bucket_name = "greenjobs-cvs-staging"
 
 [env.production]
 name = "greenjobs-platform"

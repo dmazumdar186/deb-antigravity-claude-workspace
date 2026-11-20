@@ -212,7 +212,7 @@ export function createHandler(deps = {}) {
       let failed = 0;
       for (const r of results) {
         let cv = null;
-        if (r.cv_key) {
+        if (r.cv_key && env.CVS) {
           const obj = await env.CVS.get(r.cv_key);
           if (obj) cv = { ext: r.cv_key.split('.').pop(), bytes: new Uint8Array(await obj.arrayBuffer()) };
         }

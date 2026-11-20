@@ -105,8 +105,9 @@ def check_wrangler_toml(
     elif not d1[0].get("migrations_dir"):
         problems.append(f"env.{env}.d1_databases[0].migrations_dir is missing")
     r2 = sec.get("r2_buckets") or []
-    if [b.get("bucket_name") for b in r2] != [ec["r2"]]:
-        problems.append(f"env.{env}.r2_buckets must be exactly [{ec['r2']!r}]")
+    want_r2 = [ec["r2"]] if ec.get("r2") else []  # "" = no CV bucket (staging until R2 is enabled on the account)
+    if [b.get("bucket_name") for b in r2] != want_r2:
+        problems.append(f"env.{env}.r2_buckets must be exactly {want_r2!r}")
     vars_ = sec.get("vars") or {}
     if ec.get("require_dry_run") and (
         vars_.get("DRY_RUN") != "1" or vars_.get("LIVE_CONFIRM")

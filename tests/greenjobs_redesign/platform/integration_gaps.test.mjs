@@ -6,7 +6,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { adminRequest, makeWorld, seedJob, signToken, validJobBody, workerModule } from './helpers.mjs';
+import { PDF_BYTES, adminRequest, applyRequest, makeWorld, seedJob, signToken, validJobBody, workerModule } from './helpers.mjs';
 
 const SVC = 'smoke-0123abcd.access';
 const svcClaims = (cn = SVC) => ({ email: undefined, sub: '', common_name: cn });
@@ -158,6 +158,19 @@ test('d: the service scope is exactly the smoke paths (unit)', async () => {
   for (const [m, p] of [['GET', '/api/admin/jobs'], ['PUT', '/api/admin/jobs/ie:gj:1'], ['GET', '/admin/'], ['POST', '/api/admin/review/x/approve'], ['POST', '/api/admin/newsletters']]) {
     assert.equal(serviceAllowed(m, p), false, `${m} ${p}`);
   }
+});
+
+test('staging without R2: an apply carrying a CV answers 503 and stores nothing; without a CV it is accepted', async () => {
+  const w = await makeWorld();
+  delete w.env.CVS;
+  seedJob(w, { id: 'ie:strat:900', apply_email: 'hr@example.ie' });
+  const form = (cv) => applyRequest({ job_id: 'ie:strat:900' }, { cv: cv ? PDF_BYTES : undefined, origin: 'https://greenjobs.ie', ip: '198.51.100.20' });
+  const r = await w.fetch(form(true));
+  assert.equal(r.status, 503);
+  assert.equal((await r.json()).error, 'cv_storage_unavailable');
+  assert.equal(w.db.q('SELECT COUNT(*) AS n FROM applications')[0].n, 0);
+  const ok = await w.fetch(form(false));
+  assert.equal(ok.status, 201, await ok.clone().text());
 });
 
 // ------------------------------------------------------------------ smoke contract (environments.json)
