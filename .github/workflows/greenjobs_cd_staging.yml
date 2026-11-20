@@ -1,0 +1,87 @@
+name: greenjobs-cd-staging
+
+# GreenJobs (client) gate 2 of 3: when greenjobs-ci passes on a push to main, deploy that exact sha to
+# STAGING (our Cloudflare account, DRY_RUN pinned, public job data only) and run the full smoke suite
+# against the staging URLs. The deploy record + smoke result are uploaded as the ledger artifact
+# `greenjobs-staging-ledger-<sha>`; greenjobs-promote only accepts a sha whose record says smoke passed.
+
+on:
+  workflow_run:
+    workflows: ["greenjobs-ci"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: greenjobs-staging
+  cancel-in-progress: false
+
+jobs:
+  deploy-staging:
+    # GREENJOBS_STAGING_READY (repo variable) = 'true' once the staging account, secrets and placeholders exist
+    # (deploy/ENVIRONMENTS.md); until then CD is skipped, never half-run.
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && vars.GREENJOBS_STAGING_READY == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: staging
+    env:
+      SHA: ${{ github.event.workflow_run.head_sha }}
+      LEDGER: .tmp/greenjobs_release/staging
+      GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      GREENJOBS_RELEASE_TARGET: staging
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Checkout the sha CI passed
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Deploy to staging (D1 schema + migrations + public seed, Worker, both boards)
+        id: deploy
+        run: python execution/gtm_client_workflows/greenjobs_redesign/deploy/release.py stage --execute --sha "$SHA" --ledger-dir "$LEDGER"
+
+      - name: Smoke tests against staging (full mode, read + write flow, DRY_RUN)
+        id: smoke
+        env:
+          GREENJOBS_SMOKE_ACCESS_CLIENT_ID: ${{ secrets.GREENJOBS_STAGING_ACCESS_CLIENT_ID }}
+          GREENJOBS_SMOKE_ACCESS_CLIENT_SECRET: ${{ secrets.GREENJOBS_STAGING_ACCESS_CLIENT_SECRET }}
+          GREENJOBS_SMOKE_BUILD_TOKEN: ${{ secrets.GREENJOBS_STAGING_BUILD_TOKEN }}
+        run: python execution/gtm_client_workflows/greenjobs_redesign/deploy/smoke.py --env staging --mode full --sha "$SHA" --out "$LEDGER/smoke.json"
+
+      - name: Record smoke result in the ledger
+        if: always() && steps.deploy.outcome == 'success'
+        run: |
+          [ -f "$LEDGER/smoke.json" ] || echo '{"status":"fail","mode":"full","checks":[{"name":"smoke_did_not_run","status":"fail"}]}' > "$LEDGER/smoke.json"
+          python execution/gtm_client_workflows/greenjobs_redesign/deploy/release.py record-smoke --ledger-dir "$LEDGER" --smoke "$LEDGER/smoke.json"
+
+      - name: Ledger to job summary
+        if: always()
+        run: |
+          [ -f "$LEDGER/summary.md" ] && cat "$LEDGER/summary.md" >> "$GITHUB_STEP_SUMMARY" || echo "no deploy record" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload deploy ledger artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: greenjobs-staging-ledger-${{ github.event.workflow_run.head_sha }}
+          path: |
+            ${{ env.LEDGER }}/deploy_record.json
+            ${{ env.LEDGER }}/ledger.jsonl
+            ${{ env.LEDGER }}/smoke.json
+            ${{ env.LEDGER }}/summary.md
+          if-no-files-found: warn
+          retention-days: 90

@@ -279,6 +279,47 @@ tables only) must run before any of them; statements live in `build/d1/upserts_0
 ## Changelog
 
 - 2026-11-20 (classifier / D1 import): `job_classifier.py`, `gaia_d1_sync.py`, migration 0003, `/api/admin/import`, `/admin/review`, `/api/employer/*`; Strategies import live-only jobs, classified; personal data and Gaia feed and employer posting off by default (engagement record §2).
+## Release pipeline (2026-11-20)
+
+Nothing reaches GreenJobs' production unchecked: CI -> staging (deploy + smoke) -> gated promote -> auto rollback.
+Code `execution/gtm_client_workflows/greenjobs_redesign/deploy/` (`release.py`, `smoke.py`, `environments.json`,
+`stage.sh` / `promote.sh` / `rollback.sh`); names, secrets, gates and known gaps in `deploy/ENVIRONMENTS.md`.
+
+- Goal: every Worker / D1 / board change is tested, deployed to staging, smoke-tested there, and promoted only
+  as that exact sha, with the previous production versions recorded and restorable in one command.
+- Inputs: a commit on main; GitHub environments `staging` and `production` holding the secrets named in
+  ENVIRONMENTS.md (never valued in the repo).
+- Tools/Scripts: workflows `.github/workflows/greenjobs_ci.yml`, `greenjobs_cd_staging.yml`,
+  `greenjobs_promote.yml`; `release.py` (stage / promote / rollback / record-smoke / verify-promotable /
+  seed-sql / check-config / scan-secrets); `smoke.py`.
+- Outputs: per run `deploy_record.json` + append-only `ledger.jsonl` + `summary.md` (sha, Worker version id,
+  Pages deployment ids, D1 migration level, previous versions, D1 bookmark, backup object, smoke, rollback,
+  times), uploaded as the `greenjobs-<env>-ledger-<sha>` artifact and written to the job summary.
+- Steps:
+  1. CI (`greenjobs-ci`): secret scan, workspace SAST, `node --check`, `check-config`, then `run_tests.sh`
+     and `pytest tests/greenjobs_redesign/smoke`.
+  2. CD (`greenjobs-cd-staging`, CI green on main): `release.py stage --execute`, `smoke.py --mode full`,
+     `record-smoke`, artifact.
+  3. Promote (`greenjobs-promote`, manual, required reviewer): input the sha; `verify-promotable` against the
+     staging artifact; `release.py promote --execute` (previous versions, D1 export to the client's R2,
+     migration gate, migrate, Worker, boards); `smoke.py --mode read_only` (canary off by default); on failure
+     `release.py rollback --execute` and smoke again.
+  4. Rollback by hand: `deploy/rollback.sh --record <deploy_record.json>` prints, `--execute` runs.
+- Edge cases: `--execute` needs `GREENJOBS_RELEASE_TARGET=<env>`, no `REPLACE_` placeholders, HEAD = sha;
+  destructive migrations (DROP / DELETE / RENAME / TRUNCATE; 0001 is one) need `--allow-destructive` and a
+  verified backup first; the production D1 backup holds personal data, so it goes to `greenjobs-backups` R2
+  only and is deleted from the runner, never a CI artifact; D1 is never auto-restored (Time Travel restore is
+  printed for a human); a first production deploy has no previous version, so rollback fails loud;
+  staging seeds public jobs only (`assert_seed_safe`); smoke write checks use per-run idempotency keys and
+  always close the jobs they opened. The workspace redteam-gate hook blocks running `release.py` /
+  `stage.sh` from a dirty tree in a Claude session: test through `pytest tests/greenjobs_redesign/smoke`.
+- Exit criteria: CI green; staging record shows smoke `pass` (mode full) for the sha; production record shows
+  smoke `pass` or `rolled_back` with the after-rollback smoke attached.
+
+## Changelog
+
+- 2026-11-20 (release pipeline): staging + production wrangler envs, CI / CD-to-staging / gated promote
+  workflows, `deploy/release.py` (ledger, backup-before-migrate, rollback), `deploy/smoke.py`, 47 offline tests.
 
 - 2026-11-07 (migration platform): `platform_worker/` skeleton (console post/edit/close, `/api/apply`, Access JWT, rate limits, dry-run default), D1 schema + idempotent upserts, BDD features + 121 offline node tests, frozen red-team checklist, SAST report, decision table for the twelve questions.
 - 2026-09-28 (client wall): `scrape_greenjobs.py` gains `parse_client_logos()` / `download_client_logos()`

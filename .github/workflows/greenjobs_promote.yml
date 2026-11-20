@@ -1,0 +1,173 @@
+name: greenjobs-promote
+
+# GreenJobs (client) gate 3 of 3: promote ONE sha that passed staging smoke to PRODUCTION (GreenJobs' own
+# Cloudflare account). Manual only, behind the GitHub environment `production` (required reviewer).
+# Order: verify the staging record -> record previous versions + D1 Time Travel bookmark -> D1 backup to the
+# client's R2 (must succeed) -> migration gate (destructive needs allow_destructive) -> migrate -> Worker ->
+# boards -> read-only smoke (optional hidden canary) -> automatic rollback of Worker + Pages on failure.
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: "Full 40-char git sha that passed greenjobs-cd-staging"
+        required: true
+        type: string
+      allow_destructive:
+        description: "Allow a pending destructive D1 migration (backup still required first)"
+        required: false
+        default: false
+        type: boolean
+      canary:
+        description: "Create a hidden draft canary job via the admin API and close it at once"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: greenjobs-production
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SHA: ${{ inputs.sha }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: The sha is a full sha on main
+        run: |
+          [[ "$SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "sha must be 40 lowercase hex chars"; exit 1; }
+          git merge-base --is-ancestor "$SHA" origin/main || { echo "$SHA is not on main"; exit 1; }
+
+      - name: Fetch the staging ledger artifact for this sha
+        run: |
+          run_id="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow greenjobs_cd_staging.yml --commit "$SHA" \
+                     --status success --limit 1 --json databaseId --jq '.[0].databaseId')"
+          [ -n "$run_id" ] || { echo "no successful greenjobs-cd-staging run for $SHA"; exit 1; }
+          gh run download "$run_id" --repo "$GITHUB_REPOSITORY" -n "greenjobs-staging-ledger-$SHA" -D staging_ledger
+
+      - name: Staging smoke passed (full mode) for exactly this sha
+        run: python execution/gtm_client_workflows/greenjobs_redesign/deploy/release.py verify-promotable --record staging_ledger/deploy_record.json --sha "$SHA"
+
+      - name: Hand the staging record to the promote job
+        uses: actions/upload-artifact@v4
+        with:
+          name: greenjobs-staging-record-${{ inputs.sha }}
+          path: staging_ledger/deploy_record.json
+          retention-days: 90
+
+  promote:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: production
+    env:
+      SHA: ${{ inputs.sha }}
+      LEDGER: .tmp/greenjobs_release/production
+      GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      GREENJOBS_RELEASE_TARGET: production
+      GREENJOBS_PROD_CLOUDFLARE_API_TOKEN: ${{ secrets.GREENJOBS_PROD_CLOUDFLARE_API_TOKEN }}
+      GREENJOBS_PROD_CLOUDFLARE_ACCOUNT_ID: ${{ secrets.GREENJOBS_PROD_CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Checkout the promoted sha
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.sha }}
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Download the verified staging record
+        uses: actions/download-artifact@v4
+        with:
+          name: greenjobs-staging-record-${{ inputs.sha }}
+          path: staging_record
+
+      - name: Promote (previous versions, D1 backup, migration gate, migrate, Worker, boards)
+        id: promote
+        env:
+          ALLOW_DESTRUCTIVE: ${{ inputs.allow_destructive }}
+        run: |
+          extra=()
+          [ "$ALLOW_DESTRUCTIVE" = "true" ] && extra+=(--allow-destructive)
+          python execution/gtm_client_workflows/greenjobs_redesign/deploy/release.py promote --execute --sha "$SHA" \
+            --ledger-dir "$LEDGER" --staging-record staging_record/deploy_record.json "${extra[@]}"
+
+      - name: Smoke tests against production (read-only; hidden canary only if asked)
+        id: smoke
+        if: steps.promote.outcome == 'success'
+        env:
+          CANARY: ${{ inputs.canary }}
+          GREENJOBS_SMOKE_BUILD_TOKEN: ${{ secrets.GREENJOBS_PROD_BUILD_TOKEN }}
+          GREENJOBS_SMOKE_ACCESS_CLIENT_ID: ${{ inputs.canary && secrets.GREENJOBS_PROD_ACCESS_CLIENT_ID || '' }}
+          GREENJOBS_SMOKE_ACCESS_CLIENT_SECRET: ${{ inputs.canary && secrets.GREENJOBS_PROD_ACCESS_CLIENT_SECRET || '' }}
+        run: |
+          extra=()
+          [ "$CANARY" = "true" ] && extra+=(--canary)
+          python execution/gtm_client_workflows/greenjobs_redesign/deploy/smoke.py --env production --mode read_only \
+            --sha "$SHA" --out "$LEDGER/smoke.json" "${extra[@]}"
+
+      - name: Record smoke result in the ledger
+        if: always() && steps.promote.outcome == 'success'
+        run: |
+          [ -f "$LEDGER/smoke.json" ] || echo '{"status":"fail","mode":"read_only","checks":[{"name":"smoke_did_not_run","status":"fail"}]}' > "$LEDGER/smoke.json"
+          python execution/gtm_client_workflows/greenjobs_redesign/deploy/release.py record-smoke --ledger-dir "$LEDGER" --smoke "$LEDGER/smoke.json"
+
+      - name: Automatic rollback (Worker + Pages to the recorded previous versions)
+        id: rollback
+        if: failure() && (steps.smoke.outcome == 'failure' || steps.promote.outcome == 'failure')
+        run: |
+          rec="$LEDGER/deploy_record.json"
+          [ -f "$rec" ] || { echo "::error::no deploy record: nothing was deployed, nothing to roll back"; exit 0; }
+          if ! jq -e '.worker_version_id != null or ((.pages_deployments // {}) | length > 0)' "$rec" >/dev/null; then
+            echo "promote failed before anything was deployed; production unchanged"; exit 0
+          fi
+          cp "$rec" "$LEDGER/failed_deploy_record.json"
+          python execution/gtm_client_workflows/greenjobs_redesign/deploy/release.py rollback --execute --env production \
+            --record "$LEDGER/failed_deploy_record.json" --ledger-dir "$LEDGER"
+          python execution/gtm_client_workflows/greenjobs_redesign/deploy/smoke.py --env production --mode read_only \
+            --sha "$SHA" --out "$LEDGER/smoke_after_rollback.json" || echo "::error::production still failing smoke after rollback"
+          echo "::error::production promote of $SHA failed and was rolled back; see the ledger artifact"
+
+      - name: Ledger to job summary
+        if: always()
+        run: |
+          [ -f "$LEDGER/summary.md" ] && cat "$LEDGER/summary.md" >> "$GITHUB_STEP_SUMMARY" || echo "no deploy record" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload deploy ledger artifact (no backup files; the D1 backup lives only in the client's R2)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: greenjobs-production-ledger-${{ inputs.sha }}-${{ github.run_attempt }}
+          path: |
+            ${{ env.LEDGER }}/deploy_record.json
+            ${{ env.LEDGER }}/failed_deploy_record.json
+            ${{ env.LEDGER }}/ledger.jsonl
+            ${{ env.LEDGER }}/smoke*.json
+            ${{ env.LEDGER }}/summary.md
+          if-no-files-found: warn
+          retention-days: 400

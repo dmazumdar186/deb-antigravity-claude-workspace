@@ -1,0 +1,68 @@
+{
+  "_doc": "Single source of truth for GreenJobs release environments. Read by release.py and smoke.py; ENVIRONMENTS.md explains it. REPLACE_* values are unknown until the accounts exist; release.py refuses to --execute while a URL it needs still holds REPLACE_.",
+  "worker_dir": "execution/gtm_client_workflows/greenjobs_redesign/platform_worker",
+  "schema": "deliverables/greenjobs_migration_2026-11-06/build/d1/schema.sql",
+  "migrations_dir": "deliverables/greenjobs_migration_2026-11-06/build/d1/migrations",
+  "seed_sources": {
+    "ie": "deliverables/greenjobs_redesign_2026-09-22/src/data/ie.json",
+    "uk": "deliverables/greenjobs_redesign_2026-09-22/src/data/uk.json"
+  },
+  "redirect_map": "deliverables/greenjobs_migration_2026-11-06/build/live_snapshot_2026-11-20/redirect_map.json",
+  "envs": {
+    "staging": {
+      "wrangler_env": "staging",
+      "worker": "greenjobs-platform-staging",
+      "d1": "greenjobs-staging",
+      "r2": "greenjobs-cvs-staging",
+      "backup_bucket": "",
+      "pages": {"ie": "greenjobs-staging-ie", "uk": "greenjobs-staging-uk"},
+      "board_urls": {"ie": "https://greenjobs-staging-ie.pages.dev", "uk": "https://greenjobs-staging-uk.pages.dev"},
+      "worker_urls": {"ie": "https://greenjobs-platform-staging.REPLACE_WORKERS_SUBDOMAIN.workers.dev", "uk": ""},
+      "account_id_env": "CLOUDFLARE_ACCOUNT_ID",
+      "api_token_env": "CLOUDFLARE_API_TOKEN",
+      "require_dry_run": true,
+      "seed_public_jobs": true,
+      "smoke_mode": "full"
+    },
+    "production": {
+      "wrangler_env": "production",
+      "worker": "greenjobs-platform",
+      "d1": "greenjobs",
+      "r2": "greenjobs-cvs",
+      "backup_bucket": "greenjobs-backups",
+      "pages": {"ie": "greenjobs-ie", "uk": "greenjobs-uk"},
+      "board_urls": {"ie": "https://greenjobs.ie", "uk": "https://greenjobs.co.uk"},
+      "worker_urls": {"ie": "https://greenjobs.ie", "uk": "https://greenjobs.co.uk"},
+      "account_id_env": "GREENJOBS_PROD_CLOUDFLARE_ACCOUNT_ID",
+      "api_token_env": "GREENJOBS_PROD_CLOUDFLARE_API_TOKEN",
+      "require_dry_run": false,
+      "seed_public_jobs": false,
+      "smoke_mode": "read_only"
+    }
+  },
+  "smoke": {
+    "paths": {
+      "health": "/api/health",
+      "jobs_api": "/api/jobs",
+      "job_api": "/api/jobs/{id}",
+      "stats_api": "/api/stats",
+      "apply_api": "/api/apply",
+      "export_api": "/api/export/jobs",
+      "admin_jobs": "/api/admin/jobs",
+      "admin_job": "/api/admin/jobs/{id}",
+      "admin_close": "/api/admin/jobs/{id}/close",
+      "board_list": "/{ed}/jobs/",
+      "board_dashboard": "/{ed}/dashboard/"
+    },
+    "closed_job_status": 410,
+    "job_visible_timeout_s": 900,
+    "job_visible_poll_s": 30,
+    "redirect_sample_size": 20,
+    "stats_live_key": "live_jobs",
+    "dashboard_stat_regex": "data-stat=\"([a-z_]+)\"[^>]*>\\s*([0-9][0-9,]*)\\s*<",
+    "required_headers": {
+      "worker": ["x-content-type-options", "x-frame-options", "referrer-policy"],
+      "board": ["x-content-type-options", "x-frame-options", "referrer-policy"]
+    }
+  }
+}
