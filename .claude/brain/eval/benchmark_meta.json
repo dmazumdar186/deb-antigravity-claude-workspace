@@ -1,22 +1,15 @@
 {
-  "frozen": "2026-11-17",
+  "version": 3,
+  "frozen": "2026-11-20T10:00:00Z",
   "prompts": 96,
   "kinds": {
     "task": 48,
     "correction": 24,
     "negative": 24
   },
-  "written_by": "v1 + v2, both blind; v2 is the held-out set for lessons written up to 2026-11-17",
-  "sets": {
-    "v1": {
-      "frozen": "2026-11-12",
-      "prompts": 48,
-      "written_by": "a worker with no access to .claude/brain, brain*.py or .claude/notes (blind to the lessons)"
-    },
-    "v2": {
-      "frozen": "2026-11-17",
-      "prompts": 48,
-      "written_by": "a worker blind to .claude/brain, .claude/notes, .claude/memory, brain*.py, brain directives, tests and git history; it read only directives/README.md and top-level folder names"
-    }
-  }
+  "sha256": "1e7665694a97f17fd4d9ad561ecbe52da1584cb81cc2f821de4b17e5b7bc1498",
+  "written_by": "a separate headless claude-opus-5-5 run in an empty directory with every file/web tool disallowed; its brief held only the workspace's kinds of work (CLAUDE.md, directives/README.md categories, paraphrased commit subjects), the JSONL format and the counts; it never saw .claude/brain, .claude/notes, lesson text or earlier benchmark prompts",
+  "labelled_by": "the brain_eval judge (claude-sonnet-5-5) via run --label; it reads lessons and writes labels.json only, never prompts",
+  "replaces": "v1+v2 (96 prompts, frozen 2026-11-17), archived unchanged in archive/benchmark_v2.jsonl and archive/benchmark_meta_v2.json",
+  "why": "operator-approved 2026-11-20: lessons written after 2026-11-17 were tuned with the v1/v2 prompts visible (possible_overfit); v3 is held out for every lesson created before the freeze"
 }
