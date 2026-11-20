@@ -106,8 +106,10 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Install pytest
-        run: python -m pip install --quiet pytest
+      - name: Install pinned Python packages and wrangler (a Dependabot PR tests its own bump here)
+        run: |
+          python -m pip install --quiet -r execution/gtm_client_workflows/greenjobs_redesign/requirements-greenjobs.txt
+          npm ci --prefix execution/gtm_client_workflows/greenjobs_redesign/platform_worker
 
       - name: Offline test pack (schema, import, apply mode, Gaia, Worker, BDD, no-CSV)
         env:

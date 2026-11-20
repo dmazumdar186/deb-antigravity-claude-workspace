@@ -117,7 +117,30 @@ def figures(month: str, inputs: Path, state: Path) -> dict[str, Any]:
         }
     else:
         out["applications"] = out["routes"] = None
+    # written by the weekly audit / monthly compatibility jobs (deploy/audit_summary.py, compat_check.py)
+    out["patches"] = C.read_json(inputs / "patches.json")
     return out
+
+
+def patch_lines(patches: Any) -> list[str]:
+    """Plain-words 'Patches and updates' lines; a missing section or null field reads "not measured yet"."""
+    p = patches if isinstance(patches, dict) else {}
+    au, cp = p.get("audit") or {}, p.get("compat") or {}
+    n, q = au.get("npm_high_critical"), au.get("pip_advisories")
+    if au.get("at") is None or n is None or q is None:
+        sec = f"- Security check of the tools we use: {NM}"
+    elif n + q:
+        sec = f"- Security check of the tools we use ({au['at']}): {n + q} known issue(s) found, being fixed"
+    else:
+        sec = f"- Security check of the tools we use ({au['at']}): no known serious issues"
+    age, stale = cp.get("age_days"), cp.get("stale")
+    if age is None or stale is None:
+        plat = f"- Cloudflare platform settings: {NM}"
+    else:
+        plat = "- Cloudflare platform settings: " + (
+            "due for a routine update" if stale else "up to date"
+        ) + f" (checked {cp.get('at')})"
+    return [sec, plat]
 
 
 def render(f: dict[str, Any], status: dict[str, Any] | None, changes: list[str]) -> str:
@@ -178,6 +201,8 @@ def render(f: dict[str, Any], status: dict[str, Any] | None, changes: list[str])
             if status
             else f"Needs attention: {NM}"
         ),
+        "Patches and updates:",
+        *patch_lines(f.get("patches")),
         "What changed:",
         *[f"- {c}" for c in changes],
     ]

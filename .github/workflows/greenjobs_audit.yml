@@ -1,0 +1,86 @@
+name: greenjobs-audit
+
+# Weekly dependency audit (npm audit incl. wrangler, pip-audit on requirements-greenjobs.txt) and a monthly
+# Cloudflare compatibility_date age check. A finding fails the job and opens or updates ONE issue (label
+# greenjobs-audit): that issue is the operator alert channel. Read-only on code; spends nothing.
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      W: execution/gtm_client_workflows/greenjobs_redesign
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install audit tooling (pinned)
+        run: python -m pip install --quiet pip-audit==2.10.1
+
+      - name: npm audit (wrangler and any production deps; JSON kept even on findings)
+        run: |
+          mkdir -p "$RUNNER_TEMP/a"
+          (cd "$W/platform_worker" && npm audit --json > "$RUNNER_TEMP/a/npm.json") || true
+
+      - name: pip-audit on requirements-greenjobs.txt
+        run: pip-audit -r execution/gtm_client_workflows/greenjobs_redesign/requirements-greenjobs.txt -f json -o "$RUNNER_TEMP/a/pip.json" || true
+
+      - name: Summarise (HIGH/CRITICAL or unreadable output exits 1)
+        id: sum
+        run: |
+          set +e
+          python "$W/deploy/audit_summary.py" --npm "$RUNNER_TEMP/a/npm.json" --pip "$RUNNER_TEMP/a/pip.json" \
+            --write-json "$RUNNER_TEMP/a/patches.json" --out-md "$RUNNER_TEMP/a/audit.md"
+          echo "rc=$?" >> "$GITHUB_OUTPUT"
+
+      - name: Compatibility date (monthly: first week of the month, or on manual dispatch)
+        id: compat
+        run: |
+          set +e
+          if [ "$(date -u +%d | sed 's/^0//')" -le 7 ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            python "$W/deploy/compat_check.py" --write-json "$RUNNER_TEMP/a/patches.json" | tee "$RUNNER_TEMP/a/compat.md"
+            echo "rc=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+          else
+            echo "rc=0" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Keep the patch status JSON for the monthly report
+        uses: actions/upload-artifact@v4
+        with:
+          name: greenjobs-patches-${{ github.run_id }}
+          path: ${{ runner.temp }}/a/patches.json
+          if-no-files-found: ignore
+          retention-days: 90
+
+      - name: Open or update the single alert issue
+        if: steps.sum.outputs.rc != '0' || steps.compat.outputs.rc != '0'
+        run: |
+          gh label create greenjobs-audit --color B60205 --description "GreenJobs dependency or runtime alert" 2>/dev/null || true
+          { cat "$RUNNER_TEMP/a/audit.md"; echo; cat "$RUNNER_TEMP/a/compat.md" 2>/dev/null; echo; echo "Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"; } > "$RUNNER_TEMP/a/body.md"
+          n="$(gh issue list --label greenjobs-audit --state open --json number --jq '.[0].number // empty')"
+          if [ -n "$n" ]; then gh issue edit "$n" --body-file "$RUNNER_TEMP/a/body.md"; gh issue comment "$n" --body "Still open after run $GITHUB_RUN_ID"
+          else gh issue create --label greenjobs-audit --title "GreenJobs: dependency audit or compatibility date needs attention" --body-file "$RUNNER_TEMP/a/body.md"; fi
+
+      - name: Fail the job on a finding
+        if: steps.sum.outputs.rc != '0' || steps.compat.outputs.rc != '0'
+        run: exit 1

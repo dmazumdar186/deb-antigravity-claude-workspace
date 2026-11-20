@@ -1,0 +1,37 @@
+# GreenJobs only. Every entry is scoped by directory/files; nothing here touches other workspace projects.
+# Update PRs run greenjobs-ci (path filters include these files). After merge to main, greenjobs-cd-staging
+# deploys to STAGING and smoke-tests; production moves only via the manually dispatched, gated greenjobs-promote.
+# Never straight to production.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /execution/gtm_client_workflows/greenjobs_redesign/platform_worker
+    schedule: { interval: weekly, day: monday }
+    labels: [greenjobs]
+    groups:
+      greenjobs-npm:
+        update-types: [minor, patch]
+  - package-ecosystem: pip
+    # only requirements-greenjobs.txt lives in this directory, so the workspace's other Python projects are untouched
+    directory: /execution/gtm_client_workflows/greenjobs_redesign
+    schedule: { interval: weekly, day: monday }
+    labels: [greenjobs]
+    groups:
+      greenjobs-pip:
+        update-types: [minor, patch]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly, day: monday }
+    labels: [greenjobs]
+    # actions are shared with other workspace workflows; limit to the actions the greenjobs_* workflows use
+    allow:
+      - dependency-name: actions/checkout
+      - dependency-name: actions/setup-python
+      - dependency-name: actions/setup-node
+      - dependency-name: actions/upload-artifact
+      - dependency-name: actions/download-artifact
+      - dependency-name: actions/github-script
+      - dependency-name: actions/cache
+    groups:
+      greenjobs-actions:
+        update-types: [minor, patch]

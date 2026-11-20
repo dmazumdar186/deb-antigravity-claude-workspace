@@ -39,7 +39,7 @@ except ImportError:  # cloud sessions carry env vars only
     pass
 
 SCHEMA = C.MIGRATION / "d1" / "schema.sql"
-WRANGLER = ["npx", "--yes", "wrangler@4"]
+WRANGLER = ["npx", "--no-install", "--prefix=execution/gtm_client_workflows/greenjobs_redesign/platform_worker", "wrangler"]  # pinned (package-lock.json)
 Runner = Callable[[list[str]], tuple[int, str]]
 
 
