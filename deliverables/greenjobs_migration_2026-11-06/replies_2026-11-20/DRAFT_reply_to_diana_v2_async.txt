@@ -1,12 +1,12 @@
 Hi Diana,
 
-Thank you for the answers. The column names are what I needed for now, and it helps to know that all jobs are posted by hand, none through Broadbean or another tool.
+Thank you for the answers. The column names are what I needed for now, and it helps to know that jobs are posted by hand, none through Broadbean or another tool.
 
 On your questions:
 
-1. DNS login and domain login: the only one you need is the domain login, the account where you renew each name. That is where the nameservers are changed, so you can ignore any separate DNS login.
+1. DNS login and domain login: the domain login is where you renew each name. The DNS login is where the current records are kept; sometimes it is the same account. Keep both to hand; each guide says which one its step uses.
 
-2. Password manager: not needed after all, and no codes from the info@ inboxes either. You keep the Hosting Ireland, Lets Host and 123 Reg logins; I don't need them. I'll send you a short step-by-step guide for each of the three, covering a file download and the nameserver change. Each guide tells you where to click and the date its step is needed by. No call is needed: I'll check from my side and email you to confirm each step worked.
+2. Password manager: no longer needed. You keep the Hosting Ireland, Lets Host and 123 Reg logins; I never need them, and you won't need to forward me anything from the info@ inboxes. I'll send a short step-by-step guide for each of the three, with the date each step is needed by. No call is needed: I'll check from my side and email you to confirm each step worked.
 
 3. Applications: when a job is posted without its own email or application link, someone at GreenJobs has to receive those applications. Please reply with one line: rashieda.ely@greenjobs.ie for both boards, or a different address for the UK board. Nothing is set until you say.
 
