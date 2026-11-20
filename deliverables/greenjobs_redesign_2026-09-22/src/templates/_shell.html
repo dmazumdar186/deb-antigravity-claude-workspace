@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex,nofollow">
 <title>{{title}}</title>
 <meta name="description" content="{{desc}}">
-{{head_extra}}
+{{head_extra}}{{analytics_head}}
 <meta name="theme-color" content="#f6f0e6">
 <meta property="og:type" content="website">
 <meta property="og:title" content="{{title}}">
@@ -48,9 +48,9 @@
 <main id="main" tabindex="-1">
 {{content}}
 </main>
-<div class="cookie" data-cookie role="region" aria-label="Cookie settings" aria-hidden="true">
-  <p>This site uses only essential storage (your theme, saved roles, and this choice). No tracking.</p>
-  <div class="cookie__act"><button class="btn btn--lime" type="button" data-cookie-accept>Accept</button><button class="btn" type="button" data-cookie-settings aria-haspopup="dialog">Settings</button></div>
+<div class="cookie" data-cookie{{cookie_attr}} role="region" aria-label="Cookie settings" aria-hidden="true">
+  <p>{{cookie_text}}</p>
+  <div class="cookie__act"><button class="btn btn--lime" type="button" data-cookie-accept>{{cookie_accept}}</button>{{cookie_reject}}<button class="btn" type="button" data-cookie-settings aria-haspopup="dialog">Settings</button></div>
 </div>
 <dialog class="gjd" data-cookie-dialog aria-labelledby="ck-h">
   <form class="gjd__in" method="dialog">
@@ -99,7 +99,7 @@
 <script src="{{root}}js/lib.js" defer></script>
 <script src="{{root}}js/main.js" defer></script>
 <script src="{{root}}js/motion.js" defer></script>
-<script src="{{root}}js/popups.js" defer></script>
+<script src="{{root}}js/popups.js" defer></script>{{analytics_script}}
 {{scripts}}
 </body>
 </html>
