@@ -15,6 +15,8 @@ const MIG3 = readFileSync(resolve(D1, 'migrations/0003_classifier_feed_review_em
 const PKG = resolve(REPO, 'execution/gtm_client_workflows/greenjobs_redesign');
 const FIX = resolve(REPO, 'tests/greenjobs_redesign/fixtures/gaia_d1');
 const TOKEN = 'build-token-for-tests-only';
+const TAX = JSON.parse(readFileSync(resolve(PKG, 'platform_worker/src/taxonomy.json'), 'utf8'));
+const TAX_SECTORS = TAX.sectors.map((s) => s.name);
 
 async function world(env = {}) {
   const w = await makeWorld(env);
@@ -39,11 +41,28 @@ test('sql_0003.js holds exactly the statements of upserts_0003.sql', async () =>
   assert.equal(Object.keys(Q).length, names.length);
 });
 
-test('migration 0003 is idempotent and additive', async () => {
+test('migration 0003 is idempotent and additive; job_facets is 0002\'s one table, no taxonomy_terms copy', async () => {
   const w = await world();
   w.db.sqlite.exec(MIG3);
-  const t = w.db.q(`SELECT name FROM sqlite_master WHERE type='table' AND name IN ('job_facets','job_review','job_links','employer_accounts','taxonomy_terms')`);
-  assert.equal(t.length, 5);
+  const t = w.db.q(`SELECT name FROM sqlite_master WHERE type='table' AND name IN ('job_facets','job_review','job_links','employer_accounts','taxonomy_terms') ORDER BY name`);
+  assert.deepEqual(t.map((r) => r.name), ['employer_accounts', 'job_facets', 'job_links', 'job_review']);
+  const cols = w.db.q('PRAGMA table_info(job_facets)').map((c) => c.name);
+  for (const c of ['sectors_json', 'level', 'search_text', 'source_sectors_json', 'sector_confidence', 'sector_method', 'set_by']) assert.ok(cols.includes(c), c);
+  assert.ok(!/CREATE TABLE[^;]*job_facets/i.test(MIG3) && !/taxonomy_terms\s*\(/i.test(MIG3));
+});
+
+test('import: a batch classified with any vocabulary but taxonomy.json is refused (one source of truth)', async () => {
+  const w = await world({ FEED_IMPORT_ENABLED: '1' });
+  const r = await w.fetch(importReq(batch({ taxonomy: { version: 'test-1', sectors: TAX_SECTORS } })));
+  assert.equal(r.status, 400);
+  assert.equal((await r.json()).field, 'taxonomy.version');
+  const r2 = await w.fetch(importReq(batch({ taxonomy: { version: `frozen-${TAX.version}`, sectors: TAX_SECTORS.slice(1) } })));
+  assert.equal(r2.status, 400);
+  const r3 = await w.fetch(importReq(batch({ jobs: [job(101, { facets: { ...job(101).facets, taxonomy_version: TAX.version + 1 } })] })));
+  assert.equal((await r3.json()).field, 'jobs[0].facets.taxonomy_version');
+  const r4 = await w.fetch(importReq(batch({ jobs: [job(101, { facets: { ...job(101).facets, sectors: ['Moon mining'] } })] })));
+  assert.equal((await r4.json()).field, 'jobs[0].facets.sectors');
+  assert.equal(w.db.q('SELECT COUNT(*) AS n FROM jobs')[0].n, 0);
 });
 
 // ------------------------------------------------------------------ feed import
@@ -51,7 +70,7 @@ test('migration 0003 is idempotent and additive', async () => {
 function batch(over = {}) {
   return {
     source: 'gaia', site: 'ie', dry_run: false,
-    taxonomy: { version: 'test-1', sectors: ['Ecology, nature recovery & biodiversity', 'Water & flood'] },
+    taxonomy: { version: `frozen-${TAX.version}`, sectors: TAX_SECTORS },
     jobs: [job(101), job(102, { status: 'draft', review: { reason: 'low confidence', suggested: ['Water & flood'], confidence: 0.4, hold: 1 } })],
     links: [{ source_id: 'gaia:103', board_job_id: 'ie:strat:11500001', method: 'rule' }],
     ...over,
@@ -64,7 +83,9 @@ function job(n, over = {}) {
     sectors: ['Ecology, nature recovery & biodiversity'], summary: 'Habitat surveys.', description: 'Lead habitat and species surveys across Munster.',
     apply_mode: 'link', apply_email: null, apply_url: `https://gaiatalent.com/job/${n}/`, status: 'live', posted_at: '2026-11-10T09:00:00Z',
     closing_at: null, review: null,
-    facets: { regions: ['Cork'], loc_class: 'ie', workplace: 'hybrid', contract: ['permanent'], source_sectors: [], sector_confidence: 0.95, sector_method: 'keyword', taxonomy_version: 'test-1' },
+    facets: { sectors: over.status === 'draft' ? ['Water & flood'] : ['Ecology, nature recovery & biodiversity'], regions: ['Cork'], job_type: 'Permanent',
+      workplace: 'hybrid', contract: ['permanent'], loc_class: 'ie', level: 'Senior/Principal', is_agency: 1, salary_display: null, unverified_cur: 0,
+      search_text: 'Lead habitat and species surveys across Munster.', source_sectors: [], sector_confidence: 0.95, sector_method: 'keyword', taxonomy_version: TAX.version },
     ...over,
   };
 }
@@ -95,7 +116,7 @@ test('import: dry run by default, live writes need FEED_IMPORT_ENABLED=1', async
   assert.equal(off.status, 403);
   assert.equal((await off.json()).error, 'import_disabled');
   assert.equal(w.db.q('SELECT COUNT(*) AS n FROM jobs')[0].n, 0);
-  assert.equal(w.db.q('SELECT COUNT(*) AS n FROM taxonomy_terms')[0].n, 0);
+  assert.equal(w.db.q('SELECT COUNT(*) AS n FROM job_facets')[0].n, 0);
 });
 
 test('import: live write is idempotent, holds review jobs as draft, links instead of listing', async () => {
@@ -167,7 +188,7 @@ test('import: closes jobs that left the feed, refuses an empty batch and a mass 
 test('import: the Python emitter (SQL) and the API converge on the same rows', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'gj-parity-'));
   try {
-    execFileSync('python3', [resolve(PKG, 'gaia_d1_sync.py'), '--feed', resolve(FIX, 'feed_small.json'), '--taxonomy', resolve(FIX, 'taxonomy_frozen.json'),
+    execFileSync('python3', [resolve(PKG, 'gaia_d1_sync.py'), '--feed', resolve(FIX, 'feed_small.json'), '--taxonomy', resolve(PKG, 'platform_worker/src/taxonomy.json'),
       '--as-of', '2026-11-20', '--emit-json', join(dir, 'b.json'), '--emit-sql', join(dir, 'b.sql')], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
     const payloads = JSON.parse(readFileSync(join(dir, 'b.json'), 'utf8'));
     const api = await world({ FEED_IMPORT_ENABLED: '1' });
@@ -181,8 +202,8 @@ test('import: the Python emitter (SQL) and the API converge on the same rows', a
       apply_mode, apply_email, apply_url, status, posted_at, closing_at, version`;
     for (const q of [`SELECT ${cols} FROM jobs ORDER BY id`, 'SELECT job_id, reason, suggested_json, confidence, hold, status FROM job_review ORDER BY job_id',
       'SELECT site, feed_source_id, board_job_id, method FROM job_links ORDER BY 1, 2, 3',
-      'SELECT job_id, regions_json, loc_class, workplace, contract_json, sector_confidence, sector_method, taxonomy_version FROM job_facets ORDER BY job_id',
-      'SELECT kind, value, version, active FROM taxonomy_terms ORDER BY value']) {
+      `SELECT job_id, sectors_json, regions_json, job_type, workplace, contract_json, loc_class, level, is_agency, salary_display, unverified_cur,
+        taxonomy_version, set_by, search_text, source_sectors_json, sector_confidence, sector_method FROM job_facets ORDER BY job_id`]) {
       assert.deepEqual(api.db.q(q), sql.db.q(q), q.slice(0, 60));
     }
     assert.ok(api.db.q('SELECT COUNT(*) AS n FROM jobs')[0].n >= 4);
@@ -207,7 +228,7 @@ test('review: staff list the queue with suggestions and the vocabulary', async (
   assert.equal(d.items.length, 1);
   assert.deepEqual(d.items[0].suggested, ['Water & flood']);
   assert.equal(d.items[0].hold, true);
-  assert.deepEqual(d.sectors, ['Ecology, nature recovery & biodiversity', 'Water & flood']);
+  assert.deepEqual(d.sectors, [...TAX_SECTORS].sort()); // the vocabulary is taxonomy.json, not a D1 copy
   const page = await w.fetch(await adminRequest('GET', '/admin/review'));
   assert.equal(page.status, 200);
   const html = await page.text();
@@ -239,6 +260,9 @@ test('review: one click approves the suggestion and takes the held job live; rep
   await w.fetch(importReq(changed));
   assert.deepEqual(w.db.q(`SELECT status, sectors_json FROM jobs WHERE id='ie:gaia:102'`)[0], { status: 'live', sectors_json: '["Water & flood"]' });
   assert.equal(w.db.q(`SELECT status FROM job_review WHERE job_id='ie:gaia:102'`)[0].status, 'approved');
+  // ... and the board's facet row (what the job pages render) keeps the decided sectors too
+  assert.deepEqual(w.db.q(`SELECT sectors_json, sector_method, set_by FROM job_facets WHERE job_id='ie:gaia:102'`)[0],
+    { sectors_json: '["Water & flood"]', sector_method: 'keyword', set_by: 'feed' });
 });
 
 test('review: change & approve takes only active vocabulary, 1..3 sectors', async () => {
@@ -252,6 +276,12 @@ test('review: change & approve takes only active vocabulary, 1..3 sectors', asyn
   assert.equal(ok.status, 200);
   assert.equal((await ok.json()).status, 'changed');
   assert.equal(w.db.q(`SELECT sectors_json FROM jobs WHERE id='ie:gaia:102'`)[0].sectors_json, '["Ecology, nature recovery & biodiversity"]');
+  assert.deepEqual(w.db.q(`SELECT sectors_json, sector_method FROM job_facets WHERE job_id='ie:gaia:102'`)[0],
+    { sectors_json: '["Ecology, nature recovery & biodiversity"]', sector_method: 'staff' });
+  // the decided job now renders on the board under the staff's sector
+  const page = await w.fetch(new Request('https://greenjobs.ie/ie/jobs/gaia-102/'));
+  assert.equal(page.status, 200);
+  assert.match(await page.text(), /Ecology, nature recovery &amp; biodiversity/);
 });
 
 test('review: closed job is never taken live; CSRF, idempotency key, unknown job and other site are refused', async () => {

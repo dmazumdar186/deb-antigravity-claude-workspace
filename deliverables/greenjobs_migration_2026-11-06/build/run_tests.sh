@@ -28,22 +28,24 @@ for m in migs:
         c.executescript("BEGIN;\n" + sql + "\nCOMMIT;")
 c.executescript(schema)
 assert c.execute("PRAGMA foreign_key_check").fetchall() == []
-# statements for the migration-0003 tables compile against the migrated schema
+# statements for the migration-0002/0003 tables (upserts_0003.sql) compile against the migrated schema
 parts = re.split(r"^-- name: (\w+)\s*$", open(base + "upserts_0003.sql", encoding="utf-8").read(), flags=re.M)
 named = 0
 for name, body in zip(parts[1::2], parts[2::2]):
     s = re.sub(r"--[^\n]*", "", body).strip().rstrip(";")
     n = max([int(x) for x in re.findall(r"\?(\d+)", s)] or [0])
     c.execute("EXPLAIN " + s, [None] * n); named += 1
-assert named >= 14, named
+assert named >= 13, named
 print(f"ok: schema x2, {len(stmts)} upserts, {len(migs)} migration(s) x2 + schema again, {named} 0003 statements")
 EOF
 
-echo "== 2/5 import validator + apply mode + Gaia feed sync + classifier / D1 import (pytest)"
-"$PY" -m pytest -q tests/greenjobs_redesign/test_strategies_import.py tests/greenjobs_redesign/test_strategies_real_headers.py tests/greenjobs_redesign/test_apply_mode_site.py tests/greenjobs_redesign/test_gaia_feed_sync.py tests/greenjobs_redesign/test_d1_classifier_import.py || fail=1
+echo "== 2/5 import validator + apply mode + Gaia feed sync + classifier / D1 import + frozen taxonomy (pytest)"
+"$PY" -m pytest -q tests/greenjobs_redesign/test_strategies_import.py tests/greenjobs_redesign/test_strategies_real_headers.py tests/greenjobs_redesign/test_apply_mode_site.py tests/greenjobs_redesign/test_gaia_feed_sync.py tests/greenjobs_redesign/test_d1_classifier_import.py tests/greenjobs_redesign/test_platform_taxonomy.py || fail=1
 
-echo "== 3/5 Worker unit tests + BDD features (node --test)"
+echo "== 3/5 Worker unit tests + BDD features + D1-rendered board: parity with build_site.py and the E2E deploy gate (node --test)"
 node --no-warnings --test 'tests/greenjobs_redesign/platform/*.test.mjs' || fail=1
+# live figures on the static pages (live.js) and the KPI dashboard's /api/stats refresh (dashboard.js)
+(cd deliverables/greenjobs_redesign_2026-09-22/src/js && node --test live.test.js dashboard.test.js) || fail=1
 
 echo "== 4/5 ops: redirects, DNS watcher, probe + incidents, metrics + status page, backups, acceptance, reports"
 "$PY" -m pytest -q tests/greenjobs_redesign/ops || fail=1

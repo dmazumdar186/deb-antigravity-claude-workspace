@@ -278,7 +278,8 @@ def test_stage_execute_records_versions(cfg, tmp_path, no_toml_placeholders):
         "ie": "dep-greenjobs-staging-ie-latest",
         "uk": "dep-greenjobs-staging-uk-latest",
     }
-    assert rec["d1_migration_level"] == "0001_apply_mode_consent_alerts.sql"
+    latest = sorted(p.name for p in (ROOT / "deliverables/greenjobs_migration_2026-11-06/build/d1/migrations").glob("*.sql"))[-1]
+    assert rec["d1_migration_level"] == latest == "0004_job_alerts_newsletter.sql"
     order = [" ".join(c) for c in fake.calls]
     assert order.index(next(c for c in order if "schema.sql" in c)) < order.index(
         next(c for c in order if "migrations apply" in c)

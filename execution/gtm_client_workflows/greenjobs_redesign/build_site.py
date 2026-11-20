@@ -66,26 +66,13 @@ EDITIONS = {
 # description. Colours: the warm-earth data set (sky, honey, sage, clay,
 # terracotta and their deeper cuts); the third field says the swatch is dark
 # enough to carry light text.
-TAXONOMY: list[tuple[str, str, bool, list[str]]] = [
-    ("Wind energy", "#5b95b8", False, ["wind", "offshore wind", "onshore wind", "turbine", "turbines"]),
-    ("Solar energy", "#d99a1c", False, ["solar", "photovoltaic", "pv"]),
-    ("Renewable energy & storage", "#6f8f6a", False, ["renewable", "renewables", "battery", "storage", "hydrogen", "hydro", "hydropower", "bioenergy", "biomass", "biogas", "anaerobic", "green energy", "clean energy", "alternative energy", "marine energy", "tidal", "wave"]),
-    ("Water & flood", "#3f7ea6", True, ["water", "flood", "flooding", "drainage", "wastewater", "coastal", "hydrology", "hydrogeology", "hydrogeologist", "hydrologist", "sewer", "sewerage", "catchment"]),
-    ("Waste & circular economy", "#b7774e", False, ["waste", "waste management", "recycling", "circular", "circular economy", "landfill", "resource management", "reuse", "lgv driver", "hgv driver", "refuse", "epa licensing", "epa licence", "waste licensing", "waste permitting", "waste compliance", "waste facility", "waste facilities"]),
-    ("Ecology, nature recovery & biodiversity", "#5c7a57", True, ["ecology", "ecologist", "ecological", "conservation", "biodiversity", "habitat", "habitats", "wildlife", "species", "ornithologist", "ornithology", "botanist", "botany", "arboriculture", "arboriculturist", "arborist", "nature", "nature recovery", "rewilding", "peatland", "forestry", "woodland", "marine biology", "landscape restoration", "ecosystem", "ecosystems", "land restoration", "regenerative"]),
-    # Keith 2026-09-28 (B1): engineering, infrastructure, HSE and climate roles were
-    # landing in "Sustainability" or "Built environment". Each now has a home, placed
-    # ahead of the umbrella sectors so a tie on score resolves to the specific one.
-    ("Environmental engineering", "#8a6d3b", True, ["environmental engineer", "environmental engineers", "environmental engineering", "civil & environmental", "civil and environmental", "remediation", "contaminated land", "geo-environmental", "geoenvironmental", "geotechnical", "land reclamation", "site investigation"]),
-    ("Sustainable infrastructure & transport", "#b08a3e", True, ["highway", "highways", "road", "roads", "rail", "railway", "railways", "metro", "metrolink", "transport", "transportation", "active travel", "cycling", "cycle", "greenway", "greenways", "bridge", "bridges", "civil engineer", "civil engineers", "civil engineering", "infrastructure", "pavement", "tunnel", "tunnelling", "maritime", "port", "ports", "coastal"]),
-    ("Health, safety & environment", "#a34a3a", True, ["health & safety", "health and safety", "health, safety", "hse", "ehs", "safety", "cdm", "construction safety", "safety consultant", "safety advisor", "safety adviser", "occupational health"]),
-    ("Climate & carbon", "#4f7362", True, ["climate", "climate change", "climate action", "carbon", "net zero", "net-zero", "decarbonisation", "decarbonization", "emissions", "greenhouse", "carbon accounting", "carbon footprint", "climate adaptation", "climate resilience"]),
-    ("Environmental science & consulting", "#7f9c7a", False, ["environmental", "environment", "eia", "eiar", "impact assessment", "air quality", "acoustics", "noise", "geologist", "geology", "environmental scientist", "environmental consultant"]),
-    ("Sustainability & ESG", "#a3653c", True, ["sustainability", "sustainable", "esg", "csrd", "responsible business", "corporate responsibility", "circularity"]),
-    ("Built environment & energy efficiency", "#c65d3b", True, ["building", "buildings", "built environment", "energy efficiency", "retrofit", "breeam", "leed", "heat pump", "heat pumps", "insulation", "mechanical", "electrical", "hvac", "facilities", "architect", "architecture", "construction", "quantity surveyor", "surveyor"]),
-    ("Energy networks & utilities", "#4a86ab", True, ["grid", "utility", "utilities", "transmission", "distribution", "substation", "energy network", "energy networks", "energy management", "energy manager", "power station", "electricity", "smart meter", "district heating"]),
-    ("Policy, planning & advisory", "#9a8a6a", False, ["policy", "planning", "planner", "enforcement officer", "enforcement officers", "advisor", "adviser", "advisory", "regulation", "regulatory", "consents", "permitting", "compliance", "legal", "economist", "campaign", "communications", "fundraising", "education"]),
-]
+# The vocabularies (sectors + keywords + colours, job-type canon, contract,
+# workplace and level labels) are FROZEN in one versioned file shared with the
+# platform Worker, the staff console and the import classifier (2026-11-20):
+# platform_worker/src/taxonomy.json. Edit that file, never a copy here.
+TAXONOMY_PATH = Path(__file__).resolve().parent / "platform_worker" / "src" / "taxonomy.json"
+FROZEN_TAXONOMY: dict[str, Any] = json.loads(TAXONOMY_PATH.read_text(encoding="utf-8"))
+TAXONOMY: list[tuple[str, str, bool, list[str]]] = [(s["name"], s["color"], bool(s["dark"]), list(s["keywords"])) for s in FROZEN_TAXONOMY["sectors"]]
 BUILT_ENV = "Built environment & energy efficiency"
 PRIMARY_MIN = 2  # score a sector needs before a job carries it
 # Secondary tags (R010/R087, 2026-09-28): a civil/highways role was carrying
@@ -169,16 +156,18 @@ REMOTE_WORDS = ["remote", "home based", "home-based", "work from home", "working
 # Recruitment agencies (Keith D1). Rule: the named agencies plus any employer
 # whose name contains a staffing word. "Consultancy" alone is not a staffing
 # word (environmental consultancies are direct employers).
-AGENCY_NAMES = {"gaia talent", "mattinson partnership", "chm recruit"}
+AGENCY_NAMES: set[str] = set(FROZEN_TAXONOMY["agency"]["names"])
 AGENCY_DISPLAY = {"chm recruit": "CHM Recruit", "gaia talent": "Gaia Talent", "mattinson partnership": "Mattinson Partnership"}  # real casing when no live role carries the name (visual 25)
-AGENCY_WORDS = ["recruit", "recruitment", "recruiters", "talent", "staffing", "resourcing", "headhunt", "personnel", "appointments", "search & selection"]  # "partnership" dropped 2026-09-28 (Mattinson is in AGENCY_NAMES)
+AGENCY_WORDS: list[str] = list(
+    FROZEN_TAXONOMY["agency"]["words"]
+)  # "partnership" dropped 2026-09-28 (Mattinson is in AGENCY_NAMES)
 
-WORKPLACE_LABEL = {"office": "Office-based", "hybrid": "Hybrid", "remote": "Remote", "site": "Site-based", "unspecified": "Not stated"}
-LEVEL_ORDER = ["Graduate/Early career", "Mid-level", "Senior/Principal", "Director/Associate"]  # level_of() labels, facet order
+WORKPLACE_LABEL: dict[str, str] = dict(FROZEN_TAXONOMY["workplace"])
+LEVEL_ORDER: list[str] = list(FROZEN_TAXONOMY["levels"])  # level_of() labels, facet order
 # One "Contract" facet (visual 31, 2026-09-28): the scraped job type folds into
 # these tags (Home Based -> workplace=remote via REMOTE_WORDS); the URL param
 # `type` stays as an alias in lib.js normaliseState().
-CONTRACT_LABEL = {"permanent": "Permanent", "contract": "Contract", "fixed-term": "Fixed-term", "full-time": "Full-time", "part-time": "Part-time", "volunteer": "Volunteer"}
+CONTRACT_LABEL: dict[str, str] = dict(FROZEN_TAXONOMY["contract"])
 
 NAV = [("jobs/index.html", "Jobs"), ("sectors/index.html", "Sectors"), ("insights/index.html", "Salary explorer"),
        ("compass/index.html", "Career compass"), ("employers/index.html", "Employers")]
@@ -647,8 +636,7 @@ _OFFICE_RE = re.compile(r"\bbased (?:in|at|from) (?:our|the) (?:\w+[ -]){0,2}off
 OFFICE_WORDS = ["office-based", "office based", "in the office", "in our office", "in office", "based in our office", "based at our office", "based in the office", "our offices in", "our office in"]  # bare "office" is not a signal
 
 
-TYPE_CANON = {"full time": "Full-time", "full-time": "Full-time", "part time": "Part-time", "part-time": "Part-time", "fixed term": "Fixed-term", "fixed-term": "Fixed-term",
-              "permanent": "Permanent", "contract": "Contract", "volunteer": "Volunteer", "home based": "Home Based", "home-based": "Home Based"}
+TYPE_CANON: dict[str, str] = dict(FROZEN_TAXONOMY["job_types"]["canon"])
 
 
 def canon_type(raw: Any) -> str:
@@ -1404,7 +1392,7 @@ def sector_tiles(data: dict[str, Any], jobs_href: str, today: date, sym: str = "
         in_sector = [j for j in data["jobs"] if s["name"] in j["sectors"]]
         spark = sparkline_svg(sparkline_weeks(in_sector, today))
         out.append(
-            f'<a class="sect reveal{" sect--lead" if i == 0 else ""}" href="{jobs_href}?sector={qs(s["name"])}" style="--sc:{s["color"]}">'
+            f'<a class="sect reveal{" sect--lead" if i == 0 else ""}" data-live-sector="{esc(s["name"])}" href="{jobs_href}?sector={qs(s["name"])}" style="--sc:{s["color"]}">'
             f'<span class="arw" aria-hidden="true">&#8599;</span><h3>{esc(s["name"])}</h3>'
             f'<p class="n num">{s["n"]}<small>{"role" if s["n"] == 1 else "roles"} · {esc(sector_stat(in_sector, sym))}</small></p>'
             f'{spark}<span class="vh">Postings over the last eight weeks</span></a>')
@@ -2343,8 +2331,32 @@ def guide_salary_body(data: dict[str, Any], ed: dict[str, Any]) -> dict[str, str
     }
 
 
-def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str], brief: dict[str, Any], site_base: str, today: date,
-                  evidence: dict[str, Any]) -> None:
+# Quick job match panel examples (module level so the platform Worker's asset export reads the same strings).
+FIT_EXAMPLES = {
+    "ie": ["ecologist Dublin", "solar project manager", "water engineer flood risk"],
+    "uk": [
+        "ecologist Bristol",
+        "sustainability consultant London",
+        "flood risk engineer Manchester",
+        "renewable energy Scotland",
+    ],
+}
+FIT_PLACEHOLDER = {
+    "ie": "e.g. Ecologist, five years of Phase 1 habitat surveys and EIA chapters, Dublin",
+    "uk": "e.g. Ecologist, five years of Phase 1 habitat surveys and EIA chapters, Bristol",
+}
+
+
+def build_edition(
+    data: dict[str, Any],
+    src: Path,
+    out: Path,
+    tpl: dict[str, str],
+    brief: dict[str, Any],
+    site_base: str,
+    today: date,
+    evidence: dict[str, Any],
+) -> None:
     ed_key = data["ed"]
     ed = EDITIONS[ed_key]
     edir = out / ed_key
@@ -2361,7 +2373,8 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(html_text, encoding="utf-8")
 
-    SCRIPTS = {"home": ["landscape"], "jobs": ["jobs", "fit"], "sectors": ["charts", "explore"], "insights": ["charts", "explore"], "compass": ["compass"], "employers": ["adbuilder"]}
+    # "live": GET /api/stats replaces the build-time figures ([data-live]) once jobs come from the platform Worker.
+    SCRIPTS = {"home": ["landscape", "live"], "jobs": ["jobs", "fit"], "sectors": ["charts", "explore"], "insights": ["charts", "explore", "live"], "guide_salary": ["live"], "compass": ["compass"], "employers": ["adbuilder"]}
 
     def page(name: str, depth: int, page_key: str, title: str, desc: str, body: dict[str, str], **kw: Any) -> str:
         ctx = shell_ctx(data, depth, page_key, title, desc, brief=brief, site_base=site_base, **kw)
@@ -2387,11 +2400,6 @@ def build_edition(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, str
         '<p class="muted" style="margin:14px 0 24px;max-width:44ch">Explore current vacancies by UK region, including nationwide and remote opportunities. '
         f'Hover or tab through the map for counts; choose one to open the filtered list.{off_map_note(data, "jobs/index.html")}</p>'
         f'<div class="maplist">{map_list(data, "jobs/index.html")}</div></div><div class="reveal">{map_svg(src, ed_key, map_counts)}</div></div></section>')
-
-    FIT_EXAMPLES = {"ie": ["ecologist Dublin", "solar project manager", "water engineer flood risk"],
-                    "uk": ["ecologist Bristol", "sustainability consultant London", "flood risk engineer Manchester", "renewable energy Scotland"]}
-    FIT_PLACEHOLDER = {"ie": "e.g. Ecologist, five years of Phase 1 habitat surveys and EIA chapters, Dublin",
-                       "uk": "e.g. Ecologist, five years of Phase 1 habitat surveys and EIA chapters, Bristol"}
 
     def fit_panel(jobs_href: str, fit_id: str) -> str:
         return render(tpl["_fit"], {"jobs_href": jobs_href, "sym": ed["sym"], "fit_id": fit_id, "n_jobs": str(len(jobs)), "fit_map": map_svg(src, ed_key),

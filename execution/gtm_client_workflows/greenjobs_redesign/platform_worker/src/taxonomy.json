@@ -1,0 +1,501 @@
+{
+ "version": 1,
+ "frozen": "2026-11-20",
+ "about": "GreenJobs frozen taxonomy. Single source for build_site.py (sector classifier, type canon, contract and workplace labels), the platform Worker (rendering, filters, sitemap, /api/stats), the staff console dropdowns and the import classifier. See platform_worker/TAXONOMY.md before changing anything.",
+ "sectors": [
+  {
+   "name": "Wind energy",
+   "slug": "wind-energy",
+   "color": "#5b95b8",
+   "dark": false,
+   "keywords": [
+    "wind",
+    "offshore wind",
+    "onshore wind",
+    "turbine",
+    "turbines"
+   ]
+  },
+  {
+   "name": "Solar energy",
+   "slug": "solar-energy",
+   "color": "#d99a1c",
+   "dark": false,
+   "keywords": [
+    "solar",
+    "photovoltaic",
+    "pv"
+   ]
+  },
+  {
+   "name": "Renewable energy & storage",
+   "slug": "renewable-energy-storage",
+   "color": "#6f8f6a",
+   "dark": false,
+   "keywords": [
+    "renewable",
+    "renewables",
+    "battery",
+    "storage",
+    "hydrogen",
+    "hydro",
+    "hydropower",
+    "bioenergy",
+    "biomass",
+    "biogas",
+    "anaerobic",
+    "green energy",
+    "clean energy",
+    "alternative energy",
+    "marine energy",
+    "tidal",
+    "wave"
+   ]
+  },
+  {
+   "name": "Water & flood",
+   "slug": "water-flood",
+   "color": "#3f7ea6",
+   "dark": true,
+   "keywords": [
+    "water",
+    "flood",
+    "flooding",
+    "drainage",
+    "wastewater",
+    "coastal",
+    "hydrology",
+    "hydrogeology",
+    "hydrogeologist",
+    "hydrologist",
+    "sewer",
+    "sewerage",
+    "catchment"
+   ]
+  },
+  {
+   "name": "Waste & circular economy",
+   "slug": "waste-circular-economy",
+   "color": "#b7774e",
+   "dark": false,
+   "keywords": [
+    "waste",
+    "waste management",
+    "recycling",
+    "circular",
+    "circular economy",
+    "landfill",
+    "resource management",
+    "reuse",
+    "lgv driver",
+    "hgv driver",
+    "refuse",
+    "epa licensing",
+    "epa licence",
+    "waste licensing",
+    "waste permitting",
+    "waste compliance",
+    "waste facility",
+    "waste facilities"
+   ]
+  },
+  {
+   "name": "Ecology, nature recovery & biodiversity",
+   "slug": "ecology-nature-recovery-biodiversity",
+   "color": "#5c7a57",
+   "dark": true,
+   "keywords": [
+    "ecology",
+    "ecologist",
+    "ecological",
+    "conservation",
+    "biodiversity",
+    "habitat",
+    "habitats",
+    "wildlife",
+    "species",
+    "ornithologist",
+    "ornithology",
+    "botanist",
+    "botany",
+    "arboriculture",
+    "arboriculturist",
+    "arborist",
+    "nature",
+    "nature recovery",
+    "rewilding",
+    "peatland",
+    "forestry",
+    "woodland",
+    "marine biology",
+    "landscape restoration",
+    "ecosystem",
+    "ecosystems",
+    "land restoration",
+    "regenerative"
+   ]
+  },
+  {
+   "name": "Environmental engineering",
+   "slug": "environmental-engineering",
+   "color": "#8a6d3b",
+   "dark": true,
+   "keywords": [
+    "environmental engineer",
+    "environmental engineers",
+    "environmental engineering",
+    "civil & environmental",
+    "civil and environmental",
+    "remediation",
+    "contaminated land",
+    "geo-environmental",
+    "geoenvironmental",
+    "geotechnical",
+    "land reclamation",
+    "site investigation"
+   ]
+  },
+  {
+   "name": "Sustainable infrastructure & transport",
+   "slug": "sustainable-infrastructure-transport",
+   "color": "#b08a3e",
+   "dark": true,
+   "keywords": [
+    "highway",
+    "highways",
+    "road",
+    "roads",
+    "rail",
+    "railway",
+    "railways",
+    "metro",
+    "metrolink",
+    "transport",
+    "transportation",
+    "active travel",
+    "cycling",
+    "cycle",
+    "greenway",
+    "greenways",
+    "bridge",
+    "bridges",
+    "civil engineer",
+    "civil engineers",
+    "civil engineering",
+    "infrastructure",
+    "pavement",
+    "tunnel",
+    "tunnelling",
+    "maritime",
+    "port",
+    "ports",
+    "coastal"
+   ]
+  },
+  {
+   "name": "Health, safety & environment",
+   "slug": "health-safety-environment",
+   "color": "#a34a3a",
+   "dark": true,
+   "keywords": [
+    "health & safety",
+    "health and safety",
+    "health, safety",
+    "hse",
+    "ehs",
+    "safety",
+    "cdm",
+    "construction safety",
+    "safety consultant",
+    "safety advisor",
+    "safety adviser",
+    "occupational health"
+   ]
+  },
+  {
+   "name": "Climate & carbon",
+   "slug": "climate-carbon",
+   "color": "#4f7362",
+   "dark": true,
+   "keywords": [
+    "climate",
+    "climate change",
+    "climate action",
+    "carbon",
+    "net zero",
+    "net-zero",
+    "decarbonisation",
+    "decarbonization",
+    "emissions",
+    "greenhouse",
+    "carbon accounting",
+    "carbon footprint",
+    "climate adaptation",
+    "climate resilience"
+   ]
+  },
+  {
+   "name": "Environmental science & consulting",
+   "slug": "environmental-science-consulting",
+   "color": "#7f9c7a",
+   "dark": false,
+   "keywords": [
+    "environmental",
+    "environment",
+    "eia",
+    "eiar",
+    "impact assessment",
+    "air quality",
+    "acoustics",
+    "noise",
+    "geologist",
+    "geology",
+    "environmental scientist",
+    "environmental consultant"
+   ]
+  },
+  {
+   "name": "Sustainability & ESG",
+   "slug": "sustainability-esg",
+   "color": "#a3653c",
+   "dark": true,
+   "keywords": [
+    "sustainability",
+    "sustainable",
+    "esg",
+    "csrd",
+    "responsible business",
+    "corporate responsibility",
+    "circularity"
+   ]
+  },
+  {
+   "name": "Built environment & energy efficiency",
+   "slug": "built-environment-energy-efficiency",
+   "color": "#c65d3b",
+   "dark": true,
+   "keywords": [
+    "building",
+    "buildings",
+    "built environment",
+    "energy efficiency",
+    "retrofit",
+    "breeam",
+    "leed",
+    "heat pump",
+    "heat pumps",
+    "insulation",
+    "mechanical",
+    "electrical",
+    "hvac",
+    "facilities",
+    "architect",
+    "architecture",
+    "construction",
+    "quantity surveyor",
+    "surveyor"
+   ]
+  },
+  {
+   "name": "Energy networks & utilities",
+   "slug": "energy-networks-utilities",
+   "color": "#4a86ab",
+   "dark": true,
+   "keywords": [
+    "grid",
+    "utility",
+    "utilities",
+    "transmission",
+    "distribution",
+    "substation",
+    "energy network",
+    "energy networks",
+    "energy management",
+    "energy manager",
+    "power station",
+    "electricity",
+    "smart meter",
+    "district heating"
+   ]
+  },
+  {
+   "name": "Policy, planning & advisory",
+   "slug": "policy-planning-advisory",
+   "color": "#9a8a6a",
+   "dark": false,
+   "keywords": [
+    "policy",
+    "planning",
+    "planner",
+    "enforcement officer",
+    "enforcement officers",
+    "advisor",
+    "adviser",
+    "advisory",
+    "regulation",
+    "regulatory",
+    "consents",
+    "permitting",
+    "compliance",
+    "legal",
+    "economist",
+    "campaign",
+    "communications",
+    "fundraising",
+    "education"
+   ]
+  }
+ ],
+ "default_sector": "Environmental science & consulting",
+ "job_types": {
+  "canon": {
+   "full time": "Full-time",
+   "full-time": "Full-time",
+   "part time": "Part-time",
+   "part-time": "Part-time",
+   "fixed term": "Fixed-term",
+   "fixed-term": "Fixed-term",
+   "permanent": "Permanent",
+   "contract": "Contract",
+   "volunteer": "Volunteer",
+   "home based": "Home Based",
+   "home-based": "Home Based"
+  },
+  "console": [
+   "Permanent",
+   "Contract",
+   "Fixed-term",
+   "Full-time",
+   "Part-time",
+   "Volunteer",
+   "Home Based"
+  ]
+ },
+ "contract": {
+  "permanent": "Permanent",
+  "contract": "Contract",
+  "fixed-term": "Fixed-term",
+  "full-time": "Full-time",
+  "part-time": "Part-time",
+  "volunteer": "Volunteer"
+ },
+ "workplace": {
+  "office": "Office-based",
+  "hybrid": "Hybrid",
+  "remote": "Remote",
+  "site": "Site-based",
+  "unspecified": "Not stated"
+ },
+ "levels": [
+  "Graduate/Early career",
+  "Mid-level",
+  "Senior/Principal",
+  "Director/Associate"
+ ],
+ "agency": {
+  "names": ["chm recruit", "gaia talent", "mattinson partnership"],
+  "words": ["recruit", "recruitment", "recruiters", "talent", "staffing", "resourcing", "headhunt", "personnel", "appointments", "search & selection"]
+ },
+ "loc_classes": {
+  "ie": "Ireland",
+  "uk": "UK",
+  "ni": "Northern Ireland",
+  "remote": "Remote",
+  "cross": "Ireland & UK",
+  "intl": "International",
+  "unspecified": "Location not stated"
+ },
+ "sites": {
+  "ie": {
+   "domain": "greenjobs.ie",
+   "currency": "EUR",
+   "sym": "€",
+   "unit": "county",
+   "name": "Ireland",
+   "short": "IE",
+   "lang": "en-IE",
+   "regions": [
+    "Carlow",
+    "Cavan",
+    "Clare",
+    "Cork",
+    "Donegal",
+    "Dublin",
+    "Galway",
+    "Kerry",
+    "Kildare",
+    "Kilkenny",
+    "Laois",
+    "Leitrim",
+    "Limerick",
+    "Longford",
+    "Louth",
+    "Mayo",
+    "Meath",
+    "Monaghan",
+    "Offaly",
+    "Roscommon",
+    "Sligo",
+    "Tipperary",
+    "Waterford",
+    "Westmeath",
+    "Wexford",
+    "Wicklow"
+   ],
+   "none": "Nationwide / remote",
+   "elsewhere": "Elsewhere (UK & abroad)",
+   "edition_includes": [
+    "cross",
+    "ie",
+    "intl",
+    "ni",
+    "remote",
+    "uk",
+    "unspecified"
+   ],
+   "home": [
+    "ie",
+    "cross",
+    "remote"
+   ]
+  },
+  "uk": {
+   "domain": "greenjobs.co.uk",
+   "currency": "GBP",
+   "sym": "£",
+   "unit": "region",
+   "name": "the UK",
+   "short": "UK",
+   "lang": "en-GB",
+   "regions": [
+    "London",
+    "South East",
+    "South West",
+    "East of England",
+    "East Midlands",
+    "West Midlands",
+    "Yorkshire and the Humber",
+    "North West",
+    "North East",
+    "Scotland",
+    "Wales",
+    "Northern Ireland"
+   ],
+   "none": "UK-wide / remote",
+   "elsewhere": "Ireland & abroad",
+   "edition_includes": [
+    "cross",
+    "ni",
+    "remote",
+    "uk",
+    "unspecified"
+   ],
+   "home": [
+    "uk",
+    "ni",
+    "cross",
+    "remote"
+   ]
+  }
+ }
+}

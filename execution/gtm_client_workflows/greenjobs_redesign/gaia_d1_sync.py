@@ -211,16 +211,9 @@ def record_to_job(
             if held
             else None
         ),
-        "facets": {
-            "regions": c["regions"],
-            "loc_class": c["loc_class"],
-            "workplace": c["workplace"],
-            "contract": c["contract"],
-            "source_sectors": c["source_sectors"],
-            "sector_confidence": c["sector_confidence"],
-            "sector_method": c["sector_method"],
-            "taxonomy_version": c["taxonomy_version"],
-        },
+        # the job_facets row (migration 0002), set_by 'feed'; the API path and the SQL path write the same row
+        "facets": {k: v for k, v in jc.facet_row(
+            {**job_in, "sal_text": rec.get("salary_text") or ""}, site, c, "feed").items() if k != "set_by"},
     }
     return job, None
 
@@ -332,12 +325,6 @@ def batch_sql(b: dict, t: dict[str, str], now: str) -> list[str]:
     site = b["site"]
     r = si.render
     lines = []
-    sectors = b["taxonomy"]["sectors"]
-    lines.append(
-        r(t["taxonomy_deactivate"], ["sector", cjson(sectors)])
-    )
-    for s in sectors:
-        lines.append(r(t["taxonomy_upsert"], ["sector", s, b["taxonomy"]["version"]]))
     emp_id = f"{site}:feed:{SOURCE}"
     lines.append(
         r(
@@ -388,25 +375,9 @@ def batch_sql(b: dict, t: dict[str, str], now: str) -> list[str]:
                 ],
             )
         )
-        f = j["facets"]
-        lines.append(
-            r(
-                t["job_facets_upsert"],
-                [
-                    jid,
-                    site,
-                    cjson(f["regions"]),
-                    f["loc_class"],
-                    f["workplace"],
-                    cjson(f["contract"]),
-                    cjson(f["source_sectors"]),
-                    Real(f["sector_confidence"]),
-                    f["sector_method"],
-                    f["taxonomy_version"],
-                    now,
-                ],
-            )
-        )
+        params = jc.facet_params(jid, {**j["facets"], "set_by": "feed"}, now)
+        params[16] = Real(params[16])  # sector_confidence: float literal
+        lines.append(r(t["job_facets_upsert"], params))
         if j["review"]:
             rv = j["review"]
             lines.append(
@@ -475,7 +446,7 @@ class Real(si.Raw):
 def emit_sql(batches: dict[str, dict], t: dict[str, str], now: str) -> str:
     head = [
         f"-- GreenJobs Gaia feed -> D1, generated {now}. Idempotent: re-running converges.",
-        "-- Needs migrations/0003_classifier_feed_review_employers.sql. Apply: npx wrangler@4 d1 execute greenjobs --file=THIS_FILE",
+        "-- Needs migrations/0002_job_facets.sql + 0003_classifier_feed_review_employers.sql. Apply: npx wrangler@4 d1 execute greenjobs --file=THIS_FILE",
     ]
     body = [line for s in sorted(batches) for line in batch_sql(batches[s], t, now)]
     return "\n".join(head + body) + "\n"
@@ -619,6 +590,7 @@ def run(
     )
     try:
         tax = jc.load_taxonomy(Path(args.taxonomy))
+        jc.assert_canonical(tax)  # D1 facets are written with taxonomy.json only (one source of truth)
     except jc.TaxonomyError as e:
         raise si.UsageError(str(e)) from e
     sql_out = si.check_output(args.emit_sql, True, []) if args.emit_sql else None

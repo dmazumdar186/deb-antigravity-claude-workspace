@@ -5,12 +5,14 @@
 //   GET  /api/admin/review?status=queued  queued jobs with the suggested sectors + the active sector vocabulary
 //   POST /api/admin/review/:id/approve    {sectors?: [...]}: one click. No sectors = accept the suggestion
 //                                         ('approved'); other sectors = 'changed'. A held (draft) job goes live.
-// Sectors must be active taxonomy_terms (the vocabulary the classifier wrote), 1..3 of them. A decided review
+// Sectors must be in taxonomy.json (the one vocabulary: the classifier, the boards and this console), 1..3 of them.
+// A decision sets jobs.sectors_json AND job_facets.sectors_json (what the boards render) in one batch. A decided review
 // is final (a replay answers already_decided); a closed job is never taken live (409).
 
 import { CONSOLE_CSP, SECURITY_HEADERS, err, json, nowIso } from '../util.js';
 import { cleanText, escapeHtml } from '../validate.js';
 import * as Q from '../sql_0003.js';
+import { TAXONOMY } from '../render/lib.js';
 import { parseJobId, readJson, SQL_AUDIT } from './admin.js';
 
 const HEADERS = { ...SECURITY_HEADERS, 'Content-Security-Policy': CONSOLE_CSP, 'Cache-Control': 'no-store' };
@@ -26,9 +28,9 @@ function parseList(s) {
   }
 }
 
-async function activeSectors(db) {
-  const { results } = await db.prepare(`SELECT value FROM taxonomy_terms WHERE kind = 'sector' AND active = 1 ORDER BY value`).all();
-  return results.map((r) => r.value);
+const SECTORS = TAXONOMY.sectors.map((s) => s.name).sort();
+async function activeSectors() {
+  return SECTORS;
 }
 
 export async function listReview(ctx) {
@@ -95,7 +97,8 @@ export async function decideReview(ctx, rawId) {
   const decision = JSON.stringify(sectors) === JSON.stringify(suggested) ? 'approved' : 'changed';
   const ts = nowIso(now);
   const sj = JSON.stringify(sectors);
-  const [jobRes, revRes] = await db.batch([
+  const [, jobRes, revRes] = await db.batch([
+    db.prepare(Q.REVIEW_FACETS).bind(p.id, sj, ts),
     db.prepare(Q.REVIEW_APPROVE_JOB).bind(p.id, site, sj, ts),
     db.prepare(Q.REVIEW_DECIDE).bind(p.id, site, decision, actor, sj, ts),
   ]);

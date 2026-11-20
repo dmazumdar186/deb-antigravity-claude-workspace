@@ -38,6 +38,7 @@ SCHEMA = (
     / "d1"
     / "schema.sql"
 )
+MIG2 = SCHEMA.parent / "migrations" / "0002_job_facets.sql"  # job_facets: the one facet table
 MIG3 = SCHEMA.parent / "migrations" / "0003_classifier_feed_review_employers.sql"
 CFG = Path(__file__).resolve().parent / "fixtures" / "strategies" / "candidate_config_all.json"  # test-only config
 REAL = json.loads(
@@ -250,6 +251,7 @@ def test_ie_and_uk_job_orders_import_identically(capsys, tmp_path):
     assert a == b
     con = sqlite3.connect(":memory:")
     con.executescript(SCHEMA.read_text(encoding="utf-8"))
+    con.executescript(MIG2.read_text(encoding="utf-8"))
     con.executescript(MIG3.read_text(encoding="utf-8"))
     con.executescript(outs[1].read_text(encoding="utf-8"))
     got = {
@@ -467,6 +469,7 @@ def emit_all(capsys, tmp_path, site="ie") -> sqlite3.Connection:
     ds = dataset(tmp_path, site)
     con = sqlite3.connect(":memory:")
     con.executescript(SCHEMA.read_text(encoding="utf-8"))
+    con.executescript(MIG2.read_text(encoding="utf-8"))
     con.executescript(MIG3.read_text(encoding="utf-8"))
     con.execute("PRAGMA foreign_keys = ON")
     cfg = ["--candidate-config", CFG]
