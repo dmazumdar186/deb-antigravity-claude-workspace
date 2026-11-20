@@ -4,7 +4,7 @@ v1 (buy a hosted job board, Cavuno) is **withdrawn**. The operator's ruling: the
 
 ## Decision
 
-**The build:** the GreenJobs site we designed, live on Keith's domains, running on Cloudflare's free tier in GreenJobs' own account. No paid third parties.
+**The build:** the GreenJobs site we designed, live on Keith's domains, running on Cloudflare in GreenJobs' own account. Platform costs are as proposed (Cloudflare ~$5 and Resend ~$20 a month at cost; Proposal:148-151). No new third-party product.
 
 **Claim → Objection → Resolution:**
 - **Claim:** finish our own build.
@@ -22,6 +22,8 @@ v1 (buy a hosted job board, Cavuno) is **withdrawn**. The operator's ruling: the
   7. **Data minimisation.** Live jobs and employers are imported. Alert subscribers are imported only where consent allows, and they re-confirm. Candidates and old applications go to GreenJobs' own raw archive, never into the new site.
   8. **The 8 sector domains** forward to `/sectors/<slug>/` filtered lists. About 1,200 old URLs get 301 redirects.
   9. **Maintainability:** directives, runbook and tests in the repo, and a status page any operator can read.
+
+**Promise list:** deliverables/engagement_record_2026-11-20/RECORD.md v2 (P1–P22) governs scope. Where this file disagrees, the record wins.
 
 ## The gate (replaces the Cavuno trial)
 

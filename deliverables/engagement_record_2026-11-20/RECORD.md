@@ -1,62 +1,76 @@
-# Gaia Talent and GreenJobs: engagement record and promise check (2026-11-20)
+# Gaia Talent and GreenJobs: engagement record and promise check (2026-11-20, v2 after audit)
 
-Built from four independent readers. Each reader's file holds the citations:
-- A_gaia_talent.md
-- B_greenjobs_redesign_proposal.md
-- C_greenjobs_migration_nov.md
-- D_meetings_mail_drive.md
+v1 failed an independent audit against primary sources (7 errors, 10 omissions). This v2 cites primary files.
 
-**Caveat:** this clone's git history starts on 16 Nov, so August–October commits are cited through the files that quote them. There are no recorded meetings and no business mail in the connected sources.
+**Caveats:**
+- This clone's git history starts on 16 Nov.
+- There are no recorded meetings and no business mail in the connected sources.
+
+Abbreviations used in the citations:
+- **Proposal**: `deliverables/greenjobs_redesign_2026-09-22/proposal/GreenJobs_Proposal_v1.0_2026-09-30.md`
+- **Plan**: `deliverables/greenjobs_migration_2026-11-06/transition_plan.html` (tag-stripped line numbers)
+- **Brief**: `deliverables/greenjobs_redesign_2026-09-22/proposal/keith_costing_brief_2026-09-28.md`
+- **Thread**: `keith_linkedin_thread_2026-11-06.txt`
+- **REVIEW** and **FEAS**: the 16 Nov review and the feasibility matrix in `deliverables/greenjobs_migration_2026-11-06/`
 
 ## 1. Timeline
 
-| Date | Event | Source |
+| Date | Event | Primary source |
 |---|---|---|
-| 20 Aug | Gaia sourcing: 13 candidates delivered (10 for Role 1, 3 of 5 for Role 2). Keith: "too senior, some not in Ireland". He praised the interface | A |
-| 10 Sep | 27-minute call. Corrected list plus Loom promised for Mon 14 Sep. Scope: "no auto-sending, no voice agent, no replacement of Recruit CRM" | A |
-| 11–14 Sep | Corrected run: Role 1 at 2 of 10, Role 2 at 0 of 5. Shortlist Check bundle published. Keith viewed the Loom walkthrough on 14 Sep (Loom notification) | A, D |
-| 17 Sep | Gaia website redesign built for free. No record that it was sent | A |
-| 22–28 Sep | GreenJobs redesign built (greenjobs-redesign.pages.dev), including the KPI dashboard. Written feedback docx dated 28 Sep | B, D |
-| 30 Sep | Proposal v1.0: €1,999 front end, €2,999 migration, €999/month, full scope (see §2) | B |
-| 5 Oct | Revised proposal JSON: €1,500 at signing, migration €0 for publicity, €600/month for 6 months. Sent: UNCERTAIN | B |
-| 29 Oct | Keith on LinkedIn: €600/month from now plus €1,500 in Q1 2027 is "doable" | C |
-| 6 Nov | Strategies' notice: contract ends Sun 6 Dec | C |
-| 9 Nov | Email and transition plan sent (switch 3 Dec, floor, trim order, phase 2) | C |
-| 10–19 Nov | Rashieda's and Diana's answers. Header rows received 19 Nov | C |
-| 20 Nov | No contract, DPA or invoice exists. Reply to Diana gated, not yet sent | C |
+| 20 Aug | Gaia sourcing: 13 candidates (10 for Role 1, 3 of 5 for Role 2). Keith: "too senior, some not in Ireland". He praised the interface | `gaia_2026-09-10/call_brief_2026-09-10.md:11`; `ENGAGEMENT_RECORD_2026-09-11.md:33,62` |
+| 10 Sep | 27-minute call; corrected list plus Loom for Mon 14 Sep. Our own runbook limited the scope to "no auto-sending, no voice agent, no replacement of Recruit CRM" (operator's recorded promise, not said on the call) | `transcript_2026-09-10_fathom.md:14`; `RUNBOOK_monday_delivery.md:3-6` |
+| 11–14 Sep | Corrected run: Role 1 at 2 of 10, Role 2 at 0 of 5. That Keith viewed the Loom on 14 Sep is unverifiable from primary files (Gmail notification only) | `HANDOFF_SESSION_2026-09-11.md:16-17` |
+| 17 Sep | Gaia website redesign built. "Keith has NOT been sent anything" | `gaia_redesign_2026-09-17/HANDOFF.md:4` |
+| 22–28 Sep | GreenJobs redesign at greenjobs-redesign.pages.dev, including the KPI dashboard. Change document received 28 Sep | Proposal:60; `KEITH_CHANGES_CHECKLIST.md:1` |
+| 29 Sep | Answer to the site manager on candidate accounts: "Yes, that stays". Whether the reply was sent is not evidenced | Brief:157,166 |
+| 30 Sep | Proposal v1.0: €1,999 front end, €2,999 migration, €999/month | Proposal:117-121,127 |
+| 5 Oct | Revised proposal: €1,500, migration €0 for publicity, €600 × 6 months. Sent: not evidenced | `greenjobs-official.official.json:28,90-96` |
+| 29 Oct | Keith: €600/month plus €1,500 in Q1 is "doable" | Thread:6 |
+| 6 Nov | Strategies: contract ends 6 Dec | Thread:10 |
+| 9 Nov | Transition plan sent: switch 3 Dec, floor, trims, phase 2 | Plan:30-37 |
 
-## 2. What was promised for GreenJobs, and where the build stands
+## 2. Promises and the build
 
-The binding promise for 3 Dec is the **9 Nov transition plan**, quoted below. The 30 Sep proposal describes the full service.
+The plan (9 Nov) governs 3 Dec. The proposal (30 Sep) governs the service.
 
-The 9 Nov wording: "Both GreenJobs boards… current jobs, your team posting, editing and closing jobs through a simple admin console… applications reaching the inbox you choose, job alert emails, and the candidate records you choose to keep."
-- Never trimmed: the boards, the console and applications.
-- Trim order: alerts first, then the candidate import, with the client told in writing the same day.
-- Phase 2: candidate and employer logins, Broadbean / Idibu / LogicMelon, one CRM.
-- The other domains are quoted separately.
+**Status key:**
+- **Built**: exists in code and passes the offline tests.
+- **In build**: assigned to an engineer now.
+- **Missing**: not built.
+- **Phase 2**: deferred by the 9 Nov plan.
 
-| # | Promise | Source | In today's build? | Action |
+| # | Promise | Source | Status | Action |
 |---|---|---|---|---|
-| P1 | Both boards on Keith's domains, current jobs, our design | 9 Nov, 30 Sep | Yes (job pages rendered from D1) | Keep |
-| P2 | Staff console: post, edit, close | 9 Nov | Yes (fixes in progress) | Keep |
-| P3 | Applications to the inbox Keith chooses | 9 Nov | Yes (per-job email or link) | Keep. Default inbox asked of Diana |
-| P4 | **Job alert emails on 3 Dec** | 9 Nov | **No.** Not built, not in the gate | **Build now.** Trim only with same-day written notice to Keith |
-| P5 | **Candidate records Keith chooses to keep** | 9 Nov; 30 Sep "Yes, that stays" | **Contradicted.** DECISION sent all candidates to an archive | **Fix:** build a consented candidate import; Keith decides retention in writing |
-| P6 | KPI dashboard, figures live from job data | 30 Sep | Added today | Keep |
-| P7 | 301 for every indexed URL; full export and import | 30 Sep | Yes (redirect map, importer) | Keep |
-| P8 | Maintenance service: uptime monitoring, daily backups with quarterly restore drill, monthly report | 30 Sep | Partial (probes yes; backups no; weekly email instead of monthly) | **Add daily D1 backup and restore drill; a monthly report replaces my weekly email** |
-| P9 | Posting tools and CRM | 30 Sep; phase 2 on 9 Nov | No | Phase 2, as agreed |
-| P10 | Employer logins (CHM, Mattinson) | Phase 2 on 9 Nov | **Pulled forward** | **Revert:** staff post for them on 3 Dec; they get notice by 25 Nov; code stays behind a flag |
-| P11 | 8 network domains | Out of scope; "quoted separately" | **Added** | **Prepare the config only.** Your call whether to quote or include it |
-| P12 | Gaia jobs fed in automatically | Not promised | **Added** | Keep behind a flag; offer to Keith as a time saver, never present it as agreed |
-| P13 | Hosting costs: Cloudflare ~$5 and Resend ~$20 billed to GreenJobs | 30 Sep and 5 Oct | **Contradicted.** I wrote "free tier, no paid third parties" | **Corrected:** platform fees as proposed. Your ruling stands that no new third-party product such as Cavuno is added |
+| P1 | Both boards on Keith's domains, current jobs, our design | Plan:30; Proposal:60 | In build (job pages from D1) | Keep |
+| P2 | Staff console: post, edit, close | Plan:30 | In build (fixes) | Keep |
+| P3 | Applications to the inbox Keith chooses | Plan:30 | Built (per-job email or link) | Default inbox asked of Diana |
+| P4 | Job alert emails on 3 Dec. Trim order: alerts first, then candidate import (Plan:33); FEAS:109 adds newsletter third | Plan:30,33 | In build | Add to the go/no-go gate. Trim only with same-day written notice |
+| P5a | The candidate records Keith chooses to keep (3 Dec) | Plan:30,33 | In build (consented import, off by default). Archiving everything is a permitted trim only with same-day written notice | Keith decides retention in writing (REVIEW:20) |
+| P5b | Candidate accounts with stored CV, one-click apply, saved roles | Proposal:64; Brief:157 ("Yes, that stays") | Phase 2 (Plan:31) | Keep in phase 2 |
+| P6 | KPI dashboard, figures live from job data | Proposal:42,60,127 | In build (/api/stats) | Keep |
+| P7 | 301 for every indexed URL; full export and import | Proposal:64,83 | Built (redirect map, importer) | Keep |
+| P8 | Weekly update throughout, and a monthly report | Proposal:92 (weekly); 68,127 (monthly) | In build | **Both** are owed |
+| P9 | Daily backups, quarterly restore drill, uptime monitoring | Proposal:68,127,135 | In build | Keep |
+| P10 | Broadbean, Idibu, LogicMelon and one CRM | Proposal:64,83 | Phase 2 (Plan:31) | Phase 2 |
+| P11 | Employer logins (CHM, Mattinson) | Plan:31 phase 2; REVIEW:21 (notice by 25 Nov) | Built, switched off | Staff post for them on 3 Dec. They are told by 25 Nov |
+| P12 | 8 network domains | Proposal:105 out of scope; Plan:37 "quoted separately" | Configuration only | Question for Keith |
+| P13 | Gaia jobs fed in automatically | Not promised | Built, switched off | Offer to Keith as a time saver |
+| P14 | Platform costs: Cloudflare ~$5 and Resend ~$20 at cost +3%, billed to GreenJobs | Proposal:148-151; JSON:99 | DECISION.md previously said "free tier"; corrected in v2 below | Use as proposed |
+| P15 | Newsletter sends | Proposal:83,149; FEAS:109; REVIEW:34 (paid advertiser feature) | Missing | Add to the alerts build (third in the trim order) |
+| P16 | Export archive in storage in GreenJobs' name before 6 Dec | Plan:33 | In build (export bot and R2, after the DPA) | Keep |
+| P17 | 10 working days of daily checks after 3 Dec, against the acceptance list | Plan:24; Proposal:91 | In build (probes, status) | Add a 10-day check schedule and the acceptance list |
+| P18 | JobPosting structured data on every role, plus sitemaps | Proposal:34,82,138 | In build (Worker pages) | Keep. Validated in the pipeline smoke tests |
+| P19 | Handover: runbook, test register, source repository, everything in GreenJobs-owned accounts | Proposal:85,161 | Partial | Produce the handover pack before go-live |
+| P20 | Service levels: 99.9% uptime; 1 business day response (4 h for a posting outage); 2 business-day changes | Proposal:92,134,137,140 | In build (monitoring) | Alerting thresholds set to these |
+| P21 | All 100 change-document items done, 11 waiting on Keith's input | Proposal:60,82 | Done items exist on the demo site | Re-verify on the new build. The 11 inputs go in the Keith question list |
+| P22 | 5-working-day go-live guarantee | Proposal:89; JSON:89 | Superseded by the 9 Nov plan dates | Record as superseded |
 
 ## 3. Gaia Talent sourcing: open, dormant since 14 Sep
 
-- **Role 1:** 2 of 10 delivered. Needs Keith's seniority ceiling and Ireland rule.
-- **Role 2:** 0 of 5. Needs a paid people-data source and his go-ahead.
-- Nothing has been priced or paid. Your call: are the roles still open?
+- **Role 1:** 2 of 10. Needs Keith's seniority ceiling and Ireland rule.
+- **Role 2:** 0 of 5. Needs a licensed data source and his go-ahead.
+- Both questions go in the Keith question list.
 
 ## 4. Contract, payment and legal
 
-Out of scope for this record. The operator holds the contract, and a lawyer has cleared going ahead (operator, 20 Nov 2026). Engineering does not track or flag these items.
+Out of scope for this record (operator, 20 Nov 2026).
