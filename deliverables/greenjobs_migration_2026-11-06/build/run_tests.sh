@@ -7,7 +7,7 @@ cd "$ROOT"
 PY="${PYTHON:-python3}"
 fail=0
 
-echo "== 1/5 D1 schema: applies twice (idempotent), all upserts compile, migrations apply twice"
+echo "== 1/5 D1 schema: applies twice (idempotent), all upserts compile, migrations 0001..000N apply twice on a fresh DB and on the old schema"
 "$PY" - <<'EOF' || fail=1
 import re, sqlite3, sys
 base = "deliverables/greenjobs_migration_2026-11-06/build/d1/"
@@ -36,7 +36,27 @@ for name, body in zip(parts[1::2], parts[2::2]):
     n = max([int(x) for x in re.findall(r"\?(\d+)", s)] or [0])
     c.execute("EXPLAIN " + s, [None] * n); named += 1
 assert named >= 13, named
-print(f"ok: schema x2, {len(stmts)} upserts, {len(migs)} migration(s) x2 + schema again, {named} 0003 statements")
+# the OLD schema (as deployed before 2026-11-20): every migration in order 0001 -> 000N, twice, keeps the data
+old = sqlite3.connect(":memory:"); old.isolation_level = None
+old.executescript(open("tests/greenjobs_redesign/fixtures/d1/schema_pre_2026-11-20.sql", encoding="utf-8").read())
+old.execute("PRAGMA foreign_keys = ON")
+old.execute("INSERT INTO employers (id, site, source, source_id, name, name_norm, created_at, updated_at) VALUES ('ie:strat:emp-1','ie','strategies','1','Acme','acme','t','t')")
+old.execute("""INSERT INTO jobs (id, site, source, source_id, employer_id, title, location, description, status, created_by, created_at, updated_at)
+               VALUES ('ie:strat:1','ie','strategies','1','ie:strat:emp-1','Ecologist','Cork','Lead habitat surveys across Munster.','live','import','t','t')""")
+names = [m.rsplit("/", 1)[-1] for m in migs]
+assert names == sorted(names) and [n[:4] for n in names] == [f"{i:04d}" for i in range(1, len(names) + 1)], names
+for _ in range(2):
+    for m in migs:
+        old.executescript("BEGIN;\n" + open(m, encoding="utf-8").read() + "\nCOMMIT;")
+assert old.execute("SELECT id, title FROM jobs").fetchall() == [("ie:strat:1", "Ecologist")]
+assert old.execute("PRAGMA foreign_key_check").fetchall() == []
+tables = {r[0] for r in old.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+assert {"job_facets", "job_review", "job_links", "employer_accounts", "alert_meta", "newsletter_subscribers"} <= tables, tables
+assert "taxonomy_terms" not in tables  # the vocabulary is taxonomy.json only
+fcols = [r[1] for r in old.execute("PRAGMA table_info(job_facets)")]
+assert {"level", "search_text", "sector_confidence", "sector_method", "source_sectors_json"} <= set(fcols), fcols
+print(f"ok: schema x2, {len(stmts)} upserts, {len(migs)} migration(s) x2 + schema again, {named} 0002/0003 statements; "
+      f"old schema + {names[0]}..{names[-1]} x2 keeps data")
 EOF
 
 echo "== 2/5 import validator + apply mode + Gaia feed sync + classifier / D1 import + frozen taxonomy (pytest)"

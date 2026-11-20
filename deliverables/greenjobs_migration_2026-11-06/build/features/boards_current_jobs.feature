@@ -38,10 +38,10 @@ Feature: Boards on Keith's domains show current jobs
     When a visitor requests "/api/jobs" on host "greenjobs.ie"
     Then the job list contains "ie:strat:1006"
 
-  Scenario: A closed job's detail page is not found
+  Scenario: A closed job's detail is gone (410, the same answer as its board page and the release smoke contract)
     When a visitor requests "/api/jobs/ie:strat:1003" on host "greenjobs.ie"
-    Then the response status is 404
-    And the response error is "not_found"
+    Then the response status is 410
+    And the response error is "gone"
 
   Scenario: A live job's detail is served with an escaped description
     Given a live job "ie:strat:1007" titled "Script Test Role" on site "ie" with description "<script>alert(1)</script> and enough words to pass"

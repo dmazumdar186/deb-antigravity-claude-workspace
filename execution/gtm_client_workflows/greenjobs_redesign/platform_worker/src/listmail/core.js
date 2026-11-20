@@ -13,6 +13,7 @@
 
 import { headerSafe, isLive, resendTransport } from '../mail.js';
 import { intVar, nowIso, sha256Hex, todayUtc } from '../util.js';
+import { slugOf } from '../routes/board.js';
 
 export const DAY_MS = 86400000;
 export const CONFIRM_TTL_DAYS = 30;
@@ -102,8 +103,11 @@ const BOARDS = {
 export function board(env, site) {
   const S = site.toUpperCase();
   const b = BOARDS[site];
-  const base = String(env[`LIST_BASE_URL_${S}`] || b.base).replace(/\/+$/, '');
-  return { site, name: b.name, base, from: headerSafe(env[`LIST_FROM_${S}`] || ''), jobUrl: (id) => `${base}/jobs/?id=${encodeURIComponent(id)}` };
+  // LIST_BASE_URL_* (mail-only override), else the board's canonical origin (CANONICAL_ORIGIN_*), else the apex.
+  const pick = [env[`LIST_BASE_URL_${S}`], env[`CANONICAL_ORIGIN_${S}`]].map((v) => String(v || '').trim()).find((v) => /^https:\/\/[a-z0-9.-]+\/?$/i.test(v));
+  const base = String(pick || b.base).replace(/\/+$/, '');
+  // The real job-page scheme the Worker renders (routes/board.js): /ie/jobs/<slug>/, /uk/jobs/<slug>/.
+  return { site, name: b.name, base, from: headerSafe(env[`LIST_FROM_${S}`] || ''), jobUrl: (id) => `${base}/${site}/jobs/${encodeURIComponent(slugOf(id))}/` };
 }
 
 export function esc(s) {

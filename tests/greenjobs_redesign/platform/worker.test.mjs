@@ -46,7 +46,7 @@ test('GET /api/jobs lists only live, unexpired jobs in the data/jobs.json shape'
   assert.equal(j.closing, '2026-12-31');
 });
 
-test('GET /api/jobs/:id: live 200 with escaped description, closed 404, traversal 400, cross-site 404', async () => {
+test('GET /api/jobs/:id: live 200 with escaped description, closed 410, draft 404, traversal 400, cross-site 404', async () => {
   const w = await makeWorld();
   seedJob(w, { id: 'ie:strat:1', description: '<img src=x onerror=alert(1)> plenty of words here' });
   seedJob(w, { id: 'ie:strat:2', status: 'closed' });
@@ -55,7 +55,9 @@ test('GET /api/jobs/:id: live 200 with escaped description, closed 404, traversa
   assert.equal(r.apply_mode, 'email');
   assert.equal(r.apply_url, null);
   assert.equal('apply_email' in r, false);
-  assert.equal((await w.fetch(get('greenjobs.ie', '/api/jobs/ie:strat:2'))).status, 404);
+  assert.equal((await w.fetch(get('greenjobs.ie', '/api/jobs/ie:strat:2'))).status, 410); // closed: gone, not hidden
+  seedJob(w, { id: 'ie:strat:3', status: 'draft' });
+  assert.equal((await w.fetch(get('greenjobs.ie', '/api/jobs/ie:strat:3'))).status, 404); // a draft is never revealed
   assert.equal((await w.fetch(get('greenjobs.co.uk', '/api/jobs/ie:strat:1'))).status, 404);
   assert.equal((await w.fetch(get('greenjobs.ie', '/api/jobs/%2e%2e'))).status, 404, 'URL parser folds the dot segment; never a 200');
   for (const p of ['/api/jobs/ie:strat:..%2f..%2fetc', '/api/jobs/ie:strat:%252e%252e', '/api/jobs/ie%3Astrat%3A1%5C..']) {

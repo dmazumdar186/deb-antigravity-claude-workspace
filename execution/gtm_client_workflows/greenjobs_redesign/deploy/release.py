@@ -188,7 +188,7 @@ def parse_time_travel_bookmark(output: str) -> str | None:
 
 # ── staging seed (public job data only) ────────────────────────────────────
 
-SEED_TABLES = ("employers", "jobs")
+SEED_TABLES = ("employers", "jobs", "job_facets")
 _TAG = re.compile(r"<[^>]+>")
 
 
@@ -217,7 +217,10 @@ def build_seed_sql(env: str, sources: dict[str, Path], as_of: str) -> tuple[str,
     """INSERT OR IGNORE rows for public jobs + employer names. Staging only; no contact or candidate fields.
 
     Every job is link-mode to its public listing URL, so no apply email is ever stored; timestamps are
-    the fixed --as-of so a re-run produces byte-identical SQL (idempotent)."""
+    the fixed --as-of so a re-run produces byte-identical SQL (idempotent). Ids are the Strategies ids an
+    import would write ('{site}:strat:<id>'), so the Worker serves them at /{site}/jobs/<id>/ like the static
+    board; the advert's closing date is kept, so a closed advert is not live. Each job gets its job_facets row
+    from job_classifier (taxonomy.json), exactly as strategies_import.py writes it (set_by 'import')."""
     if env != "staging":
         raise GateError(
             "seed-sql is staging-only: production data never comes from a seed"
@@ -225,6 +228,13 @@ def build_seed_sql(env: str, sources: dict[str, Path], as_of: str) -> tuple[str,
     lines = [
         "-- GreenJobs staging seed: public job data only (no candidates, applications or contacts)."
     ]
+    pkg = str(Path(__file__).resolve().parents[1])
+    if pkg not in sys.path:
+        sys.path.insert(0, pkg)
+    import job_classifier as jc  # noqa: PLC0415  (build_site + taxonomy.json; staging seed only)
+
+    tax = jc.canonical_taxonomy()
+    jc.assert_canonical(tax)
     n = 0
     for site, path in sorted(sources.items()):
         data = json.loads(Path(path).read_text(encoding="utf-8"))
@@ -264,16 +274,33 @@ def build_seed_sql(env: str, sources: dict[str, Path], as_of: str) -> tuple[str,
                 if j.get("period") in ("year", "day", "hour", "month")
                 else None
             )
+            closing = str(j.get("closing") or "")[:10]
+            closing_at = f"{closing}T23:59:59Z" if re.fullmatch(r"\d{4}-\d{2}-\d{2}", closing) else None
+            job_id = f"{site}:strat:{jid}" if jid.isdigit() else f"{site}:seed:{jid}"
             lines.append(
                 "INSERT OR IGNORE INTO jobs (id, site, source, source_id, employer_id, title, location, region, job_type, "
                 "sal_min, sal_max, currency, period, sal_text, sectors_json, summary, description, apply_mode, apply_email, "
                 "apply_url, status, posted_at, closing_at, created_by, created_at, updated_at) VALUES ("
-                f"{_q(f'{site}:seed-{jid}')}, {_q(site)}, 'feed', {_q('seed:' + jid)}, {_q(emp_id)}, {_q(title)}, {_q(loc)}, "
+                f"{_q(job_id)}, {_q(site)}, 'feed', {_q('seed:' + jid)}, {_q(emp_id)}, {_q(title)}, {_q(loc)}, "
                 f"{_q(j.get('region') or None)}, {_q(j.get('type') or None)}, {_q(smin)}, {_q(smax)}, "
                 f"{_q(cur_ok if j.get('currency') == cur_ok else None)}, {_q(period)}, {_q(j.get('salary_text') or None)}, "
                 f"{_q(json.dumps(j.get('sectors') or [], ensure_ascii=False))}, {_q(_text(j.get('summary') or '')[:300] or None)}, "
-                f"{_q(desc)}, 'link', NULL, {_q(url[:2000])}, 'live', {_q(as_of)}, NULL, 'staging-seed', {_q(as_of)}, {_q(as_of)});"
+                f"{_q(desc)}, 'link', NULL, {_q(url[:2000])}, 'live', {_q(as_of)}, {_q(closing_at)}, 'staging-seed', {_q(as_of)}, {_q(as_of)});"
             )
+            cls_in = {"title": title, "employer": emp, "location": loc, "region": j.get("region") or "",
+                      "country": j.get("country") or "", "summary": j.get("summary") or "",
+                      "description_html": j.get("description_html") or "", "job_type": j.get("type") or "",
+                      "source_sectors": [str(x) for x in (j.get("sectors") or [])]}
+            labels = [tax.canon(x) for x in cls_in["source_sectors"] if tax.canon(x)]
+            hint = {"sectors": labels, "confidence": 1.0, "method": "source"} if labels else None
+            c = jc.classify(cls_in, site, tax, hint=hint, require_frozen=False)
+            f = jc.facet_row({**cls_in, "sal_min": smin, "sal_max": smax, "currency": cur_ok if j.get("currency") == cur_ok else None,
+                              "period": period, "sal_text": j.get("salary_text") or ""}, site, c, "import")
+            cols = ("job_id, sectors_json, regions_json, job_type, workplace, contract_json, loc_class, level, is_agency, "
+                    "salary_display, unverified_cur, taxonomy_version, set_by, updated_at, search_text, source_sectors_json, "
+                    "sector_confidence, sector_method")
+            vals = ", ".join(_q(v) if not isinstance(v, float) else repr(v) for v in jc.facet_params(job_id, f, as_of))
+            lines.append(f"INSERT OR IGNORE INTO job_facets ({cols}) VALUES ({vals});")
             n += 1
     sql = "\n".join(lines) + "\n"
     assert_seed_safe(sql)

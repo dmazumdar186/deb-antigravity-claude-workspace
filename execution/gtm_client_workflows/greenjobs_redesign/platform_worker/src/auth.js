@@ -1,6 +1,11 @@
 // Staff auth: Cloudflare Access sits in front of /admin/* and /api/admin/*, and the Worker
 // ALSO verifies the Cf-Access-Jwt-Assertion JWT itself (defence in depth): RS256 only,
 // signature against the team JWKS, then aud, iss, exp, nbf, then the STAFF_EMAILS allow-list.
+// Machines (the release pipeline's smoke, the feed importer) use an Access SERVICE TOKEN: the caller sends
+// CF-Access-Client-Id / CF-Access-Client-Secret, Access swaps them for the same JWT with a `common_name`
+// claim (the token's Client ID) instead of an email. authenticateService() accepts that JWT only when the
+// common_name is on ACCESS_SERVICE_TOKEN_IDS; index.js lets a service identity reach ONLY the import and
+// smoke paths (SERVICE_SCOPES), never the console, review, newsletter or edit routes.
 // The JWKS fetcher is injectable so tests sign tokens with a locally generated key pair.
 
 import { csvList } from './util.js';
@@ -108,12 +113,20 @@ export async function verifyAccessJwt(token, env, { getKey, nowMs }) {
   if (claims.nbf !== undefined && (typeof claims.nbf !== 'number' || claims.nbf - LEEWAY_S > now)) {
     return { ok: false, reason: 'nbf' };
   }
-  if (typeof claims.email !== 'string' || !claims.email) return { ok: false, reason: 'no_email' };
-  return { ok: true, email: claims.email.trim().toLowerCase(), claims };
+  if (typeof claims.email === 'string' && claims.email) return { ok: true, email: claims.email.trim().toLowerCase(), claims };
+  // A service-token JWT has no email: it is identified by common_name (the Client ID) and is never staff.
+  if (typeof claims.common_name === 'string' && /^[A-Za-z0-9._-]{1,128}$/.test(claims.common_name)) {
+    return { ok: true, email: null, service: claims.common_name, claims };
+  }
+  return { ok: false, reason: 'no_email' };
 }
 
-/** Full staff check: valid JWT + email on the STAFF_EMAILS allow-list (empty list = nobody). */
-export async function authenticateStaff(request, env, deps) {
+/**
+ * Staff OR (when `allowService`) an allow-listed Access service token. Returns
+ * {ok, email, kind: 'staff'|'service', actor} or {ok:false, status, code}. A service token is refused (403)
+ * where allowService is false, so the scope is decided by the caller per path.
+ */
+export async function authenticateAccess(request, env, deps, { allowService = false } = {}) {
   const token = request.headers.get('Cf-Access-Jwt-Assertion');
   if (!token) return { ok: false, status: 401, code: 'unauthenticated' };
   const r = await verifyAccessJwt(token, env, deps);
@@ -121,7 +134,18 @@ export async function authenticateStaff(request, env, deps) {
     if (r.reason === 'not_configured' || r.reason === 'jwks_unavailable') return { ok: false, status: 503, code: 'auth_unavailable' };
     return { ok: false, status: 401, code: 'unauthenticated' };
   }
+  if (r.service) {
+    const ids = csvList(env.ACCESS_SERVICE_TOKEN_IDS);
+    if (!allowService || !ids.includes(r.service)) return { ok: false, status: 403, code: 'forbidden' };
+    return { ok: true, email: `service:${r.service}`, kind: 'service', actor: `service:${r.service}` };
+  }
   const allow = csvList(env.STAFF_EMAILS).map((e) => e.toLowerCase());
   if (!allow.includes(r.email)) return { ok: false, status: 403, code: 'forbidden' };
-  return { ok: true, email: r.email };
+  return { ok: true, email: r.email, kind: 'staff', actor: r.email };
+}
+
+/** Full staff check: valid JWT + email on the STAFF_EMAILS allow-list (empty list = nobody). No service tokens. */
+export async function authenticateStaff(request, env, deps) {
+  const r = await authenticateAccess(request, env, deps, { allowService: false });
+  return r.ok ? { ok: true, email: r.email } : r;
 }

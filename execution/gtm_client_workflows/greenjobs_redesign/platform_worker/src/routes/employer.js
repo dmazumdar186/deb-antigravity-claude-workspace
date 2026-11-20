@@ -37,6 +37,7 @@ export async function authenticateEmployer(request, env, { getKey, nowMs, site }
     if (r.reason === 'not_configured' || r.reason === 'jwks_unavailable') return { ok: false, status: 503, code: 'auth_unavailable' };
     return { ok: false, status: 401, code: 'unauthenticated' };
   }
+  if (r.service || !r.email) return { ok: false, status: 403, code: 'forbidden' }; // service tokens never post as an employer
   const staff = csvList(env.STAFF_EMAILS).map((e) => e.toLowerCase()).includes(r.email);
   if (staff) return { ok: true, email: r.email, staff: true, employers: [] };
   const { results } = await env.DB.prepare(Q.EMPLOYER_SCOPE).bind(r.email, nowIso(new Date(nowMs)), site).all();

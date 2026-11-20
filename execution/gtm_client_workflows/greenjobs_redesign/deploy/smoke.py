@@ -399,7 +399,7 @@ class Smoke:
             "summary": "Automated staging smoke job.",
             "description": f"Automated staging smoke test job for release {tag}. Safe to ignore; closed by the same run.",
             "status": "live",
-            "sectors": [],
+            "sectors": ["Environmental science & consulting"],  # 1..3 taxonomy.json names (console contract)
         }
         jobs = {
             "email": {
@@ -492,7 +492,7 @@ class Smoke:
             "status": "draft",
             "apply_mode": "link",
             "apply_url": "https://example.com/canary",
-            "sectors": [],
+            "sectors": ["Environmental science & consulting"],  # 1..3 taxonomy.json names (console contract)
         }
         r = self.admin("POST", base, self.p("admin_jobs"), body, "canary-create")
         jid = (r.json() or {}).get("id") if r.status in (200, 201) else None

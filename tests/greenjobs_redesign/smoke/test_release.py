@@ -228,9 +228,18 @@ def test_seed_is_public_only_idempotent_and_valid(cfg):
     assert "apply_email, apply_url" in sql and "contact_email" not in sql
     c = sqlite3.connect(":memory:")
     c.executescript((ROOT / cfg["schema"]).read_text(encoding="utf-8"))
+    for m in sorted((ROOT / cfg["migrations_dir"]).glob("*.sql")):  # deploy order: schema, migrations, seed
+        c.executescript(m.read_text(encoding="utf-8"))
+    c.execute("PRAGMA foreign_keys = ON")
     c.executescript(sql)
     c.executescript(sql)
     assert c.execute("SELECT count(*) FROM jobs").fetchone()[0] == n
+    # every seeded job has its job_facets row (classifier + taxonomy.json) and the Strategies-shaped id the
+    # Worker serves at /{site}/jobs/<id>/
+    assert c.execute("SELECT count(*) FROM job_facets").fetchone()[0] == n
+    assert c.execute("SELECT count(*) FROM jobs WHERE id NOT GLOB '[iu][ek]:strat:[0-9]*'").fetchone()[0] == 0
+    assert c.execute("SELECT count(*) FROM job_facets WHERE taxonomy_version = 1 AND set_by = 'import' AND json_array_length(sectors_json) BETWEEN 1 AND 3").fetchone()[0] == n
+    assert c.execute("PRAGMA foreign_key_check").fetchall() == []
     assert (
         c.execute("SELECT count(*) FROM jobs WHERE apply_email IS NOT NULL").fetchone()[
             0

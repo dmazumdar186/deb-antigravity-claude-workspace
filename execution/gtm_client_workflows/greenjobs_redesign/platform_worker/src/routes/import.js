@@ -1,7 +1,7 @@
 // POST /api/admin/import: a classified feed batch (gaia_d1_sync.py --post) -> D1, server to server.
-// Auth: bearer BUILD_TOKEN (constant-time compare), not the Access JWT: the caller is a cron, not a person.
-//   Cloudflare Access must therefore let exactly this path through with a service token or bypass rule
-//   (README "Feed import"); every other /api/admin/* path stays behind Access + STAFF_EMAILS.
+// Auth (either): a Cloudflare Access JWT (a staff email on STAFF_EMAILS, or a service token whose Client ID is on
+//   ACCESS_SERVICE_TOKEN_IDS; index.js verifies it and passes `actor`), or bearer BUILD_TOKEN (constant-time
+//   compare) for a cron without an Access token. A present but bad Access JWT is refused, never retried as bearer.
 // Sandboxed: dry run unless the body says dry_run:false AND the Worker var FEED_IMPORT_ENABLED is "1". A dry run
 //   reads D1 and answers the plan (insert / update / close / held / links); it writes nothing.
 // Guards (each has a positive test): token, body size, batch ceilings, field floors/ceilings, sectors only from
@@ -211,11 +211,13 @@ export function batchStatements(db, b, ts) {
   return s;
 }
 
-export async function importBatch({ request, env, now }) {
+export async function importBatch({ request, env, now, actor = null }) {
   if (request.method !== 'POST') return err('method_not_allowed', 405);
-  const auth = request.headers.get('Authorization') || '';
-  const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
-  if (!env.BUILD_TOKEN || !(await safeEqual(token, env.BUILD_TOKEN))) return err('unauthenticated', 401);
+  if (!actor) {
+    const auth = request.headers.get('Authorization') || '';
+    const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
+    if (!env.BUILD_TOKEN || !(await safeEqual(token, env.BUILD_TOKEN))) return err('unauthenticated', 401);
+  }
   if (!(request.headers.get('Content-Type') || '').toLowerCase().startsWith('application/json')) return err('unsupported_media_type', 415);
   if (Number(request.headers.get('Content-Length') || 0) > IMPORT_MAX_BYTES) return err('payload_too_large', 413);
   const text = await request.text();
@@ -258,7 +260,7 @@ export async function importBatch({ request, env, now }) {
   const stmts = batchStatements(db, b, ts);
   for (let i = 0; i < stmts.length; i += CHUNK) await db.batch(stmts.slice(i, i + CHUNK));
   const digest = await sha256Hex(JSON.stringify({ site: b.site, jobs: b.jobs, links: b.links, taxonomy: b.taxonomy }));
-  await db.prepare(SQL_AUDIT).bind(ts, `import:${b.source}`, 'import.batch', 'import', `${b.source}:${b.site}`, `api:${digest}`,
+  await db.prepare(SQL_AUDIT).bind(ts, actor || `import:${b.source}`, 'import.batch', 'import', `${b.source}:${b.site}`, `api:${digest}`,
     JSON.stringify({ jobs: b.jobs.length, links: b.links.length, held: plan.held, closed: plan.close })).run();
   return json({ dry_run: false, site: b.site, plan, written: true });
 }

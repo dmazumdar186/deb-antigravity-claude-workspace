@@ -215,7 +215,8 @@ export async function statsRoute(env, hostSite, now, url, cors) {
   const salary = salaryStats(jobs, ed);
   const sectors = t.sectors.map((s) => ({ ...s, stat: s.n ? sectorStat(jobs.filter((j) => j.sectors.includes(s.name)), ed.sym) : '' }));
   return json({
-    site, asof: today, taxonomy_version: TAXONOMY.version, salary, sectors, regions: t.regions,
+    // live_jobs: the count the paginated /api/jobs list returns (same live filter); the release smoke compares them
+    site, asof: today, taxonomy_version: TAXONOMY.version, live_jobs: jobs.length, salary, sectors, regions: t.regions,
     kpis: dashboardKpis(jobs, t.sectors, t.regions, site, today),
     measures: { applications_30d: null, alert_signups_30d: null, advertiser_enquiries_30d: null },
   }, 200, { ...cors, 'Cache-Control': `public, max-age=60, s-maxage=${CACHE_SECONDS}` });

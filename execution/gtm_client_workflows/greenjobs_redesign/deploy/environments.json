@@ -47,7 +47,7 @@
       "job_api": "/api/jobs/{id}",
       "stats_api": "/api/stats",
       "apply_api": "/api/apply",
-      "export_api": "/api/export/jobs",
+      "export_api": "/api/export/jobs?site=ie&limit=1",
       "admin_jobs": "/api/admin/jobs",
       "admin_job": "/api/admin/jobs/{id}",
       "admin_close": "/api/admin/jobs/{id}/close",
