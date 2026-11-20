@@ -1,83 +1,52 @@
-# GreenJobs: decision after the 12-lens panel and the Gaia executive lens (2026-11-20)
+# GreenJobs: decision (v2, 2026-11-20)
 
-Inputs:
-- panels A–D, all voting AMEND;
-- exec_CEO_CPO.md and exec_CTO_CDO.md, both APPROVE WITH CHANGES;
-- RESEARCH_options.md and CAVUNO_MUSTHAVES.md.
+v1 (buy a hosted job board, Cavuno) is **withdrawn**. The operator's ruling: the site we designed in September won the contract, and Keith will not pay for a third-party service. **The boards we built are the product.** The panel findings still stand; they now apply to fixing our own build.
 
-The CTO/CDO lens corrected SYNTHESIS §2: the gate now asks for a lawful transfer, not EU-only residency.
+## Decision
 
-## Decision: buy the board, build the automation around it
+**The build:** the GreenJobs site we designed, live on Keith's domains, running on Cloudflare's free tier in GreenJobs' own account. No paid third parties.
 
-**Claim:** run both boards on Cavuno, a hosted job board. ProdCraft builds and runs everything around it so the staff touch as little as possible.
+**Claim → Objection → Resolution:**
+- **Claim:** finish our own build.
+- **Objection:** panels B and D found three defects:
+  - a job posted in the console never reached the board;
+  - Apply buttons pointed to Strategies;
+  - only one person can maintain it.
+- **Resolution (amend, keep the build):**
+  1. **Job pages are rendered by the Worker straight from the database (D1).** A post is live within minutes and there is no rebuild pipeline. Everything else stays as the static designed site. A parity test keeps the job pages identical in design to the static build.
+  2. **One frozen taxonomy file** (sectors, regions, job types) drives the console dropdowns, rendering, filters and the import classifier. This also makes eval E1 measurable.
+  3. **Apply per job:** by email (on-site form) or by the client's own link. This is already built.
+  4. **Staff console fixes:** post to IE, UK or both in one form; every field editable; close asks to confirm; a closed job can be reopened.
+  5. **Gaia's jobs flow in automatically** from gaiatalent.com every 10 minutes. Uncertain sectors go to a one-click review queue for Rashieda.
+  6. **CHM Recruit and Mattinson keep self-posting** through their own logins, limited to their own jobs.
+  7. **Data minimisation.** Live jobs and employers are imported. Alert subscribers are imported only where consent allows, and they re-confirm. Candidates and old applications go to GreenJobs' own raw archive, never into the new site.
+  8. **The 8 sector domains** forward to `/sectors/<slug>/` filtered lists. About 1,200 old URLs get 301 redirects.
+  9. **Maintainability:** directives, runbook and tests in the repo, and a status page any operator can read.
 
-**Objection:**
-- Hosting is in the US, and AI sub-processors sit in China and Singapore (CAVUNO_MUSTHAVES §5).
-- The sector sites cannot be filtered views of a board (§3).
-- Alerts are weekly only, and imported subscribers must re-confirm (§2).
-- Apply-by-email and expiry are not documented as import fields (§4).
+## The gate (replaces the Cavuno trial)
 
-**Resolution (keep, amended):**
-- **Candidate data barely enters Cavuno.** Applications go to each job's own email or ATS link. Only consented alert subscribers are imported, and they re-confirm (double opt-in is good GDPR practice). The ~178k legacy candidate records are never imported (CDO).
-- **The transfer is covered by Cavuno's Article 28 DPA with SCCs.** We add the UK Addendum and disclose it in the privacy notice. Keith decides with that in writing.
-- **The sector domains** stay in Cloudflare as 301 redirects to filtered job lists on greenjobs.co.uk. This is the same as the custom plan, so it is no worse.
-- **The custom build stops as the main path.** Reusable parts are kept:
-  - the import mapper on the real headers;
-  - the redirect map;
-  - the DNS inventory;
-  - the Gaia feed sync.
+The end-to-end test must pass by **Mon 30 Nov**:
+- post → visible on the board within 15 minutes → apply delivered → close → 410;
+- old URLs redirect;
+- every sector domain forwards;
+- the uptime and email probes are green.
 
-## Why not the custom build
+Keith signs off on the test site by **Fri 27 Nov**.
 
-Panels B and D found three defects:
-- a job posted in the console never reaches the board;
-- the apply buttons die on 6 Dec;
-- only one person can maintain it.
+## Client asks: written, asynchronous, no calls (unchanged)
 
-Fixing all that in 13 days, on top of employer self-posting, alerts and the network sites, carries more risk than configuring a product. Panel D also estimates more staff hours for the custom build than for today.
-
-## The gate: Cavuno 14-day trial (Starter, no card), Mon 23 – Tue 24 Nov
-
-Pass all of these, or fall back to fixing the custom build (deadline: end-to-end test green by Mon 30 Nov):
-1. A job imported from our CSV with an apply URL, and one with an apply email, both work on a phone.
-2. Our `feed.xml` (Gaia sync output) is polled, maps correctly, and does not duplicate jobs already on the board.
-3. Two boards on test domains, plus a 301 from a sector domain to a filtered list.
-4. An alert subscriber import, the confirmation email, and the weekly digest received.
-5. The mail sender domain (Basic plan) passes SPF and DKIM alongside the existing `-all` records.
-6. A full export of the trial board works (the exit test).
-7. Price at the real alert-subscriber count. Today: Starter $39/mo per board, Basic $79/mo per board billed yearly.
-8. The DPA, SCCs and UK Addendum are in hand.
-
-## Client asks: written, asynchronous, no calls
-
-1. Diana: a nameserver click guide per registrar. Our watcher confirms each domain by email.
-2. A recovery address on another domain is added first.
+1. A per-registrar click guide for Diana. The DNS watcher confirms each step by email.
+2. A recovery address is added first.
 3. One sector domain moves first as a rehearsal.
-4. Zone export: the hosts' own zone files are needed after all (CTO). Diana downloads them with a click guide; we never take her login for this.
-5. Strategies exports, after the DPA: a dedicated Strategies login is sent once through a one-time secret link. The bot downloads everything outside 09:00–17:00 UTC into GreenJobs' own storage. The password is reset after the run, and there is no personal data in logs.
-6. Keith decides retention and the archive destroy date in writing.
+4. Zone files are downloaded by Diana with a guide.
+5. Strategies exports, after the DPA: one dedicated login sent through a one-time link. The export bot downloads overnight, and the password is reset afterwards.
+6. Keith decides retention in writing.
 
 ## Metrics
 
-Metrics M1–M11 and evals E1–E3 as in SYNTHESIS §4, with these changes:
-- **M9:** compute it by joining the "Jobs By Email" export to the registration export on CandidatePK.
-- **E2:** report the Wilson 95% lower bound, not a point figure on 100 pairs.
-- **Added (CPO):**
-  - applications per job;
-  - alerts sent and opened;
-  - expired jobs still showing;
-  - live duplicates.
-- **Added (CDO):**
-  - fields migrated ÷ fields exported (minimisation);
-  - erasure requests closed within 30 days;
-  - archive access log entries;
-  - unsubscribes carried over.
-
-Reporting:
-- The operator gets a daily status page.
-- Keith gets a 5-line weekly email: red items, applications, alerts sent, staff hours, next step.
+M1–M11 and E1–E3 as in SYNTHESIS §4, with the CPO and CDO additions. Graded by scripts. The operator gets a daily status page; Keith gets a 5-line weekly email.
 
 ## Needs the operator
 
-1. Sign up for the Cavuno trial with a ProdCraft address. The email verification goes to an inbox this session cannot read. No card is needed.
-2. Do not send the 20 Nov reply to Diana. It proposed calls; an asynchronous version follows through /redteam.
+1. The contract and DPA with Keith. The data downloads wait on them.
+2. Nothing else. The Cavuno trial is cancelled.
