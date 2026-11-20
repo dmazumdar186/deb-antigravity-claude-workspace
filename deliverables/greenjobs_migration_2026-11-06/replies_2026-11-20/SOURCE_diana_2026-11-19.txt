@@ -1,0 +1,9 @@
+Diana Lupu (Finance Administrator, Gaia Talent Ltd), emails of Thu 19 Nov 2026 to Debanjan, cc rashieda, Keith. Pasted by the operator 2026-11-20.
+
+Hi Debanjan Please see below -  header row of each file type (the column names, no data rows) - attached [Header_Rows_-_IE.xlsx, Header_Rows_-_UK.xlsx] -  Jobs By Email has 13 on each site -HOSTING IRELAND greenjobs.ie (Domain) greenjobs.ie (Hosting) EMAIL SSL security website advanced email filtering 123 Reg environmentaljobsuk.com renewableenergyjobsuk.com solarjobsuk.com windjobsuk.com conservationjobsuk.com wastejobsuk.com waterjobsuk.com ecologyjobsuk.com Lets Host greenjobs.co.uk - What is the difference between DNS login and domain login? - I can login to all - when you will have to login - you need me to send you some codes from email - info @ greenjobs.ie info @ greenjobs.co.uk - * Which inbox should applications go to on each board when a job has no address of its own? - not sure what you mean - rashieda.ely @ greenjobs.ie - main person diana @ greenjobs.ie * Please don't change any domain settings until I ask for the switch: an early change can cut off the old sites, and with them the Download page. - again not sure what you mean, I wont do any change Were any of the current live jobs posted through Broadbean or another tool  - No Regards Diana
+
+Diana Lupu Thu 19 Nov, 15:17: Also, Gaia talent is posting jobs by themself - manually
+
+Diana Lupu 19 Nov 2026, 16:39: Hi Debanjan Can you please also advise on this: share the DNS logins through a password manager? How will I do this? Thanks Diana
+
+Header file facts (computed 2026-11-20 from the attachments, build/import/REAL_HEADERS_2026-11-19.json): 6 file types per site (Recruiters, Members registration details, Members profile data, Jobs, Jobs By Email, Job Applications). Jobs By Email has exactly 13 columns on each site. Jobs has an Email column and an AppLink column.
