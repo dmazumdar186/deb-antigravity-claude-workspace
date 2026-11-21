@@ -8,7 +8,7 @@
 <div class="wrap job__grid">
   <article>
     <!-- src:start --><div class="prose" data-source="employer">{{desc_html}}</div><!-- src:end -->
-    <p class="muted" style="margin-top:28px;font-size:.9rem">{{posted_line}}<br>Description as published by the employer on {{domain}}; reference {{id}}.</p>
+    <p class="muted" style="margin-top:28px;font-size:.9rem">{{posted_line}}<br>{{source_line}}</p>
   </article>
   <aside class="job__aside" aria-label="Apply" data-closing="{{closing}}">
     <a class="btn btn--lime" href="{{apply_url}}" rel="{{apply_rel}}" data-apply{{apply_ev}} data-ev-job="{{id}}" data-ev-employer="{{employer}}" data-ev-sector="{{sector}}" data-ev-region="{{region}}">{{apply_label}}<span class="arw" aria-hidden="true">→</span></a>{{apply_form}}

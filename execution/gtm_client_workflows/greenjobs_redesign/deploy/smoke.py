@@ -6,7 +6,10 @@ description: Black-box checks of a deployed GreenJobs environment over HTTPS. Re
     no rendered page links into the retired platform (.asp / Strategies hosts), and on staging the job-alert
     sign-up answers 2xx on both boards (DRY_RUN: no mail),
     a Worker-rendered job page per site, 20 sampled legacy redirects -> 301 -> 200,
-    build-export auth. Write checks (staging `full` mode only): create an email-mode and a link-mode job
+    build-export auth, and REAL-BROWSER checks (browser_smoke.mjs, Playwright Chromium): on staging the on-page
+    apply form of one email-apply job per board is filled and submitted and must show the success message from the
+    edition's API base; on every env a link-apply button must point at the employer's URL and the boards must not
+    overflow at 360-430 px (a browser that cannot start fails the gate). Write checks (staging `full` mode only): create an email-mode and a link-mode job
     through the admin API with the staging Access service token, poll until public (<= 15 min), apply
     in both modes (DRY_RUN, synthetic applicant, no CV), close both, expect the closed status (410).
     Production `read_only` mode writes nothing unless --canary: one hidden draft job, closed at once,
@@ -27,6 +30,7 @@ import http.client
 import json
 import random
 import re
+import subprocess
 import sys
 import time
 import urllib.error
@@ -46,7 +50,41 @@ STAT_PAGES = ("board_home", "board_dashboard", "board_list")
 LINK_PAGES = ("/{ed}/", "/{ed}/jobs/", "/{ed}/employers/", "/{ed}/dashboard/", "/{ed}/insights/", "/{ed}/sectors/")
 LINK_JOB_SAMPLE = 5
 URL_RE = re.compile(r"""(?:https?:)?//[A-Za-z0-9.-]+\.[A-Za-z]{2,}[^\s"'<>)\]]*""")
-ALERT_SMOKE_EMAIL = "smoke-alerts@example.com"  # one fixed address: a re-run converges on one pending row (DRY_RUN: no mail)
+ALERT_SMOKE_EMAIL = "smoke-alerts@example.com"
+# real-browser checks (deploy/browser_smoke.mjs, eye review r2 N1): the on-page apply form per edition, a link-apply
+# button, phone-width overflow. Fixed applicant per edition: a re-run converges on one application row (DRY_RUN).
+BROWSER_SCRIPT = HERE / "browser_smoke.mjs"
+BROWSER_APPLY_EMAIL = "smoke-browser-{site}@example.com"
+BROWSER_WIDTHS = (360, 375, 390, 414, 430)
+BROWSER_LOOKUP_CEILING = 40  # job lookups per edition to find an email-apply and a link-apply page (floor: 1)
+BROWSER_TIMEOUT_S = 600
+
+
+def id_of_slug(site: str, slug: str) -> str:
+    """The Worker's idOfSlug: '11502133' -> '<site>:strat:11502133', 'gaia-9360' -> '<site>:gaia:9360'."""
+    if ":" in slug:
+        return slug
+    if slug.isdigit():
+        return f"{site}:strat:{slug}"
+    src, _, ref = slug.partition("-")
+    return f"{site}:{src}:{ref}"
+
+
+def node_browser_runner(spec: dict[str, Any]) -> dict[str, Any]:
+    """Run browser_smoke.mjs with the spec on stdin; its one JSON line back. Raises RuntimeError when it cannot run."""
+    try:
+        r = subprocess.run(["node", str(BROWSER_SCRIPT)], input=json.dumps(spec), capture_output=True, text=True,
+                           encoding="utf-8", errors="replace", timeout=BROWSER_TIMEOUT_S)
+    except (OSError, subprocess.TimeoutExpired) as e:
+        raise RuntimeError(type(e).__name__) from e
+    lines = [ln for ln in r.stdout.splitlines() if ln.startswith("{")]
+    try:
+        out = json.loads(lines[-1]) if lines else {}
+    except ValueError:
+        out = {}
+    if r.returncode != 0 or not isinstance(out.get("checks"), list):
+        raise RuntimeError(str(out.get("error") or f"exit {r.returncode}"))
+    return out  # one fixed address: a re-run converges on one pending row (DRY_RUN: no mail)
 NS = uuid.UUID(
     "6f1c3a52-7d0e-4f53-9a51-0e5b0c1d2a77"
 )  # fixed namespace: same sha -> same idempotency keys
@@ -129,6 +167,7 @@ class Smoke:
     sleep: Callable[[float], None] = time.sleep
     clock: Callable[[], float] = time.monotonic
     canary: bool = False
+    browser: Callable[[dict[str, Any]], dict[str, Any]] | None = None  # None = node_browser_runner (tests inject)
     run_id: str = field(default_factory=lambda: uuid.uuid4().hex)  # one run's retries share keys; a new run creates fresh jobs
     checks: list[dict[str, str]] = field(default_factory=list)
 
@@ -343,6 +382,67 @@ class Smoke:
             got = r.json() if isinstance(r.json(), dict) else {}
             self.rec(f"alert_signup[{site}]", 200 <= r.status < 300 and got.get("ok") is True,
                      f"HTTP {r.status} {got.get('error') or got.get('next') or ''}".strip())
+
+    def browser_targets(self, site: str, base: str, board: str) -> tuple[dict[str, str] | None, dict[str, str] | None]:
+        """(email-apply job, link-apply job) on this board: {url, ...} from the live board set + each job's public
+        apply mode, at most BROWSER_LOOKUP_CEILING lookups."""
+        r = self.get(f"{base}/api/jobs?view=board&site={site}&limit={BROWSER_LOOKUP_CEILING}&text=0", {"Origin": board})
+        jobs = (r.json() or {}).get("jobs") if r.status == 200 and isinstance(r.json(), dict) else None
+        email = link = None
+        for j in (jobs or [])[:BROWSER_LOOKUP_CEILING]:
+            slug = str((j or {}).get("id") or "")
+            if not re.fullmatch(r"[A-Za-z0-9_:-]{1,120}", slug):
+                continue
+            href = str(j.get("href") or "") or self.p("board_job", ed=site, slug=slug)
+            if not href.startswith(f"/{site}/jobs/"):
+                continue
+            g = self.get(base + self.p("job_api", id=id_of_slug(site, slug)), {"Origin": board})
+            pub = g.json() if g.status == 200 and isinstance(g.json(), dict) else {}
+            if pub.get("apply_mode") == "email" and email is None:
+                email = {"url": board + href}
+            elif pub.get("apply_mode") == "link" and link is None and str(pub.get("apply_url") or "").startswith("https://"):
+                link = {"url": board + href, "expect": pub["apply_url"]}
+            if email and link:
+                break
+        return email, link
+
+    def check_browser(self) -> None:
+        """Real Chromium on the deployed boards (eye review r2 N1: the HTTP smoke posted to the API itself and never
+        saw a form that posted to the Pages origin). Staging (DRY_RUN pinned): on one email-apply job page per
+        edition, fill and submit the ON-PAGE form and require the success message from the edition's API base.
+        Every env: a link-apply button points at the employer's URL; no horizontal overflow at 360-430 px. A browser
+        that cannot start is a failed check, never a skip."""
+        api = self.ec.get("api_base") or {}
+        tasks: list[dict[str, Any]] = []
+        link_task = None
+        for site, board in self.sites("board_urls"):
+            base = (api.get(site) or board).rstrip("/")
+            email, link = self.browser_targets(site, base, board)
+            if self.ec.get("require_dry_run"):
+                if email:
+                    tasks.append({"kind": "apply", "name": f"browser_apply[{site}]", "url": email["url"],
+                                  "expect_post": f"{base}{self.p('apply_api')}", "email": BROWSER_APPLY_EMAIL.format(site=site)})
+                else:
+                    self.rec(f"browser_apply[{site}]", False, "no email-apply job found on the board")
+            if link and link_task is None:
+                link_task = {"kind": "link", "name": "browser_link_apply", "url": link["url"], "expect": link["expect"]}
+            urls = [board + f"/{site}/"] + [t["url"] for t in (email, link) if t]
+            tasks.append({"kind": "layout", "name": f"browser_layout[{site}]", "urls": urls, "widths": list(BROWSER_WIDTHS)})
+        if link_task:
+            tasks.append(link_task)
+        else:
+            self.rec("browser_link_apply", False, "no link-apply job found on any board")
+        runner = self.browser or node_browser_runner
+        try:
+            out = runner({"tasks": tasks})
+        except RuntimeError as e:
+            for t in tasks:
+                self.rec(t["name"], False, f"browser did not run: {e}")
+            return
+        got = {c.get("name"): c for c in out.get("checks") or [] if isinstance(c, dict)}
+        for t in tasks:
+            c = got.get(t["name"])
+            self.rec(t["name"], bool(c and c.get("ok") is True), str((c or {}).get("detail") or "no result"))
 
     def old_platform_links(self, html_text: str) -> list[str]:
         pkg = str(HERE.parent)
@@ -707,6 +807,7 @@ class Smoke:
         self.check_live_wiring()
         self.check_no_old_platform_links()
         self.check_alert_signup()
+        self.check_browser()  # before write_flow: the per-IP apply limit (5 / 10 min) covers 2 browser + 2 API applies
         self.check_redirects()
         self.check_export()
         if self.mode == "full":

@@ -13,7 +13,7 @@ disagree, or if an env section is missing a var (wrangler does not inherit vars 
 | R2 (CVs) | `greenjobs-cvs-staging` (smoke applies send no CV, so it stays empty) |
 | Pages | `greenjobs-staging-ie` -> `https://greenjobs-staging-ie.pages.dev`, `greenjobs-staging-uk` -> `https://greenjobs-staging-uk.pages.dev` (each hosts the full two-edition build) |
 | Mail | `DRY_RUN="1"`, `LIVE_CONFIRM=""`, `MAIL_PROVIDER="none"`, `MAIL_DAILY_CAP="0"`, pinned and checked by `check-config` |
-| Data | Public job data only: `release.py` seeds `jobs` + employer names from `deliverables/greenjobs_redesign_2026-09-22/src/data/{ie,uk}.json`, link-mode, no apply email, no contacts (`assert_seed_safe` fails closed). No candidate or application data ever goes to staging; the only applications there are the smoke test's synthetic `smoke-test@example.com`. |
+| Data | Public job data only: `release.py` seeds `jobs` + employer names from `deliverables/greenjobs_redesign_2026-09-22/src/data/{ie,uk}.json`, link-mode, no apply email, no contacts (`assert_seed_safe` fails closed). No candidate or application data ever goes to staging; the only applications there are the smoke test's synthetic `smoke-test@example.com` and the real-browser smoke's `smoke-browser-{ie,uk}@example.com` (deploy/browser_smoke.mjs submits the on-page form; DRY_RUN, routed to the reserved `staging-applications-{ie,uk}@example.com` inbox, never mailed). |
 
 ### UK Worker (2026-11-20)
 

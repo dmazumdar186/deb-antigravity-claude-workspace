@@ -46,8 +46,12 @@ FORBIDDEN = [
     (r"\bXXX\b", "XXX"),
 ]
 EXEMPT_RE = re.compile(r"^(?:ie|uk)/for-keith/index\.html$")
-CSS_BUDGET = 80 * 1024
-JS_BUDGET = 132 * 1024  # 2026-11-20: +7 KB for api.js (live job set + alert/newsletter sign-ups) and analytics.js (production builds)
+CSS_BUDGET = (
+    84 * 1024
+)  # 2026-11-20 r2: +2 KB for the labelled apply form, phone tap targets and the chart scroller (eye review r2 N2/m2/N7)
+JS_BUDGET = (
+    136 * 1024
+)  # 2026-11-20: +7 KB for api.js (live job set + alert/newsletter sign-ups) and analytics.js (production builds); r2 +4 KB: the apply form client (eye review r2 N1/N2)
 HERO_BUDGET_FILE = 2 * 1024 * 1024  # per hero file (mp4, portrait mp4, poster)
 HERO_BUDGET_TOTAL = 6 * 1024 * 1024  # every hero file together
 HERO_REQUIRED = ("{ed}.mp4", "{ed}-m.mp4")  # plus a poster: {ed}-poster.webp|jpg
@@ -389,7 +393,10 @@ def validate(site: Path, jobs_by_edition: dict[str, list[dict[str, Any]]], data_
         m = re.match(r"^(ie|uk)/jobs/([^/]+)/index\.html$", rel)
         if m:
             job_pages[m.group(1)] = job_pages.get(m.group(1), 0) + 1
-            if 'rel="noopener' not in raw or "Apply on" not in raw:  # link mode: rel="noopener nofollow"
+            # link mode: "Apply on <host>" (rel="noopener nofollow"); email mode: "Apply now" + the on-page form (eye r2 N4)
+            if 'rel="noopener' not in raw or not (
+                "Apply on" in raw or ("Apply now" in raw and "data-apply-form" in raw)
+            ):
                 fails.append(f"{rel}: job page has no apply link")
             for block in doc.jsonld:
                 try:

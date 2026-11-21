@@ -87,6 +87,27 @@ def placeholders(ec: dict[str, Any]) -> list[str]:
     return out
 
 
+def board_origins(ec: dict[str, Any]) -> set[str]:
+    """The browser origins of an environment's boards: board_urls plus, where an apex domain serves the board,
+    its www. twin. This set, nothing wider, is the Worker's ALLOWED_ORIGINS (eye review r2 N1)."""
+    out = set()
+    for url in (ec.get("board_urls") or {}).values():
+        u = url.rstrip("/")
+        out.add(u)
+        host = re.sub(r"^https://", "", u)
+        if host.count(".") == 1 or host.endswith(".co.uk") and host.count(".") == 2:
+            out.add(f"https://www.{host}")
+    return out
+
+
+def allowed_origins_problems(vars_: dict[str, Any], ec: dict[str, Any], name: str) -> list[str]:
+    got = {o.strip() for o in str(vars_.get("ALLOWED_ORIGINS") or "").split(",") if o.strip()}
+    want = board_origins(ec)
+    if got != want:
+        return [f"env.{name}.vars.ALLOWED_ORIGINS must be exactly {sorted(want)} (the environment's board origins), got {sorted(got)}"]
+    return []
+
+
 def check_wrangler_toml(
     cfg: dict[str, Any], env: str, toml_path: Path | None = None
 ) -> list[str]:
@@ -120,6 +141,7 @@ def check_wrangler_toml(
         )
     if ec.get("require_dry_run") and vars_.get("MAIL_PROVIDER", "none") != "none":
         problems.append(f'env.{env}.vars.MAIL_PROVIDER must be "none"')
+    problems += allowed_origins_problems(vars_, ec, ec["wrangler_env"])
     top_vars = set((data.get("vars") or {}).keys())
     missing = sorted(top_vars - set(vars_))
     if (
@@ -160,6 +182,7 @@ def _check_extra_worker(data: dict[str, Any], primary: dict[str, Any], ec: dict[
     missing = sorted(set((data.get("vars") or {}).keys()) - set(vars_))
     if missing:
         out.append(f"env.{name}.vars is missing {', '.join(missing)}")
+    out += allowed_origins_problems(vars_, ec, name)
     site, url = xw.get("site"), (ec.get("worker_urls") or {}).get(xw.get("site"), "")
     host = re.sub(r"^https://", "", url).split("/")[0]
     try:

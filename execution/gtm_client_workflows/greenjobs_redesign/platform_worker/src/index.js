@@ -192,7 +192,9 @@ export function createHandler(deps = {}) {
     if (method === 'GET' && path === '/api/jobs') return listJobs(env, site, now, cors, url);
     const m = JOB_PATH.exec(path);
     if (method === 'GET' && m) return getJob(env, site, m[1], now, cors);
-    if (method === 'POST' && path === '/api/apply') return apply({ env, site, now, request, cors, rate, mailer });
+    // Cross-origin from an ALLOWED_ORIGINS board (staging: one Pages project carries both editions), ?site= names
+    // the edition of the job, exactly as for the sign-ups; same-origin, the Host decides.
+    if (method === 'POST' && path === '/api/apply') return apply({ env, site: signupSite(url, site, cors), now, request, cors, rate, mailer });
     if (path === '/api/alerts' || path.startsWith('/api/alerts/')) {
       if (env.ALERTS_ENABLED !== '1') return err('not_found', 404, cors);
       const clientKey = await sha256Hex(clientIp(request));

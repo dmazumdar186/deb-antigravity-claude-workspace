@@ -12,7 +12,7 @@
 // published) and "<source>-<ref>" otherwise (/ie/jobs/gj-<uuid>/).
 
 import { descriptionHtml, stripTags } from '../render/sanitise.js';
-import { TAXONOMY, UNVERIFIED_SOURCE, dashboardKpis, edition, salaryStats, sectorColor, sectorStat, tallies } from '../render/lib.js';
+import { TAXONOMY, UNVERIFIED_SOURCE, dashboardKpis, displayLocation, edition, salaryStats, sectorColor, sectorStat, tallies } from '../render/lib.js';
 import { datasetFacets, gonePage, jobPage, listPage, sitemap, slim } from '../render/pages.js';
 import { err, json, SECURITY_HEADERS, todayUtc } from '../util.js';
 import { renderDescription } from '../validate.js';
@@ -82,7 +82,7 @@ export function toJob(r, site, origin) {
   // Render-time guard: a link into the retired Strategies platform is never rendered (email mode instead).
   const link = r.apply_mode === 'link' && typeof r.apply_url === 'string' && r.apply_url.startsWith('https://') && !isOldPlatformUrl(r.apply_url);
   return {
-    id: r.id, slug, title: r.title, employer: r.employer || 'Confidential employer', location: r.location,
+    id: r.id, slug, title: r.title, employer: r.employer || 'Confidential employer', location: displayLocation(r.location),
     regions: parseList(r.f_regions), type: r.f_type || '', sal_min: r.sal_min ?? null, sal_max: r.sal_max ?? null, cur: r.currency || null,
     period: r.period || null, sal_text: (r.sal_text || '').trim(), sectors, color: sectors[0] ? sectorColor(sectors[0]) : '',
     // The source's own posted date (Strategies LiveDate/CreateDate, Gaia date_gmt); never the import time.
@@ -127,11 +127,15 @@ export function applyFilters(jobs, f) {
   });
 }
 
+export const PAGE_REFERRER_POLICY = 'strict-origin-when-cross-origin';
+
 function htmlResponse(body, status, extra = {}) {
   return new Response(body, {
     status,
     headers: {
-      'Content-Type': 'text/html; charset=utf-8', ...SECURITY_HEADERS, 'X-Frame-Options': 'SAMEORIGIN',
+      // A page's own forms must send their Origin: under no-referrer Chrome sends "Origin: null" on a form POST and
+      // the apply API refuses it (403 origin_not_allowed, eye review r2 N1). Same policy as the Pages boards.
+      'Content-Type': 'text/html; charset=utf-8', ...SECURITY_HEADERS, 'Referrer-Policy': PAGE_REFERRER_POLICY, 'X-Frame-Options': 'SAMEORIGIN',
       'Cache-Control': status === 200 ? `public, max-age=60, s-maxage=${CACHE_SECONDS}` : 'public, max-age=60, s-maxage=60', ...extra,
     },
   });

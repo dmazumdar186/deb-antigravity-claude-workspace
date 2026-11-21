@@ -89,7 +89,7 @@ export function shellCtx(site, { page, title, desc, samePath = '', switchPath = 
     lang: ed.lang, title: esc(title), desc: esc(desc), root, home, ed: site, ED: ed.short, domain: esc(data.site), nav, menu_links: nav, edsw,
     hdr_cls: '', body_attrs: bodyAttrs, live_api: '1', api_base: '', net_sites: net, phones, emails, bcorp, hdr_bcorp: hdrBcorp, social,
     year: today.slice(0, 4), n_jobs: String(nJobs), fetched: esc(today), fetched_long: esc(dateLong(today)),
-    social_wrap: social ? `<div class="ftr__social">${social}</div>` : '', canonical: canonical ? esc(canonical) : '',
+    social_wrap: social ? `<div class="ftr__social">${social}</div>` : '', demo_note: '', // a client board: no demo wording (eye r2 m1) canonical: canonical ? esc(canonical) : '',
     nav_list: NAV.map(([href, label]) => `<li><a href="${home}${href}">${label}</a></li>`).join(''),
     onepct, scripts: '', page, country: esc(ed.name), bcorp_footer: bcorpFooter, _indexable: indexable,
   };
@@ -102,17 +102,19 @@ export function shellPage(ctx, content, scripts) {
   return out;
 }
 
-const APPLY_FORM = (id) => `<form class="job__apply-form" id="apply-form" method="post" action="/api/apply" enctype="multipart/form-data" data-apply-form data-ev="apply_submit" data-ev-job="${id}">
+// build_site.APPLY_FORM (eye review r2 N1/N2). The Worker serves its own /api/apply, so the action is same-origin.
+const APPLY_FORM = (id, action = '/api/apply') => `<form class="job__apply-form" id="apply-form" method="post" action="${action}" enctype="multipart/form-data" data-apply-form data-ev="apply_submit" data-ev-job="${id}">
+<h2 class="job__apply-h">Apply for this role</h2>
 <input type="hidden" name="job_id" value="${id}"><input type="hidden" name="ts" value="" data-apply-ts>
 <div hidden aria-hidden="true"><label for="ap-website">Leave blank <input id="ap-website" name="website" tabindex="-1" autocomplete="off"></label></div>
-<label for="ap-name">Name <input id="ap-name" name="name" required maxlength="120" autocomplete="name"></label>
-<label for="ap-email">Email <input id="ap-email" name="email" type="email" required maxlength="254" autocomplete="email"></label>
-<label for="ap-phone">Phone <input id="ap-phone" name="phone" type="tel" maxlength="40" autocomplete="tel"></label>
-<label for="ap-cover">Cover note <textarea id="ap-cover" name="cover_note" maxlength="5000" rows="4"></textarea></label>
-<label for="ap-cv">CV (PDF or Word) <input id="ap-cv" name="cv" type="file" accept=".pdf,.doc,.docx"></label>
-<label for="ap-consent"><input id="ap-consent" type="checkbox" name="consent" value="yes" required> Send my application to the advertiser of this job</label>
-<button class="btn btn--lime btn--sm" type="submit">Send application</button>
-<p role="status" data-apply-status></p>
+<div class="field"><label for="ap-name">Name</label><input class="in" id="ap-name" name="name" required maxlength="120" autocomplete="name" aria-describedby="ap-name-err"><p class="field__err" id="ap-name-err" data-apply-err="name" hidden></p></div>
+<div class="field"><label for="ap-email">Email</label><input class="in" id="ap-email" name="email" type="email" required maxlength="254" autocomplete="email" aria-describedby="ap-email-err"><p class="field__err" id="ap-email-err" data-apply-err="email" hidden></p></div>
+<div class="field"><label for="ap-phone">Phone <span class="field__opt">(optional)</span></label><input class="in" id="ap-phone" name="phone" type="tel" maxlength="40" autocomplete="tel" aria-describedby="ap-phone-err"><p class="field__err" id="ap-phone-err" data-apply-err="phone" hidden></p></div>
+<div class="field"><label for="ap-cover">Cover note <span class="field__opt">(optional)</span></label><textarea class="in" id="ap-cover" name="cover_note" maxlength="5000" rows="4" aria-describedby="ap-cover-err"></textarea><p class="field__err" id="ap-cover-err" data-apply-err="cover_note" hidden></p></div>
+<div class="field"><label for="ap-cv">CV <span class="field__opt">(optional, PDF or Word, up to 5 MB)</span></label><input class="in in--file" id="ap-cv" name="cv" type="file" accept=".pdf,.doc,.docx" aria-describedby="ap-cv-err"><p class="field__err" id="ap-cv-err" data-apply-err="cv" hidden></p></div>
+<label class="check check--apply" for="ap-consent"><input id="ap-consent" type="checkbox" name="consent" value="yes" required aria-describedby="ap-consent-err"><span>Send my application to the advertiser of this job</span></label><p class="field__err" id="ap-consent-err" data-apply-err="consent" hidden></p>
+<button class="btn btn--lime" type="submit">Send application</button>
+<p class="note note--live" role="status" data-apply-status hidden></p>
 </form>`;
 
 /** apply_ctx(): link mode = external button (noopener nofollow); email mode = the on-site form to /api/apply. */
@@ -121,7 +123,14 @@ export function applyCtx(j, domain) {
     const h = (() => { try { return new URL(j.apply_url).hostname; } catch { return ''; } })();
     return { apply_url: esc(j.apply_url), apply_rel: 'noopener nofollow', apply_label: `Apply on ${esc(h)}`, apply_form: '', apply_ev: ' data-ev="apply_click"' };
   }
-  return { apply_url: '#apply-form', apply_rel: 'noopener', apply_label: `Apply on ${domain}`, apply_form: APPLY_FORM(esc(j.id)), apply_ev: '' };
+  return { apply_url: '#apply-form', apply_rel: 'noopener', apply_label: 'Apply now', apply_form: APPLY_FORM(esc(j.id)), apply_ev: '' };
+}
+
+/** build_site.source_line (eye review r2 N9): a link-apply role is published on its own site, not "on greenjobs.ie". */
+export function sourceLine(j, domain) {
+  let host = '';
+  if (j.apply_mode === 'link') { try { host = new URL(j.apply_url).hostname; } catch { host = ''; } }
+  return `Description as published ${host ? `on ${esc(host)}` : `by the employer on ${domain}`}; reference ${esc(j.id)}.`;
 }
 
 /** One job page: the per-job loop body of build_edition(). */
@@ -159,7 +168,7 @@ export function jobPage(j, jobs, { site, today, canonical, indexable, reqHost = 
   const jsonld = `<script type="application/ld+json">${jsonLd(jobJsonLdPayload(j, site))}</script>`;
   const body = {
     jsonld, title: esc(noBreakDash(j.title)), employer: esc(j.employer), logo: logoImg(j, '/', 'job__logo'), sal_caveat: salCaveat, closed_chip: closedChip,
-    meta, dl, desc_html: bodyHtml, ...applyCtx(j, domain), domain, id: esc(j.id), region: esc(j.regions[0] || ''), closing: esc(j.closing || ''),
+    meta, dl, desc_html: bodyHtml, ...applyCtx(j, domain), domain, source_line: sourceLine(j, domain), id: esc(j.id), region: esc(j.regions[0] || ''), closing: esc(j.closing || ''),
     sal_sticky: `<span class="job__sticky-sal">${esc(sal || 'Salary not disclosed')}</span>`,
     similar: similar.map((s) => roleCard(s, '/', '', today, ed.currency)).join(''),
     similar_hidden: similar.length ? '' : ' hidden', // eye M5: no empty block when nothing is similar

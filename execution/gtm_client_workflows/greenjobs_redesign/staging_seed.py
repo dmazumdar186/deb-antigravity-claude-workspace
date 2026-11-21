@@ -64,6 +64,55 @@ def _shift(raw_date: Any, delta: timedelta) -> str:
     return (date.fromisoformat(d) + delta).isoformat() if d else ""
 
 
+_MONTH = r"(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|June?|July?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)"
+# A calendar date in advert prose: "19th October 2026", "5 October", "October 19, 2026", "October 2026", "19/10/2026".
+DATE_IN_TEXT = re.compile(
+    rf"\b\d{{1,2}}(?:st|nd|rd|th)?(?:\s+of)?\s+{_MONTH}\b\.?(?:,?\s+\d{{4}})?"
+    rf"|\b{_MONTH}\s+\d{{1,2}}(?:st|nd|rd|th)?\b(?:,?\s+\d{{4}})?"
+    rf"|\b{_MONTH}\s+\d{{4}}\b"
+    r"|\b\d{1,2}[/.]\d{1,2}[/.]\d{2,4}\b",
+    re.I,
+)
+# an innermost block: no other block tag inside it
+_BLOCK = re.compile(r"(<(p|li|div|h[1-6])\b[^>]*>)((?:(?!</?(?:p|li|div|h[1-6]|ul|ol|table)\b).)*?)(</\2>)", re.S | re.I)
+_SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\s+")
+_BR = re.compile(r"(<br\s*/?>)", re.I)
+
+
+def _plain(x: str) -> str:
+    return re.sub(r"<[^>]+>", " ", x)
+
+
+def _strip_line(seg: str) -> str:
+    """One line of text (between <br>s): a short line naming a date goes; a long one loses its dated sentences."""
+    if not DATE_IN_TEXT.search(_plain(seg)):
+        return seg
+    if len(_plain(seg).strip()) < 160:
+        return ""
+    return " ".join(x for x in _SENTENCE_SPLIT.split(seg) if not DATE_IN_TEXT.search(_plain(x)))
+
+
+def _strip_lines(inner: str) -> str:
+    return "".join(part if _BR.fullmatch(part) else _strip_line(part) for part in _BR.split(inner))
+
+
+def strip_date_sentences(markup: str) -> str:
+    """Test data only (eye review r2 N8): the September adverts quote their own deadlines and start dates
+    ("Closing date: 23:59, Monday, 19th October 2026"), which contradict the re-based dates in the page header.
+    Per innermost block and per <br> line: a short line that names a calendar date goes whole (a "Closing date:"
+    fact), a long one loses only the sentences that name one, and a block left without text goes. Idempotent."""
+    def block(m: re.Match[str]) -> str:
+        open_, inner, close = m.group(1), m.group(3), m.group(4)
+        if not DATE_IN_TEXT.search(_plain(inner)):
+            return m.group(0)
+        kept = _strip_lines(inner)
+        return f"{open_}{kept}{close}" if _plain(kept).strip() else ""
+    out = _BLOCK.sub(block, markup or "")
+    if DATE_IN_TEXT.search(_plain(out)):  # text outside any block (a bare <br>-separated advert)
+        out = _strip_lines(out)
+    return out
+
+
 def rebase_september(raw: dict[str, Any], seed_date: date) -> list[dict[str, Any]]:
     """The September jobs as test data: dates moved by (seed_date - fetched), titles flagged, snapshot-closed out."""
     fetched = date.fromisoformat(str(raw.get("fetched"))[:10])
@@ -78,6 +127,9 @@ def rebase_september(raw: dict[str, Any], seed_date: date) -> list[dict[str, Any
             {
                 **j,
                 "title": (TEST_PREFIX + title)[:160],
+                # the advert's own dates would contradict the shifted header dates (eye review r2 N8)
+                "description_html": strip_date_sentences(str(j.get("description_html") or "")),
+                "summary": " ".join(x for x in _SENTENCE_SPLIT.split(str(j.get("summary") or "")) if not DATE_IN_TEXT.search(x)),
                 "posted": _shift(j.get("posted"), delta),
                 "closing": _shift(j.get("closing"), delta),
                 "seed_source": "test",

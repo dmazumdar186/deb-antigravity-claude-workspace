@@ -84,8 +84,10 @@ function cleanTags(markup, baseUrl) {
   });
 }
 
+// build_site.MID_SENTENCE_BREAK (eye review r2 m4): a sentence wrapped across two <div>s is one paragraph.
+const MID_SENTENCE_BREAK = /([a-z,])[ \t]*<\/div>[ \t]*<div>[ \t]*(?=[a-z])/g;
 export function divsToParagraphs(markup) {
-  let out = String(markup || '').replace(/<\/?div>/g, (m) => (m.startsWith('</') ? '</p>' : '<p>'));
+  let out = String(markup || '').replace(MID_SENTENCE_BREAK, '$1 ').replace(/<\/?div>/g, (m) => (m.startsWith('</') ? '</p>' : '<p>'));
   for (const [pat, rep] of [[/<p>(?:\s|&nbsp;|&#160;)*<p>/, '<p>'], [/<\/p>(?:\s|&nbsp;|&#160;)*<\/p>/, '</p>']]) {
     const g = new RegExp(pat.source, 'g');
     while (pat.test(out)) out = out.replace(g, rep);

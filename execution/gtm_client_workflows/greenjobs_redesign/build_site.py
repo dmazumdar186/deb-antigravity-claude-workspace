@@ -335,11 +335,18 @@ def sanitise_html(markup: str, base_url: str) -> str:
 def divs_to_paragraphs(markup: str) -> str:
     """Editors that emit one <div> per line (human-eye r2 #7) become one <p>
     per line; a <p> that only wraps <div>s collapses into them."""
-    out = re.sub(r"</?div>", lambda m: "</p>" if m.group(0).startswith("</") else "<p>", markup or "")
+    # A sentence the editor wrapped across two <div>s ("...joined-up arboricultural and</div><div>ecological advice")
+    # is one line: a <div> ending in a lowercase letter or comma, followed by one starting lowercase (eye r2 m4).
+    # Only editor <div> lines: separate <p>s ("<p>• two</p><p>a - b</p>") stay separate.
+    out = MID_SENTENCE_BREAK.sub(r"\1 ", markup or "")
+    out = re.sub(r"</?div>", lambda m: "</p>" if m.group(0).startswith("</") else "<p>", out)
     for pat, rep in ((r"<p>(?:\s|&nbsp;|&#160;)*<p>", "<p>"), (r"</p>(?:\s|&nbsp;|&#160;)*</p>", "</p>")):
         while re.search(pat, out):
             out = re.sub(pat, rep, out)
     return out
+
+
+MID_SENTENCE_BREAK = re.compile(r"([a-z,])[ \t]*</div>[ \t]*<div>[ \t]*(?=[a-z])")
 
 
 _SHORT_LINE = re.compile(r"<p>((?:(?!</p>|<br>|<ul|<h3).){1,90}?)</p>", re.S)
@@ -936,7 +943,7 @@ def normalise(raw: dict[str, Any], ed_key: str, src: Path, logos_dir: Path, toda
             currency_source = UNVERIFIED_SOURCE  # never invent sterling: say where the figure came from
         jobs_out.append({
             "id": jid, "slug": slugify(j.get("slug") or j.get("title")), "title": str(j["title"]).strip(),
-            "employer": str(j.get("employer") or "Confidential employer").strip(), "location": str(j.get("location") or ed["none"]).strip(),
+            "employer": str(j.get("employer") or "Confidential employer").strip(), "location": display_location(str(j.get("location") or ed["none"]).strip()),
             "regions": resolve_regions(j, table, ed), "type": canon_type(j.get("type")),
             "sal_min": j.get("salary_min") if isinstance(j.get("salary_min"), (int, float)) else None,
             "sal_max": j.get("salary_max") if isinstance(j.get("salary_max"), (int, float)) else None,
@@ -1022,21 +1029,40 @@ def apply_of(j: dict[str, Any]) -> dict[str, Any]:
     return {"apply_mode": "legacy", "apply_url": ""}
 
 
-APPLY_FORM = """<form class="job__apply-form" id="apply-form" method="post" action="/api/apply" enctype="multipart/form-data" data-apply-form data-ev="apply_submit" data-ev-job="{id}">
+# The on-site application form (email-mode jobs). Labels sit above their inputs (.field), every control is at least
+# 44 px tall, errors are per field (aria-invalid + .field__err, filled by api.js from the Worker's invalid_input
+# fields), and the form posts to the edition's API base: same origin in production, the Worker origin on staging
+# (eye review r2 N1/N2). Same markup as the Worker's pages.js APPLY_FORM.
+APPLY_FORM = """<form class="job__apply-form" id="apply-form" method="post" action="{action}" enctype="multipart/form-data" data-apply-form data-ev="apply_submit" data-ev-job="{id}">
+<h2 class="job__apply-h">Apply for this role</h2>
 <input type="hidden" name="job_id" value="{id}"><input type="hidden" name="ts" value="" data-apply-ts>
 <div hidden aria-hidden="true"><label for="ap-website">Leave blank <input id="ap-website" name="website" tabindex="-1" autocomplete="off"></label></div>
-<label for="ap-name">Name <input id="ap-name" name="name" required maxlength="120" autocomplete="name"></label>
-<label for="ap-email">Email <input id="ap-email" name="email" type="email" required maxlength="254" autocomplete="email"></label>
-<label for="ap-phone">Phone <input id="ap-phone" name="phone" type="tel" maxlength="40" autocomplete="tel"></label>
-<label for="ap-cover">Cover note <textarea id="ap-cover" name="cover_note" maxlength="5000" rows="4"></textarea></label>
-<label for="ap-cv">CV (PDF or Word) <input id="ap-cv" name="cv" type="file" accept=".pdf,.doc,.docx"></label>
-<label for="ap-consent"><input id="ap-consent" type="checkbox" name="consent" value="yes" required> Send my application to the advertiser of this job</label>
-<button class="btn btn--lime btn--sm" type="submit">Send application</button>
-<p role="status" data-apply-status></p>
+<div class="field"><label for="ap-name">Name</label><input class="in" id="ap-name" name="name" required maxlength="120" autocomplete="name" aria-describedby="ap-name-err"><p class="field__err" id="ap-name-err" data-apply-err="name" hidden></p></div>
+<div class="field"><label for="ap-email">Email</label><input class="in" id="ap-email" name="email" type="email" required maxlength="254" autocomplete="email" aria-describedby="ap-email-err"><p class="field__err" id="ap-email-err" data-apply-err="email" hidden></p></div>
+<div class="field"><label for="ap-phone">Phone <span class="field__opt">(optional)</span></label><input class="in" id="ap-phone" name="phone" type="tel" maxlength="40" autocomplete="tel" aria-describedby="ap-phone-err"><p class="field__err" id="ap-phone-err" data-apply-err="phone" hidden></p></div>
+<div class="field"><label for="ap-cover">Cover note <span class="field__opt">(optional)</span></label><textarea class="in" id="ap-cover" name="cover_note" maxlength="5000" rows="4" aria-describedby="ap-cover-err"></textarea><p class="field__err" id="ap-cover-err" data-apply-err="cover_note" hidden></p></div>
+<div class="field"><label for="ap-cv">CV <span class="field__opt">(optional, PDF or Word, up to 5 MB)</span></label><input class="in in--file" id="ap-cv" name="cv" type="file" accept=".pdf,.doc,.docx" aria-describedby="ap-cv-err"><p class="field__err" id="ap-cv-err" data-apply-err="cv" hidden></p></div>
+<label class="check check--apply" for="ap-consent"><input id="ap-consent" type="checkbox" name="consent" value="yes" required aria-describedby="ap-consent-err"><span>Send my application to the advertiser of this job</span></label><p class="field__err" id="ap-consent-err" data-apply-err="consent" hidden></p>
+<button class="btn btn--lime" type="submit">Send application</button>
+<p class="note note--live" role="status" data-apply-status hidden></p>
 </form>"""
 
 
-def apply_ctx(j: dict[str, Any], domain: str) -> dict[str, str]:
+def source_line(j: dict[str, Any], domain: str) -> str:
+    """Where the description comes from: a link-apply role is published (and applied for) on the employer's or
+    recruiter's own site, never "on greenjobs.ie" (eye review r2 N9)."""
+    host = urlsplit(str(j.get("apply_url") or "")).hostname or "" if j.get("apply_mode") == "link" else ""
+    where = f"on {esc(host)}" if host else f"by the employer on {domain}"
+    return f"Description as published {where}; reference {esc(j['id'])}."
+
+
+def apply_action(ed_key: str) -> str:
+    """Where the apply form posts: the Worker origin with ?site= when the API is on another host (staging), else the
+    board's own /api/apply (production routes it to the Worker). api.js computes the same URL from data-api-base."""
+    return f"{API_BASE}/api/apply?site={ed_key}" if API_BASE else "/api/apply"
+
+
+def apply_ctx(j: dict[str, Any], domain: str, ed_key: str = "ie") -> dict[str, str]:
     """Template fields for the job page's two apply buttons and the on-site form (email mode only)."""
     mode = j.get("apply_mode", "legacy")
     # Render-time guard (eye review M3): a link into the retired Strategies platform is never rendered.
@@ -1046,7 +1072,8 @@ def apply_ctx(j: dict[str, Any], domain: str) -> dict[str, str]:
         host = urlsplit(j["apply_url"]).hostname or ""
         return {"apply_url": esc(j["apply_url"]), "apply_rel": "noopener nofollow", "apply_label": f"Apply on {esc(host)}", "apply_form": "", "apply_ev": ' data-ev="apply_click"'}
     if mode == "email":
-        return {"apply_url": "#apply-form", "apply_rel": "noopener", "apply_label": f"Apply on {domain}", "apply_form": APPLY_FORM.format(id=esc(j["id"])), "apply_ev": ""}
+        # The button scrolls to the on-page form, so it says so (eye review r2 N4: never "Apply on greenjobs.ie").
+        return {"apply_url": "#apply-form", "apply_rel": "noopener", "apply_label": "Apply now", "apply_form": APPLY_FORM.format(id=esc(j["id"]), action=esc(apply_action(ed_key))), "apply_ev": ""}
     return {"apply_url": esc(j["url"]), "apply_rel": "noopener", "apply_label": f"Apply on {domain}", "apply_form": "", "apply_ev": ' data-ev="apply_click"'}
 
 
@@ -1328,6 +1355,37 @@ def logo_img(j: dict[str, Any], root: str, cls: str = "role__logo") -> str:
         return (f'<img class="{cls}" src="{root}assets/logos/{esc(j["logo"])}" alt="" width="{j["lw"] or 200}" height="{j["lh"] or 80}" loading="lazy" decoding="async">')
     initial = esc((j.get("employer") or "?")[:1])
     return f'<div class="{cls} role__logo--t" aria-hidden="true">{initial}</div>'
+
+
+# Display form of a multi-select location (eye review r2 m3). The old platform stores every ticked box, so a
+# role reads "West Yorkshire, Scotland (nationwide)" or "London Central, West Yorkshire, England". When a list names
+# real places, the country-wide ticks ("England", "United Kingdom (UK)", "Ireland", "Country") add nothing and go,
+# "(nationwide)" is dropped, London's sub-areas read the usual way round and duplicates collapse. A location that is
+# only country ticks is left as it is (the loc badge and Location row word those). Idempotent; same as the Worker's
+# render/lib.js displayLocation.
+LOC_BROAD = {"england", "united kingdom", "united kingdom (uk)", "uk", "great britain", "ireland", "republic of ireland", "country"}
+LOC_RENAME = {"london central": "Central London", "london city": "City of London", "london north": "North London", "london south": "South London",
+              "london east": "East London", "london west": "West London", "london south east": "South East London",
+              "london south west": "South West London", "london north west": "North West London", "london north east": "North East London",
+              "monagahan": "Monaghan"}
+
+
+def display_location(loc: str) -> str:
+    parts = [p.strip() for p in str(loc or "").split(",") if p.strip()]
+    if len(parts) < 2:
+        return LOC_RENAME.get(parts[0].lower(), parts[0]) if parts else str(loc or "").strip()
+    def bare(p: str) -> str:
+        return re.sub(r"\s*\(nationwide\)$", "", p, flags=re.I).strip()
+    specific = [p for p in parts if bare(p).lower() not in LOC_BROAD]
+    if not specific:
+        return ", ".join(parts)
+    out: list[str] = []
+    for p in specific:
+        name = bare(p)
+        name = LOC_RENAME.get(name.lower(), name)
+        if name.lower() not in (o.lower() for o in out):
+            out.append(name)
+    return ", ".join(out)
 
 
 def loc_badge(j: dict[str, Any]) -> str:
@@ -1954,8 +2012,10 @@ def salary_strip(j: dict[str, Any], jobs: list[dict[str, Any]], sym: str, unit: 
     same_county = [o for o in jobs if o["id"] != j["id"] and set(o["regions"]) & set(j["regions"]) and set(o["sectors"]) & set(j["sectors"])]
     county = j["regions"][0] if j["regions"] else ""
     where = f"within {esc(county)}" if (on_map is None or county in on_map) else ("outside Ireland" if unit == "county" else "outside the UK")  # visitor wording for the off-map bucket
+    # No headline zero: "0 similar roles" in display type reads as a bug (eye review r2 N9).
     sim = (f'<p class="sits__sim"><b class="num">{len(same_county)}</b> similar {"role" if len(same_county) == 1 else "roles"} {where}'
-           + (f' — <a href="../index.html?loc={qs(county)}&amp;sector={qs(sector)}">see them</a>' if same_county else "") + "</p>")
+           f' — <a href="../index.html?loc={qs(county)}&amp;sector={qs(sector)}">see them</a></p>' if same_county
+           else f'<p class="sits__sim sits__sim--none">No other live roles like this {where} right now.</p>')
     if not mine:
         if in_sector:
             lo = min(a[0] for _, a in in_sector)
@@ -1999,7 +2059,7 @@ def salary_strip(j: dict[str, Any], jobs: list[dict[str, Any]], sym: str, unit: 
              f'<tr><th scope="row">This role</th><td class="num">1</td><td class="num">{money_k(mine[2], sym)} (midpoint)</td></tr></tbody></table></details>')
     return (f'<section class="sits" aria-labelledby="h-sits"><div class="wrap"><div class="sec-head"><div><h2 id="h-sits">Where this role sits</h2>'
             f'<p>Its published range against every disclosed salary on the board, overall and in {esc(sector)}. Midpoints per role, annualised; tab through the dots.</p></div></div>'
-            f'{svg}{table}{sim}</div></section>')
+            f'<p class="sits__hint">Swipe sideways to see the whole range.</p><div class="sits__scroll">{svg}</div>{table}{sim}</div></section>')
 
 
 def reach_payload(data: dict[str, Any]) -> dict[str, Any]:
@@ -2228,7 +2288,9 @@ def render_dashboard(data: dict[str, Any], src: Path, out: Path, tpl: dict[str, 
     ctx["scripts"] = "".join(f'<script src="{root}js/{s}.js" defer></script>' for s in ("charts", "dashboard"))
     content = render(tpl["dashboard"], {**ctx, "tiles": tile_html, "unit": ed["unit"], "units": plural(ed["unit"]), "sym": sym,
                                         "kpis": f'<script type="application/json" id="gj-dash">{json_embed(k)}</script>',
-                                        "keith": f"{root}{data['ed']}/for-keith/index.html", **DASHBOARD_COPY})
+                                        # the internal evidence page exists on the demo only (eye review r2 N6)
+                                        "keith_link": "" if BOARD_BUILD else f'<p style="margin-top:32px"><a class="btn btn--ghost" href="{root}{data["ed"]}/for-keith/index.html">Back to the evidence page</a></p>',
+                                        **DASHBOARD_COPY})
     # Round 4 (trace 3, P2): the page is a public URL, so the developer voice
     # goes. The template may still carry the old sentences until it takes the
     # {{dash_lede}} / {{dash_events}} placeholders; the bridge below rewrites them either way.
@@ -2381,6 +2443,7 @@ def shell_ctx(data: dict[str, Any], depth: int, page: str, title: str, desc: str
         "body_attrs": body_attrs, "live_api": "1" if (LIVE_API or API_BASE) else "0", "api_base": esc(API_BASE), "net_sites": net, "phones": phones, "emails": emails, "bcorp": bcorp, "hdr_bcorp": hdr_bcorp, "social": social,
         "year": str(data.get("today", data["fetched"])[:4]), "n_jobs": str(len(data["jobs"])), "fetched": esc(data["today"]), "fetched_long": esc(date_long(data["today"])),  # the build date = the live data's date (eye B3)
         "social_wrap": f'<div class="ftr__social">{social}</div>' if social else "",
+        "demo_note": demo_note(),
         "canonical": esc(f"{site_base}{data['ed']}/{same_path or 'index.html'}") if site_base else "",
         "nav_list": "".join(f'<li><a href="{home}{href}">{label}</a></li>' for href, label in NAV),
         "onepct": onepct, "scripts": "", "page": page, "country": esc(ed["name"]),
@@ -2653,7 +2716,7 @@ def build_edition(
         jp = page("job", 3, "jobs", f"{j['title']} — {j['employer']} | GreenJobs {ed['short']}", (j["summary"] or j["title"])[:155],
                   {
                       "jsonld": job_jsonld(j, data), "title": esc(no_break_dash(j["title"])), "employer": esc(j["employer"]), "logo": logo_img(j, "../../../", "job__logo"), "sal_caveat": sal_caveat, "closed_chip": closed_chip,
-                      "meta": meta_tags, "dl": dl, "desc_html": body_html, **apply_ctx(j, esc(data["site"])), "domain": esc(data["site"]), "id": esc(j["id"]), "region": esc((j.get("regions") or [""])[0]), "closing": esc(j.get("closing") or ""), "sal_sticky": f'<span class="job__sticky-sal">{esc(sal or "Salary not disclosed")}</span>',
+                      "meta": meta_tags, "dl": dl, "desc_html": body_html, **apply_ctx(j, esc(data["site"]), data["ed"]), "domain": esc(data["site"]), "source_line": source_line(j, esc(data["site"])), "id": esc(j["id"]), "region": esc((j.get("regions") or [""])[0]), "closing": esc(j.get("closing") or ""), "sal_sticky": f'<span class="job__sticky-sal">{esc(sal or "Salary not disclosed")}</span>',
                       "similar": "".join(role_card(s, "../../../", "../", today, ed["currency"]) for s in similar),
                       "similar_hidden": "" if similar else " hidden",  # eye M5: no empty block when nothing is similar
                       "sector_link": f'../index.html?sector={qs(j["sectors"][0])}', "sector": esc(j["sectors"][0]),
@@ -2949,9 +3012,16 @@ def dataset_ref(data_dir: Path) -> str:
     return str(d.relative_to(repo)) if d.is_relative_to(repo) else str(d)
 
 
+def demo_note() -> str:
+    """The footer's demo disclaimer: on the redesign demo only, never on a client board (eye review r2 m1)."""
+    return "" if BOARD_BUILD else " Demo redesign, not the live site."
+
+
 def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = None, site_base: str = "", today: date | None = None,
           board_site: str | None = None, robots_index: bool = False, analytics: str = "off", data_dir: Path | None = None,
           stats: dict[str, dict[str, Any]] | None = None) -> int:
+    global BOARD_BUILD
+    BOARD_BUILD = bool(board_site)  # eye review r2 m1/N6: a client board build is not the demo
     if not src.is_dir():
         print(f"FAIL  source directory not found: {src}", file=sys.stderr)
         return 2
@@ -3056,9 +3126,9 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
         tiles.append(f'<a class="tile" href="{ed_key}/index.html" data-edswitch="{ed_key}" hreflang="{ed["lang"]}"><span class="flag" aria-hidden="true">'
                      + ('<i style="background:#169b62"></i><i style="background:#fff"></i><i style="background:#ff883e"></i>' if ed_key == "ie" else '<i style="background:#012169"></i><i style="background:#c8102e"></i><i style="background:#012169"></i>')
                      + f'</span><h2>GreenJobs {ed["short"]}</h2><p>{esc(ed["domain"])} — green roles across {esc(ed["name"])}, in {ed["sym"]}.</p><span class="n num">{n} live roles →</span></a>')
-    chooser = render(tpl["chooser"], {"tiles": "".join(tiles), "year": str(today.year)})
+    chooser = render(tpl["chooser"], {"tiles": "".join(tiles), "year": str(today.year), "demo_note": demo_note().replace(" Demo", " · Demo").rstrip(".")})
     (out / "index.html").write_text(chooser, encoding="utf-8")
-    (out / "404.html").write_text(render(tpl["404root"], {}), encoding="utf-8")
+    (out / "404.html").write_text(render(tpl["404root"], {"demo_note": demo_note()}), encoding="utf-8")
     manifest = {"name": "GreenJobs", "short_name": "GreenJobs", "start_url": "./index.html", "display": "standalone",
                 "background_color": "#f6f0e6", "theme_color": "#f6f0e6", "icons": [{"src": "assets/favicon.svg", "sizes": "any", "type": "image/svg+xml"}]}
     (out / "manifest.webmanifest").write_text(json.dumps(manifest, indent=1) + "\n", encoding="utf-8")
@@ -3080,7 +3150,7 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
         print(f"FAIL  {tests[1]} node test(s) failing", file=sys.stderr)
         return 1
     ev = render_evidence(out, src, data_by_ed, tests, today)
-    for ed_key, data in data_by_ed.items():
+    for ed_key, data in ({} if BOARD_BUILD else data_by_ed).items():  # never shipped to a client board (eye review r2 N6)
         ctx = shell_ctx(data, 2, "for-keith", "For Keith — the evidence behind the GreenJobs redesign demo",
                         "What was measured, what was built, what comes next.", brief=brief, site_base=site_base, same_path="for-keith/index.html")
         e = evidence[ed_key]
@@ -3119,6 +3189,7 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
         csp_extra = analytics_csp(src, ga)
         if API_BASE:
             csp_extra["connect-src"] = sorted(set(csp_extra.get("connect-src", [])) | {API_BASE})
+            csp_extra["form-action"] = [API_BASE]  # the apply form posts to the Worker origin (no-JS fallback, eye r2 N1)
         write_pages_files(out, board_site, robots_index, site_base, csp_extra)
     except (OSError, ValueError) as e:
         print(f"FAIL  Pages files (_redirects/_headers): {e}", file=sys.stderr)
@@ -3143,6 +3214,7 @@ def build(src: Path, out: Path, *, editions: list[str], fixture: Path | None = N
 # two-edition tree for both, so the legacy redirects are chosen per board (--board-site) and the indexing
 # policy per environment (--robots-index / ROBOTS_INDEX=1: production only; staging stays noindex).
 LIVE_API = False  # set by --live-api: the Worker answers /api/* on the board's own host (production routes)
+BOARD_BUILD = False  # set by build(board_site=...): a client board (staging/production) has no demo note and no for-keith page
 API_BASE = ""  # set by --api-base: the Worker's origin when it is NOT the board's host (staging: workers.dev); "" = same origin
 API_BASE_RE = re.compile(r"^https://[a-z0-9.-]+$")
 GA_CSP_DIRECTIVES = ("script-src", "connect-src", "img-src")
@@ -3236,7 +3308,7 @@ def pages_headers(out: Path, robots_index: bool, extra: dict[str, list[str]] | N
     csp = "; ".join([
         "default-src 'self'", "script-src 'self'" + add("script-src") + " " + " ".join(inline_script_hashes(out)), "style-src 'self' 'unsafe-inline'",
         "img-src 'self' data:" + add("img-src"), "font-src 'self'", "media-src 'self'", "connect-src 'self'" + add("connect-src"), "manifest-src 'self'",
-        "form-action 'self'", "frame-ancestors 'none'", "base-uri 'self'", "object-src 'none'", "upgrade-insecure-requests",
+        "form-action 'self'" + add("form-action"), "frame-ancestors 'none'", "base-uri 'self'", "object-src 'none'", "upgrade-insecure-requests",
     ])
     lines = ["/*", f"  Content-Security-Policy: {csp}", "  Strict-Transport-Security: max-age=31536000; includeSubDomains",
              "  X-Content-Type-Options: nosniff", "  X-Frame-Options: DENY", "  Referrer-Policy: strict-origin-when-cross-origin",

@@ -1643,7 +1643,7 @@ def test_round4_b_copy_css_js(tmp_root: Path):
     check("lives in this link" not in compass and "Loosened" not in compass, "r4b G: compass result drops the raw URL and developer phrasing")
     check("Snapshot of" not in guides and "Last updated: Snapshot" not in guides, "r4b G / eye B3: guides index carries no frozen snapshot date")
     check('action="jobs/"' in home, "r4b G: hero search posts to jobs/ (no index.html in the shared URL)")
-    check("{{posted_line}}<br>Description as published" in _read(SRC / "templates" / "job.html"), "r4b G: job page separates the posted line from the description note")
+    check("{{posted_line}}<br>{{source_line}}" in _read(SRC / "templates" / "job.html"), "r4b G: job page separates the posted line from the description note")
     check("tag--lvl" in jobs_js, "r4b G: desktop list rows carry the career-level chip like the cards")
     check("r.disc >= 3 ? 'median disclosed" in _read(SRC / "js" / "adbuilder.js"), "r4b G: ad builder only quotes a median from 3+ disclosed salaries, as the salary guide does")
     check("tel:+353" in main_js, "r4b H: Irish footer number rewritten to the international form")

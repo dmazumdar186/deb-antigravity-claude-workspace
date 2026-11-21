@@ -72,8 +72,9 @@ class MockGreenJobs:
         self.no_cors = no_cors
         self.markers, self.extra_marker, self.no_job_page = markers, extra_marker, no_job_page
         self.cfg, self.clock = cfg, clock
-        self.jobs = {
-            f"ie:seed-{i}": {"status": "live", "mode": "link", "created": -1e9}
+        self.jobs = {  # every other seed job applies on-site (the browser check needs one of each)
+            f"ie:seed-{i}": {"status": "live", "mode": "email" if i % 2 else "link", "url": None if i % 2 else "https://ats.example.org/j",
+                             "created": -1e9}
             for i in range(live)
         }
         self.visible_after_s, self.closed_status, self.stats_off = (
@@ -269,6 +270,26 @@ def cfg():
             / "execution/gtm_client_workflows/greenjobs_redesign/deploy/environments.json"
         ).read_text(encoding="utf-8")
     )
+
+
+class FakeBrowser:
+    """Stands in for deploy/browser_smoke.mjs: records the spec, answers every task ok (or as told)."""
+
+    def __init__(self, fail=(), raise_=None):
+        self.specs, self.fail, self.raise_ = [], set(fail), raise_
+
+    def __call__(self, spec):
+        self.specs.append(spec)
+        if self.raise_:
+            raise RuntimeError(self.raise_)
+        return {"checks": [{"name": t["name"], "ok": t["name"] not in self.fail, "detail": "fake"} for t in spec["tasks"]]}
+
+
+@pytest.fixture(autouse=True)
+def fake_browser(monkeypatch):
+    fb = FakeBrowser()
+    monkeypatch.setattr(smoke, "node_browser_runner", fb)
+    return fb
 
 
 def run(cfg, env="staging", mode="full", secrets=SECRETS, canary=False, **mock_kw):
@@ -534,3 +555,121 @@ def test_jobs_page_without_figures_fails_parity(cfg):
     import smoke as _s
     res, by, _, _ = run(cfg, markers=False)
     assert "stats_parity[ie]" in failed(res)
+
+
+# ── real-browser checks (eye review r2 N1) ──────────────────────────────────────
+
+
+def test_browser_check_submits_the_on_page_form_per_edition_through_the_api_base(cfg, fake_browser):
+    res, by, mock, _ = run(cfg)
+    assert res["status"] == "pass", failed(res)
+    spec = fake_browser.specs[0]
+    applies = [t for t in spec["tasks"] if t["kind"] == "apply"]
+    assert sorted(t["name"] for t in applies) == ["browser_apply[ie]", "browser_apply[uk]"]
+    for t in applies:
+        site = t["name"][-3:-1]
+        assert t["expect_post"] == cfg["envs"]["staging"]["api_base"][site] + "/api/apply"
+        assert t["url"].startswith(cfg["envs"]["staging"]["board_urls"][site] + f"/{site}/jobs/")  # the board page, not the Worker copy
+        assert t["email"].endswith("@example.com")
+    link = [t for t in spec["tasks"] if t["kind"] == "link"]
+    assert len(link) == 1 and link[0]["expect"] == "https://ats.example.org/j"
+    lay = [t for t in spec["tasks"] if t["kind"] == "layout"]
+    assert len(lay) == 2 and all(t["widths"] == [360, 375, 390, 414, 430] for t in lay)
+    for name in ("browser_apply[ie]", "browser_apply[uk]", "browser_link_apply", "browser_layout[ie]", "browser_layout[uk]"):
+        assert by[name]["status"] == "pass", name
+    names = [c["name"] for c in res["checks"]]
+    assert names.index("browser_apply[uk]") < names.index("apply[email]")  # before the write flow (per-IP apply limit)
+
+
+def test_browser_check_fails_the_gate_when_the_form_post_fails(cfg, monkeypatch):
+    monkeypatch.setattr(smoke, "node_browser_runner", FakeBrowser(fail={"browser_apply[uk]"}))
+    res, by, _, _ = run(cfg)
+    assert res["status"] == "fail" and by["browser_apply[uk]"]["status"] == "fail"
+
+
+def test_browser_that_cannot_start_is_a_failure_not_a_skip(cfg, monkeypatch):
+    monkeypatch.setattr(smoke, "node_browser_runner", FakeBrowser(raise_="chromium did not start"))
+    res, by, _, _ = run(cfg)
+    assert res["status"] == "fail"
+    assert by["browser_apply[ie]"]["status"] == "fail" and "did not run" in by["browser_apply[ie]"]["detail"]
+    assert [c["name"] for c in res["checks"] if c["status"] == "skip"] == []
+
+
+def test_browser_check_without_an_email_job_fails(cfg):
+    res, by, mock, _ = run(cfg, live=1)  # one seed job: link mode only
+    assert by["browser_apply[ie]"]["status"] == "fail" and "no email-apply job" in by["browser_apply[ie]"]["detail"]
+
+
+def test_production_browser_check_never_submits_a_form(cfg, fake_browser):
+    res, by, _, _ = run(cfg, env="production", mode="read_only", secrets={})
+    kinds = {t["kind"] for spec in fake_browser.specs for t in spec["tasks"]}
+    assert "apply" not in kinds and {"link", "layout"} <= kinds
+
+
+def test_id_of_slug_matches_the_worker():
+    assert smoke.id_of_slug("uk", "11502133") == "uk:strat:11502133"
+    assert smoke.id_of_slug("ie", "gaia-9360") == "ie:gaia:9360"
+    assert smoke.id_of_slug("ie", "ie:seed-3") == "ie:seed-3"
+
+
+def test_browser_smoke_script_catches_a_form_that_posts_to_the_wrong_origin(tmp_path):
+    """The real browser_smoke.mjs in Chromium against a local page: a 405 from the page's own origin fails the check;
+    a 201 with the success message passes. Proves the script reads the page, not the API."""
+    import shutil
+    import subprocess
+    import threading
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+    if not shutil.which("node"):
+        pytest.fail("node is required for the browser smoke")
+    page = (
+        '<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><form data-apply-form action="/api/apply"><input id="ap-name" name="name">'
+        '<input id="ap-email" name="email"><textarea id="ap-cover" name="cover_note"></textarea>'
+        '<input id="ap-consent" type="checkbox" name="consent" value="yes"><button type="submit">Send</button>'
+        '<p data-apply-status></p></form><script>var f=document.querySelector("form");f.addEventListener("submit",function(e){'
+        'e.preventDefault();fetch(f.action,{method:"POST",body:new FormData(f)}).then(function(r){'
+        'f.querySelector("[data-apply-status]").textContent=r.ok?"Application received. Thank you.":"Not sent ("+r.status+")";});});</script>'
+        '<a data-apply href="https://ats.example.org/j">Apply</a></body></html>'
+    )
+    status = {"code": 405}
+
+    class H(BaseHTTPRequestHandler):
+        def log_message(self, *a):  # quiet test server
+            return
+
+        def do_GET(self):
+            body = page.encode() if self.path.startswith("/job") else page.replace("<form", "<div").encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html")
+            self.end_headers()
+            self.wfile.write(body)
+
+        def do_POST(self):
+            self.rfile.read(int(self.headers.get("Content-Length") or 0))
+            self.send_response(status["code"])
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(b"{}")
+
+    srv = ThreadingHTTPServer(("127.0.0.1", 0), H)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    base = f"http://127.0.0.1:{srv.server_address[1]}"
+    try:
+        spec = {"tasks": [{"kind": "apply", "name": "a", "url": base + "/job", "expect_post": base + "/api/apply", "email": "x@example.com"},
+                          {"kind": "apply", "name": "wrong_origin", "url": base + "/job", "expect_post": "https://worker.example/api/apply", "email": "x@example.com"},
+                          {"kind": "link", "name": "l", "url": base + "/link", "expect": "https://ats.example.org/j"},
+                          {"kind": "layout", "name": "w", "urls": [base + "/link"], "widths": [360]}]}
+        res = subprocess.run(["node", str(smoke.BROWSER_SCRIPT)], input=json.dumps(spec), capture_output=True, text=True,
+                             encoding="utf-8", errors="replace", timeout=300)
+        got = {c["name"]: c for c in json.loads(res.stdout.strip().splitlines()[-1])["checks"]}
+        assert got["a"]["ok"] is False and "405" in got["a"]["detail"], got["a"]
+        assert got["wrong_origin"]["ok"] is False
+        assert got["l"]["ok"] is True and got["w"]["ok"] is True, (got["l"], got["w"])
+        status["code"] = 201
+        res = subprocess.run(["node", str(smoke.BROWSER_SCRIPT)], input=json.dumps({"tasks": spec["tasks"][:2]}), capture_output=True,
+                             text=True, encoding="utf-8", errors="replace", timeout=300)
+        got = {c["name"]: c for c in json.loads(res.stdout.strip().splitlines()[-1])["checks"]}
+        assert got["a"]["ok"] is True, got["a"]
+        assert got["wrong_origin"]["ok"] is False  # right answer from the wrong place still fails
+    finally:
+        srv.shutdown()

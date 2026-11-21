@@ -216,20 +216,11 @@
       $$('form[data-apply-form]').forEach(function (f) { f.hidden = true; f.setAttribute('aria-hidden', 'true'); });
     }
     /* On-site application form (email-mode jobs): the Worker refuses a form younger than 3 s or older than
-       24 h, so the render time is stamped here, not at build time. fetch keeps the visitor on the page. */
+       24 h, so the render time is stamped here, not at build time. api.js (initApply) sends the form to the
+       edition's API base and shows the outcome (eye review r2 N1). */
     $$('form[data-apply-form]').forEach(function (f) {
-      var ts = $('[data-apply-ts]', f), st = $('[data-apply-status]', f);
+      var ts = $('[data-apply-ts]', f);
       if (ts) ts.value = String(Date.now());
-      f.addEventListener('submit', function (e) {
-        if (!window.fetch || !window.FormData) return;
-        e.preventDefault();
-        st.textContent = 'Sending...';
-        fetch(f.action, { method: 'POST', body: new FormData(f), credentials: 'same-origin' }).then(function (r) {
-          return r.json().catch(function () { return {}; }).then(function (d) {
-            st.textContent = r.ok ? 'Application received. Thank you.' : 'Not sent (' + (d.error || r.status) + '). Please check the form and try again.';
-          });
-        }).catch(function () { st.textContent = 'Not sent: network error. Please try again.'; });
-      });
     });
     /* Mobile sticky apply bar (<=700px): removed for closed roles, hidden while the page's own Apply is in view */
     var stk = $('.job__sticky'), own = $('a[data-apply]', aside);

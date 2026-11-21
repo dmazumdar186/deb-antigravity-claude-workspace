@@ -343,6 +343,30 @@ function cmpTuple(a, b) {
 }
 
 const f1 = (x) => x.toFixed(1);
+
+// build_site.display_location (eye review r2 m3): country-wide ticks next to real places go, "(nationwide)" goes,
+// London's sub-areas read the usual way round, duplicates collapse. Idempotent.
+const LOC_BROAD = new Set(['england', 'united kingdom', 'united kingdom (uk)', 'uk', 'great britain', 'ireland', 'republic of ireland', 'country']);
+const LOC_RENAME = {
+  'london central': 'Central London', 'london city': 'City of London', 'london north': 'North London', 'london south': 'South London',
+  'london east': 'East London', 'london west': 'West London', 'london south east': 'South East London',
+  'london south west': 'South West London', 'london north west': 'North West London', 'london north east': 'North East London',
+  monagahan: 'Monaghan',
+};
+export function displayLocation(loc) {
+  const parts = String(loc || '').split(',').map((p) => p.trim()).filter(Boolean);
+  if (parts.length < 2) return parts.length ? (LOC_RENAME[parts[0].toLowerCase()] || parts[0]) : String(loc || '').trim();
+  const bare = (p) => p.replace(/\s*\(nationwide\)$/i, '').trim();
+  const specific = parts.filter((p) => !LOC_BROAD.has(bare(p).toLowerCase()));
+  if (!specific.length) return parts.join(', ');
+  const out = [];
+  for (const p of specific) {
+    let name = bare(p);
+    name = LOC_RENAME[name.toLowerCase()] || name;
+    if (!out.some((o) => o.toLowerCase() === name.toLowerCase())) out.push(name);
+  }
+  return out.join(', ');
+}
 /** salary_strip(): this role's range against the board's disclosed distribution. */
 export function salaryStrip(j, jobs, sym, unit, onMap, edCur = '') {
   const sector = j.sectors[0];
@@ -354,8 +378,10 @@ export function salaryStrip(j, jobs, sym, unit, onMap, edCur = '') {
   const sameCounty = jobs.filter((o) => o.id !== j.id && o.regions.some((r) => jr.has(r)) && o.sectors.some((s) => js.has(s)));
   const county = j.regions.length ? j.regions[0] : '';
   const where = onMap === null || onMap.has(county) ? `within ${esc(county)}` : unit === 'county' ? 'outside Ireland' : 'outside the UK';
-  const sim = `<p class="sits__sim"><b class="num">${sameCounty.length}</b> similar ${sameCounty.length === 1 ? 'role' : 'roles'} ${where}`
-    + (sameCounty.length ? ` — <a href="../index.html?loc=${qs(county)}&amp;sector=${qs(sector)}">see them</a>` : '') + '</p>';
+  // No headline zero (eye review r2 N9).
+  const sim = sameCounty.length
+    ? `<p class="sits__sim"><b class="num">${sameCounty.length}</b> similar ${sameCounty.length === 1 ? 'role' : 'roles'} ${where} — <a href="../index.html?loc=${qs(county)}&amp;sector=${qs(sector)}">see them</a></p>`
+    : `<p class="sits__sim sits__sim--none">No other live roles like this ${where} right now.</p>`;
   if (!mine) {
     let line;
     if (inSector.length) {
@@ -399,7 +425,7 @@ export function salaryStrip(j, jobs, sym, unit, onMap, edCur = '') {
     + `<tr><th scope="row">This role</th><td class="num">1</td><td class="num">${moneyK(mine[2], sym)} (midpoint)</td></tr></tbody></table></details>`;
   return `<section class="sits" aria-labelledby="h-sits"><div class="wrap"><div class="sec-head"><div><h2 id="h-sits">Where this role sits</h2>`
     + `<p>Its published range against every disclosed salary on the board, overall and in ${esc(sector)}. Midpoints per role, annualised; tab through the dots.</p></div></div>`
-    + `${svg}${table}${sim}</div></section>`;
+    + `<p class="sits__hint">Swipe sideways to see the whole range.</p><div class="sits__scroll">${svg}</div>${table}${sim}</div></section>`;
 }
 
 // Google's JobPosting employmentType vocabulary. build_site.py writes type.upper() ("PERMANENT"), which Google

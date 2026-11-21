@@ -167,8 +167,95 @@
     });
     return flagsP;
   }
-  if (typeof document !== 'undefined') {
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { initForms(document); }); else initForms(document);
+  /* ---- on-site application form (email-mode jobs, eye review r2 N1/N2). It posts to the SAME API base as the
+     live data: '' = the board's own /api/apply (production), else the Worker origin with ?site= (staging, where the
+     Pages origin has no /api/apply and answered 405). Multipart, so no preflight; credentials omitted cross-origin.
+     referrerPolicy keeps the Origin header real on a same-origin Worker page (no-referrer sends "Origin: null"). */
+  var APPLY_FIELD = {
+    name: 'Please enter your name.',
+    email: 'Please enter a valid email address, like name@example.com.',
+    phone: 'Please enter a phone number using digits, spaces, brackets or +.',
+    cover_note: 'Please keep the cover note under 5,000 characters.',
+    consent: 'Please tick the box so we can send your application to the advertiser.',
+  };
+  function applyUrl(body, ed, action) {
+    var base = apiBase(body);
+    if (base === null || (ed !== 'ie' && ed !== 'uk')) return action || '/api/apply'; /* static demo: the form's own action */
+    return base ? base + '/api/apply?site=' + ed : '/api/apply';
   }
-  return { initForms: initForms, apiBase: apiBase, loadJobs: loadJobs, merge: merge, board: board, outcome: outcome, payload: payload, post: post, cacheGet: cacheGet, cachePut: cachePut, TTL_MS: TTL_MS, MAX_PAGES: MAX_PAGES };
+  /* Worker answer -> {ok, text, fields: {name: message}} */
+  function applyOutcome(status, body) {
+    var e = body && body.error;
+    if (status === 201) return { ok: true, text: 'Application received. Thank you: it is on its way to the advertiser.' };
+    if (status === 200 && body && body.status === 'already_received') return { ok: true, text: 'Application received. We already had it, so nothing was sent twice.' };
+    if (status === 400 && e === 'invalid_input' && body && Array.isArray(body.fields) && body.fields.length) {
+      var f = {};
+      body.fields.forEach(function (k) { f[k] = APPLY_FIELD[k] || 'Please check this field.'; });
+      return { ok: false, text: 'Please correct the highlighted fields.', fields: f };
+    }
+    if (e === 'cv_storage_unavailable') return { ok: false, text: 'CV uploads are not available yet. Remove the CV and send again.', fields: { cv: 'CV uploads are not available yet.' } };
+    if (e === 'cv_too_large') return { ok: false, text: 'The CV is too large.', fields: { cv: 'Please choose a file under 5 MB.' } };
+    if (e === 'cv_type' || e === 'cv_empty') return { ok: false, text: 'The CV could not be read.', fields: { cv: 'Please choose a PDF or Word file.' } };
+    if (e === 'apply_externally') return { ok: false, text: 'This role takes applications on the employer\'s own site.' };
+    if (e === 'job_not_found' || status === 410) return { ok: false, text: 'This role is no longer open for applications.' };
+    if (status === 429) return { ok: false, text: 'Too many applications from this connection. Please try again in 10 minutes.' };
+    if (e === 'too_fast' || e === 'form_expired' || e === 'invalid_ts') return { ok: false, text: 'Please reload the page and send the form again.' };
+    if (status === 503) return { ok: false, text: 'We could not take applications for this role just now. Please try again later.' };
+    return { ok: false, text: 'Not sent (' + (e || 'error ' + status) + '). Please try again.' };
+  }
+  /* Client-side checks before posting (same rules the Worker applies). -> {field: message} */
+  function applyCheck(f) {
+    var out = {}, v = function (n) { var el = f.querySelector('[name="' + n + '"]'); return el ? el : null; };
+    var name = v('name'), email = v('email'), consent = v('consent');
+    if (name && !String(name.value || '').trim()) out.name = APPLY_FIELD.name;
+    if (email && (!String(email.value || '').trim() || (email.checkValidity && !email.checkValidity()))) out.email = APPLY_FIELD.email;
+    if (consent && !consent.checked) out.consent = APPLY_FIELD.consent;
+    return out;
+  }
+  function initApply(doc, fetchFn, FD) {
+    var forms = Array.prototype.slice.call(doc.querySelectorAll('form[data-apply-form]'));
+    var F = fetchFn || (typeof fetch === 'function' ? fetch.bind(window) : null);
+    FD = FD || (typeof FormData !== 'undefined' ? FormData : null);
+    if (!forms.length || !F || !FD) return null; /* no fetch: the native POST to the action */
+    var body = doc.body, ed = body.getAttribute('data-edition'), base = apiBase(body);
+    forms.forEach(function (f) {
+      var st = f.querySelector('[data-apply-status]'), btn = f.querySelector('[type="submit"]');
+      f.noValidate = true; /* our own per-field messages replace the browser bubbles */
+      function say(text, isErr) { st.textContent = text; st.classList.toggle('is-err', !!isErr); st.hidden = false; }
+      function clear() {
+        Array.prototype.forEach.call(f.querySelectorAll('[data-apply-err]'), function (p) {
+          p.textContent = ''; p.hidden = true;
+          var el = f.querySelector('[name="' + p.getAttribute('data-apply-err') + '"]'); if (el) el.removeAttribute('aria-invalid');
+        });
+      }
+      function mark(fields) {
+        var first = null;
+        Object.keys(fields).forEach(function (k) {
+          var p = f.querySelector('[data-apply-err="' + k + '"]'), el = f.querySelector('[name="' + k + '"]');
+          if (p) { p.textContent = fields[k]; p.hidden = false; }
+          if (el) { el.setAttribute('aria-invalid', 'true'); if (!first) first = el; }
+        });
+        if (first && first.focus) first.focus();
+      }
+      f.addEventListener('submit', function (e) {
+        e.preventDefault();
+        clear();
+        var bad = applyCheck(f);
+        if (Object.keys(bad).length) { mark(bad); say('Please correct the highlighted fields.', true); return; }
+        var url = applyUrl(body, ed, f.getAttribute('action'));
+        btn.disabled = true; say('Sending...');
+        return F(url, { method: 'POST', body: new FD(f), credentials: base ? 'omit' : 'same-origin', referrerPolicy: 'strict-origin-when-cross-origin' })
+          .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return applyOutcome(r.status, d); }); })
+          .then(function (o) { if (o.fields) mark(o.fields); say(o.text, !o.ok); if (o.ok) f.setAttribute('data-applied', ''); })
+          .catch(function () { say('Not sent: network error. Please try again.', true); })
+          .then(function () { btn.disabled = false; });
+      });
+    });
+    return forms.length;
+  }
+  if (typeof document !== 'undefined') {
+    var boot = function () { initForms(document); initApply(document); };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+  }
+  return { initForms: initForms, initApply: initApply, applyUrl: applyUrl, applyOutcome: applyOutcome, applyCheck: applyCheck, apiBase: apiBase, loadJobs: loadJobs, merge: merge, board: board, outcome: outcome, payload: payload, post: post, cacheGet: cacheGet, cachePut: cachePut, TTL_MS: TTL_MS, MAX_PAGES: MAX_PAGES };
 });

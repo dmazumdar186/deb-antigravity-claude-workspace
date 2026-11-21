@@ -187,3 +187,94 @@ test('accessible errors: an invalid address is caught before posting (aria-inval
   assert.equal(r.parts['[data-signup-status]'].classList.has('is-err'), true);
   assert.equal(r.input.getAttribute('aria-invalid'), null, 'a rate limit is not a field error');
 });
+
+/* ---- eye review r2 N1/N2: the apply form posts to the edition's API base and shows per-field errors */
+test('applyUrl: staging posts to the Worker origin with ?site=, production to the board host, the demo to its action', () => {
+  const body = (live, base) => attrs({ 'data-live-api': live, 'data-api-base': base });
+  assert.equal(A.applyUrl(body('1', 'https://greenjobs-platform-staging.x.workers.dev'), 'uk', '/api/apply'), 'https://greenjobs-platform-staging.x.workers.dev/api/apply?site=uk');
+  assert.equal(A.applyUrl(body('1', ''), 'ie', '/api/apply'), '/api/apply');
+  assert.equal(A.applyUrl(body('0', ''), 'ie', '/api/apply'), '/api/apply');
+  assert.equal(A.applyUrl(body('1', 'javascript:x'), 'ie', '/api/apply'), '/api/apply', 'a non-https base is never used');
+});
+
+test('applyOutcome: received / duplicate are success; invalid_input marks fields; CV and limits are plain messages', () => {
+  assert.equal(A.applyOutcome(201, { ok: true, status: 'received' }).ok, true);
+  assert.match(A.applyOutcome(201, {}).text, /^Application received/);
+  const dup = A.applyOutcome(200, { ok: true, status: 'already_received' });
+  assert.equal(dup.ok, true); assert.match(dup.text, /^Application received/);
+  const bad = A.applyOutcome(400, { error: 'invalid_input', fields: ['email', 'consent'] });
+  assert.equal(bad.ok, false); assert.deepEqual(Object.keys(bad.fields), ['email', 'consent']);
+  assert.ok(A.applyOutcome(503, { error: 'cv_storage_unavailable' }).fields.cv);
+  assert.match(A.applyOutcome(429, { error: 'rate_limited' }).text, /10 minutes/);
+  assert.match(A.applyOutcome(405, {}).text, /Not sent \(error 405\)/);
+  assert.match(A.applyOutcome(400, { error: 'too_fast' }).text, /reload/);
+});
+
+function fakeApplyPage({ base = 'https://w.example', name = 'Ann', email = 'ann@example.com', valid = true, consent = true } = {}) {
+  const el = (extra = {}) => {
+    const a = {};
+    const cls = new Set();
+    return Object.assign({ hidden: true, textContent: '', value: '', disabled: false, checked: false, focused: false,
+      setAttribute: (k, v) => { a[k] = String(v); }, getAttribute: (k) => (k in a ? a[k] : null), removeAttribute: (k) => { delete a[k]; },
+      hasAttribute: (k) => k in a, focus() { this.focused = true; }, classList: { toggle: (c, on) => (on ? cls.add(c) : cls.delete(c)), has: (c) => cls.has(c) } }, extra);
+  };
+  const fields = { name: el({ value: name }), email: el({ value: email, checkValidity: () => valid }), consent: el({ checked: consent }), phone: el(), cover_note: el(), cv: el() };
+  const errs = {};
+  for (const k of Object.keys(fields)) { errs[k] = el(); errs[k].setAttribute('data-apply-err', k); }
+  const parts = { '[data-apply-status]': el(), '[type="submit"]': el() };
+  let onSubmit = null;
+  const form = el({
+    querySelector: (s) => {
+      const m = /^\[name="(\w+)"\]$/.exec(s) || /^\[data-apply-err="(\w+)"\]$/.exec(s);
+      if (m) return (s.startsWith('[name') ? fields : errs)[m[1]] || null;
+      return parts[s] || null;
+    },
+    querySelectorAll: (s) => (s === '[data-apply-err]' ? Object.values(errs) : []),
+    addEventListener: (ev, fn) => { if (ev === 'submit') onSubmit = fn; },
+  });
+  form.setAttribute('action', '/api/apply');
+  const doc = { body: attrs({ 'data-live-api': '1', 'data-api-base': base, 'data-edition': 'uk' }), querySelectorAll: (s) => (s === 'form[data-apply-form]' ? [form] : []) };
+  return { doc, form, fields, errs, status: parts['[data-apply-status]'], submit: () => onSubmit({ preventDefault() {} }) };
+}
+const FD = function (f) { this.form = f; };
+
+test('initApply: a valid form POSTs once to the Worker origin (not the Pages origin), cross-origin without credentials', async () => {
+  const p = fakeApplyPage();
+  const calls = [];
+  A.initApply(p.doc, async (url, init) => { calls.push({ url, init }); return { status: 201, json: async () => ({ ok: true, status: 'received', delivery: 'dry_run' }) }; }, FD);
+  assert.equal(p.form.noValidate, true);
+  await p.submit();
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, 'https://w.example/api/apply?site=uk');
+  assert.equal(calls[0].init.method, 'POST');
+  assert.equal(calls[0].init.credentials, 'omit');
+  assert.equal(calls[0].init.referrerPolicy, 'strict-origin-when-cross-origin');
+  assert.match(p.status.textContent, /^Application received/);
+  assert.equal(p.status.classList.has('is-err'), false);
+});
+
+test('initApply: missing name / bad email / no consent are marked on their fields and nothing is posted', async () => {
+  const p = fakeApplyPage({ name: ' ', valid: false, consent: false });
+  const calls = [];
+  A.initApply(p.doc, async (url) => { calls.push(url); return { status: 201, json: async () => ({}) }; }, FD);
+  await p.submit();
+  assert.equal(calls.length, 0);
+  for (const k of ['name', 'email', 'consent']) {
+    assert.equal(p.fields[k].getAttribute('aria-invalid'), 'true', k);
+    assert.equal(p.errs[k].hidden, false, k);
+  }
+  assert.equal(p.fields.name.focused, true, 'focus moves to the first invalid field');
+  assert.equal(p.status.classList.has('is-err'), true);
+});
+
+test('initApply: a Worker invalid_input answer marks the named field; a 405 is shown as an error, never as success', async () => {
+  const p = fakeApplyPage();
+  A.initApply(p.doc, async () => ({ status: 400, json: async () => ({ error: 'invalid_input', fields: ['phone'] }) }), FD);
+  await p.submit();
+  assert.equal(p.fields.phone.getAttribute('aria-invalid'), 'true');
+  const q = fakeApplyPage();
+  A.initApply(q.doc, async () => ({ status: 405, json: async () => { throw new Error('not json'); } }), FD);
+  await q.submit();
+  assert.equal(q.status.classList.has('is-err'), true);
+  assert.doesNotMatch(q.status.textContent, /received/);
+});
