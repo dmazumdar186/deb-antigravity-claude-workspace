@@ -1,21 +1,21 @@
-Subject: GreenJobs: 8 short questions before the 3 December switch
+Subject: GreenJobs: 8 decisions before the 3 December switch
 
 Hi Keith,
 
-Eight questions below. One line each is fine.
+Eight decisions below, one line each; question 4 lists the 11 September items, which all have a default.
 Each one says what I'll do if I don't hear by the date given.
 No call needed. Please reply to this email so we have it all in writing.
 
 1. Candidate records. Which ones should I bring across to the new boards, and how far back?
    The reports downloaded from Strategies before the switch on 3 Dec go into an archive in GreenJobs' own storage.
    Anything you ask me to bring across is limited to people who agreed to hear from GreenJobs, as recorded in the Strategies export.
-   If I don't hear by Wed 25 Nov, I'll bring across jobs and employers only, and keep all candidate records in that archive.
+   If I don't hear by Wed 25 Nov, I'll bring across jobs, employers and the job-alert sign-ups (who re-confirm by email), and keep all candidate records in that archive.
 
 2. The 8 sector sites: environmentaljobsuk.com, renewableenergyjobsuk.com, solarjobsuk.com, windjobsuk.com, conservationjobsuk.com, wastejobsuk.com, waterjobsuk.com and ecologyjobsuk.com.
    All 8 run on the same Strategies hosting as greenjobs.co.uk, so they stop working on 6 Dec.
-   From 6 Dec each one can forward to its sector page on greenjobs.co.uk (I set that up once as part of the switch), or go dark. Separate full sector sites would be a later quote.
-   To set it up I'll send Diana a short click guide for where the records are held (GoDaddy nameservers, registered at 123 Reg), with the steps due by Thu 26 Nov. First I'll ask her whether any mailbox or forwarder uses those domains.
-   If I don't hear by Wed 25 Nov, I'll go ahead with the forwarding.
+   From the switch on 3 Dec each one can forward to its sector page on greenjobs.co.uk (set up once as part of the switch), or go dark. Separate full sector sites would be a later quote.
+   To set it up I'll send Diana a short click guide for the registrar steps (GoDaddy nameservers, registered at 123 Reg). First I'll ask her whether any mailbox or forwarder uses those domains; if one does, its mail records are copied first.
+   If I don't hear by Wed 25 Nov, I'll send Diana the click guide on Thu 26 Nov; each site forwards from 3 Dec once her steps for it are done.
 
 3. Employer logos. Am I OK to show the employer logos from the current boards?
    If I don't hear by Wed 25 Nov, the boards go live without the logo wall.
@@ -32,16 +32,16 @@ No call needed. Please reply to this email so we have it all in writing.
    i. "Transport and active travel" is merged into "Sustainable infrastructure & transport". Keep merged, or split?
    j. Membership package: what does it include?
    k. Content hub: topics or copy for career-advice articles and market reports.
-   If I don't hear by Fri 27 Nov, each stays as the site has it now:
-   a to c read "figure supplied at launch"; d and g are not shown; f keeps the current numbers; h keeps the live count; i stays merged; j reads "Ask us"; k is the salary guide only.
-   Any of these 11 that you send later goes in the day it arrives.
+   If I don't hear by Fri 27 Nov, each defaults to:
+   a to d and g are not shown until you send them; f keeps the current numbers; h keeps the live count; i stays merged; j reads "Ask us"; k is the salary guide only.
+   Any of these 11 that you send later goes in on the working day it arrives. For k, I publish copy you supply; writing articles or reports stays a separate quote, as in the proposal.
 
 5. CRM. Which CRM does Gaia use today: Recruit CRM, or Vincere?
    If I don't hear by Fri 27 Nov, I'll plan the second-phase CRM link for Recruit CRM.
 
 6. Your own Cloudflare and Resend accounts.
    Cloudflare hosts the boards. Resend sends the site's emails (applications, alerts, newsletter).
-   Both are opened in GreenJobs' name, so you own them. They cost about $5 a month (Cloudflare) and $20 a month (Resend), paid by GreenJobs directly to each vendor.
+   Both are opened in GreenJobs' name, so you own them. They cost about $5 a month (Cloudflare) and $20 a month (Resend), as in the proposal.
    Who on your side will open them and invite debanjan@prodcraft.fyi?
    I'll send a short written step-by-step guide for each.
    If I don't hear by Tue 24 Nov, I'll send both guides to Diana.
@@ -49,7 +49,7 @@ No call needed. Please reply to this email so we have it all in writing.
 7. Test site sign-off. The test sites:
    Irish board: https://greenjobs-stg-ie.pages.dev/ie/
    UK board: https://greenjobs-stg-uk.pages.dev/uk/
-   Jobs marked "[Test data]" are September jobs re-dated for testing; applications and alert sign-ups on the test site send no real email.
+   Jobs marked "[Test data]" are September jobs re-dated for testing; the rest are Gaia's current public jobs. Applications and alert sign-ups on the test site send no real email.
    Could you try it and reply "signed off", or list what to fix, by Fri 27 Nov?
    If I don't hear by Fri 27 Nov, the switch goes ahead on 3 Dec as tested, because Strategies switches off on 6 Dec.
 
