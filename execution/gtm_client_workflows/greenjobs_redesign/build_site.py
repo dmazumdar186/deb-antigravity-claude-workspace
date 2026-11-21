@@ -992,11 +992,25 @@ def normalise(raw: dict[str, Any], ed_key: str, src: Path, logos_dir: Path, toda
         if not j["logo"] and rec and rec["logo"]:
             j.update(logo=rec["logo"], lw=rec["lw"], lh=rec["lh"])
     return {
-        "ed": ed_key, "site": str(raw.get("site") or ed["domain"]), "fetched": str(raw.get("fetched") or today.isoformat())[:10], "today": today.isoformat(),
-        "jobs": jobs_out, "sectors": sectors, "regions": regions, "types": types,
-        "employers": list(employers.values()), "clients": load_clients(src, ed_key, logos_dir, jobs_out), "about": str(raw.get("about") or "").strip(),
-        "contact": raw.get("contact") or {}, "network_sites": raw.get("network_sites") or [],
-        "region_table": table, "social": social_links(src, ed_key), "excluded": excluded, "closed": closed, "corrected": corrected,
+        "ed": ed_key,
+        "site": str(raw.get("site") or ed["domain"]),
+        "fetched": str(raw.get("fetched") or today.isoformat())[:10],
+        "today": today.isoformat(),
+        "jobs": jobs_out,
+        "sectors": sectors,
+        "regions": regions,
+        "types": types,
+        "employers": list(employers.values()),
+        "clients": load_clients(src, ed_key, logos_dir, jobs_out),
+        "proof": load_employer_proof(src, ed_key),
+        "about": str(raw.get("about") or "").strip(),
+        "contact": raw.get("contact") or {},
+        "network_sites": raw.get("network_sites") or [],
+        "region_table": table,
+        "social": social_links(src, ed_key),
+        "excluded": excluded,
+        "closed": closed,
+        "corrected": corrected,
     }
 
 
@@ -1099,8 +1113,123 @@ def load_clients(src: Path, ed_key: str, logos_dir: Path, jobs: list[dict[str, A
             continue
         seen.add(file)
         w, h = image_size(logos_dir / "clients" / file)
-        out.append({"name": name, "file": file, "source": str(item.get("source") or ""), "lw": w, "lh": h, "live": norm_org(name) in live})
+        out.append(
+            {
+                "name": name,
+                "file": file,
+                "source": str(item.get("source") or ""),
+                "lw": w,
+                "lh": h,
+                "live": norm_org(name) in live,
+            }
+        )
     return out
+
+
+# Employer-page proof (Keith E2/E7, rule promised 2026-11-21): an audience tile,
+# testimonial or placement block is rendered ONLY when a real value exists in
+# data/employer_proof_{ed}.json. No file, no key, or an empty value = no block;
+# a placeholder-looking value is a data defect and fails the build loudly.
+AUDIENCE_KEYS = ("candidates", "newsletter", "network")
+PROOF_PLACEHOLDER = re.compile(
+    r"supplied at launch|published at launch|\btbc\b|\btbd\b|ask us|available on request|lorem|placeholder|x{3,}",
+    re.I,
+)
+
+
+def load_employer_proof(src: Path, ed_key: str) -> dict[str, Any]:
+    """{"audience": {key: figure}, "testimonials": [{quote, name, org}]} from
+    data/employer_proof_{ed}.json, keeping only real values. Shape of the file:
+    {"audience": {"candidates": "12,400 registered candidates", "newsletter": "...",
+    "network": "..."}, "testimonials": [{"quote": "...", "name": "...", "org": "..."}]}.
+    Testimonials need a quote and an attribution (name or org): anonymous quotes
+    are not reproduced. Raises ValueError on placeholder text or bad JSON."""
+    empty: dict[str, Any] = {"audience": {}, "testimonials": []}
+    path = src / "data" / f"employer_proof_{ed_key}.json"
+    if not path.is_file():
+        return empty
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        raise ValueError(f"{path.name}: unreadable ({e})") from e
+    if not isinstance(raw, dict):
+        raise ValueError(f"{path.name}: top level must be an object")
+
+    def real(v: Any, where: str) -> str:
+        s = re.sub(r"\s+", " ", str(v or "")).strip()
+        if s and PROOF_PLACEHOLDER.search(s):
+            raise ValueError(
+                f"{path.name}: {where} is placeholder text, not a real value: {s!r}"
+            )
+        return s[:400]
+
+    aud_raw = raw.get("audience") or {}
+    audience = {
+        k: v
+        for k in AUDIENCE_KEYS
+        if isinstance(aud_raw, dict) and (v := real(aud_raw.get(k), f"audience.{k}"))
+    }
+    tests = []
+    for i, t in enumerate(raw.get("testimonials") or []):
+        if not isinstance(t, dict):
+            continue
+        q, n, o = (
+            real(t.get(f), f"testimonials[{i}].{f}") for f in ("quote", "name", "org")
+        )
+        if q and (n or o):
+            tests.append({"quote": q, "name": n, "org": o})
+    return {"audience": audience, "testimonials": tests[:6]}
+
+
+AUDIENCE_TILES = (
+    (
+        "candidates",
+        "Candidate audience",
+        "Candidates register for saved roles, alerts and one-tap applications.",
+    ),
+    (
+        "newsletter",
+        "Weekly newsletter reach",
+        "Every posting is featured in one weekly jobs newsletter emailed to registered candidates, plus job alerts by email to matching candidates for up to six weeks.",
+    ),
+    (
+        "network",
+        "Network and LinkedIn distribution",
+        "Shown on the relevant sites in the {n_sites}-site network, on the Talent Finder Network and across the GreenJobs social media network: Facebook, LinkedIn groups and X for each brand.",
+    ),
+)
+
+
+def audience_block(data: dict[str, Any]) -> str:
+    """The employers page's Audience and reach section: one tile per figure
+    present in data["proof"]["audience"]; "" when no figure exists."""
+    aud = (data.get("proof") or {}).get("audience") or {}
+    tiles = "".join(
+        f'<div class="fact reveal"><h3>{esc(h)}</h3><p>{esc(p.format(n_sites=len(data["network_sites"])))}</p><p class="fact__fig"><b>{esc(aud[k])}</b></p></div>'
+        for k, h, p in AUDIENCE_TILES
+        if aud.get(k)
+    )
+    if not tiles:
+        return ""
+    return (
+        '<section class="wrap band--tight" aria-labelledby="h-reach"><h2 id="h-reach" style="margin-bottom:28px">Audience and reach</h2>'
+        f'<div class="facts">{tiles}</div></section>'
+    )
+
+
+def testimonials_html(data: dict[str, Any]) -> str:
+    """Attributed client quotes from data["proof"]["testimonials"]; "" when none."""
+    items = (data.get("proof") or {}).get("testimonials") or []
+    if not items:
+        return ""
+    return (
+        '<div class="facts" style="margin-top:24px">'
+        + "".join(
+            f'<figure class="fact"><blockquote><p>{esc(t["quote"])}</p></blockquote><figcaption>{esc(", ".join(x for x in (t["name"], t["org"]) if x))}</figcaption></figure>'
+            for t in items
+        )
+        + "</div>"
+    )
 
 
 def logo_manifest(logos_dir: Path) -> dict[str, str]:
@@ -2858,23 +2987,66 @@ def build_edition(
                                      {"dataset": dataset_script(data, "../jobs/index.html", False)}, same_path="compass/index.html"))
     render_dashboard(data, src, out, tpl, brief, site_base)
     emp_strip = client_wall(data, "../../") if data.get("clients") else employers_strip(data, "../../", cap=None)  # client wall, else every live employer
-    # Keith E7: UK-only credibility block. Testimonials are collected for launch
-    # (brief.md testimonials are anonymous; none is reproduced).
-    _emp_email = esc(next(iter(dict.fromkeys((data["contact"] or {}).get("emails") or [])), f"info@{data['site']}"))
-    trust_block = "" if ed_key != "uk" else (
-        '<section class="wrap band--tight" aria-labelledby="h-trust"><div class="sec-head"><div><h2 id="h-trust">Trusted across the UK</h2>'
-        '<p>Client testimonials available on request.</p></div>'
-        f'<a class="btn btn--lime" href="mailto:{_emp_email}?subject=Advertising%20rates%20request" data-ev="request_rates">Request advertising rates<span class="arw" aria-hidden="true">→</span></a></div>'
-        f'<p class="netline" style="margin-top:24px"><b>Network coverage:</b> {network_inline(data)}</p></section>')
-    write("employers/index.html", page("employers", 2, "employers", f"Advertise a green role | GreenJobs {ed['short']}",
-                                       f"Reach candidates who only want green work. What GreenJobs {ed['short']} offers employers.",
-                                       {"n_jobs": str(len(jobs)), "n_emp": str(n_emp), "emp_count_phrase": esc(emp_count_phrase(ed_key, n_emp)), "n_sites": str(len(data["network_sites"])), "about": esc(data["about"].split("\n")[0]),
-                                        "email": esc(next(iter(dict.fromkeys((data["contact"] or {}).get("emails") or [])), f"info@{data['site']}")),
-                                        "net_inline": network_inline(data), "employers": emp_strip["html"], "emp_sub": emp_strip["sub"],
-                                        "trust_block": trust_block,
-                                        "country": esc(ed["name"]), "reach": esc(json_embed(reach_payload(data))), "sym": ed["sym"],
-                                        "unit": ed["unit"], "fetched": esc(data["fetched"]),
-                                        "sector_options": "".join(f'<option value="{esc(s["name"])}">{esc(s["name"])}</option>' for s in data["sectors"] if s["n"])}, same_path="employers/index.html"))
+    # Keith E7: UK-only credibility block. Testimonials render only when real,
+    # attributed ones exist in data/employer_proof_uk.json (brief.md's are
+    # anonymous; none is reproduced); otherwise no testimonial line at all.
+    _emp_email = esc(
+        next(
+            iter(dict.fromkeys((data["contact"] or {}).get("emails") or [])),
+            f"info@{data['site']}",
+        )
+    )
+    trust_block = (
+        ""
+        if ed_key != "uk"
+        else (
+            '<section class="wrap band--tight" aria-labelledby="h-trust"><div class="sec-head"><div><h2 id="h-trust">Trusted across the UK</h2></div>'
+            f'<a class="btn btn--lime" href="mailto:{_emp_email}?subject=Advertising%20rates%20request" data-ev="request_rates">Request advertising rates<span class="arw" aria-hidden="true">→</span></a></div>'
+            f"{testimonials_html(data)}"
+            f'<p class="netline" style="margin-top:24px"><b>Network coverage:</b> {network_inline(data)}</p></section>'
+        )
+    )
+    write(
+        "employers/index.html",
+        page(
+            "employers",
+            2,
+            "employers",
+            f"Advertise a green role | GreenJobs {ed['short']}",
+            f"Reach candidates who only want green work. What GreenJobs {ed['short']} offers employers.",
+            {
+                "n_jobs": str(len(jobs)),
+                "n_emp": str(n_emp),
+                "emp_count_phrase": esc(emp_count_phrase(ed_key, n_emp)),
+                "n_sites": str(len(data["network_sites"])),
+                "about": esc(data["about"].split("\n")[0]),
+                "email": esc(
+                    next(
+                        iter(
+                            dict.fromkeys((data["contact"] or {}).get("emails") or [])
+                        ),
+                        f"info@{data['site']}",
+                    )
+                ),
+                "net_inline": network_inline(data),
+                "employers": emp_strip["html"],
+                "emp_sub": emp_strip["sub"],
+                "trust_block": trust_block,
+                "audience_block": audience_block(data),
+                "country": esc(ed["name"]),
+                "reach": esc(json_embed(reach_payload(data))),
+                "sym": ed["sym"],
+                "unit": ed["unit"],
+                "fetched": esc(data["fetched"]),
+                "sector_options": "".join(
+                    f'<option value="{esc(s["name"])}">{esc(s["name"])}</option>'
+                    for s in data["sectors"]
+                    if s["n"]
+                ),
+            },
+            same_path="employers/index.html",
+        ),
+    )
 
     # ---- evidence page (rendered after measuring; filled in by build())
     evidence[ed_key] = {"n_jobs": len(jobs), "n_emp": n_emp, "n_sal": n_sal, "n_sectors": sum(1 for s in data["sectors"] if s["n"]), "n_regions": len(top_regions),
