@@ -11,8 +11,8 @@ import { resolve } from 'node:path';
 import test from 'node:test';
 import { REPO, applyRequest, makeWorld, seedJob, workerModule } from './helpers.mjs';
 
-const PAGES_IE = 'https://greenjobs-staging-ie.pages.dev';
-const PAGES_UK = 'https://greenjobs-staging-uk.pages.dev';
+const PAGES_IE = 'https://greenjobs-stg-ie.pages.dev';
+const PAGES_UK = 'https://greenjobs-stg-uk.pages.dev';
 const STAGING = { ALLOWED_ORIGINS: `${PAGES_IE},${PAGES_UK}` };
 
 test('N1: a staging Pages board posts the multipart form cross-origin; ?site= picks the edition; CORS on the answer', async () => {
@@ -51,7 +51,7 @@ test('N1: same-origin ignores ?site=; Origin "null" (no-referrer form POST) and 
   const fd = await applyRequest({ job_id: 'ie:strat:8201', email: 'same@example.com' }).formData();
   let r = await w.fetch(new Request('https://greenjobs.ie/api/apply?site=uk', { method: 'POST', body: fd, headers: { Origin: 'https://greenjobs.ie', 'CF-Connecting-IP': '203.0.113.21' } }));
   assert.equal(r.status, 201, 'the Host decides on a same-origin post');
-  for (const origin of ['null', 'https://evil.example', 'https://greenjobs-staging-ie.pages.dev.evil.example']) {
+  for (const origin of ['null', 'https://evil.example', 'https://greenjobs-stg-ie.pages.dev.evil.example']) {
     r = await w.fetch(applyRequest({ job_id: 'ie:strat:8201', email: `o${origin.length}@example.com` }, { origin, ip: '203.0.113.22' }));
     assert.equal(r.status, 403, origin);
     assert.equal((await r.json()).error, 'origin_not_allowed');

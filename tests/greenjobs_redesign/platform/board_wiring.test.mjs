@@ -10,7 +10,7 @@ import { REPO, makeWorld, seedJob } from './helpers.mjs';
 const MIGRATION = readFileSync(resolve(REPO, 'deliverables/greenjobs_migration_2026-11-06/build/d1/migrations/0004_job_alerts_newsletter.sql'), 'utf8');
 const KEY = 'test-signing-key-0123456789abcdef-not-real';
 const ON = { ALERTS_ENABLED: '1', NEWSLETTER_ENABLED: '1', LIST_MAIL_SIGNING_KEY: KEY, MAIL_PROVIDER: 'none' };
-const STAGING_PAGES = 'https://greenjobs-staging-uk.pages.dev';
+const STAGING_PAGES = 'https://greenjobs-stg-uk.pages.dev';
 
 async function world(env = {}) {
   const w = await makeWorld(env);

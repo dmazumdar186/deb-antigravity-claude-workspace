@@ -344,7 +344,7 @@ def test_stage_dry_run_prints_commands_and_calls_nothing(cfg, tmp_path, capsys):
         "--env staging" in out
         and "d1 migrations apply greenjobs-staging --remote" in out
     )
-    assert "deploy_cloudflare.sh" in out and "greenjobs-staging-uk" in out
+    assert "deploy_cloudflare.sh" in out and "greenjobs-stg-uk" in out
     assert "tok-test" not in out
 
 
@@ -353,8 +353,8 @@ def test_stage_execute_records_versions(cfg, tmp_path, no_toml_placeholders):
     rec = rel.stage()
     assert rec["status"] == "deployed" and rec["worker_version_id"] == V_NEW
     assert rec["pages_deployments"] == {
-        "ie": "dep-greenjobs-staging-ie-latest",
-        "uk": "dep-greenjobs-staging-uk-latest",
+        "ie": "dep-greenjobs-stg-ie-latest",
+        "uk": "dep-greenjobs-stg-uk-latest",
     }
     latest = sorted(p.name for p in (ROOT / "deliverables/greenjobs_migration_2026-11-06/build/d1/migrations").glob("*.sql"))[-1]
     assert rec["d1_migration_level"] == latest == "0004_job_alerts_newsletter.sql"

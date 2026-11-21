@@ -26,12 +26,12 @@
       "_r2_note": "R2 is not enabled on our account yet (API code 10042): staging runs without CV storage; an apply with a CV answers 503 cv_storage_unavailable. Set to greenjobs-cvs-staging and restore the wrangler binding once R2 is enabled.",
       "backup_bucket": "",
       "pages": {
-        "ie": "greenjobs-staging-ie",
-        "uk": "greenjobs-staging-uk"
+        "ie": "greenjobs-stg-ie",
+        "uk": "greenjobs-stg-uk"
       },
       "board_urls": {
-        "ie": "https://greenjobs-staging-ie.pages.dev",
-        "uk": "https://greenjobs-staging-uk.pages.dev"
+        "ie": "https://greenjobs-stg-ie.pages.dev",
+        "uk": "https://greenjobs-stg-uk.pages.dev"
       },
       "worker_urls": {
         "ie": "https://greenjobs-platform-staging.debanjan186.workers.dev",

@@ -27,7 +27,7 @@ test('M2: staging vars + ALERTS_ENABLED="1" -> sign-up works end to end, DRY_RUN
   assert.equal(vars.MAIL_PROVIDER, 'none');
   assert.match(NOTE, /ALERTS_ENABLED = "1"/);
   const host = 'greenjobs-platform-staging.debanjan186.workers.dev';
-  const origin = 'https://greenjobs-staging-ie.pages.dev';
+  const origin = 'https://greenjobs-stg-ie.pages.dev';
   const w = await makeWorld({ ...vars, ALERTS_ENABLED: '1', LIST_MAIL_SIGNING_KEY: 'test-signing-key-0123456789abcdef-not-real' });
   w.db.sqlite.exec(MIGRATION);
   const cfg = await (await w.fetch(new Request(`https://${host}/api/config?site=ie`, { headers: { Origin: origin } }))).json();

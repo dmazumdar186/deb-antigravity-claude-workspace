@@ -127,7 +127,7 @@ RATE_ALERTS_PER_10MIN = "5"
 FEED_IMPORT_ENABLED = "0"
 IMPORT_MAX_CLOSE_SHARE = "0.5"
 EMPLOYER_POSTING_ENABLED = "0"
-ALLOWED_ORIGINS = "https://greenjobs-staging-ie.pages.dev,https://greenjobs-staging-uk.pages.dev"
+ALLOWED_ORIGINS = "https://greenjobs-stg-ie.pages.dev,https://greenjobs-stg-uk.pages.dev"
 
 [env.staging.version_metadata]
 binding = "CF_VERSION_METADATA"   # /api/health reports the Worker version id
@@ -187,7 +187,7 @@ RATE_ALERTS_PER_10MIN = "5"
 FEED_IMPORT_ENABLED = "0"
 IMPORT_MAX_CLOSE_SHARE = "0.5"
 EMPLOYER_POSTING_ENABLED = "0"
-ALLOWED_ORIGINS = "https://greenjobs-staging-ie.pages.dev,https://greenjobs-staging-uk.pages.dev"
+ALLOWED_ORIGINS = "https://greenjobs-stg-ie.pages.dev,https://greenjobs-stg-uk.pages.dev"
 
 [env.staging-uk.version_metadata]
 binding = "CF_VERSION_METADATA"

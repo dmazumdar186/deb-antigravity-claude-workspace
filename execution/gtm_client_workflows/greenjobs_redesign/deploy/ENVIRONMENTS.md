@@ -11,7 +11,7 @@ disagree, or if an env section is missing a var (wrangler does not inherit vars 
 | Worker | `greenjobs-platform-staging` on `greenjobs-platform-staging.debanjan186.workers.dev` (IE), `greenjobs-platform-staging-uk` on `greenjobs-platform-staging-uk.debanjan186.workers.dev` (UK) |
 | D1 | `greenjobs-staging` (`database_id` = `REPLACE_WITH_STAGING_D1_ID` in wrangler.toml) |
 | R2 (CVs) | `greenjobs-cvs-staging` (smoke applies send no CV, so it stays empty) |
-| Pages | `greenjobs-staging-ie` -> `https://greenjobs-staging-ie.pages.dev`, `greenjobs-staging-uk` -> `https://greenjobs-staging-uk.pages.dev` (each hosts the full two-edition build) |
+| Pages | `greenjobs-stg-ie` -> `https://greenjobs-stg-ie.pages.dev`, `greenjobs-stg-uk` -> `https://greenjobs-stg-uk.pages.dev` (each hosts the full two-edition build) |
 | Mail | `DRY_RUN="1"`, `LIVE_CONFIRM=""`, `MAIL_PROVIDER="none"`, `MAIL_DAILY_CAP="0"`, pinned and checked by `check-config` |
 | Data | Public job data only: `release.py` seeds `jobs` + employer names from `deliverables/greenjobs_redesign_2026-09-22/src/data/{ie,uk}.json`, link-mode, no apply email, no contacts (`assert_seed_safe` fails closed). No candidate or application data ever goes to staging; the only applications there are the smoke test's synthetic `smoke-test@example.com` and the real-browser smoke's `smoke-browser-{ie,uk}@example.com` (deploy/browser_smoke.mjs submits the on-page form; DRY_RUN, routed to the reserved `staging-applications-{ie,uk}@example.com` inbox, never mailed). |
 
@@ -112,7 +112,7 @@ job (Access service token), poll until public (15 min ceiling, 30 s poll), apply
 ## Staging as deployed (2026-11-20, ledger: build/release_ledger/staging_2026-11-20.jsonl)
 
 - Worker `https://greenjobs-platform-staging.debanjan186.workers.dev` (IE host), D1 `greenjobs-staging` (WEUR),
-  boards `https://greenjobs-staging-ie.pages.dev`, `https://greenjobs-staging-uk.pages.dev`. Staff console path
+  boards `https://greenjobs-stg-ie.pages.dev`, `https://greenjobs-stg-uk.pages.dev`. Staff console path
   `/admin/` answers 401/503 until Access exists (fail closed).
 - First deploy: wrangler 4.166 uploaded the Worker, then failed on a follow-up API call (code 10007) because
   workers.dev was not yet enabled for the new script; enabling it once (`POST .../workers/scripts/<name>/subdomain`
@@ -151,3 +151,11 @@ the live scripts show, and smoke `stats_parity` re-checks every marked figure. A
 deploy (a job closes, the date rolls over) fails the next smoke until the next deploy: the static fallback is
 stale then, which is what the check is for. Production keeps `board_stats_from_api: false` (no behaviour
 change); decide at go-live whether its boards take the same step.
+
+## Retired staging Pages projects (2026-11-21)
+
+`greenjobs-staging-ie` and `greenjobs-staging-uk` are RETIRED (not deleted, left untouched). Their `pages.dev` edge cache
+held week-long copies of the removed `/ie/for-keith/` and `/uk/for-keith/` pages (s-maxage=604800, set before the
+2026-11-21 cache fix) and a `pages.dev` host cannot be purged. Staging boards now live on fresh projects
+`greenjobs-stg-ie` / `greenjobs-stg-uk` (created with `wrangler pages project create --force`); the staging Workers'
+`ALLOWED_ORIGINS` are exactly those two origins.

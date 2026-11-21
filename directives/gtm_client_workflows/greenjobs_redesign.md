@@ -491,3 +491,5 @@ page flow (URLs, field names, option labels): `strategies_export_config.json` ne
 ## Staging seed (2026-11-20)
 
 Staging D1 and the static staging boards are seeded from one normalised set by `staging_seed.py`: current Gaia jobs, plus the September jobs re-based to the seed date and flagged [Test data]. The rules and the reasons for that choice are in `directives/gtm_client_workflows/staging_seed.md`.
+
+Staging boards (2026-11-21): `greenjobs-stg-ie` / `greenjobs-stg-uk` on pages.dev replace the retired `greenjobs-staging-*` projects (stale edge cache); see deploy/ENVIRONMENTS.md.

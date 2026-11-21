@@ -125,8 +125,8 @@ def test_n1_allowed_origins_are_exactly_each_environments_board_origins(tmp_path
             assert got == want, (w, got, want)
         assert release.check_wrangler_toml(CFG, env) == []
     assert release.board_origins(CFG["envs"]["staging"]) == {
-        "https://greenjobs-staging-ie.pages.dev",
-        "https://greenjobs-staging-uk.pages.dev",
+        "https://greenjobs-stg-ie.pages.dev",
+        "https://greenjobs-stg-uk.pages.dev",
     }
     assert release.board_origins(CFG["envs"]["production"]) == {
         "https://greenjobs.ie",
@@ -136,8 +136,8 @@ def test_n1_allowed_origins_are_exactly_each_environments_board_origins(tmp_path
     }
     # the gate fires: a staging Worker that also allows a production origin, or misses its own board, is refused
     wider = toml.replace(
-        'ALLOWED_ORIGINS = "https://greenjobs-staging-ie.pages.dev,https://greenjobs-staging-uk.pages.dev"',
-        'ALLOWED_ORIGINS = "https://greenjobs-staging-ie.pages.dev,https://greenjobs-staging-uk.pages.dev,https://greenjobs.ie"',
+        'ALLOWED_ORIGINS = "https://greenjobs-stg-ie.pages.dev,https://greenjobs-stg-uk.pages.dev"',
+        'ALLOWED_ORIGINS = "https://greenjobs-stg-ie.pages.dev,https://greenjobs-stg-uk.pages.dev,https://greenjobs.ie"',
         1,
     )
     assert wider != toml
@@ -147,8 +147,8 @@ def test_n1_allowed_origins_are_exactly_each_environments_board_origins(tmp_path
         for p in release.check_wrangler_toml(CFG, "staging", tmp_path / "w.toml")
     )
     narrow = toml.replace(
-        'ALLOWED_ORIGINS = "https://greenjobs-staging-ie.pages.dev,https://greenjobs-staging-uk.pages.dev"\n\n[env.staging-uk.version_metadata]',
-        'ALLOWED_ORIGINS = "https://greenjobs-staging-ie.pages.dev"\n\n[env.staging-uk.version_metadata]',
+        'ALLOWED_ORIGINS = "https://greenjobs-stg-ie.pages.dev,https://greenjobs-stg-uk.pages.dev"\n\n[env.staging-uk.version_metadata]',
+        'ALLOWED_ORIGINS = "https://greenjobs-stg-ie.pages.dev"\n\n[env.staging-uk.version_metadata]',
         1,
     )
     assert narrow != toml
