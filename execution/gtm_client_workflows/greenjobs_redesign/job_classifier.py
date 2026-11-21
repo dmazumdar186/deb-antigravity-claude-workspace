@@ -368,6 +368,57 @@ def classify(
     }
 
 
+# Eye review r3 R3-7: an advert whose text sends applicants to an external form / ATS while the job applies by email
+# (the on-page GreenJobs form) is queued for staff. The mode is never changed here: staff decide. Only phrases that
+# name an off-site route count ("click apply" alone is the on-page button, never flagged). Every flag quotes its sentence.
+EXTERNAL_APPLY_RES = [
+    re.compile(r"\b(?:you will|you'll|applicants will|candidates will) be (?:taken|redirected|directed|forwarded|sent) to\b", re.I),
+    re.compile(r"\bredirected to complete\b", re.I),
+    re.compile(r"\bto apply\b[^.]{0,60}?\b(?:visit|go to|see) (?:our|the) (?:website|careers|portal|site|recruitment)", re.I),
+    re.compile(r"\b(?:visit|go to) (?:our|the) (?:website|careers site|careers page|portal)\b[^.]{0,40}?\bto apply\b", re.I),
+    re.compile(r"\bapply online\b\s*(?:at|via|:)\s*(?:www\.|https?://)", re.I),
+    re.compile(r"\bapply (?:via|through|using|on) (?:the|our) (?:link|website|portal|online (?:form|system|portal)|careers (?:site|page))\b", re.I),
+    re.compile(r"\b(?:on|via) the link below\b", re.I),
+    re.compile(r"\b(?:applicant tracking system|our ATS)\b|myworkdayjobs\.com|taleo\.net|smartrecruiters\.com|icims\.com|applytojob\.com", re.I),
+]
+EXTERNAL_APPLY_ANY = re.compile("|".join(f"(?:{r.pattern})" for r in EXTERNAL_APPLY_RES), re.I)
+_SENTENCE_RE = re.compile(r"[^.!?\n]*[.!?]?")
+
+
+def _plain_text(markup: str) -> str:
+    return re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", str(markup or "")))).strip()
+
+
+def external_apply_evidence(description: str) -> str | None:
+    """The first sentence of the advert that names an off-site application route, or None."""
+    text = _plain_text(description)
+    for m in _SENTENCE_RE.finditer(text):
+        sent = m.group(0).strip()
+        if sent and any(r.search(sent) for r in EXTERNAL_APPLY_RES):
+            return sent[:100]
+    return None
+
+
+def apply_route_review_reason(description: str, apply_mode: str | None) -> str | None:
+    """Review reason when an email-mode job's own text sends applicants elsewhere (R3-7), else None."""
+    if (apply_mode or "email") not in ("email", "", None):
+        return None
+    ev = external_apply_evidence(description)
+    return f'apply route: advert says "{ev}" but the job applies by email here; confirm the mode'[:150] if ev else None
+
+
+def extra_review_reasons(job: dict[str, Any]) -> list[str]:
+    """Non-sector reasons to queue a job for staff (job_review, hold 0: the job stays live): R3-7 and r3 m3."""
+    out = []
+    r = apply_route_review_reason(job.get("description") or job.get("description_html") or "", job.get("apply_mode"))
+    if r:
+        out.append(r)
+    loc = bs.location_review_reason(job.get("location") or "")
+    if loc:
+        out.append(loc)
+    return out
+
+
 def facet_row(job: dict[str, Any], site: str, c: dict[str, Any], set_by: str) -> dict[str, Any]:
     """The job_facets row (migration 0002) for one classified job: the classifier's taxonomy fields plus the
     display fields build_site.normalise() derives (level, agency, salary label, unverified-currency flag,

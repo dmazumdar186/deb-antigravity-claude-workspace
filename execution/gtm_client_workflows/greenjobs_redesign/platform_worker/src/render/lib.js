@@ -5,6 +5,7 @@
 // as stored facets (job_facets, set at write time from taxonomy.json).
 
 import TAXONOMY from '../taxonomy.json' with { type: 'json' };
+import { NATIONS } from '../site_assets.gen.js';
 
 export { TAXONOMY };
 export const UNVERIFIED_SOURCE = 'greenjobs.ie listing (UK-located role)';
@@ -353,17 +354,35 @@ const LOC_RENAME = {
   'london south west': 'South West London', 'london north west': 'North West London', 'london north east': 'North East London',
   monagahan: 'Monaghan',
 };
+// Eye review r3 m3: a nation tick ("Scotland (nationwide)") next to places of another nation reads "anywhere in
+// Scotland"; one of the places' own nation is dropped. Same as build_site.display_location (NATIONS = UK_NATION_PLACES).
+const NATION_NAMES = { england: 'England', scotland: 'Scotland', wales: 'Wales', 'northern ireland': 'Northern Ireland' };
+const NATION_RES = Object.entries(NATIONS).map(([n, words]) => [n, words.map((w) => new RegExp(`(?<![a-z0-9])${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![a-z0-9])`))]);
+const tickNation = (name) => { const m = /^(?:anywhere in\s+)?(england|scotland|wales|northern ireland)$/i.exec(name.trim()); return m ? m[1].toLowerCase() : null; };
+export function placeNation(name) {
+  const low = name.toLowerCase();
+  for (const [n, res] of NATION_RES) if (res.some((re) => re.test(low))) return n;
+  return null;
+}
 export function displayLocation(loc) {
   const parts = String(loc || '').split(',').map((p) => p.trim()).filter(Boolean);
   if (parts.length < 2) return parts.length ? (LOC_RENAME[parts[0].toLowerCase()] || parts[0]) : String(loc || '').trim();
   const bare = (p) => p.replace(/\s*\(nationwide\)$/i, '').trim();
-  const specific = parts.filter((p) => !LOC_BROAD.has(bare(p).toLowerCase()));
-  if (!specific.length) return parts.join(', ');
+  const names = [];
+  for (const p of parts) {
+    if (LOC_BROAD.has(bare(p).toLowerCase())) continue;
+    const name = LOC_RENAME[bare(p).toLowerCase()] || bare(p);
+    if (!names.some((o) => o.toLowerCase() === name.toLowerCase())) names.push(name);
+  }
+  if (!names.length) return parts.join(', ');
+  const places = names.filter((n) => tickNation(n) === null);
+  if (!places.length) return names.join(', ');
+  const home = new Set(places.map(placeNation));
   const out = [];
-  for (const p of specific) {
-    let name = bare(p);
-    name = LOC_RENAME[name.toLowerCase()] || name;
-    if (!out.some((o) => o.toLowerCase() === name.toLowerCase())) out.push(name);
+  for (const n of names) {
+    const t = tickNation(n);
+    if (t === null) out.push(n);
+    else if (!home.has(t)) out.push(`anywhere in ${NATION_NAMES[t]}`);
   }
   return out.join(', ');
 }

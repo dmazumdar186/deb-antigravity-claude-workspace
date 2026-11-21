@@ -55,6 +55,10 @@ ALERT_SMOKE_EMAIL = "smoke-alerts@example.com"
 # button, phone-width overflow. Fixed applicant per edition: a re-run converges on one application row (DRY_RUN).
 BROWSER_SCRIPT = HERE / "browser_smoke.mjs"
 BROWSER_APPLY_EMAIL = "smoke-browser-{site}@example.com"
+# eye r3 R3-1: one browser apply WITH a small PDF CV per run (IE edition; the per-IP apply limit of 5 / 10 min covers
+# 2 browser + 1 CV + 2 API applies). Its applicant is per sha, so each deploy's first run exercises the CV path (201).
+BROWSER_CV_EMAIL = "smoke-browser-cv-{site}-{sha}@example.com"
+BROWSER_CV_SITE = "ie"
 BROWSER_WIDTHS = (360, 375, 390, 414, 430)
 BROWSER_LOOKUP_CEILING = 40  # job lookups per edition to find an email-apply and a link-apply page (floor: 1)
 BROWSER_TIMEOUT_S = 600
@@ -195,6 +199,16 @@ class Smoke:
         except (OSError, ValueError, http.client.HTTPException) as e:  # same: surfaced as status 0 in the check detail
             return Resp(0, {}, f"{type(e).__name__}".encode())
 
+    def get_page(self, url: str) -> tuple[Resp, Resp | None]:
+        """GET an HTML page; a 301 from a Worker host to a board host (eye r3 R3-2: workers.dev job pages redirect to
+        the board) is followed once. Returns (final response, the redirect response or None)."""
+        r = self.get(url)
+        loc = r.headers.get("location", "")
+        boards = [b for _, b in self.sites("board_urls")]
+        if r.status == 301 and any(loc.startswith(b + "/") for b in boards):
+            return self.get(loc), r
+        return r, None
+
     def p(self, key: str, **kw: str) -> str:
         return self.paths[key].format(**kw)
 
@@ -322,11 +336,14 @@ class Smoke:
                 self.rec(f"job_page[{site}]", False, f"board list HTTP {r.status}, no job slug")
                 continue
             path = self.p("board_job", ed=site, slug=slug)
-            g = self.get(base + path)
+            g, hop = self.get_page(base + path)
+            board = dict(self.sites("board_urls")).get(site, "")
+            # a Worker host that is not the board must 301 to the board's same path (eye r3 R3-2), never render a copy
+            hop_ok = hop is None if base == board else (hop is not None and hop.headers.get("location") == board + path)
             self.rec(
                 f"job_page[{site}]",
-                g.status == 200 and "<html" in g.text.lower() and '"JobPosting"' in g.text,
-                f"{path} HTTP {g.status}",
+                hop_ok and g.status == 200 and "<html" in g.text.lower() and '"JobPosting"' in g.text,
+                f"{path} {'301 -> board, ' if hop else ''}HTTP {g.status}" + ("" if hop_ok else "; Worker host did not redirect to the board"),
             )
 
     def check_live_wiring(self) -> None:
@@ -424,6 +441,13 @@ class Smoke:
                                   "expect_post": f"{base}{self.p('apply_api')}", "email": BROWSER_APPLY_EMAIL.format(site=site)})
                 else:
                     self.rec(f"browser_apply[{site}]", False, "no email-apply job found on the board")
+                if site == BROWSER_CV_SITE:
+                    if email:
+                        tasks.append({"kind": "apply", "name": f"browser_apply_cv[{site}]", "url": email["url"], "cv": True,
+                                      "expect_post": f"{base}{self.p('apply_api')}",
+                                      "email": BROWSER_CV_EMAIL.format(site=site, sha=self.sha[:12])})
+                    else:
+                        self.rec(f"browser_apply_cv[{site}]", False, "no email-apply job found on the board")
             if link and link_task is None:
                 link_task = {"kind": "link", "name": "browser_link_apply", "url": link["url"], "expect": link["expect"]}
             urls = [board + f"/{site}/"] + [t["url"] for t in (email, link) if t]
@@ -471,7 +495,7 @@ class Smoke:
             urls += [base + self.p("board_job", ed=site, slug=i) for i in ids[:LINK_JOB_SAMPLE]]
             hits, errors = [], []
             for url in urls:
-                g = self.get(url)
+                g, _hop = self.get_page(url)
                 if g.status != 200:
                     errors.append(f"{urlsplit(url).path} HTTP {g.status}")
                     continue
@@ -549,10 +573,13 @@ class Smoke:
                 jobs = (jr.json() or {}).get("jobs") if jr.status == 200 and isinstance(jr.json(), dict) else None
                 slug = str(jobs[0].get("id") or "") if isinstance(jobs, list) and jobs and isinstance(jobs[0], dict) else ""
                 if re.fullmatch(r"[A-Za-z0-9_:-]{1,120}", slug):
-                    g = self.get(wb + self.p("board_job", ed=site, slug=slug))
-                    s_max, m_age = ages(g)
-                    if g.status != 200 or s_max > 300 or m_age > 300:
-                        bad.append(f"worker job page HTTP {g.status} s-maxage={s_max} max-age={m_age}")
+                    g, hop = self.get_page(wb + self.p("board_job", ed=site, slug=slug))
+                    for resp, what in ((g, "job page"), *(((hop, "job page redirect"),) if hop else ())):
+                        s_max, m_age = ages(resp)
+                        if s_max > 300 or m_age > 300:
+                            bad.append(f"worker {what} HTTP {resp.status} s-maxage={s_max} max-age={m_age}")
+                    if g.status != 200:
+                        bad.append(f"worker job page HTTP {g.status}")
                 else:
                     bad.append("worker job page: no job slug to probe")
             self.rec(f"html_cache[{site}]", not bad, "; ".join(bad) or "every HTML response <= 300 s")
@@ -860,7 +887,7 @@ class Smoke:
         self.check_live_wiring()
         self.check_no_old_platform_links()
         self.check_alert_signup()
-        self.check_browser()  # before write_flow: the per-IP apply limit (5 / 10 min) covers 2 browser + 2 API applies
+        self.check_browser()  # before write_flow: the per-IP apply limit (5 / 10 min) covers 2 browser + 1 CV + 2 API applies
         self.check_redirects()
         self.check_export()
         if self.mode == "full":

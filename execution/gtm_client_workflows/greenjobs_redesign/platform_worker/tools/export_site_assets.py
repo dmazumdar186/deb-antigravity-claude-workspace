@@ -68,6 +68,7 @@ def payload(src: Path) -> dict:
             for ed in ("ie", "uk")
         },
         "shell": shell,
+        "nations": build_site.UK_NATION_PLACES,  # eye r3 m3: displayLocation's nation check (same table as build_site)
         "analytics": analytics(src),
         "brief": {
             "b_corp": bool(brief.get("b_corp")),

@@ -62,8 +62,16 @@ also names).
 Delivery failures: the Resend call times out after 10 s (`delivery_status='failed'`, cron retries). Any live
 failure writes one `audit_log` `delivery.failed` row per application (id + reason, no PII) and, on the first
 failure only, sends one alert to `OPS_ALERT_EMAIL` when set (never in dry run; counts against `MAIL_DAILY_CAP`).
-Secrets: `RESEND_API_KEY`, `BUILD_TOKEN`. Bindings: `DB` (D1), `CVS` (R2), optional `RATE` (KV),
+Secrets: `RESEND_API_KEY`, `BUILD_TOKEN`. Bindings: `DB` (D1), `CVS` (R2, optional), optional `RATE` (KV),
 optional `APPLY_LIMITER` (Rate Limiting).
+
+CVs (eye review r3 R3-1): `CV_STORAGE` = `attach` (default, every env): the CV is validated (size, `MAX_CV_BYTES`,
+magic bytes) and attached to the application mail only; nothing is stored, and a live send that fails answers 502
+`delivery_failed` (the row is dropped so the candidate can resend; the cron cannot re-attach a CV it never kept).
+`r2` also stores it in `CVS` when that binding exists. Logs carry CV metadata (type, size) only, never content.
+Board host (R3-2): with `CANONICAL_ORIGIN_IE/UK` set, an HTML page asked on any other host (staging `*.workers.dev`)
+answers 301 to the same path on the board; `/api/*` keeps working. A browser form post without JS
+(`Accept: text/html`) to `/api/apply`, `/api/alerts` or `/api/newsletter` gets the site's HTML result page.
 
 Apply mode is per job (client answer Q8): `jobs.apply_mode` is `email` (on-site form) or `link`
 (external ATS at the https `apply_url`; `POST /api/apply` answers 409 `apply_externally` with the

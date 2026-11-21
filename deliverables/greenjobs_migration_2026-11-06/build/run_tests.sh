@@ -61,7 +61,7 @@ print(f"ok: schema x2, {len(stmts)} upserts, {len(migs)} migration(s) x2 + schem
 EOF
 
 echo "== 2/6 import validator + apply mode + Gaia feed sync + classifier / D1 import + frozen taxonomy + export bot (pytest)"
-"$PY" -m pytest -q tests/greenjobs_redesign/test_strategies_import.py tests/greenjobs_redesign/test_strategies_real_headers.py tests/greenjobs_redesign/test_apply_mode_site.py tests/greenjobs_redesign/test_gaia_feed_sync.py tests/greenjobs_redesign/test_d1_classifier_import.py tests/greenjobs_redesign/test_platform_taxonomy.py tests/greenjobs_redesign/test_strategies_export_bot.py tests/greenjobs_redesign/test_analytics.py tests/greenjobs_redesign/test_eye_review_fixes.py tests/greenjobs_redesign/test_eye_review_r2.py || fail=1
+"$PY" -m pytest -q tests/greenjobs_redesign/test_strategies_import.py tests/greenjobs_redesign/test_strategies_real_headers.py tests/greenjobs_redesign/test_apply_mode_site.py tests/greenjobs_redesign/test_gaia_feed_sync.py tests/greenjobs_redesign/test_d1_classifier_import.py tests/greenjobs_redesign/test_platform_taxonomy.py tests/greenjobs_redesign/test_strategies_export_bot.py tests/greenjobs_redesign/test_analytics.py tests/greenjobs_redesign/test_eye_review_fixes.py tests/greenjobs_redesign/test_eye_review_r2.py tests/greenjobs_redesign/test_eye_review_r3.py || fail=1
 
 echo "== 3/6 Worker unit tests + BDD features + D1-rendered board: parity with build_site.py and the E2E deploy gate (node --test)"
 node --no-warnings --test 'tests/greenjobs_redesign/platform/*.test.mjs' || fail=1

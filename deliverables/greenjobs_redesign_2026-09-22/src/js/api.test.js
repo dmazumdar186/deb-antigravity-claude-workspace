@@ -204,7 +204,8 @@ test('applyOutcome: received / duplicate are success; invalid_input marks fields
   assert.equal(dup.ok, true); assert.match(dup.text, /^Application received/);
   const bad = A.applyOutcome(400, { error: 'invalid_input', fields: ['email', 'consent'] });
   assert.equal(bad.ok, false); assert.deepEqual(Object.keys(bad.fields), ['email', 'consent']);
-  assert.ok(A.applyOutcome(503, { error: 'cv_storage_unavailable' }).fields.cv);
+  assert.match(A.applyOutcome(502, { error: 'delivery_failed' }).text, /try again in a few minutes/);
+  assert.equal(A.applyOutcome(503, { error: 'cv_storage_unavailable' }).fields, undefined, 'eye r3 R3-1: no CV storage message left');
   assert.match(A.applyOutcome(429, { error: 'rate_limited' }).text, /10 minutes/);
   assert.match(A.applyOutcome(405, {}).text, /Not sent \(error 405\)/);
   assert.match(A.applyOutcome(400, { error: 'too_fast' }).text, /reload/);
@@ -277,4 +278,37 @@ test('initApply: a Worker invalid_input answer marks the named field; a 405 is s
   await q.submit();
   assert.equal(q.status.classList.has('is-err'), true);
   assert.doesNotMatch(q.status.textContent, /received/);
+});
+
+test('eye r3 R3-3: after "Application received" the form is reset (render stamp kept), the button is done, the sticky bar updates', async () => {
+  const p = fakeApplyPage();
+  const ts = { value: '1763700000000' };
+  const sticky = { textContent: 'Apply now', attrs: {}, cls: new Set(), setAttribute(k, v) { this.attrs[k] = v; }, classList: { add(c) { sticky.cls.add(c); } } };
+  const bar = { cls: new Set(), classList: { add(c) { bar.cls.add(c); } } };
+  let resets = 0;
+  p.form.reset = () => { resets++; ts.value = ''; p.fields.name.value = ''; };
+  const q = p.form.querySelector;
+  p.form.querySelector = (s) => (s === '[data-apply-ts]' ? ts : q(s));
+  const qa = p.doc.querySelectorAll;
+  p.doc.querySelectorAll = (s) => (s === '[data-sticky-apply] a[data-apply]' ? [sticky] : qa(s));
+  p.doc.querySelector = (s) => (s === '[data-sticky-apply]' ? bar : null);
+  A.initApply(p.doc, async () => ({ status: 201, json: async () => ({ ok: true, status: 'received' }) }), FD);
+  await p.submit();
+  assert.equal(resets, 1, 'form reset once');
+  assert.equal(p.fields.name.value, '');
+  assert.equal(ts.value, '1763700000000', 'the render stamp survives the reset');
+  const btn = p.form.querySelector('[type="submit"]');
+  assert.equal(btn.disabled, true);
+  assert.equal(btn.textContent, 'Application sent');
+  assert.equal(sticky.textContent, 'Application sent');
+  assert.ok(sticky.cls.has('is-done') && bar.cls.has('is-applied'));
+  assert.match(p.status.textContent, /^Application received/);
+  // a failed send leaves the form as it was, button enabled
+  const f2 = fakeApplyPage();
+  let r2 = 0;
+  f2.form.reset = () => { r2++; };
+  A.initApply(f2.doc, async () => ({ status: 429, json: async () => ({ error: 'rate_limited' }) }), FD);
+  await f2.submit();
+  assert.equal(r2, 0);
+  assert.equal(f2.form.querySelector('[type="submit"]').disabled, false);
 });

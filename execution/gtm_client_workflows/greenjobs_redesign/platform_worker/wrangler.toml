@@ -47,6 +47,7 @@ OPS_ALERT_EMAIL = ""       # delivery-failure alert inbox; empty = audit_log row
 RATE_APPLY_PER_10MIN = "5"
 RATE_ADMIN_PER_MIN = "60"
 MAX_CV_BYTES = "5242880"
+CV_STORAGE = "attach"       # attach: the CV rides on the application mail only, nothing stored (eye r3 R3-1); "r2" also stores it when a CVS binding exists
 ROBOTS_INDEX = "0"         # "1" at go-live: job pages drop the demo shell's noindex so Google indexes JobPosting
 CANONICAL_ORIGIN_IE = ""   # e.g. "https://www.greenjobs.ie"; empty = the request's own origin
 CANONICAL_ORIGIN_UK = ""   # e.g. "https://www.greenjobs.co.uk"
@@ -113,11 +114,12 @@ OPS_ALERT_EMAIL = ""
 RATE_APPLY_PER_10MIN = "5"
 RATE_ADMIN_PER_MIN = "60"
 MAX_CV_BYTES = "5242880"
+CV_STORAGE = "attach"       # attach: the CV rides on the application mail only, nothing stored (eye r3 R3-1); "r2" also stores it when a CVS binding exists
 ALERTS_ENABLED = "1"       # staging: sign-up testable end to end; DRY_RUN="1" + MAIL_PROVIDER="none" keep every mail unsent (needs secret LIST_MAIL_SIGNING_KEY)
 NEWSLETTER_ENABLED = "0"
 ROBOTS_INDEX = "0"         # pinned: staging is never indexed (Worker pages + Pages _headers X-Robots-Tag)
-CANONICAL_ORIGIN_IE = ""
-CANONICAL_ORIGIN_UK = ""
+CANONICAL_ORIGIN_IE = "https://greenjobs-stg-ie.pages.dev"   # the board hosts: Worker HTML pages on workers.dev 301 here (eye r3 R3-2)
+CANONICAL_ORIGIN_UK = "https://greenjobs-stg-uk.pages.dev"
 LIST_FROM_IE = ""
 LIST_FROM_UK = ""
 LIST_MAIL_RUN_CAP = "20"
@@ -138,7 +140,7 @@ database_name = "greenjobs-staging"
 database_id = "d94a690a-286a-4608-b563-8329fdc37382"
 migrations_dir = "../../../../deliverables/greenjobs_migration_2026-11-06/build/d1/migrations"
 
-# [[env.staging.r2_buckets]]   # R2 not enabled on our account yet (environments.json _r2_note); CVs -> 503 on staging
+# [[env.staging.r2_buckets]]   # R2 not enabled on our account yet (environments.json _r2_note); CVs are attached to the mail (CV_STORAGE attach)
 # binding = "CVS"
 # bucket_name = "greenjobs-cvs-staging"
 
@@ -173,11 +175,12 @@ OPS_ALERT_EMAIL = ""
 RATE_APPLY_PER_10MIN = "5"
 RATE_ADMIN_PER_MIN = "60"
 MAX_CV_BYTES = "5242880"
+CV_STORAGE = "attach"       # attach: the CV rides on the application mail only, nothing stored (eye r3 R3-1); "r2" also stores it when a CVS binding exists
 ALERTS_ENABLED = "1"       # staging: sign-up testable end to end; DRY_RUN="1" + MAIL_PROVIDER="none" keep every mail unsent (needs secret LIST_MAIL_SIGNING_KEY)
 NEWSLETTER_ENABLED = "0"
 ROBOTS_INDEX = "0"         # pinned: staging is never indexed (Worker pages + Pages _headers X-Robots-Tag)
-CANONICAL_ORIGIN_IE = ""
-CANONICAL_ORIGIN_UK = ""
+CANONICAL_ORIGIN_IE = "https://greenjobs-stg-ie.pages.dev"
+CANONICAL_ORIGIN_UK = "https://greenjobs-stg-uk.pages.dev"
 LIST_FROM_IE = ""
 LIST_FROM_UK = ""
 LIST_MAIL_RUN_CAP = "20"
@@ -236,6 +239,7 @@ OPS_ALERT_EMAIL = ""
 RATE_APPLY_PER_10MIN = "5"
 RATE_ADMIN_PER_MIN = "60"
 MAX_CV_BYTES = "5242880"
+CV_STORAGE = "attach"       # attach: the CV rides on the application mail only, nothing stored (eye r3 R3-1); "r2" also stores it when a CVS binding exists
 ALERTS_ENABLED = "0"
 NEWSLETTER_ENABLED = "0"
 ROBOTS_INDEX = "1"         # production is indexed (go-live)

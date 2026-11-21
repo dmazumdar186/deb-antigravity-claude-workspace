@@ -122,6 +122,44 @@ try {
           return out;
         });
         check(taps.length === 0, `m2 ${ed} @${w}: phone tap targets >= 44px${taps.length ? ` (${taps.slice(0, 3).join('; ')})` : ''}`);
+        // eye r3 m2: EVERY interactive element on every page type is >= 44 x 44 px (not only the r2 selectors).
+        // Exempt: SVG chart marks (each chart has "Show as table"), links inside running description text (WCAG 2.5.8
+        // inline exception) and a checkbox inside a label (the label row is the target and is measured instead).
+        for (const path of [email[0], ...(link ? [link] : []), `/${ed}/`, `/${ed}/jobs/`, `/${ed}/employers/`, `/${ed}/dashboard/`, `/${ed}/insights/`]) {
+          await page.goto(BASE + path, { waitUntil: 'load' });
+          await page.waitForTimeout(150);
+          const small = await page.evaluate(() => {
+            const out = [];
+            const sel = 'a[href],button,summary,select,textarea,input:not([type=hidden]),[role=button],[tabindex]:not([tabindex="-1"])';
+            for (let e of document.querySelectorAll(sel)) {
+              if (e.closest('svg') || e.closest('.prose') || e.closest('[hidden]') || e.getAttribute('tabindex') === '-1') continue;
+              if (e.matches('input[type=checkbox],input[type=radio]') && e.closest('label')) e = e.closest('label');
+              const r = e.getBoundingClientRect(), cs = getComputedStyle(e);
+              if (!r.width || !r.height || cs.visibility === 'hidden' || cs.display === 'none') continue;
+              if (Math.round(r.height) < 44 || Math.round(r.width) < 44) out.push(`${e.tagName.toLowerCase()}.${String(e.className || '').split(' ')[0]} "${(e.textContent || e.getAttribute('aria-label') || '').trim().slice(0, 18)}" ${Math.round(r.width)}x${Math.round(r.height)}`);
+            }
+            return [...new Set(out)];
+          });
+          check(small.length === 0, `m2 ${ed} ${path} @${w}: every interactive element >= 44x44${small.length ? ` (${small.length}: ${small.slice(0, 4).join('; ')})` : ''}`);
+        }
+        await page.goto(BASE + email[0], { waitUntil: 'load' });
+        // eye r3 R3-4: the breadcrumb "/" separators sit on the links' line (centres within 2 px)
+        const crumb = await page.evaluate(() => {
+          const c = (e) => { const g = document.createRange(); g.selectNodeContents(e); const r = g.getClientRects()[0] || e.getBoundingClientRect(); return (r.top + r.bottom) / 2; };
+          const links = [...document.querySelectorAll('.crumbs a')], seps = [...document.querySelectorAll('.crumbs > span')];
+          if (!links.length || !seps.length) return null;
+          return Math.max(...seps.map((s) => Math.min(...links.map((a) => Math.abs(c(a) - c(s))))));
+        });
+        check(crumb !== null && crumb <= 2, `R3-4 ${ed} @${w}: breadcrumb separators aligned with the links (off by ${crumb === null ? 'n/a' : crumb.toFixed(1)}px)`);
+        // eye r3 R3-5: in each footer list every link's text starts at the same left edge (no "Jobs" indent)
+        const indent = await page.evaluate(() => [...document.querySelectorAll('.ftr ul')].map((ul) => {
+          const xs = [...ul.querySelectorAll(':scope > li > a')].filter((a) => a.parentElement.textContent.trim() === a.textContent.trim()).map((a) => {
+            const range = document.createRange(); range.selectNodeContents(a);
+            return Math.round((range.getClientRects()[0] || a.getBoundingClientRect()).left);
+          });
+          return xs.length ? Math.max(...xs) - Math.min(...xs) : 0;
+        }));
+        check(indent.length > 0 && Math.max(...indent) <= 1, `R3-5 ${ed} @${w}: footer list text starts at one left edge (max indent ${Math.max(0, ...indent)}px)`);
         // sticky bar vs footer at the end of the page (N5)
         await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
         await page.waitForTimeout(400);

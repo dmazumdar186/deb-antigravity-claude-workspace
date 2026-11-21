@@ -71,7 +71,9 @@ class MockGreenJobs:
         keith_live=False,
         asset_cc="public, max-age=0, must-revalidate",
         asset_url="/css/styles.css",
+        worker_copy=False,
     ):
+        self.worker_copy = worker_copy  # eye r3 R3-2: True = the old Worker that rendered its own job page copy
         self.html_cc, self.keith_live, self.asset_cc, self.asset_url = html_cc, keith_live, asset_cc, asset_url
         self.old_link, self.alerts_status = old_link, alerts_status
         self.no_cors = no_cors
@@ -190,7 +192,11 @@ class MockGreenJobs:
             return self.r(200, {"live_jobs": n, "salary": {"n_jobs": n}, "kpis": {"live": n}})
         m = re.fullmatch(r"/(ie|uk)/jobs/([^/]+)/", path)
         if m and method == "GET":
-            return self.job_page(m.group(2))
+            if self.worker_copy or u.hostname in ("greenjobs.ie", "greenjobs.co.uk"):
+                return self.job_page(m.group(2))
+            site = "uk" if "-uk." in u.hostname else "ie"  # workers.dev: 301 to the edition's board (R3-2)
+            board = self.cfg["envs"]["staging"]["board_urls"][site].rstrip("/")
+            return self.r(301, "", {"location": board + path, "cache-control": "public, max-age=300"})
         if path == "/api/alerts" and method == "POST":
             data = json.loads(body or b"{}")
             assert data.get("consent") is True and headers.get("Content-Type") == "application/json"
@@ -580,7 +586,7 @@ def test_browser_check_submits_the_on_page_form_per_edition_through_the_api_base
     assert res["status"] == "pass", failed(res)
     spec = fake_browser.specs[0]
     applies = [t for t in spec["tasks"] if t["kind"] == "apply"]
-    assert sorted(t["name"] for t in applies) == ["browser_apply[ie]", "browser_apply[uk]"]
+    assert sorted(t["name"] for t in applies) == ["browser_apply[ie]", "browser_apply[uk]", "browser_apply_cv[ie]"]
     for t in applies:
         site = t["name"][-3:-1]
         assert t["expect_post"] == cfg["envs"]["staging"]["api_base"][site] + "/api/apply"
@@ -714,3 +720,83 @@ def test_asset_cache_unversioned_long_ttl_fails_hashed_needs_immutable(cfg):
     assert by["asset_cache[ie]"]["status"] == "fail"  # unversioned asset must stay short
     res, by, *_ = run(cfg, asset_url="/css/styles.0123456789ab.css", asset_cc="public, max-age=31536000, immutable")
     assert by["asset_cache[ie]"]["status"] == "pass"
+
+
+# ── eye review r3 ─────────────────────────────────────────────────────────────
+
+
+def test_r3_2_worker_job_page_must_redirect_to_the_board(cfg):
+    res, by, *_ = run(cfg)
+    assert res["status"] == "pass", failed(res)
+    assert "301 -> board" in by["job_page[ie]"]["detail"] and "301 -> board" in by["job_page[uk]"]["detail"]
+    res, by, *_ = run(cfg, worker_copy=True)  # the r3 defect: a styleless copy on workers.dev
+    assert {"job_page[ie]", "job_page[uk]"} <= set(failed(res))
+    assert "did not redirect" in by["job_page[ie]"]["detail"]
+
+
+def test_r3_1_browser_smoke_applies_once_with_a_pdf_cv(cfg, fake_browser):
+    res, by, *_ = run(cfg)
+    assert res["status"] == "pass", failed(res)
+    cv = [t for t in fake_browser.specs[0]["tasks"] if t.get("cv")]
+    assert [t["name"] for t in cv] == ["browser_apply_cv[ie]"]
+    assert cv[0]["email"] == f"smoke-browser-cv-ie-{SHA[:12]}@example.com"
+    assert cv[0]["expect_post"] == cfg["envs"]["staging"]["api_base"]["ie"] + "/api/apply"
+    assert by["browser_apply_cv[ie]"]["status"] == "pass"
+    applies = [t for t in fake_browser.specs[0]["tasks"] if t["kind"] == "apply"]
+    assert len(applies) + 2 <= 5, "browser + API applies stay within the 5 / 10 min per-IP limit"
+
+
+def test_r3_1_browser_smoke_script_attaches_the_pdf(tmp_path):
+    """The real browser_smoke.mjs: with cv: true the multipart POST carries smoke-cv.pdf, and the form is reset after
+    the success message (R3-3); a server that drops the file fails the check."""
+    import shutil
+    import subprocess
+    import threading
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+    if not shutil.which("node"):
+        pytest.fail("node is required for the browser smoke")
+    page = (
+        '<!doctype html><html><body><form data-apply-form action="/api/apply" enctype="multipart/form-data"><input id="ap-name" name="name">'
+        '<input id="ap-email" name="email"><textarea id="ap-cover" name="cover_note"></textarea><input id="ap-cv" name="cv" type="file">'
+        '<input id="ap-consent" type="checkbox" name="consent" value="yes"><button type="submit">Send</button>'
+        '<p data-apply-status></p></form><script>var f=document.querySelector("form");f.addEventListener("submit",function(e){'
+        'e.preventDefault();fetch(f.action,{method:"POST",body:new FormData(f)}).then(function(r){'
+        'f.querySelector("[data-apply-status]").textContent=r.ok?"Application received. Thank you.":"Not sent ("+r.status+")";if(r.ok)f.reset();});});</script>'
+        '</body></html>'
+    )
+    seen = []
+
+    class H(BaseHTTPRequestHandler):
+        def log_message(self, *a):  # quiet test server
+            return
+
+        def do_GET(self):
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html")
+            self.end_headers()
+            self.wfile.write(page.encode())
+
+        def do_POST(self):
+            body = self.rfile.read(int(self.headers.get("Content-Length") or 0))
+            seen.append(body)
+            ok = b"%PDF-" in body and b'filename="smoke-cv.pdf"' in body
+            self.send_response(201 if ok else 503)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(b"{}")
+
+    srv = ThreadingHTTPServer(("127.0.0.1", 0), H)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    base = f"http://127.0.0.1:{srv.server_address[1]}"
+    try:
+        spec = {"tasks": [{"kind": "apply", "name": "cv", "cv": True, "url": base + "/job", "expect_post": base + "/api/apply", "email": "x@example.com"},
+                          {"kind": "apply", "name": "nocv", "url": base + "/job", "expect_post": base + "/api/apply", "email": "x@example.com"}]}
+        res = subprocess.run(["node", str(smoke.BROWSER_SCRIPT)], input=json.dumps(spec), capture_output=True, text=True,
+                             encoding="utf-8", errors="replace", timeout=300)
+        got = {c["name"]: c for c in json.loads(res.stdout.strip().splitlines()[-1])["checks"]}
+        assert got["cv"]["ok"] is True and "CV sent" in got["cv"]["detail"], got["cv"]
+        assert got["nocv"]["ok"] is False, "no file on the form: the test server answers 503"
+        assert b'filename="smoke-cv.pdf"' in seen[0]
+    finally:
+        srv.shutdown()

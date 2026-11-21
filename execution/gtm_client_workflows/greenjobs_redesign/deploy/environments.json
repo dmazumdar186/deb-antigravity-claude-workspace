@@ -23,7 +23,7 @@
       "_extra_workers_note": "A workers.dev host is per script, so UK gets a second deployment of the same Worker (wrangler [env.staging-uk]: same D1, HOST_SITE_MAP -> uk, no cron, no Access app). release.py deploys it right after the primary; check-config pins it. Staging only.",
       "d1": "greenjobs-staging",
       "r2": "",
-      "_r2_note": "R2 is not enabled on our account yet (API code 10042): staging runs without CV storage; an apply with a CV answers 503 cv_storage_unavailable. Set to greenjobs-cvs-staging and restore the wrangler binding once R2 is enabled.",
+      "_r2_note": "R2 is not enabled on our account yet (API code 10042): staging runs without CV storage. CVs are not stored anywhere (eye r3 R3-1): the Worker validates the CV and attaches it to the application mail (CV_STORAGE=attach, the default in every env); DRY_RUN logs its metadata only. Storing CVs in R2 needs CV_STORAGE=r2 plus a bucket here and the wrangler binding.",
       "backup_bucket": "",
       "pages": {
         "ie": "greenjobs-stg-ie",

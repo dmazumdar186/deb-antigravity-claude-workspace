@@ -56,6 +56,13 @@ class FakeCF:
         assert (
             "CLOUDFLARE_API_TOKEN" in env and env["CLOUDFLARE_API_TOKEN"] == "tok-test"
         )
+        if "gaia_feed_sync.py" in line and not (self.fail_on and self.fail_on in line):
+            # stand-in for gaia_feed_sync.py: a one-job feed.json (eye r3: release.fetch_gaia_feed checks it)
+            out = Path(argv[argv.index("--out") + 1])
+            out = out if out.is_absolute() else Path(release.ROOT) / out
+            out.mkdir(parents=True, exist_ok=True)
+            (out / "feed.json").write_text(json.dumps({"generated": "2026-11-21T06:00:00Z", "jobs": [{"wp_id": 1}]}), encoding="utf-8")
+            return 0, "ok"
         if "staging_seed.py" in line and not (self.fail_on and self.fail_on in line):
             # stand-in for staging_seed.py: the three outputs release.seed() reads, in the real upsert form
             out = Path(argv[argv.index("--out") + 1])
@@ -824,3 +831,41 @@ def test_production_never_gets_seed_data(cfg, tmp_path, no_toml_placeholders):
     with pytest.raises(release.GateError):
         rel.deploy_boards()
     assert cfg["envs"]["production"]["seed_public_jobs"] is False
+
+
+# ── eye review r3: Gaia feed fallback (HTTP 522 etc.) and the edition switch origins ─────────────
+
+
+def test_r3_gaia_fetch_failure_falls_back_to_the_last_good_snapshot_and_says_so(cfg, tmp_path, no_toml_placeholders):
+    rel, fake = mk(resolved(cfg), "staging", tmp_path)
+    rel.stage()  # a good fetch leaves the last good snapshot in the ledger dir
+    snap = tmp_path / "ledger" / release.GAIA_LAST_GOOD
+    assert json.loads(snap.read_text(encoding="utf-8"))["jobs"]
+    assert rel.record["gaia_feed"]["source"] == "live"
+    bad = FakeCF(fail_on="gaia_feed_sync.py")
+    rel2, fake2 = mk(resolved(cfg), "staging", tmp_path, bad)
+    rec = rel2.stage()
+    assert rec["status"] == "deployed"
+    assert rec["gaia_feed"]["source"] == "last_good_snapshot"
+    assert rec["gaia_feed"]["generated"] == "2026-11-21T06:00:00Z"
+    assert "exit 1" in rec["gaia_feed"]["reason"]
+    assert any("staging_seed.py" in " ".join(c) for c in fake2.calls), "the seed still ran"
+    assert release.read_ledger(tmp_path / "ledger")[-1]["gaia_feed"]["source"] == "last_good_snapshot"
+    assert "| Gaia feed | last_good_snapshot" in (tmp_path / "ledger" / "summary.md").read_text(encoding="utf-8")
+
+
+def test_r3_gaia_fetch_failure_without_a_snapshot_fails_loud(cfg, tmp_path, no_toml_placeholders):
+    rel, fake = mk(resolved(cfg), "staging", tmp_path, FakeCF(fail_on="gaia_feed_sync.py"))
+    with pytest.raises(release.StepError, match="no last good Gaia feed snapshot"):
+        rel.stage()
+    assert not any("staging_seed.py" in " ".join(c) for c in fake.calls)
+
+
+def test_r3_board_builds_pass_each_editions_own_board_origin(cfg, tmp_path, no_toml_placeholders):
+    rel, fake = mk(resolved(cfg), "staging", tmp_path)
+    rel.stage()
+    builds = [c for c in fake.calls if "build_site.py" in " ".join(c)]
+    assert len(builds) == 2
+    for b in builds:
+        pairs = [b[i + 1] for i, a in enumerate(b) if a == "--edition-origin"]
+        assert pairs == ["ie=https://greenjobs-stg-ie.pages.dev", "uk=https://greenjobs-stg-uk.pages.dev"]

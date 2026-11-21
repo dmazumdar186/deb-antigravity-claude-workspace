@@ -1,10 +1,11 @@
 // POST /api/apply (multipart/form-data). Order of gates:
 //   origin -> content type/size -> IP rate limit -> parse -> honeypot -> render ts -> fields
-//   -> job live + apply mode (link -> 409 apply_externally) -> email rate limit -> dedupe -> routing -> CV sniff + R2 -> insert
+//   -> job live + apply mode (link -> 409 apply_externally) -> email rate limit -> dedupe -> routing -> CV sniff (+ R2 only
+//   with CV_STORAGE=r2) -> insert
 //   -> audit -> mail (dry by default) -> delivery_status.
 // A duplicate (same site|job|email) returns 200 "already_received" and sends nothing.
 
-import { buildApplicationEmail } from '../mail.js';
+import { buildApplicationEmail, isLive } from '../mail.js';
 import { inboxFor } from '../site.js';
 import { err, intVar, json, nowIso, sha256Hex, todayUtc, clientIp } from '../util.js';
 import { cvKey, checkRenderTs, isValidEmail, normEmail, safeParam, sniffCv, validateApplication } from '../validate.js';
@@ -18,6 +19,11 @@ VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?
 ON CONFLICT (dedupe_key) DO NOTHING`;
 
 const FORM_OVERHEAD = 256 * 1024;
+
+/** 'r2' only when CV_STORAGE="r2" and the CVS binding exists; otherwise 'attach' (the CV rides on the mail only). */
+export function cvStorage(env) {
+  return env.CV_STORAGE === 'r2' && env.CVS ? 'r2' : 'attach';
+}
 
 export function dedupeKey(site, jobId, emailNorm) {
   return sha256Hex(`${site}|${jobId}|${emailNorm}`);
@@ -113,7 +119,9 @@ export async function apply(ctx) {
     return err('routing_not_configured', 503, cors);
   }
 
-  // CV: optional; sniffed by magic bytes; key built from site/date/uuid only (never the client file name).
+  // CV: optional; validated (size, magic bytes) and ATTACHED to the application mail (eye r3 R3-1: CV storage is not
+  // required). Nothing is persisted unless CV_STORAGE="r2" AND an R2 binding (CVS) exists; then the key is built from
+  // site/date/uuid only (never the client file name). Only metadata (type, size) is ever logged, never content.
   let cv = null;
   const file = form.get('cv');
   // A zero-byte file the candidate chose is refused, never silently treated as "no CV" (#6). The one exception
@@ -122,15 +130,15 @@ export async function apply(ctx) {
     return err('cv_empty', 400, cors);
   }
   if (file && typeof file === 'object' && typeof file.arrayBuffer === 'function' && file.size > 0) {
-    // An environment without CV storage (staging before R2 is enabled) refuses a CV loudly, never drops it.
-    if (!env.CVS) return err('cv_storage_unavailable', 503, cors);
     if (file.size > maxCv) return err('cv_too_large', 413, cors);
     const bytes = new Uint8Array(await file.arrayBuffer());
     if (bytes.length > maxCv) return err('cv_too_large', 413, cors);
     const kind = sniffCv(bytes);
     if (!kind) return err('cv_type', 415, cors);
-    cv = { ...kind, bytes, key: cvKey(site, now, crypto.randomUUID(), kind.ext) };
-    await env.CVS.put(cv.key, bytes, { httpMetadata: { contentType: kind.type } });
+    const store = cvStorage(env);
+    cv = { ...kind, bytes, size: bytes.length, key: store === 'r2' ? cvKey(site, now, crypto.randomUUID(), kind.ext) : null };
+    if (cv.key) await env.CVS.put(cv.key, bytes, { httpMetadata: { contentType: kind.type } });
+    console.log('apply: cv', JSON.stringify({ site, type: kind.ext, bytes: cv.size, storage: store, dry_run: !isLive(env) }));
   }
 
   const appId = `${site}:apply:${crypto.randomUUID()}`;
@@ -141,7 +149,7 @@ export async function apply(ctx) {
     .run();
   if (!res.meta || res.meta.changes === 0) {
     // Lost a race with an identical submit: keep the first, drop this CV.
-    if (cv) await env.CVS.delete(cv.key);
+    if (cv && cv.key) await env.CVS.delete(cv.key);
     return json({ ok: true, status: 'already_received' }, 200, cors);
   }
 
@@ -157,6 +165,12 @@ export async function apply(ctx) {
   await env.DB.batch(audits);
 
   const status = await deliverApplication(ctx.env, mailer, appId, job, cv, now);
+  if (status === 'failed' && cv && !cv.key) {
+    // The CV exists only in this request: a cron retry could not attach it. Drop the row (the audit rows stay) so the
+    // candidate can send again, and say so loudly instead of answering "queued".
+    await env.DB.prepare('DELETE FROM applications WHERE id = ?1').bind(appId).run();
+    return err('delivery_failed', 502, cors);
+  }
   return json({ ok: true, status: 'received', delivery: status === 'failed' ? 'queued' : status }, 201, cors);
 }
 

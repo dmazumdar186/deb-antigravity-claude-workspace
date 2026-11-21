@@ -104,10 +104,12 @@ const PY = (expr, arg) => {
 };
 
 const LOCS = [
-  ['West Yorkshire, Scotland (nationwide)', 'West Yorkshire, Scotland'],
+  ['West Yorkshire, Scotland (nationwide)', 'West Yorkshire, anywhere in Scotland'], // eye r3 m3: never 'West Yorkshire, Scotland'
   ['London Central, West Yorkshire, England', 'Central London, West Yorkshire'],
   ['Dublin, United Kingdom (UK)', 'Dublin'],
-  ['Manchester, England, Scotland (nationwide)', 'Manchester, Scotland'],
+  ['Manchester, England, Scotland (nationwide)', 'Manchester, anywhere in Scotland'],
+  ['Glasgow, Scotland (nationwide)', 'Glasgow'],
+  ['Newcastle upon Tyne, Edinburgh', 'Newcastle upon Tyne, Edinburgh'],
   ['London City, Manchester', 'City of London, Manchester'],
   ['Monagahan, Donegal, Cavan, Leitrim', 'Monaghan, Donegal, Cavan, Leitrim'],
   ['United Kingdom (UK), Ireland (nationwide)', 'United Kingdom (UK), Ireland (nationwide)'],
