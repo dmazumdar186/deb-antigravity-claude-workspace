@@ -6,14 +6,14 @@ Eight decisions below; question 4 lists the 11 open items from your 28 September
 Each one says what I'll do if I don't hear by the date given.
 No call needed. Please reply to this email so we have it all in writing.
 
-1. Candidate records. Of the people who agreed to hear from GreenJobs (as recorded in the Strategies export), which should I bring across to the new boards, and how far back?
-   Whatever is downloaded from Strategies before the switch on 3 Dec goes into an archive in GreenJobs' own storage.
-   If I don't hear by Wed 25 Nov, I'll bring across jobs, employers and the job-alert sign-ups whose consent is recorded (they re-confirm by email), and keep all candidate records in that archive.
+1. Candidate records. Of the people who agreed to hear from GreenJobs, which should I bring across to the new boards, and how far back?
+   Whatever Diana and Rashieda download from the Strategies admin before 3 Dec (I'll send the steps) goes into an archive in GreenJobs' own storage.
+   If I don't hear by Wed 25 Nov, I'll bring across jobs, employers and the job-alert sign-ups, only where the export shows they agreed (each re-confirms by email before any alert is sent), and keep the candidate records they download in that archive.
 
 2. The 8 sector sites: environmentaljobsuk.com, renewableenergyjobsuk.com, solarjobsuk.com, windjobsuk.com, conservationjobsuk.com, wastejobsuk.com, waterjobsuk.com and ecologyjobsuk.com.
    All 8 run on the same Strategies hosting as greenjobs.co.uk, so they stop working on 6 Dec.
-   From the switch on 3 Dec each one can forward to the closest matching page on greenjobs.co.uk (set up once as part of the switch), or go dark. Separate full sector sites would be a later quote.
-   To set it up I'll send Diana a short click guide for the steps at 123 Reg. First I'll ask her whether any mailbox or forwarder uses those domains; if one does, that domain waits until you decide whether to keep it.
+   From the switch on 3 Dec each one can forward to the closest matching page on greenjobs.co.uk, or go dark. The forward is a one-off set up with the switch; the monthly plan still covers greenjobs.ie and greenjobs.co.uk only, and separate full sector sites would be a later quote.
+   To set it up I'll send Diana a short click guide for the nameserver step in the 123 Reg control panel. First I'll ask her whether any mailbox or forwarder uses those domains; if one does, that domain waits until you decide whether to keep it.
    If I don't hear by Wed 25 Nov, I'll send Diana the click guide the next working day; each site forwards from 3 Dec once her steps for it are done.
 
 3. Employer logos. Am I OK to show the employer logos from the current boards?
@@ -50,7 +50,7 @@ No call needed. Please reply to this email so we have it all in writing.
    UK board: https://greenjobs-stg-uk.pages.dev/uk/
    Jobs marked "[Test data]" are September jobs re-dated for testing; the rest are Gaia's current public jobs. Jobs live on the current boards at 17:00 on Wed 2 Dec are brought across before the switch on 3 Dec. Applications and alert sign-ups on the test site send no real email.
    Could you try it and reply "signed off", or list what to fix, by Fri 27 Nov?
-   If I don't hear by Fri 27 Nov, the switch goes ahead on 3 Dec as tested, because Strategies switches off on 6 Dec. On your side it needs the accounts in question 6 open and Diana's nameserver steps done; on mine, my final checks passing. Anything on the test site that does not work as tested, flagged after that, goes on the fix list for the 10 working days of daily checks.
+   If I don't hear by Fri 27 Nov, the switch goes ahead on 3 Dec as tested, because Strategies switches off on 6 Dec. On your side it needs the accounts in question 6 open and Diana's nameserver steps done; on mine, my final checks passing. Anything that worked on the test site and not on the live one goes on the fix list for the 10 working days of daily checks. Other changes follow the 2-business-day term in the proposal.
 
 8. CHM Recruit and Mattinson Partnership. A short notice for each is attached: from 3 Dec, your team posts their jobs.
    Could you or Rashieda send it from GreenJobs by Wed 25 Nov?
