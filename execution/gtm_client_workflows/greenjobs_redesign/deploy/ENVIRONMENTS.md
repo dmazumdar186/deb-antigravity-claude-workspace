@@ -113,15 +113,14 @@ job (Access service token), poll until public (15 min ceiling, 30 s poll), apply
 
 - Worker `https://greenjobs-platform-staging.debanjan186.workers.dev` (IE host), D1 `greenjobs-staging` (WEUR),
   boards `https://greenjobs-stg-ie.pages.dev`, `https://greenjobs-stg-uk.pages.dev`. Staff console path
-  `/admin/` answers 401/503 until Access exists (fail closed).
+  `/admin/` is behind Cloudflare Access (team `prodcraft.cloudflareaccess.com`, staff OTP; fail closed without it).
 - First deploy: wrangler 4.166 uploaded the Worker, then failed on a follow-up API call (code 10007) because
   workers.dev was not yet enabled for the new script; enabling it once (`POST .../workers/scripts/<name>/subdomain`
   `{"enabled":true}`) fixed every later run.
-- Blocked on operator inputs: Cloudflare Access is not enabled on our account (Zero Trust "Enable Access"), so
-  there is no staging team domain, AUD or smoke service token and the smoke `write_flow` fails by design;
-  R2 is not enabled (CV uploads answer 503 on staging). Once Access exists: set `ACCESS_TEAM_DOMAIN`,
-  `ACCESS_AUD`, `STAFF_EMAILS`, `ACCESS_SERVICE_TOKEN_IDS` (the token's Client ID) in `[env.staging.vars]`,
-  export `GREENJOBS_SMOKE_ACCESS_CLIENT_ID/_SECRET`, re-run `stage.sh --execute`.
+- Access (enabled 2026-11-21): Zero Trust team `prodcraft.cloudflareaccess.com`, one Access app on the staging
+  admin paths, staff by email OTP, and a smoke service token whose Client ID is on `ACCESS_SERVICE_TOKEN_IDS`.
+  Token values live outside the repo; export `GREENJOBS_SMOKE_ACCESS_CLIENT_ID/_SECRET` before `stage.sh --execute`.
+  CVs are attached to the application email by default (R2 storage only with `CV_STORAGE=r2`).
 - The staging BUILD_TOKEN secret is set on the Worker; its value is held outside the repo (pass it to smoke as
   `GREENJOBS_SMOKE_BUILD_TOKEN`).
 
