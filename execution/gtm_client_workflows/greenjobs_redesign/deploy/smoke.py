@@ -522,6 +522,58 @@ class Smoke:
                 f"HTTP {r.status}; missing: {', '.join(missing) or 'none'}",
             )
 
+    def check_cache_policy(self) -> None:
+        """No HTML response on a board or a Worker is cached for long, and internal pages are gone (2026-11-21).
+        A stale edge copy of a deleted page (s-maxage=604800) kept serving 200 for days; closed jobs and corrections
+        would have done the same. HTML: no s-maxage > 300 and no max-age > 300. /for-keith/ (bare) and
+        /{ed}/for-keith/ answer 404 on every board. A content-hashed asset URL (?v=hash or a hash in the file name)
+        must carry long immutable caching; an unversioned asset must NOT (short TTL)."""
+        def ages(r: Resp) -> tuple[int, int]:
+            cc = r.headers.get("cache-control", "").lower()
+            m = {k: int(v) for k, v in re.findall(r"\b(s-maxage|max-age)=(\d+)", cc)}
+            return m.get("s-maxage", 0), m.get("max-age", 0)
+
+        workers = dict(self.sites("worker_urls"))
+        for site, board in self.sites("board_urls"):
+            bad: list[str] = []
+            pages = [board + self.p(k, ed=site) for k in ("board_home", "board_list", "board_dashboard")]
+            home = self.get(pages[0])
+            for url in pages:
+                r = home if url == pages[0] else self.get(url)
+                s_max, m_age = ages(r)
+                if r.status != 200 or s_max > 300 or m_age > 300:
+                    bad.append(f"{url.split('//', 1)[-1]} HTTP {r.status} s-maxage={s_max} max-age={m_age}")
+            wb = workers.get(site)
+            if wb:  # a Worker-rendered job page keeps its <= 300 s policy
+                jr = self.get(f"{wb}/api/jobs?view=board&site={site}&limit=1&text=0")
+                jobs = (jr.json() or {}).get("jobs") if jr.status == 200 and isinstance(jr.json(), dict) else None
+                slug = str(jobs[0].get("id") or "") if isinstance(jobs, list) and jobs and isinstance(jobs[0], dict) else ""
+                if re.fullmatch(r"[A-Za-z0-9_:-]{1,120}", slug):
+                    g = self.get(wb + self.p("board_job", ed=site, slug=slug))
+                    s_max, m_age = ages(g)
+                    if g.status != 200 or s_max > 300 or m_age > 300:
+                        bad.append(f"worker job page HTTP {g.status} s-maxage={s_max} max-age={m_age}")
+                else:
+                    bad.append("worker job page: no job slug to probe")
+            self.rec(f"html_cache[{site}]", not bad, "; ".join(bad) or "every HTML response <= 300 s")
+            gone = {path: self.get(board + path).status for path in ("/for-keith/", f"/{site}/for-keith/")}
+            self.rec(f"internal_pages_404[{site}]", all(v == 404 for v in gone.values()),
+                     ", ".join(f"{k} -> {v}" for k, v in gone.items()))
+            refs = re.findall(r'(?:href|src)="([^"]+\.(?:css|js))(?:\?[^"]*)?"', home.text) if home.status == 200 else []
+            hashed = [u for u in re.findall(r'(?:href|src)="([^"]+\.(?:css|js)[^"]*)"', home.text)
+                      if re.search(r"[?&]v=[0-9a-f]{6,}|[.-][0-9a-f]{8,}\.(?:css|js)", u)] if home.status == 200 else []
+            asset = (hashed or refs or [""])[0]
+            if not asset:
+                self.rec(f"asset_cache[{site}]", False, "no css/js asset referenced on the home page")
+                continue
+            a = self.get(urljoin(board + self.p("board_home", ed=site), asset))
+            s_max, m_age = ages(a)
+            if hashed:
+                ok = a.status == 200 and "immutable" in a.headers.get("cache-control", "").lower() and m_age >= 31536000
+            else:
+                ok = a.status == 200 and s_max <= 300 and m_age <= 300
+            self.rec(f"asset_cache[{site}]", ok, f"{asset} HTTP {a.status} {'hashed: long' if hashed else 'unversioned: short'} s-maxage={s_max} max-age={m_age}")
+
     def redirect_rules(self, site: str) -> list[tuple[str, str]]:
         """(old, target) pairs the board must answer 301 for. With `redirect_source` (the ops Bulk Redirects
         list) these are exactly the rules build_site.py writes to the board's _redirects (one source);
@@ -802,6 +854,7 @@ class Smoke:
         self.check_health()
         self.check_boards()
         self.check_headers()
+        self.check_cache_policy()
         self.check_jobs_and_stats()
         self.check_job_pages()
         self.check_live_wiring()

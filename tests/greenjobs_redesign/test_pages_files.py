@@ -193,3 +193,36 @@ def test_validator_knows_the_indexed_build() -> None:
         "indexed build (production) but no <meta name=robots content=index,follow>"
         in src
     )
+
+
+def test_headers_html_cache_control_has_no_edge_ttl(tmp_path: Path) -> None:
+    h = b.pages_headers(tmp_path, robots_index=False)
+    assert "  Cache-Control: public, max-age=0, must-revalidate\n" in h
+    assert "s-maxage" not in h and h.count("Cache-Control") == 1
+
+
+def test_internal_pages_404_rules_and_build_assertion(tmp_path: Path) -> None:
+    rules = b.internal_page_rules()
+    srcs = {r[0] for r in rules}
+    for p in ("/for-keith/*", "/ie/for-keith/*", "/uk/for-keith/*", "/ie/pitch/*", "/uk/evidence/*", "/ie/for-keith"):
+        assert p in srcs, p
+    assert all(t == b.INTERNAL_GONE_TARGET and c == 200 for _, t, c in rules)
+    (tmp_path / "ie" / "jobs").mkdir(parents=True)
+    (tmp_path / "ie" / "jobs" / "index.html").write_text("x", encoding="utf-8")
+    (tmp_path / "ie" / "data").mkdir()
+    (tmp_path / "ie" / "data" / "jobs.json").write_text('{"jobs": []}', encoding="utf-8")
+    assert b.internal_page_paths(tmp_path) == []
+    (tmp_path / "ie" / "for-keith").mkdir()
+    (tmp_path / "ie" / "for-keith" / "index.html").write_text("pitch", encoding="utf-8")
+    assert b.internal_page_paths(tmp_path) == ["ie/for-keith/index.html"]
+    with pytest.raises(ValueError, match="internal page"):
+        b.write_pages_files(tmp_path, "ie", False, "")
+
+
+def test_board_redirects_file_lists_internal_404_before_legacy_rules(tmp_path: Path) -> None:
+    (tmp_path / "ie" / "data").mkdir(parents=True)
+    (tmp_path / "ie" / "data" / "jobs.json").write_text('{"jobs": []}', encoding="utf-8")
+    b.write_pages_files(tmp_path, "ie", False, "")
+    lines = [ln for ln in (tmp_path / "_redirects").read_text(encoding="utf-8").splitlines() if ln and not ln.startswith("#")]
+    first301 = next(i for i, ln in enumerate(lines) if ln.endswith(" 301"))
+    assert any(ln.startswith("/ie/for-keith/* ") for ln in lines[:first301])

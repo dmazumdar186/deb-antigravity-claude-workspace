@@ -67,7 +67,12 @@ class MockGreenJobs:
         no_job_page=False,
         old_link=None,
         alerts_status=202,
+        html_cc=None,
+        keith_live=False,
+        asset_cc="public, max-age=0, must-revalidate",
+        asset_url="/css/styles.css",
     ):
+        self.html_cc, self.keith_live, self.asset_cc, self.asset_url = html_cc, keith_live, asset_cc, asset_url
         self.old_link, self.alerts_status = old_link, alerts_status
         self.no_cors = no_cors
         self.markers, self.extra_marker, self.no_job_page = markers, extra_marker, no_job_page
@@ -134,6 +139,16 @@ class MockGreenJobs:
         return self.worker(method, u, path, q, headers, body)
 
     def board(self, path, redirects):
+        resp = self.board_inner(path, redirects)
+        if resp.status == 200 and self.html_cc and path.endswith("/"):
+            resp.headers["cache-control"] = self.html_cc
+        return resp
+
+    def board_inner(self, path, redirects):
+        if path.split("?")[0] == self.asset_url:
+            return self.r(200, "body{}", {"cache-control": self.asset_cc})
+        if re.fullmatch(r"(/(ie|uk))?/for-keith/", path):
+            return self.r(200, "<html>pitch</html>") if self.keith_live else self.r(404, "<html>404</html>")
         if path in redirects and path != redirects[path]:
             target = "/ie/wrong/" if self.bad_redirect else redirects[path]
             return self.r(301, "", {"location": target})
@@ -149,7 +164,7 @@ class MockGreenJobs:
             extra = f'<b data-stat="{self.extra_marker}">5</b>' if self.extra_marker else ""
             return self.r(200, f'<html><p data-stat="live_jobs">{n:,}</p><b class="kpi__v num" data-stat="kpis.live">{n}</b>{extra}</html>')
         if re.fullmatch(r"/(ie|uk)/", path) and self.markers:
-            return self.r(200, f'<html><span data-live="n_jobs" data-stat="salary.n_jobs">{len(self.live_ids())}</span></html>')
+            return self.r(200, f'<html><link rel="stylesheet" href="{self.asset_url}"><span data-live="n_jobs" data-stat="salary.n_jobs">{len(self.live_ids())}</span></html>')
         if re.fullmatch(r"/(ie|uk)/jobs/", path) and self.markers:
             n = len(self.live_ids())
             return self.r(200, f'<html><p class="lede"><span data-stat="salary.n_jobs">{n}</span> green roles</p><p><b data-stat="salary.n_jobs">{n}</b> live roles are indexed</p></html>')
@@ -673,3 +688,29 @@ def test_browser_smoke_script_catches_a_form_that_posts_to_the_wrong_origin(tmp_
         assert got["wrong_origin"]["ok"] is False  # right answer from the wrong place still fails
     finally:
         srv.shutdown()
+
+
+def test_cache_policy_passes_with_revalidating_html(cfg):
+    res, by, *_ = run(cfg, html_cc="public, max-age=0, must-revalidate")
+    for site in ("ie", "uk"):
+        for n in ("html_cache", "internal_pages_404", "asset_cache"):
+            assert by[f"{n}[{site}]"]["status"] == "pass", by[f"{n}[{site}]"]
+
+
+def test_cache_policy_fails_on_week_long_edge_ttl(cfg):
+    res, by, *_ = run(cfg, html_cc="public, s-maxage=604800")
+    assert by["html_cache[ie]"]["status"] == "fail" and "s-maxage=604800" in by["html_cache[ie]"]["detail"]
+    res, by, *_ = run(cfg, html_cc="public, max-age=3600")
+    assert by["html_cache[uk]"]["status"] == "fail"
+
+
+def test_cache_policy_fails_when_for_keith_is_live(cfg):
+    res, by, *_ = run(cfg, keith_live=True)
+    assert by["internal_pages_404[ie]"]["status"] == "fail" and "/for-keith/ -> 200" in by["internal_pages_404[ie]"]["detail"]
+
+
+def test_asset_cache_unversioned_long_ttl_fails_hashed_needs_immutable(cfg):
+    res, by, *_ = run(cfg, asset_cc="public, max-age=31536000, immutable")
+    assert by["asset_cache[ie]"]["status"] == "fail"  # unversioned asset must stay short
+    res, by, *_ = run(cfg, asset_url="/css/styles.0123456789ab.css", asset_cc="public, max-age=31536000, immutable")
+    assert by["asset_cache[ie]"]["status"] == "pass"
