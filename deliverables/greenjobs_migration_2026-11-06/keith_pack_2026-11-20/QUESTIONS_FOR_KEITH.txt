@@ -39,7 +39,7 @@ No call needed. Please reply to this email so we have it all in writing.
    If I don't hear by Fri 27 Nov, I'll plan the second-phase CRM link for Recruit CRM.
 
 6. Your own Cloudflare and Resend accounts.
-   Cloudflare hosts the boards. Resend sends the site's emails (applications, alerts, newsletter).
+   Cloudflare hosts the boards. Resend sends the site's emails (applications and job alerts).
    Both are opened in GreenJobs' name, on the plans in the proposal (Cloudflare $5 and Resend $20 a month), so you own them.
    Who on your side will open them and invite debanjan@prodcraft.fyi?
    I'll send a short written step-by-step guide for each.
@@ -48,9 +48,9 @@ No call needed. Please reply to this email so we have it all in writing.
 7. Test site sign-off. The test sites:
    Irish board: https://greenjobs-stg-ie.pages.dev/ie/
    UK board: https://greenjobs-stg-uk.pages.dev/uk/
-   Jobs marked "[Test data]" are September jobs re-dated for testing; the rest are Gaia's current public jobs. The jobs live on the current boards are brought across before the switch on 3 Dec. Applications and alert sign-ups on the test site send no real email.
+   Jobs marked "[Test data]" are September jobs re-dated for testing; the rest are Gaia's current public jobs. Jobs live on the current boards at 17:00 on Wed 2 Dec are brought across before the switch on 3 Dec. Applications and alert sign-ups on the test site send no real email.
    Could you try it and reply "signed off", or list what to fix, by Fri 27 Nov?
-   If I don't hear by Fri 27 Nov, the switch goes ahead on 3 Dec as tested, once the accounts in question 6 are open and Diana's nameserver steps are done, because Strategies switches off on 6 Dec. Anything you flag on the test site after that goes on the fix list for the 10 days of daily checks.
+   If I don't hear by Fri 27 Nov, the switch goes ahead on 3 Dec as tested, once the accounts in question 6 are open and Diana's nameserver steps are done and my final checks pass, because Strategies switches off on 6 Dec. Anything on the test site that does not work as tested, flagged after that, goes on the fix list for the 10 working days of daily checks; new features are quoted first.
 
 8. CHM Recruit and Mattinson Partnership. A short notice for each is attached: from 3 Dec, your team posts their jobs.
    Could you or Rashieda send it from GreenJobs by Wed 25 Nov?
