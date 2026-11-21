@@ -29,6 +29,22 @@ test('N1: a staging Pages board posts the multipart form cross-origin; ?site= pi
   assert.deepEqual(w.db.q("SELECT site FROM applications WHERE applicant_email = 'n1-uk@example.com'").map((x) => x.site), ['uk']);
 });
 
+test('N1: the static board form sends its page id (11501460 / gaia-9360); the Worker maps it to the D1 id', async () => {
+  const w = await makeWorld(STAGING);
+  seedJob(w, { id: 'ie:strat:8601' });
+  seedJob(w, { id: 'uk:gaia:8602', site: 'uk', source: 'feed', source_id: 'gaia:8602' });
+  let r = await w.fetch(applyRequest({ job_id: '8601', email: 'slug-ie@example.com' }, { origin: PAGES_IE }));
+  assert.equal(r.status, 201, 'numeric page id');
+  const fd = await applyRequest({ job_id: 'gaia-8602', email: 'slug-uk@example.com' }).formData();
+  r = await w.fetch(new Request('https://greenjobs.ie/api/apply?site=uk', { method: 'POST', body: fd, headers: { Origin: PAGES_UK, 'CF-Connecting-IP': '203.0.113.30' } }));
+  assert.equal(r.status, 201, 'feed page id on the other edition');
+  assert.deepEqual(w.db.q("SELECT job_id FROM applications WHERE applicant_email IN ('slug-ie@example.com','slug-uk@example.com') ORDER BY job_id").map((x) => x.job_id), ['ie:strat:8601', 'uk:gaia:8602']);
+  for (const bad of ['../x', 'nope-1', '']) {
+    r = await w.fetch(applyRequest({ job_id: bad, email: 'bad@example.com' }, { origin: PAGES_IE, ip: '203.0.113.31' }));
+    assert.equal(r.status, 400, bad);
+  }
+});
+
 test('N1: same-origin ignores ?site=; Origin "null" (no-referrer form POST) and foreign origins are refused', async () => {
   const w = await makeWorld(STAGING);
   seedJob(w, { id: 'ie:strat:8201' });

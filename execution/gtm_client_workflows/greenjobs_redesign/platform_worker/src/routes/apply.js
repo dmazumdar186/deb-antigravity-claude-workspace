@@ -11,6 +11,7 @@ import { cvKey, checkRenderTs, isValidEmail, normEmail, safeParam, sniffCv, vali
 import { SQL_AUDIT } from './admin.js';
 import { liveWhere } from '../live.js';
 import { isOldPlatformUrl } from '../oldplatform.js';
+import { idOfSlug } from './board.js';
 
 const SQL_APP_INSERT = `INSERT INTO applications (id, site, source, source_id, job_id, candidate_id, applicant_name, applicant_email, phone, cover_note, cv_key, routed_to, delivery_status, dedupe_key, submitted_at, created_at, updated_at)
 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?16)
@@ -83,7 +84,10 @@ export async function apply(ctx) {
   });
   if (!v.ok) return json({ error: 'invalid_input', fields: v.errors }, 400, cors);
 
-  const jid = safeParam(field(form, 'job_id') || '');
+  // The static boards render the page id ('11501460', 'gaia-9360'); the Worker's own pages render the D1 id
+  // ('ie:strat:11501460'). Both name the same job: a page id is mapped with the board route's idOfSlug (eye r2 N1).
+  const rawId = field(form, 'job_id') || '';
+  const jid = safeParam(rawId.includes(':') ? rawId : idOfSlug(site, rawId) || '');
   if (!jid.ok) return err('invalid_id', 400, cors);
   const job = await env.DB.prepare(
     `SELECT id, site, title, apply_mode, apply_email, apply_url FROM jobs
