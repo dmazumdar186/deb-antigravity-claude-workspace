@@ -231,6 +231,7 @@ never enter the go/no-go gate, the overall status grade, SLA figures or incident
   (5 lines: red items, applications, alerts sent, staff hours, next step) and `monthly_report.py --month YYYY-MM
   --changes FILE` (uptime, traffic from `traffic_<month>.json`, applications, posting routes, needs attention, what
   changed). Both read the same measures and status; a missing figure prints "not measured yet".
+- **Handover pack (P19)** `ops/test_register.py [--run] [--out FILE]` generates `deliverables/greenjobs_migration_2026-11-06/handover/TEST_REGISTER.md`: every test under `tests/greenjobs_redesign/` grouped by promise P#, the run command, and the last result (`--run` executes the current `build/run_tests.sh` and each covered file; list-only otherwise). Which files count as part of the suite is read from `run_tests.sh`. The written pack (`RUNBOOK.md`, `ACCOUNTS.md`, `SOURCE.md`) sits beside it; update them when a command or an account changes.
 - Edge cases: `renewablejobsuk.com` is NXDOMAIN, the real domain is `renewableenergyjobsuk.com`; Cloudflare Bulk
   Redirects cannot match query strings (the Worker takes them); a probe row with a lookup error is `ok: null` (never a
   pass); the redteam hook blocks shell commands that mention the mail API host, so run the committed scripts directly.
