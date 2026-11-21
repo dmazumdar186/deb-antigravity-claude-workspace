@@ -203,10 +203,8 @@ def test_headers_html_cache_control_has_no_edge_ttl(tmp_path: Path) -> None:
 
 def test_internal_pages_404_rules_and_build_assertion(tmp_path: Path) -> None:
     rules = b.internal_page_rules()
-    srcs = {r[0] for r in rules}
-    for p in ("/for-keith/*", "/ie/for-keith/*", "/uk/for-keith/*", "/ie/pitch/*", "/uk/evidence/*", "/ie/for-keith"):
-        assert p in srcs, p
-    assert all(t == b.INTERNAL_GONE_TARGET and c == 200 for _, t, c in rules)
+    for p in ("/for-keith/", "/ie/for-keith/", "/uk/for-keith/", "/ie/pitch/", "/uk/evidence/"):
+        assert p in rules, p
     (tmp_path / "ie" / "jobs").mkdir(parents=True)
     (tmp_path / "ie" / "jobs" / "index.html").write_text("x", encoding="utf-8")
     (tmp_path / "ie" / "data").mkdir()
@@ -219,10 +217,11 @@ def test_internal_pages_404_rules_and_build_assertion(tmp_path: Path) -> None:
         b.write_pages_files(tmp_path, "ie", False, "")
 
 
-def test_board_redirects_file_lists_internal_404_before_legacy_rules(tmp_path: Path) -> None:
+def test_board_redirects_file_has_no_unsupported_rule_and_names_internal_paths(tmp_path: Path) -> None:
     (tmp_path / "ie" / "data").mkdir(parents=True)
     (tmp_path / "ie" / "data" / "jobs.json").write_text('{"jobs": []}', encoding="utf-8")
     b.write_pages_files(tmp_path, "ie", False, "")
-    lines = [ln for ln in (tmp_path / "_redirects").read_text(encoding="utf-8").splitlines() if ln and not ln.startswith("#")]
-    first301 = next(i for i, ln in enumerate(lines) if ln.endswith(" 301"))
-    assert any(ln.startswith("/ie/for-keith/* ") for ln in lines[:first301])
+    text = (tmp_path / "_redirects").read_text(encoding="utf-8")
+    assert "/ie/for-keith/" in text.splitlines()[1]
+    rules = [ln for ln in text.splitlines() if ln and not ln.startswith("#")]
+    assert rules and all(ln.endswith(" 301") for ln in rules)  # a 200 rewrite to a missing path broke the file
