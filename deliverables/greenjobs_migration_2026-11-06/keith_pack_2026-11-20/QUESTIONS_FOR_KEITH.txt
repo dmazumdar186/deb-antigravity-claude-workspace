@@ -46,7 +46,10 @@ No call needed. Please reply to this email so we have it all in writing.
    I'll send a short written step-by-step guide for each.
    If I don't hear by Tue 24 Nov, I'll send both guides to Diana.
 
-7. Test site sign-off. The test site is here: {STAGING_LINKS}
+7. Test site sign-off. The test site is here: 
+   Irish board: https://greenjobs-stg-ie.pages.dev/ie/
+   UK board: https://greenjobs-stg-uk.pages.dev/uk/
+   Jobs marked "[Test data]" are September jobs re-dated for testing; applications and alert sign-ups on the test site send no real email.
    Could you try it and reply "signed off", or list what to fix, by Fri 27 Nov?
    If I don't hear by Fri 27 Nov, the switch goes ahead on 3 Dec with the test site as it stands, because Strategies switches off on 6 Dec. Anything you flag after that goes into the second phase.
 

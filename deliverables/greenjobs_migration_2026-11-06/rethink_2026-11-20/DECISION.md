@@ -65,3 +65,12 @@ M1–M11 and E1–E3 as in SYNTHESIS §4, with the CPO and CDO additions. Graded
   - Fri 27 Nov: the 11 change-list inputs, the CRM, test-site sign-off (default: the switch goes ahead on 3 Dec as tested, because Strategies switches off on 6 Dec).
 - Change-list inputs received after go-live are applied within two business days (Proposal:140).
 - Jobs posted on Strategies up to the switch are not lost: a final jobs-only export and import runs on Thu 3 Dec immediately before the web records switch. The full export still finishes on Wed 2 Dec. Advertisers therefore need no posting freeze or cut-off hour.
+
+## Staging (21 Nov 2026)
+
+- Test site:
+  - IE board: https://greenjobs-stg-ie.pages.dev/ie/
+  - UK board: https://greenjobs-stg-uk.pages.dev/uk/
+- It passed 48 of 48 smoke checks and independent visual review r4 (qa/EYE_REVIEW_2026-11-21_r4.md).
+- Staging data: September jobs re-dated and titled "[Test data]", plus Gaia's current public jobs.
+- Applications and alerts run in dry-run, so no email is sent.
