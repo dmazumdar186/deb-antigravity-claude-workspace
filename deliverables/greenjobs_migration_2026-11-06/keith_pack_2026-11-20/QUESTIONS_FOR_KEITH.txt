@@ -7,7 +7,7 @@ Each one says what I'll do if I don't hear by the date given.
 No call needed. Please reply to this email so we have it all in writing.
 
 1. Candidate records. Of the people who agreed to hear from GreenJobs, which should I bring across to the new boards, and how far back?
-   Whatever Diana and Rashieda download from the Strategies admin before 3 Dec (I'll send the steps) goes into an archive in GreenJobs' own storage.
+   Whatever Diana and Rashieda download from the Strategies admin before 3 Dec (I'll send the steps) stays with your team, and goes into an archive in GreenJobs' own Cloudflare storage once the account in question 6 is open.
    If I don't hear by Wed 25 Nov, I'll bring across jobs and employers, plus the job-alert sign-ups where the export shows they agreed (each re-confirms by email before any alert is sent), and keep the candidate records they download in that archive.
 
 2. The 8 sector sites: environmentaljobsuk.com, renewableenergyjobsuk.com, solarjobsuk.com, windjobsuk.com, conservationjobsuk.com, wastejobsuk.com, waterjobsuk.com and ecologyjobsuk.com.
@@ -25,7 +25,7 @@ No call needed. Please reply to this email so we have it all in writing.
    c. LinkedIn and network distribution figures.
    d. Two or three UK employer testimonials, word for word.
    e. Permission to show each employer's logo (question 3 covers this).
-   f. A GB phone number for the UK site, if you want one.
+   f. A different GB phone number for the UK site, if you want one instead of +44 28 4303 2055.
    g. Examples of UK placements or campaigns (employer, role, outcome).
    h. Hero line: your draft said "Roles across 10 sectors". The site shows the live count (14 on 28 Sept). Which do you want?
    i. "Transport and active travel" is merged into "Sustainable infrastructure & transport". Keep merged, or split?
@@ -50,7 +50,7 @@ No call needed. Please reply to this email so we have it all in writing.
    UK board: https://greenjobs-stg-uk.pages.dev/uk/
    Jobs marked "[Test data]" are September jobs re-dated for testing; the rest are Gaia's current public jobs. Jobs live on the current boards at 17:00 on Wed 2 Dec are brought across before the switch on 3 Dec. Applications and alert sign-ups on the test site send no real email.
    Could you try it and reply "signed off", or list what to fix, by Fri 27 Nov?
-   Whether I hear "signed off", a fix list, or nothing by Fri 27 Nov, the switch goes ahead on 3 Dec, because Strategies switches off on 6 Dec. On your side it needs the accounts in question 6 open and Diana's nameserver steps done; on mine, my final checks passing. Anything on your list that stops a job being posted, found or applied to is fixed before the switch; everything else follows the 2-business-day term in the proposal. Anything that worked on the test site and not on the live one goes on the fix list for the 10 working days of daily checks.
+   Whether I hear "signed off", a fix list, or nothing by Fri 27 Nov, the switch goes ahead on 3 Dec, because Strategies switches off on 6 Dec. On your side it needs the accounts in question 6 open and Diana's nameserver steps done for greenjobs.ie (Hosting Ireland) and greenjobs.co.uk (LetsHost) by Mon 30 Nov, from the click guides I'll send; on mine, my final checks passing. Anything on your list that stops a job being posted, found or applied to is fixed before the switch, as part of my final checks. Other fixes to what the proposal covers are done after the switch, under its 2-business-day term for requested changes; anything else is quoted before it starts. Anything that worked on the test site and not on the live one goes on the fix list for the 10 working days of daily checks.
 
 8. CHM Recruit and Mattinson Partnership. A short notice for each is attached: from 3 Dec, your team posts their jobs.
    Could you or Rashieda send it from GreenJobs by Wed 25 Nov?
