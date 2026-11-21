@@ -1453,6 +1453,13 @@ def location_review_reason(loc: str) -> str | None:
     places = [n for n in names if _tick_nation(n) is None]
     home = {place_nation(n) for n in places}
     odd = [NATION_NAMES[t] for t in (_tick_nation(n) for n in names) if t and t not in home]
+    if len(parts) >= 2:  # eye r4: other multi-region strings go to staff too (never silently shown as written)
+        nations = sorted({NATION_NAMES[x] for x in home if x})
+        if len(nations) > 1 and not odd:
+            return f'location "{str(loc).strip()[:80]}": places in {" and ".join(nations)} on one advert'[:150]
+        low = [re.sub(r"\s*\(nationwide\)$", "", p, flags=re.I).strip().lower() for p in parts]
+        if any(re.match(r"ireland\b|republic of ireland", p) for p in low) and any(re.match(r"united kingdom|uk\b|great britain", p) for p in low):
+            return f'location "{str(loc).strip()[:80]}": both the UK and Ireland ticked'[:150]
     if len(parts) < 2 or not places or not odd:
         return None
     where = ", ".join(f"{p} ({NATION_NAMES.get(place_nation(p) or '', 'nation unknown')})" for p in places)
@@ -1732,6 +1739,14 @@ def facts_block(brief: dict[str, Any], data: dict[str, Any]) -> str:
     return "".join(f'<div class="fact reveal"><h3>{esc(h)}</h3><p>{esc(p)}</p></div>' for h, p in items[:3])
 
 
+MAP_HIT_R = 42  # eye r4: invisible tap disc, 84 user units = 44+ px at the narrowest phone map (viewBox 600 wide)
+
+
+def vt_name(job_id: Any) -> str:
+    """Unique view-transition-name for one job's title (eye r4 R4-3); mirrors motion.js vtName."""
+    return "jt-" + re.sub(r"[^A-Za-z0-9_-]", "-", str(job_id))
+
+
 def map_svg(src: Path, ed: str, counts: dict[str, int] | None = None) -> str:
     """The edition map. When counts are given, every region carries data-n,
     data-lvl (0-3 colour ramp), a stagger index and its count numeral at build
@@ -1755,7 +1770,8 @@ def map_svg(src: Path, ed: str, counts: dict[str, int] | None = None) -> str:
         idx["i"] += 1
         if not n:  # zero-count regions take the muted is-zero fill instead of reading as holes (visual 12)
             attrs = attrs.replace('class="gmap__r"', 'class="gmap__r is-zero"', 1)
-        return f'<g{attrs} data-n="{n}" data-lvl="{lvl}" style="--i:{i}">{body}{label}</g>'
+        hit = f'<circle class="gmap__hit" cx="{cx.group(1)}" cy="{cy.group(1)}" r="{MAP_HIT_R}"/>' if cx and cy else ""
+        return f'<g{attrs} data-n="{n}" data-lvl="{lvl}" style="--i:{i}">{hit}{body}{label}</g>'
     return re.sub(r'<g(\s+class="gmap__r"[^>]*)>(.*?)</g>', region, svg, flags=re.S)
 
 
@@ -2791,7 +2807,7 @@ def build_edition(
         closed_chip = f'<span class="tag tag--closed" data-closed-chip{"" if is_closed(j, today) else " hidden"}>Closed</span>'
         jp = page("job", 3, "jobs", f"{j['title']} — {j['employer']} | GreenJobs {ed['short']}", (j["summary"] or j["title"])[:155],
                   {
-                      "jsonld": job_jsonld(j, data), "title": esc(no_break_dash(j["title"])), "employer": esc(j["employer"]), "logo": logo_img(j, "../../../", "job__logo"), "sal_caveat": sal_caveat, "closed_chip": closed_chip,
+                      "jsonld": job_jsonld(j, data), "vt_name": vt_name(j["id"]), "title": esc(no_break_dash(j["title"])), "employer": esc(j["employer"]), "logo": logo_img(j, "../../../", "job__logo"), "sal_caveat": sal_caveat, "closed_chip": closed_chip,
                       "meta": meta_tags, "dl": dl, "desc_html": body_html, **apply_ctx(j, esc(data["site"]), data["ed"]), "domain": esc(data["site"]), "source_line": source_line(j, esc(data["site"])), "id": esc(j["id"]), "region": esc((j.get("regions") or [""])[0]), "closing": esc(j.get("closing") or ""), "sal_sticky": f'<span class="job__sticky-sal">{esc(sal or "Salary not disclosed")}</span>',
                       "similar": "".join(role_card(s, "../../../", "../", today, ed["currency"]) for s in similar),
                       "similar_hidden": "" if similar else " hidden",  # eye M5: no empty block when nothing is similar

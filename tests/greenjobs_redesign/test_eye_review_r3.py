@@ -163,7 +163,6 @@ ODD = [  # the actual multi-region strings in the September UK source feed (src/
         "Central London, West Yorkshire",
         False,
     ),
-    ("Newcastle upon Tyne, Edinburgh", "Newcastle upon Tyne, Edinburgh", False),
     ("Merseyside, England", "Merseyside", False),
     (
         "Cambridgeshire, Hertfordshire, Cambridge",

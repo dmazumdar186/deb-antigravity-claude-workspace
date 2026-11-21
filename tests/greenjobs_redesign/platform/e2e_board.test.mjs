@@ -48,7 +48,7 @@ test('E2E: console post -> live job page, list, sector view, sitemap, stats -> e
   assert.equal(page.status, 200);
   assert.match(page.headers.get('Cache-Control'), /s-maxage=300/);
   const html = await page.text();
-  assert.match(html, /<h1 class="vt-title">Offshore Wind Consents Manager<\/h1>/);
+  assert.match(html, /<h1 class="vt-title" style="view-transition-name:jt-[A-Za-z0-9_-]+">Offshore Wind Consents Manager<\/h1>/);
   assert.match(html, /<link rel="canonical" href="https:\/\/greenjobs\.ie\/ie\/jobs\/gj-/);
   assert.match(html, /action="\/api\/apply"/, 'email mode: on-site form, never a Strategies URL');
   assert.doesNotMatch(html.slice(html.indexOf('<main'), html.indexOf('</main>')), /strategies|\.asp\b/i);

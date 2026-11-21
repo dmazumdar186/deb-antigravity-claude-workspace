@@ -166,7 +166,7 @@ export function jobPage(j, jobs, { site, today, canonical, indexable, reqHost = 
   const sector = j.sectors[0] || '';
   const jsonld = `<script type="application/ld+json">${jsonLd(jobJsonLdPayload(j, site))}</script>`;
   const body = {
-    jsonld, title: esc(noBreakDash(j.title)), employer: esc(j.employer), logo: logoImg(j, '/', 'job__logo'), sal_caveat: salCaveat, closed_chip: closedChip,
+    jsonld, vt_name: 'jt-' + String(j.id).replace(/[^A-Za-z0-9_-]/g, '-'), title: esc(noBreakDash(j.title)), employer: esc(j.employer), logo: logoImg(j, '/', 'job__logo'), sal_caveat: salCaveat, closed_chip: closedChip,
     meta, dl, desc_html: bodyHtml, ...applyCtx(j, domain), domain, source_line: sourceLine(j, domain), id: esc(j.id), region: esc(j.regions[0] || ''), closing: esc(j.closing || ''),
     sal_sticky: `<span class="job__sticky-sal">${esc(sal || 'Salary not disclosed')}</span>`,
     similar: similar.map((s) => roleCard(s, '/', '', today, ed.currency)).join(''),

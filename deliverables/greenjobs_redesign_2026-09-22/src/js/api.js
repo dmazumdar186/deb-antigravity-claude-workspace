@@ -239,6 +239,13 @@
       }
       /* eye r3 R3-3: after a successful send the form is cleared (the render stamp kept), the button says it is
          done, and the sticky bar no longer offers "Apply now" for this job. */
+      /* eye r4 R4-1: bring the confirmation into view (on a 412x839 phone it sat at y=831, an 8px sliver). */
+      function reveal(el) {
+        try {
+          var calm = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          if (el && el.scrollIntoView) el.scrollIntoView({ block: 'center', behavior: calm ? 'auto' : 'smooth' });
+        } catch (err) { /* scrolling is a courtesy */ }
+      }
       function applied() {
         var ts = f.querySelector('[data-apply-ts]'), keep = ts ? ts.value : '';
         if (typeof f.reset === 'function') f.reset();
@@ -260,7 +267,7 @@
         btn.disabled = true; say('Sending...');
         return F(url, { method: 'POST', body: new FD(f), credentials: base ? 'omit' : 'same-origin', referrerPolicy: 'strict-origin-when-cross-origin' })
           .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return applyOutcome(r.status, d); }); })
-          .then(function (o) { if (o.fields) mark(o.fields); say(o.text, !o.ok); if (o.ok) applied(); })
+          .then(function (o) { if (o.fields) mark(o.fields); say(o.text, !o.ok); if (o.ok) applied(); if (o.ok) reveal(st); })
           .catch(function () { say('Not sent: network error. Please try again.', true); })
           .then(function () { if (!f.hasAttribute('data-applied')) btn.disabled = false; });
       });

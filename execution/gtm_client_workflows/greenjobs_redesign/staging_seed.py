@@ -96,12 +96,20 @@ def _strip_lines(inner: str, rx: re.Pattern[str] = DATE_IN_TEXT) -> str:
     return "".join(part if _BR.fullmatch(part) else _strip_line(part, rx) for part in _BR.split(inner))
 
 
+# Eye review r4: the in-page form's CV is optional, so "you will be asked to provide a copy of your CV and complete an
+# application form" (Ham Wall) goes too (test data only).
+_SEED_APPLY_ROUTE = re.compile(
+    jc.EXTERNAL_APPLY_ANY.pattern + r"|\b(?:asked|required|need|must)\s+(?:to\s+)?(?:provide|submit|upload|send)\s+(?:us\s+)?a\s+copy\s+of\s+your\s+(?:CV|resume)\b",
+    re.I,
+)
+
+
 def strip_external_apply_sentences(markup: str) -> str:
     """Test data only (eye review r3 R3-7): the seed turns every old-platform apply URL into email mode (the on-page
     form), so a September advert that says "You will be taken to a simple CHM Recruit form" would contradict the
     page. Those sentences go (same block / line rules as the dates). Real imports never strip: they queue the job
     for staff (job_classifier.apply_route_review_reason). Idempotent."""
-    return strip_date_sentences(markup, jc.EXTERNAL_APPLY_ANY)
+    return strip_date_sentences(markup, _SEED_APPLY_ROUTE)
 
 
 def strip_date_sentences(markup: str, rx: re.Pattern[str] = DATE_IN_TEXT) -> str:

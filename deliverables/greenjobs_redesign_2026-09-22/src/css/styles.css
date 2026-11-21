@@ -215,8 +215,12 @@ p{text-wrap:pretty}
 select.in{appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:calc(100% - 20px) 50%,calc(100% - 14px) 50%;background-size:6px 6px;background-repeat:no-repeat;padding-right:40px}
 textarea.in{min-height:120px;resize:vertical}.in[type=number]{-moz-appearance:textfield}.in::-webkit-inner-spin-button,.in::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 .check{display:flex;align-items:center;gap:10px;min-height:44px;cursor:pointer;font-size:var(--small)}
-.check input{width:20px;height:20px;accent-color:var(--accent-ink);margin:0}
-[data-theme="dark"] .check input{accent-color:var(--honey)}
+/* eye r4: the box itself is a 44 x 44 hit area; the 20 px glyph is drawn by ::before (enlarge the target, not the glyph). */
+.check input{appearance:none;-webkit-appearance:none;width:44px;height:44px;margin:-12px;flex:none;display:grid;place-items:center;background:transparent;cursor:pointer;color:var(--accent-ink)}
+.check input::before{content:"";width:20px;height:20px;box-sizing:border-box;border:2px solid currentColor;border-radius:4px;background:var(--bg)}
+.check input:checked::before{background:currentColor;box-shadow:inset 0 0 0 3px var(--bg)}
+.check input:focus-visible{outline:2px solid var(--accent-ink);outline-offset:-6px;border-radius:8px}
+[data-theme="dark"] .check input{color:var(--honey)}
 .note{font-size:var(--small);color:var(--fg-2);padding:12px 14px;border-radius:10px;background:var(--bg-2);border:1px solid var(--line)}
 .note--live{border-color:var(--accent);background:var(--accent-soft);color:var(--fg)}.note--live.is-err{border-color:#b3261e}.field__err{margin:6px 0 0;font-size:var(--tiny);color:#b3261e;font-weight:600}[data-theme="dark"] .field__err{color:#ffb4ab}.in[aria-invalid="true"]{border-color:#b3261e;box-shadow:0 0 0 1px #b3261e}.note--quiet{padding:0;background:none;border:0;font-size:var(--tiny)}
 
@@ -325,6 +329,10 @@ textarea.in{min-height:120px;resize:vertical}.in[type=number]{-moz-appearance:te
 .gmap{width:100%;height:auto;max-height:640px;overflow:visible}
 .gmap path{fill:var(--paper-4);stroke:var(--bg);stroke-width:1.2;stroke-linejoin:round;transition:fill .25s,transform .25s var(--ease);transform-box:fill-box;transform-origin:center}
 .gmap__r{cursor:pointer;outline:none}
+/* eye r4: on touch screens every region gets an invisible 80-unit disc (>= 44 px on a phone) as its tap target; the
+   busiest list links below the map are the fallback. */
+.gmap__hit{fill:transparent;stroke:none;pointer-events:none}
+@media (pointer:coarse){.gmap__hit{pointer-events:all}}
 .gmap__r[data-n="0"] path{fill:var(--bg-3)}
 .gmap__r[data-lvl="1"] path{fill:#b9c9b4}
 .gmap__r[data-lvl="2"] path{fill:var(--sage)}
@@ -386,7 +394,7 @@ textarea.in{min-height:120px;resize:vertical}.in[type=number]{-moz-appearance:te
 .alertbox form{display:grid;gap:10px}
 .alertbox .in{background:var(--card);border-color:#dfc07a;color:var(--fg)}
 .alertbox .in:focus{border-color:var(--honey-ink);box-shadow:0 0 0 3px rgba(63,122,46,.3)}
-.alertbox .check input{accent-color:var(--honey-ink)}
+.alertbox .check input{color:var(--honey-ink)}
 .alertbox .btn--lime{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .alertbox .btn--lime:hover{background:var(--dark-3);border-color:var(--dark-3)}
 [data-theme="dark"] .alertbox .btn--lime{background:var(--honey);color:var(--ink);border-color:var(--honey)}
@@ -456,8 +464,8 @@ textarea.in{min-height:120px;resize:vertical}.in[type=number]{-moz-appearance:te
 .chipbar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;min-height:0}
 .chipbar:empty{display:none}
 .chip{display:inline-flex;align-items:center;gap:6px;padding:4px 8px 4px 12px;border-radius:999px;background:var(--accent-soft);font-size:.82rem;font-weight:500;min-height:40px}
-.chip button{width:32px;height:32px;margin:-4px;border-radius:50%;display:grid;place-items:center;font-size:1rem;line-height:1}
-.chip button:hover{background:rgba(0,0,0,.12)}
+.chip button{width:44px;height:44px;margin:-6px -8px -6px -10px;border-radius:50%;display:grid;place-items:center;font-size:1rem;line-height:1}
+.chip button:hover{background:radial-gradient(circle,rgba(0,0,0,.12) 16px,transparent 17px)}
 .list{display:flex;flex-direction:column;gap:10px}
 .row{position:relative;display:grid;gap:8px 16px;grid-template-columns:auto minmax(0,1fr);align-items:start;padding:16px 18px;border-radius:20px;background:var(--card);border:1px solid var(--line);transition:transform .3s var(--ease),box-shadow .3s var(--ease),border-color .2s}
 .row:hover{transform:none;border-color:var(--line-2);box-shadow:var(--shadow)}
@@ -482,7 +490,7 @@ textarea.in{min-height:120px;resize:vertical}.in[type=number]{-moz-appearance:te
 .mapview{display:grid;gap:24px;padding:clamp(18px,3vw,36px);border-radius:var(--r-lg);background:var(--bg-2);border:1px solid var(--line)}
 .mapview .row{color:var(--fg)}
 @media (min-width:760px){.mapview{grid-template-columns:minmax(0,5fr) minmax(0,6fr);align-items:start}}
-.mapview .gmap{max-height:560px}.maplist--sm{display:none}@media (max-width:899px){.maplist--sm{display:grid;margin-top:12px;grid-template-columns:repeat(2,minmax(0,1fr))}.maplist--sm a{min-height:34px;padding:5px 0}}
+.mapview .gmap{max-height:560px}.maplist--sm{display:none}@media (max-width:899px){.maplist--sm{display:grid;margin-top:12px;grid-template-columns:repeat(2,minmax(0,1fr))}.maplist--sm a{min-height:44px;padding:5px 0;display:flex;align-items:center;justify-content:space-between}}
 .mapview__list{display:flex;flex-direction:column;gap:8px;max-height:560px;overflow:auto}
 .mapview__list .row{padding:12px 56px 12px 14px;grid-template-columns:auto minmax(0,1fr)}@media (max-width:1199px){.mapview__list .row>.role__logo{display:none}.mapview__list .row__body{grid-column:1/-1}}
 .mapview__list .row__meta{flex-wrap:wrap}.mapview__list .row__meta>.tag--loc,.mapview__list .row__meta>.tag--closed{flex:none;white-space:nowrap}.mapview__list .row__meta>.tag--sec{flex:1 1 100%;min-width:0;white-space:normal}.mapview__list .row__meta>.tag--sec .tag__t{overflow-wrap:anywhere}
@@ -542,11 +550,11 @@ textarea.in{min-height:120px;resize:vertical}.in[type=number]{-moz-appearance:te
 .field__opt{font-weight:400;color:var(--fg-2)}
 .in.in--file{padding:10px 12px;line-height:1.5}
 .check--apply{align-items:flex-start;line-height:1.4;padding-block:8px}
-.check--apply input{width:24px;height:24px;flex:none}
+.check--apply input{width:44px;height:44px;flex:none;margin:-10px -8px -10px -10px}.check--apply input::before{width:24px;height:24px}
 .job__apply-form .btn{width:100%;min-height:48px}
 .job__apply-form .field__err{margin:0}
 .job__apply-form .note{margin:0}
-@media (max-width:700px){.crumbs a{display:inline-flex;align-items:center;min-height:44px}.ftr a,.edsw a,.ftr .edsw a{min-height:44px;min-width:44px;justify-content:center}.sits .sits__table summary{min-height:44px}}@media (max-width:400px){.hdr__tools .edsw{display:none}}
+@media (max-width:700px){.crumbs a{display:inline-flex;align-items:center;min-height:44px}.ftr a,.edsw a,.ftr .edsw a{min-height:44px;min-width:44px;justify-content:center}.sits .sits__table summary{min-height:44px}}
 .crumbs a:hover{text-decoration:underline}
 .similar{padding-block:clamp(40px,6vw,80px)}
 .toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);background:var(--ink);color:var(--white);padding:12px 18px;border-radius:999px;font-size:.9rem;opacity:0;transition:opacity .3s,transform .3s var(--ease);z-index:var(--z-toast);pointer-events:none}
@@ -953,8 +961,8 @@ html[data-cookie-open] body{padding-bottom:var(--cookie-h,56px)}html[data-cookie
 .btn--lime{transition:transform .25s var(--ease),background .25s,color .25s,border-color .25s}
 @supports (view-transition-name:none){
   @view-transition{navigation:auto}
-  .vt-title{view-transition-name:job-title}
-  ::view-transition-old(job-title),::view-transition-new(job-title){animation-duration:.45s;animation-timing-function:var(--ease);height:100%;overflow:clip}
+  .vt-title{view-transition-class:jt}
+  ::view-transition-old(*.jt),::view-transition-new(*.jt){animation-duration:.45s;animation-timing-function:var(--ease);height:100%;overflow:clip}
   ::view-transition-old(root),::view-transition-new(root){animation-duration:.3s}
 }
 @media (prefers-reduced-motion:reduce){
@@ -1015,7 +1023,8 @@ html[data-cookie-open] body{padding-bottom:var(--cookie-h,56px)}html[data-cookie
    footer list links keep their left edge (the 44 px min-width centred short words such as "Jobs"). Card title links
    stay stretched over the card; their own box gets 44 px by padding offset with a negative margin (layout unchanged). */
 @media (max-width:700px){
-.crumbs{align-items:center}.crumbs>span{display:inline-flex;align-items:center;min-height:44px}.crumbs a{min-width:44px;justify-content:center}
+.crumbs{align-items:center;flex-wrap:nowrap;gap:0}.crumbs>span{display:inline-flex;align-items:center;min-height:44px;flex:none}.crumbs a{min-width:44px;padding-inline:10px;justify-content:center;flex:none}
+.crumbs a:last-child{display:block;line-height:44px;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ftr li a{justify-content:flex-start}
 .btn--sm,.seg button{min-height:44px;min-width:44px}
 .save,.role .save{width:44px;height:44px}
@@ -1025,3 +1034,5 @@ details.tbl summary,.sits__table summary{min-height:44px;min-width:44px}
 .fit__try button{min-height:44px}
 .maplist a,.hbar{min-height:44px}
 }
+/* Eye review r4 R4-4: the IE/UK switch stays in the header down to 360 px (logo tagline drops, tighter gaps). */
+@media (max-width:380px){.logo small{display:none}.logo{font-size:1.2rem;gap:8px}.hdr__in{gap:6px}.hdr__tools{gap:4px}}

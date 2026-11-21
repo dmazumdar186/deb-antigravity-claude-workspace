@@ -73,11 +73,16 @@
 
   /* ------------------------------------------------ view transition: job title, card ⇄ page */
   var KEY = 'gj-vt-job';
+  /* One unique view-transition-name per job (r4 R4-3): a shared "job-title" name raised "Unexpected duplicate
+     view-transition-name" whenever two elements carried it. Mirrors build_site.vt_name. */
+  function vtName(id) { return 'jt-' + String(id).replace(/[^A-Za-z0-9_-]/g, '-'); }
+  function vtOn(el, id) { el.classList.add('vt-title'); el.style.viewTransitionName = vtName(id); }
+  function vtOff(el) { el.classList.remove('vt-title'); el.style.viewTransitionName = ''; }
   function nameCard(id) {
     var b = id && doc.querySelector('[data-save="' + id.replace(/"/g, '') + '"]');
     var card = b && b.closest('.role,.row');
     var title = card && card.querySelector('h3');
-    if (title) { $$('.vt-title').forEach(function (t) { if (t !== title) t.classList.remove('vt-title'); }); title.classList.add('vt-title'); return true; }
+    if (title) { $$('.role .vt-title,.row .vt-title,.hit.vt-title').forEach(function (t) { if (t !== title) vtOff(t); }); vtOn(title, id); return true; }
     return false;
   }
   doc.addEventListener('click', function (e) {
@@ -87,14 +92,15 @@
     var id = save ? save.getAttribute('data-save') : a.getAttribute('data-vt');
     if (!id) return;
     try { sessionStorage.setItem(KEY, id); } catch (err) { /* private mode: the morph simply does not run */ }
-    (a.closest('.hit') ? a : a.closest('h3')).classList.add('vt-title');
+    $$('.role .vt-title,.row .vt-title,.hit.vt-title').forEach(vtOff);
+    vtOn(a.closest('.hit') ? a : a.closest('h3'), id);
   });
   var pending = null;
   try { pending = sessionStorage.getItem(KEY); } catch (err) { pending = null; }
   if (pending && !doc.querySelector('.job__head')) {
     /* Back on a list: name the matching card before the incoming transition
        captures, then drop the name so later cards do not share it. */
-    if (nameCard(pending)) setTimeout(function () { $$('.role .vt-title,.row .vt-title').forEach(function (t) { t.classList.remove('vt-title'); }); }, 700);
+    if (nameCard(pending)) setTimeout(function () { $$('.role .vt-title,.row .vt-title').forEach(vtOff); }, 700);
     try { sessionStorage.removeItem(KEY); } catch (err) { /* ignore */ }
   }
 
