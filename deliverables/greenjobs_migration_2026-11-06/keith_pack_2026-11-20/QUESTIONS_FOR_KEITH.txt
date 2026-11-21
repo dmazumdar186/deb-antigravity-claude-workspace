@@ -50,7 +50,7 @@ No call needed. Please reply to this email so we have it all in writing.
    UK board: https://greenjobs-stg-uk.pages.dev/uk/
    Jobs marked "[Test data]" are September jobs re-dated for testing; the rest are Gaia's current public jobs. Jobs live on the current boards at 17:00 on Wed 2 Dec are brought across before the switch on 3 Dec. Applications and alert sign-ups on the test site send no real email.
    Could you try it and reply "signed off", or list what to fix, by Fri 27 Nov?
-   If I don't hear by Fri 27 Nov, the switch goes ahead on 3 Dec as tested, once the accounts in question 6 are open and Diana's nameserver steps are done and my final checks pass, because Strategies switches off on 6 Dec. Anything on the test site that does not work as tested, flagged after that, goes on the fix list for the 10 working days of daily checks; new features are quoted first.
+   If I don't hear by Fri 27 Nov, the switch goes ahead on 3 Dec as tested, once the accounts in question 6 are open and Diana's nameserver steps are done and my final checks pass, because Strategies switches off on 6 Dec. Anything on the test site that does not work as tested, flagged after that, goes on the fix list for the 10 working days of daily checks.
 
 8. CHM Recruit and Mattinson Partnership. A short notice for each is attached: from 3 Dec, your team posts their jobs.
    Could you or Rashieda send it from GreenJobs by Wed 25 Nov?
