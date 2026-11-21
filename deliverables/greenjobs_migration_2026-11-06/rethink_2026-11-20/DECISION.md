@@ -61,9 +61,9 @@ M1–M11 and E1–E3 as in SYNTHESIS §4, with the CPO and CDO additions. Graded
 - Default dates for Keith's answers, each set before the step that depends on it:
   - Mon 23 Nov: who sends the CHM/Mattinson notices (default: emailed to Rashieda on Tue 24 Nov, ready to forward).
   - Tue 24 Nov: who opens the Cloudflare and Resend accounts.
-  - Wed 25 Nov: candidate records, sector sites (default: forward), logos.
+  - Wed 25 Nov: candidate records, sector sites (default: forward, set up once as part of the switch; Diana does the registrar steps from a click guide, with no logins shared), logos.
   - Fri 27 Nov: the 11 change-list inputs, the CRM, test-site sign-off (default: the switch goes ahead on 3 Dec as tested, because Strategies switches off on 6 Dec).
-- Change-list inputs received after go-live are applied within two business days (Proposal:140).
+- The 11 change-list inputs are applied the day they arrive (Proposal:60). Other changes after go-live follow the 2-business-day term (Proposal:140).
 - Jobs posted on Strategies up to the switch are not lost: a final jobs-only export and import runs on Thu 3 Dec immediately before the web records switch. The full export still finishes on Wed 2 Dec. Advertisers are still told the planned cut-off (17:00 Wed 2 Dec, REVIEW:53). The delta export is a backstop, not a promise.
 
 ## Staging (21 Nov 2026)
