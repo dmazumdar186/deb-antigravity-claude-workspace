@@ -473,9 +473,9 @@ def test_keith_pages_and_copy(tmp_root: Path):
     check("Advertise once. Reach candidates across the GreenJobs specialist network." in ie, "keith E5: network line in the home employer section")
     emp_ie = (out / "ie" / "employers" / "index.html").read_text(encoding="utf-8")
     emp_uk = (out / "uk" / "employers" / "index.html").read_text(encoding="utf-8")
-    check("Request advertising rates" in emp_ie and 'href="mailto:' in emp_ie and emp_ie.index("Request advertising rates") < emp_ie.index('id="h-reach"'), "keith E1: rate CTA high on the employers page")
+    check("Request advertising rates" in emp_ie and 'href="mailto:' in emp_ie and emp_ie.index("Request advertising rates") < emp_ie.index('id="h-orgs"'), "keith E1: rate CTA high on the employers page")
     check('<table class="evid cmp">' in emp_ie and "<th scope=\"col\">Standard</th>" not in emp_ie and "Premium posting" in emp_ie and "Membership" in emp_ie and "Ask us" in emp_ie, "keith E4: comparison table with Standard / Premium / Membership")
-    check("Trusted across the UK" in emp_uk and "Client testimonials available on request." in emp_uk and "Trusted across the UK" not in emp_ie, "keith E7: UK-only trust block, testimonials collected for launch (panel B4)")
+    check("Trusted across the UK" in emp_uk and "testimonial" not in emp_uk.lower() and "<blockquote>" not in emp_uk and "Trusted across the UK" not in emp_ie, "keith E7: UK-only trust block; no testimonial line until real testimonials exist in data (rule 2026-11-21)")
     check("Preview exactly how your vacancy will appear to candidates." in emp_ie, "keith E6: one-line preview explanation")
     check("Organisations GreenJobs has helped with talent attraction" in emp_ie, "keith E3: recruiting organisations block")
     if real:
@@ -993,8 +993,102 @@ def test_r3_visual_fixes(tmp_root: Path):
     check(".maplist--sm" in css and 'data-map-counts' in (out / "ie" / "jobs" / "index.html").read_text(encoding="utf-8"), "r3 visual 11: compact region count list under the jobs-page map")
 
 
+def test_no_placeholder_proof_blocks(tmp_root: Path):
+    """Rule promised 2026-11-21: audience / testimonial / placement blocks
+    render only when a real value exists in data; nothing reads 'supplied at
+    launch' anywhere in the built IE and UK output."""
+    real = (SRC / "data" / "ie.json").exists() and (SRC / "data" / "uk.json").exists()
+    out = tmp_root / "site_proof"
+    rc = build_site.build(
+        SRC, out, editions=["ie", "uk"], fixture=None if real else FIXTURE
+    )
+    check(rc == 0, "proof: build returns 0")
+    for ed in ("ie", "uk"):
+        hits = [
+            str(p.relative_to(out))
+            for p in (out / ed).rglob("*")
+            if p.suffix in (".html", ".js", ".json")
+            and p.is_file()
+            and re.search(
+                r"supplied at launch",
+                p.read_text(encoding="utf-8", errors="replace"),
+                re.I,
+            )
+        ]
+        check(
+            not hits,
+            f"proof: no 'supplied at launch' in built {ed} output ({hits[:3]})",
+        )
+        emp = (out / ed / "employers" / "index.html").read_text(encoding="utf-8")
+        has_fig = bool(build_site.load_employer_proof(SRC, ed)["audience"])
+        check(
+            ('id="h-reach"' in emp) == has_fig and 'class="tbc"' not in emp,
+            f"proof: {ed} Audience and reach block present only with real figures",
+        )
+        check(
+            "available on request" not in emp.lower(),
+            f"proof: {ed} no 'testimonials available on request' line",
+        )
+    # unit: per-tile rendering, whole-block omission, placeholder rejection, anonymous quotes dropped
+    src = tmp_root / "proof_src"
+    (src / "data").mkdir(parents=True)
+    pf = src / "data" / "employer_proof_uk.json"
+    base = {"network_sites": [1, 2, 3]}
+    check(
+        build_site.load_employer_proof(src, "uk")
+        == {"audience": {}, "testimonials": []},
+        "proof: no file = no proof",
+    )
+    pf.write_text(
+        json.dumps(
+            {
+                "audience": {"newsletter": "9,800 subscribers", "candidates": "  "},
+                "testimonials": [
+                    {"quote": "Great hires."},
+                    {"quote": "Filled in a week.", "org": "Affric Limited"},
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    pr = build_site.load_employer_proof(src, "uk")
+    blk = build_site.audience_block({**base, "proof": pr})
+    check(
+        blk.count('class="fact reveal"') == 1
+        and "9,800 subscribers" in blk
+        and "Candidate audience" not in blk
+        and "Network and LinkedIn" not in blk,
+        "proof: only the tile whose figure exists renders",
+    )
+    th = build_site.testimonials_html({"proof": pr})
+    check(
+        th.count("<blockquote>") == 1
+        and "Affric Limited" in th
+        and "Great hires." not in th,
+        "proof: anonymous testimonials are not reproduced",
+    )
+    check(
+        build_site.audience_block({**base, "proof": {"audience": {}}}) == ""
+        and build_site.testimonials_html({"proof": {}}) == "",
+        "proof: no figures / no testimonials = whole block omitted",
+    )
+    pf.write_text(
+        json.dumps({"audience": {"candidates": "Figure supplied at launch"}}),
+        encoding="utf-8",
+    )
+    try:
+        build_site.load_employer_proof(src, "uk")
+        check(False, "proof: placeholder value fails loudly")
+    except ValueError as e:
+        check(
+            "supplied at launch" in str(e),
+            "proof: placeholder value fails loudly with the offending text",
+        )
+
+
 def main() -> int:
     import inspect
+
     base = REPO / ".tmp"
     base.mkdir(exist_ok=True)
     tmp_root = Path(tempfile.mkdtemp(prefix="greenjobs_test_build_", dir=str(base)))
@@ -1024,8 +1118,6 @@ def main() -> int:
     for label in failed:
         print(f"  FAIL: {label}")
     return 1 if failed else 0
-
-
 
 
 try:
@@ -1097,8 +1189,8 @@ def test_panel_b_copy_and_consent(tmp_root: Path):
     check("B Corp status" in keith and "logo" in keith.rsplit("Launch checklist", 1)[1][:1500], "panel B3/11: launch checklist asks for B Corp confirmation and logo permission")
     # 4. UK employers: no placeholder testimonial slots on the public page
     emp_uk = _read(out / "uk" / "employers" / "index.html")
-    check("fact--slot" not in emp_uk and "Testimonial supplied at launch" not in emp_uk and "Client testimonials available on request." in emp_uk,
-          "panel B4: UK employers page shows one collection line, no placeholder slots")
+    check("fact--slot" not in emp_uk and "Testimonial supplied at launch" not in emp_uk and "Client testimonials available on request." not in emp_uk,
+          "panel B4 (superseded 2026-11-21): UK employers page shows no placeholder slots and no testimonial collection line")
     # 5. demo forms: pre-submit note above the button + fallback link
     # Re-worded in round 2 B (visual 8 / R044): visitor voice, no "connects at launch" copy.
     for label, page_html, needle in (("home alerts", home, "Meanwhile, browse all roles"), ("subscribe dialog", home, "data-subscribe"), ("employers", emp_uk, "Preview only. Rates and posting are handled by the GreenJobs team")):
@@ -1176,8 +1268,6 @@ def test_panel_b_dashboard_rules_from_stored_fields():
     eur_in_gbp = build_site.annual_mid(jobs[0], ed["currency"])[2]
     check(k["sal_median"] == round((eur_in_gbp + 40000) / 2), f"panel B10: median converts EUR into the edition currency ({k['sal_median']})")
     check(k["closing7"] == 3 and k["new7"] == 3, f"panel B10: three roles posted 2 days ago and closing in 5 days count in both windows ({k['new7']}, {k['closing7']})")
-
-
 
 
 # --- round 2a (2026-09-28): matrix rows R010/R087, R012, R072/R077, R055, R041; visual 11/12/16/22/23/24/29/31
@@ -1370,7 +1460,7 @@ def test_r2b_visitor_voice_and_shell(tmp_root: Path):
     # 26: guides: empty heading gone, closing line once
     check("Career advice and market reports" not in guides and guides.count("More guides follow as the data grows.") == 1, "r2b visual 26: empty guides heading hidden; one closing line")
     # 28: audience tiles: neutral sentences, not italic placeholders
-    check("supplied at launch" not in emp and "published at launch" not in emp and "ask us" in emp.lower() and "font-style:italic" not in css.split(".tbc{")[1].split("}")[0], "r2b visual 28: audience tiles carry neutral 'ask us' sentences in the client's voice, no italics, no 'published at launch' promise")
+    check("supplied at launch" not in emp and "published at launch" not in emp and 'class="tbc"' not in emp and 'id="h-reach"' not in emp, "r2b visual 28 (superseded 2026-11-21): no audience placeholder tiles; the block is absent while no figure exists in data")
     # 9: 404 renders inside the shell with fonts/theme and the two edition tiles
     check('class="hdr"' in e404 and '<footer class="ftr">' in e404 and "css/styles.css" in e404 and "gj-theme" in e404 and e404.count('class="tile"') == 2 and e404.count("<h1") == 1, "r2b visual 9: 404 page uses the shell header/footer, brand stylesheet, theme, two edition tiles, one h1")
     # 14/15: preview toggle sits before the form; sheet heading collapsed in CSS
@@ -1391,7 +1481,6 @@ def test_r2b_visitor_voice_and_shell(tmp_root: Path):
     # lib helpers wired
     js = _read(SRC / "js" / "jobs.js")
     check("G.orderSectors" in js and "G.suggestSectors" in js, "r2b: jobs.js uses lib.orderSectors / lib.suggestSectors from round 2 A")
-
 
 
 # --- round 4 (panel v2 + trace 3, 2026-09-28) ---
@@ -1620,7 +1709,7 @@ def test_round4_b_copy_css_js(tmp_root: Path):
     check('#h-alert">job alerts by email</a>' in uk_home and "when the new site launches" not in uk_home, "integration e: UK subscribe dialog links to the board's own alert sign-up")
     for f in (home.split('data-signup="')[1], home.split('data-signup="')[2]):
         check(f.find("data-demo-pre") < f.find('type="submit"') and "Your address has not been stored." in f, "r4b B: sign-up note sits above the button; post-submit line keeps 'not been stored'")
-    check("published at launch" not in emp and "looking for green work" not in emp and "Thousands of visitors" not in emp and "Candidate audience: ask us for current monthly visitor and subscriber figures." in emp, "r4b B: employer audience tiles ask for figures instead of promising them")
+    check("published at launch" not in emp and "looking for green work" not in emp and "Thousands of visitors" not in emp and "Candidate audience: ask us" not in emp, "r4b B (superseded 2026-11-21): no audience tile asks for or promises figures; tiles render only with real data")
     check("up to ten job alerts by email, free" in home.split('class="hero__alerts"')[1].split("</a>")[0].lower() and "weekly job alerts" not in home and "ten matches" not in home, "r4b B: hero alerts strip makes no weekly-matches claim")
     check("computed from the live listings at build time" not in dash and "Wired at launch" not in dash and "live figures from this week's listings" in dash.lower() and "once analytics is switched on and you allow it" in dash, "r4b B: dashboard lede and event section in visitor voice")
     # C. salary chips: 'advertised in', currency glyph in the dot slot, dot centred on the first line
