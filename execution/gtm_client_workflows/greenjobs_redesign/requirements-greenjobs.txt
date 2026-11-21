@@ -1,10 +1,10 @@
 # Exact pins for every third-party Python package the GreenJobs scripts and tests import
 # (execution/gtm_client_workflows/greenjobs_redesign/**, tests/greenjobs_redesign/**). Everything else is stdlib.
 # Dependabot (pip, weekly, grouped) updates this file; see deploy/DEPENDENCIES.md.
-python-dotenv==1.2.3
+python-dotenv==1.2.4
 requests==2.34.2
 jsonschema==4.26.0
-pytest==9.1.1
+pytest==9.2.0
 pillow==12.3.0
 imageio-ffmpeg==0.8.1
 pip-audit==2.10.1
