@@ -24,6 +24,15 @@ Feature: Applications are routed to an inbox
     Then no email is sent
     And the application delivery status is "dry_run"
 
+  Scenario: A CV is attached to the application email and nothing is stored (default CV_STORAGE attach)
+    Given the worker setting "DRY_RUN" is "0"
+    And the worker setting "LIVE_CONFIRM" is "send-applications"
+    And the candidate attaches a "pdf" CV
+    When the candidate submits the application on host "greenjobs.ie"
+    Then the response status is 201
+    And 1 email is sent to "jobs@greenjobs.ie"
+    And no CV is stored
+
   Scenario: With both live switches set, exactly one email goes to the site inbox
     Given the worker setting "DRY_RUN" is "0"
     And the worker setting "LIVE_CONFIRM" is "send-applications"
@@ -148,7 +157,8 @@ Feature: Applications are routed to an inbox
     And 0 applications are stored
 
   Scenario Outline: Accepted CV types are stored under a generated key, never the client file name
-    Given the candidate attaches a "<type>" CV named "../../<type>-evil.<type>"
+    Given the worker setting "CV_STORAGE" is "r2"
+    And the candidate attaches a "<type>" CV named "../../<type>-evil.<type>"
     When the candidate submits the application on host "greenjobs.ie"
     Then the response status is 201
     And the stored CV key matches "^cv/ie/2026/11/[0-9a-f-]{36}\.<type>$"

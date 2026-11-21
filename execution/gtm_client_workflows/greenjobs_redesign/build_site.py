@@ -1370,22 +1370,93 @@ LOC_RENAME = {"london central": "Central London", "london city": "City of London
               "monagahan": "Monaghan"}
 
 
-def display_location(loc: str) -> str:
+# Eye review r3 m3: a UK nation tick ("Scotland (nationwide)", "Wales", "Northern Ireland") next to real places is
+# checked against the places' own nation (regions_uk.json: the Scotland / Wales / Northern Ireland rows, every other
+# region is England). Same nation: redundant, dropped. Another nation: a second area, shown "anywhere in Scotland",
+# so "West Yorkshire, Scotland (nationwide)" never reads as if West Yorkshire were in Scotland; the importer queues
+# that job for staff (location_review_reason). UK_NATION_PLACES is exported to the Worker (site_assets.gen.js NATIONS).
+NATION_NAMES = {"england": "England", "scotland": "Scotland", "wales": "Wales", "northern ireland": "Northern Ireland"}
+
+
+def _uk_nation_places() -> dict[str, list[str]]:
+    out: dict[str, list[str]] = {k: [] for k in NATION_NAMES}
+    path = Path(__file__).resolve().parents[3] / "deliverables" / PROJECT / "src" / "data" / "regions_uk.json"
+    try:
+        table = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return out  # no table: no place has a nation, so every tick stays as written
+    for name, aliases in table["regions"].items():
+        n = name.lower() if name.lower() in out else "england"
+        for a in [name, *aliases]:
+            w = a.lower()
+            if w not in _NI_AMBIGUOUS and w not in out[n]:
+                out[n].append(w)
+    return out
+
+
+UK_NATION_PLACES = _uk_nation_places()
+
+
+def _tick_nation(name: str) -> str | None:
+    m = re.fullmatch(r"(?:anywhere in\s+)?(england|scotland|wales|northern ireland)", name.strip(), flags=re.I)
+    return m.group(1).lower() if m else None
+
+
+def place_nation(name: str) -> str | None:
+    low = name.lower()
+    for n, words in UK_NATION_PLACES.items():
+        if any(re.search(r"(?<![a-z0-9])" + re.escape(w) + r"(?![a-z0-9])", low) for w in words):
+            return n
+    return None
+
+
+def _named_parts(loc: str) -> tuple[list[str], list[str]]:
     parts = [p.strip() for p in str(loc or "").split(",") if p.strip()]
-    if len(parts) < 2:
-        return LOC_RENAME.get(parts[0].lower(), parts[0]) if parts else str(loc or "").strip()
+
     def bare(p: str) -> str:
         return re.sub(r"\s*\(nationwide\)$", "", p, flags=re.I).strip()
-    specific = [p for p in parts if bare(p).lower() not in LOC_BROAD]
-    if not specific:
-        return ", ".join(parts)
+
     out: list[str] = []
-    for p in specific:
-        name = bare(p)
-        name = LOC_RENAME.get(name.lower(), name)
+    for p in parts:
+        if bare(p).lower() in LOC_BROAD:
+            continue
+        name = LOC_RENAME.get(bare(p).lower(), bare(p))
         if name.lower() not in (o.lower() for o in out):
             out.append(name)
+    return parts, out
+
+
+def display_location(loc: str) -> str:
+    parts, names = _named_parts(loc)
+    if len(parts) < 2:
+        return LOC_RENAME.get(parts[0].lower(), parts[0]) if parts else str(loc or "").strip()
+    if not names:
+        return ", ".join(parts)
+    places = [n for n in names if _tick_nation(n) is None]
+    if not places:
+        return ", ".join(names)
+    home = {place_nation(n) for n in places}
+    out: list[str] = []
+    for n in names:
+        t = _tick_nation(n)
+        if t is None:
+            out.append(n)
+        elif t not in home:
+            out.append(f"anywhere in {NATION_NAMES[t]}")
     return ", ".join(out)
+
+
+def location_review_reason(loc: str) -> str | None:
+    """Why staff should confirm a location, or None: a nation-wide tick for a nation none of the named places is in
+    (old-platform multi-select, e.g. "West Yorkshire, Scotland (nationwide)"). The quote is the source value."""
+    parts, names = _named_parts(loc)
+    places = [n for n in names if _tick_nation(n) is None]
+    home = {place_nation(n) for n in places}
+    odd = [NATION_NAMES[t] for t in (_tick_nation(n) for n in names) if t and t not in home]
+    if len(parts) < 2 or not places or not odd:
+        return None
+    where = ", ".join(f"{p} ({NATION_NAMES.get(place_nation(p) or '', 'nation unknown')})" for p in places)
+    return f'location "{str(loc).strip()[:80]}": {where} listed with {", ".join(odd)}-wide'[:150]
 
 
 def loc_badge(j: dict[str, Any]) -> str:
@@ -2393,8 +2464,12 @@ def shell_ctx(data: dict[str, Any], depth: int, page: str, title: str, desc: str
     cur = ' aria-current="page"'
     nav = "".join(f'<a href="{home}{href}"{cur if page == href.split("/")[0] else ""}>{label}</a>' for href, label in NAV)
     menu_links = nav
-    edsw = (f'<a href="{root}ie/{other_path if other == "ie" else same_path or "index.html"}" data-edswitch="ie" aria-current="{"true" if data["ed"] == "ie" else "false"}" hreflang="en-IE">IE</a>'
-            f'<a href="{root}uk/{other_path if other == "uk" else same_path or "index.html"}" data-edswitch="uk" aria-current="{"true" if data["ed"] == "uk" else "false"}" hreflang="en-GB">UK</a>')
+    # Eye r3 R3-6: with --edition-origin (release.py: the environment's board_urls) the switch to the OTHER edition
+    # goes to that edition's own board host (staging -> staging, production -> production), never this host's copy.
+    def ed_root(e: str) -> str:
+        return EDITION_ORIGINS[e] if e != data["ed"] and e in EDITION_ORIGINS else root
+    edsw = (f'<a href="{ed_root("ie")}ie/{other_path if other == "ie" else same_path or "index.html"}" data-edswitch="ie" aria-current="{"true" if data["ed"] == "ie" else "false"}" hreflang="en-IE">IE</a>'
+            f'<a href="{ed_root("uk")}uk/{other_path if other == "uk" else same_path or "index.html"}" data-edswitch="uk" aria-current="{"true" if data["ed"] == "uk" else "false"}" hreflang="en-GB">UK</a>')
     net = "".join(f'<li><a href="{esc(s["url"])}" rel="noopener">{esc(s["name"])}</a></li>' for s in data["network_sites"] if str(s.get("url", "")).startswith("http"))
     contact = data["contact"] or {}
     # Keith F3: the UK footer lists the UK number first, IE the Irish one; the
@@ -2420,6 +2495,7 @@ def shell_ctx(data: dict[str, Any], depth: int, page: str, title: str, desc: str
         for u in (data.get("social") or [])[:4])
     head_extra = ""
     if site_base:
+        site_base = EDITION_ORIGINS.get(data["ed"], site_base)  # an edition's canonical is its own board (R3-6)
         mine = f"{site_base}{data['ed']}/{same_path or 'index.html'}"
         head_extra = f'<link rel="canonical" href="{esc(mine)}">'
         # An hreflang pair only when the same path is built in the other
@@ -2431,8 +2507,8 @@ def shell_ctx(data: dict[str, Any], depth: int, page: str, title: str, desc: str
         twin = pairs.get(same_path or "index.html")
         if twin:
             mine_path, other_path_ = same_path or "index.html", twin
-            ie_url = f"{site_base}ie/{mine_path if data['ed'] == 'ie' else other_path_}"
-            uk_url = f"{site_base}uk/{mine_path if data['ed'] == 'uk' else other_path_}"
+            ie_url = f"{EDITION_ORIGINS.get('ie', site_base)}ie/{mine_path if data['ed'] == 'ie' else other_path_}"
+            uk_url = f"{EDITION_ORIGINS.get('uk', site_base)}uk/{mine_path if data['ed'] == 'uk' else other_path_}"
             head_extra += (f'<link rel="alternate" hreflang="en-IE" href="{esc(ie_url)}"><link rel="alternate" hreflang="en-GB" href="{esc(uk_url)}">'
                            f'<link rel="alternate" hreflang="x-default" href="{esc(ie_url)}">')
     return {
@@ -3217,6 +3293,7 @@ LIVE_API = False  # set by --live-api: the Worker answers /api/* on the board's 
 BOARD_BUILD = False  # set by build(board_site=...): a client board (staging/production) has no demo note and no for-keith page
 API_BASE = ""  # set by --api-base: the Worker's origin when it is NOT the board's host (staging: workers.dev); "" = same origin
 API_BASE_RE = re.compile(r"^https://[a-z0-9.-]+$")
+EDITION_ORIGINS: dict[str, str] = {}  # set by --edition-origin ED=URL: each edition's board origin ("https://host/")
 GA_CSP_DIRECTIVES = ("script-src", "connect-src", "img-src")
 # Google's documented GA4 endpoints (gtag.js loader + collection). Nothing wider: no wildcard, no *.google.com.
 GA4_CSP_ORIGINS = frozenset(
@@ -3398,6 +3475,9 @@ def main() -> int:
     parser.add_argument("--robots-index", action="store_true", default=os.environ.get("ROBOTS_INDEX") == "1",
                         help="production only: pages index,follow and robots.txt allows crawling (default: noindex; env ROBOTS_INDEX=1)")
     parser.add_argument("--analytics", choices=["off", "production"], default=os.environ.get("GJ_ANALYTICS", "off"), help="production: GA4 tag + Search Console meta + robots sitemaps (default off = staging)")
+    parser.add_argument("--edition-origin", action="append", default=[], metavar="ED=URL",
+                        help="an edition's board origin (release.py: environments.json board_urls); the IE/UK switch and "
+                             "that edition's canonical go there")
     parser.add_argument("--stats-json", action="append", default=[], metavar="ED=PATH",
                         help="an edition's GET /api/stats body (release.py, staging): the data-stat figure slots carry its values")
     args = parser.parse_args()
@@ -3413,6 +3493,12 @@ def main() -> int:
         if not isinstance(stats[ed_key], dict):
             parser.error(f"--stats-json {ed_key}: not a JSON object")
     global LIVE_API, API_BASE
+    for item in args.edition_origin:
+        ed_key, _, url = item.partition("=")
+        url = url.rstrip("/")
+        if ed_key not in ("ie", "uk") or not API_BASE_RE.match(url):
+            parser.error(f"--edition-origin takes ED=https://host with ED ie|uk, got {item!r}")
+        EDITION_ORIGINS[ed_key] = url + "/"
     LIVE_API = bool(args.live_api)
     API_BASE = args.api_base.rstrip("/")
     if API_BASE and not API_BASE_RE.match(API_BASE):

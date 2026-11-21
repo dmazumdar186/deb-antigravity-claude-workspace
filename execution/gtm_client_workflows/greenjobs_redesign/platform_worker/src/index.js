@@ -17,7 +17,8 @@ import { decideReview, listReview, REVIEW_DECIDE_PATH, reviewAsset, reviewHtml }
 import { boardJobsRoute, boardRoute, configRoute, statsRoute } from './routes/board.js';
 import { exportJobs, getJob, listJobs } from './routes/public.js';
 import { corsHeaders, preflight, siteForHost } from './site.js';
-import { clientIp, err, intVar, json, nowIso, sha256Hex, UUID_RE } from './util.js';
+import { clientIp, err, intVar, json, nowIso, sha256Hex, todayUtc, UUID_RE } from './util.js';
+import { boardOrigin, formResultResponse, isBoardHost, wantsHtml } from './formpage.js';
 import { alertsRoute, runAlerts } from './listmail/alerts.js';
 import { newRun } from './listmail/core.js';
 import { listMeasures, writeMeasures } from './listmail/measures.js';
@@ -174,6 +175,14 @@ export function createHandler(deps = {}) {
       return admin(request, env, site, path, now);
     }
     if (method === 'OPTIONS' && PUBLIC_PREFLIGHT.test(path)) return preflight(request, env);
+    // Eye r3 R3-2: an HTML page on a host that is not the edition's board host (staging: *.workers.dev, where the
+    // board's CSS/JS do not exist) answers 301 to the same path on the board (CANONICAL_ORIGIN_<SITE>). The API stays.
+    if ((method === 'GET' || method === 'HEAD') && !path.startsWith('/api/')) {
+      const board = boardOrigin(env, site);
+      if (board && !isBoardHost(env, url.hostname)) {
+        return new Response(null, { status: 301, headers: { Location: `${board}${path}${url.search}`, 'Cache-Control': 'public, max-age=300' } });
+      }
+    }
     if (method === 'GET' && path === '/api/export/jobs') return exportJobs(request, env, now);
     if (!path.startsWith('/api/')) {
       const page = await cached(request, ctx, () => boardRoute(request, env, site, now));
@@ -194,16 +203,19 @@ export function createHandler(deps = {}) {
     if (method === 'GET' && m) return getJob(env, site, m[1], now, cors);
     // Cross-origin from an ALLOWED_ORIGINS board (staging: one Pages project carries both editions), ?site= names
     // the edition of the job, exactly as for the sign-ups; same-origin, the Host decides.
-    if (method === 'POST' && path === '/api/apply') return apply({ env, site: signupSite(url, site, cors), now, request, cors, rate, mailer });
+    // A browser form posted without JS (Accept: text/html) gets the site's HTML result page, never raw JSON (eye r3 R3-2).
+    const page = (kind, res) => (method === 'POST' && wantsHtml(request)
+      ? formResultResponse({ env, site: signupSite(url, site, cors), url, today: todayUtc(now), kind, res }) : res);
+    if (method === 'POST' && path === '/api/apply') return page('apply', await apply({ env, site: signupSite(url, site, cors), now, request, cors, rate, mailer }));
     if (path === '/api/alerts' || path.startsWith('/api/alerts/')) {
-      if (env.ALERTS_ENABLED !== '1') return err('not_found', 404, cors);
+      if (env.ALERTS_ENABLED !== '1') return page('alerts', err('not_found', 404, cors));
       const clientKey = await sha256Hex(clientIp(request));
-      return alertsRoute({ env, site: signupSite(url, site, cors), now, request, cors, rate, transport: deps.mailTransport, path, url, clientKey });
+      return page('alerts', await alertsRoute({ env, site: signupSite(url, site, cors), now, request, cors, rate, transport: deps.mailTransport, path, url, clientKey }));
     }
     if (path === '/api/newsletter' || path.startsWith('/api/newsletter/')) {
-      if (env.NEWSLETTER_ENABLED !== '1') return err('not_found', 404, cors);
+      if (env.NEWSLETTER_ENABLED !== '1') return page('newsletter', err('not_found', 404, cors));
       const clientKey = await sha256Hex(clientIp(request));
-      return newsletterRoute({ env, site: signupSite(url, site, cors), now, request, cors, rate, transport: deps.mailTransport, path, url, clientKey });
+      return page('newsletter', await newsletterRoute({ env, site: signupSite(url, site, cors), now, request, cors, rate, transport: deps.mailTransport, path, url, clientKey }));
     }
     return err('not_found', 404, cors);
   }

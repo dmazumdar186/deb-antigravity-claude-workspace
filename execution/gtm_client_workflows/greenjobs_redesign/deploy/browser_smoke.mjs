@@ -3,7 +3,8 @@
 // with "apply" tasks (smoke.py sends those only where the environment pins DRY_RUN).
 // description: reads one JSON spec on stdin {tasks: [...]}, runs each task in Playwright Chromium (launched with no
 //   options) and prints one JSON line {checks: [{name, ok, detail}]}. Tasks:
-//     apply  {name, url, expect_post, email}: open the job page, fill and submit the ON-PAGE form (no CV), assert the
+//     apply  {name, url, expect_post, email, cv?}: open the job page, fill and submit the ON-PAGE form (cv: true attaches
+//            a small PDF on #ap-cv), assert the
 //            POST went to expect_post (the edition's API base), answered 200/201, and the page shows the success
 //            message. DRY_RUN on the Worker: nothing is mailed; the fixed address converges on one application row.
 //     link   {name, url, expect}: every Apply button on a link-apply job page points at the employer's URL (expect),
@@ -30,6 +31,7 @@ if (!pw) out({ error: 'playwright not installed' }, 2);
 let browser;
 try { browser = await pw.chromium.launch(); } catch (e) { out({ error: `chromium did not start: ${short(e.message, 80)}` }, 2); }
 
+const SMOKE_PDF = '%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[]/Count 0>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n';
 const CONSENT = { name: 'gj-consent', value: '{"essential":true,"analytics":false,"marketing":false}' };
 async function newPage(opts = {}) {
   const ctx = await browser.newContext(opts);
@@ -52,6 +54,10 @@ async function applyTask(t) {
     await page.fill('#ap-name', 'Staging Browser Smoke');
     await page.fill('#ap-email', t.email);
     await page.fill('#ap-cover', 'Automated staging browser smoke test (DRY_RUN: nothing is sent).');
+    // eye r3 R3-1: a small, valid PDF on the file input (validated and attached by the Worker; DRY_RUN sends nothing)
+    if (t.cv) await page.setInputFiles('#ap-cv', { name: 'smoke-cv.pdf', mimeType: 'application/pdf', buffer: Buffer.from(SMOKE_PDF) });
+    // (Playwright exposes no multipart body that carries a file, so the file is checked on the input before the send)
+    const cvOn = t.cv ? await page.$eval('#ap-cv', (i) => i.files.length === 1 && i.files[0].name === 'smoke-cv.pdf' && i.files[0].size > 0) : false;
     await page.check('#ap-consent');
     const wait = 4500 - (Date.now() - t0); // the Worker refuses a form younger than 3 s (anti-bot render stamp)
     if (wait > 0) await page.waitForTimeout(wait);
@@ -64,8 +70,9 @@ async function applyTask(t) {
     const text = short(await st.textContent());
     const post = posts[0];
     const toApi = Boolean(post && post.url.startsWith(t.expect_post));
-    const ok = toApi && [200, 201].includes(post.status) && /^Application received/.test(text) && (await st.isVisible());
-    return { ok, detail: `POST ${post ? `${new URL(post.url).host}${new URL(post.url).pathname}${new URL(post.url).search} -> ${post.status}` : 'none'}${toApi ? '' : ` (want ${t.expect_post})`}; status "${text}"` };
+    const ok = toApi && [200, 201].includes(post.status) && /^Application received/.test(text) && (await st.isVisible())
+      && (!t.cv || (cvOn && (await page.$eval('#ap-cv', (i) => i.files.length === 0))));
+    return { ok, detail: `${t.cv ? `CV ${cvOn ? 'sent' : 'NOT on the form'}; ` : ''}POST ${post ? `${new URL(post.url).host}${new URL(post.url).pathname}${new URL(post.url).search} -> ${post.status}` : 'none'}${toApi ? '' : ` (want ${t.expect_post})`}; status "${text}"` };
   } finally { await ctx.close(); }
 }
 

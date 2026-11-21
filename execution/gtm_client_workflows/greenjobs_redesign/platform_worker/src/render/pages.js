@@ -49,10 +49,9 @@ export function analyticsCtx(site, host, root = ROOT) {
 }
 
 /** shell_ctx() with absolute paths: root "/" and the edition home "/{site}/". */
-export function shellCtx(site, { page, title, desc, samePath = '', switchPath = '', canonical = '', nJobs = 0, today, bodyAttrs = '', indexable = false, reqHost = '' }) {
+export function shellCtx(site, { page, title, desc, samePath = '', switchPath = '', canonical = '', nJobs = 0, today, bodyAttrs = '', indexable = false, reqHost = '', root = ROOT }) {
   const ed = edition(site);
   const data = SHELL[site];
-  const root = ROOT;
   const home = `${root}${site}/`;
   const other = ed.other;
   const otherPath = switchPath || samePath || 'index.html';

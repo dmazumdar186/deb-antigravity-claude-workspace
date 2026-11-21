@@ -83,33 +83,41 @@ def _plain(x: str) -> str:
     return re.sub(r"<[^>]+>", " ", x)
 
 
-def _strip_line(seg: str) -> str:
-    """One line of text (between <br>s): a short line naming a date goes; a long one loses its dated sentences."""
-    if not DATE_IN_TEXT.search(_plain(seg)):
+def _strip_line(seg: str, rx: re.Pattern[str] = DATE_IN_TEXT) -> str:
+    """One line of text (between <br>s): a short line matching rx goes; a long one loses its matching sentences."""
+    if not rx.search(_plain(seg)):
         return seg
     if len(_plain(seg).strip()) < 160:
         return ""
-    return " ".join(x for x in _SENTENCE_SPLIT.split(seg) if not DATE_IN_TEXT.search(_plain(x)))
+    return " ".join(x for x in _SENTENCE_SPLIT.split(seg) if not rx.search(_plain(x)))
 
 
-def _strip_lines(inner: str) -> str:
-    return "".join(part if _BR.fullmatch(part) else _strip_line(part) for part in _BR.split(inner))
+def _strip_lines(inner: str, rx: re.Pattern[str] = DATE_IN_TEXT) -> str:
+    return "".join(part if _BR.fullmatch(part) else _strip_line(part, rx) for part in _BR.split(inner))
 
 
-def strip_date_sentences(markup: str) -> str:
+def strip_external_apply_sentences(markup: str) -> str:
+    """Test data only (eye review r3 R3-7): the seed turns every old-platform apply URL into email mode (the on-page
+    form), so a September advert that says "You will be taken to a simple CHM Recruit form" would contradict the
+    page. Those sentences go (same block / line rules as the dates). Real imports never strip: they queue the job
+    for staff (job_classifier.apply_route_review_reason). Idempotent."""
+    return strip_date_sentences(markup, jc.EXTERNAL_APPLY_ANY)
+
+
+def strip_date_sentences(markup: str, rx: re.Pattern[str] = DATE_IN_TEXT) -> str:
     """Test data only (eye review r2 N8): the September adverts quote their own deadlines and start dates
     ("Closing date: 23:59, Monday, 19th October 2026"), which contradict the re-based dates in the page header.
     Per innermost block and per <br> line: a short line that names a calendar date goes whole (a "Closing date:"
     fact), a long one loses only the sentences that name one, and a block left without text goes. Idempotent."""
     def block(m: re.Match[str]) -> str:
         open_, inner, close = m.group(1), m.group(3), m.group(4)
-        if not DATE_IN_TEXT.search(_plain(inner)):
+        if not rx.search(_plain(inner)):
             return m.group(0)
-        kept = _strip_lines(inner)
+        kept = _strip_lines(inner, rx)
         return f"{open_}{kept}{close}" if _plain(kept).strip() else ""
     out = _BLOCK.sub(block, markup or "")
-    if DATE_IN_TEXT.search(_plain(out)):  # text outside any block (a bare <br>-separated advert)
-        out = _strip_lines(out)
+    if rx.search(_plain(out)):  # text outside any block (a bare <br>-separated advert)
+        out = _strip_lines(out, rx)
     return out
 
 
@@ -128,7 +136,7 @@ def rebase_september(raw: dict[str, Any], seed_date: date) -> list[dict[str, Any
                 **j,
                 "title": (TEST_PREFIX + title)[:160],
                 # the advert's own dates would contradict the shifted header dates (eye review r2 N8)
-                "description_html": strip_date_sentences(str(j.get("description_html") or "")),
+                "description_html": strip_external_apply_sentences(strip_date_sentences(str(j.get("description_html") or ""))),
                 "summary": " ".join(x for x in _SENTENCE_SPLIT.split(str(j.get("summary") or "")) if not DATE_IN_TEXT.search(x)),
                 "posted": _shift(j.get("posted"), delta),
                 "closing": _shift(j.get("closing"), delta),

@@ -193,7 +193,7 @@
       body.fields.forEach(function (k) { f[k] = APPLY_FIELD[k] || 'Please check this field.'; });
       return { ok: false, text: 'Please correct the highlighted fields.', fields: f };
     }
-    if (e === 'cv_storage_unavailable') return { ok: false, text: 'CV uploads are not available yet. Remove the CV and send again.', fields: { cv: 'CV uploads are not available yet.' } };
+    if (e === 'delivery_failed') return { ok: false, text: 'We could not send your application just now. Please try again in a few minutes.' };
     if (e === 'cv_too_large') return { ok: false, text: 'The CV is too large.', fields: { cv: 'Please choose a file under 5 MB.' } };
     if (e === 'cv_type' || e === 'cv_empty') return { ok: false, text: 'The CV could not be read.', fields: { cv: 'Please choose a PDF or Word file.' } };
     if (e === 'apply_externally') return { ok: false, text: 'This role takes applications on the employer\'s own site.' };
@@ -237,6 +237,20 @@
         });
         if (first && first.focus) first.focus();
       }
+      /* eye r3 R3-3: after a successful send the form is cleared (the render stamp kept), the button says it is
+         done, and the sticky bar no longer offers "Apply now" for this job. */
+      function applied() {
+        var ts = f.querySelector('[data-apply-ts]'), keep = ts ? ts.value : '';
+        if (typeof f.reset === 'function') f.reset();
+        if (ts) ts.value = keep;
+        f.setAttribute('data-applied', '');
+        btn.disabled = true; btn.textContent = 'Application sent';
+        Array.prototype.forEach.call(doc.querySelectorAll('[data-sticky-apply] a[data-apply]') || [], function (a) {
+          a.textContent = 'Application sent'; a.setAttribute('aria-label', 'Application sent: see the confirmation');
+          a.classList.add('is-done');
+        });
+        var bar = doc.querySelector ? doc.querySelector('[data-sticky-apply]') : null; if (bar) bar.classList.add('is-applied');
+      }
       f.addEventListener('submit', function (e) {
         e.preventDefault();
         clear();
@@ -246,9 +260,9 @@
         btn.disabled = true; say('Sending...');
         return F(url, { method: 'POST', body: new FD(f), credentials: base ? 'omit' : 'same-origin', referrerPolicy: 'strict-origin-when-cross-origin' })
           .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return applyOutcome(r.status, d); }); })
-          .then(function (o) { if (o.fields) mark(o.fields); say(o.text, !o.ok); if (o.ok) f.setAttribute('data-applied', ''); })
+          .then(function (o) { if (o.fields) mark(o.fields); say(o.text, !o.ok); if (o.ok) applied(); })
           .catch(function () { say('Not sent: network error. Please try again.', true); })
-          .then(function () { btn.disabled = false; });
+          .then(function () { if (!f.hasAttribute('data-applied')) btn.disabled = false; });
       });
     });
     return forms.length;

@@ -1011,3 +1011,17 @@ html[data-cookie-open] body{padding-bottom:var(--cookie-h,56px)}html[data-cookie
 @media (prefers-reduced-motion:reduce) and (min-width:1100px){.cwall{grid-template-columns:repeat(6,minmax(0,1fr))}}
 
 .adb__desc{font-size:var(--small);color:var(--fg-2);display:grid;gap:8px;max-height:220px;overflow:auto}.adb__desc ul{list-style:disc;padding-left:1.2em;display:grid;gap:3px}
+/* Eye review r3 (m2, R3-4, R3-5; last in the file so it wins over the component rules above): every phone tap target is >= 44 x 44 px; the breadcrumb "/" sits on the text's line;
+   footer list links keep their left edge (the 44 px min-width centred short words such as "Jobs"). Card title links
+   stay stretched over the card; their own box gets 44 px by padding offset with a negative margin (layout unchanged). */
+@media (max-width:700px){
+.crumbs{align-items:center}.crumbs>span{display:inline-flex;align-items:center;min-height:44px}.crumbs a{min-width:44px;justify-content:center}
+.ftr li a{justify-content:flex-start}
+.btn--sm,.seg button{min-height:44px;min-width:44px}
+.save,.role .save{width:44px;height:44px}
+.role h3 a,.row h3 a{display:inline-block;padding-block:12px;margin-block:-12px}
+.netline a,p.muted>a,.note__fallback a,.sits__sim a{display:inline-block;padding-block:12px;margin-block:-12px;min-width:44px}
+details.tbl summary,.sits__table summary{min-height:44px;min-width:44px}
+.fit__try button{min-height:44px}
+.maplist a,.hbar{min-height:44px}
+}

@@ -1116,9 +1116,13 @@ def class_sql(site: str, r: dict, t3: dict, now: str) -> list[str]:
            "period": r.get("period"), "sal_text": r.get("sal_text")}
     f = jc.facet_row(job, site, c, "import")
     out = [render(t3["job_facets_upsert"], jc.facet_params(r["id"], f, now))]
-    if c["needs_review"]:
-        out.append(render(t3["review_upsert"], [r["id"], site, c["review_reason"],
-                                                cjson(c["suggested_sectors"]),
+    # eye r3: an apply route the advert contradicts (R3-7) or a location naming two nations (m3) is queued for staff
+    # too, with its quote; the job stays live (hold 0) and its apply mode is never changed here.
+    extra = jc.extra_review_reasons({"description": r["description"], "apply_mode": r.get("apply_mode"), "location": r.get("location")})
+    if c["needs_review"] or extra:
+        reason = "; ".join(([c["review_reason"]] if c["needs_review"] and c["review_reason"] else []) + extra)[:300]
+        suggested = c["suggested_sectors"] if c["needs_review"] else c["sectors"]
+        out.append(render(t3["review_upsert"], [r["id"], site, reason, cjson(suggested),
                                                 float(c["sector_confidence"]), 0, now]))
     else:
         out.append(render(t3["review_clear"], [r["id"]]))

@@ -160,16 +160,15 @@ test('d: the service scope is exactly the smoke paths (unit)', async () => {
   }
 });
 
-test('staging without R2: an apply carrying a CV answers 503 and stores nothing; without a CV it is accepted', async () => {
+test('staging without R2 (eye r3 R3-1): an apply carrying a CV is accepted, attached to the mail, nothing stored', async () => {
   const w = await makeWorld();
   delete w.env.CVS;
   seedJob(w, { id: 'ie:strat:900', apply_email: 'hr@example.ie' });
-  const form = (cv) => applyRequest({ job_id: 'ie:strat:900' }, { cv: cv ? PDF_BYTES : undefined, origin: 'https://greenjobs.ie', ip: '198.51.100.20' });
-  const r = await w.fetch(form(true));
-  assert.equal(r.status, 503);
-  assert.equal((await r.json()).error, 'cv_storage_unavailable');
-  assert.equal(w.db.q('SELECT COUNT(*) AS n FROM applications')[0].n, 0);
-  const ok = await w.fetch(form(false));
+  const form = (cv, email) => applyRequest({ job_id: 'ie:strat:900', email }, { cv: cv ? PDF_BYTES : undefined, origin: 'https://greenjobs.ie', ip: '198.51.100.20' });
+  const r = await w.fetch(form(true, 'a@example.ie'));
+  assert.equal(r.status, 201, await r.clone().text());
+  assert.equal(w.db.q('SELECT cv_key FROM applications')[0].cv_key, null);
+  const ok = await w.fetch(form(false, 'b@example.ie'));
   assert.equal(ok.status, 201, await ok.clone().text());
 });
 

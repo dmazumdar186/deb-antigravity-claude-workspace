@@ -533,7 +533,14 @@ def summary_md(r: dict[str, Any]) -> str:
         f"| D1 migration level | {r.get('d1_migration_level') or '-'} |\n| smoke | {r['smoke'].get('status')} |\n"
         f"| previous Worker | {prev.get('worker_version_id') or '-'} |\n| previous Pages | {prev_pages} |\n"
         f"| backup | {(r.get('backup') or {}).get('object') or '-'} |\n| rollback | {(r.get('rollback') or {}).get('status') or '-'} |\n"
-        f"| started / finished | {r['started_at']} / {r.get('finished_at') or '-'} |\n"
+        + (
+            f"| Gaia feed | {gf['source']} (generated {gf.get('generated')})"
+            + (f": {gf['reason']}" if gf.get("reason") else "")
+            + " |\n"
+            if (gf := r.get("gaia_feed"))
+            else ""
+        )
+        + f"| started / finished | {r['started_at']} / {r.get('finished_at') or '-'} |\n"
     )
 
 
@@ -611,6 +618,20 @@ def urllib_api(method: str, path: str, token: str, account: str) -> dict[str, An
 
 def _rel(p: Path) -> str:
     return str(p.relative_to(ROOT) if p.is_relative_to(ROOT) else p)
+
+
+GAIA_LAST_GOOD = "gaia_feed_last_good.json"
+
+
+def gaia_feed_generated(path: Path) -> str | None:
+    """The feed's 'generated' stamp when the file is a Gaia feed with at least one job, else None."""
+    try:
+        feed = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    if not isinstance(feed, dict) or not isinstance(feed.get("jobs"), list) or not feed["jobs"]:
+        return None
+    return str(feed.get("generated") or "unknown")
 
 
 class Release:
@@ -758,10 +779,7 @@ class Release:
         self.seed_date = self.environ.get("GREENJOBS_SEED_DATE") or utc_now()[:10]
         dt.date.fromisoformat(self.seed_date)  # a bad override fails here, before anything runs
         self.workdir.mkdir(parents=True, exist_ok=True)
-        self.run(
-            "current public Gaia Talent jobs (public read; no Jev, no spend)",
-            ["python3", f"{tool}/gaia_feed_sync.py", "--no-jev", "--out", _rel(feed_dir)],
-        )
+        self.fetch_gaia_feed(tool, feed_dir)
         self.run(
             f"staging seed set for {self.seed_date}: seed.sql + data/{{ie,uk}}.json from one normalised set",
             ["python3", f"{tool}/staging_seed.py", "--env", "staging", "--seed-date", self.seed_date,
@@ -784,6 +802,33 @@ class Release:
             "D1 staging seed (upserts; closes earlier seed rows no longer in the set)",
             self.wr("d1", "execute", self.ec["d1"], "--remote", "--file", _rel(f)),
         )
+
+    def fetch_gaia_feed(self, tool: str, feed_dir: Path) -> None:
+        """The current Gaia feed, or the LAST GOOD snapshot when the fetch fails (e.g. gaiatalent.com answering 522):
+        the staging seed never stops on a third party's outage, and never pretends either. Each good fetch is copied to
+        {ledger_dir}/gaia_feed_last_good.json; a fallback is recorded in the release record (record["gaia_feed"]) and
+        summary.md. No snapshot and no feed: the step fails loud."""
+        feed_json, last_good = feed_dir / "feed.json", self.ledger_dir / GAIA_LAST_GOOD
+        desc = "current public Gaia Talent jobs (public read; no Jev, no spend)"
+        try:
+            self.run(desc, ["python3", f"{tool}/gaia_feed_sync.py", "--no-jev", "--out", _rel(feed_dir)])
+            if self.execute:
+                gen = gaia_feed_generated(feed_json)
+                if gen is None:
+                    raise StepError("gaia_feed_sync wrote no jobs to feed.json")
+                self.ledger_dir.mkdir(parents=True, exist_ok=True)
+                last_good.write_bytes(feed_json.read_bytes())
+                self.record["gaia_feed"] = {"source": "live", "generated": gen}
+        except StepError as e:
+            if not self.execute:
+                raise
+            gen = gaia_feed_generated(last_good)
+            if gen is None:
+                raise StepError(f"{e}; and no last good Gaia feed snapshot at {_rel(last_good)}") from e
+            feed_dir.mkdir(parents=True, exist_ok=True)
+            feed_json.write_bytes(last_good.read_bytes())
+            self.record["gaia_feed"] = {"source": "last_good_snapshot", "generated": gen, "reason": str(e)[:200]}
+            print(f"[{self.env}] WARNING Gaia feed fetch failed ({e}); seeding from the last good snapshot (generated {gen})")
 
     def deploy_worker(self) -> None:
         # RELEASE_SHA: GET /api/health reports which commit is serving (smoke and humans compare it to the sha)
@@ -866,6 +911,8 @@ class Release:
                     self.ec["board_urls"][site].rstrip("/") + "/",
                     "--board-site",
                     site,
+                    # eye r3 R3-6: the IE/UK switch goes to the other edition's board in THIS environment
+                    *[a for ed, u in sorted(self.ec["board_urls"].items()) for a in ("--edition-origin", f"{ed}={u.rstrip('/')}")],
                     *(["--robots-index"] if self.ec.get("robots_index") else []),
                     *(["--live-api"] if self.ec.get("live_api") else []),
                     # staging: the Worker is on its own origin (workers.dev); production: same host, no flag

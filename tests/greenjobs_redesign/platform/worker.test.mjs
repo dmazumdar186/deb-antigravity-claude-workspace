@@ -280,7 +280,7 @@ test('live only with DRY_RUN=0 AND LIVE_CONFIRM=send-applications: one send, one
 });
 
 test('duplicate application: 200 already_received, nothing stored or sent twice', async () => {
-  const w = await makeWorld({ DRY_RUN: '0', LIVE_CONFIRM: 'send-applications' });
+  const w = await makeWorld({ DRY_RUN: '0', LIVE_CONFIRM: 'send-applications', CV_STORAGE: 'r2' });
   seedJob(w, { id: 'ie:strat:1' });
   assert.equal((await w.fetch(applyRequest({ job_id: 'ie:strat:1' }, { cv: PDF_BYTES }))).status, 201);
   const r = await w.fetch(applyRequest({ job_id: 'ie:strat:1', email: ' AOIFE@example.ie ' }, { cv: PDF_BYTES }));
@@ -326,7 +326,7 @@ test('application gates: honeypot, too fast, consent, closed job, url-mode 409, 
 });
 
 test('CV: magic bytes decide, R2 key never uses the client file name, oversize 413', async () => {
-  const w = await makeWorld({ MAX_CV_BYTES: '1000' });
+  const w = await makeWorld({ MAX_CV_BYTES: '1000', CV_STORAGE: 'r2' });
   for (let i = 1; i <= 5; i++) seedJob(w, { id: `ie:strat:${i}` });
   const ok = [];
   for (const [i, bytes, ext] of [[1, PDF_BYTES, 'pdf'], [2, DOC_BYTES, 'doc'], [3, docxBytes(), 'docx']]) {
@@ -381,7 +381,7 @@ test('routing: inbox per site; consultant uses apply_email, falls back to the in
 });
 
 test('scheduled retry: failed deliveries are retried once live; dry run never sends', async () => {
-  const w = await makeWorld({ DRY_RUN: '0', LIVE_CONFIRM: 'send-applications' });
+  const w = await makeWorld({ DRY_RUN: '0', LIVE_CONFIRM: 'send-applications', CV_STORAGE: 'r2' });
   seedJob(w, { id: 'ie:strat:1' });
   w.mail.ok = false;
   const r = await w.fetch(applyRequest({ job_id: 'ie:strat:1' }, { cv: PDF_BYTES }));
